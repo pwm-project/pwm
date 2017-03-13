@@ -32,6 +32,7 @@ import password.pwm.health.HealthMonitor;
 import password.pwm.http.servlet.resource.ResourceServletService;
 import password.pwm.http.state.SessionStateService;
 import password.pwm.ldap.LdapConnectionService;
+import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.cache.CacheService;
 import password.pwm.svc.event.AuditService;
 import password.pwm.svc.intruder.IntruderManager;
@@ -92,6 +93,7 @@ public class PwmServiceManager {
         ResourceServletService( ResourceServletService.class,    false),
         SessionTrackService(    SessionTrackService.class,       false),
         SessionStateSvc(        SessionStateService.class,       false),
+        UserSearchEngine(       UserSearchEngine.class,          true),
 
         ;
 

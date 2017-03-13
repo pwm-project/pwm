@@ -51,8 +51,9 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.NewUserBean;
+import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.UserDataReader;
-import password.pwm.ldap.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.svc.event.AuditEvent;
@@ -81,7 +82,7 @@ import java.util.Set;
 
 public class NewUserUtils {
     private static PwmLogger LOGGER = password.pwm.util.logging.PwmLogger.forClass(NewUserUtils.class);
-    
+
     private NewUserUtils() {
     }
 
@@ -361,12 +362,14 @@ public class NewUserUtils {
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
-        final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmRequest);
-        final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
-        searchConfiguration.setUsername(rdnValue);
+        final UserSearchEngine userSearchEngine = pwmRequest.getPwmApplication().getUserSearchEngine();
+        final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
+                .username(rdnValue)
+                .build();
+
         try {
             final Map<UserIdentity, Map<String, String>> results = userSearchEngine.performMultiUserSearch(
-                    searchConfiguration, 2, Collections.<String>emptyList());
+                    searchConfiguration, 2, Collections.emptyList(), pwmRequest.getSessionLabel());
             return results != null && !results.isEmpty();
         } catch (PwmOperationalException e) {
             final String msg = "ldap error while searching for duplicate entry names: " + e.getMessage();

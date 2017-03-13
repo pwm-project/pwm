@@ -28,6 +28,7 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -108,7 +109,7 @@ public class UserMatchViewerFunction implements SettingUIFunction {
             }
         }
 
-        return LdapPermissionTester.discoverMatchingUsers(tempApplication, maxResultSize, permissions).keySet();
+        return LdapPermissionTester.discoverMatchingUsers(tempApplication, maxResultSize, permissions, SessionLabel.SYSTEM_LABEL).keySet();
     }
 
 

@@ -144,8 +144,8 @@ PWM_NEWUSER.markStrength=function(strength) { //strength meter
 
 PWM_NEWUSER.refreshCreateStatus=function(refreshInterval) {
     require(["dojo","dijit/registry"],function(dojo,registry){
-        var checkStatusUrl = PWM_MAIN.addParamToUrl(window.location.href,"processAction","checkProgress");
-        var completedUrl = PWM_MAIN.addParamToUrl(window.location.href,"processAction","complete");
+        var checkStatusUrl = PWM_MAIN.addParamToUrl(window.location.pathname,"processAction","checkProgress");
+        var completedUrl = PWM_MAIN.addParamToUrl(window.location.pathname,"processAction","complete");
         var loadFunction = function(data) {
             var supportsProgress = (document.createElement('progress').max !== undefined);
             if (supportsProgress) {
@@ -168,4 +168,4 @@ PWM_NEWUSER.refreshCreateStatus=function(refreshInterval) {
         };
         PWM_MAIN.ajaxRequest(checkStatusUrl, loadFunction, {method:'GET'});
     });
-}
+};

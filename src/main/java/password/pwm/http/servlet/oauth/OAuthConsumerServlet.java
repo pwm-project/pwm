@@ -40,7 +40,7 @@ import password.pwm.http.PwmURL;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.http.servlet.forgottenpw.ForgottenPasswordServlet;
-import password.pwm.ldap.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
@@ -245,8 +245,13 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
 
         if (userIsAuthenticated) {
             try {
-                final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmRequest);
-                final UserIdentity resolvedIdentity = userSearchEngine.resolveUsername(oauthSuppliedUsername, null, null);
+                final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
+                final UserIdentity resolvedIdentity = userSearchEngine.resolveUsername(
+                        oauthSuppliedUsername,
+                        null,
+                        null,
+                        pwmSession.getLabel()
+                );
                 if (resolvedIdentity != null && resolvedIdentity.canonicalEquals(pwmSession.getUserInfoBean().getUserIdentity(),pwmApplication)) {
                     LOGGER.debug(pwmSession, "verified incoming oauth code for already authenticated session does resolve to same as logged in user");
                 } else {

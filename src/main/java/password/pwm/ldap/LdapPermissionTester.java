@@ -41,6 +41,8 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.ldap.search.SearchConfiguration;
+import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.cache.CacheKey;
 import password.pwm.svc.cache.CachePolicy;
 import password.pwm.util.logging.PwmLogger;
@@ -196,28 +198,31 @@ public class LdapPermissionTester {
     public static Map<UserIdentity, Map<String, String>> discoverMatchingUsers(
             final PwmApplication pwmApplication,
             final int maxResultSize,
-            final List<UserPermission> userPermissions
+            final List<UserPermission> userPermissions,
+            final SessionLabel sessionLabel
     )
             throws Exception
     {
-        final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, SessionLabel.SYSTEM_LABEL);
+        final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
 
         final Map<UserIdentity, Map<String, String>> results = new TreeMap<>();
         for (final UserPermission userPermission : userPermissions) {
             if ((maxResultSize) - results.size() > 0) {
-                final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
+
+                final SearchConfiguration.SearchConfigurationBuilder builder = SearchConfiguration.builder();
+
                 switch (userPermission.getType()) {
                     case ldapQuery: {
-                        searchConfiguration.setFilter(userPermission.getLdapQuery());
+                        builder.filter(userPermission.getLdapQuery());
                         if (userPermission.getLdapBase() != null && !userPermission.getLdapBase().isEmpty()) {
-                            searchConfiguration.setEnableContextValidation(false);
-                            searchConfiguration.setContexts(Collections.singletonList(userPermission.getLdapBase()));
+                            builder.enableContextValidation(false);
+                            builder.contexts(Collections.singletonList(userPermission.getLdapBase()));
                         }
                     }
                     break;
 
                     case ldapGroup: {
-                        searchConfiguration.setGroupDN(userPermission.getLdapBase());
+                        builder.groupDN(userPermission.getLdapBase());
                     }
                     break;
 
@@ -226,15 +231,18 @@ public class LdapPermissionTester {
                 }
 
                 if (userPermission.getLdapProfileID() != null && !userPermission.getLdapProfileID().isEmpty() && !userPermission.getLdapProfileID().equals(PwmConstants.PROFILE_ID_ALL)) {
-                    searchConfiguration.setLdapProfile(userPermission.getLdapProfileID());
+                    builder.ldapProfile(userPermission.getLdapProfileID());
                 }
+
+                final SearchConfiguration searchConfiguration = builder.build();
 
                 try {
                     results.putAll(userSearchEngine.performMultiUserSearch(
-                                    searchConfiguration,
-                                    (maxResultSize) - results.size(),
-                                    Collections.<String>emptyList())
-                    );
+                            searchConfiguration,
+                            (maxResultSize) - results.size(),
+                            Collections.emptyList(),
+                            sessionLabel
+                    ));
                 } catch (PwmUnrecoverableException e) {
                     LOGGER.error("error reading matching users: " + e.getMessage());
                     throw new PwmOperationalException(e.getErrorInformation());

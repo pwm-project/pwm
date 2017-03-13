@@ -61,8 +61,10 @@ import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.ldap.LdapUserDataReader;
+import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.UserDataReader;
-import password.pwm.ldap.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchResults;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.event.HelpdeskAuditRecord;
@@ -491,27 +493,35 @@ public class HelpdeskServlet extends ControlledPwmServlet {
             return ProcessStatus.Halt;
         }
 
-        final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel());
-        final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
-        searchConfiguration.setContexts(helpdeskProfile.readSettingAsStringArray(PwmSetting.HELPDESK_SEARCH_BASE));
-        searchConfiguration.setEnableContextValidation(false);
-        searchConfiguration.setUsername(username);
-        searchConfiguration.setEnableValueEscaping(false);
-        searchConfiguration.setFilter(getSearchFilter(pwmRequest.getConfig(),helpdeskProfile));
-        searchConfiguration.setEnableSplitWhitespace(true);
+        final UserSearchEngine userSearchEngine = pwmRequest.getPwmApplication().getUserSearchEngine();
 
 
-        if (!useProxy) {
-            final UserIdentity loggedInUser = pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity();
-            searchConfiguration.setLdapProfile(loggedInUser.getLdapProfileID());
-            searchConfiguration.setChaiProvider(getChaiUser(pwmRequest, helpdeskProfile, loggedInUser).getChaiProvider());
+        final SearchConfiguration searchConfiguration;
+        {
+            final SearchConfiguration.SearchConfigurationBuilder builder = SearchConfiguration.builder();
+            builder.contexts(helpdeskProfile.readSettingAsStringArray(PwmSetting.HELPDESK_SEARCH_BASE));
+            builder.enableContextValidation(false);
+            builder.username(username);
+            builder.enableValueEscaping(false);
+            builder.filter(getSearchFilter(pwmRequest.getConfig(), helpdeskProfile));
+            builder.enableSplitWhitespace(true);
+
+            if (!useProxy) {
+                final UserIdentity loggedInUser = pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity();
+                builder.ldapProfile(loggedInUser.getLdapProfileID());
+                builder.chaiProvider(getChaiUser(pwmRequest, helpdeskProfile, loggedInUser).getChaiProvider());
+            }
+
+            searchConfiguration = builder.build();
         }
 
-        final UserSearchEngine.UserSearchResults results;
+
+
+        final UserSearchResults results;
         final boolean sizeExceeded;
         try {
             final Locale locale = pwmRequest.getLocale();
-            results = userSearchEngine.performMultiUserSearchFromForm(locale, searchConfiguration, maxResults, searchForm);
+            results = userSearchEngine.performMultiUserSearchFromForm(locale, searchConfiguration, maxResults, searchForm, pwmRequest.getSessionLabel());
             sizeExceeded = results.isSizeExceeded();
         } catch (PwmOperationalException e) {
             final ErrorInformation errorInformation = e.getErrorInformation();

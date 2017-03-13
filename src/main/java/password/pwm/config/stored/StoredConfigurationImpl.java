@@ -52,15 +52,15 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.PwmLocaleBundle;
-import password.pwm.util.secure.BCrypt;
-import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.PasswordData;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.java.XmlUtil;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.BCrypt;
 import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.util.secure.SecureEngine;
@@ -71,6 +71,7 @@ import java.io.OutputStream;
 import java.io.Serializable;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -733,6 +734,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
     public void copyProfileID(final PwmSettingCategory category, final String sourceID, final String destinationID, final UserIdentity userIdentity)
             throws PwmUnrecoverableException
     {
+
         if (!category.hasProfiles()) {
             throw PwmUnrecoverableException.newException(PwmError.ERROR_INVALID_CONFIG, "can not copy profile ID for category " + category + ", category does not have profiles");
         }
@@ -743,12 +745,19 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
         if (existingProfiles.contains(destinationID)) {
             throw PwmUnrecoverableException.newException(PwmError.ERROR_INVALID_CONFIG, "can not copy profile ID for category, destination profileID '" + destinationID+ "' already exists");
         }
-        for (final PwmSetting pwmSetting : category.getSettings()) {
-            if (!isDefaultValue(pwmSetting, sourceID)) {
-                final StoredValue value = readSetting(pwmSetting, sourceID);
-                writeSetting(pwmSetting, destinationID, value, userIdentity);
+
+        {
+            final Collection<PwmSettingCategory> interestedCategories = PwmSettingCategory.associatedProfileCategories(category);
+            for (final PwmSettingCategory interestedCategory : interestedCategories) {
+                for (final PwmSetting pwmSetting : interestedCategory.getSettings()) {
+                    if (!isDefaultValue(pwmSetting, sourceID)) {
+                        final StoredValue value = readSetting(pwmSetting, sourceID);
+                        writeSetting(pwmSetting, destinationID, value, userIdentity);
+                    }
+                }
             }
         }
+
         final List<String> newProfileIDList = new ArrayList<>();
         newProfileIDList.addAll(existingProfiles);
         newProfileIDList.add(destinationID);

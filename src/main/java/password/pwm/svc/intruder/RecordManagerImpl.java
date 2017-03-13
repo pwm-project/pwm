@@ -30,6 +30,7 @@ import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.SecureEngine;
 
 class RecordManagerImpl implements RecordManager {
@@ -38,6 +39,8 @@ class RecordManagerImpl implements RecordManager {
     private final RecordType recordType;
     private final RecordStore recordStore;
     private final IntruderSettings settings;
+
+    private static final PwmHashAlgorithm KEY_HASH_ALG = PwmHashAlgorithm.SHA256;
 
     RecordManagerImpl(final RecordType recordType, final RecordStore recordStore, final IntruderSettings settings) {
         this.recordType = recordType;
@@ -133,13 +136,13 @@ class RecordManagerImpl implements RecordManager {
     }
 
     private String makeKey(final String subject) throws PwmOperationalException {
-        final String md5sum;
+        final String hash;
         try {
-            md5sum = SecureEngine.md5sum(subject);
+            hash = SecureEngine.hash(subject, KEY_HASH_ALG);
         } catch (PwmUnrecoverableException e) {
             throw new PwmOperationalException(PwmError.ERROR_UNKNOWN,"error generating md5sum for intruder record: " + e.getMessage());
         }
-        return md5sum + recordType.toString();
+        return hash + recordType.toString();
     }
 
 

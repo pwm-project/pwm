@@ -55,8 +55,9 @@ import password.pwm.http.bean.ActivateUserBean;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.ldap.LdapUserDataReader;
+import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.UserDataReader;
-import password.pwm.ldap.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
@@ -144,7 +145,7 @@ public class ActivateUserServlet extends AbstractPwmServlet {
     protected void processAction(final PwmRequest pwmRequest)
             throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException
     {
-            //Fetch the session state bean.
+        //Fetch the session state bean.
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
 
@@ -244,13 +245,15 @@ public class ActivateUserServlet extends AbstractPwmServlet {
             // read an ldap user object based on the params
             final UserIdentity userIdentity;
             {
-                final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, pwmSession.getLabel());
-                final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
-                searchConfiguration.setContexts(Collections.singletonList(contextParam));
-                searchConfiguration.setFilter(searchFilter);
-                searchConfiguration.setFormValues(formValues);
-                searchConfiguration.setLdapProfile(ldapProfile);
-                userIdentity = userSearchEngine.performSingleUserSearch(searchConfiguration);
+                final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
+                final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
+                        .contexts(Collections.singletonList(contextParam))
+                        .filter(searchFilter)
+                        .formValues(formValues)
+                        .ldapProfile(ldapProfile)
+                        .build();
+
+                userIdentity = userSearchEngine.performSingleUserSearch(searchConfiguration, pwmRequest.getSessionLabel());
             }
 
             validateParamsAgainstLDAP(pwmRequest, formValues, userIdentity);
@@ -758,9 +761,9 @@ public class ActivateUserServlet extends AbstractPwmServlet {
         }
         return searchFilter;
     }
-    
-    private static void forwardToActivateUserForm(final PwmRequest pwmRequest) 
-            throws ServletException, PwmUnrecoverableException, IOException 
+
+    private static void forwardToActivateUserForm(final PwmRequest pwmRequest)
+            throws ServletException, PwmUnrecoverableException, IOException
     {
         pwmRequest.addFormInfoToRequestAttr(PwmSetting.ACTIVATE_USER_FORM,false,false);
         pwmRequest.forwardToJsp(JspUrl.ACTIVATE_USER);

@@ -44,9 +44,11 @@ import password.pwm.http.PwmRequest;
 import password.pwm.i18n.Display;
 import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.ldap.LdapUserDataReader;
+import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.UserDataReader;
-import password.pwm.ldap.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.ldap.UserStatusReader;
+import password.pwm.ldap.search.UserSearchResults;
 import password.pwm.svc.cache.CacheKey;
 import password.pwm.svc.cache.CachePolicy;
 import password.pwm.svc.stats.Statistic;
@@ -198,7 +200,7 @@ public class PeopleSearchDataReader {
             throw e;
         }
 
-        final UserSearchEngine.UserSearchResults detailResults = doDetailLookup(userIdentity);
+        final UserSearchResults detailResults = doDetailLookup(userIdentity);
         final Map<String, String> searchResults = detailResults.getResults().get(userIdentity);
 
         final UserDetailBean userDetailBean = new UserDetailBean();
@@ -563,13 +565,13 @@ public class PeopleSearchDataReader {
         return useProxy || !pwmRequest.isAuthenticated() && publicAccessEnabled;
     }
 
-    private UserSearchEngine.UserSearchResults doDetailLookup(
+    private UserSearchResults doDetailLookup(
             final UserIdentity userIdentity
     )
             throws PwmUnrecoverableException
     {
         final List<FormConfiguration> detailFormConfig = pwmRequest.getConfig().readSettingAsForm(PwmSetting.PEOPLE_SEARCH_DETAIL_FORM);
-        final Map<String, String> attributeHeaderMap = UserSearchEngine.UserSearchResults.fromFormConfiguration(
+        final Map<String, String> attributeHeaderMap = UserSearchResults.fromFormConfiguration(
                 detailFormConfig, pwmRequest.getLocale());
 
         if (config.isOrgChartEnabled()) {
@@ -586,7 +588,7 @@ public class PeopleSearchDataReader {
         try {
             final ChaiUser theUser = getChaiUser(userIdentity);
             final Map<String, String> values = theUser.readStringAttributes(attributeHeaderMap.keySet());
-            return new UserSearchEngine.UserSearchResults(
+            return new UserSearchResults(
                     attributeHeaderMap,
                     Collections.singletonMap(userIdentity, values),
                     false
@@ -637,23 +639,26 @@ public class PeopleSearchDataReader {
         }
 
         final boolean useProxy = useProxy();
-        final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmRequest);
-        final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
-        searchConfiguration.setContexts(
-                pwmRequest.getConfig().readSettingAsStringArray(PwmSetting.PEOPLE_SEARCH_SEARCH_BASE));
-        searchConfiguration.setEnableContextValidation(false);
-        searchConfiguration.setUsername(username);
-        searchConfiguration.setEnableValueEscaping(false);
-        searchConfiguration.setFilter(getSearchFilter(pwmRequest.getConfig()));
-        searchConfiguration.setEnableSplitWhitespace(true);
+        final UserSearchEngine userSearchEngine = pwmRequest.getPwmApplication().getUserSearchEngine();
 
+        final SearchConfiguration searchConfiguration;
+        {
+            final SearchConfiguration.SearchConfigurationBuilder builder = SearchConfiguration.builder();
+            builder.contexts(pwmRequest.getConfig().readSettingAsStringArray(PwmSetting.PEOPLE_SEARCH_SEARCH_BASE));
+            builder.enableContextValidation(false);
+            builder.username(username);
+            builder.enableValueEscaping(false);
+            builder.filter(getSearchFilter(pwmRequest.getConfig()));
+            builder.enableSplitWhitespace(true);
 
-        if (!useProxy) {
-            searchConfiguration.setLdapProfile(pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity().getLdapProfileID());
-            searchConfiguration.setChaiProvider(pwmRequest.getPwmSession().getSessionManager().getChaiProvider());
+            if (!useProxy) {
+                builder.ldapProfile(pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity().getLdapProfileID());
+                builder.chaiProvider(pwmRequest.getPwmSession().getSessionManager().getChaiProvider());
+            }
+            searchConfiguration = builder.build();
         }
 
-        final UserSearchEngine.UserSearchResults results;
+        final UserSearchResults results;
         final boolean sizeExceeded;
         try {
             final List<FormConfiguration> searchForm = pwmRequest.getConfig().readSettingAsForm(
@@ -661,7 +666,7 @@ public class PeopleSearchDataReader {
             final int maxResults = (int) pwmRequest.getConfig().readSettingAsLong(
                     PwmSetting.PEOPLE_SEARCH_RESULT_LIMIT);
             final Locale locale = pwmRequest.getLocale();
-            results = userSearchEngine.performMultiUserSearchFromForm(locale, searchConfiguration, maxResults, searchForm);
+            results = userSearchEngine.performMultiUserSearchFromForm(locale, searchConfiguration, maxResults, searchForm, pwmRequest.getSessionLabel());
             sizeExceeded = results.isSizeExceeded();
         } catch (PwmOperationalException e) {
             final ErrorInformation errorInformation = e.getErrorInformation();

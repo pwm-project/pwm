@@ -48,10 +48,10 @@ class DBTokenMachine implements TokenMachine {
         return tokenService.makeUniqueTokenForMachine(sessionLabel, this);
     }
 
-    public TokenPayload retrieveToken(final String tokenKey)
+    public TokenPayload retrieveToken(final String tokenKey, final SessionLabel sessionLabel)
             throws PwmOperationalException, PwmUnrecoverableException
     {
-        final String md5sumToken = TokenService.makeTokenHash(tokenKey);
+        final String md5sumToken = tokenService.makeTokenHash(tokenKey);
         final String storedRawValue = databaseAccessor.get(DatabaseTable.TOKENS,md5sumToken);
 
         if (storedRawValue != null && storedRawValue.length() > 0 ) {
@@ -63,12 +63,12 @@ class DBTokenMachine implements TokenMachine {
 
     public void storeToken(final String tokenKey, final TokenPayload tokenPayload) throws PwmOperationalException, PwmUnrecoverableException {
         final String rawValue = tokenService.toEncryptedString(tokenPayload);
-        final String md5sumToken = TokenService.makeTokenHash(tokenKey);
+        final String md5sumToken = tokenService.makeTokenHash(tokenKey);
         databaseAccessor.put(DatabaseTable.TOKENS, md5sumToken, rawValue);
     }
 
-    public void removeToken(final String tokenKey) throws PwmOperationalException, PwmUnrecoverableException {
-        final String md5sumToken = TokenService.makeTokenHash(tokenKey);
+    public void removeToken(final String tokenKey, final SessionLabel sessionLabel) throws PwmOperationalException, PwmUnrecoverableException {
+        final String md5sumToken = tokenService.makeTokenHash(tokenKey);
         databaseAccessor.remove(DatabaseTable.TOKENS,tokenKey);
         databaseAccessor.remove(DatabaseTable.TOKENS,md5sumToken);
     }

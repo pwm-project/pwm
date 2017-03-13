@@ -37,8 +37,9 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
+import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.UserDataReader;
-import password.pwm.ldap.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.cache.CacheKey;
 import password.pwm.svc.cache.CachePolicy;
 import password.pwm.svc.cache.CacheService;
@@ -234,16 +235,22 @@ public class FormUtility {
         final SearchHelper searchHelper = new SearchHelper();
         searchHelper.setFilterAnd(filterClauses);
 
-        final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
-        searchConfiguration.setFilter(filter.toString());
+        final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
+                .filter(filter.toString())
+                .build();
 
         final int resultSearchSizeLimit = 1 + (excludeDN == null ? 0 : excludeDN.size());
         final long cacheLifetimeMS = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.CACHE_FORM_UNIQUE_VALUE_LIFETIME_MS));
         final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpirationMS(cacheLifetimeMS);
 
         try {
-            final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, SessionLabel.SYSTEM_LABEL);
-            final Map<UserIdentity,Map<String,String>> results = new LinkedHashMap<>(userSearchEngine.performMultiUserSearch(searchConfiguration,resultSearchSizeLimit,Collections.<String>emptyList()));
+            final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
+            final Map<UserIdentity,Map<String,String>> results = new LinkedHashMap<>(userSearchEngine.performMultiUserSearch(
+                    searchConfiguration,
+                    resultSearchSizeLimit,
+                    Collections.emptyList(),
+                    SessionLabel.SYSTEM_LABEL
+                    ));
 
             if (excludeDN != null && !excludeDN.isEmpty()) {
                 for (final UserIdentity loopIgnoreIdentity : excludeDN) {

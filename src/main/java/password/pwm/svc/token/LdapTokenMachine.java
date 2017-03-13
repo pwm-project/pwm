@@ -34,8 +34,9 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapUserDataReader;
+import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.UserDataReader;
-import password.pwm.ldap.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchEngine;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -65,12 +66,12 @@ class LdapTokenMachine implements TokenMachine {
         return tokenService.makeUniqueTokenForMachine(sessionLabel, this);
     }
 
-    public TokenPayload retrieveToken(final String tokenKey)
+    public TokenPayload retrieveToken(final String tokenKey, final SessionLabel sessionLabel)
             throws PwmOperationalException, PwmUnrecoverableException
     {
         final String searchFilter;
         {
-            final String md5sumToken = TokenService.makeTokenHash(tokenKey);
+            final String md5sumToken = tokenService.makeTokenHash(tokenKey);
             final SearchHelper tempSearchHelper = new SearchHelper();
             final Map<String,String> filterAttributes = new HashMap<>();
             for (final String loopStr : pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.DEFAULT_OBJECT_CLASSES)) {
@@ -82,10 +83,12 @@ class LdapTokenMachine implements TokenMachine {
         }
 
         try {
-            final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, null);
-            final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
-            searchConfiguration.setFilter(searchFilter);
-            final UserIdentity user = userSearchEngine.performSingleUserSearch(searchConfiguration);
+            final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
+            final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
+                    .filter(searchFilter)
+                    .build();
+
+            final UserIdentity user = userSearchEngine.performSingleUserSearch(searchConfiguration, sessionLabel);
             if (user == null) {
                 return null;
             }
@@ -117,7 +120,7 @@ class LdapTokenMachine implements TokenMachine {
             throws PwmOperationalException, PwmUnrecoverableException
     {
         try {
-            final String md5sumToken = TokenService.makeTokenHash(tokenKey);
+            final String md5sumToken = tokenService.makeTokenHash(tokenKey);
             final String encodedTokenPayload = tokenService.toEncryptedString(tokenPayload);
 
             final UserIdentity userIdentity = tokenPayload.getUserIdentity();
@@ -130,10 +133,10 @@ class LdapTokenMachine implements TokenMachine {
         }
     }
 
-    public void removeToken(final String tokenKey)
+    public void removeToken(final String tokenKey, final SessionLabel sessionLabel)
             throws PwmOperationalException, PwmUnrecoverableException
     {
-        final TokenPayload payload = retrieveToken(tokenKey);
+        final TokenPayload payload = retrieveToken(tokenKey, sessionLabel);
         if (payload != null) {
             final UserIdentity userIdentity = payload.getUserIdentity();
             try {

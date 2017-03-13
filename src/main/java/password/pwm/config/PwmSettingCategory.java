@@ -380,4 +380,18 @@ public enum PwmSettingCategory {
         }
         return Collections.unmodifiableList(values);
     }
+
+    public static Collection<PwmSettingCategory> associatedProfileCategories(final PwmSettingCategory inputCategory) {
+        final Collection<PwmSettingCategory> returnValues = new ArrayList<>();
+        if (inputCategory != null && inputCategory.hasProfiles()) {
+            PwmSettingCategory topLevelCategory = inputCategory;
+            while (!topLevelCategory.isTopLevelProfile()) {
+                topLevelCategory = topLevelCategory.getParent();
+            }
+            returnValues.add(topLevelCategory);
+            returnValues.addAll(topLevelCategory.getChildCategories());
+        }
+
+        return Collections.unmodifiableCollection(returnValues);
+    }
 }

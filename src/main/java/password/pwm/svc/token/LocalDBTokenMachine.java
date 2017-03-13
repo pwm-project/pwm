@@ -48,10 +48,10 @@ class LocalDBTokenMachine implements TokenMachine {
         return tokenService.makeUniqueTokenForMachine(sessionLabel, this);
     }
 
-    public TokenPayload retrieveToken(final String tokenKey)
+    public TokenPayload retrieveToken(final String tokenKey, final SessionLabel sessionLabel)
             throws PwmOperationalException, PwmUnrecoverableException
     {
-        final String md5sumToken = TokenService.makeTokenHash(tokenKey);
+        final String md5sumToken = tokenService.makeTokenHash(tokenKey);
         final String storedRawValue = localDB.get(LocalDB.DB.TOKENS, md5sumToken);
 
         if (storedRawValue != null && storedRawValue.length() > 0 ) {
@@ -63,14 +63,14 @@ class LocalDBTokenMachine implements TokenMachine {
 
     public void storeToken(final String tokenKey, final TokenPayload tokenPayload) throws PwmOperationalException, PwmUnrecoverableException {
         final String rawValue = tokenService.toEncryptedString(tokenPayload);
-        final String md5sumToken = TokenService.makeTokenHash(tokenKey);
+        final String md5sumToken = tokenService.makeTokenHash(tokenKey);
         localDB.put(LocalDB.DB.TOKENS, md5sumToken, rawValue);
     }
 
-    public void removeToken(final String tokenKey)
+    public void removeToken(final String tokenKey, final SessionLabel sessionLabel)
             throws PwmOperationalException, PwmUnrecoverableException
     {
-        final String md5sumToken = TokenService.makeTokenHash(tokenKey);
+        final String md5sumToken = tokenService.makeTokenHash(tokenKey);
         localDB.remove(LocalDB.DB.TOKENS, tokenKey);
         localDB.remove(LocalDB.DB.TOKENS, md5sumToken);
     }

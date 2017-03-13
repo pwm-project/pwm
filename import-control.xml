@@ -77,6 +77,8 @@
     <allow pkg="org.xeustechnologies"/>
     <allow pkg="net.glxn"/>
     <allow pkg="org.webjars"/>
+    <allow pkg="lombok"/>
+
 
     <!--servlet -->
     <subpackage name="http.servlet">

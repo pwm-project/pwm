@@ -39,7 +39,8 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
-import password.pwm.ldap.UserSearchEngine;
+import password.pwm.ldap.search.SearchConfiguration;
+import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.EventRateMeter;
@@ -427,20 +428,34 @@ public class ReportService implements PwmService {
         )
                 throws ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException, PwmOperationalException
         {
-            final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication,null);
-            final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
-            searchConfiguration.setEnableValueEscaping(false);
-            searchConfiguration.setSearchTimeout(Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.REPORTING_LDAP_SEARCH_TIMEOUT)));
+            final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
 
-            if (searchFilter == null) {
-                searchConfiguration.setUsername("*");
-            } else {
-                searchConfiguration.setFilter(searchFilter);
+            final SearchConfiguration searchConfiguration;
+            {
+                final SearchConfiguration.SearchConfigurationBuilder builder = SearchConfiguration.builder();
+
+                builder.enableValueEscaping(false);
+                builder.searchTimeout(Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.REPORTING_LDAP_SEARCH_TIMEOUT)));
+
+                if (searchFilter == null) {
+                    builder.username("*");
+                } else {
+                    builder.filter(searchFilter);
+                }
+
+                searchConfiguration = builder.build();
             }
+
 
             LOGGER.debug(PwmConstants.REPORTING_SESSION_LABEL,"beginning UserReportService user search using parameters: " + (JsonUtil.serialize(searchConfiguration)));
 
-            final Map<UserIdentity,Map<String,String>> searchResults = userSearchEngine.performMultiUserSearch(searchConfiguration, maxResults, Collections.<String>emptyList());
+            final Map<UserIdentity,Map<String,String>> searchResults = userSearchEngine.performMultiUserSearch(
+                    searchConfiguration,
+                    maxResults,
+                    Collections.emptyList(),
+                    PwmConstants.REPORTING_SESSION_LABEL
+
+            );
             LOGGER.debug(PwmConstants.REPORTING_SESSION_LABEL,"user search found " + searchResults.size() + " users for reporting");
             return new ArrayList<>(searchResults.keySet());
         }

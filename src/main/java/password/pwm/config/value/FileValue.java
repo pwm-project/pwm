@@ -103,7 +103,7 @@ public class FileValue extends AbstractValue implements StoredValue {
         public String md5sum()
                 throws PwmUnrecoverableException
         {
-            return SecureEngine.md5sum(new ByteArrayInputStream(contents));
+            return SecureEngine.hash(new ByteArrayInputStream(contents), PwmHashAlgorithm.MD5);
         }
 
         public String sha1sum()

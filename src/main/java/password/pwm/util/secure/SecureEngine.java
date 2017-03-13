@@ -221,16 +221,6 @@ public class SecureEngine {
         }
     }
 
-    public static String md5sum(final String input)
-            throws PwmUnrecoverableException {
-        return hash(input, PwmHashAlgorithm.MD5);
-    }
-
-    public static String md5sum(final InputStream is)
-            throws PwmUnrecoverableException {
-        return hash(is, PwmHashAlgorithm.MD5);
-    }
-
     public static String hash(
             final byte[] input,
             final PwmHashAlgorithm algorithm

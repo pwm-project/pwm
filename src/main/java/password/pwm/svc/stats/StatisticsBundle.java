@@ -55,14 +55,14 @@ public class StatisticsBundle {
 
     public static StatisticsBundle input(final String inputString) {
         final Map<Statistic, String> srcMap = new HashMap<>();
-            final Map<String, String> loadedMap = JsonUtil.deserializeStringMap(inputString);
-            for (final String key : loadedMap.keySet()) {
-                try {
-                    srcMap.put(Statistic.valueOf(key),loadedMap.get(key));
-                } catch (IllegalArgumentException e) {
-                    LOGGER.error("error parsing statistic key '" + key + "', reason: " + e.getMessage());
-                }
+        final Map<String, String> loadedMap = JsonUtil.deserializeStringMap(inputString);
+        for (final String key : loadedMap.keySet()) {
+            try {
+                srcMap.put(Statistic.valueOf(key),loadedMap.get(key));
+            } catch (IllegalArgumentException e) {
+                LOGGER.error("error parsing statistic key '" + key + "', reason: " + e.getMessage());
             }
+        }
         final StatisticsBundle bundle = new StatisticsBundle();
 
         for (final Statistic loopStat : Statistic.values()) {

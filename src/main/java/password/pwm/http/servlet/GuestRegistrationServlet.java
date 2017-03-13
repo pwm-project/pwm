@@ -52,8 +52,9 @@ import password.pwm.http.bean.GuestRegistrationBean;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.LdapUserDataReader;
+import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.UserDataReader;
-import password.pwm.ldap.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.FormMap;
@@ -304,15 +305,20 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
         final String usernameParam = pwmRequest.readParameterAsString("username");
         final GuestRegistrationBean guBean = pwmApplication.getSessionStateService().getBean(pwmRequest, GuestRegistrationBean.class);
 
-        final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
-        searchConfiguration.setChaiProvider(chaiProvider);
-        searchConfiguration.setContexts(Collections.singletonList(config.readSettingAsString(PwmSetting.GUEST_CONTEXT)));
-        searchConfiguration.setEnableContextValidation(false);
-        searchConfiguration.setUsername(usernameParam);
-        final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, pwmSession.getLabel());
+
+        SearchConfiguration.builder();
+
+        final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
+                    .chaiProvider(chaiProvider)
+                    .contexts(Collections.singletonList(config.readSettingAsString(PwmSetting.GUEST_CONTEXT)))
+                    .enableContextValidation(false)
+                    .username(usernameParam)
+                    .build();
+
+        final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
 
         try {
-            final UserIdentity theGuest = userSearchEngine.performSingleUserSearch(searchConfiguration);
+            final UserIdentity theGuest = userSearchEngine.performSingleUserSearch(searchConfiguration, pwmSession.getLabel());
             final FormMap formProps = guBean.getFormValues();
             try {
                 final List<FormConfiguration> guestUpdateForm = config.readSettingAsForm(PwmSetting.GUEST_UPDATE_FORM);

@@ -38,7 +38,7 @@ import password.pwm.util.java.JsonUtil;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.SecureEngine;
+import password.pwm.util.secure.SecureService;
 
 import java.util.Collections;
 import java.util.List;
@@ -50,6 +50,8 @@ public class UserCacheService implements PwmService {
     private CacheStoreWrapper cacheStore;
     private STATUS status;
 
+    private PwmApplication pwmApplication;
+
 
     public STATUS status() {
         return status;
@@ -58,7 +60,7 @@ public class UserCacheService implements PwmService {
     public UserCacheRecord updateUserCache(final UserInfoBean userInfoBean)
             throws PwmUnrecoverableException
     {
-        final StorageKey storageKey = StorageKey.fromUserInfoBean(userInfoBean);
+        final StorageKey storageKey = StorageKey.fromUserInfoBean(userInfoBean, pwmApplication);
 
         boolean preExisting = false;
         try {
@@ -91,7 +93,7 @@ public class UserCacheService implements PwmService {
     public void store(final UserCacheRecord userCacheRecord)
             throws LocalDBException, PwmUnrecoverableException
     {
-        final StorageKey storageKey = StorageKey.fromUserGUID(userCacheRecord.getUserGUID());
+        final StorageKey storageKey = StorageKey.fromUserGUID(userCacheRecord.getUserGUID(), pwmApplication);
         cacheStore.write(storageKey, userCacheRecord);
     }
 
@@ -138,6 +140,7 @@ public class UserCacheService implements PwmService {
 
     public void init(final PwmApplication pwmApplication) throws PwmException {
         status = STATUS.OPENING;
+        this.pwmApplication = pwmApplication;
         this.cacheStore = new CacheStoreWrapper(pwmApplication.getLocalDB());
         status = STATUS.OPEN;
     }
@@ -176,24 +179,25 @@ public class UserCacheService implements PwmService {
             return key;
         }
 
-        public static StorageKey fromUserInfoBean(final UserInfoBean userInfoBean)
+        public static StorageKey fromUserInfoBean(final UserInfoBean userInfoBean, final PwmApplication pwmApplication)
                 throws PwmUnrecoverableException
         {
             final String userGUID = userInfoBean.getUserGuid();
-            return fromUserGUID(userGUID);
+            return fromUserGUID(userGUID, pwmApplication);
         }
 
         public static StorageKey fromUserIdentity(final PwmApplication pwmApplication, final UserIdentity userIdentity)
                 throws ChaiUnavailableException, PwmUnrecoverableException
         {
             final String userGUID = LdapOperationsHelper.readLdapGuidValue(pwmApplication, null, userIdentity, true);
-            return fromUserGUID(userGUID);
+            return fromUserGUID(userGUID, pwmApplication);
         }
 
-        private static StorageKey fromUserGUID(final String userGUID)
+        private static StorageKey fromUserGUID(final String userGUID, final PwmApplication pwmApplication)
                 throws PwmUnrecoverableException
         {
-            return new StorageKey(SecureEngine.md5sum(userGUID));
+            final SecureService secureService = pwmApplication.getSecureService();
+            return new StorageKey(secureService.hash(userGUID));
         }
     }
 

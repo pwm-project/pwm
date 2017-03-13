@@ -50,7 +50,7 @@ import password.pwm.http.servlet.oauth.OAuthMachine;
 import password.pwm.http.servlet.oauth.OAuthSettings;
 import password.pwm.i18n.Display;
 import password.pwm.ldap.PasswordChangeProgressChecker;
-import password.pwm.ldap.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
@@ -476,8 +476,8 @@ public class AuthenticationFilter extends AbstractPwmFilter {
                         pwmSession,
                         PwmAuthenticationSource.BASIC_AUTH
                 );
-                final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, pwmSession.getLabel());
-                final UserIdentity userIdentity = userSearchEngine.resolveUsername(basicAuthInfo.getUsername(), null, null);
+                final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
+                final UserIdentity userIdentity = userSearchEngine.resolveUsername(basicAuthInfo.getUsername(), null, null, pwmSession.getLabel());
                 sessionAuthenticator.authenticateUser(userIdentity, basicAuthInfo.getPassword());
                 pwmSession.getLoginInfoBean().setBasicAuth(basicAuthInfo);
 

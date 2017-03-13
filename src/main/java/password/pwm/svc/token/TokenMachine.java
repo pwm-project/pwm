@@ -32,13 +32,13 @@ interface TokenMachine {
     String generateToken( SessionLabel sessionLabel,  TokenPayload tokenPayload)
             throws PwmUnrecoverableException, PwmOperationalException;
 
-    TokenPayload retrieveToken( String tokenKey)
+    TokenPayload retrieveToken(String tokenKey, SessionLabel sessionLabel)
             throws PwmOperationalException, PwmUnrecoverableException;
 
     void storeToken( String tokenKey,  TokenPayload tokenPayload)
             throws PwmOperationalException, PwmUnrecoverableException;
 
-    void removeToken( String tokenKey)
+    void removeToken(String tokenKey, SessionLabel sessionLabel)
             throws PwmOperationalException, PwmUnrecoverableException;
 
     int size()

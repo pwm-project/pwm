@@ -25,13 +25,13 @@ package password.pwm.svc.token;
 import password.pwm.bean.UserIdentity;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 
 public class TokenPayload implements Serializable {
-    private final java.util.Date date;
+    private final Instant date;
     private final String name;
     private final Map<String,String> data;
     private final UserIdentity user;
@@ -39,15 +39,15 @@ public class TokenPayload implements Serializable {
     private final String guid;
 
     TokenPayload(final String name, final Map<String, String> data, final UserIdentity user, final Set<String> dest, final String guid) {
-        this.date = new Date();
-        this.data = data == null ? Collections.<String,String>emptyMap() : Collections.unmodifiableMap(data);
+        this.date = Instant.now();
+        this.data = data == null ? Collections.emptyMap() : Collections.unmodifiableMap(data);
         this.name = name;
         this.user = user;
-        this.dest = dest == null ? Collections.<String>emptySet() : Collections.unmodifiableSet(dest);
+        this.dest = dest == null ? Collections.emptySet() : Collections.unmodifiableSet(dest);
         this.guid = guid;
     }
 
-    public Date getDate() {
+    public Instant getDate() {
         return date;
     }
 

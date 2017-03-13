@@ -73,8 +73,9 @@ import password.pwm.http.servlet.oauth.OAuthSettings;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.LdapUserDataReader;
+import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.UserDataReader;
-import password.pwm.ldap.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.AuthenticationUtility;
@@ -389,13 +390,15 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
             // convert the username field to an identity
             final UserIdentity userIdentity;
             {
-                final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmRequest);
-                final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
-                searchConfiguration.setFilter(searchFilter);
-                searchConfiguration.setFormValues(formValues);
-                searchConfiguration.setContexts(Collections.singletonList(contextParam));
-                searchConfiguration.setLdapProfile(ldapProfile);
-                userIdentity = userSearchEngine.performSingleUserSearch(searchConfiguration);
+                final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
+                final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
+                        .filter(searchFilter)
+                        .formValues(formValues)
+                        .contexts(Collections.singletonList(contextParam))
+                        .ldapProfile(ldapProfile)
+                        .build();
+
+                userIdentity = userSearchEngine.performSingleUserSearch(searchConfiguration, pwmRequest.getSessionLabel());
             }
 
             if (userIdentity == null) {
@@ -581,9 +584,9 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
 
         final UserIdentity oauthUserIdentity;
         {
-            final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmRequest);
+            final UserSearchEngine userSearchEngine =pwmRequest.getPwmApplication().getUserSearchEngine();
             try {
-                oauthUserIdentity = userSearchEngine.resolveUsername(userDNfromOAuth, null, null);
+                oauthUserIdentity = userSearchEngine.resolveUsername(userDNfromOAuth, null, null, pwmRequest.getSessionLabel());
             } catch (PwmOperationalException e) {
                 final String errorMsg = "unexpected error searching for oauth supplied username in ldap; error: " + e.getMessage() ;
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_OAUTH_ERROR, errorMsg);

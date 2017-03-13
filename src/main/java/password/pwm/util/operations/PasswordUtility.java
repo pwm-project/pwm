@@ -38,6 +38,7 @@ import com.novell.ldapchai.util.ChaiUtility;
 import password.pwm.AppProperty;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.PasswordStatus;
@@ -98,6 +99,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Jason D. Rivard
@@ -1101,8 +1103,8 @@ public class PasswordUtility {
                 if (oracleDS_PrePasswordAllowChangeTime != null && !oracleDS_PrePasswordAllowChangeTime.isEmpty()) {
                     final Date date = OracleDSEntries.convertZuluToDate(oracleDS_PrePasswordAllowChangeTime);
                     if (new Date().before(date)) {
-                        LOGGER.debug("discovered oracleds allowed change time is set to: " + JavaHelper.toIsoDate(date) + ", won't permit password change");
-                        final String errorMsg = "change not permitted until " + JavaHelper.toIsoDate(date);
+                        LOGGER.debug("discovered oracleds allowed change time is set to: " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(date) + ", won't permit password change");
+                        final String errorMsg = "change not permitted until " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(date);
                         final ErrorInformation errorInformation = new ErrorInformation(PwmError.PASSWORD_TOO_SOON, errorMsg);
                         throw new PwmUnrecoverableException(errorInformation);
                     }
@@ -1113,20 +1115,36 @@ public class PasswordUtility {
             LOGGER.debug(sessionLabel, "unexpected error reading OracleDS password allow modification time: " + e.getMessage());
         }
 
+        final TimeDuration minimumLifetime;
+        {
+            final int minimumLifetimeSeconds = passwordPolicy.getRuleHelper().readIntValue(PwmPasswordRule.MinimumLifetime);
+            if (minimumLifetimeSeconds < 1) {
+                return;
+            }
 
-        final int minimumLifetime = passwordPolicy.getRuleHelper().readIntValue(PwmPasswordRule.MinimumLifetime);
-        if (minimumLifetime < 1) {
-            return;
-        }
+            if (lastModified == null) {
+                LOGGER.debug(sessionLabel, "skipping minimum lifetime check, password last set time is unknown");
+                return;
+            }
 
-        if (lastModified == null || lastModified.isAfter(Instant.now())) {
-            LOGGER.debug(sessionLabel, "skipping minimum lifetime check, password last set time is unknown");
-            return;
+            minimumLifetime = new TimeDuration(minimumLifetimeSeconds, TimeUnit.SECONDS);
         }
 
         final TimeDuration passwordAge = TimeDuration.fromCurrent(lastModified);
-        final boolean passwordTooSoon = passwordAge.getTotalSeconds() < minimumLifetime;
+        LOGGER.trace(sessionLabel, "beginning check for minimum lifetime, lastModified="
+                + PwmConstants.DEFAULT_DATETIME_FORMAT.format(lastModified)
+                + ", minimumLifetimeSeconds=" + minimumLifetime.asCompactString()
+                + ", passwordAge=" + passwordAge.asCompactString());
+
+
+        if (lastModified.isAfter(Instant.now())) {
+            LOGGER.debug(sessionLabel, "skipping minimum lifetime check, password lastModified time is in the future");
+            return;
+        }
+
+        final boolean passwordTooSoon = passwordAge.isShorterThan(minimumLifetime);
         if (!passwordTooSoon) {
+            LOGGER.trace(sessionLabel, "minimum lifetime check passed, password age ");
             return;
         }
 
@@ -1135,10 +1153,15 @@ public class PasswordUtility {
             return;
         }
 
-        final Date allowedChangeDate = new Date(System.currentTimeMillis() + (minimumLifetime * 1000));
-        final String errorMsg = "last password change is too recent, password cannot be changed until after " + JavaHelper.toIsoDate(allowedChangeDate);
+        final Instant allowedChangeDate = Instant.ofEpochMilli(lastModified.toEpochMilli() + minimumLifetime.getTotalMilliseconds());
+        final String errorMsg = "last password change was at "
+                + PwmConstants.DEFAULT_DATETIME_FORMAT.format(lastModified)
+                + " and is too recent (" + passwordAge.asCompactString()
+                + " ago), password cannot be changed within minimum lifetime of "
+                + minimumLifetime.asCompactString()
+                + ", next eligible time to change is after " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(allowedChangeDate);
+
         final ErrorInformation errorInformation = new ErrorInformation(PwmError.PASSWORD_TOO_SOON,errorMsg);
         throw new PwmOperationalException(errorInformation);
     }
-
 }

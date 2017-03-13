@@ -38,7 +38,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.filter.AuthenticationFilter;
-import password.pwm.ldap.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.intruder.RecordType;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.PasswordData;
@@ -195,8 +195,8 @@ public abstract class RestServerHelper {
 
 
         try {
-            final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, pwmSession.getLabel());
-            return userSearchEngine.resolveUsername(username, null, null);
+            final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
+            return userSearchEngine.resolveUsername(username, null, null, pwmSession.getLabel());
         } catch (PwmOperationalException e) {
             throw new PwmUnrecoverableException(e.getErrorInformation());
         } catch (ChaiUnavailableException e) {

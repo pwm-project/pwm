@@ -23,6 +23,7 @@
 package password.pwm.util.cli.commands;
 
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.svc.token.TokenPayload;
 import password.pwm.svc.token.TokenService;
 import password.pwm.util.cli.CliParameters;
@@ -43,7 +44,7 @@ public class TokenInfoCommand extends AbstractCliCommand {
         TokenPayload tokenPayload = null;
         Exception lookupError = null;
         try {
-            tokenPayload = tokenService.retrieveTokenData(tokenKey);
+            tokenPayload = tokenService.retrieveTokenData(tokenKey, PwmConstants.TOKEN_SESSION_LABEL);
         } catch (Exception e) {
             lookupError = e;
         }

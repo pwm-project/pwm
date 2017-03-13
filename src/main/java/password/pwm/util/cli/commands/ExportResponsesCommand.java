@@ -28,7 +28,8 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.ldap.UserSearchEngine;
+import password.pwm.ldap.search.SearchConfiguration;
+import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
@@ -54,14 +55,20 @@ public class ExportResponsesCommand extends AbstractCliCommand {
         JavaHelper.pause(2000);
 
         final long startTime = System.currentTimeMillis();
-        final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, SessionLabel.SYSTEM_LABEL);
-        final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
-        searchConfiguration.setEnableValueEscaping(false);
-        searchConfiguration.setUsername("*");
+        final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
+        final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
+                .enableValueEscaping(false)
+                .username("*")
+                .build();
 
         final String systemRecordDelimiter = System.getProperty("line.separator");
         final Writer writer = new BufferedWriter(new PrintWriter(outputFile, PwmConstants.DEFAULT_CHARSET.toString()));
-        final Map<UserIdentity,Map<String,String>> results = userSearchEngine.performMultiUserSearch(searchConfiguration, Integer.MAX_VALUE, Collections.<String>emptyList());
+        final Map<UserIdentity,Map<String,String>> results = userSearchEngine.performMultiUserSearch(
+                searchConfiguration,
+                Integer.MAX_VALUE,
+                Collections.emptyList(),
+                SessionLabel.SYSTEM_LABEL
+        );
         out("searching " + results.size() + " users for stored responses to write to " + outputFile.getAbsolutePath() + "....");
         int counter = 0;
         for (final UserIdentity identity : results.keySet()) {

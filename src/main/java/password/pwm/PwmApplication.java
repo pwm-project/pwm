@@ -38,6 +38,7 @@ import password.pwm.health.HealthMonitor;
 import password.pwm.http.servlet.resource.ResourceServletService;
 import password.pwm.http.state.SessionStateService;
 import password.pwm.ldap.LdapConnectionService;
+import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.PwmServiceManager;
 import password.pwm.svc.cache.CacheService;
@@ -491,6 +492,10 @@ public class PwmApplication {
 
     public UrlShortenerService getUrlShortener() {
         return (UrlShortenerService)pwmServiceManager.getService(UrlShortenerService.class);
+    }
+
+    public UserSearchEngine getUserSearchEngine() {
+        return (UserSearchEngine)pwmServiceManager.getService(UserSearchEngine.class);
     }
 
     public VersionChecker getVersionChecker() {

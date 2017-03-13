@@ -32,7 +32,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Message;
-import password.pwm.ldap.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.util.operations.OtpService;
 import password.pwm.util.operations.otp.OTPUserRecord;
 import password.pwm.ws.server.RestRequestBean;
@@ -83,11 +83,11 @@ public class RestVerifyOtpServer extends AbstractRestServer {
                 throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"actor does not have required permission"));
             }
 
-            final UserSearchEngine userSearchEngine = new UserSearchEngine(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession().getLabel());
+            final UserSearchEngine userSearchEngine = restRequestBean.getPwmApplication().getUserSearchEngine();
             UserIdentity userIdentity = restRequestBean.getUserIdentity();
             if (userIdentity == null) {
                 final ChaiUser chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication());
-                userIdentity = userSearchEngine.resolveUsername(chaiUser.readUsername(), null, null);
+                userIdentity = userSearchEngine.resolveUsername(chaiUser.readUsername(), null, null, restRequestBean.getPwmSession().getLabel());
             }
 
             final OtpService otpService = restRequestBean.getPwmApplication().getOtpService();

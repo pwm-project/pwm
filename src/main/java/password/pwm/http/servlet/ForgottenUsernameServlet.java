@@ -44,8 +44,9 @@ import password.pwm.http.JspUrl;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.LdapUserDataReader;
+import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.UserDataReader;
-import password.pwm.ldap.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.CaptchaUtility;
@@ -168,13 +169,14 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet {
 
             final UserIdentity userIdentity;
             {
-                final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, pwmSession.getLabel());
-                final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
-                searchConfiguration.setFilter(searchFilter);
-                searchConfiguration.setFormValues(formValues);
-                searchConfiguration.setLdapProfile(ldapProfile);
-                searchConfiguration.setContexts(Collections.singletonList(contextParam));
-                userIdentity = userSearchEngine.performSingleUserSearch(searchConfiguration);
+                final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
+                final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
+                        .filter(searchFilter)
+                        .formValues(formValues)
+                        .ldapProfile(ldapProfile)
+                        .contexts(Collections.singletonList(contextParam))
+                        .build();
+                userIdentity = userSearchEngine.performSingleUserSearch(searchConfiguration, pwmSession.getLabel());
             }
 
             if (userIdentity == null) {

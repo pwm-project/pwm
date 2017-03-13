@@ -53,7 +53,7 @@ class CryptoTokenMachine implements TokenMachine {
         return returnString.toString();
     }
 
-    public TokenPayload retrieveToken(final String tokenKey)
+    public TokenPayload retrieveToken(final String tokenKey, final SessionLabel sessionLabel)
             throws PwmOperationalException, PwmUnrecoverableException
     {
         if (tokenKey == null || tokenKey.length() < 1) {
@@ -65,7 +65,7 @@ class CryptoTokenMachine implements TokenMachine {
     public void storeToken(final String tokenKey, final TokenPayload tokenPayload) throws PwmOperationalException, PwmUnrecoverableException {
     }
 
-    public void removeToken(final String tokenKey) throws PwmOperationalException, PwmUnrecoverableException {
+    public void removeToken(final String tokenKey, final SessionLabel sessionLabel) throws PwmOperationalException, PwmUnrecoverableException {
     }
 
     public int size() throws PwmOperationalException, PwmUnrecoverableException {

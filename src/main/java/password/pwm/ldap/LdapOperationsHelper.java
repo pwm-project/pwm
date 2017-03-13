@@ -47,6 +47,8 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
+import password.pwm.ldap.search.SearchConfiguration;
+import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.PasswordData;
@@ -337,10 +339,12 @@ public class LdapOperationsHelper {
                 if (!"DN".equalsIgnoreCase(guidAttributeName) && !"VENDORGUID".equalsIgnoreCase(guidAttributeName)) {
                     try {
                         // check if it is unique
-                        final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
-                        searchConfiguration.setFilter("(" + guidAttributeName + "=" + guidValue + ")");
-                        final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, sessionLabel);
-                        final UserIdentity result = userSearchEngine.performSingleUserSearch(searchConfiguration);
+                        final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
+                                .filter("(" + guidAttributeName + "=" + guidValue + ")")
+                                .build();
+
+                        final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
+                        final UserIdentity result = userSearchEngine.performSingleUserSearch(searchConfiguration, sessionLabel);
                         exists = result != null;
                     } catch (PwmOperationalException e) {
                         if (e.getError() != PwmError.ERROR_CANT_MATCH_USER) {

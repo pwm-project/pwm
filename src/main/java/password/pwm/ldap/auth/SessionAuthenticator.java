@@ -44,7 +44,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.ldap.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.svc.intruder.IntruderManager;
 import password.pwm.svc.intruder.RecordType;
@@ -91,8 +91,8 @@ public class SessionAuthenticator {
         pwmApplication.getIntruderManager().check(RecordType.USERNAME, username);
         UserIdentity userIdentity = null;
         try {
-            final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, sessionLabel);
-            userIdentity = userSearchEngine.resolveUsername(username, context, ldapProfile);
+            final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
+            userIdentity = userSearchEngine.resolveUsername(username, context, ldapProfile, sessionLabel);
 
             final AuthenticationRequest authEngine = LDAPAuthenticationRequest.createLDAPAuthenticationRequest(
                     pwmApplication,
@@ -177,8 +177,8 @@ public class SessionAuthenticator {
 
         UserIdentity userIdentity = null;
         try {
-            final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, sessionLabel);
-            userIdentity = userSearchEngine.resolveUsername(username, null, null);
+            final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
+            userIdentity = userSearchEngine.resolveUsername(username, null, null, sessionLabel);
 
             final AuthenticationRequest authEngine = LDAPAuthenticationRequest.createLDAPAuthenticationRequest(
                     pwmApplication,
