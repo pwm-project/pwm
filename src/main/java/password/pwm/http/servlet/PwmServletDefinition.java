@@ -25,10 +25,18 @@ package password.pwm.http.servlet;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.bean.ActivateUserBean;
+import password.pwm.http.bean.ChangePasswordBean;
+import password.pwm.http.bean.ConfigGuideBean;
+import password.pwm.http.bean.ConfigManagerBean;
+import password.pwm.http.bean.DeleteAccountBean;
 import password.pwm.http.bean.ForgottenPasswordBean;
 import password.pwm.http.bean.LoginServletBean;
 import password.pwm.http.bean.NewUserBean;
 import password.pwm.http.bean.PwmSessionBean;
+import password.pwm.http.bean.SetupOtpBean;
+import password.pwm.http.bean.SetupResponsesBean;
+import password.pwm.http.bean.ShortcutsBean;
 import password.pwm.http.bean.UpdateProfileBean;
 import password.pwm.http.servlet.admin.AdminServlet;
 import password.pwm.http.servlet.changepw.PrivateChangePasswordServlet;
@@ -53,30 +61,30 @@ public enum PwmServletDefinition {
     OAuthConsumer(OAuthConsumerServlet.class, null),
     Command(password.pwm.http.servlet.CommandServlet.class, null),
     PublicPeopleSearch(PublicPeopleSearchServlet.class, null),
-    PublicChangePassword(PublicChangePasswordServlet.class, null),
+    PublicChangePassword(PublicChangePasswordServlet.class, ChangePasswordBean.class),
     //Resource(password.pwm.http.servlet.ResourceFileServlet.class),
 
     AccountInformation(AccountInformationServlet.class, null),
-    PrivateChangePassword(PrivateChangePasswordServlet.class, null),
-    SetupResponses(password.pwm.http.servlet.SetupResponsesServlet.class, null),
+    PrivateChangePassword(PrivateChangePasswordServlet.class, ChangePasswordBean.class),
+    SetupResponses(password.pwm.http.servlet.SetupResponsesServlet.class, SetupResponsesBean.class),
     UpdateProfile(password.pwm.http.servlet.UpdateProfileServlet.class, UpdateProfileBean.class),
-    SetupOtp(password.pwm.http.servlet.SetupOtpServlet.class, null),
+    SetupOtp(password.pwm.http.servlet.SetupOtpServlet.class, SetupOtpBean.class),
     Helpdesk(password.pwm.http.servlet.helpdesk.HelpdeskServlet.class, null),
-    Shortcuts(password.pwm.http.servlet.ShortcutServlet.class, null),
+    Shortcuts(password.pwm.http.servlet.ShortcutServlet.class, ShortcutsBean.class),
     PrivatePeopleSearch(PrivatePeopleSearchServlet.class, null),
     GuestRegistration(password.pwm.http.servlet.GuestRegistrationServlet.class, null),
-    SelfDelete(DeleteAccountServlet.class, null),
+    SelfDelete(DeleteAccountServlet.class, DeleteAccountBean.class),
 
     Admin(AdminServlet.class, null),
-    ConfigGuide(ConfigGuideServlet.class, null),
+    ConfigGuide(ConfigGuideServlet.class, ConfigGuideBean.class),
     ConfigEditor(ConfigEditorServlet.class, null),
-    ConfigManager(ConfigManagerServlet.class, null),
-    ConfigManager_Wordlists(ConfigManagerWordlistServlet.class, null),
-    ConfigManager_LocalDB(ConfigManagerLocalDBServlet.class, null),
-    ConfigManager_Certificates(ConfigManagerCertificatesServlet.class, null),
+    ConfigManager(ConfigManagerServlet.class, ConfigManagerBean.class),
+    ConfigManager_Wordlists(ConfigManagerWordlistServlet.class, ConfigManagerBean.class),
+    ConfigManager_LocalDB(ConfigManagerLocalDBServlet.class, ConfigManagerBean.class),
+    ConfigManager_Certificates(ConfigManagerCertificatesServlet.class, ConfigManagerBean.class),
 
     NewUser(NewUserServlet.class, NewUserBean.class),
-    ActivateUser(password.pwm.http.servlet.ActivateUserServlet.class, null),
+    ActivateUser(password.pwm.http.servlet.ActivateUserServlet.class, ActivateUserBean.class),
     ForgottenPassword(password.pwm.http.servlet.forgottenpw.ForgottenPasswordServlet.class, ForgottenPasswordBean.class),
     ForgottenUsername(password.pwm.http.servlet.ForgottenUsernameServlet.class, null),
 

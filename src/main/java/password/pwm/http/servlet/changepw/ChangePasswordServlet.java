@@ -188,7 +188,6 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet {
         } catch (PwmOperationalException e) {
             LOGGER.debug(e.getErrorInformation().toDebugStr());
             setLastError(pwmRequest, e.getErrorInformation());
-            return ProcessStatus.Halt;
         }
 
         return ProcessStatus.Continue;
@@ -393,7 +392,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet {
         }
 
         if (warnPageShouldBeShown(pwmRequest, changePasswordBean)) {
-            LOGGER.trace(pwmRequest, "pasword expiration is within password warn period, forwarding user to warning page");
+            LOGGER.trace(pwmRequest, "password expiration is within password warn period, forwarding user to warning page");
             pwmRequest.forwardToJsp(JspUrl.PASSWORD_WARN);
             return;
         }
