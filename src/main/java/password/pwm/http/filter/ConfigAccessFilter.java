@@ -194,7 +194,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
         boolean passwordAccepted = false;
         if (!persistentLoginAccepted) {
             if (password != null && password.length() > 0) {
-                if (storedConfig.verifyPassword(password)) {
+                if (storedConfig.verifyPassword(password, pwmRequest.getConfig())) {
                     passwordAccepted = true;
                     LOGGER.trace(pwmRequest, "valid configuration password accepted");
                     updateLoginHistory(pwmRequest,pwmRequest.getUserInfoIfLoggedIn(), true);

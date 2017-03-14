@@ -33,6 +33,7 @@ import org.jdom2.xpath.XPathFactory;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
+import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.PwmSettingSyntax;
@@ -865,12 +866,12 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
         this.writeConfigProperty(ConfigurationProperty.PASSWORD_HASH, passwordHash);
     }
 
-    public boolean verifyPassword(final String password) {
+    public boolean verifyPassword(final String password, final Configuration configuration) {
         if (!hasPassword()) {
             return false;
         }
         final String passwordHash = this.readConfigProperty(ConfigurationProperty.PASSWORD_HASH);
-        return BCrypt.testAnswer(password, passwordHash);
+        return BCrypt.testAnswer(password, passwordHash, configuration);
     }
 
     public boolean hasPassword() {
