@@ -84,9 +84,6 @@
         <!--
         <module name="FileContentsHolder"/>
 
-        <module name="LeftCurly">
-            <property name="option" value="nl"/>
-        </module>
 
         -->
 
