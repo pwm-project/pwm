@@ -334,10 +334,15 @@ public class AuditService implements PwmService {
         // email alert
         sendAsEmail(auditRecord);
 
-        // add to user ldap record
+        // add to user history record
         if (auditRecord instanceof UserAuditRecord) {
             if (settings.getUserStoredEvents().contains(auditRecord.getEventCode())) {
-                userHistoryStore.updateUserHistory((UserAuditRecord) auditRecord);
+                final String perpetratorDN = ((UserAuditRecord) auditRecord).getPerpetratorDN();
+                if (!StringUtil.isEmpty(perpetratorDN)) {
+                    userHistoryStore.updateUserHistory((UserAuditRecord) auditRecord);
+                } else {
+                    LOGGER.trace("skipping update of user history, audit record does not have a perpetratorDN: " + JsonUtil.serialize(auditRecord));
+                }
             }
         }
 

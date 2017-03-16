@@ -26,20 +26,26 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.bean.UserIdentity;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.JspUrl;
+import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmURL;
 import password.pwm.http.servlet.AbstractPwmServlet;
+import password.pwm.http.servlet.ControlledPwmServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
+import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.report.ReportColumnFilter;
 import password.pwm.svc.report.ReportCsvUtility;
 import password.pwm.svc.report.ReportService;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.reports.ReportUtils;
@@ -62,7 +68,7 @@ import java.util.LinkedHashMap;
                 PwmConstants.URL_PREFIX_PRIVATE + "/admin/Administration",
         }
 )
-public class AdminServlet extends AbstractPwmServlet {
+public class AdminServlet extends ControlledPwmServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(AdminServlet.class);
 
@@ -92,87 +98,47 @@ public class AdminServlet extends AbstractPwmServlet {
         }
     }
 
-    protected AdminAction readProcessAction(final PwmRequest request)
-            throws PwmUnrecoverableException
+    @Override
+    public Class<? extends ProcessAction> getProcessActionsClass()
     {
-        try {
-            return AdminAction.valueOf(request.readParameterAsString(PwmConstants.PARAM_ACTION_REQUEST));
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
+        return AdminAction.class;
     }
 
-    protected void processAction(final PwmRequest pwmRequest)
-            throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException
+    @Override
+    protected void nextStep(final PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
+    {
+        forwardToJsp(pwmRequest);
+    }
+
+    @Override
+    public ProcessStatus preProcessCheck(final PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException, ServletException
     {
         if (!pwmRequest.isAuthenticated()) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_AUTHENTICATION_REQUIRED);
             pwmRequest.respondWithError(errorInformation);
-            return;
+            return ProcessStatus.Halt;
         }
 
         if (!pwmRequest.getPwmSession().getSessionManager().checkPermission(pwmRequest.getPwmApplication(), Permission.PWMADMIN))  {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED);
             pwmRequest.respondWithError(errorInformation);
-            return;
+            return ProcessStatus.Halt;
         }
-
-        final AdminAction action = readProcessAction(pwmRequest);
-        if (action != null) {
-            switch(action) {
-                case viewLogWindow:
-                    processViewLog(pwmRequest);
-                    return;
-
-                case downloadAuditLogCsv:
-                    downloadAuditLogCsv(pwmRequest);
-                    return;
-
-                case downloadUserReportCsv:
-                    downloadUserReportCsv(pwmRequest);
-                    return;
-
-                case downloadUserSummaryCsv:
-                    downloadUserSummaryCsv(pwmRequest);
-                    return;
-
-                case downloadStatisticsLogCsv:
-                    downloadStatisticsLogCsv(pwmRequest);
-                    return;
-
-                case clearIntruderTable:
-                    processClearIntruderTable(pwmRequest);
-                    return;
-
-                case reportCommand:
-                    processReportCommand(pwmRequest);
-                    return;
-
-                case reportSummary:
-                    processReportSummary(pwmRequest);
-                    return;
-
-                case reportStatus:
-                    processReportStatus(pwmRequest);
-                    return;
-
-                default:
-                    JavaHelper.unhandledSwitchStatement(action);
-            }
-        }
-
-        forwardToJsp(pwmRequest);
+        return ProcessStatus.Continue;
     }
 
-    private void processViewLog(
+    @ActionHandler(action =  "viewLogWindow")
+    private ProcessStatus processViewLog(
             final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, IOException, ServletException
     {
         pwmRequest.forwardToJsp(JspUrl.ADMIN_LOGVIEW_WINDOW);
+        return ProcessStatus.Halt;
     }
 
-    private void downloadAuditLogCsv(
+    @ActionHandler(action = "downloadAuditLogCsv")
+    private ProcessStatus downloadAuditLogCsv(
             final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
@@ -190,9 +156,11 @@ public class AdminServlet extends AbstractPwmServlet {
         } finally {
             outputStream.close();
         }
+        return ProcessStatus.Halt;
     }
 
-    private void downloadUserReportCsv(
+    @ActionHandler(action = "downloadUserReportCsv")
+    private ProcessStatus downloadUserReportCsv(
             final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
@@ -214,9 +182,11 @@ public class AdminServlet extends AbstractPwmServlet {
         } finally {
             outputStream.close();
         }
+        return ProcessStatus.Halt;
     }
 
-    private void downloadUserSummaryCsv(
+    @ActionHandler(action = "downloadUserSummaryCsv")
+    private ProcessStatus downloadUserSummaryCsv(
             final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
@@ -235,9 +205,11 @@ public class AdminServlet extends AbstractPwmServlet {
         } finally {
             outputStream.close();
         }
+        return ProcessStatus.Halt;
     }
 
-    private void downloadStatisticsLogCsv(final PwmRequest pwmRequest)
+    @ActionHandler(action = "downloadStatisticsLogCsv")
+    private ProcessStatus downloadStatisticsLogCsv(final PwmRequest pwmRequest)
             throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
@@ -254,25 +226,29 @@ public class AdminServlet extends AbstractPwmServlet {
         } finally {
             outputStream.close();
         }
+        return ProcessStatus.Halt;
     }
 
-    private void processClearIntruderTable(
+    @ActionHandler(action = "clearIntruderTable")
+    private ProcessStatus processClearIntruderTable(
             final PwmRequest pwmRequest
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
     {
         if (!pwmRequest.getPwmSession().getSessionManager().checkPermission(pwmRequest.getPwmApplication(), Permission.PWMADMIN)) {
             LOGGER.info(pwmRequest, "unable to execute clear intruder records");
-            return;
+            return ProcessStatus.Halt;
         }
 
         //pwmApplication.getIntruderManager().clear();
 
         final RestResultBean restResultBean = new RestResultBean();
         pwmRequest.outputJsonResult(restResultBean);
+        return ProcessStatus.Halt;
     }
 
-    private void processReportCommand(final PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException {
+    @ActionHandler(action = "reportCommand")
+    private ProcessStatus processReportCommand(final PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException {
         final ReportService.ReportCommand reportCommand = JavaHelper.readEnumFromString(
                 ReportService.ReportCommand.class,
                 null,
@@ -284,9 +260,11 @@ public class AdminServlet extends AbstractPwmServlet {
 
         final RestResultBean restResultBean = new RestResultBean();
         pwmRequest.outputJsonResult(restResultBean);
+        return ProcessStatus.Halt;
     }
 
-    private void processReportStatus(final PwmRequest pwmRequest)
+    @ActionHandler(action = "reportStatus")
+    private ProcessStatus processReportStatus(final PwmRequest pwmRequest)
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException {
         try {
             final ReportStatusBean returnMap = ReportStatusBean.makeReportStatusData(
@@ -299,9 +277,11 @@ public class AdminServlet extends AbstractPwmServlet {
         } catch (LocalDBException e) {
             throw new PwmUnrecoverableException(e.getErrorInformation());
         }
+        return ProcessStatus.Halt;
     }
 
-    private void processReportSummary(final PwmRequest pwmRequest)
+    @ActionHandler(action = "reportSummary")
+    private ProcessStatus processReportSummary(final PwmRequest pwmRequest)
 
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
@@ -315,20 +295,45 @@ public class AdminServlet extends AbstractPwmServlet {
         final RestResultBean restResultBean = new RestResultBean();
         restResultBean.setData(returnMap);
         pwmRequest.outputJsonResult(restResultBean);
+        return ProcessStatus.Halt;
     }
 
+    private void processDebugUserSearch(final PwmRequest pwmRequest)
+            throws PwmUnrecoverableException
+    {
+        final String username = pwmRequest.readParameterAsString("username");
+        if (StringUtil.isEmpty(username)) {
+            return;
+        }
 
+        final UserSearchEngine userSearchEngine = pwmRequest.getPwmApplication().getUserSearchEngine();
+        final UserIdentity userIdentity;
+        try {
+            userIdentity = userSearchEngine.resolveUsername(username,null,null, pwmRequest.getSessionLabel());
+        } catch (ChaiUnavailableException e) {
+            setLastError(pwmRequest, PwmUnrecoverableException.fromChaiException(e).getErrorInformation());
+            return;
+        } catch (PwmOperationalException e) {
+            setLastError(pwmRequest, e.getErrorInformation());
+            return;
+        }
 
+        final UserDebugDataBean userDebugData = UserDebugDataReader.readUserDebugData(pwmRequest.getPwmApplication(), pwmRequest.getLocale(), pwmRequest.getSessionLabel(), userIdentity);
+        pwmRequest.setAttribute(PwmRequest.Attribute.UserDebugData, userDebugData);
+    }
 
-    public void forwardToJsp(final PwmRequest pwmRequest) throws ServletException, PwmUnrecoverableException, IOException {
+    private void forwardToJsp(final PwmRequest pwmRequest) throws ServletException, PwmUnrecoverableException, IOException {
         final Page currentPage = Page.forUrl(pwmRequest.getURL());
+        if (currentPage == Page.debugUser) {
+            processDebugUserSearch(pwmRequest);
+        }
+
         if (currentPage != null) {
             pwmRequest.forwardToJsp(currentPage.getJspURL());
             return;
         }
         pwmRequest.sendRedirect(pwmRequest.getContextPath() + PwmServletDefinition.Admin.servletUrl() + Page.dashboard.getUrlSuffix());
     }
-
 
     public enum Page {
         dashboard(JspUrl.ADMIN_DASHBOARD,"/dashboard"),

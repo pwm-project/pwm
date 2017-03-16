@@ -323,6 +323,8 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
 
         ShortcutItems,
         NextUrl,
+
+        UserDebugData,
     }
 
     public static class FileUploadItem {

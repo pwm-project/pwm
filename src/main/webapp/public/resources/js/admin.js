@@ -44,12 +44,18 @@ PWM_ADMIN.initAdminNavMenu = function() {
                         PWM_MAIN.goto(PWM_GLOBAL['url-context'] + '/private/admin/tokens');
                     }
                 }));
-
                 pMenu.addChild(new MenuItem({
                     label: PWM_ADMIN.showString('Title_URLReference'),
                     id: 'urlReference_dropitem',
                     onClick: function() {
                         PWM_MAIN.goto(PWM_GLOBAL['url-context'] + '/private/admin/urls');
+                    }
+                }));
+                pMenu.addChild(new MenuItem({
+                    label: 'User Debug',
+                    id: 'userDebug_dropitem',
+                    onClick: function() {
+                        PWM_MAIN.goto(PWM_GLOBAL['url-context'] + '/private/admin/debug');
                     }
                 }));
                 pMenu.addChild(new MenuSeparator());

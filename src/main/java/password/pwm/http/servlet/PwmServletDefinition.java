@@ -26,6 +26,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.ActivateUserBean;
+import password.pwm.http.bean.AdminBean;
 import password.pwm.http.bean.ChangePasswordBean;
 import password.pwm.http.bean.ConfigGuideBean;
 import password.pwm.http.bean.ConfigManagerBean;
@@ -75,7 +76,7 @@ public enum PwmServletDefinition {
     GuestRegistration(password.pwm.http.servlet.GuestRegistrationServlet.class, null),
     SelfDelete(DeleteAccountServlet.class, DeleteAccountBean.class),
 
-    Admin(AdminServlet.class, null),
+    Admin(AdminServlet.class, AdminBean.class),
     ConfigGuide(ConfigGuideServlet.class, ConfigGuideBean.class),
     ConfigEditor(ConfigEditorServlet.class, null),
     ConfigManager(ConfigManagerServlet.class, ConfigManagerBean.class),
