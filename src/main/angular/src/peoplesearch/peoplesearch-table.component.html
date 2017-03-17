@@ -40,7 +40,7 @@
         <mf-table-column ng-repeat="(key, value) in $ctrl.columnConfiguration"
                          label="value"
                          value="'person.' + key"
-                         ng-attr-id="{{ 'column-' + ctrl.index }}">
+                         id="$ctrl.index">
         </mf-table-column>
     </mf-table>
 
