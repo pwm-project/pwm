@@ -36,6 +36,7 @@
     Map<String,LdapProfile> ldapProfiles = Collections.emptyMap();
     String selectedProfileParam = "";
     LdapProfile selectedProfile = null;
+    Map<String,String> selectableContexts = null;
     boolean showContextSelector = false;
     try {
         final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
@@ -45,7 +46,8 @@
         selectedProfile = pwmRequest.getConfig().getLdapProfiles().containsKey(selectedProfileParam)
                 ? pwmRequest.getConfig().getLdapProfiles().get(selectedProfileParam)
                 : pwmRequest.getConfig().getDefaultLdapProfile();
-        showContextSelector = selectableContextMode == SelectableContextMode.SHOW_CONTEXTS && selectedProfile != null && selectedProfile.getLoginContexts().size() > 0;
+        selectableContexts = selectedProfile.getSelectableContexts(pwmRequest.getPwmApplication());
+        showContextSelector = selectableContextMode == SelectableContextMode.SHOW_CONTEXTS && selectedProfile != null && selectableContexts.size() > 0;
     } catch (PwmException e) {
         /* noop */
     }
@@ -63,8 +65,8 @@
 <div style="display: <%=showContextSelector?"inherit":"none"%>" id="contextSelectorWrapper">
     <h2><label for="<%=PwmConstants.PARAM_CONTEXT%>"><pwm:display key="Field_Location"/></label></h2>
     <select name="<%=PwmConstants.PARAM_CONTEXT%>" id="<%=PwmConstants.PARAM_CONTEXT%>" class="selectfield">
-        <% for (final String key : selectedProfile.getLoginContexts().keySet()) { %>
-        <option value="<%=StringUtil.escapeHtml(key)%>"><%=StringUtil.escapeHtml(selectedProfile.getLoginContexts().get(key))%></option>
+        <% for (final String key : selectableContexts.keySet()) { %>
+        <option value="<%=StringUtil.escapeHtml(key)%>"><%=StringUtil.escapeHtml(selectableContexts.get(key))%></option>
         <% } %>
     </select>
 </div>

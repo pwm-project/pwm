@@ -370,7 +370,7 @@ StringArrayValueHandler.valueHandler = function(settingKey, iteration) {
 
     var isLdapDN = PWM_MAIN.JSLibrary.arrayContains(PWM_SETTINGS['settings'][settingKey]['flags'],'ldapDNsyntax');
     if (isLdapDN) {
-        UILibrary.editLdapDN(okAction);
+        UILibrary.editLdapDN(okAction,{currentDN: editorOptions['value']});
     } else {
         UILibrary.stringEditorDialog(editorOptions);
     }
@@ -2426,7 +2426,7 @@ UserPermissionHandler.draw = function(keyName) {
                         PWM_VAR['clientSettingCache'][keyName][rowKey]['ldapProfileID'] = ldapProfileID;
                         PWM_VAR['clientSettingCache'][keyName][rowKey]['ldapBase'] = value;
                         UserPermissionHandler.write(keyName,true);
-                    });
+                    }, {currentDN: currentBaseValue});
                 };
                 if (currentBaseValue && currentBaseValue.length > 0) {
                     UILibrary.addTextValueToElement(inputID + '-base', currentBaseValue);
@@ -2682,7 +2682,7 @@ StringValueHandler.init = function(settingKey) {
                 });
             };
             if (isLdapDN) {
-                UILibrary.editLdapDN(writeBackFunc);
+                UILibrary.editLdapDN(writeBackFunc,{currentDN: value});
             } else {
                 UILibrary.stringEditorDialog({
                     title:'Edit Value - ' + settingData['label'],

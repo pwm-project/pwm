@@ -373,7 +373,7 @@ public class UserSearchEngine implements PwmService {
                 }
             }
         } else {
-            searchContexts = ldapProfile.readSettingAsStringArray(PwmSetting.LDAP_CONTEXTLESS_ROOT);
+            searchContexts = ldapProfile.getRootContexts(pwmApplication);
         }
 
         final long timeLimitMS = searchConfiguration.getSearchTimeout() != 0
@@ -460,15 +460,15 @@ public class UserSearchEngine implements PwmService {
         return returnMap;
     }
 
-    private static void validateSpecifiedContext(final LdapProfile profile, final String context)
-            throws PwmOperationalException
+    private void validateSpecifiedContext(final LdapProfile profile, final String context)
+            throws PwmOperationalException, PwmUnrecoverableException
     {
-        if (profile.getLoginContexts() == null || profile.getLoginContexts().isEmpty()) {
+        final Map<String,String> selectableContexts = profile.getSelectableContexts(pwmApplication);
+        if (selectableContexts == null || selectableContexts.isEmpty()) {
             throw new PwmOperationalException(PwmError.ERROR_UNKNOWN,"context specified, but no selectable contexts are configured");
         }
-        final Collection<String> loginContexts = profile.getLoginContexts().keySet();
 
-        for (final String loopContext : loginContexts) {
+        for (final String loopContext : selectableContexts.keySet()) {
             if (loopContext.equals(context)) {
                 return;
             }

@@ -29,8 +29,8 @@ import password.pwm.config.StoredValue;
 import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.i18n.Display;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.LocaleHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
 
@@ -38,6 +38,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -67,7 +68,9 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
         }
 
         public Map<IdentityVerificationMethod, VerificationMethodSetting> getMethodSettings() {
-            return Collections.unmodifiableMap(methodSettings);
+            final Map<IdentityVerificationMethod, VerificationMethodSetting> tempMap = new LinkedHashMap<>(methodSettings);
+            tempMap.remove(null);
+            return Collections.unmodifiableMap(tempMap);
         }
 
         public int getMinOptionalRequired() {

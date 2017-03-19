@@ -116,7 +116,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
 
             if (!pwmRequest.getPwmSession().getSessionManager().checkPermission(pwmRequest.getPwmApplication(), Permission.PWMADMIN)) {
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED);
-                pwmRequest.respondWithError(errorInformation);
+                denyAndError(pwmRequest, errorInformation);
                 return ProcessStatus.Halt;
             }
         }
@@ -132,8 +132,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
         if (!storedConfig.hasPassword()) {
             final String errorMsg = "config file does not have a configuration password";
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorMsg,new String[]{errorMsg});
-            pwmRequest.respondWithError(errorInformation, true);
-            return ProcessStatus.Halt;
+            return denyAndError(pwmRequest, errorInformation);
         }
 
         if (configManagerBean.isPasswordVerified()) {
@@ -204,7 +203,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
                     pwmApplication.getIntruderManager().mark(RecordType.USERNAME, PwmConstants.CONFIGMANAGER_INTRUDER_USERNAME, pwmSession.getLabel());
                     final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_PASSWORD_ONLY_BAD);
                     updateLoginHistory(pwmRequest,pwmRequest.getUserInfoIfLoggedIn(), false);
-                    throw new PwmUnrecoverableException(errorInformation);
+                    return denyAndError(pwmRequest, errorInformation);
                 }
             }
         }
@@ -393,5 +392,13 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
             final String errorMsg = "Internet Explorer version is not supported for this function.  Please use Internet Explorer 11 or higher or another web browser.";
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED, errorMsg));
         }
+    }
+
+    private static ProcessStatus denyAndError(final PwmRequest pwmRequest, final ErrorInformation errorInformation)
+            throws ServletException, PwmUnrecoverableException, IOException
+    {
+        pwmRequest.setAttribute(PwmRequest.Attribute.PwmErrorInfo, errorInformation);
+        forwardToJsp(pwmRequest);
+        return ProcessStatus.Halt;
     }
 }

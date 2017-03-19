@@ -103,11 +103,11 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
         } catch (InvocationTargetException e) {
             final Throwable cause = e.getCause();
             if (cause != null) {
-                final String msg = "unexpected error during action handler for '" + action + "', error: " + e.getMessage();
-                LOGGER.error(msg, cause);
                 if (cause instanceof PwmUnrecoverableException) {
                     throw (PwmUnrecoverableException) cause;
                 }
+                final String msg = "unexpected error during action handler for '" + action + "', error: " + cause.getMessage();
+                LOGGER.error(msg);
                 throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, msg));
             }
             LOGGER.error("uncaused invocation error: " + e.getMessage(),e);

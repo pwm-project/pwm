@@ -457,7 +457,7 @@ public class RestAppDataServer extends AbstractRestServer {
         if (pwmApplication.getConfig().readSettingAsEnum(PwmSetting.LDAP_SELECTABLE_CONTEXT_MODE, SelectableContextMode.class) != SelectableContextMode.NONE) {
             final Map<String,Map<String,String>> ldapProfiles = new LinkedHashMap<>();
             for (final String ldapProfile : pwmApplication.getConfig().getLdapProfiles().keySet()) {
-                final Map<String,String> contexts = pwmApplication.getConfig().getLdapProfiles().get(ldapProfile).getLoginContexts();
+                final Map<String,String> contexts = pwmApplication.getConfig().getLdapProfiles().get(ldapProfile).getSelectableContexts(pwmApplication);
                 ldapProfiles.put(ldapProfile,contexts);
             }
             settingMap.put("ldapProfiles",ldapProfiles);

@@ -22,14 +22,9 @@
 
 package password.pwm.ldap;
 
-import com.novell.ldapchai.ChaiEntry;
-import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiException;
-import com.novell.ldapchai.exception.ChaiOperationException;
-import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
-import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
@@ -43,8 +38,6 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
-import password.pwm.svc.cache.CacheKey;
-import password.pwm.svc.cache.CachePolicy;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.Collections;
@@ -256,51 +249,18 @@ public class LdapPermissionTester {
     private static boolean testUserDNmatch(
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
-            final String ldapBase,
+            final String baseDN,
             final UserIdentity userIdentity
     )
             throws PwmUnrecoverableException
     {
-        if (ldapBase == null || ldapBase.trim().isEmpty()) {
+        if (baseDN == null || baseDN.trim().isEmpty()) {
             return true;
         }
 
-        final String permissionBase = ldapBase.trim();
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile(pwmApplication.getConfig());
+        final String canonicalBaseDN = ldapProfile.readCanonicalDN(pwmApplication, baseDN);
         final String userDN = userIdentity.getUserDN();
-        if (userDN.endsWith(permissionBase)) {
-            return true;
-        }
-
-        {
-            final boolean doCanonicalDnResolve = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.SECURITY_LDAP_BASEDN_RESOLVE_CANONICAL_DN));
-            if (!doCanonicalDnResolve) {
-                return false;
-            }
-        }
-
-        String canonicalBaseDN = null;
-        final CacheKey cacheKey = CacheKey.makeCacheKey(LdapPermissionTester.class, null, "canonicalDN-" + userIdentity.getLdapProfileID() + "-" + ldapBase);
-        {
-            final String cachedDN = pwmApplication.getCacheService().get(cacheKey);
-            if (cachedDN != null) {
-                canonicalBaseDN = cachedDN;
-            }
-        }
-
-        if (canonicalBaseDN == null) {
-            try {
-                final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID());
-                final ChaiEntry chaiEntry = ChaiFactory.createChaiEntry(ldapBase, chaiProvider);
-                canonicalBaseDN = chaiEntry.readCanonicalDN();
-                final long cacheSeconds = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.SECURITY_LDAP_BASEDN_CANONICAL_CACHE_SECONDS));
-                final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpirationMS(cacheSeconds * 1000);
-                pwmApplication.getCacheService().put(cacheKey, cachePolicy, canonicalBaseDN);
-            } catch (ChaiUnavailableException | ChaiOperationException e) {
-                LOGGER.error(sessionLabel, "error while testing userDN match against baseDN '" + ldapBase + "', error: " + e.getMessage());
-                return false;
-            }
-        }
-
         return userDN.endsWith(canonicalBaseDN);
     }
 }
