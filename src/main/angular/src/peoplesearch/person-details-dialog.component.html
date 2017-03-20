@@ -25,7 +25,8 @@
                             </ul>
                         </td>
                     </tr>
-                    <tr ng-repeat="(key, detail) in $ctrl.person.detail">
+                    <tr ng-repeat="(key, detail) in $ctrl.person.detail"
+                        ng-attr-id="{{' detail-' + detail.index }}">
                         <td ng-bind="detail.label"></td>
                         <td ng-switch="detail.type">
                             <div class="detail-container" ng-switch-when="userDN">
