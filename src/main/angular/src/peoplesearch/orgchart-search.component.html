@@ -14,16 +14,19 @@
     <mf-icon-button
             icon="view-tile"
             ng-click="$ctrl.gotoSearchState('search.cards')"
-            ng-attr-title="{{ 'Title_PeopleSearch' | translate }}"></mf-icon-button>
+            ng-attr-title="{{ 'Title_PeopleSearch' | translate }}"
+            id="view-tile-icon"></mf-icon-button>
     <mf-icon-button
             icon="view-list"
             ng-click="$ctrl.gotoSearchState('search.table')"
-            ng-attr-title="{{ 'Title_PeopleSearch' | translate }}"></mf-icon-button>
+            ng-attr-title="{{ 'Title_PeopleSearch' | translate }}"
+            id="view-list-icon"></mf-icon-button>
     <div class="mf-divider vertical"></div>
     <mf-icon-button
             icon="orgchart"
             disabled="true"
-            ng-attr-title="{{ 'Title_OrgChart' | translate }}"></mf-icon-button>
+            ng-attr-title="{{ 'Title_OrgChart' | translate }}"
+            id="orgcharg-icon"></mf-icon-button>
 </mf-app-bar>
 
 <org-chart person="$ctrl.person"

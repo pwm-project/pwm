@@ -39,8 +39,7 @@
               on-click-item="$ctrl.selectPerson(person)">
         <mf-table-column ng-repeat="(key, value) in $ctrl.columnConfiguration"
                          label="value"
-                         value="'person.' + key"
-                         id="$ctrl.index">
+                         value="'person.' + key">
         </mf-table-column>
     </mf-table>
 
