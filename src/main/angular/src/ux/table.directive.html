@@ -30,10 +30,10 @@
         </tr>
     </thead>
     <tbody>
-        <tr ng-repeat="item in table.getItems()" ng-click="table.clickItem(item, $event)">
+        <tr ng-repeat="item in table.getItems()" ng-click="table.clickItem(item, $event)"
+            ng-attr-id="{{'index' + table.index }}">
             <td ng-repeat="column in table.getVisibleColumns()"
-                ng-bind="table.getValue(item, column.valueExpression)"
-                ng-attr-id="{{'email-' + table.getValue(item, column.valueExpression) }}"></td>
+                ng-bind="table.getValue(item, column.valueExpression)"></td>
             <td></td>
         </tr>
     </tbody>
