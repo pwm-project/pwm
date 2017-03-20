@@ -31,7 +31,7 @@
     </thead>
     <tbody>
         <tr ng-repeat="item in table.getItems()" ng-click="table.clickItem(item, $event)"
-            ng-attr-id="{{'index' + table.index }}">
+            ng-attr-id="{{'index' + table.getValue(item, column.valueExpression) }}">
             <td ng-repeat="column in table.getVisibleColumns()"
                 ng-bind="table.getValue(item, column.valueExpression)"></td>
             <td></td>
