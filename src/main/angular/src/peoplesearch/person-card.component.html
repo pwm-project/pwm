@@ -1,4 +1,4 @@
-<div class="person-card-content" ng-attr-id="{{' detail-' + $ctrl.index }}" ng-switch="$ctrl.size">
+<div class="person-card-content" ng-attr-id="{{' detail-' + $ctrl.name }}" ng-switch="$ctrl.size">
     <div class="avatar" ng-if="$ctrl.isSmall() || $ctrl.showImage" ng-style="$ctrl.getAvatarStyle()" aria-label="User avatar"></div>
     <div class="reports"
          ng-if="$ctrl.showDirectReportCount && $ctrl.person.numDirectReports"
