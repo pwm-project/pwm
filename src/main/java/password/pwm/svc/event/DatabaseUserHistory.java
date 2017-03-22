@@ -30,10 +30,10 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.util.java.JsonUtil;
-import password.pwm.util.db.DatabaseAccessorImpl;
+import password.pwm.util.db.DatabaseAccessor;
 import password.pwm.util.db.DatabaseException;
 import password.pwm.util.db.DatabaseTable;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
@@ -46,7 +46,7 @@ class DatabaseUserHistory implements UserHistoryStore {
     private static final DatabaseTable TABLE = DatabaseTable.USER_AUDIT;
 
     final PwmApplication pwmApplication;
-    final DatabaseAccessorImpl databaseAccessor;
+    final DatabaseAccessor databaseAccessor;
 
     DatabaseUserHistory(final PwmApplication pwmApplication) {
         this.pwmApplication = pwmApplication;

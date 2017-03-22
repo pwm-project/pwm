@@ -125,15 +125,17 @@ public class LdapProfile extends AbstractProfile implements Profile {
             throws PwmUnrecoverableException
     {
         {
-            final boolean doCanonicalDnResolve = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.SECURITY_LDAP_RESOLVE_CANONICAL_DN));
+            final boolean doCanonicalDnResolve = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.LDAP_RESOLVE_CANONICAL_DN));
             if (!doCanonicalDnResolve) {
                 return dnValue;
             }
         }
 
+        final boolean enableCanonicalCache = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.LDAP_CACHE_CANONICAL_ENABLE));
+
         String canonicalValue = null;
         final CacheKey cacheKey = CacheKey.makeCacheKey(LdapPermissionTester.class, null, "canonicalDN-" + this.getIdentifier() + "-" + dnValue);
-        {
+        if (enableCanonicalCache) {
             final String cachedDN = pwmApplication.getCacheService().get(cacheKey);
             if (cachedDN != null) {
                 canonicalValue = cachedDN;
@@ -145,9 +147,13 @@ public class LdapProfile extends AbstractProfile implements Profile {
                 final ChaiProvider chaiProvider = this.getProxyChaiProvider(pwmApplication);
                 final ChaiEntry chaiEntry = ChaiFactory.createChaiEntry(dnValue, chaiProvider);
                 canonicalValue = chaiEntry.readCanonicalDN();
-                final long cacheSeconds = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.SECURITY_LDAP_CANONICAL_CACHE_SECONDS));
-                final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpiration(new TimeDuration(cacheSeconds, TimeUnit.SECONDS));
-                pwmApplication.getCacheService().put(cacheKey, cachePolicy, canonicalValue);
+
+                if (enableCanonicalCache) {
+                    final long cacheSeconds = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.LDAP_CACHE_CANONICAL_SECONDS));
+                    final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpiration(new TimeDuration(cacheSeconds, TimeUnit.SECONDS));
+                    pwmApplication.getCacheService().put(cacheKey, cachePolicy, canonicalValue);
+                }
+
                 LOGGER.trace("read and cached canonical ldap DN value for input '" + dnValue + "' as '" + canonicalValue + "'");
             } catch (ChaiUnavailableException | ChaiOperationException e) {
                 LOGGER.error("error while reading canonicalDN for dn value '" + dnValue + "', error: " + e.getMessage());

@@ -20,14 +20,18 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util.db;
+package password.pwm.svc.cache;
 
-public enum DatabaseTable {
-    PWM_META,
-    PWM_RESPONSES,
-    USER_AUDIT,
-    INTRUDER,
-    TOKENS,
-    OTP,
-    PW_NOTIFY,
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+import java.io.Serializable;
+import java.time.Instant;
+
+@Getter
+@AllArgsConstructor
+class CacheValueWrapper implements Serializable {
+    private final CacheKey cacheKey;
+    private final Instant expirationDate;
+    private final String payload;
 }

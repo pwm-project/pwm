@@ -32,4 +32,6 @@ public interface CacheStore {
     String read(CacheKey cacheKey) throws PwmUnrecoverableException;
     
     CacheStoreInfo getCacheStoreInfo();
+
+    int itemCount();
 }

@@ -816,6 +816,12 @@
             <value>{"to":"@User:Email@","from":"Unlock Account Notice \u003c@DefaultEmailFromAddress@\u003e","subject":"Account Unlock Notice","bodyPlain":"Your account has been unlocked.","bodyHtml":""}</value>
         </default>
     </setting>
+    <setting hidden="false" key="email.pwExpirationNotice" level="1">
+        <flag>MacroSupport</flag>
+        <default>
+            <value>{"to":"@User:Email@","from":"Password Expiration Notice \u003c@DefaultEmailFromAddress@\u003e","subject":"Password Expiration Notice","bodyPlain":"Your password is about to expire.  Your password will expire in @User:DaysUntilPwExpire@ days.","bodyHtml":""}</value>
+        </default>
+    </setting>
     <setting hidden="false" key="email.smtp.advancedSettings" level="2">
         <regex>^[a-zA-Z0-9.]+=.+$</regex>
         <default/>

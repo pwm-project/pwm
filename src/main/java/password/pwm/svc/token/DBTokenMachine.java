@@ -25,16 +25,16 @@ package password.pwm.svc.token;
 import password.pwm.bean.SessionLabel;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.db.DatabaseAccessorImpl;
+import password.pwm.util.db.DatabaseAccessor;
 import password.pwm.util.db.DatabaseTable;
 
 import java.util.Iterator;
 
 class DBTokenMachine implements TokenMachine {
-    private DatabaseAccessorImpl databaseAccessor;
+    private DatabaseAccessor databaseAccessor;
     private TokenService tokenService;
 
-    DBTokenMachine(final TokenService tokenService, final DatabaseAccessorImpl databaseAccessor) {
+    DBTokenMachine(final TokenService tokenService, final DatabaseAccessor databaseAccessor) {
         this.tokenService = tokenService;
         this.databaseAccessor = databaseAccessor;
     }

@@ -723,7 +723,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
                 returnObj.put(PwmAboutProperty.database_databaseProductVersion, databaseMetaData.getDatabaseProductVersion());
                 return Collections.unmodifiableMap(returnObj);
             } catch (SQLException e) {
-                LOGGER.error("error rading jdbc meta data: " + e.getMessage());
+                LOGGER.error("error reading jdbc meta data: " + e.getMessage());
             }
         }
         return Collections.emptyMap();

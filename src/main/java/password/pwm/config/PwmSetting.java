@@ -286,6 +286,11 @@ public enum PwmSetting {
             "email.smtp.userpassword", PwmSettingSyntax.PASSWORD, PwmSettingCategory.EMAIL_SETTINGS),
     EMAIL_MAX_QUEUE_AGE(
             "email.queueMaxAge", PwmSettingSyntax.DURATION, PwmSettingCategory.EMAIL_SETTINGS),
+    EMAIL_ADVANCED_SETTINGS(
+            "email.smtp.advancedSettings", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.EMAIL_SETTINGS),
+
+
+    // email template
     EMAIL_CHANGEPASSWORD(
             "email.changePassword", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES),
     EMAIL_CHANGEPASSWORD_HELPDESK(
@@ -322,9 +327,9 @@ public enum PwmSetting {
             "email.helpdesk.unlock", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES),
     EMAIL_UNLOCK(
             "email.unlock", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES),
+    EMAIL_PW_EXPIRATION_NOTICE(
+            "email.pwExpirationNotice", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES),
 
-    EMAIL_ADVANCED_SETTINGS(
-            "email.smtp.advancedSettings", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.EMAIL_SETTINGS),
 
     // sms settings
     SMS_MAX_QUEUE_AGE(

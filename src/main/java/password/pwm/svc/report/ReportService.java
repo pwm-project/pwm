@@ -25,7 +25,6 @@ package password.pwm.svc.report;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
-import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
@@ -39,8 +38,7 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
-import password.pwm.ldap.search.SearchConfiguration;
-import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.EventRateMeter;
@@ -63,7 +61,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -393,7 +390,12 @@ public class ReportService implements PwmService {
 
             final Queue<UserIdentity> memQueue;
             {
-                final List<UserIdentity> userIdentities = readAllUsersFromLdap(pwmApplication, settings.getSearchFilter(), settings.getMaxSearchSize());
+                final List<UserIdentity> userIdentities = LdapOperationsHelper.readAllUsersFromLdap(
+                        pwmApplication,
+                        PwmConstants.REPORTING_SESSION_LABEL,
+                        settings.getSearchFilter(),
+                        settings.getMaxSearchSize()
+                );
                 Collections.shuffle(userIdentities);
                 memQueue = new LinkedList<>(userIdentities);
             }
@@ -419,45 +421,6 @@ public class ReportService implements PwmService {
                 transactionCalculator.recordLastTransactionDuration(TimeDuration.fromCurrent(loopStart));
             }
             LOGGER.trace("completed transfer of ldap search results to work queue in " + TimeDuration.fromCurrent(startTime).asCompactString());
-        }
-
-        private List<UserIdentity> readAllUsersFromLdap(
-                final PwmApplication pwmApplication,
-                final String searchFilter,
-                final int maxResults
-        )
-                throws ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException, PwmOperationalException
-        {
-            final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
-
-            final SearchConfiguration searchConfiguration;
-            {
-                final SearchConfiguration.SearchConfigurationBuilder builder = SearchConfiguration.builder();
-
-                builder.enableValueEscaping(false);
-                builder.searchTimeout(Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.REPORTING_LDAP_SEARCH_TIMEOUT)));
-
-                if (searchFilter == null) {
-                    builder.username("*");
-                } else {
-                    builder.filter(searchFilter);
-                }
-
-                searchConfiguration = builder.build();
-            }
-
-
-            LOGGER.debug(PwmConstants.REPORTING_SESSION_LABEL,"beginning UserReportService user search using parameters: " + (JsonUtil.serialize(searchConfiguration)));
-
-            final Map<UserIdentity,Map<String,String>> searchResults = userSearchEngine.performMultiUserSearch(
-                    searchConfiguration,
-                    maxResults,
-                    Collections.emptyList(),
-                    PwmConstants.REPORTING_SESSION_LABEL
-
-            );
-            LOGGER.debug(PwmConstants.REPORTING_SESSION_LABEL,"user search found " + searchResults.size() + " users for reporting");
-            return new ArrayList<>(searchResults.keySet());
         }
     }
 

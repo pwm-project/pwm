@@ -159,6 +159,11 @@ public enum     AppProperty {
     HELPDESK_TOKEN_VALUE                            ("helpdesk.token.value"),
     HELPDESK_VERIFICATION_INVALID_DELAY_MS          ("helpdesk.verification.invalid.delayMs"),
     HELPDESK_VERIFICATION_TIMEOUT_SECONDS           ("helpdesk.verification.timeoutSeconds"),
+    LDAP_RESOLVE_CANONICAL_DN                       ("ldap.resolveCanonicalDN"),
+    LDAP_CACHE_CANONICAL_ENABLE                     ("ldap.cache.canonical.enable"),
+    LDAP_CACHE_CANONICAL_SECONDS                    ("ldap.cache.canonical.seconds"),
+    LDAP_CACHE_USER_GUID_ENABLE                     ("ldap.cache.userGuid.enable"),
+    LDAP_CACHE_USER_GUID_SECONDS                    ("ldap.cache.userGuid.seconds"),
     LDAP_CHAI_SETTINGS                              ("ldap.chaiSettings"),
     LDAP_EXTENSIONS_NMAS_ENABLE                     ("ldap.extensions.nmas.enable"),
     LDAP_CONNECTION_TIMEOUT                         ("ldap.connection.timeoutMS"),
@@ -250,8 +255,6 @@ public enum     AppProperty {
     SECURITY_SHAREDHISTORY_CASE_INSENSITIVE         ("security.sharedHistory.caseInsensitive"),
     SECURITY_SHAREDHISTORY_SALT_LENGTH              ("security.sharedHistory.saltLength"),
     SECURITY_CERTIFICATES_VALIDATE_TIMESTAMPS       ("security.certs.validateTimestamps"),
-    SECURITY_LDAP_RESOLVE_CANONICAL_DN              ("security.ldap.resolveCanonicalDN"),
-    SECURITY_LDAP_CANONICAL_CACHE_SECONDS           ("security.ldap.canonicalCacheSeconds"),
     SECURITY_CONFIG_MIN_SECURITY_KEY_LENGTH         ("security.config.minSecurityKeyLength"),
     SECURITY_DEFAULT_EPHEMERAL_BLOCK_ALG            ("security.defaultEphemeralBlockAlg"),
     SECURITY_DEFAULT_EPHEMERAL_HASH_ALG             ("security.defaultEphemeralHashAlg"),
@@ -306,6 +309,6 @@ public enum     AppProperty {
     }
 
     private static String readAppPropertiesBundle(final String key) {
-        return  ResourceBundle.getBundle(AppProperty.class.getName()).getString(key);
+        return ResourceBundle.getBundle(AppProperty.class.getName()).getString(key);
     }
 }

@@ -55,9 +55,6 @@
     <!-- gson -->
     <allow pkg="com.google.gson"/>
 
-    <!-- concurrentlinkhashmap -->
-    <allow pkg="com.googlecode.concurrentlinkedhashmap"/>
-
     <!-- to be removed/scoped -->
     <allow pkg="org.apache.http"/>
     <allow pkg="org.apache.commons"/>
@@ -78,6 +75,7 @@
     <allow pkg="net.glxn"/>
     <allow pkg="org.webjars"/>
     <allow pkg="lombok"/>
+    <allow pkg="com.github.benmanes.caffeine"/>
 
 
     <!--servlet -->

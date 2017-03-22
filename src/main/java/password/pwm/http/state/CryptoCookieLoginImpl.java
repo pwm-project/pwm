@@ -101,7 +101,7 @@ class CryptoCookieLoginImpl implements SessionLoginProvider {
                 try {
                     checkIfRemoteLoginCookieIsValid(pwmRequest, remoteLoginCookie);
                 } catch (PwmOperationalException e) {
-                    LOGGER.warn(pwmRequest, e.getErrorInformation().toDebugStr());
+                    LOGGER.debug(pwmRequest, e.getErrorInformation().toDebugStr());
                     clearLoginSession(pwmRequest);
                     return;
                 }

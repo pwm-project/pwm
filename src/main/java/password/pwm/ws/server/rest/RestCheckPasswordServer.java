@@ -25,6 +25,8 @@ package password.pwm.ws.server.rest;
 
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import password.pwm.PwmApplication;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.UserIdentity;
@@ -65,11 +67,13 @@ import java.time.Instant;
 public class RestCheckPasswordServer extends AbstractRestServer {
     private static final PwmLogger LOGGER = PwmLogger.forClass(RestCheckPasswordServer.class);
 
+    @Getter
+    @AllArgsConstructor
     public static class JsonInput implements Serializable
     {
-        public String password1;
-        public String password2;
-        public String username;
+        public final String password1;
+        public final String password2;
+        public final String username;
     }
 
     public static class JsonData implements Serializable
@@ -112,11 +116,7 @@ public class RestCheckPasswordServer extends AbstractRestServer {
     )
             throws PwmUnrecoverableException
     {
-        final JsonInput jsonInput = new JsonInput();
-        jsonInput.password1 = password1;
-        jsonInput.password2 = password2;
-        jsonInput.username = username;
-
+        final JsonInput jsonInput = new JsonInput(password1, password2, username);
         return doOperation(jsonInput);
     }
 
@@ -200,21 +200,26 @@ public class RestCheckPasswordServer extends AbstractRestServer {
         }
     }
 
-    private static class PasswordCheckRequest {
-        final UserIdentity userDN;
+    public static class PasswordCheckRequest {
+        final UserIdentity userIdentity;
         final PasswordData password1;
         final PasswordData password2;
         final UserInfoBean userInfoBean;
 
-        private PasswordCheckRequest(final UserIdentity userDN, final PasswordData password1, final PasswordData password2, final UserInfoBean userInfoBean) {
-            this.userDN= userDN;
+        public PasswordCheckRequest(
+                final UserIdentity userDN,
+                final PasswordData password1,
+                final PasswordData password2,
+                final UserInfoBean userInfoBean
+        ) {
+            this.userIdentity = userDN;
             this.password1 = password1;
             this.password2 = password2;
             this.userInfoBean = userInfoBean;
         }
 
         public UserIdentity getUserIdentity() {
-            return userDN;
+            return userIdentity;
         }
 
         public PasswordData getPassword1() {
@@ -231,7 +236,7 @@ public class RestCheckPasswordServer extends AbstractRestServer {
     }
 
 
-    public JsonData doPasswordRuleCheck(
+    public static JsonData doPasswordRuleCheck(
             final PwmApplication pwmApplication,
             final PwmSession pwmSession,
             final PasswordCheckRequest checkRequest

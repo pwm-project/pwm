@@ -22,7 +22,6 @@
 
 package password.pwm.util.db;
 
-import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 import org.xeustechnologies.jcl.JarClassLoader;
 import org.xeustechnologies.jcl.JclObjectFactory;
 import password.pwm.PwmApplication;
@@ -45,6 +44,7 @@ import java.sql.Driver;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class JDBCDriverLoader {
 
@@ -229,9 +229,7 @@ public class JDBCDriverLoader {
         private final PwmLogger LOGGER = PwmLogger.forClass(AppPathDriverLoader.class, true);
 
         // static ccache of classloader to prevent classloader memory leak
-        private static Map<String,ClassLoader> driverCache = new ConcurrentLinkedHashMap.Builder<String,ClassLoader>().
-                maximumWeightedCapacity(100).
-                build();
+        private static Map<String,ClassLoader> driverCache = new ConcurrentHashMap<>();
 
         @Override
         public Driver loadDriver(final PwmApplication pwmApplication, final DBConfiguration dbConfiguration)

@@ -362,16 +362,7 @@ public class UserStatusReader {
         }
 
         // read password expiration time
-        try {
-            Date ldapPasswordExpirationTime = theUser.readPasswordExpirationDate();
-            if (ldapPasswordExpirationTime != null && ldapPasswordExpirationTime.getTime() < 0) {
-                // If ldapPasswordExpirationTime is less than 0, this may indicate an extremely late date, past the epoch.
-                ldapPasswordExpirationTime = null;
-            }
-            uiBean.setPasswordExpirationTime(ldapPasswordExpirationTime == null ? null : ldapPasswordExpirationTime.toInstant());
-        } catch (Exception e) {
-            LOGGER.warn(sessionLabel, "error reading password expiration time: " + e.getMessage());
-        }
+        uiBean.setPasswordExpirationTime(LdapOperationsHelper.readPasswordExpirationTime(theUser));
 
         // read password state
         uiBean.setPasswordState(readPasswordStatus(theUser, uiBean.getPasswordPolicy(), uiBean, currentPassword));

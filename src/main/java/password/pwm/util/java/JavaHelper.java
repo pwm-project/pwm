@@ -326,4 +326,16 @@ public class JavaHelper {
     {
         return new CSVPrinter(new OutputStreamWriter(outputStream,PwmConstants.DEFAULT_CHARSET), PwmConstants.DEFAULT_CSV_FORMAT);
     }
+
+    public static ExecutorService makeSingleThreadExecutorService(
+            final PwmApplication pwmApplication,
+            final Class clazz
+    )
+    {
+        return Executors.newSingleThreadScheduledExecutor(
+                makePwmThreadFactory(
+                        JavaHelper.makeThreadName(pwmApplication,clazz) + "-",
+                        true
+                ));
+    }
 }

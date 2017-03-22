@@ -60,6 +60,7 @@ import password.pwm.svc.wordlist.WordlistManager;
 import password.pwm.util.PasswordData;
 import password.pwm.util.VersionChecker;
 import password.pwm.util.cli.commands.ExportHttpsTomcatConfigCommand;
+import password.pwm.util.db.DatabaseAccessor;
 import password.pwm.util.db.DatabaseAccessorImpl;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
@@ -530,7 +531,7 @@ public class PwmApplication {
         return pwmEnvironment.getApplicationMode();
     }
 
-    public synchronized DatabaseAccessorImpl getDatabaseAccessor()
+    public synchronized DatabaseAccessor getDatabaseAccessor()
     {
         return (DatabaseAccessorImpl)pwmServiceManager.getService(DatabaseAccessorImpl.class);
     }

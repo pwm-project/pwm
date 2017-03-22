@@ -22,7 +22,8 @@
 
 package password.pwm.ldap;
 
-import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
@@ -50,8 +51,8 @@ public class LdapUserDataReader implements Serializable, UserDataReader {
 
     private static final Boolean NULL_CACHE_VALUE = Boolean.FALSE;
 
-    private final Map<String,Object> cacheMap = new ConcurrentLinkedHashMap.Builder<String, Object>()
-            .maximumWeightedCapacity(100)  // safety limit
+    private final Cache<String,Object> cacheMap = Caffeine.newBuilder()
+            .maximumSize(100)  // safety limit
             .build();
     private final ChaiUser user;
     private final UserIdentity userIdentity;
@@ -162,12 +163,12 @@ public class LdapUserDataReader implements Serializable, UserDataReader {
         }
 
         if (ignoreCache) {
-            cacheMap.keySet().removeAll(attributes);
+            cacheMap.invalidateAll();
         }
 
         // figure out uncached attributes.
         final List<String> uncachedAttributes = new ArrayList<>(attributes);
-        uncachedAttributes.removeAll(cacheMap.keySet());
+        uncachedAttributes.removeAll(cacheMap.asMap().keySet());
 
         // read uncached attributes into cache
         if (!uncachedAttributes.isEmpty()) {
@@ -186,7 +187,7 @@ public class LdapUserDataReader implements Serializable, UserDataReader {
         // build result data from cache
         final Map<String,List<String>> returnMap = new HashMap<>();
         for (final String attribute : attributes) {
-            final Object cachedValue = cacheMap.get(attribute);
+            final Object cachedValue = cacheMap.getIfPresent(attribute);
             if (cachedValue != null && !NULL_CACHE_VALUE.equals(cachedValue)) {
                 returnMap.put(attribute,(List<String>)cachedValue);
             }

@@ -23,21 +23,19 @@
 package password.pwm.util.db;
 
 import password.pwm.error.PwmDataStoreException;
-import password.pwm.svc.PwmService;
-import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.DataStore;
+import password.pwm.util.java.ClosableIterator;
 
 public class DatabaseDataStore implements DataStore {
-    private final DatabaseAccessorImpl databaseAccessor;
+    private final DatabaseAccessor databaseAccessor;
     private final DatabaseTable table;
 
-    public DatabaseDataStore(final DatabaseAccessorImpl databaseAccessor, final DatabaseTable table) {
+    public DatabaseDataStore(final DatabaseAccessor databaseAccessor, final DatabaseTable table) {
         this.databaseAccessor = databaseAccessor;
         this.table = table;
     }
 
     public void close() throws PwmDataStoreException {
-        databaseAccessor.close();
     }
 
     public boolean contains(final String key) throws PwmDataStoreException {
@@ -53,24 +51,11 @@ public class DatabaseDataStore implements DataStore {
     }
 
     public Status status() {
-        final PwmService.STATUS dbStatus = databaseAccessor.status();
-        if (dbStatus == null) {
+        if (databaseAccessor == null) {
             return null;
         }
-        switch (dbStatus) {
-            case OPEN:
-                return Status.OPEN;
 
-            case CLOSED:
-                return Status.CLOSED;
-
-            case NEW:
-            case OPENING:
-                return Status.NEW;
-
-            default:
-                throw new IllegalStateException("unknown databaseAccessor state");
-        }
+        return Status.OPEN;
     }
 
     public boolean put(final String key, final String value) throws PwmDataStoreException {

@@ -36,6 +36,7 @@ import com.novell.ldapchai.provider.ChaiSetting;
 import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
@@ -49,16 +50,22 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.svc.cache.CacheKey;
+import password.pwm.svc.cache.CachePolicy;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.PasswordData;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.secure.X509Utils;
 
 import javax.net.ssl.X509TrustManager;
 import java.security.cert.X509Certificate;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -67,6 +74,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 public class LdapOperationsHelper {
     private static final PwmLogger LOGGER = PwmLogger.forClass(LdapOperationsHelper.class);
@@ -158,9 +166,25 @@ public class LdapOperationsHelper {
     )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
-        final String existingValue = GUIDHelper.readExistingGuidValue(pwmApplication, sessionLabel, userIdentity, throwExceptionOnError);
-        final LdapProfile ldapProfile = pwmApplication.getConfig().getLdapProfiles().get(
-                userIdentity.getLdapProfileID());
+
+        final boolean enableCache = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.LDAP_CACHE_USER_GUID_ENABLE));
+        final CacheKey cacheKey = CacheKey.makeCacheKey(LdapOperationsHelper.class, null, "guidValue-" + userIdentity.toDelimitedKey());
+
+        if (enableCache) {
+            final String cachedValue = pwmApplication.getCacheService().get(cacheKey);
+            if (cachedValue != null) {
+                return cachedValue;
+            }
+        }
+
+        final String existingValue = GUIDHelper.readExistingGuidValue(
+                pwmApplication,
+                sessionLabel,
+                userIdentity,
+                throwExceptionOnError
+        );
+
+        final LdapProfile ldapProfile = pwmApplication.getConfig().getLdapProfiles().get(userIdentity.getLdapProfileID());
         final String guidAttributeName = ldapProfile.readSettingAsString(PwmSetting.LDAP_GUID_ATTRIBUTE);
         if (existingValue == null || existingValue.length() < 1) {
             if (!"DN".equalsIgnoreCase(guidAttributeName) && !"VENDORGUID".equalsIgnoreCase(guidAttributeName)) {
@@ -172,6 +196,13 @@ public class LdapOperationsHelper {
             final String errorMsg = "unable to resolve GUID value for user " + userIdentity.toString();
             GUIDHelper.processError(errorMsg,throwExceptionOnError);
         }
+
+        if (enableCache) {
+            final long cacheSeconds = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.LDAP_CACHE_USER_GUID_SECONDS));
+            final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpiration(new TimeDuration(cacheSeconds, TimeUnit.SECONDS));
+            pwmApplication.getCacheService().put(cacheKey, cachePolicy, existingValue);
+        }
+
         return existingValue;
     }
 
@@ -599,4 +630,61 @@ public class LdapOperationsHelper {
         }
         return Collections.emptyMap();
     }
+
+    public static List<UserIdentity> readAllUsersFromLdap(
+            final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
+            final String searchFilter,
+            final int maxResults
+    )
+            throws ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException, PwmOperationalException
+    {
+        final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
+
+        final SearchConfiguration searchConfiguration;
+        {
+            final SearchConfiguration.SearchConfigurationBuilder builder = SearchConfiguration.builder();
+
+            builder.enableValueEscaping(false);
+            builder.searchTimeout(Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.REPORTING_LDAP_SEARCH_TIMEOUT)));
+
+            if (searchFilter == null) {
+                builder.username("*");
+            } else {
+                builder.filter(searchFilter);
+            }
+
+            searchConfiguration = builder.build();
+        }
+
+        LOGGER.debug(sessionLabel,"beginning user search using parameters: " + (JsonUtil.serialize(searchConfiguration)));
+
+        final Map<UserIdentity,Map<String,String>> searchResults = userSearchEngine.performMultiUserSearch(
+                searchConfiguration,
+                maxResults,
+                Collections.emptyList(),
+                PwmConstants.REPORTING_SESSION_LABEL
+
+        );
+        LOGGER.debug(sessionLabel,"user search found " + searchResults.size() + " users for reporting");
+        return new ArrayList<>(searchResults.keySet());
+    }
+
+    public static Instant readPasswordExpirationTime(final ChaiUser theUser) {
+        try {
+            Date ldapPasswordExpirationTime = theUser.readPasswordExpirationDate();
+            if (ldapPasswordExpirationTime != null && ldapPasswordExpirationTime.getTime() < 0) {
+                // If ldapPasswordExpirationTime is less than 0, this may indicate an extremely late date, past the epoch.
+                ldapPasswordExpirationTime = null;
+            }
+            return ldapPasswordExpirationTime == null
+                    ? null
+                    : ldapPasswordExpirationTime.toInstant();
+        } catch (Exception e) {
+            LOGGER.warn("error reading password expiration time: " + e.getMessage());
+        }
+
+        return null;
+    }
+
 }

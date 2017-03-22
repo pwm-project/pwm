@@ -25,7 +25,6 @@ package password.pwm.svc.cache;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
-import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
@@ -99,7 +98,7 @@ public class CacheService implements PwmService {
 
     @Override
     public ServiceInfo serviceInfo() {
-        return new ServiceInfo(Collections.<DataStorageMethod>emptyList());
+        return new ServiceInfo(Collections.emptyList());
     }
 
     public void put(final CacheKey cacheKey, final CachePolicy cachePolicy, final String payload)

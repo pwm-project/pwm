@@ -22,6 +22,7 @@
 
 package password.pwm.http.servlet.resource;
 
+import com.github.benmanes.caffeine.cache.Cache;
 import org.apache.commons.io.IOUtils;
 import org.webjars.WebJarAssetLocator;
 import password.pwm.PwmApplication;
@@ -264,7 +265,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
             final HttpServletResponse response,
             final FileResource file,
             final boolean acceptsGzip,
-            final Map<CacheKey, CacheEntry> responseCache
+            final Cache<CacheKey, CacheEntry> responseCache
     )
             throws UncacheableResourceException, IOException
     {
@@ -275,7 +276,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
 
         boolean fromCache = false;
         final CacheKey cacheKey = new CacheKey(file, acceptsGzip);
-        CacheEntry cacheEntry = responseCache.get(cacheKey);
+        CacheEntry cacheEntry = responseCache.getIfPresent(cacheKey);
         if (cacheEntry == null) {
             final Map<String, String> headers = new HashMap<>();
             final ByteArrayOutputStream tempOutputStream = new ByteArrayOutputStream();

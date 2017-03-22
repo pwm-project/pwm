@@ -22,7 +22,8 @@
 
 package password.pwm.http.servlet.resource;
 
-import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import org.apache.commons.io.output.NullOutputStream;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
@@ -60,7 +61,7 @@ public class ResourceServletService implements PwmService {
 
 
     private ResourceServletConfiguration resourceServletConfiguration;
-    private Map<CacheKey, CacheEntry> cacheMap;
+    private Cache<CacheKey, CacheEntry> cache;
     private EventRateMeter.MovingAverage cacheHitRatio = new EventRateMeter.MovingAverage(60 * 60 * 1000);
     private String resourceNonce;
     private STATUS status = STATUS.NEW;
@@ -71,8 +72,8 @@ public class ResourceServletService implements PwmService {
         return resourceNonce;
     }
 
-    public Map<CacheKey, CacheEntry> getCacheMap() {
-        return cacheMap;
+    public Cache<CacheKey, CacheEntry> getCacheMap() {
+        return cache;
     }
 
     public EventRateMeter.MovingAverage getCacheHitRatio() {
@@ -81,12 +82,10 @@ public class ResourceServletService implements PwmService {
 
 
     public long bytesInCache() {
-        final Map<CacheKey, CacheEntry> responseCache = getCacheMap();
-        final Map<CacheKey, CacheEntry> cacheCopy = new HashMap<>();
-        cacheCopy.putAll(responseCache);
+        final Map<CacheKey, CacheEntry> cacheCopy = new HashMap<>(cache.asMap());
         long cacheByteCount = 0;
         for (final CacheKey cacheKey : cacheCopy.keySet()) {
-            final CacheEntry cacheEntry = responseCache.get(cacheKey);
+            final CacheEntry cacheEntry = cacheCopy.get(cacheKey);
             if (cacheEntry != null && cacheEntry.getEntity() != null) {
                 cacheByteCount += cacheEntry.getEntity().length;
             }
@@ -95,8 +94,8 @@ public class ResourceServletService implements PwmService {
     }
 
     public int itemsInCache() {
-        final Map<CacheKey, CacheEntry> responseCache = getCacheMap();
-        return responseCache.size();
+        final Cache<CacheKey, CacheEntry> responseCache = getCacheMap();
+        return (int)responseCache.estimatedSize();
     }
 
     public Percent cacheHitRatio() {
@@ -117,8 +116,8 @@ public class ResourceServletService implements PwmService {
         try {
             this.resourceServletConfiguration = ResourceServletConfiguration.createResourceServletConfiguration(pwmApplication);
 
-            cacheMap = new ConcurrentLinkedHashMap.Builder<CacheKey, CacheEntry>()
-                    .maximumWeightedCapacity(resourceServletConfiguration.getMaxCacheItems())
+            cache = Caffeine.newBuilder()
+                    .maximumSize(resourceServletConfiguration.getMaxCacheItems())
                     .build();
 
             status = STATUS.OPEN;
