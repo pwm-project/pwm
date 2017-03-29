@@ -8,15 +8,18 @@
     <span flex></span>
     <mf-icon-button
             icon="view-tile"
+            id="view-title-button"
             ng-click="$ctrl.gotoCardsView()"
             ng-attr-title="{{ 'Title_PeopleSearch' | translate }}"></mf-icon-button>
     <mf-icon-button
             icon="view-list"
+            id="view-list-button"
             disabled="true"
             ng-attr-title="{{ 'Title_PeopleSearch' | translate }}"></mf-icon-button>
     <div class="mf-divider vertical" ng-if="$ctrl.orgChartEnabled"></div>
     <mf-icon-button
             icon="orgchart"
+            id="view-orgchart-button"
             ng-click="$ctrl.gotoOrgchart()"
             ng-if="$ctrl.orgChartEnabled"
             ng-attr-title="{{ 'Title_OrgChart' | translate }}"></mf-icon-button>
