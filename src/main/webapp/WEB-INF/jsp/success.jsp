@@ -1,6 +1,6 @@
 <%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
-<%@ page import="password.pwm.http.servlet.CommandServlet" %>
+<%@ page import="password.pwm.http.servlet.command.CommandServlet" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -36,7 +36,7 @@
     </jsp:include>
     <div id="centerbody">
         <div id="page-content-title"><pwm:display key="Title_Success" displayIfMissing="true"/></div>
-        <form action="<pwm:url url='<%=PwmServletDefinition.Command.servletUrl()%>' addContext="true"/>" method="post"
+        <form action="<pwm:url url='<%=PwmServletDefinition.PublicCommand.servletUrl()%>' addContext="true"/>" method="post"
               enctype="application/x-www-form-urlencoded" class="pwm-form">
             <p><pwm:SuccessMessage/></p>
             <div class="buttonbar">

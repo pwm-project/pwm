@@ -116,7 +116,7 @@ public class PwmResponse extends PwmHttpResponseWrapper {
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        this.pwmRequest.setAttribute(PwmRequest.Attribute.SuccessMessage, message);
+        this.pwmRequest.setAttribute(PwmRequestAttribute.SuccessMessage, message);
 
         final boolean showMessage = !pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_SUCCESS_PAGES)
                 && !Arrays.asList(flags).contains(Flag.AlwaysShowMessage);
@@ -124,7 +124,7 @@ public class PwmResponse extends PwmHttpResponseWrapper {
         if (showMessage) {
             LOGGER.trace(pwmSession, "skipping success page due to configuration setting.");
             final String redirectUrl = pwmRequest.getContextPath()
-                    +  PwmServletDefinition.Command.servletUrl()
+                    +  PwmServletDefinition.PublicCommand.servletUrl()
                     + "?processAction=next";
             sendRedirect(redirectUrl);
             return;
@@ -145,7 +145,7 @@ public class PwmResponse extends PwmHttpResponseWrapper {
     {
         LOGGER.error(pwmRequest.getSessionLabel(), errorInformation);
 
-        pwmRequest.setAttribute(PwmRequest.Attribute.PwmErrorInfo, errorInformation);
+        pwmRequest.setAttribute(PwmRequestAttribute.PwmErrorInfo, errorInformation);
 
         if (JavaHelper.enumArrayContainsValue(flags, Flag.ForceLogout)) {
             LOGGER.debug(pwmRequest, "forcing logout due to error " + errorInformation.toDebugStr());

@@ -27,7 +27,7 @@
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.config.option.ViewStatusFields" %>
 <%@ page import="password.pwm.http.JspUtility" %>
-<%@ page import="password.pwm.http.servlet.CommandServlet" %>
+<%@ page import="password.pwm.http.servlet.command.CommandServlet" %>
 <%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%@ page import="password.pwm.i18n.Display" %>
 <%@ page import="password.pwm.svc.event.UserAuditRecord" %>
@@ -40,6 +40,7 @@
 <%@ page import="java.util.Locale" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.Set" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -336,7 +337,7 @@
         <% } %>
     </table>
 </div>
-<% final Map<FormConfiguration, List<String>> userFormData = (Map<FormConfiguration,List<String>>)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.FormData); %>
+<% final Map<FormConfiguration, List<String>> userFormData = (Map<FormConfiguration,List<String>>)JspUtility.getAttribute(pageContext, PwmRequestAttribute.FormData); %>
 <% if (userFormData != null && !userFormData.isEmpty()) { %>
 <div data-dojo-type="dijit.layout.ContentPane" id="UserData" title="<pwm:display key="<%=Display.Title_UserData.toString()%>"/>" class="tabContent">
     <div style="max-height: 400px; overflow: auto;">
@@ -402,7 +403,7 @@
 <% } %>
 </div>
 <div class="buttonbar">
-    <form action="<pwm:url url='<%=PwmServletDefinition.Command.servletUrl()%>' addContext="true"/>" method="post" enctype="application/x-www-form-urlencoded">
+    <form action="<pwm:url url='<%=PwmServletDefinition.PublicCommand.servletUrl()%>' addContext="true"/>" method="post" enctype="application/x-www-form-urlencoded">
         <input type="hidden" name="<%=PwmConstants.PARAM_ACTION_REQUEST%>" value="<%=CommandServlet.CommandAction.next.toString()%>"/>
         <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
         <button type="submit" name="button" class="btn" id="button_continue">

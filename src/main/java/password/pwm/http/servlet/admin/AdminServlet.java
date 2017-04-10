@@ -23,6 +23,7 @@
 package password.pwm.http.servlet.admin;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import password.pwm.AppProperty;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -35,7 +36,9 @@ import password.pwm.http.HttpMethod;
 import password.pwm.http.JspUrl;
 import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmURL;
+import password.pwm.http.bean.AdminBean;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.ControlledPwmServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
@@ -45,6 +48,7 @@ import password.pwm.svc.report.ReportCsvUtility;
 import password.pwm.svc.report.ReportService;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
@@ -82,6 +86,7 @@ public class AdminServlet extends ControlledPwmServlet {
         reportCommand(HttpMethod.POST),
         reportStatus(HttpMethod.GET),
         reportSummary(HttpMethod.GET),
+        downloadUserDebug(HttpMethod.GET),
 
         ;
 
@@ -128,7 +133,7 @@ public class AdminServlet extends ControlledPwmServlet {
     }
 
     @ActionHandler(action =  "viewLogWindow")
-    private ProcessStatus processViewLog(
+    private ProcessStatus processViewLogWindow(
             final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, IOException, ServletException
@@ -145,7 +150,10 @@ public class AdminServlet extends ControlledPwmServlet {
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
 
-        pwmRequest.getPwmResponse().markAsDownload(PwmConstants.ContentTypeValue.csv, PwmConstants.DOWNLOAD_FILENAME_AUDIT_RECORDS_CSV);
+        pwmRequest.getPwmResponse().markAsDownload(
+                PwmConstants.ContentTypeValue.csv,
+                pwmApplication.getConfig().readAppProperty(AppProperty.DOWNLOAD_FILENAME_AUDIT_RECORDS_CSV)
+        );
 
         final OutputStream outputStream = pwmRequest.getPwmResponse().getOutputStream();
         try {
@@ -167,7 +175,10 @@ public class AdminServlet extends ControlledPwmServlet {
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
 
-        pwmRequest.getPwmResponse().markAsDownload(PwmConstants.ContentTypeValue.csv, PwmConstants.DOWNLOAD_FILENAME_USER_REPORT_RECORDS_CSV);
+        pwmRequest.getPwmResponse().markAsDownload(
+                PwmConstants.ContentTypeValue.csv,
+                pwmApplication.getConfig().readAppProperty(AppProperty.DOWNLOAD_FILENAME_USER_REPORT_RECORDS_CSV)
+        );
 
         final OutputStream outputStream = pwmRequest.getPwmResponse().getOutputStream();
         try {
@@ -193,7 +204,10 @@ public class AdminServlet extends ControlledPwmServlet {
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
 
-        pwmRequest.getPwmResponse().markAsDownload(PwmConstants.ContentTypeValue.csv, PwmConstants.DOWNLOAD_FILENAME_USER_REPORT_SUMMARY_CSV);
+        pwmRequest.getPwmResponse().markAsDownload(
+                PwmConstants.ContentTypeValue.csv,
+                pwmApplication.getConfig().readAppProperty(AppProperty.DOWNLOAD_FILENAME_USER_REPORT_SUMMARY_CSV)
+        );
 
         final OutputStream outputStream = pwmRequest.getPwmResponse().getOutputStream();
         try {
@@ -214,7 +228,10 @@ public class AdminServlet extends ControlledPwmServlet {
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
 
-        pwmRequest.getPwmResponse().markAsDownload(PwmConstants.ContentTypeValue.csv, PwmConstants.DOWNLOAD_FILENAME_STATISTICS_CSV);
+        pwmRequest.getPwmResponse().markAsDownload(
+                PwmConstants.ContentTypeValue.csv,
+                pwmRequest.getPwmApplication().getConfig().readAppProperty(AppProperty.DOWNLOAD_FILENAME_STATISTICS_CSV)
+        );
 
         final OutputStream outputStream = pwmRequest.getPwmResponse().getOutputStream();
         try {
@@ -298,6 +315,29 @@ public class AdminServlet extends ControlledPwmServlet {
         return ProcessStatus.Halt;
     }
 
+    @ActionHandler(action = "downloadUserDebug")
+    private ProcessStatus processDownloadUserDebug(final PwmRequest pwmRequest)
+
+            throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
+    {
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final AdminBean adminBean = pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest, AdminBean.class);
+        final UserIdentity userIdentity = adminBean.getLastUserDebug();
+        if (userIdentity != null) {
+            pwmRequest.getPwmResponse().markAsDownload(
+                    PwmConstants.ContentTypeValue.json,
+                    pwmApplication.getConfig().readAppProperty(AppProperty.DOWNLOAD_FILENAME_USER_DEBUG_JSON)
+            );
+            final UserDebugDataBean userDebugData = UserDebugDataReader.readUserDebugData(pwmRequest.getPwmApplication(), pwmRequest.getLocale(), pwmRequest.getSessionLabel(), userIdentity);
+            final String output = JsonUtil.serialize(userDebugData, JsonUtil.Flag.PrettyPrint);
+            pwmRequest.getPwmResponse().getOutputStream().write(output.getBytes(PwmConstants.DEFAULT_CHARSET));
+        } else {
+            pwmRequest.respondWithError(new ErrorInformation(PwmError.ERROR_UNKNOWN, "no previously searched user available for download"));
+        }
+
+        return ProcessStatus.Halt;
+    }
+
     private void processDebugUserSearch(final PwmRequest pwmRequest)
             throws PwmUnrecoverableException
     {
@@ -310,6 +350,8 @@ public class AdminServlet extends ControlledPwmServlet {
         final UserIdentity userIdentity;
         try {
             userIdentity = userSearchEngine.resolveUsername(username,null,null, pwmRequest.getSessionLabel());
+            final AdminBean adminBean = pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest, AdminBean.class);
+            adminBean.setLastUserDebug(userIdentity);
         } catch (ChaiUnavailableException e) {
             setLastError(pwmRequest, PwmUnrecoverableException.fromChaiException(e).getErrorInformation());
             return;
@@ -319,7 +361,7 @@ public class AdminServlet extends ControlledPwmServlet {
         }
 
         final UserDebugDataBean userDebugData = UserDebugDataReader.readUserDebugData(pwmRequest.getPwmApplication(), pwmRequest.getLocale(), pwmRequest.getSessionLabel(), userIdentity);
-        pwmRequest.setAttribute(PwmRequest.Attribute.UserDebugData, userDebugData);
+        pwmRequest.setAttribute(PwmRequestAttribute.UserDebugData, userDebugData);
     }
 
     private void forwardToJsp(final PwmRequest pwmRequest) throws ServletException, PwmUnrecoverableException, IOException {
@@ -342,7 +384,7 @@ public class AdminServlet extends ControlledPwmServlet {
         tokenLookup(JspUrl.ADMIN_TOKEN_LOOKUP,"/tokens"),
         viewLog(JspUrl.ADMIN_LOGVIEW,"/logs"),
         urlReference(JspUrl.ADMIN_URLREFERENCE,"/urls"),
-        debugUser(JspUrl.ADMIN_DEBUG,"/debug"),
+        debugUser(JspUrl.ADMIN_DEBUG,"/userdebug"),
 
         ;
 

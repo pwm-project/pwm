@@ -1,6 +1,7 @@
 <%@ page import="password.pwm.bean.PasswordStatus" %>
 <%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -42,7 +43,7 @@
         <% } %>
         <%@ include file="fragment/message.jsp" %>
         <br/>
-        <div id="agreementText" class="agreementText"><%= (String)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.AgreementText) %></div>
+        <div id="agreementText" class="agreementText"><%= (String)JspUtility.getAttribute(pageContext, PwmRequestAttribute.AgreementText) %></div>
         <div class="buttonbar">
             <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" autocomplete="off">
                 <%-- remove the next line to remove the "I Agree" checkbox --%>

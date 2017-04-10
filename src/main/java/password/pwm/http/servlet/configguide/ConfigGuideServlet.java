@@ -58,6 +58,7 @@ import password.pwm.http.ContextManager;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
 import password.pwm.http.PwmURL;
 import password.pwm.http.bean.ConfigGuideBean;
@@ -587,7 +588,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
 
         if (configGuideBean.getStep() == GuideStep.LDAP_PERMISSIONS) {
             final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator(ConfigGuideForm.generateStoredConfig(configGuideBean));
-            pwmRequest.setAttribute(PwmRequest.Attribute.LdapPermissionItems,ldapPermissionCalculator);
+            pwmRequest.setAttribute(PwmRequestAttribute.LdapPermissionItems,ldapPermissionCalculator);
         }
 
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();

@@ -36,6 +36,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.JspUrl;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.util.secure.X509Utils;
 import password.pwm.util.logging.PwmLogger;
@@ -98,7 +99,7 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet {
             pwmRequest.outputJsonResult(restResultBean);
             return;
         }
-        pwmRequest.setAttribute(PwmRequest.Attribute.ConfigHasCertificates, !certificateDebugDataItems.isEmpty());
+        pwmRequest.setAttribute(PwmRequestAttribute.ConfigHasCertificates, !certificateDebugDataItems.isEmpty());
         pwmRequest.forwardToJsp(JspUrl.CONFIG_MANAGER_CERTIFICATES);
     }
 

@@ -671,7 +671,7 @@ public abstract class StandardMacros {
         {
             final UserInfoBean userInfoBean = macroRequestInfo.getUserInfoBean();
             if (userInfoBean != null && userInfoBean.getOtpUserRecord() != null && userInfoBean.getOtpUserRecord().getTimestamp() != null) {
-                return PwmConstants.DEFAULT_DATETIME_FORMAT.format(userInfoBean.getOtpUserRecord().getTimestamp());
+                return JavaHelper.toIsoDate(userInfoBean.getOtpUserRecord().getTimestamp());
             }
             return "";
         }
@@ -688,7 +688,7 @@ public abstract class StandardMacros {
         {
             final UserInfoBean userInfoBean = macroRequestInfo.getUserInfoBean();
             if (userInfoBean != null && userInfoBean.getResponseInfoBean() != null && userInfoBean.getResponseInfoBean().getTimestamp() != null) {
-                return PwmConstants.DEFAULT_DATETIME_FORMAT.format(userInfoBean.getResponseInfoBean().getTimestamp());
+                return JavaHelper.toIsoDate(userInfoBean.getResponseInfoBean().getTimestamp());
             }
             return "";
         }

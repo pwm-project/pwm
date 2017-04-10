@@ -25,6 +25,7 @@
 <%@ page import="password.pwm.http.bean.ForgottenPasswordBean" %>
 <%@ page import="password.pwm.http.servlet.forgottenpw.ForgottenPasswordServlet"%>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <%  final boolean resendEnabled = Boolean.parseBoolean(JspUtility.getPwmRequest(pageContext).getConfig().readAppProperty(AppProperty.TOKEN_RESEND_ENABLED)); %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%@ include file="fragment/header.jsp" %>
@@ -86,7 +87,7 @@
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-check"></span></pwm:if>
                     <pwm:display key="Button_CheckCode"/>
                 </button>
-                <% if ("true".equals(JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ForgottenPasswordOptionalPageView))) { %>
+                <% if ("true".equals(JspUtility.getAttribute(pageContext, PwmRequestAttribute.ForgottenPasswordOptionalPageView))) { %>
                 <button type="submit" id="button-goBack" name="button-goBack" class="btn" form="form-goBack">
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-backward"></span></pwm:if>
                     <pwm:display key="Button_GoBack"/>

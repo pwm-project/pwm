@@ -3,6 +3,7 @@
 <%@ page import="password.pwm.util.LocaleHelper" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
 <%@ page import="java.util.Map" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -42,7 +43,7 @@
         <p><pwm:display key="Display_UpdateProfileConfirm"/></p>
         <%@ include file="fragment/message.jsp" %>
         <br/>
-        <% final Map<FormConfiguration,String> formDataMap = (Map<FormConfiguration,String>)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.FormData); %>
+        <% final Map<FormConfiguration,String> formDataMap = (Map<FormConfiguration,String>)JspUtility.getAttribute(pageContext, PwmRequestAttribute.FormData); %>
         <table id="ConfirmProfileTable">
             <% for (final FormConfiguration formConfiguration : formDataMap.keySet()) { %>
             <tr>

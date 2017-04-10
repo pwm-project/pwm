@@ -24,10 +24,11 @@
 <%@ page import="com.novell.ldapchai.cr.ChallengeSet" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ page import="password.pwm.http.tag.value.PwmValue" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final ChallengeSet challengeSet = (ChallengeSet)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ForgottenPasswordChallengeSet); %>
+<% final ChallengeSet challengeSet = (ChallengeSet)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ForgottenPasswordChallengeSet); %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
 <%--
@@ -62,7 +63,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-check"></span></pwm:if>
                                                    <pwm:display key="Button_RecoverPassword"/>
                 </button>
-                <% if ("true".equals(JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ForgottenPasswordOptionalPageView))) { %>
+                <% if ("true".equals(JspUtility.getAttribute(pageContext, PwmRequestAttribute.ForgottenPasswordOptionalPageView))) { %>
                 <button type="button" id="button-goBack" name="button-goBack" class="btn" >
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-backward"></span></pwm:if>
                     <pwm:display key="Button_GoBack"/>

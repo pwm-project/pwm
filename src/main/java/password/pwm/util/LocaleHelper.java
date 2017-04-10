@@ -131,7 +131,7 @@ public class LocaleHelper {
                 returnValue = bundle.getString(key);
             } catch (MissingResourceException e) {
                 final String errorMsg = "missing key '" + key + "' for " + bundleClass.getName();
-                if (config.isDevDebugMode()) {
+                if (config != null && config.isDevDebugMode()) {
                     LOGGER.warn(errorMsg);
                 }
                 returnValue = key;

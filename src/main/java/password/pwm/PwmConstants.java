@@ -114,6 +114,8 @@ public abstract class PwmConstants {
     public static final SessionLabel HEALTH_SESSION_LABEL = new SessionLabel(SESSION_LABEL_SESSION_ID ,null,"health",null,null);
     public static final SessionLabel CLI_SESSION_LABEL= new SessionLabel(SESSION_LABEL_SESSION_ID ,null,"cli",null,null);
     public static final SessionLabel TOKEN_SESSION_LABEL = new SessionLabel(SESSION_LABEL_SESSION_ID ,null,"token",null,null);
+    public static final SessionLabel PW_EXP_NOTICE_LABEL = new SessionLabel(SESSION_LABEL_SESSION_ID ,null,"pwExpireNotice",null,null);
+
 
     public static final int DATABASE_ACCESSOR_KEY_LENGTH = Integer.parseInt(readPwmConstantsBundle("databaseAccessor.keyLength"));
 
@@ -138,13 +140,6 @@ public abstract class PwmConstants {
 
     public static final PwmBlockAlgorithm IN_MEMORY_PASSWORD_ENCRYPT_METHOD = PwmBlockAlgorithm.AES;
     public static final PwmHashAlgorithm SETTING_CHECKSUM_HASH_METHOD = PwmHashAlgorithm.SHA256;
-
-
-    public static final String DOWNLOAD_FILENAME_STATISTICS_CSV = "Statistics.csv";
-    public static final String DOWNLOAD_FILENAME_USER_REPORT_SUMMARY_CSV = "UserReportSummary.csv";
-    public static final String DOWNLOAD_FILENAME_USER_REPORT_RECORDS_CSV = "UserReportRecords.csv";
-    public static final String DOWNLOAD_FILENAME_AUDIT_RECORDS_CSV = "AuditRecords.csv";
-    public static final String DOWNLOAD_FILENAME_LDAP_PERMISSION_CSV = "LDAPPermissionRecommendations.csv";
 
 
     public static final String LOG_REMOVED_VALUE_REPLACEMENT = readPwmConstantsBundle("log.removedValue");

@@ -59,6 +59,7 @@ import java.math.MathContext;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -388,17 +389,13 @@ public class ReportService implements PwmService {
             resetJobStatus();
             clearWorkQueue();
 
-            final Queue<UserIdentity> memQueue;
-            {
-                final List<UserIdentity> userIdentities = LdapOperationsHelper.readAllUsersFromLdap(
-                        pwmApplication,
-                        PwmConstants.REPORTING_SESSION_LABEL,
-                        settings.getSearchFilter(),
-                        settings.getMaxSearchSize()
-                );
-                Collections.shuffle(userIdentities);
-                memQueue = new LinkedList<>(userIdentities);
-            }
+            final Iterator<UserIdentity> memQueue = LdapOperationsHelper.readAllUsersFromLdap(
+                    pwmApplication,
+                    PwmConstants.REPORTING_SESSION_LABEL,
+                    settings.getSearchFilter(),
+                    settings.getMaxSearchSize()
+            );
+
 
             LOGGER.trace("completed ldap search process, transferring search results to work queue");
 
@@ -410,12 +407,12 @@ public class ReportService implements PwmService {
                             .createSettings()
             );
 
-            while (status == STATUS.OPEN && !cancelFlag && !memQueue.isEmpty()) {
+            while (status == STATUS.OPEN && !cancelFlag && memQueue.hasNext()) {
                 final Instant loopStart = Instant.now();
                 final List<String> bufferList = new ArrayList<>();
                 final int loopCount = transactionCalculator.getTransactionSize();
-                for (int i = 0; i < loopCount && !memQueue.isEmpty(); i++) {
-                    bufferList.add(memQueue.poll().toDelimitedKey());
+                for (int i = 0; i < loopCount && memQueue.hasNext(); i++) {
+                    bufferList.add(memQueue.next().toDelimitedKey());
                 }
                 dnQueue.addAll(bufferList);
                 transactionCalculator.recordLastTransactionDuration(TimeDuration.fromCurrent(loopStart));
@@ -603,7 +600,7 @@ public class ReportService implements PwmService {
                         final TimeDuration progressDuration = TimeDuration.fromCurrent(startTime);
                         LOGGER.trace(PwmConstants.REPORTING_SESSION_LABEL,
                                 "cache review process in progress, examined " + examinedRecords
-                                + " in " + progressDuration.asCompactString());
+                                        + " in " + progressDuration.asCompactString());
                         lastLogOutputTime = Instant.now();
                     }
                 }

@@ -61,6 +61,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author Jason D. Rivard
@@ -87,6 +89,9 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
     private PwmApplication pwmApplication;
 
     private JDBCDriverLoader.DriverLoader jdbcDriverLoader;
+
+    private ExecutorService masterStatusService;
+    private final AtomicBoolean masterStatus = new AtomicBoolean(false);
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -144,6 +149,8 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
             status = PwmService.STATUS.CLOSED;
             LOGGER.debug("skipping database connection open, no connection parameters configured");
         }
+
+        masterStatusService = JavaHelper.makeSingleThreadExecutorService(pwmApplication, DatabaseAccessorImpl.class);
     }
 
     public List<HealthRecord> healthCheck() {
@@ -727,5 +734,19 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
             }
         }
         return Collections.emptyMap();
+    }
+
+    @Override
+    public boolean isMasterServer()
+    {
+        return false;
+    }
+
+    private class MasterCheckTask implements Runnable {
+        @Override
+        public void run()
+        {
+
+        }
     }
 }

@@ -27,6 +27,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmAboutProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.bean.UserIdentity;
 import password.pwm.bean.pub.SessionStateInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.stored.StoredConfigurationImpl;
@@ -34,6 +35,8 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMonitor;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.servlet.admin.UserDebugDataBean;
+import password.pwm.http.servlet.admin.UserDebugDataReader;
 import password.pwm.ldap.LdapDebugDataGenerator;
 import password.pwm.svc.PwmService;
 import password.pwm.util.LDAPPermissionCalculator;
@@ -94,7 +97,8 @@ public class DebugItemGenerator {
             LdapDebugItemGenerator.class,
             LDAPPermissionItemGenerator.class,
             LocalDBDebugGenerator.class,
-            SessionDataGenerator.class
+            SessionDataGenerator.class,
+            LdapRecentUserDebugGenerator.class
     ));
 
     static void outputZipDebugFile(
@@ -574,6 +578,38 @@ public class DebugItemGenerator {
             csvPrinter.flush();
         }
     }
+
+    static class LdapRecentUserDebugGenerator implements Generator {
+        @Override
+        public String getFilename() {
+            return "recentUserDebugData.json";
+        }
+
+        @Override
+        public void outputItem(
+                final PwmApplication pwmApplication,
+                final PwmRequest pwmRequest,
+                final OutputStream outputStream
+        )
+                throws Exception
+        {
+            final List<UserIdentity> recentUsers = pwmApplication.getSessionTrackService().getRecentLogins();
+            final List<UserDebugDataBean> recentDebugBeans = new ArrayList<>();
+
+            for (final UserIdentity userIdentity : recentUsers) {
+                final UserDebugDataBean dataBean = UserDebugDataReader.readUserDebugData(
+                        pwmApplication,
+                        pwmRequest.getLocale(),
+                        pwmRequest.getSessionLabel(),
+                        userIdentity
+                );
+                recentDebugBeans.add(dataBean);
+            }
+
+            outputStream.write(JsonUtil.serializeCollection(recentDebugBeans, JsonUtil.Flag.PrettyPrint).getBytes(PwmConstants.DEFAULT_CHARSET));
+        }
+    }
+
 
     interface Generator {
 

@@ -42,10 +42,10 @@
             <%@ include file="/WEB-INF/jsp/fragment/ldap-selector.jsp" %>
             <div class="sign-in">
                 <div class="formFieldWrapper">
-                    <input type="text" name="username" id="username" placeholder="<pwm:display key="Field_Username"/>" class="inputfield" <pwm:autofocus/> required="required">
+                    <input type="text" name="username" id="username" title="<pwm:display key="Field_Username"/>" placeholder="<pwm:display key="Field_Username"/>" class="inputfield" <pwm:autofocus/> required="required">
                 </div>
                 <div class="formFieldWrapper">
-                    <input type="<pwm:value name="<%=PwmValue.passwordFieldType%>"/>" name="password" id="password" placeholder="<pwm:display key="Field_Password"/>" required="required" class="inputfield passwordfield"/>
+                    <input type="<pwm:value name="<%=PwmValue.passwordFieldType%>"/>" name="password" id="password" title="<pwm:display key="Field_Password"/>" placeholder="<pwm:display key="Field_Password"/>" required="required" class="inputfield passwordfield"/>
                 </div>
                 <%@ include file="/WEB-INF/jsp/fragment/captcha-embed.jsp"%>
                 <div class="buttonbar">
@@ -61,7 +61,7 @@
                 </div>
             </div>
         </form>
-        <pwm:if test="<%=PwmIfTest.endUserFunctionalityAvaiable%>">
+        <pwm:if test="<%=PwmIfTest.endUserFunctionalityAvailable%>">
             <pwm:if test="<%=PwmIfTest.showLoginOptions%>">
                 <table class="noborder">
                     <pwm:if test="<%=PwmIfTest.forgottenPasswordEnabled%>">

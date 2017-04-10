@@ -43,6 +43,7 @@ import password.pwm.http.HttpHeader;
 import password.pwm.http.JspUrl;
 import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
 import password.pwm.http.PwmURL;
 import password.pwm.http.bean.ConfigManagerBean;
@@ -256,8 +257,8 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
 
         final ConfigLoginHistory configLoginHistory = readConfigLoginHistory(pwmRequest);
 
-        pwmRequest.setAttribute(PwmRequest.Attribute.ConfigLoginHistory, configLoginHistory);
-        pwmRequest.setAttribute(PwmRequest.Attribute.ConfigPasswordRememberTime,time);
+        pwmRequest.setAttribute(PwmRequestAttribute.ConfigLoginHistory, configLoginHistory);
+        pwmRequest.setAttribute(PwmRequestAttribute.ConfigPasswordRememberTime,time);
         pwmRequest.forwardToJsp(JspUrl.CONFIG_MANAGER_LOGIN);
 
     }
@@ -397,7 +398,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
     private static ProcessStatus denyAndError(final PwmRequest pwmRequest, final ErrorInformation errorInformation)
             throws ServletException, PwmUnrecoverableException, IOException
     {
-        pwmRequest.setAttribute(PwmRequest.Attribute.PwmErrorInfo, errorInformation);
+        pwmRequest.setAttribute(PwmRequestAttribute.PwmErrorInfo, errorInformation);
         forwardToJsp(pwmRequest);
         return ProcessStatus.Halt;
     }

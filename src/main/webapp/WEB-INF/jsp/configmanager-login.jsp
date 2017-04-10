@@ -2,6 +2,7 @@
 <%@ page import="password.pwm.i18n.Config" %>
 <%@ page import="password.pwm.util.LocaleHelper" %>
 <%@ page import="password.pwm.util.java.JavaHelper" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -56,7 +57,7 @@
             <div class="checkboxWrapper">
                 <label>
                     <input type="checkbox" id="remember" name="remember"/>
-                    <pwm:display key="Display_RememberLogin" bundle="Config" value1="<%=(String)JspUtility.getAttribute(pageContext,PwmRequest.Attribute.ConfigPasswordRememberTime)%>"/>
+                    <pwm:display key="Display_RememberLogin" bundle="Config" value1="<%=(String)JspUtility.getAttribute(pageContext,PwmRequestAttribute.ConfigPasswordRememberTime)%>"/>
                 </label>
             </div>
             <% } %>
@@ -69,7 +70,7 @@
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>" autofocus/>
             </div>
         </form>
-        <% final ConfigAccessFilter.ConfigLoginHistory configLoginHistory = (ConfigAccessFilter.ConfigLoginHistory)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ConfigLoginHistory); %>
+        <% final ConfigAccessFilter.ConfigLoginHistory configLoginHistory = (ConfigAccessFilter.ConfigLoginHistory)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ConfigLoginHistory); %>
         <% if (configLoginHistory != null && !configLoginHistory.successEvents().isEmpty()) { %>
         <h2 style="margin-top: 15px;">Previous Authentications</h2>
         <table>

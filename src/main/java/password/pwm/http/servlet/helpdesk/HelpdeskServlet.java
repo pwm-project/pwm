@@ -54,6 +54,7 @@ import password.pwm.http.JspUrl;
 import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.ControlledPwmServlet;
@@ -159,7 +160,7 @@ public class HelpdeskServlet extends ControlledPwmServlet {
             throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
     {
         final HelpdeskProfile helpdeskProfile = getHelpdeskRProfile(pwmRequest);
-        pwmRequest.setAttribute(PwmRequest.Attribute.HelpdeskVerificationEnabled, !helpdeskProfile.readRequiredVerificationMethods().isEmpty());
+        pwmRequest.setAttribute(PwmRequestAttribute.HelpdeskVerificationEnabled, !helpdeskProfile.readRequiredVerificationMethods().isEmpty());
         pwmRequest.forwardToJsp(JspUrl.HELPDESK_SEARCH);
     }
 
@@ -456,16 +457,16 @@ public class HelpdeskServlet extends ControlledPwmServlet {
         }
 
         final HelpdeskDetailInfoBean helpdeskDetailInfoBean = HelpdeskDetailInfoBean.makeHelpdeskDetailInfo(pwmRequest, helpdeskProfile, userIdentity);
-        pwmRequest.setAttribute(PwmRequest.Attribute.HelpdeskDetail, helpdeskDetailInfoBean);
+        pwmRequest.setAttribute(PwmRequestAttribute.HelpdeskDetail, helpdeskDetailInfoBean);
 
         if (helpdeskDetailInfoBean != null && helpdeskDetailInfoBean.getUserInfoBean() != null) {
             final String obfuscatedDN = helpdeskDetailInfoBean.getUserInfoBean().getUserIdentity().toObfuscatedKey(pwmRequest.getPwmApplication());
-            pwmRequest.setAttribute(PwmRequest.Attribute.HelpdeskObfuscatedDN, obfuscatedDN);
-            pwmRequest.setAttribute(PwmRequest.Attribute.HelpdeskUsername, helpdeskDetailInfoBean.getUserInfoBean().getUsername());
+            pwmRequest.setAttribute(PwmRequestAttribute.HelpdeskObfuscatedDN, obfuscatedDN);
+            pwmRequest.setAttribute(PwmRequestAttribute.HelpdeskUsername, helpdeskDetailInfoBean.getUserInfoBean().getUsername());
         }
 
         StatisticsManager.incrementStat(pwmRequest, Statistic.HELPDESK_USER_LOOKUP);
-        pwmRequest.setAttribute(PwmRequest.Attribute.HelpdeskVerificationEnabled, !helpdeskProfile.readOptionalVerificationMethods().isEmpty());
+        pwmRequest.setAttribute(PwmRequestAttribute.HelpdeskVerificationEnabled, !helpdeskProfile.readOptionalVerificationMethods().isEmpty());
         pwmRequest.forwardToJsp(JspUrl.HELPDESK_DETAIL);
     }
 
@@ -542,7 +543,7 @@ public class HelpdeskServlet extends ControlledPwmServlet {
     }
 
     @ActionHandler(action = "unlockIntruder")
-    private ProcessStatus restUnlockPassword(
+    private ProcessStatus restUnlockIntruder(
             final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException

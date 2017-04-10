@@ -25,61 +25,74 @@ package password.pwm.svc.pwnotify;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
+import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
+import password.pwm.bean.UserInfoBean;
+import password.pwm.config.Configuration;
+import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
+import password.pwm.ldap.UserStatusReader;
 import password.pwm.util.db.DatabaseException;
 import password.pwm.util.db.DatabaseTable;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.TimeDuration;
+import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.macro.MacroMachine;
 
 import java.io.Serializable;
 import java.time.Instant;
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Queue;
+import java.util.Locale;
 
 public class PasswordExpireNotificationEngine {
+
+    private static final PwmLogger LOGGER = PwmLogger.forClass(PasswordExpireNotificationEngine.class);
+
+    private static final SessionLabel SESSION_LABEL = PwmConstants.PW_EXP_NOTICE_LABEL;
 
     private final Settings settings;
     private final PwmApplication pwmApplication;
 
+
     public PasswordExpireNotificationEngine(final PwmApplication pwmApplication)
     {
         this.pwmApplication = pwmApplication;
-        this.settings = new Settings();
+        this.settings = Settings.fromConfiguration(pwmApplication.getConfig());
     }
 
     public void executeJob()
             throws ChaiUnavailableException, ChaiOperationException, PwmOperationalException, PwmUnrecoverableException
     {
-        final Queue<UserIdentity> workQueue;
-        {
-            final List<UserIdentity> users = LdapOperationsHelper.readAllUsersFromLdap(
-                    pwmApplication,
-                    null,
-                    null,
-                    1_000_000
-            );
-            workQueue = new LinkedList<>(users);
-        }
+        final Iterator<UserIdentity> workQueue = LdapOperationsHelper.readAllUsersFromLdap(
+                pwmApplication,
+                null,
+                null,
+                1_000_000
+        );
 
-        while (!workQueue.isEmpty()) {
-            final UserIdentity userIdentity = workQueue.poll();
-            final StoredState storedState = new DbStorage(pwmApplication).getStoredState(userIdentity, null);
+        while (workQueue.hasNext()) {
+            final UserIdentity userIdentity = workQueue.next();
+            processUserIdentity(userIdentity);
         }
     }
 
-    static void processUserIdentity(
-            final PwmApplication pwmApplication,
+    private void processUserIdentity(
             final UserIdentity userIdentity
-            )
+    )
             throws PwmUnrecoverableException
     {
         final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userIdentity);
@@ -87,28 +100,102 @@ public class PasswordExpireNotificationEngine {
         if (passwordExpirationTime == null || passwordExpirationTime.isBefore(Instant.now())) {
             return;
         }
+
+        final Instant previousNotice;
+        {
+            final DbStorage dbStorage = new DbStorage(pwmApplication);
+            final NotificationState storedState = dbStorage.readStoredState(userIdentity, SESSION_LABEL);
+            if (storedState == null || storedState.getExpireTime() == null || !storedState.getExpireTime().equals(passwordExpirationTime)) {
+                previousNotice = null;
+            } else {
+                previousNotice = storedState.getLastNotice();
+            }
+        }
+        final int currentDayInterval = daysUntilInstant(passwordExpirationTime);
+        final int previousDays = previousNotice == null
+                ? Integer.MAX_VALUE
+                : daysUntilInstant(previousNotice);
+
+        int nextDayInterval = -1;
+        for (final int configuredDayInterval : settings.getDayIntervals()) {
+            if (currentDayInterval <= configuredDayInterval) {
+                if  (configuredDayInterval != previousDays) {
+                    nextDayInterval = configuredDayInterval;
+                }
+            }
+        }
+
+        if (nextDayInterval < 1) {
+            return;
+        }
+
+        System.out.println(userIdentity + " next=" +nextDayInterval);
+        {
+            final DbStorage dbStorage = new DbStorage(pwmApplication);
+            dbStorage.writeStoredState(userIdentity, SESSION_LABEL, new NotificationState(passwordExpirationTime, Instant.now()));
+        }
+
+        sendNoticeEmail(userIdentity);
+    }
+
+    void sendNoticeEmail(final UserIdentity userIdentity)
+            throws PwmUnrecoverableException
+    {
+        final Locale userLocale = PwmConstants.DEFAULT_LOCALE;
+        final EmailItemBean emailItemBean = pwmApplication.getConfig().readSettingAsEmail(
+                PwmSetting.EMAIL_PW_EXPIRATION_NOTICE,
+                userLocale
+        );
+        final MacroMachine macroMachine = MacroMachine.forUser(pwmApplication, userLocale, SESSION_LABEL, userIdentity);
+        final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, SESSION_LABEL);
+        final UserInfoBean userInfoBean = userStatusReader.populateUserInfoBean(userLocale, userIdentity);
+        pwmApplication.getEmailQueue().submitEmail(emailItemBean, userInfoBean, macroMachine);
+    }
+
+    static int daysUntilInstant(final Instant instant) {
+        final TimeDuration timeDuration = TimeDuration.fromCurrent(instant);
+        return (int)timeDuration.getTotalDays();
+
     }
 
     @Getter
     static class Settings implements Serializable {
-        private List<Integer> dayIntervals;
+        private List<Integer> dayIntervals = Collections.unmodifiableList(new ArrayList<>(Arrays.asList(new Integer[]{8,5,3})));
+
+        static Settings fromConfiguration(final Configuration configuration)
+        {
+            final Settings settings = new Settings();
+
+            final List<Integer> tempList = new ArrayList<>(Arrays.asList(new Integer[]{8,5,3}));
+            Collections.sort(tempList);
+            Collections.reverse(tempList);
+            settings.dayIntervals = Collections.unmodifiableList(tempList);
+
+            return settings;
+        }
     }
 
     @Getter
-    static class StoredState implements Serializable {
-        private Instant lastSendTimestamp;
+    @AllArgsConstructor
+    static class NotificationState implements Serializable {
+        private Instant expireTime;
+        private Instant lastNotice;
     }
 
     interface PwExpireStorageEngine {
 
-        StoredState getStoredState(
+        NotificationState readStoredState(
                 UserIdentity userIdentity,
                 SessionLabel sessionLabel
         )
                 throws PwmUnrecoverableException;
+
+        void writeStoredState(UserIdentity userIdentity, SessionLabel sessionLabel, NotificationState notificationState) throws PwmUnrecoverableException;
+
     }
 
     static class DbStorage implements PwExpireStorageEngine {
+        private static final DatabaseTable TABLE = DatabaseTable.PW_NOTIFY;
         private final PwmApplication pwmApplication;
 
         DbStorage(final PwmApplication pwmApplication)
@@ -117,7 +204,7 @@ public class PasswordExpireNotificationEngine {
         }
 
         @Override
-        public StoredState getStoredState(
+        public NotificationState readStoredState(
                 final UserIdentity userIdentity,
                 final SessionLabel sessionLabel
         )
@@ -135,12 +222,37 @@ public class PasswordExpireNotificationEngine {
 
             final String rawDbValue;
             try {
-                rawDbValue = pwmApplication.getDatabaseAccessor().get(DatabaseTable.PW_NOTIFY, guid);
+                rawDbValue = pwmApplication.getDatabaseAccessor().get(TABLE, guid);
             } catch (DatabaseException e) {
                 throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,e.getMessage()));
             }
 
-            return JsonUtil.deserialize(rawDbValue, StoredState.class);
+            return JsonUtil.deserialize(rawDbValue, NotificationState.class);
+        }
+
+        public void writeStoredState(
+                final UserIdentity userIdentity,
+                final SessionLabel sessionLabel,
+                final NotificationState notificationState
+        )
+                throws PwmUnrecoverableException
+        {
+            final String guid;
+            try {
+                guid = LdapOperationsHelper.readLdapGuidValue(pwmApplication, sessionLabel, userIdentity, true);
+            } catch (ChaiUnavailableException e) {
+                throw new PwmUnrecoverableException(PwmUnrecoverableException.fromChaiException(e).getErrorInformation());
+            }
+            if (StringUtil.isEmpty(guid)) {
+                throw new PwmUnrecoverableException(PwmError.ERROR_MISSING_GUID);
+            }
+
+            final String rawDbValue = JsonUtil.serialize(notificationState);
+            try {
+                pwmApplication.getDatabaseAccessor().put(TABLE, guid, rawDbValue);
+            } catch (DatabaseException e) {
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,e.getMessage()));
+            }
         }
     }
 }

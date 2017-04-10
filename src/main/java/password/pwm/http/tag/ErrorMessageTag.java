@@ -29,6 +29,7 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestAttribute;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -64,7 +65,7 @@ public class ErrorMessageTag extends PwmAbstractTag {
                 return EVAL_PAGE;
             }
 
-            final ErrorInformation error = (ErrorInformation)pwmRequest.getAttribute(PwmRequest.Attribute.PwmErrorInfo);
+            final ErrorInformation error = (ErrorInformation)pwmRequest.getAttribute(PwmRequestAttribute.PwmErrorInfo);
 
             if (error != null) {
                 final boolean allowHtml = Boolean.parseBoolean(pwmRequest.getConfig().readAppProperty(AppProperty.HTTP_ERRORS_ALLOW_HTML));

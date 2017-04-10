@@ -149,7 +149,9 @@ public class PwmURL {
     }
 
     public boolean isCommandServletURL() {
-        return isPwmServletURL(PwmServletDefinition.Command);
+        return isPwmServletURL(PwmServletDefinition.PublicCommand)
+                || isPwmServletURL(PwmServletDefinition.PrivateCommand);
+
     }
 
     public boolean isWebServiceURL() {

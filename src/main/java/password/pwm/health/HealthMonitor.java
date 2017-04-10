@@ -22,8 +22,8 @@
 
 package password.pwm.health;
 
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.svc.PwmService;
 import password.pwm.util.java.JavaHelper;
@@ -96,10 +96,16 @@ public class HealthMonitor implements PwmService {
     }
 
     public Instant getLastHealthCheckTime() {
+        if (status != STATUS.OPEN) {
+            return null;
+        }
         return lastHealthCheckTime;
     }
 
     public HealthStatus getMostSevereHealthStatus(final CheckTimeliness timeliness) {
+        if (status != STATUS.OPEN) {
+            return HealthStatus.GOOD;
+        }
         return getMostSevereHealthStatus(getHealthRecords(timeliness));
     }
 
@@ -124,6 +130,13 @@ public class HealthMonitor implements PwmService {
         this.pwmApplication = pwmApplication;
         settings = HealthMonitorSettings.fromConfiguration(pwmApplication.getConfig());
 
+        if (!Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HEALTHCHECK_ENABLED))) {
+            LOGGER.debug("health monitor will remain inactive due to AppProperty " + AppProperty.HEALTHCHECK_ENABLED.getKey());
+            status = STATUS.CLOSED;
+            return;
+        }
+
+
         executorService = Executors.newSingleThreadScheduledExecutor(
                 JavaHelper.makePwmThreadFactory(
                         JavaHelper.makeThreadName(pwmApplication, this.getClass()) + "-",
@@ -137,6 +150,10 @@ public class HealthMonitor implements PwmService {
     }
 
     public Set<HealthRecord> getHealthRecords(final CheckTimeliness timeliness) {
+        if (status != STATUS.OPEN) {
+            return Collections.emptySet();
+        }
+
         lastRequestedUpdateTime = Instant.now();
 
         {
@@ -215,7 +232,7 @@ public class HealthMonitor implements PwmService {
 
     public ServiceInfo serviceInfo()
     {
-        return new ServiceInfo(Collections.<DataStorageMethod>emptyList());
+        return new ServiceInfo(Collections.emptyList());
     }
 
     public Map<HealthMonitorFlag, Serializable> getHealthProperties()

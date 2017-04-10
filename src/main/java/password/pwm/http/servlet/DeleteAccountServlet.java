@@ -42,6 +42,7 @@ import password.pwm.http.HttpMethod;
 import password.pwm.http.JspUrl;
 import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.bean.DeleteAccountBean;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecord;
@@ -138,7 +139,7 @@ public class DeleteAccountServlet extends ControlledPwmServlet {
             if (!bean.isAgreementPassed()) {
                 final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine(pwmRequest.getPwmApplication());
                 final String expandedText = macroMachine.expandMacros(selfDeleteAgreementText);
-                pwmRequest.setAttribute(PwmRequest.Attribute.AgreementText, expandedText);
+                pwmRequest.setAttribute(PwmRequestAttribute.AgreementText, expandedText);
                 pwmRequest.forwardToJsp(JspUrl.SELF_DELETE_AGREE);
                 return;
             }

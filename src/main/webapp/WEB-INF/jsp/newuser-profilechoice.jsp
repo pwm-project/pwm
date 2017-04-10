@@ -3,7 +3,7 @@
 <%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ page import="java.util.Map" %>
-<%@ page import="password.pwm.http.servlet.CommandServlet" %>
+<%@ page import="password.pwm.http.servlet.command.CommandServlet" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -70,7 +70,7 @@
         <br/>
         <div class="buttonbar">
             <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
-            <form action="<pwm:url url='<%=PwmServletDefinition.Command.servletUrl()%>' addContext="true"/>" method="get"
+            <form action="<pwm:url url='<%=PwmServletDefinition.PublicCommand.servletUrl()%>' addContext="true"/>" method="get"
                   enctype="application/x-www-form-urlencoded" name="search" class="pwm-form">
                 <button class="btn" type="submit" name="submitBtn">
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-times"></span></pwm:if>

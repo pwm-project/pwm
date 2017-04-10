@@ -31,6 +31,7 @@ import password.pwm.http.HttpMethod;
 import password.pwm.http.JspUrl;
 import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
 import password.pwm.http.PwmURL;
 import password.pwm.util.logging.PwmLogger;
@@ -81,14 +82,14 @@ public class LogoutServlet extends ControlledPwmServlet {
     }
 
     @ActionHandler(action = "showLogout")
-    public ProcessStatus processLogoutAction(
+    public ProcessStatus processShowLogout(
             final PwmRequest pwmRequest
     )
             throws ServletException, PwmUnrecoverableException, IOException
     {
         final Optional<String> nextUrl = readAndValidateNextUrlParameter(pwmRequest);
         if (nextUrl.isPresent()) {
-            pwmRequest.setAttribute(PwmRequest.Attribute.NextUrl, nextUrl.get());
+            pwmRequest.setAttribute(PwmRequestAttribute.NextUrl, nextUrl.get());
         }
         pwmRequest.forwardToJsp(JspUrl.LOGOUT);
         return ProcessStatus.Halt;
@@ -96,7 +97,7 @@ public class LogoutServlet extends ControlledPwmServlet {
 
 
     @ActionHandler(action = "showTimeout")
-    public ProcessStatus processTimeoutAction(
+    public ProcessStatus processShowTimeout(
             final PwmRequest pwmRequest
     )
             throws ServletException, PwmUnrecoverableException, IOException

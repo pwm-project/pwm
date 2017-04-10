@@ -1,5 +1,6 @@
 <%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -36,7 +37,7 @@
     <div id="centerbody">
         <div id="page-content-title"><pwm:display key="Title_UpdateProfile" displayIfMissing="true"/></div>
         <%@ include file="fragment/message.jsp" %>
-        <% final String expandedText = (String)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.AgreementText); %>
+        <% final String expandedText = (String)JspUtility.getAttribute(pageContext, PwmRequestAttribute.AgreementText); %>
         <div class="agreementText"><%= expandedText %></div>
         <div class="buttonbar">
             <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded">

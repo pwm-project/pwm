@@ -22,9 +22,12 @@
 
 package password.pwm.svc.sessiontrack;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import password.pwm.PwmApplication;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
+import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.bean.pub.SessionStateInfoBean;
 import password.pwm.error.PwmException;
@@ -33,6 +36,7 @@ import password.pwm.http.PwmSession;
 import password.pwm.svc.PwmService;
 import password.pwm.util.logging.PwmLogger;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -47,6 +51,10 @@ public class SessionTrackService implements PwmService {
     private static final PwmLogger LOGGER = PwmLogger.forClass(SessionTrackService.class);
 
     private final transient Map<PwmSession,Boolean> pwmSessions = new ConcurrentHashMap<>();
+
+    private final Cache<UserIdentity,Object> recentLoginCache = Caffeine.newBuilder()
+            .maximumSize(10)
+            .build();
 
     private PwmApplication pwmApplication;
 
@@ -188,7 +196,7 @@ public class SessionTrackService implements PwmService {
         sessionStateInfoBean.setCreateTime(loopSession.getSessionStateBean().getSessionCreationTime());
         sessionStateInfoBean.setLastTime(loopSession.getSessionStateBean().getSessionLastAccessedTime());
         sessionStateInfoBean.setIdle(loopSession.getIdleTime().asCompactString());
-        sessionStateInfoBean.setLocale(loopSsBean.getLocale() == null ? null : loopSsBean.getLocale());
+        sessionStateInfoBean.setLocale(loopSsBean.getLocale());
         sessionStateInfoBean.setSrcAddress(loopSsBean.getSrcAddress());
         sessionStateInfoBean.setSrcHost(loopSsBean.getSrcHostname());
         sessionStateInfoBean.setLastUrl(loopSsBean.getLastRequestURL());
@@ -206,5 +214,13 @@ public class SessionTrackService implements PwmService {
 
     public int sessionCount() {
         return currentValidSessionSet().size();
+    }
+
+    public void addRecentLogin(final UserIdentity userIdentity) {
+        recentLoginCache.put(userIdentity,this);
+    }
+
+    public List<UserIdentity> getRecentLogins() {
+        return Collections.unmodifiableList(new ArrayList<>(recentLoginCache.asMap().keySet()));
     }
 }

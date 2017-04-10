@@ -11,6 +11,7 @@
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Locale" %>
 <%@ page import="java.util.Map" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -38,7 +39,7 @@
   final Map<String,Object> outputData = new HashMap<String,Object>();
   try {
     final PwmRequest pwmRequest = PwmRequest.forRequest(request,response);
-    outputData.putAll((Map)pwmRequest.getAttribute(PwmRequest.Attribute.ConfigurationSummaryOutput));
+    outputData.putAll((Map)pwmRequest.getAttribute(PwmRequestAttribute.ConfigurationSummaryOutput));
 
     settingData.addAll((List<Map<String,String>>)outputData.get("settings"));
   } catch (PwmException e) {

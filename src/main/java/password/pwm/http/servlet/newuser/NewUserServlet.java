@@ -42,6 +42,7 @@ import password.pwm.http.HttpMethod;
 import password.pwm.http.JspUrl;
 import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
 import password.pwm.http.PwmURL;
 import password.pwm.http.bean.NewUserBean;
@@ -233,7 +234,7 @@ public class NewUserServlet extends ControlledPwmServlet {
                         newUserBean.getNewUserForm()
                 );
                 final String expandedText = macroMachine.expandMacros(newUserAgreementText);
-                pwmRequest.setAttribute(PwmRequest.Attribute.AgreementText, expandedText);
+                pwmRequest.setAttribute(PwmRequestAttribute.AgreementText, expandedText);
                 pwmRequest.forwardToJsp(JspUrl.NEW_USER_AGREEMENT);
                 return;
             }
@@ -600,7 +601,7 @@ public class NewUserServlet extends ControlledPwmServlet {
         {
             final boolean showBack = !newUserBean.isUrlSpecifiedProfile()
                     && pwmRequest.getConfig().getNewUserProfiles().keySet().size() > 1;
-            pwmRequest.setAttribute(PwmRequest.Attribute.NewUser_FormShowBackButton, showBack);
+            pwmRequest.setAttribute(PwmRequestAttribute.NewUser_FormShowBackButton, showBack);
         }
 
         pwmRequest.forwardToJsp(JspUrl.NEW_USER);

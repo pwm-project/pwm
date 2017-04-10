@@ -36,7 +36,6 @@ import com.novell.ldapchai.provider.ChaiSetting;
 import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
@@ -65,14 +64,16 @@ import password.pwm.util.secure.X509Utils;
 import javax.net.ssl.X509TrustManager;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -631,7 +632,7 @@ public class LdapOperationsHelper {
         return Collections.emptyMap();
     }
 
-    public static List<UserIdentity> readAllUsersFromLdap(
+    public static Iterator<UserIdentity> readAllUsersFromLdap(
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
             final String searchFilter,
@@ -663,11 +664,26 @@ public class LdapOperationsHelper {
                 searchConfiguration,
                 maxResults,
                 Collections.emptyList(),
-                PwmConstants.REPORTING_SESSION_LABEL
+                sessionLabel
 
         );
-        LOGGER.debug(sessionLabel,"user search found " + searchResults.size() + " users for reporting");
-        return new ArrayList<>(searchResults.keySet());
+        LOGGER.debug(sessionLabel,"user search found " + searchResults.size() + " users");
+
+        final Queue<UserIdentity> tempQueue = new LinkedList<>(searchResults.keySet());
+
+        return new Iterator<UserIdentity>() {
+            @Override
+            public boolean hasNext()
+            {
+                return tempQueue.peek() != null;
+            }
+
+            @Override
+            public UserIdentity next()
+            {
+                return tempQueue.poll();
+            }
+        };
     }
 
     public static Instant readPasswordExpirationTime(final ChaiUser theUser) {
@@ -687,4 +703,40 @@ public class LdapOperationsHelper {
         return null;
     }
 
+    public static PasswordData readLdapPassword(
+            final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
+            final UserIdentity userIdentity
+    )
+            throws ChaiUnavailableException,  PwmUnrecoverableException
+    {
+        if (userIdentity == null || userIdentity.getUserDN() == null || userIdentity.getUserDN().length() < 1) {
+            throw new NullPointerException("invalid user (null)");
+        }
+
+        final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID());
+        final ChaiUser chaiUser = ChaiFactory.createChaiUser(userIdentity.getUserDN(), chaiProvider);
+
+        // use chai (nmas) to retrieve user password
+        if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.EDIRECTORY_READ_USER_PWD)) {
+            String currentPass = null;
+            try {
+                final String readPassword = chaiUser.readPassword();
+                if (readPassword != null && readPassword.length() > 0) {
+                    currentPass = readPassword;
+                    LOGGER.debug(sessionLabel,"successfully retrieved user's current password from ldap, now conducting standard authentication");
+                }
+            } catch (Exception e) {
+                LOGGER.debug(sessionLabel, "unable to retrieve user password from ldap: " + e.getMessage());
+            }
+
+            // actually do the authentication since we have user pw.
+            if (currentPass != null && currentPass.length() > 0) {
+                return new PasswordData(currentPass);
+            }
+        } else {
+            LOGGER.trace(sessionLabel, "skipping attempt to read user password, option disabled");
+        }
+        return null;
+    }
 }

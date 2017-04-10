@@ -37,11 +37,11 @@
     </jsp:include>
 
     <div id="centerbody" class="tile-centerbody">
-    <pwm:if test="<%=PwmIfTest.endUserFunctionalityAvaiable%>" negate="true">
+    <pwm:if test="<%=PwmIfTest.endUserFunctionalityAvailable%>" negate="true">
         <p><pwm:display key="Warning_NoEndUserModules" bundle="Config"/></p>
         <br/>
     </pwm:if>
-        <pwm:if test="<%=PwmIfTest.endUserFunctionalityAvaiable%>">
+        <pwm:if test="<%=PwmIfTest.endUserFunctionalityAvailable%>">
             <pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.CHANGE_PASSWORD%>">
                 <a id="button_ChangePassword" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.PrivateChangePassword.servletUrl()%>'/>">
                     <div class="tile">
@@ -159,7 +159,7 @@
             </pwm:if>
 
 
-            <pwm:if test="<%=PwmIfTest.DeleteAccountAvailalable%>">
+            <pwm:if test="<%=PwmIfTest.DeleteAccountAvailable%>">
                 <a id="button_Helpdesk" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.SelfDelete.servletUrl()%>'/>">
                     <div class="tile">
                         <div class="tile-content">

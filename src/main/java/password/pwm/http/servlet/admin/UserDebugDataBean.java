@@ -36,6 +36,7 @@ import java.util.Map;
 @Builder
 public class UserDebugDataBean implements Serializable {
     private final UserInfoBean userInfoBean;
+    private final boolean passwordReadable;
     private final Map<Permission,String> permissions;
     private final PwmPasswordPolicy ldapPasswordPolicy;
     private final PwmPasswordPolicy configuredPasswordPolicy;

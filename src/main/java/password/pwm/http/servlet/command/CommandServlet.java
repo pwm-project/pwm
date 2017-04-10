@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.http.servlet;
+package password.pwm.http.servlet.command;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmApplication;
@@ -37,40 +37,19 @@ import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.filter.AuthenticationFilter;
+import password.pwm.http.servlet.ControlledPwmServlet;
+import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 
-/**
- * Processes a variety of different commands sent in an HTTP Request, including logoff.
- *
- * @author Jason D. Rivard
- */
-
-@WebServlet(
-        name="CommandServlet",
-        urlPatterns = {
-                PwmConstants.URL_PREFIX_PUBLIC + "/command",
-                PwmConstants.URL_PREFIX_PRIVATE + "/command",
-                PwmConstants.URL_PREFIX_PUBLIC + "/command/*",
-                PwmConstants.URL_PREFIX_PRIVATE + "/command/*",
-                PwmConstants.URL_PREFIX_PUBLIC + "/CommandServlet",
-                PwmConstants.URL_PREFIX_PRIVATE + "/CommandServlet",
-                PwmConstants.URL_PREFIX_PUBLIC + "/CommandServlet/*",
-                PwmConstants.URL_PREFIX_PRIVATE + "/CommandServlet/*",
-        }
-)
-
-
-public class CommandServlet extends ControlledPwmServlet {
-// ------------------------------ FIELDS ------------------------------
+public abstract class CommandServlet extends ControlledPwmServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(CommandServlet.class);
 
@@ -140,7 +119,7 @@ public class CommandServlet extends ControlledPwmServlet {
     }
 
     @ActionHandler(action = "next")
-    private ProcessStatus processContinue(
+    private ProcessStatus processNext(
             final PwmRequest pwmRequest
     )
             throws IOException, PwmUnrecoverableException, ServletException

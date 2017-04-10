@@ -37,7 +37,6 @@ import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.cli.commands.ClearResponsesCommand;
 import password.pwm.util.cli.commands.CliCommand;
 import password.pwm.util.cli.commands.ConfigDeleteCommand;
@@ -64,6 +63,7 @@ import password.pwm.util.cli.commands.ShellCommand;
 import password.pwm.util.cli.commands.TokenInfoCommand;
 import password.pwm.util.cli.commands.UserReportCommand;
 import password.pwm.util.cli.commands.VersionCommand;
+import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
@@ -123,6 +123,7 @@ public class MainClass {
         commandList.add(new ShellCommand());
         commandList.add(new ConfigResetHttpsCommand());
         commandList.add(new HelpCommand());
+        //commandList.add(new PasswordExpireNotificationCommand());
 
         final Map<String,CliCommand> sortedMap = new TreeMap<>();
         for (final CliCommand command : commandList) {

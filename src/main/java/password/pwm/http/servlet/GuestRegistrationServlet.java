@@ -47,6 +47,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.JspUrl;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.GuestRegistrationBean;
 import password.pwm.i18n.Message;
@@ -625,7 +626,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
         final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 
         final long maxValidDays = pwmRequest.getConfig().readSettingAsLong(PwmSetting.GUEST_MAX_VALID_DAYS);
-        pwmRequest.setAttribute(PwmRequest.Attribute.GuestMaximumValidDays, String.valueOf(maxValidDays));
+        pwmRequest.setAttribute(PwmRequestAttribute.GuestMaximumValidDays, String.valueOf(maxValidDays));
 
 
         final String maxExpirationDate;
@@ -655,8 +656,8 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
             }
         }
 
-        pwmRequest.setAttribute(PwmRequest.Attribute.GuestCurrentExpirationDate, currentExpirationDate);
-        pwmRequest.setAttribute(PwmRequest.Attribute.GuestMaximumExpirationDate, maxExpirationDate);
+        pwmRequest.setAttribute(PwmRequestAttribute.GuestCurrentExpirationDate, currentExpirationDate);
+        pwmRequest.setAttribute(PwmRequestAttribute.GuestMaximumExpirationDate, maxExpirationDate);
     }
 }
 

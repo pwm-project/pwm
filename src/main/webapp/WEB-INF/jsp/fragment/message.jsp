@@ -1,6 +1,6 @@
 <%@ page import="password.pwm.error.ErrorInformation" %>
 <%@ page import="password.pwm.http.JspUtility" %>
-<%@ page import="password.pwm.http.PwmRequest" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 
 <%--
   ~ Password Management Servlets (PWM)
@@ -29,7 +29,7 @@
   --%>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <div id="message_wrapper">
-<% final ErrorInformation requestError = (ErrorInformation)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.PwmErrorInfo); %>
+<% final ErrorInformation requestError = (ErrorInformation)JspUtility.getAttribute(pageContext, PwmRequestAttribute.PwmErrorInfo); %>
 <% if (requestError != null) { %>
     <span id="message" class="message message-error"><pwm:ErrorMessage/></span>
     <span id="errorCode" style="display: none"><%=requestError.getError().getErrorCode()%></span>

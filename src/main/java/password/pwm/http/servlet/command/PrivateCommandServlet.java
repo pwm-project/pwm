@@ -20,36 +20,20 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.http.bean;
+package password.pwm.http.servlet.command;
 
+import password.pwm.PwmConstants;
 
-import com.google.gson.annotations.SerializedName;
-import lombok.Getter;
-import lombok.Setter;
-import password.pwm.bean.UserIdentity;
-import password.pwm.config.option.SessionBeanMode;
+import javax.servlet.annotation.WebServlet;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
-public class AdminBean extends PwmSessionBean {
-
-    @Getter
-    @Setter
-    @SerializedName("l")
-    private UserIdentity lastUserDebug;
-
-    @Override
-    public Type getType()
-    {
-        return Type.AUTHENTICATED;
-    }
-
-    @Override
-    public Set<SessionBeanMode> supportedModes()
-    {
-        return Collections.unmodifiableSet(new HashSet<>(Arrays.asList(SessionBeanMode.LOCAL, SessionBeanMode.CRYPTCOOKIE, SessionBeanMode.CRYPTREQUEST)));
-    }
+@WebServlet(
+        name="PrivateCommandServlet",
+        urlPatterns = {
+                PwmConstants.URL_PREFIX_PRIVATE + "/command",
+                PwmConstants.URL_PREFIX_PRIVATE + "/command/*",
+                PwmConstants.URL_PREFIX_PRIVATE + "/CommandServlet",
+                PwmConstants.URL_PREFIX_PRIVATE + "/CommandServlet/*",
+        }
+)
+public class PrivateCommandServlet extends CommandServlet {
 }

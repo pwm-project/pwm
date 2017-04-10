@@ -274,6 +274,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest {
                 sessionLabel.getSrcHostname()
         );
         pwmApplication.getAuditManager().submit(auditRecord);
+        pwmApplication.getSessionTrackService().addRecentLogin(userIdentity);
 
         return authenticationResult;
     }
@@ -351,40 +352,11 @@ class LDAPAuthenticationRequest implements AuthenticationRequest {
         }
     }
 
-
     private PasswordData learnUserPassword()
             throws ChaiUnavailableException,  PwmUnrecoverableException
     {
         log(PwmLogLevel.TRACE, "beginning auth processes for user with unknown password");
-
-        if (userIdentity == null || userIdentity.getUserDN() == null || userIdentity.getUserDN().length() < 1) {
-            throw new NullPointerException("invalid user (null)");
-        }
-
-        final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID());
-        final ChaiUser chaiUser = ChaiFactory.createChaiUser(userIdentity.getUserDN(), chaiProvider);
-
-        // use chai (nmas) to retrieve user password
-        if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.EDIRECTORY_READ_USER_PWD)) {
-            String currentPass = null;
-            try {
-                final String readPassword = chaiUser.readPassword();
-                if (readPassword != null && readPassword.length() > 0) {
-                    currentPass = readPassword;
-                    log(PwmLogLevel.DEBUG, "successfully retrieved user's current password from ldap, now conducting standard authentication");
-                }
-            } catch (Exception e) {
-                log(PwmLogLevel.ERROR, "unable to retrieve user password from ldap: " + e.getMessage());
-            }
-
-            // actually do the authentication since we have user pw.
-            if (currentPass != null && currentPass.length() > 0) {
-                return new PasswordData(currentPass);
-            }
-        } else {
-            log(PwmLogLevel.TRACE, "skipping attempt to read user password, option disabled");
-        }
-        return null;
+        return LdapOperationsHelper.readLdapPassword(pwmApplication, sessionLabel, userIdentity);
     }
 
     private PasswordData setTempUserPassword(

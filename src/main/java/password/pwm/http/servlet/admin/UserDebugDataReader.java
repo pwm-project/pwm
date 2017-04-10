@@ -22,6 +22,7 @@
 
 package password.pwm.http.servlet.admin;
 
+import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.bean.SessionLabel;
@@ -33,6 +34,7 @@ import password.pwm.config.profile.ProfileType;
 import password.pwm.config.profile.ProfileUtility;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.util.operations.PasswordUtility;
@@ -43,8 +45,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
-class UserDebugDataReader {
-    static UserDebugDataBean readUserDebugData(
+public class UserDebugDataReader {
+    public static UserDebugDataBean readUserDebugData(
             final PwmApplication pwmApplication,
             final Locale locale,
             final SessionLabel sessionLabel,
@@ -62,7 +64,19 @@ class UserDebugDataReader {
 
         final PwmPasswordPolicy ldapPasswordPolicy = PasswordUtility.readLdapPasswordPolicy(pwmApplication, pwmApplication.getProxiedChaiUser(userIdentity));
 
-        final PwmPasswordPolicy configPasswordPolicy = pwmApplication.getConfig().getPasswordPolicy(userIdentity.getLdapProfileID(), locale);
+        final PwmPasswordPolicy configPasswordPolicy = PasswordUtility.determineConfiguredPolicyProfileForUser(
+                pwmApplication,
+                sessionLabel,
+                userIdentity,
+                locale
+        );
+
+        boolean readablePassword = false;
+        try {
+            readablePassword = null != LdapOperationsHelper.readLdapPassword(pwmApplication, sessionLabel, userIdentity);
+        } catch (ChaiUnavailableException e) {
+            /* disregard */
+        }
 
         final UserDebugDataBean userDebugData = UserDebugDataBean.builder()
                 .userInfoBean(userInfoBean)
@@ -70,6 +84,7 @@ class UserDebugDataReader {
                 .profiles(profiles)
                 .ldapPasswordPolicy(ldapPasswordPolicy)
                 .configuredPasswordPolicy(configPasswordPolicy)
+                .passwordReadable(readablePassword)
                 .build();
 
         return userDebugData;

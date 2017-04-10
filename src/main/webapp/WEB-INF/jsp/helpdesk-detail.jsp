@@ -46,6 +46,7 @@
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Set" %>
 <%@ page import="java.time.Instant" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -54,11 +55,10 @@
     final PwmSession pwmSession = pwmRequest.getPwmSession();
     final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
     final HelpdeskProfile helpdeskProfile = pwmSession.getSessionManager().getHelpdeskProfile(pwmApplication);
-    final DateFormat dateFormatter = PwmConstants.DEFAULT_DATETIME_FORMAT;
     final HelpdeskUIMode SETTING_PW_UI_MODE = HelpdeskUIMode.valueOf(helpdeskProfile.readSettingAsString(PwmSetting.HELPDESK_SET_PASSWORD_MODE));
 
     // user info
-    final HelpdeskDetailInfoBean helpdeskDetailInfoBean = (HelpdeskDetailInfoBean)pwmRequest.getAttribute(PwmRequest.Attribute.HelpdeskDetail);
+    final HelpdeskDetailInfoBean helpdeskDetailInfoBean = (HelpdeskDetailInfoBean)pwmRequest.getAttribute(PwmRequestAttribute.HelpdeskDetail);
     final UserInfoBean searchedUserInfo = helpdeskDetailInfoBean.getUserInfoBean();
     final ResponseInfoBean responseInfoBean = searchedUserInfo.getResponseInfoBean();
 
@@ -81,8 +81,8 @@
         <pwm:script>
             <script type="text/javascript">
                 PWM_GLOBAL['startupFunctions'].push(function(){
-                    PWM_VAR["helpdesk_obfuscatedDN"] = '<%=JspUtility.getAttribute(pageContext, PwmRequest.Attribute.HelpdeskObfuscatedDN)%>';
-                    PWM_VAR["helpdesk_username"] = '<%=StringUtil.escapeJS((String)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.HelpdeskUsername))%>';
+                    PWM_VAR["helpdesk_obfuscatedDN"] = '<%=JspUtility.getAttribute(pageContext, PwmRequestAttribute.HelpdeskObfuscatedDN)%>';
+                    PWM_VAR["helpdesk_username"] = '<%=StringUtil.escapeJS((String)JspUtility.getAttribute(pageContext, PwmRequestAttribute.HelpdeskUsername))%>';
                 });
             </script>
         </pwm:script>
@@ -585,7 +585,7 @@
                         </button>
                         <% } %>
                         <% } %>
-                        <% if ((Boolean)JspUtility.getPwmRequest(pageContext).getAttribute(PwmRequest.Attribute.HelpdeskVerificationEnabled) == true) { %>
+                        <% if ((Boolean)JspUtility.getPwmRequest(pageContext).getAttribute(PwmRequestAttribute.HelpdeskVerificationEnabled) == true) { %>
                         <button id="sendTokenButton" class="helpdesk-detail-btn btn">
                             <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-mobile-phone"></span></pwm:if>
                             <pwm:display key="Button_Verify"/>

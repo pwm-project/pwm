@@ -86,4 +86,6 @@ public interface DatabaseAccessor {
     @DbOperation
     int size(DatabaseTable table) throws
             DatabaseException;
+
+    boolean isMasterServer();
 }

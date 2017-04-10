@@ -48,7 +48,7 @@ public abstract class JspUtility {
             final ServletRequest request
     )
     {
-        final PwmRequest pwmRequest = (PwmRequest)request.getAttribute(PwmRequest.Attribute.PwmRequest.toString());
+        final PwmRequest pwmRequest = (PwmRequest)request.getAttribute(PwmRequestAttribute.PwmRequest.toString());
         if (pwmRequest == null) {
             LOGGER.warn("unable to load pwmRequest object during jsp execution");
         }
@@ -65,7 +65,7 @@ public abstract class JspUtility {
         return null;
     }
 
-    public static Serializable getAttribute(final PageContext pageContext, final PwmRequest.Attribute requestAttr) {
+    public static Serializable getAttribute(final PageContext pageContext, final PwmRequestAttribute requestAttr) {
         final PwmRequest pwmRequest = forRequest(pageContext.getRequest());
         return pwmRequest.getAttribute(requestAttr);
     }

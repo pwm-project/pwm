@@ -28,6 +28,8 @@ import password.pwm.Permission;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.PwmEnvironment;
+import password.pwm.bean.PasswordStatus;
+import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.ProfileType;
 import password.pwm.error.PwmUnrecoverableException;
@@ -41,7 +43,7 @@ import password.pwm.svc.PwmService;
 public enum PwmIfTest {
     authenticated(new AuthenticatedTest()),
     configurationOpen(new ConfigurationOpen()),
-    endUserFunctionalityAvaiable(new EndUserFunctionalityTest()),
+    endUserFunctionalityAvailable(new EndUserFunctionalityTest()),
     showIcons(new BooleanAppPropertyTest(AppProperty.CLIENT_JSP_SHOW_ICONS)),
     showCancel(new BooleanPwmSettingTest(PwmSetting.DISPLAY_CANCEL_BUTTON)),
     maskTokenInput(new BooleanPwmSettingTest(PwmSetting.DISPLAY_MASK_TOKEN_FIELDS)),
@@ -59,6 +61,7 @@ public enum PwmIfTest {
     shortcutsEnabled(new BooleanPwmSettingTest(PwmSetting.SHORTCUT_ENABLE)),
     peopleSearchEnabled(new BooleanPwmSettingTest(PwmSetting.PEOPLE_SEARCH_ENABLE)),
     orgChartEnabled(new OrgChartEnabled()),
+    passwordExpired(new PasswordExpired()),
 
     accountInfoEnabled(new BooleanPwmSettingTest(PwmSetting.ACCOUNT_INFORMATION_ENABLED)),
 
@@ -69,7 +72,7 @@ public enum PwmIfTest {
 
     updateProfileAvailable(new BooleanPwmSettingTest(PwmSetting.UPDATE_PROFILE_ENABLE), new ActorHasProfileTest(ProfileType.UpdateAttributes)),
     helpdeskAvailable(new BooleanPwmSettingTest(PwmSetting.HELPDESK_ENABLE), new ActorHasProfileTest(ProfileType.Helpdesk)),
-    DeleteAccountAvailalable(new BooleanPwmSettingTest(PwmSetting.DELETE_ACCOUNT_ENABLE), new ActorHasProfileTest(ProfileType.DeleteAccount)),
+    DeleteAccountAvailable(new BooleanPwmSettingTest(PwmSetting.DELETE_ACCOUNT_ENABLE), new ActorHasProfileTest(ProfileType.DeleteAccount)),
     guestRegistrationAvailable(new BooleanPwmSettingTest(PwmSetting.GUEST_ENABLE), new BooleanPermissionTest(Permission.GUEST_REGISTRATION)),
 
     booleanSetting(new BooleanPwmSettingTest(null)),
@@ -81,7 +84,7 @@ public enum PwmIfTest {
     trialMode(new TrialModeTest()),
     appliance(new EnvironmentFlagTest(PwmEnvironment.ApplicationFlag.Appliance)),
 
-    healthWarningsVisible(new HealthWarningsVisibileTest()),
+    healthWarningsVisible(new HealthWarningsVisibleTest()),
 
     headerMenuIsVisible(new HeaderMenuIsVisibleTest()),
 
@@ -304,7 +307,7 @@ public enum PwmIfTest {
     }
 
 
-    private static class HealthWarningsVisibileTest implements Test {
+    private static class HealthWarningsVisibleTest implements Test {
         @Override
         public boolean test(final PwmRequest pwmRequest, final PwmIfOptions options) throws ChaiUnavailableException, PwmUnrecoverableException {
             if (pwmRequest.isFlag(PwmRequestFlag.HIDE_HEADER_WARNINGS)) {
@@ -344,6 +347,10 @@ public enum PwmIfTest {
 
             if (pwmRequest.getPwmApplication().getApplicationMode() != PwmApplicationMode.RUNNING) {
                 return true;
+            }
+
+            if (pwmRequest.isForcedPageView()) {
+                return false;
             }
 
             if (pwmRequest.isAuthenticated()) {
@@ -410,6 +417,20 @@ public enum PwmIfTest {
             }
 
             return new PeopleSearchConfiguration(pwmRequest.getConfig()).isOrgChartEnabled();
+        }
+    }
+
+    private static class PasswordExpired implements Test {
+        @Override
+        public boolean test(final PwmRequest pwmRequest, final PwmIfOptions options) throws ChaiUnavailableException, PwmUnrecoverableException
+        {
+            if (!pwmRequest.isAuthenticated()) {
+                return false;
+            }
+
+            final UserInfoBean userInfoBean = pwmRequest.getPwmSession().getUserInfoBean();
+            final PasswordStatus passwordStatus = userInfoBean.getPasswordState();
+            return passwordStatus.isExpired() || passwordStatus.isPreExpired() || passwordStatus.isViolatesPolicy();
         }
     }
 }

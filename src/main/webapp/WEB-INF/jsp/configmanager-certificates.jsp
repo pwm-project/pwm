@@ -3,6 +3,7 @@
 <%@ page import="password.pwm.i18n.Config" %>
 <%@ page import="password.pwm.util.LocaleHelper" %>
 <%@ page import="java.util.List" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -37,7 +38,7 @@
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="<%=LocaleHelper.getLocalizedMessage(Config.Title_ConfigManager, JspUtility.getPwmRequest(pageContext))%>"/>
     </jsp:include>
-    <% if ((Boolean)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ConfigHasCertificates)) { %>
+    <% if ((Boolean)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ConfigHasCertificates)) { %>
     <div id="centerbody">
         <div id="page-content-title"><%=LocaleHelper.getLocalizedMessage(Config.Title_ConfigManager, JspUtility.getPwmRequest(pageContext))%></div>
         <%@ include file="fragment/configmanager-nav.jsp" %>

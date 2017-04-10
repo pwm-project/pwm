@@ -48,7 +48,7 @@ PWM_CHANGEPW.validatePasswords = function(userDN)
 
     var validationProps = new Array();
     validationProps['messageWorking'] = PWM_MAIN.showString('Display_CheckingPassword');
-    validationProps['serviceURL'] = PWM_GLOBAL['url-restservice'] + "/checkpassword";
+    validationProps['serviceURL'] = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction','checkPassword');
     validationProps['readDataFunction'] = function(){
         var returnObj = {};
         returnObj['password1'] = PWM_MAIN.getObject("password1").value;

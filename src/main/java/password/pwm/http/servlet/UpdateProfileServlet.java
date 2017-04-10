@@ -49,6 +49,7 @@ import password.pwm.http.HttpMethod;
 import password.pwm.http.JspUrl;
 import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.UpdateProfileBean;
 import password.pwm.i18n.Message;
@@ -269,7 +270,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
     }
 
     @ActionHandler(action = "updateProfile")
-    ProcessStatus handleUpdateRequest(
+    ProcessStatus handleUpdateProfileRequest(
             final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
@@ -307,7 +308,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
             if (!updateProfileBean.isAgreementPassed()) {
                 final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine(pwmRequest.getPwmApplication());
                 final String expandedText = macroMachine.expandMacros(updateProfileAgreementText);
-                pwmRequest.setAttribute(PwmRequest.Attribute.AgreementText, expandedText);
+                pwmRequest.setAttribute(PwmRequestAttribute.AgreementText, expandedText);
                 pwmRequest.forwardToJsp(JspUrl.UPDATE_ATTRIBUTES_AGREEMENT);
                 return;
             }

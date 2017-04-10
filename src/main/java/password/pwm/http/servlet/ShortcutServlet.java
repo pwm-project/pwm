@@ -33,6 +33,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.JspUrl;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ShortcutsBean;
 import password.pwm.ldap.LdapPermissionTester;
@@ -121,7 +122,7 @@ public class ShortcutServlet extends AbstractPwmServlet {
             throws ServletException, PwmUnrecoverableException, IOException {
         final ArrayList<ShortcutItem> shortcutItems = new ArrayList<>();
         shortcutItems.addAll(shortcutsBean.getVisibleItems().values());
-        pwmRequest.setAttribute(PwmRequest.Attribute.ShortcutItems, shortcutItems);
+        pwmRequest.setAttribute(PwmRequestAttribute.ShortcutItems, shortcutItems);
         pwmRequest.forwardToJsp(JspUrl.SHORTCUT);
     }
 

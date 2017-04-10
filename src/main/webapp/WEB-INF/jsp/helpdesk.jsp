@@ -1,4 +1,5 @@
 <%@ page import="password.pwm.http.JspUtility" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -44,7 +45,7 @@
                     <span style="color: #ffcd59;" class="pwm-icon pwm-icon-lg pwm-icon-exclamation-circle"></span>
                 </div>
 
-                <% if ((Boolean)JspUtility.getPwmRequest(pageContext).getAttribute(PwmRequest.Attribute.HelpdeskVerificationEnabled)) { %>
+                <% if ((Boolean)JspUtility.getPwmRequest(pageContext).getAttribute(PwmRequestAttribute.HelpdeskVerificationEnabled)) { %>
                 <div id="verifications-btn">
                     <button class="btn" id="button-show-current-verifications">
                         <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-check"></span></pwm:if>

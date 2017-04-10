@@ -94,6 +94,27 @@ public class ControlledPwmServletTest {
     }
 
     @Test
+    public void testActionHandlerMethodNaming() throws IllegalAccessException, InstantiationException {
+        final Map<Class<? extends ControlledPwmServlet>,Map<String,Method>> dataMap = getClassAndMethods();
+
+        for (final Class<? extends ControlledPwmServlet> controlledPwmServlet : dataMap.keySet()) {
+            final String servletName = controlledPwmServlet.getName();
+            for (final Method method : JavaHelper.getAllMethodsForClass(controlledPwmServlet)) {
+                final String methodName = method.getName();
+                final ControlledPwmServlet.ActionHandler actionHandler = method.getAnnotation(ControlledPwmServlet.ActionHandler.class);
+                if (actionHandler != null) {
+                    final String actionName = actionHandler.action();
+                    if (!methodName.toLowerCase().contains(actionName.toLowerCase())) {
+                        Assert.fail("method " + servletName + ":" + methodName + " must have the ActionHandler name '"
+                                + actionName + "' as part of the method name.");
+                    }
+                }
+            }
+        }
+    }
+
+
+    @Test
     public void testActionHandlersExistence() throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
         final Map<Class<? extends ControlledPwmServlet>,Map<String,Method>> dataMap = getClassAndMethods();
 

@@ -42,6 +42,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.JspUrl;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.SetupOtpBean;
 import password.pwm.ldap.auth.AuthenticationType;
@@ -253,7 +254,7 @@ public class SetupOtpServlet extends AbstractPwmServlet {
             }
         } else {
             final String qrCodeValue = makeQrCodeDataImageUrl(pwmRequest, otpBean.getOtpUserRecord());
-            pwmRequest.setAttribute(PwmRequest.Attribute.SetupOtp_QrCodeValue, qrCodeValue);
+            pwmRequest.setAttribute(PwmRequestAttribute.SetupOtp_QrCodeValue, qrCodeValue);
             pwmRequest.forwardToJsp(JspUrl.SETUP_OTP_SECRET);
         }
     }

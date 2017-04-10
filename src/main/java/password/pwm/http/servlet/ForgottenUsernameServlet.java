@@ -42,6 +42,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.JspUrl;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.search.SearchConfiguration;
@@ -368,7 +369,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet {
         final String completeMessage = pwmRequest.getConfig().readSettingAsLocalizedString(PwmSetting.FORGOTTEN_USERNAME_MESSAGE,locale);
         final MacroMachine macroMachine = MacroMachine.forUser(pwmRequest.getPwmApplication(), pwmRequest.getLocale(), pwmRequest.getSessionLabel(), userIdentity);
         final String expandedText = macroMachine.expandMacros(completeMessage);
-        pwmRequest.setAttribute(PwmRequest.Attribute.CompleteText, expandedText);
+        pwmRequest.setAttribute(PwmRequestAttribute.CompleteText, expandedText);
         pwmRequest.forwardToJsp(JspUrl.FORGOTTEN_USERNAME_COMPLETE);
     }
 

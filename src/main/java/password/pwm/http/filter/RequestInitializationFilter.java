@@ -38,6 +38,7 @@ import password.pwm.http.HttpHeader;
 import password.pwm.http.IdleTimeoutCalculator;
 import password.pwm.http.JspUrl;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmResponse;
 import password.pwm.http.PwmSession;
 import password.pwm.http.PwmSessionWrapper;
@@ -109,7 +110,7 @@ public class RequestInitializationFilter implements Filter {
                     final ContextManager contextManager = ContextManager.getContextManager(req.getServletContext());
                     if (contextManager != null) {
                         final ErrorInformation startupError = contextManager.getStartupErrorInformation();
-                        servletRequest.setAttribute(PwmRequest.Attribute.PwmErrorInfo.toString(), startupError);
+                        servletRequest.setAttribute(PwmRequestAttribute.PwmErrorInfo.toString(), startupError);
                     }
                 } catch (Exception e) {
                     if (pwmURL.isResourceURL()) {
@@ -153,7 +154,7 @@ public class RequestInitializationFilter implements Filter {
                 } catch (Throwable e2) {
                     e2.getMessage();
                 }
-                req.setAttribute(PwmRequest.Attribute.PwmErrorInfo.toString(),errorInformation);
+                req.setAttribute(PwmRequestAttribute.PwmErrorInfo.toString(),errorInformation);
                 final String url = JspUrl.APP_UNAVAILABLE.getPath();
                 req.getServletContext().getRequestDispatcher(url).forward(req, resp);
             }
@@ -199,7 +200,7 @@ public class RequestInitializationFilter implements Filter {
                 } catch (Throwable e2) {
                     e2.getMessage();
                 }
-                req.setAttribute(PwmRequest.Attribute.PwmErrorInfo.toString(),errorInformation);
+                req.setAttribute(PwmRequestAttribute.PwmErrorInfo.toString(),errorInformation);
                 final String url = JspUrl.APP_UNAVAILABLE.getPath();
                 req.getServletContext().getRequestDispatcher(url).forward(req, resp);
             }

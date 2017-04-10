@@ -38,6 +38,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -150,7 +151,7 @@ public class CertificateChecker implements HealthChecker {
             errorMsg.append("certificate for subject ");
             errorMsg.append(certificate.getSubjectDN().getName());
             errorMsg.append(" will expire on: ");
-            errorMsg.append(PwmConstants.DEFAULT_DATETIME_FORMAT.format(expireDate));
+            errorMsg.append(JavaHelper.toIsoDate(expireDate));
             errorMsg.append(" (").append(durationUntilExpire.asCompactString()).append(" from now)");
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_CERTIFICATE_ERROR, errorMsg.toString(), new String[]{errorMsg.toString()});
             throw new PwmOperationalException(errorInformation);

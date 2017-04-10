@@ -28,6 +28,7 @@
 <%@ page import="java.util.Map" %>
 <%@ page import="password.pwm.http.servlet.ShortcutServlet" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <!DOCTYPE html>
 
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -38,7 +39,7 @@
 <body class="nihilo">
 <%
     final boolean newWindow = JspUtility.getPwmRequest(pageContext).getConfig().readSettingAsBoolean(PwmSetting.SHORTCUT_NEW_WINDOW);
-    final List<ShortcutItem> shortcutItems = (List<ShortcutItem>)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ShortcutItems);
+    final List<ShortcutItem> shortcutItems = (List<ShortcutItem>)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ShortcutItems);
 %>
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">

@@ -105,7 +105,7 @@ public class Configuration implements Serializable, SettingReader {
     public String toDebugString() {
         final StringBuilder outputText = new StringBuilder();
         outputText.append("  ");
-        outputText.append(JsonUtil.serialize(StoredConfigurationUtil.toJsonDebugObject(storedConfiguration)));
+        outputText.append(JsonUtil.serialize(StoredConfigurationUtil.toJsonDebugObject(storedConfiguration), JsonUtil.Flag.PrettyPrint));
         return outputText.toString().replaceAll("\n","\n  ");
     }
 
@@ -409,7 +409,7 @@ public class Configuration implements Serializable, SettingReader {
 
         final PwmPasswordPolicy policy = initPasswordPolicy(profile,locale);
         if (!dataCache.cachedPasswordPolicy.containsKey(profile)) {
-            dataCache.cachedPasswordPolicy.put(profile,new LinkedHashMap<Locale,PwmPasswordPolicy>());
+            dataCache.cachedPasswordPolicy.put(profile,new LinkedHashMap<>());
         }
         dataCache.cachedPasswordPolicy.get(profile).put(locale,policy);
         return policy;

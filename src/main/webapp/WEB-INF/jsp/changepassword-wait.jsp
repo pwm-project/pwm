@@ -2,6 +2,7 @@
 <%@ page import="password.pwm.http.bean.ChangePasswordBean" %>
 <%@ page import="password.pwm.util.java.TimeDuration" %>
 <%@ page import="java.time.Instant" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -33,8 +34,8 @@
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
-<% long maxWaitSeconds = (Long)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ChangePassword_MaxWaitSeconds); %>
-<% long checkIntervalSeconds = (Long)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ChangePassword_CheckIntervalSeconds); %>
+<% long maxWaitSeconds = (Long)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ChangePassword_MaxWaitSeconds); %>
+<% long checkIntervalSeconds = (Long)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ChangePassword_CheckIntervalSeconds); %>
 <meta http-equiv="refresh" content="<%=maxWaitSeconds%>;url='ChangePassword?processAction=complete&pwmFormID=<pwm:FormID/>">
 <noscript>
     <meta http-equiv="refresh" content="<%=checkIntervalSeconds%>;url='ChangePassword?processAction=complete&pwmFormID=<pwm:FormID/>">

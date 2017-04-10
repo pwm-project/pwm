@@ -194,6 +194,10 @@ public class TimeDuration implements Comparable, Serializable {
         return ms / (60 * 1000);
     }
 
+    public long getTotalDays() {
+        return ms / (60 * 1000 * 60 * 24);
+    }
+
     public String asCompactString() {
         final StringBuilder sb = new StringBuilder();
 

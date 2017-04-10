@@ -141,12 +141,6 @@
                 </configuration>
             </plugin>
             <plugin>
-                <!-- This allows us to run: "mvn tomcat7:run", then we can open a browser to: http://localhost:8080/pwm -->
-                <groupId>org.apache.tomcat.maven</groupId>
-                <artifactId>tomcat7-maven-plugin</artifactId>
-                <version>2.2</version>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
                 <version>2.4</version>

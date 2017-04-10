@@ -42,6 +42,8 @@ import password.pwm.http.bean.UpdateProfileBean;
 import password.pwm.http.servlet.admin.AdminServlet;
 import password.pwm.http.servlet.changepw.PrivateChangePasswordServlet;
 import password.pwm.http.servlet.changepw.PublicChangePasswordServlet;
+import password.pwm.http.servlet.command.PrivateCommandServlet;
+import password.pwm.http.servlet.command.PublicCommandServlet;
 import password.pwm.http.servlet.configeditor.ConfigEditorServlet;
 import password.pwm.http.servlet.configguide.ConfigGuideServlet;
 import password.pwm.http.servlet.configmanager.ConfigManagerCertificatesServlet;
@@ -60,7 +62,7 @@ public enum PwmServletDefinition {
     Login(password.pwm.http.servlet.LoginServlet.class, LoginServletBean.class),
     Logout(password.pwm.http.servlet.LogoutServlet.class, null),
     OAuthConsumer(OAuthConsumerServlet.class, null),
-    Command(password.pwm.http.servlet.CommandServlet.class, null),
+    PublicCommand(PublicCommandServlet.class, null),
     PublicPeopleSearch(PublicPeopleSearchServlet.class, null),
     PublicChangePassword(PublicChangePasswordServlet.class, ChangePasswordBean.class),
     //Resource(password.pwm.http.servlet.ResourceFileServlet.class),
@@ -72,6 +74,7 @@ public enum PwmServletDefinition {
     SetupOtp(password.pwm.http.servlet.SetupOtpServlet.class, SetupOtpBean.class),
     Helpdesk(password.pwm.http.servlet.helpdesk.HelpdeskServlet.class, null),
     Shortcuts(password.pwm.http.servlet.ShortcutServlet.class, ShortcutsBean.class),
+    PrivateCommand(PrivateCommandServlet.class, null),
     PrivatePeopleSearch(PrivatePeopleSearchServlet.class, null),
     GuestRegistration(password.pwm.http.servlet.GuestRegistrationServlet.class, null),
     SelfDelete(DeleteAccountServlet.class, DeleteAccountBean.class),

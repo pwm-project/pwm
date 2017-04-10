@@ -52,6 +52,7 @@ import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
+import password.pwm.svc.PwmService;
 import password.pwm.util.PasswordData;
 import password.pwm.util.PwmPasswordRuleValidator;
 import password.pwm.util.java.JavaHelper;
@@ -300,9 +301,11 @@ public class UserStatusReader {
         //populate OTP data
         if (config.readSettingAsBoolean(PwmSetting.OTP_ENABLED)){
             final OtpService otpService = pwmApplication.getOtpService();
-            final OTPUserRecord otpUserRecord = otpService.readOTPUserConfiguration(sessionLabel,userIdentity);
-            uiBean.setOtpUserRecord(otpUserRecord);
-            uiBean.setRequiresOtpConfig(checkIfOtpUpdateNeeded(uiBean, otpUserRecord));
+            if (otpService != null && otpService.status() ==  PwmService.STATUS.OPEN) {
+                final OTPUserRecord otpUserRecord = otpService.readOTPUserConfiguration(sessionLabel, userIdentity);
+                uiBean.setOtpUserRecord(otpUserRecord);
+                uiBean.setRequiresOtpConfig(checkIfOtpUpdateNeeded(uiBean, otpUserRecord));
+            }
         }
 
         //populate cached password rule attributes

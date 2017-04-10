@@ -47,6 +47,7 @@ import password.pwm.http.HttpMethod;
 import password.pwm.http.JspUrl;
 import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.SetupResponsesBean;
 import password.pwm.i18n.Message;
@@ -182,7 +183,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet {
     }
 
     @ActionHandler(action = "clearExisting")
-    private ProcessStatus handleClearResponses(
+    private ProcessStatus handleClearExisting(
             final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException
@@ -276,9 +277,9 @@ public class SetupResponsesServlet extends ControlledPwmServlet {
 
         initializeBean(pwmRequest, setupResponsesBean);
 
-        pwmRequest.setAttribute(PwmRequest.Attribute.ModuleBean, setupResponsesBean);
-        pwmRequest.setAttribute(PwmRequest.Attribute.ModuleBean_String, pwmRequest.getPwmApplication().getSecureService().encryptObjectToString(setupResponsesBean));
-        pwmRequest.setAttribute(PwmRequest.Attribute.SetupResponses_ResponseInfo, pwmRequest.getPwmSession().getUserInfoBean().getResponseInfoBean());
+        pwmRequest.setAttribute(PwmRequestAttribute.ModuleBean, setupResponsesBean);
+        pwmRequest.setAttribute(PwmRequestAttribute.ModuleBean_String, pwmRequest.getPwmApplication().getSecureService().encryptObjectToString(setupResponsesBean));
+        pwmRequest.setAttribute(PwmRequestAttribute.SetupResponses_ResponseInfo, pwmRequest.getPwmSession().getUserInfoBean().getResponseInfoBean());
 
         if (setupResponsesBean.isHasExistingResponses() && !pwmRequest.getPwmSession().getUserInfoBean().isRequiresResponseConfig()) {
             pwmRequest.forwardToJsp(JspUrl.SETUP_RESPONSES_EXISTING);

@@ -55,7 +55,7 @@ PWM_ADMIN.initAdminNavMenu = function() {
                     label: 'User Debug',
                     id: 'userDebug_dropitem',
                     onClick: function() {
-                        PWM_MAIN.goto(PWM_GLOBAL['url-context'] + '/private/admin/debug');
+                        PWM_MAIN.goto(PWM_GLOBAL['url-context'] + '/private/admin/userdebug');
                     }
                 }));
                 pMenu.addChild(new MenuSeparator());

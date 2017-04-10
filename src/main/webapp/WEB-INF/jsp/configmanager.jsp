@@ -5,6 +5,7 @@
 <%@ page import="password.pwm.util.java.StringUtil" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ page import="password.pwm.http.tag.value.PwmValue" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -63,7 +64,7 @@
                     Last Modified
                 </td>
                 <td>
-                    <% final String lastModified = (String)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ConfigLastModified); %>
+                    <% final String lastModified = (String)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ConfigLastModified); %>
                     <% if (lastModified == null) { %>
                     <pwm:display key="Value_NotApplicable"/>
                     <% } else { %>
@@ -76,7 +77,7 @@
                     Password Protected
                 </td>
                 <td>
-                    <%=JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ConfigHasPassword)%>
+                    <%=JspUtility.getAttribute(pageContext, PwmRequestAttribute.ConfigHasPassword)%>
                 </td>
             </tr>
             <pwm:if test="<%=PwmIfTest.appliance%>" negate="true">
@@ -86,7 +87,7 @@
                     </td>
                     <td>
                         <div style="max-width:398px; overflow-x: auto; white-space: nowrap">
-                            <%=StringUtil.escapeHtml((String) JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ApplicationPath))%>
+                            <%=StringUtil.escapeHtml((String) JspUtility.getAttribute(pageContext, PwmRequestAttribute.ApplicationPath))%>
                         </div>
                     </td>
                 </tr>
@@ -96,7 +97,7 @@
                     </td>
                     <td>
                         <div style="max-width:398px; overflow-x: auto; white-space: nowrap">
-                            <%=StringUtil.escapeHtml((String) JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ConfigFilename))%>
+                            <%=StringUtil.escapeHtml((String) JspUtility.getAttribute(pageContext, PwmRequestAttribute.ConfigFilename))%>
                         </div>
                     </td>
                 </tr>
@@ -121,7 +122,7 @@
             <pwm:if test="<%=PwmIfTest.configurationOpen%>">
             <tr class="buttonrow">
                 <td class="buttoncell" colspan="2">
-                    <% final String configFileName = (String)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ConfigFilename); %>
+                    <% final String configFileName = (String)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ConfigFilename); %>
                     <pwm:if test="<%=PwmIfTest.trialMode%>">
                         <div  style="text-align: center" class="center">
                         <span><pwm:display key="Notice_TrialRestrictConfig" bundle="Admin"/></span>

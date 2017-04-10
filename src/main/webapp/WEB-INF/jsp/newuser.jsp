@@ -1,6 +1,7 @@
 <%@ page import="password.pwm.http.servlet.newuser.NewUserServlet" %>
 <%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -53,7 +54,7 @@
                 </button>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
 
-                <% if ((Boolean)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.NewUser_FormShowBackButton)) { %>
+                <% if ((Boolean)JspUtility.getAttribute(pageContext, PwmRequestAttribute.NewUser_FormShowBackButton)) { %>
                 <button type="button" id="button-goBack" name="button-goBack" class="btn" >
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-backward"></span></pwm:if>
                     <pwm:display key="Button_GoBack"/>

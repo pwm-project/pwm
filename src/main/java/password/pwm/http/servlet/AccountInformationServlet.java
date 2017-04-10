@@ -33,6 +33,7 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.JspUrl;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestAttribute;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
@@ -70,7 +71,7 @@ public class AccountInformationServlet extends AbstractPwmServlet {
                         pwmRequest.getPwmSession().getSessionManager().getUserDataReader(pwmRequest.getPwmApplication()),
                         FormUtility.Flag.ReturnEmptyValues
                 );
-                pwmRequest.setAttribute(PwmRequest.Attribute.FormData, new LinkedHashMap<>(ldapValues));
+                pwmRequest.setAttribute(PwmRequestAttribute.FormData, new LinkedHashMap<>(ldapValues));
             }
         } catch (PwmException e) {
             LOGGER.error(pwmRequest, "error reading user form data: " + e.getMessage());

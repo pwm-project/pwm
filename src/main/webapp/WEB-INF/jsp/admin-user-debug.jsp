@@ -30,7 +30,8 @@
 <%@ page import="password.pwm.config.profile.PwmPasswordRule" %>
 <%@ page import="password.pwm.http.servlet.admin.UserDebugDataBean" %>
 <%@ page import="java.util.Map" %>
-<% final PwmRequest debug_pwmRequest = JspUtility.getPwmRequest(pageContext); %>
+<%@ page import="password.pwm.i18n.Display" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -45,7 +46,7 @@
         <div id="page-content-title">User Debug</div>
         <%@ include file="fragment/admin-nav.jsp" %>
 
-        <% final UserDebugDataBean userDebugDataBean = (UserDebugDataBean)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.UserDebugData); %>
+        <% final UserDebugDataBean userDebugDataBean = (UserDebugDataBean)JspUtility.getAttribute(pageContext, PwmRequestAttribute.UserDebugData); %>
         <% if (userDebugDataBean == null) { %>
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <div id="panel-searchbar" class="searchbar">
@@ -60,6 +61,12 @@
         <div class="buttonbar">
             <form method="get" class="pwm-form">
                 <button type="submit" class="btn"><pwm:display key="Button_Continue"/></button>
+            </form>
+        </div>
+        <div class="buttonbar">
+            <form method="get">
+                <input type="hidden" name="processAction" value="<%=AdminServlet.AdminAction.downloadUserDebug.toString()%>"/>
+                <button type="submit" class="btn">Download</button>
             </form>
         </div>
         <% final UserInfoBean userInfoBean = userDebugDataBean.getUserInfoBean(); %>
@@ -152,6 +159,14 @@
             </tr>
             <tr>
                 <td class="key">
+                    Password Readable From LDAP
+                </td>
+                <td id="PasswordViolatesPolicy">
+                    <%= JspUtility.freindlyWrite(pageContext, userDebugDataBean.isPasswordReadable()) %>
+                </td>
+            </tr>
+            <tr>
+                <td class="key">
                     Requires New Password
                 </td>
                 <td>
@@ -233,22 +248,28 @@
             <% PwmPasswordPolicy configPolicy = userDebugDataBean.getConfiguredPasswordPolicy(); %>
             <% PwmPasswordPolicy ldapPolicy = userDebugDataBean.getLdapPasswordPolicy(); %>
             <tr>
-                <td>Policy Name</td>
-                <td><%=JspUtility.freindlyWrite(pageContext, userPolicy.getDisplayName(JspUtility.locale(request)))%></td>
-            </tr>
-            <tr>
-                <td>Policy ID</td>
-                <td><%=JspUtility.freindlyWrite(pageContext, userPolicy.getIdentifier())%></td>
-            </tr>
-            <tr>
                 <td colspan="10">
                     <table>
                         <tr class="title">
-                            <td class="key">Rule</td>
-                            <td class="key">Rule Type</td>
-                            <td class="key">Configured Policy</td>
-                            <td class="key">LDAP Policy</td>
-                            <td class="key">Effective Policy</td>
+                            <td class="key" style="width: 1px;">Rule</td>
+                            <td class="key" style="width: 1px;">Rule Type</td>
+                            <td class="key" style="width: 20%;">Configured <%=PwmConstants.PWM_APP_NAME%> Policy</td>
+                            <td class="key" style="width: 20%;">LDAP Policy</td>
+                            <td class="key" style="width: 20%;">Effective Policy</td>
+                        </tr>
+                        <tr>
+                            <td>ID</td>
+                            <td><pwm:display key="<%=Display.Value_NotApplicable.toString()%>"/></td>
+                            <td><%=JspUtility.freindlyWrite(pageContext, configPolicy.getIdentifier())%></td>
+                            <td><%=JspUtility.freindlyWrite(pageContext, ldapPolicy.getIdentifier())%></td>
+                            <td><%=JspUtility.freindlyWrite(pageContext, userPolicy.getIdentifier())%></td>
+                        </tr>
+                        <tr>
+                            <td>Display Name</td>
+                            <td><pwm:display key="<%=Display.Value_NotApplicable.toString()%>"/></td>
+                            <td><%=JspUtility.freindlyWrite(pageContext, configPolicy.getDisplayName(JspUtility.locale(request)))%></td>
+                            <td><%=JspUtility.freindlyWrite(pageContext, ldapPolicy.getDisplayName(JspUtility.locale(request)))%></td>
+                            <td><%=JspUtility.freindlyWrite(pageContext, userPolicy.getDisplayName(JspUtility.locale(request)))%></td>
                         </tr>
                         <% for (final PwmPasswordRule rule : PwmPasswordRule.values()) { %>
                         <tr>
@@ -297,7 +318,7 @@
                 <td><%=JspUtility.freindlyWrite(pageContext, responseInfoBean.getTimestamp())%></td>
             </tr>
             <tr>
-                <td>Challenges</td>
+                <td>Answered Challenges</td>
                 <% final Map<Challenge,String> crMap = responseInfoBean.getCrMap(); %>
                 <% if (crMap == null) { %>
                 <td>
@@ -337,7 +358,7 @@
                 </td>
             </tr>
             <tr>
-                <td>Helpdesk Challenges</td>
+                <td>Helpdesk Answered Challenges</td>
                 <% final Map<Challenge,String> helpdeskCrMap = responseInfoBean.getHelpdeskCrMap(); %>
                 <% if (helpdeskCrMap == null) { %>
                 <td>
@@ -383,8 +404,12 @@
                     <table>
                         <tr>
                             <td class="key">Type</td>
-                            <td class="key">Required</td>
                             <td class="key">Text</td>
+                            <td class="key">Required</td>
+                            <td class="key">Min Length</td>
+                            <td class="key">Max Length</td>
+                            <td class="key">Enforce Wordlist</td>
+                            <td class="key">Max Question Characters</td>
                         </tr>
                         <% for (final Challenge challenge : challengeProfile.getChallengeSet().getChallenges()) { %>
                         <tr>
@@ -392,10 +417,22 @@
                                 <%= challenge.isAdminDefined() ? "Admin Defined" : "User Defined" %>
                             </td>
                             <td>
+                                <%= JspUtility.freindlyWrite(pageContext, challenge.getChallengeText())%>
+                            </td>
+                            <td>
                                 <%= JspUtility.freindlyWrite(pageContext, challenge.isRequired())%>
                             </td>
                             <td>
-                                <%= JspUtility.freindlyWrite(pageContext, challenge.getChallengeText())%>
+                                <%= challenge.getMinLength() %>
+                            </td>
+                            <td>
+                                <%= challenge.getMaxLength() %>
+                            </td>
+                            <td>
+                                <%= JspUtility.freindlyWrite(pageContext, challenge.isEnforceWordlist())%>
+                            </td>
+                            <td>
+                                <%= challenge.getMaxQuestionCharsInAnswer() %>
                             </td>
                         </tr>
                         <% } %>

@@ -24,6 +24,7 @@
 <%@page import="password.pwm.http.bean.SetupOtpBean"%>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ page import="password.pwm.util.operations.otp.OTPUserRecord" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html" %>
@@ -57,15 +58,15 @@
         <div data-dojo-type="dijit.layout.TabContainer" data-dojo-props="doLayout: false, persist: true">
             <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Display_SetupOtp_Android_Title"/>">
                 <pwm:display key="Display_SetupOtp_Android_Steps"/>
-                <img class="qrcodeimage" src="<%=JspUtility.getAttribute(pageContext,PwmRequest.Attribute.SetupOtp_QrCodeValue)%>" alt="QR Code"/>
+                <img class="qrcodeimage" src="<%=JspUtility.getAttribute(pageContext,PwmRequestAttribute.SetupOtp_QrCodeValue)%>" alt="QR Code"/>
             </div>
             <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Display_SetupOtp_iPhone_Title"/>">
                 <pwm:display key="Display_SetupOtp_iPhone_Steps"/>
-                <img class="qrcodeimage" src="<%=JspUtility.getAttribute(pageContext,PwmRequest.Attribute.SetupOtp_QrCodeValue)%>" alt="QR Code"/>
+                <img class="qrcodeimage" src="<%=JspUtility.getAttribute(pageContext,PwmRequestAttribute.SetupOtp_QrCodeValue)%>" alt="QR Code"/>
             </div>
             <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Display_SetupOtp_Other_Title"/>">
                 <pwm:display key="Display_SetupOtp_Other_Steps"/>
-                <img class="qrcodeimage" src="<%=JspUtility.getAttribute(pageContext,PwmRequest.Attribute.SetupOtp_QrCodeValue)%>" alt="QR Code"/>
+                <img class="qrcodeimage" src="<%=JspUtility.getAttribute(pageContext,PwmRequestAttribute.SetupOtp_QrCodeValue)%>" alt="QR Code"/>
                 <table border="0" style="width: 300px; margin-right: auto; margin-left: auto">
                     <tr valign="top">
                         <td><b><pwm:display key="Field_OTP_Identifier"/></b></td>

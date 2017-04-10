@@ -25,10 +25,9 @@
 <%@ page import="password.pwm.util.macro.MacroMachine" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ page import="password.pwm.http.tag.value.PwmValue" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final PwmRequest changepassword_pwmRequest = PwmRequest.forRequest(request,response); %>
-<% final PasswordStatus passwordStatus = changepassword_pwmRequest.getPwmSession().getUserInfoBean().getPasswordState(); %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
@@ -38,9 +37,9 @@
     </jsp:include>
     <div id="centerbody">
         <div id="page-content-title"><pwm:display key="Title_ChangePassword" displayIfMissing="true"/></div>
-        <% if (passwordStatus.isExpired() || passwordStatus.isPreExpired() || passwordStatus.isViolatesPolicy()) { %>
+        <pwm:if test="<%=PwmIfTest.passwordExpired%>">
         <h1><pwm:display key="Display_PasswordExpired"/></h1><br/>
-        <% } %>
+        </pwm:if>
         <pwm:display key="Display_ChangePassword"/>
         <div id="PasswordRequirements">
             <ul>
@@ -48,11 +47,10 @@
             </ul>
         </div>
         <%
-            final String passwordPolicyChangeMessage = changepassword_pwmRequest.getPwmSession().getUserInfoBean().getPasswordPolicy().getRuleHelper().getChangeMessage();
-            final MacroMachine macroMachine = JspUtility.getPwmSession(pageContext).getSessionManager().getMacroMachine(ContextManager.getPwmApplication(session));
+            final String passwordPolicyChangeMessage = (String)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ChangePassword_PasswordPolicyChangeMessage);
         %>
-        <% if (passwordPolicyChangeMessage.length() > 1) { %>
-        <p><%= macroMachine.expandMacros(passwordPolicyChangeMessage) %></p>
+        <% if (passwordPolicyChangeMessage != null) { %>
+        <p><%= passwordPolicyChangeMessage %></p>
         <% } %>
         <br/>
         <%@ include file="fragment/message.jsp" %>
@@ -113,12 +111,12 @@
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
                     <pwm:display key="Button_ChangePassword"/>
                 </button>
-                <% if (!passwordStatus.isExpired() && !passwordStatus.isPreExpired() && !passwordStatus.isViolatesPolicy()) { %>
-                <button id="button-reset" type="submit" name="change" class="btn" form="form-reset">
-                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
-                    <pwm:display key="Button_Cancel"/>
-                </button>
-                <% } %>
+                <pwm:if test="<%=PwmIfTest.passwordExpired%>" negate="true">
+                    <button id="button-reset" type="submit" name="change" class="btn" form="form-reset">
+                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
+                        <pwm:display key="Button_Cancel"/>
+                    </button>
+                </pwm:if>
             </div>
         </form>
         <form id="form-reset" name="form-reset" action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" >

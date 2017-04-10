@@ -1,5 +1,6 @@
-<%@ page import="password.pwm.http.servlet.CommandServlet" %>
+<%@ page import="password.pwm.http.servlet.command.CommandServlet" %>
 <%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -35,11 +36,11 @@
     <div id="centerbody">
         <div id="page-content-title"><pwm:display key="Title_ForgottenUsername" displayIfMissing="true"/></div>
         <%@ include file="fragment/message.jsp" %>
-        <% final String expandedText = (String) JspUtility.getAttribute(pageContext, PwmRequest.Attribute.CompleteText); %>
+        <% final String expandedText = (String) JspUtility.getAttribute(pageContext, PwmRequestAttribute.CompleteText); %>
         <br/>
         <div id="agreementText" class="agreementText"><%= expandedText %></div>
         <div class="buttonbar">
-            <form action="<pwm:url url='<%=PwmServletDefinition.Command.servletUrl()%>' addContext="true"/>" method="post" enctype="application/x-www-form-urlencoded" class="pwm-form">
+            <form action="<pwm:url url='<%=PwmServletDefinition.PublicCommand.servletUrl()%>' addContext="true"/>" method="post" enctype="application/x-www-form-urlencoded" class="pwm-form">
                 <input type="hidden" name="<%=PwmConstants.PARAM_ACTION_REQUEST%>" value="<%=CommandServlet.CommandAction.next.toString()%>"/>
                 <button type="submit" name="button" class="btn" id="submitBtn">
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
