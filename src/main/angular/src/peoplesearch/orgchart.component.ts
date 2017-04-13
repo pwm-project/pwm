@@ -24,7 +24,7 @@
 import { Component } from '../component';
 import { element, IAugmentedJQuery, IFilterService, IScope, IWindowService } from 'angular';
 import ElementSizeService from '../ux/element-size.service';
-import Person from '../models/person.model';
+import { IPerson } from '../models/person.model';
 
 export enum OrgChartSize {
     ExtraSmall = 0,
@@ -45,15 +45,15 @@ export enum OrgChartSize {
     templateUrl: require('peoplesearch/orgchart.component.html')
 })
 export default class OrgChartComponent {
-    directReports: Person[];
+    directReports: IPerson[];
     elementWidth: number;
     isExtraLargeLayout: boolean;
-    managementChain: Person[];
-    person: Person;
+    managementChain: IPerson[];
+    person: IPerson;
 
     private elementSize: OrgChartSize = OrgChartSize.ExtraSmall;
     private maxVisibleManagers: number;
-    private visibleManagers: Person[];
+    private visibleManagers: IPerson[];
 
     static $inject = [ '$element', '$filter', '$scope', '$state', '$window', 'MfElementSizeService' ];
     constructor(
@@ -88,7 +88,7 @@ export default class OrgChartComponent {
         return this.isExtraLargeLayout ? 'small' : 'normal';
     }
 
-    getManagementChain(): Person[] {
+    getManagementChain(): IPerson[] {
         // Display managers in a row
         if (this.isExtraLargeLayout) {
             // All managers can fit on screen
@@ -103,7 +103,7 @@ export default class OrgChartComponent {
                 this.visibleManagers = this.managementChain.slice(0, this.maxVisibleManagers - 1);
                 const lastManager = this.managementChain[this.maxVisibleManagers - 2];
 
-                this.visibleManagers.push(new Person({
+                this.visibleManagers.push(<IPerson>({
                     userKey: lastManager.userKey,
                     photoURL: null,
                     displayNames: []

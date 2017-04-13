@@ -23,7 +23,7 @@
 
 import { isString, IAugmentedJQuery } from 'angular';
 import { Component } from '../component';
-import Person from '../models/person.model';
+import { IPerson } from '../models/person.model';
 import { IPeopleService } from '../services/people.service';
 
 @Component({
@@ -41,8 +41,8 @@ import { IPeopleService } from '../services/people.service';
 export default class PersonCardComponent {
     private details: any[]; // For large style cards
     private disableFocus: boolean;
-    private person: Person;
-    private directReports: Person[];
+    private person: IPerson;
+    private directReports: IPerson[];
     private size: string;
     private showDirectReportCount: boolean;
     private showImage: boolean;

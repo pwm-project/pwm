@@ -28,17 +28,17 @@ import IPwmService from '../services/pwm.service';
 import { isArray, isString, IPromise, IQService, IScope } from 'angular';
 import LocalStorageService from '../services/local-storage.service';
 import OrgChartData from '../models/orgchart-data.model';
-import Person from '../models/person.model';
+import { IPerson } from '../models/person.model';
 
 @Component({
     stylesheetUrl: require('peoplesearch/orgchart-search.component.scss'),
     templateUrl: require('peoplesearch/orgchart-search.component.html')
 })
 export default class OrgChartSearchComponent {
-    directReports: Person[];
+    directReports: IPerson[];
     inputDebounce: number;
-    managementChain: Person[];
-    person: Person;
+    managementChain: IPerson[];
+    person: IPerson;
     photosEnabled: boolean;
     query: string;
     searchTextLocalStorageKey: string;
@@ -86,7 +86,7 @@ export default class OrgChartSearchComponent {
                 personId = orgChartData.self.userKey;
 
                 self.peopleService.getPerson(personId)
-                    .then((person: Person) => {
+                    .then((person: IPerson) => {
                             self.person = person;
                         },
                         (error) => {
@@ -94,7 +94,7 @@ export default class OrgChartSearchComponent {
                         });
 
                 self.peopleService.getManagementChain(personId)
-                    .then((managementChain: Person[]) => {
+                    .then((managementChain: IPerson[]) => {
                             self.managementChain = managementChain;
                         },
                         (error) => {
@@ -102,7 +102,7 @@ export default class OrgChartSearchComponent {
                         });
 
                 self.peopleService.getDirectReports(personId)
-                    .then((directReports: Person[]) => {
+                    .then((directReports: IPerson[]) => {
                             self.directReports = directReports;
                         },
                         (error) => {
@@ -114,7 +114,7 @@ export default class OrgChartSearchComponent {
             });
     }
 
-    autoCompleteSearch(query: string): IPromise<Person[]> {
+    autoCompleteSearch(query: string): IPromise<IPerson[]> {
         return this.peopleService.autoComplete(query);
     }
 
@@ -122,7 +122,7 @@ export default class OrgChartSearchComponent {
         this.$state.go(state, { query: this.query });
     }
 
-    onAutoCompleteItemSelected(person: Person): void {
+    onAutoCompleteItemSelected(person: IPerson): void {
         this.$state.go('orgchart.search', { personId: person.userKey, query: null });
     }
 

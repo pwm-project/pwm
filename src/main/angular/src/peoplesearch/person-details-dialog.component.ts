@@ -24,15 +24,15 @@
 import { Component } from '../component';
 import { IConfigService } from '../services/config.service';
 import { IPeopleService } from '../services/people.service';
-import Person from '../models/person.model';
 import { IAugmentedJQuery, ITimeoutService } from 'angular';
+import { IPerson } from '../models/person.model';
 
 @Component({
     stylesheetUrl: require('peoplesearch/person-details-dialog.component.scss'),
     templateUrl: require('peoplesearch/person-details-dialog.component.html')
 })
 export default class PersonDetailsDialogComponent {
-    person: Person;
+    person: IPerson;
     photosEnabled: boolean;
     orgChartEnabled: boolean;
 
@@ -60,7 +60,7 @@ export default class PersonDetailsDialogComponent {
         this.peopleService
             .getPerson(personId)
             .then(
-                (person: Person) => {
+                (person: IPerson) => {
                     this.person = person;
                 },
                 (error) => {
