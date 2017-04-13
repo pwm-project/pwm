@@ -21,14 +21,14 @@
  */
 
 
-import Person from './person.model';
+import { IPerson } from './person.model';
 
 export default class SearchResult {
     sizeExceeded: boolean;
-    people: Person[];
+    people: IPerson[];
 
     constructor(options: any) {
         this.sizeExceeded = options.sizeExceeded;
-        this.people = options.searchResults.map((person: any) => new Person(person));
+        this.people = options.searchResults.map((person: any) => <IPerson>(person));
     }
 }

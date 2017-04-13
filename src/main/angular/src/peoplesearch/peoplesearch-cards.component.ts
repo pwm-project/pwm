@@ -29,7 +29,7 @@ import IPwmService from '../services/pwm.service';
 import { isString, IAugmentedJQuery, IQService, IScope } from 'angular';
 import LocalStorageService from '../services/local-storage.service';
 import PeopleSearchBaseComponent from './peoplesearch-base.component';
-import Person from '../models/person.model';
+import { IPerson } from '../models/person.model';
 import PromiseService from '../services/promise.service';
 import SearchResult from '../models/search-result.model';
 
@@ -106,6 +106,7 @@ export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponen
     fetchData() {
         let searchResultPromise = this.fetchSearchData();
         if (searchResultPromise) {
+
             searchResultPromise.then(this.onSearchResult.bind(this));
         }
     }
@@ -124,12 +125,12 @@ export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponen
         let self = this;
 
         this.pendingRequests = searchResult.people.map(
-            (person: Person) => {
+            (person: IPerson) => {
                 // Store this promise because it is abortable
                 let promise = this.peopleService.getPerson(person.userKey);
 
                 promise
-                    .then((person: Person) => {
+                    .then((person: IPerson) => {
                         // Aborted request
                         if (!person) {
                             return;

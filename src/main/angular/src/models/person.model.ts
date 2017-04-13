@@ -21,45 +21,24 @@
  */
 
 
-export default class Person {
+export interface IPerson {
     // Common properties
-    userKey: string;
-    numDirectReports: number;
+    userKey?: string;
+    numDirectReports?: number;
 
     // Autocomplete properties (via Search)
-    _displayName: string;
+    _displayName?: string;
 
     // Details properties (not available in search)
-    detail: any;
-    displayNames: string[];
-    photoURL: string;
-    links: any[];
+    detail?: any;
+    displayNames?: string[];
+    photoURL?: string;
+    links?: any[];
 
     // Search properties (not available in details)
-    givenName: string;
-    mail: string;
-    sn: string;
-    telephoneNumber: string;
-    title: string;
-
-    constructor(options: any) {
-        // Common properties
-        this.userKey = options.userKey;
-
-        // Autocomplete properties (via Search)
-        this._displayName = options._displayName;
-
-        // Details properties
-        this.detail = options.detail;
-        this.displayNames = options.displayNames;
-        this.photoURL = options.photoURL;
-        this.links = options.links;
-
-        // Search properties
-        this.givenName = options.givenName;
-        this.mail = options.mail;
-        this.sn = options.sn;
-        this.telephoneNumber = options.telephoneNumber;
-        this.title = options.title;
-    }
+    givenName?: string;
+    mail?: string;
+    sn?: string;
+    telephoneNumber?: string;
+    title?: string;
 }

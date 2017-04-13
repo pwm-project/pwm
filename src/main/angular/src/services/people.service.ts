@@ -22,18 +22,18 @@
 
 
 import { isString, IHttpService, ILogService, IPromise, IQService } from 'angular';
-import Person from '../models/person.model';
+import { IPerson } from '../models/person.model';
 import IPwmService from './pwm.service';
 import OrgChartData from '../models/orgchart-data.model';
 import SearchResult from '../models/search-result.model';
 
 export interface IPeopleService {
-    autoComplete(query: string): IPromise<Person[]>;
-    getDirectReports(personId: string): IPromise<Person[]>;
+    autoComplete(query: string): IPromise<IPerson[]>;
+    getDirectReports(personId: string): IPromise<IPerson[]>;
     getNumberOfDirectReports(personId: string): IPromise<number>;
-    getManagementChain(personId: string): IPromise<Person[]>;
+    getManagementChain(personId: string): IPromise<IPerson[]>;
     getOrgChartData(personId: string, skipChildren: boolean): IPromise<OrgChartData>;
-    getPerson(id: string): IPromise<Person>;
+    getPerson(id: string): IPromise<IPerson>;
     search(query: string): IPromise<SearchResult>;
 }
 
@@ -44,7 +44,7 @@ export default class PeopleService implements IPeopleService {
                 private $q: IQService,
                 private pwmService: IPwmService) {}
 
-    autoComplete(query: string): IPromise<Person[]> {
+    autoComplete(query: string): IPromise<IPerson[]> {
         return this.search(query, { 'includeDisplayName': true })
             .then((searchResult: SearchResult) => {
                 let people = searchResult.people;
@@ -57,12 +57,12 @@ export default class PeopleService implements IPeopleService {
             });
     }
 
-    getDirectReports(id: string): IPromise<Person[]> {
+    getDirectReports(id: string): IPromise<IPerson[]> {
         return this.getOrgChartData(id, false).then((orgChartData: OrgChartData) => {
-            let people: Person[] = [];
+            let people: IPerson[] = [];
 
             for (let directReport of orgChartData.children) {
-                let person: Person = new Person(directReport);
+                let person: IPerson = <IPerson>(directReport);
                 people.push(person);
             }
 
@@ -71,17 +71,17 @@ export default class PeopleService implements IPeopleService {
     }
 
     getNumberOfDirectReports(id: string): IPromise<number> {
-        return this.getDirectReports(id).then((people: Person[]) => {
+        return this.getDirectReports(id).then((people: IPerson[]) => {
             return this.$q.resolve(people.length);
         });
     }
 
-    getManagementChain(id: string): IPromise<Person[]> {
-        let people: Person[] = [];
+    getManagementChain(id: string): IPromise<IPerson[]> {
+        let people: IPerson[] = [];
         return this.getManagerRecursive(id, people);
     }
 
-    private getManagerRecursive(id: string, people: Person[]): IPromise<Person[]> {
+    private getManagerRecursive(id: string, people: IPerson[]): IPromise<IPerson[]> {
         return this.getOrgChartData(id, true)
             .then((orgChartData: OrgChartData) => {
                 if (orgChartData.manager) {
@@ -111,17 +111,17 @@ export default class PeopleService implements IPeopleService {
 
                     let responseData = response.data['data'];
 
-                    let manager: Person;
-                    if ('parent' in responseData) { manager = new Person(responseData['parent']); }
-                    const children = responseData['children'].map((child: any) => new Person(child));
-                    const self = new Person(responseData['self']);
+                    let manager: IPerson;
+                    if ('parent' in responseData) { manager = <IPerson>(responseData['parent']); }
+                    const children = responseData['children'].map((child: any) => <IPerson>(child));
+                    const self = <IPerson>(responseData['self']);
 
                     return this.$q.resolve(new OrgChartData(manager, children, self));
                 },
                 this.handleHttpError.bind(this));
     }
 
-    getPerson(id: string): IPromise<Person> {
+    getPerson(id: string): IPromise<IPerson> {
         // Deferred object used for aborting requests. See promise.service.ts for more information
         let httpTimeout = this.$q.defer();
 
@@ -138,7 +138,7 @@ export default class PeopleService implements IPeopleService {
                     return this.handlePwmError(response);
                 }
 
-                let person: Person = new Person(response.data['data']);
+                let person: IPerson = <IPerson>(response.data['data']);
                 return this.$q.resolve(person);
             },
             this.handleHttpError.bind(this));

@@ -21,10 +21,10 @@
  */
 
 
-import Person from './person.model';
+import { IPerson } from './person.model';
 export default class OrgChartData {
 
-    constructor(public manager: Person,
-                public children: Person[],
-                public self: Person) {}
+    constructor(public manager: IPerson,
+                public children: IPerson[],
+                public self: IPerson) {}
 }

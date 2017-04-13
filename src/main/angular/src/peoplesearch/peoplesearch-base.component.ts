@@ -26,7 +26,7 @@ import { IConfigService } from '../services/config.service';
 import { IPeopleService } from '../services/people.service';
 import IPwmService from '../services/pwm.service';
 import LocalStorageService from '../services/local-storage.service';
-import Person from '../models/person.model';
+import { IPerson } from '../models/person.model';
 import PromiseService from '../services/promise.service';
 import SearchResult from '../models/search-result.model';
 
@@ -92,7 +92,7 @@ abstract class PeopleSearchBaseComponent {
         this.fetchData();
     }
 
-    selectPerson(person: Person): void {
+    selectPerson(person: IPerson): void {
         this.$state.go('.details', { personId: person.userKey, query: this.query });
     }
 

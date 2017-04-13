@@ -21,10 +21,10 @@
  */
 
 
-import Person from '../models/person.model';
+import { IPerson } from '../models/person.model';
 
-export function FullNameFilter(): (person: Person) => string {
-    return (person: Person): string => {
+export function FullNameFilter(): (person: IPerson) => string {
+    return (person: IPerson): string => {
         return `${person.givenName} ${person.sn}`;
     };
 }
