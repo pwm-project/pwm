@@ -754,6 +754,18 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
             final Map<FormConfiguration,String> formValues = FormUtility.readFormValuesFromRequest(
                     pwmRequest, requiredAttributesForm, userLocale);
 
+            // see if the values meet form requirements.
+            try {
+                FormUtility.validateFormValues(pwmRequest.getConfig(), formValues, userLocale);
+            } catch (PwmDataValidationException e) {
+                pwmRequest.getPwmApplication().getIntruderManager().mark(RecordType.ADDRESS, pwmRequest.getPwmSession().getSessionStateBean().getSrcAddress(), pwmRequest.getSessionLabel());
+                pwmRequest.getPwmApplication().getIntruderManager().convenience().markAttributes(formValues, pwmRequest.getPwmSession());
+                
+                LOGGER.debug(pwmRequest.getPwmSession(),e.getErrorInformation().toDebugStr());
+                setLastError(pwmRequest, e.getErrorInformation());
+                return ProcessStatus.Continue;
+            }
+            
             for (final Map.Entry<FormConfiguration, String> entry : formValues.entrySet()) {
                 final FormConfiguration paramConfig = entry.getKey();
                 final String attrName = paramConfig.getName();
