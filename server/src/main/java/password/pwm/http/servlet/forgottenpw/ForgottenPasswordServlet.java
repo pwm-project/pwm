@@ -376,7 +376,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
                 PwmSetting.FORGOTTEN_PASSWORD_SEARCH_FORM);
 
         Map<FormConfiguration, String> formValues = new LinkedHashMap<>();
-
+        ErrorInformation errorInfo = null;
         try {
             //read the values from the request
             formValues = FormUtility.readFormValuesFromRequest(pwmRequest, forgottenPasswordForm, userLocale);
@@ -426,8 +426,13 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
 
             // clear intruder search values
             pwmApplication.getIntruderManager().convenience().clearAttributes(formValues);
+        } catch (PwmDataValidationException e) {
+            errorInfo = e.getErrorInformation();
         } catch (PwmOperationalException e) {
-            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_RESPONSES_NORESPONSES,e.getErrorInformation().getDetailedErrorMsg(),e.getErrorInformation().getFieldValues());
+            //translate exception
+            errorInfo = new ErrorInformation(PwmError.ERROR_RESPONSES_NORESPONSES,e.getErrorInformation().getDetailedErrorMsg(),e.getErrorInformation().getFieldValues());
+        }
+        if (errorInfo != null) {
             pwmApplication.getIntruderManager().mark(RecordType.ADDRESS, pwmSession.getSessionStateBean().getSrcAddress(), pwmRequest.getSessionLabel());
             pwmApplication.getIntruderManager().convenience().markAttributes(formValues, pwmSession);
 
