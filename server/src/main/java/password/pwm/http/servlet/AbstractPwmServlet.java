@@ -274,7 +274,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
             final PwmSessionBean pwmSessionBean = pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest, beanClass);
             pwmSessionBean.setLastError(errorInformation);
         }
-
+        //ForgottenUsername and other modules have no session bean and we want to see validation messages
         pwmRequest.setAttribute(PwmRequestAttribute.PwmErrorInfo, errorInformation);
     }
 
