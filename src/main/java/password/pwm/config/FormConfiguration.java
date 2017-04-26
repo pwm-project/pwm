@@ -61,6 +61,7 @@ public class FormConfiguration implements Serializable {
     private boolean confirmationRequired;
     private boolean readonly;
     private boolean unique;
+    private boolean fuzzyMatch;
     private boolean multivalue;
     private Map<String,String> labels = Collections.singletonMap("", "");
     private Map<String,String> regexErrors = Collections.singletonMap("","");
@@ -208,6 +209,10 @@ public class FormConfiguration implements Serializable {
 
     public boolean isUnique() {
         return unique;
+    }
+    
+    public boolean isFuzzyMatch() {
+        return fuzzyMatch;
     }
 
     public boolean isMultivalue() {
