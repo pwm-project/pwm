@@ -1,9 +1,10 @@
 package password.pwm.util;
 
 import gcardone.junidecode.Junidecode;
-import password.pwm.util.logging.PwmLogger;
 
 import java.io.UnsupportedEncodingException;
+
+import password.pwm.util.logging.PwmLogger;
 
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
@@ -44,8 +45,21 @@ public class AttributeCompareUtility {
 
         boolean result = false;
         try {
-            if (value1 != null && value2 != null && Junidecode.unidecode(value1).equals(Junidecode.unidecode(value2))) {
-                result = true;
+            if (value1 != null && value2 != null) {
+                String preProcessedValue1 = value1.toLowerCase().trim();
+                String preProcessedValue2 = value2.toLowerCase().trim();
+                //replace all spacing / concatenation signs with one space
+                preProcessedValue1 = preProcessedValue1.replaceAll("[\\s-_]+", " ");
+                preProcessedValue2 = preProcessedValue2.replaceAll("[\\s-_]+", " ");
+                //normalize
+                preProcessedValue1 = Junidecode.unidecode(preProcessedValue1);
+                preProcessedValue2 = Junidecode.unidecode(preProcessedValue2);
+                //remove all spaces
+                preProcessedValue1 = preProcessedValue1.replaceAll("[\\s-_]+", "");
+                preProcessedValue2 = preProcessedValue2.replaceAll("[\\s-_]+", "");
+                if (preProcessedValue1.equals(preProcessedValue2)) {
+                    result = true;
+                }
             }
         } catch (Exception e) {
             LOGGER.error("error during param validation of '" + value1 + "' and '" + value2 + "', error: " + e.getMessage());
