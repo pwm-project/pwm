@@ -4,6 +4,8 @@ import gcardone.junidecode.Junidecode;
 
 import java.io.UnsupportedEncodingException;
 
+import org.apache.commons.text.similarity.LevenshteinDistance;
+
 import password.pwm.util.logging.PwmLogger;
 
 import com.novell.ldapchai.ChaiUser;
@@ -15,6 +17,8 @@ public class AttributeCompareUtility {
     
     private static final PwmLogger LOGGER = PwmLogger.forClass(AttributeCompareUtility.class);
 
+    private static final Integer LEVENSHTEIN_THRESHOLD = 1;
+    
     /**
      * Compares a pre-existing attribute value in the ldap directory. 
      * @param theUser The user to read the attribute from
@@ -59,6 +63,9 @@ public class AttributeCompareUtility {
                 preProcessedValue2 = preProcessedValue2.replaceAll("[\\s-_]+", "");
                 if (preProcessedValue1.equals(preProcessedValue2)) {
                     result = true;
+                } else  {
+                    final LevenshteinDistance levenshteinDistance = new LevenshteinDistance(LEVENSHTEIN_THRESHOLD);
+                    result = levenshteinDistance.apply(preProcessedValue1, preProcessedValue2) != -1;
                 }
             }
         } catch (Exception e) {
