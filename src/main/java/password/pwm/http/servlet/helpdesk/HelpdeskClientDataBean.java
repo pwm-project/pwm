@@ -131,6 +131,8 @@ public class HelpdeskClientDataBean implements Serializable {
     public static class FormInformation implements Serializable {
         private String name;
         private String label;
+        private String placeholder;
+        private String description;
 
         public String getName() {
             return name;
@@ -147,5 +149,22 @@ public class HelpdeskClientDataBean implements Serializable {
         public void setLabel(final String label) {
             this.label = label;
         }
+        
+        public String getPlaceholder() {
+            return placeholder;
+        }
+
+        public void setPlaceholder(final String placeholder) {
+            this.placeholder = placeholder;
+        }
+        
+        public String getDescription() {
+            return description;
+        }
+
+        public void setDescription(final String description) {
+            this.description = description;
+        }
+
     }
 }
