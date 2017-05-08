@@ -217,7 +217,8 @@ public class NMASCrOperator implements CrOperator {
                     LOGGER.debug("starting NMASCrOperator watchdog timer, maxIdleThreadTime=" + maxThreadIdleTime.asCompactString());
                     timer = new Timer(PwmConstants.PWM_APP_NAME + "-NMASCrOperator watchdog timer",true);
                     final long frequency = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.NMAS_THREADS_WATCHDOG_FREQUENCY));
-                    timer.schedule(new ThreadWatchdogTask(),frequency,frequency);
+                    final boolean debugOutput = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.NMAS_THREADS_WATCHDOG_DEBUG));
+                    timer.schedule(new ThreadWatchdogTask(debugOutput),frequency,frequency);
                 }
             }
         }
@@ -833,9 +834,20 @@ public class NMASCrOperator implements CrOperator {
     }
 
     private class ThreadWatchdogTask extends TimerTask {
+
+        private final boolean debugOutput;
+
+        ThreadWatchdogTask(final boolean debugOutput)
+        {
+            this.debugOutput = debugOutput;
+        }
+
         @Override
         public void run() {
-            logThreadInfo();
+            if (debugOutput) {
+                logThreadInfo();
+            }
+
             final List<NMASSessionThread> threads = new ArrayList<>(sessionMonitorThreads);
             for (final NMASSessionThread thread : threads) {
                 final TimeDuration idleTime = TimeDuration.fromCurrent(thread.getLastActivityTimestamp());

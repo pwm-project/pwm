@@ -201,6 +201,7 @@ public enum     AppProperty {
     NMAS_THREADS_MIN_SECONDS                        ("nmas.threads.minSeconds"),
     NMAS_THREADS_MAX_SECONDS                        ("nmas.threads.maxSeconds"),
     NMAS_THREADS_WATCHDOG_FREQUENCY                 ("nmas.threads.watchdogFrequencyMs"),
+    NMAS_THREADS_WATCHDOG_DEBUG                     ("nmas.threads.watchdogDebug"),
     NMAS_IGNORE_NMASCR_DURING_FORCECHECK            ("nmas.ignoreNmasCrDuringForceSetupCheck"),
     NMAS_USE_LOCAL_SASL_FACTORY                     ("nmas.useLocalSaslFactory"),
     NMAS_FORCE_SASL_FACTORY_REGISTRATION            ("nmas.forceSaslFactoryRegistration"),

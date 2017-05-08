@@ -86,7 +86,7 @@ public class PwmIfTag extends BodyTagSupport {
                     final PwmIfTest testEnum = test;
                     if (testEnum != null) {
                         try {
-                            final PwmIfOptions options = new PwmIfOptions(negate, setting, permission, requestFlag);
+                            final PwmIfOptions options = new PwmIfOptions(negate, permission, setting, requestFlag);
                             showBody = testEnum.passed(pwmRequest, options);
                         } catch (ChaiUnavailableException e) {
                             LOGGER.error("error testing jsp if '" + testEnum.toString() + "', error: " + e.getMessage());

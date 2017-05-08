@@ -22,24 +22,16 @@
 
 package password.pwm.bean;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 import java.io.Serializable;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 
+@Getter
+@AllArgsConstructor
 public class PrivateKeyCertificate implements Serializable {
     private final X509Certificate[] certificates;
     private final PrivateKey key;
-
-    public PrivateKeyCertificate(final X509Certificate[] certificates, final PrivateKey key) {
-        this.certificates = certificates;
-        this.key = key;
-    }
-
-    public X509Certificate[] getCertificates() {
-        return certificates;
-    }
-
-    public PrivateKey getKey() {
-        return key;
-    }
 }

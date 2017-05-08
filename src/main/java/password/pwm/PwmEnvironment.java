@@ -157,8 +157,8 @@ public class PwmEnvironment {
         this.internalRuntimeInstance = internalRuntimeInstance;
         this.configurationFile = configurationFile;
         this.contextManager = contextManager;
-        this.flags = flags == null ? Collections.<ApplicationFlag>emptySet() : Collections.unmodifiableSet(new HashSet<>(flags));
-        this.parameters = parameters == null ? Collections.<ApplicationParameter, String>emptyMap() : Collections.unmodifiableMap(parameters);
+        this.flags = flags == null ? Collections.emptySet() : Collections.unmodifiableSet(new HashSet<>(flags));
+        this.parameters = parameters == null ? Collections.emptyMap() : Collections.unmodifiableMap(parameters);
 
         this.fileLocker = new FileLocker();
 

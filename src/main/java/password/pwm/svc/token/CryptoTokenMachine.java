@@ -29,7 +29,7 @@ import password.pwm.util.java.ClosableIterator;
 
 class CryptoTokenMachine implements TokenMachine {
 
-    private TokenService tokenService;
+    private final TokenService tokenService;
 
     CryptoTokenMachine(final TokenService tokenService)
             throws PwmOperationalException

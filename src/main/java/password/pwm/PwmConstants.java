@@ -23,7 +23,6 @@
 package password.pwm;
 
 import org.apache.commons.csv.CSVFormat;
-import password.pwm.bean.SessionLabel;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.secure.PwmBlockAlgorithm;
 import password.pwm.util.secure.PwmHashAlgorithm;
@@ -101,13 +100,6 @@ public abstract class PwmConstants {
     public static final boolean TRIAL_MODE = Boolean.parseBoolean(readPwmConstantsBundle("trial"));
     public static final int TRIAL_MAX_AUTHENTICATIONS = 100;
     public static final int TRIAL_MAX_TOTAL_AUTH = 10000;
-
-    public static final String SESSION_LABEL_SESSION_ID = "#";
-    public static final SessionLabel REPORTING_SESSION_LABEL = new SessionLabel(SESSION_LABEL_SESSION_ID ,null,"reporting",null,null);
-    public static final SessionLabel HEALTH_SESSION_LABEL = new SessionLabel(SESSION_LABEL_SESSION_ID ,null,"health",null,null);
-    public static final SessionLabel CLI_SESSION_LABEL= new SessionLabel(SESSION_LABEL_SESSION_ID ,null,"cli",null,null);
-    public static final SessionLabel TOKEN_SESSION_LABEL = new SessionLabel(SESSION_LABEL_SESSION_ID ,null,"token",null,null);
-    public static final SessionLabel PW_EXP_NOTICE_LABEL = new SessionLabel(SESSION_LABEL_SESSION_ID ,null,"pwExpireNotice",null,null);
 
 
     public static final int DATABASE_ACCESSOR_KEY_LENGTH = Integer.parseInt(readPwmConstantsBundle("databaseAccessor.keyLength"));

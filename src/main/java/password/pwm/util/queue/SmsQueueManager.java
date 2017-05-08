@@ -172,24 +172,26 @@ public class SmsQueueManager implements PwmService {
     public void addSmsToQueue(final SmsItemBean smsItem)
             throws PwmUnrecoverableException
     {
-        shortenMessageIfNeeded(smsItem);
-        if (!determineIfItemCanBeDelivered(smsItem)) {
+        final SmsItemBean shortenedBean = shortenMessageIfNeeded(smsItem);
+        if (!determineIfItemCanBeDelivered(shortenedBean)) {
             return;
         }
 
         try {
-            workQueueProcessor.submit(smsItem);
+            workQueueProcessor.submit(shortenedBean);
         } catch (Exception e) {
             LOGGER.error("error writing to LocalDB queue, discarding sms send request: " + e.getMessage());
         }
     }
 
-    protected void shortenMessageIfNeeded(final SmsItemBean smsItem) throws PwmUnrecoverableException {
+    SmsItemBean shortenMessageIfNeeded(final SmsItemBean smsItem) throws PwmUnrecoverableException {
         final Boolean shorten = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.SMS_USE_URL_SHORTENER);
         if (shorten) {
             final String message = smsItem.getMessage();
-            smsItem.setMessage(pwmApplication.getUrlShortener().shortenUrlInText(message));
+            final String shortenedMessage = pwmApplication.getUrlShortener().shortenUrlInText(message);
+            return new SmsItemBean(smsItem.getTo(), shortenedMessage);
         }
+        return smsItem;
     }
 
     public static boolean smsIsConfigured(final Configuration config) {

@@ -23,10 +23,14 @@
 package password.pwm.bean;
 
 import com.google.gson.annotations.SerializedName;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 import java.io.Serializable;
 import java.time.Instant;
 
+@Getter
+@AllArgsConstructor
 public class FormNonce implements Serializable {
 
     @SerializedName("g")
@@ -40,27 +44,4 @@ public class FormNonce implements Serializable {
 
     @SerializedName("p")
     private final String payload;
-
-    public FormNonce(final String sessionGUID, final Instant timestamp, final int reqCounter, final String payload) {
-        this.sessionGUID = sessionGUID;
-        this.timestamp = timestamp;
-        this.reqCounter = reqCounter;
-        this.payload = payload;
-    }
-
-    public String getSessionGUID() {
-        return sessionGUID;
-    }
-
-    public Instant getTimestamp() {
-        return timestamp;
-    }
-
-    public int getRequestID() {
-        return reqCounter;
-    }
-
-    public String getPayload() {
-        return payload;
-    }
 }
