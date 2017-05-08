@@ -25,7 +25,7 @@ package password.pwm.config.stored;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.StoredValue;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -75,7 +75,7 @@ class NGStorageEngineImpl implements StorageEngine {
                 changeLog.updateChangeLog(reference, value);
             }
             values.put(reference, value);
-            final ValueMetaData valueMetaData = new ValueMetaData(new Date(), userIdentity);
+            final ValueMetaData valueMetaData = new ValueMetaData(Instant.now(), userIdentity);
             metaValues.put(reference, valueMetaData);
         } finally {
             bigLock.writeLock().unlock();
@@ -94,7 +94,7 @@ class NGStorageEngineImpl implements StorageEngine {
             }
             values.remove(reference);
             if (metaValues.containsKey(reference)) {
-                final ValueMetaData valueMetaData = new ValueMetaData(new Date(), userIdentity);
+                final ValueMetaData valueMetaData = new ValueMetaData(Instant.now(), userIdentity);
                 metaValues.put(reference, valueMetaData);
             }
         } finally {

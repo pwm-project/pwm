@@ -29,12 +29,10 @@ import password.pwm.util.secure.PwmBlockAlgorithm;
 import password.pwm.util.secure.PwmHashAlgorithm;
 
 import java.nio.charset.Charset;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -49,7 +47,7 @@ public abstract class PwmConstants {
 // ------------------------------ FIELDS ------------------------------
 
     // ------------------------- PUBLIC CONSTANTS -------------------------
-    public static final String BUILD_TIME           = readBuildInfoBundle("build.time",SimpleDateFormat.getDateTimeInstance().format(new Date()));
+    public static final String BUILD_TIME           = readBuildInfoBundle("build.time", Instant.now().toString());
     public static final String BUILD_NUMBER         = readBuildInfoBundle("build.number","0");
     public static final String BUILD_TYPE           = readBuildInfoBundle("build.type","");
     public static final String BUILD_USER           = readBuildInfoBundle("build.user",System.getProperty("user.name"));
@@ -96,11 +94,6 @@ public abstract class PwmConstants {
 
     public static final String DEFAULT_DATETIME_FORMAT_STR = readPwmConstantsBundle("locale.defaultDateTimeFormat");
     public static final TimeZone DEFAULT_TIMEZONE = TimeZone.getTimeZone(readPwmConstantsBundle("locale.defaultTimeZone"));
-    public static final DateFormat DEFAULT_DATETIME_FORMAT = new SimpleDateFormat(DEFAULT_DATETIME_FORMAT_STR, DEFAULT_LOCALE);
-
-    static {
-        DEFAULT_DATETIME_FORMAT.setTimeZone(DEFAULT_TIMEZONE);
-    }
 
     public static final String APPLICATION_PATH_INFO_FILE = readPwmConstantsBundle("applicationPathInfoFile");
 
@@ -109,7 +102,7 @@ public abstract class PwmConstants {
     public static final int TRIAL_MAX_AUTHENTICATIONS = 100;
     public static final int TRIAL_MAX_TOTAL_AUTH = 10000;
 
-    private static final String SESSION_LABEL_SESSION_ID = "#";
+    public static final String SESSION_LABEL_SESSION_ID = "#";
     public static final SessionLabel REPORTING_SESSION_LABEL = new SessionLabel(SESSION_LABEL_SESSION_ID ,null,"reporting",null,null);
     public static final SessionLabel HEALTH_SESSION_LABEL = new SessionLabel(SESSION_LABEL_SESSION_ID ,null,"health",null,null);
     public static final SessionLabel CLI_SESSION_LABEL= new SessionLabel(SESSION_LABEL_SESSION_ID ,null,"cli",null,null);

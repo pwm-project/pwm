@@ -31,6 +31,7 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 
+import java.nio.charset.Charset;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
@@ -90,6 +91,7 @@ public enum PwmAboutProperty {
     java_osName,
     java_osVersion,
     java_randomAlgorithm,
+    java_defaultCharset,
 
     database_driverName,
     database_driverVersion,
@@ -182,6 +184,7 @@ public enum PwmAboutProperty {
             aboutMap.put(java_osName,              System.getProperty("os.name"));
             aboutMap.put(java_osVersion,           System.getProperty("os.version"));
             aboutMap.put(java_randomAlgorithm,     PwmRandom.getInstance().getAlgorithm());
+            aboutMap.put(java_defaultCharset,      Charset.defaultCharset().name());
         }
 
         { // build info

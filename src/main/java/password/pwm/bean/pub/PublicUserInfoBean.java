@@ -22,6 +22,7 @@
 
 package password.pwm.bean.pub;
 
+import lombok.Getter;
 import password.pwm.bean.PasswordStatus;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
@@ -37,22 +38,23 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+@Getter
 public class PublicUserInfoBean implements Serializable {
-    public String userDN;
-    public String ldapProfile;
-    public String userID;
-    public String userEmailAddress;
-    public Instant passwordExpirationTime;
-    public Instant passwordLastModifiedTime;
-    public boolean requiresNewPassword;
-    public boolean requiresResponseConfig;
-    public boolean requiresUpdateProfile;
-    public boolean requiresInteraction;
+    private String userDN;
+    private String ldapProfile;
+    private String userID;
+    private String userEmailAddress;
+    private Instant passwordExpirationTime;
+    private Instant passwordLastModifiedTime;
+    private boolean requiresNewPassword;
+    private boolean requiresResponseConfig;
+    private boolean requiresUpdateProfile;
+    private boolean requiresInteraction;
 
-    public PasswordStatus passwordStatus;
-    public Map<String, String> passwordPolicy;
-    public List<String> passwordRules;
-    public Map<String, String> attributes;
+    private PasswordStatus passwordStatus;
+    private Map<String, String> passwordPolicy;
+    private List<String> passwordRules;
+    private Map<String, String> attributes;
 
     public static PublicUserInfoBean fromUserInfoBean(final UserInfoBean userInfoBean, final Configuration config, final Locale locale, final MacroMachine macroMachine) {
         final PublicUserInfoBean publicUserInfoBean = new PublicUserInfoBean();
@@ -66,7 +68,7 @@ public class PublicUserInfoBean implements Serializable {
 
         publicUserInfoBean.requiresNewPassword = userInfoBean.isRequiresNewPassword();
         publicUserInfoBean.requiresResponseConfig = userInfoBean.isRequiresResponseConfig();
-        publicUserInfoBean.requiresUpdateProfile = userInfoBean.isRequiresResponseConfig();
+        publicUserInfoBean.requiresUpdateProfile = userInfoBean.isRequiresUpdateProfile();
         publicUserInfoBean.requiresInteraction = userInfoBean.isRequiresNewPassword()
                 || userInfoBean.isRequiresResponseConfig()
                 || userInfoBean.isRequiresUpdateProfile()

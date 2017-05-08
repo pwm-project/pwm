@@ -224,7 +224,7 @@ public class RestRandomPasswordServer extends AbstractRestServer {
 
         if (!jsonInput.noUser && restRequestBean.getPwmSession().isAuthenticated()) {
             if (jsonInput.username != null && !jsonInput.username.isEmpty()) {
-                final UserIdentity userIdentity = UserIdentity.fromKey(jsonInput.username, restRequestBean.getPwmApplication());
+                final UserIdentity userIdentity = restRequestBean.getUserIdentity();
                 final HelpdeskProfile helpdeskProfile = restRequestBean.getPwmSession().getSessionManager().getHelpdeskProfile(restRequestBean.getPwmApplication());
                 final boolean useProxy = helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_USE_PROXY);
 

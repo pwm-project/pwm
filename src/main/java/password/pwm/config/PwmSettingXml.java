@@ -74,7 +74,7 @@ public class PwmSettingXml {
                         xmlDocCache = null;
                     }
                 };
-                t.setDaemon(false);
+                t.setDaemon(true);
                 t.start();
 
                 return newDoc;

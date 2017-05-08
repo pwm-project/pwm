@@ -193,10 +193,20 @@ public abstract class RestServerHelper {
             }
         }
 
+        final String ldapProfileID;
+        final String effectiveUsername;
+        if (username.contains("|")) {
+            final int pipeIndex = username.indexOf("|");
+            ldapProfileID = username.substring(0, pipeIndex);
+            effectiveUsername = username.substring(pipeIndex + 1, username.length());
+        } else {
+            ldapProfileID = null;
+            effectiveUsername = username;
+        }
 
         try {
             final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
-            return userSearchEngine.resolveUsername(username, null, null, pwmSession.getLabel());
+            return userSearchEngine.resolveUsername(effectiveUsername, null, ldapProfileID, pwmSession.getLabel());
         } catch (PwmOperationalException e) {
             throw new PwmUnrecoverableException(e.getErrorInformation());
         } catch (ChaiUnavailableException e) {

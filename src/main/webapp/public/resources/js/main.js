@@ -690,7 +690,6 @@ PWM_MAIN.initLocaleSelectorMenu = function(attachNode) {
 
 
 PWM_MAIN.showErrorDialog = function(error, options) {
-    debugger;
     options = options === undefined ? {} : options;
     var forceReload = false;
     var body = '';

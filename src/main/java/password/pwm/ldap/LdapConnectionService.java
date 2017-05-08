@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@ package password.pwm.ldap;
 
 import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.provider.ChaiProvider;
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.profile.LdapProfile;
@@ -41,14 +42,18 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class LdapConnectionService implements PwmService {
     private static final PwmLogger LOGGER = PwmLogger.forClass(LdapConnectionService.class);
 
-    private final Map<String,ChaiProvider> proxyChaiProviders = new HashMap<>();
-    private final Map<LdapProfile,ErrorInformation> lastLdapErrors = new HashMap<>();
+    private final Map<LdapProfile, Map<Integer,ChaiProvider>> proxyChaiProviders = new ConcurrentHashMap<>();
+    private final Map<LdapProfile, ErrorInformation> lastLdapErrors = new ConcurrentHashMap<>();
     private PwmApplication pwmApplication;
     private STATUS status = STATUS.NEW;
+    private int connectionsPerProfile = 1;
+    private final AtomicInteger slotIncrementer = new AtomicInteger(0);
 
     public STATUS status()
     {
@@ -63,6 +68,13 @@ public class LdapConnectionService implements PwmService {
         // read the lastLoginTime
         this.lastLdapErrors.putAll(readLastLdapFailure(pwmApplication));
 
+        connectionsPerProfile = maxSlotsPerProfile(pwmApplication);
+        LOGGER.trace("allocating " + connectionsPerProfile + " ldap proxy connections per profile");
+
+        for (final LdapProfile ldapProfile: pwmApplication.getConfig().getLdapProfiles().values()) {
+            proxyChaiProviders.put(ldapProfile, new ConcurrentHashMap<>());
+        }
+
         status = STATUS.OPEN;
     }
 
@@ -70,13 +82,15 @@ public class LdapConnectionService implements PwmService {
     {
         status = STATUS.CLOSED;
         LOGGER.trace("closing ldap proxy connections");
-        for (final String id : proxyChaiProviders.keySet()) {
-            final ChaiProvider existingProvider = proxyChaiProviders.get(id);
+        for (final LdapProfile ldapProfile : proxyChaiProviders.keySet()) {
+            for (final int slot : proxyChaiProviders.get(ldapProfile).keySet()) {
+                final ChaiProvider existingProvider = proxyChaiProviders.get(ldapProfile).get(slot);
 
-            try {
-                existingProvider.close();
-            } catch (Exception e) {
-                LOGGER.error("error closing ldap proxy connection: " + e.getMessage(), e);
+                try {
+                    existingProvider.close();
+                } catch (Exception e) {
+                    LOGGER.error("error closing ldap proxy connection: " + e.getMessage(), e);
+                }
             }
         }
         proxyChaiProviders.clear();
@@ -93,21 +107,28 @@ public class LdapConnectionService implements PwmService {
     }
 
 
-    public ChaiProvider getProxyChaiProvider(final LdapProfile ldapProfile)
-            throws PwmUnrecoverableException
-    {
-        return getProxyChaiProvider(ldapProfile.getIdentifier());
-    }
-
     public ChaiProvider getProxyChaiProvider(final String identifier)
             throws PwmUnrecoverableException
     {
-        final ChaiProvider proxyChaiProvider = proxyChaiProviders.get(identifier == null ? "" : identifier);
+        final LdapProfile ldapProfile = pwmApplication.getConfig().getLdapProfiles().get(identifier);
+        return getProxyChaiProvider(ldapProfile);
+    }
+
+    public ChaiProvider getProxyChaiProvider(final LdapProfile identifier)
+            throws PwmUnrecoverableException
+    {
+        final int slot = nextSlot();
+
+        final ChaiProvider proxyChaiProvider = proxyChaiProviders.get(identifier).get(slot);
+
         if (proxyChaiProvider != null) {
             return proxyChaiProvider;
         }
 
-        final LdapProfile ldapProfile = pwmApplication.getConfig().getLdapProfiles().get(identifier == null ? "" : identifier);
+        final LdapProfile ldapProfile = identifier == null
+                ? pwmApplication.getConfig().getDefaultLdapProfile()
+                : identifier;
+
         if (ldapProfile == null) {
             final String errorMsg = "unknown ldap profile requested connection: " + identifier;
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_NO_LDAP_CONNECTION,errorMsg));
@@ -120,7 +141,7 @@ public class LdapConnectionService implements PwmService {
                     pwmApplication.getConfig(),
                     pwmApplication.getStatisticsManager()
             );
-            proxyChaiProviders.put(identifier, newProvider);
+            proxyChaiProviders.get(identifier).put(slot, newProvider);
             return newProvider;
         } catch (PwmUnrecoverableException e) {
             setLastLdapFailure(ldapProfile,e.getErrorInformation());
@@ -174,5 +195,30 @@ public class LdapConnectionService implements PwmService {
             LOGGER.error("unexpected error loading cached lastLdapFailure statuses: " + e.getMessage() + ", input=" + lastLdapFailureStr);
         }
         return Collections.emptyMap();
+    }
+
+    private int nextSlot() {
+        return slotIncrementer.getAndUpdate(operand -> {
+            operand++;
+            if (operand >= connectionsPerProfile) {
+                operand = 0;
+            }
+            return operand;
+        });
+    }
+
+    private int maxSlotsPerProfile(final PwmApplication pwmApplication) {
+        final int maxConnections = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.LDAP_PROXY_MAX_CONNECTIONS));
+        final int perProfile = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.LDAP_PROXY_CONNECTION_PER_PROFILE));
+        final int profileCount = pwmApplication.getConfig().getLdapProfiles().size();
+
+        if ((perProfile * profileCount) >= maxConnections) {
+            final int adjustedConnections = Math.min(1, (maxConnections / profileCount));
+            LOGGER.warn("connections per profile (" + perProfile + ") multiplied by number of profiles ("
+                    + profileCount + ") exceeds max connections (" + maxConnections  + "), will limit to " + adjustedConnections);
+            return adjustedConnections;
+        }
+
+        return perProfile;
     }
 }

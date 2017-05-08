@@ -70,7 +70,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
-import java.text.ParseException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -199,7 +199,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
 
     public StoredConfigurationImpl() throws PwmUnrecoverableException {
         ConfigurationCleaner.cleanup(this);
-        final String createTime = PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date());
+        final String createTime = JavaHelper.toIsoDate(Instant.now());
         document.getRootElement().setAttribute(XML_ATTRIBUTE_CREATE_TIME,createTime);
     }
 
@@ -237,8 +237,8 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
 
             final XPathExpression xp2 = XPathBuilder.xpathForConfigProperties();
             final Element propertiesElement = (Element)xp2.evaluateFirst(document);
-            propertyElement.setAttribute(XML_ATTRIBUTE_MODIFY_TIME,PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
-            propertiesElement.setAttribute(XML_ATTRIBUTE_MODIFY_TIME,PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
+            propertyElement.setAttribute(XML_ATTRIBUTE_MODIFY_TIME, JavaHelper.toIsoDate(Instant.now()));
+            propertiesElement.setAttribute(XML_ATTRIBUTE_MODIFY_TIME, JavaHelper.toIsoDate(Instant.now()));
             propertiesElement.addContent(propertyElement);
         } finally {
             domModifyLock.writeLock().unlock();
@@ -284,7 +284,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
             final ValueMetaData settingMetaData = readSettingMetadata(settingValueRecord.getSetting(), settingValueRecord.getProfile());
             if (settingMetaData != null) {
                 if (settingMetaData.getModifyDate() != null) {
-                    recordMap.put("modifyTime", PwmConstants.DEFAULT_DATETIME_FORMAT.format(settingMetaData.getModifyDate()));
+                    recordMap.put("modifyTime", JavaHelper.toIsoDate(settingMetaData.getModifyDate()));
                 }
                 if (settingMetaData.getUserIdentity() != null) {
                     recordMap.put("modifyUser",settingMetaData.getUserIdentity().toDisplayString());
@@ -532,10 +532,10 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
             return null;
         }
 
-        Date modifyDate = null;
+        Instant modifyDate = null;
         try {
             if (settingElement.getAttributeValue(XML_ATTRIBUTE_MODIFY_TIME) != null) {
-                modifyDate = PwmConstants.DEFAULT_DATETIME_FORMAT.parse(
+                modifyDate = JavaHelper.parseIsoToInstant(
                         settingElement.getAttributeValue(XML_ATTRIBUTE_MODIFY_TIME));
             }
         } catch (Exception e) {
@@ -724,7 +724,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
                 valueElement.setContent(new CDATA(localeMap.get(locale)));
                 localeBundleElement.addContent(valueElement);
             }
-            localeBundleElement.setAttribute(XML_ATTRIBUTE_MODIFY_TIME,PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
+            localeBundleElement.setAttribute(XML_ATTRIBUTE_MODIFY_TIME, JavaHelper.toIsoDate(Instant.now()));
             document.getRootElement().addContent(localeBundleElement);
         } finally {
             domModifyLock.writeLock().unlock();
@@ -845,7 +845,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
         if (locked) {
             throw new UnsupportedOperationException("StoredConfiguration is locked and cannot be modified");
         }
-        document.getRootElement().setAttribute(XML_ATTRIBUTE_MODIFY_TIME,PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
+        document.getRootElement().setAttribute(XML_ATTRIBUTE_MODIFY_TIME, JavaHelper.toIsoDate(Instant.now()));
     }
 
 // -------------------------- INNER CLASSES --------------------------
@@ -1384,8 +1384,8 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
 
     private static void updateMetaData(final Element settingElement, final UserIdentity userIdentity) {
         final Element settingsElement = settingElement.getDocument().getRootElement().getChild(XML_ELEMENT_SETTINGS);
-        settingElement.setAttribute(XML_ATTRIBUTE_MODIFY_TIME,PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
-        settingsElement.setAttribute(XML_ATTRIBUTE_MODIFY_TIME,PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
+        settingElement.setAttribute(XML_ATTRIBUTE_MODIFY_TIME, JavaHelper.toIsoDate(Instant.now()));
+        settingsElement.setAttribute(XML_ATTRIBUTE_MODIFY_TIME, JavaHelper.toIsoDate(Instant.now()));
         settingElement.removeAttribute(XML_ATTRIBUTE_MODIFY_USER);
         settingsElement.removeAttribute(XML_ATTRIBUTE_MODIFY_USER);
         if (userIdentity != null) {
@@ -1517,13 +1517,13 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
     }
 
     @Override
-    public Date modifyTime() {
+    public Instant modifyTime() {
         final Element rootElement = document.getRootElement();
         final String modifyTimeString = rootElement.getAttributeValue(XML_ATTRIBUTE_MODIFY_TIME);
         if (modifyTimeString != null) {
             try {
-                return PwmConstants.DEFAULT_DATETIME_FORMAT.parse(modifyTimeString);
-            } catch (ParseException e) {
+                return JavaHelper.parseIsoToInstant(modifyTimeString);
+            } catch (Exception e) {
                 LOGGER.error("error parsing root last modified timestamp: " + e.getMessage());
             }
         }
@@ -1565,4 +1565,5 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
         }
         return new ArrayList<>(loopResults);
     }
+
 }

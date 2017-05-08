@@ -44,7 +44,7 @@ public class TokenInfoCommand extends AbstractCliCommand {
         TokenPayload tokenPayload = null;
         Exception lookupError = null;
         try {
-            tokenPayload = tokenService.retrieveTokenData(tokenKey, PwmConstants.TOKEN_SESSION_LABEL);
+            tokenPayload = tokenService.retrieveTokenData(PwmConstants.TOKEN_SESSION_LABEL, tokenKey);
         } catch (Exception e) {
             lookupError = e;
         }

@@ -202,6 +202,15 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
 
         checkForLocaleSwitch(pwmRequest, forgottenPasswordBean);
 
+        final ProcessAction action = this.readProcessAction(pwmRequest);
+
+        // convert a url command like /public/newuser/12321321 to redirect with a process action.
+        if (action == null) {
+            if (pwmRequest.convertURLtokenCommand()) {
+                return ProcessStatus.Halt;
+            }
+        }
+
         return ProcessStatus.Continue;
     }
 

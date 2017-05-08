@@ -369,7 +369,13 @@ public class RequestInitializationFilter implements Filter {
         resp.setHeader(HttpHeader.Cache_Control, "no-cache, no-store, must-revalidate, proxy-revalidate");
 
         if (pwmSession != null) {
-            final String contentPolicy = config.readSettingAsString(PwmSetting.SECURITY_CSP_HEADER);
+            final String contentPolicy;
+            if (pwmRequest.getURL().isConfigGuideURL() || pwmRequest.getURL().isConfigManagerURL()) {
+                contentPolicy = config.readAppProperty(AppProperty.SECURITY_HTTP_CONFIG_CSP_HEADER);
+            } else {
+                contentPolicy = config.readSettingAsString(PwmSetting.SECURITY_CSP_HEADER);
+            }
+
             if (contentPolicy != null && !contentPolicy.isEmpty()) {
                 final String nonce = pwmRequest.getCspNonce();
                 final String expandedPolicy = contentPolicy.replace("%NONCE%", nonce);

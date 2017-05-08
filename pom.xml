@@ -22,7 +22,7 @@
     </licenses>
 
     <organization>
-        <name>Pwm Project</name>
+        <name>PWM Project</name>
         <url>http://www.pwm-project.org</url>
     </organization>
 
@@ -176,6 +176,17 @@
                 <configuration>
                     <archiveClasses>true</archiveClasses>
                     <packagingExcludes>WEB-INF/classes</packagingExcludes>
+                    <archive>
+                        <manifestEntries>
+                            <Implementation-Title>${project.name}</Implementation-Title>
+                            <Implementation-Version>${project.version}</Implementation-Version>
+                            <Implementation-Vendor>${project.organization.name}</Implementation-Vendor>
+                            <Implementation-URL>${project.organization.url}</Implementation-URL>
+                            <Implementation-Build>${build.number}</Implementation-Build>
+                            <Implementation-Revision>${build.revision}</Implementation-Revision>
+                            <Implementation-Version-Display>v${project.version} b${build.number} r${build.revision}</Implementation-Version-Display>
+                        </manifestEntries>
+                    </archive>
                 </configuration>
             </plugin>
             <plugin>

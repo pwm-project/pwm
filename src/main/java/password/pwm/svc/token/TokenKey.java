@@ -20,29 +20,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.config.stored;
+package password.pwm.svc.token;
 
-import password.pwm.bean.UserIdentity;
-
-import java.io.Serializable;
-import java.time.Instant;
-
-public class ValueMetaData implements Serializable {
-    private Instant modifyDate;
-    private UserIdentity userIdentity;
-
-    public ValueMetaData(final Instant modifyDate, final UserIdentity userIdentity) {
-        this.modifyDate = modifyDate;
-        this.userIdentity = userIdentity;
-    }
-
-    public Instant getModifyDate()
-    {
-        return modifyDate;
-    }
-
-    public UserIdentity getUserIdentity()
-    {
-        return userIdentity;
-    }
+interface TokenKey {
+    String getStoredHash();
 }

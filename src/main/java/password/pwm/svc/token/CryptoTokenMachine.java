@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,9 +25,7 @@ package password.pwm.svc.token;
 import password.pwm.bean.SessionLabel;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-
-import java.util.Collections;
-import java.util.Iterator;
+import password.pwm.util.java.ClosableIterator;
 
 class CryptoTokenMachine implements TokenMachine {
 
@@ -53,27 +51,41 @@ class CryptoTokenMachine implements TokenMachine {
         return returnString.toString();
     }
 
-    public TokenPayload retrieveToken(final String tokenKey, final SessionLabel sessionLabel)
+    public TokenPayload retrieveToken(final TokenKey tokenKey)
             throws PwmOperationalException, PwmUnrecoverableException
     {
-        if (tokenKey == null || tokenKey.length() < 1) {
+        if (tokenKey == null || tokenKey.getStoredHash().length() < 1) {
             return null;
         }
-        return tokenService.fromEncryptedString(tokenKey);
+        return tokenService.fromEncryptedString(tokenKey.getStoredHash());
     }
 
-    public void storeToken(final String tokenKey, final TokenPayload tokenPayload) throws PwmOperationalException, PwmUnrecoverableException {
+    public void storeToken(final TokenKey tokenKey, final TokenPayload tokenPayload) throws PwmOperationalException, PwmUnrecoverableException {
     }
 
-    public void removeToken(final String tokenKey, final SessionLabel sessionLabel) throws PwmOperationalException, PwmUnrecoverableException {
+    public void removeToken(final TokenKey tokenKey) throws PwmOperationalException, PwmUnrecoverableException {
     }
 
     public int size() throws PwmOperationalException, PwmUnrecoverableException {
         return 0;
     }
 
-    public Iterator keyIterator() throws PwmOperationalException, PwmUnrecoverableException {
-        return Collections.<String>emptyList().iterator();
+    public ClosableIterator<TokenKey> keyIterator() throws PwmOperationalException, PwmUnrecoverableException {
+        return new ClosableIterator<TokenKey>() {
+            @Override
+            public void close() {
+            }
+
+            @Override
+            public boolean hasNext() {
+                return false;
+            }
+
+            @Override
+            public TokenKey next() {
+                return null;
+            }
+        };
     }
 
     public void cleanup() {
@@ -83,4 +95,25 @@ class CryptoTokenMachine implements TokenMachine {
         return true;
     }
 
+    public TokenKey keyFromKey(final String key) throws PwmUnrecoverableException {
+        return new CryptoTokenKey(key);
+    }
+
+    @Override
+    public TokenKey keyFromStoredHash(final String storedHash) {
+        return new CryptoTokenKey(storedHash);
+    }
+
+    private static class CryptoTokenKey implements TokenKey {
+        private String value;
+
+        CryptoTokenKey(final String value) {
+            this.value = value;
+        }
+
+        @Override
+        public String getStoredHash() {
+            return value;
+        }
+    }
 }
