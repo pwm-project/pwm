@@ -61,7 +61,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet {
     private static final String PARAM_USERKEY = "userKey";
 
     public enum PeopleSearchActions implements ProcessAction {
-        search(HttpMethod.GET),
+        search(HttpMethod.POST),
         detail(HttpMethod.GET),
         photo(HttpMethod.GET),
         clientData(HttpMethod.GET),
@@ -136,11 +136,24 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet {
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
     {
-        final String username = pwmRequest.readParameterAsString("username", PwmHttpRequestWrapper.Flag.BypassValidation);
+        String username = "";
+        final String postString = pwmRequest.readRequestBodyAsString();
+        final String[] parser = postString.split(",");
+
+        for(int i = 0; i < parser.length; i++)
+        {
+            if(parser[i].contains("username"))
+            {
+                final String[] value = parser[i].split(":");
+                username = value[1].replace("\"", "");
+                break;
+            }
+        }
         final boolean includeDisplayName = pwmRequest.readParameterAsBoolean("includeDisplayName");
 
         // if not in cache, build results from ldap
         final PeopleSearchDataReader peopleSearchDataReader = new PeopleSearchDataReader(pwmRequest);
+
         final SearchResultBean searchResultBean = peopleSearchDataReader.makeSearchResultBean(username, includeDisplayName);
         searchResultBean.setFromCache(false);
         final RestResultBean restResultBean = new RestResultBean(searchResultBean);
