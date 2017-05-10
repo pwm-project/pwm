@@ -84,7 +84,7 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
                 final Instant startTime = Instant.now();
                 final StringBuilder sqlString = new StringBuilder();
                 sqlString.append("CREATE table ").append(db.toString()).append(" (").append("\n");
-                sqlString.append("  " + KEY_COLUMN + " VARCHAR(256).append(WIDTH_KEY).append(") NOT NULL PRIMARY KEY,").append("\n");
+                sqlString.append("  " + KEY_COLUMN + " VARCHAR(").append(WIDTH_KEY).append(") NOT NULL PRIMARY KEY,").append("\n");
                 sqlString.append("  " + VALUE_COLUMN + " CLOB");
                 sqlString.append("\n");
                 sqlString.append(")").append("\n");
