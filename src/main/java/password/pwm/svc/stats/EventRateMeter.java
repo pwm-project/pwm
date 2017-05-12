@@ -98,6 +98,10 @@ public class EventRateMeter implements Serializable {
             this.windowMillis = windowMillis;
         }
 
+        public MovingAverage(final TimeDuration timeDuration) {
+            this.windowMillis = timeDuration.getTotalMilliseconds();
+        }
+
         /** Updates the average with the latest measurement.
          *  @param sample the latest measurement in the rolling average */
         public synchronized void update(final double sample) {

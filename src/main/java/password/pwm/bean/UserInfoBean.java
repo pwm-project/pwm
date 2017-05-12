@@ -45,7 +45,7 @@ import java.util.Map;
  * @author Jason D. Rivard
  * @see password.pwm.ldap.UserStatusReader#populateUserInfoBean
  */
-public class UserInfoBean implements Serializable {
+public class UserInfoBean implements Serializable{
 // ------------------------------ FIELDS ------------------------------
 
     private UserIdentity userIdentity;

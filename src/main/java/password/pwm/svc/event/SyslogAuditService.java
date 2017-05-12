@@ -96,13 +96,14 @@ public class SyslogAuditService {
             syslogInstance = makeSyslogInstance(syslogConfig);
             LOGGER.trace("queued service running for " + syslogConfig);
         } catch (IllegalArgumentException e) {
-            LOGGER.error("error parsing syslog configuration for '" + syslogConfigString + "', error: " + e.getMessage());
+            LOGGER.error("e9rror parsing syslog configuration for '" + syslogConfigString + "', error: " + e.getMessage());
         }
 
-        final WorkQueueProcessor.Settings settings = new WorkQueueProcessor.Settings();
-        settings.setMaxEvents(Integer.parseInt(configuration.readAppProperty(AppProperty.QUEUE_SYSLOG_MAX_COUNT)));
-        settings.setRetryDiscardAge(new TimeDuration(Long.parseLong(configuration.readAppProperty(AppProperty.QUEUE_SYSLOG_MAX_AGE_MS))));
-        settings.setRetryInterval(new TimeDuration(Long.parseLong(configuration.readAppProperty(AppProperty.QUEUE_SYSLOG_RETRY_TIMEOUT_MS))));
+        final WorkQueueProcessor.Settings settings = WorkQueueProcessor.Settings.builder()
+                .maxEvents(Integer.parseInt(configuration.readAppProperty(AppProperty.QUEUE_SYSLOG_MAX_COUNT)))
+                .retryDiscardAge(new TimeDuration(Long.parseLong(configuration.readAppProperty(AppProperty.QUEUE_SYSLOG_MAX_AGE_MS))))
+                .retryInterval(new TimeDuration(Long.parseLong(configuration.readAppProperty(AppProperty.QUEUE_SYSLOG_RETRY_TIMEOUT_MS))))
+                .build();
 
         final LocalDBStoredQueue localDBStoredQueue = LocalDBStoredQueue.createLocalDBStoredQueue(pwmApplication, pwmApplication.getLocalDB(), LocalDB.DB.SYSLOG_QUEUE);
 

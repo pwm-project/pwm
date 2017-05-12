@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,10 +23,13 @@
 package password.pwm.util.localdb;
 
 import com.google.gson.annotations.SerializedName;
+import lombok.Builder;
+import lombok.Getter;
 import password.pwm.PwmApplication;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
+import password.pwm.svc.stats.EventRateMeter;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
@@ -36,11 +39,18 @@ import password.pwm.util.secure.PwmRandom;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
 
 /**
@@ -62,6 +72,16 @@ public class WorkQueueProcessor<W extends Serializable> {
 
     private IDGenerator idGenerator = new IDGenerator();
     private Instant eldestItem = null;
+
+    private ThreadPoolExecutor executorService;
+
+    private final EventRateMeter.MovingAverage avgLagTime = new EventRateMeter.MovingAverage(60 * 60 * 1000);
+    private final EventRateMeter sendRate = new EventRateMeter(new TimeDuration(1, TimeUnit.HOURS));
+
+    private final AtomicInteger preQueueSubmit = new AtomicInteger(0);
+    private final AtomicInteger preQueueBypass = new AtomicInteger(0);
+    private final AtomicInteger preQueueFallback = new AtomicInteger(0);
+    private final AtomicInteger queueProcessItems = new AtomicInteger(0);
 
     public enum ProcessResult {
         SUCCESS,
@@ -104,12 +124,29 @@ public class WorkQueueProcessor<W extends Serializable> {
         workerThread.setDaemon(true);
         workerThread.setName(JavaHelper.makeThreadName(pwmApplication, sourceClass) + "-worker-");
         workerThread.start();
+
+        if (settings.getPreThreads() > 0) {
+            final ThreadFactory threadFactory = JavaHelper.makePwmThreadFactory(JavaHelper.makeThreadName(pwmApplication, sourceClass), true);
+            executorService = new ThreadPoolExecutor(
+                    1,
+                    settings.getPreThreads(),
+                    1,
+                    TimeUnit.MINUTES,
+                    new ArrayBlockingQueue<>(settings.getPreThreads()),
+                    threadFactory
+            );
+        }
     }
 
     public void close() {
         if (workerThread == null) {
             return;
         }
+
+        if (executorService != null) {
+            executorService.shutdown();
+        }
+
         final WorkerThread localWorkerThread = workerThread;
         workerThread = null;
 
@@ -128,13 +165,54 @@ public class WorkQueueProcessor<W extends Serializable> {
         }
     }
 
-    public synchronized void submit(final W workItem) throws PwmOperationalException {
+    public void submit(final W workItem)
+            throws PwmOperationalException
+    {
+        final ItemWrapper<W> itemWrapper = new ItemWrapper<>(Instant.now(), workItem, idGenerator.nextID());
+
+        if (settings.getPreThreads() < 0) {
+            sendAndQueueIfNecessary(itemWrapper);
+            return;
+        }
+
+        if (settings.getPreThreads() > 0) {
+            try {
+                executorService.execute(() -> sendAndQueueIfNecessary(itemWrapper));
+                preQueueSubmit.incrementAndGet();
+            } catch(RejectedExecutionException e) {
+                submitToQueue(itemWrapper);
+                preQueueBypass.incrementAndGet();
+            }
+        } else {
+            submitToQueue(itemWrapper);
+        }
+    }
+
+    private void sendAndQueueIfNecessary(final ItemWrapper<W> itemWrapper)
+    {
+        try {
+            final ProcessResult processResult = itemProcessor.process(itemWrapper.getWorkItem());
+            if (processResult == ProcessResult.SUCCESS) {
+                logAndStatUpdateForSuccess(itemWrapper);
+            } else if (processResult == ProcessResult.RETRY || processResult == ProcessResult.NOOP) {
+                preQueueFallback.incrementAndGet();
+                try {
+                    submitToQueue(itemWrapper);
+                } catch (Exception e) {
+                    logger.error("error submitting to work queue after executor returned retry status: " + e.getMessage());
+                }
+            }
+        } catch (PwmOperationalException e) {
+            logger.error("unexpected error while processing itemWrapper: " + e.getMessage(),e);
+        }
+    }
+
+    private synchronized void submitToQueue(final ItemWrapper<W> itemWrapper) throws PwmOperationalException {
         if (workerThread == null) {
             final String errorMsg = this.getClass().getName() + " has been closed, unable to submit new item";
             throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg));
         }
 
-        final ItemWrapper<W> itemWrapper = new ItemWrapper<>(Instant.now(), workItem, idGenerator.nextID());
         final String asString = JsonUtil.serialize(itemWrapper);
 
         if (settings.getMaxEvents() > 0) {
@@ -142,7 +220,7 @@ public class WorkQueueProcessor<W extends Serializable> {
             while (!queue.offerLast(asString)) {
                 if (TimeDuration.fromCurrent(startTime).isLongerThan(settings.getMaxSubmitWaitTime())) {
                     final String errorMsg = "unable to submit item to worker queue after " + settings.getMaxSubmitWaitTime().asCompactString()
-                            + ", item=" + itemProcessor.convertToDebugString(workItem);
+                            + ", item=" + itemProcessor.convertToDebugString(itemWrapper.getWorkItem());
                     throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg));
                 }
                 JavaHelper.pause(SUBMIT_QUEUE_FULL_RETRY_CYCLE_INTERVAL.getTotalMilliseconds());
@@ -269,6 +347,7 @@ public class WorkQueueProcessor<W extends Serializable> {
 
             final ProcessResult processResult;
             try {
+                queueProcessItems.incrementAndGet();
                 processResult = itemProcessor.process(itemWrapper.getWorkItem());
                 if (processResult == null) {
                     removeQueueTop();
@@ -289,7 +368,7 @@ public class WorkQueueProcessor<W extends Serializable> {
 
                         case SUCCESS: {
                             removeQueueTop();
-                            logger.trace("successfully processed item=" + makeDebugText(itemWrapper));
+                            logAndStatUpdateForSuccess(itemWrapper);
                         }
                         break;
 
@@ -373,51 +452,38 @@ public class WorkQueueProcessor<W extends Serializable> {
         String convertToDebugString(W workItem);
     }
 
+    @Getter
+    @Builder
     public static class Settings implements Serializable {
         private int maxEvents = 1000;
+        private int preThreads = 0;
         private TimeDuration maxSubmitWaitTime = new TimeDuration(5, TimeUnit.SECONDS);
         private TimeDuration retryInterval = new TimeDuration(30, TimeUnit.SECONDS);
         private TimeDuration retryDiscardAge = new TimeDuration(1, TimeUnit.HOURS);
         private TimeDuration maxShutdownWaitTime = new TimeDuration(30, TimeUnit.SECONDS);
+    }
 
-        public int getMaxEvents() {
-            return maxEvents;
-        }
+    private void logAndStatUpdateForSuccess(final ItemWrapper<W> itemWrapper)
+            throws PwmOperationalException
+    {
+        final TimeDuration lagTime = TimeDuration.fromCurrent(itemWrapper.getDate());
+        avgLagTime.update(lagTime.getTotalMilliseconds());
+        sendRate.markEvents(1);
+        logger.trace("successfully processed item=" + makeDebugText(itemWrapper) + "; lagTime=" + lagTime.asCompactString()
+                + "; " + StringUtil.mapToString(debugInfo()));
+    }
 
-        public void setMaxEvents(final int maxEvents) {
-            this.maxEvents = maxEvents;
+    public Map<String,String> debugInfo() {
+        final Map<String,String> output = new HashMap<>();
+        output.put("avgLagTime", new TimeDuration((long)avgLagTime.getAverage()).asCompactString());
+        output.put("sendRate", sendRate.readEventRate() + "/s");
+        output.put("preQueueSubmit", String.valueOf(preQueueSubmit.get()));
+        output.put("preQueueBypass", String.valueOf(preQueueBypass.get()));
+        output.put("preQueueFallback", String.valueOf(preQueueFallback.get()));
+        output.put("queueProcessItems", String.valueOf(queueProcessItems.get()));
+        if (executorService != null) {
+            output.put("activeThreads", String.valueOf(executorService.getActiveCount()));
         }
-
-        public TimeDuration getMaxSubmitWaitTime() {
-            return maxSubmitWaitTime;
-        }
-
-        public void setMaxSubmitWaitTime(final TimeDuration maxSubmitWaitTime) {
-            this.maxSubmitWaitTime = maxSubmitWaitTime;
-        }
-
-        public TimeDuration getRetryInterval() {
-            return retryInterval;
-        }
-
-        public void setRetryInterval(final TimeDuration retryInterval) {
-            this.retryInterval = retryInterval;
-        }
-
-        public TimeDuration getRetryDiscardAge() {
-            return retryDiscardAge;
-        }
-
-        public void setRetryDiscardAge(final TimeDuration retryDiscardAge) {
-            this.retryDiscardAge = retryDiscardAge;
-        }
-
-        public TimeDuration getMaxShutdownWaitTime() {
-            return maxShutdownWaitTime;
-        }
-
-        public void setMaxShutdownWaitTime(final TimeDuration maxShutdownWaitTime) {
-            this.maxShutdownWaitTime = maxShutdownWaitTime;
-        }
+        return Collections.unmodifiableMap(output);
     }
 }

@@ -59,6 +59,9 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.Writer;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -364,10 +367,24 @@ public class AdminServlet extends ControlledPwmServlet {
         pwmRequest.setAttribute(PwmRequestAttribute.UserDebugData, userDebugData);
     }
 
+    private void processThreadPageView(final PwmRequest pwmRequest) throws IOException {
+        pwmRequest.getPwmResponse().setContentType(PwmConstants.ContentTypeValue.plain);
+        final Writer writer = pwmRequest.getPwmResponse().getWriter();
+        final ThreadInfo[] threads = ManagementFactory.getThreadMXBean().dumpAllThreads(true,true);
+        for (final ThreadInfo threadInfo : threads) {
+            writer.write(JavaHelper.threadInfoToString(threadInfo));
+        }
+    }
+
     private void forwardToJsp(final PwmRequest pwmRequest) throws ServletException, PwmUnrecoverableException, IOException {
         final Page currentPage = Page.forUrl(pwmRequest.getURL());
         if (currentPage == Page.debugUser) {
             processDebugUserSearch(pwmRequest);
+        }
+
+        if (currentPage == Page.threads) {
+            processThreadPageView(pwmRequest);
+            return;
         }
 
         if (currentPage != null) {
@@ -385,6 +402,7 @@ public class AdminServlet extends ControlledPwmServlet {
         viewLog(JspUrl.ADMIN_LOGVIEW,"/logs"),
         urlReference(JspUrl.ADMIN_URLREFERENCE,"/urls"),
         debugUser(JspUrl.ADMIN_DEBUG,"/userdebug"),
+        threads(JspUrl.ADMIN_DEBUG,"/threads"),
 
         ;
 
