@@ -27,7 +27,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.TokenVerificationProgress;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.FormUtility;

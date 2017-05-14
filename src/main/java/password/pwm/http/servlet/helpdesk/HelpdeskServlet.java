@@ -34,7 +34,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.config.ActionConfiguration;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
@@ -62,8 +62,8 @@ import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.ldap.LdapUserDataReader;
-import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.UserDataReader;
+import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.ldap.search.UserSearchResults;
 import password.pwm.svc.event.AuditEvent;
@@ -302,7 +302,7 @@ public class HelpdeskServlet extends ControlledPwmServlet {
             {
                 final HelpdeskAuditRecord auditRecord = new AuditRecordFactory(pwmRequest).createHelpdeskAuditRecord(
                         AuditEvent.HELPDESK_ACTION,
-                        pwmSession.getUserInfoBean().getUserIdentity(),
+                        pwmSession.getUserInfo().getUserIdentity(),
                         action.getName(),
                         userIdentity,
                         pwmSession.getSessionStateBean().getSrcAddress(),
@@ -341,7 +341,7 @@ public class HelpdeskServlet extends ControlledPwmServlet {
         }
 
         final UserIdentity userIdentity = UserIdentity.fromKey(userKey, pwmApplication);
-        LOGGER.info(pwmSession, "received deleteUser request by " + pwmSession.getUserInfoBean().getUserIdentity().toString() + " for user " + userIdentity.toString());
+        LOGGER.info(pwmSession, "received deleteUser request by " + pwmSession.getUserInfo().getUserIdentity().toString() + " for user " + userIdentity.toString());
 
         // check if user should be seen by actor
         checkIfUserIdentityViewable(pwmRequest, helpdeskProfile, userIdentity);
@@ -381,7 +381,7 @@ public class HelpdeskServlet extends ControlledPwmServlet {
             );
             final HelpdeskAuditRecord auditRecord = new AuditRecordFactory(pwmRequest).createHelpdeskAuditRecord(
                     AuditEvent.HELPDESK_DELETE_USER,
-                    pwmSession.getUserInfoBean().getUserIdentity(),
+                    pwmSession.getUserInfo().getUserIdentity(),
                     null,
                     auditUserDefinition,
                     pwmSession.getSessionStateBean().getSrcAddress(),
@@ -415,7 +415,7 @@ public class HelpdeskServlet extends ControlledPwmServlet {
         processDetailRequest(pwmRequest, helpdeskProfile, userIdentity);
         final HelpdeskAuditRecord auditRecord = new AuditRecordFactory(pwmRequest).createHelpdeskAuditRecord(
                 AuditEvent.HELPDESK_VIEW_DETAIL,
-                pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity(),
+                pwmRequest.getPwmSession().getUserInfo().getUserIdentity(),
                 null,
                 userIdentity,
                 pwmRequest.getSessionLabel().getSrcAddress(),
@@ -459,10 +459,10 @@ public class HelpdeskServlet extends ControlledPwmServlet {
         final HelpdeskDetailInfoBean helpdeskDetailInfoBean = HelpdeskDetailInfoBean.makeHelpdeskDetailInfo(pwmRequest, helpdeskProfile, userIdentity);
         pwmRequest.setAttribute(PwmRequestAttribute.HelpdeskDetail, helpdeskDetailInfoBean);
 
-        if (helpdeskDetailInfoBean != null && helpdeskDetailInfoBean.getUserInfoBean() != null) {
-            final String obfuscatedDN = helpdeskDetailInfoBean.getUserInfoBean().getUserIdentity().toObfuscatedKey(pwmRequest.getPwmApplication());
+        if (helpdeskDetailInfoBean != null && helpdeskDetailInfoBean.getUserInfo() != null) {
+            final String obfuscatedDN = helpdeskDetailInfoBean.getUserInfo().getUserIdentity().toObfuscatedKey(pwmRequest.getPwmApplication());
             pwmRequest.setAttribute(PwmRequestAttribute.HelpdeskObfuscatedDN, obfuscatedDN);
-            pwmRequest.setAttribute(PwmRequestAttribute.HelpdeskUsername, helpdeskDetailInfoBean.getUserInfoBean().getUsername());
+            pwmRequest.setAttribute(PwmRequestAttribute.HelpdeskUsername, helpdeskDetailInfoBean.getUserInfo().getUsername());
         }
 
         StatisticsManager.incrementStat(pwmRequest, Statistic.HELPDESK_USER_LOOKUP);
@@ -508,7 +508,7 @@ public class HelpdeskServlet extends ControlledPwmServlet {
             builder.enableSplitWhitespace(true);
 
             if (!useProxy) {
-                final UserIdentity loggedInUser = pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity();
+                final UserIdentity loggedInUser = pwmRequest.getPwmSession().getUserInfo().getUserIdentity();
                 builder.ldapProfile(loggedInUser.getLdapProfileID());
                 builder.chaiProvider(getChaiUser(pwmRequest, helpdeskProfile, loggedInUser).getChaiProvider());
             }
@@ -583,7 +583,7 @@ public class HelpdeskServlet extends ControlledPwmServlet {
                 // mark the event log
                 final HelpdeskAuditRecord auditRecord = new AuditRecordFactory(pwmRequest).createHelpdeskAuditRecord(
                         AuditEvent.HELPDESK_UNLOCK_PASSWORD,
-                        pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity(),
+                        pwmRequest.getPwmSession().getUserInfo().getUserIdentity(),
                         null,
                         userIdentity,
                         pwmRequest.getSessionLabel().getSrcAddress(),
@@ -657,7 +657,7 @@ public class HelpdeskServlet extends ControlledPwmServlet {
                 final PwmSession pwmSession = pwmRequest.getPwmSession();
                 final HelpdeskAuditRecord auditRecord = new AuditRecordFactory(pwmRequest).createHelpdeskAuditRecord(
                         AuditEvent.HELPDESK_VERIFY_OTP,
-                        pwmSession.getUserInfoBean().getUserIdentity(),
+                        pwmSession.getUserInfo().getUserIdentity(),
                         null,
                         userIdentity,
                         pwmSession.getSessionStateBean().getSrcAddress(),
@@ -671,7 +671,7 @@ public class HelpdeskServlet extends ControlledPwmServlet {
                 final PwmSession pwmSession = pwmRequest.getPwmSession();
                 final HelpdeskAuditRecord auditRecord = new AuditRecordFactory(pwmRequest).createHelpdeskAuditRecord(
                         AuditEvent.HELPDESK_VERIFY_OTP_INCORRECT,
-                        pwmSession.getUserInfoBean().getUserIdentity(),
+                        pwmSession.getUserInfo().getUserIdentity(),
                         null,
                         userIdentity,
                         pwmSession.getSessionStateBean().getSrcAddress(),
@@ -741,9 +741,9 @@ public class HelpdeskServlet extends ControlledPwmServlet {
             pwmRequest.outputJsonResult(RestResultBean.fromError(errorInformation,pwmRequest));
             return ProcessStatus.Halt;
         }
-        final UserInfoBean userInfoBean = helpdeskDetailInfoBean.getUserInfoBean();
+        final UserInfo userInfo = helpdeskDetailInfoBean.getUserInfo();
         final UserDataReader userDataReader = LdapUserDataReader.appProxiedReader(pwmRequest.getPwmApplication(), userIdentity);
-        final MacroMachine macroMachine = new MacroMachine(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), userInfoBean, null, userDataReader);
+        final MacroMachine macroMachine = new MacroMachine(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), userInfo, null, userDataReader);
         final String configuredTokenString = config.readAppProperty(AppProperty.HELPDESK_TOKEN_VALUE);
         final String tokenKey = macroMachine.expandMacros(configuredTokenString);
         final EmailItemBean emailItemBean = config.readSettingAsEmail(PwmSetting.EMAIL_HELPDESK_TOKEN, pwmRequest.getLocale());
@@ -755,12 +755,12 @@ public class HelpdeskServlet extends ControlledPwmServlet {
                 destDisplayString.append(destEmailAddress);
             }
         }
-        if (userInfoBean.getUserSmsNumber() != null && !userInfoBean.getUserSmsNumber().isEmpty()) {
+        if (userInfo.getUserSmsNumber() != null && !userInfo.getUserSmsNumber().isEmpty()) {
             if (tokenSendMethod == MessageSendMethod.BOTH || tokenSendMethod == MessageSendMethod.SMSFIRST || tokenSendMethod == MessageSendMethod.SMSONLY) {
                 if (destDisplayString.length() > 0) {
                     destDisplayString.append(", ");
                 }
-                destDisplayString.append(userInfoBean.getUserSmsNumber());
+                destDisplayString.append(userInfo.getUserSmsNumber());
             }
         }
 
@@ -771,12 +771,12 @@ public class HelpdeskServlet extends ControlledPwmServlet {
         try {
             TokenService.TokenSender.sendToken(
                     pwmRequest.getPwmApplication(),
-                    userInfoBean,
+                    userInfo,
                     macroMachine,
                     emailItemBean,
                     tokenSendMethod,
                     destEmailAddress,
-                    userInfoBean.getUserSmsNumber(),
+                    userInfo.getUserSmsNumber(),
                     smsMessage,
                     tokenKey
             );
@@ -851,7 +851,7 @@ public class HelpdeskServlet extends ControlledPwmServlet {
             final PwmSession pwmSession = pwmRequest.getPwmSession();
             final HelpdeskAuditRecord auditRecord = new AuditRecordFactory(pwmRequest).createHelpdeskAuditRecord(
                     AuditEvent.HELPDESK_VERIFY_TOKEN,
-                    pwmSession.getUserInfoBean().getUserIdentity(),
+                    pwmSession.getUserInfo().getUserIdentity(),
                     null,
                     userIdentity,
                     pwmSession.getSessionStateBean().getSrcAddress(),
@@ -863,7 +863,7 @@ public class HelpdeskServlet extends ControlledPwmServlet {
             final PwmSession pwmSession = pwmRequest.getPwmSession();
             final HelpdeskAuditRecord auditRecord = new AuditRecordFactory(pwmRequest).createHelpdeskAuditRecord(
                     AuditEvent.HELPDESK_VERIFY_TOKEN_INCORRECT,
-                    pwmSession.getUserInfoBean().getUserIdentity(),
+                    pwmSession.getUserInfo().getUserIdentity(),
                     null,
                     userIdentity,
                     pwmSession.getSessionStateBean().getSrcAddress(),
@@ -914,7 +914,7 @@ public class HelpdeskServlet extends ControlledPwmServlet {
                 // mark the event log
                 final HelpdeskAuditRecord auditRecord = new AuditRecordFactory(pwmRequest).createHelpdeskAuditRecord(
                         AuditEvent.HELPDESK_CLEAR_OTP_SECRET,
-                        pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity(),
+                        pwmRequest.getPwmSession().getUserInfo().getUserIdentity(),
                         null,
                         userIdentity,
                         pwmRequest.getSessionLabel().getSrcAddress(),
@@ -1107,7 +1107,7 @@ public class HelpdeskServlet extends ControlledPwmServlet {
             final PwmSession pwmSession = pwmRequest.getPwmSession();
             final HelpdeskAuditRecord auditRecord = new AuditRecordFactory(pwmRequest).createHelpdeskAuditRecord(
                     AuditEvent.HELPDESK_VERIFY_ATTRIBUTES,
-                    pwmSession.getUserInfoBean().getUserIdentity(),
+                    pwmSession.getUserInfo().getUserIdentity(),
                     null,
                     userIdentity,
                     pwmSession.getSessionStateBean().getSrcAddress(),
@@ -1119,7 +1119,7 @@ public class HelpdeskServlet extends ControlledPwmServlet {
             final PwmSession pwmSession = pwmRequest.getPwmSession();
             final HelpdeskAuditRecord auditRecord = new AuditRecordFactory(pwmRequest).createHelpdeskAuditRecord(
                     AuditEvent.HELPDESK_VERIFY_ATTRIBUTES_INCORRECT,
-                    pwmSession.getUserInfoBean().getUserIdentity(),
+                    pwmSession.getUserInfo().getUserIdentity(),
                     null,
                     userIdentity,
                     pwmSession.getSessionStateBean().getSrcAddress(),
@@ -1160,14 +1160,14 @@ public class HelpdeskServlet extends ControlledPwmServlet {
         final MacroMachine macroMachine = new MacroMachine(
                 pwmApplication,
                 pwmRequest.getSessionLabel(),
-                helpdeskDetailInfoBean.getUserInfoBean(),
+                helpdeskDetailInfoBean.getUserInfo(),
                 null,
                 LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity)
         );
 
         pwmApplication.getEmailQueue().submitEmail(
                 configuredEmailSetting,
-                helpdeskDetailInfoBean.getUserInfoBean(),
+                helpdeskDetailInfoBean.getUserInfo(),
                 macroMachine
         );
     }

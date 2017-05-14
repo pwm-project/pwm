@@ -217,7 +217,7 @@ public class DeleteAccountServlet extends ControlledPwmServlet {
         sendProfileUpdateEmailNotice(pwmRequest);
 
         // mark the event log
-        pwmApplication.getAuditManager().submit(AuditEvent.DELETE_ACCOUNT, pwmRequest.getPwmSession().getUserInfoBean(), pwmRequest.getPwmSession());
+        pwmApplication.getAuditManager().submit(AuditEvent.DELETE_ACCOUNT, pwmRequest.getPwmSession().getUserInfo(), pwmRequest.getPwmSession());
 
         final String nextUrl = deleteAccountProfile.readSettingAsString(PwmSetting.DELETE_ACCOUNT_NEXT_URL);
         if (nextUrl != null && !nextUrl.isEmpty()) {
@@ -264,7 +264,7 @@ public class DeleteAccountServlet extends ControlledPwmServlet {
 
         pwmRequest.getPwmApplication().getEmailQueue().submitEmail(
                 configuredEmailSetting,
-                pwmRequest.getPwmSession().getUserInfoBean(),
+                pwmRequest.getPwmSession().getUserInfo(),
                 pwmRequest.getPwmSession().getSessionManager().getMacroMachine(pwmRequest.getPwmApplication())
         );
     }

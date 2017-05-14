@@ -23,7 +23,7 @@
 <%@ page import="com.novell.ldapchai.ChaiPasswordRule" %>
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
 <%@ page import="password.pwm.bean.ResponseInfoBean" %>
-<%@ page import="password.pwm.bean.UserInfoBean" %>
+<%@ page import="password.pwm.ldap.UserInfo" %>
 <%@ page import="password.pwm.config.ActionConfiguration" %>
 <%@ page import="password.pwm.config.FormConfiguration" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
@@ -40,13 +40,10 @@
 <%@ page import="password.pwm.util.java.StringUtil" %>
 <%@ page import="password.pwm.util.java.TimeDuration" %>
 <%@ page import="password.pwm.util.macro.MacroMachine" %>
-<%@ page import="java.text.DateFormat" %>
-<%@ page import="java.util.Date" %>
+<%@ page import="java.time.Instant" %>
 <%@ page import="java.util.Iterator" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Set" %>
-<%@ page import="java.time.Instant" %>
-<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -59,7 +56,7 @@
 
     // user info
     final HelpdeskDetailInfoBean helpdeskDetailInfoBean = (HelpdeskDetailInfoBean)pwmRequest.getAttribute(PwmRequestAttribute.HelpdeskDetail);
-    final UserInfoBean searchedUserInfo = helpdeskDetailInfoBean.getUserInfoBean();
+    final UserInfo searchedUserInfo = helpdeskDetailInfoBean.getUserInfo();
     final ResponseInfoBean responseInfoBean = searchedUserInfo.getResponseInfoBean();
 
     final String displayName = helpdeskDetailInfoBean.getUserDisplayName();

@@ -89,7 +89,7 @@ public class RandomPasswordGenerator {
     )
             throws PwmUnrecoverableException
     {
-        final PwmPasswordPolicy userPasswordPolicy = pwmSession.getUserInfoBean().getPasswordPolicy();
+        final PwmPasswordPolicy userPasswordPolicy = pwmSession.getUserInfo().getPasswordPolicy();
         return createRandomPassword(pwmSession.getLabel(), userPasswordPolicy, pwmApplication);
     }
 

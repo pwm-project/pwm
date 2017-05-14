@@ -25,7 +25,7 @@ package password.pwm.svc.event;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmApplication;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -83,8 +83,8 @@ class DatabaseUserHistory implements UserHistoryStore {
     }
 
     @Override
-    public List<UserAuditRecord> readUserHistory(final UserInfoBean userInfoBean) throws PwmUnrecoverableException {
-        final String userGuid = userInfoBean.getUserGuid();
+    public List<UserAuditRecord> readUserHistory(final UserInfo userInfo) throws PwmUnrecoverableException {
+        final String userGuid = userInfo.getUserGuid();
         try {
             return readStoredHistory(userGuid).getRecords();
         } catch (DatabaseException e) {

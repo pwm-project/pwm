@@ -87,7 +87,7 @@ public class LdapUserDataReader implements Serializable, UserDataReader {
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
-        if (!userIdentity.getLdapProfileID().equals(pwmSession.getUserInfoBean().getUserIdentity().getLdapProfileID())) {
+        if (!userIdentity.getLdapProfileID().equals(pwmSession.getUserInfo().getUserIdentity().getLdapProfileID())) {
             throw new PwmUnrecoverableException(PwmError.ERROR_NO_LDAP_CONNECTION);
         }
         final ChaiProvider chaiProvider = pwmSession.getSessionManager().getChaiProvider();

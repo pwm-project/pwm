@@ -181,7 +181,7 @@ public abstract class CommandServlet extends ControlledPwmServlet {
             return ProcessStatus.Halt;
         }
 
-        if (pwmRequest.getPwmSession().getUserInfoBean().isRequiresUpdateProfile()) {
+        if (pwmRequest.getPwmSession().getUserInfo().isRequiresUpdateProfile()) {
             pwmRequest.sendRedirect(PwmServletDefinition.UpdateProfile);
         } else {
             redirectToForwardURL(pwmRequest);
@@ -225,7 +225,7 @@ public abstract class CommandServlet extends ControlledPwmServlet {
             return ProcessStatus.Halt;
         }
 
-        if (pwmRequest.getPwmSession().getUserInfoBean().isRequiresResponseConfig()) {
+        if (pwmRequest.getPwmSession().getUserInfo().isRequiresResponseConfig()) {
             pwmRequest.sendRedirect(PwmServletDefinition.SetupResponses);
         } else {
             redirectToForwardURL(pwmRequest);
@@ -244,7 +244,7 @@ public abstract class CommandServlet extends ControlledPwmServlet {
         }
 
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        if (pwmSession.getUserInfoBean().isRequiresNewPassword() && !pwmSession.getLoginInfoBean().isLoginFlag(LoginInfoBean.LoginFlag.skipNewPw)) {
+        if (pwmSession.getUserInfo().isRequiresNewPassword() && !pwmSession.getLoginInfoBean().isLoginFlag(LoginInfoBean.LoginFlag.skipNewPw)) {
             pwmRequest.sendRedirect(PwmServletDefinition.PrivateChangePassword.servletUrlName());
         } else {
             redirectToForwardURL(pwmRequest);

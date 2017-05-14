@@ -23,13 +23,18 @@
 package password.pwm.svc.report;
 
 import com.novell.ldapchai.cr.Answer;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
 import password.pwm.bean.PasswordStatus;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.config.option.DataStorageMethod;
 
 import java.io.Serializable;
 import java.time.Instant;
 
+@Getter
+@Setter(AccessLevel.PRIVATE)
 public class UserCacheRecord implements Serializable {
     public String userDN;
     public String ldapProfile;
@@ -59,234 +64,48 @@ public class UserCacheRecord implements Serializable {
     public boolean requiresResponseUpdate;
     public boolean requiresProfileUpdate;
 
-    public String getUserDN()
-    {
-        return userDN;
-    }
+    void addUiBeanData(final UserInfo userInfo) {
+        this.setUserDN(userInfo.getUserIdentity().getUserDN());
+        this.setLdapProfile(userInfo.getUserIdentity().getLdapProfileID());
+        this.setUsername(userInfo.getUsername());
+        this.setEmail(userInfo.getUserEmailAddress());
+        this.setUserGUID(userInfo.getUserGuid());
 
-    public void setUserDN(final String userDN)
-    {
-        this.userDN = userDN;
-    }
+        this.setPasswordStatus(userInfo.getPasswordState());
 
-    public String getLdapProfile()
-    {
-        return ldapProfile;
-    }
+        this.setPasswordChangeTime(userInfo.getPasswordLastModifiedTime());
+        this.setPasswordExpirationTime(userInfo.getPasswordExpirationTime());
+        this.setLastLoginTime(userInfo.getLastLdapLoginTime());
+        this.setAccountExpirationTime(userInfo.getAccountExpirationTime());
 
-    public void setLdapProfile(final String ldapProfile)
-    {
-        this.ldapProfile = ldapProfile;
-    }
-
-    public String getUsername()
-    {
-        return username;
-    }
-
-    public void setUsername(final String username)
-    {
-        this.username = username;
-    }
-
-    public String getEmail()
-    {
-        return email;
-    }
-
-    public void setEmail(final String email)
-    {
-        this.email = email;
-    }
-
-    public String getUserGUID() {
-        return userGUID;
-    }
-
-    public void setUserGUID(final String userGUID) {
-        this.userGUID = userGUID;
-    }
-
-    public Instant getCacheTimestamp() {
-        return cacheTimestamp;
-    }
-
-    public void setCacheTimestamp(final Instant cacheTimestamp) {
-        this.cacheTimestamp = cacheTimestamp;
-    }
-
-    public PasswordStatus getPasswordStatus() {
-        return passwordStatus;
-    }
-
-    public void setPasswordStatus(final PasswordStatus passwordStatus) {
-        this.passwordStatus = passwordStatus;
-    }
-
-    public Instant getPasswordExpirationTime() {
-        return passwordExpirationTime;
-    }
-
-    public void setPasswordExpirationTime(final Instant passwordExpirationTime) {
-        this.passwordExpirationTime = passwordExpirationTime;
-    }
-
-    public Instant getPasswordChangeTime() {
-        return passwordChangeTime;
-    }
-
-    public void setPasswordChangeTime(final Instant passwordChangeTime) {
-        this.passwordChangeTime = passwordChangeTime;
-    }
-
-    public Instant getResponseSetTime() {
-        return responseSetTime;
-    }
-
-    public void setResponseSetTime(final Instant responseSetTime) {
-        this.responseSetTime = responseSetTime;
-    }
-
-    public Instant getLastLoginTime() {
-        return lastLoginTime;
-    }
-
-    public void setLastLoginTime(final Instant lastLoginTime) {
-        this.lastLoginTime = lastLoginTime;
-    }
-
-    public boolean isHasResponses() {
-        return hasResponses;
-    }
-
-    public void setHasResponses(final boolean hasResponses) {
-        this.hasResponses = hasResponses;
-    }
-
-    public boolean isHasHelpdeskResponses()
-    {
-        return hasHelpdeskResponses;
-    }
-
-    public void setHasHelpdeskResponses(final boolean hasHelpdeskResponses)
-    {
-        this.hasHelpdeskResponses = hasHelpdeskResponses;
-    }
-
-    public boolean isRequiresPasswordUpdate() {
-        return requiresPasswordUpdate;
-    }
-
-    public void setRequiresPasswordUpdate(final boolean requiresPasswordUpdate) {
-        this.requiresPasswordUpdate = requiresPasswordUpdate;
-    }
-
-    public boolean isRequiresResponseUpdate() {
-        return requiresResponseUpdate;
-    }
-
-    public void setRequiresResponseUpdate(final boolean requiresResponseUpdate) {
-        this.requiresResponseUpdate = requiresResponseUpdate;
-    }
-
-    public boolean isRequiresProfileUpdate() {
-        return requiresProfileUpdate;
-    }
-
-    public void setRequiresProfileUpdate(final boolean requiresProfileUpdate) {
-        this.requiresProfileUpdate = requiresProfileUpdate;
-    }
-
-    public DataStorageMethod getResponseStorageMethod()
-    {
-        return responseStorageMethod;
-    }
-
-    public void setResponseStorageMethod(final DataStorageMethod responseStorageMethod)
-    {
-        this.responseStorageMethod = responseStorageMethod;
-    }
-
-    public Answer.FormatType getResponseFormatType()
-    {
-        return responseFormatType;
-    }
-
-    public void setResponseFormatType(final Answer.FormatType responseFormatType)
-    {
-        this.responseFormatType = responseFormatType;
-    }
-
-    public boolean isHasOtpSecret()
-    {
-        return hasOtpSecret;
-    }
-
-    public void setHasOtpSecret(final boolean hasOtpSecret)
-    {
-        this.hasOtpSecret = hasOtpSecret;
-    }
-
-    public Instant getOtpSecretSetTime()
-    {
-        return otpSecretSetTime;
-    }
-
-    public void setOtpSecretSetTime(final Instant otpSecretSetTime)
-    {
-        this.otpSecretSetTime = otpSecretSetTime;
-    }
-
-    public Instant getAccountExpirationTime() {
-        return accountExpirationTime;
-    }
-
-    public void setAccountExpirationTime(final Instant accountExpirationTime) {
-        this.accountExpirationTime = accountExpirationTime;
-    }
-
-    public void addUiBeanData(final UserInfoBean userInfoBean) {
-        this.setUserDN(userInfoBean.getUserIdentity().getUserDN());
-        this.setLdapProfile(userInfoBean.getUserIdentity().getLdapProfileID());
-        this.setUsername(userInfoBean.getUsername());
-        this.setEmail(userInfoBean.getUserEmailAddress());
-        this.setUserGUID(userInfoBean.getUserGuid());
-
-        this.setPasswordStatus(userInfoBean.getPasswordState());
-
-        this.setPasswordChangeTime(userInfoBean.getPasswordLastModifiedTime());
-        this.setPasswordExpirationTime(userInfoBean.getPasswordExpirationTime());
-        this.setLastLoginTime(userInfoBean.getLastLdapLoginTime());
-        this.setAccountExpirationTime(userInfoBean.getAccountExpirationTime());
-
-        this.setHasResponses(userInfoBean.getResponseInfoBean() != null);
-        this.setResponseSetTime(userInfoBean.getResponseInfoBean() != null
-                        ? userInfoBean.getResponseInfoBean().getTimestamp()
+        this.setHasResponses(userInfo.getResponseInfoBean() != null);
+        this.setResponseSetTime(userInfo.getResponseInfoBean() != null
+                        ? userInfo.getResponseInfoBean().getTimestamp()
                         : null
         );
-        this.setResponseStorageMethod(userInfoBean.getResponseInfoBean() != null
-                        ? userInfoBean.getResponseInfoBean().getDataStorageMethod()
+        this.setResponseStorageMethod(userInfo.getResponseInfoBean() != null
+                        ? userInfo.getResponseInfoBean().getDataStorageMethod()
                         : null
         );
-        this.setResponseFormatType(userInfoBean.getResponseInfoBean() != null
-                        ? userInfoBean.getResponseInfoBean().getFormatType()
+        this.setResponseFormatType(userInfo.getResponseInfoBean() != null
+                        ? userInfo.getResponseInfoBean().getFormatType()
                         : null
         );
 
-        this.setRequiresPasswordUpdate(userInfoBean.isRequiresNewPassword());
-        this.setRequiresResponseUpdate(userInfoBean.isRequiresResponseConfig());
-        this.setRequiresProfileUpdate(userInfoBean.isRequiresUpdateProfile());
+        this.setRequiresPasswordUpdate(userInfo.isRequiresNewPassword());
+        this.setRequiresResponseUpdate(userInfo.isRequiresResponseConfig());
+        this.setRequiresProfileUpdate(userInfo.isRequiresUpdateProfile());
         this.setCacheTimestamp(Instant.now());
 
-        this.setHasOtpSecret(userInfoBean.getOtpUserRecord() != null);
-        this.setOtpSecretSetTime(userInfoBean.getOtpUserRecord() != null && userInfoBean.getOtpUserRecord().getTimestamp() != null
-                        ? userInfoBean.getOtpUserRecord().getTimestamp().toInstant()
+        this.setHasOtpSecret(userInfo.getOtpUserRecord() != null);
+        this.setOtpSecretSetTime(userInfo.getOtpUserRecord() != null && userInfo.getOtpUserRecord().getTimestamp() != null
+                        ? userInfo.getOtpUserRecord().getTimestamp().toInstant()
                         : null
         );
 
-        this.setHasHelpdeskResponses(userInfoBean.getResponseInfoBean() != null
-                        && userInfoBean.getResponseInfoBean().getHelpdeskCrMap() != null
-                        && !userInfoBean.getResponseInfoBean().getHelpdeskCrMap().isEmpty()
+        this.setHasHelpdeskResponses(userInfo.getResponseInfoBean() != null
+                        && userInfo.getResponseInfoBean().getHelpdeskCrMap() != null
+                        && !userInfo.getResponseInfoBean().getHelpdeskCrMap().isEmpty()
         );
     }
 

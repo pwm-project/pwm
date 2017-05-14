@@ -218,7 +218,7 @@ public class SessionFilter extends AbstractPwmFilter {
 
         if ("true".equalsIgnoreCase(pwmRequest.readParameterAsString(
                 pwmRequest.getConfig().readAppProperty(AppProperty.HTTP_PARAM_NAME_PASSWORD_EXPIRED)))) {
-            pwmSession.getUserInfoBean().getPasswordState().setExpired(true);
+            pwmSession.getUserInfo().getPasswordState().setExpired(true);
         }
 
         // update last request time.

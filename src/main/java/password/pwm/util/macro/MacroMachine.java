@@ -28,13 +28,13 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
-import password.pwm.ldap.UserStatusReader;
+import password.pwm.ldap.UserInfoReader;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -54,7 +54,7 @@ public class MacroMachine {
 
     private final PwmApplication pwmApplication;
     private final SessionLabel sessionLabel;
-    private final UserInfoBean userInfoBean;
+    private final UserInfo userInfo;
     private final LoginInfoBean loginInfoBean;
     private final UserDataReader userDataReader;
 
@@ -63,14 +63,14 @@ public class MacroMachine {
     public MacroMachine(
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
-            final UserInfoBean userInfoBean,
+            final UserInfo userInfo,
             final LoginInfoBean loginInfoBean,
             final UserDataReader userDataReader
     )
     {
         this.pwmApplication = pwmApplication;
         this.sessionLabel = sessionLabel;
-        this.userInfoBean = userInfoBean;
+        this.userInfo = userInfo;
         this.loginInfoBean = loginInfoBean;
         this.userDataReader = userDataReader;
     }
@@ -87,7 +87,7 @@ public class MacroMachine {
                 final MacroImplementation macroImplementation = (MacroImplementation)macroClass.newInstance();
                 final Pattern pattern = macroImplementation.getRegExPattern();
                 if (!map.containsKey(scope)) {
-                    map.put(scope, new LinkedHashMap<Pattern, MacroImplementation>());
+                    map.put(scope, new LinkedHashMap<>());
                 }
                 map.get(scope).put(pattern,macroImplementation);
             } catch (Exception e) {
@@ -144,9 +144,9 @@ public class MacroMachine {
             }
 
             @Override
-            public UserInfoBean getUserInfoBean()
+            public UserInfo getUserInfoBean()
             {
-                return userInfoBean;
+                return userInfo;
             }
 
             @Override
@@ -295,8 +295,8 @@ public class MacroMachine {
             throws PwmUnrecoverableException
     {
         final UserDataReader userDataReader = LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity);
-        final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, sessionLabel);
-        final UserInfoBean userInfoBean = userStatusReader.populateUserInfoBean(userLocale, userIdentity);
+        final UserInfoReader userStatusReader = new UserInfoReader(pwmApplication, sessionLabel);
+        final UserInfo userInfoBean = userStatusReader.populateUserInfoBean(userLocale, userIdentity);
         return new MacroMachine(pwmApplication, sessionLabel, userInfoBean, null, userDataReader);
     }
 

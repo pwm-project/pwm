@@ -21,15 +21,14 @@
   --%>
 
 <%@ page import="password.pwm.bean.LocalSessionStateBean" %>
-<%@ page import="password.pwm.bean.UserInfoBean" %>
+<%@ page import="password.pwm.ldap.UserInfo" %>
 <%@ page import="password.pwm.http.JspUtility" %>
-<%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
-<%@ page import="java.text.DateFormat" %>
 <%@ page import="java.sql.Date" %>
+<%@ page import="java.text.DateFormat" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final UserInfoBean uiBean = JspUtility.getPwmSession(pageContext).getUserInfoBean(); %>
+<% final UserInfo uiBean = JspUtility.getPwmSession(pageContext).getUserInfo(); %>
 <% final LocalSessionStateBean ssBean = JspUtility.getPwmSession(pageContext).getSessionStateBean(); %>
 <% final DateFormat dateFormatter = java.text.DateFormat.getDateInstance(DateFormat.FULL, ssBean.getLocale()); %>
 <% final DateFormat timeFormatter = java.text.DateFormat.getTimeInstance(DateFormat.FULL, ssBean.getLocale()); %>

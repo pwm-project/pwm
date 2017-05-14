@@ -29,7 +29,7 @@ import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionLabel;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
@@ -205,10 +205,10 @@ public class AuditService implements PwmService {
     public List<UserAuditRecord> readUserHistory(final PwmSession pwmSession)
             throws PwmUnrecoverableException
     {
-        return readUserHistory(pwmSession.getUserInfoBean());
+        return readUserHistory(pwmSession.getUserInfo());
     }
 
-    public List<UserAuditRecord> readUserHistory(final UserInfoBean userInfoBean)
+    public List<UserAuditRecord> readUserHistory(final UserInfo userInfoBean)
             throws PwmUnrecoverableException
     {
         return userHistoryStore.readUserHistory(userInfoBean);
@@ -290,11 +290,11 @@ public class AuditService implements PwmService {
         return auditVault.sizeToDebugString();
     }
 
-    public void submit(final AuditEvent auditEvent, final UserInfoBean userInfoBean, final PwmSession pwmSession)
+    public void submit(final AuditEvent auditEvent, final UserInfo userInfo, final PwmSession pwmSession)
             throws PwmUnrecoverableException
     {
         final AuditRecordFactory auditRecordFactory = new AuditRecordFactory(pwmApplication, pwmSession.getSessionManager().getMacroMachine(pwmApplication));
-        final UserAuditRecord auditRecord = auditRecordFactory.createUserAuditRecord(auditEvent, userInfoBean, pwmSession);
+        final UserAuditRecord auditRecord = auditRecordFactory.createUserAuditRecord(auditEvent, userInfo, pwmSession);
         submit(auditRecord);
     }
 

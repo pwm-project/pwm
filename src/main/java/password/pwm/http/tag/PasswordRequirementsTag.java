@@ -346,7 +346,7 @@ public class PasswordRequirementsTag extends TagSupport {
                 final NewUserProfile newUserProfile = NewUserServlet.getNewUserProfile(pwmRequest);
                 passwordPolicy = newUserProfile.getNewUserPasswordPolicy(pwmApplication, locale);
             } else {
-                passwordPolicy = pwmSession.getUserInfoBean().getPasswordPolicy();
+                passwordPolicy = pwmSession.getUserInfo().getPasswordPolicy();
             }
 
             final String configuredRuleText = passwordPolicy.getRuleText();

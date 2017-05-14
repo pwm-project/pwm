@@ -34,7 +34,6 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
@@ -50,7 +49,8 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.bean.ForgottenPasswordBean;
 import password.pwm.http.filter.AuthenticationFilter;
 import password.pwm.ldap.LdapUserDataReader;
-import password.pwm.ldap.UserStatusReader;
+import password.pwm.ldap.UserInfo;
+import password.pwm.ldap.UserInfoReader;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.svc.token.TokenPayload;
@@ -114,7 +114,7 @@ class ForgottenPasswordUtil {
         return Collections.unmodifiableSet(result);
     }
 
-    static UserInfoBean readUserInfoBean(final PwmRequest pwmRequest, final ForgottenPasswordBean forgottenPasswordBean) throws PwmUnrecoverableException {
+    static UserInfo readUserInfo(final PwmRequest pwmRequest, final ForgottenPasswordBean forgottenPasswordBean) throws PwmUnrecoverableException {
         if (forgottenPasswordBean.getUserIdentity() == null) {
             return null;
         }
@@ -124,31 +124,29 @@ class ForgottenPasswordUtil {
         final UserIdentity userIdentity = forgottenPasswordBean.getUserIdentity();
 
         {
-            final UserInfoBean beanInRequest = (UserInfoBean)pwmRequest.getHttpServletRequest().getSession().getAttribute(CACHE_KEY);
-            if (beanInRequest != null) {
-                if (userIdentity.equals(beanInRequest.getUserIdentity())) {
-                    LOGGER.trace(pwmRequest, "using request cached UserInfoBean");
-                    return beanInRequest;
+            final UserInfo userInfoFromSession = (UserInfo)pwmRequest.getHttpServletRequest().getSession().getAttribute(CACHE_KEY);
+            if (userInfoFromSession != null) {
+                if (userIdentity.equals(userInfoFromSession.getUserIdentity())) {
+                    LOGGER.trace(pwmRequest, "using request cached userInfo");
+                    return userInfoFromSession;
                 } else {
-                    LOGGER.trace(pwmRequest, "request cached userInfoBean is not for current user, clearing.");
+                    LOGGER.trace(pwmRequest, "request cached userInfo is not for current user, clearing.");
                     pwmRequest.getHttpServletRequest().getSession().setAttribute(CACHE_KEY, null);
                 }
             }
         }
 
         final ChaiProvider chaiProvider = pwmRequest.getPwmApplication().getProxyChaiProvider(userIdentity.getLdapProfileID());
-        final UserStatusReader userStatusReader = new UserStatusReader(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel());
-        final UserInfoBean userInfoBean = new UserInfoBean();
-        userStatusReader.populateUserInfoBean(
-                userInfoBean,
+        final UserInfoReader userStatusReader = new UserInfoReader(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel());
+        final UserInfo userInfo = userStatusReader.populateUserInfoBean(
                 pwmRequest.getLocale(),
                 userIdentity,
                 chaiProvider
         );
 
-        pwmRequest.getHttpServletRequest().getSession().setAttribute(CACHE_KEY, userInfoBean);
+        pwmRequest.getHttpServletRequest().getSession().setAttribute(CACHE_KEY, userInfo);
 
-        return userInfoBean;
+        return userInfo;
     }
 
     static ResponseSet readResponseSet(final PwmRequest pwmRequest, final ForgottenPasswordBean forgottenPasswordBean)
@@ -194,18 +192,18 @@ class ForgottenPasswordUtil {
             return;
         }
 
-        final UserInfoBean userInfoBean = readUserInfoBean(pwmRequest, forgottenPasswordBean);
+        final UserInfo userInfo = readUserInfo(pwmRequest, forgottenPasswordBean);
         final MacroMachine macroMachine = new MacroMachine(
                 pwmApplication,
                 pwmRequest.getSessionLabel(),
-                userInfoBean,
+                userInfo,
                 null,
                 LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity)
         );
 
         pwmApplication.getEmailQueue().submitEmail(
                 configuredEmailSetting,
-                userInfoBean,
+                userInfo,
                 macroMachine
         );
     }
@@ -243,7 +241,7 @@ class ForgottenPasswordUtil {
     )
             throws PwmUnrecoverableException
     {
-        final UserInfoBean userInfoBean = ForgottenPasswordUtil.readUserInfoBean(pwmRequest, forgottenPasswordBean);
+        final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo(pwmRequest, forgottenPasswordBean);
         final MessageSendMethod tokenSendMethod = forgottenPasswordBean.getRecoveryFlags().getTokenSendMethod();
         if (tokenSendMethod == null || tokenSendMethod.equals(MessageSendMethod.NONE)) {
             return MessageSendMethod.NONE;
@@ -253,8 +251,8 @@ class ForgottenPasswordUtil {
             return tokenSendMethod;
         }
 
-        final String emailAddress = userInfoBean.getUserEmailAddress();
-        final String smsAddress = userInfoBean.getUserSmsNumber();
+        final String emailAddress = userInfo.getUserEmailAddress();
+        final String smsAddress = userInfo.getUserSmsNumber();
 
         final boolean hasEmail = emailAddress != null && emailAddress.length() > 1;
         final boolean hasSms = smsAddress != null && smsAddress.length() > 1;
@@ -301,9 +299,9 @@ class ForgottenPasswordUtil {
             break;
 
             case OTP: {
-                final UserInfoBean userInfoBean = ForgottenPasswordUtil.readUserInfoBean(pwmRequest, forgottenPasswordBean);
-                if (userInfoBean.getOtpUserRecord() == null) {
-                    final String errorMsg = "could not find a one time password configuration for " + userInfoBean.getUserIdentity();
+                final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo(pwmRequest, forgottenPasswordBean);
+                if (userInfo.getOtpUserRecord() == null) {
+                    final String errorMsg = "could not find a one time password configuration for " + userInfo.getUserIdentity();
                     final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_NO_OTP_CONFIGURATION, errorMsg);
                     throw new PwmUnrecoverableException(errorInformation);
                 }
@@ -311,25 +309,25 @@ class ForgottenPasswordUtil {
             break;
 
             case CHALLENGE_RESPONSES: {
-                final UserInfoBean userInfoBean = ForgottenPasswordUtil.readUserInfoBean(pwmRequest, forgottenPasswordBean);
+                final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo(pwmRequest, forgottenPasswordBean);
                 final ResponseSet responseSet = ForgottenPasswordUtil.readResponseSet(pwmRequest, forgottenPasswordBean);
                 if (responseSet == null) {
                     final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_RESPONSES_NORESPONSES);
                     throw new PwmUnrecoverableException(errorInformation);
                 }
 
-                final ChallengeSet challengeSet = userInfoBean.getChallengeProfile().getChallengeSet();
+                final ChallengeSet challengeSet = userInfo.getChallengeProfile().getChallengeSet();
 
                 try {
                     if (responseSet.meetsChallengeSetRequirements(challengeSet)) {
                         if (challengeSet.getRequiredChallenges().isEmpty() && (challengeSet.getMinRandomRequired() <= 0)) {
-                            final String errorMsg = "configured challenge set policy for " + userInfoBean.getUserIdentity().toString() + " is empty, user not qualified to recover password";
+                            final String errorMsg = "configured challenge set policy for " + userInfo.getUserIdentity().toString() + " is empty, user not qualified to recover password";
                             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_NO_CHALLENGES, errorMsg);
                             throw new PwmUnrecoverableException(errorInformation);
                         }
                     }
                 } catch (ChaiValidationException e) {
-                    final String errorMsg = "stored response set for user '" + userInfoBean.getUserIdentity() + "' do not meet current challenge set requirements: " + e.getLocalizedMessage();
+                    final String errorMsg = "stored response set for user '" + userInfo.getUserIdentity() + "' do not meet current challenge set requirements: " + e.getLocalizedMessage();
                     final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_RESPONSES_NORESPONSES, errorMsg);
                     throw new PwmUnrecoverableException(errorInformation);
                 }
@@ -363,14 +361,14 @@ class ForgottenPasswordUtil {
 
     static String initializeAndSendToken(
             final PwmRequest pwmRequest,
-            final UserInfoBean userInfoBean,
+            final UserInfo userInfo,
             final MessageSendMethod tokenSendMethod
 
     )
             throws PwmUnrecoverableException
     {
         final Configuration config = pwmRequest.getConfig();
-        final UserIdentity userIdentity = userInfoBean.getUserIdentity();
+        final UserIdentity userIdentity = userInfo.getUserIdentity();
         final Map<String,String> tokenMapData = new LinkedHashMap<>();
 
 
@@ -393,7 +391,7 @@ class ForgottenPasswordUtil {
 
         final RestTokenDataClient.TokenDestinationData inputDestinationData = new RestTokenDataClient.TokenDestinationData(
                 macroMachine.expandMacros(emailItemBean.getTo()),
-                userInfoBean.getUserSmsNumber(),
+                userInfo.getUserSmsNumber(),
                 null
         );
 
@@ -426,7 +424,7 @@ class ForgottenPasswordUtil {
 
         TokenService.TokenSender.sendToken(
                 pwmRequest.getPwmApplication(),
-                userInfoBean,
+                userInfo,
                 macroMachine,
                 emailItemBean,
                 tokenSendMethod,

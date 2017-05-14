@@ -31,7 +31,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
@@ -44,10 +44,10 @@ import password.pwm.http.PwmRequest;
 import password.pwm.i18n.Display;
 import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.ldap.LdapUserDataReader;
-import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.UserDataReader;
+import password.pwm.ldap.UserInfoReader;
+import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
-import password.pwm.ldap.UserStatusReader;
 import password.pwm.ldap.search.UserSearchResults;
 import password.pwm.svc.cache.CacheKey;
 import password.pwm.svc.cache.CachePolicy;
@@ -504,18 +504,17 @@ public class PeopleSearchDataReader {
             throws PwmUnrecoverableException
     {
         final ChaiUser chaiUser = getChaiUser(userIdentity);
-        final UserInfoBean userInfoBean;
+        final UserInfo userInfo;
         if (Boolean.parseBoolean(pwmRequest.getConfig().readAppProperty(AppProperty.PEOPLESEARCH_DISPLAYNAME_USEALLMACROS))) {
             final Locale locale = pwmRequest.getLocale();
             final ChaiProvider chaiProvider = pwmRequest.getPwmApplication().getProxiedChaiUser(userIdentity).getChaiProvider();
-            userInfoBean = new UserInfoBean();
-            final UserStatusReader userStatusReader = new UserStatusReader(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel());
-            userStatusReader.populateUserInfoBean(userInfoBean, locale, userIdentity, chaiProvider);
+            final UserInfoReader userStatusReader = new UserInfoReader(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel());
+            userInfo = userStatusReader.populateUserInfoBean(locale, userIdentity, chaiProvider);
         } else {
-            userInfoBean = null;
+            userInfo = null;
         }
         final UserDataReader userDataReader = new LdapUserDataReader(userIdentity, chaiUser);
-        return new MacroMachine(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), userInfoBean, null, userDataReader);
+        return new MacroMachine(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), userInfo, null, userDataReader);
     }
 
     public void checkIfUserIdentityViewable(
@@ -652,7 +651,7 @@ public class PeopleSearchDataReader {
             builder.enableSplitWhitespace(true);
 
             if (!useProxy) {
-                builder.ldapProfile(pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity().getLdapProfileID());
+                builder.ldapProfile(pwmRequest.getPwmSession().getUserInfo().getUserIdentity().getLdapProfileID());
                 builder.chaiProvider(pwmRequest.getPwmSession().getSessionManager().getChaiProvider());
             }
             searchConfiguration = builder.build();

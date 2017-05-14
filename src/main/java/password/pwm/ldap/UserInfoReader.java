@@ -32,7 +32,6 @@ import password.pwm.bean.PasswordStatus;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.FormUtility;
@@ -51,7 +50,6 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.PwmSession;
 import password.pwm.svc.PwmService;
 import password.pwm.util.PasswordData;
 import password.pwm.util.PwmPasswordRuleValidator;
@@ -74,15 +72,15 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-public class UserStatusReader {
+public class UserInfoReader {
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass(UserStatusReader.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(UserInfoReader.class);
 
     private final PwmApplication pwmApplication;
     private final SessionLabel sessionLabel;
     private final Settings settings;
 
-    public UserStatusReader(
+    public UserInfoReader(
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel
     ) {
@@ -91,7 +89,7 @@ public class UserStatusReader {
         this.settings = new Settings();
     }
 
-    public UserStatusReader(
+    public UserInfoReader(
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
             final Settings settings
@@ -196,39 +194,34 @@ public class UserStatusReader {
         return passwordStatus;
     }
 
-    public void populateActorUserInfoBean(
-            final PwmSession pwmSession,
-            final UserIdentity userIdentity
+    public UserInfo populateActorUserInfoBeanUsingProxy(
+            final UserIdentity userIdentity,
+            final Locale locale,
+            final PasswordData currentPassword
     )
-            throws ChaiUnavailableException, PwmUnrecoverableException
+            throws PwmUnrecoverableException
     {
         final String userLdapProfile = userIdentity.getLdapProfileID();
         final ChaiProvider provider = pwmApplication.getProxyChaiProvider(userLdapProfile);
-        final UserInfoBean uiBean = pwmSession.getUserInfoBean();
-        final PasswordData currentPassword = pwmSession.getLoginInfoBean().getUserCurrentPassword();
-        populateUserInfoBean(
-                uiBean,
-                pwmSession.getSessionStateBean().getLocale(),
+        return populateUserInfoBean(
+                locale,
                 userIdentity,
                 provider,
                 currentPassword
         );
     }
 
-    public UserInfoBean populateUserInfoBean(
+    public UserInfo populateUserInfoBean(
             final Locale userLocale,
             final UserIdentity userIdentity
     )
             throws PwmUnrecoverableException
     {
         final ChaiProvider provider = pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID());
-        final UserInfoBean userInfoBean = new UserInfoBean();
-        populateUserInfoBean(userInfoBean, userLocale, userIdentity, provider, null);
-        return userInfoBean;
+        return populateUserInfoBean(userLocale, userIdentity, provider, null);
     }
 
-    public void populateUserInfoBean(
-            final UserInfoBean uiBean,
+    public UserInfo populateUserInfoBean(
             final Locale userLocale,
             final UserIdentity userIdentity,
             final ChaiProvider provider
@@ -236,14 +229,15 @@ public class UserStatusReader {
             throws PwmUnrecoverableException
     {
         try {
-            populateUserInfoBeanImpl(uiBean, userLocale, userIdentity, provider, null);
+            final UserInfoBean userInfoBean = new UserInfoBean();
+            populateUserInfoBeanImpl(userInfoBean, userLocale, userIdentity, provider, null);
+            return userInfoBean;
         } catch (ChaiUnavailableException e) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
         }
     }
 
-    public void populateUserInfoBean(
-            final UserInfoBean uiBean,
+    public UserInfo populateUserInfoBean(
             final Locale userLocale,
             final UserIdentity userIdentity,
             final ChaiProvider provider,
@@ -252,7 +246,9 @@ public class UserStatusReader {
             throws PwmUnrecoverableException
     {
         try {
-            populateUserInfoBeanImpl(uiBean, userLocale, userIdentity, provider, currentPassword);
+            final UserInfoBean userInfoBean = new UserInfoBean();
+            populateUserInfoBeanImpl(userInfoBean, userLocale, userIdentity, provider, currentPassword);
+            return userInfoBean;
         } catch (ChaiUnavailableException e) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
         }
@@ -398,7 +394,7 @@ public class UserStatusReader {
         LOGGER.trace(sessionLabel, "populateUserInfoBean for " + userIdentity + " completed in " + TimeDuration.fromCurrent(methodStartTime).asCompactString());
     }
 
-    public void populateLocaleSpecificUserInfoBean(
+    private void populateLocaleSpecificUserInfoBean(
             final UserInfoBean uiBean,
             final Locale userLocale
     )
@@ -425,7 +421,7 @@ public class UserStatusReader {
                     uiBean.getPasswordPolicy(),
                     userLocale
             );
-            uiBean.setChallengeSet(challengeProfile);
+            uiBean.setChallengeProfile(challengeProfile);
             uiBean.setResponseInfoBean(responseInfoBean);
             uiBean.setRequiresResponseConfig(crService.checkIfResponseConfigNeeded(pwmApplication, sessionLabel, uiBean.getUserIdentity(), challengeProfile.getChallengeSet(), responseInfoBean));
         }

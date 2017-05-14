@@ -30,7 +30,7 @@ import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.ErrorInformation;
@@ -40,7 +40,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.ldap.UserStatusReader;
+import password.pwm.ldap.UserInfoReader;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.EventRateMeter;
 import password.pwm.util.TransactionSizeCalculator;
@@ -547,17 +547,15 @@ public class ReportService implements PwmService {
             if (userCacheRecord != null) {
                 summaryData.remove(userCacheRecord);
             }
-            final UserInfoBean userInfoBean = new UserInfoBean();
-            final UserStatusReader.Settings readerSettings = new UserStatusReader.Settings();
+            final UserInfoReader.Settings readerSettings = new UserInfoReader.Settings();
             final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID());
-            final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, SessionLabel.REPORTING_SESSION_LABEL,readerSettings);
-            userStatusReader.populateUserInfoBean(
-                    userInfoBean,
+            final UserInfoReader userStatusReader = new UserInfoReader(pwmApplication, SessionLabel.REPORTING_SESSION_LABEL,readerSettings);
+            final UserInfo userInfo = userStatusReader.populateUserInfoBean(
                     PwmConstants.DEFAULT_LOCALE,
                     userIdentity,
                     chaiProvider
             );
-            final UserCacheRecord newUserCacheRecord = userCacheService.updateUserCache(userInfoBean);
+            final UserCacheRecord newUserCacheRecord = userCacheService.updateUserCache(userInfo);
 
             userCacheService.store(newUserCacheRecord);
             summaryData.update(newUserCacheRecord);

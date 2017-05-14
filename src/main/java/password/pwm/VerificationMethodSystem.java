@@ -23,7 +23,7 @@
 package password.pwm;
 
 import password.pwm.bean.SessionLabel;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmUnrecoverableException;
 
@@ -74,7 +74,7 @@ public interface VerificationMethodSystem {
 
     VerificationState getVerificationState();
 
-    void init( PwmApplication pwmApplication,  UserInfoBean userInfoBean, SessionLabel sessionLabel, Locale locale)
+    void init(PwmApplication pwmApplication, UserInfo userInfoBean, SessionLabel sessionLabel, Locale locale)
             throws PwmUnrecoverableException
             ;
 

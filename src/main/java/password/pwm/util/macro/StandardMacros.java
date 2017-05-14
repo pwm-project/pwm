@@ -28,7 +28,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.UserDataReader;
@@ -260,13 +260,13 @@ public abstract class StandardMacros {
                 final MacroRequestInfo macroRequestInfo
 
         ) throws MacroParseException {
-            final UserInfoBean userInfoBean = macroRequestInfo.getUserInfoBean();
+            final UserInfo userInfo = macroRequestInfo.getUserInfoBean();
 
-            if (userInfoBean == null) {
+            if (userInfo == null) {
                 return "";
             }
 
-            final Instant pwdExpirationTime = userInfoBean.getPasswordExpirationTime();
+            final Instant pwdExpirationTime = userInfo.getPasswordExpirationTime();
             if (pwdExpirationTime == null) {
                 return "";
             }
@@ -296,13 +296,13 @@ public abstract class StandardMacros {
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
         ) {
-            final UserInfoBean userInfoBean = macroRequestInfo.getUserInfoBean();
+            final UserInfo userInfo = macroRequestInfo.getUserInfoBean();
 
-            if (userInfoBean == null) {
+            if (userInfo == null) {
                 return "";
             }
 
-            final Instant pwdExpirationTime = userInfoBean.getPasswordExpirationTime();
+            final Instant pwdExpirationTime = userInfo.getPasswordExpirationTime();
             if (pwdExpirationTime == null) {
                 return "";
             }
@@ -322,14 +322,14 @@ public abstract class StandardMacros {
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
         ) {
-            final UserInfoBean userInfoBean = macroRequestInfo.getUserInfoBean();
+            final UserInfo userInfo = macroRequestInfo.getUserInfoBean();
 
-            if (userInfoBean == null) {
+            if (userInfo == null) {
                 LOGGER.error("could not replace value for '" + matchValue + "', userInfoBean is null");
                 return "";
             }
 
-            final Instant pwdExpirationTime = userInfoBean.getPasswordExpirationTime();
+            final Instant pwdExpirationTime = userInfo.getPasswordExpirationTime();
             final TimeDuration timeUntilExpiration = TimeDuration.fromCurrent(pwdExpirationTime);
             final long daysUntilExpiration = timeUntilExpiration.getDays();
 
@@ -349,13 +349,13 @@ public abstract class StandardMacros {
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
         ) {
-            final UserInfoBean userInfoBean = macroRequestInfo.getUserInfoBean();
+            final UserInfo userInfo = macroRequestInfo.getUserInfoBean();
 
-            if (userInfoBean == null || userInfoBean.getUsername() == null) {
+            if (userInfo == null || userInfo.getUsername() == null) {
                 return "";
             }
 
-            return userInfoBean.getUsername();
+            return userInfo.getUsername();
         }
     }
 
@@ -370,10 +370,10 @@ public abstract class StandardMacros {
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
         ) {
-            final UserInfoBean userInfoBean = macroRequestInfo.getUserInfoBean();
+            final UserInfo userInfo = macroRequestInfo.getUserInfoBean();
 
-            if (userInfoBean != null) {
-                final UserIdentity userIdentity = userInfoBean.getUserIdentity();
+            if (userInfo != null) {
+                final UserIdentity userIdentity = userInfo.getUserIdentity();
                 if (userIdentity != null) {
                     return userIdentity.getLdapProfileID();
                 }
@@ -394,13 +394,13 @@ public abstract class StandardMacros {
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
         ) {
-            final UserInfoBean userInfoBean = macroRequestInfo.getUserInfoBean();
+            final UserInfo userInfo = macroRequestInfo.getUserInfoBean();
 
-            if (userInfoBean == null || userInfoBean.getUserEmailAddress() == null) {
+            if (userInfo == null || userInfo.getUserEmailAddress() == null) {
                 return "";
             }
 
-            return userInfoBean.getUserEmailAddress();
+            return userInfo.getUserEmailAddress();
         }
     }
 
@@ -669,9 +669,9 @@ public abstract class StandardMacros {
 
         public String replaceValue(final String matchValue, final MacroRequestInfo macroRequestInfo)
         {
-            final UserInfoBean userInfoBean = macroRequestInfo.getUserInfoBean();
-            if (userInfoBean != null && userInfoBean.getOtpUserRecord() != null && userInfoBean.getOtpUserRecord().getTimestamp() != null) {
-                return JavaHelper.toIsoDate(userInfoBean.getOtpUserRecord().getTimestamp());
+            final UserInfo userInfo = macroRequestInfo.getUserInfoBean();
+            if (userInfo != null && userInfo.getOtpUserRecord() != null && userInfo.getOtpUserRecord().getTimestamp() != null) {
+                return JavaHelper.toIsoDate(userInfo.getOtpUserRecord().getTimestamp());
             }
             return "";
         }
@@ -686,9 +686,9 @@ public abstract class StandardMacros {
 
         public String replaceValue(final String matchValue, final MacroRequestInfo macroRequestInfo)
         {
-            final UserInfoBean userInfoBean = macroRequestInfo.getUserInfoBean();
-            if (userInfoBean != null && userInfoBean.getResponseInfoBean() != null && userInfoBean.getResponseInfoBean().getTimestamp() != null) {
-                return JavaHelper.toIsoDate(userInfoBean.getResponseInfoBean().getTimestamp());
+            final UserInfo userInfo = macroRequestInfo.getUserInfoBean();
+            if (userInfo != null && userInfo.getResponseInfoBean() != null && userInfo.getResponseInfoBean().getTimestamp() != null) {
+                return JavaHelper.toIsoDate(userInfo.getResponseInfoBean().getTimestamp());
             }
             return "";
         }

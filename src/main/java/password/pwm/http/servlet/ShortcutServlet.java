@@ -165,7 +165,7 @@ public class ShortcutServlet extends AbstractPwmServlet {
                 final boolean queryMatch = LdapPermissionTester.testQueryMatch(
                         pwmRequest.getPwmApplication(),
                         pwmRequest.getSessionLabel(),
-                        pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity(),
+                        pwmRequest.getPwmSession().getUserInfo().getUserIdentity(),
                         item.getLdapQuery()
                 );
 

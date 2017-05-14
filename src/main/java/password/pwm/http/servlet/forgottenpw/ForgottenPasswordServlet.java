@@ -33,10 +33,11 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.VerificationMethodSystem;
+import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.PasswordStatus;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.config.ActionConfiguration;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
@@ -522,8 +523,8 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
         final String userEnteredCode = pwmRequest.readParameterAsString(PwmConstants.PARAM_TOKEN);
         LOGGER.debug(pwmRequest, String.format("entered OTP: %s", userEnteredCode));
 
-        final UserInfoBean userInfoBean = ForgottenPasswordUtil.readUserInfoBean(pwmRequest, forgottenPasswordBean);
-        final OTPUserRecord otpUserRecord = userInfoBean.getOtpUserRecord();
+        final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo(pwmRequest, forgottenPasswordBean);
+        final OTPUserRecord otpUserRecord = userInfo.getOtpUserRecord();
 
         final boolean otpPassed;
         if (otpUserRecord != null) {
@@ -701,9 +702,9 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
         }
 
         {
-            final UserInfoBean userInfoBean = ForgottenPasswordUtil.readUserInfoBean(pwmRequest, forgottenPasswordBean);
+            final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo(pwmRequest, forgottenPasswordBean);
             final MessageSendMethod tokenSendMethod = forgottenPasswordBean.getProgress().getTokenSendChoice();
-            ForgottenPasswordUtil.initializeAndSendToken(pwmRequest, userInfoBean, tokenSendMethod);
+            ForgottenPasswordUtil.initializeAndSendToken(pwmRequest, userInfo, tokenSendMethod);
         }
 
         final RestResultBean restResultBean = new RestResultBean();
@@ -862,7 +863,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
             StatisticsManager.incrementStat(pwmRequest, Statistic.RECOVERY_SUCCESSES);
         }
 
-        final UserInfoBean userInfoBean = ForgottenPasswordUtil.readUserInfoBean(pwmRequest, forgottenPasswordBean);
+        final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo(pwmRequest, forgottenPasswordBean);
         try {
             final boolean enforceFromForgotten = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_ENFORCE_MINIMUM_PASSWORD_LIFETIME);
             if (enforceFromForgotten) {
@@ -870,9 +871,9 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
                 PasswordUtility.checkIfPasswordWithinMinimumLifetime(
                         theUser,
                         pwmRequest.getSessionLabel(),
-                        userInfoBean.getPasswordPolicy(),
-                        userInfoBean.getPasswordLastModifiedTime(),
-                        userInfoBean.getPasswordState()
+                        userInfo.getPasswordPolicy(),
+                        userInfo.getPasswordLastModifiedTime(),
+                        userInfo.getPasswordState()
                 );
             }
         } catch (PwmOperationalException e) {
@@ -888,7 +889,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
         }
 
         if (forgottenPasswordProfile.readSettingAsBoolean(PwmSetting.RECOVERY_ALLOW_UNLOCK)) {
-            final PasswordStatus passwordStatus = userInfoBean.getPasswordState();
+            final PasswordStatus passwordStatus = userInfo.getPasswordState();
 
             if (!passwordStatus.isExpired() && !passwordStatus.isPreExpired()) {
                 try {
@@ -920,7 +921,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
             theUser.unlockPassword();
 
             // mark the event log
-            final UserInfoBean userInfoBean = ForgottenPasswordUtil.readUserInfoBean(pwmRequest, forgottenPasswordBean);
+            final UserInfo userInfoBean = ForgottenPasswordUtil.readUserInfo(pwmRequest, forgottenPasswordBean);
             pwmApplication.getAuditManager().submit(AuditEvent.UNLOCK_PASSWORD, userInfoBean, pwmSession);
 
             ForgottenPasswordUtil.sendUnlockNoticeEmail(pwmRequest, forgottenPasswordBean);
@@ -972,14 +973,14 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
             LOGGER.info(pwmSession, "user successfully supplied password recovery responses, forward to change password page: " + theUser.getEntryDN());
 
             // mark the event log
-            pwmApplication.getAuditManager().submit(AuditEvent.RECOVER_PASSWORD, pwmSession.getUserInfoBean(),
+            pwmApplication.getAuditManager().submit(AuditEvent.RECOVER_PASSWORD, pwmSession.getUserInfo(),
                     pwmSession);
 
             // add the post-forgotten password actions
             addPostChangeAction(pwmRequest, userIdentity);
 
             // mark user as requiring a new password.
-            pwmSession.getUserInfoBean().setRequiresNewPassword(true);
+            pwmSession.getLoginInfoBean().getLoginFlags().add(LoginInfoBean.LoginFlag.forcePwChange);
 
             // redirect user to change password screen.
             pwmRequest.sendRedirect(PwmServletDefinition.PublicChangePassword.servletUrlName());
@@ -1052,13 +1053,13 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
             }
 
             // mark the event log
-            pwmApplication.getAuditManager().submit(AuditEvent.RECOVER_PASSWORD, pwmSession.getUserInfoBean(), pwmSession);
+            pwmApplication.getAuditManager().submit(AuditEvent.RECOVER_PASSWORD, pwmSession.getUserInfo(), pwmSession);
 
             final MessageSendMethod messageSendMethod = forgottenPasswordProfile.readSettingAsEnum(PwmSetting.RECOVERY_SENDNEWPW_METHOD,MessageSendMethod.class);
 
             // send email or SMS
             final String toAddress = PasswordUtility.sendNewPassword(
-                    pwmSession.getUserInfoBean(),
+                    pwmSession.getUserInfo(),
                     pwmApplication,
                     pwmSession.getSessionManager().getMacroMachine(pwmApplication),
                     newPassword,
@@ -1181,7 +1182,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
 
         forgottenPasswordBean.setUserIdentity(userIdentity);
 
-        final UserInfoBean userInfoBean = ForgottenPasswordUtil.readUserInfoBean(pwmRequest, forgottenPasswordBean);
+        final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo(pwmRequest, forgottenPasswordBean);
 
         final String forgottenProfileID = ProfileUtility.discoverProfileIDforUser(pwmApplication, sessionLabel, userIdentity, ProfileType.ForgottenPassword);
         if (forgottenProfileID == null || forgottenProfileID.isEmpty()) {
@@ -1200,10 +1201,10 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
                 || recoveryFlags.getOptionalAuthMethods().contains(IdentityVerificationMethod.CHALLENGE_RESPONSES)) {
             final ResponseSet responseSet;
             try {
-                final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userInfoBean.getUserIdentity());
+                final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userInfo.getUserIdentity());
                 responseSet = pwmApplication.getCrService().readUserResponseSet(
                         sessionLabel,
-                        userInfoBean.getUserIdentity(),
+                        userInfo.getUserIdentity(),
                         theUser
                 );
                 challengeSet = responseSet == null ? null : responseSet.getPresentableChallengeSet();
@@ -1221,13 +1222,13 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
 
         if (!recoveryFlags.isAllowWhenLdapIntruderLocked()) {
             try {
-                final ChaiUser chaiUser = pwmApplication.getProxiedChaiUser(userInfoBean.getUserIdentity());
+                final ChaiUser chaiUser = pwmApplication.getProxiedChaiUser(userInfo.getUserIdentity());
                 if (chaiUser.isPasswordLocked()) {
                     throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_INTRUDER_LDAP));
                 }
             } catch (ChaiOperationException e) {
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,
-                        "error checking user '" + userInfoBean.getUserIdentity() + "' ldap intruder lock status: " + e.getMessage());
+                        "error checking user '" + userInfo.getUserIdentity() + "' ldap intruder lock status: " + e.getMessage());
                 LOGGER.error(sessionLabel, errorInformation);
                 throw new PwmUnrecoverableException(errorInformation);
             } catch (ChaiUnavailableException e) {
@@ -1360,8 +1361,6 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
             break;
 
             case OTP: {
-                final UserInfoBean userInfoBean = ForgottenPasswordUtil.readUserInfoBean(pwmRequest, forgottenPasswordBean);
-                pwmRequest.setAttribute(PwmRequestAttribute.ForgottenPasswordUserInfo, userInfoBean);
                 pwmRequest.forwardToJsp(JspUrl.RECOVER_PASSWORD_ENTER_OTP);
             }
             break;
@@ -1378,8 +1377,8 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
                 }
 
                 if (!progress.isTokenSent()) {
-                    final UserInfoBean userInfoBean = ForgottenPasswordUtil.readUserInfoBean(pwmRequest, forgottenPasswordBean);
-                    final String destAddress = ForgottenPasswordUtil.initializeAndSendToken(pwmRequest, userInfoBean, progress.getTokenSendChoice());
+                    final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo(pwmRequest, forgottenPasswordBean);
+                    final String destAddress = ForgottenPasswordUtil.initializeAndSendToken(pwmRequest, userInfo, progress.getTokenSendChoice());
                     progress.setTokenSentAddress(destAddress);
                     progress.setTokenSent(true);
                 }
@@ -1392,13 +1391,13 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
             break;
 
             case REMOTE_RESPONSES: {
-                final UserInfoBean userInfoBean = ForgottenPasswordUtil.readUserInfoBean(pwmRequest, forgottenPasswordBean);
+                final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo(pwmRequest, forgottenPasswordBean);
                 final VerificationMethodSystem remoteMethod;
                 if (forgottenPasswordBean.getProgress().getRemoteRecoveryMethod() == null) {
                     remoteMethod = new RemoteVerificationMethod();
                     remoteMethod.init(
                             pwmRequest.getPwmApplication(),
-                            userInfoBean,
+                            userInfo,
                             pwmRequest.getSessionLabel(),
                             pwmRequest.getLocale()
                     );

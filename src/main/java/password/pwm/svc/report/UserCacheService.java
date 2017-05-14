@@ -26,7 +26,7 @@ import com.google.gson.JsonSyntaxException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmApplication;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
@@ -57,10 +57,10 @@ public class UserCacheService implements PwmService {
         return status;
     }
 
-    public UserCacheRecord updateUserCache(final UserInfoBean userInfoBean)
+    public UserCacheRecord updateUserCache(final UserInfo userInfo)
             throws PwmUnrecoverableException
     {
-        final StorageKey storageKey = StorageKey.fromUserInfoBean(userInfoBean, pwmApplication);
+        final StorageKey storageKey = StorageKey.fromUserInfo(userInfo, pwmApplication);
 
         boolean preExisting = false;
         try {
@@ -70,13 +70,13 @@ public class UserCacheService implements PwmService {
             } else {
                 preExisting = true;
             }
-            userCacheRecord.addUiBeanData(userInfoBean);
+            userCacheRecord.addUiBeanData(userInfo);
             store(userCacheRecord);
             return userCacheRecord;
         } catch (LocalDBException e) {
             LOGGER.error("unable to store user status cache to localdb: " + e.getMessage());
         }
-        LOGGER.trace("updateCache: " + (preExisting?"updated existing":"created new") + " user cache for " + userInfoBean.getUserIdentity() + " user key " + storageKey.getKey());
+        LOGGER.trace("updateCache: " + (preExisting?"updated existing":"created new") + " user cache for " + userInfo.getUserIdentity() + " user key " + storageKey.getKey());
         return null;
     }
 
@@ -179,10 +179,10 @@ public class UserCacheService implements PwmService {
             return key;
         }
 
-        public static StorageKey fromUserInfoBean(final UserInfoBean userInfoBean, final PwmApplication pwmApplication)
+        public static StorageKey fromUserInfo(final UserInfo userInfo, final PwmApplication pwmApplication)
                 throws PwmUnrecoverableException
         {
-            final String userGUID = userInfoBean.getUserGuid();
+            final String userGUID = userInfo.getUserGuid();
             return fromUserGUID(userGUID, pwmApplication);
         }
 

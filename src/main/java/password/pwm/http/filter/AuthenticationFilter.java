@@ -30,7 +30,7 @@ import password.pwm.PwmConstants;
 import password.pwm.PwmHttpFilterAuthenticationProvider;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -50,10 +50,10 @@ import password.pwm.http.servlet.oauth.OAuthMachine;
 import password.pwm.http.servlet.oauth.OAuthSettings;
 import password.pwm.i18n.Display;
 import password.pwm.ldap.PasswordChangeProgressChecker;
-import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
+import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.BasicAuthInfo;
@@ -152,8 +152,8 @@ public class AuthenticationFilter extends AbstractPwmFilter {
                 // this means something is screwy, so log out the session
 
                 // read the current user info for logging
-                final UserInfoBean uiBean = pwmSession.getUserInfoBean();
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_BAD_SESSION, "basic auth header user '" + basicAuthInfo.getUsername() + "' does not match currently logged in user '" + uiBean.getUserIdentity() + "', session will be logged out");
+                final UserInfo userInfo = pwmSession.getUserInfo();
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_BAD_SESSION, "basic auth header user '" + basicAuthInfo.getUsername() + "' does not match currently logged in user '" + userInfo.getUserIdentity() + "', session will be logged out");
                 LOGGER.info(pwmRequest, errorInformation);
 
                 // log out their user
@@ -208,7 +208,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         }
 
         final Instant authTime = pwmRequest.getPwmSession().getLoginInfoBean().getAuthTime();
-        final String userGuid = pwmRequest.getPwmSession().getUserInfoBean().getUserGuid();
+        final String userGuid = pwmRequest.getPwmSession().getUserInfo().getUserGuid();
         final AuthRecord authRecord = new AuthRecord(authTime, userGuid);
 
         try {
@@ -341,7 +341,8 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final PwmURL pwmURL = pwmRequest.getURL();
 
-        final UserInfoBean uiBean = pwmSession.getUserInfoBean();
+        final UserInfo userInfo = pwmSession.getUserInfo();
+        final LoginInfoBean loginInfoBean = pwmSession.getLoginInfoBean();
 
         if (pwmURL.isResourceURL() || pwmURL.isConfigManagerURL() || pwmURL.isLogoutURL() || pwmURL.isLoginServlet()) {
             return ProcessStatus.Continue;
@@ -352,7 +353,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         }
 
         // high priority pw change
-        if (pwmRequest.getPwmSession().getLoginInfoBean().getType() == AuthenticationType.AUTH_FROM_PUBLIC_MODULE) {
+        if (loginInfoBean.getType() == AuthenticationType.AUTH_FROM_PUBLIC_MODULE) {
             if (!pwmURL.isChangePasswordURL()) {
                 LOGGER.debug(pwmRequest, "user is authenticated via forgotten password mechanism, redirecting to change password servlet");
                 pwmRequest.sendRedirect(
@@ -376,7 +377,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         }
 
 
-        if (uiBean.isRequiresResponseConfig()) {
+        if (userInfo.isRequiresResponseConfig()) {
             if (!pwmURL.isSetupResponsesURL()) {
                 LOGGER.debug(pwmRequest, "user is required to setup responses, redirecting to setup responses servlet");
                 pwmRequest.sendRedirect(PwmServletDefinition.SetupResponses);
@@ -386,7 +387,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
             }
         }
 
-        if (uiBean.isRequiresOtpConfig() && !pwmSession.getLoginInfoBean().isLoginFlag(LoginInfoBean.LoginFlag.skipOtp)) {
+        if (userInfo.isRequiresOtpConfig() && !pwmSession.getLoginInfoBean().isLoginFlag(LoginInfoBean.LoginFlag.skipOtp)) {
             if (!pwmURL.isSetupOtpSecretURL()) {
                 LOGGER.debug(pwmRequest, "user is required to setup OTP configuration, redirecting to OTP setup page");
                 pwmRequest.sendRedirect(PwmServletDefinition.SetupOtp);
@@ -396,7 +397,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
             }
         }
 
-        if (uiBean.isRequiresUpdateProfile()) {
+        if (userInfo.isRequiresUpdateProfile()) {
             if (!pwmURL.isProfileUpdateURL()) {
                 LOGGER.debug(pwmRequest, "user is required to update profile, redirecting to profile update servlet");
                 pwmRequest.sendRedirect(PwmServletDefinition.UpdateProfile);
@@ -406,9 +407,14 @@ public class AuthenticationFilter extends AbstractPwmFilter {
             }
         }
 
-        if (uiBean.isRequiresNewPassword() && !pwmSession.getLoginInfoBean().isLoginFlag(LoginInfoBean.LoginFlag.skipNewPw)) {
-            if (!pwmURL.isChangePasswordURL()) {
-                LOGGER.debug(pwmRequest, "user password requires changing, redirecting to change password servlet");
+
+        if (!pwmURL.isChangePasswordURL()) {
+            if (userInfo.isRequiresNewPassword() && !loginInfoBean.isLoginFlag(LoginInfoBean.LoginFlag.skipNewPw)) {
+                LOGGER.debug(pwmRequest, "user password in ldap requires changing, redirecting to change password servlet");
+                pwmRequest.sendRedirect(PwmServletDefinition.PrivateChangePassword);
+                return ProcessStatus.Halt;
+            } else if (loginInfoBean.getLoginFlags().contains(LoginInfoBean.LoginFlag.forcePwChange)) {
+                LOGGER.debug(pwmRequest, "previous activity in application requires forcing pw change, redirecting to change password servlet");
                 pwmRequest.sendRedirect(PwmServletDefinition.PrivateChangePassword);
                 return ProcessStatus.Halt;
             } else {

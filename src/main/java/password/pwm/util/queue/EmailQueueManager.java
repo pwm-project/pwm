@@ -27,7 +27,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
@@ -41,13 +41,13 @@ import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.PasswordData;
-import password.pwm.util.java.TimeDuration;
-import password.pwm.util.localdb.WorkQueueProcessor;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBStoredQueue;
+import password.pwm.util.localdb.WorkQueueProcessor;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
@@ -204,7 +204,7 @@ public class EmailQueueManager implements PwmService {
 
     public void submitEmail(
             final EmailItemBean emailItem,
-            final UserInfoBean uiBean,
+            final UserInfo userInfo,
             final MacroMachine macroMachine
     )
     {
@@ -214,8 +214,8 @@ public class EmailQueueManager implements PwmService {
 
         EmailItemBean workingItemBean = emailItem;
 
-        if ((emailItem.getTo() == null || emailItem.getTo().isEmpty()) && uiBean != null) {
-            final String toAddress = uiBean.getUserEmailAddress();
+        if ((emailItem.getTo() == null || emailItem.getTo().isEmpty()) && userInfo != null) {
+            final String toAddress = userInfo.getUserEmailAddress();
             workingItemBean = newEmailToAddress(workingItemBean, toAddress);
         }
 

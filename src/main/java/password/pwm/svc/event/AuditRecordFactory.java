@@ -26,7 +26,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
@@ -181,13 +181,13 @@ public class AuditRecordFactory {
 
     public UserAuditRecord createUserAuditRecord(
             final AuditEvent eventCode,
-            final UserInfoBean userInfoBean,
+            final UserInfo userInfo,
             final PwmSession pwmSession
     )
     {
         return createUserAuditRecord(
                 eventCode,
-                userInfoBean.getUserIdentity(),
+                userInfo.getUserIdentity(),
                 null,
                 pwmSession.getSessionStateBean().getSrcAddress(),
                 pwmSession.getSessionStateBean().getSrcHostname()

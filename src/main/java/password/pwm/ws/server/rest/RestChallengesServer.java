@@ -174,10 +174,10 @@ public class RestChallengesServer extends AbstractRestServer {
             if (restRequestBean.getUserIdentity() == null) {
                 final ChaiUser chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication());
                 final CrService crService = restRequestBean.getPwmApplication().getCrService();
-                responseSet = crService.readUserResponseSet(restRequestBean.getPwmSession().getLabel(), restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity(), chaiUser);
-                challengeSet = restRequestBean.getPwmSession().getUserInfoBean().getChallengeProfile().getChallengeSet();
-                helpdeskChallengeSet = restRequestBean.getPwmSession().getUserInfoBean().getChallengeProfile().getHelpdeskChallengeSet();
-                outputUsername = restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity().getLdapProfileID();
+                responseSet = crService.readUserResponseSet(restRequestBean.getPwmSession().getLabel(), restRequestBean.getPwmSession().getUserInfo().getUserIdentity(), chaiUser);
+                challengeSet = restRequestBean.getPwmSession().getUserInfo().getChallengeProfile().getChallengeSet();
+                helpdeskChallengeSet = restRequestBean.getPwmSession().getUserInfo().getChallengeProfile().getHelpdeskChallengeSet();
+                outputUsername = restRequestBean.getPwmSession().getUserInfo().getUserIdentity().getLdapProfileID();
             } else {
                 final ChaiUser chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication(),restRequestBean.getUserIdentity());
                 final Locale userLocale = restRequestBean.getPwmSession().getSessionStateBean().getLocale();
@@ -273,9 +273,9 @@ public class RestChallengesServer extends AbstractRestServer {
 
             if (restRequestBean.getUserIdentity() == null) {
                 chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication());
-                userIdentity = restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity();
-                userGUID = restRequestBean.getPwmSession().getUserInfoBean().getUserGuid();
-                csIdentifer = restRequestBean.getPwmSession().getUserInfoBean().getChallengeProfile().getChallengeSet().getIdentifier();
+                userIdentity = restRequestBean.getPwmSession().getUserInfo().getUserIdentity();
+                userGUID = restRequestBean.getPwmSession().getUserInfo().getUserGuid();
+                csIdentifer = restRequestBean.getPwmSession().getUserInfo().getChallengeProfile().getChallengeSet().getIdentifier();
             } else {
                 userIdentity = restRequestBean.getUserIdentity();
                 chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication(),userIdentity);
@@ -350,12 +350,12 @@ public class RestChallengesServer extends AbstractRestServer {
             if (restRequestBean.getUserIdentity() == null) {
                 /* clear self */
                 chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication());
-                userGUID = restRequestBean.getPwmSession().getUserInfoBean().getUserGuid();
+                userGUID = restRequestBean.getPwmSession().getUserInfo().getUserGuid();
 
                 // mark the event log
                 final UserAuditRecord auditRecord = new AuditRecordFactory(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession()).createUserAuditRecord(
                         AuditEvent.CLEAR_RESPONSES,
-                        restRequestBean.getPwmSession().getUserInfoBean(),
+                        restRequestBean.getPwmSession().getUserInfo(),
                         restRequestBean.getPwmSession()
                 );
                 restRequestBean.getPwmApplication().getAuditManager().submit(auditRecord);
@@ -374,7 +374,7 @@ public class RestChallengesServer extends AbstractRestServer {
                 // mark the event log
                 final HelpdeskAuditRecord auditRecord = new AuditRecordFactory(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession()).createHelpdeskAuditRecord(
                         AuditEvent.HELPDESK_CLEAR_RESPONSES,
-                        restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity(),
+                        restRequestBean.getPwmSession().getUserInfo().getUserIdentity(),
                         null,
                         restRequestBean.getUserIdentity(),
                         restRequestBean.getPwmSession().getSessionStateBean().getSrcAddress(),

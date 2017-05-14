@@ -33,7 +33,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.bean.pub.PublicUserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -99,11 +99,11 @@ public class PwmPasswordRuleValidator {
     public boolean testPassword(
             final PasswordData password,
             final PasswordData oldPassword,
-            final UserInfoBean userInfoBean,
+            final UserInfo userInfo,
             final ChaiUser user
     )
             throws PwmDataValidationException, ChaiUnavailableException, PwmUnrecoverableException {
-        final List<ErrorInformation> errorResults = validate(password, oldPassword, userInfoBean);
+        final List<ErrorInformation> errorResults = validate(password, oldPassword, userInfo);
 
         if (!errorResults.isEmpty()) {
             throw new PwmDataValidationException(errorResults.iterator().next());
@@ -146,13 +146,13 @@ public class PwmPasswordRuleValidator {
     private List<ErrorInformation> validate(
             final PasswordData password,
             final PasswordData oldPassword,
-            final UserInfoBean uiBean
+            final UserInfo userInfo
     )
             throws PwmUnrecoverableException
     {
-        final List<ErrorInformation> internalResults = internalPwmPolicyValidator(password, oldPassword, uiBean);
+        final List<ErrorInformation> internalResults = internalPwmPolicyValidator(password, oldPassword, userInfo);
         if (pwmApplication != null) {
-            final List<ErrorInformation> externalResults = invokeExternalRuleMethods(pwmApplication.getConfig(), policy, password, uiBean);
+            final List<ErrorInformation> externalResults = invokeExternalRuleMethods(pwmApplication.getConfig(), policy, password, userInfo);
             internalResults.addAll(externalResults);
         }
         return internalResults;
@@ -161,20 +161,20 @@ public class PwmPasswordRuleValidator {
     public List<ErrorInformation> internalPwmPolicyValidator(
             final PasswordData password,
             final PasswordData oldPassword,
-            final UserInfoBean uiBean,
+            final UserInfo userInfo,
             final Flag... flags
     )
             throws PwmUnrecoverableException
     {
         final String passwordString = password == null ? "" : password.getStringValue();
         final String oldPasswordString = oldPassword == null ? null : oldPassword.getStringValue();
-        return internalPwmPolicyValidator(passwordString, oldPasswordString, uiBean, flags);
+        return internalPwmPolicyValidator(passwordString, oldPasswordString, userInfo, flags);
     }
 
     public List<ErrorInformation> internalPwmPolicyValidator(
             final String passwordString,
             final String oldPasswordString,
-            final UserInfoBean uiBean,
+            final UserInfo userInfo,
             final Flag... flags
     )
             throws PwmUnrecoverableException
@@ -188,9 +188,9 @@ public class PwmPasswordRuleValidator {
 
         final List<ErrorInformation> errorList = new ArrayList<>();
         final PwmPasswordPolicy.RuleHelper ruleHelper = policy.getRuleHelper();
-        final MacroMachine macroMachine = uiBean == null || uiBean.getUserIdentity() == null
+        final MacroMachine macroMachine = userInfo == null || userInfo.getUserIdentity() == null
             ? MacroMachine.forNonUserSpecific(pwmApplication, SessionLabel.SYSTEM_LABEL)
-            : MacroMachine.forUser(pwmApplication, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, uiBean.getUserIdentity());
+            : MacroMachine.forUser(pwmApplication, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, userInfo.getUserIdentity());
 
         //check against old password
         if (oldPasswordString != null && oldPasswordString.length() > 0 && ruleHelper.readBooleanValue(PwmPasswordRule.DisallowCurrent)) {
@@ -226,7 +226,7 @@ public class PwmPasswordRuleValidator {
             return errorList;
         }
 
-        errorList.addAll(basicSyntaxRuleChecks(passwordString,policy,uiBean));
+        errorList.addAll(basicSyntaxRuleChecks(passwordString,policy,userInfo));
 
         if (failFast && errorList.size() > 1) {
             return errorList;
@@ -257,8 +257,8 @@ public class PwmPasswordRuleValidator {
         // check disallowed attributes.
         if (!policy.getRuleHelper().getDisallowedAttributes().isEmpty()) {
             final List<String> paramConfigs = policy.getRuleHelper().getDisallowedAttributes(RuleHelper.Flag.KeepThresholds);
-            if (uiBean != null) {
-                final Map<String,String> userValues = uiBean.getCachedPasswordRuleAttributes();
+            if (userInfo != null) {
+                final Map<String,String> userValues = userInfo.getCachedPasswordRuleAttributes();
 
                 for (final String paramConfig : paramConfigs) {
                     final String[] parts = paramConfig.split(":");
@@ -419,7 +419,7 @@ public class PwmPasswordRuleValidator {
      * <p/>
      * See this article: http://technet.microsoft.com/en-us/library/cc786468%28WS.10%29.aspx
      *
-     * @param userInfoBean userInfoBean
+     * @param userInfo userInfoBean
      * @param password    password to test
      * @param charCounter associated charCounter for the password.
      * @return list of errors if the password does not meet requirements, or an empty list if the password complies
@@ -428,7 +428,7 @@ public class PwmPasswordRuleValidator {
 
     private static List<ErrorInformation> checkPasswordForADComplexity(
             final ADPolicyComplexity complexityLevel,
-            final UserInfoBean userInfoBean,
+            final UserInfo userInfo,
             final String password,
             final PasswordCharCounter charCounter,
             final int maxGroupViolationCount
@@ -446,8 +446,8 @@ public class PwmPasswordRuleValidator {
             return errorList;
         }
 
-        if (userInfoBean != null && userInfoBean.getCachedPasswordRuleAttributes() != null) {
-            final Map<String,String> userAttrs = userInfoBean.getCachedPasswordRuleAttributes();
+        if (userInfo != null && userInfo.getCachedPasswordRuleAttributes() != null) {
+            final Map<String,String> userAttrs = userInfo.getCachedPasswordRuleAttributes();
             final String samAccountName = userAttrs.get("sAMAccountName");
             if (samAccountName != null
                     && samAccountName.length() > 2
@@ -568,7 +568,7 @@ public class PwmPasswordRuleValidator {
             final Configuration config,
             final PwmPasswordPolicy pwmPasswordPolicy,
             final PasswordData password,
-            final UserInfoBean uiBean
+            final UserInfo userInfo
     )
             throws PwmUnrecoverableException
     {
@@ -594,9 +594,9 @@ public class PwmPasswordRuleValidator {
             }
             sendData.put("policy",policyData);
         }
-        if (uiBean != null) {
-            final MacroMachine macroMachine = MacroMachine.forUser(pwmApplication, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, uiBean.getUserIdentity());
-            final PublicUserInfoBean publicUserInfoBean = PublicUserInfoBean.fromUserInfoBean(uiBean, pwmApplication.getConfig(), locale, macroMachine);
+        if (userInfo != null) {
+            final MacroMachine macroMachine = MacroMachine.forUser(pwmApplication, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, userInfo.getUserIdentity());
+            final PublicUserInfoBean publicUserInfoBean = PublicUserInfoBean.fromUserInfoBean(userInfo, pwmApplication.getConfig(), locale, macroMachine);
             sendData.put("userInfo", publicUserInfoBean);
         }
 
@@ -635,7 +635,7 @@ public class PwmPasswordRuleValidator {
     private static List<ErrorInformation> basicSyntaxRuleChecks(
             final String password,
             final PwmPasswordPolicy policy,
-            final UserInfoBean uiBean
+            final UserInfo userInfo
     ) {
         final List<ErrorInformation> errorList = new ArrayList<>();
         final PwmPasswordPolicy.RuleHelper ruleHelper = policy.getRuleHelper();
@@ -794,7 +794,7 @@ public class PwmPasswordRuleValidator {
             final ADPolicyComplexity complexityLevel = ruleHelper.getADComplexityLevel();
             if (complexityLevel == ADPolicyComplexity.AD2003 || complexityLevel == ADPolicyComplexity.AD2008) {
                 final int maxGroupViolations = ruleHelper.readIntValue(PwmPasswordRule.ADComplexityMaxViolations);
-                errorList.addAll(checkPasswordForADComplexity(complexityLevel, uiBean, password, charCounter,
+                errorList.addAll(checkPasswordForADComplexity(complexityLevel, userInfo, password, charCounter,
                         maxGroupViolations));
             }
         }

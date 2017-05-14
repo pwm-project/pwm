@@ -31,9 +31,10 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.LocalSessionStateBean;
+import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.config.ActionConfiguration;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
@@ -55,12 +56,12 @@ import password.pwm.http.bean.ActivateUserBean;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.ldap.LdapUserDataReader;
-import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.UserDataReader;
-import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
+import password.pwm.ldap.search.SearchConfiguration;
+import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecord;
 import password.pwm.svc.event.AuditRecordFactory;
@@ -404,11 +405,11 @@ public class ActivateUserServlet extends AbstractPwmServlet {
             //ensure a change password is triggered
             pwmSession.getLoginInfoBean().setType(AuthenticationType.AUTH_FROM_PUBLIC_MODULE);
             pwmSession.getLoginInfoBean().getAuthFlags().add(AuthenticationType.AUTH_FROM_PUBLIC_MODULE);
-            pwmSession.getUserInfoBean().setRequiresNewPassword(true);
+            pwmSession.getLoginInfoBean().getLoginFlags().add(LoginInfoBean.LoginFlag.forcePwChange);
 
 
             // mark the event log
-            pwmApplication.getAuditManager().submit(AuditEvent.ACTIVATE_USER, pwmSession.getUserInfoBean(), pwmSession);
+            pwmApplication.getAuditManager().submit(AuditEvent.ACTIVATE_USER, pwmSession.getUserInfo(), pwmSession);
 
             // update the stats bean
             pwmApplication.getStatisticsManager().incrementValue(Statistic.ACTIVATED_USERS);
@@ -505,7 +506,7 @@ public class ActivateUserServlet extends AbstractPwmServlet {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final Configuration config = pwmApplication.getConfig();
-        final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
+        final UserInfo userInfo = pwmSession.getUserInfo();
         final MessageSendMethod pref = MessageSendMethod.valueOf(config.readSettingAsString(PwmSetting.ACTIVATE_TOKEN_SEND_METHOD));
         final boolean success;
         switch (pref) {
@@ -534,7 +535,7 @@ public class ActivateUserServlet extends AbstractPwmServlet {
                 break;
         }
         if (!success) {
-            LOGGER.warn(pwmSession, "skipping send activation message for '" + userInfoBean.getUserIdentity() + "' no email or SMS number configured");
+            LOGGER.warn(pwmSession, "skipping send activation message for '" + userInfo.getUserIdentity() + "' no email or SMS number configured");
         }
     }
 
@@ -545,19 +546,19 @@ public class ActivateUserServlet extends AbstractPwmServlet {
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
+        final UserInfo userInfo = pwmSession.getUserInfo();
         final Configuration config = pwmApplication.getConfig();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_ACTIVATION, locale);
 
         if (configuredEmailSetting == null) {
-            LOGGER.debug(pwmSession, "skipping send activation email for '" + userInfoBean.getUserIdentity() + "' no email configured");
+            LOGGER.debug(pwmSession, "skipping send activation email for '" + userInfo.getUserIdentity() + "' no email configured");
             return false;
         }
 
         pwmApplication.getEmailQueue().submitEmail(
                 configuredEmailSetting,
-                pwmSession.getUserInfoBean(),
+                pwmSession.getUserInfo(),
                 pwmSession.getSessionManager().getMacroMachine(pwmApplication)
         );
         return true;
@@ -569,10 +570,10 @@ public class ActivateUserServlet extends AbstractPwmServlet {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final Configuration config = pwmApplication.getConfig();
-        final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
+        final UserInfo userInfo = pwmSession.getUserInfo();
         final UserDataReader userDataReader = pwmSession.getSessionManager().getUserDataReader(pwmApplication);
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
-        final LdapProfile ldapProfile = userInfoBean.getUserIdentity().getLdapProfile(config);
+        final LdapProfile ldapProfile = userInfo.getUserIdentity().getLdapProfile(config);
 
         final String message = config.readSettingAsLocalizedString(PwmSetting.SMS_ACTIVATION_TEXT, locale);
 
@@ -580,12 +581,12 @@ public class ActivateUserServlet extends AbstractPwmServlet {
         try {
             toSmsNumber = userDataReader.readStringAttribute(ldapProfile.readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE));
         } catch (Exception e) {
-            LOGGER.debug(pwmSession.getLabel(), "error reading SMS attribute from user '" + pwmSession.getUserInfoBean().getUserIdentity() + "': " + e.getMessage());
+            LOGGER.debug(pwmSession.getLabel(), "error reading SMS attribute from user '" + pwmSession.getUserInfo().getUserIdentity() + "': " + e.getMessage());
             return false;
         }
 
         if (toSmsNumber == null || toSmsNumber.length() < 1) {
-            LOGGER.debug(pwmSession.getLabel(), "skipping send activation SMS for '" + pwmSession.getUserInfoBean().getUserIdentity() + "' no SMS number configured");
+            LOGGER.debug(pwmSession.getLabel(), "skipping send activation SMS for '" + pwmSession.getUserInfo().getUserIdentity() + "' no SMS number configured");
             return false;
         }
 

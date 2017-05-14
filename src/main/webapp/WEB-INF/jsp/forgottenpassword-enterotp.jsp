@@ -22,11 +22,8 @@
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
-<%@ page import="password.pwm.http.JspUtility"%>
+<%@ page import="password.pwm.ldap.UserInfo"%>
 <%@ page import="password.pwm.util.operations.otp.OTPUserRecord" %>
-<%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
-<%@ page import="password.pwm.bean.UserInfoBean" %>
-<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%@ include file="fragment/header.jsp" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
@@ -38,7 +35,7 @@
     <div id="centerbody">
         <div id="page-content-title"><pwm:display key="Title_ForgottenPassword" displayIfMissing="true"/></div>
         <%
-            final UserInfoBean userInfoBean = (UserInfoBean)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ForgottenPasswordUserInfo);
+            final UserInfo userInfoBean = JspUtility.getPwmRequest(pageContext).getPwmSession().getUserInfo();
             final OTPUserRecord otp = userInfoBean.getOtpUserRecord();
             final String identifier = otp.getIdentifier();
 

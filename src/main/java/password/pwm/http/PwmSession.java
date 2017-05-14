@@ -22,7 +22,6 @@
 
 package password.pwm.http;
 
-import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -30,16 +29,18 @@ import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
+import password.pwm.ldap.UserInfoBean;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.UserSessionDataCacheBean;
-import password.pwm.ldap.UserStatusReader;
+import password.pwm.ldap.UserInfoReader;
+import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.LocaleHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
@@ -66,7 +67,7 @@ public class PwmSession implements Serializable {
     private final LocalSessionStateBean sessionStateBean;
 
     private LoginInfoBean loginInfoBean;
-    private UserInfoBean userInfoBean;
+    private UserInfo userInfoBean;
     private UserSessionDataCacheBean userSessionDataCacheBean;
 
     private Settings settings = new Settings();
@@ -128,7 +129,7 @@ public class PwmSession implements Serializable {
         return sessionStateBean;
     }
 
-    public UserInfoBean getUserInfoBean() {
+    public UserInfo getUserInfo() {
         if (!isAuthenticated()) {
             throw new IllegalStateException("attempt to read user info bean, but session not authenticated");
         }
@@ -136,6 +137,35 @@ public class PwmSession implements Serializable {
             userInfoBean = new UserInfoBean();
         }
         return userInfoBean;
+    }
+
+    public void setUserInfoBean(final UserInfo userInfoBean) {
+        this.userInfoBean = userInfoBean;
+    }
+
+    public void reloadUserInfoBean(final PwmApplication pwmApplication) throws PwmUnrecoverableException
+    {
+        LOGGER.trace(this, "performing reloadUserInfoBean");
+        final UserInfo oldUserInfoBean = getUserInfo();
+        final UserInfoReader userStatusReader = new UserInfoReader(pwmApplication, getLabel());
+
+
+        final UserInfo userInfo;
+        if (getLoginInfoBean().getAuthFlags().contains(AuthenticationType.AUTH_BIND_INHIBIT)) {
+            userInfo = userStatusReader.populateUserInfoBean(
+                    getSessionStateBean().getLocale(),
+                    oldUserInfoBean.getUserIdentity(),
+                    pwmApplication.getProxyChaiProvider(oldUserInfoBean.getUserIdentity().getLdapProfileID())
+            );
+        } else {
+            userInfo = userStatusReader.populateActorUserInfoBeanUsingProxy(
+                    oldUserInfoBean.getUserIdentity(),
+                    getSessionStateBean().getLocale(),
+                    loginInfoBean.getUserCurrentPassword()
+            );
+        }
+
+        setUserInfoBean(userInfo);
     }
 
     public LoginInfoBean getLoginInfoBean() {
@@ -162,8 +192,8 @@ public class PwmSession implements Serializable {
 
     public SessionLabel getLabel() {
         final LocalSessionStateBean ssBean = this.getSessionStateBean();
-        final String userID = isAuthenticated() ? this.getUserInfoBean().getUsername() : null;
-        final UserIdentity userIdentity = isAuthenticated() ? this.getUserInfoBean().getUserIdentity() : null;
+        final String userID = isAuthenticated() ? this.getUserInfo().getUsername() : null;
+        final UserIdentity userIdentity = isAuthenticated() ? this.getUserInfo().getUserIdentity() : null;
         return new SessionLabel(ssBean.getSessionID(),userIdentity,userID,ssBean.getSrcAddress(),ssBean.getSrcAddress());
     }
 
@@ -179,8 +209,8 @@ public class PwmSession implements Serializable {
             final StringBuilder sb = new StringBuilder();
 
             sb.append("unauthenticate session from ").append(ssBean.getSrcAddress());
-            if (getUserInfoBean().getUserIdentity() != null) {
-                sb.append(" (").append(getUserInfoBean().getUserIdentity()).append(")");
+            if (getUserInfo().getUserIdentity() != null) {
+                sb.append(" (").append(getUserInfo().getUserIdentity()).append(")");
             }
 
             // mark the session state bean as no longer being authenticated
@@ -219,14 +249,14 @@ public class PwmSession implements Serializable {
             debugData.put("sessionID",getSessionStateBean().getSessionID());
             debugData.put("auth",this.isAuthenticated());
             if (this.isAuthenticated()) {
-                debugData.put("passwordStatus",getUserInfoBean().getPasswordState());
-                debugData.put("guid",getUserInfoBean().getUserGuid());
-                debugData.put("dn",getUserInfoBean().getUserIdentity());
+                debugData.put("passwordStatus", getUserInfo().getPasswordState());
+                debugData.put("guid", getUserInfo().getUserGuid());
+                debugData.put("dn", getUserInfo().getUserIdentity());
                 debugData.put("authType",getLoginInfoBean().getType());
-                debugData.put("needsNewPW",getUserInfoBean().isRequiresNewPassword());
-                debugData.put("needsNewCR",getUserInfoBean().isRequiresResponseConfig());
-                debugData.put("needsNewProfile",getUserInfoBean().isRequiresUpdateProfile());
-                debugData.put("hasCRPolicy",getUserInfoBean().getChallengeProfile() != null && getUserInfoBean().getChallengeProfile().getChallengeSet() != null);
+                debugData.put("needsNewPW", getUserInfo().isRequiresNewPassword());
+                debugData.put("needsNewCR", getUserInfo().isRequiresResponseConfig());
+                debugData.put("needsNewProfile", getUserInfo().isRequiresUpdateProfile());
+                debugData.put("hasCRPolicy", getUserInfo().getChallengeProfile() != null && getUserInfo().getChallengeProfile().getChallengeSet() != null);
             }
             debugData.put("locale",getSessionStateBean().getLocale());
             debugData.put("theme",getSessionStateBean().getTheme());
@@ -253,12 +283,7 @@ public class PwmSession implements Serializable {
                     ? PwmConstants.DEFAULT_LOCALE
                     : requestedLocale);
             if (this.isAuthenticated()) {
-                try {
-                    final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, this.getLabel());
-                    userStatusReader.populateLocaleSpecificUserInfoBean(this.getUserInfoBean(), ssBean.getLocale());
-                } catch (ChaiUnavailableException e) {
-                    LOGGER.warn("unable to refresh locale-specific user data, error:" + e.getLocalizedMessage());
-                }
+                this.reloadUserInfoBean(pwmApplication);
             }
             return true;
         } else {

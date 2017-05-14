@@ -37,7 +37,8 @@ import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.TokenVerificationProgress;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
+import password.pwm.ldap.UserInfoBean;
 import password.pwm.config.ActionConfiguration;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -51,11 +52,11 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.NewUserBean;
-import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.UserDataReader;
-import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
+import password.pwm.ldap.search.SearchConfiguration;
+import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.token.TokenPayload;
@@ -265,7 +266,7 @@ public class NewUserUtils {
 
 
         // add audit record
-        pwmApplication.getAuditManager().submit(AuditEvent.CREATE_USER, pwmSession.getUserInfoBean(), pwmSession);
+        pwmApplication.getAuditManager().submit(AuditEvent.CREATE_USER, pwmSession.getUserInfo(), pwmSession);
 
         // increment the new user creation statistics
         pwmApplication.getStatisticsManager().incrementValue(Statistic.NEW_USERS);
@@ -384,20 +385,20 @@ public class NewUserUtils {
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
+        final UserInfo userInfo = pwmSession.getUserInfo();
         final Configuration config = pwmRequest.getConfig();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_NEWUSER, locale);
 
         if (configuredEmailSetting == null) {
             NewUserUtils.LOGGER.debug(pwmSession,
-                    "skipping send of new user email for '" + userInfoBean.getUserIdentity().getUserDN() + "' no email configured");
+                    "skipping send of new user email for '" + userInfo.getUserIdentity().getUserDN() + "' no email configured");
             return;
         }
 
         pwmRequest.getPwmApplication().getEmailQueue().submitEmail(
                 configuredEmailSetting,
-                pwmSession.getUserInfoBean(),
+                pwmSession.getUserInfo(),
                 pwmSession.getSessionManager().getMacroMachine(pwmRequest.getPwmApplication())
         );
     }

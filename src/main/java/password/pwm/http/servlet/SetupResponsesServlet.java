@@ -35,7 +35,7 @@ import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.ResponseInfoBean;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.ChallengeProfile;
 import password.pwm.error.ErrorInformation;
@@ -51,7 +51,6 @@ import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.SetupResponsesBean;
 import password.pwm.i18n.Message;
-import password.pwm.ldap.UserStatusReader;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecordFactory;
@@ -154,7 +153,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet {
         initializeBean(pwmRequest, setupResponsesBean);
 
         // check to see if the user has any challenges assigned
-        final UserInfoBean uiBean = pwmSession.getUserInfoBean();
+        final UserInfo uiBean = pwmSession.getUserInfo();
         if (setupResponsesBean.getResponseData().getChallengeSet() == null || setupResponsesBean.getResponseData().getChallengeSet().getChallenges().isEmpty()) {
             final String errorMsg = "no challenge sets configured for user " + uiBean.getUserIdentity();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_NO_CHALLENGES, errorMsg);
@@ -192,17 +191,16 @@ public class SetupResponsesServlet extends ControlledPwmServlet {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         try {
-            final String userGUID = pwmSession.getUserInfoBean().getUserGuid();
+            final String userGUID = pwmSession.getUserInfo().getUserGuid();
             final ChaiUser theUser = pwmSession.getSessionManager().getActor(pwmApplication);
             pwmApplication.getCrService().clearResponses(pwmSession.getLabel(), pwmRequest.getUserInfoIfLoggedIn(), theUser, userGUID);
-            final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, pwmRequest.getSessionLabel());
-            userStatusReader.populateLocaleSpecificUserInfoBean(pwmSession.getUserInfoBean(),pwmRequest.getLocale());
+            pwmSession.reloadUserInfoBean(pwmApplication);
             pwmRequest.getPwmApplication().getSessionStateService().clearBean(pwmRequest, SetupResponsesBean.class);
 
             // mark the event log
             final UserAuditRecord auditRecord = new AuditRecordFactory(pwmRequest).createUserAuditRecord(
                     AuditEvent.CLEAR_RESPONSES,
-                    pwmSession.getUserInfoBean(),
+                    pwmSession.getUserInfo(),
                     pwmSession
             );
             pwmApplication.getAuditManager().submit(auditRecord);
@@ -279,9 +277,9 @@ public class SetupResponsesServlet extends ControlledPwmServlet {
 
         pwmRequest.setAttribute(PwmRequestAttribute.ModuleBean, setupResponsesBean);
         pwmRequest.setAttribute(PwmRequestAttribute.ModuleBean_String, pwmRequest.getPwmApplication().getSecureService().encryptObjectToString(setupResponsesBean));
-        pwmRequest.setAttribute(PwmRequestAttribute.SetupResponses_ResponseInfo, pwmRequest.getPwmSession().getUserInfoBean().getResponseInfoBean());
+        pwmRequest.setAttribute(PwmRequestAttribute.SetupResponses_ResponseInfo, pwmRequest.getPwmSession().getUserInfo().getResponseInfoBean());
 
-        if (setupResponsesBean.isHasExistingResponses() && !pwmRequest.getPwmSession().getUserInfoBean().isRequiresResponseConfig()) {
+        if (setupResponsesBean.isHasExistingResponses() && !pwmRequest.getPwmSession().getUserInfo().isRequiresResponseConfig()) {
             pwmRequest.forwardToJsp(JspUrl.SETUP_RESPONSES_EXISTING);
             return;
         }
@@ -370,14 +368,11 @@ public class SetupResponsesServlet extends ControlledPwmServlet {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final ChaiUser theUser = pwmSession.getSessionManager().getActor(pwmApplication);
-        final String userGUID = pwmSession.getUserInfoBean().getUserGuid();
+        final String userGUID = pwmSession.getUserInfo().getUserGuid();
         pwmApplication.getCrService().writeResponses(pwmRequest.getUserInfoIfLoggedIn(), theUser, userGUID, responseInfoBean);
-        final UserInfoBean uiBean = pwmSession.getUserInfoBean();
-        final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, pwmSession.getLabel());
-        userStatusReader.populateActorUserInfoBean(pwmSession, uiBean.getUserIdentity());
+        pwmSession.reloadUserInfoBean(pwmApplication);
         pwmApplication.getStatisticsManager().incrementValue(Statistic.SETUP_RESPONSES);
-        pwmSession.getUserInfoBean().setRequiresResponseConfig(false);
-        pwmApplication.getAuditManager().submit(AuditEvent.SET_RESPONSES, pwmSession.getUserInfoBean(), pwmSession);
+        pwmApplication.getAuditManager().submit(AuditEvent.SET_RESPONSES, pwmSession.getUserInfo(), pwmSession);
     }
 
     private static Map<Challenge, String> readResponsesFromHttpRequest(
@@ -531,11 +526,11 @@ public class SetupResponsesServlet extends ControlledPwmServlet {
             final SetupResponsesBean setupResponsesBean
     )
     {
-        if (pwmRequest.getPwmSession().getUserInfoBean().getResponseInfoBean() != null) {
+        if (pwmRequest.getPwmSession().getUserInfo().getResponseInfoBean() != null) {
             setupResponsesBean.setHasExistingResponses(true);
         }
 
-        final ChallengeProfile challengeProfile = pwmRequest.getPwmSession().getUserInfoBean().getChallengeProfile();
+        final ChallengeProfile challengeProfile = pwmRequest.getPwmSession().getUserInfo().getChallengeProfile();
         if (setupResponsesBean.getResponseData() == null) { //setup user challenge data
             final ChallengeSet userChallengeSet = challengeProfile.getChallengeSet();
             final int minRandomSetup = challengeProfile.getMinRandomSetup();

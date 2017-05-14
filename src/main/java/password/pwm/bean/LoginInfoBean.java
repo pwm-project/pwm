@@ -23,6 +23,8 @@
 package password.pwm.bean;
 
 import com.google.gson.annotations.SerializedName;
+import lombok.Getter;
+import lombok.Setter;
 import password.pwm.PwmConstants;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.auth.AuthenticationType;
@@ -44,6 +46,8 @@ import java.util.Set;
  *
  * Short serialized names are used to shrink the effective size of the login cookie.
  */
+@Getter
+@Setter
 public class LoginInfoBean implements Serializable {
 
     public enum LoginFlag {
@@ -51,6 +55,7 @@ public class LoginInfoBean implements Serializable {
         skipNewPw,
         noSso, // bypass sso
         authRecordSet,
+        forcePwChange
     }
 
     @SerializedName("u")

@@ -28,7 +28,7 @@ import password.pwm.PwmApplication;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.bean.pub.SessionStateInfoBean;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
@@ -203,7 +203,7 @@ public class SessionTrackService implements PwmService {
         sessionStateInfoBean.setIntruderAttempts(loopSsBean.getIntruderAttempts());
 
         if (loopSession.isAuthenticated()) {
-            final UserInfoBean loopUiBean = loopSession.getUserInfoBean();
+            final UserInfo loopUiBean = loopSession.getUserInfo();
             sessionStateInfoBean.setLdapProfile(loginInfoBean.isAuthenticated() ? loopUiBean.getUserIdentity().getLdapProfileID() : "");
             sessionStateInfoBean.setUserDN(loginInfoBean.isAuthenticated() ? loopUiBean.getUserIdentity().getUserDN() : "");
             sessionStateInfoBean.setUserID(loginInfoBean.isAuthenticated() ? loopUiBean.getUsername() : "");

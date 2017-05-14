@@ -22,13 +22,14 @@
 
 package password.pwm.ws.server.rest;
 
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
+import password.pwm.ldap.UserInfoBean;
 import password.pwm.bean.pub.PublicUserInfoBean;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.ldap.UserStatusReader;
+import password.pwm.ldap.UserInfoReader;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
@@ -78,23 +79,22 @@ public class RestStatusServer extends AbstractRestServer {
         }
 
         try {
-            final UserInfoBean userInfoBean;
+            final UserInfo userInfo;
             if (restRequestBean.getUserIdentity() != null) {
-                userInfoBean = new UserInfoBean();
-                final UserStatusReader userStatusReader = new UserStatusReader(restRequestBean.getPwmApplication(),restRequestBean.getPwmSession().getLabel());
+                userInfo = new UserInfoBean();
+                final UserInfoReader userStatusReader = new UserInfoReader(restRequestBean.getPwmApplication(),restRequestBean.getPwmSession().getLabel());
                 userStatusReader.populateUserInfoBean(
-                        userInfoBean,
                         restRequestBean.getPwmSession().getSessionStateBean().getLocale(),
                         restRequestBean.getUserIdentity(),
                         restRequestBean.getPwmSession().getSessionManager().getChaiProvider()
                 );
             } else {
-                userInfoBean = restRequestBean.getPwmSession().getUserInfoBean();
+                userInfo = restRequestBean.getPwmSession().getUserInfo();
             }
             final RestResultBean restResultBean = new RestResultBean();
             final MacroMachine macroMachine = restRequestBean.getPwmSession().getSessionManager().getMacroMachine(restRequestBean.getPwmApplication());
             restResultBean.setData(PublicUserInfoBean.fromUserInfoBean(
-                    userInfoBean,
+                    userInfo,
                     restRequestBean.getPwmApplication().getConfig(),
                     restRequestBean.getPwmSession().getSessionStateBean().getLocale(),
                     macroMachine

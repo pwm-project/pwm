@@ -26,7 +26,7 @@ import com.google.gson.reflect.TypeToken;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.bean.pub.PublicUserInfoBean;
 import password.pwm.error.PwmException;
 import password.pwm.util.java.JsonUtil;
@@ -65,7 +65,7 @@ class ExternalRestMacro extends AbstractMacro {
     )
     {
         final PwmApplication pwmApplication = macroRequestInfo.getPwmApplication();
-        final UserInfoBean userInfoBean = macroRequestInfo.getUserInfoBean();
+        final UserInfo userInfoBean = macroRequestInfo.getUserInfoBean();
 
         final String inputString = matchValue.substring(11,matchValue.length() -1);
         final Map<String,Object> sendData = new HashMap<>();

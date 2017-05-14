@@ -492,7 +492,7 @@ public class RestAppDataServer extends AbstractRestServer {
 
         inputString.append(pwmSession.getSessionStateBean().getSessionID());
         if (pwmSession.isAuthenticated()) {
-            inputString.append(pwmSession.getUserInfoBean().getUserGuid());
+            inputString.append(pwmSession.getUserInfo().getUserGuid());
             inputString.append(pwmSession.getLoginInfoBean().getAuthTime());
         }
 

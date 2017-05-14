@@ -30,7 +30,7 @@ import lombok.Getter;
 import password.pwm.PwmApplication;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.error.ErrorInformation;
@@ -38,7 +38,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
-import password.pwm.ldap.UserStatusReader;
+import password.pwm.ldap.UserInfoReader;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.JsonUtil;
@@ -144,7 +144,7 @@ public class RestCheckPasswordServer extends AbstractRestServer {
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
-        LOGGER.trace("beginning check password operation for user " + restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity());
+        LOGGER.trace("beginning check password operation for user " + restRequestBean.getPwmSession().getUserInfo().getUserIdentity());
 
         if (jsonInput.password1 == null || jsonInput.password1.length() < 1) {
             final String errorMessage = "missing field 'password1'";
@@ -154,27 +154,25 @@ public class RestCheckPasswordServer extends AbstractRestServer {
 
         try {
             final UserIdentity userDN;
-            final UserInfoBean uiBean;
+            final UserInfo userInfo;
             if (restRequestBean.getUserIdentity() != null) { // check for another user
                 userDN = restRequestBean.getUserIdentity();
-                uiBean = new UserInfoBean();
-                final UserStatusReader userStatusReader = new UserStatusReader(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession().getLabel());
-                userStatusReader.populateUserInfoBean(
-                        uiBean,
+                final UserInfoReader userStatusReader = new UserInfoReader(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession().getLabel());
+                userInfo = userStatusReader.populateUserInfoBean(
                         restRequestBean.getPwmSession().getSessionStateBean().getLocale(),
                         userDN,
                         restRequestBean.getPwmSession().getSessionManager().getChaiProvider()
                 );
             } else { // self check
-                userDN = restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity();
-                uiBean = restRequestBean.getPwmSession().getUserInfoBean();
+                userDN = restRequestBean.getPwmSession().getUserInfo().getUserIdentity();
+                userInfo = restRequestBean.getPwmSession().getUserInfo();
             }
 
             final PasswordCheckRequest checkRequest = new PasswordCheckRequest(
                     userDN,
                     jsonInput.password1 == null || jsonInput.password1.isEmpty() ? null : new PasswordData(jsonInput.password1),
                     jsonInput.password2 == null || jsonInput.password2.isEmpty() ? null : new PasswordData(jsonInput.password2),
-                    uiBean
+                    userInfo
             );
 
             if (restRequestBean.isExternal()) {
@@ -204,18 +202,18 @@ public class RestCheckPasswordServer extends AbstractRestServer {
         final UserIdentity userIdentity;
         final PasswordData password1;
         final PasswordData password2;
-        final UserInfoBean userInfoBean;
+        final UserInfo userInfo;
 
         public PasswordCheckRequest(
                 final UserIdentity userDN,
                 final PasswordData password1,
                 final PasswordData password2,
-                final UserInfoBean userInfoBean
+                final UserInfo userInfo
         ) {
             this.userIdentity = userDN;
             this.password1 = password1;
             this.password2 = password2;
-            this.userInfoBean = userInfoBean;
+            this.userInfo = userInfo;
         }
 
         public UserIdentity getUserIdentity() {
@@ -230,8 +228,8 @@ public class RestCheckPasswordServer extends AbstractRestServer {
             return password2;
         }
 
-        public UserInfoBean getUserInfoBean() {
-            return userInfoBean;
+        public UserInfo getUserInfo() {
+            return userInfo;
         }
     }
 
@@ -246,7 +244,7 @@ public class RestCheckPasswordServer extends AbstractRestServer {
         final HelpdeskProfile helpdeskProfile = pwmSession.getSessionManager().getHelpdeskProfile(pwmApplication);
         final boolean useProxy = helpdeskProfile != null && helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_USE_PROXY);
         final boolean thirdParty = checkRequest.getUserIdentity() != null
-                && !checkRequest.getUserIdentity().canonicalEquals(pwmSession.getUserInfoBean().getUserIdentity(), pwmApplication);
+                && !checkRequest.getUserIdentity().canonicalEquals(pwmSession.getUserInfo().getUserIdentity(), pwmApplication);
 
         final ChaiUser user = useProxy && thirdParty
                 ? pwmApplication.getProxiedChaiUser(checkRequest.getUserIdentity())
@@ -258,7 +256,7 @@ public class RestCheckPasswordServer extends AbstractRestServer {
                 pwmApplication,
                 pwmSession.getSessionStateBean().getLocale(),
                 user,
-                checkRequest.getUserInfoBean(),
+                checkRequest.getUserInfo(),
                 loginInfoBean,
                 checkRequest.getPassword1(),
                 checkRequest.getPassword2()

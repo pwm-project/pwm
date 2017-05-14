@@ -27,7 +27,7 @@
 <%@ page import="password.pwm.http.tag.value.PwmValue" %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final PasswordStatus passwordStatus = JspUtility.getPwmSession(pageContext).getUserInfoBean().getPasswordState(); %>
+<% final PasswordStatus passwordStatus = JspUtility.getPwmSession(pageContext).getUserInfo().getPasswordState(); %>
 <% final ChangePasswordBean changePasswordBean = JspUtility.getSessionBean(pageContext, ChangePasswordBean.class); %>
 
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">

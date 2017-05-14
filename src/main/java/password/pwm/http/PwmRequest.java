@@ -33,7 +33,7 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
@@ -302,7 +302,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
 
     public UserIdentity getUserInfoIfLoggedIn() {
         return this.getPwmSession().isAuthenticated()
-                ? this.getPwmSession().getUserInfoBean().getUserIdentity()
+                ? this.getPwmSession().getUserInfo().getUserIdentity()
                 : null;
     }
 
@@ -416,7 +416,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         }
 
         final PwmURL pwmURL = getURL();
-        final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
+        final UserInfo userInfoBean = pwmSession.getUserInfo();
 
         if (userInfoBean.isRequiresNewPassword() && pwmURL.isChangePasswordURL()) {
             return true;

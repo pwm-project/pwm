@@ -186,9 +186,9 @@ public class RestSetPasswordServer extends AbstractRestServer {
                 }
                 PasswordUtility.setActorPassword(restRequestBean.getPwmSession(), restRequestBean.getPwmApplication(),
                         newPassword);
-                restRequestBean.getPwmApplication().getAuditManager().submit(AuditEvent.CHANGE_PASSWORD, restRequestBean.getPwmSession().getUserInfoBean(), restRequestBean.getPwmSession());
+                restRequestBean.getPwmApplication().getAuditManager().submit(AuditEvent.CHANGE_PASSWORD, restRequestBean.getPwmSession().getUserInfo(), restRequestBean.getPwmSession());
                 jsonResultData.password = null;
-                jsonResultData.username = restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity().toDelimitedKey();
+                jsonResultData.username = restRequestBean.getPwmSession().getUserInfo().getUserIdentity().toDelimitedKey();
             }
             if (restRequestBean.isExternal()) {
                 StatisticsManager.incrementStat(restRequestBean.getPwmApplication(), Statistic.REST_SETPASSWORD);

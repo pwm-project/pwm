@@ -30,7 +30,7 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.TokenVerificationProgress;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.config.ActionConfiguration;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
@@ -55,7 +55,6 @@ import password.pwm.http.bean.UpdateProfileBean;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.UserDataReader;
-import password.pwm.ldap.UserStatusReader;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecord;
 import password.pwm.svc.event.AuditRecordFactory;
@@ -463,7 +462,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final UserInfoBean uiBean = pwmRequest.getPwmSession().getUserInfoBean();
+        final UserInfo userInfo = pwmRequest.getPwmSession().getUserInfo();
         final UpdateAttributesProfile updateAttributesProfile = pwmRequest.getPwmSession().getSessionManager().getUpdateAttributeProfile(pwmApplication);
 
         final List<FormConfiguration> formFields = updateAttributesProfile.readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
@@ -473,20 +472,16 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
         verifyFormAttributes(pwmRequest, formMap, false);
 
         // write values.
-        LOGGER.info("updating profile for " + pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity());
+        LOGGER.info("updating profile for " + pwmRequest.getPwmSession().getUserInfo().getUserIdentity());
 
         pwmRequest.getPwmSession().getSessionManager().getChaiProvider();
 
         LdapOperationsHelper.writeFormValuesToLdap(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession(), theUser, formMap, false);
 
-        final UserIdentity userIdentity = uiBean.getUserIdentity();
+        final UserIdentity userIdentity = userInfo.getUserIdentity();
 
         // re-populate the uiBean because we have changed some values.
-        final UserStatusReader userStatusReader = new UserStatusReader(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel());
-        userStatusReader.populateActorUserInfoBean(
-                pwmRequest.getPwmSession(),
-                userIdentity
-        );
+        pwmSession.reloadUserInfoBean(pwmApplication);
 
         // clear cached read attributes.
         pwmRequest.getPwmSession().getSessionManager().clearUserDataReader();
@@ -509,10 +504,10 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
         sendProfileUpdateEmailNotice(pwmSession,pwmApplication);
 
         // mark the event log
-        pwmApplication.getAuditManager().submit(AuditEvent.UPDATE_PROFILE, pwmSession.getUserInfoBean(), pwmSession);
+        pwmApplication.getAuditManager().submit(AuditEvent.UPDATE_PROFILE, pwmSession.getUserInfo(), pwmSession);
 
         // mark the uiBean so we user isn't recycled to the update profile page by the CommandServlet
-        uiBean.setRequiresUpdateProfile(false);
+        pwmSession.reloadUserInfoBean(pwmApplication);
 
         // clear out the updateProfileBean
         pwmApplication.getSessionStateService().clearBean(pwmRequest, UpdateProfileBean.class);
@@ -538,7 +533,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
                 pwmRequest.getPwmApplication(),
                 formValues,
                 userLocale,
-                Collections.singletonList(pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity()),
+                Collections.singletonList(pwmRequest.getPwmSession().getUserInfo().getUserIdentity()),
                 allowResultCaching
         );
     }
@@ -553,13 +548,13 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_UPDATEPROFILE, locale);
 
         if (configuredEmailSetting == null) {
-            LOGGER.debug(pwmSession, "skipping send profile update email for '" + pwmSession.getUserInfoBean().getUserIdentity() + "' no email configured");
+            LOGGER.debug(pwmSession, "skipping send profile update email for '" + pwmSession.getUserInfo().getUserIdentity() + "' no email configured");
             return;
         }
 
         pwmApplication.getEmailQueue().submitEmail(
                 configuredEmailSetting,
-                pwmSession.getUserInfoBean(),
+                pwmSession.getUserInfo(),
                 pwmSession.getSessionManager().getMacroMachine(pwmApplication)
         );
     }

@@ -22,13 +22,14 @@
 
 <%@ page import="password.pwm.bean.LocalSessionStateBean" %>
 <%@ page import="password.pwm.bean.ResponseInfoBean" %>
-<%@ page import="password.pwm.bean.UserInfoBean" %>
+<%@ page import="password.pwm.ldap.UserInfo" %>
 <%@ page import="password.pwm.config.FormConfiguration" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.config.option.ViewStatusFields" %>
 <%@ page import="password.pwm.http.JspUtility" %>
-<%@ page import="password.pwm.http.servlet.command.CommandServlet" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
+<%@ page import="password.pwm.http.servlet.command.CommandServlet" %>
 <%@ page import="password.pwm.i18n.Display" %>
 <%@ page import="password.pwm.svc.event.UserAuditRecord" %>
 <%@ page import="password.pwm.util.LocaleHelper" %>
@@ -40,13 +41,12 @@
 <%@ page import="java.util.Locale" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.Set" %>
-<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
-    final PwmRequest userinfo_pwmRequest = PwmRequest.forRequest(request, response);
-    final UserInfoBean uiBean = userinfo_pwmRequest.getPwmSession().getUserInfoBean();
+    final PwmRequest userinfo_pwmRequest = JspUtility.getPwmRequest(pageContext);
+    final UserInfo userInfo = JspUtility.getPwmRequest(pageContext).getPwmSession().getUserInfo();
     final LocalSessionStateBean ssBean = userinfo_pwmRequest.getPwmSession().getSessionStateBean();
     final Set<ViewStatusFields> viewStatusFields = userinfo_pwmRequest.getConfig().readSettingAsOptionList(PwmSetting.ACCOUNT_INFORMATION_VIEW_STATUS_VALUES,ViewStatusFields.class);
     List<UserAuditRecord> auditRecords = Collections.emptyList();
@@ -76,7 +76,7 @@
                 <pwm:display key="Field_Username"/>
             </td>
             <td id="Username">
-                <%= StringUtil.escapeHtml(uiBean.getUsername()) %>
+                <%= StringUtil.escapeHtml(userInfo.getUsername()) %>
             </td>
         </tr>
         <% } %>
@@ -86,7 +86,7 @@
                 <pwm:display key="Field_UserDN"/>
             </td>
             <td id="UserDN">
-                <%= StringUtil.escapeHtml(uiBean.getUserIdentity().getUserDN()) %>
+                <%= StringUtil.escapeHtml(userInfo.getUserIdentity().getUserDN()) %>
             </td>
         </tr>
         <% if (userinfo_pwmRequest.getConfig().getLdapProfiles().size() > 1) { %>
@@ -96,7 +96,7 @@
             </td>
             <td id="LdapProfile">
                 <%= StringUtil.escapeHtml(userinfo_pwmRequest.getConfig().getLdapProfiles().get(
-                        uiBean.getUserIdentity().getLdapProfileID()).getDisplayName(
+                        userInfo.getUserIdentity().getLdapProfileID()).getDisplayName(
                         userinfo_pwmRequest.getLocale())) %>
             </td>
         </tr>
@@ -108,10 +108,10 @@
                 <pwm:display key="Field_UserEmail"/>
             </td>
             <td id="userEmail">
-                <% if (uiBean.getUserEmailAddress() == null) { %>
+                <% if (userInfo.getUserEmailAddress() == null) { %>
                 <pwm:display key="Value_NotApplicable"/>
                 <% } else { %>
-                <%= StringUtil.escapeHtml(uiBean.getUserEmailAddress()) %>
+                <%= StringUtil.escapeHtml(userInfo.getUserEmailAddress()) %>
                 <% } %>
             </td>
         </tr>
@@ -122,10 +122,10 @@
                 <pwm:display key="Field_UserSMS"/>
             </td>
             <td id="UserSMS">
-                <% if (uiBean.getUserSmsNumber() == null) { %>
+                <% if (userInfo.getUserSmsNumber() == null) { %>
                 <pwm:display key="Value_NotApplicable"/>
                 <% } else { %>
-                <%= StringUtil.escapeHtml(uiBean.getUserSmsNumber()) %>
+                <%= StringUtil.escapeHtml(userInfo.getUserSmsNumber()) %>
                 <% } %>
             </td>
         </tr>
@@ -136,7 +136,7 @@
                 <pwm:display key="Field_UserGUID"/>
             </td>
             <td id="UserGUID">
-                <%= StringUtil.escapeHtml(uiBean.getUserGuid()) %>
+                <%= StringUtil.escapeHtml(userInfo.getUserGuid()) %>
             </td>
         </tr>
         <% } %>
@@ -145,13 +145,13 @@
             <td class="key">
                 <pwm:display key="Field_AccountExpirationTime"/>
             </td>
-            <% if (uiBean.getAccountExpirationTime() == null) { %>
+            <% if (userInfo.getAccountExpirationTime() == null) { %>
             <td id="AccountExpirationTime">
                 <pwm:display key="Value_NotApplicable"/>
             </td>
             <% } else { %>
             <td class="timestamp" id="AccountExpirationTime">
-                <%= JavaHelper.toIsoDate(uiBean.getAccountExpirationTime()) %>
+                <%= JavaHelper.toIsoDate(userInfo.getAccountExpirationTime()) %>
             </td>
             <% } %>
             </td>
@@ -163,7 +163,7 @@
                 <pwm:display key="Field_PasswordExpired"/>
             </td>
             <td id="PasswordExpired">
-                <%if (uiBean.getPasswordState().isExpired()) {%><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
+                <%if (userInfo.getPasswordState().isExpired()) {%><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
             </td>
         </tr>
         <% } %>
@@ -173,7 +173,7 @@
                 <pwm:display key="Field_PasswordPreExpired"/>
             </td>
             <td id="PasswordPreExpired">
-                <%if (uiBean.getPasswordState().isPreExpired()) {%><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
+                <%if (userInfo.getPasswordState().isPreExpired()) {%><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
             </td>
         </tr>
         <% } %>
@@ -183,7 +183,7 @@
                 <pwm:display key="Field_PasswordWithinWarningPeriod"/>
             </td>
             <td id="PasswordWithinWarningPeriod">
-                <%if (uiBean.getPasswordState().isWarnPeriod()) { %><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
+                <%if (userInfo.getPasswordState().isWarnPeriod()) { %><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
             </td>
         </tr>
         <% } %>
@@ -193,7 +193,7 @@
                 <pwm:display key="Field_PasswordViolatesPolicy"/>
             </td>
             <td id="PasswordViolatesPolicy">
-                <% if (uiBean.getPasswordState().isViolatesPolicy()) {%><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
+                <% if (userInfo.getPasswordState().isViolatesPolicy()) {%><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
             </td>
         </tr>
         <% } %>
@@ -202,13 +202,13 @@
             <td class="key">
                 <pwm:display key="Field_PasswordSetTime"/>
             </td>
-            <% if (uiBean.getPasswordLastModifiedTime() == null) { %>
+            <% if (userInfo.getPasswordLastModifiedTime() == null) { %>
             <td  id="PasswordSetTime">
                 <pwm:display key="Value_NotApplicable"/>
             </td>
             <% } else { %>
             <td class="timestamp"  id="PasswordSetTime">
-                <%= JavaHelper.toIsoDate(uiBean.getPasswordLastModifiedTime()) %>
+                <%= JavaHelper.toIsoDate(userInfo.getPasswordLastModifiedTime()) %>
             </td>
             <% } %>
         </tr>
@@ -219,8 +219,8 @@
                 <pwm:display key="Field_PasswordSetTimeDelta"/>
             </td>
             <td id="PasswordSetTimeDelta">
-                <%= uiBean.getPasswordLastModifiedTime() != null 
-                        ? TimeDuration.fromCurrent(uiBean.getPasswordLastModifiedTime()).asLongString(ssBean.getLocale()) 
+                <%= userInfo.getPasswordLastModifiedTime() != null
+                        ? TimeDuration.fromCurrent(userInfo.getPasswordLastModifiedTime()).asLongString(ssBean.getLocale())
                         : LocaleHelper.getLocalizedMessage(Display.Value_NotApplicable, userinfo_pwmRequest)
                 %>
             </td>
@@ -229,25 +229,25 @@
             <td class="key">
                 <pwm:display key="Field_PasswordExpirationTime"/>
             </td>
-            <% if (uiBean.getPasswordExpirationTime() == null) { %>
+            <% if (userInfo.getPasswordExpirationTime() == null) { %>
             <td id="PasswordExpirationTime">
                 <pwm:display key="Value_NotApplicable"/>
             </td>
             <% } else { %>
             <td class="timestamp" id="PasswordExpirationTime">
-                <%= JavaHelper.toIsoDate(uiBean.getPasswordExpirationTime()) %>
+                <%= JavaHelper.toIsoDate(userInfo.getPasswordExpirationTime()) %>
             </td>
             <% } %>
         </tr>
         <% } %>
-        <% final ResponseInfoBean responseInfoBean = userinfo_pwmRequest.getPwmSession().getUserInfoBean().getResponseInfoBean(); %>
+        <% final ResponseInfoBean responseInfoBean = userinfo_pwmRequest.getPwmSession().getUserInfo().getResponseInfoBean(); %>
         <% if (viewStatusFields.contains(ViewStatusFields.ResponsesStored)) { %>
         <tr>
             <td class="key">
                 <pwm:display key="Field_ResponsesStored"/>
             </td>
             <td id="ResponsesStored">
-                <%if (!uiBean.isRequiresResponseConfig()) { %><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
+                <%if (!userInfo.isRequiresResponseConfig()) { %><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
             </td>
         </tr>
         <% } %>
@@ -274,7 +274,7 @@
                     <pwm:display key="Field_OTP_Stored"/>
                 </td>
                 <td id="OTP_Stored">
-                    <%if (uiBean.getOtpUserRecord() != null) {%><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
+                    <%if (userInfo.getOtpUserRecord() != null) {%><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
                 </td>
             </tr>
             <% } %>
@@ -283,13 +283,13 @@
                 <td class="key">
                     <pwm:display key="Field_OTP_Timestamp"/>
                 </td>
-                <% if (uiBean.getOtpUserRecord() == null || uiBean.getOtpUserRecord().getTimestamp() == null) { %>
+                <% if (userInfo.getOtpUserRecord() == null || userInfo.getOtpUserRecord().getTimestamp() == null) { %>
                 <td id="OPT_Timestamp">
                     <pwm:display key="Value_NotApplicable"/>
                 </td>
                 <% } else { %>
                 <td class="timestamp" id="OPT_Timestamp">
-                    <%= JavaHelper.toIsoDate(uiBean.getOtpUserRecord().getTimestamp()) %>
+                    <%= JavaHelper.toIsoDate(userInfo.getOtpUserRecord().getTimestamp()) %>
                 </td>
                 <% } %>
             </tr>

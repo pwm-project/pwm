@@ -24,7 +24,7 @@ package password.pwm.bean.pub;
 
 import lombok.Getter;
 import password.pwm.bean.PasswordStatus;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.config.Configuration;
 import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.http.tag.PasswordRequirementsTag;
@@ -56,7 +56,7 @@ public class PublicUserInfoBean implements Serializable {
     private List<String> passwordRules;
     private Map<String, String> attributes;
 
-    public static PublicUserInfoBean fromUserInfoBean(final UserInfoBean userInfoBean, final Configuration config, final Locale locale, final MacroMachine macroMachine) {
+    public static PublicUserInfoBean fromUserInfoBean(final UserInfo userInfoBean, final Configuration config, final Locale locale, final MacroMachine macroMachine) {
         final PublicUserInfoBean publicUserInfoBean = new PublicUserInfoBean();
         publicUserInfoBean.userDN = (userInfoBean.getUserIdentity() == null) ? "" : userInfoBean.getUserIdentity().getUserDN();
         publicUserInfoBean.ldapProfile = (userInfoBean.getUserIdentity() == null) ? "" : userInfoBean.getUserIdentity().getLdapProfileID();

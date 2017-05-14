@@ -30,7 +30,7 @@ import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
@@ -71,7 +71,6 @@ import password.pwm.util.secure.SecureService;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -615,7 +614,7 @@ public class TokenService implements PwmService {
     public static class TokenSender {
         public static void sendToken(
                 final PwmApplication pwmApplication,
-                final UserInfoBean userInfoBean,
+                final UserInfo userInfo,
                 final MacroMachine macroMachine,
                 final EmailItemBean configuredEmailSetting,
                 final MessageSendMethod tokenSendMethod,
@@ -636,28 +635,28 @@ public class TokenService implements PwmService {
                         throw new PwmUnrecoverableException(PwmError.ERROR_UNKNOWN);
                     case BOTH:
                         // Send both email and SMS, success if one of both succeeds
-                        final boolean suc1 = sendEmailToken(pwmApplication, userInfoBean, macroMachine, configuredEmailSetting, emailAddress, tokenKey);
-                        final boolean suc2 = sendSmsToken(pwmApplication, userInfoBean, macroMachine, smsNumber, smsMessage, tokenKey);
+                        final boolean suc1 = sendEmailToken(pwmApplication, userInfo, macroMachine, configuredEmailSetting, emailAddress, tokenKey);
+                        final boolean suc2 = sendSmsToken(pwmApplication, userInfo, macroMachine, smsNumber, smsMessage, tokenKey);
                         success = suc1 || suc2;
                         break;
                     case EMAILFIRST:
                         // Send email first, try SMS if email is not available
-                        success = sendEmailToken(pwmApplication, userInfoBean, macroMachine, configuredEmailSetting, emailAddress, tokenKey) ||
-                                sendSmsToken(pwmApplication, userInfoBean, macroMachine, smsNumber, smsMessage, tokenKey);
+                        success = sendEmailToken(pwmApplication, userInfo, macroMachine, configuredEmailSetting, emailAddress, tokenKey) ||
+                                sendSmsToken(pwmApplication, userInfo, macroMachine, smsNumber, smsMessage, tokenKey);
                         break;
                     case SMSFIRST:
                         // Send SMS first, try email if SMS is not available
-                        success = sendSmsToken(pwmApplication, userInfoBean, macroMachine, smsNumber, smsMessage, tokenKey) ||
-                                sendEmailToken(pwmApplication, userInfoBean, macroMachine, configuredEmailSetting, emailAddress, tokenKey);
+                        success = sendSmsToken(pwmApplication, userInfo, macroMachine, smsNumber, smsMessage, tokenKey) ||
+                                sendEmailToken(pwmApplication, userInfo, macroMachine, configuredEmailSetting, emailAddress, tokenKey);
                         break;
                     case SMSONLY:
                         // Only try SMS
-                        success = sendSmsToken(pwmApplication, userInfoBean, macroMachine, smsNumber, smsMessage, tokenKey);
+                        success = sendSmsToken(pwmApplication, userInfo, macroMachine, smsNumber, smsMessage, tokenKey);
                         break;
                     case EMAILONLY:
                     default:
                         // Only try email
-                        success = sendEmailToken(pwmApplication, userInfoBean, macroMachine, configuredEmailSetting, emailAddress, tokenKey);
+                        success = sendEmailToken(pwmApplication, userInfo, macroMachine, configuredEmailSetting, emailAddress, tokenKey);
                         break;
                 }
             } catch (ChaiUnavailableException e) {
@@ -672,7 +671,7 @@ public class TokenService implements PwmService {
 
         public static boolean sendEmailToken(
                 final PwmApplication pwmApplication,
-                final UserInfoBean userInfoBean,
+                final UserInfo userInfo,
                 final MacroMachine macroMachine,
                 final EmailItemBean configuredEmailSetting,
                 final String toAddress,
@@ -692,14 +691,14 @@ public class TokenService implements PwmService {
                     configuredEmailSetting.getSubject(),
                     configuredEmailSetting.getBodyPlain().replace("%TOKEN%", tokenKey),
                     configuredEmailSetting.getBodyHtml().replace("%TOKEN%", tokenKey)
-            ), userInfoBean, macroMachine);
+            ), userInfo, macroMachine);
             LOGGER.debug("token email added to send queue for " + toAddress);
             return true;
         }
 
         public static boolean sendSmsToken(
                 final PwmApplication pwmApplication,
-                final UserInfoBean userInfoBean,
+                final UserInfo userInfo,
                 final MacroMachine macroMachine,
                 final String smsNumber,
                 final String smsMessage,

@@ -239,7 +239,7 @@ public class RestRandomPasswordServer extends AbstractRestServer {
                         theUser,
                         restRequestBean.getPwmSession().getSessionStateBean().getLocale()));
             } else {
-                randomConfig.setPasswordPolicy(restRequestBean.getPwmSession().getUserInfoBean().getPasswordPolicy());
+                randomConfig.setPasswordPolicy(restRequestBean.getPwmSession().getUserInfo().getPasswordPolicy());
             }
         } else {
             final Configuration config  = restRequestBean.getPwmApplication().getConfig();

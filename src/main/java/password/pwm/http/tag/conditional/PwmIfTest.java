@@ -29,7 +29,7 @@ import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.PwmEnvironment;
 import password.pwm.bean.PasswordStatus;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.ProfileType;
 import password.pwm.error.PwmUnrecoverableException;
@@ -256,8 +256,8 @@ public enum PwmIfTest {
             if (!pwmRequest.isAuthenticated()) {
                 return false;
             }
-            if (pwmRequest.getPwmSession().getUserInfoBean().getOtpUserRecord() != null) {
-                if (pwmRequest.getPwmSession().getUserInfoBean().getOtpUserRecord().getTimestamp() != null) {
+            if (pwmRequest.getPwmSession().getUserInfo().getOtpUserRecord() != null) {
+                if (pwmRequest.getPwmSession().getUserInfo().getOtpUserRecord().getTimestamp() != null) {
                     return true;
                 }
             }
@@ -428,7 +428,7 @@ public enum PwmIfTest {
                 return false;
             }
 
-            final UserInfoBean userInfoBean = pwmRequest.getPwmSession().getUserInfoBean();
+            final UserInfo userInfoBean = pwmRequest.getPwmSession().getUserInfo();
             final PasswordStatus passwordStatus = userInfoBean.getPasswordState();
             return passwordStatus.isExpired() || passwordStatus.isPreExpired() || passwordStatus.isViolatesPolicy();
         }

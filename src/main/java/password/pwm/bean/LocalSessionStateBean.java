@@ -22,6 +22,7 @@
 
 package password.pwm.bean;
 
+import password.pwm.ldap.UserInfoBean;
 import password.pwm.util.secure.PwmRandom;
 
 import java.io.Serializable;

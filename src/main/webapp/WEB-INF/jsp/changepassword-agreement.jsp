@@ -37,7 +37,7 @@
     </jsp:include>
     <div id="centerbody">
         <div id="page-content-title"><pwm:display key="Title_ChangePassword" displayIfMissing="true"/></div>
-        <% final PasswordStatus passwordStatus = JspUtility.getPwmSession(pageContext).getUserInfoBean().getPasswordState(); %>
+        <% final PasswordStatus passwordStatus = JspUtility.getPwmSession(pageContext).getUserInfo().getPasswordState(); %>
         <% if (passwordStatus.isExpired() || passwordStatus.isPreExpired() || passwordStatus.isViolatesPolicy()) { %>
         <h1><pwm:display key="Display_PasswordExpired"/></h1><br/>
         <% } %>

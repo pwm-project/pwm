@@ -220,7 +220,7 @@ public class LoginServlet extends ControlledPwmServlet {
         );
 
         if (passwordOnly) {
-            final UserIdentity userIdentity = pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity();
+            final UserIdentity userIdentity = pwmRequest.getPwmSession().getUserInfo().getUserIdentity();
             sessionAuthenticator.authenticateUser(userIdentity, password);
         } else {
             sessionAuthenticator.searchAndAuthenticateUser(username, password, context, ldapProfile);

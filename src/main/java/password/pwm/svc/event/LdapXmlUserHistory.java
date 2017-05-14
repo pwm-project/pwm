@@ -35,7 +35,7 @@ import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 import password.pwm.PwmApplication;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.ErrorInformation;
@@ -153,13 +153,13 @@ class LdapXmlUserHistory implements UserHistoryStore, Serializable {
         }
     }
 
-    public List<UserAuditRecord> readUserHistory(final UserInfoBean userInfoBean)
+    public List<UserAuditRecord> readUserHistory(final UserInfo userInfo)
             throws PwmUnrecoverableException
     {
         try {
-            final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userInfoBean.getUserIdentity());
-            final StoredHistory storedHistory = readUserHistory(pwmApplication, userInfoBean.getUserIdentity(), theUser);
-            return storedHistory.asAuditRecords(userInfoBean);
+            final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userInfo.getUserIdentity());
+            final StoredHistory storedHistory = readUserHistory(pwmApplication, userInfo.getUserIdentity(), theUser);
+            return storedHistory.asAuditRecords(userInfo);
         } catch (ChaiUnavailableException e) {
             throw new PwmUnrecoverableException(PwmError.forChaiError(e.getErrorCode()));
         }
@@ -206,7 +206,7 @@ class LdapXmlUserHistory implements UserHistoryStore, Serializable {
             }
         }
 
-        public List<UserAuditRecord> asAuditRecords(final UserInfoBean userInfoBean) {
+        public List<UserAuditRecord> asAuditRecords(final UserInfo userInfoBean) {
             final List<UserAuditRecord> returnList = new LinkedList<>();
             for (final StoredEvent loopEvent : records) {
                 returnList.add(loopEvent.asAuditRecord(userInfoBean));
@@ -318,7 +318,7 @@ class LdapXmlUserHistory implements UserHistoryStore, Serializable {
             );
         }
 
-        public UserAuditRecord asAuditRecord(final UserInfoBean userInfoBean) {
+        public UserAuditRecord asAuditRecord(final UserInfo userInfoBean) {
             return new UserAuditRecord(
                     Instant.ofEpochMilli(this.getTimestamp()),
                     this.getAuditEvent(),

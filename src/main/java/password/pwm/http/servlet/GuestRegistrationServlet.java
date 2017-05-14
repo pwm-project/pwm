@@ -33,7 +33,7 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.config.ActionConfiguration;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
@@ -53,10 +53,10 @@ import password.pwm.http.bean.GuestRegistrationBean;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.LdapUserDataReader;
-import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.UserDataReader;
+import password.pwm.ldap.UserInfoReader;
+import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
-import password.pwm.ldap.UserStatusReader;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.FormMap;
 import password.pwm.util.PasswordData;
@@ -244,10 +244,8 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
             }
 
             // send email.
-            final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication,pwmSession.getLabel());
-            final UserInfoBean guestUserInfoBean = new UserInfoBean();
-            userStatusReader.populateUserInfoBean(
-                    guestUserInfoBean,
+            final UserInfoReader userStatusReader = new UserInfoReader(pwmApplication,pwmSession.getLabel());
+            final UserInfo guestUserInfoBean = userStatusReader.populateUserInfoBean(
                     pwmSession.getSessionStateBean().getLocale(),
                     guestRegistrationBean.getUpdateUserIdentity(),
                     theGuest.getChaiProvider()
@@ -272,7 +270,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
 
     private void sendUpdateGuestEmailConfirmation(
             final PwmRequest pwmRequest,
-            final UserInfoBean guestUserInfoBean
+            final UserInfo guestUserInfo
     )
             throws PwmUnrecoverableException
     {
@@ -285,7 +283,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
             return;
         }
 
-        pwmRequest.getPwmApplication().getEmailQueue().submitEmail(configuredEmailSetting, guestUserInfoBean, null);
+        pwmRequest.getPwmApplication().getEmailQueue().submitEmail(configuredEmailSetting, guestUserInfo, null);
     }
 
     protected void handleSearchRequest(
@@ -335,7 +333,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
                 if (origAdminOnly && adminDnAttribute != null && adminDnAttribute.length() > 0) {
                     final String origAdminDn = userAttrValues.get(adminDnAttribute);
                     if (origAdminDn != null && origAdminDn.length() > 0) {
-                        if (!pwmSession.getUserInfoBean().getUserIdentity().getUserDN().equalsIgnoreCase(origAdminDn)) {
+                        if (!pwmSession.getUserInfo().getUserIdentity().getUserDN().equalsIgnoreCase(origAdminDn)) {
                             final ErrorInformation info = new ErrorInformation(PwmError.ERROR_ORIG_ADMIN_ONLY);
                             setLastError(pwmRequest, info);
                             LOGGER.warn(pwmSession, info);
@@ -419,7 +417,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
             }
 
             // Write creator DN
-            createAttributes.put(config.readSettingAsString(PwmSetting.GUEST_ADMIN_ATTRIBUTE), pwmSession.getUserInfoBean().getUserIdentity().getUserDN());
+            createAttributes.put(config.readSettingAsString(PwmSetting.GUEST_ADMIN_ATTRIBUTE), pwmSession.getUserInfo().getUserIdentity().getUserDN());
 
             // read the creation object classes.
             final Set<String> createObjectClasses = new HashSet<>(config.readSettingAsStringArray(PwmSetting.DEFAULT_OBJECT_CLASSES));
@@ -428,7 +426,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
             LOGGER.info(pwmSession, "created user object: " + guestUserDN);
 
             final ChaiUser theUser = ChaiFactory.createChaiUser(guestUserDN, provider);
-            final UserIdentity userIdentity = new UserIdentity(guestUserDN, pwmSession.getUserInfoBean().getUserIdentity().getLdapProfileID());
+            final UserIdentity userIdentity = new UserIdentity(guestUserDN, pwmSession.getUserInfo().getUserIdentity().getLdapProfileID());
 
             // write the expiration date:
             if (expirationDate != null) {

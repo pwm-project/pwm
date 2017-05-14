@@ -36,7 +36,7 @@ import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -44,8 +44,8 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.LdapOperationsHelper;
+import password.pwm.ldap.UserInfoReader;
 import password.pwm.ldap.search.UserSearchEngine;
-import password.pwm.ldap.UserStatusReader;
 import password.pwm.svc.intruder.IntruderManager;
 import password.pwm.svc.intruder.RecordType;
 import password.pwm.svc.stats.Statistic;
@@ -319,22 +319,23 @@ public class SessionAuthenticator {
 
         // update the actor user info bean
         {
-            final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
-            final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, pwmSession.getLabel());
+            final UserInfoReader userStatusReader = new UserInfoReader(pwmApplication, pwmSession.getLabel());
 
+            final UserInfo userInfoBean;
             if (authenticationResult.getAuthenticationType() == AuthenticationType.AUTH_BIND_INHIBIT) {
-                userStatusReader.populateUserInfoBean(
-                        userInfoBean,
+                userInfoBean = userStatusReader.populateUserInfoBean(
                         ssBean.getLocale(),
                         userIdentity,
                         pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID())
                 );
             } else {
-                userStatusReader.populateActorUserInfoBean(
-                        pwmSession,
-                        userIdentity
+                userInfoBean = userStatusReader.populateActorUserInfoBeanUsingProxy(
+                        userIdentity,
+                        ssBean.getLocale(),
+                        authenticationResult.getUserPassword()
                 );
             }
+            pwmSession.setUserInfoBean(userInfoBean);
         }
 
         //mark the auth time
@@ -350,17 +351,17 @@ public class SessionAuthenticator {
         pwmSession.getLoginInfoBean().setUserCurrentPassword(userPassword);
 
         //notify the intruder manager with a successful login
-        intruderManager.clear(RecordType.USERNAME, pwmSession.getUserInfoBean().getUsername());
+        intruderManager.clear(RecordType.USERNAME, pwmSession.getUserInfo().getUsername());
         intruderManager.convenience().clearUserIdentity(userIdentity);
         intruderManager.convenience().clearAddressAndSession(pwmSession);
 
         if (pwmApplication.getStatisticsManager() != null) {
             final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
-            if (pwmSession.getUserInfoBean().getPasswordState().isWarnPeriod()) {
+            if (pwmSession.getUserInfo().getPasswordState().isWarnPeriod()) {
                 statisticsManager.incrementValue(Statistic.AUTHENTICATION_EXPIRED_WARNING);
-            } else if (pwmSession.getUserInfoBean().getPasswordState().isPreExpired()) {
+            } else if (pwmSession.getUserInfo().getPasswordState().isPreExpired()) {
                 statisticsManager.incrementValue(Statistic.AUTHENTICATION_PRE_EXPIRED);
-            } else if (pwmSession.getUserInfoBean().getPasswordState().isExpired()) {
+            } else if (pwmSession.getUserInfo().getPasswordState().isExpired()) {
                 statisticsManager.incrementValue(Statistic.AUTHENTICATION_EXPIRED);
             }
         }

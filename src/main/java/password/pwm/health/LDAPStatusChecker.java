@@ -40,7 +40,6 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.PasswordStatus;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
@@ -55,7 +54,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.ldap.UserStatusReader;
+import password.pwm.ldap.UserInfoReader;
 import password.pwm.util.PasswordData;
 import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.java.JavaHelper;
@@ -237,7 +236,7 @@ public class LDAPStatusChecker implements HealthChecker {
 
                         final PasswordStatus passwordStatus;
                         {
-                            final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, SessionLabel.HEALTH_SESSION_LABEL);
+                            final UserInfoReader userStatusReader = new UserInfoReader(pwmApplication, SessionLabel.HEALTH_SESSION_LABEL);
                             passwordStatus = userStatusReader.readPasswordStatus(theUser, passwordPolicy, null, null);
                         }
 
@@ -281,14 +280,13 @@ public class LDAPStatusChecker implements HealthChecker {
 
             try {
                 final UserIdentity userIdentity = new UserIdentity(theUser.getEntryDN(),ldapProfile.getIdentifier());
-                final UserStatusReader.Settings readerSettings = new UserStatusReader.Settings();
-                final UserStatusReader userStatusReader = new UserStatusReader(
+                final UserInfoReader.Settings readerSettings = new UserInfoReader.Settings();
+                final UserInfoReader userStatusReader = new UserInfoReader(
                         pwmApplication,
                         SessionLabel.HEALTH_SESSION_LABEL,
                         readerSettings
                 );
                 userStatusReader.populateUserInfoBean(
-                        new UserInfoBean(),
                         PwmConstants.DEFAULT_LOCALE,
                         userIdentity,
                         chaiProvider

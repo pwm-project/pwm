@@ -404,7 +404,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         final PwmSetting setting = PwmSetting.forKey(key);
         final LinkedHashMap<String, Object> returnMap = new LinkedHashMap<>();
         final UserIdentity loggedInUser = pwmRequest.getPwmSession().isAuthenticated()
-                ? pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity()
+                ? pwmRequest.getPwmSession().getUserInfo().getUserIdentity()
                 : null;
 
         if (key.startsWith("localeBundle")) {
@@ -756,7 +756,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         final FileValue fileValue = readFileUploadToSettingValue(pwmRequest, maxFileSize);
         if (fileValue != null) {
             final UserIdentity userIdentity = pwmRequest.isAuthenticated()
-                    ? pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity()
+                    ? pwmRequest.getPwmSession().getUserInfo().getUserIdentity()
                     : null;
 
             configManagerBean.getStoredConfiguration().writeSetting(setting, fileValue, userIdentity);

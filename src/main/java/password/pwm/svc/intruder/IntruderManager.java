@@ -27,7 +27,7 @@ import password.pwm.PwmApplication;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
@@ -44,7 +44,7 @@ import password.pwm.health.HealthTopic;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.LdapUserDataReader;
-import password.pwm.ldap.UserStatusReader;
+import password.pwm.ldap.UserInfoReader;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecordFactory;
@@ -582,8 +582,8 @@ public class IntruderManager implements Serializable, PwmService {
         }
 
         try {
-            final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, null);
-            final UserInfoBean userInfoBean = userStatusReader.populateUserInfoBean(
+            final UserInfoReader userStatusReader = new UserInfoReader(pwmApplication, null);
+            final UserInfo userInfo = userStatusReader.populateUserInfoBean(
                     locale,
                     userIdentity
             );
@@ -591,11 +591,11 @@ public class IntruderManager implements Serializable, PwmService {
             final MacroMachine macroMachine = new MacroMachine(
                     pwmApplication,
                     sessionLabel,
-                    userInfoBean,
+                    userInfo,
                     null,
                     LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity));
 
-            pwmApplication.getEmailQueue().submitEmail(configuredEmailSetting, userInfoBean, macroMachine);
+            pwmApplication.getEmailQueue().submitEmail(configuredEmailSetting, userInfo, macroMachine);
         } catch (PwmUnrecoverableException e) {
             LOGGER.error("error reading user info while sending intruder notice for user " + userIdentity + ", error: " + e.getMessage());
         }

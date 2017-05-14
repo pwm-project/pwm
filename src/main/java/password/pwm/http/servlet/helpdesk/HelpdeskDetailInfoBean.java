@@ -25,7 +25,8 @@ package password.pwm.http.servlet.helpdesk;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
+import password.pwm.ldap.UserInfoBean;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.FormUtility;
 import password.pwm.config.PwmSetting;
@@ -35,7 +36,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.i18n.Display;
 import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
-import password.pwm.ldap.UserStatusReader;
+import password.pwm.ldap.UserInfoReader;
 import password.pwm.svc.event.UserAuditRecord;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.java.JsonUtil;
@@ -56,7 +57,7 @@ public class HelpdeskDetailInfoBean implements Serializable {
     private static final PwmLogger LOGGER = PwmLogger.forClass(HelpdeskDetailInfoBean.class);
 
 
-    private UserInfoBean userInfoBean = new UserInfoBean();
+    private UserInfo userInfo = new UserInfoBean();
     private String userDisplayName;
 
     private boolean intruderLocked;
@@ -85,9 +86,8 @@ public class HelpdeskDetailInfoBean implements Serializable {
         }
 
         final HelpdeskDetailInfoBean detailInfo = new HelpdeskDetailInfoBean();
-        final UserInfoBean uiBean = detailInfo.getUserInfoBean();
-        final UserStatusReader userStatusReader = new UserStatusReader(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel());
-        userStatusReader.populateUserInfoBean(uiBean, actorLocale, userIdentity, theUser.getChaiProvider());
+        final UserInfoReader userStatusReader = new UserInfoReader(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel());
+        detailInfo.setUserInfo(userStatusReader.populateUserInfoBean(actorLocale, userIdentity, theUser.getChaiProvider()));
 
         try {
             detailInfo.setIntruderLocked(theUser.isPasswordLocked());
@@ -115,13 +115,13 @@ public class HelpdeskDetailInfoBean implements Serializable {
         }
 
         try {
-            detailInfo.setUserHistory(pwmRequest.getPwmApplication().getAuditManager().readUserHistory(uiBean));
+            detailInfo.setUserHistory(pwmRequest.getPwmApplication().getAuditManager().readUserHistory(detailInfo.getUserInfo()));
         } catch (Exception e) {
             LOGGER.error(pwmRequest, "unexpected error reading userHistory for user '" + userIdentity + "', " + e.getMessage());
         }
 
-        if (uiBean.getPasswordLastModifiedTime() != null) {
-            final TimeDuration passwordSetDelta = TimeDuration.fromCurrent(uiBean.getPasswordLastModifiedTime());
+        if (detailInfo.getUserInfo().getPasswordLastModifiedTime() != null) {
+            final TimeDuration passwordSetDelta = TimeDuration.fromCurrent(detailInfo.getUserInfo().getPasswordLastModifiedTime());
             detailInfo.setPasswordSetDelta(passwordSetDelta.asLongString(pwmRequest.getLocale()));
         } else {
             detailInfo.setPasswordSetDelta(LocaleHelper.getLocalizedMessage(Display.Value_NotApplicable, pwmRequest));
@@ -139,7 +139,7 @@ public class HelpdeskDetailInfoBean implements Serializable {
 
         final String configuredDisplayName = helpdeskProfile.readSettingAsString(PwmSetting.HELPDESK_DETAIL_DISPLAY_NAME);
         if (configuredDisplayName != null && !configuredDisplayName.isEmpty()) {
-            final MacroMachine macroMachine = new MacroMachine(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), detailInfo.getUserInfoBean(), null, userDataReader);
+            final MacroMachine macroMachine = new MacroMachine(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), detailInfo.getUserInfo(), null, userDataReader);
             final String displayName = macroMachine.expandMacros(configuredDisplayName);
             detailInfo.setUserDisplayName(displayName);
         }
@@ -160,12 +160,12 @@ public class HelpdeskDetailInfoBean implements Serializable {
         this.userDisplayName = userDisplayName;
     }
 
-    public UserInfoBean getUserInfoBean() {
-        return userInfoBean;
+    public UserInfo getUserInfo() {
+        return userInfo;
     }
 
-    public void setUserInfoBean(final UserInfoBean userInfoBean) {
-        this.userInfoBean = userInfoBean;
+    public void setUserInfo(final UserInfo userInfo) {
+        this.userInfo = userInfo;
     }
 
     public boolean isIntruderLocked() {
