@@ -166,6 +166,9 @@ public class RandomPasswordGenerator {
         {
             final Map<String, String> newPolicyMap = new HashMap<>();
             newPolicyMap.putAll(randomGeneratorConfig.getPasswordPolicy().getPolicyMap());
+
+            final String max = newPolicyMap.put(PwmPasswordRule.MaximumLength.getKey(), String.valueOf(randomGeneratorConfig.getMaximumLength()));
+
             if (randomGeneratorConfig.getMinimumLength() > randomGeneratorConfig.getPasswordPolicy().getRuleHelper().readIntValue(PwmPasswordRule.MinimumLength)) {
                 newPolicyMap.put(PwmPasswordRule.MinimumLength.getKey(), String.valueOf(randomGeneratorConfig.getMinimumLength()));
             }

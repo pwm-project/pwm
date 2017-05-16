@@ -37,6 +37,7 @@ import java.util.Locale;
  */
 public enum Message implements PwmDisplayBundle {
     Success_PasswordChange(null),
+    Success_ChangedHelpdeskPassword(null),
     Success_SetupResponse(null),
     Success_ClearResponse(null),
     Success_Unknown(null),

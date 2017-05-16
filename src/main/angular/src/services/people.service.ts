@@ -21,7 +21,7 @@
  */
 
 
-import { isString, IHttpService, ILogService, IPromise, IQService } from 'angular';
+import { isString, IHttpService, ILogService, IPromise, IQService, IWindowService } from 'angular';
 import { IPerson } from '../models/person.model';
 import IPwmService from './pwm.service';
 import OrgChartData from '../models/orgchart-data.model';
@@ -38,11 +38,22 @@ export interface IPeopleService {
 }
 
 export default class PeopleService implements IPeopleService {
-    static $inject = ['$http', '$log', '$q', 'PwmService' ];
+    PWM_GLOBAL: any;
+
+    static $inject = ['$http', '$log', '$q', 'PwmService', '$window' ];
     constructor(private $http: IHttpService,
                 private $log: ILogService,
                 private $q: IQService,
-                private pwmService: IPwmService) {}
+                private pwmService: IPwmService,
+                $window: IWindowService)
+    {
+        if ($window['PWM_GLOBAL']) {
+            this.PWM_GLOBAL = $window['PWM_GLOBAL'];
+        }
+        else {
+            this.$log.warn('PWM_GLOBAL is not defined on window');
+        }
+    }
 
     autoComplete(query: string): IPromise<IPerson[]> {
         return this.search(query, { 'includeDisplayName': true })
@@ -151,12 +162,15 @@ export default class PeopleService implements IPeopleService {
     search(query: string, params?: any): IPromise<SearchResult> {
         // Deferred object used for aborting requests. See promise.service.ts for more information
         let httpTimeout = this.$q.defer();
-
+        let formID = encodeURIComponent('&pwmFormID=' + this.PWM_GLOBAL['pwmFormID']);
+        // Search window references to PWM_GLOBAL and PWM_MAIN add by legacy PWM code
         let request = this.$http
-            .get(this.pwmService.getServerUrl('search', params), {
-                cache: true,
-                params: { username: query },
-                timeout: httpTimeout.promise
+            .post(this.pwmService.getServerUrl('search') + '&pwmFormID=' + this.PWM_GLOBAL['pwmFormID'], {
+                timeout: httpTimeout.promise,
+                username: query,
+                pwmFormID: formID
+            }, {
+                headers: {'Content-Type': 'multipart/form-data'},
             });
 
         let promise = request.then(

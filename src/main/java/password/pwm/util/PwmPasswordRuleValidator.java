@@ -651,6 +651,7 @@ public class PwmPasswordRuleValidator {
         //Check maximum length
         {
             final int passwordMaximumLength = ruleHelper.readIntValue(PwmPasswordRule.MaximumLength);
+
             if (passwordMaximumLength > 0 && passwordLength > passwordMaximumLength) {
                 errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_LONG));
             }
