@@ -362,13 +362,9 @@ public abstract class PwmHttpRequestWrapper {
         String decodedValue = input;
         try {
             decodedValue = new String(input.getBytes("ISO-8859-1"), PwmConstants.DEFAULT_CHARSET);
-            if (decodedValue.contains("?")) {
-                decodedValue = input;
-            }
         } catch (UnsupportedEncodingException e) {
             LOGGER.error("error decoding request parameter: " + e.getMessage());
         }
-
         return decodedValue;
     }
 
