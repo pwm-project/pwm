@@ -55,9 +55,11 @@
                         final String value = formDataMap.get(formConfiguration);
                         if (formConfiguration.getType() == FormConfiguration.Type.checkbox) {
                     %>
-                    <%= LocaleHelper.booleanString(Boolean.parseBoolean(value),pwmRequest)%>
+                    <label class="checkboxWrapper">
+                        <input id="<%=formConfiguration.getName()%>" name="<%=formConfiguration.getName()%>" disabled type="checkbox" <%=(Boolean.parseBoolean(value))?"checked":""%>/>
+                    </label>
                     <% } else { %>
-                    <%=StringUtil.escapeHtml(value)%>
+                    <%=StringUtil.escapeHtml(formConfiguration.displayValue(value, JspUtility.locale(request), JspUtility.getPwmRequest(pageContext).getConfig()))%>
                     <% } %>
                 </td>
             </tr>

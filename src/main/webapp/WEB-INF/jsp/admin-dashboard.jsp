@@ -44,6 +44,8 @@
 <%@ page import="java.util.Locale" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.TreeMap" %>
+<%@ page import="java.lang.management.ThreadInfo" %>
+<%@ page import="java.lang.management.ManagementFactory" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html" %>
@@ -51,7 +53,7 @@
 <%
     final Locale locale = JspUtility.locale(request);
     final NumberFormat numberFormat = NumberFormat.getInstance(locale);
-    final Map<Thread,StackTraceElement[]> threads = Thread.getAllStackTraces();
+    final ThreadInfo[] threads = ManagementFactory.getThreadMXBean().dumpAllThreads(true,true);
     SessionTrackService sessionTrackService = null;
 
     PwmRequest dashboard_pwmRequest = null;
@@ -638,7 +640,7 @@
                             Threads
                         </td>
                         <td>
-                            <%= threads.size() %>
+                            <%= threads.length %>
                         </td>
                     </tr>
                 </table>
@@ -680,6 +682,7 @@
                 </table>
             </div>
             <div id="ThreadsTab" data-dojo-type="dijit.layout.ContentPane" title="Threads" class="tabContent">
+                <% if (dashboard_pwmApplication.getLocalDB() != null && dashboard_pwmRequest.readParameterAsBoolean("showThreadDetails")) { %>
                 <div style="max-height: 400px; overflow: auto;">
                     <table class="nomargin">
                         <tr>
@@ -690,53 +693,32 @@
                                 Name
                             </td>
                             <td style="font-weight:bold;">
-                                Priority
-                            </td>
-                            <td style="font-weight:bold;">
                                 State
-                            </td>
-                            <td style="font-weight:bold;">
-                                Daemon
                             </td>
                         </tr>
                         <%
                             try {
-                                final TreeMap<Long,Thread> sortedThreads = new TreeMap<Long, Thread>();
-                                for (final Thread t : threads.keySet()) {
-                                    sortedThreads.put(t.getId(),t);
-                                }
-
-                                for (final Thread t : sortedThreads.values()) {
+                                for (final ThreadInfo t : threads) {
                         %>
-                        <tr id="thread_<%=t.getId()%>">
+                        <tr id="thread_<%=t.getThreadId()%>">
                             <td>
-                                <%= t.getId() %>
+                                <%= t.getThreadId() %>
                             </td>
                             <td>
-                                <%= t.getName() != null ? t.getName() : JspUtility.getMessage(pageContext, Display.Value_NotApplicable) %>
+                                <%= t.getThreadName() != null ? t.getThreadName() : JspUtility.getMessage(pageContext, Display.Value_NotApplicable) %>
                             </td>
                             <td>
-                                <%= t.getPriority() %>
-                            </td>
-                            <td>
-                                <%= t.getState().toString().toLowerCase() %>
-                            </td>
-                            <td>
-                                <%= String.valueOf(t.isDaemon()) %>
+                                <%= t.getThreadState().toString().toLowerCase() %>
                             </td>
                         </tr>
                         <%
-                            final StringBuilder threadTrace = new StringBuilder();
-                            for (final StackTraceElement traceElement : threads.get(t)) {
-                                threadTrace.append(traceElement.toString());
-                                threadTrace.append("\n");
-                            }
+                            final String threadTrace = JavaHelper.threadInfoToString(t);
                         %>
                         <pwm:script>
                             <script type="application/javascript">
                                 PWM_GLOBAL['startupFunctions'].push(function(){
-                                    PWM_MAIN.addEventHandler('thread_<%=t.getId()%>','click',function(){
-                                        PWM_MAIN.showDialog({title:'Thread <%=t.getId()%>',text:'<pre>' +'<%=StringUtil.escapeJS(threadTrace.toString())%>' + '</pre>'})
+                                    PWM_MAIN.addEventHandler('thread_<%=t.getThreadId()%>','click',function(){
+                                        PWM_MAIN.showDialog({class:'wide',title:'Thread <%=t.getThreadId()%>',text:'<pre>' +'<%=StringUtil.escapeJS(threadTrace)%>' + '</pre>'})
                                     });
                                 });
                             </script>
@@ -745,6 +727,11 @@
                         <% } catch (Exception e) { /* */ } %>
                     </table>
                 </div>
+                <% } else { %>
+                <div class="noborder" style="text-align:center; width:100%;">
+                    <a style="cursor: pointer" id="button-showThreadDetails">Show thread details</a> (may be slow to load)
+                </div>
+                <% } %>
             </div>
         </div>
     </div>
@@ -761,6 +748,11 @@
                 PWM_MAIN.addEventHandler('button-showLocalDBCounts','click',function(){
                     PWM_MAIN.showWaitDialog({loadFunction:function(){
                         PWM_MAIN.goto('dashboard?showLocalDBCounts=true');
+                    }})
+                });
+                PWM_MAIN.addEventHandler('button-showThreadDetails','click',function(){
+                    PWM_MAIN.showWaitDialog({loadFunction:function(){
+                        PWM_MAIN.goto('dashboard?showThreadDetails=true');
                     }})
                 });
             });

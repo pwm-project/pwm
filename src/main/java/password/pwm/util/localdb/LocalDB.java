@@ -44,7 +44,7 @@ import java.util.Map;
 public interface LocalDB {
 // -------------------------- OTHER METHODS --------------------------
 
-    int MAX_KEY_LENGTH = 128;
+    int MAX_KEY_LENGTH = 256;
     int MAX_VALUE_LENGTH = 1024 * 100;
 
     enum Status {

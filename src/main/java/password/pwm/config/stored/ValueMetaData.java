@@ -25,18 +25,18 @@ package password.pwm.config.stored;
 import password.pwm.bean.UserIdentity;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.Instant;
 
 public class ValueMetaData implements Serializable {
-    private Date modifyDate;
+    private Instant modifyDate;
     private UserIdentity userIdentity;
 
-    public ValueMetaData(final Date modifyDate, final UserIdentity userIdentity) {
+    public ValueMetaData(final Instant modifyDate, final UserIdentity userIdentity) {
         this.modifyDate = modifyDate;
         this.userIdentity = userIdentity;
     }
 
-    public Date getModifyDate()
+    public Instant getModifyDate()
     {
         return modifyDate;
     }

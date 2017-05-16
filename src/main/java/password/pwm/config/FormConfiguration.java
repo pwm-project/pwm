@@ -29,8 +29,10 @@ import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.i18n.Display;
 import password.pwm.util.LocaleHelper;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 
 import java.io.Serializable;
 import java.math.BigInteger;
@@ -344,5 +346,26 @@ public class FormConfiguration implements Serializable {
         final Pattern pattern = Pattern.compile(patternStr);
         final Matcher matcher = pattern.matcher(address);
         return matcher.matches();
+    }
+
+    public String displayValue(final String value, final Locale locale, final Configuration config) {
+        if (value == null) {
+            return LocaleHelper.getLocalizedMessage(locale, Display.Value_NotApplicable, config);
+        }
+
+        if (this.getType() == Type.select) {
+            if (this.getSelectOptions() != null) {
+                for (final String key : selectOptions.keySet()) {
+                    if (value.equals(key)) {
+                        final String displayValue = selectOptions.get(key);
+                        if (!StringUtil.isEmpty(displayValue)) {
+                            return displayValue;
+                        }
+                    }
+                }
+            }
+        }
+
+        return value;
     }
 }

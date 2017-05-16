@@ -20,28 +20,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.bean;
+package password.pwm.svc.token;
 
-import com.google.gson.annotations.SerializedName;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
-import java.io.Serializable;
-import java.time.Instant;
-
-@Getter
-@AllArgsConstructor
-public class FormNonce implements Serializable {
-
-    @SerializedName("g")
-    private final String sessionGUID;
-
-    @SerializedName("t")
-    private final Instant timestamp;
-
-    @SerializedName("c")
-    private final int reqCounter;
-
-    @SerializedName("p")
-    private final String payload;
+interface TokenKey {
+    String getStoredHash();
 }

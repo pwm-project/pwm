@@ -23,37 +23,19 @@
 package password.pwm.bean;
 
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import password.pwm.util.java.JsonUtil;
 
 import java.io.Serializable;
 
+@Getter
+@AllArgsConstructor
 public class SmsItemBean implements Serializable {
-    private String to;
-    private String message;
+    private final String to;
+    private final String message;
 
-    // --------------------------- CONSTRUCTORS ---------------------------
-    public SmsItemBean(
-            final String to,
-            final String message
-    ) {
-        this.to = to;
-        this.message = message;
-    }
 
-// --------------------- GETTER / SETTER METHODS ---------------------
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(final String message) {
-        this.message = message;
-    }
-
-    public String getTo() {
-        return to;
-    }
-    
     public String toString() {
         return "SMS Item: " + JsonUtil.serialize(this);
     }

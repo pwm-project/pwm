@@ -47,7 +47,6 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
-import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.bean.ForgottenPasswordBean;
 import password.pwm.http.filter.AuthenticationFilter;
 import password.pwm.ldap.LdapUserDataReader;
@@ -115,23 +114,24 @@ class ForgottenPasswordUtil {
         return Collections.unmodifiableSet(result);
     }
 
-    static UserInfoBean readUserInfoBean(final PwmRequest pwmRequest, final ForgottenPasswordBean forgottenPasswordBean) throws PwmUnrecoverableException
-    {
+    static UserInfoBean readUserInfoBean(final PwmRequest pwmRequest, final ForgottenPasswordBean forgottenPasswordBean) throws PwmUnrecoverableException {
         if (forgottenPasswordBean.getUserIdentity() == null) {
             return null;
         }
 
+        final String CACHE_KEY = "ForgottenPassword-UserInfoCache";
+
         final UserIdentity userIdentity = forgottenPasswordBean.getUserIdentity();
 
         {
-            final UserInfoBean beanInRequest = (UserInfoBean)pwmRequest.getAttribute(PwmRequestAttribute.ForgottenPasswordUserInfo);
+            final UserInfoBean beanInRequest = (UserInfoBean)pwmRequest.getHttpServletRequest().getSession().getAttribute(CACHE_KEY);
             if (beanInRequest != null) {
                 if (userIdentity.equals(beanInRequest.getUserIdentity())) {
                     LOGGER.trace(pwmRequest, "using request cached UserInfoBean");
                     return beanInRequest;
                 } else {
                     LOGGER.trace(pwmRequest, "request cached userInfoBean is not for current user, clearing.");
-                    pwmRequest.setAttribute(PwmRequestAttribute.ForgottenPasswordUserInfo, null);
+                    pwmRequest.getHttpServletRequest().getSession().setAttribute(CACHE_KEY, null);
                 }
             }
         }
@@ -146,7 +146,7 @@ class ForgottenPasswordUtil {
                 chaiProvider
         );
 
-        pwmRequest.setAttribute(PwmRequestAttribute.ForgottenPasswordUserInfo, userInfoBean);
+        pwmRequest.getHttpServletRequest().getSession().setAttribute(CACHE_KEY, userInfoBean);
 
         return userInfoBean;
     }

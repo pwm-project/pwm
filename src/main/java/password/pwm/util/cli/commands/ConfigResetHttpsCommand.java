@@ -22,7 +22,7 @@
 
 package password.pwm.util.cli.commands;
 
-import password.pwm.PwmConstants;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.stored.ConfigurationReader;
@@ -53,7 +53,7 @@ public class ConfigResetHttpsCommand
         for (final PwmSetting setting : PwmSettingCategory.HTTPS_SERVER.getSettings()) {
             storedConfiguration.resetSetting(setting,null,null);
         }
-        configurationReader.saveConfiguration(storedConfiguration, cliEnvironment.getPwmApplication(), PwmConstants.CLI_SESSION_LABEL);
+        configurationReader.saveConfiguration(storedConfiguration, cliEnvironment.getPwmApplication(), SessionLabel.CLI_SESSION_LABEL);
         out("success");
     }
 

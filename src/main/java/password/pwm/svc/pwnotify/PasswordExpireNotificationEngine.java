@@ -62,7 +62,7 @@ public class PasswordExpireNotificationEngine {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(PasswordExpireNotificationEngine.class);
 
-    private static final SessionLabel SESSION_LABEL = PwmConstants.PW_EXP_NOTICE_LABEL;
+    private static final SessionLabel SESSION_LABEL = SessionLabel.PW_EXP_NOTICE_LABEL;
 
     private final Settings settings;
     private final PwmApplication pwmApplication;

@@ -34,7 +34,12 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.management.LockInfo;
+import java.lang.management.MonitorInfo;
+import java.lang.management.ThreadInfo;
 import java.lang.reflect.Method;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -255,7 +260,22 @@ public class JavaHelper {
     }
 
     public static String toIsoDate(final Date date) {
-        return date == null ? "" : PwmConstants.DEFAULT_DATETIME_FORMAT.format(date);
+        if (date == null) {
+            return "";
+        }
+
+        final DateFormat dateFormat = new SimpleDateFormat(
+                PwmConstants.DEFAULT_DATETIME_FORMAT_STR,
+                PwmConstants.DEFAULT_LOCALE
+        );
+
+        dateFormat.setTimeZone(PwmConstants.DEFAULT_TIMEZONE);
+
+        return dateFormat.format(date);
+    }
+
+    public static Instant parseIsoToInstant(final String input) {
+        return Instant.parse(input);
     }
 
     public static boolean closeAndWaitExecutor(final ExecutorService executor, final TimeDuration timeDuration)
@@ -337,5 +357,78 @@ public class JavaHelper {
                         JavaHelper.makeThreadName(pwmApplication,clazz) + "-",
                         true
                 ));
+    }
+
+
+    /**
+     * Copy of {@link ThreadInfo#toString()} but with the MAX_FRAMES changed from 8 to 256.
+     */
+    public static String threadInfoToString(final ThreadInfo threadInfo) {
+        final int MAX_FRAMES = 256;
+        final StringBuilder sb = new StringBuilder("\"" + threadInfo.getThreadName() + "\"" +
+                " Id=" + threadInfo.getThreadId() + " " +
+                threadInfo.getThreadState());
+        if (threadInfo.getLockName() != null) {
+            sb.append(" on " + threadInfo.getLockName());
+        }
+        if (threadInfo.getLockOwnerName() != null) {
+            sb.append(" owned by \"" + threadInfo.getLockOwnerName() +
+                    "\" Id=" + threadInfo.getLockOwnerId());
+        }
+        if (threadInfo.isSuspended()) {
+            sb.append(" (suspended)");
+        }
+        if (threadInfo.isInNative()) {
+            sb.append(" (in native)");
+        }
+        sb.append('\n');
+
+        int counter = 0;
+        for (; counter < threadInfo.getStackTrace().length && counter < MAX_FRAMES; counter++) {
+            final StackTraceElement ste = threadInfo.getStackTrace()[counter];
+            sb.append("\tat ").append(ste.toString());
+            sb.append('\n');
+            if (counter == 0 && threadInfo.getLockInfo() != null) {
+                final Thread.State ts = threadInfo.getThreadState();
+                switch (ts) {
+                    case BLOCKED:
+                        sb.append("\t-  blocked on " + threadInfo.getLockInfo());
+                        sb.append('\n');
+                        break;
+                    case WAITING:
+                        sb.append("\t-  waiting on " + threadInfo.getLockInfo());
+                        sb.append('\n');
+                        break;
+                    case TIMED_WAITING:
+                        sb.append("\t-  waiting on " + threadInfo.getLockInfo());
+                        sb.append('\n');
+                        break;
+                    default:
+                }
+            }
+
+            for (MonitorInfo mi : threadInfo.getLockedMonitors()) {
+                if (mi.getLockedStackDepth() == counter) {
+                    sb.append("\t-  locked " + mi);
+                    sb.append('\n');
+                }
+            }
+        }
+        if (counter < threadInfo.getStackTrace().length) {
+            sb.append("\t...");
+            sb.append('\n');
+        }
+
+        final LockInfo[] locks = threadInfo.getLockedSynchronizers();
+        if (locks.length > 0) {
+            sb.append("\n\tNumber of locked synchronizers = " + locks.length);
+            sb.append('\n');
+            for (LockInfo li : locks) {
+                sb.append("\t- " + li);
+                sb.append('\n');
+            }
+        }
+        sb.append('\n');
+        return sb.toString();
     }
 }

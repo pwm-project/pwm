@@ -43,6 +43,7 @@ import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
@@ -571,13 +572,13 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet {
                     userInfoBean.getPasswordLastModifiedTime(),
                     userInfoBean.getPasswordState()
             );
-        } catch (PwmOperationalException e) {
+        } catch (PwmException e) {
             final boolean enforceFromForgotten = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_ENFORCE_MINIMUM_PASSWORD_LIFETIME);
             if (!enforceFromForgotten && userInfoBean.isRequiresNewPassword()) {
                 LOGGER.debug(pwmSession, "current password is too young, but skipping enforcement of minimum lifetime check due to setting "
                         + PwmSetting.CHALLENGE_ENFORCE_MINIMUM_PASSWORD_LIFETIME.toMenuLocationDebug(null, pwmSession.getSessionStateBean().getLocale()));
             } else {
-                throw e;
+                throw new PwmUnrecoverableException(e.getErrorInformation());
             }
         }
 

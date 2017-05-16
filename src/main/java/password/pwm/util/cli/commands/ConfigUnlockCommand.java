@@ -22,7 +22,7 @@
 
 package password.pwm.util.cli.commands;
 
-import password.pwm.PwmConstants;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.config.stored.StoredConfigurationImpl;
@@ -40,7 +40,7 @@ public class ConfigUnlockCommand extends AbstractCliCommand {
         }
         
         storedConfiguration.writeConfigProperty(ConfigurationProperty.CONFIG_IS_EDITABLE,Boolean.toString(true));
-        configurationReader.saveConfiguration(storedConfiguration, cliEnvironment.getPwmApplication(), PwmConstants.CLI_SESSION_LABEL);
+        configurationReader.saveConfiguration(storedConfiguration, cliEnvironment.getPwmApplication(), SessionLabel.CLI_SESSION_LABEL);
         out("success");
     }
 

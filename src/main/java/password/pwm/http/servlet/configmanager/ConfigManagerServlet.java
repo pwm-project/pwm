@@ -65,9 +65,9 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -175,7 +175,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
         pwmRequest.setAttribute(PwmRequestAttribute.ApplicationPath, pwmRequest.getPwmApplication().getPwmEnvironment().getApplicationPath().getAbsolutePath());
         pwmRequest.setAttribute(PwmRequestAttribute.ConfigFilename, configurationReader.getConfigFile().getAbsolutePath());
         {
-            final Date lastModifyTime = configurationReader.getStoredConfiguration().modifyTime();
+            final Instant lastModifyTime = configurationReader.getStoredConfiguration().modifyTime();
             final String output = lastModifyTime == null
                     ? LocaleHelper.getLocalizedMessage(Display.Value_NotApplicable,pwmRequest)
                     : JavaHelper.toIsoDate(lastModifyTime);

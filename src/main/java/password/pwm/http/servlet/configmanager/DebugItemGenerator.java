@@ -344,7 +344,7 @@ public class DebugItemGenerator {
             final PrintWriter writer = new PrintWriter( new OutputStreamWriter(baos, PwmConstants.DEFAULT_CHARSET) );
             final ThreadInfo[] threads = ManagementFactory.getThreadMXBean().dumpAllThreads(true,true);
             for (final ThreadInfo threadInfo : threads) {
-                writer.write(threadInfo.toString());
+                writer.write(JavaHelper.threadInfoToString(threadInfo));
             }
             writer.flush();
             outputStream.write(baos.toByteArray());
@@ -417,13 +417,17 @@ public class DebugItemGenerator {
                     csvPrinter.printComment(StringUtil.join(headerRow,","));
                 }
                 for (final FileSystemUtility.FileSummaryInformation fileSummaryInformation : fileSummaryInformations) {
-                    final List<String> dataRow = new ArrayList<>();
-                    dataRow.add(fileSummaryInformation.getFilepath());
-                    dataRow.add(fileSummaryInformation.getFilename());
-                    dataRow.add(JavaHelper.toIsoDate(fileSummaryInformation.getModified()));
-                    dataRow.add(String.valueOf(fileSummaryInformation.getSize()));
-                    dataRow.add(fileSummaryInformation.getSha1sum());
-                    csvPrinter.printRecord(dataRow);
+                    try {
+                        final List<String> dataRow = new ArrayList<>();
+                        dataRow.add(fileSummaryInformation.getFilepath());
+                        dataRow.add(fileSummaryInformation.getFilename());
+                        dataRow.add(JavaHelper.toIsoDate(fileSummaryInformation.getModified()));
+                        dataRow.add(String.valueOf(fileSummaryInformation.getSize()));
+                        dataRow.add(fileSummaryInformation.getSha1sum());
+                        csvPrinter.printRecord(dataRow);
+                    } catch (Exception e) {
+                        LOGGER.trace("error generating file summary info: " + e.getMessage());
+                    }
                 }
                 csvPrinter.flush();
             }

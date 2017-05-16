@@ -26,6 +26,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
@@ -101,7 +102,7 @@ public class ConfigurationChecker implements HealthChecker {
                         HealthRecord.forMessage(HealthMessage.Config_NoSiteURL, PwmSetting.PWM_SITE_URL.toMenuLocationDebug(null,locale)));
             }
         } catch (PwmException e) {
-            LOGGER.error(PwmConstants.HEALTH_SESSION_LABEL,"error while inspecting site URL setting: " + e.getMessage());
+            LOGGER.error(SessionLabel.HEALTH_SESSION_LABEL,"error while inspecting site URL setting: " + e.getMessage());
         }
 
         if (config.readSettingAsBoolean(PwmSetting.LDAP_ENABLE_WIRE_TRACE)) {
@@ -163,7 +164,7 @@ public class ConfigurationChecker implements HealthChecker {
                                             setting.toMenuLocationDebug(null,locale), String.valueOf(strength)));
                                 }
                             } catch (Exception e) {
-                                LOGGER.error(PwmConstants.HEALTH_SESSION_LABEL,"error while inspecting setting "
+                                LOGGER.error(SessionLabel.HEALTH_SESSION_LABEL,"error while inspecting setting "
                                         + setting.toMenuLocationDebug(null,locale) +  ", error: " + e.getMessage());
                             }
                         }
@@ -181,7 +182,7 @@ public class ConfigurationChecker implements HealthChecker {
                                 String.valueOf(strength)));
                     }
                 } catch (PwmException e) {
-                    LOGGER.error(PwmConstants.HEALTH_SESSION_LABEL,"error while inspecting setting " + setting.toMenuLocationDebug(profile.getIdentifier(),locale) +  ", error: " + e.getMessage());
+                    LOGGER.error(SessionLabel.HEALTH_SESSION_LABEL,"error while inspecting setting " + setting.toMenuLocationDebug(profile.getIdentifier(),locale) +  ", error: " + e.getMessage());
                 }
             }
         }

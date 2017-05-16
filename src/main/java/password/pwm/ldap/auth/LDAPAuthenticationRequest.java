@@ -33,6 +33,7 @@ import com.novell.ldapchai.exception.ImpossiblePasswordPolicyException;
 import com.novell.ldapchai.impl.oracleds.entry.OracleDSEntries;
 import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.provider.ChaiSetting;
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
@@ -429,13 +430,18 @@ class LDAPAuthenticationRequest implements AuthenticationRequest {
                 ORACLE_ATTR_PW_ALLOW_CHG_TIME);
         log(PwmLogLevel.TRACE,"read OracleDS value of passwordAllowChangeTime value=" + oracleDS_PrePasswordAllowChangeTime);
 
+
         if (oracleDS_PrePasswordAllowChangeTime != null && !oracleDS_PrePasswordAllowChangeTime.isEmpty()) {
             final Date date = OracleDSEntries.convertZuluToDate(oracleDS_PrePasswordAllowChangeTime);
-            if (new Date().before(date)) {
-                final String errorMsg = "change not permitted until " + JavaHelper.toIsoDate(
-                        date);
-                throw new PwmUnrecoverableException(
-                        new ErrorInformation(PwmError.PASSWORD_TOO_SOON, errorMsg));
+
+            final boolean enforceFromForgotten = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_ENFORCE_MINIMUM_PASSWORD_LIFETIME);
+            if (enforceFromForgotten) {
+                if (new Date().before(date)) {
+                    final String errorMsg = "change not permitted until " + JavaHelper.toIsoDate(
+                            date);
+                    throw new PwmUnrecoverableException(
+                            new ErrorInformation(PwmError.PASSWORD_TOO_SOON, errorMsg));
+                }
             }
         }
 
@@ -471,11 +477,21 @@ class LDAPAuthenticationRequest implements AuthenticationRequest {
                     chaiUser.getEntryDN(),
                     ORACLE_ATTR_PW_ALLOW_CHG_TIME);
             if (oracleDS_PostPasswordAllowChangeTime != null && !oracleDS_PostPasswordAllowChangeTime.isEmpty()) {
-                // password allow change time has appeared, but wasn't present previously, so delete it.
-                log(PwmLogLevel.TRACE, "a new value for passwordAllowChangeTime attribute to user " + chaiUser.getEntryDN() + " has appeared, will remove");
-                chaiProvider.deleteStringAttributeValue(chaiUser.getEntryDN(), ORACLE_ATTR_PW_ALLOW_CHG_TIME,
-                        oracleDS_PostPasswordAllowChangeTime);
-                log(PwmLogLevel.TRACE, "deleted attribute value for passwordAllowChangeTime attribute on user " + chaiUser.getEntryDN());
+                final boolean PostTempUseCurrentTime = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.LDAP_ORACLE_POST_TEMPPW_USE_CURRENT_TIME));
+                if (PostTempUseCurrentTime) {
+                    log(PwmLogLevel.TRACE, "a new value for passwordAllowChangeTime attribute to user " + chaiUser.getEntryDN() + " has appeared, will replace with current time value");
+                    final String newTimeValue = OracleDSEntries.convertDateToZulu(new Date());
+                    final Set<String> values = new HashSet<>(Collections.singletonList(newTimeValue));
+                    chaiProvider.writeStringAttribute(chaiUser.getEntryDN(), ORACLE_ATTR_PW_ALLOW_CHG_TIME, values, true);
+                    log(PwmLogLevel.TRACE, "wrote attribute value '" + newTimeValue + "' for passwordAllowChangeTime attribute on user " + chaiUser.getEntryDN());
+                } else {
+                    // password allow change time has appeared, but wasn't present previously, so delete it.
+                    log(PwmLogLevel.TRACE, "a new value for passwordAllowChangeTime attribute to user " + chaiUser.getEntryDN() + " has appeared, will remove");
+                    chaiProvider.deleteStringAttributeValue(chaiUser.getEntryDN(), ORACLE_ATTR_PW_ALLOW_CHG_TIME,
+                            oracleDS_PostPasswordAllowChangeTime);
+                    log(PwmLogLevel.TRACE, "deleted attribute value for passwordAllowChangeTime attribute on user " + chaiUser.getEntryDN());
+                }
+
             }
         }
     }

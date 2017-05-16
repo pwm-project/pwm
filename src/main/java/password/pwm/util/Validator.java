@@ -98,7 +98,7 @@ public class Validator {
                         submittedPwmFormID,
                         FormNonce.class
                 );
-                final String submittedRequestVerificationKey = String.valueOf(formNonce.getRequestID());
+                final String submittedRequestVerificationKey = String.valueOf(formNonce.getReqCounter());
                 if (!requestVerificationKey.equals(submittedRequestVerificationKey)) {
                     final String debugMsg = "expectedPageID=" + requestVerificationKey
                             + ", submittedPageID=" + submittedRequestVerificationKey

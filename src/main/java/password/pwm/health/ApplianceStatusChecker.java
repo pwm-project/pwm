@@ -24,8 +24,8 @@ package password.pwm.health;
 
 import org.apache.commons.io.FileUtils;
 import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
 import password.pwm.PwmEnvironment;
+import password.pwm.bean.SessionLabel;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -69,7 +69,7 @@ public class ApplianceStatusChecker implements HealthChecker {
         try {
             healthRecords.addAll(readApplianceHealthStatus(pwmApplication));
         } catch (Exception e) {
-            LOGGER.error(PwmConstants.HEALTH_SESSION_LABEL, "error communicating with client " + e.getMessage());
+            LOGGER.error(SessionLabel.HEALTH_SESSION_LABEL, "error communicating with client " + e.getMessage());
         }
 
         return healthRecords;
@@ -85,11 +85,11 @@ public class ApplianceStatusChecker implements HealthChecker {
                 .setPromiscuous(true)
                 .create();
 
-        final PwmHttpClient pwmHttpClient = new PwmHttpClient(pwmApplication, PwmConstants.HEALTH_SESSION_LABEL, pwmHttpClientConfiguration);
+        final PwmHttpClient pwmHttpClient = new PwmHttpClient(pwmApplication, SessionLabel.HEALTH_SESSION_LABEL, pwmHttpClientConfiguration);
         final PwmHttpClientRequest pwmHttpClientRequest = new PwmHttpClientRequest(HttpMethod.GET, url, null, requestHeaders);
         final PwmHttpClientResponse response = pwmHttpClient.makeRequest(pwmHttpClientRequest);
 
-        LOGGER.trace(PwmConstants.HEALTH_SESSION_LABEL, "https response from appliance server request: " + response.getBody());
+        LOGGER.trace(SessionLabel.HEALTH_SESSION_LABEL, "https response from appliance server request: " + response.getBody());
 
         final String jsonString = response.getBody();
 
@@ -139,7 +139,7 @@ public class ApplianceStatusChecker implements HealthChecker {
         final String port = pwmApplication.getPwmEnvironment().getParameters().get(PwmEnvironment.ApplicationParameter.AppliancePort);
 
         final String url = "https://" + hostname + ":" + port + "/sspr/appliance-update-status";
-        LOGGER.trace(PwmConstants.HEALTH_SESSION_LABEL, "calculated appliance host url as: " + url);
+        LOGGER.trace(SessionLabel.HEALTH_SESSION_LABEL, "calculated appliance host url as: " + url);
         return url;
     }
 

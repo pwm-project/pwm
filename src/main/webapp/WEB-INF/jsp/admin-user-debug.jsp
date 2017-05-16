@@ -161,7 +161,7 @@
                 <td class="key">
                     Password Readable From LDAP
                 </td>
-                <td id="PasswordViolatesPolicy">
+                <td>
                     <%= JspUtility.freindlyWrite(pageContext, userDebugDataBean.isPasswordReadable()) %>
                 </td>
             </tr>
@@ -294,7 +294,7 @@
             <% if (responseInfoBean == null) { %>
             <tr>
                 <td>Stored Responses</td>
-                <td><pwm:display key="Display_NotApplicable"/></td>
+                <td><pwm:display key="<%=Display.Value_NotApplicable.toString()%>"/></td>
             </tr>
             <% } else { %>
             <tr>
@@ -362,7 +362,7 @@
                 <% final Map<Challenge,String> helpdeskCrMap = responseInfoBean.getHelpdeskCrMap(); %>
                 <% if (helpdeskCrMap == null) { %>
                 <td>
-                <pwm:display key="Display_NotApplicable"/>
+                <pwm:display key="<%=Display.Value_NotApplicable.toString()%>"/>
                 </td>
                 <% } else { %>
                 <td>
@@ -383,7 +383,7 @@
             <% if (challengeProfile == null) { %>
             <tr>
                 <td>Assigned Profile</td>
-                <td><pwm:display key="Display_NotApplicable"/></td>
+                <td><pwm:display key="<%=Display.Value_NotApplicable.toString()%>"/></td>
             </tr>
             <% } else { %>
             <tr>

@@ -151,11 +151,9 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet {
         }
         final boolean includeDisplayName = pwmRequest.readParameterAsBoolean("includeDisplayName");
 
-        // if not in cache, build results from ldap
         final PeopleSearchDataReader peopleSearchDataReader = new PeopleSearchDataReader(pwmRequest);
 
         final SearchResultBean searchResultBean = peopleSearchDataReader.makeSearchResultBean(username, includeDisplayName);
-        searchResultBean.setFromCache(false);
         final RestResultBean restResultBean = new RestResultBean(searchResultBean);
 
         addExpiresHeadersToResponse(pwmRequest);

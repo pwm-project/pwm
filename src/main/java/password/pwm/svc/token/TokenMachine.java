@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,29 +26,28 @@ import password.pwm.bean.SessionLabel;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 
-import java.util.Iterator;
-
 interface TokenMachine {
     String generateToken( SessionLabel sessionLabel,  TokenPayload tokenPayload)
             throws PwmUnrecoverableException, PwmOperationalException;
 
-    TokenPayload retrieveToken(String tokenKey, SessionLabel sessionLabel)
+    TokenPayload retrieveToken(TokenKey tokenKey)
             throws PwmOperationalException, PwmUnrecoverableException;
 
-    void storeToken( String tokenKey,  TokenPayload tokenPayload)
+    void storeToken(TokenKey tokenKey, TokenPayload tokenPayload)
             throws PwmOperationalException, PwmUnrecoverableException;
 
-    void removeToken(String tokenKey, SessionLabel sessionLabel)
+    void removeToken(TokenKey tokenKey)
             throws PwmOperationalException, PwmUnrecoverableException;
 
     int size()
-            throws PwmOperationalException, PwmUnrecoverableException;
-
-    Iterator<String> keyIterator()
             throws PwmOperationalException, PwmUnrecoverableException;
 
     void cleanup()
             throws PwmUnrecoverableException, PwmOperationalException;
 
     boolean supportsName();
+
+    TokenKey keyFromKey(String key) throws PwmUnrecoverableException;
+
+    TokenKey keyFromStoredHash(String storedHash);
 }

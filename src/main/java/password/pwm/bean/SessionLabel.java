@@ -22,10 +22,21 @@
 
 package password.pwm.bean;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 import java.io.Serializable;
 
+@Getter
+@AllArgsConstructor
 public class SessionLabel implements Serializable {
     public static final SessionLabel SYSTEM_LABEL = null;
+    public static final String SESSION_LABEL_SESSION_ID = "#";
+    public static final SessionLabel PW_EXP_NOTICE_LABEL = new SessionLabel(SESSION_LABEL_SESSION_ID ,null,"pwExpireNotice",null,null);
+    public static final SessionLabel TOKEN_SESSION_LABEL = new SessionLabel(SESSION_LABEL_SESSION_ID ,null,"token",null,null);
+    public static final SessionLabel CLI_SESSION_LABEL= new SessionLabel(SESSION_LABEL_SESSION_ID ,null,"cli",null,null);
+    public static final SessionLabel HEALTH_SESSION_LABEL = new SessionLabel(SESSION_LABEL_SESSION_ID ,null,"health",null,null);
+    public static final SessionLabel REPORTING_SESSION_LABEL = new SessionLabel(SESSION_LABEL_SESSION_ID ,null,"reporting",null,null);
 
     private final String sessionID;
     private final UserIdentity userIdentity;
@@ -33,40 +44,6 @@ public class SessionLabel implements Serializable {
     private final String srcAddress;
     private final String srcHostname;
 
-    public SessionLabel(final String sessionID, final UserIdentity userIdentity, final String username, final String srcAddress, final String srcHostname)
-    {
-        this.sessionID = sessionID;
-        this.userIdentity = userIdentity;
-        this.username = username;
-        this.srcAddress = srcAddress;
-        this.srcHostname = srcHostname;
-    }
-
-    public String getSessionID()
-    {
-        return sessionID;
-    }
-
-    public String getUsername()
-    {
-        return username;
-    }
-
-    public UserIdentity getUserIdentity()
-    {
-        return userIdentity;
-    }
-
-    public String getSrcAddress()
-    {
-        return srcAddress;
-    }
-
-    public String getSrcHostname()
-    {
-        return srcHostname;
-    }
-    
     public String toString() {
         if (this.getSessionID() == null || this.getSessionID().isEmpty()) {
             return "";

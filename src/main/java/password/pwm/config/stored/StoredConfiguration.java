@@ -29,7 +29,7 @@ import password.pwm.config.StoredValue;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.secure.PwmSecurityKey;
 
-import java.util.Date;
+import java.time.Instant;
 
 public interface StoredConfiguration {
     String XML_ELEMENT_ROOT = "PwmConfiguration";
@@ -56,7 +56,7 @@ public interface StoredConfiguration {
 
     PwmSecurityKey getKey() throws PwmUnrecoverableException;
 
-    Date modifyTime();
+    Instant modifyTime();
 
     boolean isLocked();
 
