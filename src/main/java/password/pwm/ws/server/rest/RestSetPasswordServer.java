@@ -59,6 +59,7 @@ import java.io.Serializable;
 public class RestSetPasswordServer extends AbstractRestServer {
 
     public static final PwmLogger LOGGER = PwmLogger.forClass(RestSetPasswordServer.class);
+    private static Serializable restResultBeanData;
 
     public static class JsonInputData implements Serializable
     {
@@ -196,10 +197,13 @@ public class RestSetPasswordServer extends AbstractRestServer {
             final RestResultBean restResultBean = new RestResultBean();
             restResultBean.setError(false);
             restResultBean.setData(jsonResultData);
-            restResultBean.setSuccessMessage(Message.getLocalizedMessage(
+            final String msg = Message.getLocalizedMessage(
                     restRequestBean.getPwmSession().getSessionStateBean().getLocale(),
-                    Message.Success_PasswordChange,
-                    restRequestBean.getPwmApplication().getConfig()));
+                    Message.Success_ChangedHelpdeskPassword,
+                    restRequestBean.getPwmApplication().getConfig());
+            String[] strs = jsonResultData.username.split("=");
+            strs = strs[1].split(",");
+            restResultBean.setSuccessMessage(msg + strs[0]);
             return restResultBean.asJsonResponse();
         } catch (PwmException e) {
             LOGGER.error("error during set password REST operation: " + e.getMessage());
