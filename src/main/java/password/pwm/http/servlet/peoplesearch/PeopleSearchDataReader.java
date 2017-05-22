@@ -508,8 +508,13 @@ public class PeopleSearchDataReader {
         if (Boolean.parseBoolean(pwmRequest.getConfig().readAppProperty(AppProperty.PEOPLESEARCH_DISPLAYNAME_USEALLMACROS))) {
             final Locale locale = pwmRequest.getLocale();
             final ChaiProvider chaiProvider = pwmRequest.getPwmApplication().getProxiedChaiUser(userIdentity).getChaiProvider();
-            final UserInfoFactory userStatusReader = new UserInfoFactory(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel());
-            userInfo = userStatusReader.populateUserInfoBean(locale, userIdentity, chaiProvider);
+            userInfo = UserInfoFactory.newUserInfo(
+                    pwmRequest.getPwmApplication(),
+                    pwmRequest.getSessionLabel(),
+                    locale,
+                    userIdentity,
+                    chaiProvider
+            );
         } else {
             userInfo = null;
         }

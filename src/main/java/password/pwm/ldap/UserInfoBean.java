@@ -57,7 +57,7 @@ public class UserInfoBean implements UserInfo {
     
     private Map<ProfileType,String> profileIDs = new HashMap<>();
 
-    private PasswordStatus passwordState = PasswordStatus.builder().build();
+    private PasswordStatus passwordStatus = PasswordStatus.builder().build();
 
     private PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.defaultPolicy();
     private ChallengeProfile challengeProfile = null;

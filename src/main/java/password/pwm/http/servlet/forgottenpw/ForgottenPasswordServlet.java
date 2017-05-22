@@ -873,7 +873,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
                         pwmRequest.getSessionLabel(),
                         userInfo.getPasswordPolicy(),
                         userInfo.getPasswordLastModifiedTime(),
-                        userInfo.getPasswordState()
+                        userInfo.getPasswordStatus()
                 );
             }
         } catch (PwmOperationalException e) {
@@ -889,7 +889,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
         }
 
         if (forgottenPasswordProfile.readSettingAsBoolean(PwmSetting.RECOVERY_ALLOW_UNLOCK)) {
-            final PasswordStatus passwordStatus = userInfo.getPasswordState();
+            final PasswordStatus passwordStatus = userInfo.getPasswordStatus();
 
             if (!passwordStatus.isExpired() && !passwordStatus.isPreExpired()) {
                 try {

@@ -37,6 +37,7 @@ import password.pwm.config.FormConfiguration;
 import password.pwm.config.FormUtility;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.UserPermission;
+import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.option.ForceSetupPolicy;
 import password.pwm.config.profile.ChallengeProfile;
 import password.pwm.config.profile.LdapProfile;
@@ -105,7 +106,7 @@ public class UserInfoReader implements UserInfo {
         this.chaiUser = ChaiFactory.createChaiUser(userIdentity.getUserDN(), cachingProvider);
     }
 
-    static UserInfo createLazyUserInfo(
+    static UserInfo create(
             final UserIdentity userIdentity,
             final PasswordData currentPassword,
             final SessionLabel sessionLabel,
@@ -125,7 +126,7 @@ public class UserInfoReader implements UserInfo {
     public Map<String, String> getCachedPasswordRuleAttributes() throws PwmUnrecoverableException
     {
         try {
-            final Set<String> interestingUserAttributes = UserInfoFactory.figurePasswordRuleAttributes(selfCachedReference);
+            final Set<String> interestingUserAttributes = figurePasswordRuleAttributes(selfCachedReference);
             final Map<String, String> allUserAttrs = chaiUser.readStringAttributes(interestingUserAttributes);
             return Collections.unmodifiableMap(allUserAttrs);
         } catch (ChaiOperationException e) {
@@ -218,7 +219,7 @@ public class UserInfoReader implements UserInfo {
     }
 
     @Override
-    public PasswordStatus getPasswordState() throws PwmUnrecoverableException
+    public PasswordStatus getPasswordStatus() throws PwmUnrecoverableException
     {
         final Configuration config = pwmApplication.getConfig();
         final PasswordStatus.PasswordStatusBuilder passwordStatusBuilder = PasswordStatus.builder();
@@ -311,7 +312,7 @@ public class UserInfoReader implements UserInfo {
     @Override
     public boolean isRequiresNewPassword() throws PwmUnrecoverableException
     {
-        final PasswordStatus passwordStatus = selfCachedReference.getPasswordState();
+        final PasswordStatus passwordStatus = selfCachedReference.getPasswordStatus();
         final List<UserPermission> updateProfilePermission = pwmApplication.getConfig().readSettingAsUserPermission(
                 PwmSetting.QUERY_MATCH_CHANGE_PASSWORD);
         if (!LdapPermissionTester.testUserPermissions(pwmApplication, sessionLabel, userIdentity, updateProfilePermission)) {
@@ -546,4 +547,21 @@ public class UserInfoReader implements UserInfo {
         }
         return Collections.unmodifiableMap(returnMap);
     }
+
+    private static Set<String> figurePasswordRuleAttributes(
+            final UserInfo uiBean
+    ) throws PwmUnrecoverableException
+    {
+        final Set<String> interestingUserAttributes = new HashSet<>();
+        interestingUserAttributes.addAll(uiBean.getPasswordPolicy().getRuleHelper().getDisallowedAttributes());
+        if (uiBean.getPasswordPolicy().getRuleHelper().getADComplexityLevel() == ADPolicyComplexity.AD2003
+                || uiBean.getPasswordPolicy().getRuleHelper().getADComplexityLevel() == ADPolicyComplexity.AD2008) {
+            interestingUserAttributes.add("sAMAccountName");
+            interestingUserAttributes.add("displayName");
+            interestingUserAttributes.add("fullname");
+            interestingUserAttributes.add("cn");
+        }
+        return interestingUserAttributes;
+    }
+
 }

@@ -244,9 +244,10 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
             }
 
             // send email.
-            final UserInfoFactory userStatusReader = new UserInfoFactory(pwmApplication,pwmSession.getLabel());
-            final UserInfo guestUserInfoBean = userStatusReader.populateUserInfoBean(
-                    pwmSession.getSessionStateBean().getLocale(),
+            final UserInfo guestUserInfoBean = UserInfoFactory.newUserInfo(
+                    pwmApplication,
+                    pwmRequest.getSessionLabel(),
+                    pwmRequest.getLocale(),
                     guestRegistrationBean.getUpdateUserIdentity(),
                     theGuest.getChaiProvider()
             );

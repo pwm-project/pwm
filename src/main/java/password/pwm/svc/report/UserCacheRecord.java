@@ -76,7 +76,7 @@ public class UserCacheRecord implements Serializable {
         this.setEmail(userInfo.getUserEmailAddress());
         this.setUserGUID(userInfo.getUserGuid());
 
-        this.setPasswordStatus(userInfo.getPasswordState());
+        this.setPasswordStatus(userInfo.getPasswordStatus());
 
         this.setPasswordChangeTime(userInfo.getPasswordLastModifiedTime());
         this.setPasswordExpirationTime(userInfo.getPasswordExpirationTime());

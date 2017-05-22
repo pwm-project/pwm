@@ -54,6 +54,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
+import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.util.PasswordData;
 import password.pwm.util.RandomPasswordGenerator;
@@ -236,8 +237,14 @@ public class LDAPStatusChecker implements HealthChecker {
 
                         final PasswordStatus passwordStatus;
                         {
-                            final UserInfoFactory userStatusReader = new UserInfoFactory(pwmApplication, SessionLabel.HEALTH_SESSION_LABEL);
-                            passwordStatus = userStatusReader.readPasswordStatus(theUser, passwordPolicy, null, null);
+                            final UserInfo userInfo = UserInfoFactory.newUserInfo(
+                                    pwmApplication,
+                                    SessionLabel.HEALTH_SESSION_LABEL,
+                                    locale,
+                                    userIdentity,
+                                    chaiProvider
+                            );
+                            passwordStatus = userInfo.getPasswordStatus();
                         }
 
                         try {
@@ -280,17 +287,24 @@ public class LDAPStatusChecker implements HealthChecker {
 
             try {
                 final UserIdentity userIdentity = new UserIdentity(theUser.getEntryDN(),ldapProfile.getIdentifier());
-                final UserInfoFactory.Settings readerSettings = new UserInfoFactory.Settings();
-                final UserInfoFactory userStatusReader = new UserInfoFactory(
+                final UserInfo userInfo = UserInfoFactory.newUserInfo(
                         pwmApplication,
                         SessionLabel.HEALTH_SESSION_LABEL,
-                        readerSettings
-                );
-                userStatusReader.populateUserInfoBean(
                         PwmConstants.DEFAULT_LOCALE,
                         userIdentity,
                         chaiProvider
                 );
+                userInfo.getPasswordStatus();
+                userInfo.getAccountExpirationTime();
+                userInfo.getResponseInfoBean();
+                userInfo.getPasswordPolicy();
+                userInfo.getChallengeProfile();
+                userInfo.getProfileIDs();
+                userInfo.getOtpUserRecord();
+                userInfo.getUserGuid();
+                userInfo.getUsername();
+                userInfo.getUserEmailAddress();
+                userInfo.getUserSmsNumber();
             } catch (PwmUnrecoverableException e) {
                 returnRecords.add(new HealthRecord(
                         HealthStatus.WARN,

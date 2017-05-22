@@ -22,13 +22,12 @@
 
 package password.pwm.ws.server.rest;
 
-import password.pwm.ldap.UserInfo;
-import password.pwm.ldap.UserInfoBean;
 import password.pwm.bean.pub.PublicUserInfoBean;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
@@ -81,9 +80,9 @@ public class RestStatusServer extends AbstractRestServer {
         try {
             final UserInfo userInfo;
             if (restRequestBean.getUserIdentity() != null) {
-                userInfo = new UserInfoBean();
-                final UserInfoFactory userStatusReader = new UserInfoFactory(restRequestBean.getPwmApplication(),restRequestBean.getPwmSession().getLabel());
-                userStatusReader.populateUserInfoBean(
+                userInfo = UserInfoFactory.newUserInfo(
+                        restRequestBean.getPwmApplication(),
+                        restRequestBean.getPwmSession().getLabel(),
                         restRequestBean.getPwmSession().getSessionStateBean().getLocale(),
                         restRequestBean.getUserIdentity(),
                         restRequestBean.getPwmSession().getSessionManager().getChaiProvider()

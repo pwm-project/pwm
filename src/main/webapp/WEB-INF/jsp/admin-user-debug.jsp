@@ -129,7 +129,7 @@
                     <pwm:display key="Field_PasswordExpired"/>
                 </td>
                 <td id="PasswordExpired">
-                    <%= JspUtility.freindlyWrite(pageContext, userInfo.getPasswordState().isExpired()) %>
+                    <%= JspUtility.freindlyWrite(pageContext, userInfo.getPasswordStatus().isExpired()) %>
                 </td>
             </tr>
             <tr>
@@ -137,7 +137,7 @@
                     <pwm:display key="Field_PasswordPreExpired"/>
                 </td>
                 <td id="PasswordPreExpired">
-                    <%= JspUtility.freindlyWrite(pageContext, userInfo.getPasswordState().isPreExpired()) %>
+                    <%= JspUtility.freindlyWrite(pageContext, userInfo.getPasswordStatus().isPreExpired()) %>
                 </td>
             </tr>
             <tr>
@@ -145,7 +145,7 @@
                     <pwm:display key="Field_PasswordWithinWarningPeriod"/>
                 </td>
                 <td id="PasswordWithinWarningPeriod">
-                    <%= JspUtility.freindlyWrite(pageContext, userInfo.getPasswordState().isWarnPeriod()) %>
+                    <%= JspUtility.freindlyWrite(pageContext, userInfo.getPasswordStatus().isWarnPeriod()) %>
                 </td>
             </tr>
             <tr>
@@ -153,7 +153,7 @@
                     <pwm:display key="Field_PasswordViolatesPolicy"/>
                 </td>
                 <td id="PasswordViolatesPolicy">
-                    <%= JspUtility.freindlyWrite(pageContext, userInfo.getPasswordState().isViolatesPolicy()) %>
+                    <%= JspUtility.freindlyWrite(pageContext, userInfo.getPasswordStatus().isViolatesPolicy()) %>
                 </td>
             </tr>
             <tr>

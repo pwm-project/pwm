@@ -147,18 +147,20 @@ public class PwmSession implements Serializable {
     {
         LOGGER.trace(this, "performing reloadUserInfoBean");
         final UserInfo oldUserInfoBean = getUserInfo();
-        final UserInfoFactory userStatusReader = new UserInfoFactory(pwmApplication, getLabel());
-
 
         final UserInfo userInfo;
         if (getLoginInfoBean().getAuthFlags().contains(AuthenticationType.AUTH_BIND_INHIBIT)) {
-            userInfo = userStatusReader.populateUserInfoBean(
+            userInfo = UserInfoFactory.newUserInfo(
+                    pwmApplication,
+                    getLabel(),
                     getSessionStateBean().getLocale(),
                     oldUserInfoBean.getUserIdentity(),
                     pwmApplication.getProxyChaiProvider(oldUserInfoBean.getUserIdentity().getLdapProfileID())
             );
         } else {
-            userInfo = userStatusReader.populateActorUserInfoBeanUsingProxy(
+            userInfo = UserInfoFactory.newUserInfoUsingProxy(
+                    pwmApplication,
+                    getLabel(),
                     oldUserInfoBean.getUserIdentity(),
                     getSessionStateBean().getLocale(),
                     loginInfoBean.getUserCurrentPassword()
@@ -257,7 +259,7 @@ public class PwmSession implements Serializable {
             debugData.put("sessionID",getSessionStateBean().getSessionID());
             debugData.put("auth",this.isAuthenticated());
             if (this.isAuthenticated()) {
-                debugData.put("passwordStatus", getUserInfo().getPasswordState());
+                debugData.put("passwordStatus", getUserInfo().getPasswordStatus());
                 debugData.put("guid", getUserInfo().getUserGuid());
                 debugData.put("dn", getUserInfo().getUserIdentity());
                 debugData.put("authType",getLoginInfoBean().getType());

@@ -28,7 +28,6 @@ import com.novell.ldapchai.cr.ChallengeSet;
 import com.novell.ldapchai.cr.ResponseSet;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
-import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -136,12 +135,11 @@ class ForgottenPasswordUtil {
             }
         }
 
-        final ChaiProvider chaiProvider = pwmRequest.getPwmApplication().getProxyChaiProvider(userIdentity.getLdapProfileID());
-        final UserInfoFactory userStatusReader = new UserInfoFactory(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel());
-        final UserInfo userInfo = userStatusReader.populateUserInfoBean(
+        final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy(
+                pwmRequest.getPwmApplication(),
+                pwmRequest.getSessionLabel(),
                 pwmRequest.getLocale(),
-                userIdentity,
-                chaiProvider
+                userIdentity
         );
 
         pwmRequest.getHttpServletRequest().getSession().setAttribute(CACHE_KEY, userInfo);

@@ -295,8 +295,7 @@ public class MacroMachine {
             throws PwmUnrecoverableException
     {
         final UserDataReader userDataReader = LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity);
-        final UserInfoFactory userStatusReader = new UserInfoFactory(pwmApplication, sessionLabel);
-        final UserInfo userInfoBean = userStatusReader.populateUserInfoBean(userLocale, userIdentity);
+        final UserInfo userInfoBean = UserInfoFactory.newUserInfoUsingProxy(pwmApplication, sessionLabel, userLocale, userIdentity);
         return new MacroMachine(pwmApplication, sessionLabel, userInfoBean, null, userDataReader);
     }
 

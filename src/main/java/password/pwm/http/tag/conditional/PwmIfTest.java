@@ -429,7 +429,7 @@ public enum PwmIfTest {
             }
 
             final UserInfo userInfoBean = pwmRequest.getPwmSession().getUserInfo();
-            final PasswordStatus passwordStatus = userInfoBean.getPasswordState();
+            final PasswordStatus passwordStatus = userInfoBean.getPasswordStatus();
             return passwordStatus.isExpired() || passwordStatus.isPreExpired() || passwordStatus.isViolatesPolicy();
         }
     }

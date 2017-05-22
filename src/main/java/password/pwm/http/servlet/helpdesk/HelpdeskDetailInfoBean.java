@@ -86,8 +86,16 @@ public class HelpdeskDetailInfoBean implements Serializable {
         }
 
         final HelpdeskDetailInfoBean detailInfo = new HelpdeskDetailInfoBean();
-        final UserInfoFactory userStatusReader = new UserInfoFactory(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel());
-        detailInfo.setUserInfo(userStatusReader.populateUserInfoBean(actorLocale, userIdentity, theUser.getChaiProvider()));
+        {
+            final UserInfo userInfo = UserInfoFactory.newUserInfo(
+                    pwmRequest.getPwmApplication(),
+                    pwmRequest.getSessionLabel(),
+                    actorLocale,
+                    userIdentity,
+                    theUser.getChaiProvider()
+            );
+            detailInfo.setUserInfo(userInfo);
+        }
 
         try {
             detailInfo.setIntruderLocked(theUser.isPasswordLocked());

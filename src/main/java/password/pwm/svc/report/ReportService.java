@@ -547,10 +547,10 @@ public class ReportService implements PwmService {
             if (userCacheRecord != null) {
                 summaryData.remove(userCacheRecord);
             }
-            final UserInfoFactory.Settings readerSettings = new UserInfoFactory.Settings();
             final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID());
-            final UserInfoFactory userStatusReader = new UserInfoFactory(pwmApplication, SessionLabel.REPORTING_SESSION_LABEL,readerSettings);
-            final UserInfo userInfo = userStatusReader.populateUserInfoBean(
+            final UserInfo userInfo = UserInfoFactory.newUserInfo(
+                    pwmApplication,
+                    SessionLabel.REPORTING_SESSION_LABEL,
                     PwmConstants.DEFAULT_LOCALE,
                     userIdentity,
                     chaiProvider

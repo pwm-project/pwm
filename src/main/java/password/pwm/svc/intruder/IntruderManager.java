@@ -582,8 +582,9 @@ public class IntruderManager implements Serializable, PwmService {
         }
 
         try {
-            final UserInfoFactory userStatusReader = new UserInfoFactory(pwmApplication, null);
-            final UserInfo userInfo = userStatusReader.populateUserInfoBean(
+            final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy(
+                    pwmApplication,
+                    SessionLabel.SYSTEM_LABEL,
                     locale,
                     userIdentity
             );

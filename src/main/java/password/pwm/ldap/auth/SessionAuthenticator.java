@@ -319,17 +319,19 @@ public class SessionAuthenticator {
 
         // update the actor user info bean
         {
-            final UserInfoFactory userStatusReader = new UserInfoFactory(pwmApplication, pwmSession.getLabel());
-
             final UserInfo userInfoBean;
             if (authenticationResult.getAuthenticationType() == AuthenticationType.AUTH_BIND_INHIBIT) {
-                userInfoBean = userStatusReader.populateUserInfoBean(
+                userInfoBean = UserInfoFactory.newUserInfo(
+                        pwmApplication,
+                        pwmSession.getLabel(),
                         ssBean.getLocale(),
                         userIdentity,
                         pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID())
                 );
             } else {
-                userInfoBean = userStatusReader.populateActorUserInfoBeanUsingProxy(
+                userInfoBean = UserInfoFactory.newUserInfoUsingProxy(
+                        pwmApplication,
+                        pwmSession.getLabel(),
                         userIdentity,
                         ssBean.getLocale(),
                         authenticationResult.getUserPassword()
@@ -357,11 +359,11 @@ public class SessionAuthenticator {
 
         if (pwmApplication.getStatisticsManager() != null) {
             final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
-            if (pwmSession.getUserInfo().getPasswordState().isWarnPeriod()) {
+            if (pwmSession.getUserInfo().getPasswordStatus().isWarnPeriod()) {
                 statisticsManager.incrementValue(Statistic.AUTHENTICATION_EXPIRED_WARNING);
-            } else if (pwmSession.getUserInfo().getPasswordState().isPreExpired()) {
+            } else if (pwmSession.getUserInfo().getPasswordStatus().isPreExpired()) {
                 statisticsManager.incrementValue(Statistic.AUTHENTICATION_PRE_EXPIRED);
-            } else if (pwmSession.getUserInfo().getPasswordState().isExpired()) {
+            } else if (pwmSession.getUserInfo().getPasswordStatus().isExpired()) {
                 statisticsManager.incrementValue(Statistic.AUTHENTICATION_EXPIRED);
             }
         }

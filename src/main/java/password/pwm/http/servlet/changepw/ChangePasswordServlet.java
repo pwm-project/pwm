@@ -146,7 +146,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet {
     public ProcessStatus processWarnResponse(final PwmRequest pwmRequest) throws ServletException, PwmUnrecoverableException, IOException {
         final ChangePasswordBean changePasswordBean = pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest, ChangePasswordBean.class);
 
-        if (pwmRequest.getPwmSession().getUserInfo().getPasswordState().isWarnPeriod()) {
+        if (pwmRequest.getPwmSession().getUserInfo().getPasswordStatus().isWarnPeriod()) {
             final String warnResponseStr = pwmRequest.readParameterAsString("warnResponse");
             final WarnResponseValue warnResponse = JavaHelper.readEnumFromString(WarnResponseValue.class, null, warnResponseStr);
             if (warnResponse != null) {
@@ -496,7 +496,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet {
             return true;
         }
 
-        final PasswordStatus passwordStatus = pwmSession.getUserInfo().getPasswordState();
+        final PasswordStatus passwordStatus = pwmSession.getUserInfo().getPasswordStatus();
         return currentSetting == RequireCurrentPasswordMode.NOTEXPIRED
                 && !passwordStatus.isExpired()
                 && !passwordStatus.isPreExpired()
@@ -570,7 +570,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet {
                     pwmSession.getLabel(),
                     userInfo.getPasswordPolicy(),
                     userInfo.getPasswordLastModifiedTime(),
-                    userInfo.getPasswordState()
+                    userInfo.getPasswordStatus()
             );
         } catch (PwmException e) {
             final boolean enforceFromForgotten = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_ENFORCE_MINIMUM_PASSWORD_LIFETIME);
@@ -595,7 +595,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet {
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
-        if (!pwmSession.getUserInfo().getPasswordState().isWarnPeriod()) {
+        if (!pwmSession.getUserInfo().getPasswordStatus().isWarnPeriod()) {
             return false;
         }
 

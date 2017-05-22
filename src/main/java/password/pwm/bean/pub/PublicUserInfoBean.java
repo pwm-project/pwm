@@ -72,7 +72,7 @@ public class PublicUserInfoBean implements Serializable {
         publicUserInfoBean.userEmailAddress = userInfoBean.getUserEmailAddress();
         publicUserInfoBean.passwordExpirationTime = userInfoBean.getPasswordExpirationTime();
         publicUserInfoBean.passwordLastModifiedTime = userInfoBean.getPasswordLastModifiedTime();
-        publicUserInfoBean.passwordStatus = userInfoBean.getPasswordState();
+        publicUserInfoBean.passwordStatus = userInfoBean.getPasswordStatus();
 
         publicUserInfoBean.requiresNewPassword = userInfoBean.isRequiresNewPassword();
         publicUserInfoBean.requiresResponseConfig = userInfoBean.isRequiresResponseConfig();
@@ -80,7 +80,7 @@ public class PublicUserInfoBean implements Serializable {
         publicUserInfoBean.requiresInteraction = userInfoBean.isRequiresNewPassword()
                 || userInfoBean.isRequiresResponseConfig()
                 || userInfoBean.isRequiresUpdateProfile()
-                || userInfoBean.getPasswordState().isWarnPeriod();
+                || userInfoBean.getPasswordStatus().isWarnPeriod();
 
 
         publicUserInfoBean.passwordPolicy = new HashMap<>();

@@ -241,7 +241,7 @@
                                         <pwm:display key="Field_PasswordExpired"/>
                                     </td>
                                     <td>
-                                        <%if (searchedUserInfo.getPasswordState().isExpired()) {%><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
+                                        <%if (searchedUserInfo.getPasswordStatus().isExpired()) {%><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
                                     </td>
                                 </tr>
                                 <% } %>
@@ -251,7 +251,7 @@
                                         <pwm:display key="Field_PasswordPreExpired"/>
                                     </td>
                                     <td>
-                                        <%if (searchedUserInfo.getPasswordState().isPreExpired()) {%><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
+                                        <%if (searchedUserInfo.getPasswordStatus().isPreExpired()) {%><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
                                     </td>
                                 </tr>
                                 <% } %>
@@ -261,7 +261,7 @@
                                         <pwm:display key="Field_PasswordWithinWarningPeriod"/>
                                     </td>
                                     <td>
-                                        <%if (searchedUserInfo.getPasswordState().isWarnPeriod()) { %><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
+                                        <%if (searchedUserInfo.getPasswordStatus().isWarnPeriod()) { %><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
                                     </td>
                                 </tr>
                                 <% } %>

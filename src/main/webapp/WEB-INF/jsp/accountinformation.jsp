@@ -163,7 +163,7 @@
                 <pwm:display key="Field_PasswordExpired"/>
             </td>
             <td id="PasswordExpired">
-                <%if (userInfo.getPasswordState().isExpired()) {%><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
+                <%if (userInfo.getPasswordStatus().isExpired()) {%><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
             </td>
         </tr>
         <% } %>
@@ -173,7 +173,7 @@
                 <pwm:display key="Field_PasswordPreExpired"/>
             </td>
             <td id="PasswordPreExpired">
-                <%if (userInfo.getPasswordState().isPreExpired()) {%><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
+                <%if (userInfo.getPasswordStatus().isPreExpired()) {%><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
             </td>
         </tr>
         <% } %>
@@ -183,7 +183,7 @@
                 <pwm:display key="Field_PasswordWithinWarningPeriod"/>
             </td>
             <td id="PasswordWithinWarningPeriod">
-                <%if (userInfo.getPasswordState().isWarnPeriod()) { %><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
+                <%if (userInfo.getPasswordStatus().isWarnPeriod()) { %><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
             </td>
         </tr>
         <% } %>
@@ -193,7 +193,7 @@
                 <pwm:display key="Field_PasswordViolatesPolicy"/>
             </td>
             <td id="PasswordViolatesPolicy">
-                <% if (userInfo.getPasswordState().isViolatesPolicy()) {%><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
+                <% if (userInfo.getPasswordStatus().isViolatesPolicy()) {%><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
             </td>
         </tr>
         <% } %>

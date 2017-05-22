@@ -191,8 +191,12 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet {
             // make sure the user isn't locked.
             pwmApplication.getIntruderManager().convenience().checkUserIdentity(userIdentity);
 
-            final UserInfoFactory userStatusReader = new UserInfoFactory(pwmApplication, pwmSession.getLabel());
-            final UserInfo forgottenUserInfo = userStatusReader.populateUserInfoBean(pwmRequest.getLocale(), userIdentity);
+            final UserInfo forgottenUserInfo = UserInfoFactory.newUserInfoUsingProxy(
+                    pwmApplication,
+                    pwmRequest.getSessionLabel(),
+                    pwmRequest.getLocale(),
+                    userIdentity
+            );
 
             // send username
             sendUsername(pwmApplication, pwmSession, forgottenUserInfo);

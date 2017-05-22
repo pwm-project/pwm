@@ -54,9 +54,7 @@ public class UserDebugDataReader {
     )
             throws PwmUnrecoverableException
     {
-        final UserInfoFactory userStatusReader = new UserInfoFactory(pwmApplication, sessionLabel);
-
-        final UserInfo userInfo = userStatusReader.populateUserInfoBean(locale, userIdentity);
+        final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy(pwmApplication, sessionLabel, locale, userIdentity);
 
         final Map<Permission,String> permissions = UserDebugDataReader.permissionMap(pwmApplication, sessionLabel, userIdentity);
 

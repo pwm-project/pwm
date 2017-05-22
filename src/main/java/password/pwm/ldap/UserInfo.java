@@ -51,7 +51,7 @@ public interface UserInfo {
 
     String getUsername() throws PwmUnrecoverableException;
 
-    PasswordStatus getPasswordState() throws PwmUnrecoverableException;
+    PasswordStatus getPasswordStatus() throws PwmUnrecoverableException;
 
     boolean isRequiresNewPassword() throws PwmUnrecoverableException;
 

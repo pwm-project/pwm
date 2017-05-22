@@ -153,23 +153,24 @@ public class RestCheckPasswordServer extends AbstractRestServer {
         }
 
         try {
-            final UserIdentity userDN;
+            final UserIdentity userIdentity;
             final UserInfo userInfo;
             if (restRequestBean.getUserIdentity() != null) { // check for another user
-                userDN = restRequestBean.getUserIdentity();
-                final UserInfoFactory userStatusReader = new UserInfoFactory(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession().getLabel());
-                userInfo = userStatusReader.populateUserInfoBean(
+                userIdentity = restRequestBean.getUserIdentity();
+                userInfo = UserInfoFactory.newUserInfo(
+                        restRequestBean.getPwmApplication(),
+                        restRequestBean.getPwmSession().getLabel(),
                         restRequestBean.getPwmSession().getSessionStateBean().getLocale(),
-                        userDN,
+                        userIdentity,
                         restRequestBean.getPwmSession().getSessionManager().getChaiProvider()
                 );
             } else { // self check
-                userDN = restRequestBean.getPwmSession().getUserInfo().getUserIdentity();
+                userIdentity = restRequestBean.getPwmSession().getUserInfo().getUserIdentity();
                 userInfo = restRequestBean.getPwmSession().getUserInfo();
             }
 
             final PasswordCheckRequest checkRequest = new PasswordCheckRequest(
-                    userDN,
+                    userIdentity,
                     jsonInput.password1 == null || jsonInput.password1.isEmpty() ? null : new PasswordData(jsonInput.password1),
                     jsonInput.password2 == null || jsonInput.password2.isEmpty() ? null : new PasswordData(jsonInput.password2),
                     userInfo

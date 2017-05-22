@@ -362,7 +362,6 @@ public class PasswordUtility {
         pwmSession.getLoginInfoBean().setType(AuthenticationType.AUTHENTICATED);
 
         // update the uibean's "password expired flag".
-        final UserInfoFactory userStatusReader = new UserInfoFactory(pwmApplication, pwmSession.getLabel());
         pwmSession.reloadUserInfoBean(pwmApplication);
 
         // create a proxy user object for pwm to update/read the user.
@@ -478,8 +477,9 @@ public class PasswordUtility {
         pwmApplication.getStatisticsManager().incrementValue(Statistic.HELPDESK_PASSWORD_SET);
 
         // create a uib for end user
-        final UserInfoFactory userStatusReader = new UserInfoFactory(pwmApplication, pwmSession.getLabel());
-        final UserInfo userInfo = userStatusReader.populateUserInfoBean(
+        final UserInfo userInfo = UserInfoFactory.newUserInfo(
+                pwmApplication,
+                pwmSession.getLabel(),
                 pwmSession.getSessionStateBean().getLocale(),
                 userIdentity,
                 proxiedUser.getChaiProvider()

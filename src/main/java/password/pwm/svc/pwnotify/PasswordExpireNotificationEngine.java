@@ -147,8 +147,12 @@ public class PasswordExpireNotificationEngine {
                 userLocale
         );
         final MacroMachine macroMachine = MacroMachine.forUser(pwmApplication, userLocale, SESSION_LABEL, userIdentity);
-        final UserInfoFactory userStatusReader = new UserInfoFactory(pwmApplication, SESSION_LABEL);
-        final UserInfo userInfoBean = userStatusReader.populateUserInfoBean(userLocale, userIdentity);
+        final UserInfo userInfoBean = UserInfoFactory.newUserInfoUsingProxy(
+                pwmApplication,
+                SESSION_LABEL,
+                userLocale,
+                userIdentity
+        );
         pwmApplication.getEmailQueue().submitEmail(emailItemBean, userInfoBean, macroMachine);
     }
 
