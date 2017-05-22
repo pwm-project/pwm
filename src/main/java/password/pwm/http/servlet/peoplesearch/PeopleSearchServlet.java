@@ -136,19 +136,11 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet {
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
     {
-        String username = "";
-        final String postString = pwmRequest.readRequestBodyAsString();
-        final String[] parser = postString.split(",");
+        final Map<String,Object> jsonBodyMap = pwmRequest.readBodyAsJsonMap(true);
+        final String username = jsonBodyMap.get("username") == null
+                ? null
+                : jsonBodyMap.get("username").toString();
 
-        for(int i = 0; i < parser.length; i++)
-        {
-            if(parser[i].contains("username"))
-            {
-                final String[] value = parser[i].split(":");
-                username = value[1].replace("\"", "");
-                break;
-            }
-        }
         final boolean includeDisplayName = pwmRequest.readParameterAsBoolean("includeDisplayName");
 
         final PeopleSearchDataReader peopleSearchDataReader = new PeopleSearchDataReader(pwmRequest);
