@@ -40,7 +40,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.ldap.UserInfoReader;
+import password.pwm.ldap.UserInfoFactory;
 import password.pwm.util.db.DatabaseException;
 import password.pwm.util.db.DatabaseTable;
 import password.pwm.util.java.JsonUtil;
@@ -147,7 +147,7 @@ public class PasswordExpireNotificationEngine {
                 userLocale
         );
         final MacroMachine macroMachine = MacroMachine.forUser(pwmApplication, userLocale, SESSION_LABEL, userIdentity);
-        final UserInfoReader userStatusReader = new UserInfoReader(pwmApplication, SESSION_LABEL);
+        final UserInfoFactory userStatusReader = new UserInfoFactory(pwmApplication, SESSION_LABEL);
         final UserInfo userInfoBean = userStatusReader.populateUserInfoBean(userLocale, userIdentity);
         pwmApplication.getEmailQueue().submitEmail(emailItemBean, userInfoBean, macroMachine);
     }

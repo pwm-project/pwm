@@ -54,7 +54,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.ldap.UserInfoReader;
+import password.pwm.ldap.UserInfoFactory;
 import password.pwm.util.PasswordData;
 import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.java.JavaHelper;
@@ -236,7 +236,7 @@ public class LDAPStatusChecker implements HealthChecker {
 
                         final PasswordStatus passwordStatus;
                         {
-                            final UserInfoReader userStatusReader = new UserInfoReader(pwmApplication, SessionLabel.HEALTH_SESSION_LABEL);
+                            final UserInfoFactory userStatusReader = new UserInfoFactory(pwmApplication, SessionLabel.HEALTH_SESSION_LABEL);
                             passwordStatus = userStatusReader.readPasswordStatus(theUser, passwordPolicy, null, null);
                         }
 
@@ -280,8 +280,8 @@ public class LDAPStatusChecker implements HealthChecker {
 
             try {
                 final UserIdentity userIdentity = new UserIdentity(theUser.getEntryDN(),ldapProfile.getIdentifier());
-                final UserInfoReader.Settings readerSettings = new UserInfoReader.Settings();
-                final UserInfoReader userStatusReader = new UserInfoReader(
+                final UserInfoFactory.Settings readerSettings = new UserInfoFactory.Settings();
+                final UserInfoFactory userStatusReader = new UserInfoFactory(
                         pwmApplication,
                         SessionLabel.HEALTH_SESSION_LABEL,
                         readerSettings

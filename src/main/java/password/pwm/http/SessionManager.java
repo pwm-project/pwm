@@ -254,7 +254,8 @@ public class SessionManager implements Serializable {
         return new MacroMachine(pwmApplication, pwmSession.getLabel(), userInfoBean, pwmSession.getLoginInfoBean(), userDataReader);
     }
 
-    public Profile getProfile(final PwmApplication pwmApplication, final ProfileType profileType) {
+    public Profile getProfile(final PwmApplication pwmApplication, final ProfileType profileType) throws PwmUnrecoverableException
+    {
         if (profileType.isAuthenticated() && !pwmSession.isAuthenticated()) {
             return null;
         }
@@ -265,15 +266,18 @@ public class SessionManager implements Serializable {
         return null;
     }
 
-    public HelpdeskProfile getHelpdeskProfile(final PwmApplication pwmApplication) {
+    public HelpdeskProfile getHelpdeskProfile(final PwmApplication pwmApplication) throws PwmUnrecoverableException
+    {
         return (HelpdeskProfile)getProfile(pwmApplication, ProfileType.Helpdesk);
     }
 
-    public UpdateAttributesProfile getUpdateAttributeProfile(final PwmApplication pwmApplication) {
+    public UpdateAttributesProfile getUpdateAttributeProfile(final PwmApplication pwmApplication) throws PwmUnrecoverableException
+    {
         return (UpdateAttributesProfile)getProfile(pwmApplication, ProfileType.UpdateAttributes);
     }
 
-    public DeleteAccountProfile getSelfDeleteProfile(final PwmApplication pwmApplication) {
+    public DeleteAccountProfile getSelfDeleteProfile(final PwmApplication pwmApplication) throws PwmUnrecoverableException
+    {
         return (DeleteAccountProfile) getProfile(pwmApplication, ProfileType.DeleteAccount);
     }
 }

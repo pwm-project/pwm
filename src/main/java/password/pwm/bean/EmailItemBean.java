@@ -36,7 +36,7 @@ public class EmailItemBean implements Serializable {
     private final String bodyPlain;
     private final String bodyHtml;
 
-    public String toString() {
+    public String toDebugString() {
         final StringBuilder sb = new StringBuilder();
         sb.append("from: ").append(from).append(", to: ").append(to).append(", subject: ").append(subject);
         return sb.toString();

@@ -95,7 +95,8 @@ public class DeleteAccountServlet extends ControlledPwmServlet {
         return DeleteAccountAction.class;
     }
 
-    private DeleteAccountProfile getProfile(final PwmRequest pwmRequest) {
+    private DeleteAccountProfile getProfile(final PwmRequest pwmRequest) throws PwmUnrecoverableException
+    {
         return pwmRequest.getPwmSession().getSessionManager().getSelfDeleteProfile(pwmRequest.getPwmApplication());
     }
 

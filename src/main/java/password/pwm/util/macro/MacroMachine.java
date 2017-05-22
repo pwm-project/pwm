@@ -34,7 +34,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
-import password.pwm.ldap.UserInfoReader;
+import password.pwm.ldap.UserInfoFactory;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -295,7 +295,7 @@ public class MacroMachine {
             throws PwmUnrecoverableException
     {
         final UserDataReader userDataReader = LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity);
-        final UserInfoReader userStatusReader = new UserInfoReader(pwmApplication, sessionLabel);
+        final UserInfoFactory userStatusReader = new UserInfoFactory(pwmApplication, sessionLabel);
         final UserInfo userInfoBean = userStatusReader.populateUserInfoBean(userLocale, userIdentity);
         return new MacroMachine(pwmApplication, sessionLabel, userInfoBean, null, userDataReader);
     }

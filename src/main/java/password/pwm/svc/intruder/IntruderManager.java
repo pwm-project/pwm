@@ -44,7 +44,7 @@ import password.pwm.health.HealthTopic;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.LdapUserDataReader;
-import password.pwm.ldap.UserInfoReader;
+import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecordFactory;
@@ -582,7 +582,7 @@ public class IntruderManager implements Serializable, PwmService {
         }
 
         try {
-            final UserInfoReader userStatusReader = new UserInfoReader(pwmApplication, null);
+            final UserInfoFactory userStatusReader = new UserInfoFactory(pwmApplication, null);
             final UserInfo userInfo = userStatusReader.populateUserInfoBean(
                     locale,
                     userIdentity

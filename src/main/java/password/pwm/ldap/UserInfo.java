@@ -28,51 +28,52 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.config.profile.ChallengeProfile;
 import password.pwm.config.profile.ProfileType;
 import password.pwm.config.profile.PwmPasswordPolicy;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.operations.otp.OTPUserRecord;
 
 import java.time.Instant;
 import java.util.Map;
 
 public interface UserInfo {
-    Map<String,String> getCachedPasswordRuleAttributes();
+    Map<String,String> getCachedPasswordRuleAttributes() throws PwmUnrecoverableException;
 
-    Map<String, String> getCachedAttributeValues();
+    Map<String, String> getCachedAttributeValues() throws PwmUnrecoverableException;
 
-    Instant getLastLdapLoginTime();
+    Instant getLastLdapLoginTime() throws PwmUnrecoverableException;
 
-    ChallengeProfile getChallengeProfile();
+    ChallengeProfile getChallengeProfile() throws PwmUnrecoverableException;
 
-    PwmPasswordPolicy getPasswordPolicy();
+    PwmPasswordPolicy getPasswordPolicy() throws PwmUnrecoverableException;
 
     UserIdentity getUserIdentity();
 
-    Instant getPasswordExpirationTime();
+    Instant getPasswordExpirationTime() throws PwmUnrecoverableException;
 
-    String getUsername();
+    String getUsername() throws PwmUnrecoverableException;
 
-    PasswordStatus getPasswordState();
+    PasswordStatus getPasswordState() throws PwmUnrecoverableException;
 
-    boolean isRequiresNewPassword();
+    boolean isRequiresNewPassword() throws PwmUnrecoverableException;
 
-    boolean isRequiresResponseConfig();
+    boolean isRequiresResponseConfig() throws PwmUnrecoverableException;
 
-    boolean isRequiresOtpConfig();
+    boolean isRequiresOtpConfig() throws PwmUnrecoverableException;
 
-    boolean isRequiresUpdateProfile();
+    boolean isRequiresUpdateProfile() throws PwmUnrecoverableException;
 
-    Instant getPasswordLastModifiedTime();
+    Instant getPasswordLastModifiedTime() throws PwmUnrecoverableException;
 
-    String getUserEmailAddress();
+    String getUserEmailAddress() throws PwmUnrecoverableException;
 
-    String getUserSmsNumber();
+    String getUserSmsNumber() throws PwmUnrecoverableException;
 
-    String getUserGuid();
+    String getUserGuid() throws PwmUnrecoverableException;
 
-    ResponseInfoBean getResponseInfoBean();
+    ResponseInfoBean getResponseInfoBean() throws PwmUnrecoverableException;
 
-    OTPUserRecord getOtpUserRecord();
+    OTPUserRecord getOtpUserRecord() throws PwmUnrecoverableException;
 
-    Instant getAccountExpirationTime();
+    Instant getAccountExpirationTime() throws PwmUnrecoverableException;
 
-    Map<ProfileType, String> getProfileIDs();
+    Map<ProfileType, String> getProfileIDs() throws PwmUnrecoverableException;
 }

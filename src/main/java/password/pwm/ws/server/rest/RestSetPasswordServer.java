@@ -102,7 +102,7 @@ public class RestSetPasswordServer extends AbstractRestServer {
             final HttpServletResponse response,
             final JsonInputData jsonInputData
 
-    )
+    ) throws PwmUnrecoverableException
     {
         final RestRequestBean restRequestBean;
         try {

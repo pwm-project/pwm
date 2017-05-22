@@ -38,6 +38,7 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Deque;
@@ -110,7 +111,7 @@ public class WorkQueueProcessor<W extends Serializable> {
             final ItemProcessor<W> itemProcessor,
             final Class sourceClass
     ) {
-        this.settings = JsonUtil.cloneUsingJson(settings, Settings.class);
+        this.settings = settings;
         this.queue = queue;
         this.itemProcessor = itemProcessor;
         this.logger = PwmLogger.getLogger(sourceClass.getName() + "_" + this.getClass().getSimpleName());
@@ -476,7 +477,7 @@ public class WorkQueueProcessor<W extends Serializable> {
     public Map<String,String> debugInfo() {
         final Map<String,String> output = new HashMap<>();
         output.put("avgLagTime", new TimeDuration((long)avgLagTime.getAverage()).asCompactString());
-        output.put("sendRate", sendRate.readEventRate() + "/s");
+        output.put("sendRate", sendRate.readEventRate().setScale(2, BigDecimal.ROUND_DOWN) + "/s");
         output.put("preQueueSubmit", String.valueOf(preQueueSubmit.get()));
         output.put("preQueueBypass", String.valueOf(preQueueBypass.get()));
         output.put("preQueueFallback", String.valueOf(preQueueFallback.get()));

@@ -22,6 +22,7 @@
 
 package password.pwm.http;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
@@ -42,6 +43,10 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 public class PwmResponse extends PwmHttpResponseWrapper {
     private static final PwmLogger LOGGER = PwmLogger.forClass(PwmResponse.class);
@@ -152,6 +157,17 @@ public class PwmResponse extends PwmHttpResponseWrapper {
             pwmRequest.getPwmSession().unauthenticateUser(pwmRequest);
         }
 
+        if (getResponseFlags().contains(PwmResponseFlag.ERROR_RESPONSE_SENT)) {
+            LOGGER.debug(pwmRequest, "response error has been previously set, disregarding new error: " + errorInformation.toDebugStr());
+            return;
+        }
+
+        if (isCommitted()) {
+            final String msg = "cannot respond with error '" + errorInformation.toDebugStr() + "', response is already committed";
+            LOGGER.warn(pwmRequest.getSessionLabel(), ExceptionUtils.getStackTrace(new Throwable(msg)));
+            return;
+        }
+
         if (pwmRequest.isJsonRequest()) {
             outputJsonResult(RestResultBean.fromError(errorInformation, pwmRequest));
         } else if (pwmRequest.isHtmlRequest()) {
@@ -167,6 +183,8 @@ public class PwmResponse extends PwmHttpResponseWrapper {
                     : errorInformation.toUserStr(pwmRequest.getPwmSession(),pwmRequest.getPwmApplication());
             getHttpServletResponse().sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, errorStatusText);
         }
+
+        setResponseFlag(PwmResponseFlag.ERROR_RESPONSE_SENT);
     }
 
 
@@ -226,5 +244,15 @@ public class PwmResponse extends PwmHttpResponseWrapper {
 
         pwmRequest.getPwmApplication().getSessionStateService().saveLoginSessionState(pwmRequest);
         pwmRequest.getPwmApplication().getSessionStateService().saveSessionBeans(pwmRequest);
+    }
+
+    private final Set<PwmResponseFlag> pwmResponseFlags = new HashSet<>();
+
+    private Collection<PwmResponseFlag> getResponseFlags() {
+        return Collections.unmodifiableSet(pwmResponseFlags);
+    }
+
+    private void setResponseFlag(final PwmResponseFlag flag) {
+        pwmResponseFlags.add(flag);
     }
 }

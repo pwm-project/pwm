@@ -35,8 +35,7 @@
     <div id="centerbody">
         <div id="page-content-title"><pwm:display key="Title_ForgottenPassword" displayIfMissing="true"/></div>
         <%
-            final UserInfo userInfoBean = JspUtility.getPwmRequest(pageContext).getPwmSession().getUserInfo();
-            final OTPUserRecord otp = userInfoBean.getOtpUserRecord();
+            final OTPUserRecord otp = (OTPUserRecord)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ForgottenPasswordOtpRecord);
             final String identifier = otp.getIdentifier();
 
             if (identifier != null && identifier.length() > 0 ) {

@@ -54,7 +54,7 @@ import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
-import password.pwm.ldap.UserInfoReader;
+import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.stats.Statistic;
@@ -244,7 +244,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
             }
 
             // send email.
-            final UserInfoReader userStatusReader = new UserInfoReader(pwmApplication,pwmSession.getLabel());
+            final UserInfoFactory userStatusReader = new UserInfoFactory(pwmApplication,pwmSession.getLabel());
             final UserInfo guestUserInfoBean = userStatusReader.populateUserInfoBean(
                     pwmSession.getSessionStateBean().getLocale(),
                     guestRegistrationBean.getUpdateUserIdentity(),

@@ -184,7 +184,8 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         chain.doFilter();
     }
 
-    private static void handleAuthenticationCookie(final PwmRequest pwmRequest) {
+    private static void handleAuthenticationCookie(final PwmRequest pwmRequest) throws PwmUnrecoverableException
+    {
         if (!pwmRequest.isAuthenticated() || pwmRequest.getPwmSession().getLoginInfoBean().getType() != AuthenticationType.AUTHENTICATED) {
             return;
         }

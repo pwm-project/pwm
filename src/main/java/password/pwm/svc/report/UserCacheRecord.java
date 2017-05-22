@@ -27,6 +27,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import password.pwm.bean.PasswordStatus;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.UserInfo;
 import password.pwm.config.option.DataStorageMethod;
 
@@ -64,7 +65,11 @@ public class UserCacheRecord implements Serializable {
     public boolean requiresResponseUpdate;
     public boolean requiresProfileUpdate;
 
-    void addUiBeanData(final UserInfo userInfo) {
+    void addUiBeanData(
+            final UserInfo userInfo
+    )
+            throws PwmUnrecoverableException
+    {
         this.setUserDN(userInfo.getUserIdentity().getUserDN());
         this.setLdapProfile(userInfo.getUserIdentity().getLdapProfileID());
         this.setUsername(userInfo.getUsername());

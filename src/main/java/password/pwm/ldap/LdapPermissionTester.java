@@ -38,8 +38,10 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -115,7 +117,11 @@ public class LdapPermissionTester {
             final SessionLabel pwmSession,
             final UserIdentity userIdentity,
             final String groupDN
-    ) throws PwmUnrecoverableException {
+    )
+            throws PwmUnrecoverableException
+    {
+        final Instant startTime = Instant.now();
+
         if (userIdentity == null) {
             return false;
         }
@@ -140,11 +146,13 @@ public class LdapPermissionTester {
             }
         }
 
-        if (result) {
-            LOGGER.debug(pwmSession, "user " + userIdentity + " is a match for group '" + groupDN + "'");
-        } else {
-            LOGGER.debug(pwmSession, "user " + userIdentity + " is not a match for group '" + groupDN + "'");
-        }
+        final String logMsg = "user " + userIdentity.toDisplayString() + " is "
+                + (result ? "" : "not ")
+                + "a match for group '" + groupDN + "'"
+                + " (" + TimeDuration.fromCurrent(startTime) + ")";
+
+        LOGGER.debug(pwmSession, logMsg);
+
         return result;
     }
 
@@ -154,7 +162,10 @@ public class LdapPermissionTester {
             final UserIdentity userIdentity,
             final String filterString
     )
-            throws PwmUnrecoverableException {
+            throws PwmUnrecoverableException
+    {
+        final Instant startTime = Instant.now();
+
         if (userIdentity == null) {
             return false;
         }
@@ -180,11 +191,13 @@ public class LdapPermissionTester {
             }
         }
 
-        if (result) {
-            LOGGER.debug(pwmSession, "user " + userIdentity + " is a match for '" + filterString + "'");
-        } else {
-            LOGGER.debug(pwmSession, "user " + userIdentity + " is not a match for '" + filterString + "'");
-        }
+        final String logMsg = "user " + userIdentity.toDisplayString() + " is "
+                + (result ? "" : "not ")
+                + "a match for filter '" + filterString + "'"
+                + " (" + TimeDuration.fromCurrent(startTime) + ")";
+
+        LOGGER.debug(pwmSession, logMsg);
+
         return result;
     }
 

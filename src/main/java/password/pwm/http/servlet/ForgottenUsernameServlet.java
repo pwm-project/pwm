@@ -46,7 +46,7 @@ import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
-import password.pwm.ldap.UserInfoReader;
+import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.stats.Statistic;
@@ -191,7 +191,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet {
             // make sure the user isn't locked.
             pwmApplication.getIntruderManager().convenience().checkUserIdentity(userIdentity);
 
-            final UserInfoReader userStatusReader = new UserInfoReader(pwmApplication, pwmSession.getLabel());
+            final UserInfoFactory userStatusReader = new UserInfoFactory(pwmApplication, pwmSession.getLabel());
             final UserInfo forgottenUserInfo = userStatusReader.populateUserInfoBean(pwmRequest.getLocale(), userIdentity);
 
             // send username

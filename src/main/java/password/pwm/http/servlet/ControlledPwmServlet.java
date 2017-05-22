@@ -23,6 +23,7 @@
 package password.pwm.http.servlet;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -106,8 +107,10 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
                 if (cause instanceof PwmUnrecoverableException) {
                     throw (PwmUnrecoverableException) cause;
                 }
-                final String msg = "unexpected error during action handler for '" + action + "', error: " + cause.getMessage();
-                LOGGER.error(msg);
+                final String msg = "unexpected error during action handler for '"
+                        + this.getClass().getName()
+                        + ":" + action + "', error: " + cause.getMessage();
+                LOGGER.error(pwmRequest, msg);
                 throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, msg));
             }
             LOGGER.error("uncaused invocation error: " + e.getMessage(),e);
@@ -140,16 +143,20 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
                 return;
             }
 
-            final String servletUrl = pwmRequest.getURL().determinePwmServletPath();
-            LOGGER.debug(pwmRequest, "this request is not idempotent, redirecting to self with no action");
-            sendOtherRedirect(pwmRequest, servletUrl);
-
-            return;
+            final boolean enablePostRedirectGet = Boolean.parseBoolean(pwmRequest.getConfig().readAppProperty(AppProperty.HTTP_SERVLET_ENABLE_POST_REDIRECT_GET));
+            if (enablePostRedirectGet) {
+                final String servletUrl = pwmRequest.getURL().determinePwmServletPath();
+                LOGGER.debug(pwmRequest, "this request is not idempotent, redirecting to self with no action");
+                sendOtherRedirect(pwmRequest, servletUrl);
+                return;
+            }
         }
 
         examineLastError(pwmRequest);
 
-        nextStep(pwmRequest);
+        if (!pwmRequest.getPwmResponse().isCommitted()) {
+            nextStep(pwmRequest);
+        }
     }
 
     protected abstract void nextStep(PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException;

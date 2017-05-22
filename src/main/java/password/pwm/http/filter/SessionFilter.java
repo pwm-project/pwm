@@ -61,6 +61,7 @@ import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
 /**
@@ -81,6 +82,8 @@ public class SessionFilter extends AbstractPwmFilter {
         return true;
     }
 
+    private static final AtomicInteger REQUEST_COUNTER = new AtomicInteger(0);
+
     public void processFilter(
             final PwmApplicationMode mode,
             final PwmRequest pwmRequest,
@@ -88,6 +91,12 @@ public class SessionFilter extends AbstractPwmFilter {
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
+        final int requestID = REQUEST_COUNTER.incrementAndGet();
+
+        // output request information to debug log
+        final Instant startTime = Instant.now();
+        pwmRequest.debugHttpRequestToLog("requestID=" + requestID);
+
         final PwmURL pwmURL = pwmRequest.getURL();
         if (!pwmURL.isWebServiceURL() && !pwmURL.isResourceURL()) {
             if (handleStandardRequestOperations(pwmRequest) == ProcessStatus.Halt) {
@@ -114,6 +123,9 @@ public class SessionFilter extends AbstractPwmFilter {
 
             throw new ServletException(e);
         }
+
+        final TimeDuration requestExecuteTime = TimeDuration.fromCurrent(startTime);
+        pwmRequest.debugHttpRequestToLog("completed requestID=" + requestID + " in " + requestExecuteTime.asCompactString());
     }
 
     private ProcessStatus handleStandardRequestOperations(
@@ -134,9 +146,6 @@ public class SessionFilter extends AbstractPwmFilter {
             LOGGER.trace(pwmSession, pwmRequest.debugHttpHeaders());
             pwmSession.getSessionStateBean().setDebugInitialized(true);
         }
-
-        // output request information to debug log
-        pwmRequest.debugHttpRequestToLog();
 
         try {
             pwmApplication.getSessionStateService().readLoginSessionState(pwmRequest);
@@ -215,10 +224,12 @@ public class SessionFilter extends AbstractPwmFilter {
             }
         }
 
-
-        if ("true".equalsIgnoreCase(pwmRequest.readParameterAsString(
-                pwmRequest.getConfig().readAppProperty(AppProperty.HTTP_PARAM_NAME_PASSWORD_EXPIRED)))) {
-            pwmSession.getUserInfo().getPasswordState().setExpired(true);
+        {
+            final String expireParamName = pwmRequest.getConfig().readAppProperty(AppProperty.HTTP_PARAM_NAME_PASSWORD_EXPIRED);
+            if ("true".equalsIgnoreCase(pwmRequest.readParameterAsString(expireParamName))) {
+                LOGGER.debug(pwmSession, "detected param '" + expireParamName + "'=true in request, will force pw change");
+                pwmSession.getLoginInfoBean().getLoginFlags().add(LoginInfoBean.LoginFlag.forcePwChange);
+            }
         }
 
         // update last request time.

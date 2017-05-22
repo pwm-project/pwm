@@ -29,7 +29,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.ldap.UserInfoReader;
+import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
@@ -82,7 +82,7 @@ public class RestStatusServer extends AbstractRestServer {
             final UserInfo userInfo;
             if (restRequestBean.getUserIdentity() != null) {
                 userInfo = new UserInfoBean();
-                final UserInfoReader userStatusReader = new UserInfoReader(restRequestBean.getPwmApplication(),restRequestBean.getPwmSession().getLabel());
+                final UserInfoFactory userStatusReader = new UserInfoFactory(restRequestBean.getPwmApplication(),restRequestBean.getPwmSession().getLabel());
                 userStatusReader.populateUserInfoBean(
                         restRequestBean.getPwmSession().getSessionStateBean().getLocale(),
                         restRequestBean.getUserIdentity(),

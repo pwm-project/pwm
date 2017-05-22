@@ -28,6 +28,7 @@ import password.pwm.PwmApplication;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.UserIdentity;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.UserInfo;
 import password.pwm.bean.pub.SessionStateInfoBean;
 import password.pwm.error.PwmException;
@@ -204,9 +205,21 @@ public class SessionTrackService implements PwmService {
 
         if (loopSession.isAuthenticated()) {
             final UserInfo loopUiBean = loopSession.getUserInfo();
-            sessionStateInfoBean.setLdapProfile(loginInfoBean.isAuthenticated() ? loopUiBean.getUserIdentity().getLdapProfileID() : "");
-            sessionStateInfoBean.setUserDN(loginInfoBean.isAuthenticated() ? loopUiBean.getUserIdentity().getUserDN() : "");
-            sessionStateInfoBean.setUserID(loginInfoBean.isAuthenticated() ? loopUiBean.getUsername() : "");
+            sessionStateInfoBean.setLdapProfile(loginInfoBean.isAuthenticated()
+                    ? loopUiBean.getUserIdentity().getLdapProfileID()
+                    : "");
+
+            sessionStateInfoBean.setUserDN(loginInfoBean.isAuthenticated()
+                    ? loopUiBean.getUserIdentity().getUserDN()
+                    : "");
+
+            try {
+                sessionStateInfoBean.setUserID(loginInfoBean.isAuthenticated()
+                        ? loopUiBean.getUsername()
+                        : "");
+            } catch (PwmUnrecoverableException e) {
+                LOGGER.error("unexpected error reading username: " + e.getMessage(),e);
+            }
         }
 
         return sessionStateInfoBean;

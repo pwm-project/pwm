@@ -45,7 +45,7 @@ import password.pwm.i18n.Display;
 import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
-import password.pwm.ldap.UserInfoReader;
+import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.ldap.search.UserSearchResults;
@@ -508,7 +508,7 @@ public class PeopleSearchDataReader {
         if (Boolean.parseBoolean(pwmRequest.getConfig().readAppProperty(AppProperty.PEOPLESEARCH_DISPLAYNAME_USEALLMACROS))) {
             final Locale locale = pwmRequest.getLocale();
             final ChaiProvider chaiProvider = pwmRequest.getPwmApplication().getProxiedChaiUser(userIdentity).getChaiProvider();
-            final UserInfoReader userStatusReader = new UserInfoReader(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel());
+            final UserInfoFactory userStatusReader = new UserInfoFactory(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel());
             userInfo = userStatusReader.populateUserInfoBean(locale, userIdentity, chaiProvider);
         } else {
             userInfo = null;

@@ -151,7 +151,8 @@ public class HelpdeskServlet extends ControlledPwmServlet {
     }
 
 
-    private HelpdeskProfile getHelpdeskRProfile(final PwmRequest pwmRequest) {
+    private HelpdeskProfile getHelpdeskRProfile(final PwmRequest pwmRequest) throws PwmUnrecoverableException
+    {
         return pwmRequest.getPwmSession().getSessionManager().getHelpdeskProfile(pwmRequest.getPwmApplication());
     }
 

@@ -587,7 +587,12 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet {
 
 
 
-    private boolean warnPageShouldBeShown(final PwmRequest pwmRequest, final ChangePasswordBean changePasswordBean) {
+    private boolean warnPageShouldBeShown(
+            final PwmRequest pwmRequest,
+            final ChangePasswordBean changePasswordBean
+    )
+            throws PwmUnrecoverableException
+    {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
         if (!pwmSession.getUserInfo().getPasswordState().isWarnPeriod()) {
@@ -650,6 +655,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet {
 
         if (!pwmRequest.isAuthenticated()) {
             pwmRequest.respondWithError(PwmError.ERROR_AUTHENTICATION_REQUIRED.toInfo());
+            LOGGER.debug(pwmRequest, "rejecting action request for unauthenticated session");
             return ProcessStatus.Halt;
 
         }

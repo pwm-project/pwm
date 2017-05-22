@@ -69,7 +69,7 @@ import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
-import password.pwm.ldap.UserInfoReader;
+import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.svc.cache.CacheKey;
 import password.pwm.svc.cache.CachePolicy;
@@ -362,7 +362,7 @@ public class PasswordUtility {
         pwmSession.getLoginInfoBean().setType(AuthenticationType.AUTHENTICATED);
 
         // update the uibean's "password expired flag".
-        final UserInfoReader userStatusReader = new UserInfoReader(pwmApplication, pwmSession.getLabel());
+        final UserInfoFactory userStatusReader = new UserInfoFactory(pwmApplication, pwmSession.getLabel());
         pwmSession.reloadUserInfoBean(pwmApplication);
 
         // create a proxy user object for pwm to update/read the user.
@@ -478,7 +478,7 @@ public class PasswordUtility {
         pwmApplication.getStatisticsManager().incrementValue(Statistic.HELPDESK_PASSWORD_SET);
 
         // create a uib for end user
-        final UserInfoReader userStatusReader = new UserInfoReader(pwmApplication, pwmSession.getLabel());
+        final UserInfoFactory userStatusReader = new UserInfoFactory(pwmApplication, pwmSession.getLabel());
         final UserInfo userInfo = userStatusReader.populateUserInfoBean(
                 pwmSession.getSessionStateBean().getLocale(),
                 userIdentity,
@@ -789,7 +789,9 @@ public class PasswordUtility {
             final SessionLabel pwmSession,
             final UserIdentity userIdentity,
             final Locale locale
-    ) throws PwmUnrecoverableException {
+    )
+            throws PwmUnrecoverableException
+    {
         final List<String> profiles = pwmApplication.getConfig().getPasswordProfileIDs();
         if (profiles.isEmpty()) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_NO_PROFILE_ASSIGNED,"no password profiles are configured"));

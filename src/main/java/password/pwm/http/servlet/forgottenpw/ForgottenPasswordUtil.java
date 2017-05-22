@@ -50,7 +50,7 @@ import password.pwm.http.bean.ForgottenPasswordBean;
 import password.pwm.http.filter.AuthenticationFilter;
 import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserInfo;
-import password.pwm.ldap.UserInfoReader;
+import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.svc.token.TokenPayload;
@@ -119,7 +119,7 @@ class ForgottenPasswordUtil {
             return null;
         }
 
-        final String CACHE_KEY = "ForgottenPassword-UserInfoCache";
+        final String CACHE_KEY = PwmConstants.SESSION_ATTR_FORGOTTEN_PW_USERINFO_CACHE;
 
         final UserIdentity userIdentity = forgottenPasswordBean.getUserIdentity();
 
@@ -137,7 +137,7 @@ class ForgottenPasswordUtil {
         }
 
         final ChaiProvider chaiProvider = pwmRequest.getPwmApplication().getProxyChaiProvider(userIdentity.getLdapProfileID());
-        final UserInfoReader userStatusReader = new UserInfoReader(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel());
+        final UserInfoFactory userStatusReader = new UserInfoFactory(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel());
         final UserInfo userInfo = userStatusReader.populateUserInfoBean(
                 pwmRequest.getLocale(),
                 userIdentity,

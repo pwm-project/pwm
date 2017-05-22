@@ -36,7 +36,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.i18n.Display;
 import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
-import password.pwm.ldap.UserInfoReader;
+import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.event.UserAuditRecord;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.java.JsonUtil;
@@ -86,7 +86,7 @@ public class HelpdeskDetailInfoBean implements Serializable {
         }
 
         final HelpdeskDetailInfoBean detailInfo = new HelpdeskDetailInfoBean();
-        final UserInfoReader userStatusReader = new UserInfoReader(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel());
+        final UserInfoFactory userStatusReader = new UserInfoFactory(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel());
         detailInfo.setUserInfo(userStatusReader.populateUserInfoBean(actorLocale, userIdentity, theUser.getChaiProvider()));
 
         try {

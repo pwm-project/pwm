@@ -24,7 +24,6 @@ package password.pwm.ldap;
 
 import lombok.Getter;
 import lombok.Setter;
-import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.PasswordStatus;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.UserIdentity;
@@ -38,18 +37,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * A bean that is stored in the user's session.   Only information that is particular to logged in user is stored in the
- * user info bean.  Information more topical to the session is stored in {@link LocalSessionStateBean}.
- * <p/>
- * For any given HTTP session using PWM, several {@link UserInfoBean}s may be created during
- * the life of the session, however at any given time, no more than one will be stored in
- * the HTTP session.  If the user is not authenticated (determined by {@link LocalSessionStateBean})
- * then there should not be a {@link UserInfoBean} in the HTTP session.
- *
- * @author Jason D. Rivard
- * @see UserInfoReader#populateUserInfoBean
- */
 @Getter
 @Setter
 public class UserInfoBean implements UserInfo {
@@ -70,7 +57,7 @@ public class UserInfoBean implements UserInfo {
     
     private Map<ProfileType,String> profileIDs = new HashMap<>();
 
-    private PasswordStatus passwordState = new PasswordStatus();
+    private PasswordStatus passwordState = PasswordStatus.builder().build();
 
     private PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.defaultPolicy();
     private ChallengeProfile challengeProfile = null;

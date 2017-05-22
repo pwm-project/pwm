@@ -182,7 +182,7 @@ class CryptoCookieLoginImpl implements SessionLoginProvider {
             final PwmRequest pwmRequest,
             final LoginInfoBean loginInfoBean
     )
-            throws PwmOperationalException
+            throws PwmOperationalException, PwmUnrecoverableException
     {
         if (loginInfoBean.isAuthenticated() && loginInfoBean.getAuthTime() == null) {
             final String errorMsg = "decrypted login cookie does not specify a local auth time";

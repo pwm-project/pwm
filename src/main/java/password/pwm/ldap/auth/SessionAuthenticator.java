@@ -44,7 +44,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.ldap.UserInfoReader;
+import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.intruder.IntruderManager;
 import password.pwm.svc.intruder.RecordType;
@@ -319,7 +319,7 @@ public class SessionAuthenticator {
 
         // update the actor user info bean
         {
-            final UserInfoReader userStatusReader = new UserInfoReader(pwmApplication, pwmSession.getLabel());
+            final UserInfoFactory userStatusReader = new UserInfoFactory(pwmApplication, pwmSession.getLabel());
 
             final UserInfo userInfoBean;
             if (authenticationResult.getAuthenticationType() == AuthenticationType.AUTH_BIND_INHIBIT) {

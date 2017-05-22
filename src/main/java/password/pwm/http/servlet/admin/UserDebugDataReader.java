@@ -36,7 +36,7 @@ import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.LdapPermissionTester;
-import password.pwm.ldap.UserInfoReader;
+import password.pwm.ldap.UserInfoFactory;
 import password.pwm.util.operations.PasswordUtility;
 
 import java.util.Collections;
@@ -54,7 +54,7 @@ public class UserDebugDataReader {
     )
             throws PwmUnrecoverableException
     {
-        final UserInfoReader userStatusReader = new UserInfoReader(pwmApplication, sessionLabel);
+        final UserInfoFactory userStatusReader = new UserInfoFactory(pwmApplication, sessionLabel);
 
         final UserInfo userInfo = userStatusReader.populateUserInfoBean(locale, userIdentity);
 

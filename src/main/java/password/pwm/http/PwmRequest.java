@@ -410,7 +410,8 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         return pwmSession.isAuthenticated();
     }
 
-    public boolean isForcedPageView() {
+    public boolean isForcedPageView() throws PwmUnrecoverableException
+    {
         if (!isAuthenticated()) {
             return false;
         }
@@ -602,8 +603,10 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
             }
         }
 
-        if (LINE_SEPARATOR.equals(sb.substring(sb.length() - LINE_SEPARATOR.length(), sb.length()))) {
-            sb.delete(sb.length() - LINE_SEPARATOR.length(), sb.length());
+        if (sb.length() > 0) {
+            if (LINE_SEPARATOR.equals(sb.substring(sb.length() - LINE_SEPARATOR.length(), sb.length()))) {
+                sb.delete(sb.length() - LINE_SEPARATOR.length(), sb.length());
+            }
         }
 
         return sb.toString();

@@ -39,7 +39,8 @@ import java.util.concurrent.TimeUnit;
 public class IdleTimeoutCalculator {
     private static final PwmLogger LOGGER = PwmLogger.forClass(IdleTimeoutCalculator.class);
 
-    public static TimeDuration figureMaxIdleTimeout(final PwmApplication pwmApplication, final PwmSession pwmSession) {
+    public static TimeDuration figureMaxIdleTimeout(final PwmApplication pwmApplication, final PwmSession pwmSession) throws PwmUnrecoverableException
+    {
         final Configuration configuration = pwmApplication.getConfig();
         long idleSeconds = configuration.readSettingAsLong(PwmSetting.IDLE_TIMEOUT_SECONDS);
 
@@ -73,11 +74,13 @@ public class IdleTimeoutCalculator {
         return new TimeDuration(idleSeconds, TimeUnit.SECONDS);
     }
 
-    public static TimeDuration idleTimeoutForRequest(final PwmRequest pwmRequest) {
+    public static TimeDuration idleTimeoutForRequest(final PwmRequest pwmRequest) throws PwmUnrecoverableException
+    {
         return idleTimeoutForRequest(pwmRequest.getURL(),pwmRequest.getPwmApplication(),pwmRequest.getPwmSession());
     }
 
-    public static TimeDuration idleTimeoutForRequest(final PwmURL pwmURL, final PwmApplication pwmApplication, final PwmSession pwmSession) {
+    public static TimeDuration idleTimeoutForRequest(final PwmURL pwmURL, final PwmApplication pwmApplication, final PwmSession pwmSession) throws PwmUnrecoverableException
+    {
         final Configuration config = pwmApplication.getConfig();
         if (pwmURL.isPwmServletURL(PwmServletDefinition.Helpdesk)) {
             if (config.readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE)) {

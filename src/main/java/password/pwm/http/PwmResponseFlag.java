@@ -20,29 +20,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.bean;
+package password.pwm.http;
 
-import lombok.Builder;
-import lombok.Getter;
-import password.pwm.util.java.JsonUtil;
-
-import java.io.Serializable;
-
-@Getter
-@Builder
-public class PasswordStatus implements Serializable {
-
-    private boolean expired = false;
-    private boolean preExpired = false;
-    private boolean violatesPolicy = false;
-    private boolean warnPeriod = false;
-
-    @Override
-    public String toString() {
-        return JsonUtil.serialize(this);
-    }
-
-    public boolean isEffectivelyExpired() {
-        return this.isExpired() || !this.isPreExpired() || !this.isViolatesPolicy();
-    }
+public enum PwmResponseFlag {
+    ERROR_RESPONSE_SENT,
 }

@@ -1361,6 +1361,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
             break;
 
             case OTP: {
+                pwmRequest.setAttribute(PwmRequestAttribute.ForgottenPasswordOtpRecord, ForgottenPasswordUtil.readUserInfo(pwmRequest, forgottenPasswordBean).getOtpUserRecord());
                 pwmRequest.forwardToJsp(JspUrl.RECOVER_PASSWORD_ENTER_OTP);
             }
             break;

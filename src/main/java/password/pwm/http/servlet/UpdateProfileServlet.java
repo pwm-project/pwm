@@ -123,7 +123,8 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
         return UpdateProfileAction.class;
     }
 
-    private static UpdateAttributesProfile getProfile(final PwmRequest pwmRequest) {
+    private static UpdateAttributesProfile getProfile(final PwmRequest pwmRequest) throws PwmUnrecoverableException
+    {
         return pwmRequest.getPwmSession().getSessionManager().getUpdateAttributeProfile(pwmRequest.getPwmApplication());
     }
 

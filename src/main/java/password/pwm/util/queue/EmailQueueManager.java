@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +27,6 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
-import password.pwm.ldap.UserInfo;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
@@ -35,14 +34,15 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
+import password.pwm.ldap.UserInfo;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
@@ -65,10 +65,11 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author Jason D. Rivard
@@ -83,6 +84,8 @@ public class EmailQueueManager implements PwmService {
 
     private PwmService.STATUS status = STATUS.NEW;
     private ErrorInformation lastError;
+
+    private final ThreadLocal<Transport> threadLocalTransport = new ThreadLocal<>();
 
     public void init(final PwmApplication pwmApplication)
             throws PwmException
@@ -101,8 +104,8 @@ public class EmailQueueManager implements PwmService {
                 .maxEvents(Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_EMAIL_MAX_COUNT)))
                 .retryDiscardAge(new TimeDuration(Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_EMAIL_MAX_AGE_MS))))
                 .retryInterval(new TimeDuration(Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_EMAIL_RETRY_TIMEOUT_MS))))
+                .preThreads(Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_EMAIL_MAX_THREADS)))
                 .build();
-
         final LocalDBStoredQueue localDBStoredQueue = LocalDBStoredQueue.createLocalDBStoredQueue(pwmApplication, pwmApplication.getLocalDB(), LocalDB.DB.EMAIL_QUEUE);
 
         workQueueProcessor = new WorkQueueProcessor<>(pwmApplication, localDBStoredQueue, settings, new EmailItemProcessor(), this.getClass());
@@ -145,57 +148,49 @@ public class EmailQueueManager implements PwmService {
     }
 
     public int queueSize() {
-        return workQueueProcessor == null ? 0 : workQueueProcessor.queueSize();
+        return workQueueProcessor.queueSize();
     }
 
     public Instant eldestItem() {
         return workQueueProcessor.eldestItem();
     }
 
-    private class EmailItemProcessor implements  WorkQueueProcessor.ItemProcessor<EmailItemBean>  {
+    private class EmailItemProcessor implements WorkQueueProcessor.ItemProcessor<EmailItemBean>  {
         @Override
         public WorkQueueProcessor.ProcessResult process(final EmailItemBean workItem) {
-                return sendItem(workItem);
+            return sendItem(workItem);
         }
 
         public String convertToDebugString(final EmailItemBean emailItemBean) {
-            return emailItemToDebugString(emailItemBean);
+            return emailItemBean.toDebugString();
         }
-    }
-
-    private static String emailItemToDebugString(final EmailItemBean emailItemBean) {
-        final Map<String,Object> debugOutputMap = new LinkedHashMap<>();
-        debugOutputMap.put("to", emailItemBean.getTo());
-        debugOutputMap.put("from", emailItemBean.getFrom());
-        debugOutputMap.put("subject", emailItemBean.getSubject());
-        return JsonUtil.serializeMap(debugOutputMap);
     }
 
     private boolean determineIfItemCanBeDelivered(final EmailItemBean emailItem) {
         final String serverAddress = pwmApplication.getConfig().readSettingAsString(PwmSetting.EMAIL_SERVER_ADDRESS);
 
         if (serverAddress == null || serverAddress.length() < 1) {
-            LOGGER.debug("discarding email send event (no SMTP server address configured) " + emailItem.toString());
+            LOGGER.debug("discarding email send event (no SMTP server address configured) " + emailItem.toDebugString());
             return false;
         }
 
         if (emailItem.getFrom() == null || emailItem.getFrom().length() < 1) {
-            LOGGER.error("discarding email event (no from address): " + emailItem.toString());
+            LOGGER.error("discarding email event (no from address): " + emailItem.toDebugString());
             return false;
         }
 
         if (emailItem.getTo() == null || emailItem.getTo().length() < 1) {
-            LOGGER.error("discarding email event (no to address): " + emailItem.toString());
+            LOGGER.error("discarding email event (no to address): " + emailItem.toDebugString());
             return false;
         }
 
         if (emailItem.getSubject() == null || emailItem.getSubject().length() < 1) {
-            LOGGER.error("discarding email event (no subject): " + emailItem.toString());
+            LOGGER.error("discarding email event (no subject): " + emailItem.toDebugString());
             return false;
         }
 
         if ((emailItem.getBodyPlain() == null || emailItem.getBodyPlain().length() < 1) && (emailItem.getBodyHtml() == null || emailItem.getBodyHtml().length() < 1)) {
-            LOGGER.error("discarding email event (no body): " + emailItem.toString());
+            LOGGER.error("discarding email event (no body): " + emailItem.toDebugString());
             return false;
         }
 
@@ -207,75 +202,87 @@ public class EmailQueueManager implements PwmService {
             final UserInfo userInfo,
             final MacroMachine macroMachine
     )
+            throws PwmUnrecoverableException
     {
         if (emailItem == null) {
             return;
         }
 
-        EmailItemBean workingItemBean = emailItem;
+        final EmailItemBean finalBean;
+        {
+            EmailItemBean workingItemBean = emailItem;
+            if ((emailItem.getTo() == null || emailItem.getTo().isEmpty()) && userInfo != null) {
+                final String toAddress = userInfo.getUserEmailAddress();
+                workingItemBean = newEmailToAddress(workingItemBean, toAddress);
+            }
 
-        if ((emailItem.getTo() == null || emailItem.getTo().isEmpty()) && userInfo != null) {
-            final String toAddress = userInfo.getUserEmailAddress();
-            workingItemBean = newEmailToAddress(workingItemBean, toAddress);
-        }
+            if (macroMachine != null) {
+                workingItemBean = applyMacrosToEmail(workingItemBean, macroMachine);
+            }
 
-        if (macroMachine != null) {
-            workingItemBean = applyMacrosToEmail(workingItemBean, macroMachine);
-        }
+            if (workingItemBean.getTo() == null || workingItemBean.getTo().length() < 1) {
+                LOGGER.error("no destination address available for email, skipping; email: " + emailItem.toDebugString());
+            }
 
-        if (workingItemBean.getTo() == null || workingItemBean.getTo().length() < 1) {
-            LOGGER.error("no destination address available for email, skipping; email: " + emailItem.toString());
-        }
-
-        if (!determineIfItemCanBeDelivered(emailItem)) {
-            return;
+            if (!determineIfItemCanBeDelivered(emailItem)) {
+                return;
+            }
+            finalBean = workingItemBean;
         }
 
         try {
-            workQueueProcessor.submit(workingItemBean);
+            workQueueProcessor.submit(finalBean);
         } catch (PwmOperationalException e) {
             LOGGER.warn("unable to add email to queue: " + e.getMessage());
         }
+    }
+
+    private final AtomicInteger newThreadLocalTransport = new AtomicInteger();
+    private final AtomicInteger useExistingConnection = new AtomicInteger();
+    private final AtomicInteger useExistingTransport = new AtomicInteger();
+    private final AtomicInteger newConnectionCounter = new AtomicInteger();
+
+    private String stats() {
+        final Map<String,Integer> map = new HashMap<>();
+        map.put("newThreadLocalTransport", newThreadLocalTransport.get());
+        map.put("useExistingConnection", newThreadLocalTransport.get());
+        map.put("useExistingTransport", useExistingTransport.get());
+        map.put("newConnectionCounter", newConnectionCounter.get());
+        return StringUtil.mapToString(map);
     }
 
     private WorkQueueProcessor.ProcessResult sendItem(final EmailItemBean emailItemBean) {
 
         // create a new MimeMessage object (using the Session created above)
         try {
-            final List<Message> messages = convertEmailItemToMessages(emailItemBean, this.pwmApplication.getConfig());
-            final String mailUser = this.pwmApplication.getConfig().readSettingAsString(PwmSetting.EMAIL_USERNAME);
-            final PasswordData mailPassword = this.pwmApplication.getConfig().readSettingAsPassword(PwmSetting.EMAIL_PASSWORD);
-
-            // Login to SMTP server first if both username and password is given
-            final String logText;
-            if (mailUser == null || mailUser.length() < 1 || mailPassword == null) {
-
-                logText = "plaintext";
-
-                for (final Message message : messages) {
-                    Transport.send(message);
-                }
+            if (threadLocalTransport.get() == null) {
+                LOGGER.trace("initializing new threadLocal transport, stats: " + stats());
+                threadLocalTransport.set(getSmtpTransport());
+                newThreadLocalTransport.getAndIncrement();
             } else {
-                // create a new Session object for the message
-                final javax.mail.Session session = javax.mail.Session.getInstance(javaMailProps, null);
-
-                final String mailhost = this.pwmApplication.getConfig().readSettingAsString(PwmSetting.EMAIL_SERVER_ADDRESS);
-                final int mailport = (int)this.pwmApplication.getConfig().readSettingAsLong(PwmSetting.EMAIL_SERVER_PORT);
-
-                final Transport tr = session.getTransport("smtp");
-                tr.connect(mailhost, mailport, mailUser, mailPassword.getStringValue());
-
-                for (final Message message : messages) {
-                    message.saveChanges();
-                    tr.sendMessage(message, message.getAllRecipients());
-                }
-
-                tr.close();
-                logText = "authenticated ";
-                lastError = null;
+                LOGGER.trace("using existing threadLocal transport, stats: " + stats());
+                useExistingTransport.getAndIncrement();
+            }
+            final Transport transport = threadLocalTransport.get();
+            if (!transport.isConnected()) {
+                LOGGER.trace("connecting threadLocal transport, stats: " + stats());
+                transport.connect();
+                newConnectionCounter.getAndIncrement();
+            } else {
+                LOGGER.trace("using existing threadLocal: stats: " + stats());
+                useExistingConnection.getAndIncrement();
             }
 
-            LOGGER.debug("successfully sent " + logText + "email: " + emailItemBean.toString());
+            final List<Message> messages = convertEmailItemToMessages(emailItemBean, this.pwmApplication.getConfig());
+
+            for (final Message message : messages) {
+                message.saveChanges();
+                transport.sendMessage(message, message.getAllRecipients());
+            }
+
+            lastError = null;
+
+            LOGGER.debug("sent email: " + emailItemBean.toDebugString());
             StatisticsManager.incrementStat(pwmApplication, Statistic.EMAIL_SEND_SUCCESSES);
             return WorkQueueProcessor.ProcessResult.SUCCESS;
         } catch (Exception e) {
@@ -288,7 +295,7 @@ public class EmailQueueManager implements PwmService {
                 errorInformation = new ErrorInformation(
                         PwmError.ERROR_EMAIL_SEND_FAILURE,
                         errorMsg,
-                        new String[]{ emailItemToDebugString(emailItemBean), JavaHelper.readHostileExceptionMessage(e)}
+                        new String[]{ emailItemBean.toDebugString(), JavaHelper.readHostileExceptionMessage(e)}
                 );
             }
 
@@ -296,19 +303,44 @@ public class EmailQueueManager implements PwmService {
             LOGGER.error(errorInformation);
 
             if (sendIsRetryable(e)) {
-                LOGGER.error("error sending email (" + e.getMessage() + ") " + emailItemBean.toString() + ", will retry");
+                LOGGER.error("error sending email (" + e.getMessage() + ") " + emailItemBean.toDebugString() + ", will retry");
                 StatisticsManager.incrementStat(pwmApplication, Statistic.EMAIL_SEND_FAILURES);
                 return WorkQueueProcessor.ProcessResult.RETRY;
             } else {
                 LOGGER.error(
-                        "error sending email (" + e.getMessage() + ") " + emailItemBean.toString() + ", permanent failure, discarding message");
+                        "error sending email (" + e.getMessage() + ") " + emailItemBean.toDebugString() + ", permanent failure, discarding message");
                 StatisticsManager.incrementStat(pwmApplication, Statistic.EMAIL_SEND_DISCARDS);
                 return WorkQueueProcessor.ProcessResult.FAILED;
             }
         }
     }
 
-    List<Message> convertEmailItemToMessages(final EmailItemBean emailItemBean, final Configuration config)
+    private Transport getSmtpTransport()
+            throws MessagingException, PwmUnrecoverableException
+    {
+        final String mailUser = this.pwmApplication.getConfig().readSettingAsString(PwmSetting.EMAIL_USERNAME);
+        final PasswordData mailPassword = this.pwmApplication.getConfig().readSettingAsPassword(PwmSetting.EMAIL_PASSWORD);
+        final String mailhost = this.pwmApplication.getConfig().readSettingAsString(PwmSetting.EMAIL_SERVER_ADDRESS);
+        final int mailport = (int)this.pwmApplication.getConfig().readSettingAsLong(PwmSetting.EMAIL_SERVER_PORT);
+
+        // Login to SMTP server first if both username and password is given
+        final javax.mail.Session session = javax.mail.Session.getInstance(javaMailProps, null);
+        final Transport tr = session.getTransport("smtp");
+
+        final boolean authenticated = !(mailUser == null || mailUser.length() < 1 || mailPassword == null);
+
+        if (authenticated) {
+            // create a new Session object for the message
+            tr.connect(mailhost, mailport, mailUser, mailPassword.getStringValue());
+        } else {
+            tr.connect();
+        }
+
+        LOGGER.debug("connected to " + mailhost + ":" + mailport + " " + (authenticated ? "(secure)" : "(plaintext)"));
+        return tr;
+    }
+
+    public List<Message> convertEmailItemToMessages(final EmailItemBean emailItemBean, final Configuration config)
             throws MessagingException
     {
         final List<Message> messages = new ArrayList<>();
@@ -435,6 +467,5 @@ public class EmailQueueManager implements PwmService {
         }
         return false;
     }
-
 }
 

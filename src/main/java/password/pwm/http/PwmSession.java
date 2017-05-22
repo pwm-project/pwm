@@ -35,7 +35,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.UserSessionDataCacheBean;
-import password.pwm.ldap.UserInfoReader;
+import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
@@ -147,7 +147,7 @@ public class PwmSession implements Serializable {
     {
         LOGGER.trace(this, "performing reloadUserInfoBean");
         final UserInfo oldUserInfoBean = getUserInfo();
-        final UserInfoReader userStatusReader = new UserInfoReader(pwmApplication, getLabel());
+        final UserInfoFactory userStatusReader = new UserInfoFactory(pwmApplication, getLabel());
 
 
         final UserInfo userInfo;
@@ -192,7 +192,15 @@ public class PwmSession implements Serializable {
 
     public SessionLabel getLabel() {
         final LocalSessionStateBean ssBean = this.getSessionStateBean();
-        final String userID = isAuthenticated() ? this.getUserInfo().getUsername() : null;
+
+        String userID = null;
+        try {
+            userID = isAuthenticated()
+                    ? this.getUserInfo().getUsername()
+                    : null;
+        } catch (PwmUnrecoverableException e) {
+            LOGGER.error("unexpected error reading username: " + e.getMessage(),e);
+        }
         final UserIdentity userIdentity = isAuthenticated() ? this.getUserInfo().getUserIdentity() : null;
         return new SessionLabel(ssBean.getSessionID(),userIdentity,userID,ssBean.getSrcAddress(),ssBean.getSrcAddress());
     }

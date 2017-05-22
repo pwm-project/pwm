@@ -122,6 +122,7 @@ public abstract class PwmConstants {
     public static final String SESSION_ATTR_PWM_SESSION = "PwmSession";
     public static final String SESSION_ATTR_BEANS = "SessionBeans";
     public static final String SESSION_ATTR_CONTEXT_GUID = "ContextInstanceGUID";
+    public static final String SESSION_ATTR_FORGOTTEN_PW_USERINFO_CACHE = "ForgottenPw-UserInfoCache";
 
     public static final PwmBlockAlgorithm IN_MEMORY_PASSWORD_ENCRYPT_METHOD = PwmBlockAlgorithm.AES;
     public static final PwmHashAlgorithm SETTING_CHECKSUM_HASH_METHOD = PwmHashAlgorithm.SHA256;

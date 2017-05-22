@@ -40,7 +40,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.ldap.UserInfoReader;
+import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.EventRateMeter;
 import password.pwm.util.TransactionSizeCalculator;
@@ -547,9 +547,9 @@ public class ReportService implements PwmService {
             if (userCacheRecord != null) {
                 summaryData.remove(userCacheRecord);
             }
-            final UserInfoReader.Settings readerSettings = new UserInfoReader.Settings();
+            final UserInfoFactory.Settings readerSettings = new UserInfoFactory.Settings();
             final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID());
-            final UserInfoReader userStatusReader = new UserInfoReader(pwmApplication, SessionLabel.REPORTING_SESSION_LABEL,readerSettings);
+            final UserInfoFactory userStatusReader = new UserInfoFactory(pwmApplication, SessionLabel.REPORTING_SESSION_LABEL,readerSettings);
             final UserInfo userInfo = userStatusReader.populateUserInfoBean(
                     PwmConstants.DEFAULT_LOCALE,
                     userIdentity,

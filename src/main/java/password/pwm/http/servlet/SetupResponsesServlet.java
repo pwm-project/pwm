@@ -525,6 +525,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet {
             final PwmRequest pwmRequest,
             final SetupResponsesBean setupResponsesBean
     )
+            throws PwmUnrecoverableException
     {
         if (pwmRequest.getPwmSession().getUserInfo().getResponseInfoBean() != null) {
             setupResponsesBean.setHasExistingResponses(true);

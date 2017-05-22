@@ -34,7 +34,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.ldap.UserInfoReader;
+import password.pwm.ldap.UserInfoFactory;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -103,7 +103,7 @@ public class RestTokenDataClient implements RestClient {
         final Map<String,Object> sendData = new LinkedHashMap<>();
         sendData.put(DATA_KEY_TOKENDATA, tokenDestinationData);
         if (userIdentity != null) {
-            final UserInfoReader userStatusReader = new UserInfoReader(pwmApplication, sessionLabel);
+            final UserInfoFactory userStatusReader = new UserInfoFactory(pwmApplication, sessionLabel);
             final UserInfo userInfo = userStatusReader.populateUserInfoBean(
                     locale,
                     userIdentity

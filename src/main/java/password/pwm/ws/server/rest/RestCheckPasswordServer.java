@@ -38,7 +38,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
-import password.pwm.ldap.UserInfoReader;
+import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.JsonUtil;
@@ -157,7 +157,7 @@ public class RestCheckPasswordServer extends AbstractRestServer {
             final UserInfo userInfo;
             if (restRequestBean.getUserIdentity() != null) { // check for another user
                 userDN = restRequestBean.getUserIdentity();
-                final UserInfoReader userStatusReader = new UserInfoReader(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession().getLabel());
+                final UserInfoFactory userStatusReader = new UserInfoFactory(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession().getLabel());
                 userInfo = userStatusReader.populateUserInfoBean(
                         restRequestBean.getPwmSession().getSessionStateBean().getLocale(),
                         userDN,

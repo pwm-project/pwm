@@ -432,7 +432,8 @@ public class PwmPasswordRuleValidator {
             final String password,
             final PasswordCharCounter charCounter,
             final int maxGroupViolationCount
-    ) {
+    ) throws PwmUnrecoverableException
+    {
         final List<ErrorInformation> errorList = new ArrayList<>();
 
         if (password == null || password.length() < 6) {
@@ -636,7 +637,8 @@ public class PwmPasswordRuleValidator {
             final String password,
             final PwmPasswordPolicy policy,
             final UserInfo userInfo
-    ) {
+    ) throws PwmUnrecoverableException
+    {
         final List<ErrorInformation> errorList = new ArrayList<>();
         final PwmPasswordPolicy.RuleHelper ruleHelper = policy.getRuleHelper();
         final PasswordCharCounter charCounter = new PasswordCharCounter(password);

@@ -333,8 +333,8 @@ public class RestChallengesServer extends AbstractRestServer {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
 
-        final HelpdeskProfile helpdeskProfile = restRequestBean.getPwmSession().getSessionManager().getHelpdeskProfile(restRequestBean.getPwmApplication());
         try {
+            final HelpdeskProfile helpdeskProfile = restRequestBean.getPwmSession().getSessionManager().getHelpdeskProfile(restRequestBean.getPwmApplication());
             if (restRequestBean.getUserIdentity() == null) {
                 if (!restRequestBean.getPwmSession().getSessionManager().checkPermission(restRequestBean.getPwmApplication(), Permission.SETUP_RESPONSE)) {
                     throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"actor does not have required permission"));
