@@ -809,7 +809,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         final Instant startTime = Instant.now();
 
         final ArrayList<NavTreeItem> navigationData = new ArrayList<>();
-        final Map<String,Object> inputParameters = pwmRequest.readBodyAsJsonMap(false);
+        final Map<String,Object> inputParameters = pwmRequest.readBodyAsJsonMap(PwmHttpRequestWrapper.Flag.BypassValidation);
         final boolean modifiedSettingsOnly = (boolean)inputParameters.get("modifiedSettingsOnly");
         final double level = (double)inputParameters.get("level");
         final String filterText = (String)inputParameters.get("text");

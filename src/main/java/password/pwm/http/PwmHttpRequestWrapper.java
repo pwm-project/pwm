@@ -147,9 +147,10 @@ public abstract class PwmHttpRequestWrapper {
         return Collections.unmodifiableMap(outputMap);
     }
 
-    public Map<String, Object> readBodyAsJsonMap(final boolean bypassInputValidation)
+    public Map<String, Object> readBodyAsJsonMap(final Flag... flags)
             throws IOException, PwmUnrecoverableException
     {
+        final boolean bypassInputValidation = flags != null && Arrays.asList(flags).contains(Flag.BypassValidation);
         final String bodyString = readRequestBodyAsString();
         final Map<String, Object> inputMap = JsonUtil.deserializeMap(bodyString);
 

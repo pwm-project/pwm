@@ -136,7 +136,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet {
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
     {
-        final Map<String,Object> jsonBodyMap = pwmRequest.readBodyAsJsonMap(true);
+        final Map<String,Object> jsonBodyMap = pwmRequest.readBodyAsJsonMap(PwmHttpRequestWrapper.Flag.BypassValidation);
         final String username = jsonBodyMap.get("username") == null
                 ? null
                 : jsonBodyMap.get("username").toString();
