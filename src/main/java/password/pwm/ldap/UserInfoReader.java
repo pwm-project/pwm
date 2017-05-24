@@ -22,7 +22,6 @@
 
 package password.pwm.ldap;
 
-import com.novell.ldapchai.ChaiConstant;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiException;
@@ -610,7 +609,7 @@ public class UserInfoReader implements UserInfo {
             try {
                 results = chaiUser.getChaiProvider().searchMultiValues(
                         chaiUser.getEntryDN(),
-                        ChaiConstant.FILTER_OBJECTCLASS_ANY,
+                        "(objectclass=*)",
                         uncachedAttributes,
                         ChaiProvider.SEARCH_SCOPE.BASE
                 );

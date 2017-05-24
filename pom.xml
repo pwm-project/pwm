@@ -609,7 +609,7 @@
         <dependency>
             <groupId>com.github.ldapchai</groupId>
             <artifactId>ldapchai</artifactId>
-            <version>0.6.9-SNAPSHOT</version>
+            <version>0.6.8</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
