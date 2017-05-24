@@ -214,12 +214,13 @@ public class RequestInitializationFilter implements Filter {
             throws PwmUnrecoverableException
     {
         final ContextManager contextManager = ContextManager.getContextManager(request.getSession());
+        final PwmApplication pwmApplication = contextManager.getPwmApplication();
 
         { // destroy any outdated sessions
             final HttpSession httpSession = request.getSession(false);
             if (httpSession != null) {
-                final String sessionContextInitGUID = (String) httpSession.getAttribute(PwmConstants.SESSION_ATTR_CONTEXT_GUID);
-                if (sessionContextInitGUID == null || !sessionContextInitGUID.equals(contextManager.getInstanceGuid())) {
+                final String sessionPwmAppNonce = (String) httpSession.getAttribute(PwmConstants.SESSION_ATTR_PWM_APP_NONCE);
+                if (sessionPwmAppNonce == null || !sessionPwmAppNonce.equals(pwmApplication.getInstanceNonce())) {
                     LOGGER.debug("invalidating http session created with non-current servlet context");
                     httpSession.invalidate();
                 }
@@ -229,7 +230,6 @@ public class RequestInitializationFilter implements Filter {
         { // handle pwmSession init and assignment.
             final HttpSession httpSession = request.getSession();
             if (httpSession.getAttribute(PwmConstants.SESSION_ATTR_PWM_SESSION) == null) {
-                final PwmApplication pwmApplication = contextManager.getPwmApplication();
                 final PwmSession pwmSession = PwmSession.createPwmSession(pwmApplication);
                 PwmSessionWrapper.sessionMerge(pwmApplication, pwmSession, httpSession);
             }

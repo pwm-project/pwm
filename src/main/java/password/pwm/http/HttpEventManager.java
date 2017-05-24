@@ -57,7 +57,8 @@ public class HttpEventManager implements
         final HttpSession httpSession = httpSessionEvent.getSession();
         try {
             final ContextManager contextManager = ContextManager.getContextManager(httpSession);
-            httpSession.setAttribute(PwmConstants.SESSION_ATTR_CONTEXT_GUID,contextManager.getInstanceGuid());
+            final PwmApplication pwmApplication = contextManager.getPwmApplication();
+            httpSession.setAttribute(PwmConstants.SESSION_ATTR_PWM_APP_NONCE, pwmApplication.getInstanceNonce());
             LOGGER.trace("new http session created");
         } catch (PwmUnrecoverableException e) {
             LOGGER.warn("error during sessionCreated event: " + e.getMessage());
