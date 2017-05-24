@@ -501,21 +501,15 @@ public class PeopleSearchDataReader {
     )
             throws PwmUnrecoverableException
     {
-        final ChaiUser chaiUser = getChaiUser(userIdentity);
-        final UserInfo userInfo;
-        if (Boolean.parseBoolean(pwmRequest.getConfig().readAppProperty(AppProperty.PEOPLESEARCH_DISPLAYNAME_USEALLMACROS))) {
-            final Locale locale = pwmRequest.getLocale();
-            final ChaiProvider chaiProvider = pwmRequest.getPwmApplication().getProxiedChaiUser(userIdentity).getChaiProvider();
-            userInfo = UserInfoFactory.newUserInfo(
-                    pwmRequest.getPwmApplication(),
-                    pwmRequest.getSessionLabel(),
-                    locale,
-                    userIdentity,
-                    chaiProvider
-            );
-        } else {
-            userInfo = null;
-        }
+        final Locale locale = pwmRequest.getLocale();
+        final ChaiProvider chaiProvider = pwmRequest.getPwmApplication().getProxiedChaiUser(userIdentity).getChaiProvider();
+        final UserInfo userInfo = UserInfoFactory.newUserInfo(
+                pwmRequest.getPwmApplication(),
+                pwmRequest.getSessionLabel(),
+                locale,
+                userIdentity,
+                chaiProvider
+        );
         return new MacroMachine(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), userInfo, null);
     }
 

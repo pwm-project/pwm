@@ -544,11 +544,15 @@ public class SmsQueueManager implements PwmService {
     }
 
     public int queueSize() {
-        return workQueueProcessor.queueSize();
+        return workQueueProcessor == null
+                ? 0
+                : workQueueProcessor.queueSize();
     }
 
     public Instant eldestItem() {
-        return workQueueProcessor.eldestItem();
+        return workQueueProcessor == null
+                ? null
+                : workQueueProcessor.eldestItem();
     }
 
 }

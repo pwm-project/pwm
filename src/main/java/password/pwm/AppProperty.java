@@ -230,7 +230,6 @@ public enum     AppProperty {
     PASSWORD_RANDOMGEN_MAX_ATTEMPTS                 ("password.randomGenerator.maxAttempts"),
     PASSWORD_RANDOMGEN_MAX_LENGTH                   ("password.randomGenerator.maxLength"),
     PASSWORD_RANDOMGEN_JITTER_COUNT                 ("password.randomGenerator.jitter.count"),
-    PEOPLESEARCH_DISPLAYNAME_USEALLMACROS           ("peoplesearch.displayName.enableAllMacros"),
     PEOPLESEARCH_MAX_VALUE_VERIFYUSERDN             ("peoplesearch.values.verifyUserDN"),
     PEOPLESEARCH_VALUE_MAXCOUNT                     ("peoplesearch.values.maxCount"),
     PEOPLESEARCH_VIEW_DETAIL_LINKS                  ("peoplesearch.view.detail.links"),

@@ -114,7 +114,9 @@ public class EmailQueueManager implements PwmService {
 
     public void close() {
         status = STATUS.CLOSED;
-        workQueueProcessor.close();
+        if (workQueueProcessor != null) {
+            workQueueProcessor.close();
+        }
     }
 
     @Override
@@ -148,11 +150,15 @@ public class EmailQueueManager implements PwmService {
     }
 
     public int queueSize() {
-        return workQueueProcessor.queueSize();
+        return workQueueProcessor == null
+                ? 0
+                : workQueueProcessor.queueSize();
     }
 
     public Instant eldestItem() {
-        return workQueueProcessor.eldestItem();
+        return workQueueProcessor == null
+                ? null
+                : workQueueProcessor.eldestItem();
     }
 
     private class EmailItemProcessor implements WorkQueueProcessor.ItemProcessor<EmailItemBean>  {

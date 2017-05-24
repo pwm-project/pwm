@@ -44,6 +44,15 @@ public class IdleTimeoutCalculator {
         final Configuration configuration = pwmApplication.getConfig();
         long idleSeconds = configuration.readSettingAsLong(PwmSetting.IDLE_TIMEOUT_SECONDS);
 
+        if (!pwmSession.isAuthenticated()) {
+            if (configuration.readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_ENABLE_PUBLIC)) {
+                final long peopleSearchIdleTimeout = configuration.readSettingAsLong(PwmSetting.PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS);
+                idleSeconds = Math.max(idleSeconds, peopleSearchIdleTimeout);
+            }
+
+            return TimeDuration.fromCurrent(idleSeconds);
+        }
+
         if (configuration.readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE)) {
             final HelpdeskProfile helpdeskProfile = pwmSession.getSessionManager().getHelpdeskProfile(pwmApplication);
             if (helpdeskProfile != null) {
