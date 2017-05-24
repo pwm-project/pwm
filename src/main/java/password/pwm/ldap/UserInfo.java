@@ -22,8 +22,6 @@
 
 package password.pwm.ldap;
 
-import com.novell.ldapchai.exception.ChaiOperationException;
-import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.bean.PasswordStatus;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.UserIdentity;
@@ -82,30 +80,11 @@ public interface UserInfo {
 
     Map<ProfileType, String> getProfileIDs() throws PwmUnrecoverableException;
 
-    String readStringAttribute(
-            String attribute,
-            Flag... flags
-    )
-            throws ChaiUnavailableException, ChaiOperationException;
+    String readStringAttribute(String attribute) throws PwmUnrecoverableException;
 
-    Date readDateAttribute(String attribute)
-                    throws ChaiUnavailableException, ChaiOperationException;
+    Date readDateAttribute(String attribute) throws PwmUnrecoverableException;
 
-    List<String> readMultiStringAttribute(String attribute, Flag... flags) throws ChaiUnavailableException, ChaiOperationException;
+    List<String> readMultiStringAttribute(String attribute) throws PwmUnrecoverableException;
 
-    Map<String,String> readStringAttributes(
-            Collection<String> attributes,
-            Flag... flags
-    )
-                            throws ChaiUnavailableException, ChaiOperationException;
-
-    Map<String,List<String>> readMultiStringAttributes(
-            Collection<String> attributes,
-            Flag... flags
-    )
-                                    throws ChaiUnavailableException, ChaiOperationException;
-
-    enum Flag {
-        ignoreCache
-    }
+    Map<String,String> readStringAttributes(Collection<String> attributes) throws PwmUnrecoverableException;
 }

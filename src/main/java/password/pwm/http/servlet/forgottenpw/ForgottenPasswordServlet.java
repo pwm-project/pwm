@@ -1107,7 +1107,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
                     } else {
                         LOGGER.trace(pwmRequest, "excluding optional required attribute(" + formItem.getName() + "), user has no value");
                     }
-                } catch (ChaiOperationException e) {
+                } catch (PwmUnrecoverableException e) {
                     throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_NO_CHALLENGES, "unexpected error reading value for attribute " + formItem.getName()));
                 }
             }

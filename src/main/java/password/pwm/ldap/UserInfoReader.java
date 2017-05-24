@@ -22,10 +22,10 @@
 
 package password.pwm.ldap;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
+import com.novell.ldapchai.ChaiConstant;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
+import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
@@ -48,7 +48,9 @@ import password.pwm.config.profile.ProfileUtility;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.config.profile.UpdateAttributesProfile;
+import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmDataValidationException;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.PwmService;
 import password.pwm.util.PasswordData;
@@ -63,7 +65,6 @@ import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.operations.otp.OTPUserRecord;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -87,7 +88,7 @@ public class UserInfoReader implements UserInfo {
     private final PwmApplication pwmApplication;
 
     /** A reference to this object, but with memorized (cached) method implementations.  In most cases references to 'this'
-       inside this class should use this {@code selfCachedReference} instead.
+     inside this class should use this {@code selfCachedReference} instead.
      */
     private UserInfo selfCachedReference;
 
@@ -130,16 +131,9 @@ public class UserInfoReader implements UserInfo {
     @Override
     public Map<String, String> getCachedPasswordRuleAttributes() throws PwmUnrecoverableException
     {
-        try {
-            final Set<String> interestingUserAttributes = figurePasswordRuleAttributes(selfCachedReference);
-            final Map<String, String> allUserAttrs = chaiUser.readStringAttributes(interestingUserAttributes);
-            return Collections.unmodifiableMap(allUserAttrs);
-        } catch (ChaiOperationException e) {
-            LOGGER.warn(sessionLabel, "error retrieving user cached password rule attributes " + e);
-        } catch (ChaiUnavailableException e) {
-            throw PwmUnrecoverableException.fromChaiException(e);
-        }
-        return Collections.emptyMap();
+        final Set<String> interestingUserAttributes = figurePasswordRuleAttributes(selfCachedReference);
+        final Map<String, String> allUserAttrs = readStringAttributes(interestingUserAttributes);
+        return Collections.unmodifiableMap(allUserAttrs);
     }
 
     @Override
@@ -148,14 +142,8 @@ public class UserInfoReader implements UserInfo {
         final LdapProfile ldapProfile = getUserIdentity().getLdapProfile(pwmApplication.getConfig());
         final List<String> cachedAttributeNames = ldapProfile.readSettingAsStringArray(PwmSetting.CACHED_USER_ATTRIBUTES);
         if (cachedAttributeNames != null && !cachedAttributeNames.isEmpty()) {
-            try {
-                final Map<String, String> attributeValues = chaiUser.readStringAttributes(new HashSet<>(cachedAttributeNames));
-                return Collections.unmodifiableMap(attributeValues);
-            } catch (ChaiOperationException e) {
-                LOGGER.warn(sessionLabel, "error retrieving user cache attributes: " + e);
-            } catch (ChaiUnavailableException e) {
-                throw PwmUnrecoverableException.fromChaiException(e);
-            }
+            final Map<String, String> attributeValues = readStringAttributes(new HashSet<>(cachedAttributeNames));
+            return Collections.unmodifiableMap(attributeValues);
         }
         return Collections.emptyMap();
     }
@@ -213,14 +201,7 @@ public class UserInfoReader implements UserInfo {
     {
         final LdapProfile ldapProfile = getUserIdentity().getLdapProfile(pwmApplication.getConfig());
         final String uIDattr = ldapProfile.getUsernameAttribute();
-        try {
-            return chaiUser.readStringAttribute(uIDattr);
-        } catch (ChaiOperationException e) {
-            LOGGER.error(sessionLabel, "error reading userID attribute: " + e.getMessage());
-        } catch (ChaiUnavailableException e) {
-            throw PwmUnrecoverableException.fromChaiException(e);
-        }
-        return null;
+        return readStringAttribute(uIDattr);
     }
 
     @Override
@@ -463,14 +444,7 @@ public class UserInfoReader implements UserInfo {
     {
         final LdapProfile ldapProfile = getUserIdentity().getLdapProfile(pwmApplication.getConfig());
         final String ldapEmailAttribute = ldapProfile.readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE);
-        try {
-            return chaiUser.readStringAttribute(ldapEmailAttribute);
-        } catch (ChaiOperationException e) {
-            LOGGER.error(sessionLabel, "error reading email address attribute: " + e.getMessage());
-        } catch (ChaiUnavailableException e) {
-            throw PwmUnrecoverableException.fromChaiException(e);
-        }
-        return null;
+        return readStringAttribute(ldapEmailAttribute);
     }
 
     @Override
@@ -478,14 +452,7 @@ public class UserInfoReader implements UserInfo {
     {
         final LdapProfile ldapProfile = getUserIdentity().getLdapProfile(pwmApplication.getConfig());
         final String ldapSmsAttribute = ldapProfile.readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE);
-        try {
-            return chaiUser.readStringAttribute(ldapSmsAttribute);
-        } catch (ChaiOperationException e) {
-            LOGGER.error(sessionLabel, "error reading sms number attribute: " + e.getMessage());
-        } catch (ChaiUnavailableException e) {
-            throw PwmUnrecoverableException.fromChaiException(e);
-        }
-        return null;
+        return readStringAttribute(ldapSmsAttribute);
     }
 
     @Override
@@ -573,24 +540,15 @@ public class UserInfoReader implements UserInfo {
         return interestingUserAttributes;
     }
 
-    private static final Boolean NULL_CACHE_VALUE = Boolean.FALSE;
-
-    private final Cache<String,Object> cacheMap = Caffeine.newBuilder()
-            .maximumSize(100)  // safety limit
-            .build();
-
-    private enum PrivateFlag {
-        MultiValueRead
-    }
+    private final Map<String,List<String>> cacheMap = new HashMap<>();
 
     @Override
     public String readStringAttribute(
-            final String attribute,
-            final Flag... flags
+            final String attribute
     )
-            throws ChaiUnavailableException, ChaiOperationException
+            throws PwmUnrecoverableException
     {
-        final Map<String,String> results = readStringAttributes(Collections.singletonList(attribute), flags);
+        final Map<String,String> results = readStringAttributes(Collections.singletonList(attribute));
         if (results == null || results.isEmpty()) {
             return null;
         }
@@ -600,24 +558,29 @@ public class UserInfoReader implements UserInfo {
 
     @Override
     public Date readDateAttribute(final String attribute)
-            throws ChaiUnavailableException, ChaiOperationException
+            throws PwmUnrecoverableException
     {
-        return chaiUser.readDateAttribute(attribute);
+        try {
+            return chaiUser.readDateAttribute(attribute);
+        } catch (ChaiException e) {
+            throw PwmUnrecoverableException.fromChaiException(e);
+        }
     }
 
     @Override
-    public List<String> readMultiStringAttribute(final String attribute, final Flag... flags) throws ChaiUnavailableException, ChaiOperationException {
-        return readMultiStringAttributesImpl(Collections.singletonList(attribute), Collections.singletonList(PrivateFlag.MultiValueRead), flags).get(attribute);
+    public List<String> readMultiStringAttribute(final String attribute)
+            throws PwmUnrecoverableException
+    {
+        return readMultiStringAttributesImpl(Collections.singletonList(attribute)).get(attribute);
     }
 
     @Override
     public Map<String,String> readStringAttributes(
-            final Collection<String> attributes,
-            final Flag... flags
+            final Collection<String> attributes
     )
-            throws ChaiUnavailableException, ChaiOperationException
+            throws PwmUnrecoverableException
     {
-        final Map<String,List<String>> valueMap = readMultiStringAttributesImpl(attributes, Collections.<PrivateFlag>emptyList(), flags);
+        final Map<String,List<String>> valueMap = readMultiStringAttributesImpl(attributes);
         final Map<String,String> returnValue = new LinkedHashMap<>();
         for (final String key : valueMap.keySet()) {
             final List<String> values = valueMap.get(key);
@@ -628,46 +591,52 @@ public class UserInfoReader implements UserInfo {
         return returnValue;
     }
 
-    @Override
-    public Map<String,List<String>> readMultiStringAttributes(
-            final Collection<String> attributes,
-            final Flag... flags
-    )
-            throws ChaiUnavailableException, ChaiOperationException
-    {
-        return readMultiStringAttributesImpl(attributes, Collections.singletonList(PrivateFlag.MultiValueRead), flags);
-    }
-
     private Map<String,List<String>> readMultiStringAttributesImpl(
-            final Collection<String> attributes,
-            final Collection<PrivateFlag> privateFlags,
-            final Flag... flags
+            final Collection<String> attributes
     )
-            throws ChaiUnavailableException, ChaiOperationException
+            throws PwmUnrecoverableException
     {
-        final boolean ignoreCache = JavaHelper.enumArrayContainsValue(flags, UserInfo.Flag.ignoreCache);
         if (chaiUser == null || attributes == null || attributes.isEmpty()) {
             return Collections.emptyMap();
         }
 
-        if (ignoreCache) {
-            cacheMap.invalidateAll();
-        }
-
         // figure out uncached attributes.
-        final List<String> uncachedAttributes = new ArrayList<>(attributes);
-        uncachedAttributes.removeAll(cacheMap.asMap().keySet());
+        final Set<String> uncachedAttributes = new HashSet<>(attributes);
+        uncachedAttributes.removeAll(cacheMap.keySet());
 
         // read uncached attributes into cache
         if (!uncachedAttributes.isEmpty()) {
-            for (final String attribute : attributes) {
-                if (privateFlags.contains(PrivateFlag.MultiValueRead)) {
-                    final Set<String> readData = chaiUser.readMultiStringAttribute(attribute);
-                    final List<String> stringList = readData == null ? null : new ArrayList<>(readData);
-                    cacheMap.put(attribute, stringList != null && !stringList.isEmpty() ? stringList : NULL_CACHE_VALUE);
+            final Map<String,Map<String,List<String>>> results;
+            try {
+                results = chaiUser.getChaiProvider().searchMultiValues(
+                        chaiUser.getEntryDN(),
+                        ChaiConstant.FILTER_OBJECTCLASS_ANY,
+                        uncachedAttributes,
+                        ChaiProvider.SEARCH_SCOPE.BASE
+                );
+            } catch (ChaiOperationException e) {
+                final String msg = "ldap operational error while reading user data" + e.getMessage();
+                LOGGER.error(sessionLabel, msg);
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_LDAP_DATA_ERROR,msg));
+            } catch (ChaiUnavailableException e) {
+                throw PwmUnrecoverableException.fromChaiException(e);
+            }
+
+            if (results == null || results.size() != 1) {
+                final String msg = "ldap server did not return requested user entry "
+                        + chaiUser.getEntryDN()
+                        + " while attempting to read attribute data";
+                LOGGER.error(sessionLabel, msg);
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_LDAP_DATA_ERROR,msg));
+            }
+
+            final Map<String,List<String>> allAttributeValues = results.values().iterator().next();
+            for (final String attribute : uncachedAttributes) {
+                final List<String> attributeValues = allAttributeValues.get(attribute);
+                if (attributeValues == null) {
+                    cacheMap.put(attribute, Collections.emptyList());
                 } else {
-                    final String readData = chaiUser.readStringAttribute(attribute);
-                    cacheMap.put(attribute, readData != null ? Collections.singletonList(readData) : NULL_CACHE_VALUE);
+                    cacheMap.put(attribute, Collections.unmodifiableList(attributeValues));
                 }
             }
         }
@@ -675,10 +644,8 @@ public class UserInfoReader implements UserInfo {
         // build result data from cache
         final Map<String,List<String>> returnMap = new HashMap<>();
         for (final String attribute : attributes) {
-            final Object cachedValue = cacheMap.getIfPresent(attribute);
-            if (cachedValue != null && !NULL_CACHE_VALUE.equals(cachedValue)) {
-                returnMap.put(attribute,(List<String>)cachedValue);
-            }
+            final List<String> cachedValue = cacheMap.get(attribute);
+            returnMap.put(attribute, cachedValue);
         }
         return Collections.unmodifiableMap(returnMap);
     }

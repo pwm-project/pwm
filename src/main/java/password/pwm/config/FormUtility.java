@@ -412,7 +412,7 @@ public class FormUtility {
             for (final FormConfiguration formConfiguration : formFields) {
                 final String attribute = formConfiguration.getName();
                 if (formConfiguration.isMultivalue()) {
-                    final List<String> values = userInfo.readMultiStringAttribute(attribute, UserInfo.Flag.ignoreCache);
+                    final List<String> values = userInfo.readMultiStringAttribute(attribute);
                     if (includeNulls || (values != null && !values.isEmpty())) {
                         dataFromLdap.put(attribute, values);
                     }

@@ -22,8 +22,6 @@
 
 package password.pwm.ldap;
 
-import com.novell.ldapchai.exception.ChaiOperationException;
-import com.novell.ldapchai.exception.ChaiUnavailableException;
 import lombok.Builder;
 import lombok.Getter;
 import password.pwm.bean.PasswordStatus;
@@ -32,6 +30,7 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.config.profile.ChallengeProfile;
 import password.pwm.config.profile.ProfileType;
 import password.pwm.config.profile.PwmPasswordPolicy;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.operations.otp.OTPUserRecord;
 
 import java.time.Instant;
@@ -82,31 +81,25 @@ public class UserInfoBean implements UserInfo {
     private Map<String,String> attributes;
 
     @Override
-    public String readStringAttribute(final String attribute, final Flag... flags) throws ChaiUnavailableException, ChaiOperationException
+    public String readStringAttribute(final String attribute) throws PwmUnrecoverableException
     {
         return null;
     }
 
     @Override
-    public Date readDateAttribute(final String attribute) throws ChaiUnavailableException, ChaiOperationException
+    public Date readDateAttribute(final String attribute) throws PwmUnrecoverableException
     {
         return null;
     }
 
     @Override
-    public List<String> readMultiStringAttribute(final String attribute, final Flag... flags) throws ChaiUnavailableException, ChaiOperationException
+    public List<String> readMultiStringAttribute(final String attribute) throws PwmUnrecoverableException
     {
         return null;
     }
 
     @Override
-    public Map<String, String> readStringAttributes(final Collection<String> attributes, final Flag... flags) throws ChaiUnavailableException, ChaiOperationException
-    {
-        return null;
-    }
-
-    @Override
-    public Map<String, List<String>> readMultiStringAttributes(final Collection<String> attributes, final Flag... flags) throws ChaiUnavailableException, ChaiOperationException
+    public Map<String, String> readStringAttributes(final Collection<String> attributes) throws PwmUnrecoverableException
     {
         return null;
     }

@@ -105,7 +105,7 @@ class LdapTokenMachine  implements TokenMachine {
                 return null;
             }
             throw e;
-        } catch (ChaiException e) {
+        } catch (PwmUnrecoverableException e) {
             final String errorMsg = "unexpected ldap error searching for token: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT,errorMsg);
             throw new PwmOperationalException(errorInformation);

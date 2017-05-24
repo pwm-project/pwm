@@ -365,7 +365,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
 
                 this.forwardToUpdateJSP(pwmRequest, guestRegistrationBean);
                 return;
-            } catch (ChaiOperationException e) {
+            } catch (PwmUnrecoverableException e) {
                 LOGGER.warn(pwmSession, "error reading current attributes for user: " + e.getMessage());
             }
         } catch (PwmOperationalException e) {

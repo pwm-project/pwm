@@ -22,7 +22,6 @@
 
 package password.pwm.util.macro;
 
-import com.novell.ldapchai.exception.ChaiException;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -152,7 +151,7 @@ public abstract class StandardMacros {
             } else {
                 try {
                     ldapValue = userInfo.readStringAttribute(ldapAttr);
-                } catch (ChaiException e) {
+                } catch (PwmUnrecoverableException e) {
                     LOGGER.trace("could not replace value for '" + matchValue + "', ldap error: " + e.getMessage());
                     return "";
                 }
