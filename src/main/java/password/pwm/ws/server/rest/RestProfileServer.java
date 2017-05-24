@@ -35,8 +35,8 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.servlet.UpdateProfileServlet;
 import password.pwm.i18n.Message;
-import password.pwm.ldap.LdapUserDataReader;
-import password.pwm.ldap.UserDataReader;
+import password.pwm.ldap.UserInfo;
+import password.pwm.ldap.UserInfoFactory;
 import password.pwm.util.FormMap;
 import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
@@ -114,12 +114,17 @@ public class RestProfileServer extends AbstractRestServer {
             final List<FormConfiguration> formFields = restRequestBean.getPwmApplication().getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
 
             if (restRequestBean.getUserIdentity() != null) {
-                final UserDataReader userDataReader = LdapUserDataReader.selfProxiedReader(
-                        restRequestBean.getPwmApplication(), restRequestBean.getPwmSession(),
-                        restRequestBean.getUserIdentity());
-                FormUtility.populateFormMapFromLdap(formFields, restRequestBean.getPwmSession().getLabel(), formData, userDataReader);
+                final UserInfo userInfo = restRequestBean.getPwmSession().getUserInfo();
+                FormUtility.populateFormMapFromLdap(formFields, restRequestBean.getPwmSession().getLabel(), formData, userInfo);
             } else {
-                FormUtility.populateFormMapFromLdap(formFields, restRequestBean.getPwmSession().getLabel(), formData, restRequestBean.getPwmSession().getSessionManager().getUserDataReader(restRequestBean.getPwmApplication()));
+                final UserInfo userInfo = UserInfoFactory.newUserInfo(
+                        restRequestBean.getPwmApplication(),
+                        restRequestBean.getPwmSession().getLabel(),
+                        restRequestBean.getPwmSession().getSessionStateBean().getLocale(),
+                        restRequestBean.getUserIdentity(),
+                        restRequestBean.getPwmSession().getSessionManager().getChaiProvider()
+                );
+                FormUtility.populateFormMapFromLdap(formFields, restRequestBean.getPwmSession().getLabel(), formData, userInfo);
             }
 
             for (final FormConfiguration formConfig : formData.keySet()) {

@@ -28,10 +28,9 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.UserIdentity;
-import password.pwm.ldap.UserInfo;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.ldap.UserDataReader;
+import password.pwm.ldap.UserInfo;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -103,9 +102,9 @@ public abstract class StandardMacros {
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
         ) throws MacroParseException {
-            final UserDataReader userDataReader = macroRequestInfo.getUserDataReader();
+            final UserInfo userInfo = macroRequestInfo.getUserInfo();
 
-            if (userDataReader == null) {
+            if (userInfo == null) {
                 return "";
             }
 
@@ -149,10 +148,10 @@ public abstract class StandardMacros {
 
             final String ldapValue;
             if ("dn".equalsIgnoreCase(ldapAttr)) {
-                ldapValue = userDataReader.getUserDN();
+                ldapValue = userInfo.getUserIdentity().getUserDN();
             } else {
                 try {
-                    ldapValue = userDataReader.readStringAttribute(ldapAttr);
+                    ldapValue = userInfo.readStringAttribute(ldapAttr);
                 } catch (ChaiException e) {
                     LOGGER.trace("could not replace value for '" + matchValue + "', ldap error: " + e.getMessage());
                     return "";
@@ -260,7 +259,7 @@ public abstract class StandardMacros {
                 final MacroRequestInfo macroRequestInfo
 
         ) throws MacroParseException {
-            final UserInfo userInfo = macroRequestInfo.getUserInfoBean();
+            final UserInfo userInfo = macroRequestInfo.getUserInfo();
 
             if (userInfo == null) {
                 return "";
@@ -303,7 +302,7 @@ public abstract class StandardMacros {
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
         ) {
-            final UserInfo userInfo = macroRequestInfo.getUserInfoBean();
+            final UserInfo userInfo = macroRequestInfo.getUserInfo();
 
             if (userInfo == null) {
                 return "";
@@ -334,7 +333,7 @@ public abstract class StandardMacros {
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
         ) {
-            final UserInfo userInfo = macroRequestInfo.getUserInfoBean();
+            final UserInfo userInfo = macroRequestInfo.getUserInfo();
 
             if (userInfo == null) {
                 LOGGER.error("could not replace value for '" + matchValue + "', userInfoBean is null");
@@ -364,7 +363,7 @@ public abstract class StandardMacros {
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
         ) {
-            final UserInfo userInfo = macroRequestInfo.getUserInfoBean();
+            final UserInfo userInfo = macroRequestInfo.getUserInfo();
 
             try {
                 if (userInfo == null || userInfo.getUsername() == null) {
@@ -390,7 +389,7 @@ public abstract class StandardMacros {
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
         ) {
-            final UserInfo userInfo = macroRequestInfo.getUserInfoBean();
+            final UserInfo userInfo = macroRequestInfo.getUserInfo();
 
             if (userInfo != null) {
                 final UserIdentity userIdentity = userInfo.getUserIdentity();
@@ -414,7 +413,7 @@ public abstract class StandardMacros {
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
         ) {
-            final UserInfo userInfo = macroRequestInfo.getUserInfoBean();
+            final UserInfo userInfo = macroRequestInfo.getUserInfo();
 
             try {
                 if (userInfo == null || userInfo.getUserEmailAddress() == null) {
@@ -695,7 +694,7 @@ public abstract class StandardMacros {
         public String replaceValue(final String matchValue, final MacroRequestInfo macroRequestInfo)
         {
             try {
-                final UserInfo userInfo = macroRequestInfo.getUserInfoBean();
+                final UserInfo userInfo = macroRequestInfo.getUserInfo();
                 if (userInfo != null && userInfo.getOtpUserRecord() != null && userInfo.getOtpUserRecord().getTimestamp() != null) {
                     return JavaHelper.toIsoDate(userInfo.getOtpUserRecord().getTimestamp());
                 }
@@ -717,7 +716,7 @@ public abstract class StandardMacros {
         public String replaceValue(final String matchValue, final MacroRequestInfo macroRequestInfo)
         {
             try {
-                final UserInfo userInfo = macroRequestInfo.getUserInfoBean();
+                final UserInfo userInfo = macroRequestInfo.getUserInfo();
                 if (userInfo != null && userInfo.getResponseInfoBean() != null && userInfo.getResponseInfoBean().getTimestamp() != null) {
                     return JavaHelper.toIsoDate(userInfo.getResponseInfoBean().getTimestamp());
                 }

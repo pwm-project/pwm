@@ -37,16 +37,16 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
+import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.search.SearchConfiguration;
-import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.cache.CacheKey;
 import password.pwm.svc.cache.CachePolicy;
 import password.pwm.svc.cache.CacheService;
+import password.pwm.util.Validator;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
-import password.pwm.util.Validator;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.ArrayList;
@@ -380,11 +380,11 @@ public class FormUtility {
             final List<FormConfiguration> formFields,
             final SessionLabel sessionLabel,
             final Map<FormConfiguration, String> formMap,
-            final UserDataReader userDataReader
+            final UserInfo userInfo
     )
             throws PwmUnrecoverableException
     {
-        final Map<FormConfiguration, List<String>> valueMap = populateFormMapFromLdap(formFields, sessionLabel, userDataReader);
+        final Map<FormConfiguration, List<String>> valueMap = populateFormMapFromLdap(formFields, sessionLabel, userInfo);
         for (final FormConfiguration formConfiguration : formFields) {
             if (valueMap.containsKey(formConfiguration)) {
                 final List<String> values = valueMap.get(formConfiguration);
@@ -399,7 +399,7 @@ public class FormUtility {
     public static Map<FormConfiguration, List<String>> populateFormMapFromLdap(
             final List<FormConfiguration> formFields,
             final SessionLabel sessionLabel,
-            final UserDataReader userDataReader,
+            final UserInfo userInfo,
             final Flag... flags
     )
             throws PwmUnrecoverableException
@@ -412,12 +412,12 @@ public class FormUtility {
             for (final FormConfiguration formConfiguration : formFields) {
                 final String attribute = formConfiguration.getName();
                 if (formConfiguration.isMultivalue()) {
-                    final List<String> values = userDataReader.readMultiStringAttribute(attribute, UserDataReader.Flag.ignoreCache);
+                    final List<String> values = userInfo.readMultiStringAttribute(attribute, UserInfo.Flag.ignoreCache);
                     if (includeNulls || (values != null && !values.isEmpty())) {
                         dataFromLdap.put(attribute, values);
                     }
                 } else {
-                    final String value = userDataReader.readStringAttribute(attribute);
+                    final String value = userInfo.readStringAttribute(attribute);
                     if (includeNulls || (value != null)) {
                         dataFromLdap.put(attribute, Collections.singletonList(value));
                     }

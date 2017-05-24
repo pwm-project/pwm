@@ -28,12 +28,10 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.ldap.UserInfo;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
-import password.pwm.ldap.LdapUserDataReader;
-import password.pwm.ldap.UserDataReader;
+import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
@@ -56,7 +54,6 @@ public class MacroMachine {
     private final SessionLabel sessionLabel;
     private final UserInfo userInfo;
     private final LoginInfoBean loginInfoBean;
-    private final UserDataReader userDataReader;
 
     private static final Map<MacroImplementation.Scope,Map<Pattern,MacroImplementation>> BUILTIN_MACROS = makeImplementations();
 
@@ -64,15 +61,13 @@ public class MacroMachine {
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
             final UserInfo userInfo,
-            final LoginInfoBean loginInfoBean,
-            final UserDataReader userDataReader
+            final LoginInfoBean loginInfoBean
     )
     {
         this.pwmApplication = pwmApplication;
         this.sessionLabel = sessionLabel;
         this.userInfo = userInfo;
         this.loginInfoBean = loginInfoBean;
-        this.userDataReader = userDataReader;
     }
 
     private static  Map<MacroImplementation.Scope,Map<Pattern,MacroImplementation>> makeImplementations() {
@@ -144,7 +139,7 @@ public class MacroMachine {
             }
 
             @Override
-            public UserInfo getUserInfoBean()
+            public UserInfo getUserInfo()
             {
                 return userInfo;
             }
@@ -153,12 +148,6 @@ public class MacroMachine {
             public LoginInfoBean getLoginInfoBean()
             {
                 return loginInfoBean;
-            }
-
-            @Override
-            public UserDataReader getUserDataReader()
-            {
-                return userDataReader;
             }
         };
 
@@ -208,7 +197,7 @@ public class MacroMachine {
         if (appModeOk) {
             scopes.add(MacroImplementation.Scope.System);
 
-            if (macroRequestInfo.getUserInfoBean() != null || macroRequestInfo.getUserDataReader() != null) {
+            if (macroRequestInfo.getUserInfo() != null) {
                 scopes.add(MacroImplementation.Scope.User);
             }
         }
@@ -264,7 +253,7 @@ public class MacroMachine {
     }
 
     public static MacroMachine forStatic() {
-        return new MacroMachine(null,null,null,null,null);
+        return new MacroMachine(null,null,null,null);
     }
 
     public interface StringReplacer {
@@ -294,9 +283,8 @@ public class MacroMachine {
     )
             throws PwmUnrecoverableException
     {
-        final UserDataReader userDataReader = LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity);
-        final UserInfo userInfoBean = UserInfoFactory.newUserInfoUsingProxy(pwmApplication, sessionLabel, userLocale, userIdentity);
-        return new MacroMachine(pwmApplication, sessionLabel, userInfoBean, null, userDataReader);
+        final UserInfo userInfoBean = UserInfoFactory.newUserInfoUsingProxy(pwmApplication, sessionLabel, userIdentity, userLocale);
+        return new MacroMachine(pwmApplication, sessionLabel, userInfoBean, null);
     }
 
     public static MacroMachine forNonUserSpecific(
@@ -305,6 +293,6 @@ public class MacroMachine {
     )
             throws PwmUnrecoverableException
     {
-        return new MacroMachine(pwmApplication, sessionLabel, null, null, null);
+        return new MacroMachine(pwmApplication, sessionLabel, null, null);
     }
 }

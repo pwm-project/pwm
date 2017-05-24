@@ -34,7 +34,6 @@ import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserIdentity;
-import password.pwm.ldap.UserInfo;
 import password.pwm.config.ActionConfiguration;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
@@ -55,8 +54,8 @@ import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ActivateUserBean;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapPermissionTester;
-import password.pwm.ldap.LdapUserDataReader;
-import password.pwm.ldap.UserDataReader;
+import password.pwm.ldap.UserInfo;
+import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
@@ -571,7 +570,6 @@ public class ActivateUserServlet extends AbstractPwmServlet {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final Configuration config = pwmApplication.getConfig();
         final UserInfo userInfo = pwmSession.getUserInfo();
-        final UserDataReader userDataReader = pwmSession.getSessionManager().getUserDataReader(pwmApplication);
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
         final LdapProfile ldapProfile = userInfo.getUserIdentity().getLdapProfile(config);
 
@@ -579,7 +577,7 @@ public class ActivateUserServlet extends AbstractPwmServlet {
 
         final String toSmsNumber;
         try {
-            toSmsNumber = userDataReader.readStringAttribute(ldapProfile.readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE));
+            toSmsNumber = userInfo.readStringAttribute(ldapProfile.readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE));
         } catch (Exception e) {
             LOGGER.debug(pwmSession.getLabel(), "error reading SMS attribute from user '" + pwmSession.getUserInfo().getUserIdentity() + "': " + e.getMessage());
             return false;
@@ -595,7 +593,7 @@ public class ActivateUserServlet extends AbstractPwmServlet {
         return true;
     }
 
-    public static void initializeToken(
+    private static void initializeToken(
             final PwmRequest pwmRequest,
             final Locale locale,
             final UserIdentity userIdentity
@@ -610,7 +608,6 @@ public class ActivateUserServlet extends AbstractPwmServlet {
 
         final RestTokenDataClient.TokenDestinationData inputTokenDestData;
         {
-            final UserDataReader dataReader = LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity);
             final String toAddress;
             {
                 final EmailItemBean emailItemBean = config.readSettingAsEmail(PwmSetting.EMAIL_ACTIVATION_VERIFICATION, locale);
@@ -620,8 +617,9 @@ public class ActivateUserServlet extends AbstractPwmServlet {
 
             final String toSmsNumber;
             try {
+                final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy(pwmApplication, pwmSession.getLabel(), userIdentity, pwmRequest.getLocale());
                 final LdapProfile ldapProfile = userIdentity.getLdapProfile(config);
-                toSmsNumber = dataReader.readStringAttribute(ldapProfile.readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE));
+                toSmsNumber = userInfo.readStringAttribute(ldapProfile.readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE));
             } catch (Exception e) {
                 final String errorMsg = "unable to read user SMS attribute due to ldap error, unable to send token: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ACTIVATION_FAILURE, errorMsg);

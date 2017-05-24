@@ -26,11 +26,14 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
-import password.pwm.ldap.LdapOperationsHelper;
+import password.pwm.ldap.UserInfo;
+import password.pwm.ldap.UserInfoFactory;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -103,10 +106,16 @@ class HelpdeskVerificationStateBean implements Serializable {
         }
     }
 
-    List<ViewableValidationRecord> asViewableValidationRecords(final PwmApplication pwmApplication, final Locale locale) throws ChaiOperationException, ChaiUnavailableException, PwmUnrecoverableException {
+    List<ViewableValidationRecord> asViewableValidationRecords(
+            final PwmApplication pwmApplication,
+            final Locale locale
+    )
+            throws ChaiOperationException, ChaiUnavailableException, PwmUnrecoverableException
+    {
         final Map<Date,ViewableValidationRecord> returnRecords = new TreeMap<>();
         for (final HelpdeskValidationRecord record : records) {
-            final String username = LdapOperationsHelper.readLdapUsernameValue(pwmApplication, record.getIdentity());
+            final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy(pwmApplication, SessionLabel.SYSTEM_LABEL, record.getIdentity(), PwmConstants.DEFAULT_LOCALE);
+            final String username = userInfo.getUsername();
             final String profile = pwmApplication.getConfig().getLdapProfiles().get(record.getIdentity().getLdapProfileID()).getDisplayName(locale);
             final String method = record.getMethod().getLabel(pwmApplication.getConfig(), locale);
             returnRecords.put(record.getTimestamp(), new ViewableValidationRecord(record.getTimestamp(), profile, username, method));

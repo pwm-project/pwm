@@ -52,7 +52,6 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.NewUserBean;
-import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.ldap.search.SearchConfiguration;
@@ -411,20 +410,22 @@ public class NewUserUtils {
             throws PwmUnrecoverableException
     {
         final Map<String, String> formValues = newUserForm.getFormData();
-        final UserInfoBean stubUserBean = new UserInfoBean();
 
         final String emailAddressAttribute = pwmApplication.getConfig().getDefaultLdapProfile().readSettingAsString(
                 PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE);
-        stubUserBean.setUserEmailAddress(formValues.get(emailAddressAttribute));
 
         final String usernameAttribute = pwmApplication.getConfig().getDefaultLdapProfile().readSettingAsString(PwmSetting.LDAP_USERNAME_ATTRIBUTE);
-        stubUserBean.setUsername(formValues.get(usernameAttribute));
 
         final LoginInfoBean stubLoginBean = new LoginInfoBean();
         stubLoginBean.setUserCurrentPassword(newUserForm.getNewUserPassword());
 
-        final UserDataReader stubReader = new NewUserUserDataReader(formValues);
-        return new MacroMachine(pwmApplication, sessionLabel, stubUserBean, stubLoginBean, stubReader);
+        final UserInfoBean stubUserBean = UserInfoBean.builder()
+                .userEmailAddress(formValues.get(emailAddressAttribute))
+                .username(formValues.get(usernameAttribute))
+                .attributes(formValues)
+                .build();
+
+        return new MacroMachine(pwmApplication, sessionLabel, stubUserBean, stubLoginBean);
     }
 
     static void initializeToken(

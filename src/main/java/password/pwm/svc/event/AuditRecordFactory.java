@@ -26,12 +26,12 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.ldap.UserInfo;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.i18n.PwmDisplayBundle;
-import password.pwm.ldap.LdapOperationsHelper;
+import password.pwm.ldap.UserInfo;
+import password.pwm.ldap.UserInfoFactory;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -223,7 +223,12 @@ public class AuditRecordFactory {
             userDN = userIdentity.getUserDN();
             ldapProfile = userIdentity.getLdapProfileID();
             try {
-                userID = LdapOperationsHelper.readLdapUsernameValue(pwmApplication,userIdentity);
+                final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy(
+                        pwmApplication,
+                        SessionLabel.SYSTEM_LABEL,
+                        userIdentity, PwmConstants.DEFAULT_LOCALE
+                );
+                userID = userInfo.getUsername();
             } catch (Exception e) {
                 LOGGER.warn("unable to read userID for " + userIdentity + ", error: " + e.getMessage() );
             }

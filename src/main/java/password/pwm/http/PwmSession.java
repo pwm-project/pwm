@@ -134,7 +134,7 @@ public class PwmSession implements Serializable {
             throw new IllegalStateException("attempt to read user info bean, but session not authenticated");
         }
         if (userInfoBean == null) {
-            userInfoBean = new UserInfoBean();
+            userInfoBean = UserInfoBean.builder().build();
         }
         return userInfoBean;
     }

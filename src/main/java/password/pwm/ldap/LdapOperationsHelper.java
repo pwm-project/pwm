@@ -572,18 +572,6 @@ public class LdapOperationsHelper {
         return chaiConfig;
     }
 
-    public static String readLdapUsernameValue(
-            final PwmApplication pwmApplication,
-            final UserIdentity userIdentity
-    )
-            throws ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException
-    {
-        final String profileID = userIdentity.getLdapProfileID();
-        final String uIDattr = pwmApplication.getConfig().getLdapProfiles().get(profileID).getUsernameAttribute();
-        final UserDataReader userDataReader = LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity);
-        return userDataReader.readStringAttribute(uIDattr);
-    }
-
     /**
      * Update the user's "lastUpdated" attribute. By default this is
      * "pwmLastUpdate" attribute

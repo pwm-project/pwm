@@ -30,7 +30,6 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.TokenVerificationProgress;
 import password.pwm.bean.UserIdentity;
-import password.pwm.ldap.UserInfo;
 import password.pwm.config.ActionConfiguration;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
@@ -54,7 +53,7 @@ import password.pwm.http.PwmSession;
 import password.pwm.http.bean.UpdateProfileBean;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.ldap.UserDataReader;
+import password.pwm.ldap.UserInfo;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecord;
 import password.pwm.svc.event.AuditRecordFactory;
@@ -485,7 +484,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
         pwmSession.reloadUserInfoBean(pwmApplication);
 
         // clear cached read attributes.
-        pwmRequest.getPwmSession().getSessionManager().clearUserDataReader();
+        pwmRequest.getPwmSession().reloadUserInfoBean(pwmApplication);
 
         {  // execute configured actions
             final List<ActionConfiguration> actions = updateAttributesProfile.readSettingAsAction(PwmSetting.UPDATE_PROFILE_WRITE_ATTRIBUTES);
@@ -578,7 +577,12 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
         pwmRequest.forwardToJsp(JspUrl.UPDATE_ATTRIBUTES_CONFIRM);
     }
 
-    private static Map<FormConfiguration, String> formMapFromBean(final UpdateAttributesProfile updateAttributesProfile, final UpdateProfileBean updateProfileBean) throws PwmUnrecoverableException {
+    private static Map<FormConfiguration, String> formMapFromBean(
+            final UpdateAttributesProfile updateAttributesProfile,
+            final UpdateProfileBean updateProfileBean
+    )
+            throws PwmUnrecoverableException
+    {
 
         final List<FormConfiguration> form = updateAttributesProfile.readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
         final Map<FormConfiguration, String> formValueMap = new LinkedHashMap<>();
@@ -596,10 +600,10 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
     private static Map<String,String> formDataFromLdap(final PwmRequest pwmRequest, final UpdateAttributesProfile updateAttributesProfile)
             throws PwmUnrecoverableException
     {
-        final UserDataReader userDataReader = pwmRequest.getPwmSession().getSessionManager().getUserDataReader(pwmRequest.getPwmApplication());
+        final UserInfo userInfo = pwmRequest.getPwmSession().getUserInfo();
         final List<FormConfiguration> formFields = updateAttributesProfile.readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
         final Map<FormConfiguration, String> formMap = new LinkedHashMap<>();
-        FormUtility.populateFormMapFromLdap(formFields, pwmRequest.getSessionLabel(), formMap, userDataReader);
+        FormUtility.populateFormMapFromLdap(formFields, pwmRequest.getSessionLabel(), formMap, userInfo);
         return FormUtility.asStringMap(formMap);
     }
 

@@ -106,8 +106,7 @@ public class RestTokenDataClient implements RestClient {
             final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy(
                     pwmApplication,
                     sessionLabel,
-                    locale,
-                    userIdentity
+                    userIdentity, locale
             );
 
             final MacroMachine macroMachine = MacroMachine.forUser(pwmApplication, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, userInfo.getUserIdentity());

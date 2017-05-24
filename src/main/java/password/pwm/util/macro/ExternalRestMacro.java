@@ -65,7 +65,7 @@ class ExternalRestMacro extends AbstractMacro {
     )
     {
         final PwmApplication pwmApplication = macroRequestInfo.getPwmApplication();
-        final UserInfo userInfoBean = macroRequestInfo.getUserInfoBean();
+        final UserInfo userInfoBean = macroRequestInfo.getUserInfo();
 
         final String inputString = matchValue.substring(11,matchValue.length() -1);
         final Map<String,Object> sendData = new HashMap<>();

@@ -22,8 +22,10 @@
 
 package password.pwm.ldap;
 
+import com.novell.ldapchai.exception.ChaiOperationException;
+import com.novell.ldapchai.exception.ChaiUnavailableException;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 import password.pwm.bean.PasswordStatus;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.UserIdentity;
@@ -33,12 +35,15 @@ import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.util.operations.otp.OTPUserRecord;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Getter
-@Setter
+@Builder
 public class UserInfoBean implements UserInfo {
 // ------------------------------ FIELDS ------------------------------
 
@@ -73,5 +78,37 @@ public class UserInfoBean implements UserInfo {
     private boolean requiresResponseConfig;
     private boolean requiresOtpConfig;
     private boolean requiresUpdateProfile;
+
+    private Map<String,String> attributes;
+
+    @Override
+    public String readStringAttribute(final String attribute, final Flag... flags) throws ChaiUnavailableException, ChaiOperationException
+    {
+        return null;
+    }
+
+    @Override
+    public Date readDateAttribute(final String attribute) throws ChaiUnavailableException, ChaiOperationException
+    {
+        return null;
+    }
+
+    @Override
+    public List<String> readMultiStringAttribute(final String attribute, final Flag... flags) throws ChaiUnavailableException, ChaiOperationException
+    {
+        return null;
+    }
+
+    @Override
+    public Map<String, String> readStringAttributes(final Collection<String> attributes, final Flag... flags) throws ChaiUnavailableException, ChaiOperationException
+    {
+        return null;
+    }
+
+    @Override
+    public Map<String, List<String>> readMultiStringAttributes(final Collection<String> attributes, final Flag... flags) throws ChaiUnavailableException, ChaiOperationException
+    {
+        return null;
+    }
 }
 

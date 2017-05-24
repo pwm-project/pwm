@@ -47,7 +47,6 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.bean.ForgottenPasswordBean;
 import password.pwm.http.filter.AuthenticationFilter;
-import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.stats.Statistic;
@@ -138,8 +137,7 @@ class ForgottenPasswordUtil {
         final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy(
                 pwmRequest.getPwmApplication(),
                 pwmRequest.getSessionLabel(),
-                pwmRequest.getLocale(),
-                userIdentity
+                userIdentity, pwmRequest.getLocale()
         );
 
         pwmRequest.getHttpServletRequest().getSession().setAttribute(CACHE_KEY, userInfo);
@@ -195,8 +193,7 @@ class ForgottenPasswordUtil {
                 pwmApplication,
                 pwmRequest.getSessionLabel(),
                 userInfo,
-                null,
-                LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity)
+                null
         );
 
         pwmApplication.getEmailQueue().submitEmail(

@@ -43,7 +43,6 @@ import password.pwm.health.HealthStatus;
 import password.pwm.health.HealthTopic;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
-import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.event.AuditEvent;
@@ -585,16 +584,15 @@ public class IntruderManager implements Serializable, PwmService {
             final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy(
                     pwmApplication,
                     SessionLabel.SYSTEM_LABEL,
-                    locale,
-                    userIdentity
+                    userIdentity, locale
             );
 
             final MacroMachine macroMachine = new MacroMachine(
                     pwmApplication,
                     sessionLabel,
                     userInfo,
-                    null,
-                    LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity));
+                    null
+                    );
 
             pwmApplication.getEmailQueue().submitEmail(configuredEmailSetting, userInfo, macroMachine);
         } catch (PwmUnrecoverableException e) {

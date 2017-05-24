@@ -68,7 +68,7 @@ public class AccountInformationServlet extends AbstractPwmServlet {
                 final Map<FormConfiguration, List<String>> ldapValues = FormUtility.populateFormMapFromLdap(
                         formConfiguration,
                         pwmRequest.getSessionLabel(),
-                        pwmRequest.getPwmSession().getSessionManager().getUserDataReader(pwmRequest.getPwmApplication()),
+                        pwmRequest.getPwmSession().getUserInfo(),
                         FormUtility.Flag.ReturnEmptyValues
                 );
                 pwmRequest.setAttribute(PwmRequestAttribute.FormData, new LinkedHashMap<>(ldapValues));

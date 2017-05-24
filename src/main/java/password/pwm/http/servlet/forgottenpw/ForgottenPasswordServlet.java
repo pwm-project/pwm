@@ -71,8 +71,6 @@ import password.pwm.http.servlet.oauth.OAuthMachine;
 import password.pwm.http.servlet.oauth.OAuthSettings;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.ldap.LdapUserDataReader;
-import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.AuthenticationUtility;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
@@ -1084,9 +1082,9 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
 
 
     private static List<FormConfiguration> figureAttributeForm(
-            final PwmApplication pwmApplication,
             final ForgottenPasswordProfile forgottenPasswordProfile,
-            final SessionLabel sessionLabel,
+            final ForgottenPasswordBean forgottenPasswordBean,
+            final PwmRequest pwmRequest,
             final UserIdentity userIdentity
     )
             throws ChaiUnavailableException, PwmOperationalException, PwmUnrecoverableException
@@ -1096,18 +1094,18 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
             return requiredAttributesForm;
         }
 
-        final UserDataReader userDataReader = LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity);
+        final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo(pwmRequest, forgottenPasswordBean);
         final List<FormConfiguration> returnList = new ArrayList<>();
         for (final FormConfiguration formItem : requiredAttributesForm) {
             if (formItem.isRequired()) {
                 returnList.add(formItem);
             } else {
                 try {
-                    final String currentValue = userDataReader.readStringAttribute(formItem.getName());
+                    final String currentValue = userInfo.readStringAttribute(formItem.getName());
                     if (currentValue != null && currentValue.length() > 0) {
                         returnList.add(formItem);
                     } else {
-                        LOGGER.trace(sessionLabel, "excluding optional required attribute(" + formItem.getName() + "), user has no value");
+                        LOGGER.trace(pwmRequest, "excluding optional required attribute(" + formItem.getName() + "), user has no value");
                     }
                 } catch (ChaiOperationException e) {
                     throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_NO_CHALLENGES, "unexpected error reading value for attribute " + formItem.getName()));
@@ -1238,7 +1236,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
 
         final List<FormConfiguration> attributeForm;
         try {
-            attributeForm = figureAttributeForm(pwmApplication, forgottenPasswordProfile, sessionLabel, userIdentity);
+            attributeForm = figureAttributeForm(forgottenPasswordProfile, forgottenPasswordBean, pwmRequest, userIdentity);
         } catch (ChaiUnavailableException e) {
             throw new PwmUnrecoverableException(PwmError.forChaiError(e.getErrorCode()));
         }

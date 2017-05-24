@@ -29,7 +29,6 @@ import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserIdentity;
-import password.pwm.ldap.UserInfo;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.FormUtility;
@@ -44,8 +43,7 @@ import password.pwm.http.JspUrl;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
-import password.pwm.ldap.LdapUserDataReader;
-import password.pwm.ldap.UserDataReader;
+import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
@@ -194,8 +192,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet {
             final UserInfo forgottenUserInfo = UserInfoFactory.newUserInfoUsingProxy(
                     pwmApplication,
                     pwmRequest.getSessionLabel(),
-                    pwmRequest.getLocale(),
-                    userIdentity
+                    userIdentity, pwmRequest.getLocale()
             );
 
             // send username
@@ -330,8 +327,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet {
             return new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
         }
 
-        final UserDataReader userDataReader = LdapUserDataReader.appProxiedReader(pwmApplication, userInfo.getUserIdentity());
-        final MacroMachine macroMachine = new MacroMachine(pwmApplication, sessionLabel, userInfo, null, userDataReader);
+        final MacroMachine macroMachine = new MacroMachine(pwmApplication, sessionLabel, userInfo, null);
 
         final SmsItemBean smsItem = new SmsItemBean(toNumber, smsMessage);
         pwmApplication.sendSmsUsingQueue(smsItem, macroMachine);
@@ -351,8 +347,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet {
             return new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
         }
 
-        final UserDataReader userDataReader = LdapUserDataReader.appProxiedReader(pwmApplication, userInfo.getUserIdentity());
-        final MacroMachine macroMachine = new MacroMachine(pwmApplication, sessionLabel, userInfo, null, userDataReader);
+        final MacroMachine macroMachine = new MacroMachine(pwmApplication, sessionLabel, userInfo, null);
 
         pwmApplication.getEmailQueue().submitEmail(emailItemBean, userInfo, macroMachine);
 

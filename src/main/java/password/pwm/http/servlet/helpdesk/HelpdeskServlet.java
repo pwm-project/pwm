@@ -34,7 +34,6 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.UserIdentity;
-import password.pwm.ldap.UserInfo;
 import password.pwm.config.ActionConfiguration;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
@@ -59,10 +58,8 @@ import password.pwm.http.PwmSession;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.ControlledPwmServlet;
 import password.pwm.i18n.Message;
-import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.LdapPermissionTester;
-import password.pwm.ldap.LdapUserDataReader;
-import password.pwm.ldap.UserDataReader;
+import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.ldap.search.UserSearchResults;
@@ -350,8 +347,8 @@ public class HelpdeskServlet extends ControlledPwmServlet {
         // read the userID for later logging.
         String userID = null;
         try {
-            userID = LdapOperationsHelper.readLdapUsernameValue(pwmApplication, userIdentity);
-        } catch (ChaiOperationException e) {
+            userID = pwmSession.getUserInfo().getUsername();
+        } catch (PwmUnrecoverableException e) {
             LOGGER.warn(pwmSession, "unable to read username of deleted user while creating audit record");
         }
 
@@ -743,8 +740,7 @@ public class HelpdeskServlet extends ControlledPwmServlet {
             return ProcessStatus.Halt;
         }
         final UserInfo userInfo = helpdeskDetailInfoBean.getUserInfo();
-        final UserDataReader userDataReader = LdapUserDataReader.appProxiedReader(pwmRequest.getPwmApplication(), userIdentity);
-        final MacroMachine macroMachine = new MacroMachine(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), userInfo, null, userDataReader);
+        final MacroMachine macroMachine = new MacroMachine(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), userInfo, null);
         final String configuredTokenString = config.readAppProperty(AppProperty.HELPDESK_TOKEN_VALUE);
         final String tokenKey = macroMachine.expandMacros(configuredTokenString);
         final EmailItemBean emailItemBean = config.readSettingAsEmail(PwmSetting.EMAIL_HELPDESK_TOKEN, pwmRequest.getLocale());
@@ -1162,8 +1158,7 @@ public class HelpdeskServlet extends ControlledPwmServlet {
                 pwmApplication,
                 pwmRequest.getSessionLabel(),
                 helpdeskDetailInfoBean.getUserInfo(),
-                null,
-                LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity)
+                null
         );
 
         pwmApplication.getEmailQueue().submitEmail(

@@ -63,8 +63,8 @@ public class UserInfoFactory {
     public static UserInfo newUserInfoUsingProxy(
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
-            final Locale userLocale,
-            final UserIdentity userIdentity
+            final UserIdentity userIdentity,
+            final Locale userLocale
     )
             throws PwmUnrecoverableException
     {

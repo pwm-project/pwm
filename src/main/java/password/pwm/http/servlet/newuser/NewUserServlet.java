@@ -26,8 +26,6 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.TokenVerificationProgress;
-import password.pwm.bean.UserIdentity;
-import password.pwm.ldap.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.FormUtility;
@@ -50,6 +48,7 @@ import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.ControlledPwmServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.i18n.Message;
+import password.pwm.ldap.UserInfoBean;
 import password.pwm.svc.token.TokenPayload;
 import password.pwm.util.CaptchaUtility;
 import password.pwm.util.java.JsonUtil;
@@ -167,7 +166,7 @@ public class NewUserServlet extends ControlledPwmServlet {
 
     @Override
     protected void nextStep(final PwmRequest pwmRequest)
-         throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
+            throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
     {
         final NewUserBean newUserBean = getNewUserBean(pwmRequest);
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
@@ -342,12 +341,13 @@ public class NewUserServlet extends ControlledPwmServlet {
                 pwmApplication,
                 formValueData,
                 locale,
-                Collections.<UserIdentity>emptyList(),
+                Collections.emptyList(),
                 allowResultCaching
         );
-        final UserInfoBean uiBean = new UserInfoBean();
-        uiBean.setCachedPasswordRuleAttributes(FormUtility.asStringMap(formValueData));
-        uiBean.setPasswordPolicy(newUserProfile.getNewUserPasswordPolicy(pwmApplication, locale));
+        final UserInfoBean uiBean = UserInfoBean.builder()
+                .cachedPasswordRuleAttributes(FormUtility.asStringMap(formValueData))
+                .passwordPolicy(newUserProfile.getNewUserPasswordPolicy(pwmApplication, locale))
+                .build();
         return PasswordUtility.checkEnteredPassword(
                 pwmApplication,
                 locale,

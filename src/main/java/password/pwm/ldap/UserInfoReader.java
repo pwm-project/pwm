@@ -22,6 +22,8 @@
 
 package password.pwm.ldap;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
@@ -61,10 +63,13 @@ import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.operations.otp.OTPUserRecord;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -423,8 +428,12 @@ public class UserInfoReader implements UserInfo {
         // populate the map from ldap
 
         try {
-            final UserDataReader userDataReader = new LdapUserDataReader(userIdentity, chaiUser);
-            final Map<FormConfiguration, List<String>> valueMap = FormUtility.populateFormMapFromLdap(updateFormFields, sessionLabel, userDataReader, FormUtility.Flag.ReturnEmptyValues);
+            final Map<FormConfiguration, List<String>> valueMap = FormUtility.populateFormMapFromLdap(
+                    updateFormFields,
+                    sessionLabel,
+                    selfCachedReference,
+                    FormUtility.Flag.ReturnEmptyValues
+            );
             final Map<FormConfiguration, String> singleValueMap = FormUtility.multiValueMapToSingleValue(valueMap);
             FormUtility.validateFormValues(configuration, singleValueMap, locale);
             LOGGER.debug(sessionLabel, "checkProfile: " + userIdentity + " has value for attributes, update profile will not be required");
@@ -562,6 +571,116 @@ public class UserInfoReader implements UserInfo {
             interestingUserAttributes.add("cn");
         }
         return interestingUserAttributes;
+    }
+
+    private static final Boolean NULL_CACHE_VALUE = Boolean.FALSE;
+
+    private final Cache<String,Object> cacheMap = Caffeine.newBuilder()
+            .maximumSize(100)  // safety limit
+            .build();
+
+    private enum PrivateFlag {
+        MultiValueRead
+    }
+
+    @Override
+    public String readStringAttribute(
+            final String attribute,
+            final Flag... flags
+    )
+            throws ChaiUnavailableException, ChaiOperationException
+    {
+        final Map<String,String> results = readStringAttributes(Collections.singletonList(attribute), flags);
+        if (results == null || results.isEmpty()) {
+            return null;
+        }
+
+        return results.values().iterator().next();
+    }
+
+    @Override
+    public Date readDateAttribute(final String attribute)
+            throws ChaiUnavailableException, ChaiOperationException
+    {
+        return chaiUser.readDateAttribute(attribute);
+    }
+
+    @Override
+    public List<String> readMultiStringAttribute(final String attribute, final Flag... flags) throws ChaiUnavailableException, ChaiOperationException {
+        return readMultiStringAttributesImpl(Collections.singletonList(attribute), Collections.singletonList(PrivateFlag.MultiValueRead), flags).get(attribute);
+    }
+
+    @Override
+    public Map<String,String> readStringAttributes(
+            final Collection<String> attributes,
+            final Flag... flags
+    )
+            throws ChaiUnavailableException, ChaiOperationException
+    {
+        final Map<String,List<String>> valueMap = readMultiStringAttributesImpl(attributes, Collections.<PrivateFlag>emptyList(), flags);
+        final Map<String,String> returnValue = new LinkedHashMap<>();
+        for (final String key : valueMap.keySet()) {
+            final List<String> values = valueMap.get(key);
+            if (values != null && !values.isEmpty()) {
+                returnValue.put(key, values.iterator().next());
+            }
+        }
+        return returnValue;
+    }
+
+    @Override
+    public Map<String,List<String>> readMultiStringAttributes(
+            final Collection<String> attributes,
+            final Flag... flags
+    )
+            throws ChaiUnavailableException, ChaiOperationException
+    {
+        return readMultiStringAttributesImpl(attributes, Collections.singletonList(PrivateFlag.MultiValueRead), flags);
+    }
+
+    private Map<String,List<String>> readMultiStringAttributesImpl(
+            final Collection<String> attributes,
+            final Collection<PrivateFlag> privateFlags,
+            final Flag... flags
+    )
+            throws ChaiUnavailableException, ChaiOperationException
+    {
+        final boolean ignoreCache = JavaHelper.enumArrayContainsValue(flags, UserInfo.Flag.ignoreCache);
+        if (chaiUser == null || attributes == null || attributes.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        if (ignoreCache) {
+            cacheMap.invalidateAll();
+        }
+
+        // figure out uncached attributes.
+        final List<String> uncachedAttributes = new ArrayList<>(attributes);
+        uncachedAttributes.removeAll(cacheMap.asMap().keySet());
+
+        // read uncached attributes into cache
+        if (!uncachedAttributes.isEmpty()) {
+            for (final String attribute : attributes) {
+                if (privateFlags.contains(PrivateFlag.MultiValueRead)) {
+                    final Set<String> readData = chaiUser.readMultiStringAttribute(attribute);
+                    final List<String> stringList = readData == null ? null : new ArrayList<>(readData);
+                    cacheMap.put(attribute, stringList != null && !stringList.isEmpty() ? stringList : NULL_CACHE_VALUE);
+                } else {
+                    final String readData = chaiUser.readStringAttribute(attribute);
+                    cacheMap.put(attribute, readData != null ? Collections.singletonList(readData) : NULL_CACHE_VALUE);
+                }
+            }
+        }
+
+        // build result data from cache
+        final Map<String,List<String>> returnMap = new HashMap<>();
+        for (final String attribute : attributes) {
+            final Object cachedValue = cacheMap.getIfPresent(attribute);
+            if (cachedValue != null && !NULL_CACHE_VALUE.equals(cachedValue)) {
+                returnMap.put(attribute,(List<String>)cachedValue);
+            }
+        }
+        return Collections.unmodifiableMap(returnMap);
     }
 
 }

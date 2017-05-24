@@ -44,8 +44,6 @@ import password.pwm.bean.PasswordStatus;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserIdentity;
-import password.pwm.ldap.UserInfo;
-
 import password.pwm.config.ActionConfiguration;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -67,8 +65,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.LdapPermissionTester;
-import password.pwm.ldap.LdapUserDataReader;
-import password.pwm.ldap.UserDataReader;
+import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.svc.cache.CacheKey;
@@ -394,8 +391,7 @@ public class PasswordUtility {
                         pwmApplication,
                         pwmSession.getLabel(),
                         pwmSession.getUserInfo(),
-                        clonedLoginInfoBean,
-                        pwmSession.getSessionManager().getUserDataReader(pwmApplication)
+                        clonedLoginInfoBean
                 );
 
                 final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings(pwmApplication, userInfo.getUserIdentity())
@@ -494,14 +490,12 @@ public class PasswordUtility {
 
                 final LoginInfoBean loginInfoBean = new LoginInfoBean();
                 loginInfoBean.setUserCurrentPassword(newPassword);
-                final UserDataReader userDataReader = LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity);
 
                 final MacroMachine macroMachine = new MacroMachine(
                         pwmApplication,
                         sessionLabel,
                         userInfo,
-                        loginInfoBean,
-                        userDataReader
+                        loginInfoBean
                 );
 
                 final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings(pwmApplication, userIdentity)
@@ -554,10 +548,9 @@ public class PasswordUtility {
                 messageSendMethod = forgottenPasswordProfile.readSettingAsEnum(PwmSetting.RECOVERY_SENDNEWPW_METHOD, MessageSendMethod.class);
 
             }
-            final UserDataReader userDataReader = new LdapUserDataReader(userIdentity, chaiUser);
             final LoginInfoBean loginInfoBean = new LoginInfoBean();
             loginInfoBean.setUserCurrentPassword(newPassword);
-            final MacroMachine macroMachine = new MacroMachine(pwmApplication, pwmSession.getLabel(), userInfo, loginInfoBean, userDataReader);
+            final MacroMachine macroMachine = new MacroMachine(pwmApplication, pwmSession.getLabel(), userInfo, loginInfoBean);
             PasswordUtility.sendNewPassword(
                     userInfo,
                     pwmApplication,
@@ -1025,11 +1018,7 @@ public class PasswordUtility {
                 pwmApplication,
                 pwmSession.getLabel(),
                 userInfo,
-                null,
-                LdapUserDataReader.appProxiedReader(
-                        pwmApplication,
-                        userInfo.getUserIdentity()
-                )
+                null
         );
 
         pwmApplication.getEmailQueue().submitEmail(configuredEmailSetting, userInfo, macroMachine);

@@ -33,7 +33,6 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.UserIdentity;
-import password.pwm.ldap.UserInfo;
 import password.pwm.config.ActionConfiguration;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
@@ -52,8 +51,7 @@ import password.pwm.http.PwmSession;
 import password.pwm.http.bean.GuestRegistrationBean;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.ldap.LdapUserDataReader;
-import password.pwm.ldap.UserDataReader;
+import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
@@ -328,9 +326,14 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
                         involvedAttrs.add(formItem.getName());
                     }
                 }
-                final UserDataReader userDataReader = LdapUserDataReader.selfProxiedReader(pwmApplication, pwmSession,
-                        theGuest);
-                final Map<String,String> userAttrValues = userDataReader.readStringAttributes(involvedAttrs);
+                final UserInfo guestUserInfo = UserInfoFactory.newUserInfo(
+                        pwmApplication,
+                        pwmSession.getLabel(),
+                        pwmRequest.getLocale(),
+                        theGuest,
+                        pwmSession.getSessionManager().getChaiProvider()
+                );
+                final Map<String,String> userAttrValues = guestUserInfo.readStringAttributes(involvedAttrs);
                 if (origAdminOnly && adminDnAttribute != null && adminDnAttribute.length() > 0) {
                     final String origAdminDn = userAttrValues.get(adminDnAttribute);
                     if (origAdminDn != null && origAdminDn.length() > 0) {
@@ -344,7 +347,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
                 }
                 final String expirationAttribute = config.readSettingAsString(PwmSetting.GUEST_EXPIRATION_ATTRIBUTE);
                 if (expirationAttribute != null && expirationAttribute.length() > 0) {
-                    final Date expiration = userDataReader.readDateAttribute(expirationAttribute);
+                    final Date expiration = guestUserInfo.readDateAttribute(expirationAttribute);
                     if (expiration != null) {
                         guBean.setUpdateUserExpirationDate(expiration);
                     }

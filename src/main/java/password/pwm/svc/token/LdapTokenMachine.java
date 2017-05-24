@@ -33,8 +33,8 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.ldap.LdapUserDataReader;
-import password.pwm.ldap.UserDataReader;
+import password.pwm.ldap.UserInfo;
+import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
 
@@ -89,8 +89,8 @@ class LdapTokenMachine  implements TokenMachine {
             if (user == null) {
                 return null;
             }
-            final UserDataReader userDataReader = LdapUserDataReader.appProxiedReader(pwmApplication, user);
-            final String tokenAttributeValue = userDataReader.readStringAttribute(tokenAttribute);
+            final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy(pwmApplication, null, user, null);
+            final String tokenAttributeValue = userInfo.readStringAttribute(tokenAttribute);
             if (tokenAttribute != null && tokenAttributeValue.length() > 0) {
                 final String[] splitString = tokenAttributeValue.split(KEY_VALUE_DELIMITER);
                 if (splitString.length != 2) {

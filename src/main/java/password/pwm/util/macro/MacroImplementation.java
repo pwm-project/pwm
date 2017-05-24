@@ -25,7 +25,6 @@ package password.pwm.util.macro;
 import password.pwm.PwmApplication;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.ldap.UserInfo;
-import password.pwm.ldap.UserDataReader;
 
 import java.util.regex.Pattern;
 
@@ -44,11 +43,9 @@ public interface MacroImplementation {
     interface MacroRequestInfo {
         PwmApplication getPwmApplication();
 
-        UserInfo getUserInfoBean();
+        UserInfo getUserInfo();
 
         LoginInfoBean getLoginInfoBean();
-
-        UserDataReader getUserDataReader();
     }
 
     MacroDefinitionFlag[] flags();

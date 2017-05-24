@@ -34,8 +34,6 @@ import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.i18n.Display;
-import password.pwm.ldap.LdapUserDataReader;
-import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.event.UserAuditRecord;
 import password.pwm.util.LocaleHelper;
@@ -57,7 +55,7 @@ public class HelpdeskDetailInfoBean implements Serializable {
     private static final PwmLogger LOGGER = PwmLogger.forClass(HelpdeskDetailInfoBean.class);
 
 
-    private UserInfo userInfo = new UserInfoBean();
+    private UserInfo userInfo = UserInfoBean.builder().build();
     private String userDisplayName;
 
     private boolean intruderLocked;
@@ -86,16 +84,14 @@ public class HelpdeskDetailInfoBean implements Serializable {
         }
 
         final HelpdeskDetailInfoBean detailInfo = new HelpdeskDetailInfoBean();
-        {
-            final UserInfo userInfo = UserInfoFactory.newUserInfo(
-                    pwmRequest.getPwmApplication(),
-                    pwmRequest.getSessionLabel(),
-                    actorLocale,
-                    userIdentity,
-                    theUser.getChaiProvider()
-            );
-            detailInfo.setUserInfo(userInfo);
-        }
+        final UserInfo userInfo = UserInfoFactory.newUserInfo(
+                pwmRequest.getPwmApplication(),
+                pwmRequest.getSessionLabel(),
+                actorLocale,
+                userIdentity,
+                theUser.getChaiProvider()
+        );
+        detailInfo.setUserInfo(userInfo);
 
         try {
             detailInfo.setIntruderLocked(theUser.isPasswordLocked());
@@ -135,19 +131,15 @@ public class HelpdeskDetailInfoBean implements Serializable {
             detailInfo.setPasswordSetDelta(LocaleHelper.getLocalizedMessage(Display.Value_NotApplicable, pwmRequest));
         }
 
-        final UserDataReader userDataReader = helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_USE_PROXY)
-                ? LdapUserDataReader.appProxiedReader(pwmRequest.getPwmApplication(), userIdentity)
-                : LdapUserDataReader.selfProxiedReader(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession(), userIdentity);
-
         {
             final List<FormConfiguration> detailFormConfig = helpdeskProfile.readSettingAsForm(PwmSetting.HELPDESK_DETAIL_FORM);
-            final Map<FormConfiguration,List<String>> formData = FormUtility.populateFormMapFromLdap(detailFormConfig, pwmRequest.getPwmSession().getLabel(), userDataReader);
+            final Map<FormConfiguration,List<String>> formData = FormUtility.populateFormMapFromLdap(detailFormConfig, pwmRequest.getPwmSession().getLabel(), userInfo);
             detailInfo.setSearchDetails(formData);
         }
 
         final String configuredDisplayName = helpdeskProfile.readSettingAsString(PwmSetting.HELPDESK_DETAIL_DISPLAY_NAME);
         if (configuredDisplayName != null && !configuredDisplayName.isEmpty()) {
-            final MacroMachine macroMachine = new MacroMachine(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), detailInfo.getUserInfo(), null, userDataReader);
+            final MacroMachine macroMachine = new MacroMachine(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), detailInfo.getUserInfo(), null);
             final String displayName = macroMachine.expandMacros(configuredDisplayName);
             detailInfo.setUserDisplayName(displayName);
         }
