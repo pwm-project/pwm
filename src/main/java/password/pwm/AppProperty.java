@@ -283,6 +283,8 @@ public enum     AppProperty {
     /** Regular expression to be used for matching URLs to be shortened by the URL Shortening Service Class. */
     URL_SHORTNER_URL_REGEX                          ("urlshortener.url.regex"),
     WORDLIST_BUILTIN_PATH                           ("wordlist.builtin.path"),
+    WORDLIST_CHAR_LENGTH_MAX                        ("wordlist.maxCharLength"),
+    WORDLIST_CHAR_LENGTH_MIN                        ("wordlist.minCharLength"),
     WS_REST_CLIENT_PWRULE_HALTONERROR               ("ws.restClient.pwRule.haltOnError"),
     ALLOW_MACRO_IN_REGEX_SETTING                    ("password.policy.allowMacroInRegexSetting"),
 

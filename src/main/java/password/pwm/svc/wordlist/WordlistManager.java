@@ -60,7 +60,10 @@ public class WordlistManager extends AbstractWordlist implements Wordlist {
         final int checkSize = (int)pwmApplication.getConfig().readSettingAsLong(PwmSetting.PASSWORD_WORDLIST_WORDSIZE);
         final String wordlistUrl = readAutoImportUrl();
 
-        this.wordlistConfiguration = new WordlistConfiguration(caseSensitive, checkSize, wordlistUrl);
+        final int minSize = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.WORDLIST_CHAR_LENGTH_MIN));
+        final int maxSize = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.WORDLIST_CHAR_LENGTH_MAX));
+
+        this.wordlistConfiguration = new WordlistConfiguration(caseSensitive, checkSize, wordlistUrl, minSize, maxSize);
         this.DEBUG_LABEL = PwmConstants.PWM_APP_NAME + "-Wordlist";
         backgroundStartup();
     }

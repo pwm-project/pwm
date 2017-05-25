@@ -77,7 +77,11 @@ public class SeedlistManager extends AbstractWordlist implements Wordlist {
     public void init(final PwmApplication pwmApplication) throws PwmException {
         super.init(pwmApplication);
         final String seedlistUrl = readAutoImportUrl();
-        this.wordlistConfiguration = new WordlistConfiguration(true, 0, seedlistUrl);
+
+        final int minSize = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.WORDLIST_CHAR_LENGTH_MIN));
+        final int maxSize = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.WORDLIST_CHAR_LENGTH_MAX));
+
+        this.wordlistConfiguration = new WordlistConfiguration(true, 0, seedlistUrl, minSize, maxSize);
         this.DEBUG_LABEL = PwmConstants.PWM_APP_NAME + "-Seedist";
         backgroundStartup();
     }

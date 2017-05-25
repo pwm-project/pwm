@@ -120,14 +120,11 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
     }
 
     protected final void backgroundStartup() {
-        executorService.schedule(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    startup();
-                } catch (Exception e) {
-                    LOGGER.warn("error during startup: " + e.getMessage());
-                }
+        executorService.schedule(() -> {
+            try {
+                startup();
+            } catch (Exception e) {
+                LOGGER.warn("error during startup: " + e.getMessage());
             }
         }, 0, TimeUnit.MILLISECONDS);
     }
@@ -171,14 +168,20 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
 
         String word = input.trim();
 
+        if (word.length() < wordlistConfiguration.getMinSize()) {
+            return null;
+        }
+
+        if (word.length() > wordlistConfiguration.getMaxSize()) {
+            word = word.substring(0, wordlistConfiguration.getMaxSize());
+        }
+
         if (!wordlistConfiguration.isCaseSensitive()) {
             word = word.toLowerCase();
         }
 
         return word.length() > 0 ? word : null;
     }
-
-
 
     public boolean containsWord(final String word) {
         if (wlStatus != STATUS.OPEN) {
@@ -345,15 +348,13 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
         } finally {
             if (!readMetadata().isCompleted()) {
                 LOGGER.debug("beginning population using builtin source in background thread");
-                final Thread t = new Thread(new Runnable() {
-                    public void run() {
-                        try {
-                            populationManager.populateBuiltIn();
-                        } catch (Exception e) {
-                            LOGGER.warn("unexpected error during builtin source population process: " + e.getMessage(),e);
-                        }
-                        populator = null;
+                final Thread t = new Thread(() -> {
+                    try {
+                        populationManager.populateBuiltIn();
+                    } catch (Exception e) {
+                        LOGGER.warn("unexpected error during builtin source population process: " + e.getMessage(),e);
                     }
+                    populator = null;
                 }, JavaHelper.makeThreadName(pwmApplication, WordlistManager.class));
                 t.setDaemon(true);
                 t.start();
@@ -364,15 +365,12 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
     @Override
     public void clear() throws IOException, PwmUnrecoverableException {
         if (wlStatus == STATUS.OPEN) {
-            executorService.schedule(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        writeMetadata(new StoredWordlistDataBean.Builder().create());
-                        populationManager.checkPopulation();
-                    } catch (Exception e) {
-                        LOGGER.error("error during clear operation: " + e.getMessage());
-                    }
+            executorService.schedule(() -> {
+                try {
+                    writeMetadata(new StoredWordlistDataBean.Builder().create());
+                    populationManager.checkPopulation();
+                } catch (Exception e) {
+                    LOGGER.error("error during clear operation: " + e.getMessage());
                 }
             },0,TimeUnit.MILLISECONDS);
         }
@@ -396,17 +394,14 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
                 if (autoImportError != null) {
                     final int retrySeconds = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.APPLICATION_WORDLIST_RETRY_SECONDS));
                     LOGGER.error("auto-import of remote wordlist failed, will retry in " + (new TimeDuration(retrySeconds, TimeUnit.SECONDS).asCompactString()));
-                    executorService.schedule(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                LOGGER.debug("attempting wordlist remote import");
-                                checkPopulation();
-                            } catch (Exception e) {
-                                LOGGER.error("error during auto-import retry: " + e.getMessage());
-                            }
-
+                    executorService.schedule(() -> {
+                        try {
+                            LOGGER.debug("attempting wordlist remote import");
+                            checkPopulation();
+                        } catch (Exception e) {
+                            LOGGER.error("error during auto-import retry: " + e.getMessage());
                         }
+
                     }, retrySeconds, TimeUnit.SECONDS);
                 }
             } else {
@@ -531,6 +526,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
                 LOGGER.debug("beginning read of auto-import wordlist url hash checksum from '" + wordlistConfiguration.getAutoImportUrl() + "'");
                 inputStream = autoImportInputStream();
                 final ChecksumInputStream checksumInputStream = new ChecksumInputStream(CHECKSUM_HASH_ALG, inputStream);
+                JavaHelper.copyWhilePredicate(checksumInputStream, new NullOutputStream(), o -> wlStatus != STATUS.CLOSED);
                 IOUtils.copy(checksumInputStream, new NullOutputStream());
                 final String hash = JavaHelper.binaryArrayToHex(checksumInputStream.closeAndFinalChecksum());
                 LOGGER.debug("completed read of auto-import wordlist url hash, value=" + hash + " (" + TimeDuration.fromCurrent(startTime).asCompactString() + ")");
