@@ -54,6 +54,7 @@ public class LdapConnectionService implements PwmService {
     private STATUS status = STATUS.NEW;
     private int connectionsPerProfile = 1;
     private final AtomicInteger slotIncrementer = new AtomicInteger(0);
+    private final ThreadLocal<ChaiProvider> threadLocalProvider = new ThreadLocal<>();
 
     public STATUS status()
     {
@@ -117,6 +118,10 @@ public class LdapConnectionService implements PwmService {
     public ChaiProvider getProxyChaiProvider(final LdapProfile identifier)
             throws PwmUnrecoverableException
     {
+        if (threadLocalProvider.get() != null) {
+            return threadLocalProvider.get();
+        }
+
         final int slot = nextSlot();
 
         final ChaiProvider proxyChaiProvider = proxyChaiProviders.get(identifier).get(slot);
@@ -135,6 +140,7 @@ public class LdapConnectionService implements PwmService {
         }
 
         try {
+
             final ChaiProvider newProvider = LdapOperationsHelper.openProxyChaiProvider(
                     null,
                     ldapProfile,
@@ -142,6 +148,8 @@ public class LdapConnectionService implements PwmService {
                     pwmApplication.getStatisticsManager()
             );
             proxyChaiProviders.get(identifier).put(slot, newProvider);
+            threadLocalProvider.set(newProvider);
+
             return newProvider;
         } catch (PwmUnrecoverableException e) {
             setLastLdapFailure(ldapProfile,e.getErrorInformation());

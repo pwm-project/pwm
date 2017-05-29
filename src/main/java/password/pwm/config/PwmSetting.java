@@ -512,8 +512,6 @@ public enum PwmSetting {
 
 
     // web security
-    SECURITY_ENABLE_REQUEST_SEQUENCE(
-            "security.page.enableRequestSequence", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.WEB_SECURITY),
     SECURITY_ENABLE_FORM_NONCE(
             "security.formNonce.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.WEB_SECURITY),
     ENABLE_SESSION_VERIFICATION(

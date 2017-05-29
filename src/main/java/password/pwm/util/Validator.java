@@ -83,9 +83,10 @@ public class Validator {
             throws PwmOperationalException, PwmUnrecoverableException
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
 
-        if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.SECURITY_ENABLE_REQUEST_SEQUENCE)) {
+        final boolean enforceRequestSequencing = Boolean.parseBoolean(pwmRequest.getConfig().readAppProperty(AppProperty.SECURITY_HTTP_FORCE_REQUEST_SEQUENCING));
+
+        if (enforceRequestSequencing) {
             final String requestVerificationKey = String.valueOf(pwmSession.getLoginInfoBean().getReqCounter());
 
             final String submittedPwmFormID = pwmRequest.readParameterAsString(PwmConstants.PARAM_FORM_ID);

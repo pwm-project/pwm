@@ -1397,11 +1397,6 @@
             <value>0</value>
         </default>
     </setting>
-    <setting hidden="false" key="security.page.enableRequestSequence" level="2" required="true">
-        <default>
-            <value>true</value>
-        </default>
-    </setting>
     <setting hidden="false" key="security.formNonce.enable" level="2" required="true">
         <default>
             <value>true</value>
