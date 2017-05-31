@@ -67,6 +67,10 @@ public interface LocalDBProvider {
             throws LocalDBException;
 
     @LocalDB.WriteOperation
+    boolean putIfAbsent(LocalDB.DB db, String key, String value)
+            throws LocalDBException;
+
+    @LocalDB.WriteOperation
     boolean remove(LocalDB.DB db, String key)
             throws LocalDBException;
 

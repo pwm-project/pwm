@@ -69,7 +69,7 @@ public class DbCrOperator implements CrOperator {
         }
 
         try {
-            final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseAccessor();
+            final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseService().getAccessor();
             final String responseStringBlob = databaseAccessor.get(DatabaseTable.PWM_RESPONSES, userGUID);
             if (responseStringBlob != null && responseStringBlob.length() > 0) {
                 final ResponseSet userResponseSet = ChaiResponseSet.parseChaiResponseSetXML(responseStringBlob, theUser);
@@ -109,7 +109,7 @@ public class DbCrOperator implements CrOperator {
         }
 
         try {
-            final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseAccessor();
+            final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseService().getAccessor();
             databaseAccessor.remove(DatabaseTable.PWM_RESPONSES, userGUID);
             LOGGER.info("cleared responses for user " + theUser.getEntryDN() + " in remote database");
         } catch (DatabaseException e) {
@@ -140,15 +140,11 @@ public class DbCrOperator implements CrOperator {
                     responseInfoBean.getCsIdentifier()
             );
 
-            final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseAccessor();
+            final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseService().getAccessor();
             databaseAccessor.put(DatabaseTable.PWM_RESPONSES, userGUID, responseSet.stringValue());
             LOGGER.info("saved responses for " + theUser.getEntryDN() + " in remote database (key=" + userGUID + ")");
         } catch (ChaiException e) {
-            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, "unexpected error saving responses for " + theUser.getEntryDN() + " in remote database: " + e.getMessage());
-            final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException(errorInfo);
-            LOGGER.error(errorInfo.toDebugStr());
-            pwmOE.initCause(e);
-            throw pwmOE;
+            throw PwmUnrecoverableException.fromChaiException(e);
         } catch (DatabaseException e) {
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, "unexpected error saving responses for " + theUser.getEntryDN() + " in remote database: " + e.getMessage());
             final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException(errorInfo);

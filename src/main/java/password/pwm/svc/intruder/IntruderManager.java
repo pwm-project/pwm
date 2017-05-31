@@ -27,7 +27,6 @@ import password.pwm.PwmApplication;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.ldap.UserInfo;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
@@ -36,13 +35,13 @@ import password.pwm.config.option.IntruderStorageMethod;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
-import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.health.HealthTopic;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
+import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.event.AuditEvent;
@@ -119,7 +118,7 @@ public class IntruderManager implements Serializable, PwmService {
         }
         if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.INTRUDER_ENABLE)) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"intruder module not enabled");
-            LOGGER.error(errorInformation.toDebugStr());
+            LOGGER.debug(errorInformation.toDebugStr());
             status = STATUS.CLOSED;
             return;
         }
@@ -141,7 +140,7 @@ public class IntruderManager implements Serializable, PwmService {
                     break;
 
                 case DATABASE:
-                    dataStore = new DatabaseDataStore(pwmApplication.getDatabaseAccessor(), DatabaseTable.INTRUDER);
+                    dataStore = new DatabaseDataStore(pwmApplication.getDatabaseService(), DatabaseTable.INTRUDER);
                     debugMsg = "starting using Remote Database data store";
                     storageMethodUsed = DataStorageMethod.DB;
                     break;
@@ -415,7 +414,7 @@ public class IntruderManager implements Serializable, PwmService {
     }
 
     public List<Map<String,Object>> getRecords(final RecordType recordType, final int maximum)
-            throws PwmOperationalException
+            throws PwmException
     {
         final RecordManager manager = recordManagers.get(recordType);
         final ArrayList<Map<String,Object>> returnList = new ArrayList<>();

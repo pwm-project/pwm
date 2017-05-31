@@ -20,28 +20,31 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.bean;
+package password.pwm.util.java;
 
-import lombok.Builder;
-import lombok.Getter;
-import password.pwm.util.java.JsonUtil;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import java.io.Serializable;
+/**
+ * Thread safe rotating int incrementer with configurable floor and ceiling values.
+ */
+public class AtomicLoopIntIncrementer {
+    private final AtomicInteger incrementer = new AtomicInteger(0);
+    private final int ceiling;
+    private final int floor;
 
-@Getter
-@Builder
-public class PasswordStatus implements Serializable {
-    private final boolean expired;
-    private final boolean preExpired;
-    private final boolean violatesPolicy;
-    private final boolean warnPeriod;
-
-    @Override
-    public String toString() {
-        return JsonUtil.serialize(this);
+    public AtomicLoopIntIncrementer(final int ceiling)
+    {
+        this.ceiling = ceiling;
+        this.floor = 0;
     }
 
-    public boolean isEffectivelyExpired() {
-        return this.isExpired() || !this.isPreExpired() || !this.isViolatesPolicy();
+    public int next() {
+        return incrementer.getAndUpdate(operand -> {
+            operand++;
+            if (operand >= ceiling) {
+                operand = floor;
+            }
+            return operand;
+        });
     }
 }

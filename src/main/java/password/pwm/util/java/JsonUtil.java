@@ -197,27 +197,16 @@ public class JsonUtil {
      * GsonSerializer that stores instants in ISO 8601 format, with a deserialier that also reads local-platform format reading.
      */
     private static class InstantTypeAdapter implements JsonSerializer<Instant>, JsonDeserializer<Instant> {
-        private static final DateFormat ISO_DATE_FORMAT;
-        private static final DateFormat GSON_DATE_FORMAT;
-
-        static {
-            ISO_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-            ISO_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("Zulu"));
-
-            GSON_DATE_FORMAT = DateFormat.getDateTimeInstance(DateFormat.DEFAULT, DateFormat.DEFAULT);
-            GSON_DATE_FORMAT.setTimeZone(TimeZone.getDefault());
-        }
-
         private InstantTypeAdapter() {
         }
 
         public synchronized JsonElement serialize(final Instant instant, final Type type, final JsonSerializationContext jsonSerializationContext) {
-            return new JsonPrimitive(instant.toString());
+            return new JsonPrimitive(JavaHelper.toIsoDate(instant));
         }
 
         public synchronized Instant deserialize(final JsonElement jsonElement, final Type type, final JsonDeserializationContext jsonDeserializationContext) {
             try {
-                return Instant.parse(jsonElement.getAsString());
+                return JavaHelper.parseIsoToInstant(jsonElement.getAsString());
             } catch (Exception e) {
                 LOGGER.debug("unable to parse stored json Instant.class timestamp '" + jsonElement.getAsString() + "' error: " + e.getMessage());
                 throw new JsonParseException(e);

@@ -20,28 +20,22 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.bean;
+package password.pwm.util.db;
 
-import lombok.Builder;
-import lombok.Getter;
-import password.pwm.util.java.JsonUtil;
+public class DatabaseClusterService {
 
-import java.io.Serializable;
 
-@Getter
-@Builder
-public class PasswordStatus implements Serializable {
-    private final boolean expired;
-    private final boolean preExpired;
-    private final boolean violatesPolicy;
-    private final boolean warnPeriod;
 
-    @Override
-    public String toString() {
-        return JsonUtil.serialize(this);
-    }
+    private static final String KEY_ENGINE_START_PREFIX = "engine-start-";
 
-    public boolean isEffectivelyExpired() {
-        return this.isExpired() || !this.isPreExpired() || !this.isViolatesPolicy();
+    private void heartbeat() {
+        /*
+        try {
+            put(DatabaseTable.PWM_META, KEY_ENGINE_START_PREFIX + instanceID, JavaHelper.toIsoDate(new java.util.Date()));
+        } catch (DatabaseException e) {
+            final String errorMsg = "error writing engine start time value: " + e.getMessage();
+            throw new DatabaseException(new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,errorMsg));
+        }
+        */
     }
 }

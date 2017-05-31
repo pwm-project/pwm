@@ -43,8 +43,14 @@ public class SearchConfiguration implements Serializable {
     private Map<FormConfiguration, String> formValues;
     private transient ChaiProvider chaiProvider;
     private long searchTimeout;
+
+    @Builder.Default
     private boolean enableValueEscaping = true;
+
+    @Builder.Default
     private boolean enableContextValidation = true;
+
+    @Builder.Default
     private boolean enableSplitWhitespace = false;
 
     void validate() {

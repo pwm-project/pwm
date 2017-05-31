@@ -311,6 +311,21 @@ public class Xodus_LocalDB implements LocalDBProvider {
         });
     }
 
+    @LocalDB.WriteOperation
+    public boolean putIfAbsent(final LocalDB.DB db, final String key, final String value) throws LocalDBException {
+        checkStatus(true);
+        return environment.computeInTransaction(transaction -> {
+            final ByteIterable k = bindMachine.keyToEntry(key);
+            final ByteIterable v = bindMachine.valueToEntry(value);
+            final Store store = getStore(db);
+            final ByteIterable existingValue = store.get(transaction, k);
+            if (existingValue != null) {
+                return false;
+            }
+            return store.put(transaction,k,v);
+        });
+    }
+
     @Override
     public boolean remove(final LocalDB.DB db, final String key) throws LocalDBException {
         checkStatus(true);

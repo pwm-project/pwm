@@ -23,6 +23,7 @@
 package password.pwm.util;
 
 import password.pwm.error.PwmDataStoreException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.ClosableIterator;
 
 public interface DataStore {
@@ -34,22 +35,25 @@ public interface DataStore {
             throws PwmDataStoreException;
 
     boolean contains(String key)
-            throws PwmDataStoreException;
+            throws PwmDataStoreException, PwmUnrecoverableException;
 
     String get(String key)
-            throws PwmDataStoreException;
+            throws PwmDataStoreException, PwmUnrecoverableException;
 
     ClosableIterator<String> iterator()
-            throws PwmDataStoreException;
+            throws PwmDataStoreException, PwmUnrecoverableException;
 
     Status status();
 
     boolean put(String key, String value)
-            throws PwmDataStoreException;
+            throws PwmDataStoreException, PwmUnrecoverableException;
 
-    boolean remove(String key)
-            throws PwmDataStoreException;
+    boolean putIfAbsent(String key, String value)
+            throws PwmDataStoreException, PwmUnrecoverableException;
+
+    void remove(String key)
+            throws PwmDataStoreException, PwmUnrecoverableException;
 
     int size()
-            throws PwmDataStoreException;
+            throws PwmDataStoreException, PwmUnrecoverableException;
 }

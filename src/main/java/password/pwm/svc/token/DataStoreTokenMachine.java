@@ -139,7 +139,8 @@ public class DataStoreTokenMachine implements TokenMachine {
         dataStore.remove(storedHash);
     }
 
-    public int size() throws PwmOperationalException {
+    public int size() throws PwmOperationalException, PwmUnrecoverableException
+    {
         return dataStore.size();
     }
 

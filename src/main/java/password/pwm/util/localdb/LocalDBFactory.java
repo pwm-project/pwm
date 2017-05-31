@@ -99,11 +99,13 @@ public class LocalDBFactory {
 
         final StringBuilder debugText = new StringBuilder();
         debugText.append("LocalDB open in ").append(openTime.asCompactString());
-        debugText.append(", db size: ").append(StringUtil.formatDiskSize(FileSystemUtility.getFileDirectorySize(localDB.getFileLocation())));
-        debugText.append(" at ").append(dbDirectory.toString());
-        final long freeSpace = FileSystemUtility.diskSpaceRemaining(localDB.getFileLocation());
-        if (freeSpace >= 0) {
-            debugText.append(", ").append(StringUtil.formatDiskSize(freeSpace)).append(" free");
+        if (localDB.getFileLocation() != null) {
+            debugText.append(", db size: ").append(StringUtil.formatDiskSize(FileSystemUtility.getFileDirectorySize(localDB.getFileLocation())));
+            debugText.append(" at ").append(dbDirectory.toString());
+            final long freeSpace = FileSystemUtility.diskSpaceRemaining(localDB.getFileLocation());
+            if (freeSpace >= 0) {
+                debugText.append(", ").append(StringUtil.formatDiskSize(freeSpace)).append(" free");
+            }
         }
         LOGGER.info(debugText);
 

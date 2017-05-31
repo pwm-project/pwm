@@ -41,6 +41,7 @@ import java.lang.reflect.Method;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -256,7 +257,7 @@ public class JavaHelper {
     }
 
     public static String toIsoDate(final Instant instant) {
-        return instant == null ? "" : instant.toString();
+        return instant == null ? "" : instant.truncatedTo(ChronoUnit.SECONDS).toString();
     }
 
     public static String toIsoDate(final Date date) {

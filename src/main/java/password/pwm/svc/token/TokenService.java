@@ -169,7 +169,7 @@ public class TokenService implements PwmService {
                 }
 
                 case STORE_DB: {
-                    final DataStore dataStore = new DatabaseDataStore(pwmApplication.getDatabaseAccessor(), DatabaseTable.TOKENS);
+                    final DataStore dataStore = new DatabaseDataStore(pwmApplication.getDatabaseService(), DatabaseTable.TOKENS);
                     tokenMachine = new DataStoreTokenMachine(pwmApplication, this, dataStore);
                     usedStorageMethod = DataStorageMethod.DB;
                     break;

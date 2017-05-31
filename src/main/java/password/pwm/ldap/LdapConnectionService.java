@@ -34,6 +34,7 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
+import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 
@@ -43,7 +44,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class LdapConnectionService implements PwmService {
     private static final PwmLogger LOGGER = PwmLogger.forClass(LdapConnectionService.class);
@@ -52,8 +52,7 @@ public class LdapConnectionService implements PwmService {
     private final Map<LdapProfile, ErrorInformation> lastLdapErrors = new ConcurrentHashMap<>();
     private PwmApplication pwmApplication;
     private STATUS status = STATUS.NEW;
-    private int connectionsPerProfile = 1;
-    private final AtomicInteger slotIncrementer = new AtomicInteger(0);
+    private AtomicLoopIntIncrementer slotIncrementer;
     private final ThreadLocal<ChaiProvider> threadLocalProvider = new ThreadLocal<>();
 
     public STATUS status()
@@ -69,8 +68,9 @@ public class LdapConnectionService implements PwmService {
         // read the lastLoginTime
         this.lastLdapErrors.putAll(readLastLdapFailure(pwmApplication));
 
-        connectionsPerProfile = maxSlotsPerProfile(pwmApplication);
+        final int connectionsPerProfile = maxSlotsPerProfile(pwmApplication);
         LOGGER.trace("allocating " + connectionsPerProfile + " ldap proxy connections per profile");
+        slotIncrementer = new AtomicLoopIntIncrementer(connectionsPerProfile);
 
         for (final LdapProfile ldapProfile: pwmApplication.getConfig().getLdapProfiles().values()) {
             proxyChaiProviders.put(ldapProfile, new ConcurrentHashMap<>());
@@ -122,7 +122,7 @@ public class LdapConnectionService implements PwmService {
             return threadLocalProvider.get();
         }
 
-        final int slot = nextSlot();
+        final int slot = slotIncrementer.next();
 
         final ChaiProvider proxyChaiProvider = proxyChaiProviders.get(identifier).get(slot);
 
@@ -203,16 +203,6 @@ public class LdapConnectionService implements PwmService {
             LOGGER.error("unexpected error loading cached lastLdapFailure statuses: " + e.getMessage() + ", input=" + lastLdapFailureStr);
         }
         return Collections.emptyMap();
-    }
-
-    private int nextSlot() {
-        return slotIncrementer.getAndUpdate(operand -> {
-            operand++;
-            if (operand >= connectionsPerProfile) {
-                operand = 0;
-            }
-            return operand;
-        });
     }
 
     private int maxSlotsPerProfile(final PwmApplication pwmApplication) {

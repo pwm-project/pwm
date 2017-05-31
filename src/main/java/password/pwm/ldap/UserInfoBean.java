@@ -46,39 +46,46 @@ import java.util.Map;
 public class UserInfoBean implements UserInfo {
 // ------------------------------ FIELDS ------------------------------
 
-    private UserIdentity userIdentity;
-    private String username;
-    private String userEmailAddress;
-    private String userSmsNumber;
-    private String userGuid;
+    private final UserIdentity userIdentity;
+    private final String username;
+    private final String userEmailAddress;
+    private final String userSmsNumber;
+    private final String userGuid;
 
     /**
      * A listing of all readable attributes on the ldap user object
      */
-    private Map<String,String> cachedPasswordRuleAttributes = Collections.emptyMap();
+    @Builder.Default
+    private final Map<String,String> cachedPasswordRuleAttributes = Collections.emptyMap();
 
-    private Map<String,String> cachedAttributeValues = Collections.emptyMap();
-    
-    private Map<ProfileType,String> profileIDs = new HashMap<>();
+    @Builder.Default
+    private final Map<String,String> cachedAttributeValues = Collections.emptyMap();
 
-    private PasswordStatus passwordStatus = PasswordStatus.builder().build();
+    @Builder.Default
+    private final Map<ProfileType,String> profileIDs = new HashMap<>();
 
-    private PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.defaultPolicy();
-    private ChallengeProfile challengeProfile = null;
-    private ResponseInfoBean responseInfoBean = null;
-    private OTPUserRecord otpUserRecord = null;
+    @Builder.Default
+    private final PasswordStatus passwordStatus = PasswordStatus.builder().build();
 
-    private Instant passwordExpirationTime;
-    private Instant passwordLastModifiedTime;
-    private Instant lastLdapLoginTime;
-    private Instant accountExpirationTime;
+    @Builder.Default
+    private final PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.defaultPolicy();
 
-    private boolean requiresNewPassword;
-    private boolean requiresResponseConfig;
-    private boolean requiresOtpConfig;
-    private boolean requiresUpdateProfile;
+    private final ChallengeProfile challengeProfile;
+    private final ResponseInfoBean responseInfoBean;
+    private final OTPUserRecord otpUserRecord;
 
-    private Map<String,String> attributes;
+    private final Instant passwordExpirationTime;
+    private final Instant passwordLastModifiedTime;
+    private final Instant lastLdapLoginTime;
+    private final Instant accountExpirationTime;
+
+    private final boolean requiresNewPassword;
+    private final boolean requiresResponseConfig;
+    private final boolean requiresOtpConfig;
+    private final boolean requiresUpdateProfile;
+
+    @Builder.Default
+    private Map<String,String> attributes = Collections.emptyMap();
 
     @Override
     public String readStringAttribute(final String attribute) throws PwmUnrecoverableException

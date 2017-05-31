@@ -25,13 +25,13 @@ package password.pwm.svc.event;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmApplication;
 import password.pwm.bean.UserIdentity;
-import password.pwm.ldap.UserInfo;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.util.db.DatabaseAccessor;
+import password.pwm.ldap.UserInfo;
 import password.pwm.util.db.DatabaseException;
+import password.pwm.util.db.DatabaseService;
 import password.pwm.util.db.DatabaseTable;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -46,11 +46,11 @@ class DatabaseUserHistory implements UserHistoryStore {
     private static final DatabaseTable TABLE = DatabaseTable.USER_AUDIT;
 
     final PwmApplication pwmApplication;
-    final DatabaseAccessor databaseAccessor;
+    final DatabaseService databaseService;
 
     DatabaseUserHistory(final PwmApplication pwmApplication) {
         this.pwmApplication = pwmApplication;
-        this.databaseAccessor = pwmApplication.getDatabaseAccessor();
+        this.databaseService = pwmApplication.getDatabaseService();
     }
 
     @Override
@@ -92,20 +92,22 @@ class DatabaseUserHistory implements UserHistoryStore {
         }
     }
 
-    private StoredHistory readStoredHistory(final String guid) throws DatabaseException {
-        final String str = this.databaseAccessor.get(TABLE, guid);
+    private StoredHistory readStoredHistory(final String guid) throws DatabaseException, PwmUnrecoverableException
+    {
+        final String str = this.databaseService.getAccessor().get(TABLE, guid);
         if (str == null || str.length() < 1) {
             return new StoredHistory();
         }
         return JsonUtil.deserialize(str,StoredHistory.class);
     }
 
-    private void writeStoredHistory(final String guid, final StoredHistory storedHistory) throws DatabaseException {
+    private void writeStoredHistory(final String guid, final StoredHistory storedHistory) throws DatabaseException, PwmUnrecoverableException
+    {
         if (storedHistory == null) {
             return;
         }
         final String str = JsonUtil.serialize(storedHistory);
-        databaseAccessor.put(TABLE,guid,str);
+        databaseService.getAccessor().put(TABLE,guid,str);
     }
 
     static class StoredHistory implements Serializable {

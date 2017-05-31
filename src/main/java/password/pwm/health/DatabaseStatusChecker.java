@@ -26,7 +26,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmEnvironment;
 import password.pwm.config.Configuration;
 import password.pwm.error.PwmException;
-import password.pwm.util.db.DatabaseAccessorImpl;
+import password.pwm.util.db.DatabaseAccessor;
 import password.pwm.util.db.DatabaseTable;
 import password.pwm.util.logging.PwmLogger;
 
@@ -51,19 +51,22 @@ public class DatabaseStatusChecker implements HealthChecker {
         if (!config.hasDbConfigured()) {
             return Collections.singletonList(new HealthRecord(HealthStatus.INFO,HealthTopic.Database,"Database not configured"));
         }
-        final DatabaseAccessorImpl impl = new DatabaseAccessorImpl();
-        try {
 
+        PwmApplication runtimeInstance = null;
+        try {
             final PwmEnvironment runtimeEnvironment = pwmApplication.getPwmEnvironment().makeRuntimeInstance(config);
-            final PwmApplication runtimeInstance = new PwmApplication(runtimeEnvironment);
-            impl.init(runtimeInstance);
-            impl.get(DatabaseTable.PWM_META, "test");
-            return impl.healthCheck();
+            runtimeInstance = new PwmApplication(runtimeEnvironment);
+            final DatabaseAccessor accessor = runtimeInstance.getDatabaseService().getAccessor();
+            accessor.get(DatabaseTable.PWM_META, "test");
+            return runtimeInstance.getDatabaseService().healthCheck();
         } catch (PwmException e) {
             LOGGER.error("error during healthcheck: " + e.getMessage());
-            return impl.healthCheck();
+            e.printStackTrace();
+            return runtimeInstance.getDatabaseService().healthCheck();
         } finally {
-            impl.close();
+            if (runtimeInstance != null) {
+                runtimeInstance.shutdown();
+            }
         }
     }
 }

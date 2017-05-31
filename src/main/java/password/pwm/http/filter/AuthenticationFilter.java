@@ -121,8 +121,8 @@ public class AuthenticationFilter extends AbstractPwmFilter {
                 this.processUnAuthenticatedSession(pwmRequest, chain);
             }
         } catch (PwmUnrecoverableException e) {
-            LOGGER.error(e.toString());
-            throw new ServletException(e.toString());
+            LOGGER.error(e.getErrorInformation());
+            pwmRequest.respondWithError(e.getErrorInformation(), true);
         }
     }
 

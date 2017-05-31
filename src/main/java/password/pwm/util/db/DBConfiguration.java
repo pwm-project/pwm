@@ -22,6 +22,9 @@
 
 package password.pwm.util.db;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import password.pwm.AppProperty;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -35,6 +38,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+@Getter
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class DBConfiguration implements Serializable {
     private final String driverClassname;
     private final String connectionString;
@@ -44,60 +49,8 @@ public class DBConfiguration implements Serializable {
     private final String columnTypeValue;
     private final byte[] jdbcDriver;
     private final List<JDBCDriverLoader.ClassLoaderStrategy> classLoaderStrategies;
-
-    private DBConfiguration(
-            final String driverClassname,
-            final String connectionString,
-            final String username,
-            final PasswordData password,
-            final String columnTypeKey,
-            final String columnTypeValue,
-            final byte[] jdbcDriver,
-            final List<JDBCDriverLoader.ClassLoaderStrategy> classLoaderStrategies
-    ) {
-        this.driverClassname = driverClassname;
-        this.connectionString = connectionString;
-        this.username = username;
-        this.password = password;
-        this.columnTypeKey = columnTypeKey;
-        this.columnTypeValue = columnTypeValue;
-        this.jdbcDriver = jdbcDriver;
-        this.classLoaderStrategies = classLoaderStrategies;
-    }
-
-    public String getDriverClassname() {
-        return driverClassname;
-    }
-
-    public String getConnectionString() {
-        return connectionString;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public PasswordData getPassword() {
-        return password;
-    }
-
-    public String getColumnTypeKey() {
-        return columnTypeKey;
-    }
-
-    public String getColumnTypeValue() {
-        return columnTypeValue;
-    }
-
-
-    public byte[] getJdbcDriver()
-    {
-        return jdbcDriver;
-    }
-
-    public List<JDBCDriverLoader.ClassLoaderStrategy> getClassLoaderStrategies() {
-        return classLoaderStrategies;
-    }
+    private final int maxConnections;
+    private final int connectionTimeout;
 
     public boolean isEnabled() {
         return
@@ -125,6 +78,8 @@ public class DBConfiguration implements Serializable {
                  Arrays.asList(strategyList.split(","))
          );
 
+         final int maxConnections = Integer.parseInt(config.readAppProperty(AppProperty.DB_CONNECTIONS_MAX));
+         final int connectionTimeout = Integer.parseInt(config.readAppProperty(AppProperty.DB_CONNECTIONS_TIMEOUT_MS));
 
          return new DBConfiguration(
                  config.readSettingAsString(PwmSetting.DATABASE_CLASS),
@@ -134,8 +89,9 @@ public class DBConfiguration implements Serializable {
                  config.readSettingAsString(PwmSetting.DATABASE_COLUMN_TYPE_KEY),
                  config.readSettingAsString(PwmSetting.DATABASE_COLUMN_TYPE_VALUE),
                  jdbcDriverBytes,
-                 strategies
+                 strategies,
+                 maxConnections,
+                 connectionTimeout
          );
-
      }
 }

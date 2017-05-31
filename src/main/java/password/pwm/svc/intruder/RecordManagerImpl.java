@@ -130,7 +130,7 @@ class RecordManagerImpl implements RecordManager {
     private void writeIntruderRecord(final IntruderRecord intruderRecord) {
         try {
             recordStore.write(makeKey(intruderRecord.getSubject()),intruderRecord);
-        } catch (PwmOperationalException e) {
+        } catch (PwmException e) {
             LOGGER.warn("unexpected error attempting to write intruder record " + JsonUtil.serialize(intruderRecord) + ", error: " + e.getMessage());
         }
     }
@@ -148,7 +148,7 @@ class RecordManagerImpl implements RecordManager {
 
 
     @Override
-    public ClosableIterator<IntruderRecord> iterator() throws PwmOperationalException {
+    public ClosableIterator<IntruderRecord> iterator() throws PwmException {
         return new RecordIterator<>(recordStore.iterator());
     }
 

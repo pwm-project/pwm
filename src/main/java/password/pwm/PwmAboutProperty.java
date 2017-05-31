@@ -25,7 +25,7 @@ package password.pwm;
 import password.pwm.config.PwmSetting;
 import password.pwm.i18n.Display;
 import password.pwm.util.LocaleHelper;
-import password.pwm.util.db.DatabaseAccessor;
+import password.pwm.util.db.DatabaseService;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -200,7 +200,7 @@ public enum PwmAboutProperty {
 
         { // database info
             try {
-                final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseAccessor();
+                final DatabaseService databaseAccessor = pwmApplication.getDatabaseService();
                 if (databaseAccessor != null) {
                     final Map<PwmAboutProperty,String> debugData = databaseAccessor.getConnectionDebugProperties();
                     aboutMap.putAll(debugData);

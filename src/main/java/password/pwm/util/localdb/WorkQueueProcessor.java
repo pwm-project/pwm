@@ -456,11 +456,23 @@ public class WorkQueueProcessor<W extends Serializable> {
     @Getter
     @Builder
     public static class Settings implements Serializable {
+        @Builder.Default
         private int maxEvents = 1000;
+
+        @Builder.Default
         private int preThreads = 0;
+
+        @Builder.Default
         private TimeDuration maxSubmitWaitTime = new TimeDuration(5, TimeUnit.SECONDS);
+
+        @Builder.Default
+
         private TimeDuration retryInterval = new TimeDuration(30, TimeUnit.SECONDS);
+        @Builder.Default
+
         private TimeDuration retryDiscardAge = new TimeDuration(1, TimeUnit.HOURS);
+
+        @Builder.Default
         private TimeDuration maxShutdownWaitTime = new TimeDuration(30, TimeUnit.SECONDS);
     }
 

@@ -22,21 +22,16 @@
 
 package password.pwm.util.db;
 
-import password.pwm.PwmAboutProperty;
 import password.pwm.util.java.ClosableIterator;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.util.Map;
 
 public interface DatabaseAccessor {
-    Map<PwmAboutProperty,String> getConnectionDebugProperties();
-
     /**
      * Indicates if the method is actually performing an DB operation.
      */
     @Retention(RetentionPolicy.RUNTIME)
-    public
     @interface DbOperation {
     }
 
@@ -44,7 +39,6 @@ public interface DatabaseAccessor {
      * Indicates if the method may cause a modification of the database.
      */
     @Retention(RetentionPolicy.RUNTIME)
-    public
     @interface DbModifyOperation {
     }
 
@@ -52,6 +46,15 @@ public interface DatabaseAccessor {
     @DbOperation
     @DbModifyOperation
     boolean put(
+            DatabaseTable table,
+            String key,
+            String value
+    )
+            throws DatabaseException;
+
+    @DbOperation
+    @DbModifyOperation
+    boolean putIfAbsent(
             DatabaseTable table,
             String key,
             String value
@@ -77,7 +80,7 @@ public interface DatabaseAccessor {
 
     @DbOperation
     @DbModifyOperation
-    boolean remove(
+    void remove(
             DatabaseTable table,
             String key
     )
@@ -86,6 +89,4 @@ public interface DatabaseAccessor {
     @DbOperation
     int size(DatabaseTable table) throws
             DatabaseException;
-
-    boolean isMasterServer();
 }

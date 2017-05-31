@@ -61,7 +61,7 @@ import password.pwm.util.PasswordData;
 import password.pwm.util.VersionChecker;
 import password.pwm.util.cli.commands.ExportHttpsTomcatConfigCommand;
 import password.pwm.util.db.DatabaseAccessor;
-import password.pwm.util.db.DatabaseAccessorImpl;
+import password.pwm.util.db.DatabaseService;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -244,11 +244,11 @@ public class PwmApplication {
         this.localDBLogger = PwmLogManager.initializeLocalDBLogger(this);
 
         // log the loaded configuration
-        LOGGER.info("configuration load completed");
+        LOGGER.debug("configuration load completed");
 
         // read the pwm servlet instance id
         instanceID = fetchInstanceID(localDB, this);
-        LOGGER.info("using '" + getInstanceID() + "' for instance's ID (instanceID)");
+        LOGGER.debug("using '" + getInstanceID() + "' for instance's ID (instanceID)");
 
         // read the pwm installation date
         installTime = fetchInstallDate(startupTime);
@@ -531,10 +531,18 @@ public class PwmApplication {
         return pwmEnvironment.getApplicationMode();
     }
 
-    public synchronized DatabaseAccessor getDatabaseAccessor()
+    public DatabaseAccessor getDatabaseAccessor()
+
+            throws PwmUnrecoverableException
     {
-        return (DatabaseAccessorImpl)pwmServiceManager.getService(DatabaseAccessorImpl.class);
+        return getDatabaseService().getAccessor();
     }
+
+    public DatabaseService getDatabaseService() {
+        return (DatabaseService)pwmServiceManager.getService(DatabaseService.class);
+    }
+
+
 
     private Instant fetchInstallDate(final Instant startupTime) {
         if (localDB != null) {

@@ -25,6 +25,7 @@ package password.pwm.svc.intruder;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmDataStoreException;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.PwmService;
@@ -86,7 +87,8 @@ class DataStoreRecordStore implements RecordStore {
     }
 
     @Override
-    public void write(final String key, final IntruderRecord record) throws PwmOperationalException {
+    public void write(final String key, final IntruderRecord record) throws PwmOperationalException, PwmUnrecoverableException
+    {
         final String jsonRecord = JsonUtil.serialize(record);
         try {
             dataStore.put(key, jsonRecord);
@@ -96,7 +98,8 @@ class DataStoreRecordStore implements RecordStore {
     }
 
     @Override
-    public ClosableIterator<IntruderRecord> iterator() throws PwmOperationalException {
+    public ClosableIterator<IntruderRecord> iterator() throws PwmOperationalException, PwmUnrecoverableException
+    {
         try {
             return new RecordIterator(dataStore.iterator());
         } catch (PwmDataStoreException e) {
@@ -160,7 +163,7 @@ class DataStoreRecordStore implements RecordStore {
                 for (final String key : recordsToRemove) {
                     dataStore.remove(key);
                 }
-            } catch (PwmDataStoreException e) {
+            } catch (PwmException e) {
                 LOGGER.error("unable to perform removal of identified stale records: " + e.getMessage());
             }
             recordsRemoved += recordsToRemove.size();

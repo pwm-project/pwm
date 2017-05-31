@@ -45,7 +45,6 @@ import password.pwm.svc.wordlist.SeedlistManager;
 import password.pwm.svc.wordlist.SharedHistoryManager;
 import password.pwm.svc.wordlist.WordlistManager;
 import password.pwm.util.VersionChecker;
-import password.pwm.util.db.DatabaseAccessorImpl;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.CrService;
@@ -73,7 +72,7 @@ public class PwmServiceManager {
     public enum PwmServiceClassEnum {
         SecureService(          SecureService.class,             true),
         LdapConnectionService(  LdapConnectionService.class,     true),
-        DatabaseAccessorImpl(   DatabaseAccessorImpl.class,      true),
+        DatabaseService(        password.pwm.util.db.DatabaseService.class,           true),
         SharedHistoryManager(   SharedHistoryManager.class,      false),
         AuditService(           AuditService.class,              false),
         StatisticsManager(      StatisticsManager.class,         false),

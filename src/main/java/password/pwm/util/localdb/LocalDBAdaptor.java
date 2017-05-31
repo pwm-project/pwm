@@ -182,6 +182,23 @@ public class LocalDBAdaptor implements LocalDB {
     }
 
     @WriteOperation
+    public boolean putIfAbsent(final DB db, final String key, final String value) throws LocalDBException {
+        ParameterValidator.validateDBValue(db);
+        ParameterValidator.validateKeyValue(key);
+        ParameterValidator.validateValueValue(value);
+
+        final boolean success = innerDB.putIfAbsent(db, key, value);
+        if (success) {
+            if (SIZE_CACHE_MANAGER != null) {
+                SIZE_CACHE_MANAGER.incrementSize(db);
+            }
+        }
+
+        markWrite(1);
+        return success;
+    }
+
+    @WriteOperation
     public boolean remove(final DB db, final String key) throws LocalDBException {
         ParameterValidator.validateDBValue(db);
         ParameterValidator.validateKeyValue(key);

@@ -81,8 +81,12 @@ public class LocalDBDataStore implements DataStore {
         return localDB.put(db, key, value);
     }
 
-    public boolean remove(final String key) throws PwmDataStoreException {
-        return localDB.remove(db, key);
+    public boolean putIfAbsent(final String key, final String value) throws PwmDataStoreException {
+        return localDB.putIfAbsent(db, key, value);
+    }
+
+    public void remove(final String key) throws PwmDataStoreException {
+        localDB.remove(db, key);
     }
 
     public int size() throws PwmDataStoreException {

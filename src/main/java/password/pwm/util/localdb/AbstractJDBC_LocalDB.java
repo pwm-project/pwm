@@ -342,6 +342,45 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
         return true;
     }
 
+    public boolean putIfAbsent(final LocalDB.DB db, final String key, final String value)
+            throws LocalDBException
+    {
+        preCheck(true);
+        final String selectSql ="SELECT * FROM " + db.toString() + " WHERE " + KEY_COLUMN + " = ?";
+
+        PreparedStatement selectStatement = null;
+        ResultSet resultSet = null;
+        PreparedStatement insertStatement = null;
+        try {
+            LOCK.writeLock().lock();
+            selectStatement = dbConnection.prepareStatement(selectSql);
+            selectStatement.setString(1, key);
+            selectStatement.setMaxRows(1);
+            resultSet = selectStatement.executeQuery();
+
+            final boolean valueExists = resultSet.next();
+
+            if (!valueExists) {
+                final String insertSql = "INSERT INTO " + db.toString() + "(" + KEY_COLUMN + ", " + VALUE_COLUMN + ") VALUES(?,?)";
+                insertStatement = dbConnection.prepareStatement(insertSql);
+                insertStatement.setString(1, key);
+                insertStatement.setString(2, value);
+                insertStatement.executeUpdate();
+            }
+
+            dbConnection.commit();
+
+            return !valueExists;
+        } catch (final SQLException ex) {
+            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,ex.getMessage()));
+        } finally {
+            close(selectStatement);
+            close(resultSet);
+            close(insertStatement);
+            LOCK.writeLock().unlock();
+        }
+    }
+
     public boolean remove(final LocalDB.DB db, final String key)
             throws LocalDBException {
         preCheck(true);

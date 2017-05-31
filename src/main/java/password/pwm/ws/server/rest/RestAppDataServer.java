@@ -35,7 +35,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.option.SelectableContextMode;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.IdleTimeoutCalculator;
 import password.pwm.http.PwmRequest;
@@ -225,7 +225,7 @@ public class RestAppDataServer extends AbstractRestServer {
             for (final RecordType recordType : RecordType.values()) {
                 returnData.put(recordType.toString(),restRequestBean.getPwmApplication().getIntruderManager().getRecords(recordType, max));
             }
-        } catch (PwmOperationalException e) {
+        } catch (PwmException e) {
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage());
             return RestResultBean.fromError(errorInfo, restRequestBean).asJsonResponse();
         }
