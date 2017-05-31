@@ -134,6 +134,7 @@ public interface LocalDB {
         OTP_SECRET(true),
         TOKENS(true),
         INTRUDER(true),
+        AUDIT_QUEUE(true),
         AUDIT_EVENTS(true),
         USER_CACHE(true),
         TEMP(false),

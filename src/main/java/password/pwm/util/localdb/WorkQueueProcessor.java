@@ -166,6 +166,11 @@ public class WorkQueueProcessor<W extends Serializable> {
         }
     }
 
+    public void submitImmediate(final W workItem) {
+        final ItemWrapper<W> itemWrapper = new ItemWrapper<>(Instant.now(), workItem, idGenerator.nextID());
+        sendAndQueueIfNecessary(itemWrapper);
+    }
+
     public void submit(final W workItem)
             throws PwmOperationalException
     {

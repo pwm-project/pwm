@@ -685,7 +685,7 @@ public class TokenService implements PwmService {
 
             pwmApplication.getIntruderManager().mark(RecordType.TOKEN_DEST, toAddress, null);
 
-            pwmApplication.getEmailQueue().submitEmail(new EmailItemBean(
+            pwmApplication.getEmailQueue().submitEmailImmediate(new EmailItemBean(
                     toAddress,
                     configuredEmailSetting.getFrom(),
                     configuredEmailSetting.getSubject(),

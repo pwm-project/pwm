@@ -210,6 +210,27 @@ public class EmailQueueManager implements PwmService {
     )
             throws PwmUnrecoverableException
     {
+        submitEmailImpl(emailItem, userInfo, macroMachine, false);
+    }
+
+    public void submitEmailImmediate(
+            final EmailItemBean emailItem,
+            final UserInfo userInfo,
+            final MacroMachine macroMachine
+    )
+            throws PwmUnrecoverableException
+    {
+        submitEmailImpl(emailItem, userInfo, macroMachine, true);
+    }
+
+    private void submitEmailImpl(
+            final EmailItemBean emailItem,
+            final UserInfo userInfo,
+            final MacroMachine macroMachine,
+            final boolean immediate
+    )
+            throws PwmUnrecoverableException
+    {
         if (emailItem == null) {
             return;
         }
@@ -237,7 +258,11 @@ public class EmailQueueManager implements PwmService {
         }
 
         try {
-            workQueueProcessor.submit(finalBean);
+            if (immediate) {
+                workQueueProcessor.submitImmediate(finalBean);
+            } else {
+                workQueueProcessor.submit(finalBean);
+            }
         } catch (PwmOperationalException e) {
             LOGGER.warn("unable to add email to queue: " + e.getMessage());
         }
