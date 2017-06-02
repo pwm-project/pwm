@@ -48,6 +48,7 @@ import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.ControlledPwmServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.i18n.Message;
+import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoBean;
 import password.pwm.svc.token.TokenPayload;
 import password.pwm.util.CaptchaUtility;
@@ -345,7 +346,7 @@ public class NewUserServlet extends ControlledPwmServlet {
                 Collections.emptyList(),
                 allowResultCaching
         );
-        final UserInfoBean uiBean = UserInfoBean.builder()
+        final UserInfo uiBean = UserInfoBean.builder()
                 .cachedPasswordRuleAttributes(FormUtility.asStringMap(formValueData))
                 .passwordPolicy(newUserProfile.getNewUserPasswordPolicy(pwmApplication, locale))
                 .build();
@@ -607,7 +608,9 @@ public class NewUserServlet extends ControlledPwmServlet {
             throws ServletException, PwmUnrecoverableException, IOException
     {
         final List<FormConfiguration> formConfiguration = getFormDefinition(pwmRequest);
-        pwmRequest.addFormInfoToRequestAttr(formConfiguration, null, false, true);
+        final NewUserProfile newUserProfile = getNewUserProfile(pwmRequest);
+        final boolean promptForPassword = newUserProfile.readSettingAsBoolean(PwmSetting.NEWUSER_PROMPT_FOR_PASSWORD);
+        pwmRequest.addFormInfoToRequestAttr(formConfiguration, null, false, promptForPassword);
 
         {
             final boolean showBack = !newUserBean.isUrlSpecifiedProfile()

@@ -2593,8 +2593,14 @@
         </default>
     </setting>
     <setting hidden="false" key="newUser.redirectUrl" level="1">
+        <flag>MacroSupport</flag>
         <default>
-            <value></value>
+            <value/>
+        </default>
+    </setting>
+    <setting hidden="false" key="newUser.promptForPassword" level="1">
+        <default>
+            <value>true</value>
         </default>
     </setting>
     <setting hidden="false" key="guest.enable" level="1" required="true">

@@ -27,6 +27,7 @@ import password.pwm.config.FormConfiguration;
 import password.pwm.config.FormUtility;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.NewUserProfile;
+import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -35,6 +36,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.bean.NewUserBean;
 import password.pwm.svc.token.TokenPayload;
 import password.pwm.util.PasswordData;
+import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
@@ -49,34 +51,63 @@ class NewUserFormUtils {
     private static final PwmLogger LOGGER = PwmLogger.forClass(NewUserFormUtils.class);
 
 
-    static NewUserBean.NewUserForm readFromRequest(final PwmRequest pwmRequest)
+    static NewUserBean.NewUserForm readFromRequest(
+            final PwmRequest pwmRequest
+    )
             throws PwmDataValidationException, PwmUnrecoverableException
     {
+        final NewUserProfile newUserProfile = NewUserServlet.getNewUserProfile(pwmRequest);
+        final boolean promptForPassword = newUserProfile.readSettingAsBoolean(PwmSetting.NEWUSER_PROMPT_FOR_PASSWORD);
+
         final Locale userLocale = pwmRequest.getLocale();
         final List<FormConfiguration> newUserForm = NewUserServlet.getFormDefinition(pwmRequest);
         final Map<FormConfiguration, String> userFormValues = FormUtility.readFormValuesFromRequest(pwmRequest,
                 newUserForm, userLocale);
-        final PasswordData passwordData1 = pwmRequest.readParameterAsPassword(NewUserServlet.FIELD_PASSWORD1);
-        final PasswordData passwordData2 = pwmRequest.readParameterAsPassword(NewUserServlet.FIELD_PASSWORD2);
+        final PasswordData passwordData1;
+        final PasswordData passwordData2;
+        if (promptForPassword) {
+            passwordData1 = pwmRequest.readParameterAsPassword(NewUserServlet.FIELD_PASSWORD1);
+            passwordData2 = pwmRequest.readParameterAsPassword(NewUserServlet.FIELD_PASSWORD2);
+        } else {
+            final PwmPasswordPolicy pwmPasswordPolicy = newUserProfile.getNewUserPasswordPolicy(pwmRequest.getPwmApplication(), pwmRequest.getLocale());
+            final PasswordData password = RandomPasswordGenerator.createRandomPassword(pwmRequest.getSessionLabel(), pwmPasswordPolicy, pwmRequest.getPwmApplication());
+            passwordData1 = password;
+            passwordData2 = password;
+        }
         return new NewUserBean.NewUserForm(FormUtility.asStringMap(userFormValues), passwordData1, passwordData2);
     }
 
-    static NewUserBean.NewUserForm readFromJsonRequest(final PwmRequest pwmRequest)
+    static NewUserBean.NewUserForm readFromJsonRequest(
+            final PwmRequest pwmRequest
+    )
             throws IOException, PwmUnrecoverableException, PwmDataValidationException
     {
+        final NewUserProfile newUserProfile = NewUserServlet.getNewUserProfile(pwmRequest);
+        final boolean promptForPassword = newUserProfile.readSettingAsBoolean(PwmSetting.NEWUSER_PROMPT_FOR_PASSWORD);
+
         final Locale userLocale = pwmRequest.getLocale();
         final List<FormConfiguration> newUserForm = NewUserServlet.getFormDefinition(pwmRequest);
         final Map<String, String> jsonBodyMap = pwmRequest.readBodyAsJsonStringMap();
         final Map<FormConfiguration, String> userFormValues = FormUtility.readFormValuesFromMap(jsonBodyMap,
                 newUserForm, userLocale);
-        final PasswordData passwordData1 = jsonBodyMap.containsKey(NewUserServlet.FIELD_PASSWORD1) && !jsonBodyMap.get(
-                NewUserServlet.FIELD_PASSWORD1).isEmpty()
-                ? new PasswordData(jsonBodyMap.get(NewUserServlet.FIELD_PASSWORD1))
-                : null;
-        final PasswordData passwordData2 = jsonBodyMap.containsKey(NewUserServlet.FIELD_PASSWORD2) && !jsonBodyMap.get(
-                NewUserServlet.FIELD_PASSWORD2).isEmpty()
-                ? new PasswordData(jsonBodyMap.get(NewUserServlet.FIELD_PASSWORD2))
-                : null;
+
+        final PasswordData passwordData1;
+        final PasswordData passwordData2;
+        if (promptForPassword) {
+            passwordData1 = jsonBodyMap.containsKey(NewUserServlet.FIELD_PASSWORD1) && !jsonBodyMap.get(
+                    NewUserServlet.FIELD_PASSWORD1).isEmpty()
+                    ? new PasswordData(jsonBodyMap.get(NewUserServlet.FIELD_PASSWORD1))
+                    : null;
+            passwordData2 = jsonBodyMap.containsKey(NewUserServlet.FIELD_PASSWORD2) && !jsonBodyMap.get(
+                    NewUserServlet.FIELD_PASSWORD2).isEmpty()
+                    ? new PasswordData(jsonBodyMap.get(NewUserServlet.FIELD_PASSWORD2))
+                    : null;
+        } else {
+            final PwmPasswordPolicy pwmPasswordPolicy = newUserProfile.getNewUserPasswordPolicy(pwmRequest.getPwmApplication(), pwmRequest.getLocale());
+            final PasswordData password = RandomPasswordGenerator.createRandomPassword(pwmRequest.getSessionLabel(), pwmPasswordPolicy, pwmRequest.getPwmApplication());
+            passwordData1 = password;
+            passwordData2 = password;
+        }
         return new NewUserBean.NewUserForm(FormUtility.asStringMap(userFormValues), passwordData1, passwordData2);
     }
 

@@ -798,6 +798,8 @@ public enum PwmSetting {
             "newUser.profile.displayName", PwmSettingSyntax.LOCALIZED_STRING, PwmSettingCategory.NEWUSER_PROFILE),
     NEWUSER_REDIRECT_URL(
             "newUser.redirectUrl", PwmSettingSyntax.STRING, PwmSettingCategory.NEWUSER_PROFILE),
+    NEWUSER_PROMPT_FOR_PASSWORD(
+            "newUser.promptForPassword", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.NEWUSER_PROFILE),
 
     // guest settings
     GUEST_ENABLE(
