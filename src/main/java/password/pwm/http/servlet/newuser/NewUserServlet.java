@@ -53,6 +53,7 @@ import password.pwm.svc.token.TokenPayload;
 import password.pwm.util.CaptchaUtility;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.Percent;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -64,10 +65,10 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -248,7 +249,7 @@ public class NewUserServlet extends ControlledPwmServlet {
 
         try {
             NewUserUtils.createUser(newUserBean.getNewUserForm(), pwmRequest, newUserDN);
-            newUserBean.setCreateStartTime(new Date());
+            newUserBean.setCreateStartTime(Instant.now());
             pwmRequest.forwardToJsp(JspUrl.NEW_USER_WAIT);
         } catch (PwmOperationalException e) {
             LOGGER.error(pwmRequest, "error during user creation: " + e.getMessage());
@@ -489,7 +490,7 @@ public class NewUserServlet extends ControlledPwmServlet {
             throws IOException, ServletException, PwmUnrecoverableException
     {
         final NewUserBean newUserBean = getNewUserBean(pwmRequest);
-        final Date startTime = newUserBean.getCreateStartTime();
+        final Instant startTime = newUserBean.getCreateStartTime();
         if (startTime == null) {
             pwmRequest.respondWithError(PwmError.ERROR_INCORRECT_REQ_SEQUENCE.toInfo(), true);
             return ProcessStatus.Halt;
@@ -497,13 +498,13 @@ public class NewUserServlet extends ControlledPwmServlet {
 
         final NewUserProfile newUserProfile = NewUserServlet.getNewUserProfile(pwmRequest);
         final long minWaitTime = newUserProfile.readSettingAsLong(PwmSetting.NEWUSER_MINIMUM_WAIT_TIME) * 1000L;
-        final Date completeTime = new Date(startTime.getTime() + minWaitTime);
+        final Instant completeTime = Instant.ofEpochMilli(startTime.toEpochMilli() + minWaitTime);
 
         final BigDecimal percentComplete;
         final boolean complete;
 
         // be sure minimum wait time has passed
-        if (new Date().after(completeTime)) {
+        if (Instant.now().isAfter(completeTime)) {
             percentComplete = new BigDecimal("100");
             complete = true;
         } else {
@@ -557,7 +558,7 @@ public class NewUserServlet extends ControlledPwmServlet {
             throws ServletException, IOException, PwmUnrecoverableException, ChaiUnavailableException
     {
         final NewUserBean newUserBean = getNewUserBean(pwmRequest);
-        final Date startTime = newUserBean.getCreateStartTime();
+        final Instant startTime = newUserBean.getCreateStartTime();
         if (startTime == null) {
             pwmRequest.respondWithError(PwmError.ERROR_INCORRECT_REQ_SEQUENCE.toInfo(), true);
             return ProcessStatus.Halt;
@@ -565,15 +566,25 @@ public class NewUserServlet extends ControlledPwmServlet {
 
         final NewUserProfile newUserProfile = NewUserServlet.getNewUserProfile(pwmRequest);
         final long minWaitTime = newUserProfile.readSettingAsLong(PwmSetting.NEWUSER_MINIMUM_WAIT_TIME) * 1000L;
-        final Date completeTime = new Date(startTime.getTime() + minWaitTime);
+        final Instant completeTime = Instant.ofEpochMilli(startTime.toEpochMilli() + minWaitTime);
 
         // be sure minimum wait time has passed
-        if (new Date().before(completeTime)) {
+        if (Instant.now().isBefore(completeTime)) {
             pwmRequest.forwardToJsp(JspUrl.NEW_USER_WAIT);
             return ProcessStatus.Halt;
         }
 
+        // -- process complete -- \\
         pwmRequest.getPwmApplication().getSessionStateService().clearBean(pwmRequest, NewUserBean.class);
+
+        final String configuredRedirectUrl = newUserProfile.readSettingAsString(PwmSetting.NEWUSER_REDIRECT_URL);
+        if (!StringUtil.isEmpty(configuredRedirectUrl)) {
+            final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine(pwmRequest.getPwmApplication());
+            final String macroedUrl = macroMachine.expandMacros(configuredRedirectUrl);
+            pwmRequest.sendRedirect(macroedUrl);
+            return ProcessStatus.Halt;
+        }
+
         pwmRequest.getPwmResponse().forwardToSuccessPage(Message.Success_CreateUser);
         return ProcessStatus.Halt;
     }

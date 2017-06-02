@@ -22,59 +22,42 @@
 
 package password.pwm.http.bean;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import password.pwm.bean.TokenVerificationProgress;
 import password.pwm.config.option.SessionBeanMode;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+@Getter
+@Setter
+@NoArgsConstructor
 public class NewUserBean extends PwmSessionBean {
     private String profileID;
     private NewUserForm newUserForm;
 
     private boolean agreementPassed;
     private boolean formPassed;
-    private Date createStartTime;
+    private Instant createStartTime;
     private boolean urlSpecifiedProfile;
     private final TokenVerificationProgress tokenVerificationProgress = new TokenVerificationProgress();
 
+    @Getter
+    @AllArgsConstructor
     public static class NewUserForm implements Serializable {
-        private Map<String,String> formData;
-        private PasswordData newUserPassword;
-        private PasswordData confirmPassword;
-
-        public NewUserForm(
-                final Map<String, String> formData,
-                final PasswordData newUserPassword,
-                final PasswordData confirmPassword
-        )
-        {
-            this.formData = formData;
-            this.newUserPassword = newUserPassword;
-            this.confirmPassword = confirmPassword;
-        }
-
-        public Map<String, String> getFormData()
-        {
-            return formData;
-        }
-
-        public PasswordData getNewUserPassword()
-        {
-            return newUserPassword;
-        }
-
-        public PasswordData getConfirmPassword()
-        {
-            return confirmPassword;
-        }
+        private final Map<String,String> formData;
+        private final PasswordData newUserPassword;
+        private final PasswordData confirmPassword;
 
         public boolean isConsistentWith(final NewUserForm otherForm) throws PwmUnrecoverableException {
             if (otherForm == null) {
@@ -99,58 +82,6 @@ public class NewUserBean extends PwmSessionBean {
 
             return true;
         }
-    }
-
-    public String getProfileID() {
-        return profileID;
-    }
-
-    public void setProfileID(final String profileID) {
-        this.profileID = profileID;
-    }
-
-    public boolean isAgreementPassed() {
-        return agreementPassed;
-    }
-
-    public void setAgreementPassed(final boolean agreementPassed) {
-        this.agreementPassed = agreementPassed;
-    }
-
-    public boolean isFormPassed() {
-        return formPassed;
-    }
-
-    public void setFormPassed(final boolean formPassed) {
-        this.formPassed = formPassed;
-    }
-
-    public Date getCreateStartTime()
-    {
-        return createStartTime;
-    }
-
-    public void setCreateStartTime(final Date createStartTime)
-    {
-        this.createStartTime = createStartTime;
-    }
-
-    public NewUserForm getNewUserForm()
-    {
-        return newUserForm;
-    }
-
-    public void setNewUserForm(final NewUserForm newUserForm)
-    {
-        this.newUserForm = newUserForm;
-    }
-
-    public boolean isUrlSpecifiedProfile() {
-        return urlSpecifiedProfile;
-    }
-
-    public void setUrlSpecifiedProfile(final boolean urlSpecifiedProfile) {
-        this.urlSpecifiedProfile = urlSpecifiedProfile;
     }
 
     public Type getType() {

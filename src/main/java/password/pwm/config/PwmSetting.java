@@ -796,7 +796,8 @@ public enum PwmSetting {
             "newUser.minimumWaitTime", PwmSettingSyntax.DURATION, PwmSettingCategory.NEWUSER_PROFILE),
     NEWUSER_PROFILE_DISPLAY_NAME(
             "newUser.profile.displayName", PwmSettingSyntax.LOCALIZED_STRING, PwmSettingCategory.NEWUSER_PROFILE),
-
+    NEWUSER_REDIRECT_URL(
+            "newUser.redirectUrl", PwmSettingSyntax.STRING, PwmSettingCategory.NEWUSER_PROFILE),
 
     // guest settings
     GUEST_ENABLE(

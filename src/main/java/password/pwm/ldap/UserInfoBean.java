@@ -22,6 +22,7 @@
 
 package password.pwm.ldap;
 
+import com.novell.ldapchai.impl.edir.entry.EdirEntries;
 import lombok.Builder;
 import lombok.Getter;
 import password.pwm.bean.PasswordStatus;
@@ -38,6 +39,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -90,25 +92,38 @@ public class UserInfoBean implements UserInfo {
     @Override
     public String readStringAttribute(final String attribute) throws PwmUnrecoverableException
     {
-        return null;
+        return attributes.get(attribute);
     }
 
     @Override
     public Date readDateAttribute(final String attribute) throws PwmUnrecoverableException
     {
+        if (attributes.containsKey(attribute)) {
+            return EdirEntries.convertZuluToDate(attributes.get(attribute));
+        }
         return null;
     }
 
     @Override
     public List<String> readMultiStringAttribute(final String attribute) throws PwmUnrecoverableException
     {
-        return null;
+        if (attributes.containsKey(attribute)) {
+            return Collections.unmodifiableList(Collections.singletonList(attributes.get(attribute)));
+        }
+
+        return Collections.emptyList();
     }
 
     @Override
     public Map<String, String> readStringAttributes(final Collection<String> attributes) throws PwmUnrecoverableException
     {
-        return null;
+        final Map<String,String> returnObj = new LinkedHashMap<>();
+        for (final String attribute : attributes) {
+            if (this.attributes.containsKey(attribute)) {
+                returnObj.put(attribute, this.attributes.get(attribute));
+            }
+        }
+        return Collections.unmodifiableMap(returnObj);
     }
 }
 

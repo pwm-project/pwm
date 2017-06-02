@@ -2592,6 +2592,11 @@
             <value></value>
         </default>
     </setting>
+    <setting hidden="false" key="newUser.redirectUrl" level="1">
+        <default>
+            <value></value>
+        </default>
+    </setting>
     <setting hidden="false" key="guest.enable" level="1" required="true">
         <default>
             <value>false</value>

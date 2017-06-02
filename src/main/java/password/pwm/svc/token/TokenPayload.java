@@ -60,7 +60,9 @@ public class TokenPayload implements Serializable {
         final Map<String,String> debugMap = new HashMap<>();
         debugMap.put("date", JavaHelper.toIsoDate(date));
         debugMap.put("name", getName());
-        debugMap.put("user", getUserIdentity().toDisplayString());
+        if (getUserIdentity() != null) {
+            debugMap.put("user", getUserIdentity().toDisplayString());
+        }
         debugMap.put("guid", getGuid());
         return JsonUtil.serializeMap(debugMap);
     }
