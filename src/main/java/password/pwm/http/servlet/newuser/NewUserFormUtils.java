@@ -52,7 +52,9 @@ class NewUserFormUtils {
 
 
     static NewUserBean.NewUserForm readFromRequest(
-            final PwmRequest pwmRequest
+            final PwmRequest pwmRequest,
+            final NewUserBean newUserBean
+
     )
             throws PwmDataValidationException, PwmUnrecoverableException
     {
@@ -74,7 +76,13 @@ class NewUserFormUtils {
             passwordData1 = password;
             passwordData2 = password;
         }
-        return new NewUserBean.NewUserForm(FormUtility.asStringMap(userFormValues), passwordData1, passwordData2);
+
+        final Map<String,String> mergedData = new LinkedHashMap<>(FormUtility.asStringMap(userFormValues));
+        if (newUserBean.getRemoteInputData() != null) {
+            mergedData.putAll(newUserBean.getRemoteInputData());
+        }
+
+        return new NewUserBean.NewUserForm(mergedData, passwordData1, passwordData2);
     }
 
     static NewUserBean.NewUserForm readFromJsonRequest(
@@ -83,6 +91,7 @@ class NewUserFormUtils {
             throws IOException, PwmUnrecoverableException, PwmDataValidationException
     {
         final NewUserProfile newUserProfile = NewUserServlet.getNewUserProfile(pwmRequest);
+
         final boolean promptForPassword = newUserProfile.readSettingAsBoolean(PwmSetting.NEWUSER_PROMPT_FOR_PASSWORD);
 
         final Locale userLocale = pwmRequest.getLocale();

@@ -70,10 +70,12 @@ public class RestVerifyOtpServer extends AbstractRestServer {
     public Response doSetOtpDataJson(final RestVerifyOtpServer.JsonPutOtpInput jsonInput) {
         final RestRequestBean restRequestBean;
         try {
-            final ServicePermissions servicePermissions = new ServicePermissions();
-            servicePermissions.setAdminOnly(false);
-            servicePermissions.setAuthRequired(true);
-            servicePermissions.setBlockExternal(true);
+            final ServicePermissions servicePermissions = ServicePermissions.builder()
+                    .adminOnly(false)
+                    .authRequired(true)
+                    .blockExternal(true)
+                    .build();
+
             restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, jsonInput.username);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
@@ -104,7 +106,7 @@ public class RestVerifyOtpServer extends AbstractRestServer {
             resultBean.setError(false);
             resultBean.setData(verified);
             resultBean.setSuccessMessage(successMsg);
-            return resultBean.asJsonResponse();                    
+            return resultBean.asJsonResponse();
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation(),restRequestBean).asJsonResponse();
         } catch (ChaiUnavailableException e) {
@@ -120,7 +122,7 @@ public class RestVerifyOtpServer extends AbstractRestServer {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
             return RestResultBean.fromError(errorInformation,restRequestBean).asJsonResponse();
         }
-        
+
     }
 
 }

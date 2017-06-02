@@ -61,6 +61,13 @@ import java.util.Map;
 @Path("/profile")
 public class RestProfileServer extends AbstractRestServer {
 
+    private static final ServicePermissions SERVICE_PERMISSIONS = ServicePermissions.builder()
+            .adminOnly(false)
+            .authRequired(true)
+            .blockExternal(true)
+            .build();
+
+
     public static class JsonProfileData implements Serializable {
         public String username;
         public Map<String,String> profile;
@@ -91,11 +98,7 @@ public class RestProfileServer extends AbstractRestServer {
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
-        final ServicePermissions servicePermissions = new ServicePermissions();
-        servicePermissions.setAdminOnly(false);
-        servicePermissions.setAuthRequired(true);
-        servicePermissions.setBlockExternal(true);
-        final RestRequestBean restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, username);
+        final RestRequestBean restRequestBean = RestServerHelper.initializeRestRequest(request, response, SERVICE_PERMISSIONS, username);
 
         if (!restRequestBean.getPwmApplication().getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE)) {
             throw new PwmUnrecoverableException(PwmError.ERROR_SERVICE_NOT_AVAILABLE);
@@ -165,12 +168,7 @@ public class RestProfileServer extends AbstractRestServer {
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
     {
-
-        final ServicePermissions servicePermissions = new ServicePermissions();
-        servicePermissions.setAdminOnly(false);
-        servicePermissions.setAuthRequired(true);
-        servicePermissions.setBlockExternal(true);
-        final RestRequestBean restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, jsonInput.username);
+        final RestRequestBean restRequestBean = RestServerHelper.initializeRestRequest(request, response, SERVICE_PERMISSIONS, jsonInput.username);
 
         if (!restRequestBean.getPwmApplication().getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE)) {
             throw new PwmUnrecoverableException(PwmError.ERROR_SERVICE_NOT_AVAILABLE);

@@ -77,6 +77,13 @@ import java.util.Map;
 
 @Path("/challenges")
 public class RestChallengesServer extends AbstractRestServer {
+
+    private static final ServicePermissions SERVICE_PERMISSIONS = ServicePermissions.builder()
+            .adminOnly(false)
+            .authRequired(true)
+            .blockExternal(true)
+            .build();
+
     public static class Policy {
         public List<ChallengeBean> challenges;
         public List<ChallengeBean> helpdeskChallenges;
@@ -151,11 +158,7 @@ public class RestChallengesServer extends AbstractRestServer {
     {
         final RestRequestBean restRequestBean;
         try {
-            final ServicePermissions servicePermissions = new ServicePermissions();
-            servicePermissions.setAdminOnly(false);
-            servicePermissions.setAuthRequired(true);
-            servicePermissions.setBlockExternal(true);
-            restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, username);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, response, SERVICE_PERMISSIONS, username);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
@@ -251,11 +254,7 @@ public class RestChallengesServer extends AbstractRestServer {
     {
         final RestRequestBean restRequestBean;
         try {
-            final ServicePermissions servicePermissions = new ServicePermissions();
-            servicePermissions.setAdminOnly(false);
-            servicePermissions.setAuthRequired(true);
-            servicePermissions.setBlockExternal(true);
-            restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, jsonInput.username);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, response, SERVICE_PERMISSIONS, jsonInput.username);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
@@ -323,11 +322,10 @@ public class RestChallengesServer extends AbstractRestServer {
     {
         final RestRequestBean restRequestBean;
         try {
-            final ServicePermissions servicePermissions = new ServicePermissions();
-            servicePermissions.setAdminOnly(false);
-            servicePermissions.setAuthRequired(true);
-            servicePermissions.setBlockExternal(true);
-            servicePermissions.setHelpdeskPermitted(true);
+            final ServicePermissions servicePermissions = SERVICE_PERMISSIONS.toBuilder()
+                    .helpdeskPermitted(true)
+                    .build();
+
             restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, username);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();

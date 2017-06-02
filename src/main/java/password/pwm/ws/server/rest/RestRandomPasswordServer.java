@@ -59,15 +59,14 @@ import java.util.List;
 @Path("/randompassword")
 public class RestRandomPasswordServer extends AbstractRestServer {
     private static final PwmLogger LOGGER = PwmLogger.forClass(RestRandomPasswordServer.class);
-    private static final ServicePermissions SERVICE_PERMISSIONS = new ServicePermissions();
 
-    static {
-        SERVICE_PERMISSIONS.setAdminOnly(false);
-        SERVICE_PERMISSIONS.setAuthRequired(false);
-        SERVICE_PERMISSIONS.setBlockExternal(true);
-        SERVICE_PERMISSIONS.setHelpdeskPermitted(true);
-        SERVICE_PERMISSIONS.setPublicDuringConfig(true);
-    }
+    private static final ServicePermissions SERVICE_PERMISSIONS = ServicePermissions.builder()
+            .adminOnly(false)
+            .authRequired(false)
+            .blockExternal(true)
+            .helpdeskPermitted(true)
+            .publicDuringConfig(true)
+            .build();
 
     public static class JsonOutput implements Serializable
     {

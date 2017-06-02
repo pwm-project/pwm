@@ -59,7 +59,6 @@ import java.io.Serializable;
 public class RestSetPasswordServer extends AbstractRestServer {
 
     public static final PwmLogger LOGGER = PwmLogger.forClass(RestSetPasswordServer.class);
-    private static Serializable restResultBeanData;
 
     public static class JsonInputData implements Serializable
     {
@@ -106,11 +105,13 @@ public class RestSetPasswordServer extends AbstractRestServer {
     {
         final RestRequestBean restRequestBean;
         try {
-            final ServicePermissions servicePermissions = new ServicePermissions();
-            servicePermissions.setAdminOnly(false);
-            servicePermissions.setAuthRequired(true);
-            servicePermissions.setBlockExternal(true);
-            servicePermissions.setHelpdeskPermitted(true);
+            final ServicePermissions servicePermissions = ServicePermissions.builder()
+                    .adminOnly(false)
+                    .authRequired(true)
+                    .blockExternal(true)
+                    .helpdeskPermitted(true)
+                    .build();
+
             restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, jsonInputData.username);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();

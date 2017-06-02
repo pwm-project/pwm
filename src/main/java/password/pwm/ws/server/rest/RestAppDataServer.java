@@ -91,6 +91,12 @@ public class RestAppDataServer extends AbstractRestServer {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(RestAppDataServer.class);
 
+    private static final ServicePermissions SERVICE_PERMISSIONS = ServicePermissions.builder()
+            .adminOnly(true)
+            .authRequired(true)
+            .blockExternal(true)
+            .build();
+
     public static class AppData implements Serializable {
         public Map<String,Object> PWM_GLOBAL;
     }
@@ -117,11 +123,7 @@ public class RestAppDataServer extends AbstractRestServer {
 
         final RestRequestBean restRequestBean;
         try {
-            final ServicePermissions servicePermissions = new ServicePermissions();
-            servicePermissions.setAdminOnly(true);
-            servicePermissions.setAuthRequired(true);
-            servicePermissions.setBlockExternal(true);
-            restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, null);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, response, SERVICE_PERMISSIONS, null);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
@@ -166,11 +168,7 @@ public class RestAppDataServer extends AbstractRestServer {
                 : 10 * 1000;
         final RestRequestBean restRequestBean;
         try {
-            final ServicePermissions servicePermissions = new ServicePermissions();
-            servicePermissions.setAdminOnly(true);
-            servicePermissions.setAuthRequired(true);
-            servicePermissions.setBlockExternal(true);
-            restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, null);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, response, SERVICE_PERMISSIONS, null);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
@@ -206,11 +204,7 @@ public class RestAppDataServer extends AbstractRestServer {
 
         final RestRequestBean restRequestBean;
         try {
-            final ServicePermissions servicePermissions = new ServicePermissions();
-            servicePermissions.setAdminOnly(true);
-            servicePermissions.setAuthRequired(true);
-            servicePermissions.setBlockExternal(true);
-            restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, null);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, response, SERVICE_PERMISSIONS, null);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }

@@ -39,6 +39,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.JspUrl;
 import password.pwm.http.ProcessStatus;
+import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
@@ -61,6 +62,7 @@ import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.rest.RestCheckPasswordServer;
+import password.pwm.ws.server.rest.RestSigningServer;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -98,7 +100,7 @@ public class NewUserServlet extends ControlledPwmServlet {
     static final String TOKEN_PAYLOAD_ATTR = "_______profileID";
 
     public enum NewUserAction implements AbstractPwmServlet.ProcessAction {
-        profileChoice(HttpMethod.POST),
+        profileChoice(HttpMethod.POST, HttpMethod.POST),
         checkProgress(HttpMethod.GET),
         complete(HttpMethod.GET),
         processForm(HttpMethod.POST),
@@ -143,6 +145,13 @@ public class NewUserServlet extends ControlledPwmServlet {
         }
 
         final NewUserBean newUserBean = pwmApplication.getSessionStateService().getBean(pwmRequest, NewUserBean.class);
+
+        final String signedFormData = pwmRequest.readParameterAsString("signedForm", PwmHttpRequestWrapper.Flag.BypassValidation);
+        if (!StringUtil.isEmpty(signedFormData)) {
+            LOGGER.trace("detected signedForm parameter in request, will read and place in bean.");
+            final Map<String,String> jsonForm = RestSigningServer.readSignedFormValue(pwmApplication, signedFormData);
+            newUserBean.setRemoteInputData(jsonForm);
+        }
 
         // convert a url command like /public/newuser/profile/xxx to set profile.
         if (readProfileFromUrl(pwmRequest, newUserBean)) {
@@ -470,7 +479,7 @@ public class NewUserServlet extends ControlledPwmServlet {
         newUserBean.setNewUserForm(null);
 
         try {
-            final NewUserBean.NewUserForm newUserForm = NewUserFormUtils.readFromRequest(pwmRequest);
+            final NewUserBean.NewUserForm newUserForm = NewUserFormUtils.readFromRequest(pwmRequest, newUserBean);
             final PasswordUtility.PasswordCheckInfo passwordCheckInfo = verifyForm(pwmRequest, newUserForm, true);
             NewUserUtils.passwordCheckInfoToException(passwordCheckInfo);
             newUserBean.setNewUserForm(newUserForm);

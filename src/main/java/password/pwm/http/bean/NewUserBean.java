@@ -46,6 +46,7 @@ public class NewUserBean extends PwmSessionBean {
     private String profileID;
     private NewUserForm newUserForm;
 
+    private Map<String,String> remoteInputData;
     private boolean agreementPassed;
     private boolean formPassed;
     private Instant createStartTime;
@@ -54,7 +55,8 @@ public class NewUserBean extends PwmSessionBean {
 
     @Getter
     @AllArgsConstructor
-    public static class NewUserForm implements Serializable {
+    public static class
+    NewUserForm implements Serializable {
         private final Map<String,String> formData;
         private final PasswordData newUserPassword;
         private final PasswordData confirmPassword;
