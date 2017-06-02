@@ -44,12 +44,16 @@ public class PublicUserInfoBean implements Serializable {
     private String userDN;
     private String ldapProfile;
     private String userID;
+    private String userGUID;
     private String userEmailAddress;
     private Instant passwordExpirationTime;
     private Instant passwordLastModifiedTime;
+    private Instant lastLoginTime;
+    private Instant accountExpirationTime;
     private boolean requiresNewPassword;
     private boolean requiresResponseConfig;
     private boolean requiresUpdateProfile;
+    private boolean requiresOtpConfig;
     private boolean requiresInteraction;
 
     private PasswordStatus passwordStatus;
@@ -69,19 +73,19 @@ public class PublicUserInfoBean implements Serializable {
         publicUserInfoBean.userDN = (userInfoBean.getUserIdentity() == null) ? "" : userInfoBean.getUserIdentity().getUserDN();
         publicUserInfoBean.ldapProfile = (userInfoBean.getUserIdentity() == null) ? "" : userInfoBean.getUserIdentity().getLdapProfileID();
         publicUserInfoBean.userID = userInfoBean.getUsername();
+        publicUserInfoBean.userGUID = publicUserInfoBean.getUserGUID();
         publicUserInfoBean.userEmailAddress = userInfoBean.getUserEmailAddress();
         publicUserInfoBean.passwordExpirationTime = userInfoBean.getPasswordExpirationTime();
         publicUserInfoBean.passwordLastModifiedTime = userInfoBean.getPasswordLastModifiedTime();
         publicUserInfoBean.passwordStatus = userInfoBean.getPasswordStatus();
+        publicUserInfoBean.accountExpirationTime = userInfoBean.getAccountExpirationTime();
+        publicUserInfoBean.lastLoginTime = userInfoBean.getLastLdapLoginTime();
 
         publicUserInfoBean.requiresNewPassword = userInfoBean.isRequiresNewPassword();
         publicUserInfoBean.requiresResponseConfig = userInfoBean.isRequiresResponseConfig();
         publicUserInfoBean.requiresUpdateProfile = userInfoBean.isRequiresUpdateProfile();
-        publicUserInfoBean.requiresInteraction = userInfoBean.isRequiresNewPassword()
-                || userInfoBean.isRequiresResponseConfig()
-                || userInfoBean.isRequiresUpdateProfile()
-                || userInfoBean.getPasswordStatus().isWarnPeriod();
-
+        publicUserInfoBean.requiresOtpConfig = userInfoBean.isRequiresOtpConfig();
+        publicUserInfoBean.requiresInteraction = userInfoBean.isRequiresInteraction();
 
         publicUserInfoBean.passwordPolicy = new HashMap<>();
         for (final PwmPasswordRule rule : PwmPasswordRule.values()) {

@@ -97,8 +97,8 @@ public class CacheService implements PwmService {
     }
 
     @Override
-    public ServiceInfo serviceInfo() {
-        return new ServiceInfo(Collections.emptyList());
+    public ServiceInfoBean serviceInfo() {
+        return new ServiceInfoBean(Collections.emptyList());
     }
 
     public void put(final CacheKey cacheKey, final CachePolicy cachePolicy, final String payload)

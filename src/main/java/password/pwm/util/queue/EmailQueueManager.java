@@ -66,6 +66,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -141,11 +142,15 @@ public class EmailQueueManager implements PwmService {
     }
 
     @Override
-    public ServiceInfo serviceInfo() {
+    public ServiceInfoBean serviceInfo() {
+        final Map<String,String> debugItems = new LinkedHashMap<>();
+        if (workQueueProcessor != null) {
+            debugItems.putAll(workQueueProcessor.debugInfo());
+        }
         if (status() == STATUS.OPEN) {
-            return new ServiceInfo(Collections.singletonList(DataStorageMethod.LOCALDB));
+            return new ServiceInfoBean(Collections.singletonList(DataStorageMethod.LOCALDB), debugItems);
         } else {
-            return new ServiceInfo(Collections.emptyList());
+            return new ServiceInfoBean(Collections.emptyList(), debugItems);
         }
     }
 

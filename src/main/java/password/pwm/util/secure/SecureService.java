@@ -78,7 +78,7 @@ public class SecureService implements PwmService {
     }
 
     @Override
-    public ServiceInfo serviceInfo() {
+    public ServiceInfoBean serviceInfo() {
         return null;
     }
 

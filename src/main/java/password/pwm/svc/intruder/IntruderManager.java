@@ -89,7 +89,7 @@ public class IntruderManager implements Serializable, PwmService {
 
     private final Map<RecordType, RecordManager> recordManagers = new HashMap<>();
 
-    private ServiceInfo serviceInfo = new ServiceInfo(Collections.<DataStorageMethod>emptyList());
+    private ServiceInfoBean serviceInfo = new ServiceInfoBean(Collections.<DataStorageMethod>emptyList());
 
     public IntruderManager() {
         for (final RecordType recordType : RecordType.values()) {
@@ -157,7 +157,7 @@ public class IntruderManager implements Serializable, PwmService {
                     return;
             }
             LOGGER.info(debugMsg);
-            serviceInfo = new ServiceInfo(Collections.singletonList(storageMethodUsed));
+            serviceInfo = new ServiceInfoBean(Collections.singletonList(storageMethodUsed));
         }
         final RecordStore recordStore;
         {
@@ -600,7 +600,7 @@ public class IntruderManager implements Serializable, PwmService {
 
     }
 
-    public ServiceInfo serviceInfo()
+    public ServiceInfoBean serviceInfo()
     {
         return serviceInfo;
     }

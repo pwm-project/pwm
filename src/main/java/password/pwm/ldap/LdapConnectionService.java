@@ -102,9 +102,9 @@ public class LdapConnectionService implements PwmService {
         return null;
     }
 
-    public ServiceInfo serviceInfo()
+    public ServiceInfoBean serviceInfo()
     {
-        return new ServiceInfo(Collections.singletonList(DataStorageMethod.LDAP));
+        return new ServiceInfoBean(Collections.singletonList(DataStorageMethod.LDAP));
     }
 
 

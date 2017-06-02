@@ -23,7 +23,7 @@
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
 <%@ page import="password.pwm.Permission" %>
 <%@ page import="password.pwm.bean.ResponseInfoBean" %>
-<%@ page import="password.pwm.ldap.UserInfo" %>
+<%@ page import="password.pwm.bean.pub.PublicUserInfoBean" %>
 <%@ page import="password.pwm.config.profile.ChallengeProfile" %>
 <%@ page import="password.pwm.config.profile.ProfileType" %>
 <%@ page import="password.pwm.config.profile.PwmPasswordPolicy" %>
@@ -68,7 +68,7 @@
                 <button type="submit" class="btn">Download</button>
             </form>
         </div>
-        <% final UserInfo userInfo = userDebugDataBean.getUserInfo(); %>
+        <% final PublicUserInfoBean userInfo = userDebugDataBean.getPublicUserInfoBean(); %>
         <% if (userInfo != null) { %>
         <table>
             <tr>
@@ -76,19 +76,19 @@
             </tr>
             <tr>
                 <td class="key">UserDN</td>
-                <td><%=JspUtility.freindlyWrite(pageContext, userInfo.getUserIdentity().getUserDN())%></td>
+                <td><%=JspUtility.freindlyWrite(pageContext, userInfo.getUserDN())%></td>
             </tr>
             <tr>
                 <td class="key">Ldap Profile</td>
-                <td><%=JspUtility.freindlyWrite(pageContext, userInfo.getUserIdentity().getLdapProfileID())%></td>
+                <td><%=JspUtility.freindlyWrite(pageContext, userInfo.getLdapProfile())%></td>
             </tr>
             <tr>
                 <td class="key">Username</td>
-                <td><%=JspUtility.freindlyWrite(pageContext, userInfo.getUsername())%></td>
+                <td><%=JspUtility.freindlyWrite(pageContext, userInfo.getUserID())%></td>
             </tr>
             <tr>
                 <td class="key"><%=PwmConstants.PWM_APP_NAME%> GUID</td>
-                <td><%=JspUtility.freindlyWrite(pageContext, userInfo.getUserGuid())%></td>
+                <td><%=JspUtility.freindlyWrite(pageContext, userInfo.getUserGUID())%></td>
             </tr>
         </table>
         <br/>
@@ -98,7 +98,7 @@
             </tr>
             <tr>
                 <td class="key">Last Login Time</td>
-                <td><%=JspUtility.freindlyWrite(pageContext, userInfo.getLastLdapLoginTime())%></td>
+                <td><%=JspUtility.freindlyWrite(pageContext, userInfo.getPasswordLastModifiedTime())%></td>
             </tr>
             <tr>
                 <td class="key">Account Expiration Time</td>
@@ -118,11 +118,11 @@
             </tr>
             <tr>
                 <td class="key">Phone Number</td>
-                <td><%=JspUtility.freindlyWrite(pageContext, userInfo.getUserSmsNumber())%></td>
+                <td><%=JspUtility.freindlyWrite(pageContext, userDebugDataBean.getUserInfo().getUserSmsNumber())%></td>
             </tr>
             <tr>
                 <td class="key">Username</td>
-                <td><%=JspUtility.freindlyWrite(pageContext, userInfo.getUsername())%></td>
+                <td><%=JspUtility.freindlyWrite(pageContext, userInfo.getUserID())%></td>
             </tr>
             <tr>
                 <td class="key">
@@ -242,7 +242,7 @@
             <tr>
                 <td colspan="10" class="title">Password Policy</td>
             </tr>
-            <% PwmPasswordPolicy userPolicy = userInfo.getPasswordPolicy(); %>
+            <% PwmPasswordPolicy userPolicy = userDebugDataBean.getUserInfo().getPasswordPolicy(); %>
             <% if (userPolicy != null) { %>
             <% PwmPasswordPolicy configPolicy = userDebugDataBean.getConfiguredPasswordPolicy(); %>
             <% PwmPasswordPolicy ldapPolicy = userDebugDataBean.getLdapPasswordPolicy(); %>
@@ -289,7 +289,7 @@
             <tr>
                 <td colspan="10" class="title">Stored Responses</td>
             </tr>
-            <% final ResponseInfoBean responseInfoBean = userInfo.getResponseInfoBean(); %>
+            <% final ResponseInfoBean responseInfoBean = userDebugDataBean.getUserInfo().getResponseInfoBean(); %>
             <% if (responseInfoBean == null) { %>
             <tr>
                 <td>Stored Responses</td>
@@ -378,7 +378,7 @@
             <tr>
                 <td colspan="10" class="title">Challenge Profile</td>
             </tr>
-            <% final ChallengeProfile challengeProfile = userInfo.getChallengeProfile(); %>
+            <% final ChallengeProfile challengeProfile = userDebugDataBean.getUserInfo().getChallengeProfile(); %>
             <% if (challengeProfile == null) { %>
             <tr>
                 <td>Assigned Profile</td>

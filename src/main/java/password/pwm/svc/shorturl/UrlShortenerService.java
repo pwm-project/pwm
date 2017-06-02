@@ -142,8 +142,8 @@ public class UrlShortenerService implements PwmService {
         return text;
     }
 
-    public ServiceInfo serviceInfo()
+    public ServiceInfoBean serviceInfo()
     {
-        return new ServiceInfo(Collections.<DataStorageMethod>emptyList());
+        return new ServiceInfoBean(Collections.<DataStorageMethod>emptyList());
     }
 }

@@ -102,7 +102,7 @@ public class TokenService implements PwmService {
     private TokenMachine tokenMachine;
     private long counter;
 
-    private ServiceInfo serviceInfo = new ServiceInfo(Collections.emptyList());
+    private ServiceInfoBean serviceInfo = new ServiceInfoBean(Collections.emptyList());
     private STATUS status = STATUS.NEW;
 
     private ErrorInformation errorInformation = null;
@@ -188,7 +188,7 @@ public class TokenService implements PwmService {
                 default:
                     JavaHelper.unhandledSwitchStatement(storageMethod);
             }
-            serviceInfo = new ServiceInfo(Collections.singletonList(usedStorageMethod));
+            serviceInfo = new ServiceInfoBean(Collections.singletonList(usedStorageMethod));
         } catch (PwmException e) {
             final String errorMsg = "unable to start token manager: " + e.getErrorInformation().getDetailedErrorMsg();
             final ErrorInformation newErrorInformation = new ErrorInformation(e.getError(), errorMsg);
@@ -483,7 +483,7 @@ public class TokenService implements PwmService {
         }
     }
 
-    public ServiceInfo serviceInfo()
+    public ServiceInfoBean serviceInfo()
     {
         return serviceInfo;
     }

@@ -85,6 +85,7 @@ public class UserInfoBean implements UserInfo {
     private final boolean requiresResponseConfig;
     private final boolean requiresOtpConfig;
     private final boolean requiresUpdateProfile;
+    private final boolean requiresInteraction;
 
     @Builder.Default
     private Map<String,String> attributes = Collections.emptyMap();

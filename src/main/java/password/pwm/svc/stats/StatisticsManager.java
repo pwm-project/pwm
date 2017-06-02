@@ -588,12 +588,12 @@ public class StatisticsManager implements PwmService {
         return counter;
     }
 
-    public ServiceInfo serviceInfo()
+    public ServiceInfoBean serviceInfo()
     {
         if (status() == STATUS.OPEN) {
-            return new ServiceInfo(Collections.singletonList(DataStorageMethod.LOCALDB));
+            return new ServiceInfoBean(Collections.singletonList(DataStorageMethod.LOCALDB));
         } else {
-            return new ServiceInfo(Collections.<DataStorageMethod>emptyList());
+            return new ServiceInfoBean(Collections.<DataStorageMethod>emptyList());
         }
     }
 

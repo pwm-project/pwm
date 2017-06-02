@@ -68,7 +68,7 @@ public class AuditService implements PwmService {
 
     private STATUS status = STATUS.NEW;
     private AuditSettings settings;
-    private ServiceInfo serviceInfo = new ServiceInfo(Collections.emptyList());
+    private ServiceInfoBean serviceInfo = new ServiceInfoBean(Collections.emptyList());
 
     private SyslogAuditService syslogManager;
     private ErrorInformation lastError;
@@ -146,7 +146,7 @@ public class AuditService implements PwmService {
                     return;
             }
             LOGGER.info(debugMsg);
-            serviceInfo = new ServiceInfo(Collections.singletonList(storageMethodUsed));
+            serviceInfo = new ServiceInfoBean(Collections.singletonList(storageMethodUsed));
         }
         {
             final TimeDuration maxRecordAge = new TimeDuration(pwmApplication.getConfig().readSettingAsLong(PwmSetting.EVENTS_AUDIT_MAX_AGE) * 1000);
@@ -421,7 +421,7 @@ public class AuditService implements PwmService {
         return counter;
     }
 
-    public ServiceInfo serviceInfo()
+    public ServiceInfoBean serviceInfo()
     {
         return serviceInfo;
     }

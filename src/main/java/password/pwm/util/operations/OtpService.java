@@ -413,9 +413,9 @@ public class OtpService implements PwmService {
         return settings;
     }
 
-    public ServiceInfo serviceInfo()
+    public ServiceInfoBean serviceInfo()
     {
-        return new ServiceInfo(Collections.<DataStorageMethod>emptyList());
+        return new ServiceInfoBean(Collections.<DataStorageMethod>emptyList());
     }
 
     private static String readGuidIfNeeded(

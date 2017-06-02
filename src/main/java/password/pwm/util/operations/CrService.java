@@ -565,11 +565,11 @@ public class CrService implements PwmService {
     }
 
     @Override
-    public ServiceInfo serviceInfo()
+    public ServiceInfoBean serviceInfo()
     {
         final LinkedHashSet<DataStorageMethod> usedStorageMethods = new LinkedHashSet<>();
         usedStorageMethods.addAll(pwmApplication.getConfig().helper().getCrReadPreference());
         usedStorageMethods.addAll(pwmApplication.getConfig().helper().getCrWritePreference());
-        return new ServiceInfo(Collections.unmodifiableList(new ArrayList(usedStorageMethods)));
+        return new ServiceInfoBean(Collections.unmodifiableList(new ArrayList(usedStorageMethods)));
     }
 }

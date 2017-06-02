@@ -84,9 +84,11 @@ public class DatabaseService implements PwmService
     private STATUS status = STATUS.NEW;
 
     private AtomicLoopIntIncrementer slotIncrementer;
-    private Map<Integer,DatabaseAccessorImpl> accessors = new ConcurrentHashMap<>();
+    private final Map<Integer,DatabaseAccessorImpl> accessors = new ConcurrentHashMap<>();
 
     private ScheduledExecutorService executorService;
+
+    private final Map<PwmAboutProperty,String> debugInfo = new LinkedHashMap<>();
 
     private volatile boolean initialized = false;
 
@@ -140,6 +142,9 @@ public class DatabaseService implements PwmService
                 clearCurrentAccessors();
 
                 final Connection connection = openConnection(dbConfiguration);
+                updateDebugProperties(connection);
+                LOGGER.debug("established initial connection to " + dbConfiguration.getConnectionString() + ", properties: " + JsonUtil.serializeMap(this.debugInfo));
+
                 for (final DatabaseTable table : DatabaseTable.values()) {
                     DatabaseUtil.initTable(connection, table, dbConfiguration);
                 }
@@ -257,12 +262,16 @@ public class DatabaseService implements PwmService
 
 
     @Override
-    public ServiceInfo serviceInfo()
+    public ServiceInfoBean serviceInfo()
     {
+        final Map<String,String> debugProperties = new LinkedHashMap<>();
+        for (final PwmAboutProperty pwmAboutProperty : debugInfo.keySet()) {
+            debugProperties.put(pwmAboutProperty.name(), debugInfo.get(pwmAboutProperty));
+        }
         if (status() == STATUS.OPEN) {
-            return new ServiceInfo(Collections.singletonList(DataStorageMethod.DB));
+            return new ServiceInfoBean(Collections.singletonList(DataStorageMethod.DB), debugProperties);
         } else {
-            return new ServiceInfo(Collections.emptyList());
+            return new ServiceInfoBean(Collections.emptyList(), debugProperties);
         }
     }
 
@@ -300,8 +309,7 @@ public class DatabaseService implements PwmService
             }
 
             final Connection connection = driver.connect(connectionURL, connectionProperties);
-            final Map<PwmAboutProperty,String> debugProps = getConnectionDebugProperties(connection);
-            LOGGER.debug("connected to database " + connectionURL + ", properties: " + JsonUtil.serializeMap(debugProps));
+            LOGGER.debug("connected to database " + connectionURL);
 
             connection.setAutoCommit(false);
             return connection;
@@ -334,14 +342,10 @@ public class DatabaseService implements PwmService
     }
 
     public Map<PwmAboutProperty,String> getConnectionDebugProperties() {
-        if (!initialized) {
-            return Collections.emptyMap();
-        }
-        final Connection connection = accessors.get(0).getConnection();
-        return getConnectionDebugProperties(connection);
+        return Collections.unmodifiableMap(debugInfo);
     }
 
-    private static Map<PwmAboutProperty,String> getConnectionDebugProperties(final Connection connection) {
+    private void updateDebugProperties(final Connection connection) {
         if (connection != null) {
             try {
                 final Map<PwmAboutProperty,String> returnObj = new LinkedHashMap<>();
@@ -350,20 +354,18 @@ public class DatabaseService implements PwmService
                 returnObj.put(PwmAboutProperty.database_driverVersion, databaseMetaData.getDriverVersion());
                 returnObj.put(PwmAboutProperty.database_databaseProductName, databaseMetaData.getDatabaseProductName());
                 returnObj.put(PwmAboutProperty.database_databaseProductVersion, databaseMetaData.getDatabaseProductVersion());
-                return Collections.unmodifiableMap(returnObj);
+                debugInfo.clear();
+                debugInfo.putAll(Collections.unmodifiableMap(returnObj));
             } catch (SQLException e) {
                 LOGGER.error("error reading jdbc meta data: " + e.getMessage());
             }
         }
-        return Collections.emptyMap();
     }
 
     void setLastError(final ErrorInformation lastError)
     {
         this.lastError = lastError;
     }
-
-
 
     private class ConnectionMonitor implements Runnable {
         @Override

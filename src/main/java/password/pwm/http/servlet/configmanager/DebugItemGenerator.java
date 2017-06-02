@@ -89,7 +89,7 @@ public class DebugItemGenerator {
             AboutItemGenerator.class,
             SystemEnvironmentItemGenerator.class,
             AppPropertiesItemGenerator.class,
-            InfoDebugItemGenerator.class,
+            ServicesDebugItemGenerator.class,
             HealthDebugItemGenerator.class,
             ThreadDumpDebugItemGenerator.class,
             FileInfoDebugItemGenerator.class,
@@ -127,7 +127,7 @@ public class DebugItemGenerator {
                 final String finishMsg = "completed output of " + newGeneratorItem.getFilename() + " in " + TimeDuration.fromCurrent(startTime).asCompactString();
                 LOGGER.trace(pwmRequest, finishMsg);
                 debugGeneratorLogFile.printRecord(JavaHelper.toIsoDate(new Date()),finishMsg);
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 final String errorMsg = "unexpected error executing debug item output class '" + serviceClass.getName() + "', error: " + e.toString();
                 LOGGER.error(pwmRequest, errorMsg);
                 debugGeneratorLogFile.printRecord(JavaHelper.toIsoDate(new Date()),errorMsg);
@@ -287,10 +287,10 @@ public class DebugItemGenerator {
         }
     }
 
-    static class InfoDebugItemGenerator implements Generator {
+    static class ServicesDebugItemGenerator implements Generator {
         @Override
         public String getFilename() {
-            return "info.json";
+            return "services.json";
         }
 
         @Override
@@ -613,7 +613,6 @@ public class DebugItemGenerator {
             outputStream.write(JsonUtil.serializeCollection(recentDebugBeans, JsonUtil.Flag.PrettyPrint).getBytes(PwmConstants.DEFAULT_CHARSET));
         }
     }
-
 
     interface Generator {
 

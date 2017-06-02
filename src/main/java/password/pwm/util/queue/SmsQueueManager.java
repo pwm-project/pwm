@@ -34,6 +34,7 @@ import password.pwm.PwmApplication;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -256,10 +257,17 @@ public class SmsQueueManager implements PwmService {
     }
 
     @Override
-    public ServiceInfo serviceInfo() {
-        return null;
+    public ServiceInfoBean serviceInfo() {
+        final Map<String,String> debugItems = new LinkedHashMap<>();
+        if (workQueueProcessor != null) {
+            debugItems.putAll(workQueueProcessor.debugInfo());
+        }
+        if (status() == STATUS.OPEN) {
+            return new ServiceInfoBean(Collections.singletonList(DataStorageMethod.LOCALDB), debugItems);
+        } else {
+            return new ServiceInfoBean(Collections.emptyList(), debugItems);
+        }
     }
-
 
     private List<String> splitMessage(final String input) {
         final int size = (int)pwmApplication.getConfig().readSettingAsLong(PwmSetting.SMS_MAX_TEXT_LENGTH);

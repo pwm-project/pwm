@@ -283,8 +283,8 @@ public class VersionChecker implements PwmService {
         }
     }
 
-    public ServiceInfo serviceInfo()
+    public ServiceInfoBean serviceInfo()
     {
-        return new ServiceInfo(Collections.<DataStorageMethod>emptyList());
+        return new ServiceInfoBean(Collections.<DataStorageMethod>emptyList());
     }
 }

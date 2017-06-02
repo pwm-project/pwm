@@ -27,7 +27,7 @@ import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.ldap.UserInfo;
+import password.pwm.bean.pub.PublicUserInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.UserPermission;
 import password.pwm.config.profile.ProfileType;
@@ -36,7 +36,9 @@ import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.LdapPermissionTester;
+import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
+import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.PasswordUtility;
 
 import java.util.Collections;
@@ -76,8 +78,11 @@ public class UserDebugDataReader {
             /* disregard */
         }
 
+        final MacroMachine macroMachine = MacroMachine.forUser(pwmApplication, locale, sessionLabel, userIdentity);
+
         final UserDebugDataBean userDebugData = UserDebugDataBean.builder()
                 .userInfo(userInfo)
+                .publicUserInfoBean(PublicUserInfoBean.fromUserInfoBean(userInfo, pwmApplication.getConfig(), locale, macroMachine))
                 .permissions(permissions)
                 .profiles(profiles)
                 .ldapPasswordPolicy(ldapPasswordPolicy)

@@ -64,6 +64,8 @@ public interface UserInfo {
 
     boolean isRequiresUpdateProfile() throws PwmUnrecoverableException;
 
+    boolean isRequiresInteraction() throws PwmUnrecoverableException;
+
     Instant getPasswordLastModifiedTime() throws PwmUnrecoverableException;
 
     String getUserEmailAddress() throws PwmUnrecoverableException;

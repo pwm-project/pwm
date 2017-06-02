@@ -230,9 +230,9 @@ public class HealthMonitor implements PwmService {
         LOGGER.trace("health check process completed (" + TimeDuration.fromCurrent(startTime).asCompactString() + ")");
     }
 
-    public ServiceInfo serviceInfo()
+    public ServiceInfoBean serviceInfo()
     {
-        return new ServiceInfo(Collections.emptyList());
+        return new ServiceInfoBean(Collections.emptyList());
     }
 
     public Map<HealthMonitorFlag, Serializable> getHealthProperties()

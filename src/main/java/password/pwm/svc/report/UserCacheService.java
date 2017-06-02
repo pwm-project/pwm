@@ -153,9 +153,9 @@ public class UserCacheService implements PwmService {
         return Collections.emptyList();
     }
 
-    public ServiceInfo serviceInfo()
+    public ServiceInfoBean serviceInfo()
     {
-        return new ServiceInfo(Collections.singletonList(DataStorageMethod.LOCALDB));
+        return new ServiceInfoBean(Collections.singletonList(DataStorageMethod.LOCALDB));
     }
 
     public int size()

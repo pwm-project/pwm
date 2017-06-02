@@ -649,4 +649,13 @@ public class UserInfoReader implements UserInfo {
         return Collections.unmodifiableMap(returnMap);
     }
 
+    @Override
+    public boolean isRequiresInteraction() throws PwmUnrecoverableException
+    {
+        return selfCachedReference.isRequiresNewPassword()
+                || selfCachedReference.isRequiresResponseConfig()
+                || selfCachedReference.isRequiresUpdateProfile()
+                || selfCachedReference.isRequiresOtpConfig()
+                || selfCachedReference.getPasswordStatus().isWarnPeriod();
+    }
 }

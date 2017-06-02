@@ -200,9 +200,9 @@ public enum PwmAboutProperty {
 
         { // database info
             try {
-                final DatabaseService databaseAccessor = pwmApplication.getDatabaseService();
-                if (databaseAccessor != null) {
-                    final Map<PwmAboutProperty,String> debugData = databaseAccessor.getConnectionDebugProperties();
+                final DatabaseService databaseService = pwmApplication.getDatabaseService();
+                if (databaseService != null) {
+                    final Map<PwmAboutProperty,String> debugData = databaseService.getConnectionDebugProperties();
                     aboutMap.putAll(debugData);
                 }
             } catch (Throwable t) {

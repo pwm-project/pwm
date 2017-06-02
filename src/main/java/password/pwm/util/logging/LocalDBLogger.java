@@ -427,9 +427,9 @@ public class LocalDBLogger implements PwmService {
         return String.valueOf(this.getStoredEventCount()) + " / " + maxEvents + " (" + numberFormat.format(percentFull) + "%)";
     }
 
-    public ServiceInfo serviceInfo()
+    public ServiceInfoBean serviceInfo()
     {
-        return new ServiceInfo(Collections.singletonList(DataStorageMethod.LOCALDB));
+        return new ServiceInfoBean(Collections.singletonList(DataStorageMethod.LOCALDB));
     }
 
 }
