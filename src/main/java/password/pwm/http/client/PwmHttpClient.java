@@ -27,6 +27,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
@@ -44,6 +45,7 @@ import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.ProxyAuthenticationStrategy;
@@ -51,6 +53,7 @@ import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.util.EntityUtils;
+
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -67,11 +70,13 @@ import password.pwm.util.secure.X509Utils;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -224,11 +229,12 @@ public class PwmHttpClient {
         return httpClientResponse;
     }
 
+    @SuppressWarnings("deprecation")
     private HttpResponse executeRequest(final PwmHttpClientRequest clientRequest)
             throws IOException, PwmUnrecoverableException {
         final String requestBody = clientRequest.getBody();
-
         final HttpRequestBase httpRequest;
+        
         switch (clientRequest.getMethod()) {
             case POST:
             {
@@ -275,7 +281,30 @@ public class PwmHttpClient {
                 httpRequest.addHeader(key, value);
             }
         }
+       
+        final String url = clientRequest.getUrl();
 
+        if (url != null && url.length() > 0) {
+            final URI uri = URI.create(url);
+            final String userInfo = uri.getUserInfo();
+            if (userInfo != null && userInfo.length() > 0) {
+                final String[] parts = userInfo.split(":");
+
+                final String username = parts[0];
+                final String password = (parts.length > 1) ? parts[1] : "";
+                LOGGER.debug(sessionLabel, "Setting Basic Authentication (username=" + username + ", password=" + password + ")");
+
+                final UsernamePasswordCredentials creds = new UsernamePasswordCredentials(username,password);
+                final Header header;
+                try {
+                    header = new BasicScheme(StandardCharsets.UTF_8).authenticate(creds , httpRequest, null);
+                    httpRequest.addHeader( header); 
+                } catch (AuthenticationException e) {
+                    throw PwmUnrecoverableException.newException(PwmError.ERROR_UNAUTHORIZED, "username and/or password not correct: " + userInfo + ", error: " + e.getMessage());
+                }
+            }
+        }
+        
         final HttpClient httpClient = getHttpClient(pwmApplication.getConfig(), pwmHttpClientConfiguration);
         return httpClient.execute(httpRequest);
     }
