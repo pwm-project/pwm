@@ -290,6 +290,7 @@ public enum     AppProperty {
     WORDLIST_CHAR_LENGTH_MAX                        ("wordlist.maxCharLength"),
     WORDLIST_CHAR_LENGTH_MIN                        ("wordlist.minCharLength"),
     WS_REST_CLIENT_PWRULE_HALTONERROR               ("ws.restClient.pwRule.haltOnError"),
+    WS_REST_SERVER_SIGNING_FORM_TIMEOUT_SECONDS     ("ws.restServer.signing.form.timeoutSeconds"),
     ALLOW_MACRO_IN_REGEX_SETTING                    ("password.policy.allowMacroInRegexSetting"),
 
     ;

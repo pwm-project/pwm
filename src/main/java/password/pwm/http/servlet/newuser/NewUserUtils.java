@@ -43,6 +43,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.option.TokenStorageMethod;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.profile.NewUserProfile;
+import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -80,7 +81,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-public class NewUserUtils {
+class NewUserUtils {
     private static PwmLogger LOGGER = password.pwm.util.logging.PwmLogger.forClass(NewUserUtils.class);
 
     private NewUserUtils() {
@@ -102,7 +103,7 @@ public class NewUserUtils {
     }
 
     static void createUser(
-            final NewUserBean.NewUserForm newUserForm,
+            final NewUserForm newUserForm,
             final PwmRequest pwmRequest,
             final String newUserDN
     )
@@ -124,7 +125,17 @@ public class NewUserUtils {
         }
 
         NewUserUtils.LOGGER.debug(pwmSession, "beginning createUser process for " + newUserDN);
-        final PasswordData userPassword = newUserForm.getNewUserPassword();
+
+        final NewUserProfile newUserProfile = NewUserServlet.getNewUserProfile(pwmRequest);
+        final boolean promptForPassword = newUserProfile.readSettingAsBoolean(PwmSetting.NEWUSER_PROMPT_FOR_PASSWORD);
+
+        final PasswordData userPassword;
+        if (promptForPassword) {
+            userPassword = newUserForm.getNewUserPassword();
+        } else {
+            final PwmPasswordPolicy pwmPasswordPolicy = newUserProfile.getNewUserPasswordPolicy(pwmRequest.getPwmApplication(), pwmRequest.getLocale());
+            userPassword = RandomPasswordGenerator.createRandomPassword(pwmRequest.getSessionLabel(), pwmPasswordPolicy, pwmRequest.getPwmApplication());
+        }
 
         // set up the user creation attributes
         final Map<String, String> createAttributes = NewUserFormUtils.getLdapDataFromNewUserForm(NewUserServlet.getNewUserProfile(pwmRequest), newUserForm);
@@ -152,7 +163,6 @@ public class NewUserUtils {
         }
 
         final ChaiUser theUser = ChaiFactory.createChaiUser(newUserDN, chaiProvider);
-        final NewUserProfile newUserProfile = NewUserServlet.getNewUserProfile(pwmRequest);
 
         final boolean useTempPw;
         {
@@ -293,7 +303,7 @@ public class NewUserUtils {
 
     static String determineUserDN(
             final PwmRequest pwmRequest,
-            final NewUserBean.NewUserForm formValues
+            final NewUserForm formValues
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
@@ -405,7 +415,7 @@ public class NewUserUtils {
     static MacroMachine createMacroMachineForNewUser(
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
-            final NewUserBean.NewUserForm newUserForm
+            final NewUserForm newUserForm
     )
             throws PwmUnrecoverableException
     {
@@ -445,7 +455,7 @@ public class NewUserUtils {
         }
 
         final Configuration config = pwmApplication.getConfig();
-        final Map<String, String> tokenPayloadMap = NewUserFormUtils.toTokenPayload(pwmRequest, newUserBean.getNewUserForm());
+        final Map<String, String> tokenPayloadMap = NewUserFormUtils.toTokenPayload(pwmRequest, newUserBean);
         final MacroMachine macroMachine = createMacroMachineForNewUser(pwmApplication, pwmRequest.getSessionLabel(), newUserBean.getNewUserForm());
 
         switch (tokenType) {

@@ -38,6 +38,7 @@ public enum PwmRequestAttribute {
     CspNonce,
 
     FormConfiguration,
+    FormInitialValues,
     FormReadOnly,
     FormShowPasswordFields,
     FormData,

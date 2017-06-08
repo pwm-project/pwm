@@ -214,7 +214,7 @@ public class AuditService implements PwmService {
         return userHistoryStore.readUserHistory(userInfoBean);
     }
 
-    protected void sendAsEmail(final AuditRecord record)
+    private void sendAsEmail(final AuditRecord record)
             throws PwmUnrecoverableException
     {
         if (record == null || record.getEventCode() == null) {
@@ -227,14 +227,14 @@ public class AuditService implements PwmService {
         switch (record.getEventCode().getType()) {
             case SYSTEM:
                 for (final String toAddress : settings.getSystemEmailAddresses()) {
-                    sendAsEmail(pwmApplication, null, record, toAddress, settings.getAlertFromAddress());
+                    sendAsEmail(pwmApplication, record, toAddress, settings.getAlertFromAddress());
                 }
                 break;
 
             case USER:
             case HELPDESK:
                 for (final String toAddress : settings.getUserEmailAddresses()) {
-                    sendAsEmail(pwmApplication, null, record, toAddress, settings.getAlertFromAddress());
+                    sendAsEmail(pwmApplication, record, toAddress, settings.getAlertFromAddress());
                 }
                 break;
 
@@ -246,7 +246,6 @@ public class AuditService implements PwmService {
 
     private static void sendAsEmail(
             final PwmApplication pwmApplication,
-            final SessionLabel sessionLabel,
             final AuditRecord record,
             final String toAddress,
             final String fromAddress
@@ -254,7 +253,7 @@ public class AuditService implements PwmService {
     )
             throws PwmUnrecoverableException
     {
-        final MacroMachine macroMachine = MacroMachine.forNonUserSpecific(pwmApplication, sessionLabel);
+        final MacroMachine macroMachine = MacroMachine.forNonUserSpecific(pwmApplication, SessionLabel.AUDITING_SESSION_LABEL);
 
         String subject = macroMachine.expandMacros(pwmApplication.getConfig().readAppProperty(AppProperty.AUDIT_EVENTS_EMAILSUBJECT));
         subject = subject.replace("%EVENT%", record.getEventCode().getLocalizedString(pwmApplication.getConfig(), PwmConstants.DEFAULT_LOCALE));
@@ -268,14 +267,6 @@ public class AuditService implements PwmService {
 
         final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, body, null);
         pwmApplication.getEmailQueue().submitEmail(emailItem, null, macroMachine);
-    }
-
-    public int vaultSize() {
-        if (status != STATUS.OPEN || auditVault == null) {
-            return -1;
-        }
-
-        return auditVault.size();
     }
 
     public Instant eldestVaultRecord() {

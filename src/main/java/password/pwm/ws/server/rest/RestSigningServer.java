@@ -24,6 +24,7 @@ package password.pwm.ws.server.rest;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -92,11 +93,12 @@ public class RestSigningServer extends AbstractRestServer {
 
     public static Map<String,String> readSignedFormValue(final PwmApplication pwmApplication, final String input) throws PwmUnrecoverableException
     {
-        final TimeDuration MAX_FORM_AGE = new TimeDuration(5, TimeUnit.MINUTES);
+        final Integer maxAgeSeconds = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.WS_REST_SERVER_SIGNING_FORM_TIMEOUT_SECONDS));
+        final TimeDuration maxAge = new TimeDuration(maxAgeSeconds, TimeUnit.SECONDS);
         final SignedFormData signedFormData = pwmApplication.getSecureService().decryptObject(input, SignedFormData.class);
         if (signedFormData != null) {
             if (signedFormData.getTimestamp() != null) {
-                if (TimeDuration.fromCurrent(signedFormData.getTimestamp()).isLongerThan(MAX_FORM_AGE)) {
+                if (TimeDuration.fromCurrent(signedFormData.getTimestamp()).isLongerThan(maxAge)) {
                     throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SECURITY_VIOLATION,"signedForm data is too old"));
                 }
 
@@ -112,5 +114,4 @@ public class RestSigningServer extends AbstractRestServer {
         private Instant timestamp;
         private Map<String,String> formData;
     }
-
 }

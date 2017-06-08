@@ -13,6 +13,7 @@
 <%@ page import="java.util.Map" %>
 <%@ page import="password.pwm.http.tag.value.PwmValue" %>
 <%@ page import="password.pwm.http.PwmRequestAttribute" %>
+<%@ page import="java.util.Collections" %>
 
 <%--
   ~ Password Management Servlets (PWM)
@@ -50,6 +51,9 @@
     final boolean forceReadOnly = (Boolean)JspUtility.getAttribute(pageContext, PwmRequestAttribute.FormReadOnly);
     final boolean showPasswordFields = (Boolean)JspUtility.getAttribute(pageContext, PwmRequestAttribute.FormShowPasswordFields);
     final Map<FormConfiguration,String> formDataMap = (Map<FormConfiguration,String>)JspUtility.getAttribute(pageContext, PwmRequestAttribute.FormData);
+    final Map<String,String> initalValues = (JspUtility.getAttribute(pageContext, PwmRequestAttribute.FormInitialValues) != null)
+            ? (Map<String,String>)JspUtility.getAttribute(pageContext, PwmRequestAttribute.FormInitialValues)
+            : Collections.<String,String>emptyMap();
 
     final PwmApplication pwmApplication = formPwmRequest.getPwmApplication();
     final Locale formLocale = formPwmRequest.getLocale();
