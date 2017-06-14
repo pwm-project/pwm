@@ -42,6 +42,7 @@ import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.PwmServiceManager;
 import password.pwm.svc.cache.CacheService;
+import password.pwm.svc.cluster.ClusterService;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.event.AuditService;
@@ -501,6 +502,10 @@ public class PwmApplication {
 
     public VersionChecker getVersionChecker() {
         return (VersionChecker)pwmServiceManager.getService(VersionChecker.class);
+    }
+
+    public ClusterService getClusterService() {
+        return (ClusterService) pwmServiceManager.getService(ClusterService.class);
     }
 
     public ErrorInformation getLastLocalDBFailure() {

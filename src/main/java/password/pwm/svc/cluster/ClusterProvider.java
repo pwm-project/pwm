@@ -20,15 +20,16 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util.db;
+package password.pwm.svc.cluster;
 
-public enum DatabaseTable {
-    PWM_META,
-    PWM_RESPONSES,
-    USER_AUDIT,
-    INTRUDER,
-    TOKENS,
-    OTP,
-    PW_NOTIFY,
-    CLUSTER_STATE,
+import password.pwm.error.PwmUnrecoverableException;
+
+import java.util.List;
+
+public interface ClusterProvider {
+    void close();
+
+    boolean isMaster();
+
+    List<NodeInfo> nodes() throws PwmUnrecoverableException;
 }

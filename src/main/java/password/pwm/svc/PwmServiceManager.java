@@ -34,6 +34,7 @@ import password.pwm.http.state.SessionStateService;
 import password.pwm.ldap.LdapConnectionService;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.cache.CacheService;
+import password.pwm.svc.cluster.ClusterService;
 import password.pwm.svc.event.AuditService;
 import password.pwm.svc.intruder.IntruderManager;
 import password.pwm.svc.report.ReportService;
@@ -45,6 +46,7 @@ import password.pwm.svc.wordlist.SeedlistManager;
 import password.pwm.svc.wordlist.SharedHistoryManager;
 import password.pwm.svc.wordlist.WordlistManager;
 import password.pwm.util.VersionChecker;
+import password.pwm.util.db.DatabaseService;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.CrService;
@@ -72,7 +74,7 @@ public class PwmServiceManager {
     public enum PwmServiceClassEnum {
         SecureService(          SecureService.class,             true),
         LdapConnectionService(  LdapConnectionService.class,     true),
-        DatabaseService(        password.pwm.util.db.DatabaseService.class,           true),
+        DatabaseService(        DatabaseService.class,           true),
         SharedHistoryManager(   SharedHistoryManager.class,      false),
         AuditService(           AuditService.class,              false),
         StatisticsManager(      StatisticsManager.class,         false),
@@ -93,6 +95,7 @@ public class PwmServiceManager {
         SessionTrackService(    SessionTrackService.class,       false),
         SessionStateSvc(        SessionStateService.class,       false),
         UserSearchEngine(       UserSearchEngine.class,          true),
+        ClusterService(         ClusterService.class,            false),
 
         ;
 

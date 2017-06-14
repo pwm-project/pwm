@@ -20,22 +20,27 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util.db;
+package password.pwm.svc.cluster;
 
-public class DatabaseClusterService {
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
+import java.io.Serializable;
+import java.time.Instant;
 
+@Getter
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
+public class NodeInfo implements Serializable {
+    private String instanceID;
+    private Instant lastSeen;
+    private Instant startupTime;
+    private NodeState nodeState;
+    private boolean configMatch;
 
-    private static final String KEY_ENGINE_START_PREFIX = "engine-start-";
-
-    private void heartbeat() {
-        /*
-        try {
-            put(DatabaseTable.PWM_META, KEY_ENGINE_START_PREFIX + instanceID, JavaHelper.toIsoDate(new java.util.Date()));
-        } catch (DatabaseException e) {
-            final String errorMsg = "error writing engine start time value: " + e.getMessage();
-            throw new DatabaseException(new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,errorMsg));
-        }
-        */
+    enum NodeState {
+        master,
+        online,
+        offline
     }
 }

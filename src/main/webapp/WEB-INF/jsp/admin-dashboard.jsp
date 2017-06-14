@@ -28,6 +28,7 @@
 <%@ page import="password.pwm.i18n.Admin" %>
 <%@ page import="password.pwm.i18n.Display" %>
 <%@ page import="password.pwm.svc.PwmService" %>
+<%@ page import="password.pwm.svc.cluster.NodeInfo" %>
 <%@ page import="password.pwm.svc.sessiontrack.SessionTrackService" %>
 <%@ page import="password.pwm.svc.stats.Statistic" %>
 <%@ page import="password.pwm.util.java.FileSystemUtility" %>
@@ -35,7 +36,8 @@
 <%@ page import="password.pwm.util.java.StringUtil" %>
 <%@ page import="password.pwm.util.java.TimeDuration" %>
 <%@ page import="password.pwm.util.localdb.LocalDB" %>
-<%@ page import="java.text.DateFormat" %>
+<%@ page import="java.lang.management.ManagementFactory" %>
+<%@ page import="java.lang.management.ThreadInfo" %>
 <%@ page import="java.text.NumberFormat" %>
 <%@ page import="java.time.Instant" %>
 <%@ page import="java.util.Collection" %>
@@ -43,9 +45,6 @@
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Locale" %>
 <%@ page import="java.util.Map" %>
-<%@ page import="java.util.TreeMap" %>
-<%@ page import="java.lang.management.ThreadInfo" %>
-<%@ page import="java.lang.management.ManagementFactory" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html" %>
@@ -733,6 +732,64 @@
                 </div>
                 <% } %>
             </div>
+            <% if (dashboard_pwmApplication.getClusterService().status() == PwmService.STATUS.OPEN) { %>
+            <div id="Status" data-dojo-type="dijit.layout.ContentPane" title="Nodes" class="tabContent">
+                <div style="max-height: 400px; overflow: auto;">
+                    <table class="nomargin">
+                        <tr>
+                            <td style="font-weight:bold;">
+                                Instance ID
+                            </td>
+                            <td style="font-weight:bold;">
+                                Uptime
+                            </td>
+                            <td style="font-weight:bold;">
+                                Last Seen
+                            </td>
+                            <td style="font-weight:bold;">
+                                Master
+                            </td>
+                            <td style="font-weight:bold;">
+                                Config Match
+                            </td>
+                        </tr>
+                        <% for (final NodeInfo nodeInfo : dashboard_pwmApplication.getClusterService().nodes()) { %>
+                        <tr>
+                            <td>
+                                <%= nodeInfo.getInstanceID()  %>
+                            </td>
+                            <td>
+                                <% if (nodeInfo.getStartupTime() == null) { %>
+                                <pwm:display key="Value_NotApplicable"/>
+                                <% } else { %>
+                                <%= TimeDuration.fromCurrent(nodeInfo.getStartupTime()).asLongString(dashboard_pwmRequest.getLocale()) %>
+                                <% } %>
+                            </td>
+                            <td>
+                                <span class="timestamp">
+                                    <%= JspUtility.freindlyWrite(pageContext, nodeInfo.getLastSeen()) %>
+                                </span>
+                            </td>
+                            <td>
+                                <%= nodeInfo.getNodeState() %>
+                            </td>
+                            <td>
+                                <%= JspUtility.freindlyWrite(pageContext, nodeInfo.isConfigMatch())%>
+                            </td>
+                        </tr>
+                        <% } %>
+                    </table>
+                    <br/>
+                    <div class="footnote">
+                    <% if (dashboard_pwmApplication.getClusterService().isMaster()) { %>
+                    This node is the current master.
+                    <% } else { %>
+                    This node is not the current master.
+                    <% } %>
+                    </div>
+                </div>
+            </div>
+            <% } %>
         </div>
     </div>
     <div class="push"></div>

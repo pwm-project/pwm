@@ -96,6 +96,9 @@ public class Configuration implements Serializable, SettingReader {
 
     private DataCache dataCache = new DataCache();
 
+    private String cachshedConfigurationHash;
+
+
     // --------------------------- CONSTRUCTORS ---------------------------
 
     public Configuration(final StoredConfigurationImpl storedConfiguration) {
@@ -882,11 +885,14 @@ public class Configuration implements Serializable, SettingReader {
     public boolean isDevDebugMode() {
         return Boolean.parseBoolean(readAppProperty(AppProperty.LOGGING_DEV_OUTPUT));
     }
-    
-    public String configurationHash() 
+
+    public String configurationHash()
             throws PwmUnrecoverableException 
     {
-        return storedConfiguration.settingChecksum();
+        if (this.cachshedConfigurationHash == null) {
+            this.cachshedConfigurationHash = storedConfiguration.settingChecksum();
+        }
+        return cachshedConfigurationHash;
     }
 
     public Set<PwmSetting> nonDefaultSettings() {
