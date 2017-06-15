@@ -178,8 +178,9 @@ class NewUserUtils {
             NewUserUtils.LOGGER.trace(pwmSession, "will use temporary password process for new user entry: " + newUserDN);
             final PasswordData temporaryPassword;
             {
-                final RandomPasswordGenerator.RandomGeneratorConfig randomGeneratorConfig = new RandomPasswordGenerator.RandomGeneratorConfig();
-                randomGeneratorConfig.setPasswordPolicy(newUserProfile.getNewUserPasswordPolicy(pwmApplication, pwmRequest.getLocale()));
+                final RandomPasswordGenerator.RandomGeneratorConfig randomGeneratorConfig = RandomPasswordGenerator.RandomGeneratorConfig.builder()
+                        .passwordPolicy(newUserProfile.getNewUserPasswordPolicy(pwmApplication, pwmRequest.getLocale()))
+                        .build();
                 temporaryPassword = RandomPasswordGenerator.createRandomPassword(pwmSession.getLabel(), randomGeneratorConfig, pwmApplication);
             }
             final ChaiUser proxiedUser = ChaiFactory.createChaiUser(newUserDN, chaiProvider);
