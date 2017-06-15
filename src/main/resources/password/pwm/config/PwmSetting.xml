@@ -3678,11 +3678,6 @@
             <value>false</value>
         </default>
     </setting>
-    <setting hidden="true" key="pwmDb.location" level="2" required="true">
-        <default>
-            <value><![CDATA[LocalDB]]></value>
-        </default>
-    </setting>
     <!-- DEPRECATED SETTINGS -->
     <category hidden="false" key="TEMPLATES">
     </category>

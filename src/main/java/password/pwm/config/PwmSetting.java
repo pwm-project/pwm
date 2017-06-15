@@ -1131,9 +1131,6 @@ public enum PwmSetting {
             "recovery.require.otp", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_SETTINGS),
     HELPDESK_ENABLE_OTP_VERIFY(
             "helpdesk.otp.verify", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_BASE),
-    PWMDB_LOCATION(
-            "pwmDb.location", PwmSettingSyntax.STRING, PwmSettingCategory.GENERAL),
-
 
 
     ;

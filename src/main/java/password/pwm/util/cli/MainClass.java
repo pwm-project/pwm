@@ -27,12 +27,12 @@ import org.apache.log4j.EnhancedPatternLayout;
 import org.apache.log4j.Layout;
 import org.apache.log4j.Logger;
 import org.apache.log4j.varia.NullAppender;
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.PwmEnvironment;
 import password.pwm.config.Configuration;
-import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -384,7 +384,7 @@ public class MainClass {
             throws Exception
     {
         final File databaseDirectory;
-        final String pwmDBLocationSetting = config.readSettingAsString(PwmSetting.PWMDB_LOCATION);
+        final String pwmDBLocationSetting = config.readAppProperty(AppProperty.LOCALDB_LOCATION);
         databaseDirectory = FileSystemUtility.figureFilepath(pwmDBLocationSetting, applicationPath);
         return LocalDBFactory.getInstance(databaseDirectory, readonly, null, config);
     }

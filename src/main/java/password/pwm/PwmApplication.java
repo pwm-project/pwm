@@ -702,7 +702,7 @@ public class PwmApplication {
             final File databaseDirectory;
             // see if META-INF isn't already there, then use WEB-INF.
             try {
-                final String localDBLocationSetting = pwmApplication.getConfig().readSettingAsString(PwmSetting.PWMDB_LOCATION);
+                final String localDBLocationSetting = pwmApplication.getConfig().readAppProperty(AppProperty.LOCALDB_LOCATION);
                 databaseDirectory = FileSystemUtility.figureFilepath(localDBLocationSetting, pwmApplication.pwmEnvironment.getApplicationPath());
             } catch (Exception e) {
                 pwmApplication.lastLocalDBFailure = new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,"error locating configured LocalDB directory: " + e.getMessage());

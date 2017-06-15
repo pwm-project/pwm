@@ -383,9 +383,10 @@ class LDAPAuthenticationRequest implements AuthenticationRequest {
             );
 
             // create random password for user
-            final RandomPasswordGenerator.RandomGeneratorConfig randomGeneratorConfig = new RandomPasswordGenerator.RandomGeneratorConfig();
-            randomGeneratorConfig.setSeedlistPhrases(RandomPasswordGenerator.DEFAULT_SEED_PHRASES);
-            randomGeneratorConfig.setPasswordPolicy(passwordPolicy);
+            final RandomPasswordGenerator.RandomGeneratorConfig randomGeneratorConfig = RandomPasswordGenerator.RandomGeneratorConfig.builder()
+                    .seedlistPhrases(RandomPasswordGenerator.DEFAULT_SEED_PHRASES)
+                    .passwordPolicy(passwordPolicy)
+                    .build();
 
             final PasswordData currentPass = RandomPasswordGenerator.createRandomPassword(sessionLabel, randomGeneratorConfig, pwmApplication);
 

@@ -145,6 +145,7 @@ public enum     AppProperty {
     LOCALDB_AGGRESSIVE_COMPACT_ENABLED              ("localdb.aggressiveCompact.enabled"),
     LOCALDB_IMPLEMENTATION                          ("localdb.implementation"),
     LOCALDB_INIT_STRING                             ("localdb.initParameters"),
+    LOCALDB_LOCATION                                ("localdb.location"),
     LOCALDB_LOGWRITER_BUFFER_SIZE                   ("localdb.logWriter.bufferSize"),
     LOCALDB_LOGWRITER_MAX_BUFFER_WAIT_MS            ("localdb.logWriter.maxBufferWaitMs"),
     LOCALDB_LOGWRITER_MAX_TRIM_SIZE                 ("localdb.logWriter.maxTrimSize"),

@@ -331,7 +331,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
         if (storedValue != null) {
             return storedValue;
         }
-        return new StoredWordlistDataBean.Builder().create();
+        return StoredWordlistDataBean.builder().build();
     }
 
     void writeMetadata(final StoredWordlistDataBean metadataBean) {
@@ -367,7 +367,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
         if (wlStatus == STATUS.OPEN) {
             executorService.schedule(() -> {
                 try {
-                    writeMetadata(new StoredWordlistDataBean.Builder().create());
+                    writeMetadata(StoredWordlistDataBean.builder().build());
                     populationManager.checkPopulation();
                 } catch (Exception e) {
                     LOGGER.error("error during clear operation: " + e.getMessage());
@@ -407,7 +407,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
             } else {
                 if (readMetadata().getSource() == StoredWordlistDataBean.Source.AutoImport) {
                     LOGGER.trace("source list is from auto-import, but not currently configured for auto-import; clearing stored data");
-                    writeMetadata(new StoredWordlistDataBean.Builder().create()); // clear previous auto-import wll
+                    writeMetadata(StoredWordlistDataBean.builder().build()); // clear previous auto-import wll
                 }
             }
 
@@ -462,9 +462,9 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
                 }
 
                 { // reset the wordlist metadata
-                    final StoredWordlistDataBean storedWordlistDataBean = new StoredWordlistDataBean.Builder()
-                            .setSource(source)
-                            .create();
+                    final StoredWordlistDataBean storedWordlistDataBean = StoredWordlistDataBean.builder()
+                            .source(source)
+                            .build();
                     writeMetadata(storedWordlistDataBean);
                 }
 
