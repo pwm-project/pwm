@@ -1342,6 +1342,14 @@ PWM_MAIN.JSLibrary.arrayContains = function(array,element) {
     return array.indexOf(element) > -1;
 };
 
+PWM_MAIN.JSLibrary.removeFromArray = function(array,element) {
+    for(var i = array.length - 1; i >= 0; i--) {
+        if(array[i] === element) {
+            array.splice(i, 1);
+        }
+    }
+};
+
 PWM_MAIN.toggleFullscreen = function(iconObj,divName) {
     var obj = PWM_MAIN.getObject(divName);
 

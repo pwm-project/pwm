@@ -3563,10 +3563,11 @@
             <value>false</value>
         </default>
     </setting>
-    <setting hidden="false" key="webservices.external.secret" level="2">
-        <default>
-            <value/>
-        </default>
+    <setting hidden="false" key="webservices.external.secrets" level="2">
+        <default/>
+        <options>
+            <option value="SigningForm">Signing Form Service - /signing/form</option>
+        </options>
     </setting>
     <setting hidden="false" key="webservices.queryMatch" level="2">
         <ldapPermission actor="proxy" access="read"/>

@@ -23,7 +23,6 @@
 package password.pwm.ws.server;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.AppProperty;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
@@ -41,7 +40,6 @@ import password.pwm.http.filter.AuthenticationFilter;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.intruder.RecordType;
 import password.pwm.util.LocaleHelper;
-import password.pwm.util.PasswordData;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
@@ -123,20 +121,6 @@ public abstract class RestServerHelper {
             if (restRequestBean.isAuthenticated()) {
                 if (!pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.WEBSERVICE)) {
                     final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED, "authenticated user does not have external webservices permission");
-                    throw new PwmUnrecoverableException(errorInformation);
-                }
-            }
-
-            final PasswordData secretKey = pwmApplication.getConfig().readSettingAsPassword(PwmSetting.WEBSERVICES_EXTERNAL_SECRET);
-            if (secretKey != null) {
-                final String headerName = pwmApplication.getConfig().readAppProperty(AppProperty.SECURITY_WS_REST_SERVER_SECRET_HEADER);
-                final String headerValue = pwmRequest.readHeaderValueAsString(headerName);
-                if (headerValue == null || headerValue.isEmpty()) {
-                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED, "request is missing security header " + headerName);
-                    throw new PwmUnrecoverableException(errorInformation);
-                }
-                if (!headerValue.equals(secretKey.getStringValue())) {
-                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED, "authenticated user does not have correct security header");
                     throw new PwmUnrecoverableException(errorInformation);
                 }
             }

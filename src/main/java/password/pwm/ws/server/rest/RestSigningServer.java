@@ -26,15 +26,15 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.config.option.WebServiceUsage;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.secure.SecureService;
-import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
-import password.pwm.ws.server.RestServerHelper;
-import password.pwm.ws.server.ServicePermissions;
+import password.pwm.ws.server.StandaloneRestHelper;
+import password.pwm.ws.server.StandaloneRestRequestBean;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -49,12 +49,6 @@ import java.util.concurrent.TimeUnit;
 
 @Path("/signing")
 public class RestSigningServer extends AbstractRestServer {
-    private static final ServicePermissions SERVICE_PERMISSIONS = ServicePermissions.builder()
-            .adminOnly(false)
-            .authRequired(false)
-            .blockExternal(false)
-            .build();
-
 
     @POST
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
@@ -66,11 +60,17 @@ public class RestSigningServer extends AbstractRestServer {
     )
             throws PwmUnrecoverableException
     {
-        final RestRequestBean restRequestBean;
+        final StandaloneRestRequestBean restRequestBean;
         try {
-            restRequestBean = RestServerHelper.initializeRestRequest(request, response, SERVICE_PERMISSIONS, null);
+            restRequestBean = StandaloneRestHelper.initialize(request);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
+        }
+
+        if (!restRequestBean.getAuthorizedUsages().contains(WebServiceUsage.SigningForm)) {
+            final String errorMsg = "request is not authenticated with permission for SigningForm";
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED, errorMsg);
+            return RestResultBean.fromError(errorInformation).asJsonResponse();
         }
 
         try {

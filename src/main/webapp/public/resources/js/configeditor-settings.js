@@ -2753,7 +2753,7 @@ SelectValueHandler.init = function(settingKey) {
 
     if (allowUserInput) {
         htmlBody += '<button class="btn" id="button_selectOverride_' + settingKey + '">'
-        + '<span class="btn-icon pwm-icon pwm-icon-plus-square"></span>Add Value</button>';
+            + '<span class="btn-icon pwm-icon pwm-icon-plus-square"></span>Add Value</button>';
 
     }
 
@@ -3190,4 +3190,147 @@ PrivateKeyHandler.draw = function(keyName) {
         options['urlUpdateFunction'] = urlUpdateFunction;
         UILibrary.uploadFileDialog(options);
     });
+};
+
+
+//--------- named secret handler ---
+var NamedSecretHandler = {};
+
+NamedSecretHandler.init = function(settingKey) {
+    var parentDiv = 'table_setting_' + settingKey;
+    var parentDivElement = PWM_MAIN.getObject(parentDiv);
+
+    if (parentDivElement) {
+        PWM_CFGEDIT.readSetting(settingKey,function(data){
+            PWM_VAR['clientSettingCache'][settingKey] = data;
+            var htmlBody = '';
+            htmlBody += '<table>';
+            var rowCounter = 0;
+            for (var key in data) {
+                var id = settingKey + '_' + key;
+                htmlBody += '<tr>';
+                htmlBody += '<td>' + key + '</td><td>Stored Value</td><td><button id="button-usage-' + id + '"><span class="btn-icon pwm-icon pwm-icon-sliders"/>Usage</button></td>';
+                htmlBody += '<td style="width:10px"><span class="delete-row-icon action-icon pwm-icon pwm-icon-times" id="button-deleteRow-' + id + '"></span></td>';
+                htmlBody += '</tr>';
+                rowCounter++;
+            }
+
+            if (rowCounter < 1) {
+                htmlBody += '<tr><td>No values.</td></tr>';
+            }
+
+            htmlBody += '</table>';
+
+            htmlBody += '<button id="button-addPassword-' + settingKey + '" class="btn"><span class="btn-icon pwm-icon pwm-icon-plus-square"></span>Add Value</button>';
+            parentDivElement.innerHTML = htmlBody;
+
+            PWM_MAIN.addEventHandler('button-addPassword-' + settingKey,'click',function(){
+                NamedSecretHandler.addPassword(settingKey);
+            });
+
+            for (var key in data) {
+                var id = settingKey + '_' + key;
+                PWM_MAIN.addEventHandler('button-deleteRow-' + id,'click',function(){
+                    NamedSecretHandler.deletePassword(settingKey, key);
+                });
+                PWM_MAIN.addEventHandler('button-usage-' + id,'click',function(){
+                    NamedSecretHandler.usagePopup(settingKey, key);
+                });
+            }
+        });
+    }
+};
+
+NamedSecretHandler.usagePopup = function(settingKey, key) {
+    var titleText = PWM_SETTINGS['settings'][settingKey]['label'] + ' - Usage - ' + key ;
+    var options = PWM_SETTINGS['settings'][settingKey]['options'];
+    var currentValues = PWM_VAR['clientSettingCache'][settingKey];
+    var html = '<table class="noborder">';
+    for (var loopKey in options) {
+        (function (optionKey) {
+            html += '<tr><td>';
+            var buttonID = key + "_usage_button_" + optionKey;
+            html += '<label class="checkboxWrapper" style="min-width:180px;">'
+                + '<input type="checkbox" id="' + buttonID + '"/>'
+                + options[optionKey] + '</label>';
+            html += '</td></tr>';
+        })(loopKey);
+    }
+    html += '</table>';
+    var loadFunction = function () {
+        for (var loopKey in options) {
+            (function (optionKey) {
+                var buttonID = key + "_usage_button_" + optionKey;
+                var checked = PWM_MAIN.JSLibrary.arrayContains(currentValues[key]['usage'],optionKey);
+                PWM_MAIN.getObject(buttonID).checked = checked;
+                PWM_MAIN.addEventHandler(buttonID,'click',function(){
+                    var nowChecked = PWM_MAIN.getObject(buttonID).checked;
+                    if (nowChecked) {
+                        currentValues[key]['usage'].push(optionKey);
+                    } else {
+                        PWM_MAIN.JSLibrary.removeFromArray(currentValues[key]['usage'], optionKey);
+                    }
+                });
+            })(loopKey);
+        }
+    };
+    var okFunction = function() {
+        var postWriteFunction = function() {
+            NamedSecretHandler.init(settingKey);
+        };
+        PWM_CFGEDIT.writeSetting(settingKey, currentValues, postWriteFunction);
+    };
+    PWM_MAIN.showDialog({title:titleText,text:html,loadFunction:loadFunction,okAction:okFunction});
+};
+
+NamedSecretHandler.addPassword = function(settingKey) {
+    var titleText = PWM_SETTINGS['settings'][settingKey]['label'] + ' - Name';
+    var stringEditorFinishFunc = function(nameValue) {
+        var currentValues = PWM_VAR['clientSettingCache'][settingKey];
+        if (nameValue in currentValues) {;
+            var errorTxt = '"' + nameValue + '" already exists.';
+            PWM_MAIN.showErrorDialog(errorTxt);
+            return;
+        }
+        var pwDialogOptions = {};
+        pwDialogOptions['title'] = PWM_SETTINGS['settings'][settingKey]['label'] + ' - Password';
+        pwDialogOptions['showRandomGenerator'] = true;
+        pwDialogOptions['showValues'] = true;
+        pwDialogOptions['writeFunction'] = function(pwValue) {
+            currentValues[nameValue] = {};
+            currentValues[nameValue]['password'] = pwValue;
+            currentValues[nameValue]['usage'] = [];
+
+            var postWriteFunction = function() {
+                NamedSecretHandler.init(settingKey);
+            };
+
+            PWM_CFGEDIT.writeSetting(settingKey, currentValues, postWriteFunction);
+        };
+        UILibrary.passwordDialogPopup(pwDialogOptions)
+    };
+    var instructions = 'Please enter the name for the new password.';
+    UILibrary.stringEditorDialog({
+        title: titleText,
+        regex: '[a-zA-Z]{2,20}',
+        instructions: instructions,
+        completeFunction: stringEditorFinishFunc
+    });
+};
+
+
+NamedSecretHandler.deletePassword = function(settingKey, key) {
+    PWM_MAIN.showConfirmDialog({
+        text:'Delete named password <b>' + key + '</b>?',
+        okAction:function() {
+            var currentValues = PWM_VAR['clientSettingCache'][settingKey];
+            delete currentValues[key];
+
+            var postWriteFunction = function() {
+                NamedSecretHandler.init(settingKey);
+            };
+            PWM_CFGEDIT.writeSetting(settingKey, currentValues, postWriteFunction);
+        }
+    });
+
 };

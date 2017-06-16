@@ -51,6 +51,7 @@ import password.pwm.config.value.FileValue;
 import password.pwm.config.value.FormValue;
 import password.pwm.config.value.LocalizedStringArrayValue;
 import password.pwm.config.value.LocalizedStringValue;
+import password.pwm.config.value.NamedSecretValue;
 import password.pwm.config.value.NumericValue;
 import password.pwm.config.value.PasswordValue;
 import password.pwm.config.value.StringArrayValue;
@@ -190,6 +191,11 @@ public class Configuration implements Serializable, SettingReader {
         return JavaTypeConverter.valueToPassword(readStoredValue(setting));
     }
 
+    public Map<String,NamedSecretData> readSettingAsNamedPasswords(final PwmSetting setting)
+    {
+        return JavaTypeConverter.valueToNamedPassword(readStoredValue(setting));
+    }
+
     public abstract static class JavaTypeConverter {
         public static long valueToLong(final StoredValue value) {
             if (!(value instanceof NumericValue)) {
@@ -225,7 +231,21 @@ public class Configuration implements Serializable, SettingReader {
             }
             return (PasswordData)nativeObject;
         }
-        
+
+        public static Map<String,NamedSecretData> valueToNamedPassword(final StoredValue value) {
+            if (value == null) {
+                return null;
+            }
+            if ((!(value instanceof NamedSecretValue))) {
+                throw new IllegalArgumentException("setting value is not readable as named password");
+            }
+            final Object nativeObject = value.toNativeObject();
+            if (nativeObject == null) {
+                return null;
+            }
+            return (Map<String,NamedSecretData>)nativeObject;
+        }
+
         public static List<ActionConfiguration> valueToAction(final PwmSetting setting, final StoredValue storedValue) {
             if (PwmSettingSyntax.ACTION != setting.getSyntax()) {
                 throw new IllegalArgumentException("may not read ACTION value for setting: " + setting.toString());
