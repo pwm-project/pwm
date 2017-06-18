@@ -27,12 +27,11 @@ import lombok.Getter;
 import password.pwm.PwmApplication;
 import password.pwm.config.option.WebServiceUsage;
 
-import java.util.HashSet;
 import java.util.Set;
 
 @Getter
 @Builder
 public class StandaloneRestRequestBean {
-    private Set<WebServiceUsage> authorizedUsages = new HashSet<>();
-    private PwmApplication pwmApplication;
+    private final Set<WebServiceUsage> authorizedUsages;
+    private final PwmApplication pwmApplication;
 }

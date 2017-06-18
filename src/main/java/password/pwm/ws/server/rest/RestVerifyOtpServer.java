@@ -61,7 +61,7 @@ public class RestVerifyOtpServer extends AbstractRestServer {
     @GET
     @Produces(MediaType.TEXT_HTML)
     public Response doHtmlRedirect() throws URISyntaxException {
-        return RestServerHelper.doHtmlRedirect();
+        return RestServerHelper.handleHtmlRequest();
     }
 
     @POST

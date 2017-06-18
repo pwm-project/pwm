@@ -34,6 +34,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.HttpHeader;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.filter.AuthenticationFilter;
@@ -46,7 +47,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Locale;
@@ -54,9 +54,12 @@ import java.util.Locale;
 public abstract class RestServerHelper {
     private static final PwmLogger LOGGER = PwmLogger.forClass(RestServerHelper.class);
 
-    public static javax.ws.rs.core.Response doHtmlRedirect() throws URISyntaxException {
-        final URI uri = javax.ws.rs.core.UriBuilder.fromUri("../reference/rest.jsp?forwardedFromRestServer=true").build();
-        return javax.ws.rs.core.Response.temporaryRedirect(uri).build();
+    public static javax.ws.rs.core.Response handleHtmlRequest() throws URISyntaxException {
+        final String msg = "This REST service requires an appropriate "
+                + HttpHeader.Accept.getHttpName() + " header to be set.  This request used an html "
+                + HttpHeader.Accept.getHttpName() + " header, which is not supported.  See documentation at \"/public/reference/\".";
+        final String content = "<html><body>" + msg + "</body></html>";
+        return javax.ws.rs.core.Response.status(Response.Status.NOT_ACCEPTABLE).entity(content).build();
     }
 
     public static RestRequestBean initializeRestRequest(
