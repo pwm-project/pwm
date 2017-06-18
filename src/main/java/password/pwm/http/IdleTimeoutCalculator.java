@@ -140,7 +140,7 @@ public class IdleTimeoutCalculator {
         private final TimeDuration idleTimeout;
 
         @Override
-        public int compareTo(MaxIdleTimeoutResult o)
+        public int compareTo(final MaxIdleTimeoutResult o)
         {
             return this.idleTimeout.compareTo(o.getIdleTimeout());
         }
