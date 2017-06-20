@@ -37,13 +37,13 @@ body {
 }
 
 a {
-  color: #0088ce;
+  color: #007cd0;
   cursor: pointer;
   font-weight: normal;
   text-decoration: none;
 
   &:focus {
-    outline: 1px solid #28a9e1;
+    outline: 1px solid #01a9e7;
   }
 
   &:hover {
@@ -80,5 +80,5 @@ a {
 }
 
 .highlight {
-  color: #28a9e1;
+  color: #01a9e7;
 }

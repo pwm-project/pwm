@@ -27,8 +27,8 @@ $mf-icon-button-size: 24px;
 $mf-icon-button-bg-color: transparent;
 
 $mf-icon-button-hover-bg-color: #f6f9f8;
-$mf-icon-button-hover-border-color: #0088ce;
-$mf-icon-button-hover-color: #0088ce;
+$mf-icon-button-hover-border-color: #007cd0;
+$mf-icon-button-hover-color: #007cd0;
 
 mf-icon-button {
   background-color: $mf-icon-button-bg-color;
@@ -52,7 +52,7 @@ mf-icon-button {
       }
 
       &:focus {
-        border-color: #28a9e1;
+        border-color: #01a9e7;
       }
 
       &:hover {
