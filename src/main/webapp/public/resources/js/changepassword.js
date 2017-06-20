@@ -248,7 +248,10 @@ PWM_CHANGEPW.doRandomGeneration=function(randomConfig) {
                 eventHandlers.push(function(){
                     PWM_MAIN.addEventHandler(elementID,'click',function(){
                         var value = PWM_MAIN.getObject(elementID).innerHTML;
-                        finishAction(value);
+                        var parser = new DOMParser();
+                        var dom = parser.parseFromString(value, 'text/html');
+                        var domString = dom.body.textContent;
+                        finishAction(domString);
                     });
                 });
             })(i);
