@@ -106,7 +106,7 @@ public class RestResultBean implements Serializable {
         final RestResultBean restResultBean = new RestResultBean();
         restResultBean.setError(true);
         restResultBean.setErrorMessage(errorInformation.toUserStr(locale, config));
-        if (forceDetail || pwmApplication.determineIfDetailErrorMsgShown()) {
+        if (forceDetail || (pwmApplication != null && pwmApplication.determineIfDetailErrorMsgShown())) {
             restResultBean.setErrorDetail(errorInformation.toDebugStr());
         }
         restResultBean.setErrorCode(errorInformation.getError().getErrorCode());

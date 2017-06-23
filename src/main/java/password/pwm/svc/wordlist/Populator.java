@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
@@ -139,7 +140,7 @@ class Populator {
 
     void populate() throws IOException, LocalDBException, PwmUnrecoverableException {
         try {
-            rootWordlist.writeMetadata(new StoredWordlistDataBean.Builder().setSource(source).create());
+            rootWordlist.writeMetadata(StoredWordlistDataBean.builder().source(source).build());
             running = true;
             init();
 
@@ -240,13 +241,13 @@ class Populator {
         sb.append(" population complete, added ").append(wordlistSize);
         sb.append(" total words in ").append(new TimeDuration(overallStats.getElapsedSeconds() * 1000).asCompactString());
         {
-            final StoredWordlistDataBean storedWordlistDataBean = new StoredWordlistDataBean.Builder()
-                    .setSha1hash(JavaHelper.binaryArrayToHex(checksumInputStream.closeAndFinalChecksum()))
-                    .setSize(wordlistSize)
-                    .setStoreDate(new Date())
-                    .setSource(source)
-                    .setCompleted(!abortFlag)
-                    .create();
+            final StoredWordlistDataBean storedWordlistDataBean = StoredWordlistDataBean.builder()
+                    .sha1hash(JavaHelper.binaryArrayToHex(checksumInputStream.closeAndFinalChecksum()))
+                    .size(wordlistSize)
+                    .storeDate(Instant.now())
+                    .source(source)
+                    .completed(!abortFlag)
+                    .build();
             rootWordlist.writeMetadata(storedWordlistDataBean);
         }
         LOGGER.info(sb.toString());

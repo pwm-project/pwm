@@ -22,24 +22,31 @@
 
 package password.pwm.http.servlet.newuser;
 
-import password.pwm.http.bean.NewUserBean;
+import com.google.gson.annotations.SerializedName;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 import java.io.Serializable;
+import java.util.Map;
 
+@Getter
+@AllArgsConstructor
 class NewUserTokenData implements Serializable {
-    private String profileID;
-    private NewUserBean.NewUserForm formData;
 
-    NewUserTokenData(final String profileID, final NewUserBean.NewUserForm formData) {
-        this.profileID = profileID;
-        this.formData = formData;
-    }
+    @SerializedName("id")
+    private String profileID;
+
+    @SerializedName("f")
+    private NewUserForm formData;
+
+    @SerializedName("i")
+    private Map<String,String> injectionData;
 
     public String getProfileID() {
         return profileID;
     }
 
-    public NewUserBean.NewUserForm getFormData() {
+    public NewUserForm getFormData() {
         return formData;
     }
 }

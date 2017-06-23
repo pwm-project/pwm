@@ -22,13 +22,18 @@
 
 package password.pwm.svc.wordlist;
 
-import java.io.Serializable;
-import java.util.Date;
+import lombok.Builder;
+import lombok.Getter;
 
+import java.io.Serializable;
+import java.time.Instant;
+
+@Getter
+@Builder
 public class StoredWordlistDataBean implements Serializable {
     private boolean completed;
     private Source source;
-    private Date storeDate;
+    private Instant storeDate;
     private String sha1hash;
     private int size;
 
@@ -47,82 +52,6 @@ public class StoredWordlistDataBean implements Serializable {
 
         public String getLabel() {
             return label;
-        }
-    }
-
-    public boolean isCompleted() {
-        return completed;
-    }
-
-    public Source getSource() {
-        return source;
-    }
-
-    public Date getStoreDate() {
-        return storeDate;
-    }
-
-    public String getSha1hash() {
-        return sha1hash;
-    }
-
-    public int getSize() {
-        return size;
-    }
-
-    public StoredWordlistDataBean(final boolean completed, final Source source, final Date storeDate, final String sha1hash, final int size) {
-        this.completed = completed;
-        this.source = source;
-        this.storeDate = storeDate;
-        this.sha1hash = sha1hash;
-        this.size = size;
-    }
-
-    public static class Builder {
-        private boolean completed;
-        private Source source;
-        private Date storeDate;
-        private String sha1hash;
-        private int size;
-
-        public Builder() {
-        }
-
-        public Builder(final StoredWordlistDataBean source) {
-            this.completed = source.completed;
-            this.source = source.source;
-            this.storeDate = source.storeDate;
-            this.sha1hash = source.sha1hash;
-            this.size = source.size;
-        }
-
-        public Builder setCompleted(final boolean completed) {
-            this.completed = completed;
-            return this;
-        }
-
-        public Builder setSource(final Source source) {
-            this.source = source;
-            return this;
-        }
-
-        public Builder setStoreDate(final Date storeDate) {
-            this.storeDate = storeDate;
-            return this;
-        }
-
-        public Builder setSha1hash(final String sha1hash) {
-            this.sha1hash = sha1hash;
-            return this;
-        }
-
-        public Builder setSize(final int size) {
-            this.size = size;
-            return this;
-        }
-
-        public StoredWordlistDataBean create() {
-            return new StoredWordlistDataBean(completed, source, storeDate, sha1hash, size);
         }
     }
 }

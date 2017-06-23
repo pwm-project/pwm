@@ -2527,6 +2527,7 @@
         <ldapPermission actor="proxy" access="write"/>
         <flag>Form_ShowUniqueOption</flag>
         <flag>Form_ShowRequiredOption</flag>
+        <flag>Form_ShowReadOnlyOption</flag>
         <default>
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"unique":true,"labels":{"":"Email Address"},"regexErrors":{"":"Email Address has invalid characters"},"description":{"":""},"placeholder":"username@example.com","selectOptions":{},regex:"^[a-zA-Z0-9 .,'@]*$"}</value>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{},regex:"^[a-zA-Z0-9 .,'@]*$"}</value>
@@ -3562,10 +3563,11 @@
             <value>false</value>
         </default>
     </setting>
-    <setting hidden="false" key="webservices.external.secret" level="2">
-        <default>
-            <value/>
-        </default>
+    <setting hidden="false" key="webservices.external.secrets" level="2">
+        <default/>
+        <options>
+            <option value="SigningForm">Signing Form Service - /signing/form</option>
+        </options>
     </setting>
     <setting hidden="false" key="webservices.queryMatch" level="2">
         <ldapPermission actor="proxy" access="read"/>
@@ -3675,11 +3677,6 @@
     <setting hidden="true" key="helpdesk.otp.verify" level="1">
         <default>
             <value>false</value>
-        </default>
-    </setting>
-    <setting hidden="true" key="pwmDb.location" level="2" required="true">
-        <default>
-            <value><![CDATA[LocalDB]]></value>
         </default>
     </setting>
     <!-- DEPRECATED SETTINGS -->

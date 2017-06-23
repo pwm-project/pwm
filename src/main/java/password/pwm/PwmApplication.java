@@ -42,6 +42,7 @@ import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.PwmServiceManager;
 import password.pwm.svc.cache.CacheService;
+import password.pwm.svc.cluster.ClusterService;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.event.AuditService;
@@ -503,6 +504,10 @@ public class PwmApplication {
         return (VersionChecker)pwmServiceManager.getService(VersionChecker.class);
     }
 
+    public ClusterService getClusterService() {
+        return (ClusterService) pwmServiceManager.getService(ClusterService.class);
+    }
+
     public ErrorInformation getLastLocalDBFailure() {
         return lastLocalDBFailure;
     }
@@ -697,7 +702,7 @@ public class PwmApplication {
             final File databaseDirectory;
             // see if META-INF isn't already there, then use WEB-INF.
             try {
-                final String localDBLocationSetting = pwmApplication.getConfig().readSettingAsString(PwmSetting.PWMDB_LOCATION);
+                final String localDBLocationSetting = pwmApplication.getConfig().readAppProperty(AppProperty.LOCALDB_LOCATION);
                 databaseDirectory = FileSystemUtility.figureFilepath(localDBLocationSetting, pwmApplication.pwmEnvironment.getApplicationPath());
             } catch (Exception e) {
                 pwmApplication.lastLocalDBFailure = new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,"error locating configured LocalDB directory: " + e.getMessage());

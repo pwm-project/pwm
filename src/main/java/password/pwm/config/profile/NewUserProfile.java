@@ -39,7 +39,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.operations.PasswordUtility;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -48,7 +48,7 @@ public class NewUserProfile extends AbstractProfile {
 
     private static final ProfileType PROFILE_TYPE = ProfileType.NewUser;
 
-    private Date newUserPasswordPolicyCacheTime;
+    private Instant newUserPasswordPolicyCacheTime;
     private final Map<Locale,PwmPasswordPolicy> newUserPasswordPolicyCache = new HashMap<>();
 
     protected NewUserProfile(final String identifier, final Map<PwmSetting, StoredValue> storedValueMap) {
@@ -78,7 +78,7 @@ public class NewUserProfile extends AbstractProfile {
         final Configuration config = pwmApplication.getConfig();
         final long maxNewUserCacheMS = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.CONFIG_NEWUSER_PASSWORD_POLICY_CACHE_MS));
         if (newUserPasswordPolicyCacheTime != null && TimeDuration.fromCurrent(newUserPasswordPolicyCacheTime).isLongerThan(maxNewUserCacheMS)) {
-            newUserPasswordPolicyCacheTime = new Date();
+            newUserPasswordPolicyCacheTime = Instant.now();
             newUserPasswordPolicyCache.clear();
         }
 

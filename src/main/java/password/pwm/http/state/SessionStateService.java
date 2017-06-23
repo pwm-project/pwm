@@ -35,7 +35,7 @@ import password.pwm.svc.PwmService;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -179,7 +179,7 @@ public class SessionStateService implements PwmService {
         try {
             final E newBean = theClass.newInstance();
             newBean.setGuid(sessionGuid);
-            newBean.setTimestamp(new Date());
+            newBean.setTimestamp(Instant.now());
             return newBean;
         } catch (Exception e) {
             final String errorMsg = "unexpected error trying to instantiate bean class " + theClass.getName() + ": " + e.getMessage();

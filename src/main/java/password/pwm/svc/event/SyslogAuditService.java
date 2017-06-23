@@ -96,7 +96,7 @@ public class SyslogAuditService {
             syslogInstance = makeSyslogInstance(syslogConfig);
             LOGGER.trace("queued service running for " + syslogConfig);
         } catch (IllegalArgumentException e) {
-            LOGGER.error("e9rror parsing syslog configuration for '" + syslogConfigString + "', error: " + e.getMessage());
+            LOGGER.error("error parsing syslog configuration for '" + syslogConfigString + "', error: " + e.getMessage());
         }
 
         final WorkQueueProcessor.Settings settings = WorkQueueProcessor.Settings.builder()

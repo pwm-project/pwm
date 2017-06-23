@@ -90,7 +90,7 @@ public class FormUtility {
             final String keyName = formItem.getName();
             final String value = inputMap.get(keyName);
 
-            if (formItem.isRequired()) {
+            if (formItem.isRequired() && !formItem.isReadonly()) {
                 if (value == null || value.length() < 0) {
                     final String errorMsg = "missing required value for field '" + formItem.getName() + "'";
                     final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_REQUIRED, errorMsg, new String[]{formItem.getLabel(locale)});

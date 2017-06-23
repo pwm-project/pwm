@@ -72,6 +72,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -97,7 +98,7 @@ public class NewUserServlet extends ControlledPwmServlet {
 
     static final String FIELD_PASSWORD1 = "password1";
     static final String FIELD_PASSWORD2 = "password2";
-    static final String TOKEN_PAYLOAD_ATTR = "_______profileID";
+    static final String TOKEN_PAYLOAD_ATTR = "p";
 
     public enum NewUserAction implements AbstractPwmServlet.ProcessAction {
         profileChoice(HttpMethod.POST, HttpMethod.POST),
@@ -148,8 +149,8 @@ public class NewUserServlet extends ControlledPwmServlet {
 
         final String signedFormData = pwmRequest.readParameterAsString("signedForm", PwmHttpRequestWrapper.Flag.BypassValidation);
         if (!StringUtil.isEmpty(signedFormData)) {
-            LOGGER.trace("detected signedForm parameter in request, will read and place in bean.");
             final Map<String,String> jsonForm = RestSigningServer.readSignedFormValue(pwmApplication, signedFormData);
+            LOGGER.trace("detected signedForm parameter in request, will read and place in bean; keys=" + JsonUtil.serializeCollection(jsonForm.keySet()));
             newUserBean.setRemoteInputData(jsonForm);
         }
 
@@ -308,7 +309,8 @@ public class NewUserServlet extends ControlledPwmServlet {
         final Locale locale = pwmRequest.getLocale();
 
         try {
-            final NewUserBean.NewUserForm newUserForm = NewUserFormUtils.readFromJsonRequest(pwmRequest);
+            final NewUserBean newUserBean = getNewUserBean(pwmRequest);
+            final NewUserForm newUserForm = NewUserFormUtils.readFromJsonRequest(pwmRequest, newUserBean);
             PasswordUtility.PasswordCheckInfo passwordCheckInfo = verifyForm(pwmRequest, newUserForm, true);
             if (passwordCheckInfo.isPassed() && passwordCheckInfo.getMatch() == PasswordUtility.PasswordCheckInfo.MatchStatus.MATCH) {
                 passwordCheckInfo = new PasswordUtility.PasswordCheckInfo(
@@ -336,7 +338,7 @@ public class NewUserServlet extends ControlledPwmServlet {
 
     static PasswordUtility.PasswordCheckInfo verifyForm(
             final PwmRequest pwmRequest,
-            final NewUserBean.NewUserForm newUserForm,
+            final NewUserForm newUserForm,
             final boolean allowResultCaching
     )
             throws PwmDataValidationException, PwmUnrecoverableException, ChaiUnavailableException
@@ -359,15 +361,22 @@ public class NewUserServlet extends ControlledPwmServlet {
                 .cachedPasswordRuleAttributes(FormUtility.asStringMap(formValueData))
                 .passwordPolicy(newUserProfile.getNewUserPasswordPolicy(pwmApplication, locale))
                 .build();
-        return PasswordUtility.checkEnteredPassword(
-                pwmApplication,
-                locale,
-                null,
-                uiBean,
-                null,
-                newUserForm.getNewUserPassword(),
-                newUserForm.getConfirmPassword()
-        );
+
+        final boolean promptForPassword = newUserProfile.readSettingAsBoolean(PwmSetting.NEWUSER_PROMPT_FOR_PASSWORD);
+
+        if (promptForPassword) {
+            return PasswordUtility.checkEnteredPassword(
+                    pwmApplication,
+                    locale,
+                    null,
+                    uiBean,
+                    null,
+                    newUserForm.getNewUserPassword(),
+                    newUserForm.getConfirmPassword()
+            );
+        }
+
+        return new PasswordUtility.PasswordCheckInfo(null, true, 0, PasswordUtility.PasswordCheckInfo.MatchStatus.MATCH, 0);
     }
 
     @ActionHandler(action = "enterCode")
@@ -391,7 +400,7 @@ public class NewUserServlet extends ControlledPwmServlet {
                 final NewUserBean newUserBean = getNewUserBean(pwmRequest);
                 final NewUserTokenData newUserTokenData = NewUserFormUtils.fromTokenPayload(pwmRequest, tokenPayload);
                 newUserBean.setProfileID(newUserTokenData.getProfileID());
-                final NewUserBean.NewUserForm newUserFormFromToken = newUserTokenData.getFormData();
+                final NewUserForm newUserFormFromToken = newUserTokenData.getFormData();
                 if (password.pwm.svc.token.TokenType.NEWUSER_EMAIL.matchesName(tokenPayload.getName())) {
                     LOGGER.debug(pwmRequest, "email token passed");
 
@@ -402,6 +411,7 @@ public class NewUserServlet extends ControlledPwmServlet {
                         throw e;
                     }
 
+                    newUserBean.setRemoteInputData(newUserTokenData.getInjectionData());
                     newUserBean.setNewUserForm(newUserFormFromToken);
                     newUserBean.setFormPassed(true);
                     newUserBean.getTokenVerificationProgress().getPassedTokens().add(TokenVerificationProgress.TokenChannel.EMAIL);
@@ -479,7 +489,7 @@ public class NewUserServlet extends ControlledPwmServlet {
         newUserBean.setNewUserForm(null);
 
         try {
-            final NewUserBean.NewUserForm newUserForm = NewUserFormUtils.readFromRequest(pwmRequest, newUserBean);
+            final NewUserForm newUserForm = NewUserFormUtils.readFromRequest(pwmRequest, newUserBean);
             final PasswordUtility.PasswordCheckInfo passwordCheckInfo = verifyForm(pwmRequest, newUserForm, true);
             NewUserUtils.passwordCheckInfoToException(passwordCheckInfo);
             newUserBean.setNewUserForm(newUserForm);
@@ -616,10 +626,20 @@ public class NewUserServlet extends ControlledPwmServlet {
     private void forwardToFormPage(final PwmRequest pwmRequest, final NewUserBean newUserBean)
             throws ServletException, PwmUnrecoverableException, IOException
     {
-        final List<FormConfiguration> formConfiguration = getFormDefinition(pwmRequest);
+        final List<FormConfiguration> formConfigurations = getFormDefinition(pwmRequest);
         final NewUserProfile newUserProfile = getNewUserProfile(pwmRequest);
         final boolean promptForPassword = newUserProfile.readSettingAsBoolean(PwmSetting.NEWUSER_PROMPT_FOR_PASSWORD);
-        pwmRequest.addFormInfoToRequestAttr(formConfiguration, null, false, promptForPassword);
+        final Map<FormConfiguration,String> formData = new HashMap<>();
+        if (newUserBean.getRemoteInputData() != null) {
+            final Map<String,String> remoteData = newUserBean.getRemoteInputData();
+            for (final FormConfiguration formConfiguration : formConfigurations) {
+                if (remoteData.containsKey(formConfiguration.getName())) {
+                    formData.put(formConfiguration, remoteData.get(formConfiguration.getName()));
+                }
+            }
+        }
+
+        pwmRequest.addFormInfoToRequestAttr(formConfigurations, formData, false, promptForPassword);
 
         {
             final boolean showBack = !newUserBean.isUrlSpecifiedProfile()
@@ -629,5 +649,4 @@ public class NewUserServlet extends ControlledPwmServlet {
 
         pwmRequest.forwardToJsp(JspUrl.NEW_USER);
     }
-
 }

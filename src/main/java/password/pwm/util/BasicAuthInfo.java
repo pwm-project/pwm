@@ -31,6 +31,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.Serializable;
 
 /**
@@ -55,7 +56,14 @@ public class BasicAuthInfo implements Serializable {
             final PwmApplication pwmApplication,
             final PwmRequest pwmRequest
     ) {
-        final String authHeader = pwmRequest.readHeaderValueAsString(HttpHeader.Authorization);
+        return parseAuthHeader(pwmApplication, pwmRequest.getHttpServletRequest());
+    }
+
+    public static BasicAuthInfo parseAuthHeader(
+            final PwmApplication pwmApplication,
+            final HttpServletRequest httpServletRequest
+    ) {
+        final String authHeader = httpServletRequest.getHeader(HttpHeader.Authorization.getHttpName());
 
         if (authHeader != null) {
             if (authHeader.contains(PwmConstants.HTTP_BASIC_AUTH_PREFIX)) {
@@ -73,7 +81,7 @@ public class BasicAuthInfo implements Serializable {
                     //   "cn=user,o=company:chpass" or "user:chpass"
                     return parseHeaderString(decoded);
                 } catch (Exception e) {
-                    LOGGER.debug(pwmRequest, "error decoding auth header");
+                    LOGGER.debug("error decoding auth header");
                 }
             }
         }

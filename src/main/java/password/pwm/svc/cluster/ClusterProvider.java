@@ -20,26 +20,16 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.ws.server;
+package password.pwm.svc.cluster;
 
-import lombok.Getter;
-import lombok.Setter;
-import password.pwm.PwmApplication;
-import password.pwm.bean.UserIdentity;
-import password.pwm.config.option.WebServiceUsage;
-import password.pwm.http.PwmSession;
+import password.pwm.error.PwmUnrecoverableException;
 
-import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
-@Getter
-@Setter
-public class RestRequestBean implements Serializable {
-    private boolean authenticated;
-    private boolean external;
-    private UserIdentity userIdentity;
-    private PwmSession pwmSession;
-    private PwmApplication pwmApplication;
-    private final Set<WebServiceUsage> webServiceUsages = new HashSet<>();
+public interface ClusterProvider {
+    void close();
+
+    boolean isMaster();
+
+    List<NodeInfo> nodes() throws PwmUnrecoverableException;
 }
