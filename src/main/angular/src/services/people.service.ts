@@ -45,8 +45,7 @@ export default class PeopleService implements IPeopleService {
                 private $log: ILogService,
                 private $q: IQService,
                 private pwmService: IPwmService,
-                $window: IWindowService)
-    {
+                $window: IWindowService) {
         if ($window['PWM_GLOBAL']) {
             this.PWM_GLOBAL = $window['PWM_GLOBAL'];
         }

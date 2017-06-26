@@ -23,7 +23,8 @@
 
 $mf-icon-button-color: #808080;
 $mf-icon-button-disabled-color: transparentize($mf-icon-button-color, .50);
-$mf-icon-button-size: 24px;
+$mf-icon-button-selected-color: #007cd0;
+$mf-icon-button-size: 32px;
 $mf-icon-button-bg-color: transparent;
 
 $mf-icon-button-hover-bg-color: #f6f9f8;
@@ -70,6 +71,10 @@ mf-icon-button {
         outline: none;
       }
     }
+  }
+
+  &.selected {
+    color: $mf-icon-button-selected-color;
   }
 
   > button {

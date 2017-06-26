@@ -21,8 +21,8 @@
  */
 
 
-$mf-app-bar-height: 29px;
-$mf-app-bar-icon-size: 24px;
+$mf-app-bar-height: 37px;
+$mf-app-bar-icon-size: 32px;
 
 mf-app-bar {
   display: block;
@@ -61,7 +61,7 @@ mf-app-bar {
     }
 
     > #page-content-title {
-      font-size: 24px;
+      font-size: 20px;
       height: $mf-app-bar-height;
       line-height: $mf-app-bar-height;
     }

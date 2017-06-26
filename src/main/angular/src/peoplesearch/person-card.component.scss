@@ -70,8 +70,10 @@ person-card {
     background-color: #ffffff;
     border: 3px solid #808080;
     border-radius: 3px;
-    height: 166px;
-    width: 316px;
+    box-sizing: content-box;
+    height: auto;
+    min-height: 70px;
+    width: 320px;
     max-width: 100%;
 
     > .person-card-content {

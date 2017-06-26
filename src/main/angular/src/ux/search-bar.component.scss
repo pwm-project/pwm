@@ -34,9 +34,10 @@ mf-search-bar {
     box-sizing: border-box;
     display: block;
     flex: 1 1 100%;
+    font-size: 15px;
     height: 100%;
     line-height: 100%;
-    padding: 0 20px;
+    padding: 0 25px;
     width: 100%;
 
     &[type=text]::-ms-clear {
@@ -45,11 +46,11 @@ mf-search-bar {
   }
 
   > .clear-input {
-    right: 1px;
+    right: 5px;
   }
 
   > .search-icon {
-    margin: 0 2px;
+    margin: 0 5px;
     left: 0;
   }
 
@@ -87,7 +88,7 @@ mf-search-bar {
   mf-search-bar {
     > .clear-input {
       right: auto;
-      left: 1px;
+      left: 5px;
     }
 
     > .search-icon {

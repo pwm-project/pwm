@@ -29,18 +29,19 @@
                    auto-focus></mf-search-bar>
     <span flex></span>
     <mf-icon-button
-            icon="view-tile"
+            icon="view-tile_thin"
+            class="selected"
             disabled="true"
             ng-attr-title="{{ 'Title_PeopleSearch' | translate }}"
             id="view-tile-icon"></mf-icon-button>
     <mf-icon-button
-            icon="view-list"
+            icon="view-list_thin"
             ng-click="$ctrl.gotoTableView()"
             ng-attr-title="{{ 'Title_PeopleSearch' | translate }}"
             id="view-list-icon"></mf-icon-button>
     <div class="mf-divider vertical" ng-if="$ctrl.orgChartEnabled"></div>
     <mf-icon-button
-            icon="orgchart"
+            icon="orgchart_thin"
             ng-click="$ctrl.gotoOrgchart()"
             ng-if="$ctrl.orgChartEnabled"
             ng-attr-title="{{ 'Title_OrgChart' | translate }}"
@@ -49,7 +50,7 @@
 
 <div class="people-search-component-content">
     <div class="search-info-container">
-        <div class="search-info"
+        <div class="search-info" ng-class="{'loading': !$ctrl.getMessage()}"
              ng-if="$ctrl.loading || $ctrl.searchMessage || $ctrl.errorMessage"
              ng-bind="$ctrl.getMessage() || ('Display_PleaseWait' | translate)">
         </div>

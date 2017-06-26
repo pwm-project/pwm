@@ -96,8 +96,9 @@ abstract class PeopleSearchBaseComponent {
         this.$state.go('.details', { personId: person.userKey, query: this.query });
     }
 
+    // We are still loading if there are pending requests but no search results have come back yet
     get loading(): boolean {
-        return !!this.pendingRequests.length;
+        return !!this.pendingRequests.length && !this.searchResult;
     }
 
     protected abortPendingRequests() {
