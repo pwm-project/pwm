@@ -27,8 +27,8 @@ $text-color-subtext: #808080;
 $person-card-bg-color: #eef2f2;
 $person-card-hover-bg-color: #f6f9f8;
 $person-card-border-color: #01a9e7;
-$person-card-height: 82px;
-$person-card-width: 220px;
+$person-card-height: 84px;
+$person-card-width: 272px;
 $person-card-avatar-size: 50px;
 $person-card-spacing: 10px;
 
@@ -70,10 +70,9 @@ person-card {
     background-color: #ffffff;
     border: 3px solid #808080;
     border-radius: 3px;
-    box-sizing: content-box;
     height: auto;
-    min-height: 70px;
-    width: 320px;
+    min-height: 96px;
+    width: 346px;
     max-width: 100%;
 
     > .person-card-content {
@@ -83,6 +82,7 @@ person-card {
         flex: 0 0 $person-card-large-avatar-size;
         height: $person-card-large-avatar-size;
         width: $person-card-large-avatar-size;
+        margin-bottom: 5px;
       }
     }
   }
@@ -177,6 +177,12 @@ person-card {
       flex: 1;
       overflow: hidden;
 
+      &.direct-reports {
+        >:first-child {
+          margin-right: 28px;
+        }
+      }
+
       > div {
         line-height: 16px;
         overflow: hidden;
@@ -186,7 +192,8 @@ person-card {
 
       > :first-child {
         color: $text-color;
-        font-size: 14px;
+        font-size: 16px;
+        margin-bottom: 2px;
       }
 
       > :not(:first-child) {
@@ -195,8 +202,6 @@ person-card {
       }
 
       > .secondary-details {
-        border-top: 1px solid #dae1e1;
-        margin-top: 10px;
         padding-top: 8px;
       }
     }
@@ -205,14 +210,14 @@ person-card {
       background-color: #dae1e1;
       border-radius: 2px;
       color: #434c50;
-      font-size: 12px;
-      height: 18px;
-      line-height: 18px;
+      font-size: 14px;
+      height: 25px;
+      line-height: 25px;
       position: absolute;
       right: 3px;
       text-align: center;
       top: 3px;
-      min-width: 25px;
+      min-width: 35px;
     }
   }
 }
@@ -245,6 +250,15 @@ person-card {
       > .avatar {
         margin-left: $person-card-spacing;
         margin-right: 0;
+      }
+
+      > .details {
+        &.direct-reports {
+          >:first-child {
+            margin-left: 28px;
+            margin-right: 0;
+          }
+        }
       }
 
       > .reports {

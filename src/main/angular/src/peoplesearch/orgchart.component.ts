@@ -29,9 +29,7 @@ import { IPerson } from '../models/person.model';
 export enum OrgChartSize {
     ExtraSmall = 0,
     Small = 365,
-    Medium = 410,
-    Large = 450,
-    ExtraLarge = 480
+    Large = 480
 }
 
 @Component({
@@ -47,7 +45,7 @@ export enum OrgChartSize {
 export default class OrgChartComponent {
     directReports: IPerson[];
     elementWidth: number;
-    isExtraLargeLayout: boolean;
+    isLargeLayout: boolean;
     managementChain: IPerson[];
     person: IPerson;
 
@@ -85,12 +83,12 @@ export default class OrgChartComponent {
     }
 
     getManagerCardSize(): string {
-        return this.isExtraLargeLayout ? 'small' : 'normal';
+        return this.isLargeLayout ? 'small' : 'normal';
     }
 
     getManagementChain(): IPerson[] {
         // Display managers in a row
-        if (this.isExtraLargeLayout) {
+        if (this.isLargeLayout) {
             // All managers can fit on screen
             if (this.maxVisibleManagers >= this.managementChain.length) {
                 return this.managementChain;
@@ -142,8 +140,8 @@ export default class OrgChartComponent {
     }
 
     private onResize(newValue: number): void {
-        this.isExtraLargeLayout = (newValue >= OrgChartSize.ExtraLarge);
-        if (!this.isExtraLargeLayout) {
+        this.isLargeLayout = (newValue >= OrgChartSize.Large);
+        if (!this.isLargeLayout) {
             this.resetManagerList();
         }
         this.maxVisibleManagers = Math.floor(

@@ -58,10 +58,15 @@ mf-app-bar {
     > span[flex] {
       display: inline-block;
       flex: 1 1;
+
+      &.search-bar-spacing {
+        max-width: 20px;
+      }
     }
 
     > #page-content-title {
       font-size: 20px;
+      font-weight: normal;
       height: $mf-app-bar-height;
       line-height: $mf-app-bar-height;
     }

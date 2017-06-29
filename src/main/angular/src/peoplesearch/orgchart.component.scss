@@ -38,24 +38,13 @@ org-chart {
       > .person-card-list {
         > person-card {
           margin-right: 5px;
-          width: 220px;
+          width: 272px;
         }
       }
     }
   }
 
-  // (M) Wide enough to fit multiple person-cards next to each other inline
-  &.medium {
-    > .org-chart-section {
-      &.managers {
-        .manager {
-          text-align: center;
-        }
-      }
-    }
-  }
-
-  // (L) Wide enough to show main person offset to the right. Manager should now be locked in place (instead of centered)
+  // (L) Wide enough to show main person offset to right and display managers horizontally
   &.large {
     > .org-chart-section {
       text-align: left;
@@ -71,23 +60,6 @@ org-chart {
         margin: 0;
       }
 
-      &.managers {
-        .org-chart-connector {
-          left: 34px;
-        }
-
-        .manager {
-          display: block;
-          margin-left: 135px;
-          text-align: left;
-        }
-      }
-    }
-  }
-
-  // (XL) Wide enough to display several managers horizontally
-  &.extra-large {
-    > .org-chart-section {
       &.managers {
         margin-left: 0;
         min-height: 128px;
@@ -106,6 +78,7 @@ org-chart {
 
         .manager {
           display: inline-block;
+          text-align: left;
           margin-left: 0;
           margin-bottom: 32px;
 
@@ -225,7 +198,8 @@ org-chart {
 
     > h3 {
       color: $org-chart-text-color;
-      font-size: 14px;
+      font-size: 12px;
+      font-weight: normal;
       line-height: 14px;
       margin: 0;
       padding: 15px 0 5px 0;
@@ -286,7 +260,7 @@ org-chart {
       }
     }
 
-    // (L) Wide enough to show main person offset to the right. Manager should now be locked in place (instead of centered)
+    // (L) Wide enough to show main person offset to right and display managers horizontally
     &.large {
       > .org-chart-section {
         text-align: right;
@@ -303,24 +277,6 @@ org-chart {
         }
 
         &.managers {
-          .org-chart-connector {
-            left: initial;
-            right: 34px;
-          }
-
-          .manager {
-            text-align: right;
-            margin-left: auto;
-            margin-right: 135px;
-          }
-        }
-      }
-    }
-
-    // (XL) Wide enough to display several managers horizontally
-    &.extra-large {
-      > .org-chart-section {
-        &.managers {
           margin-left: auto;
 
           > h3 {
@@ -336,6 +292,7 @@ org-chart {
           .manager {
             margin-left: 5px;
             margin-right: 0;
+            text-align: right;
 
             &:first-child {
               margin-right: 115px;
