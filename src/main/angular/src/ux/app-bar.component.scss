@@ -42,6 +42,16 @@ mf-app-bar {
     }
   }
 
+  // For extra-large displays, add extra spacing around search bar
+  &.extra-large {
+    > .mf-app-bar-content {
+      > mf-auto-complete,
+      > mf-search-bar {
+        margin: 0 30px;
+      }
+    }
+  }
+
   > .mf-app-bar-content {
     display: flex;
     flex-flow: row wrap;
@@ -58,10 +68,6 @@ mf-app-bar {
     > span[flex] {
       display: inline-block;
       flex: 1 1;
-
-      &.search-bar-spacing {
-        max-width: 20px;
-      }
     }
 
     > #page-content-title {
