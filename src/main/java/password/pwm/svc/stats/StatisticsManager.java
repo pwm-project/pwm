@@ -23,22 +23,12 @@
 package password.pwm.svc.stats;
 
 import org.apache.commons.csv.CSVPrinter;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
 import password.pwm.PwmApplication;
-import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
-import password.pwm.bean.StatsPublishBean;
-import password.pwm.config.Configuration;
-import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
-import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmRequest;
-import password.pwm.http.client.PwmHttpClient;
 import password.pwm.svc.PwmService;
 import password.pwm.util.AlertHandler;
 import password.pwm.util.java.JavaHelper;
@@ -47,13 +37,10 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.PwmRandom;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigDecimal;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -67,8 +54,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
-import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class StatisticsManager implements PwmService {
 
@@ -86,14 +74,13 @@ public class StatisticsManager implements PwmService {
 
     public static final String KEY_CURRENT = "CURRENT";
     public static final String KEY_CUMULATIVE = "CUMULATIVE";
-    public static final String KEY_CLOUD_PUBLISH_TIMESTAMP = "CLOUD_PUB_TIMESTAMP";
 
     private LocalDB localDB;
 
     private DailyKey currentDailyKey = new DailyKey(new Date());
     private DailyKey initialDailyKey = new DailyKey(new Date());
 
-    private Timer daemonTimer;
+    private ScheduledExecutorService executorService;
 
     private final StatisticsBundle statsCurrent = new StatisticsBundle();
     private StatisticsBundle statsDaily = new StatisticsBundle();
@@ -297,28 +284,10 @@ public class StatisticsManager implements PwmService {
         localDB.put(LocalDB.DB.PWM_STATS, DB_KEY_INITIAL_DAILY_KEY, initialDailyKey.toString());
 
         { // setup a timer to roll over at 0 Zula and one to write current stats every 10 seconds
-            final String threadName = JavaHelper.makeThreadName(pwmApplication, this.getClass()) + " timer";
-            daemonTimer = new Timer(threadName, true);
-            daemonTimer.schedule(new FlushTask(), 10 * 1000, DB_WRITE_FREQUENCY_MS);
-            daemonTimer.schedule(new NightlyTask(), Date.from(JavaHelper.nextZuluZeroTime()));
-        }
-
-        if (pwmApplication.getApplicationMode() == PwmApplicationMode.RUNNING) {
-            if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.PUBLISH_STATS_ENABLE)) {
-                long lastPublishTimestamp = pwmApplication.getInstallTime().toEpochMilli();
-                {
-                    final String lastPublishDateStr = localDB.get(LocalDB.DB.PWM_STATS,KEY_CLOUD_PUBLISH_TIMESTAMP);
-                    if (lastPublishDateStr != null && lastPublishDateStr.length() > 0) {
-                        try {
-                            lastPublishTimestamp = Long.parseLong(lastPublishDateStr);
-                        } catch (Exception e) {
-                            LOGGER.error("unexpected error reading last publish timestamp from PwmDB: " + e.getMessage());
-                        }
-                    }
-                }
-                final Date nextPublishTime = new Date(lastPublishTimestamp + PwmConstants.STATISTICS_PUBLISH_FREQUENCY_MS + (long) PwmRandom.getInstance().nextInt(3600 * 1000));
-                daemonTimer.schedule(new PublishTask(), nextPublishTime, PwmConstants.STATISTICS_PUBLISH_FREQUENCY_MS);
-            }
+            executorService = JavaHelper.makeSingleThreadExecutorService(pwmApplication, this.getClass());
+            executorService.scheduleAtFixedRate(new FlushTask(), 10 * 1000, DB_WRITE_FREQUENCY_MS, TimeUnit.MILLISECONDS);
+            final TimeDuration delayTillNextZulu = TimeDuration.fromCurrent(JavaHelper.nextZuluZeroTime());
+            executorService.scheduleAtFixedRate(new NightlyTask(), delayTillNextZulu.getTotalMilliseconds(), TimeUnit.DAYS.toMillis(1), TimeUnit.MILLISECONDS);
         }
 
         status = STATUS.OPEN;
@@ -375,9 +344,9 @@ public class StatisticsManager implements PwmService {
         } catch (Exception e) {
             LOGGER.error("unexpected error closing: " + e.getMessage());
         }
-        if (daemonTimer != null) {
-            daemonTimer.cancel();
-        }
+
+        JavaHelper.closeAndWaitExecutor(executorService, new TimeDuration(3, TimeUnit.SECONDS));
+
         status = STATUS.CLOSED;
     }
 
@@ -390,7 +359,6 @@ public class StatisticsManager implements PwmService {
         public void run() {
             writeDbValues();
             resetDailyStats();
-            daemonTimer.schedule(new NightlyTask(), Date.from(JavaHelper.nextZuluZeroTime()));
         }
     }
 
@@ -400,15 +368,7 @@ public class StatisticsManager implements PwmService {
         }
     }
 
-    private class PublishTask extends TimerTask {
-        public void run() {
-            try {
-                publishStatisticsToCloud();
-            } catch (Exception e) {
-                LOGGER.error("error publishing statistics to cloud: " + e.getMessage());
-            }
-        }
-    }
+
 
     public static class DailyKey {
         int year;
@@ -491,61 +451,6 @@ public class StatisticsManager implements PwmService {
         return epsMeterMap.get(type.toString() + duration.toString()).readEventRate();
     }
 
-    private void publishStatisticsToCloud()
-            throws URISyntaxException, IOException, PwmUnrecoverableException {
-        final StatsPublishBean statsPublishData;
-        {
-            final StatisticsBundle bundle = getStatBundleForKey(KEY_CUMULATIVE);
-            final Map<String,String> statData = new HashMap<>();
-            for (final Statistic loopStat : Statistic.values()) {
-                statData.put(loopStat.getKey(),bundle.getStatistic(loopStat));
-            }
-            final Configuration config = pwmApplication.getConfig();
-            final List<String> configuredSettings = new ArrayList<>();
-            for (final PwmSetting pwmSetting : config.nonDefaultSettings()) {
-                if (!pwmSetting.getCategory().hasProfiles() && !config.isDefaultValue(pwmSetting)) {
-                    configuredSettings.add(pwmSetting.getKey());
-                }
-            }
-            final Map<String,String> otherData = new HashMap<>();
-            otherData.put(StatsPublishBean.KEYS.SITE_URL.toString(),config.readSettingAsString(PwmSetting.PWM_SITE_URL));
-            otherData.put(StatsPublishBean.KEYS.SITE_DESCRIPTION.toString(),config.readSettingAsString(PwmSetting.PUBLISH_STATS_SITE_DESCRIPTION));
-            otherData.put(StatsPublishBean.KEYS.INSTALL_DATE.toString(), JavaHelper.toIsoDate(pwmApplication.getInstallTime()));
-
-            try {
-                otherData.put(StatsPublishBean.KEYS.LDAP_VENDOR.toString(),pwmApplication.getProxyChaiProvider(config.getDefaultLdapProfile().getIdentifier()).getDirectoryVendor().toString());
-            } catch (Exception e) {
-                LOGGER.trace("unable to read ldap vendor type for stats publication: " + e.getMessage());
-            }
-
-            statsPublishData = new StatsPublishBean(
-                    pwmApplication.getInstanceID(),
-                    Instant.now(),
-                    statData,
-                    configuredSettings,
-                    PwmConstants.BUILD_NUMBER,
-                    PwmConstants.BUILD_VERSION,
-                    otherData
-            );
-        }
-        final URI requestURI = new URI(PwmConstants.PWM_URL_CLOUD + "/rest/pwm/statistics");
-        final HttpPost httpPost = new HttpPost(requestURI.toString());
-        final String jsonDataString = JsonUtil.serialize(statsPublishData);
-        httpPost.setEntity(new StringEntity(jsonDataString));
-        httpPost.setHeader("Accept", PwmConstants.AcceptValue.json.getHeaderValue());
-        httpPost.setHeader("Content-Type", PwmConstants.ContentTypeValue.json.getHeaderValue());
-        LOGGER.debug("preparing to send anonymous statistics to " + requestURI.toString() + ", data to send: " + jsonDataString);
-        final HttpResponse httpResponse = PwmHttpClient.getHttpClient(pwmApplication.getConfig()).execute(httpPost);
-        if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-            throw new IOException("http response error code: " + httpResponse.getStatusLine().getStatusCode());
-        }
-        LOGGER.info("published anonymous statistics to " + requestURI.toString());
-        try {
-            localDB.put(LocalDB.DB.PWM_STATS, KEY_CLOUD_PUBLISH_TIMESTAMP, String.valueOf(System.currentTimeMillis()));
-        } catch (LocalDBException e) {
-            LOGGER.error("unexpected error trying to save last statistics published time to LocalDB: " + e.getMessage());
-        }
-    }
 
     public int outputStatsToCsv(final OutputStream outputStream, final Locale locale, final boolean includeHeader)
             throws IOException

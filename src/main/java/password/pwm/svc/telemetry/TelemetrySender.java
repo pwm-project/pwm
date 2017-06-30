@@ -20,31 +20,14 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.bean;
+package password.pwm.svc.telemetry;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import password.pwm.PwmApplication;
+import password.pwm.bean.TelemetryPublishBean;
+import password.pwm.error.PwmUnrecoverableException;
 
-import java.io.Serializable;
-import java.time.Instant;
-import java.util.List;
-import java.util.Map;
+public interface TelemetrySender {
+    void init(PwmApplication pwmApplication, String initString);
 
-@Getter
-@AllArgsConstructor
-public class StatsPublishBean implements Serializable {
-    private final String instanceID;
-    private final Instant timestamp;
-    private final Map<String,String> totalStatistics;
-    private final List<String> configuredSettings;
-    private final String versionBuild;
-    private final String versionVersion;
-    private final Map<String,String> otherInfo;
-
-    public enum KEYS {
-        SITE_URL,
-        SITE_DESCRIPTION,
-        INSTALL_DATE,
-        LDAP_VENDOR
-    }
+    void publish(TelemetryPublishBean statsPublishBean) throws PwmUnrecoverableException;
 }
