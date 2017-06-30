@@ -35,6 +35,7 @@ import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.time.Instant;
 import java.util.Map;
 import java.util.Properties;
 
@@ -142,7 +143,7 @@ public class Derby_LocalDB extends AbstractJDBC_LocalDB {
     }
 
     private void reclaimAllSpace(final Connection dbConnection) {
-        final java.util.Date startTime = new java.util.Date();
+        final Instant startTime = Instant.now();
         final long startSize = FileSystemUtility.getFileDirectorySize(dbDirectory);
         LOGGER.debug("beginning reclaim space in all tables startSize=" + StringUtil.formatDiskSize(startSize));
         for (final LocalDB.DB db : LocalDB.DB.values()) {
@@ -150,7 +151,7 @@ public class Derby_LocalDB extends AbstractJDBC_LocalDB {
         }
         final long completeSize = FileSystemUtility.getFileDirectorySize(dbDirectory);
         final long sizeDifference = startSize - completeSize;
-        LOGGER.debug("completed reclaim space in all tables; duration=" + TimeDuration.fromCurrent(startTime).asCompactString()
+        LOGGER.debug("completed reclaim space in all tables; duration=" + TimeDuration.compactFromCurrent(startTime)
                 + ", startSize=" + StringUtil.formatDiskSize(startSize)
                 + ", completeSize=" + StringUtil.formatDiskSize(completeSize)
                 + ", sizeDifference=" + StringUtil.formatDiskSize(sizeDifference)

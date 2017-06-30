@@ -41,6 +41,7 @@ import password.pwm.config.PwmSettingTemplate;
 import password.pwm.config.PwmSettingTemplateSet;
 import password.pwm.config.StoredValue;
 import password.pwm.config.option.ADPolicyComplexity;
+import password.pwm.config.value.NamedSecretValue;
 import password.pwm.config.value.PasswordValue;
 import password.pwm.config.value.PrivateKeyValue;
 import password.pwm.config.value.StringArrayValue;
@@ -809,6 +810,9 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
                 settingElement.addContent(valueElements);
             } else if (setting.getSyntax() == PwmSettingSyntax.PRIVATE_KEY) {
                 final List<Element> valueElements = ((PrivateKeyValue)value).toXmlValues("value", getKey());
+                settingElement.addContent(valueElements);
+            } else if (setting.getSyntax() == PwmSettingSyntax.NAMED_SECRET) {
+                final List<Element> valueElements = ((NamedSecretValue)value).toXmlValues("value", getKey());
                 settingElement.addContent(valueElements);
             } else {
                 settingElement.addContent(value.toXmlValues("value"));

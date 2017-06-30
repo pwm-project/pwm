@@ -266,6 +266,12 @@ public class FormConfiguration implements Serializable {
 
     public void checkValue(final Configuration config, final String value, final Locale locale)
             throws PwmDataValidationException, PwmUnrecoverableException {
+
+        // ignore read only fields
+        if (readonly) {
+            return;
+        }
+
         //check if value is missing and required.
         if (required && (value == null || value.length() < 1)) {
             final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_REQUIRED, null, new String[]{getLabel(locale)});

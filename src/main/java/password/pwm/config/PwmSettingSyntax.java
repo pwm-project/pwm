@@ -30,6 +30,7 @@ import password.pwm.config.value.FileValue;
 import password.pwm.config.value.FormValue;
 import password.pwm.config.value.LocalizedStringArrayValue;
 import password.pwm.config.value.LocalizedStringValue;
+import password.pwm.config.value.NamedSecretValue;
 import password.pwm.config.value.NumericValue;
 import password.pwm.config.value.OptionListValue;
 import password.pwm.config.value.PasswordValue;
@@ -68,6 +69,7 @@ public enum PwmSettingSyntax {
     PROFILE(StringArrayValue.factory()),
     VERIFICATION_METHOD(VerificationMethodValue.factory()),
     PRIVATE_KEY(PrivateKeyValue.factory()),
+    NAMED_SECRET(NamedSecretValue.factory()),
 
     ;
 

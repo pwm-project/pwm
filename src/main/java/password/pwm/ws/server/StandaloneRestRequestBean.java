@@ -20,22 +20,18 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util.db;
+package password.pwm.ws.server;
 
-public class DatabaseClusterService {
+import lombok.Builder;
+import lombok.Getter;
+import password.pwm.PwmApplication;
+import password.pwm.config.option.WebServiceUsage;
 
+import java.util.Set;
 
-
-    private static final String KEY_ENGINE_START_PREFIX = "engine-start-";
-
-    private void heartbeat() {
-        /*
-        try {
-            put(DatabaseTable.PWM_META, KEY_ENGINE_START_PREFIX + instanceID, JavaHelper.toIsoDate(new java.util.Date()));
-        } catch (DatabaseException e) {
-            final String errorMsg = "error writing engine start time value: " + e.getMessage();
-            throw new DatabaseException(new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,errorMsg));
-        }
-        */
-    }
+@Getter
+@Builder
+public class StandaloneRestRequestBean {
+    private final Set<WebServiceUsage> authorizedUsages;
+    private final PwmApplication pwmApplication;
 }

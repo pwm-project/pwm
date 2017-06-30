@@ -948,6 +948,10 @@ PWM_CFGEDIT.initSettingDisplay = function(setting, options) {
             ChangePasswordHandler.init(settingKey);
             break;
 
+        case 'NAMED_SECRET':
+            NamedSecretHandler.init(settingKey);
+            break;
+
         case 'NUMERIC':
             NumericValueHandler.init(settingKey);
             break;

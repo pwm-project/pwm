@@ -69,6 +69,10 @@ public enum     AppProperty {
     CONFIG_GUIDE_IDLE_TIMEOUT                       ("configGuide.idleTimeoutSeconds"),
     CONFIG_MANAGER_ZIPDEBUG_MAXLOGLINES             ("configManager.zipDebug.maxLogLines"),
     CONFIG_MANAGER_ZIPDEBUG_MAXLOGSECONDS           ("configManager.zipDebug.maxLogSeconds"),
+    CLUSTER_DB_ENABLE                               ("cluster.db.enable"),
+    CLUSTER_DB_HEARTBEAT_SECONDS                    ("cluster.db.heartbeatSeconds"),
+    CLUSTER_DB_NODE_TIMEOUT_SECONDS                 ("cluster.db.nodeTimeoutSeconds"),
+    CLUSTER_DB_NODE_PURGE_SECONDS                   ("cluster.db.nodePurgeSeconds"),
     DB_JDBC_LOAD_STRATEGY                           ("db.jdbcLoadStrategy"),
     DB_CONNECTIONS_MAX                              ("db.connections.max"),
     DB_CONNECTIONS_TIMEOUT_MS                       ("db.connections.timeoutMs"),
@@ -141,6 +145,7 @@ public enum     AppProperty {
     LOCALDB_AGGRESSIVE_COMPACT_ENABLED              ("localdb.aggressiveCompact.enabled"),
     LOCALDB_IMPLEMENTATION                          ("localdb.implementation"),
     LOCALDB_INIT_STRING                             ("localdb.initParameters"),
+    LOCALDB_LOCATION                                ("localdb.location"),
     LOCALDB_LOGWRITER_BUFFER_SIZE                   ("localdb.logWriter.bufferSize"),
     LOCALDB_LOGWRITER_MAX_BUFFER_WAIT_MS            ("localdb.logWriter.maxBufferWaitMs"),
     LOCALDB_LOGWRITER_MAX_TRIM_SIZE                 ("localdb.logWriter.maxTrimSize"),
@@ -290,6 +295,7 @@ public enum     AppProperty {
     WORDLIST_CHAR_LENGTH_MAX                        ("wordlist.maxCharLength"),
     WORDLIST_CHAR_LENGTH_MIN                        ("wordlist.minCharLength"),
     WS_REST_CLIENT_PWRULE_HALTONERROR               ("ws.restClient.pwRule.haltOnError"),
+    WS_REST_SERVER_SIGNING_FORM_TIMEOUT_SECONDS     ("ws.restServer.signing.form.timeoutSeconds"),
     ALLOW_MACRO_IN_REGEX_SETTING                    ("password.policy.allowMacroInRegexSetting"),
 
     ;

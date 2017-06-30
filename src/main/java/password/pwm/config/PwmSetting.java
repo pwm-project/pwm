@@ -1098,7 +1098,7 @@ public enum PwmSetting {
     WEBSERVICES_THIRDPARTY_QUERY_MATCH(
             "webservices.thirdParty.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.REST_SERVER),
     WEBSERVICES_EXTERNAL_SECRET(
-            "webservices.external.secret", PwmSettingSyntax.PASSWORD, PwmSettingCategory.REST_SERVER),
+            "webservices.external.secrets", PwmSettingSyntax.NAMED_SECRET, PwmSettingCategory.REST_SERVER),
 
 
     EXTERNAL_MACROS_DEST_TOKEN_URLS(
@@ -1131,9 +1131,6 @@ public enum PwmSetting {
             "recovery.require.otp", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_SETTINGS),
     HELPDESK_ENABLE_OTP_VERIFY(
             "helpdesk.otp.verify", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_BASE),
-    PWMDB_LOCATION(
-            "pwmDb.location", PwmSettingSyntax.STRING, PwmSettingCategory.GENERAL),
-
 
 
     ;

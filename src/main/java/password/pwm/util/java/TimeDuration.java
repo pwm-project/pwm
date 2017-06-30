@@ -52,7 +52,7 @@ public class TimeDuration implements Comparable, Serializable {
     public static final TimeDuration ZERO = new TimeDuration(0);
     public static final TimeDuration MILLISECOND = new TimeDuration(1, TimeUnit.MILLISECONDS);
     public static final TimeDuration SECOND = new TimeDuration(1, TimeUnit.SECONDS);
-    public static final TimeDuration SECONDS_10 = new TimeDuration(30, TimeUnit.SECONDS);
+    public static final TimeDuration SECONDS_10 = new TimeDuration(10, TimeUnit.SECONDS);
     public static final TimeDuration SECONDS_30 = new TimeDuration(30, TimeUnit.SECONDS);
     public static final TimeDuration MINUTE = new TimeDuration(1, TimeUnit.MINUTES);
     public static final TimeDuration HOUR = new TimeDuration(1, TimeUnit.HOURS);
@@ -92,8 +92,8 @@ public class TimeDuration implements Comparable, Serializable {
         return new TimeDuration(System.currentTimeMillis(), instant.toEpochMilli());
     }
 
-    public static String compactFromCurrent(final long ms) {
-        return new TimeDuration(System.currentTimeMillis(), ms).asCompactString();
+    public static String compactFromCurrent(final Instant instant) {
+        return TimeDuration.fromCurrent(instant).asCompactString();
     }
 
     public static String asCompactString(final long ms) {

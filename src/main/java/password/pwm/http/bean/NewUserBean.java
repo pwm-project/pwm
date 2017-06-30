@@ -22,16 +22,14 @@
 
 package password.pwm.http.bean;
 
-import lombok.AllArgsConstructor;
+import com.google.gson.annotations.SerializedName;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import password.pwm.bean.TokenVerificationProgress;
 import password.pwm.config.option.SessionBeanMode;
-import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.PasswordData;
+import password.pwm.http.servlet.newuser.NewUserForm;
 
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
@@ -43,49 +41,31 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 public class NewUserBean extends PwmSessionBean {
+    @SerializedName("p")
     private String profileID;
+
+    @SerializedName("f")
     private NewUserForm newUserForm;
 
+    @SerializedName("r")
     private Map<String,String> remoteInputData;
+
+    @SerializedName("ap")
     private boolean agreementPassed;
+
+    @SerializedName("fp")
     private boolean formPassed;
+
+    @SerializedName("t")
     private Instant createStartTime;
+
+    @SerializedName("u")
     private boolean urlSpecifiedProfile;
+
+    @SerializedName("v")
     private final TokenVerificationProgress tokenVerificationProgress = new TokenVerificationProgress();
 
-    @Getter
-    @AllArgsConstructor
-    public static class
-    NewUserForm implements Serializable {
-        private final Map<String,String> formData;
-        private final PasswordData newUserPassword;
-        private final PasswordData confirmPassword;
-
-        public boolean isConsistentWith(final NewUserForm otherForm) throws PwmUnrecoverableException {
-            if (otherForm == null) {
-                return false;
-            }
-
-            if (newUserPassword != null && otherForm.newUserPassword == null || newUserPassword == null && otherForm.newUserPassword != null) {
-                return false;
-            }
-
-            if (newUserPassword == null || !newUserPassword.getStringValue().equals(otherForm.newUserPassword.getStringValue())) {
-                return false;
-            }
-
-            for (final String formKey : formData.keySet()) {
-                final String value = formData.get(formKey);
-                final String otherValue = otherForm.formData.get(formKey);
-                if (value != null && !value.equals(otherValue)) {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-    }
-
+    @Override
     public Type getType() {
         return Type.PUBLIC;
     }

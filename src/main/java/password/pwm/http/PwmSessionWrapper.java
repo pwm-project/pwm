@@ -27,12 +27,13 @@ import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.TimeDuration;
+import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 public class PwmSessionWrapper {
+    private static final PwmLogger LOGGER = PwmLogger.forClass(PwmSessionWrapper.class);
 
     private transient PwmSession pwmSession;
 
@@ -49,8 +50,7 @@ public class PwmSessionWrapper {
     {
         httpSession.setAttribute(PwmConstants.SESSION_ATTR_PWM_SESSION, pwmSession);
 
-        final TimeDuration maxIdleTime = IdleTimeoutCalculator.figureMaxIdleTimeout(pwmApplication, pwmSession);
-        httpSession.setMaxInactiveInterval((int) maxIdleTime.getTotalSeconds());
+        setHttpSessionIdleTimeout(pwmApplication, pwmSession, httpSession);
     }
 
 
@@ -66,5 +66,19 @@ public class PwmSessionWrapper {
 
     public static PwmSession readPwmSession(final HttpServletRequest httpRequest) throws PwmUnrecoverableException {
         return readPwmSession(httpRequest.getSession());
+    }
+
+    public static void setHttpSessionIdleTimeout(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final HttpSession httpSession
+    ) throws PwmUnrecoverableException
+    {
+        final IdleTimeoutCalculator.MaxIdleTimeoutResult result = IdleTimeoutCalculator.figureMaxSessionTimeout(pwmApplication, pwmSession);
+        if (httpSession.getMaxInactiveInterval() != result.getIdleTimeout().getTotalSeconds()) {
+            httpSession.setMaxInactiveInterval((int) result.getIdleTimeout().getTotalSeconds());
+            LOGGER.trace(pwmSession, "setting java servlet session timeout to " + result.getIdleTimeout().asCompactString()
+                    + " due to " + result.getReason());
+        }
     }
 }

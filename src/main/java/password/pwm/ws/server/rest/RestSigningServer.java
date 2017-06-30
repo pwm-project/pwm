@@ -24,16 +24,17 @@ package password.pwm.ws.server.rest;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.config.option.WebServiceUsage;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.secure.SecureService;
-import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
-import password.pwm.ws.server.RestServerHelper;
-import password.pwm.ws.server.ServicePermissions;
+import password.pwm.ws.server.StandaloneRestHelper;
+import password.pwm.ws.server.StandaloneRestRequestBean;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -48,12 +49,6 @@ import java.util.concurrent.TimeUnit;
 
 @Path("/signing")
 public class RestSigningServer extends AbstractRestServer {
-    private static final ServicePermissions SERVICE_PERMISSIONS = ServicePermissions.builder()
-            .adminOnly(false)
-            .authRequired(false)
-            .blockExternal(false)
-            .build();
-
 
     @POST
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
@@ -65,11 +60,17 @@ public class RestSigningServer extends AbstractRestServer {
     )
             throws PwmUnrecoverableException
     {
-        final RestRequestBean restRequestBean;
+        final StandaloneRestRequestBean restRequestBean;
         try {
-            restRequestBean = RestServerHelper.initializeRestRequest(request, response, SERVICE_PERMISSIONS, null);
+            restRequestBean = StandaloneRestHelper.initialize(request);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
+        }
+
+        if (!restRequestBean.getAuthorizedUsages().contains(WebServiceUsage.SigningForm)) {
+            final String errorMsg = "request is not authenticated with permission for SigningForm";
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED, errorMsg);
+            return RestResultBean.fromError(errorInformation).asJsonResponse();
         }
 
         try {
@@ -92,11 +93,12 @@ public class RestSigningServer extends AbstractRestServer {
 
     public static Map<String,String> readSignedFormValue(final PwmApplication pwmApplication, final String input) throws PwmUnrecoverableException
     {
-        final TimeDuration MAX_FORM_AGE = new TimeDuration(5, TimeUnit.MINUTES);
+        final Integer maxAgeSeconds = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.WS_REST_SERVER_SIGNING_FORM_TIMEOUT_SECONDS));
+        final TimeDuration maxAge = new TimeDuration(maxAgeSeconds, TimeUnit.SECONDS);
         final SignedFormData signedFormData = pwmApplication.getSecureService().decryptObject(input, SignedFormData.class);
         if (signedFormData != null) {
             if (signedFormData.getTimestamp() != null) {
-                if (TimeDuration.fromCurrent(signedFormData.getTimestamp()).isLongerThan(MAX_FORM_AGE)) {
+                if (TimeDuration.fromCurrent(signedFormData.getTimestamp()).isLongerThan(maxAge)) {
                     throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SECURITY_VIOLATION,"signedForm data is too old"));
                 }
 
@@ -112,5 +114,4 @@ public class RestSigningServer extends AbstractRestServer {
         private Instant timestamp;
         private Map<String,String> formData;
     }
-
 }

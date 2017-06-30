@@ -57,7 +57,7 @@ public class RestStatusServer extends AbstractRestServer {
     @GET
     @Produces(MediaType.TEXT_HTML)
     public javax.ws.rs.core.Response doHtmlRedirect() throws URISyntaxException {
-        return RestServerHelper.doHtmlRedirect();
+        return RestServerHelper.handleHtmlRequest();
     }
 
     @GET

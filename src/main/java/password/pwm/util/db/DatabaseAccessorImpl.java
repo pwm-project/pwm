@@ -94,14 +94,18 @@ class DatabaseAccessorImpl implements DatabaseAccessor {
                 processSqlException(debugInfo, e);
             }
 
-            final String sqlText;
-            if (!exists) {
-                sqlText = "INSERT INTO " + table.toString() + "(" + DatabaseService.KEY_COLUMN + ", " + DatabaseService.VALUE_COLUMN + ") VALUES(?,?)";
+            if (exists) {
+                final String sqlText = "UPDATE " + table.toString()
+                        + " SET " + DatabaseService.VALUE_COLUMN + "=? WHERE "
+                        + DatabaseService.KEY_COLUMN + "=?";
+                executeUpdate(sqlText, debugInfo, value, key); // note the value/key are reversed for this statement
             } else {
-                sqlText = "UPDATE " + table.toString() + " SET " + DatabaseService.VALUE_COLUMN + "=? WHERE " + DatabaseService.KEY_COLUMN + "=?";
+                final String sqlText = "INSERT INTO " + table.toString()
+                        + "(" + DatabaseService.KEY_COLUMN + ", "
+                        + DatabaseService.VALUE_COLUMN + ") VALUES(?,?)";
+                executeUpdate(sqlText, debugInfo, key, value);
             }
 
-            executeUpdate(sqlText, debugInfo, key, value);
             return !exists;
         });
     }
@@ -222,7 +226,6 @@ class DatabaseAccessorImpl implements DatabaseAccessor {
 
         return execute(debugInfo, () -> {
             final String sqlStatement = "SELECT COUNT(" + DatabaseService.KEY_COLUMN + ") FROM " + table.name();
-
 
             try (PreparedStatement statement = connection.prepareStatement(sqlStatement)) {
                 try (ResultSet resultSet = statement.executeQuery()) {
@@ -404,20 +407,26 @@ class DatabaseAccessorImpl implements DatabaseAccessor {
 
     private boolean containsImpl(final DatabaseTable table, final String key) throws SQLException
     {
-        final String selectSql = "SELECT * FROM " + table.name() + " WHERE " + DatabaseService.KEY_COLUMN + " = ?";
-        try (PreparedStatement selectStatement = connection.prepareStatement(selectSql);) {
+        final String sqlStatement = "SELECT COUNT(" + DatabaseService.KEY_COLUMN + ") FROM " + table.name()
+                + " WHERE " + DatabaseService.KEY_COLUMN + " = ?";
+
+        try (PreparedStatement selectStatement = connection.prepareStatement(sqlStatement);) {
             selectStatement.setString(1, key);
             selectStatement.setMaxRows(1);
 
             try (ResultSet resultSet = selectStatement.executeQuery()) {
-                return resultSet.next();
+                if (resultSet.next()) {
+                    return resultSet.getInt(1) > 0;
+                }
             }
         }
+
+        return false;
     }
 
     private void executeUpdate(final String sqlStatement, final DatabaseUtil.DebugInfo debugInfo, final String... params) throws DatabaseException
     {
-        try (PreparedStatement statement = connection.prepareStatement(sqlStatement)){
+        try (PreparedStatement statement = connection.prepareStatement(sqlStatement) ){
             for (int i = 0; i < params.length; i++) {
                 statement.setString(i + 1, params[i]);
             }

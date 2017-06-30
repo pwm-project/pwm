@@ -30,4 +30,5 @@ public enum DatabaseTable {
     TOKENS,
     OTP,
     PW_NOTIFY,
+    CLUSTER_STATE,
 }

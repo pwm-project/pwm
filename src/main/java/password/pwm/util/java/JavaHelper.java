@@ -57,6 +57,7 @@ import java.util.TimeZone;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
@@ -348,7 +349,7 @@ public class JavaHelper {
         return new CSVPrinter(new OutputStreamWriter(outputStream,PwmConstants.DEFAULT_CHARSET), PwmConstants.DEFAULT_CSV_FORMAT);
     }
 
-    public static ExecutorService makeSingleThreadExecutorService(
+    public static ScheduledExecutorService makeSingleThreadExecutorService(
             final PwmApplication pwmApplication,
             final Class clazz
     )

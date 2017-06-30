@@ -22,13 +22,17 @@
 
 package password.pwm.http.bean;
 
+import lombok.Getter;
+import lombok.Setter;
 import password.pwm.config.option.SessionBeanMode;
 import password.pwm.error.ErrorInformation;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.Instant;
 import java.util.Set;
 
+@Getter
+@Setter
 public abstract class PwmSessionBean implements Serializable {
     public enum Type {
         PUBLIC,
@@ -36,32 +40,8 @@ public abstract class PwmSessionBean implements Serializable {
     }
 
     private String guid;
-    private Date timestamp;
+    private Instant timestamp;
     private ErrorInformation lastError;
-
-    public String getGuid() {
-        return guid;
-    }
-
-    public void setGuid(final String guid) {
-        this.guid = guid;
-    }
-
-    public Date getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(final Date timestamp) {
-        this.timestamp = timestamp;
-    }
-
-    public ErrorInformation getLastError() {
-        return lastError;
-    }
-
-    public void setLastError(final ErrorInformation lastError) {
-        this.lastError = lastError;
-    }
 
     public abstract Type getType();
 
