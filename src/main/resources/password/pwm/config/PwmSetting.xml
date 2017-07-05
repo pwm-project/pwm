@@ -799,6 +799,18 @@
             <value>{"to":"@User:Email@","from":"Delete Account Notice \u003c@DefaultEmailFromAddress@\u003e","subject":"Account Deletion Notice","bodyPlain":"Your account has been deleted at your request.","bodyHtml":""}</value>
         </default>
     </setting>
+    <setting hidden="false" key="email.helpdesk.unlock" level="1">
+        <flag>MacroSupport</flag>
+        <default>
+            <value>{"to":"@User:Email@","from":"Unlock Account Notice \u003c@DefaultEmailFromAddress@\u003e","subject":"Account Unlock Notice","bodyPlain":"Your account has been unlocked by the helpdesk.","bodyHtml":""}</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="email.unlock" level="1">
+        <flag>MacroSupport</flag>
+        <default>
+            <value>{"to":"@User:Email@","from":"Unlock Account Notice \u003c@DefaultEmailFromAddress@\u003e","subject":"Account Unlock Notice","bodyPlain":"Your account has been unlocked.","bodyHtml":""}</value>
+        </default>
+    </setting>
     <setting hidden="false" key="email.smtp.advancedSettings" level="2">
         <regex>^[a-zA-Z0-9.]+=.+$</regex>
         <default/>
@@ -2170,6 +2182,11 @@
     <setting hidden="false" key="recovery.oauth.idserver.dnAttributeName" level="2">
         <default/>
     </setting>
+    <setting hidden="false" key="recovery.oauth.idserver.usernameSendValue" level="2">
+        <flag>MacroSupport</flag>
+        <example>@LDAP:DN@</example>
+        <default/>
+    </setting>
     <setting hidden="false" key="recovery.enable" level="1">
         <default>
             <value>true</value>
@@ -2819,8 +2836,8 @@
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"title","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Title"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"telephoneNumber","minimumLength":1,"maximumLength":64,"type":"tel","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Telephone"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"telephoneNumber","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Telephone"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
     </setting>
     <setting hidden="false" key="peopleSearch.detail.form" level="1" required="true">
@@ -2850,6 +2867,7 @@
         <options>
             <option value="text">text</option>
             <option value="email">email</option>
+            <option value="tel">telephone</option>
             <option value="userDN">userDN</option>
         </options>
     </setting>
@@ -2876,7 +2894,7 @@
             <value>@LDAP:telephoneNumber@</value>
         </default>
         <properties>
-            <property key="Maximum">4</property>
+            <property key="Maximum">7</property>
         </properties>
     </setting>
     <setting hidden="false" key="peopleSearch.displayName.user" level="1" required="true">

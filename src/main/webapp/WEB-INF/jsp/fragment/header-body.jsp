@@ -58,12 +58,13 @@
                 </div>
 
                 <% if (!JspUtility.isFlag(request, PwmRequestFlag.HIDE_HEADER_BUTTONS)) { %>
-                <pwm:if test="<%=PwmIfTest.forcedPageView%>" negate="true">
                     <pwm:if test="<%=PwmIfTest.authenticated%>">
                         <pwm:if test="<%=PwmIfTest.showHome%>">
-                            <a class="header-button" href="<pwm:value name="<%=PwmValue.homeURL%>"/>" id="HomeButton">
-                                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="pwm-icon pwm-icon-home" title="<pwm:display key="Button_Home"/>"></span></pwm:if>
-                            </a>
+                            <pwm:if test="<%=PwmIfTest.forcedPageView%>" negate="true">
+                                <a class="header-button" href="<pwm:value name="<%=PwmValue.homeURL%>"/>" id="HomeButton">
+                                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="pwm-icon pwm-icon-home" title="<pwm:display key="Button_Home"/>"></span></pwm:if>
+                                </a>
+                            </pwm:if>
                         </pwm:if>
                         <pwm:if test="<%=PwmIfTest.showLogout%>">
                             <a class="header-button" href="<pwm:url url='<%=PwmServletDefinition.Logout.servletUrl()%>' addContext="true"/>" id="LogoutButton">
@@ -71,7 +72,6 @@
                             </a>
                         </pwm:if>
                     </pwm:if>
-                </pwm:if>
                 <% } %>
             </div>
         </div>

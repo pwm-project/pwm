@@ -119,7 +119,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
         {
             final String oauthRequestError = pwmRequest.readParameterAsString("error");
             if (oauthRequestError != null && !oauthRequestError.isEmpty()) {
-                final String errorMsg = "error detected from oauth request parameter: " + oauthRequestError;
+                final String errorMsg = "incoming request from remote oauth server is indicating an error: " + oauthRequestError;
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_OAUTH_ERROR, errorMsg, "Remote Error: " + oauthRequestError, null);
                 LOGGER.error(pwmSession, errorMsg);
                 pwmRequest.respondWithError(errorInformation);
@@ -163,29 +163,30 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
         final OAuthMachine oAuthMachine = new OAuthMachine(oAuthSettings);
 
         // make sure request was initiated in users current session
-        /*
         if (!oAuthRequestState.get().isSessionMatch()) {
             try{
                 switch (oAuthUseCaseCase) {
                     case Authentication:
                         LOGGER.debug(pwmSession, "oauth consumer reached but response is not for a request issued during the current session, will redirect back to oauth server for verification update");
                         final String nextURL = oauthState.getNextUrl();
-                        oAuthMachine.redirectUserToOAuthServer(pwmRequest, nextURL, null);
+                        oAuthMachine.redirectUserToOAuthServer(pwmRequest, nextURL, null, null);
                         return;
 
                     case ForgottenPassword:
                         LOGGER.debug(pwmSession, "oauth consumer reached but response is not for a request issued during the current session, will redirect back to forgotten password servlet");
                         pwmRequest.sendRedirect(PwmServletDefinition.ForgottenPassword);
                         return;
+
+                    default:
+                        Helper.unhandledSwitchStatement(oAuthUseCaseCase);
                 }
             } catch (PwmUnrecoverableException e) {
                 final String errorMsg = "unexpected error redirecting user to oauth page: " + e.toString();
-                ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_OAUTH_ERROR, errorMsg);
                 pwmRequest.setResponseError(errorInformation);
                 LOGGER.error(errorInformation.toDebugStr());
             }
         }
-        */
 
         final String requestCodeStr = pwmRequest.readParameterAsString(config.readAppProperty(AppProperty.HTTP_PARAM_OAUTH_CODE));
         LOGGER.trace(pwmSession,"received code from oauth server: " + requestCodeStr);

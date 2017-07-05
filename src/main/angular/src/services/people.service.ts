@@ -29,7 +29,6 @@ import SearchResult from '../models/search-result.model';
 
 export interface IPeopleService {
     autoComplete(query: string): IPromise<Person[]>;
-    cardSearch(query: string): IPromise<SearchResult>;
     getDirectReports(personId: string): IPromise<Person[]>;
     getNumberOfDirectReports(personId: string): IPromise<number>;
     getManagementChain(personId: string): IPromise<Person[]>;
@@ -53,26 +52,6 @@ export default class PeopleService implements IPeopleService {
                 }
 
                 return this.$q.resolve(people);
-            });
-    }
-
-    cardSearch(query: string): angular.IPromise<SearchResult> {
-        let self = this;
-
-        return this.search(query)
-            .then((searchResult: SearchResult) => {
-                let sizeExceeded = searchResult.sizeExceeded;
-
-                let peoplePromises: IPromise<Person>[] = searchResult.people.map((person: Person) => {
-                    return self.getPerson(person.userKey);
-                });
-
-                return this.$q
-                    .all(peoplePromises)
-                    .then((people: Person[]) => {
-                        let searchResult = new SearchResult({ sizeExceeded: sizeExceeded, searchResults: people });
-                        return this.$q.resolve(searchResult);
-                    });
             });
     }
 
@@ -144,7 +123,7 @@ export default class PeopleService implements IPeopleService {
     search(query: string, params?: any): IPromise<SearchResult> {
         return this.$http
             .get(
-                this.pwmService.getServerUrl('search', { 'includeDisplayName': true }),
+                this.pwmService.getServerUrl('search', params),
                 { cache: true, params: { username: query } }
             )
             .then((response) => {

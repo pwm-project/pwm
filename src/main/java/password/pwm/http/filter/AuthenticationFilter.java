@@ -555,7 +555,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
 
             final String originalURL = pwmRequest.getURLwithQueryString();
             final OAuthMachine oAuthMachine = new OAuthMachine(oauthSettings);
-            oAuthMachine.redirectUserToOAuthServer(pwmRequest, originalURL, null);
+            oAuthMachine.redirectUserToOAuthServer(pwmRequest, originalURL, null,null);
             redirected = true;
         }
 

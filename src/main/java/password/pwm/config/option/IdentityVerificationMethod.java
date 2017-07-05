@@ -31,35 +31,37 @@ import java.util.List;
 import java.util.Locale;
 
 public enum IdentityVerificationMethod implements ConfigurationOption {
-    PREVIOUS_AUTH(      false,  Display.Field_VerificationMethodPreviousAuth),
-    ATTRIBUTES(         true,   Display.Field_VerificationMethodAttributes),
-    CHALLENGE_RESPONSES(true,   Display.Field_VerificationMethodChallengeResponses),
-    TOKEN(              true,   Display.Field_VerificationMethodToken),
-    OTP(                true,   Display.Field_VerificationMethodOTP),
-    REMOTE_RESPONSES(   false,  Display.Field_VerificationMethodRemoteResponses),
-    NAAF(               true,   Display.Field_VerificationMethodNAAF),
-    OAUTH(              true,   Display.Field_VerificationMethodOAuth),
+    PREVIOUS_AUTH(      false,  Display.Field_VerificationMethodPreviousAuth,       Display.Description_VerificationMethodPreviousAuth),
+    ATTRIBUTES(         true,   Display.Field_VerificationMethodAttributes,         Display.Description_VerificationMethodAttributes),
+    CHALLENGE_RESPONSES(true,   Display.Field_VerificationMethodChallengeResponses, Display.Description_VerificationMethodChallengeResponses),
+    TOKEN(              true,   Display.Field_VerificationMethodToken,              Display.Description_VerificationMethodToken),
+    OTP(                true,   Display.Field_VerificationMethodOTP,                Display.Description_VerificationMethodOTP),
+    REMOTE_RESPONSES(   false,  Display.Field_VerificationMethodRemoteResponses,    Display.Description_VerificationMethodRemoteResponses),
+    NAAF(               true,   Display.Field_VerificationMethodNAAF,               Display.Description_VerificationMethodNAAF),
+    OAUTH(              true,   Display.Field_VerificationMethodOAuth,              Display.Description_VerificationMethodOAuth),
 
     ;
     
     private final boolean userSelectable;
-    private final Display displayKey;
+    private final Display labelKey;
+    private final Display descriptionKey;
 
-    IdentityVerificationMethod(final boolean userSelectable, final Display displayKey) {
+    IdentityVerificationMethod(final boolean userSelectable, final Display labelKey, final Display descriptionKey) {
         this.userSelectable = userSelectable;
-        this.displayKey = displayKey;
+        this.labelKey = labelKey;
+        this.descriptionKey = descriptionKey;
     }
 
     public boolean isUserSelectable() {
         return userSelectable;
     }
-    
-    public Display getDisplayKey() {
-        return displayKey;
-    }
 
     public String getLabel(final Configuration configuration, final Locale locale) {
-        return Display.getLocalizedMessage(locale, this.getDisplayKey(), configuration);
+        return Display.getLocalizedMessage(locale, this.labelKey, configuration);
+    }
+
+    public String getDescription(final Configuration configuration, final Locale locale) {
+        return Display.getLocalizedMessage(locale, this.descriptionKey, configuration);
     }
 
     public static IdentityVerificationMethod[] availableValues() {

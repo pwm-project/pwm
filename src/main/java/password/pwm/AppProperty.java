@@ -29,7 +29,7 @@ import java.util.ResourceBundle;
  * by an associated {@code AppProperty.properties} file.  Properties can be overridden by the application administrator in
  * the configuration using the setting {@link password.pwm.config.PwmSetting#APP_PROPERTY_OVERRIDES}.
  */
-public enum AppProperty {
+public enum     AppProperty {
 
     APPLICATION_FILELOCK_FILENAME                   ("application.fileLock.filename"),
     APPLICATION_FILELOCK_WAIT_SECONDS               ("application.fileLock.waitSeconds"),
@@ -215,6 +215,7 @@ public enum AppProperty {
     PEOPLESEARCH_DISPLAYNAME_USEALLMACROS           ("peoplesearch.displayName.enableAllMacros"),
     PEOPLESEARCH_MAX_VALUE_VERIFYUSERDN             ("peoplesearch.values.verifyUserDN"),
     PEOPLESEARCH_VALUE_MAXCOUNT                     ("peoplesearch.values.maxCount"),
+    PEOPLESEARCH_VIEW_DETAIL_LINKS                  ("peoplesearch.view.detail.links"),
     QUEUE_EMAIL_RETRY_TIMEOUT_MS                    ("queue.email.retryTimeoutMs"),
     QUEUE_EMAIL_MAX_AGE_MS                          ("queue.email.maxAgeMs"),
     QUEUE_EMAIL_MAX_COUNT                           ("queue.email.maxCount"),
@@ -234,6 +235,7 @@ public enum AppProperty {
     SECURITY_HTTPSSERVER_SELF_FUTURESECONDS         ("security.httpsServer.selfCert.futureSeconds"),
     SECURITY_HTTPSSERVER_SELF_ALG                   ("security.httpsServer.selfCert.alg"),
     SECURITY_HTTPSSERVER_SELF_KEY_SIZE              ("security.httpsServer.selfCert.keySize"),
+    SECURITY_LOGIN_HIDDEN_ERROR_TYPES               ("security.login.hiddenErrorTypes"),
     SECURITY_RESPONSES_HASH_ITERATIONS              ("security.responses.hashIterations"),
     SECURITY_INPUT_TRIM                             ("security.input.trim"),
     SECURITY_INPUT_PASSWORD_TRIM                    ("security.input.password.trim"),

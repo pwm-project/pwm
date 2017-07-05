@@ -20,16 +20,27 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+package password.pwm.http.servlet.peoplesearch;
 
-import { Component } from '../component';
+import java.io.Serializable;
 
-@Component({
-    bindings: {
-        icon: '@',
-        disabled: '<'
-    },
-    stylesheetUrl: require('ux/icon-button.component.scss'),
-    template: `<button type="button" ng-disabled="$ctrl.disabled"><mf-icon icon="{{$ctrl.icon}}"></mf-icon></button>`
-})
-export default class IconButtonComponent {
+class LinkReferenceBean implements Serializable {
+    private String name;
+    private String link;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(final String name) {
+        this.name = name;
+    }
+
+    public String getLink() {
+        return link;
+    }
+
+    public void setLink(final String link) {
+        this.link = link;
+    }
 }

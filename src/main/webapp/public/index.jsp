@@ -90,7 +90,7 @@
         </a>
         <% } %>
         <% if (index_pwmRequest.getConfig() != null && index_pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_ENABLE_PUBLIC)) { %>
-        <a id="Button_PeopleSearch" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.PeopleSearch.servletUrl()%>'/>">
+        <a id="Button_PeopleSearch" href="<pwm:url addContext="true" url='/public/peoplesearch'/>">
             <div class="tile">
                 <div class="tile-content">
                     <div class="tile-image pwm-icon-search"></div>

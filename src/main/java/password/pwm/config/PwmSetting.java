@@ -317,6 +317,10 @@ public enum PwmSetting {
             "email.intruderNotice", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES),
     EMAIL_DELETEACCOUNT(
             "email.deleteAccount", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES),
+    EMAIL_HELPDESK_UNLOCK(
+            "email.helpdesk.unlock", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES),
+    EMAIL_UNLOCK(
+            "email.unlock", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES),
 
     EMAIL_ADVANCED_SETTINGS(
             "email.smtp.advancedSettings", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.EMAIL_SETTINGS),
@@ -746,6 +750,8 @@ public enum PwmSetting {
             "recovery.oauth.idserver.secret", PwmSettingSyntax.PASSWORD, PwmSettingCategory.RECOVERY_OAUTH),
     RECOVERY_OAUTH_ID_DN_ATTRIBUTE_NAME(
             "recovery.oauth.idserver.dnAttributeName", PwmSettingSyntax.STRING, PwmSettingCategory.RECOVERY_OAUTH),
+    RECOVERY_OAUTH_ID_USERNAME_SEND_VALUE(
+            "recovery.oauth.idserver.usernameSendValue", PwmSettingSyntax.STRING, PwmSettingCategory.RECOVERY_OAUTH),
 
 
     // forgotten username

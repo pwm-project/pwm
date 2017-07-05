@@ -22,12 +22,14 @@
 
 package password.pwm.ldap.auth;
 
+import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.ChaiConstant;
 import com.novell.ldapchai.exception.ChaiError;
 import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ImpossiblePasswordPolicyException;
 import com.novell.ldapchai.provider.ChaiProvider;
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.LocalSessionStateBean;
@@ -36,6 +38,8 @@ import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
@@ -46,10 +50,16 @@ import password.pwm.svc.intruder.IntruderManager;
 import password.pwm.svc.intruder.RecordType;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.PasswordData;
+import password.pwm.util.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class SessionAuthenticator {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(SessionAuthenticator.class.getName());
@@ -96,9 +106,40 @@ public class SessionAuthenticator {
             postAuthenticationSequence(userIdentity, authResult);
         } catch (PwmOperationalException e) {
             postFailureSequence(e, username, userIdentity);
+
+            if (readHiddenErrorTypes().contains(e.getError())) {
+                if (Helper.determineIfDetailErrorMsgShown(pwmApplication)) {
+                    LOGGER.debug(pwmSession, "allowing error " + e.getError() + " to be returned though it is configured as a hidden type; "
+                            + "app is currently permitting detailed error messages");
+                } else {
+                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_WRONGPASSWORD);
+                    LOGGER.debug(pwmSession, "converting error from ldap " + e.getError() + " to " + PwmError.ERROR_WRONGPASSWORD
+                            + " due to app property " + AppProperty.SECURITY_LOGIN_HIDDEN_ERROR_TYPES.getKey());
+                    throw new PwmOperationalException(errorInformation);
+                }
+            }
+
             throw e;
         }
+    }
 
+    private Set<PwmError> readHiddenErrorTypes() {
+        final String appProperty = pwmApplication.getConfig().readAppProperty(AppProperty.SECURITY_LOGIN_HIDDEN_ERROR_TYPES);
+        final Set<PwmError> returnSet = new HashSet<>();
+        if (!StringUtil.isEmpty(appProperty)) {
+            try {
+                final List<Integer> configuredNumbers = JsonUtil.deserialize(appProperty, new TypeToken<List<Integer>>() {
+                });
+                for (final Integer errorCode : configuredNumbers) {
+                    final PwmError pwmError = PwmError.forErrorNumber(errorCode);
+                    returnSet.add(pwmError);
+                }
+            } catch (Exception e) {
+                LOGGER.error(pwmSession, "error parsing app property " + AppProperty.SECURITY_LOGIN_HIDDEN_ERROR_TYPES.getKey()
+                        + ", error: " + e.getMessage());
+            }
+        }
+        return returnSet;
     }
 
 

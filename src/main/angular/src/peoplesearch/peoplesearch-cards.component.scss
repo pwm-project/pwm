@@ -42,7 +42,9 @@ people-search-cards {
   &.large {
     > .people-search-component-content {
       > .person-card-list {
-        text-align: left;margin: 0;
+        text-align: start;
+        margin: 0;
+
         > person-card {
           display: inline-block;
           margin-right: 5px;
@@ -63,6 +65,21 @@ people-search-cards {
 
         &:not(:last-child) {
           margin-bottom: 5px;
+        }
+      }
+    }
+  }
+}
+
+[dir="rtl"] {
+  people-search-cards {
+    &.large {
+      > .people-search-component-content {
+        .person-card-list {
+          > person-card {
+            margin-right: auto;
+            margin-left: 5px;
+          }
         }
       }
     }

@@ -63,7 +63,6 @@ import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ForgottenPasswordBean;
 import password.pwm.http.filter.AuthenticationFilter;
 import password.pwm.http.servlet.AbstractPwmServlet;
-import password.pwm.util.CaptchaUtility;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.http.servlet.oauth.OAuthForgottenPasswordResults;
 import password.pwm.http.servlet.oauth.OAuthMachine;
@@ -85,6 +84,7 @@ import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.svc.token.TokenPayload;
 import password.pwm.svc.token.TokenService;
 import password.pwm.svc.token.TokenType;
+import password.pwm.util.CaptchaUtility;
 import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.PasswordData;
@@ -922,6 +922,8 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
             final UserInfoBean userInfoBean = readUserInfoBean(pwmRequest, forgottenPasswordBean);
             pwmApplication.getAuditManager().submit(AuditEvent.UNLOCK_PASSWORD, userInfoBean, pwmSession);
 
+            sendUnlockNoticeEmail(pwmRequest, forgottenPasswordBean);
+
             pwmRequest.getPwmResponse().forwardToSuccessPage(Message.Success_UnlockAccount);
         } catch (ChaiOperationException e) {
             final String errorMsg = "unable to unlock user " + userIdentity + " error: " + e.getMessage();
@@ -1680,7 +1682,8 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
                 final OAuthSettings oAuthSettings = OAuthSettings.forForgottenPassword(forgottenPasswordProfile);
                 final OAuthMachine oAuthMachine = new OAuthMachine(oAuthSettings);
                 pwmRequest.getPwmApplication().getSessionStateService().saveSessionBeans(pwmRequest);
-                oAuthMachine.redirectUserToOAuthServer(pwmRequest, null, forgottenPasswordProfile.getIdentifier());
+                final UserIdentity userIdentity = forgottenPasswordBean.getUserIdentity();
+                oAuthMachine.redirectUserToOAuthServer(pwmRequest, null, userIdentity, forgottenPasswordProfile.getIdentifier());
                 break;
 
 
@@ -1784,6 +1787,39 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
         }
 
         return responseSet;
+    }
+
+    private static void sendUnlockNoticeEmail(
+            final PwmRequest pwmRequest,
+            final ForgottenPasswordBean forgottenPasswordBean
+    )
+            throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
+    {
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final Configuration config = pwmRequest.getConfig();
+        final Locale locale = pwmRequest.getLocale();
+        final UserIdentity userIdentity = forgottenPasswordBean.getUserIdentity();
+        final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_UNLOCK, locale);
+
+        if (configuredEmailSetting == null) {
+            LOGGER.debug(pwmRequest, "skipping send unlock notice email for '" + userIdentity + "' no email configured");
+            return;
+        }
+
+        final UserInfoBean userInfoBean = readUserInfoBean(pwmRequest, forgottenPasswordBean);
+        final MacroMachine macroMachine = new MacroMachine(
+                pwmApplication,
+                pwmRequest.getSessionLabel(),
+                userInfoBean,
+                null,
+                LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity)
+        );
+
+        pwmApplication.getEmailQueue().submitEmail(
+                configuredEmailSetting,
+                userInfoBean,
+                macroMachine
+        );
     }
 }
 

@@ -818,9 +818,9 @@ PWM_CFGEDIT.displaySettingsCategory = function(category) {
     }
     var htmlSettingBody = '';
 
-    if (category == 'LDAP_PROFILE') {
+    if (category == 'LDAP_BASE') {
         htmlSettingBody += '<div style="width: 100%; text-align: center">'
-            + '<button class="btn" id="button-test-LDAP_PROFILE"><span class="btn-icon pwm-icon pwm-icon-bolt"></span>Test LDAP Profile</button>'
+            + '<button class="btn" id="button-test-LDAP_BASE"><span class="btn-icon pwm-icon pwm-icon-bolt"></span>Test LDAP Profile</button>'
             + '</div>';
     } else if (category == 'DATABASE_SETTINGS') {
         htmlSettingBody += '<div style="width: 100%; text-align: center">'
@@ -853,7 +853,7 @@ PWM_CFGEDIT.displaySettingsCategory = function(category) {
         })(loopSetting);
     }
     if (category == 'LDAP_BASE') {
-        PWM_MAIN.addEventHandler('button-test-LDAP_PROFILE', 'click', function(){PWM_CFGEDIT.ldapHealthCheck();});
+        PWM_MAIN.addEventHandler('button-test-LDAP_BASE', 'click', function(){PWM_CFGEDIT.ldapHealthCheck();});
     } else if (category == 'DATABASE_SETTINGS') {
         PWM_MAIN.addEventHandler('button-test-DATABASE_SETTINGS', 'click', function(){PWM_CFGEDIT.databaseHealthCheck();});
     } else if (category == 'SMS_GATEWAY') {

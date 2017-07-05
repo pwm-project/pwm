@@ -21,6 +21,11 @@
  */
 
 
+.detail-link {
+  text-align: center;
+  width:100%;
+}
+
 .person-details {
   mf-app-bar {
     padding: 0 5px;
@@ -41,15 +46,16 @@
           font-size: 12px;
           height: 19px;
           padding: 3px 5px;
-          text-align: left;
+          text-align: start;
 
           &:first-child {
             color: #949494;
-            text-align: right;
+            text-align: end;
             padding: 3px 15px;
           }
 
           &:last-child {
+
             > .detail-container {
               a {
                 cursor: pointer;
@@ -92,4 +98,3 @@
     }
   }
 }
-

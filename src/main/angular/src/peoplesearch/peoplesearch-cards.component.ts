@@ -22,10 +22,12 @@
 
 
 import { Component } from '../component';
+import ElementSizeService from '../ux/element-size.service';
+import { IAugmentedJQuery, IQService, IScope } from 'angular';
 import IPeopleService from '../services/people.service';
 import PeopleSearchBaseComponent from './peoplesearch-base.component';
-import { IAugmentedJQuery, IScope } from 'angular';
-import ElementSizeService from '../ux/element-size.service';
+import Person from '../models/person.model';
+import SearchResult from '../models/search-result.model';
 
 export enum PeopleSearchCardsSize {
     Small = 0,
@@ -40,6 +42,7 @@ export enum PeopleSearchCardsSize {
 export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponent {
     static $inject = [
         '$element',
+        '$q',
         '$scope',
         '$state',
         '$stateParams',
@@ -48,13 +51,14 @@ export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponen
         'PeopleService'
     ];
     constructor(private $element: IAugmentedJQuery,
+                $q: IQService,
                 $scope: IScope,
                 $state: angular.ui.IStateService,
                 $stateParams: angular.ui.IStateParamsService,
                 $translate: angular.translate.ITranslateService,
                 private elementSizeService: ElementSizeService,
                 peopleService: IPeopleService) {
-        super($scope, $state, $stateParams, $translate, peopleService);
+        super($q, $scope, $state, $stateParams, $translate, peopleService);
     }
 
     $onDestroy(): void {
@@ -62,11 +66,43 @@ export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponen
     }
 
     $onInit(): void {
-        this.initialize(this.peopleService.cardSearch);
+        this.initialize();
+        this.fetchData();
+
         this.elementSizeService.watchWidth(this.$element, PeopleSearchCardsSize);
     }
 
     gotoTableView() {
         this.gotoState('search.table');
+    }
+
+    fetchData() {
+        let searchResult = this.fetchSearchData();
+        if (searchResult) {
+            searchResult.then(this.onSearchResult.bind(this));
+        }
+    }
+
+    private onSearchResult(searchResult: SearchResult): void {
+        this.searchResult = new SearchResult({
+            sizeExceeded: searchResult.sizeExceeded,
+            searchResults: []
+        });
+
+        let self = this;
+
+        searchResult.people.forEach(
+            (person: Person) => {
+                this.peopleService
+                    .getPerson(person.userKey)
+                    .then((person: Person) => {
+                        // searchResult may be overwritten by ESC->[LETTER] typed in after a search
+                        // has started but before all calls to peopleService.getPerson have resolved
+                        if (self.searchResult) {
+                            self.searchResult.people.push(person);
+                        }
+                    });
+            },
+            this);
     }
 }

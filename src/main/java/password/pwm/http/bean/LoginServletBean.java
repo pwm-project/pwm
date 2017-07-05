@@ -20,16 +20,35 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+package password.pwm.http.bean;
 
-import { Component } from '../component';
+import com.google.gson.annotations.SerializedName;
+import password.pwm.config.option.SessionBeanMode;
 
-@Component({
-    bindings: {
-        icon: '@',
-        disabled: '<'
-    },
-    stylesheetUrl: require('ux/icon-button.component.scss'),
-    template: `<button type="button" ng-disabled="$ctrl.disabled"><mf-icon icon="{{$ctrl.icon}}"></mf-icon></button>`
-})
-export default class IconButtonComponent {
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
+public class LoginServletBean extends PwmSessionBean {
+    @SerializedName("n")
+    private String nextUrl;
+
+    public String getNextUrl() {
+        return nextUrl;
+    }
+
+    public void setNextUrl(final String nextUrl) {
+        this.nextUrl = nextUrl;
+    }
+
+    public Type getType() {
+        return Type.PUBLIC;
+    }
+
+    @Override
+    public Set<SessionBeanMode> supportedModes() {
+        return Collections.unmodifiableSet(new HashSet<>(Arrays.asList(SessionBeanMode.LOCAL, SessionBeanMode.CRYPTCOOKIE)));
+    }
+
 }
