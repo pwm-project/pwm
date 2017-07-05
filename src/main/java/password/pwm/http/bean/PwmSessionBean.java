@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,12 +22,17 @@
 
 package password.pwm.http.bean;
 
+import lombok.Getter;
+import lombok.Setter;
 import password.pwm.config.option.SessionBeanMode;
+import password.pwm.error.ErrorInformation;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.Instant;
 import java.util.Set;
 
+@Getter
+@Setter
 public abstract class PwmSessionBean implements Serializable {
     public enum Type {
         PUBLIC,
@@ -35,23 +40,8 @@ public abstract class PwmSessionBean implements Serializable {
     }
 
     private String guid;
-    private Date timestamp;
-
-    public String getGuid() {
-        return guid;
-    }
-
-    public void setGuid(final String guid) {
-        this.guid = guid;
-    }
-
-    public Date getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(final Date timestamp) {
-        this.timestamp = timestamp;
-    }
+    private Instant timestamp;
+    private ErrorInformation lastError;
 
     public abstract Type getType();
 

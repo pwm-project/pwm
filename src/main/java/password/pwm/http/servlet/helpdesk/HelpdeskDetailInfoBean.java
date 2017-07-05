@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,27 +22,135 @@
 
 package password.pwm.http.servlet.helpdesk;
 
-import password.pwm.bean.UserInfoBean;
+import com.novell.ldapchai.ChaiUser;
+import com.novell.ldapchai.exception.ChaiUnavailableException;
+import password.pwm.bean.UserIdentity;
+import password.pwm.ldap.UserInfo;
+import password.pwm.ldap.UserInfoBean;
 import password.pwm.config.FormConfiguration;
+import password.pwm.config.FormUtility;
+import password.pwm.config.PwmSetting;
+import password.pwm.config.profile.HelpdeskProfile;
+import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.PwmRequest;
+import password.pwm.i18n.Display;
+import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.event.UserAuditRecord;
+import password.pwm.util.LocaleHelper;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.TimeDuration;
+import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.macro.MacroMachine;
 
+import javax.servlet.ServletException;
+import java.io.IOException;
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class HelpdeskDetailInfoBean implements Serializable {
-    private UserInfoBean userInfoBean = new UserInfoBean();
+    private static final PwmLogger LOGGER = PwmLogger.forClass(HelpdeskDetailInfoBean.class);
+
+
+    private UserInfo userInfo = UserInfoBean.builder().build();
     private String userDisplayName;
 
     private boolean intruderLocked;
     private boolean accountEnabled;
     private boolean accountExpired;
 
-    private Date lastLoginTime;
+    private Instant lastLoginTime;
     private List<UserAuditRecord> userHistory;
     private Map<FormConfiguration, List<String>> searchDetails;
     private String passwordSetDelta;
+
+    static HelpdeskDetailInfoBean makeHelpdeskDetailInfo(
+            final PwmRequest pwmRequest,
+            final HelpdeskProfile helpdeskProfile,
+            final UserIdentity userIdentity
+    )
+            throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
+    {
+        final Instant startTime = Instant.now();
+        LOGGER.trace(pwmRequest, "beginning to assemble detail data report for user " + userIdentity);
+        final Locale actorLocale = pwmRequest.getLocale();
+        final ChaiUser theUser = HelpdeskServlet.getChaiUser(pwmRequest, helpdeskProfile, userIdentity);
+
+        if (!theUser.isValid()) {
+            return null;
+        }
+
+        final HelpdeskDetailInfoBean detailInfo = new HelpdeskDetailInfoBean();
+        final UserInfo userInfo = UserInfoFactory.newUserInfo(
+                pwmRequest.getPwmApplication(),
+                pwmRequest.getSessionLabel(),
+                actorLocale,
+                userIdentity,
+                theUser.getChaiProvider()
+        );
+        detailInfo.setUserInfo(userInfo);
+
+        try {
+            detailInfo.setIntruderLocked(theUser.isPasswordLocked());
+        } catch (Exception e) {
+            LOGGER.error(pwmRequest, "unexpected error reading intruder lock status for user '" + userIdentity + "', " + e.getMessage());
+        }
+
+        try {
+            detailInfo.setAccountEnabled(theUser.isAccountEnabled());
+        } catch (Exception e) {
+            LOGGER.error(pwmRequest, "unexpected error reading account enabled status for user '" + userIdentity + "', " + e.getMessage());
+        }
+
+        try {
+            detailInfo.setAccountExpired(theUser.isAccountExpired());
+        } catch (Exception e) {
+            LOGGER.error(pwmRequest, "unexpected error reading account expired status for user '" + userIdentity + "', " + e.getMessage());
+        }
+
+        try {
+            final Date lastLoginTime = theUser.readLastLoginTime();
+            detailInfo.setLastLoginTime(lastLoginTime == null ? null : lastLoginTime.toInstant());
+        } catch (Exception e) {
+            LOGGER.error(pwmRequest, "unexpected error reading last login time for user '" + userIdentity + "', " + e.getMessage());
+        }
+
+        try {
+            detailInfo.setUserHistory(pwmRequest.getPwmApplication().getAuditManager().readUserHistory(detailInfo.getUserInfo()));
+        } catch (Exception e) {
+            LOGGER.error(pwmRequest, "unexpected error reading userHistory for user '" + userIdentity + "', " + e.getMessage());
+        }
+
+        if (detailInfo.getUserInfo().getPasswordLastModifiedTime() != null) {
+            final TimeDuration passwordSetDelta = TimeDuration.fromCurrent(detailInfo.getUserInfo().getPasswordLastModifiedTime());
+            detailInfo.setPasswordSetDelta(passwordSetDelta.asLongString(pwmRequest.getLocale()));
+        } else {
+            detailInfo.setPasswordSetDelta(LocaleHelper.getLocalizedMessage(Display.Value_NotApplicable, pwmRequest));
+        }
+
+        {
+            final List<FormConfiguration> detailFormConfig = helpdeskProfile.readSettingAsForm(PwmSetting.HELPDESK_DETAIL_FORM);
+            final Map<FormConfiguration,List<String>> formData = FormUtility.populateFormMapFromLdap(detailFormConfig, pwmRequest.getPwmSession().getLabel(), userInfo);
+            detailInfo.setSearchDetails(formData);
+        }
+
+        final String configuredDisplayName = helpdeskProfile.readSettingAsString(PwmSetting.HELPDESK_DETAIL_DISPLAY_NAME);
+        if (configuredDisplayName != null && !configuredDisplayName.isEmpty()) {
+            final MacroMachine macroMachine = new MacroMachine(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), detailInfo.getUserInfo(), null);
+            final String displayName = macroMachine.expandMacros(configuredDisplayName);
+            detailInfo.setUserDisplayName(displayName);
+        }
+
+        final TimeDuration timeDuration = TimeDuration.fromCurrent(startTime);
+        if (pwmRequest.getConfig().isDevDebugMode()) {
+            LOGGER.trace(pwmRequest, "completed assembly of detail data report for user " + userIdentity
+                    + " in " + timeDuration.asCompactString() + ", contents: " + JsonUtil.serialize(detailInfo));
+        }
+        return detailInfo;
+    }
 
     public String getUserDisplayName() {
         return userDisplayName;
@@ -52,12 +160,12 @@ public class HelpdeskDetailInfoBean implements Serializable {
         this.userDisplayName = userDisplayName;
     }
 
-    public UserInfoBean getUserInfoBean() {
-        return userInfoBean;
+    public UserInfo getUserInfo() {
+        return userInfo;
     }
 
-    public void setUserInfoBean(final UserInfoBean userInfoBean) {
-        this.userInfoBean = userInfoBean;
+    public void setUserInfo(final UserInfo userInfo) {
+        this.userInfo = userInfo;
     }
 
     public boolean isIntruderLocked() {
@@ -76,11 +184,11 @@ public class HelpdeskDetailInfoBean implements Serializable {
         this.accountEnabled = accountEnabled;
     }
 
-    public Date getLastLoginTime() {
+    public Instant getLastLoginTime() {
         return lastLoginTime;
     }
 
-    public void setLastLoginTime(final Date lastLoginTime) {
+    public void setLastLoginTime(final Instant lastLoginTime) {
         this.lastLoginTime = lastLoginTime;
     }
 

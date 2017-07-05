@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,6 +56,7 @@ import password.pwm.health.HealthStatus;
 import password.pwm.health.HealthTopic;
 import password.pwm.health.LDAPStatusChecker;
 import password.pwm.http.HttpMethod;
+import password.pwm.http.JspUrl;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
@@ -65,12 +66,12 @@ import password.pwm.http.servlet.configmanager.ConfigManagerServlet;
 import password.pwm.i18n.Message;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.ldap.LdapBrowser;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
 import password.pwm.util.PasswordData;
-import password.pwm.util.StringUtil;
-import password.pwm.util.TimeDuration;
 import password.pwm.util.Validator;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.queue.SmsQueueManager;
@@ -83,10 +84,10 @@ import javax.servlet.annotation.WebServlet;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -97,6 +98,7 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
 
 @WebServlet(
         name = "ConfigEditorServlet",
@@ -251,12 +253,12 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
                     return;
 
                 default:
-                    Helper.unhandledSwitchStatement(action);
+                    JavaHelper.unhandledSwitchStatement(action);
             }
         }
 
         if (!pwmRequest.getPwmResponse().isCommitted()) {
-            pwmRequest.forwardToJsp(PwmConstants.JspUrl.CONFIG_MANAGER_EDITOR);
+            pwmRequest.forwardToJsp(JspUrl.CONFIG_MANAGER_EDITOR);
         }
     }
 
@@ -402,7 +404,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         final PwmSetting setting = PwmSetting.forKey(key);
         final LinkedHashMap<String, Object> returnMap = new LinkedHashMap<>();
         final UserIdentity loggedInUser = pwmRequest.getPwmSession().isAuthenticated()
-                ? pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity()
+                ? pwmRequest.getPwmSession().getUserInfo().getUserIdentity()
                 : null;
 
         if (key.startsWith("localeBundle")) {
@@ -529,7 +531,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
             throws IOException, PwmUnrecoverableException {
         {
             final String updateDescriptionTextCmd = pwmRequest.readParameterAsString("updateNotesText");
-            if (updateDescriptionTextCmd != null && updateDescriptionTextCmd.equalsIgnoreCase("true")) {
+            if (updateDescriptionTextCmd != null && "true".equalsIgnoreCase(updateDescriptionTextCmd)) {
                 try {
                     final String bodyString = pwmRequest.readRequestBodyAsString();
                     final String value = JsonUtil.deserialize(bodyString, String.class);
@@ -595,34 +597,44 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
     )
             throws IOException, PwmUnrecoverableException
     {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         final String bodyData = pwmRequest.readRequestBodyAsString();
         final Map<String, String> valueMap = JsonUtil.deserializeStringMap(bodyData);
         final Locale locale = pwmRequest.getLocale();
         final RestResultBean restResultBean = new RestResultBean();
         final String searchTerm = valueMap.get("search");
+        final StoredConfigurationImpl storedConfiguration = configManagerBean.getStoredConfiguration();
 
         if (searchTerm != null && !searchTerm.isEmpty()) {
             final ArrayList<StoredConfigurationImpl.ConfigRecordID> searchResults = new ArrayList<>(configManagerBean.getStoredConfiguration().search(searchTerm, locale));
-            final TreeMap<String, Map<String, SearchResultItem>> returnData = new TreeMap<>();
+            final ConcurrentHashMap<String, Map<String, SearchResultItem>> returnData = new ConcurrentHashMap<>();
 
-            searchResults.stream().filter(recordID -> recordID.getRecordType() == StoredConfigurationImpl.ConfigRecordID.RecordType.SETTING).forEach(recordID -> {
-                final PwmSetting setting = (PwmSetting) recordID.getRecordID();
-                final SearchResultItem item = new SearchResultItem(
-                        setting.getCategory().toString(),
-                        configManagerBean.getStoredConfiguration().readSetting(setting, recordID.getProfileID()).toDebugString(pwmRequest.getLocale()),
-                        setting.getCategory().toMenuLocationDebug(recordID.getProfileID(), locale),
-                        configManagerBean.getStoredConfiguration().isDefaultValue(setting, recordID.getProfileID()),
-                        recordID.getProfileID()
-                );
+            searchResults
+                    .parallelStream()
+                    .filter(recordID -> recordID.getRecordType() == StoredConfigurationImpl.ConfigRecordID.RecordType.SETTING)
+                    .forEach(recordID -> {
+                        final PwmSetting setting = (PwmSetting) recordID.getRecordID();
+                        final SearchResultItem item = new SearchResultItem(
+                                setting.getCategory().toString(),
+                                storedConfiguration.readSetting(setting, recordID.getProfileID()).toDebugString(locale),
+                                setting.getCategory().toMenuLocationDebug(recordID.getProfileID(), locale),
+                                storedConfiguration.isDefaultValue(setting, recordID.getProfileID()),
+                                recordID.getProfileID()
+                        );
+                        final String returnCategory = item.getNavigation();
 
-                final String returnCategory = item.getNavigation();
-                if (!returnData.containsKey(returnCategory)) {
-                    returnData.put(returnCategory, new LinkedHashMap<>());
-                }
 
-                returnData.get(returnCategory).put(setting.getKey(), item);
-            });
+                        if (!returnData.containsKey(returnCategory)) {
+                            returnData.put(returnCategory, new ConcurrentHashMap<>());
+                        }
+
+                        returnData.get(returnCategory).put(setting.getKey(), item);
+                    });
+
+            final TreeMap<String, Map<String, SearchResultItem>> outputMap = new TreeMap<>();
+            for (final String key : returnData.keySet()) {
+                outputMap.put(key, new TreeMap<>(returnData.get(key)));
+            }
 
             restResultBean.setData(returnData);
             LOGGER.trace(pwmRequest, "finished search operation with " + returnData.size() + " results in " + TimeDuration.fromCurrent(startTime).asCompactString());
@@ -633,14 +645,13 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         pwmRequest.outputJsonResult(restResultBean);
     }
 
-
     private void restLdapHealthCheck(
             final PwmRequest pwmRequest,
             final ConfigManagerBean configManagerBean
     )
             throws IOException, PwmUnrecoverableException
     {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         LOGGER.debug(pwmRequest, "beginning restLdapHealthCheck");
         final String profileID = pwmRequest.readParameterAsString("profile");
         final Configuration config = new Configuration(configManagerBean.getStoredConfiguration());
@@ -657,10 +668,10 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
             final ConfigManagerBean configManagerBean
     )
             throws IOException, PwmUnrecoverableException {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         LOGGER.debug(pwmRequest, "beginning restDatabaseHealthCheck");
         final Configuration config = new Configuration(configManagerBean.getStoredConfiguration());
-        final List<HealthRecord> healthRecords = DatabaseStatusChecker.checkNewDatabaseStatus(config);
+        final List<HealthRecord> healthRecords = DatabaseStatusChecker.checkNewDatabaseStatus(pwmRequest.getPwmApplication(), config);
         final HealthData healthData = HealthRecord.asHealthDataBean(config, pwmRequest.getLocale(), healthRecords);
         final RestResultBean restResultBean = new RestResultBean();
         restResultBean.setData(healthData);
@@ -673,7 +684,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
             final ConfigManagerBean configManagerBean
     )
             throws IOException, PwmUnrecoverableException {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         LOGGER.debug(pwmRequest, "beginning restSmsHealthCheck");
 
         final List<HealthRecord> returnRecords = new ArrayList<>();
@@ -745,7 +756,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         final FileValue fileValue = readFileUploadToSettingValue(pwmRequest, maxFileSize);
         if (fileValue != null) {
             final UserIdentity userIdentity = pwmRequest.isAuthenticated()
-                    ? pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity()
+                    ? pwmRequest.getPwmSession().getUserInfo().getUserIdentity()
                     : null;
 
             configManagerBean.getStoredConfiguration().writeSetting(setting, fileValue, userIdentity);
@@ -795,10 +806,10 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
     )
             throws IOException, PwmUnrecoverableException
     {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
 
         final ArrayList<NavTreeItem> navigationData = new ArrayList<>();
-        final Map<String,Object> inputParameters = pwmRequest.readBodyAsJsonMap(false);
+        final Map<String,Object> inputParameters = pwmRequest.readBodyAsJsonMap(PwmHttpRequestWrapper.Flag.BypassValidation);
         final boolean modifiedSettingsOnly = (boolean)inputParameters.get("modifiedSettingsOnly");
         final double level = (double)inputParameters.get("level");
         final String filterText = (String)inputParameters.get("text");
@@ -938,7 +949,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
     private void restBrowseLdap(final PwmRequest pwmRequest, final ConfigManagerBean configManagerBean)
             throws IOException, ServletException, PwmUnrecoverableException
     {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         final Map<String, String> inputMap = pwmRequest.readBodyAsJsonStringMap(PwmHttpRequestWrapper.Flag.BypassValidation);
         final String profile = inputMap.get("profile");
         final String dn = inputMap.containsKey("dn") ? inputMap.get("dn") : "";

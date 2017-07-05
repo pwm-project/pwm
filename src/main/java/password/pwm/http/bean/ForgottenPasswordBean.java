@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@ import password.pwm.config.option.SessionBeanMode;
 
 import java.io.Serializable;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -46,9 +46,6 @@ public class ForgottenPasswordBean extends PwmSessionBean {
 
     @SerializedName("u")
     private UserIdentity userIdentity;
-
-    //@SerializedName("t")
-    //private ResponseSet responseSet;
 
     @SerializedName("pc")
     private ChallengeSet presentableChallengeSet;
@@ -91,18 +88,6 @@ public class ForgottenPasswordBean extends PwmSessionBean {
     {
         return progress;
     }
-
-    /*
-    public ResponseSet getResponseSet()
-    {
-        return responseSet;
-    }
-
-    public void setResponseSet(final ResponseSet responseSet)
-    {
-        this.responseSet = responseSet;
-    }
-    */
 
     public ChallengeSet getPresentableChallengeSet()
     {
@@ -147,7 +132,7 @@ public class ForgottenPasswordBean extends PwmSessionBean {
         private boolean allPassed;
 
         @SerializedName("m")
-        private final Set<IdentityVerificationMethod> satisfiedMethods = new HashSet<>();
+        private final Set<IdentityVerificationMethod> satisfiedMethods = new LinkedHashSet<>();
 
         @SerializedName("c")
         private MessageSendMethod tokenSendChoice;
@@ -158,7 +143,6 @@ public class ForgottenPasswordBean extends PwmSessionBean {
         @SerializedName("i")
         private IdentityVerificationMethod inProgressVerificationMethod;
 
-        private transient VerificationMethodSystem naafRecoveryMethod;
         private transient VerificationMethodSystem remoteRecoveryMethod;
 
         public Set<IdentityVerificationMethod> getSatisfiedMethods() {
@@ -213,20 +197,18 @@ public class ForgottenPasswordBean extends PwmSessionBean {
             this.inProgressVerificationMethod = inProgressVerificationMethod;
         }
 
-        public void setNaafRecoveryMethod(final VerificationMethodSystem naafRecoveryMethod) {
-            this.naafRecoveryMethod = naafRecoveryMethod;
-        }
-
-        public VerificationMethodSystem getNaafRecoveryMethod() {
-            return naafRecoveryMethod;
-        }
-
         public VerificationMethodSystem getRemoteRecoveryMethod() {
             return remoteRecoveryMethod;
         }
 
         public void setRemoteRecoveryMethod(final VerificationMethodSystem remoteRecoveryMethod) {
             this.remoteRecoveryMethod = remoteRecoveryMethod;
+        }
+
+        public void clearTokenSentStatus() {
+            this.setTokenSent(false);
+            this.setTokenSentAddress(null);
+            this.setTokenSendChoice(null);
         }
     }
 

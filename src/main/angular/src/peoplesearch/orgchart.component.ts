@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@
 import { Component } from '../component';
 import { element, IAugmentedJQuery, IFilterService, IScope, IWindowService } from 'angular';
 import ElementSizeService from '../ux/element-size.service';
-import Person from '../models/person.model';
+import { IPerson } from '../models/person.model';
 
 export enum OrgChartSize {
     ExtraSmall = 0,
@@ -38,29 +38,22 @@ export enum OrgChartSize {
     bindings: {
         directReports: '<',
         managementChain: '<',
-        person: '<'
+        person: '<',
+        showImages: '<'
     },
     stylesheetUrl: require('peoplesearch/orgchart.component.scss'),
     templateUrl: require('peoplesearch/orgchart.component.html')
 })
 export default class OrgChartComponent {
-    directReports: Person[];
+    directReports: IPerson[];
     elementWidth: number;
     isExtraLargeLayout: boolean;
-    managementChain: Person[];
-    person: Person;
-
-    emptyPerson: Person = new Person({
-        displayNames: [
-            'No Managers'
-        ],
-        photoURL: null,
-        userKey: null
-    });
+    managementChain: IPerson[];
+    person: IPerson;
 
     private elementSize: OrgChartSize = OrgChartSize.ExtraSmall;
     private maxVisibleManagers: number;
-    private visibleManagers: Person[];
+    private visibleManagers: IPerson[];
 
     static $inject = [ '$element', '$filter', '$scope', '$state', '$window', 'MfElementSizeService' ];
     constructor(
@@ -95,7 +88,7 @@ export default class OrgChartComponent {
         return this.isExtraLargeLayout ? 'small' : 'normal';
     }
 
-    getManagementChain(): Person[] {
+    getManagementChain(): IPerson[] {
         // Display managers in a row
         if (this.isExtraLargeLayout) {
             // All managers can fit on screen
@@ -110,7 +103,7 @@ export default class OrgChartComponent {
                 this.visibleManagers = this.managementChain.slice(0, this.maxVisibleManagers - 1);
                 const lastManager = this.managementChain[this.maxVisibleManagers - 2];
 
-                this.visibleManagers.push(new Person({
+                this.visibleManagers.push(<IPerson>({
                     userKey: lastManager.userKey,
                     photoURL: null,
                     displayNames: []
@@ -132,10 +125,6 @@ export default class OrgChartComponent {
         return this.managementChain && !!this.managementChain.length;
     }
 
-    isPersonOrphan(): boolean {
-        return !(this.hasDirectReports() || this.hasManagementChain());
-    }
-
     onClickPerson(): void {
         if (this.person) {
             this.$state.go('orgchart.search.details', { personId: this.person.userKey });
@@ -154,7 +143,9 @@ export default class OrgChartComponent {
 
     private onResize(newValue: number): void {
         this.isExtraLargeLayout = (newValue >= OrgChartSize.ExtraLarge);
-
+        if (!this.isExtraLargeLayout) {
+            this.resetManagerList();
+        }
         this.maxVisibleManagers = Math.floor(
          (newValue - 115 /* left margin */) / 125 /* card width + right margin */);
     }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,8 +36,8 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Message;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
@@ -53,7 +53,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.Serializable;
 import java.net.URISyntaxException;
-import java.util.Date;
+import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,7 +61,7 @@ import java.util.Map;
 @Path("/verifyresponses")
 public class RestVerifyResponsesServer extends AbstractRestServer {
     private static final PwmLogger LOGGER = PwmLogger.forClass(RestVerifyResponsesServer.class);
-    
+
     public static class JsonPutChallengesInput implements Serializable {
         public List<ChallengeBean> challenges;
         public String username;
@@ -90,7 +90,7 @@ public class RestVerifyResponsesServer extends AbstractRestServer {
     @GET
     @Produces(MediaType.TEXT_HTML)
     public Response doHtmlRedirect() throws URISyntaxException {
-        return RestServerHelper.doHtmlRedirect();
+        return RestServerHelper.handleHtmlRequest();
     }
 
     @POST
@@ -100,13 +100,15 @@ public class RestVerifyResponsesServer extends AbstractRestServer {
             final JsonPutChallengesInput jsonInput
     )
     {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         final RestRequestBean restRequestBean;
         try {
-            final ServicePermissions servicePermissions = new ServicePermissions();
-            servicePermissions.setAdminOnly(false);
-            servicePermissions.setAuthRequired(true);
-            servicePermissions.setBlockExternal(true);
+            final ServicePermissions servicePermissions = ServicePermissions.builder()
+                    .adminOnly(false)
+                    .authRequired(true)
+                    .blockExternal(true)
+                    .build();
+
             restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, jsonInput.username);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
@@ -114,7 +116,7 @@ public class RestVerifyResponsesServer extends AbstractRestServer {
 
         LOGGER.debug(restRequestBean.getPwmSession(),"beginning /verifyresponses REST service against "
                 + (restRequestBean.getUserIdentity() == null ? "self" : restRequestBean.getUserIdentity().toDisplayString()));
-        
+
         try {
             if (!restRequestBean.getPwmSession().getSessionManager().checkPermission(restRequestBean.getPwmApplication(), Permission.CHANGE_PASSWORD)) {
                 throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"actor does not have required permission"));

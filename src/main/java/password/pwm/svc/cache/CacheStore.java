@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,12 +24,14 @@ package password.pwm.svc.cache;
 
 import password.pwm.error.PwmUnrecoverableException;
 
-import java.util.Date;
+import java.time.Instant;
 
 public interface CacheStore {
-    void store(CacheKey cacheKey, Date expirationDate, String data) throws PwmUnrecoverableException;
+    void store(CacheKey cacheKey, Instant expirationDate, String data) throws PwmUnrecoverableException;
     
     String read(CacheKey cacheKey) throws PwmUnrecoverableException;
     
     CacheStoreInfo getCacheStoreInfo();
+
+    int itemCount();
 }

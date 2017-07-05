@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -133,9 +133,14 @@ html {
     padding:4px;
 }
 
-#header-title {
+.configeditor-header #header-title {
     padding-left: 20px;
     padding-right: 20px;
+}
+
+.configguide-header #header-title {
+    margin-top: 20px;
+    font-size: 20px;
 }
 
 .headerIcon {

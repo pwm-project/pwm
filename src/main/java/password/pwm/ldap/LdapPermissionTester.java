@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,14 +22,9 @@
 
 package password.pwm.ldap;
 
-import com.novell.ldapchai.ChaiEntry;
-import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiException;
-import com.novell.ldapchai.exception.ChaiOperationException;
-import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
-import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
@@ -41,10 +36,12 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.svc.cache.CacheKey;
-import password.pwm.svc.cache.CachePolicy;
+import password.pwm.ldap.search.SearchConfiguration;
+import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -120,7 +117,11 @@ public class LdapPermissionTester {
             final SessionLabel pwmSession,
             final UserIdentity userIdentity,
             final String groupDN
-    ) throws PwmUnrecoverableException {
+    )
+            throws PwmUnrecoverableException
+    {
+        final Instant startTime = Instant.now();
+
         if (userIdentity == null) {
             return false;
         }
@@ -145,11 +146,13 @@ public class LdapPermissionTester {
             }
         }
 
-        if (result) {
-            LOGGER.debug(pwmSession, "user " + userIdentity + " is a match for group '" + groupDN + "'");
-        } else {
-            LOGGER.debug(pwmSession, "user " + userIdentity + " is not a match for group '" + groupDN + "'");
-        }
+        final String logMsg = "user " + userIdentity.toDisplayString() + " is "
+                + (result ? "" : "not ")
+                + "a match for group '" + groupDN + "'"
+                + " (" + TimeDuration.fromCurrent(startTime) + ")";
+
+        LOGGER.debug(pwmSession, logMsg);
+
         return result;
     }
 
@@ -159,7 +162,10 @@ public class LdapPermissionTester {
             final UserIdentity userIdentity,
             final String filterString
     )
-            throws PwmUnrecoverableException {
+            throws PwmUnrecoverableException
+    {
+        final Instant startTime = Instant.now();
+
         if (userIdentity == null) {
             return false;
         }
@@ -185,39 +191,44 @@ public class LdapPermissionTester {
             }
         }
 
-        if (result) {
-            LOGGER.debug(pwmSession, "user " + userIdentity + " is a match for '" + filterString + "'");
-        } else {
-            LOGGER.debug(pwmSession, "user " + userIdentity + " is not a match for '" + filterString + "'");
-        }
+        final String logMsg = "user " + userIdentity.toDisplayString() + " is "
+                + (result ? "" : "not ")
+                + "a match for filter '" + filterString + "'"
+                + " (" + TimeDuration.fromCurrent(startTime) + ")";
+
+        LOGGER.debug(pwmSession, logMsg);
+
         return result;
     }
 
     public static Map<UserIdentity, Map<String, String>> discoverMatchingUsers(
             final PwmApplication pwmApplication,
             final int maxResultSize,
-            final List<UserPermission> userPermissions
+            final List<UserPermission> userPermissions,
+            final SessionLabel sessionLabel
     )
             throws Exception
     {
-        final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, SessionLabel.SYSTEM_LABEL);
+        final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
 
         final Map<UserIdentity, Map<String, String>> results = new TreeMap<>();
         for (final UserPermission userPermission : userPermissions) {
             if ((maxResultSize) - results.size() > 0) {
-                final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
+
+                final SearchConfiguration.SearchConfigurationBuilder builder = SearchConfiguration.builder();
+
                 switch (userPermission.getType()) {
                     case ldapQuery: {
-                        searchConfiguration.setFilter(userPermission.getLdapQuery());
+                        builder.filter(userPermission.getLdapQuery());
                         if (userPermission.getLdapBase() != null && !userPermission.getLdapBase().isEmpty()) {
-                            searchConfiguration.setEnableContextValidation(false);
-                            searchConfiguration.setContexts(Collections.singletonList(userPermission.getLdapBase()));
+                            builder.enableContextValidation(false);
+                            builder.contexts(Collections.singletonList(userPermission.getLdapBase()));
                         }
                     }
                     break;
 
                     case ldapGroup: {
-                        searchConfiguration.setGroupDN(userPermission.getLdapBase());
+                        builder.groupDN(userPermission.getLdapBase());
                     }
                     break;
 
@@ -226,15 +237,18 @@ public class LdapPermissionTester {
                 }
 
                 if (userPermission.getLdapProfileID() != null && !userPermission.getLdapProfileID().isEmpty() && !userPermission.getLdapProfileID().equals(PwmConstants.PROFILE_ID_ALL)) {
-                    searchConfiguration.setLdapProfile(userPermission.getLdapProfileID());
+                    builder.ldapProfile(userPermission.getLdapProfileID());
                 }
+
+                final SearchConfiguration searchConfiguration = builder.build();
 
                 try {
                     results.putAll(userSearchEngine.performMultiUserSearch(
-                                    searchConfiguration,
-                                    (maxResultSize) - results.size(),
-                                    Collections.<String>emptyList())
-                    );
+                            searchConfiguration,
+                            (maxResultSize) - results.size(),
+                            Collections.emptyList(),
+                            sessionLabel
+                    ));
                 } catch (PwmUnrecoverableException e) {
                     LOGGER.error("error reading matching users: " + e.getMessage());
                     throw new PwmOperationalException(e.getErrorInformation());
@@ -248,51 +262,18 @@ public class LdapPermissionTester {
     private static boolean testUserDNmatch(
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
-            final String ldapBase,
+            final String baseDN,
             final UserIdentity userIdentity
     )
             throws PwmUnrecoverableException
     {
-        if (ldapBase == null || ldapBase.trim().isEmpty()) {
+        if (baseDN == null || baseDN.trim().isEmpty()) {
             return true;
         }
 
-        final String permissionBase = ldapBase.trim();
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile(pwmApplication.getConfig());
+        final String canonicalBaseDN = ldapProfile.readCanonicalDN(pwmApplication, baseDN);
         final String userDN = userIdentity.getUserDN();
-        if (userDN.endsWith(permissionBase)) {
-            return true;
-        }
-
-        {
-            final boolean doCanonicalDnResolve = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.SECURITY_LDAP_BASEDN_RESOLVE_CANONICAL_DN));
-            if (!doCanonicalDnResolve) {
-                return false;
-            }
-        }
-
-        String canonicalBaseDN = null;
-        final CacheKey cacheKey = CacheKey.makeCacheKey(LdapPermissionTester.class, null, "canonicalDN-" + userIdentity.getLdapProfileID() + "-" + ldapBase);
-        {
-            final String cachedDN = pwmApplication.getCacheService().get(cacheKey);
-            if (cachedDN != null) {
-                canonicalBaseDN = cachedDN;
-            }
-        }
-
-        if (canonicalBaseDN == null) {
-            try {
-                final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID());
-                final ChaiEntry chaiEntry = ChaiFactory.createChaiEntry(ldapBase, chaiProvider);
-                canonicalBaseDN = chaiEntry.readCanonicalDN();
-                final long cacheSeconds = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.SECURITY_LDAP_BASEDN_CANONICAL_CACHE_SECONDS));
-                final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpirationMS(cacheSeconds * 1000);
-                pwmApplication.getCacheService().put(cacheKey, cachePolicy, canonicalBaseDN);
-            } catch (ChaiUnavailableException | ChaiOperationException e) {
-                LOGGER.error(sessionLabel, "error while testing userDN match against baseDN '" + ldapBase + "', error: " + e.getMessage());
-                return false;
-            }
-        }
-
         return userDN.endsWith(canonicalBaseDN);
     }
 }

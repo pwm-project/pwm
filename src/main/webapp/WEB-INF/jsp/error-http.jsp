@@ -1,13 +1,13 @@
 <%@ page import="password.pwm.error.PwmError" %>
 <%@ page import="password.pwm.http.JspUtility" %>
+<%@ page import="password.pwm.http.servlet.command.CommandServlet" %>
 <%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
-<%@ page import="password.pwm.error.PwmException" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2016 The PWM Project
+  ~ Copyright (c) 2009-2017 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -59,10 +59,8 @@
         <br/>
         <br/>
         <div class="buttonbar">
-            <form action="<pwm:url url='<%=PwmServletDefinition.Command.servletUrl()%>' addContext="true"/>" method="post" enctype="application/x-www-form-urlencoded">
-                <input type="hidden"
-                       name="processAction"
-                       value="continue"/>
+            <form action="<pwm:url url='<%=PwmServletDefinition.PublicCommand.servletUrl()%>' addContext="true"/>" method="post" enctype="application/x-www-form-urlencoded">
+                <input type="hidden" name="<%=PwmConstants.PARAM_ACTION_REQUEST%>" value="<%=CommandServlet.CommandAction.next.toString()%>"/>
                 <input type="submit" name="button" class="btn"
                        value="    <pwm:display key="Button_Continue"/>    "
                        id="button_continue"/>

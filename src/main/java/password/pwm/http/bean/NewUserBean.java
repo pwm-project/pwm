@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,137 +22,50 @@
 
 package password.pwm.http.bean;
 
+import com.google.gson.annotations.SerializedName;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import password.pwm.bean.TokenVerificationProgress;
 import password.pwm.config.option.SessionBeanMode;
-import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.PasswordData;
+import password.pwm.http.servlet.newuser.NewUserForm;
 
-import java.io.Serializable;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+@Getter
+@Setter
+@NoArgsConstructor
 public class NewUserBean extends PwmSessionBean {
+    @SerializedName("p")
     private String profileID;
+
+    @SerializedName("f")
     private NewUserForm newUserForm;
 
+    @SerializedName("r")
+    private Map<String,String> remoteInputData;
+
+    @SerializedName("ap")
     private boolean agreementPassed;
+
+    @SerializedName("fp")
     private boolean formPassed;
-    private Date createStartTime;
+
+    @SerializedName("t")
+    private Instant createStartTime;
+
+    @SerializedName("u")
     private boolean urlSpecifiedProfile;
+
+    @SerializedName("v")
     private final TokenVerificationProgress tokenVerificationProgress = new TokenVerificationProgress();
 
-    public static class NewUserForm implements Serializable {
-        private Map<String,String> formData;
-        private PasswordData newUserPassword;
-        private PasswordData confirmPassword;
-
-        public NewUserForm(
-                final Map<String, String> formData,
-                final PasswordData newUserPassword,
-                final PasswordData confirmPassword
-        )
-        {
-            this.formData = formData;
-            this.newUserPassword = newUserPassword;
-            this.confirmPassword = confirmPassword;
-        }
-
-        public Map<String, String> getFormData()
-        {
-            return formData;
-        }
-
-        public PasswordData getNewUserPassword()
-        {
-            return newUserPassword;
-        }
-
-        public PasswordData getConfirmPassword()
-        {
-            return confirmPassword;
-        }
-
-        public boolean isConsistentWith(final NewUserForm otherForm) throws PwmUnrecoverableException {
-            if (otherForm == null) {
-                return false;
-            }
-
-            if (newUserPassword != null && otherForm.newUserPassword == null || newUserPassword == null && otherForm.newUserPassword != null) {
-                return false;
-            }
-
-            if (newUserPassword == null || !newUserPassword.getStringValue().equals(otherForm.newUserPassword.getStringValue())) {
-                return false;
-            }
-
-            for (final String formKey : formData.keySet()) {
-                final String value = formData.get(formKey);
-                final String otherValue = otherForm.formData.get(formKey);
-                if (value != null && !value.equals(otherValue)) {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-    }
-
-    public String getProfileID() {
-        return profileID;
-    }
-
-    public void setProfileID(final String profileID) {
-        this.profileID = profileID;
-    }
-
-    public boolean isAgreementPassed() {
-        return agreementPassed;
-    }
-
-    public void setAgreementPassed(final boolean agreementPassed) {
-        this.agreementPassed = agreementPassed;
-    }
-
-    public boolean isFormPassed() {
-        return formPassed;
-    }
-
-    public void setFormPassed(final boolean formPassed) {
-        this.formPassed = formPassed;
-    }
-
-    public Date getCreateStartTime()
-    {
-        return createStartTime;
-    }
-
-    public void setCreateStartTime(final Date createStartTime)
-    {
-        this.createStartTime = createStartTime;
-    }
-
-    public NewUserForm getNewUserForm()
-    {
-        return newUserForm;
-    }
-
-    public void setNewUserForm(final NewUserForm newUserForm)
-    {
-        this.newUserForm = newUserForm;
-    }
-
-    public boolean isUrlSpecifiedProfile() {
-        return urlSpecifiedProfile;
-    }
-
-    public void setUrlSpecifiedProfile(final boolean urlSpecifiedProfile) {
-        this.urlSpecifiedProfile = urlSpecifiedProfile;
-    }
-
+    @Override
     public Type getType() {
         return Type.PUBLIC;
     }

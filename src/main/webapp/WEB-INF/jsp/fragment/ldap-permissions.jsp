@@ -8,6 +8,7 @@
 <%@ page import="java.util.TreeSet" %>
 <%@ page import="password.pwm.util.LocaleHelper" %>
 <%@ page import="password.pwm.i18n.Display" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 
@@ -16,7 +17,7 @@
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2016 The PWM Project
+  ~ Copyright (c) 2009-2017 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -33,7 +34,7 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<% final LDAPPermissionCalculator outputData = (LDAPPermissionCalculator)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.LdapPermissionItems); %>
+<% final LDAPPermissionCalculator outputData = (LDAPPermissionCalculator)JspUtility.getAttribute(pageContext, PwmRequestAttribute.LdapPermissionItems); %>
 <p>
     <pwm:display key="Display_LdapPermissionRecommendations" bundle="Config"/>
 </p>

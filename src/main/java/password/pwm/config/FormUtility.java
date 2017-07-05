@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,15 +37,16 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
-import password.pwm.ldap.UserDataReader;
-import password.pwm.ldap.UserSearchEngine;
+import password.pwm.ldap.UserInfo;
+import password.pwm.ldap.search.SearchConfiguration;
+import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.cache.CacheKey;
 import password.pwm.svc.cache.CachePolicy;
 import password.pwm.svc.cache.CacheService;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.StringUtil;
 import password.pwm.util.Validator;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.ArrayList;
@@ -89,7 +90,7 @@ public class FormUtility {
             final String keyName = formItem.getName();
             final String value = inputMap.get(keyName);
 
-            if (formItem.isRequired()) {
+            if (formItem.isRequired() && !formItem.isReadonly()) {
                 if (value == null || value.length() < 0) {
                     final String errorMsg = "missing required value for field '" + formItem.getName() + "'";
                     final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_REQUIRED, errorMsg, new String[]{formItem.getLabel(locale)});
@@ -234,16 +235,22 @@ public class FormUtility {
         final SearchHelper searchHelper = new SearchHelper();
         searchHelper.setFilterAnd(filterClauses);
 
-        final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
-        searchConfiguration.setFilter(filter.toString());
+        final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
+                .filter(filter.toString())
+                .build();
 
         final int resultSearchSizeLimit = 1 + (excludeDN == null ? 0 : excludeDN.size());
         final long cacheLifetimeMS = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.CACHE_FORM_UNIQUE_VALUE_LIFETIME_MS));
         final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpirationMS(cacheLifetimeMS);
 
         try {
-            final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, SessionLabel.SYSTEM_LABEL);
-            final Map<UserIdentity,Map<String,String>> results = new LinkedHashMap<>(userSearchEngine.performMultiUserSearch(searchConfiguration,resultSearchSizeLimit,Collections.<String>emptyList()));
+            final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
+            final Map<UserIdentity,Map<String,String>> results = new LinkedHashMap<>(userSearchEngine.performMultiUserSearch(
+                    searchConfiguration,
+                    resultSearchSizeLimit,
+                    Collections.emptyList(),
+                    SessionLabel.SYSTEM_LABEL
+                    ));
 
             if (excludeDN != null && !excludeDN.isEmpty()) {
                 for (final UserIdentity loopIgnoreIdentity : excludeDN) {
@@ -373,11 +380,11 @@ public class FormUtility {
             final List<FormConfiguration> formFields,
             final SessionLabel sessionLabel,
             final Map<FormConfiguration, String> formMap,
-            final UserDataReader userDataReader
+            final UserInfo userInfo
     )
             throws PwmUnrecoverableException
     {
-        final Map<FormConfiguration, List<String>> valueMap = populateFormMapFromLdap(formFields, sessionLabel, userDataReader);
+        final Map<FormConfiguration, List<String>> valueMap = populateFormMapFromLdap(formFields, sessionLabel, userInfo);
         for (final FormConfiguration formConfiguration : formFields) {
             if (valueMap.containsKey(formConfiguration)) {
                 final List<String> values = valueMap.get(formConfiguration);
@@ -392,12 +399,12 @@ public class FormUtility {
     public static Map<FormConfiguration, List<String>> populateFormMapFromLdap(
             final List<FormConfiguration> formFields,
             final SessionLabel sessionLabel,
-            final UserDataReader userDataReader,
+            final UserInfo userInfo,
             final Flag... flags
     )
             throws PwmUnrecoverableException
     {
-        final boolean includeNulls = Helper.enumArrayContainsValue(flags, Flag.ReturnEmptyValues);
+        final boolean includeNulls = JavaHelper.enumArrayContainsValue(flags, Flag.ReturnEmptyValues);
         final List<String> formFieldNames = FormConfiguration.convertToListOfNames(formFields);
         LOGGER.trace(sessionLabel, "preparing to load form data from ldap for fields " + JsonUtil.serializeCollection(formFieldNames));
         final Map<String,List<String>> dataFromLdap = new LinkedHashMap<>();
@@ -405,12 +412,12 @@ public class FormUtility {
             for (final FormConfiguration formConfiguration : formFields) {
                 final String attribute = formConfiguration.getName();
                 if (formConfiguration.isMultivalue()) {
-                    final List<String> values = userDataReader.readMultiStringAttribute(attribute, UserDataReader.Flag.ignoreCache);
+                    final List<String> values = userInfo.readMultiStringAttribute(attribute);
                     if (includeNulls || (values != null && !values.isEmpty())) {
                         dataFromLdap.put(attribute, values);
                     }
                 } else {
-                    final String value = userDataReader.readStringAttribute(attribute);
+                    final String value = userInfo.readStringAttribute(attribute);
                     if (includeNulls || (value != null)) {
                         dataFromLdap.put(attribute, Collections.singletonList(value));
                     }

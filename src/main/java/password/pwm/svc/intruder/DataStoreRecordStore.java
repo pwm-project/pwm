@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,17 +25,18 @@ package password.pwm.svc.intruder;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmDataStoreException;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.PwmService;
-import password.pwm.util.ClosableIterator;
 import password.pwm.util.DataStore;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.ClosableIterator;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 class DataStoreRecordStore implements RecordStore {
@@ -45,7 +46,7 @@ class DataStoreRecordStore implements RecordStore {
     private final IntruderManager intruderManager;
     private final DataStore dataStore;
 
-    private Date eldestRecord = new Date(0);
+    private Instant eldestRecord = Instant.now();
 
     DataStoreRecordStore(final DataStore dataStore, final IntruderManager intruderManager) {
         this.dataStore = dataStore;
@@ -86,7 +87,8 @@ class DataStoreRecordStore implements RecordStore {
     }
 
     @Override
-    public void write(final String key, final IntruderRecord record) throws PwmOperationalException {
+    public void write(final String key, final IntruderRecord record) throws PwmOperationalException, PwmUnrecoverableException
+    {
         final String jsonRecord = JsonUtil.serialize(record);
         try {
             dataStore.put(key, jsonRecord);
@@ -96,7 +98,8 @@ class DataStoreRecordStore implements RecordStore {
     }
 
     @Override
-    public ClosableIterator<IntruderRecord> iterator() throws PwmOperationalException {
+    public ClosableIterator<IntruderRecord> iterator() throws PwmOperationalException, PwmUnrecoverableException
+    {
         try {
             return new RecordIterator(dataStore.iterator());
         } catch (PwmDataStoreException e) {
@@ -142,7 +145,7 @@ class DataStoreRecordStore implements RecordStore {
         if (TimeDuration.fromCurrent(eldestRecord).isShorterThan(maxRecordAge)) {
             return;
         }
-        eldestRecord = new Date();
+        eldestRecord = Instant.now();
 
         final long startTime = System.currentTimeMillis();
         final int recordsExamined = 0;
@@ -160,7 +163,7 @@ class DataStoreRecordStore implements RecordStore {
                 for (final String key : recordsToRemove) {
                     dataStore.remove(key);
                 }
-            } catch (PwmDataStoreException e) {
+            } catch (PwmException e) {
                 LOGGER.error("unable to perform removal of identified stale records: " + e.getMessage());
             }
             recordsRemoved += recordsToRemove.size();

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,20 +23,20 @@
 package password.pwm.ws.server.rest.bean;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 
 public class HealthData implements Serializable {
-    public Date timestamp;
+    public Instant timestamp;
     public String overall;
     public List<HealthRecord> records;
 
-    public Date getTimestamp()
+    public Instant getTimestamp()
     {
         return timestamp;
     }
 
-    public void setTimestamp(final Date timestamp)
+    public void setTimestamp(final Instant timestamp)
     {
         this.timestamp = timestamp;
     }

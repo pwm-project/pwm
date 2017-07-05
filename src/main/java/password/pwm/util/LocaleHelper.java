@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,8 +22,10 @@
 
 package password.pwm.util;
 
+import org.apache.commons.lang3.StringUtils;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.bean.pub.SessionStateInfoBean;
 import password.pwm.config.ChallengeItemConfiguration;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -38,6 +40,8 @@ import password.pwm.http.PwmRequest;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.PwmDisplayBundle;
 import password.pwm.i18n.PwmLocaleBundle;
+import password.pwm.util.java.Percent;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
@@ -46,6 +50,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -98,7 +103,14 @@ public class LocaleHelper {
         return getLocalizedMessage(locale,key,config,bundleClass,null);
     }
 
-    public static String getLocalizedMessage(final Locale locale, final String key, final Configuration config, final Class bundleClass, final String[] values) {
+    public static String getLocalizedMessage(
+            final Locale locale,
+            final String key,
+            final Configuration config,
+            final Class bundleClass,
+            final String[] values
+    )
+    {
         String returnValue = null;
         if (config != null) {
             final Map<Locale,String> configuredBundle = config.readLocalizedBundle(bundleClass.getName(),key);
@@ -119,7 +131,9 @@ public class LocaleHelper {
                 returnValue = bundle.getString(key);
             } catch (MissingResourceException e) {
                 final String errorMsg = "missing key '" + key + "' for " + bundleClass.getName();
-                LOGGER.warn(errorMsg);
+                if (config != null && config.isDevDebugMode()) {
+                    LOGGER.warn(errorMsg);
+                }
                 returnValue = key;
             }
         }
@@ -180,7 +194,7 @@ public class LocaleHelper {
 
     public static Locale localeResolver(final Locale desiredLocale, final Collection<Locale> localePool) {
         if (desiredLocale == null || localePool == null || localePool.isEmpty()) {
-            return null;
+            return PwmConstants.DEFAULT_LOCALE;
         }
 
         for (final Locale loopLocale : localePool) {
@@ -212,10 +226,10 @@ public class LocaleHelper {
         }
 
         if (localePool.contains(new Locale(""))) {
-            return new Locale("");
+            return PwmConstants.DEFAULT_LOCALE;
         }
 
-        return null;
+        return PwmConstants.DEFAULT_LOCALE;
     }
 
     public static String resolveStringKeyLocaleMap(final Locale desiredLocale, final Map<String,String> inputMap) {
@@ -569,5 +583,21 @@ public class LocaleHelper {
             }
         }
         return returnObj;
+    }
+
+    public static Locale getLocaleForSessionID(final PwmApplication pwmApplication, final String sessionID) {
+        if (pwmApplication != null && StringUtils.isNotBlank(sessionID)) {
+            final Iterator<SessionStateInfoBean> sessionInfoIterator = pwmApplication.getSessionTrackService().getSessionInfoIterator();
+            while (sessionInfoIterator.hasNext()) {
+                final SessionStateInfoBean sessionStateInfoBean = sessionInfoIterator.next();
+                if (StringUtils.equals(sessionStateInfoBean.getLabel(), sessionID)) {
+                    if (sessionStateInfoBean.getLocale() != null) {
+                        return sessionStateInfoBean.getLocale();
+                    }
+                }
+            }
+        }
+
+        return PwmConstants.DEFAULT_LOCALE;
     }
 }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,23 +22,37 @@
 
 package password.pwm.http.bean;
 
+import com.google.gson.annotations.SerializedName;
 import password.pwm.bean.TokenVerificationProgress;
 import password.pwm.config.option.SessionBeanMode;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
+
 public class UpdateProfileBean extends PwmSessionBean {
 
+    @SerializedName("a")
     private boolean agreementPassed;
+
+    @SerializedName("p")
     private boolean confirmationPassed;
+
+    @SerializedName("s")
     private boolean formSubmitted;
 
-    private Map<String,String> formData;
-    private final TokenVerificationProgress tokenVerificationProgress = new TokenVerificationProgress();
+    @SerializedName("l")
+    private boolean formLdapLoaded;
+
+    @SerializedName("f")
+    private Map<String,String> formData = new LinkedHashMap<>();
+
+    @SerializedName("vp")
+    private TokenVerificationProgress tokenVerificationProgress = new TokenVerificationProgress();
 
     public Type getType() {
         return Type.AUTHENTICATED;
@@ -52,12 +66,16 @@ public class UpdateProfileBean extends PwmSessionBean {
         this.agreementPassed = agreementPassed;
     }
 
-    public Map<String, String> getFormData() {
-        return formData;
+    public boolean isFormLdapLoaded() {
+        return formLdapLoaded;
     }
 
-    public void setFormData(final Map<String, String> formData) {
-        this.formData = formData;
+    public void setFormLdapLoaded(final boolean formLdapLoaded) {
+        this.formLdapLoaded = formLdapLoaded;
+    }
+
+    public Map<String, String> getFormData() {
+        return formData;
     }
 
     public boolean isConfirmationPassed() {
@@ -83,5 +101,9 @@ public class UpdateProfileBean extends PwmSessionBean {
 
     public TokenVerificationProgress getTokenVerificationProgress() {
         return tokenVerificationProgress;
+    }
+
+    public void clearTokenVerificationProgress() {
+        tokenVerificationProgress = new TokenVerificationProgress();
     }
 }

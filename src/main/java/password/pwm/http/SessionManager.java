@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.UserPermission;
 import password.pwm.config.profile.DeleteAccountProfile;
@@ -42,8 +42,6 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.LdapPermissionTester;
-import password.pwm.ldap.LdapUserDataReader;
-import password.pwm.ldap.UserDataReader;
 import password.pwm.util.PasswordData;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -59,7 +57,6 @@ import java.util.List;
  * @author Jason D. Rivard
  */
 public class SessionManager implements Serializable {
-// ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(SessionManager.class);
 
@@ -67,17 +64,10 @@ public class SessionManager implements Serializable {
 
     private final PwmSession pwmSession;
 
-    private transient UserDataReader userDataReader;
-
-
-
-// --------------------------- CONSTRUCTORS ---------------------------
 
     public SessionManager(final PwmSession pwmSession) {
         this.pwmSession = pwmSession;
     }
-
-// --------------------- GETTER / SETTER METHODS ---------------------
 
     public ChaiProvider getChaiProvider()
             throws ChaiUnavailableException, PwmUnrecoverableException
@@ -116,9 +106,6 @@ public class SessionManager implements Serializable {
     }
 
 
-// ------------------------ CANONICAL METHODS ------------------------
-
-
     public void closeConnections() {
         if (chaiProvider != null) {
             try {
@@ -129,13 +116,7 @@ public class SessionManager implements Serializable {
                 LOGGER.error(pwmSession.getLabel(), "error while closing user connection: " + e.getMessage());
             }
         }
-
-        if (userDataReader != null) {
-            userDataReader = null;
-        }
     }
-
-// -------------------------- OTHER METHODS --------------------------
 
     public ChaiUser getActor(final PwmApplication pwmApplication)
             throws ChaiUnavailableException, PwmUnrecoverableException {
@@ -144,7 +125,7 @@ public class SessionManager implements Serializable {
             throw new IllegalStateException("user not logged in");
         }
 
-        final UserIdentity userDN = pwmSession.getUserInfoBean().getUserIdentity();
+        final UserIdentity userDN = pwmSession.getUserInfo().getUserIdentity();
 
         if (userDN == null || userDN.getUserDN() == null || userDN.getUserDN().length() < 1) {
             throw new IllegalStateException("user not logged in");
@@ -164,7 +145,7 @@ public class SessionManager implements Serializable {
             if (!pwmSession.isAuthenticated()) {
                 throw new PwmUnrecoverableException(PwmError.ERROR_AUTHENTICATION_REQUIRED);
             }
-            final UserIdentity thisIdentity = pwmSession.getUserInfoBean().getUserIdentity();
+            final UserIdentity thisIdentity = pwmSession.getUserInfo().getUserIdentity();
             if (thisIdentity.getLdapProfileID() == null || userIdentity.getLdapProfileID() == null) {
                 throw new PwmUnrecoverableException(PwmError.ERROR_NO_LDAP_CONNECTION);
             }
@@ -173,32 +154,6 @@ public class SessionManager implements Serializable {
         } catch (ChaiUnavailableException e) {
             throw PwmUnrecoverableException.fromChaiException(e);
         }
-    }
-
-    public UserDataReader getUserDataReader(final PwmApplication pwmApplication)
-            throws PwmUnrecoverableException
-    {
-        if (pwmSession == null || !pwmSession.isAuthenticated()) {
-            return null;
-        }
-
-        if (userDataReader == null) {
-            /*
-            userDataReader = LdapUserDataReader.appProxiedReader(pwmApplication,
-                    pwmSession.getUserInfoBean().getUserIdentity());
-                    */
-            final UserIdentity userIdentity = pwmSession.getUserInfoBean().getUserIdentity();
-            try {
-                userDataReader = LdapUserDataReader.selfProxiedReader(pwmApplication, pwmSession, userIdentity);
-            } catch (ChaiUnavailableException e) {
-                throw PwmUnrecoverableException.fromChaiException(e);
-            }
-        }
-        return userDataReader;
-    }
-
-    public void clearUserDataReader() {
-        userDataReader = null;
     }
 
     public void incrementRequestCounterKey() {
@@ -229,16 +184,16 @@ public class SessionManager implements Serializable {
         Permission.PermissionStatus status = pwmSession.getUserSessionDataCacheBean().getPermission(permission);
         if (status == Permission.PermissionStatus.UNCHECKED) {
             if (devDebugMode) {
-                LOGGER.debug(pwmSession.getLabel(), String.format("checking permission %s for user %s", permission.toString(), pwmSession.getUserInfoBean().getUserIdentity().toDelimitedKey()));
+                LOGGER.debug(pwmSession.getLabel(), String.format("checking permission %s for user %s", permission.toString(), pwmSession.getUserInfo().getUserIdentity().toDelimitedKey()));
             }
 
             final PwmSetting setting = permission.getPwmSetting();
             final List<UserPermission> userPermission = pwmApplication.getConfig().readSettingAsUserPermission(setting);
-            final boolean result = LdapPermissionTester.testUserPermissions(pwmApplication, pwmSession.getLabel(), pwmSession.getUserInfoBean().getUserIdentity(), userPermission);
+            final boolean result = LdapPermissionTester.testUserPermissions(pwmApplication, pwmSession.getLabel(), pwmSession.getUserInfo().getUserIdentity(), userPermission);
             status = result ? Permission.PermissionStatus.GRANTED : Permission.PermissionStatus.DENIED;
             pwmSession.getUserSessionDataCacheBean().setPermission(permission, status);
             LOGGER.debug(pwmSession.getLabel(), String.format("permission %s for user %s is %s",
-                    permission.toString(), pwmSession.getUserInfoBean().getUserIdentity().toDelimitedKey(),
+                    permission.toString(), pwmSession.getUserInfo().getUserIdentity().toDelimitedKey(),
                     status.toString()));
         }
         return status == Permission.PermissionStatus.GRANTED;
@@ -247,33 +202,36 @@ public class SessionManager implements Serializable {
     public MacroMachine getMacroMachine(final PwmApplication pwmApplication)
             throws PwmUnrecoverableException
     {
-        final UserDataReader userDataReader = this.getUserDataReader(pwmApplication);
-        final UserInfoBean userInfoBean = pwmSession.isAuthenticated()
-                ? pwmSession.getUserInfoBean()
+        final UserInfo userInfoBean = pwmSession.isAuthenticated()
+                ? pwmSession.getUserInfo()
                 : null;
-        return new MacroMachine(pwmApplication, pwmSession.getLabel(), userInfoBean, pwmSession.getLoginInfoBean(), userDataReader);
+        return new MacroMachine(pwmApplication, pwmSession.getLabel(), userInfoBean, pwmSession.getLoginInfoBean());
     }
 
-    public Profile getProfile(final PwmApplication pwmApplication, final ProfileType profileType) {
+    public Profile getProfile(final PwmApplication pwmApplication, final ProfileType profileType) throws PwmUnrecoverableException
+    {
         if (profileType.isAuthenticated() && !pwmSession.isAuthenticated()) {
             return null;
         }
-        final String profileID = pwmSession.getUserInfoBean().getProfileIDs().get(profileType);
+        final String profileID = pwmSession.getUserInfo().getProfileIDs().get(profileType);
         if (profileID != null) {
             return pwmApplication.getConfig().profileMap(profileType).get(profileID);
         }
         return null;
     }
 
-    public HelpdeskProfile getHelpdeskProfile(final PwmApplication pwmApplication) {
+    public HelpdeskProfile getHelpdeskProfile(final PwmApplication pwmApplication) throws PwmUnrecoverableException
+    {
         return (HelpdeskProfile)getProfile(pwmApplication, ProfileType.Helpdesk);
     }
 
-    public UpdateAttributesProfile getUpdateAttributeProfile(final PwmApplication pwmApplication) {
+    public UpdateAttributesProfile getUpdateAttributeProfile(final PwmApplication pwmApplication) throws PwmUnrecoverableException
+    {
         return (UpdateAttributesProfile)getProfile(pwmApplication, ProfileType.UpdateAttributes);
     }
 
-    public DeleteAccountProfile getSelfDeleteProfile(final PwmApplication pwmApplication) {
+    public DeleteAccountProfile getSelfDeleteProfile(final PwmApplication pwmApplication) throws PwmUnrecoverableException
+    {
         return (DeleteAccountProfile) getProfile(pwmApplication, ProfileType.DeleteAccount);
     }
 }

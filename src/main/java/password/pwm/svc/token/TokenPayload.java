@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,52 +22,48 @@
 
 package password.pwm.svc.token;
 
+import com.google.gson.annotations.SerializedName;
+import lombok.Getter;
 import password.pwm.bean.UserIdentity;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.Collections;
-import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+@Getter
 public class TokenPayload implements Serializable {
-    private final java.util.Date date;
+    private final Instant date;
     private final String name;
     private final Map<String,String> data;
-    private final UserIdentity user;
+
+    @SerializedName("user")
+    private final UserIdentity userIdentity;
     private final Set<String> dest;
     private final String guid;
 
     TokenPayload(final String name, final Map<String, String> data, final UserIdentity user, final Set<String> dest, final String guid) {
-        this.date = new Date();
-        this.data = data == null ? Collections.<String,String>emptyMap() : Collections.unmodifiableMap(data);
+        this.date = Instant.now();
+        this.data = data == null ? Collections.emptyMap() : Collections.unmodifiableMap(data);
         this.name = name;
-        this.user = user;
-        this.dest = dest == null ? Collections.<String>emptySet() : Collections.unmodifiableSet(dest);
+        this.userIdentity = user;
+        this.dest = dest == null ? Collections.emptySet() : Collections.unmodifiableSet(dest);
         this.guid = guid;
     }
 
-    public Date getDate() {
-        return date;
-    }
 
-    public String getName() {
-        return name;
-    }
-
-    public Map<String, String> getData() {
-        return data;
-    }
-
-    public UserIdentity getUserIdentity() {
-        return user;
-    }
-
-    public Set<String> getDest() {
-        return dest;
-    }
-
-    public String getGuid() {
-        return guid;
+    public String toDebugString() {
+        final Map<String,String> debugMap = new HashMap<>();
+        debugMap.put("date", JavaHelper.toIsoDate(date));
+        debugMap.put("name", getName());
+        if (getUserIdentity() != null) {
+            debugMap.put("user", getUserIdentity().toDisplayString());
+        }
+        debugMap.put("guid", getGuid());
+        return JsonUtil.serializeMap(debugMap);
     }
 }

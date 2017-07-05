@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,10 +25,12 @@ package password.pwm.ws.server.rest;
 
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import password.pwm.PwmApplication;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.error.ErrorInformation;
@@ -36,11 +38,11 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
-import password.pwm.ldap.UserStatusReader;
+import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.util.JsonUtil;
 import password.pwm.util.PasswordData;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.ws.server.RestRequestBean;
@@ -59,17 +61,19 @@ import javax.ws.rs.core.Response;
 import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Date;
+import java.time.Instant;
 
 @Path("/checkpassword")
 public class RestCheckPasswordServer extends AbstractRestServer {
     private static final PwmLogger LOGGER = PwmLogger.forClass(RestCheckPasswordServer.class);
 
+    @Getter
+    @AllArgsConstructor
     public static class JsonInput implements Serializable
     {
-        public String password1;
-        public String password2;
-        public String username;
+        public final String password1;
+        public final String password2;
+        public final String username;
     }
 
     public static class JsonData implements Serializable
@@ -112,11 +116,7 @@ public class RestCheckPasswordServer extends AbstractRestServer {
     )
             throws PwmUnrecoverableException
     {
-        final JsonInput jsonInput = new JsonInput();
-        jsonInput.password1 = password1;
-        jsonInput.password2 = password2;
-        jsonInput.username = username;
-
+        final JsonInput jsonInput = new JsonInput(password1, password2, username);
         return doOperation(jsonInput);
     }
 
@@ -132,19 +132,20 @@ public class RestCheckPasswordServer extends AbstractRestServer {
     public Response doOperation(final JsonInput jsonInput)
             throws PwmUnrecoverableException
     {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         final RestRequestBean restRequestBean;
         try {
-            final ServicePermissions servicePermissions = new ServicePermissions();
-            servicePermissions.setAdminOnly(false);
-            servicePermissions.setAuthRequired(true);
-            servicePermissions.setBlockExternal(true);
-            servicePermissions.setHelpdeskPermitted(true);
+            final ServicePermissions servicePermissions = ServicePermissions.builder()
+                    .adminOnly(false)
+                    .authRequired(true)
+                    .blockExternal(true)
+                    .helpdeskPermitted(true)
+                    .build();
             restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, jsonInput.username);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
-        LOGGER.trace("beginning check password operation for user " + restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity());
+        LOGGER.trace("beginning check password operation for user " + restRequestBean.getPwmSession().getUserInfo().getUserIdentity());
 
         if (jsonInput.password1 == null || jsonInput.password1.length() < 1) {
             final String errorMessage = "missing field 'password1'";
@@ -153,28 +154,27 @@ public class RestCheckPasswordServer extends AbstractRestServer {
         }
 
         try {
-            final UserIdentity userDN;
-            final UserInfoBean uiBean;
+            final UserIdentity userIdentity;
+            final UserInfo userInfo;
             if (restRequestBean.getUserIdentity() != null) { // check for another user
-                userDN = restRequestBean.getUserIdentity();
-                uiBean = new UserInfoBean();
-                final UserStatusReader userStatusReader = new UserStatusReader(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession().getLabel());
-                userStatusReader.populateUserInfoBean(
-                        uiBean,
+                userIdentity = restRequestBean.getUserIdentity();
+                userInfo = UserInfoFactory.newUserInfo(
+                        restRequestBean.getPwmApplication(),
+                        restRequestBean.getPwmSession().getLabel(),
                         restRequestBean.getPwmSession().getSessionStateBean().getLocale(),
-                        userDN,
+                        userIdentity,
                         restRequestBean.getPwmSession().getSessionManager().getChaiProvider()
                 );
             } else { // self check
-                userDN = restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity();
-                uiBean = restRequestBean.getPwmSession().getUserInfoBean();
+                userIdentity = restRequestBean.getPwmSession().getUserInfo().getUserIdentity();
+                userInfo = restRequestBean.getPwmSession().getUserInfo();
             }
 
             final PasswordCheckRequest checkRequest = new PasswordCheckRequest(
-                    userDN,
+                    userIdentity,
                     jsonInput.password1 == null || jsonInput.password1.isEmpty() ? null : new PasswordData(jsonInput.password1),
                     jsonInput.password2 == null || jsonInput.password2.isEmpty() ? null : new PasswordData(jsonInput.password2),
-                    uiBean
+                    userInfo
             );
 
             if (restRequestBean.isExternal()) {
@@ -200,21 +200,26 @@ public class RestCheckPasswordServer extends AbstractRestServer {
         }
     }
 
-    private static class PasswordCheckRequest {
-        final UserIdentity userDN;
+    public static class PasswordCheckRequest {
+        final UserIdentity userIdentity;
         final PasswordData password1;
         final PasswordData password2;
-        final UserInfoBean userInfoBean;
+        final UserInfo userInfo;
 
-        private PasswordCheckRequest(final UserIdentity userDN, final PasswordData password1, final PasswordData password2, final UserInfoBean userInfoBean) {
-            this.userDN= userDN;
+        public PasswordCheckRequest(
+                final UserIdentity userDN,
+                final PasswordData password1,
+                final PasswordData password2,
+                final UserInfo userInfo
+        ) {
+            this.userIdentity = userDN;
             this.password1 = password1;
             this.password2 = password2;
-            this.userInfoBean = userInfoBean;
+            this.userInfo = userInfo;
         }
 
         public UserIdentity getUserIdentity() {
-            return userDN;
+            return userIdentity;
         }
 
         public PasswordData getPassword1() {
@@ -225,13 +230,13 @@ public class RestCheckPasswordServer extends AbstractRestServer {
             return password2;
         }
 
-        public UserInfoBean getUserInfoBean() {
-            return userInfoBean;
+        public UserInfo getUserInfo() {
+            return userInfo;
         }
     }
 
 
-    public JsonData doPasswordRuleCheck(
+    public static JsonData doPasswordRuleCheck(
             final PwmApplication pwmApplication,
             final PwmSession pwmSession,
             final PasswordCheckRequest checkRequest
@@ -241,7 +246,7 @@ public class RestCheckPasswordServer extends AbstractRestServer {
         final HelpdeskProfile helpdeskProfile = pwmSession.getSessionManager().getHelpdeskProfile(pwmApplication);
         final boolean useProxy = helpdeskProfile != null && helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_USE_PROXY);
         final boolean thirdParty = checkRequest.getUserIdentity() != null
-                && !checkRequest.getUserIdentity().canonicalEquals(pwmSession.getUserInfoBean().getUserIdentity(), pwmApplication);
+                && !checkRequest.getUserIdentity().canonicalEquals(pwmSession.getUserInfo().getUserIdentity(), pwmApplication);
 
         final ChaiUser user = useProxy && thirdParty
                 ? pwmApplication.getProxiedChaiUser(checkRequest.getUserIdentity())
@@ -253,7 +258,7 @@ public class RestCheckPasswordServer extends AbstractRestServer {
                 pwmApplication,
                 pwmSession.getSessionStateBean().getLocale(),
                 user,
-                checkRequest.getUserInfoBean(),
+                checkRequest.getUserInfo(),
                 loginInfoBean,
                 checkRequest.getPassword1(),
                 checkRequest.getPassword2()

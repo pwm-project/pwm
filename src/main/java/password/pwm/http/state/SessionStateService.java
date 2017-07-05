@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,10 +32,10 @@ import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.bean.PwmSessionBean;
 import password.pwm.svc.PwmService;
-import password.pwm.util.Helper;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -94,7 +94,7 @@ public class SessionStateService implements PwmService {
                             break;
 
                         default:
-                            Helper.unhandledSwitchStatement(loginSessionMode);
+                            JavaHelper.unhandledSwitchStatement(loginSessionMode);
                     }
                 }
                 sessionLoginProvider.init(pwmApplication);
@@ -116,11 +116,15 @@ public class SessionStateService implements PwmService {
     }
 
     @Override
-    public ServiceInfo serviceInfo() {
+    public ServiceInfoBean serviceInfo() {
         return null;
     }
 
     public <E extends PwmSessionBean> E getBean(final PwmRequest pwmRequest, final Class<E> theClass) throws PwmUnrecoverableException {
+        if (theClass == null) {
+            return null;
+        }
+
         if (beanSupportsMode(theClass, SessionBeanMode.CRYPTCOOKIE)) {
             return sessionBeanProvider.getSessionBean(pwmRequest, theClass);
         }
@@ -175,7 +179,7 @@ public class SessionStateService implements PwmService {
         try {
             final E newBean = theClass.newInstance();
             newBean.setGuid(sessionGuid);
-            newBean.setTimestamp(new Date());
+            newBean.setTimestamp(Instant.now());
             return newBean;
         } catch (Exception e) {
             final String errorMsg = "unexpected error trying to instantiate bean class " + theClass.getName() + ": " + e.getMessage();

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmException;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
@@ -77,7 +77,11 @@ public class SeedlistManager extends AbstractWordlist implements Wordlist {
     public void init(final PwmApplication pwmApplication) throws PwmException {
         super.init(pwmApplication);
         final String seedlistUrl = readAutoImportUrl();
-        this.wordlistConfiguration = new WordlistConfiguration(true, 0, seedlistUrl);
+
+        final int minSize = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.WORDLIST_CHAR_LENGTH_MIN));
+        final int maxSize = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.WORDLIST_CHAR_LENGTH_MAX));
+
+        this.wordlistConfiguration = new WordlistConfiguration(true, 0, seedlistUrl, minSize, maxSize);
         this.DEBUG_LABEL = PwmConstants.PWM_APP_NAME + "-Seedist";
         backgroundStartup();
     }

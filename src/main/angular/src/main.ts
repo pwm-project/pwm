@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@ import peopleSearchModule from './peoplesearch/peoplesearch.module';
 import PeopleService from './services/people.service';
 import PwmService from './services/pwm.service';
 import routes from './routes';
+import routeErrorHandler from './route-error-handler';
 import TranslationsLoaderFactory from './services/translations-loader.factory';
 import uiRouter from 'angular-ui-router';
 
@@ -51,11 +52,14 @@ module('app', [
                 .fallbackLanguage('fallback')
                 .forceAsyncReload(true);
         }])
+    .run(routeErrorHandler)
     .service('PeopleService', PeopleService)
     .service('PwmService', PwmService)
     .service('ConfigService', ConfigService)
     .factory('translationsLoader', TranslationsLoaderFactory);
 
-// Attach to the page document
-bootstrap(document, ['app'], { strictDi: true });
+// Attach to the page document, wait for PWM to load first
+window['PWM_GLOBAL'].startupFunctions.push(() => {
+    bootstrap(document, ['app'], { strictDi: true });
+});
 

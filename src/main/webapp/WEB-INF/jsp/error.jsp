@@ -1,13 +1,14 @@
 <%@ page import="password.pwm.error.ErrorInformation" %>
 <%@ page import="password.pwm.http.JspUtility" %>
+<%@ page import="password.pwm.http.servlet.command.CommandServlet" %>
 <%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
-<%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2016 The PWM Project
+  ~ Copyright (c) 2009-2017 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -28,7 +29,7 @@
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final ErrorInformation errorInformation = (ErrorInformation)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.PwmErrorInfo); %>
+<% final ErrorInformation errorInformation = (ErrorInformation)JspUtility.getAttribute(pageContext, PwmRequestAttribute.PwmErrorInfo); %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_HEADER_BUTTONS); %>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_HEADER_WARNINGS); %>
@@ -52,8 +53,8 @@
         <pwm:if test="<%=PwmIfTest.showErrorDetail%>">
             <% if (errorInformation != null && !errorInformation.getError().isErrorIsPermanent()) { %>
             <div class="buttonbar">
-                <form action="<pwm:url url='<%=PwmServletDefinition.Command.servletUrl()%>' addContext="true"/>" method="post" enctype="application/x-www-form-urlencoded">
-                    <input type="hidden" name="processAction" value="continue"/>
+                <form action="<pwm:url url='<%=PwmServletDefinition.PublicCommand.servletUrl()%>' addContext="true"/>" method="post" enctype="application/x-www-form-urlencoded">
+                    <input type="hidden" name="<%=PwmConstants.PARAM_ACTION_REQUEST%>" value="<%=CommandServlet.CommandAction.next.toString()%>"/>
                     <button type="submit" name="button" class="btn" id="button_continue" autofocus="autofocus">
                         <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
                         <pwm:display key="Button_Continue"/>

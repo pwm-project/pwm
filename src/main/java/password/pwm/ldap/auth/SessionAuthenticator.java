@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@ import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -44,19 +44,18 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.ldap.UserSearchEngine;
-import password.pwm.ldap.UserStatusReader;
+import password.pwm.ldap.UserInfoFactory;
+import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.intruder.IntruderManager;
 import password.pwm.svc.intruder.RecordType;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
 import password.pwm.util.PasswordData;
-import password.pwm.util.StringUtil;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -92,8 +91,8 @@ public class SessionAuthenticator {
         pwmApplication.getIntruderManager().check(RecordType.USERNAME, username);
         UserIdentity userIdentity = null;
         try {
-            final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, sessionLabel);
-            userIdentity = userSearchEngine.resolveUsername(username, context, ldapProfile);
+            final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
+            userIdentity = userSearchEngine.resolveUsername(username, context, ldapProfile, sessionLabel);
 
             final AuthenticationRequest authEngine = LDAPAuthenticationRequest.createLDAPAuthenticationRequest(
                     pwmApplication,
@@ -108,7 +107,7 @@ public class SessionAuthenticator {
             postFailureSequence(e, username, userIdentity);
 
             if (readHiddenErrorTypes().contains(e.getError())) {
-                if (Helper.determineIfDetailErrorMsgShown(pwmApplication)) {
+                if (pwmApplication.determineIfDetailErrorMsgShown()) {
                     LOGGER.debug(pwmSession, "allowing error " + e.getError() + " to be returned though it is configured as a hidden type; "
                             + "app is currently permitting detailed error messages");
                 } else {
@@ -178,8 +177,8 @@ public class SessionAuthenticator {
 
         UserIdentity userIdentity = null;
         try {
-            final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, sessionLabel);
-            userIdentity = userSearchEngine.resolveUsername(username, null, null);
+            final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
+            userIdentity = userSearchEngine.resolveUsername(username, null, null, sessionLabel);
 
             final AuthenticationRequest authEngine = LDAPAuthenticationRequest.createLDAPAuthenticationRequest(
                     pwmApplication,
@@ -320,26 +319,29 @@ public class SessionAuthenticator {
 
         // update the actor user info bean
         {
-            final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
-            final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, pwmSession.getLabel());
-
+            final UserInfo userInfoBean;
             if (authenticationResult.getAuthenticationType() == AuthenticationType.AUTH_BIND_INHIBIT) {
-                userStatusReader.populateUserInfoBean(
-                        userInfoBean,
+                userInfoBean = UserInfoFactory.newUserInfo(
+                        pwmApplication,
+                        pwmSession.getLabel(),
                         ssBean.getLocale(),
                         userIdentity,
                         pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID())
                 );
             } else {
-                userStatusReader.populateActorUserInfoBean(
-                        pwmSession,
-                        userIdentity
+                userInfoBean = UserInfoFactory.newUserInfoUsingProxy(
+                        pwmApplication,
+                        pwmSession.getLabel(),
+                        userIdentity,
+                        ssBean.getLocale(),
+                        authenticationResult.getUserPassword()
                 );
             }
+            pwmSession.setUserInfoBean(userInfoBean);
         }
 
         //mark the auth time
-        pwmSession.getLoginInfoBean().setAuthTime(new Date());
+        pwmSession.getLoginInfoBean().setAuthTime(Instant.now());
 
         //update the resulting authType
         pwmSession.getLoginInfoBean().setType(authenticationResult.getAuthenticationType());
@@ -351,17 +353,17 @@ public class SessionAuthenticator {
         pwmSession.getLoginInfoBean().setUserCurrentPassword(userPassword);
 
         //notify the intruder manager with a successful login
-        intruderManager.clear(RecordType.USERNAME, pwmSession.getUserInfoBean().getUsername());
+        intruderManager.clear(RecordType.USERNAME, pwmSession.getUserInfo().getUsername());
         intruderManager.convenience().clearUserIdentity(userIdentity);
         intruderManager.convenience().clearAddressAndSession(pwmSession);
 
         if (pwmApplication.getStatisticsManager() != null) {
             final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
-            if (pwmSession.getUserInfoBean().getPasswordState().isWarnPeriod()) {
+            if (pwmSession.getUserInfo().getPasswordStatus().isWarnPeriod()) {
                 statisticsManager.incrementValue(Statistic.AUTHENTICATION_EXPIRED_WARNING);
-            } else if (pwmSession.getUserInfoBean().getPasswordState().isPreExpired()) {
+            } else if (pwmSession.getUserInfo().getPasswordStatus().isPreExpired()) {
                 statisticsManager.incrementValue(Statistic.AUTHENTICATION_PRE_EXPIRED);
-            } else if (pwmSession.getUserInfoBean().getPasswordState().isExpired()) {
+            } else if (pwmSession.getUserInfo().getPasswordStatus().isExpired()) {
                 statisticsManager.incrementValue(Statistic.AUTHENTICATION_EXPIRED);
             }
         }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,11 +24,9 @@ package password.pwm.svc.intruder;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
@@ -37,15 +35,14 @@ import password.pwm.config.option.IntruderStorageMethod;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
-import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.health.HealthTopic;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
-import password.pwm.ldap.LdapUserDataReader;
-import password.pwm.ldap.UserStatusReader;
+import password.pwm.ldap.UserInfo;
+import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecordFactory;
@@ -53,14 +50,15 @@ import password.pwm.svc.event.SystemAuditRecord;
 import password.pwm.svc.event.UserAuditRecord;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.ClosableIterator;
 import password.pwm.util.DataStore;
 import password.pwm.util.DataStoreFactory;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.LocaleHelper;
 import password.pwm.util.db.DatabaseDataStore;
 import password.pwm.util.db.DatabaseTable;
+import password.pwm.util.java.ClosableIterator;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBDataStore;
 import password.pwm.util.logging.PwmLogger;
@@ -74,6 +72,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -90,7 +89,7 @@ public class IntruderManager implements Serializable, PwmService {
 
     private final Map<RecordType, RecordManager> recordManagers = new HashMap<>();
 
-    private ServiceInfo serviceInfo = new ServiceInfo(Collections.<DataStorageMethod>emptyList());
+    private ServiceInfoBean serviceInfo = new ServiceInfoBean(Collections.<DataStorageMethod>emptyList());
 
     public IntruderManager() {
         for (final RecordType recordType : RecordType.values()) {
@@ -119,7 +118,7 @@ public class IntruderManager implements Serializable, PwmService {
         }
         if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.INTRUDER_ENABLE)) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"intruder module not enabled");
-            LOGGER.error(errorInformation.toDebugStr());
+            LOGGER.debug(errorInformation.toDebugStr());
             status = STATUS.CLOSED;
             return;
         }
@@ -141,7 +140,7 @@ public class IntruderManager implements Serializable, PwmService {
                     break;
 
                 case DATABASE:
-                    dataStore = new DatabaseDataStore(pwmApplication.getDatabaseAccessor(), DatabaseTable.INTRUDER);
+                    dataStore = new DatabaseDataStore(pwmApplication.getDatabaseService(), DatabaseTable.INTRUDER);
                     debugMsg = "starting using Remote Database data store";
                     storageMethodUsed = DataStorageMethod.DB;
                     break;
@@ -158,12 +157,12 @@ public class IntruderManager implements Serializable, PwmService {
                     return;
             }
             LOGGER.info(debugMsg);
-            serviceInfo = new ServiceInfo(Collections.singletonList(storageMethodUsed));
+            serviceInfo = new ServiceInfoBean(Collections.singletonList(storageMethodUsed));
         }
         final RecordStore recordStore;
         {
             recordStore = new DataStoreRecordStore(dataStore, this);
-            final String threadName = Helper.makeThreadName(pwmApplication, this.getClass()) + " timer";
+            final String threadName = JavaHelper.makeThreadName(pwmApplication, this.getClass()) + " timer";
             timer = new Timer(threadName, true);
             final long maxRecordAge = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.INTRUDER_RETENTION_TIME_MS));
             final long cleanerRunFrequency = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.INTRUDER_CLEANUP_FREQUENCY_MS));
@@ -280,10 +279,13 @@ public class IntruderManager implements Serializable, PwmService {
                 case TOKEN_DEST:
                     throw new PwmUnrecoverableException(PwmError.ERROR_INTRUDER_TOKEN_DEST);
 
+                case USER_ID:
+                case USERNAME:
+                    throw new PwmUnrecoverableException(PwmError.ERROR_INTRUDER_USER);
+
                 default:
-                    Helper.unhandledSwitchStatement(recordType);
+                    JavaHelper.unhandledSwitchStatement(recordType);
             }
-            throw new PwmUnrecoverableException(PwmError.ERROR_INTRUDER_USER);
         }
     }
 
@@ -336,7 +338,6 @@ public class IntruderManager implements Serializable, PwmService {
                     sessionLabel
             );
             pwmApplication.getAuditManager().submit(auditRecord);
-            sendAlert(manager.readIntruderRecord(subject), sessionLabel);
         } else { // send intruder attempt audit event
             final Map<String,Object> messageObj = new LinkedHashMap<>();
             messageObj.put("type", recordType);
@@ -393,7 +394,7 @@ public class IntruderManager implements Serializable, PwmService {
             delayPenalty += PwmRandom.getInstance().nextInt((int)Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.INTRUDER_DELAY_MAX_JITTER_MS))); // add some randomness;
             delayPenalty = delayPenalty > Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.INTRUDER_MAX_DELAY_PENALTY_MS)) ? Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.INTRUDER_MAX_DELAY_PENALTY_MS)) : delayPenalty;
             LOGGER.trace(sessionLabel, "delaying response " + delayPenalty + "ms due to intruder record: " + JsonUtil.serialize(intruderRecord));
-            Helper.pause(delayPenalty);
+            JavaHelper.pause(delayPenalty);
         }
     }
 
@@ -413,7 +414,7 @@ public class IntruderManager implements Serializable, PwmService {
     }
 
     public List<Map<String,Object>> getRecords(final RecordType recordType, final int maximum)
-            throws PwmOperationalException
+            throws PwmException
     {
         final RecordManager manager = recordManagers.get(recordType);
         final ArrayList<Map<String,Object>> returnList = new ArrayList<>();
@@ -570,35 +571,36 @@ public class IntruderManager implements Serializable, PwmService {
             final UserIdentity userIdentity
     )
     {
+        final Locale locale = LocaleHelper.getLocaleForSessionID(pwmApplication, sessionLabel.getSessionID());
         final Configuration config = pwmApplication.getConfig();
-        final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_INTRUDERNOTICE, PwmConstants.DEFAULT_LOCALE);
+        final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_INTRUDERNOTICE, locale);
 
         if (configuredEmailSetting == null) {
             return;
         }
 
         try {
-            final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, null);
-            final UserInfoBean userInfoBean = userStatusReader.populateUserInfoBean(
-                    PwmConstants.DEFAULT_LOCALE,
-                    userIdentity
+            final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy(
+                    pwmApplication,
+                    SessionLabel.SYSTEM_LABEL,
+                    userIdentity, locale
             );
 
             final MacroMachine macroMachine = new MacroMachine(
                     pwmApplication,
                     sessionLabel,
-                    userInfoBean,
-                    null,
-                    LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity));
+                    userInfo,
+                    null
+                    );
 
-            pwmApplication.getEmailQueue().submitEmail(configuredEmailSetting, userInfoBean, macroMachine);
+            pwmApplication.getEmailQueue().submitEmail(configuredEmailSetting, userInfo, macroMachine);
         } catch (PwmUnrecoverableException e) {
             LOGGER.error("error reading user info while sending intruder notice for user " + userIdentity + ", error: " + e.getMessage());
         }
 
     }
 
-    public ServiceInfo serviceInfo()
+    public ServiceInfoBean serviceInfo()
     {
         return serviceInfo;
     }

@@ -1,9 +1,10 @@
 <%@ page import="password.pwm.PwmEnvironment" %>
 <%@ page import="password.pwm.http.servlet.configguide.ConfigGuideForm" %>
-<%@ page import="password.pwm.util.StringUtil" %>
-<%@ page import="password.pwm.util.X509Utils" %>
+<%@ page import="password.pwm.util.java.JavaHelper" %>
+<%@ page import="password.pwm.util.java.StringUtil" %>
 <%@ page import="password.pwm.util.secure.PwmHashAlgorithm" %>
 <%@ page import="password.pwm.util.secure.SecureEngine" %>
+<%@ page import="password.pwm.util.secure.X509Utils" %>
 <%@ page import="java.io.ByteArrayInputStream" %>
 <%@ page import="java.security.cert.X509Certificate" %>
 <%--
@@ -11,7 +12,7 @@
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2016 The PWM Project
+  ~ Copyright (c) 2009-2017 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -68,8 +69,8 @@
                                 <tr><td>Issuer Name</td><td><div class="setting_table_value"><%=certificate.getIssuerX500Principal().getName()%></div></td></tr>
                                 <% final String serialNum = X509Utils.hexSerial(certificate); %>
                                 <tr><td>Serial Number</td><td><div class="setting_table_value"><%=serialNum%></div></td></tr>
-                                <tr><td>Issue Date</td><td><div class="setting_table_value timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(certificate.getNotBefore())%></div></td></tr>
-                                <tr><td>Expire Date</td><td><div class="setting_table_value timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(certificate.getNotAfter())%></div></td></tr>
+                                <tr><td>Issue Date</td><td><div class="setting_table_value timestamp"><%=JavaHelper.toIsoDate(certificate.getNotBefore())%></div></td></tr>
+                                <tr><td>Expire Date</td><td><div class="setting_table_value timestamp"><%=JavaHelper.toIsoDate(certificate.getNotAfter())%></div></td></tr>
                             </table>
                             <pwm:script>
                                 <script type="text/javascript">

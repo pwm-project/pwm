@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,15 +23,15 @@
 package password.pwm.config.value;
 
 import org.jdom2.Element;
-import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.X509Utils;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.util.secure.SecureEngine;
+import password.pwm.util.secure.X509Utils;
 
 import java.io.ByteArrayInputStream;
 import java.io.Serializable;
@@ -122,8 +122,8 @@ public class X509CertificateValue extends AbstractValue implements StoredValue {
                 sb.append(" Subject: ").append(cert.getSubjectDN().toString()).append("\n");
                 sb.append(" Serial: ").append(X509Utils.hexSerial(cert)).append("\n");
                 sb.append(" Issuer: ").append(cert.getIssuerDN().toString()).append("\n");
-                sb.append(" IssueDate: ").append(PwmConstants.DEFAULT_DATETIME_FORMAT.format(cert.getNotBefore())).append("\n");
-                sb.append(" ExpireDate: ").append(PwmConstants.DEFAULT_DATETIME_FORMAT.format(cert.getNotAfter())).append("\n");
+                sb.append(" IssueDate: ").append(JavaHelper.toIsoDate(cert.getNotBefore())).append("\n");
+                sb.append(" ExpireDate: ").append(JavaHelper.toIsoDate(cert.getNotAfter())).append("\n");
                 try {
                     sb.append(" MD5 Hash: ").append(SecureEngine.hash(new ByteArrayInputStream(cert.getEncoded()),
                             PwmHashAlgorithm.MD5)).append("\n");

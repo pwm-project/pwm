@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,21 +22,23 @@
 
 package password.pwm.http.servlet.resource;
 
+import com.github.benmanes.caffeine.cache.Cache;
 import org.apache.commons.io.IOUtils;
+import org.webjars.WebJarAssetLocator;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
-import password.pwm.http.filter.RequestInitializationFilter;
 import password.pwm.http.servlet.PwmServlet;
 import password.pwm.svc.stats.EventRateMeter;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.StringUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletContext;
@@ -54,7 +56,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -79,7 +84,11 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
     public static final String TOKEN_THEME = "%THEME%";
     public static final String EMBED_THEME = "embed";
 
-    public static final String WEBJAR_RESOURCE_PREFIX = "META-INF/resources";
+    private static final String WEBJAR_BASE_FILE_PATH = "META-INF/resources/webjars";
+    private static final String WEBJAR_BASE_URL_PATH = RESOURCE_PATH + "/webjars/";
+
+    private static final Map<String,String> WEB_JAR_VERSION_MAP = Collections.unmodifiableMap(new HashMap<>(new WebJarAssetLocator().getWebJars()));
+    private static final Collection<String> WEB_JAR_ASSET_LIST = Collections.unmodifiableCollection(new ArrayList<>(new WebJarAssetLocator().getFullPathIndex().values()));
 
 
     @Override
@@ -108,7 +117,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
         }
     }
 
-    protected void rawRequestProcessor(final HttpServletRequest req, final HttpServletResponse resp)
+    private void rawRequestProcessor(final HttpServletRequest req, final HttpServletResponse resp)
             throws IOException, PwmUnrecoverableException
     {
 
@@ -125,8 +134,6 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
 
         handleUncachedResponse(resp, file, false);
     }
-
-
 
     protected void processAction(final PwmRequest pwmRequest)
             throws ServletException, IOException, PwmUnrecoverableException
@@ -170,7 +177,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
         }
 
         // Get content type by file name and set default GZIP support and content disposition.
-        String contentType = getServletContext().getMimeType(file.getName());
+        String contentType = getMimeType(file.getName());
         boolean acceptsGzip = false;
 
         // If content type is unknown, then set the default value.
@@ -184,19 +191,17 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
         // the browser and expand content type with the one and right character encoding.
         if (resourceConfiguration.isEnableGzip()) {
             if (contentType.startsWith("text") || contentType.contains("javascript")) {
-                final String acceptEncoding = pwmRequest.readHeaderValueAsString(PwmConstants.HttpHeader.Accept_Encoding);
+                final String acceptEncoding = pwmRequest.readHeaderValueAsString(HttpHeader.Accept_Encoding);
                 acceptsGzip = acceptEncoding != null && accepts(acceptEncoding, "gzip");
                 contentType += ";charset=UTF-8";
             }
         }
 
-        RequestInitializationFilter.addPwmResponseHeaders(pwmRequest);
-
         final HttpServletResponse response = pwmRequest.getPwmResponse().getHttpServletResponse();
         final String eTagValue = resourceConfiguration.getNonceValue();
 
         {   // reply back with etag.
-            final String ifNoneMatchValue = pwmRequest.readHeaderValueAsString(PwmConstants.HttpHeader.If_None_Match);
+            final String ifNoneMatchValue = pwmRequest.readHeaderValueAsString(HttpHeader.If_None_Match);
             if (ifNoneMatchValue != null && ifNoneMatchValue.equals(eTagValue)) {
                 response.reset();
                 response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
@@ -208,7 +213,6 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
         }
 
         // Initialize response.
-        response.reset();
         addExpirationHeaders(resourceConfiguration, response);
         response.setHeader("ETag", resourceConfiguration.getNonceValue());
         response.setContentType(contentType);
@@ -261,7 +265,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
             final HttpServletResponse response,
             final FileResource file,
             final boolean acceptsGzip,
-            final Map<CacheKey, CacheEntry> responseCache
+            final Cache<CacheKey, CacheEntry> responseCache
     )
             throws UncacheableResourceException, IOException
     {
@@ -272,27 +276,27 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
 
         boolean fromCache = false;
         final CacheKey cacheKey = new CacheKey(file, acceptsGzip);
-        CacheEntry cacheEntry = responseCache.get(cacheKey);
+        CacheEntry cacheEntry = responseCache.getIfPresent(cacheKey);
         if (cacheEntry == null) {
             final Map<String, String> headers = new HashMap<>();
-            final ByteArrayOutputStream output = new ByteArrayOutputStream();
+            final ByteArrayOutputStream tempOutputStream = new ByteArrayOutputStream();
             final InputStream input = file.getInputStream();
 
             try {
                 if (acceptsGzip) {
-                    final GZIPOutputStream gzipOutputStream = new GZIPOutputStream(output);
+                    final GZIPOutputStream gzipOutputStream = new GZIPOutputStream(tempOutputStream);
                     headers.put("Content-Encoding", "gzip");
                     copy(input, gzipOutputStream);
                     close(gzipOutputStream);
                 } else {
-                    copy(input, output);
+                    copy(input, tempOutputStream);
                 }
             } finally {
                 close(input);
-                close(output);
+                close(tempOutputStream);
             }
 
-            final byte[] entity = output.toByteArray();
+            final byte[] entity = tempOutputStream.toByteArray();
             headers.put("Content-Length", String.valueOf(entity.length));
             cacheEntry = new CacheEntry(entity, headers);
         } else {
@@ -409,7 +413,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
         }
 
         {
-            final FileResource resource = handleWebjarURIs(servletContext, resourcePathUri, resourceServletConfiguration);
+            final FileResource resource = handleWebjarURIs(servletContext, resourcePathUri);
             if (resource != null) {
                 return resource;
             }
@@ -543,47 +547,36 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
 
     private static FileResource handleWebjarURIs(
             final ServletContext servletContext,
-            final String resourcePathUri,
-            final ResourceServletConfiguration resourceServletConfiguration
+            final String resourcePathUri
     )
             throws PwmUnrecoverableException
     {
-        final Map<String,String> webJarMappings = resourceServletConfiguration.getWebJarUriMappings();
+        if (resourcePathUri.startsWith(WEBJAR_BASE_URL_PATH)) {
+            final String remainingPath = resourcePathUri.substring(WEBJAR_BASE_URL_PATH.length(), resourcePathUri.length());
 
-        for (final String sourceMapping : webJarMappings.keySet()) {
-            if (resourcePathUri.startsWith(sourceMapping)) {
-                final String redirectBasePath = webJarMappings.get(sourceMapping);
-                final String requestPath = resourcePathUri.substring(sourceMapping.length(), resourcePathUri.length());
+            final String webJarName;
+            final String webJarPath;
+            {
+                final int slashIndex = remainingPath.indexOf("/");
+                if (slashIndex < 0) {
+                    return null;
+                }
+                webJarName = remainingPath.substring(0, slashIndex);
+                webJarPath = remainingPath.substring(slashIndex + 1, remainingPath.length());
+            }
+
+            final String versionString = WEB_JAR_VERSION_MAP.get(webJarName);
+            if (versionString == null) {
+                return null;
+            }
+
+            final String fullPath = WEBJAR_BASE_FILE_PATH + "/" + webJarName + "/" + versionString+ "/" + webJarPath;
+            if (WEB_JAR_ASSET_LIST.contains(fullPath)) {
                 final ClassLoader classLoader = servletContext.getClassLoader();
-                final String jarInternalFilename = WEBJAR_RESOURCE_PREFIX + redirectBasePath + requestPath;
-                final InputStream inputStream = classLoader.getResourceAsStream(jarInternalFilename);
+                final InputStream inputStream = classLoader.getResourceAsStream(fullPath);
+
                 if (inputStream != null) {
-                    return new FileResource() {
-                        @Override
-                        public InputStream getInputStream() throws IOException {
-                            return inputStream;
-                        }
-
-                        @Override
-                        public long length() {
-                            return 0;
-                        }
-
-                        @Override
-                        public long lastModified() {
-                            return 0;
-                        }
-
-                        @Override
-                        public boolean exists() {
-                            return true;
-                        }
-
-                        @Override
-                        public String getName() {
-                            return jarInternalFilename;
-                        }
-                    };
+                    return new InputStreamFileResource(inputStream, fullPath);
                 }
             }
         }
@@ -591,8 +584,54 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
         return null;
     }
 
+    private static class InputStreamFileResource implements FileResource {
+        private final InputStream inputStream;
+        private final String fullPath;
+
+        InputStreamFileResource(final InputStream inputStream, final String fullPath) {
+            this.inputStream = inputStream;
+            this.fullPath = fullPath;
+        }
+
+        @Override
+        public InputStream getInputStream() throws IOException {
+            return inputStream;
+        }
+
+        @Override
+        public long length() {
+            return 0;
+        }
+
+        @Override
+        public long lastModified() {
+            return 0;
+        }
+
+        @Override
+        public boolean exists() {
+            return true;
+        }
+
+        @Override
+        public String getName() {
+            return fullPath;
+        }
+    }
+
     private void addExpirationHeaders(final ResourceServletConfiguration resourceServletConfiguration, final HttpServletResponse httpResponse) {
         httpResponse.setDateHeader("Expires", System.currentTimeMillis() + (resourceServletConfiguration.getCacheExpireSeconds() * 1000));
-        httpResponse.setHeader("Cache-Control", "private, max-age=" + resourceServletConfiguration.getCacheExpireSeconds() + ")");
+        httpResponse.setHeader("Cache-Control", "public, max-age=" + resourceServletConfiguration.getCacheExpireSeconds());
+        httpResponse.setHeader("Vary", "Accept-Encoding");
+    }
+
+    private String getMimeType(final String filename) {
+        final String contentType = getServletContext().getMimeType(filename);
+        if (contentType == null) {
+            if (filename.endsWith(".woff2")) {
+                return "font/woff2";
+            }
+        }
+        return contentType;
     }
 }

@@ -1,17 +1,23 @@
 <%@ page import="password.pwm.config.Configuration" %>
 <%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.http.JspUtility" %>
-<%@ page import="password.pwm.i18n.Config" %>
 <%@ page import="password.pwm.i18n.PwmLocaleBundle" %>
 <%@ page import="password.pwm.util.LocaleHelper" %>
-<%@ page import="password.pwm.util.StringUtil" %>
-<%@ page import="java.util.*" %>
+<%@ page import="password.pwm.util.java.JavaHelper" %>
+<%@ page import="password.pwm.util.java.StringUtil" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.Date" %>
+<%@ page import="java.util.HashMap" %>
+<%@ page import="java.util.List" %>
+<%@ page import="java.util.Locale" %>
+<%@ page import="java.util.Map" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2016 The PWM Project
+  ~ Copyright (c) 2009-2017 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -33,7 +39,7 @@
   final Map<String,Object> outputData = new HashMap<String,Object>();
   try {
     final PwmRequest pwmRequest = PwmRequest.forRequest(request,response);
-    outputData.putAll((Map)pwmRequest.getAttribute(PwmRequest.Attribute.ConfigurationSummaryOutput));
+    outputData.putAll((Map)pwmRequest.getAttribute(PwmRequestAttribute.ConfigurationSummaryOutput));
 
     settingData.addAll((List<Map<String,String>>)outputData.get("settings"));
   } catch (PwmException e) {
@@ -63,7 +69,7 @@
         <%=PwmConstants.PWM_APP_NAME%> &nbsp; <%=PwmConstants.SERVLET_VERSION%>
       </div>
       <div>
-        Current Time: <span class="timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date())%></span>
+        Current Time: <span class="timestamp"><%=JavaHelper.toIsoDate(new Date())%></span>
         <br/>
         <br/>
         <br/>

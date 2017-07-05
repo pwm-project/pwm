@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -370,7 +370,7 @@ StringArrayValueHandler.valueHandler = function(settingKey, iteration) {
 
     var isLdapDN = PWM_MAIN.JSLibrary.arrayContains(PWM_SETTINGS['settings'][settingKey]['flags'],'ldapDNsyntax');
     if (isLdapDN) {
-        UILibrary.editLdapDN(okAction);
+        UILibrary.editLdapDN(okAction,{currentDN: editorOptions['value']});
     } else {
         UILibrary.stringEditorDialog(editorOptions);
     }
@@ -1861,7 +1861,7 @@ EmailTableHandler.drawRowHtml = function(settingKey, localeName) {
     var localeLabel = localeName == '' ? 'Default Locale' : PWM_GLOBAL['localeInfo'][localeName] + " (" + localeName + ")";
     var idPrefix = "setting-" + localeName + "-" + settingKey;
     var htmlBody = '';
-    htmlBody += '<table class="noborder"><tr ><td class="noborder">';
+    htmlBody += '<table class="noborder" style=""><tr ><td class="noborder" style="max-width: 440px">';
     htmlBody += '<table>';
     if (PWM_MAIN.JSLibrary.itemCount(PWM_VAR['clientSettingCache'][settingKey]) > 1) {
         htmlBody += '<tr><td colspan="5" class="title" style="font-size:100%; font-weight:normal">' + localeLabel + '</td></tr>';
@@ -2426,7 +2426,7 @@ UserPermissionHandler.draw = function(keyName) {
                         PWM_VAR['clientSettingCache'][keyName][rowKey]['ldapProfileID'] = ldapProfileID;
                         PWM_VAR['clientSettingCache'][keyName][rowKey]['ldapBase'] = value;
                         UserPermissionHandler.write(keyName,true);
-                    });
+                    }, {currentDN: currentBaseValue});
                 };
                 if (currentBaseValue && currentBaseValue.length > 0) {
                     UILibrary.addTextValueToElement(inputID + '-base', currentBaseValue);
@@ -2682,7 +2682,7 @@ StringValueHandler.init = function(settingKey) {
                 });
             };
             if (isLdapDN) {
-                UILibrary.editLdapDN(writeBackFunc);
+                UILibrary.editLdapDN(writeBackFunc,{currentDN: value});
             } else {
                 UILibrary.stringEditorDialog({
                     title:'Edit Value - ' + settingData['label'],
@@ -2753,7 +2753,7 @@ SelectValueHandler.init = function(settingKey) {
 
     if (allowUserInput) {
         htmlBody += '<button class="btn" id="button_selectOverride_' + settingKey + '">'
-        + '<span class="btn-icon pwm-icon pwm-icon-plus-square"></span>Set Value</button>';
+            + '<span class="btn-icon pwm-icon pwm-icon-plus-square"></span>Add Value</button>';
 
     }
 
@@ -3190,4 +3190,147 @@ PrivateKeyHandler.draw = function(keyName) {
         options['urlUpdateFunction'] = urlUpdateFunction;
         UILibrary.uploadFileDialog(options);
     });
+};
+
+
+//--------- named secret handler ---
+var NamedSecretHandler = {};
+
+NamedSecretHandler.init = function(settingKey) {
+    var parentDiv = 'table_setting_' + settingKey;
+    var parentDivElement = PWM_MAIN.getObject(parentDiv);
+
+    if (parentDivElement) {
+        PWM_CFGEDIT.readSetting(settingKey,function(data){
+            PWM_VAR['clientSettingCache'][settingKey] = data;
+            var htmlBody = '';
+            htmlBody += '<table>';
+            var rowCounter = 0;
+            for (var key in data) {
+                var id = settingKey + '_' + key;
+                htmlBody += '<tr>';
+                htmlBody += '<td>' + key + '</td><td>Stored Value</td><td><button id="button-usage-' + id + '"><span class="btn-icon pwm-icon pwm-icon-sliders"/>Usage</button></td>';
+                htmlBody += '<td style="width:10px"><span class="delete-row-icon action-icon pwm-icon pwm-icon-times" id="button-deleteRow-' + id + '"></span></td>';
+                htmlBody += '</tr>';
+                rowCounter++;
+            }
+
+            if (rowCounter < 1) {
+                htmlBody += '<tr><td>No values.</td></tr>';
+            }
+
+            htmlBody += '</table>';
+
+            htmlBody += '<button id="button-addPassword-' + settingKey + '" class="btn"><span class="btn-icon pwm-icon pwm-icon-plus-square"></span>Add Value</button>';
+            parentDivElement.innerHTML = htmlBody;
+
+            PWM_MAIN.addEventHandler('button-addPassword-' + settingKey,'click',function(){
+                NamedSecretHandler.addPassword(settingKey);
+            });
+
+            for (var key in data) {
+                var id = settingKey + '_' + key;
+                PWM_MAIN.addEventHandler('button-deleteRow-' + id,'click',function(){
+                    NamedSecretHandler.deletePassword(settingKey, key);
+                });
+                PWM_MAIN.addEventHandler('button-usage-' + id,'click',function(){
+                    NamedSecretHandler.usagePopup(settingKey, key);
+                });
+            }
+        });
+    }
+};
+
+NamedSecretHandler.usagePopup = function(settingKey, key) {
+    var titleText = PWM_SETTINGS['settings'][settingKey]['label'] + ' - Usage - ' + key ;
+    var options = PWM_SETTINGS['settings'][settingKey]['options'];
+    var currentValues = PWM_VAR['clientSettingCache'][settingKey];
+    var html = '<table class="noborder">';
+    for (var loopKey in options) {
+        (function (optionKey) {
+            html += '<tr><td>';
+            var buttonID = key + "_usage_button_" + optionKey;
+            html += '<label class="checkboxWrapper" style="min-width:180px;">'
+                + '<input type="checkbox" id="' + buttonID + '"/>'
+                + options[optionKey] + '</label>';
+            html += '</td></tr>';
+        })(loopKey);
+    }
+    html += '</table>';
+    var loadFunction = function () {
+        for (var loopKey in options) {
+            (function (optionKey) {
+                var buttonID = key + "_usage_button_" + optionKey;
+                var checked = PWM_MAIN.JSLibrary.arrayContains(currentValues[key]['usage'],optionKey);
+                PWM_MAIN.getObject(buttonID).checked = checked;
+                PWM_MAIN.addEventHandler(buttonID,'click',function(){
+                    var nowChecked = PWM_MAIN.getObject(buttonID).checked;
+                    if (nowChecked) {
+                        currentValues[key]['usage'].push(optionKey);
+                    } else {
+                        PWM_MAIN.JSLibrary.removeFromArray(currentValues[key]['usage'], optionKey);
+                    }
+                });
+            })(loopKey);
+        }
+    };
+    var okFunction = function() {
+        var postWriteFunction = function() {
+            NamedSecretHandler.init(settingKey);
+        };
+        PWM_CFGEDIT.writeSetting(settingKey, currentValues, postWriteFunction);
+    };
+    PWM_MAIN.showDialog({title:titleText,text:html,loadFunction:loadFunction,okAction:okFunction});
+};
+
+NamedSecretHandler.addPassword = function(settingKey) {
+    var titleText = PWM_SETTINGS['settings'][settingKey]['label'] + ' - Name';
+    var stringEditorFinishFunc = function(nameValue) {
+        var currentValues = PWM_VAR['clientSettingCache'][settingKey];
+        if (nameValue in currentValues) {;
+            var errorTxt = '"' + nameValue + '" already exists.';
+            PWM_MAIN.showErrorDialog(errorTxt);
+            return;
+        }
+        var pwDialogOptions = {};
+        pwDialogOptions['title'] = PWM_SETTINGS['settings'][settingKey]['label'] + ' - Password';
+        pwDialogOptions['showRandomGenerator'] = true;
+        pwDialogOptions['showValues'] = true;
+        pwDialogOptions['writeFunction'] = function(pwValue) {
+            currentValues[nameValue] = {};
+            currentValues[nameValue]['password'] = pwValue;
+            currentValues[nameValue]['usage'] = [];
+
+            var postWriteFunction = function() {
+                NamedSecretHandler.init(settingKey);
+            };
+
+            PWM_CFGEDIT.writeSetting(settingKey, currentValues, postWriteFunction);
+        };
+        UILibrary.passwordDialogPopup(pwDialogOptions)
+    };
+    var instructions = 'Please enter the name for the new password.';
+    UILibrary.stringEditorDialog({
+        title: titleText,
+        regex: '[a-zA-Z]{2,20}',
+        instructions: instructions,
+        completeFunction: stringEditorFinishFunc
+    });
+};
+
+
+NamedSecretHandler.deletePassword = function(settingKey, key) {
+    PWM_MAIN.showConfirmDialog({
+        text:'Delete named password <b>' + key + '</b>?',
+        okAction:function() {
+            var currentValues = PWM_VAR['clientSettingCache'][settingKey];
+            delete currentValues[key];
+
+            var postWriteFunction = function() {
+                NamedSecretHandler.init(settingKey);
+            };
+            PWM_CFGEDIT.writeSetting(settingKey, currentValues, postWriteFunction);
+        }
+    });
+
 };

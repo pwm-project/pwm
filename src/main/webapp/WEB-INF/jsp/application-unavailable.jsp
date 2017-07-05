@@ -2,12 +2,13 @@
 <%@ page import="password.pwm.error.ErrorInformation" %>
 <%@ page import="password.pwm.error.PwmError" %>
 <%@ page import="password.pwm.http.PwmRequest" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2016 The PWM Project
+  ~ Copyright (c) 2009-2017 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -27,9 +28,9 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%
-    final ErrorInformation startupError = request.getAttribute(PwmRequest.Attribute.PwmErrorInfo.toString()) == null
+    final ErrorInformation startupError = request.getAttribute(PwmRequestAttribute.PwmErrorInfo.toString()) == null
             ? new ErrorInformation(PwmError.ERROR_APP_UNAVAILABLE)
-            : (ErrorInformation)request.getAttribute(PwmRequest.Attribute.PwmErrorInfo.toString());
+            : (ErrorInformation)request.getAttribute(PwmRequestAttribute.PwmErrorInfo.toString());
 %>
 <html>
 <head>

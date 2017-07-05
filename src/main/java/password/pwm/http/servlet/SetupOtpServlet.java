@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.ForceSetupPolicy;
@@ -40,7 +40,9 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
+import password.pwm.http.JspUrl;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.SetupOtpBean;
 import password.pwm.ldap.auth.AuthenticationType;
@@ -49,13 +51,13 @@ import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.event.UserAuditRecord;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.StringUtil;
 import password.pwm.util.Validator;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.OtpService;
-import password.pwm.util.otp.OTPUserRecord;
+import password.pwm.util.operations.otp.OTPUserRecord;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
@@ -120,7 +122,7 @@ public class SetupOtpServlet extends AbstractPwmServlet {
         // fetch the required beans / managers
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final UserInfoBean uiBean = pwmSession.getUserInfoBean();
+        final UserInfo userInfo = pwmSession.getUserInfo();
         final Configuration config = pwmApplication.getConfig();
 
         if (!config.readSettingAsBoolean(PwmSetting.OTP_ENABLED)) {
@@ -133,7 +135,7 @@ public class SetupOtpServlet extends AbstractPwmServlet {
 
         // check to see if the user is permitted to setup OTP
         if (!pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.SETUP_OTP_SECRET)) {
-            final String errorMsg = String.format("user %s does not have permission to setup an OTP secret", uiBean.getUserIdentity());
+            final String errorMsg = String.format("user %s does not have permission to setup an OTP secret", userInfo.getUserIdentity());
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED, errorMsg);
             LOGGER.error(pwmRequest, errorInformation);
             pwmRequest.respondWithError(errorInformation);
@@ -186,7 +188,7 @@ public class SetupOtpServlet extends AbstractPwmServlet {
                     return;
 
                 default:
-                    Helper.unhandledSwitchStatement(action);
+                    JavaHelper.unhandledSwitchStatement(action);
             }
         }
         this.advanceToNextStage(pwmRequest, otpBean);
@@ -199,7 +201,7 @@ public class SetupOtpServlet extends AbstractPwmServlet {
             throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException
     {
         if (otpBean.isHasPreExistingOtp()) {
-            pwmRequest.forwardToJsp(PwmConstants.JspUrl.SETUP_OTP_SECRET_EXISTING);
+            pwmRequest.forwardToJsp(JspUrl.SETUP_OTP_SECRET_EXISTING);
             return;
         }
 
@@ -208,7 +210,7 @@ public class SetupOtpServlet extends AbstractPwmServlet {
 
         if (otpBean.isConfirmed()) {
             final OtpService otpService = pwmApplication.getOtpService();
-            final UserIdentity theUser = pwmSession.getUserInfoBean().getUserIdentity();
+            final UserIdentity theUser = pwmSession.getUserInfo().getUserIdentity();
             try {
                 otpService.writeOTPUserConfiguration(
                         pwmSession,
@@ -218,12 +220,12 @@ public class SetupOtpServlet extends AbstractPwmServlet {
                 otpBean.setWritten(true);
 
                 // Update the current user info bean, so the user can check the code right away
-                pwmSession.getUserInfoBean().setOtpUserRecord(otpBean.getOtpUserRecord());
+                pwmSession.reloadUserInfoBean(pwmApplication);
 
                 // mark the event log
                 final UserAuditRecord auditRecord = new AuditRecordFactory(pwmRequest).createUserAuditRecord(
                         AuditEvent.SET_OTP_SECRET,
-                        pwmSession.getUserInfoBean(),
+                        pwmSession.getUserInfo(),
                         pwmSession
                 );
                 pwmApplication.getAuditManager().submit(auditRecord);
@@ -240,20 +242,20 @@ public class SetupOtpServlet extends AbstractPwmServlet {
                     errorInformation = new ErrorInformation(PwmError.ERROR_WRITING_OTP_SECRET,"unexpected error saving otp secret: " + e.getMessage());
                 }
                 LOGGER.error(pwmSession, errorInformation.toDebugStr());
-                pwmRequest.setResponseError(errorInformation);
+                setLastError(pwmRequest, errorInformation);
             }
         }
 
         if (otpBean.isCodeSeen()) {
             if (otpBean.isWritten()) {
-                pwmRequest.forwardToJsp(PwmConstants.JspUrl.SETUP_OTP_SECRET_SUCCESS);
+                pwmRequest.forwardToJsp(JspUrl.SETUP_OTP_SECRET_SUCCESS);
             } else {
-                pwmRequest.forwardToJsp(PwmConstants.JspUrl.SETUP_OTP_SECRET_TEST);
+                pwmRequest.forwardToJsp(JspUrl.SETUP_OTP_SECRET_TEST);
             }
         } else {
             final String qrCodeValue = makeQrCodeDataImageUrl(pwmRequest, otpBean.getOtpUserRecord());
-            pwmRequest.setAttribute(PwmRequest.Attribute.SetupOtp_QrCodeValue, qrCodeValue);
-            pwmRequest.forwardToJsp(PwmConstants.JspUrl.SETUP_OTP_SECRET);
+            pwmRequest.setAttribute(PwmRequestAttribute.SetupOtp_QrCodeValue, qrCodeValue);
+            pwmRequest.forwardToJsp(JspUrl.SETUP_OTP_SECRET);
         }
     }
 
@@ -275,7 +277,7 @@ public class SetupOtpServlet extends AbstractPwmServlet {
         }
         
         if (allowSkip) {
-            pwmRequest.getPwmSession().getUserInfoBean().setRequiresOtpConfig(false);
+            pwmRequest.getPwmSession().getLoginInfoBean().getLoginFlags().add(LoginInfoBean.LoginFlag.skipOtp);
             pwmRequest.sendRedirectToContinue();
             return;
         }
@@ -305,7 +307,7 @@ public class SetupOtpServlet extends AbstractPwmServlet {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
-        final OTPUserRecord otpUserRecord = pwmSession.getUserInfoBean().getOtpUserRecord();
+        final OTPUserRecord otpUserRecord = pwmSession.getUserInfo().getOtpUserRecord();
         final OtpService otpService = pwmApplication.getOtpService();
 
         final String bodyString = pwmRequest.readRequestBodyAsString();
@@ -315,7 +317,7 @@ public class SetupOtpServlet extends AbstractPwmServlet {
         try {
             final boolean passed = otpService.validateToken(
                     pwmSession,
-                    pwmSession.getUserInfoBean().getUserIdentity(),
+                    pwmSession.getUserInfo().getUserIdentity(),
                     otpUserRecord,
                     code,
                     false
@@ -342,11 +344,11 @@ public class SetupOtpServlet extends AbstractPwmServlet {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final OtpService service = pwmApplication.getOtpService();
-        final UserIdentity theUser = pwmSession.getUserInfoBean().getUserIdentity();
+        final UserIdentity theUser = pwmSession.getUserInfo().getUserIdentity();
         try {
             service.clearOTPUserConfiguration(pwmSession, theUser);
         } catch (PwmOperationalException e) {
-            pwmRequest.setResponseError(e.getErrorInformation());
+            setLastError(pwmRequest, e.getErrorInformation());
             LOGGER.error(pwmRequest, e.getErrorInformation());
             return;
         }
@@ -374,7 +376,7 @@ public class SetupOtpServlet extends AbstractPwmServlet {
 
                 if (otpService.validateToken(
                         pwmSession,
-                        pwmSession.getUserInfoBean().getUserIdentity(),
+                        pwmSession.getUserInfo().getUserIdentity(),
                         otpBean.getOtpUserRecord(),
                         otpToken,
                         false
@@ -384,11 +386,11 @@ public class SetupOtpServlet extends AbstractPwmServlet {
                     otpBean.setChallenge(null);
                 } else {
                     LOGGER.debug(pwmRequest, "test OTP token returned false, incorrect OTP secret provided");
-                            pwmRequest.setResponseError(new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT));
+                    setLastError(pwmRequest, new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT));
                 }
             } catch (PwmOperationalException e) {
                 LOGGER.error(pwmRequest, "error validating otp token: " + e.getMessage());
-                pwmRequest.setResponseError(e.getErrorInformation());
+                setLastError(pwmRequest, e.getErrorInformation());
             }
         }
 
@@ -410,7 +412,7 @@ public class SetupOtpServlet extends AbstractPwmServlet {
         }
 
         final OtpService service = pwmApplication.getOtpService();
-        final UserIdentity theUser = pwmSession.getUserInfoBean().getUserIdentity();
+        final UserIdentity theUser = pwmSession.getUserInfo().getUserIdentity();
 
         // first time here
         if (otpBean.getOtpUserRecord() == null) {

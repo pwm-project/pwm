@@ -1,62 +1,85 @@
-<mf-dialog class="person-details" on-close="$ctrl.closeDialog()">
-    <mf-app-bar>
-        <div class="page-content-title" translate="Title_Details">Details</div>
-    </mf-app-bar>
-    <div class="mf-dialog-content">
-        <person-card size="medium"
-                     person="$ctrl.person"
-                     disable-focus="true"
-                     show-direct-report-count="false"></person-card>
-        <mf-button type="button" ng-click="$ctrl.gotoOrgChart()">
-            <mf-icon icon="orgchart"></mf-icon>
-            <span translate="Title_OrgChart">Organizational Chart</span>
-        </mf-button>
+<!--
+  ~ Password Management Servlets (PWM)
+  ~ http://www.pwm-project.org
+  ~
+  ~ Copyright (c) 2006-2009 Novell, Inc.
+  ~ Copyright (c) 2009-2017 The PWM Project
+  ~
+  ~ This program is free software; you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation; either version 2 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program; if not, write to the Free Software
+  ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  -->
 
-        <!-- Details -->
-        <table>
-            <tbody>
-                <tr ng-repeat="reference in $ctrl.person.links">
-                    <td colspan="2">
-                        <div class="detail-link">
-                            <a ng-href="{{reference.link}}"><span ng-bind="reference.name"></span></a>
-                        </div>
-                    </td>
-                </tr>
-                <tr ng-repeat="(key, detail) in $ctrl.person.detail">
-                    <td ng-bind="detail.label"></td>
-                    <td ng-switch="detail.type">
-                        <div class="detail-container" ng-switch-when="userDN">
+<mf-dialog class="person-details" on-close="$ctrl.closeDialog()">
+    <div class="mf-dialog-content">
+        <div class="person-details-header">
+            <person-card size="medium"
+                         person="$ctrl.person"
+                         disable-focus="true"
+                         show-image="$ctrl.photosEnabled"
+                         show-direct-report-count="false"></person-card>
+            <mf-button type="button" ng-click="$ctrl.gotoOrgChart()" ng-if="$ctrl.orgChartEnabled">
+                <mf-icon icon="orgchart" id="orgchart-button"></mf-icon>
+                <span translate="Title_OrgChart">Organizational Chart</span>
+            </mf-button>
+        </div>
+
+        <div class="person-details-content">
+            <table>
+                <tbody>
+                    <tr>
+                        <td></td>
+                        <td>
                             <ul>
-                                <li ng-repeat="user in detail.userReferences">
-                                    <a ng-href="{{$ctrl.getPersonDetailsUrl(user.userKey)}}"
-                                       ng-bind="user.displayName"></a>
+                                <li ng-repeat="reference in $ctrl.person.links">
+                                    <a ng-href="{{reference.link}}"><span ng-bind="reference.name"></span></a>
                                 </li>
                             </ul>
-                        </div>
-                        <div class="detail-container" ng-switch-default>
-                            <ul>
-                                <li ng-repeat="value in detail.values">
-                                    <a ng-href="mailto:{{value}}"
-                                       ng-bind="value"
-                                       ng-if="detail.type === 'email'"
-                                       flex></a>
-                                    <a ng-href="tel:{{value}}"
-                                       ng-bind="value"
-                                       ng-if="detail.type === 'tel'"
-                                       flex></a>
-                                    <span ng-bind="value"
-                                          ng-if="detail.type !== 'email' && detail.type !== 'tel'"
-                                          flex></span>
-                                    <mf-icon-button icon="magnify"
-                                                    ng-click="$ctrl.searchText(value)"
-                                                    ng-if="detail.searchable"
-                                                    ng-attr-title="{{'Search \'' + value + '\''}}"></mf-icon-button>
-                                </li>
-                            </ul>
-                        </div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+                        </td>
+                    </tr>
+                    <tr ng-repeat="(key, detail) in $ctrl.person.detail">
+                        <td ng-bind="detail.label"></td>
+                        <td ng-switch="detail.type">
+                            <div class="detail-container" ng-switch-when="userDN">
+                                <ul>
+                                    <li ng-repeat="user in detail.userReferences">
+                                        <a ng-href="{{$ctrl.getPersonDetailsUrl(user.userKey)}}"
+                                           ng-bind="user.displayName"></a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="detail-container" ng-switch-default>
+                                <ul>
+                                    <li ng-repeat="value in detail.values">
+                                        <a ng-href="mailto:{{value}}"
+                                           ng-bind="value"
+                                           ng-if="detail.type === 'email'"></a>
+                                        <a ng-href="tel:{{value}}"
+                                           ng-bind="value"
+                                           ng-if="detail.type === 'tel'"></a>
+                                        <span ng-bind="value"
+                                              ng-if="detail.type !== 'email' && detail.type !== 'tel'"></span>
+                                        <mf-icon-button icon="search_thick"
+                                                        ng-click="$ctrl.searchText(value)"
+                                                        ng-if="detail.searchable"
+                                                        ng-attr-title="{{('Placeholder_Search' | translate) + ' \'' + value + '\''}}"></mf-icon-button>
+                                    </li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 </mf-dialog>

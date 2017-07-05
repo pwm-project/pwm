@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,10 +22,14 @@
 
 package password.pwm.svc.sessiontrack;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import password.pwm.PwmApplication;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.bean.UserIdentity;
+import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.ldap.UserInfo;
 import password.pwm.bean.pub.SessionStateInfoBean;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
@@ -33,6 +37,7 @@ import password.pwm.http.PwmSession;
 import password.pwm.svc.PwmService;
 import password.pwm.util.logging.PwmLogger;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -47,6 +52,10 @@ public class SessionTrackService implements PwmService {
     private static final PwmLogger LOGGER = PwmLogger.forClass(SessionTrackService.class);
 
     private final transient Map<PwmSession,Boolean> pwmSessions = new ConcurrentHashMap<>();
+
+    private final Cache<UserIdentity,Object> recentLoginCache = Caffeine.newBuilder()
+            .maximumSize(10)
+            .build();
 
     private PwmApplication pwmApplication;
 
@@ -71,7 +80,7 @@ public class SessionTrackService implements PwmService {
     }
 
     @Override
-    public ServiceInfo serviceInfo() {
+    public ServiceInfoBean serviceInfo() {
         return null;
     }
 
@@ -188,17 +197,29 @@ public class SessionTrackService implements PwmService {
         sessionStateInfoBean.setCreateTime(loopSession.getSessionStateBean().getSessionCreationTime());
         sessionStateInfoBean.setLastTime(loopSession.getSessionStateBean().getSessionLastAccessedTime());
         sessionStateInfoBean.setIdle(loopSession.getIdleTime().asCompactString());
-        sessionStateInfoBean.setLocale(loopSsBean.getLocale() == null ? null : loopSsBean.getLocale());
+        sessionStateInfoBean.setLocale(loopSsBean.getLocale());
         sessionStateInfoBean.setSrcAddress(loopSsBean.getSrcAddress());
         sessionStateInfoBean.setSrcHost(loopSsBean.getSrcHostname());
         sessionStateInfoBean.setLastUrl(loopSsBean.getLastRequestURL());
         sessionStateInfoBean.setIntruderAttempts(loopSsBean.getIntruderAttempts());
 
         if (loopSession.isAuthenticated()) {
-            final UserInfoBean loopUiBean = loopSession.getUserInfoBean();
-            sessionStateInfoBean.setLdapProfile(loginInfoBean.isAuthenticated() ? loopUiBean.getUserIdentity().getLdapProfileID() : "");
-            sessionStateInfoBean.setUserDN(loginInfoBean.isAuthenticated() ? loopUiBean.getUserIdentity().getUserDN() : "");
-            sessionStateInfoBean.setUserID(loginInfoBean.isAuthenticated() ? loopUiBean.getUsername() : "");
+            final UserInfo loopUiBean = loopSession.getUserInfo();
+            sessionStateInfoBean.setLdapProfile(loginInfoBean.isAuthenticated()
+                    ? loopUiBean.getUserIdentity().getLdapProfileID()
+                    : "");
+
+            sessionStateInfoBean.setUserDN(loginInfoBean.isAuthenticated()
+                    ? loopUiBean.getUserIdentity().getUserDN()
+                    : "");
+
+            try {
+                sessionStateInfoBean.setUserID(loginInfoBean.isAuthenticated()
+                        ? loopUiBean.getUsername()
+                        : "");
+            } catch (PwmUnrecoverableException e) {
+                LOGGER.error("unexpected error reading username: " + e.getMessage(),e);
+            }
         }
 
         return sessionStateInfoBean;
@@ -206,5 +227,13 @@ public class SessionTrackService implements PwmService {
 
     public int sessionCount() {
         return currentValidSessionSet().size();
+    }
+
+    public void addRecentLogin(final UserIdentity userIdentity) {
+        recentLoginCache.put(userIdentity,this);
+    }
+
+    public List<UserIdentity> getRecentLogins() {
+        return Collections.unmodifiableList(new ArrayList<>(recentLoginCache.asMap().keySet()));
     }
 }

@@ -8,7 +8,7 @@
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2016 The PWM Project
+  ~ Copyright (c) 2009-2017 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -37,13 +37,13 @@
     </jsp:include>
 
     <div id="centerbody" class="tile-centerbody">
-    <pwm:if test="<%=PwmIfTest.endUserFunctionalityAvaiable%>" negate="true">
+    <pwm:if test="<%=PwmIfTest.endUserFunctionalityAvailable%>" negate="true">
         <p><pwm:display key="Warning_NoEndUserModules" bundle="Config"/></p>
         <br/>
     </pwm:if>
-        <pwm:if test="<%=PwmIfTest.endUserFunctionalityAvaiable%>">
+        <pwm:if test="<%=PwmIfTest.endUserFunctionalityAvailable%>">
             <pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.CHANGE_PASSWORD%>">
-                <a id="button_ChangePassword" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ChangePassword.servletUrl()%>'/>">
+                <a id="button_ChangePassword" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.PrivateChangePassword.servletUrl()%>'/>">
                     <div class="tile">
                         <div class="tile-content">
                             <div class="tile-image password-image"></div>
@@ -56,7 +56,7 @@
 
             <pwm:if test="<%=PwmIfTest.peopleSearchEnabled%>">
                 <pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.PEOPLE_SEARCH%>">
-                    <a id="button_PeopleSearch" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.PeopleSearch.servletUrl()%>'/>">
+                    <a id="button_PeopleSearch" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.PrivatePeopleSearch.servletUrl()%>'/>#/search">
                         <div class="tile">
                             <div class="tile-content">
                                 <div class="tile-image search-image"></div>
@@ -70,7 +70,7 @@
 
             <pwm:if test="<%=PwmIfTest.orgChartEnabled%>">
                 <pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.PEOPLE_SEARCH%>">
-                    <a id="button_PeopleSearch" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.PeopleSearch.servletUrl()%>'/>/orgchart">
+                    <a id="button_PeopleSearch" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.PrivatePeopleSearch.servletUrl()%>'/>#/orgchart">
                         <div class="tile">
                             <div class="tile-content">
                                 <div class="tile-image orgchart-image"></div>
@@ -159,13 +159,13 @@
             </pwm:if>
 
 
-            <pwm:if test="<%=PwmIfTest.DeleteAccountAvailalable%>">
+            <pwm:if test="<%=PwmIfTest.DeleteAccountAvailable%>">
                 <a id="button_Helpdesk" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.SelfDelete.servletUrl()%>'/>">
                     <div class="tile">
                         <div class="tile-content">
                             <div class="tile-image selfdelete-image"></div>
-                            <div class="tile-title" title="<pwm:display key='Title_SelfDelete'/>"><pwm:display key="Title_DeleteAccount"/></div>
-                            <div class="tile-subtitle" title="<pwm:display key='Long_Title_SelfDelete'/>"><pwm:display key="Long_Title_DeleteAccount"/></div>
+                            <div class="tile-title" title="<pwm:display key='Title_DeleteAccount'/>"><pwm:display key="Title_DeleteAccount"/></div>
+                            <div class="tile-subtitle" title="<pwm:display key='Long_Title_DeleteAccount'/>"><pwm:display key="Long_Title_DeleteAccount"/></div>
                         </div>
                     </div>
                 </a>

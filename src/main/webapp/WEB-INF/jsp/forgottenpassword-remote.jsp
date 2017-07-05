@@ -3,7 +3,7 @@
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2016 The PWM Project
+  ~ Copyright (c) 2009-2017 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@
 <%@ page import="password.pwm.VerificationMethodSystem" %>
 <%@ page import="java.util.List" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%@ include file="fragment/header.jsp" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
@@ -36,8 +37,8 @@
     <div id="centerbody">
         <div id="page-content-title"><pwm:display key="Title_ForgottenPassword" displayIfMissing="true"/></div>
         <%
-            final List<VerificationMethodSystem.UserPrompt> prompts = (List<VerificationMethodSystem.UserPrompt>)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ForgottenPasswordPrompts);
-            final String instructions = (String)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ForgottenPasswordInstructions);
+            final List<VerificationMethodSystem.UserPrompt> prompts = (List<VerificationMethodSystem.UserPrompt>)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ForgottenPasswordPrompts);
+            final String instructions = (String)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ForgottenPasswordInstructions);
         %>
         <p><%=instructions%></p>
         <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="search" class="pwm-form" autocomplete="off">
@@ -55,7 +56,7 @@
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
                     <pwm:display key="Button_Continue"/>
                 </button>
-                <% if ("true".equals(JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ForgottenPasswordOptionalPageView))) { %>
+                <% if ("true".equals(JspUtility.getAttribute(pageContext, PwmRequestAttribute.ForgottenPasswordOptionalPageView))) { %>
                 <button type="button" id="button-goBack" name="button-goBack" class="btn" >
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-backward"></span></pwm:if>
                     <pwm:display key="Button_GoBack"/>

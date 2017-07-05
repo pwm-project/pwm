@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,20 +23,13 @@
 
 import 'angular-translate';
 import { IQService } from 'angular';
-import PwmService from './pwm.service';
+import IPwmService from './pwm.service';
 
 export default [
     '$q',
     'PwmService',
-    ($q: IQService, pwmService: PwmService) => {
+    ($q: IQService, pwmService: IPwmService) => {
         return function () {
-            var deferred = $q.defer();
-
-            pwmService.startupFunctions.push(() => {
-                deferred.resolve(pwmService.localeStrings['Display']);
-            });
-
-            // resolve with translation data
-            return deferred.promise;
+            return $q.resolve(pwmService.localeStrings['Display']);
         };
     }];

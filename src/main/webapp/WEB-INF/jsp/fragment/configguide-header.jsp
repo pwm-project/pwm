@@ -6,7 +6,7 @@
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2016 The PWM Project
+  ~ Copyright (c) 2009-2017 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -25,10 +25,16 @@
 
 <% final ConfigGuideBean headerCgb = JspUtility.getSessionBean(pageContext, ConfigGuideBean.class);%>
 <% final float pctComplete = ConfigGuideServlet.stepProgress(headerCgb.getStep()).asFloat(); %>
-<div id="header">
+<div id="header" class="configguide-header">
+    <div id="header-company-logo">
+    </div>
+    <div id="header-balance-div">
+        <br/></div>
+    <div id="header-right-logo">
+    </div>
     <div id="header-center">
-        <div id="header-page">
-            <pwm:display key="title" bundle="ConfigGuide"/>
+        <div id="header-center-left">
+            <div id="header-title"><pwm:display key="title" bundle="ConfigGuide"/></div>
         </div>
     </div>
 </div>

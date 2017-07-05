@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,8 +26,8 @@ import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.http.PwmRequest;
 import password.pwm.i18n.Display;
-import password.pwm.util.Helper;
 import password.pwm.util.LocaleHelper;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.SecureEngine;
@@ -52,7 +52,7 @@ public class JspThrowableHandlerTag extends TagSupport {
 
         try {
             final Throwable jspThrowable = pageContext.getErrorData().getThrowable();
-            final String exceptionStr = Helper.throwableToString(jspThrowable);
+            final String exceptionStr = JavaHelper.throwableToString(jspThrowable);
             final String errorHash = SecureEngine.hash(exceptionStr, PwmHashAlgorithm.SHA1);
 
             LOGGER.error("jsp error reference " + errorHash,jspThrowable);

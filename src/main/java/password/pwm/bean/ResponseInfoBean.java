@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@ import com.novell.ldapchai.cr.Challenge;
 import password.pwm.config.option.DataStorageMethod;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.Instant;
 import java.util.Locale;
 import java.util.Map;
 
@@ -40,7 +40,7 @@ public class ResponseInfoBean implements Serializable {
     private final DataStorageMethod dataStorageMethod;
     private final Answer.FormatType formatType;
 
-    private Date timestamp;
+    private Instant timestamp;
 
     public ResponseInfoBean(
             final Map<Challenge,String> crMap,
@@ -80,11 +80,11 @@ public class ResponseInfoBean implements Serializable {
         return helpdeskCrMap;
     }
 
-    public Date getTimestamp() {
+    public Instant getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(final Date timestamp) {
+    public void setTimestamp(final Instant timestamp) {
         this.timestamp = timestamp;
     }
 

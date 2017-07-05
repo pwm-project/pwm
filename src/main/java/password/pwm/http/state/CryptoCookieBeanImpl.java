@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,9 +27,10 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmHttpResponseWrapper;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.bean.PwmSessionBean;
 import password.pwm.util.PasswordData;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
 
@@ -64,7 +65,7 @@ class CryptoCookieBeanImpl implements SessionBeanProvider {
                 return cookieBean;
             }
         } catch (PwmException e) {
-            LOGGER.error(pwmRequest, "error reading existing " + cookieName + " cookie bean: " + e.getMessage());
+            LOGGER.debug(pwmRequest, "ignoring existing existing " + cookieName + " cookie bean due to error: " + e.getMessage());
         }
 
         final E newBean = SessionStateService.newBean(sessionGuid, theClass);
@@ -142,10 +143,10 @@ class CryptoCookieBeanImpl implements SessionBeanProvider {
     }
 
     private static Map<Class<? extends PwmSessionBean>,PwmSessionBean> getRequestBeanMap(final PwmRequest pwmRequest) {
-        Serializable sessionBeans = pwmRequest.getAttribute(PwmRequest.Attribute.CookieBeanStorage);
+        Serializable sessionBeans = pwmRequest.getAttribute(PwmRequestAttribute.CookieBeanStorage);
         if (sessionBeans == null) {
             sessionBeans = new HashMap<>();
-            pwmRequest.setAttribute(PwmRequest.Attribute.CookieBeanStorage, sessionBeans);
+            pwmRequest.setAttribute(PwmRequestAttribute.CookieBeanStorage, sessionBeans);
         }
         return (Map<Class<? extends PwmSessionBean>,PwmSessionBean>)sessionBeans;
     }

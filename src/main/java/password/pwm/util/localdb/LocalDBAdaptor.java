@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ import password.pwm.PwmApplication;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
@@ -179,6 +179,23 @@ public class LocalDBAdaptor implements LocalDB {
 
         markWrite(1);
         return preExisting;
+    }
+
+    @WriteOperation
+    public boolean putIfAbsent(final DB db, final String key, final String value) throws LocalDBException {
+        ParameterValidator.validateDBValue(db);
+        ParameterValidator.validateKeyValue(key);
+        ParameterValidator.validateValueValue(value);
+
+        final boolean success = innerDB.putIfAbsent(db, key, value);
+        if (success) {
+            if (SIZE_CACHE_MANAGER != null) {
+                SIZE_CACHE_MANAGER.incrementSize(db);
+            }
+        }
+
+        markWrite(1);
+        return success;
     }
 
     @WriteOperation

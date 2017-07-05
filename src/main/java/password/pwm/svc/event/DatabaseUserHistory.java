@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,15 +25,15 @@ package password.pwm.svc.event;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmApplication;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.db.DatabaseAccessorImpl;
+import password.pwm.ldap.UserInfo;
 import password.pwm.util.db.DatabaseException;
+import password.pwm.util.db.DatabaseService;
 import password.pwm.util.db.DatabaseTable;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
@@ -46,11 +46,11 @@ class DatabaseUserHistory implements UserHistoryStore {
     private static final DatabaseTable TABLE = DatabaseTable.USER_AUDIT;
 
     final PwmApplication pwmApplication;
-    final DatabaseAccessorImpl databaseAccessor;
+    final DatabaseService databaseService;
 
     DatabaseUserHistory(final PwmApplication pwmApplication) {
         this.pwmApplication = pwmApplication;
-        this.databaseAccessor = pwmApplication.getDatabaseAccessor();
+        this.databaseService = pwmApplication.getDatabaseService();
     }
 
     @Override
@@ -83,8 +83,8 @@ class DatabaseUserHistory implements UserHistoryStore {
     }
 
     @Override
-    public List<UserAuditRecord> readUserHistory(final UserInfoBean userInfoBean) throws PwmUnrecoverableException {
-        final String userGuid = userInfoBean.getUserGuid();
+    public List<UserAuditRecord> readUserHistory(final UserInfo userInfo) throws PwmUnrecoverableException {
+        final String userGuid = userInfo.getUserGuid();
         try {
             return readStoredHistory(userGuid).getRecords();
         } catch (DatabaseException e) {
@@ -92,20 +92,22 @@ class DatabaseUserHistory implements UserHistoryStore {
         }
     }
 
-    private StoredHistory readStoredHistory(final String guid) throws DatabaseException {
-        final String str = this.databaseAccessor.get(TABLE, guid);
+    private StoredHistory readStoredHistory(final String guid) throws DatabaseException, PwmUnrecoverableException
+    {
+        final String str = this.databaseService.getAccessor().get(TABLE, guid);
         if (str == null || str.length() < 1) {
             return new StoredHistory();
         }
         return JsonUtil.deserialize(str,StoredHistory.class);
     }
 
-    private void writeStoredHistory(final String guid, final StoredHistory storedHistory) throws DatabaseException {
+    private void writeStoredHistory(final String guid, final StoredHistory storedHistory) throws DatabaseException, PwmUnrecoverableException
+    {
         if (storedHistory == null) {
             return;
         }
         final String str = JsonUtil.serialize(storedHistory);
-        databaseAccessor.put(TABLE,guid,str);
+        databaseService.getAccessor().put(TABLE,guid,str);
     }
 
     static class StoredHistory implements Serializable {

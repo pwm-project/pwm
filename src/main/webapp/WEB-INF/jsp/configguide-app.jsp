@@ -1,11 +1,11 @@
 <%@ page import="password.pwm.http.servlet.configguide.ConfigGuideForm" %>
-<%@ page import="password.pwm.util.StringUtil" %>
+<%@ page import="password.pwm.util.java.StringUtil" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2016 The PWM Project
+  ~ Copyright (c) 2009-2017 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -42,8 +42,7 @@
                     Site URL
                 </div>
                 <div class="setting_body">
-                    The URL to this application, as seen by users.  The value is used in email and other user facing communications.
-                    The Site URL must use a valid fully qualified hostname.  Do not use a network address.
+                    <%=PwmSetting.PWM_SITE_URL.getDescription(JspUtility.locale(request))%>
                     <br/><br/>
                     Example: <code><%=PwmSetting.PWM_SITE_URL.getExample(ConfigGuideForm.generateStoredConfig(configGuideBean).getTemplateSet())%></code>
                     <br/><br/>
@@ -54,7 +53,7 @@
                                 <br/>
                                 <input class="configStringInput" id="<%=ConfigGuideForm.FormParameter.PARAM_APP_SITEURL%>" name="<%=ConfigGuideForm.FormParameter.PARAM_APP_SITEURL%>"
                                        value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_APP_SITEURL))%>" required autofocus
-                                        pattern="<%=PwmSetting.PWM_SITE_URL.getRegExPattern()%>"/>
+                                       pattern="<%=PwmSetting.PWM_SITE_URL.getRegExPattern()%>"/>
                             </label>
                         </div>
                     </div>

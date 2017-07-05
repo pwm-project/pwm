@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,11 +34,11 @@ import password.pwm.http.PwmSession;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecord;
 import password.pwm.svc.event.AuditRecordFactory;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
 
 import java.io.IOException;
-import java.util.Date;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -139,7 +139,7 @@ public class PwmLogger {
     private void doLogEvent(final PwmLogLevel level, final SessionLabel sessionLabel, final Object message, final Throwable e)
     {
         final String topic = log4jLogger.getName();
-        final PwmLogEvent logEvent = PwmLogEvent.createPwmLogEvent(new Date(), topic, message.toString(), sessionLabel,
+        final PwmLogEvent logEvent = PwmLogEvent.createPwmLogEvent(Instant.now(), topic, message.toString(), sessionLabel,
                 e, level);
         doLogEvent(logEvent);
     }
@@ -205,7 +205,7 @@ public class PwmLogger {
                     break;
 
                 default:
-                    Helper.unhandledSwitchStatement(level);
+                    JavaHelper.unhandledSwitchStatement(level);
             }
         } else {
             System.err.println(logEvent.toLogString());

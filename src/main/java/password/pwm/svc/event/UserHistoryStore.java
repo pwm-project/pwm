@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 
 package password.pwm.svc.event;
 
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.error.PwmUnrecoverableException;
 
 import java.util.List;
@@ -30,5 +30,5 @@ import java.util.List;
 public interface UserHistoryStore {
     void updateUserHistory( UserAuditRecord auditRecord) throws PwmUnrecoverableException;
 
-    List<UserAuditRecord> readUserHistory( UserInfoBean userInfoBean) throws PwmUnrecoverableException;
+    List<UserAuditRecord> readUserHistory(UserInfo userInfo) throws PwmUnrecoverableException;
 }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,7 +48,7 @@ PWM_CHANGEPW.validatePasswords = function(userDN)
 
     var validationProps = new Array();
     validationProps['messageWorking'] = PWM_MAIN.showString('Display_CheckingPassword');
-    validationProps['serviceURL'] = PWM_GLOBAL['url-restservice'] + "/checkpassword";
+    validationProps['serviceURL'] = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction','checkPassword');
     validationProps['readDataFunction'] = function(){
         var returnObj = {};
         returnObj['password1'] = PWM_MAIN.getObject("password1").value;
@@ -333,6 +333,14 @@ PWM_CHANGEPW.fetchRandoms=function(randomConfig) {
 };
 
 PWM_CHANGEPW.startupChangePasswordPage=function() {
+
+    PWM_MAIN.addEventHandler('button-reset', 'click', function(e){
+        console.log('intercepted reset button');
+        PWM_MAIN.cancelEvent(e);
+        var resetForm = PWM_MAIN.getObject('form-reset');
+        PWM_MAIN.handleFormSubmit(resetForm );
+    });
+
     //PWM_MAIN.getObject('password2').disabled = true;
     PWM_CHANGEPW.markStrength(0);
 

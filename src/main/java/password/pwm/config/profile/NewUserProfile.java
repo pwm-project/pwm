@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,10 +36,10 @@ import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.operations.PasswordUtility;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -48,7 +48,7 @@ public class NewUserProfile extends AbstractProfile {
 
     private static final ProfileType PROFILE_TYPE = ProfileType.NewUser;
 
-    private Date newUserPasswordPolicyCacheTime;
+    private Instant newUserPasswordPolicyCacheTime;
     private final Map<Locale,PwmPasswordPolicy> newUserPasswordPolicyCache = new HashMap<>();
 
     protected NewUserProfile(final String identifier, final Map<PwmSetting, StoredValue> storedValueMap) {
@@ -78,7 +78,7 @@ public class NewUserProfile extends AbstractProfile {
         final Configuration config = pwmApplication.getConfig();
         final long maxNewUserCacheMS = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.CONFIG_NEWUSER_PASSWORD_POLICY_CACHE_MS));
         if (newUserPasswordPolicyCacheTime != null && TimeDuration.fromCurrent(newUserPasswordPolicyCacheTime).isLongerThan(maxNewUserCacheMS)) {
-            newUserPasswordPolicyCacheTime = new Date();
+            newUserPasswordPolicyCacheTime = Instant.now();
             newUserPasswordPolicyCache.clear();
         }
 
@@ -96,7 +96,7 @@ public class NewUserProfile extends AbstractProfile {
         } else {
 
             final String lookupDN;
-            if (configuredNewUserPasswordDN.equalsIgnoreCase("TESTUSER") ) {
+            if ("TESTUSER".equalsIgnoreCase(configuredNewUserPasswordDN)) {
                 lookupDN = defaultLdapProfile.readSettingAsString(PwmSetting.LDAP_TEST_USER_DN);
                 if (lookupDN == null || lookupDN.isEmpty()) {
                     final String errorMsg ="setting " 

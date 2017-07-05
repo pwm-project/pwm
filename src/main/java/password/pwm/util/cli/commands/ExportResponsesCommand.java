@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,10 +28,11 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.ldap.UserSearchEngine;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.TimeDuration;
+import password.pwm.ldap.search.SearchConfiguration;
+import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.cli.CliParameters;
 import password.pwm.ws.server.rest.RestChallengesServer;
 
@@ -51,17 +52,23 @@ public class ExportResponsesCommand extends AbstractCliCommand {
         final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
 
         final File outputFile = (File)cliEnvironment.getOptions().get(CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName());
-        Helper.pause(2000);
+        JavaHelper.pause(2000);
 
         final long startTime = System.currentTimeMillis();
-        final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, SessionLabel.SYSTEM_LABEL);
-        final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
-        searchConfiguration.setEnableValueEscaping(false);
-        searchConfiguration.setUsername("*");
+        final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
+        final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
+                .enableValueEscaping(false)
+                .username("*")
+                .build();
 
         final String systemRecordDelimiter = System.getProperty("line.separator");
         final Writer writer = new BufferedWriter(new PrintWriter(outputFile, PwmConstants.DEFAULT_CHARSET.toString()));
-        final Map<UserIdentity,Map<String,String>> results = userSearchEngine.performMultiUserSearch(searchConfiguration, Integer.MAX_VALUE, Collections.<String>emptyList());
+        final Map<UserIdentity,Map<String,String>> results = userSearchEngine.performMultiUserSearch(
+                searchConfiguration,
+                Integer.MAX_VALUE,
+                Collections.emptyList(),
+                SessionLabel.SYSTEM_LABEL
+        );
         out("searching " + results.size() + " users for stored responses to write to " + outputFile.getAbsolutePath() + "....");
         int counter = 0;
         for (final UserIdentity identity : results.keySet()) {

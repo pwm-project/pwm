@@ -3,7 +3,7 @@
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2016 The PWM Project
+  ~ Copyright (c) 2009-2017 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -22,11 +22,14 @@
 
 <%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
-<%@ page import="password.pwm.util.StringUtil" %>
+<%@ page import="password.pwm.util.java.StringUtil" %>
 <%@ page import="password.pwm.util.logging.LocalDBLogger" %>
 <%@ page import="password.pwm.util.logging.PwmLogEvent" %>
 <%@ page import="password.pwm.util.logging.PwmLogLevel" %>
 <%@ page import="java.util.Date" %>
+<%@ page import="java.time.Instant" %>
+<%@ page import="password.pwm.util.logging.LocalDBSearchQuery" %>
+<%@ page import="password.pwm.util.logging.LocalDBSearchResults" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -53,7 +56,7 @@
 </pwm:script>
 <% } else { %>
 <div style="width: 100%; text-align:center; background-color: #eeeeee" id="headerDiv">
-    <span class="timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date())%></span>
+    <span class="timestamp"><%=Instant.now().toString()%></span>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     <select name="level" style="width: auto;" id="select-level">
         <% for (final PwmLogLevel level : PwmLogLevel.values()) { %>
@@ -73,12 +76,12 @@
     final LocalDBLogger.EventType logType = LocalDBLogger.EventType.Both;
     final int eventCount = 1000;
     final long maxTime = 10000;
-    final LocalDBLogger.SearchParameters searchParameters = new LocalDBLogger.SearchParameters(logLevel, eventCount, "", "", maxTime, logType);
-    final LocalDBLogger.SearchResults searchResults = localDBLogger.readStoredEvents(searchParameters);
+    final LocalDBSearchQuery searchParameters = new LocalDBSearchQuery(logLevel, eventCount, "", "", maxTime, logType);
+    final LocalDBSearchResults searchResults = localDBLogger.readStoredEvents(searchParameters);
 %>
 <pre><% while (searchResults.hasNext()) { %>
     <% final PwmLogEvent logEvent = searchResults.next(); %>
-    <span class="timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(logEvent.getDate())%></span>, <%=StringUtil.escapeHtml(logEvent.toLogString(false)) %><%="\n"%>
+    <span class="timestamp"><%=logEvent.getDate().toString()%></span>, <%=StringUtil.escapeHtml(logEvent.toLogString(false)) %><%="\n"%>
     <% } %></pre>
 <% } %>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 package password.pwm;
 
 import password.pwm.bean.SessionLabel;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmUnrecoverableException;
 
@@ -74,7 +74,7 @@ public interface VerificationMethodSystem {
 
     VerificationState getVerificationState();
 
-    void init( PwmApplication pwmApplication,  UserInfoBean userInfoBean, SessionLabel sessionLabel, Locale locale)
+    void init(PwmApplication pwmApplication, UserInfo userInfoBean, SessionLabel sessionLabel, Locale locale)
             throws PwmUnrecoverableException
             ;
 

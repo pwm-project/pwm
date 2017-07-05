@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,8 @@
 
 package password.pwm.svc.stats;
 
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
@@ -54,19 +55,19 @@ public class StatisticsBundle {
 
     public static StatisticsBundle input(final String inputString) {
         final Map<Statistic, String> srcMap = new HashMap<>();
-            final Map<String, String> loadedMap = JsonUtil.deserializeStringMap(inputString);
-            for (final String key : loadedMap.keySet()) {
-                try {
-                    srcMap.put(Statistic.valueOf(key),loadedMap.get(key));
-                } catch (IllegalArgumentException e) {
-                    LOGGER.error("error parsing statistic key '" + key + "', reason: " + e.getMessage());
-                }
+        final Map<String, String> loadedMap = JsonUtil.deserializeStringMap(inputString);
+        for (final String key : loadedMap.keySet()) {
+            try {
+                srcMap.put(Statistic.valueOf(key),loadedMap.get(key));
+            } catch (IllegalArgumentException e) {
+                LOGGER.error("error parsing statistic key '" + key + "', reason: " + e.getMessage());
             }
+        }
         final StatisticsBundle bundle = new StatisticsBundle();
 
         for (final Statistic loopStat : Statistic.values()) {
             final String value = srcMap.get(loopStat);
-            if (value != null && !value.equals("")) {
+            if (!StringUtil.isEmpty(value)) {
                 bundle.valueMap.put(loopStat, value);
             }
         }

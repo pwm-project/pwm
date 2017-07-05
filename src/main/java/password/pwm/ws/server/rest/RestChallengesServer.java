@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -68,8 +68,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.Serializable;
 import java.net.URISyntaxException;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -77,6 +77,13 @@ import java.util.Map;
 
 @Path("/challenges")
 public class RestChallengesServer extends AbstractRestServer {
+
+    private static final ServicePermissions SERVICE_PERMISSIONS = ServicePermissions.builder()
+            .adminOnly(false)
+            .authRequired(true)
+            .blockExternal(true)
+            .build();
+
     public static class Policy {
         public List<ChallengeBean> challenges;
         public List<ChallengeBean> helpdeskChallenges;
@@ -126,7 +133,7 @@ public class RestChallengesServer extends AbstractRestServer {
                     null,
                     null
             );
-            responseInfoBean.setTimestamp(new Date());
+            responseInfoBean.setTimestamp(Instant.now());
             return responseInfoBean;
         }
     }
@@ -137,7 +144,7 @@ public class RestChallengesServer extends AbstractRestServer {
     @GET
     @Produces(MediaType.TEXT_HTML)
     public javax.ws.rs.core.Response doHtmlRedirect() throws URISyntaxException {
-        return RestServerHelper.doHtmlRedirect();
+        return RestServerHelper.handleHtmlRequest();
     }
 
     @GET
@@ -151,11 +158,7 @@ public class RestChallengesServer extends AbstractRestServer {
     {
         final RestRequestBean restRequestBean;
         try {
-            final ServicePermissions servicePermissions = new ServicePermissions();
-            servicePermissions.setAdminOnly(false);
-            servicePermissions.setAuthRequired(true);
-            servicePermissions.setBlockExternal(true);
-            restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, username);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, response, SERVICE_PERMISSIONS, username);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
@@ -174,10 +177,10 @@ public class RestChallengesServer extends AbstractRestServer {
             if (restRequestBean.getUserIdentity() == null) {
                 final ChaiUser chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication());
                 final CrService crService = restRequestBean.getPwmApplication().getCrService();
-                responseSet = crService.readUserResponseSet(restRequestBean.getPwmSession().getLabel(), restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity(), chaiUser);
-                challengeSet = restRequestBean.getPwmSession().getUserInfoBean().getChallengeProfile().getChallengeSet();
-                helpdeskChallengeSet = restRequestBean.getPwmSession().getUserInfoBean().getChallengeProfile().getHelpdeskChallengeSet();
-                outputUsername = restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity().getLdapProfileID();
+                responseSet = crService.readUserResponseSet(restRequestBean.getPwmSession().getLabel(), restRequestBean.getPwmSession().getUserInfo().getUserIdentity(), chaiUser);
+                challengeSet = restRequestBean.getPwmSession().getUserInfo().getChallengeProfile().getChallengeSet();
+                helpdeskChallengeSet = restRequestBean.getPwmSession().getUserInfo().getChallengeProfile().getHelpdeskChallengeSet();
+                outputUsername = restRequestBean.getPwmSession().getUserInfo().getUserIdentity().getLdapProfileID();
             } else {
                 final ChaiUser chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication(),restRequestBean.getUserIdentity());
                 final Locale userLocale = restRequestBean.getPwmSession().getSessionStateBean().getLocale();
@@ -251,11 +254,7 @@ public class RestChallengesServer extends AbstractRestServer {
     {
         final RestRequestBean restRequestBean;
         try {
-            final ServicePermissions servicePermissions = new ServicePermissions();
-            servicePermissions.setAdminOnly(false);
-            servicePermissions.setAuthRequired(true);
-            servicePermissions.setBlockExternal(true);
-            restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, jsonInput.username);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, response, SERVICE_PERMISSIONS, jsonInput.username);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
@@ -273,9 +272,9 @@ public class RestChallengesServer extends AbstractRestServer {
 
             if (restRequestBean.getUserIdentity() == null) {
                 chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication());
-                userIdentity = restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity();
-                userGUID = restRequestBean.getPwmSession().getUserInfoBean().getUserGuid();
-                csIdentifer = restRequestBean.getPwmSession().getUserInfoBean().getChallengeProfile().getChallengeSet().getIdentifier();
+                userIdentity = restRequestBean.getPwmSession().getUserInfo().getUserIdentity();
+                userGUID = restRequestBean.getPwmSession().getUserInfo().getUserGuid();
+                csIdentifer = restRequestBean.getPwmSession().getUserInfo().getChallengeProfile().getChallengeSet().getIdentifier();
             } else {
                 userIdentity = restRequestBean.getUserIdentity();
                 chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication(),userIdentity);
@@ -323,18 +322,17 @@ public class RestChallengesServer extends AbstractRestServer {
     {
         final RestRequestBean restRequestBean;
         try {
-            final ServicePermissions servicePermissions = new ServicePermissions();
-            servicePermissions.setAdminOnly(false);
-            servicePermissions.setAuthRequired(true);
-            servicePermissions.setBlockExternal(true);
-            servicePermissions.setHelpdeskPermitted(true);
+            final ServicePermissions servicePermissions = SERVICE_PERMISSIONS.toBuilder()
+                    .helpdeskPermitted(true)
+                    .build();
+
             restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, username);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
 
-        final HelpdeskProfile helpdeskProfile = restRequestBean.getPwmSession().getSessionManager().getHelpdeskProfile(restRequestBean.getPwmApplication());
         try {
+            final HelpdeskProfile helpdeskProfile = restRequestBean.getPwmSession().getSessionManager().getHelpdeskProfile(restRequestBean.getPwmApplication());
             if (restRequestBean.getUserIdentity() == null) {
                 if (!restRequestBean.getPwmSession().getSessionManager().checkPermission(restRequestBean.getPwmApplication(), Permission.SETUP_RESPONSE)) {
                     throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"actor does not have required permission"));
@@ -350,12 +348,12 @@ public class RestChallengesServer extends AbstractRestServer {
             if (restRequestBean.getUserIdentity() == null) {
                 /* clear self */
                 chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication());
-                userGUID = restRequestBean.getPwmSession().getUserInfoBean().getUserGuid();
+                userGUID = restRequestBean.getPwmSession().getUserInfo().getUserGuid();
 
                 // mark the event log
                 final UserAuditRecord auditRecord = new AuditRecordFactory(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession()).createUserAuditRecord(
                         AuditEvent.CLEAR_RESPONSES,
-                        restRequestBean.getPwmSession().getUserInfoBean(),
+                        restRequestBean.getPwmSession().getUserInfo(),
                         restRequestBean.getPwmSession()
                 );
                 restRequestBean.getPwmApplication().getAuditManager().submit(auditRecord);
@@ -374,7 +372,7 @@ public class RestChallengesServer extends AbstractRestServer {
                 // mark the event log
                 final HelpdeskAuditRecord auditRecord = new AuditRecordFactory(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession()).createHelpdeskAuditRecord(
                         AuditEvent.HELPDESK_CLEAR_RESPONSES,
-                        restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity(),
+                        restRequestBean.getPwmSession().getUserInfo().getUserIdentity(),
                         null,
                         restRequestBean.getUserIdentity(),
                         restRequestBean.getPwmSession().getSessionStateBean().getSrcAddress(),

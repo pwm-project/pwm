@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,12 +23,12 @@
 package password.pwm.svc.intruder;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.Instant;
 
 public class IntruderRecord implements Serializable {
     private RecordType type;
     private String subject;
-    private Date timeStamp = new Date();
+    private Instant timeStamp = Instant.now();
     private int attemptCount = 0;
     private boolean alerted = false;
 
@@ -54,7 +54,7 @@ public class IntruderRecord implements Serializable {
         return subject;
     }
 
-    public Date getTimeStamp() {
+    public Instant getTimeStamp() {
         return timeStamp;
     }
 
@@ -63,7 +63,7 @@ public class IntruderRecord implements Serializable {
     }
 
     void incrementAttemptCount() {
-        timeStamp = new Date();
+        timeStamp = Instant.now();
         attemptCount++;
     }
 

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,12 +40,12 @@ import password.pwm.http.PwmURL;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.http.servlet.forgottenpw.ForgottenPasswordServlet;
-import password.pwm.ldap.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
@@ -142,7 +142,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
                     return;
 
                 default:
-                    Helper.unhandledSwitchStatement(oAuthUseCaseCase);
+                    JavaHelper.unhandledSwitchStatement(oAuthUseCaseCase);
             }
 
         }
@@ -178,12 +178,12 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
                         return;
 
                     default:
-                        Helper.unhandledSwitchStatement(oAuthUseCaseCase);
+                        JavaHelper.unhandledSwitchStatement(oAuthUseCaseCase);
                 }
             } catch (PwmUnrecoverableException e) {
                 final String errorMsg = "unexpected error redirecting user to oauth page: " + e.toString();
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_OAUTH_ERROR, errorMsg);
-                pwmRequest.setResponseError(errorInformation);
+                setLastError(pwmRequest, errorInformation);
                 LOGGER.error(errorInformation.toDebugStr());
             }
         }
@@ -202,7 +202,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
             } else {
                 errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
             }
-            pwmRequest.setResponseError(errorInformation);
+            setLastError(pwmRequest, errorInformation);
             LOGGER.error(errorInformation.toDebugStr());
             return;
         }
@@ -245,9 +245,14 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
 
         if (userIsAuthenticated) {
             try {
-                final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmRequest);
-                final UserIdentity resolvedIdentity = userSearchEngine.resolveUsername(oauthSuppliedUsername, null, null);
-                if (resolvedIdentity != null && resolvedIdentity.canonicalEquals(pwmSession.getUserInfoBean().getUserIdentity(),pwmApplication)) {
+                final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
+                final UserIdentity resolvedIdentity = userSearchEngine.resolveUsername(
+                        oauthSuppliedUsername,
+                        null,
+                        null,
+                        pwmSession.getLabel()
+                );
+                if (resolvedIdentity != null && resolvedIdentity.canonicalEquals(pwmSession.getUserInfo().getUserIdentity(),pwmApplication)) {
                     LOGGER.debug(pwmSession, "verified incoming oauth code for already authenticated session does resolve to same as logged in user");
                 } else {
                     final String errorMsg = "incoming oauth code for already authenticated session does not resolve to same as logged in user ";
@@ -301,7 +306,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
                 return OAuthSettings.forForgottenPassword(profile);
 
             default:
-                Helper.unhandledSwitchStatement(oAuthUseCase);
+                JavaHelper.unhandledSwitchStatement(oAuthUseCase);
 
         }
 

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,10 +26,11 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.ClosableIterator;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.ClosableIterator;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.SecureEngine;
 
 class RecordManagerImpl implements RecordManager {
@@ -38,6 +39,8 @@ class RecordManagerImpl implements RecordManager {
     private final RecordType recordType;
     private final RecordStore recordStore;
     private final IntruderSettings settings;
+
+    private static final PwmHashAlgorithm KEY_HASH_ALG = PwmHashAlgorithm.SHA256;
 
     RecordManagerImpl(final RecordType recordType, final RecordStore recordStore, final IntruderSettings settings) {
         this.recordType = recordType;
@@ -127,25 +130,25 @@ class RecordManagerImpl implements RecordManager {
     private void writeIntruderRecord(final IntruderRecord intruderRecord) {
         try {
             recordStore.write(makeKey(intruderRecord.getSubject()),intruderRecord);
-        } catch (PwmOperationalException e) {
+        } catch (PwmException e) {
             LOGGER.warn("unexpected error attempting to write intruder record " + JsonUtil.serialize(intruderRecord) + ", error: " + e.getMessage());
         }
     }
 
     private String makeKey(final String subject) throws PwmOperationalException {
-        final String md5sum;
+        final String hash;
         try {
-            md5sum = SecureEngine.md5sum(subject);
+            hash = SecureEngine.hash(subject, KEY_HASH_ALG);
         } catch (PwmUnrecoverableException e) {
             throw new PwmOperationalException(PwmError.ERROR_UNKNOWN,"error generating md5sum for intruder record: " + e.getMessage());
         }
-        return md5sum + recordType.toString();
+        return hash + recordType.toString();
     }
 
 
 
     @Override
-    public ClosableIterator<IntruderRecord> iterator() throws PwmOperationalException {
+    public ClosableIterator<IntruderRecord> iterator() throws PwmException {
         return new RecordIterator<>(recordStore.iterator());
     }
 

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,32 +22,17 @@
 
 package password.pwm.svc.wordlist;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 import java.io.Serializable;
 
+@Getter
+@AllArgsConstructor
 public class WordlistConfiguration implements Serializable {
     private final boolean caseSensitive;
     private final int checkSize;
     private final String autoImportUrl;
-
-    public WordlistConfiguration(
-            final boolean caseSensitive,
-            final int checkSize,
-            final String autoImportUrl
-    ) {
-        this.caseSensitive = caseSensitive;
-        this.checkSize = checkSize;
-        this.autoImportUrl = autoImportUrl;
-    }
-
-    public boolean isCaseSensitive() {
-        return caseSensitive;
-    }
-
-    public int getCheckSize() {
-        return checkSize;
-    }
-
-    public String getAutoImportUrl() {
-        return autoImportUrl;
-    }
+    private final int minSize;
+    private final int maxSize;
 }

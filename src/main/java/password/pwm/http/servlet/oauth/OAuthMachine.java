@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,15 +38,17 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.HttpHeader;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmURL;
 import password.pwm.http.client.PwmHttpClient;
 import password.pwm.http.client.PwmHttpClientConfiguration;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.util.BasicAuthInfo;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.StringUtil;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
@@ -54,8 +56,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.cert.X509Certificate;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -116,7 +118,7 @@ public class OAuthMachine {
 
         if (userIdentity != null) {
             final String parametersValue = figureUsernameGrantParam(pwmRequest, userIdentity);
-            if (StringUtil.isEmpty(parametersValue)) {
+            if (!StringUtil.isEmpty(parametersValue)) {
                 urlParams.put("parameters", parametersValue);
             }
         }
@@ -130,8 +132,7 @@ public class OAuthMachine {
         } catch (PwmUnrecoverableException e) {
             final String errorMsg = "unexpected error redirecting user to oauth page: " + e.toString();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-            pwmRequest.setResponseError(errorInformation);
-            LOGGER.error(errorInformation.toDebugStr());
+            throw new PwmUnrecoverableException(errorInformation);
         }
     }
 
@@ -232,11 +233,11 @@ public class OAuthMachine {
     )
             throws IOException, PwmUnrecoverableException
     {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         final String requestBody = PwmURL.appendAndEncodeUrlParameters("", requestParams);
         LOGGER.trace(pwmRequest, "beginning " + debugText + " request to " + requestUrl + ", body: \n" + requestBody);
         final HttpPost httpPost = new HttpPost(requestUrl);
-        httpPost.setHeader(PwmConstants.HttpHeader.Authorization.getHttpName(),
+        httpPost.setHeader(HttpHeader.Authorization.getHttpName(),
                 new BasicAuthInfo(settings.getClientID(), settings.getSecret()).toAuthHeader());
         final StringEntity bodyEntity = new StringEntity(requestBody);
         bodyEntity.setContentType(PwmConstants.ContentTypeValue.form.getHeaderValue());
@@ -353,9 +354,9 @@ public class OAuthMachine {
         }
 
         final LoginInfoBean loginInfoBean = pwmRequest.getPwmSession().getLoginInfoBean();
-        final Date expirationDate = loginInfoBean.getOauthExp();
+        final Instant expirationDate = loginInfoBean.getOauthExp();
 
-        if (expirationDate == null || (new Date()).before(expirationDate)) {
+        if (expirationDate == null || Instant.now().isBefore(expirationDate)) {
             //not expired
             return false;
         }
@@ -367,8 +368,8 @@ public class OAuthMachine {
                     loginInfoBean.getOauthRefToken());
             if (resolveResults != null) {
                 if (resolveResults.getExpiresSeconds() > 0) {
-                    final Date accessTokenExpirationDate = new Date(System.currentTimeMillis() + 1000 * resolveResults.getExpiresSeconds());
-                    LOGGER.trace(pwmRequest, "noted oauth access token expiration at timestamp " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(accessTokenExpirationDate));
+                    final Instant accessTokenExpirationDate = Instant.ofEpochMilli(System.currentTimeMillis() + 1000 * resolveResults.getExpiresSeconds());
+                    LOGGER.trace(pwmRequest, "noted oauth access token expiration at timestamp " + JavaHelper.toIsoDate(accessTokenExpirationDate));
                     loginInfoBean.setOauthExp(accessTokenExpirationDate);
                     loginInfoBean.setOauthRefToken(resolveResults.getRefreshToken());
                     return false;

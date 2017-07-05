@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,8 +27,7 @@ import password.pwm.config.Configuration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.http.PwmRequest;
 import password.pwm.i18n.Message;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JsonUtil;
 
 import javax.ws.rs.core.Response;
 import java.io.Serializable;
@@ -107,7 +106,7 @@ public class RestResultBean implements Serializable {
         final RestResultBean restResultBean = new RestResultBean();
         restResultBean.setError(true);
         restResultBean.setErrorMessage(errorInformation.toUserStr(locale, config));
-        if (forceDetail || Helper.determineIfDetailErrorMsgShown(pwmApplication)) {
+        if (forceDetail || (pwmApplication != null && pwmApplication.determineIfDetailErrorMsgShown())) {
             restResultBean.setErrorDetail(errorInformation.toDebugStr());
         }
         restResultBean.setErrorCode(errorInformation.getError().getErrorCode());

@@ -1,11 +1,12 @@
 <%@ page import="password.pwm.http.servlet.DeleteAccountServlet" %>
 <%@ page import="password.pwm.i18n.Display" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2016 The PWM Project
+  ~ Copyright (c) 2009-2017 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -36,7 +37,7 @@
     <div id="centerbody">
         <div id="page-content-title"><pwm:display key="Title_DeleteAccount" displayIfMissing="true"/></div>
         <%@ include file="fragment/message.jsp" %>
-        <% final String expandedText = (String)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.AgreementText); %>
+        <% final String expandedText = (String)JspUtility.getAttribute(pageContext, PwmRequestAttribute.AgreementText); %>
         <div class="agreementText"><%= expandedText %></div>
         <div class="buttonbar">
             <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded">

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,9 +31,9 @@ import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmSession;
 import password.pwm.svc.PwmService;
-import password.pwm.util.Helper;
-import password.pwm.util.Sleeper;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.Sleeper;
+import password.pwm.util.java.TimeDuration;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
@@ -216,7 +216,7 @@ public class SharedHistoryManager implements PwmService {
             frequencyMs = frequencyMs < MIN_CLEANER_FREQUENCY ? MIN_CLEANER_FREQUENCY : frequencyMs;
 
             LOGGER.debug("scheduling cleaner task to run once every " + new TimeDuration(frequencyMs).asCompactString());
-            final String threadName = Helper.makeThreadName(pwmApplication, this.getClass()) + " timer";
+            final String threadName = JavaHelper.makeThreadName(pwmApplication, this.getClass()) + " timer";
             cleanerTimer = new Timer(threadName, true);
             cleanerTimer.schedule(new CleanerTask(), 1000, frequencyMs);
         }
@@ -277,7 +277,7 @@ public class SharedHistoryManager implements PwmService {
             hashedAnswer = md.digest(hashedAnswer);
         }
 
-        return Helper.binaryArrayToHex(hashedAnswer);
+        return JavaHelper.binaryArrayToHex(hashedAnswer);
     }
 
     // -------------------------- INNER CLASSES --------------------------
@@ -416,7 +416,7 @@ public class SharedHistoryManager implements PwmService {
                 LOGGER.debug("starting up in background thread");
                 init(pwmApplication, settings.maxAgeMs);
             }
-        }, Helper.makeThreadName(pwmApplication, this.getClass()) + " initializer").start();
+        }, JavaHelper.makeThreadName(pwmApplication, this.getClass()) + " initializer").start();
     }
 
     private static class Settings {
@@ -427,12 +427,12 @@ public class SharedHistoryManager implements PwmService {
         private boolean caseInsensitive;
     }
 
-    public ServiceInfo serviceInfo()
+    public ServiceInfoBean serviceInfo()
     {
         if (status == STATUS.OPEN) {
-            return new ServiceInfo(Collections.singletonList(DataStorageMethod.LOCALDB));
+            return new ServiceInfoBean(Collections.singletonList(DataStorageMethod.LOCALDB));
         } else {
-            return new ServiceInfo(Collections.<DataStorageMethod>emptyList());
+            return new ServiceInfoBean(Collections.<DataStorageMethod>emptyList());
         }
     }
 }

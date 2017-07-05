@@ -4,7 +4,7 @@
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2016 The PWM Project
+  ~ Copyright (c) 2009-2017 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -29,5 +29,17 @@
     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-times"></span></pwm:if>
     <pwm:display key="Button_Cancel"/>
 </button>
+<pwm:script> <%-- ie doesn't support 'from' attribute on buttons, so handle with this script --%>
+    <script type="text/javascript">
+        PWM_GLOBAL['startupFunctions'].push(function() {
+            PWM_MAIN.addEventHandler('button-cancel', 'click', function(e){
+                console.log('intercepted cancel button');
+                PWM_MAIN.cancelEvent(e);
+                var cancelForm = PWM_MAIN.getObject('form-hidden-cancel');
+                PWM_MAIN.handleFormSubmit(cancelForm);
+            });
+        });
+    </script>
+</pwm:script>
 </pwm:if>
 </pwm:if>

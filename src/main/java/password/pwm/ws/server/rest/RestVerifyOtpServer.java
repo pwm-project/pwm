@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,9 +32,9 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Message;
-import password.pwm.ldap.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.util.operations.OtpService;
-import password.pwm.util.otp.OTPUserRecord;
+import password.pwm.util.operations.otp.OTPUserRecord;
 import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
@@ -61,7 +61,7 @@ public class RestVerifyOtpServer extends AbstractRestServer {
     @GET
     @Produces(MediaType.TEXT_HTML)
     public Response doHtmlRedirect() throws URISyntaxException {
-        return RestServerHelper.doHtmlRedirect();
+        return RestServerHelper.handleHtmlRequest();
     }
 
     @POST
@@ -70,10 +70,12 @@ public class RestVerifyOtpServer extends AbstractRestServer {
     public Response doSetOtpDataJson(final RestVerifyOtpServer.JsonPutOtpInput jsonInput) {
         final RestRequestBean restRequestBean;
         try {
-            final ServicePermissions servicePermissions = new ServicePermissions();
-            servicePermissions.setAdminOnly(false);
-            servicePermissions.setAuthRequired(true);
-            servicePermissions.setBlockExternal(true);
+            final ServicePermissions servicePermissions = ServicePermissions.builder()
+                    .adminOnly(false)
+                    .authRequired(true)
+                    .blockExternal(true)
+                    .build();
+
             restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, jsonInput.username);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
@@ -83,11 +85,11 @@ public class RestVerifyOtpServer extends AbstractRestServer {
                 throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"actor does not have required permission"));
             }
 
-            final UserSearchEngine userSearchEngine = new UserSearchEngine(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession().getLabel());
+            final UserSearchEngine userSearchEngine = restRequestBean.getPwmApplication().getUserSearchEngine();
             UserIdentity userIdentity = restRequestBean.getUserIdentity();
             if (userIdentity == null) {
                 final ChaiUser chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication());
-                userIdentity = userSearchEngine.resolveUsername(chaiUser.readUsername(), null, null);
+                userIdentity = userSearchEngine.resolveUsername(chaiUser.readUsername(), null, null, restRequestBean.getPwmSession().getLabel());
             }
 
             final OtpService otpService = restRequestBean.getPwmApplication().getOtpService();
@@ -104,7 +106,7 @@ public class RestVerifyOtpServer extends AbstractRestServer {
             resultBean.setError(false);
             resultBean.setData(verified);
             resultBean.setSuccessMessage(successMsg);
-            return resultBean.asJsonResponse();                    
+            return resultBean.asJsonResponse();
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation(),restRequestBean).asJsonResponse();
         } catch (ChaiUnavailableException e) {
@@ -120,7 +122,7 @@ public class RestVerifyOtpServer extends AbstractRestServer {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
             return RestResultBean.fromError(errorInformation,restRequestBean).asJsonResponse();
         }
-        
+
     }
 
 }

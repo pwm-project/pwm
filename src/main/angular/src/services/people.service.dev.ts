@@ -3,12 +3,12 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * (at your option) any later versionI.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -21,24 +21,26 @@
  */
 
 
-import { IPromise, IQService } from 'angular';
-import Person from '../models/person.model';
+import { IPromise, IQService, ITimeoutService } from 'angular';
+import { IPerson } from '../models/person.model';
 import { IPeopleService } from './people.service';
 import OrgChartData from '../models/orgchart-data.model';
 import SearchResult from '../models/search-result.model';
 
 const peopleData = require('./people.data');
+
 const MAX_RESULTS = 10;
+const SIMULATED_RESPONSE_TIME = 0;
 
 export default class PeopleService implements IPeopleService {
-    private people: Person[];
+    private people: IPerson[];
 
-    static $inject = ['$q'];
-    constructor(private $q: IQService) {
-        this.people = peopleData.map((person) => new Person(person));
+    static $inject = ['$q', '$timeout' ];
+    constructor(private $q: IQService, private $timeout: ITimeoutService) {
+        this.people = peopleData.map((person) => <IPerson>(person));
 
         // Create directReports detail (instead of managing this in people.data.json
-        this.people.forEach((person: Person) => {
+        this.people.forEach((person: IPerson) => {
             const directReports = this.findDirectReports(person.userKey);
 
             if (!directReports.length) {
@@ -50,7 +52,7 @@ export default class PeopleService implements IPeopleService {
                 label: 'Direct Reports',
                 type: 'userDN',
                 userReferences: directReports
-                    .map((directReport: Person) => {
+                    .map((directReport: IPerson) => {
                         return {
                             userKey: directReport.userKey,
                             displayName: directReport._displayName
@@ -60,7 +62,7 @@ export default class PeopleService implements IPeopleService {
         }, this);
     }
 
-    autoComplete(query: string): IPromise<Person[]> {
+    autoComplete(query: string): IPromise<IPerson[]> {
         return this.search(query)
             .then((searchResult: SearchResult) => {
                 let people = searchResult.people;
@@ -75,17 +77,17 @@ export default class PeopleService implements IPeopleService {
             });
     }
 
-    getDirectReports(id: string): angular.IPromise<Person[]> {
+    getDirectReports(id: string): angular.IPromise<IPerson[]> {
         const people = this.findDirectReports(id);
 
         return this.$q.resolve(people);
     }
 
-    getManagementChain(id: string): angular.IPromise<Person[]> {
+    getManagementChain(id: string): angular.IPromise<IPerson[]> {
         let person = this.findPerson(id);
 
         if (person) {
-            const managementChain: Person[] = [];
+            const managementChain: IPerson[] = [];
 
             while (person = this.findManager(person)) {
                 managementChain.push(person);
@@ -113,51 +115,80 @@ export default class PeopleService implements IPeopleService {
 
     getNumberOfDirectReports(personId: string): IPromise<number> {
         return this.getDirectReports(personId)
-            .then((directReports: Person[]) => {
+            .then((directReports: IPerson[]) => {
                 return this.$q.resolve(directReports.length);
             });
     }
 
-    getPerson(id: string): IPromise<Person> {
-        const person = this.findPerson(id);
+    getPerson(id: string): IPromise<IPerson> {
+        let self = this;
 
-        if (person) {
-            return this.$q.resolve(person);
-        }
+        let deferred = this.$q.defer();
+        let deferredAbort = this.$q.defer();
 
-        return this.$q.reject(`Person with id: "${id}" not found.`);
-    }
+        let timeoutPromise = this.$timeout(() => {
+            const person = this.findPerson(id);
 
-    isOrgChartEnabled(id: string): angular.IPromise<boolean> {
-        return this.$q.resolve(true);
+            if (person) {
+                deferred.resolve(person);
+            }
+            else {
+                deferred.reject(`Person with id: "${id}" not found.`);
+            }
+        }, SIMULATED_RESPONSE_TIME);
+
+        // To simulate an abortable promise, edit SIMULATED_RESPONSE_TIME
+        deferred.promise['_httpTimeout'] = deferredAbort;
+        deferredAbort.promise.then(() => {
+            self.$timeout.cancel(timeoutPromise);
+            deferred.resolve();
+        });
+
+        return deferred.promise;
     }
 
     search(query: string): angular.IPromise<SearchResult> {
-        let people = this.people.filter((person: Person) => {
-            if (!query) {
-                return false;
+        let self = this;
+
+        let deferred = this.$q.defer();
+        let deferredAbort = this.$q.defer();
+
+        let timeoutPromise = this.$timeout(() => {
+            let people = this.people.filter((person: IPerson) => {
+                if (!query) {
+                    return false;
+                }
+                return person._displayName.toLowerCase().indexOf(query.toLowerCase()) >= 0;
+            });
+
+            const sizeExceeded = (people.length > MAX_RESULTS);
+            if (sizeExceeded) {
+                people = people.slice(MAX_RESULTS);
             }
-            return person._displayName.toLowerCase().indexOf(query.toLowerCase()) >= 0;
+
+            deferred.resolve(new SearchResult({sizeExceeded: sizeExceeded, searchResults: people}));
+        }, SIMULATED_RESPONSE_TIME * 6);
+
+        // To simulate an abortable promise, edit SIMULATED_RESPONSE_TIME
+        deferred.promise['_httpTimeout'] = deferredAbort;
+        deferredAbort.promise.then(() => {
+            self.$timeout.cancel(timeoutPromise);
+            deferred.resolve();
         });
 
-        const sizeExceeded = (people.length > MAX_RESULTS);
-        if (sizeExceeded) {
-            people = people.slice(MAX_RESULTS);
-        }
-
-        return this.$q.resolve(new SearchResult({sizeExceeded: sizeExceeded, searchResults: people}));
+        return deferred.promise;
     }
 
-    private findDirectReports(id: string): Person[] {
-        return this.people.filter((person: Person) => person.detail['manager']['userReferences'][0].userKey == id);
+    private findDirectReports(id: string): IPerson[] {
+        return this.people.filter((person: IPerson) => person.detail['manager']['userReferences'][0].userKey == id);
     }
 
-    private findManager(person: Person): Person {
+    private findManager(person: IPerson): IPerson {
         return this.findPerson(person.detail['manager']['userReferences'][0].userKey);
     }
 
-    private findPerson(id: string): Person {
-        const people = this.people.filter((person: Person) => person.userKey == id);
+    private findPerson(id: string): IPerson {
+        const people = this.people.filter((person: IPerson) => person.userKey == id);
 
         if (people.length) {
             return people[0];

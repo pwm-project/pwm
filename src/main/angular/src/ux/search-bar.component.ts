@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@ import { IAugmentedJQuery, ICompileService, IScope } from 'angular';
 @Component({
     bindings: {
         autoFocus: '@',
+        inputDebounce: '<',
         onSearchTextChange: '&',
         onBlur: '&',
         onFocus: '&',
@@ -39,7 +40,9 @@ import { IAugmentedJQuery, ICompileService, IScope } from 'angular';
 })
 export default class SearchBarComponent {
     autoFocus: boolean;
+    inputDebounce: number;
     focused: boolean;
+    onKeyDown: Function;
     onSearchTextChange: Function;
     searchText: string;
 
@@ -52,7 +55,7 @@ export default class SearchBarComponent {
     $onInit(): void {
         this.autoFocus = this.autoFocus !== undefined;
 
-        var self = this;
+        const self = this;
 
         this.$scope.$watch('$ctrl.searchText', (newValue: string, oldValue: string) => {
             if (newValue === oldValue) {
@@ -63,7 +66,7 @@ export default class SearchBarComponent {
         });
     }
 
-    $postLink() {
+    $postLink(): void {
         const self = this;
         if (this.autoFocus) {
             this.$scope.$evalAsync(() => {
@@ -78,7 +81,15 @@ export default class SearchBarComponent {
         this.focusInput();
     }
 
-    focusInput() {
+    focusInput(): void {
         this.$element.find('input')[0].focus();
+    }
+
+    onInputKeyDown(event): void {
+        if (event.keyCode === 13) {
+            event.preventDefault();
+        }
+
+        this.onKeyDown({ $event: event });
     }
 }

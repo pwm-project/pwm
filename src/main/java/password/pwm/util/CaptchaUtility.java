@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,6 +36,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmURL;
 import password.pwm.http.client.PwmHttpClient;
 import password.pwm.http.client.PwmHttpClientRequest;
@@ -44,6 +45,7 @@ import password.pwm.svc.PwmService;
 import password.pwm.svc.intruder.IntruderManager;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
@@ -255,15 +257,15 @@ public class CaptchaUtility {
         StatisticsManager.incrementStat(pwmRequest, Statistic.CAPTCHA_PRESENTATIONS);
 
         final String reCaptchaPublicKey = pwmRequest.getConfig().readSettingAsString(PwmSetting.RECAPTCHA_KEY_PUBLIC);
-        pwmRequest.setAttribute(PwmRequest.Attribute.CaptchaPublicKey, reCaptchaPublicKey);
+        pwmRequest.setAttribute(PwmRequestAttribute.CaptchaPublicKey, reCaptchaPublicKey);
         {
             final String urlValue = pwmRequest.getConfig().readAppProperty(AppProperty.RECAPTCHA_CLIENT_JS_URL);
-            pwmRequest.setAttribute(PwmRequest.Attribute.CaptchaClientUrl, urlValue);
+            pwmRequest.setAttribute(PwmRequestAttribute.CaptchaClientUrl, urlValue);
         }
         {
             final String configuredUrl =pwmRequest.getConfig().readAppProperty(AppProperty.RECAPTCHA_CLIENT_IFRAME_URL);
             final String url = configuredUrl + "?k=" + reCaptchaPublicKey + "&hl=" + pwmRequest.getLocale().toString();
-            pwmRequest.setAttribute(PwmRequest.Attribute.CaptchaIframeUrl,url);
+            pwmRequest.setAttribute(PwmRequestAttribute.CaptchaIframeUrl,url);
         }
     }
 
@@ -288,7 +290,7 @@ public class CaptchaUtility {
         final long maxIntruderCount = pwmRequest.getConfig().readSettingAsLong(PwmSetting.CAPTCHA_INTRUDER_COUNT_TRIGGER);
 
         if (maxIntruderCount == 0) {
-            return false;
+            return true;
         }
 
         final int currentSessionAttempts = pwmRequest.getPwmSession().getSessionStateBean().getIntruderAttempts();

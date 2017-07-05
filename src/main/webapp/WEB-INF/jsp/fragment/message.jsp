@@ -1,13 +1,13 @@
 <%@ page import="password.pwm.error.ErrorInformation" %>
 <%@ page import="password.pwm.http.JspUtility" %>
-<%@ page import="password.pwm.http.PwmRequest" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2016 The PWM Project
+  ~ Copyright (c) 2009-2017 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@
   --%>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <div id="message_wrapper">
-<% final ErrorInformation requestError = (ErrorInformation)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.PwmErrorInfo); %>
+<% final ErrorInformation requestError = (ErrorInformation)JspUtility.getAttribute(pageContext, PwmRequestAttribute.PwmErrorInfo); %>
 <% if (requestError != null) { %>
     <span id="message" class="message message-error"><pwm:ErrorMessage/></span>
     <span id="errorCode" style="display: none"><%=requestError.getError().getErrorCode()%></span>

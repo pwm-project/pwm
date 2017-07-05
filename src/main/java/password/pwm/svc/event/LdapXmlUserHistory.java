@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 import password.pwm.PwmApplication;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.ErrorInformation;
@@ -46,8 +46,8 @@ import password.pwm.util.logging.PwmLogger;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.StringReader;
+import java.time.Instant;
 import java.util.Collections;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -153,13 +153,13 @@ class LdapXmlUserHistory implements UserHistoryStore, Serializable {
         }
     }
 
-    public List<UserAuditRecord> readUserHistory(final UserInfoBean userInfoBean)
+    public List<UserAuditRecord> readUserHistory(final UserInfo userInfo)
             throws PwmUnrecoverableException
     {
         try {
-            final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userInfoBean.getUserIdentity());
-            final StoredHistory storedHistory = readUserHistory(pwmApplication, userInfoBean.getUserIdentity(), theUser);
-            return storedHistory.asAuditRecords(userInfoBean);
+            final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userInfo.getUserIdentity());
+            final StoredHistory storedHistory = readUserHistory(pwmApplication, userInfo.getUserIdentity(), theUser);
+            return storedHistory.asAuditRecords(userInfo);
         } catch (ChaiUnavailableException e) {
             throw new PwmUnrecoverableException(PwmError.forChaiError(e.getErrorCode()));
         }
@@ -206,7 +206,7 @@ class LdapXmlUserHistory implements UserHistoryStore, Serializable {
             }
         }
 
-        public List<UserAuditRecord> asAuditRecords(final UserInfoBean userInfoBean) {
+        public List<UserAuditRecord> asAuditRecords(final UserInfo userInfoBean) {
             final List<UserAuditRecord> returnList = new LinkedList<>();
             for (final StoredEvent loopEvent : records) {
                 returnList.add(loopEvent.asAuditRecord(userInfoBean));
@@ -309,12 +309,18 @@ class LdapXmlUserHistory implements UserHistoryStore, Serializable {
         }
 
         public static StoredEvent fromAuditRecord(final UserAuditRecord auditRecord) {
-            return new StoredEvent(auditRecord.getEventCode(),auditRecord.getTimestamp().getTime(),auditRecord.getMessage(),auditRecord.getSourceAddress(),auditRecord.getSourceHost());
+            return new StoredEvent(
+                    auditRecord.getEventCode(),
+                    auditRecord.getTimestamp().toEpochMilli(),
+                    auditRecord.getMessage(),
+                    auditRecord.getSourceAddress(),
+                    auditRecord.getSourceHost()
+            );
         }
 
-        public UserAuditRecord asAuditRecord(final UserInfoBean userInfoBean) {
+        public UserAuditRecord asAuditRecord(final UserInfo userInfoBean) {
             return new UserAuditRecord(
-                    new Date(this.getTimestamp()),
+                    Instant.ofEpochMilli(this.getTimestamp()),
                     this.getAuditEvent(),
                     null,
                     null,

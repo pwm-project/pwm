@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,14 +47,22 @@ public class PwmSettingTest {
     @Test
     public void testDescriptions() throws PwmUnrecoverableException, PwmOperationalException {
         for (PwmSetting pwmSetting : PwmSetting.values()) {
-            pwmSetting.getDescription(PwmConstants.DEFAULT_LOCALE);
+            try {
+                pwmSetting.getDescription(PwmConstants.DEFAULT_LOCALE);
+            } catch (Throwable t) {
+                throw new IllegalStateException("unable to read description for setting '" + pwmSetting.toString() + "', error: " + t.getMessage(),t);
+            }
         }
     }
 
     @Test
     public void testLabels() throws PwmUnrecoverableException, PwmOperationalException {
         for (PwmSetting pwmSetting : PwmSetting.values()) {
-            pwmSetting.getLabel(PwmConstants.DEFAULT_LOCALE);
+            try {
+                pwmSetting.getLabel(PwmConstants.DEFAULT_LOCALE);
+            } catch (Throwable t) {
+                throw new IllegalStateException("unable to read label for setting '" + pwmSetting.toString() + "', error: " + t.getMessage(),t);
+            }
         }
     }
 

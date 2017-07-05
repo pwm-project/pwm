@@ -1,9 +1,9 @@
-/*
+/*!
  * Password Management Servlets (PWM)
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,38 +29,6 @@ mf-table {
     display: none;
   }
 
-  > .table-configuration {
-    position: relative;
-    z-index: 100;
-
-    > ul {
-      background-color: #ffffff;
-      box-shadow: 0 2px 5px 0 rgba(0, 0, 0, .26);
-      box-sizing: border-box;
-      left: 26px;
-      list-style: none;
-      margin: 0;
-      padding: 10px;
-      position: absolute;
-      text-align: start;
-      top: 0;
-
-      > li {
-        height: 24px;
-        line-height: 24px;
-        user-select: none;
-
-        > label {
-          cursor: pointer;
-
-          > input[type="checkbox"] {
-            cursor: inherit;
-          }
-        }
-      }
-    }
-  }
-
   > table {
     border: 1px solid #dae1e1;
     border-collapse: collapse;
@@ -81,7 +49,7 @@ mf-table {
       font-weight: normal;
       overflow: hidden;
       padding: 5px;
-      text-align: start;
+      text-align: left;
       vertical-align: top;
     }
 
@@ -89,6 +57,51 @@ mf-table {
       background-color: #eeeeee;
       color: #697c87;
       user-select: none;
+
+      &.table-configuration-column {
+        overflow: visible;
+
+        > .table-configuration {
+          float: right;
+          position: relative;
+          width: 24px;
+          z-index: 100;
+
+          > ul {
+            background-color: #ffffff;
+            box-shadow: 0 2px 5px 0 rgba(0, 0, 0, .26);
+            box-sizing: border-box;
+            left: 24px;
+            list-style: none;
+            margin: 0;
+            max-width: 300px;
+            padding: 10px;
+            position: absolute;
+            text-align: left;
+            top: 0;
+            transform: translateX(-100%);
+
+            > li {
+              // Chrome does not show the ellipsis properly for the 'label' element in rtl displays
+              height: 24px;
+              line-height: 24px;
+              user-select: none;
+              display: block;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+
+              > label {
+                cursor: pointer;
+
+                > input[type="checkbox"] {
+                  cursor: inherit;
+                }
+              }
+            }
+          }
+        }
+      }
 
       > .column-header {
         display: flex;
@@ -120,10 +133,24 @@ mf-table {
 
 [dir="rtl"] {
   mf-table {
-    > .table-configuration {
-      > ul {
-        left: auto;
-        right: 26px;
+    > table {
+      th, td {
+        text-align: right;
+      }
+
+      th {
+        &.table-configuration-column {
+          > .table-configuration {
+            float: left;
+
+            > ul {
+              text-align: right;
+              left: 0;
+              right: auto;
+              transform: none;
+            }
+          }
+        }
       }
     }
   }

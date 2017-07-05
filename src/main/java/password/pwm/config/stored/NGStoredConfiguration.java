@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,18 +22,17 @@
 
 package password.pwm.config.stored;
 
-import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.StoredValue;
 import password.pwm.config.value.StringValue;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
 
-import java.text.ParseException;
-import java.util.Date;
+import java.time.Instant;
 import java.util.Map;
 
 class NGStoredConfiguration implements StoredConfiguration {
@@ -164,12 +163,12 @@ class NGStoredConfiguration implements StoredConfiguration {
         return engine.readMetaData(storedConfigReference);
     }
 
-    public Date modifyTime() {
+    public Instant modifyTime() {
         final String modifyTimeString = readConfigProperty(ConfigurationProperty.MODIFIFICATION_TIMESTAMP);
         if (modifyTimeString != null) {
             try {
-                return PwmConstants.DEFAULT_DATETIME_FORMAT.parse(modifyTimeString);
-            } catch (ParseException e) {
+                return JavaHelper.parseIsoToInstant((modifyTimeString));
+            } catch (Exception e) {
                 LOGGER.error("error parsing last modified timestamp property: " + e.getMessage());
             }
         }

@@ -3,7 +3,7 @@
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2016 The PWM Project
+  ~ Copyright (c) 2009-2017 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -21,14 +21,14 @@
   --%>
 
 <%@ page import="password.pwm.bean.LocalSessionStateBean" %>
-<%@ page import="password.pwm.bean.UserInfoBean" %>
+<%@ page import="password.pwm.ldap.UserInfo" %>
 <%@ page import="password.pwm.http.JspUtility" %>
-<%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
+<%@ page import="java.sql.Date" %>
 <%@ page import="java.text.DateFormat" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final UserInfoBean uiBean = JspUtility.getPwmSession(pageContext).getUserInfoBean(); %>
+<% final UserInfo uiBean = JspUtility.getPwmSession(pageContext).getUserInfo(); %>
 <% final LocalSessionStateBean ssBean = JspUtility.getPwmSession(pageContext).getSessionStateBean(); %>
 <% final DateFormat dateFormatter = java.text.DateFormat.getDateInstance(DateFormat.FULL, ssBean.getLocale()); %>
 <% final DateFormat timeFormatter = java.text.DateFormat.getTimeInstance(DateFormat.FULL, ssBean.getLocale()); %>
@@ -44,8 +44,8 @@
         <p>
             <% if (uiBean.getPasswordExpirationTime() != null) { %>
             <pwm:display key="Display_PasswordWarn"
-                         value1="<%= dateFormatter.format(uiBean.getPasswordExpirationTime()) %>"
-                         value2="<%= timeFormatter.format(uiBean.getPasswordExpirationTime()) %>"/>
+                         value1="<%= dateFormatter.format(Date.from(uiBean.getPasswordExpirationTime())) %>"
+                         value2="<%= timeFormatter.format(Date.from(uiBean.getPasswordExpirationTime())) %>"/>
             <% } else { %>
             <pwm:display key="Display_PasswordNoExpire"/>
             <% } %>

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,10 +31,10 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -42,25 +42,26 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
+import password.pwm.http.HttpHeader;
 import password.pwm.http.client.PwmHttpClient;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.BasicAuthInfo;
-import password.pwm.util.JsonUtil;
 import password.pwm.util.PasswordData;
-import password.pwm.util.StringUtil;
-import password.pwm.util.TimeDuration;
-import password.pwm.util.WorkQueueProcessor;
+import password.pwm.util.java.TimeDuration;
+import password.pwm.util.localdb.WorkQueueProcessor;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBStoredQueue;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -122,10 +123,12 @@ public class SmsQueueManager implements PwmService {
             return;
         }
 
-        final WorkQueueProcessor.Settings settings = new WorkQueueProcessor.Settings();
-        settings.setMaxEvents(Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_SMS_MAX_COUNT)));
-        settings.setRetryDiscardAge(new TimeDuration(Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_SMS_MAX_AGE_MS))));
-        settings.setRetryInterval(new TimeDuration(Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_SMS_RETRY_TIMEOUT_MS))));
+        final WorkQueueProcessor.Settings settings = WorkQueueProcessor.Settings.builder()
+                .maxEvents(Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_SMS_MAX_COUNT)))
+                .retryDiscardAge(new TimeDuration(Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_SMS_MAX_AGE_MS))))
+                .retryInterval(new TimeDuration(Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_SMS_RETRY_TIMEOUT_MS))))
+                .build();
+
         final LocalDBStoredQueue localDBStoredQueue = LocalDBStoredQueue.createLocalDBStoredQueue(pwmApplication, pwmApplication.getLocalDB(), LocalDB.DB.SMS_QUEUE);
 
         workQueueProcessor = new WorkQueueProcessor<>(pwmApplication, localDBStoredQueue, settings, new SmsItemProcessor(), this.getClass());
@@ -172,24 +175,26 @@ public class SmsQueueManager implements PwmService {
     public void addSmsToQueue(final SmsItemBean smsItem)
             throws PwmUnrecoverableException
     {
-        shortenMessageIfNeeded(smsItem);
-        if (!determineIfItemCanBeDelivered(smsItem)) {
+        final SmsItemBean shortenedBean = shortenMessageIfNeeded(smsItem);
+        if (!determineIfItemCanBeDelivered(shortenedBean)) {
             return;
         }
 
         try {
-            workQueueProcessor.submit(smsItem);
+            workQueueProcessor.submit(shortenedBean);
         } catch (Exception e) {
             LOGGER.error("error writing to LocalDB queue, discarding sms send request: " + e.getMessage());
         }
     }
 
-    protected void shortenMessageIfNeeded(final SmsItemBean smsItem) throws PwmUnrecoverableException {
+    SmsItemBean shortenMessageIfNeeded(final SmsItemBean smsItem) throws PwmUnrecoverableException {
         final Boolean shorten = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.SMS_USE_URL_SHORTENER);
         if (shorten) {
             final String message = smsItem.getMessage();
-            smsItem.setMessage(pwmApplication.getUrlShortener().shortenUrlInText(message));
+            final String shortenedMessage = pwmApplication.getUrlShortener().shortenUrlInText(message);
+            return new SmsItemBean(smsItem.getTo(), shortenedMessage);
         }
+        return smsItem;
     }
 
     public static boolean smsIsConfigured(final Configuration config) {
@@ -252,10 +257,17 @@ public class SmsQueueManager implements PwmService {
     }
 
     @Override
-    public ServiceInfo serviceInfo() {
-        return null;
+    public ServiceInfoBean serviceInfo() {
+        final Map<String,String> debugItems = new LinkedHashMap<>();
+        if (workQueueProcessor != null) {
+            debugItems.putAll(workQueueProcessor.debugInfo());
+        }
+        if (status() == STATUS.OPEN) {
+            return new ServiceInfoBean(Collections.singletonList(DataStorageMethod.LOCALDB), debugItems);
+        } else {
+            return new ServiceInfoBean(Collections.emptyList(), debugItems);
+        }
     }
-
 
     private List<String> splitMessage(final String input) {
         final int size = (int)pwmApplication.getConfig().readSettingAsLong(PwmSetting.SMS_MAX_TEXT_LENGTH);
@@ -463,7 +475,7 @@ public class SmsQueueManager implements PwmService {
             LOGGER.trace("preparing to send SMS data: " + requestData);
             try {
                 final HttpRequestBase httpRequest;
-                if (gatewayMethod.equalsIgnoreCase("POST")) {
+                if ("POST".equalsIgnoreCase(gatewayMethod)) {
                     // POST request
                     httpRequest = new HttpPost(gatewayUrl);
                     if (contentType != null && contentType.length()>0) {
@@ -494,7 +506,7 @@ public class SmsQueueManager implements PwmService {
                 if ("HTTP".equalsIgnoreCase(gatewayAuthMethod) && gatewayUser != null && gatewayPass != null) {
                     LOGGER.debug("Using Basic Authentication");
                     final BasicAuthInfo ba = new BasicAuthInfo(gatewayUser, gatewayPass);
-                    httpRequest.addHeader(PwmConstants.HttpHeader.Authorization.getHttpName(), ba.toAuthHeader());
+                    httpRequest.addHeader(HttpHeader.Authorization.getHttpName(), ba.toAuthHeader());
                 }
 
                 final HttpClient httpClient = PwmHttpClient.getHttpClient(config);
@@ -540,11 +552,15 @@ public class SmsQueueManager implements PwmService {
     }
 
     public int queueSize() {
-        return workQueueProcessor.queueSize();
+        return workQueueProcessor == null
+                ? 0
+                : workQueueProcessor.queueSize();
     }
 
-    public Date eldestItem() {
-        return workQueueProcessor.eldestItem();
+    public Instant eldestItem() {
+        return workQueueProcessor == null
+                ? null
+                : workQueueProcessor.eldestItem();
     }
 
 }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,18 +23,15 @@
 package password.pwm;
 
 import org.apache.commons.csv.CSVFormat;
-import password.pwm.bean.SessionLabel;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.secure.PwmBlockAlgorithm;
 import password.pwm.util.secure.PwmHashAlgorithm;
 
 import java.nio.charset.Charset;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -49,7 +46,7 @@ public abstract class PwmConstants {
 // ------------------------------ FIELDS ------------------------------
 
     // ------------------------- PUBLIC CONSTANTS -------------------------
-    public static final String BUILD_TIME           = readBuildInfoBundle("build.time",SimpleDateFormat.getDateTimeInstance().format(new Date()));
+    public static final String BUILD_TIME           = readBuildInfoBundle("build.time", Instant.now().toString());
     public static final String BUILD_NUMBER         = readBuildInfoBundle("build.number","0");
     public static final String BUILD_TYPE           = readBuildInfoBundle("build.type","");
     public static final String BUILD_USER           = readBuildInfoBundle("build.user",System.getProperty("user.name"));
@@ -96,11 +93,6 @@ public abstract class PwmConstants {
 
     public static final String DEFAULT_DATETIME_FORMAT_STR = readPwmConstantsBundle("locale.defaultDateTimeFormat");
     public static final TimeZone DEFAULT_TIMEZONE = TimeZone.getTimeZone(readPwmConstantsBundle("locale.defaultTimeZone"));
-    public static final DateFormat DEFAULT_DATETIME_FORMAT = new SimpleDateFormat(DEFAULT_DATETIME_FORMAT_STR, DEFAULT_LOCALE);
-
-    static {
-        DEFAULT_DATETIME_FORMAT.setTimeZone(DEFAULT_TIMEZONE);
-    }
 
     public static final String APPLICATION_PATH_INFO_FILE = readPwmConstantsBundle("applicationPathInfoFile");
 
@@ -109,10 +101,6 @@ public abstract class PwmConstants {
     public static final int TRIAL_MAX_AUTHENTICATIONS = 100;
     public static final int TRIAL_MAX_TOTAL_AUTH = 10000;
 
-    private static final String SESSION_LABEL_SESSION_ID = "#";
-    public static final SessionLabel REPORTING_SESSION_LABEL = new SessionLabel(SESSION_LABEL_SESSION_ID ,null,"reporting",null,null);
-    public static final SessionLabel HEALTH_SESSION_LABEL = new SessionLabel(SESSION_LABEL_SESSION_ID ,null,"health",null,null);
-    public static final SessionLabel CLI_SESSION_LABEL= new SessionLabel(SESSION_LABEL_SESSION_ID ,null,"cli",null,null);
 
     public static final int DATABASE_ACCESSOR_KEY_LENGTH = Integer.parseInt(readPwmConstantsBundle("databaseAccessor.keyLength"));
 
@@ -133,17 +121,11 @@ public abstract class PwmConstants {
 
     public static final String SESSION_ATTR_PWM_SESSION = "PwmSession";
     public static final String SESSION_ATTR_BEANS = "SessionBeans";
-    public static final String SESSION_ATTR_CONTEXT_GUID = "ContextInstanceGUID";
+    public static final String SESSION_ATTR_PWM_APP_NONCE = "PwmApplication-Nonce";
+    public static final String SESSION_ATTR_FORGOTTEN_PW_USERINFO_CACHE = "ForgottenPw-UserInfoCache";
 
     public static final PwmBlockAlgorithm IN_MEMORY_PASSWORD_ENCRYPT_METHOD = PwmBlockAlgorithm.AES;
     public static final PwmHashAlgorithm SETTING_CHECKSUM_HASH_METHOD = PwmHashAlgorithm.SHA256;
-
-
-    public static final String DOWNLOAD_FILENAME_STATISTICS_CSV = "Statistics.csv";
-    public static final String DOWNLOAD_FILENAME_USER_REPORT_SUMMARY_CSV = "UserReportSummary.csv";
-    public static final String DOWNLOAD_FILENAME_USER_REPORT_RECORDS_CSV = "UserReportRecords.csv";
-    public static final String DOWNLOAD_FILENAME_AUDIT_RECORDS_CSV = "AuditRecords.csv";
-    public static final String DOWNLOAD_FILENAME_LDAP_PERMISSION_CSV = "LDAPPermissionRecommendations.csv";
 
 
     public static final String LOG_REMOVED_VALUE_REPLACEMENT = readPwmConstantsBundle("log.removedValue");
@@ -158,94 +140,6 @@ public abstract class PwmConstants {
             localeList.add(new Locale(localeKey));
         }
         INCLUDED_LOCALES = Collections.unmodifiableCollection(localeList);
-    }
-
-    public enum JspUrl {
-
-        INIT("init.jsp"),
-        ERROR("error.jsp"),
-        SUCCESS("success.jsp"),
-        APP_UNAVAILABLE("application-unavailable.jsp"),
-        ADMIN_DASHBOARD("admin-dashboard.jsp"),
-        ADMIN_ANALYSIS("admin-analysis.jsp"),
-        ADMIN_ACTIVITY("admin-activity.jsp"),
-        ADMIN_TOKEN_LOOKUP("admin-tokenlookup.jsp"),
-        ADMIN_LOGVIEW_WINDOW("admin-logview-window.jsp"),
-        ADMIN_LOGVIEW("admin-logview.jsp"),
-        ADMIN_URLREFERENCE("admin-urlreference.jsp"),
-        ADMIN_DEBUG("admin-user-debug.jsp"),
-        ACTIVATE_USER("activateuser.jsp"),
-        ACTIVATE_USER_AGREEMENT("activateuser-agreement.jsp"),
-        ACTIVATE_USER_ENTER_CODE("activateuser-entercode.jsp"),
-        LOGIN("login.jsp"),
-        LOGIN_PW_ONLY("login-passwordonly.jsp"),
-        LOGOUT("logout.jsp"),
-        LOGOUT_PUBLIC("logout-public.jsp"),
-        PASSWORD_CHANGE("changepassword.jsp"),
-        PASSWORD_FORM("changepassword-form.jsp"),
-        PASSWORD_CHANGE_WAIT("changepassword-wait.jsp"),
-        PASSWORD_AGREEMENT("changepassword-agreement.jsp"),
-        PASSWORD_COMPLETE("changepassword-complete.jsp"),
-        PASSWORD_WARN("changepassword-warn.jsp"),
-        RECOVER_PASSWORD_SEARCH("forgottenpassword-search.jsp"),
-        RECOVER_PASSWORD_RESPONSES("forgottenpassword-responses.jsp"),
-        RECOVER_PASSWORD_ATTRIBUTES("forgottenpassword-attributes.jsp"),
-        RECOVER_PASSWORD_ACTION_CHOICE("forgottenpassword-actionchoice.jsp"),
-        RECOVER_PASSWORD_METHOD_CHOICE("forgottenpassword-method.jsp"),
-        RECOVER_PASSWORD_TOKEN_CHOICE("forgottenpassword-tokenchoice.jsp"),
-        RECOVER_PASSWORD_ENTER_TOKEN("forgottenpassword-entertoken.jsp"),
-        RECOVER_PASSWORD_ENTER_OTP("forgottenpassword-enterotp.jsp"),
-        RECOVER_PASSWORD_NAAF("forgottenpassword-naaf.jsp"),
-        RECOVER_PASSWORD_REMOTE("forgottenpassword-remote.jsp"),
-        SELF_DELETE_AGREE("deleteaccount-agreement.jsp"),
-        SELF_DELETE_CONFIRM("deleteaccount-confirm.jsp"),
-        SETUP_RESPONSES("setupresponses.jsp"),
-        SETUP_RESPONSES_CONFIRM("setupresponses-confirm.jsp"),
-        SETUP_RESPONSES_HELPDESK("setupresponses-helpdesk.jsp"),
-        SETUP_RESPONSES_EXISTING("setupresponses-existing.jsp"),
-        SETUP_OTP_SECRET_EXISTING("setupotpsecret-existing.jsp"),
-        SETUP_OTP_SECRET("setupotpsecret.jsp"),
-        SETUP_OTP_SECRET_TEST("setupotpsecret-test.jsp"),
-        SETUP_OTP_SECRET_SUCCESS("setupotpsecret-success.jsp"),
-        FORGOTTEN_USERNAME("forgottenusername-search.jsp"),
-        FORGOTTEN_USERNAME_COMPLETE("forgottenusername-complete.jsp"),
-        UPDATE_ATTRIBUTES("updateprofile.jsp"),
-        UPDATE_ATTRIBUTES_AGREEMENT("updateprofile-agreement.jsp"),
-        UPDATE_ATTRIBUTES_ENTER_CODE("updateprofile-entercode.jsp"),
-        UPDATE_ATTRIBUTES_CONFIRM("updateprofile-confirm.jsp"),
-        NEW_USER("newuser.jsp"),
-        NEW_USER_ENTER_CODE("newuser-entercode.jsp"),
-        NEW_USER_WAIT("newuser-wait.jsp"),
-        NEW_USER_PROFILE_CHOICE("newuser-profilechoice.jsp"),
-        NEW_USER_AGREEMENT("newuser-agreement.jsp"),
-        GUEST_REGISTRATION("guest-create.jsp"),
-        GUEST_UPDATE("guest-update.jsp"),
-        GUEST_UPDATE_SEARCH("guest-search.jsp"),
-        ACCOUNT_INFORMATION("accountinformation.jsp"),
-        SHORTCUT("shortcut.jsp"),
-        PEOPLE_SEARCH("peoplesearch.jsp"),
-        CONFIG_MANAGER_EDITOR("configeditor.jsp"),
-        CONFIG_MANAGER_EDITOR_SUMMARY("configmanager-summary.jsp"),
-        CONFIG_MANAGER_PERMISSIONS("configmanager-permissions.jsp"),
-        CONFIG_MANAGER_MODE_CONFIGURATION("configmanager.jsp"),
-        CONFIG_MANAGER_WORDLISTS("configmanager-wordlists.jsp"),
-        CONFIG_MANAGER_LOCALDB("configmanager-localdb.jsp"),
-        CONFIG_MANAGER_LOGIN("configmanager-login.jsp"),
-        HELPDESK_SEARCH("helpdesk.jsp"),
-        HELPDESK_DETAIL("helpdesk-detail.jsp"),
-
-        ;
-
-        private String path;
-        private static final String JSP_ROOT_URL = "/WEB-INF/jsp/";
-
-        JspUrl(final String path) {
-            this.path = path;
-        }
-
-        public String getPath() {
-            return JSP_ROOT_URL + path;
-        }
     }
 
     public static final String URL_JSP_CONFIG_GUIDE = "WEB-INF/jsp/configguide-%1%.jsp";
@@ -344,52 +238,6 @@ public abstract class PwmConstants {
 
 // -------------------------- ENUMERATIONS --------------------------
 
-
-    public enum HttpHeader {
-        Accept("Accept"),
-        Connection("Connection"),
-        Content_Type("Content-Type"),
-        Content_Encoding("Content-Encoding"),
-        Location("Location"),
-        ContentSecurityPolicy("Content-Security-Policy"),
-        If_None_Match("If-None-Match"),
-        Server("Server"),
-        Cache_Control("Cache-Control"),
-        WWW_Authenticate("WWW-Authenticate"),
-        ContentDisposition("content-disposition"),
-        ContentTransferEncoding("Content-Transfer-Encoding"),
-        Content_Language("Content-Language"),
-        Accept_Encoding("Accept-Encoding"),
-        Accept_Language("Accept-Language"),
-        Authorization("Authorization"),
-        UserAgent("User-Agent"),
-
-        XFrameOptions("X-Frame-Options"),
-        XContentTypeOptions("X-Content-Type-Options"),
-        XXSSProtection("X-XSS-Protection"),
-
-        XAmb("X-" + PwmConstants.PWM_APP_NAME + "-Amb"),
-        XVersion("X-" + PwmConstants.PWM_APP_NAME + "-Version"),
-        XInstance("X-" + PwmConstants.PWM_APP_NAME + "-Instance"),
-        XSessionID("X-" + PwmConstants.PWM_APP_NAME + "-SessionID"),
-        XNoise("X-" + PwmConstants.PWM_APP_NAME + "-Noise"),
-
-        SsprAuthorizationToken("sspr-authorization-token"),
-
-        ;
-
-        private final String httpName;
-
-        HttpHeader(final String httpName)
-        {
-            this.httpName = httpName;
-        }
-
-        public String getHttpName()
-        {
-            return httpName;
-        }
-    }
 
     public enum ContentTypeValue {
         json("application/json; charset=" + PwmConstants.DEFAULT_CHARSET),

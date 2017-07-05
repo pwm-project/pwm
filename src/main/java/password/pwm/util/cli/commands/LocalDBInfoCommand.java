@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,25 +22,25 @@
 
 package password.pwm.util.cli.commands;
 
-import password.pwm.util.FileSystemUtility;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.TimeDuration;
 import password.pwm.util.cli.CliParameters;
+import password.pwm.util.java.FileSystemUtility;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBUtility;
 
 import java.text.NumberFormat;
-import java.util.Date;
+import java.time.Instant;
 import java.util.Map;
 
 public class LocalDBInfoCommand extends AbstractCliCommand {
     public void doCommand() throws Exception {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         final LocalDB localDB = cliEnvironment.getLocalDB();
         final long localDBdiskSpace = FileSystemUtility.getFileDirectorySize(localDB.getFileLocation());
         out("beginning LocalDBInfo");
-        out("LocalDB total disk space = " + NumberFormat.getInstance().format(localDBdiskSpace) + " (" + Helper.formatDiskSize(localDBdiskSpace) + ")");
+        out("LocalDB total disk space = " + NumberFormat.getInstance().format(localDBdiskSpace) + " (" + StringUtil.formatDiskSize(localDBdiskSpace) + ")");
         out("examining LocalDB, this may take a while.... ");
         for (final LocalDB.DB db : LocalDB.DB.values()) {
             out("---" + db.toString() + "---");

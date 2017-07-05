@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,8 +29,8 @@ import password.pwm.config.StoredValue;
 import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.i18n.Display;
-import password.pwm.util.JsonUtil;
 import password.pwm.util.LocaleHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
 
@@ -38,6 +38,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -56,7 +57,7 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
 
     public static class VerificationMethodSettings implements Serializable {
         private Map<IdentityVerificationMethod,VerificationMethodSetting> methodSettings = new HashMap<>();
-        private int minOptionalRequired = 0;
+        private int minOptionalRequired;
 
         public VerificationMethodSettings() {
         }
@@ -67,7 +68,9 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
         }
 
         public Map<IdentityVerificationMethod, VerificationMethodSetting> getMethodSettings() {
-            return Collections.unmodifiableMap(methodSettings);
+            final Map<IdentityVerificationMethod, VerificationMethodSetting> tempMap = new LinkedHashMap<>(methodSettings);
+            tempMap.remove(null);
+            return Collections.unmodifiableMap(tempMap);
         }
 
         public int getMinOptionalRequired() {

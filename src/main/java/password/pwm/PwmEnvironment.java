@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,9 +27,9 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
@@ -39,6 +39,7 @@ import java.io.RandomAccessFile;
 import java.io.StringWriter;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -71,11 +72,14 @@ public class PwmEnvironment {
         AutoExportHttpsKeyStoreAlias,
         AutoWriteTomcatConfSourceFile,
         AutoWriteTomcatConfOutputFile,
+        AppliancePort,
+        ApplianceHostnameFile,
+        ApplianceTokenFile,
 
         ;
 
         public static ApplicationParameter forString(final String input) {
-            return Helper.readEnumFromString(ApplicationParameter.class, null, input);
+            return JavaHelper.readEnumFromString(ApplicationParameter.class, null, input);
         }
     }
 
@@ -89,7 +93,7 @@ public class PwmEnvironment {
         ;
 
         public static ApplicationFlag forString(final String input) {
-            return Helper.readEnumFromString(ApplicationFlag.class, null, input);
+            return JavaHelper.readEnumFromString(ApplicationFlag.class, null, input);
         }
     }
 
@@ -153,8 +157,8 @@ public class PwmEnvironment {
         this.internalRuntimeInstance = internalRuntimeInstance;
         this.configurationFile = configurationFile;
         this.contextManager = contextManager;
-        this.flags = flags == null ? Collections.<ApplicationFlag>emptySet() : Collections.unmodifiableSet(new HashSet<>(flags));
-        this.parameters = parameters == null ? Collections.<ApplicationParameter, String>emptyMap() : Collections.unmodifiableMap(parameters);
+        this.flags = flags == null ? Collections.emptySet() : Collections.unmodifiableSet(new HashSet<>(flags));
+        this.parameters = parameters == null ? Collections.emptyMap() : Collections.unmodifiableMap(parameters);
 
         this.fileLocker = new FileLocker();
 
@@ -472,7 +476,7 @@ public class PwmEnvironment {
         final int maxWaitSeconds = this.getFlags().contains(ApplicationFlag.CommandLineInstance)
                 ? 1
                 : Integer.parseInt(getConfig().readAppProperty(AppProperty.APPLICATION_FILELOCK_WAIT_SECONDS));
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         final int attemptInterval = 5021; //ms
 
         while (!this.isFileLocked() && TimeDuration.fromCurrent(startTime).isShorterThan(maxWaitSeconds, TimeUnit.SECONDS)) {
@@ -482,7 +486,7 @@ public class PwmEnvironment {
                 LOGGER.debug("can't establish application file lock after "
                         + TimeDuration.fromCurrent(startTime).asCompactString()
                         + ", will retry;");
-                Helper.pause(attemptInterval);
+                JavaHelper.pause(attemptInterval);
             }
         }
 
@@ -531,7 +535,7 @@ public class PwmEnvironment {
         void writeLockFileContents(final RandomAccessFile file) {
             try {
                 final Properties props = new Properties();
-                props.put("timestamp", PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
+                props.put("timestamp", JavaHelper.toIsoDate(new Date()));
                 props.put("applicationPath",PwmEnvironment.this.getApplicationPath() == null ? "n/a" : PwmEnvironment.this.getApplicationPath().getAbsolutePath());
                 props.put("configurationFile", PwmEnvironment.this.getConfigurationFile() == null ? "n/a" : PwmEnvironment.this.getConfigurationFile().getAbsolutePath());
                 final String comment = PwmConstants.PWM_APP_NAME + " file lock";

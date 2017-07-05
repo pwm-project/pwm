@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,12 +22,13 @@
 
 package password.pwm.svc.report;
 
+import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.SecureEngine;
 
@@ -39,18 +40,22 @@ import java.util.List;
 class ReportSettings implements Serializable {
     private static final PwmLogger LOGGER = PwmLogger.forClass(ReportSettings.class);
     
-    private TimeDuration minCacheAge = TimeDuration.DAY;
     private TimeDuration maxCacheAge = new TimeDuration(TimeDuration.DAY.getTotalMilliseconds() * 90);
-    private TimeDuration restTime = new TimeDuration(100);
-    private boolean autoCalcRest = true;
     private String searchFilter = null;
-    private int jobOffsetSeconds = 0;
+    private int jobOffsetSeconds;
     private int maxSearchSize = 100 * 1000;
     private List<Integer> trackDays = new ArrayList<>();
+    private int reportJobThreads = 1;
+    private JobIntensity reportJobIntensity = JobIntensity.LOW;
+
+    public enum JobIntensity {
+        LOW,
+        MEDIUM,
+        HIGH,
+    }
 
     public static ReportSettings readSettingsFromConfig(final Configuration config) {
         final ReportSettings settings = new ReportSettings();
-        settings.minCacheAge = new TimeDuration(config.readSettingAsLong(PwmSetting.REPORTING_MIN_CACHE_AGE) * 1000);
         settings.maxCacheAge = new TimeDuration(config.readSettingAsLong(PwmSetting.REPORTING_MAX_CACHE_AGE) * 1000);
         settings.searchFilter = config.readSettingAsString(PwmSetting.REPORTING_SEARCH_FILTER);
         settings.maxSearchSize = (int)config.readSettingAsLong(PwmSetting.REPORTING_MAX_QUERY_SIZE);
@@ -59,18 +64,16 @@ class ReportSettings implements Serializable {
             settings.searchFilter = null;
         }
 
-        final int configuredRestTimeMs = (int)config.readSettingAsLong(PwmSetting.REPORTING_REST_TIME_MS);
-        settings.autoCalcRest = configuredRestTimeMs == -1;
-        if (!settings.autoCalcRest) {
-            settings.restTime = new TimeDuration(configuredRestTimeMs);
-        }
-
         settings.jobOffsetSeconds = (int)config.readSettingAsLong(PwmSetting.REPORTING_JOB_TIME_OFFSET);
         if (settings.jobOffsetSeconds > 60 * 60 * 24) {
             settings.jobOffsetSeconds = 0;
         }
 
         settings.trackDays = parseDayIntervalStr(config);
+
+        settings.reportJobThreads = Integer.parseInt(config.readAppProperty(AppProperty.REPORTING_LDAP_SEARCH_THREADS));
+
+        settings.reportJobIntensity = config.readSettingAsEnum(PwmSetting.REPORTING_JOB_INTENSITY, JobIntensity.class);
 
         return settings;
     }
@@ -96,20 +99,8 @@ class ReportSettings implements Serializable {
         return Collections.unmodifiableList(returnValue);
     }
 
-    public TimeDuration getMinCacheAge() {
-        return minCacheAge;
-    }
-
     public TimeDuration getMaxCacheAge() {
         return maxCacheAge;
-    }
-
-    public TimeDuration getRestTime() {
-        return restTime;
-    }
-
-    public boolean isAutoCalcRest() {
-        return autoCalcRest;
     }
 
     public String getSearchFilter() {
@@ -127,8 +118,16 @@ class ReportSettings implements Serializable {
     public List<Integer> getTrackDays() {
         return trackDays;
     }
-    
-    public String getSettingsHash() 
+
+    public int getReportJobThreads() {
+        return reportJobThreads;
+    }
+
+    public JobIntensity getReportJobIntensity() {
+        return reportJobIntensity;
+    }
+
+    public String getSettingsHash()
             throws PwmUnrecoverableException 
     {
         return SecureEngine.hash(JsonUtil.serialize(this), PwmConstants.SETTING_CHECKSUM_HASH_METHOD);

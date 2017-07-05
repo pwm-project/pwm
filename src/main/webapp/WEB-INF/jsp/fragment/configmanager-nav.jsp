@@ -5,7 +5,7 @@
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2016 The PWM Project
+  ~ Copyright (c) 2009-2017 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -28,6 +28,12 @@
     <button type="submit" class="navbutton">
       <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-dashboard"></span></pwm:if>
       Overview
+    </button>
+  </form>
+  <form action="<pwm:context/><%=PwmServletDefinition.ConfigManager_Certificates.servletUrl()%>" method="get">
+    <button type="submit" class="navbutton">
+      <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-file-text-o"></span></pwm:if>
+      Certificates
     </button>
   </form>
   <form action="<pwm:context/><%=PwmServletDefinition.ConfigManager_Wordlists.servletUrl()%>" method="get">

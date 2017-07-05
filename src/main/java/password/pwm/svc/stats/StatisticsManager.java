@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,9 +41,9 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.client.PwmHttpClient;
 import password.pwm.svc.PwmService;
 import password.pwm.util.AlertHandler;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
@@ -56,6 +56,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -285,7 +286,7 @@ public class StatisticsManager implements PwmService {
         }
 
         try {
-            localDB.put(LocalDB.DB.PWM_STATS, DB_KEY_TEMP, PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
+            localDB.put(LocalDB.DB.PWM_STATS, DB_KEY_TEMP, JavaHelper.toIsoDate(new Date()));
         } catch (IllegalStateException e) {
             LOGGER.error("unable to write to localDB, will remain closed, error: " + e.getMessage());
             status = STATUS.CLOSED;
@@ -296,15 +297,15 @@ public class StatisticsManager implements PwmService {
         localDB.put(LocalDB.DB.PWM_STATS, DB_KEY_INITIAL_DAILY_KEY, initialDailyKey.toString());
 
         { // setup a timer to roll over at 0 Zula and one to write current stats every 10 seconds
-            final String threadName = Helper.makeThreadName(pwmApplication, this.getClass()) + " timer";
+            final String threadName = JavaHelper.makeThreadName(pwmApplication, this.getClass()) + " timer";
             daemonTimer = new Timer(threadName, true);
             daemonTimer.schedule(new FlushTask(), 10 * 1000, DB_WRITE_FREQUENCY_MS);
-            daemonTimer.schedule(new NightlyTask(), Helper.nextZuluZeroTime());
+            daemonTimer.schedule(new NightlyTask(), Date.from(JavaHelper.nextZuluZeroTime()));
         }
 
         if (pwmApplication.getApplicationMode() == PwmApplicationMode.RUNNING) {
             if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.PUBLISH_STATS_ENABLE)) {
-                long lastPublishTimestamp = pwmApplication.getInstallTime().getTime();
+                long lastPublishTimestamp = pwmApplication.getInstallTime().toEpochMilli();
                 {
                     final String lastPublishDateStr = localDB.get(LocalDB.DB.PWM_STATS,KEY_CLOUD_PUBLISH_TIMESTAMP);
                     if (lastPublishDateStr != null && lastPublishDateStr.length() > 0) {
@@ -389,7 +390,7 @@ public class StatisticsManager implements PwmService {
         public void run() {
             writeDbValues();
             resetDailyStats();
-            daemonTimer.schedule(new NightlyTask(), Helper.nextZuluZeroTime());
+            daemonTimer.schedule(new NightlyTask(), Date.from(JavaHelper.nextZuluZeroTime()));
         }
     }
 
@@ -509,7 +510,7 @@ public class StatisticsManager implements PwmService {
             final Map<String,String> otherData = new HashMap<>();
             otherData.put(StatsPublishBean.KEYS.SITE_URL.toString(),config.readSettingAsString(PwmSetting.PWM_SITE_URL));
             otherData.put(StatsPublishBean.KEYS.SITE_DESCRIPTION.toString(),config.readSettingAsString(PwmSetting.PUBLISH_STATS_SITE_DESCRIPTION));
-            otherData.put(StatsPublishBean.KEYS.INSTALL_DATE.toString(),PwmConstants.DEFAULT_DATETIME_FORMAT.format(pwmApplication.getInstallTime()));
+            otherData.put(StatsPublishBean.KEYS.INSTALL_DATE.toString(), JavaHelper.toIsoDate(pwmApplication.getInstallTime()));
 
             try {
                 otherData.put(StatsPublishBean.KEYS.LDAP_VENDOR.toString(),pwmApplication.getProxyChaiProvider(config.getDefaultLdapProfile().getIdentifier()).getDirectoryVendor().toString());
@@ -519,7 +520,7 @@ public class StatisticsManager implements PwmService {
 
             statsPublishData = new StatsPublishBean(
                     pwmApplication.getInstanceID(),
-                    new Date(),
+                    Instant.now(),
                     statData,
                     configuredSettings,
                     PwmConstants.BUILD_NUMBER,
@@ -550,10 +551,10 @@ public class StatisticsManager implements PwmService {
             throws IOException
     {
         LOGGER.trace("beginning output stats to csv process");
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
 
         final StatisticsManager statsManger = pwmApplication.getStatisticsManager();
-        final CSVPrinter csvPrinter = Helper.makeCsvPrinter(outputStream);
+        final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter(outputStream);
 
         if (includeHeader) {
             final List<String> headers = new ArrayList<>();
@@ -587,12 +588,12 @@ public class StatisticsManager implements PwmService {
         return counter;
     }
 
-    public ServiceInfo serviceInfo()
+    public ServiceInfoBean serviceInfo()
     {
         if (status() == STATUS.OPEN) {
-            return new ServiceInfo(Collections.singletonList(DataStorageMethod.LOCALDB));
+            return new ServiceInfoBean(Collections.singletonList(DataStorageMethod.LOCALDB));
         } else {
-            return new ServiceInfo(Collections.<DataStorageMethod>emptyList());
+            return new ServiceInfoBean(Collections.<DataStorageMethod>emptyList());
         }
     }
 

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,7 +32,9 @@ import password.pwm.health.HealthMonitor;
 import password.pwm.http.servlet.resource.ResourceServletService;
 import password.pwm.http.state.SessionStateService;
 import password.pwm.ldap.LdapConnectionService;
+import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.cache.CacheService;
+import password.pwm.svc.cluster.ClusterService;
 import password.pwm.svc.event.AuditService;
 import password.pwm.svc.intruder.IntruderManager;
 import password.pwm.svc.report.ReportService;
@@ -43,9 +45,9 @@ import password.pwm.svc.token.TokenService;
 import password.pwm.svc.wordlist.SeedlistManager;
 import password.pwm.svc.wordlist.SharedHistoryManager;
 import password.pwm.svc.wordlist.WordlistManager;
-import password.pwm.util.TimeDuration;
 import password.pwm.util.VersionChecker;
-import password.pwm.util.db.DatabaseAccessorImpl;
+import password.pwm.util.db.DatabaseService;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.CrService;
 import password.pwm.util.operations.OtpService;
@@ -53,9 +55,9 @@ import password.pwm.util.queue.EmailQueueManager;
 import password.pwm.util.queue.SmsQueueManager;
 import password.pwm.util.secure.SecureService;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,9 +74,8 @@ public class PwmServiceManager {
     public enum PwmServiceClassEnum {
         SecureService(          SecureService.class,             true),
         LdapConnectionService(  LdapConnectionService.class,     true),
-        DatabaseAccessorImpl(   DatabaseAccessorImpl.class,      true),
+        DatabaseService(        DatabaseService.class,           true),
         SharedHistoryManager(   SharedHistoryManager.class,      false),
-        HealthMonitor(          HealthMonitor.class,             false),
         AuditService(           AuditService.class,              false),
         StatisticsManager(      StatisticsManager.class,         false),
         WordlistManager(        WordlistManager.class,           false),
@@ -85,13 +86,16 @@ public class PwmServiceManager {
         TokenService(           TokenService.class,              false),
         VersionChecker(         VersionChecker.class,            false),
         IntruderManager(        IntruderManager.class,           false),
-        ReportService(          ReportService.class,             true),
         CrService(              CrService.class,                 true),
         OtpService(             OtpService.class,                false),
         CacheService(           CacheService.class,              true),
+        HealthMonitor(          HealthMonitor.class,             false),
+        ReportService(          ReportService.class,             true),
         ResourceServletService( ResourceServletService.class,    false),
         SessionTrackService(    SessionTrackService.class,       false),
         SessionStateSvc(        SessionStateService.class,       false),
+        UserSearchEngine(       UserSearchEngine.class,          true),
+        ClusterService(         ClusterService.class,            false),
 
         ;
 
@@ -152,7 +156,7 @@ public class PwmServiceManager {
     private PwmService initService(final Class<? extends PwmService> serviceClass)
             throws PwmUnrecoverableException
     {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         final PwmService newServiceInstance;
         final String serviceName = serviceClass.getName();
         try {

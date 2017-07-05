@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,8 +35,8 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.servlet.UpdateProfileServlet;
 import password.pwm.i18n.Message;
-import password.pwm.ldap.LdapUserDataReader;
-import password.pwm.ldap.UserDataReader;
+import password.pwm.ldap.UserInfo;
+import password.pwm.ldap.UserInfoFactory;
 import password.pwm.util.FormMap;
 import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
@@ -60,6 +60,13 @@ import java.util.Map;
 
 @Path("/profile")
 public class RestProfileServer extends AbstractRestServer {
+
+    private static final ServicePermissions SERVICE_PERMISSIONS = ServicePermissions.builder()
+            .adminOnly(false)
+            .authRequired(true)
+            .blockExternal(true)
+            .build();
+
 
     public static class JsonProfileData implements Serializable {
         public String username;
@@ -91,11 +98,7 @@ public class RestProfileServer extends AbstractRestServer {
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
-        final ServicePermissions servicePermissions = new ServicePermissions();
-        servicePermissions.setAdminOnly(false);
-        servicePermissions.setAuthRequired(true);
-        servicePermissions.setBlockExternal(true);
-        final RestRequestBean restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, username);
+        final RestRequestBean restRequestBean = RestServerHelper.initializeRestRequest(request, response, SERVICE_PERMISSIONS, username);
 
         if (!restRequestBean.getPwmApplication().getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE)) {
             throw new PwmUnrecoverableException(PwmError.ERROR_SERVICE_NOT_AVAILABLE);
@@ -114,12 +117,17 @@ public class RestProfileServer extends AbstractRestServer {
             final List<FormConfiguration> formFields = restRequestBean.getPwmApplication().getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
 
             if (restRequestBean.getUserIdentity() != null) {
-                final UserDataReader userDataReader = LdapUserDataReader.selfProxiedReader(
-                        restRequestBean.getPwmApplication(), restRequestBean.getPwmSession(),
-                        restRequestBean.getUserIdentity());
-                FormUtility.populateFormMapFromLdap(formFields, restRequestBean.getPwmSession().getLabel(), formData, userDataReader);
+                final UserInfo userInfo = restRequestBean.getPwmSession().getUserInfo();
+                FormUtility.populateFormMapFromLdap(formFields, restRequestBean.getPwmSession().getLabel(), formData, userInfo);
             } else {
-                FormUtility.populateFormMapFromLdap(formFields, restRequestBean.getPwmSession().getLabel(), formData, restRequestBean.getPwmSession().getSessionManager().getUserDataReader(restRequestBean.getPwmApplication()));
+                final UserInfo userInfo = UserInfoFactory.newUserInfo(
+                        restRequestBean.getPwmApplication(),
+                        restRequestBean.getPwmSession().getLabel(),
+                        restRequestBean.getPwmSession().getSessionStateBean().getLocale(),
+                        restRequestBean.getUserIdentity(),
+                        restRequestBean.getPwmSession().getSessionManager().getChaiProvider()
+                );
+                FormUtility.populateFormMapFromLdap(formFields, restRequestBean.getPwmSession().getLabel(), formData, userInfo);
             }
 
             for (final FormConfiguration formConfig : formData.keySet()) {
@@ -160,12 +168,7 @@ public class RestProfileServer extends AbstractRestServer {
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
     {
-
-        final ServicePermissions servicePermissions = new ServicePermissions();
-        servicePermissions.setAdminOnly(false);
-        servicePermissions.setAuthRequired(true);
-        servicePermissions.setBlockExternal(true);
-        final RestRequestBean restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, jsonInput.username);
+        final RestRequestBean restRequestBean = RestServerHelper.initializeRestRequest(request, response, SERVICE_PERMISSIONS, jsonInput.username);
 
         if (!restRequestBean.getPwmApplication().getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE)) {
             throw new PwmUnrecoverableException(PwmError.ERROR_SERVICE_NOT_AVAILABLE);

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,12 +22,13 @@
 
 package password.pwm.http.bean;
 
+import com.google.gson.annotations.SerializedName;
 import password.pwm.config.option.SessionBeanMode;
 import password.pwm.ldap.PasswordChangeProgressChecker;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -35,19 +36,33 @@ import java.util.Set;
  * @author Jason D. Rivard
  */
 public class ChangePasswordBean extends PwmSessionBean {
-// ------------------------------ FIELDS ------------------------------
 
-    // ------------------------- PUBLIC CONSTANTS -------------------------
+    @SerializedName("ap")
     private boolean agreementPassed;
+
+    @SerializedName("cpr")
     private boolean currentPasswordRequired;
+
+    @SerializedName("cpp")
     private boolean currentPasswordPassed;
+
+    @SerializedName("fp")
     private boolean formPassed;
+
+    @SerializedName("acp")
     private boolean allChecksPassed;
+
+    @SerializedName("n")
     private boolean nextAllowedTimePassed;
+
+    @SerializedName("wp")
     private boolean warnPassed;
 
+    @SerializedName("pt")
     private PasswordChangeProgressChecker.ProgressTracker changeProgressTracker;
-    private Date changePasswordMaxCompletion;
+
+    @SerializedName("mc")
+    private Instant changePasswordMaxCompletion;
 
 
 // --------------------- GETTER / SETTER METHODS ---------------------
@@ -102,12 +117,12 @@ public class ChangePasswordBean extends PwmSessionBean {
         this.changeProgressTracker = changeProgressTracker;
     }
 
-    public Date getChangePasswordMaxCompletion()
+    public Instant getChangePasswordMaxCompletion()
     {
         return changePasswordMaxCompletion;
     }
 
-    public void setChangePasswordMaxCompletion(final Date changePasswordMaxCompletion)
+    public void setChangePasswordMaxCompletion(final Instant changePasswordMaxCompletion)
     {
         this.changePasswordMaxCompletion = changePasswordMaxCompletion;
     }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmAboutProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.bean.UserIdentity;
 import password.pwm.bean.pub.SessionStateInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.stored.StoredConfigurationImpl;
@@ -34,16 +35,19 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMonitor;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.servlet.admin.UserDebugDataBean;
+import password.pwm.http.servlet.admin.UserDebugDataReader;
 import password.pwm.ldap.LdapDebugDataGenerator;
 import password.pwm.svc.PwmService;
-import password.pwm.util.FileSystemUtility;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
 import password.pwm.util.LDAPPermissionCalculator;
-import password.pwm.util.StringUtil;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.FileSystemUtility;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
-import password.pwm.util.logging.LocalDBLogger;
+import password.pwm.util.logging.LocalDBSearchQuery;
+import password.pwm.util.logging.LocalDBSearchResults;
 import password.pwm.util.logging.PwmLogEvent;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
@@ -59,6 +63,7 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -84,7 +89,7 @@ public class DebugItemGenerator {
             AboutItemGenerator.class,
             SystemEnvironmentItemGenerator.class,
             AppPropertiesItemGenerator.class,
-            InfoDebugItemGenerator.class,
+            ServicesDebugItemGenerator.class,
             HealthDebugItemGenerator.class,
             ThreadDumpDebugItemGenerator.class,
             FileInfoDebugItemGenerator.class,
@@ -92,7 +97,8 @@ public class DebugItemGenerator {
             LdapDebugItemGenerator.class,
             LDAPPermissionItemGenerator.class,
             LocalDBDebugGenerator.class,
-            SessionDataGenerator.class
+            SessionDataGenerator.class,
+            LdapRecentUserDebugGenerator.class
     ));
 
     static void outputZipDebugFile(
@@ -106,11 +112,11 @@ public class DebugItemGenerator {
         final String DEBUG_FILENAME = "zipDebugGeneration.csv";
 
         final ByteArrayOutputStream debugGeneratorLogBaos = new ByteArrayOutputStream();
-        final CSVPrinter debugGeneratorLogFile = Helper.makeCsvPrinter(debugGeneratorLogBaos);
+        final CSVPrinter debugGeneratorLogFile = JavaHelper.makeCsvPrinter(debugGeneratorLogBaos);
 
         for (final Class<? extends DebugItemGenerator.Generator> serviceClass : DEBUG_ZIP_ITEM_GENERATORS) {
             try {
-                final Date startTime = new Date();
+                final Instant startTime = Instant.now();
                 LOGGER.trace(pwmRequest, "beginning output of item " + serviceClass.getSimpleName());
                 final Object newInstance = serviceClass.newInstance();
                 final DebugItemGenerator.Generator newGeneratorItem = (DebugItemGenerator.Generator)newInstance;
@@ -120,11 +126,11 @@ public class DebugItemGenerator {
                 zipOutput.flush();
                 final String finishMsg = "completed output of " + newGeneratorItem.getFilename() + " in " + TimeDuration.fromCurrent(startTime).asCompactString();
                 LOGGER.trace(pwmRequest, finishMsg);
-                debugGeneratorLogFile.printRecord(PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()),finishMsg);
-            } catch (Exception e) {
+                debugGeneratorLogFile.printRecord(JavaHelper.toIsoDate(new Date()),finishMsg);
+            } catch (Throwable e) {
                 final String errorMsg = "unexpected error executing debug item output class '" + serviceClass.getName() + "', error: " + e.toString();
                 LOGGER.error(pwmRequest, errorMsg);
-                debugGeneratorLogFile.printRecord(PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()),errorMsg);
+                debugGeneratorLogFile.printRecord(JavaHelper.toIsoDate(new Date()),errorMsg);
                 final Writer stackTraceOutput = new StringWriter();
                 e.printStackTrace(new PrintWriter(stackTraceOutput));
                 debugGeneratorLogFile.printRecord(stackTraceOutput);
@@ -175,7 +181,7 @@ public class DebugItemGenerator {
             writer.write("Configuration Debug Output for "
                     + PwmConstants.PWM_APP_NAME + " "
                     + PwmConstants.SERVLET_VERSION + "\n");
-            writer.write("Timestamp: " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(storedConfiguration.modifyTime()) + "\n");
+            writer.write("Timestamp: " + JavaHelper.toIsoDate(storedConfiguration.modifyTime()) + "\n");
             writer.write("This file is encoded using " + PwmConstants.DEFAULT_CHARSET.displayName() + "\n");
 
             writer.write("\n");
@@ -231,7 +237,7 @@ public class DebugItemGenerator {
                 outputProps.put(aboutProperty.toString().replace("_","."), infoBean.get(aboutProperty));
             }
             final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            outputProps.store(baos, PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
+            outputProps.store(baos, JavaHelper.toIsoDate(new Date()));
             outputStream.write(baos.toByteArray());
         }
     }
@@ -245,7 +251,7 @@ public class DebugItemGenerator {
         @Override
         public void outputItem(final PwmApplication pwmApplication, final PwmRequest pwmRequest, final OutputStream outputStream) throws Exception
         {
-            final Properties outputProps = Helper.newSortedProperties();
+            final Properties outputProps = JavaHelper.newSortedProperties();
 
             // java threads
             final Map<String,String> envProps = System.getenv();
@@ -253,7 +259,7 @@ public class DebugItemGenerator {
                 outputProps.put(key, envProps.get(key));
             }
             final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            outputProps.store(baos,PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
+            outputProps.store(baos,JavaHelper.toIsoDate(new Date()));
             outputStream.write(baos.toByteArray());
         }
     }
@@ -269,22 +275,22 @@ public class DebugItemGenerator {
         {
 
             final Configuration config = pwmRequest.getConfig();
-            final Properties outputProps = Helper.newSortedProperties();
+            final Properties outputProps = JavaHelper.newSortedProperties();
 
             for (final AppProperty appProperty : AppProperty.values()) {
                 outputProps.setProperty(appProperty.getKey(), config.readAppProperty(appProperty));
             }
 
             final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            outputProps.store(baos,PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
+            outputProps.store(baos,JavaHelper.toIsoDate(new Date()));
             outputStream.write(baos.toByteArray());
         }
     }
 
-    static class InfoDebugItemGenerator implements Generator {
+    static class ServicesDebugItemGenerator implements Generator {
         @Override
         public String getFilename() {
-            return "info.json";
+            return "services.json";
         }
 
         @Override
@@ -338,7 +344,7 @@ public class DebugItemGenerator {
             final PrintWriter writer = new PrintWriter( new OutputStreamWriter(baos, PwmConstants.DEFAULT_CHARSET) );
             final ThreadInfo[] threads = ManagementFactory.getThreadMXBean().dumpAllThreads(true,true);
             for (final ThreadInfo threadInfo : threads) {
-                writer.write(threadInfo.toString());
+                writer.write(JavaHelper.threadInfoToString(threadInfo));
             }
             writer.flush();
             outputStream.write(baos.toByteArray());
@@ -400,7 +406,7 @@ public class DebugItemGenerator {
             }
 
             {
-                final CSVPrinter csvPrinter = Helper.makeCsvPrinter(outputStream);
+                final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter(outputStream);
                 {
                     final List<String> headerRow = new ArrayList<>();
                     headerRow.add("Filepath");
@@ -411,13 +417,17 @@ public class DebugItemGenerator {
                     csvPrinter.printComment(StringUtil.join(headerRow,","));
                 }
                 for (final FileSystemUtility.FileSummaryInformation fileSummaryInformation : fileSummaryInformations) {
-                    final List<String> dataRow = new ArrayList<>();
-                    dataRow.add(fileSummaryInformation.getFilepath());
-                    dataRow.add(fileSummaryInformation.getFilename());
-                    dataRow.add(PwmConstants.DEFAULT_DATETIME_FORMAT.format(fileSummaryInformation.getModified()));
-                    dataRow.add(String.valueOf(fileSummaryInformation.getSize()));
-                    dataRow.add(fileSummaryInformation.getSha1sum());
-                    csvPrinter.printRecord(dataRow);
+                    try {
+                        final List<String> dataRow = new ArrayList<>();
+                        dataRow.add(fileSummaryInformation.getFilepath());
+                        dataRow.add(fileSummaryInformation.getFilename());
+                        dataRow.add(JavaHelper.toIsoDate(fileSummaryInformation.getModified()));
+                        dataRow.add(String.valueOf(fileSummaryInformation.getSize()));
+                        dataRow.add(fileSummaryInformation.getSha1sum());
+                        csvPrinter.printRecord(dataRow);
+                    } catch (Exception e) {
+                        LOGGER.trace("error generating file summary info: " + e.getMessage());
+                    }
                 }
                 csvPrinter.flush();
             }
@@ -439,7 +449,7 @@ public class DebugItemGenerator {
 
             final int maxCount = Integer.parseInt(pwmRequest.getConfig().readAppProperty(AppProperty.CONFIG_MANAGER_ZIPDEBUG_MAXLOGLINES));
             final int maxSeconds = Integer.parseInt(pwmRequest.getConfig().readAppProperty(AppProperty.CONFIG_MANAGER_ZIPDEBUG_MAXLOGSECONDS));
-            final LocalDBLogger.SearchParameters searchParameters = new LocalDBLogger.SearchParameters(
+            final LocalDBSearchQuery searchParameters = new LocalDBSearchQuery(
                     PwmLogLevel.TRACE,
                     maxCount,
                     null,
@@ -447,7 +457,7 @@ public class DebugItemGenerator {
                     (maxSeconds * 1000),
                     null
             );
-            final LocalDBLogger.SearchResults searchResults = pwmApplication.getLocalDBLogger().readStoredEvents(
+            final LocalDBSearchResults searchResults = pwmApplication.getLocalDBLogger().readStoredEvents(
                     searchParameters);
             int counter = 0;
             while (searchResults.hasNext()) {
@@ -479,7 +489,7 @@ public class DebugItemGenerator {
             final StoredConfigurationImpl storedConfiguration = ConfigManagerServlet.readCurrentConfiguration(pwmRequest);
             final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator(storedConfiguration);
 
-            final CSVPrinter csvPrinter = Helper.makeCsvPrinter(outputStream);
+            final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter(outputStream);
             {
                 final List<String> headerRow = new ArrayList<>();
                 headerRow.add("Attribute");
@@ -535,7 +545,7 @@ public class DebugItemGenerator {
         ) throws Exception {
 
 
-            final CSVPrinter csvPrinter = Helper.makeCsvPrinter(outputStream);
+            final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter(outputStream);
             {
                 final List<String> headerRow = new ArrayList<>();
                 headerRow.add("Label");
@@ -557,8 +567,8 @@ public class DebugItemGenerator {
                 final SessionStateInfoBean info = debugInfos.next();
                 final List<String> dataRow = new ArrayList<>();
                 dataRow.add(info.getLabel());
-                dataRow.add(PwmConstants.DEFAULT_DATETIME_FORMAT.format(info.getCreateTime()));
-                dataRow.add(PwmConstants.DEFAULT_DATETIME_FORMAT.format(info.getLastTime()));
+                dataRow.add(JavaHelper.toIsoDate(info.getCreateTime()));
+                dataRow.add(JavaHelper.toIsoDate(info.getLastTime()));
                 dataRow.add(info.getIdle());
                 dataRow.add(info.getSrcAddress());
                 dataRow.add(info.getSrcHost());
@@ -570,6 +580,37 @@ public class DebugItemGenerator {
                 csvPrinter.printRecord(dataRow);
             }
             csvPrinter.flush();
+        }
+    }
+
+    static class LdapRecentUserDebugGenerator implements Generator {
+        @Override
+        public String getFilename() {
+            return "recentUserDebugData.json";
+        }
+
+        @Override
+        public void outputItem(
+                final PwmApplication pwmApplication,
+                final PwmRequest pwmRequest,
+                final OutputStream outputStream
+        )
+                throws Exception
+        {
+            final List<UserIdentity> recentUsers = pwmApplication.getSessionTrackService().getRecentLogins();
+            final List<UserDebugDataBean> recentDebugBeans = new ArrayList<>();
+
+            for (final UserIdentity userIdentity : recentUsers) {
+                final UserDebugDataBean dataBean = UserDebugDataReader.readUserDebugData(
+                        pwmApplication,
+                        pwmRequest.getLocale(),
+                        pwmRequest.getSessionLabel(),
+                        userIdentity
+                );
+                recentDebugBeans.add(dataBean);
+            }
+
+            outputStream.write(JsonUtil.serializeCollection(recentDebugBeans, JsonUtil.Flag.PrettyPrint).getBytes(PwmConstants.DEFAULT_CHARSET));
         }
     }
 

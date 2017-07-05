@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -112,7 +112,7 @@ public class ChecksumInputStream extends InputStream {
         final byte[] buffer = new byte[1024];
 
         while (read(buffer) > 0) {
-            ; // read out the remainder of the stream contents
+            // read out the remainder of the stream contents
         }
 
         return getInProgressChecksum();

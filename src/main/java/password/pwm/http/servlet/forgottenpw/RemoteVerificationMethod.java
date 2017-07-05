@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,18 +28,19 @@ import password.pwm.VerificationMethodSystem;
 import password.pwm.bean.RemoteVerificationRequestBean;
 import password.pwm.bean.RemoteVerificationResponseBean;
 import password.pwm.bean.SessionLabel;
-import password.pwm.bean.UserInfoBean;
 import password.pwm.bean.pub.PublicUserInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.client.PwmHttpClient;
 import password.pwm.http.client.PwmHttpClientRequest;
 import password.pwm.http.client.PwmHttpClientResponse;
-import password.pwm.util.JsonUtil;
+import password.pwm.ldap.UserInfo;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.secure.PwmRandom;
@@ -61,7 +62,7 @@ public class RemoteVerificationMethod implements VerificationMethodSystem {
     private PwmHttpClient pwmHttpClient;
     private PwmApplication pwmApplication;
 
-    private UserInfoBean userInfoBean;
+    private UserInfo userInfo;
     private SessionLabel sessionLabel;
     private Locale locale;
     private String url;
@@ -106,9 +107,9 @@ public class RemoteVerificationMethod implements VerificationMethodSystem {
     }
 
     @Override
-    public void init(final PwmApplication pwmApplication, final UserInfoBean userInfoBean, final SessionLabel sessionLabel, final Locale locale) throws PwmUnrecoverableException {
+    public void init(final PwmApplication pwmApplication, final UserInfo userInfo, final SessionLabel sessionLabel, final Locale locale) throws PwmUnrecoverableException {
         pwmHttpClient = new PwmHttpClient(pwmApplication, sessionLabel);
-        this.userInfoBean = userInfoBean;
+        this.userInfo = userInfo;
         this.sessionLabel = sessionLabel;
         this.locale = locale;
         this.pwmApplication = pwmApplication;
@@ -129,13 +130,13 @@ public class RemoteVerificationMethod implements VerificationMethodSystem {
         lastResponse = null;
 
         final Map<String, String> headers = new LinkedHashMap<>();
-        headers.put(PwmConstants.HttpHeader.Content_Type.getHttpName(), PwmConstants.ContentTypeValue.json.getHeaderValue());
-        headers.put(PwmConstants.HttpHeader.Accept_Language.getHttpName(), locale.toLanguageTag());
+        headers.put(HttpHeader.Content_Type.getHttpName(), PwmConstants.ContentTypeValue.json.getHeaderValue());
+        headers.put(HttpHeader.Accept_Language.getHttpName(), locale.toLanguageTag());
 
         final RemoteVerificationRequestBean remoteVerificationRequestBean = new RemoteVerificationRequestBean();
         remoteVerificationRequestBean.setResponseSessionID(this.remoteSessionID);
-        final MacroMachine macroMachine = MacroMachine.forUser(pwmApplication, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, userInfoBean.getUserIdentity());
-        remoteVerificationRequestBean.setUserInfo(PublicUserInfoBean.fromUserInfoBean(userInfoBean, pwmApplication.getConfig(), locale, macroMachine));
+        final MacroMachine macroMachine = MacroMachine.forUser(pwmApplication, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, userInfo.getUserIdentity());
+        remoteVerificationRequestBean.setUserInfo(PublicUserInfoBean.fromUserInfoBean(userInfo, pwmApplication.getConfig(), locale, macroMachine));
         remoteVerificationRequestBean.setUserResponses(userResponses);
 
         final PwmHttpClientRequest pwmHttpClientRequest = new PwmHttpClientRequest(

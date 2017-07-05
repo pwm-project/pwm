@@ -3,7 +3,7 @@
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2016 The PWM Project
+  ~ Copyright (c) 2009-2017 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -27,7 +27,8 @@
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="password.pwm.http.servlet.ShortcutServlet" %>
-<%@ page import="password.pwm.util.StringUtil" %>
+<%@ page import="password.pwm.util.java.StringUtil" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <!DOCTYPE html>
 
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -38,7 +39,7 @@
 <body class="nihilo">
 <%
     final boolean newWindow = JspUtility.getPwmRequest(pageContext).getConfig().readSettingAsBoolean(PwmSetting.SHORTCUT_NEW_WINDOW);
-    final List<ShortcutItem> shortcutItems = (List<ShortcutItem>)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ShortcutItems);
+    final List<ShortcutItem> shortcutItems = (List<ShortcutItem>)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ShortcutItems);
 %>
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">

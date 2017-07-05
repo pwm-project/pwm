@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@ import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionLabel;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
@@ -44,20 +44,20 @@ import password.pwm.health.HealthStatus;
 import password.pwm.health.HealthTopic;
 import password.pwm.http.PwmSession;
 import password.pwm.svc.PwmService;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
 import password.pwm.util.LocaleHelper;
-import password.pwm.util.StringUtil;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -68,7 +68,7 @@ public class AuditService implements PwmService {
 
     private STATUS status = STATUS.NEW;
     private AuditSettings settings;
-    private ServiceInfo serviceInfo = new ServiceInfo(Collections.<DataStorageMethod>emptyList());
+    private ServiceInfoBean serviceInfo = new ServiceInfoBean(Collections.emptyList());
 
     private SyslogAuditService syslogManager;
     private ErrorInformation lastError;
@@ -146,7 +146,7 @@ public class AuditService implements PwmService {
                     return;
             }
             LOGGER.info(debugMsg);
-            serviceInfo = new ServiceInfo(Collections.singletonList(storageMethodUsed));
+            serviceInfo = new ServiceInfoBean(Collections.singletonList(storageMethodUsed));
         }
         {
             final TimeDuration maxRecordAge = new TimeDuration(pwmApplication.getConfig().readSettingAsLong(PwmSetting.EVENTS_AUDIT_MAX_AGE) * 1000);
@@ -205,16 +205,16 @@ public class AuditService implements PwmService {
     public List<UserAuditRecord> readUserHistory(final PwmSession pwmSession)
             throws PwmUnrecoverableException
     {
-        return readUserHistory(pwmSession.getUserInfoBean());
+        return readUserHistory(pwmSession.getUserInfo());
     }
 
-    public List<UserAuditRecord> readUserHistory(final UserInfoBean userInfoBean)
+    public List<UserAuditRecord> readUserHistory(final UserInfo userInfoBean)
             throws PwmUnrecoverableException
     {
         return userHistoryStore.readUserHistory(userInfoBean);
     }
 
-    protected void sendAsEmail(final AuditRecord record)
+    private void sendAsEmail(final AuditRecord record)
             throws PwmUnrecoverableException
     {
         if (record == null || record.getEventCode() == null) {
@@ -227,26 +227,25 @@ public class AuditService implements PwmService {
         switch (record.getEventCode().getType()) {
             case SYSTEM:
                 for (final String toAddress : settings.getSystemEmailAddresses()) {
-                    sendAsEmail(pwmApplication, null, record, toAddress, settings.getAlertFromAddress());
+                    sendAsEmail(pwmApplication, record, toAddress, settings.getAlertFromAddress());
                 }
                 break;
 
             case USER:
             case HELPDESK:
                 for (final String toAddress : settings.getUserEmailAddresses()) {
-                    sendAsEmail(pwmApplication, null, record, toAddress, settings.getAlertFromAddress());
+                    sendAsEmail(pwmApplication, record, toAddress, settings.getAlertFromAddress());
                 }
                 break;
 
             default:
-                Helper.unhandledSwitchStatement(record.getEventCode().getType());
+                JavaHelper.unhandledSwitchStatement(record.getEventCode().getType());
 
         }
     }
 
     private static void sendAsEmail(
             final PwmApplication pwmApplication,
-            final SessionLabel sessionLabel,
             final AuditRecord record,
             final String toAddress,
             final String fromAddress
@@ -254,7 +253,7 @@ public class AuditService implements PwmService {
     )
             throws PwmUnrecoverableException
     {
-        final MacroMachine macroMachine = MacroMachine.forNonUserSpecific(pwmApplication, sessionLabel);
+        final MacroMachine macroMachine = MacroMachine.forNonUserSpecific(pwmApplication, SessionLabel.AUDITING_SESSION_LABEL);
 
         String subject = macroMachine.expandMacros(pwmApplication.getConfig().readAppProperty(AppProperty.AUDIT_EVENTS_EMAILSUBJECT));
         subject = subject.replace("%EVENT%", record.getEventCode().getLocalizedString(pwmApplication.getConfig(), PwmConstants.DEFAULT_LOCALE));
@@ -270,15 +269,7 @@ public class AuditService implements PwmService {
         pwmApplication.getEmailQueue().submitEmail(emailItem, null, macroMachine);
     }
 
-    public int vaultSize() {
-        if (status != STATUS.OPEN || auditVault == null) {
-            return -1;
-        }
-
-        return auditVault.size();
-    }
-
-    public Date eldestVaultRecord() {
+    public Instant eldestVaultRecord() {
         if (status != STATUS.OPEN || auditVault == null) {
             return null;
         }
@@ -290,11 +281,11 @@ public class AuditService implements PwmService {
         return auditVault.sizeToDebugString();
     }
 
-    public void submit(final AuditEvent auditEvent, final UserInfoBean userInfoBean, final PwmSession pwmSession)
+    public void submit(final AuditEvent auditEvent, final UserInfo userInfo, final PwmSession pwmSession)
             throws PwmUnrecoverableException
     {
         final AuditRecordFactory auditRecordFactory = new AuditRecordFactory(pwmApplication, pwmSession.getSessionManager().getMacroMachine(pwmApplication));
-        final UserAuditRecord auditRecord = auditRecordFactory.createUserAuditRecord(auditEvent, userInfoBean, pwmSession);
+        final UserAuditRecord auditRecord = auditRecordFactory.createUserAuditRecord(auditEvent, userInfo, pwmSession);
         submit(auditRecord);
     }
 
@@ -334,10 +325,15 @@ public class AuditService implements PwmService {
         // email alert
         sendAsEmail(auditRecord);
 
-        // add to user ldap record
+        // add to user history record
         if (auditRecord instanceof UserAuditRecord) {
             if (settings.getUserStoredEvents().contains(auditRecord.getEventCode())) {
-                userHistoryStore.updateUserHistory((UserAuditRecord) auditRecord);
+                final String perpetratorDN = ((UserAuditRecord) auditRecord).getPerpetratorDN();
+                if (!StringUtil.isEmpty(perpetratorDN)) {
+                    userHistoryStore.updateUserHistory((UserAuditRecord) auditRecord);
+                } else {
+                    LOGGER.trace("skipping update of user history, audit record does not have a perpetratorDN: " + JsonUtil.serialize(auditRecord));
+                }
             }
         }
 
@@ -357,10 +353,10 @@ public class AuditService implements PwmService {
     {
         final Configuration config = null;
 
-        final CSVPrinter csvPrinter = Helper.makeCsvPrinter(outputStream);
+        final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter(outputStream);
 
         csvPrinter.printComment(" " + PwmConstants.PWM_APP_NAME + " audit record output ");
-        csvPrinter.printComment(" " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
+        csvPrinter.printComment(" " + JavaHelper.toIsoDate(Instant.now()));
 
         if (includeHeader) {
             final List<String> headers = new ArrayList<>();
@@ -387,7 +383,7 @@ public class AuditService implements PwmService {
             final List<String> lineOutput = new ArrayList<>();
             lineOutput.add(loopRecord.getEventCode().getType().toString());
             lineOutput.add(loopRecord.getEventCode().toString());
-            lineOutput.add(PwmConstants.DEFAULT_DATETIME_FORMAT.format(loopRecord.getTimestamp()));
+            lineOutput.add(JavaHelper.toIsoDate(loopRecord.getTimestamp()));
             lineOutput.add(loopRecord.getGuid());
             lineOutput.add(loopRecord.getMessage() == null ? "" : loopRecord.getMessage());
             if (loopRecord instanceof SystemAuditRecord) {
@@ -416,7 +412,7 @@ public class AuditService implements PwmService {
         return counter;
     }
 
-    public ServiceInfo serviceInfo()
+    public ServiceInfoBean serviceInfo()
     {
         return serviceInfo;
     }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +25,6 @@ package password.pwm.util.macro;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmEnvironment;
-import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.http.ContextManager;
 import password.pwm.util.logging.PwmLogger;
@@ -43,8 +42,6 @@ public abstract class InternalMacros {
 
     static {
         final Map<Class<? extends MacroImplementation>,MacroImplementation.Scope>  defaultMacros = new HashMap<>();
-        defaultMacros.put(OtpSetupTimeMacro.class, MacroImplementation.Scope.Static);
-        defaultMacros.put(ResponseSetupTimeMacro.class, MacroImplementation.Scope.Static);
         defaultMacros.put(PwmSettingReference.class, MacroImplementation.Scope.Static);
         defaultMacros.put(PwmAppName.class, MacroImplementation.Scope.Static);
         defaultMacros.put(PwmContextPath.class, MacroImplementation.Scope.System);
@@ -55,40 +52,6 @@ public abstract class InternalMacros {
         @Override
         public MacroDefinitionFlag[] flags() {
             return new MacroDefinitionFlag[] { MacroDefinitionFlag.OnlyDebugLogging };
-        }
-    }
-
-    public static class OtpSetupTimeMacro extends InternalAbstractMacro {
-        private static final Pattern PATTERN = Pattern.compile("@OtpSetupTime@");
-
-        public Pattern getRegExPattern() {
-            return PATTERN;
-        }
-
-        public String replaceValue(final String matchValue, final MacroRequestInfo macroRequestInfo)
-        {
-            final UserInfoBean userInfoBean = macroRequestInfo.getUserInfoBean();
-            if (userInfoBean != null && userInfoBean.getOtpUserRecord() != null && userInfoBean.getOtpUserRecord().getTimestamp() != null) {
-                return PwmConstants.DEFAULT_DATETIME_FORMAT.format(userInfoBean.getOtpUserRecord().getTimestamp());
-            }
-            return "";
-        }
-    }
-
-    public static class ResponseSetupTimeMacro extends InternalAbstractMacro {
-        private static final Pattern PATTERN = Pattern.compile("@ResponseSetupTime@");
-
-        public Pattern getRegExPattern() {
-            return PATTERN;
-        }
-
-        public String replaceValue(final String matchValue, final MacroRequestInfo macroRequestInfo)
-        {
-            final UserInfoBean userInfoBean = macroRequestInfo.getUserInfoBean();
-            if (userInfoBean != null && userInfoBean.getResponseInfoBean() != null && userInfoBean.getResponseInfoBean().getTimestamp() != null) {
-                return PwmConstants.DEFAULT_DATETIME_FORMAT.format(userInfoBean.getResponseInfoBean().getTimestamp());
-            }
-            return "";
         }
     }
 

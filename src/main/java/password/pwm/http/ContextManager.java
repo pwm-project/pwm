@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.Helper;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 
@@ -204,7 +204,7 @@ public class ContextManager implements Serializable {
             handleStartupError("unable to initialize application: ", e);
         }
 
-        final String threadName = Helper.makeThreadName(pwmApplication, this.getClass()) + " timer";
+        final String threadName = JavaHelper.makeThreadName(pwmApplication, this.getClass()) + " timer";
         taskMaster = new Timer(threadName, true);
         taskMaster.schedule(new RestartFlagWatcher(), 1031, 1031);
 
@@ -393,7 +393,7 @@ public class ContextManager implements Serializable {
     }
 
     static void outputError(final String outputText) {
-        final String msg = PwmConstants.PWM_APP_NAME + " " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()) + " " + outputText;
+        final String msg = PwmConstants.PWM_APP_NAME + " " + JavaHelper.toIsoDate(new Date()) + " " + outputText;
         System.out.println(msg);
         System.out.println(msg);
     }

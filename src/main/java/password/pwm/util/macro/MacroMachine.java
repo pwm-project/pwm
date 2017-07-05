@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,15 +28,13 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
-import password.pwm.ldap.LdapUserDataReader;
-import password.pwm.ldap.UserDataReader;
-import password.pwm.ldap.UserStatusReader;
-import password.pwm.util.Helper;
-import password.pwm.util.StringUtil;
+import password.pwm.ldap.UserInfo;
+import password.pwm.ldap.UserInfoFactory;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.Collections;
@@ -54,25 +52,22 @@ public class MacroMachine {
 
     private final PwmApplication pwmApplication;
     private final SessionLabel sessionLabel;
-    private final UserInfoBean userInfoBean;
+    private final UserInfo userInfo;
     private final LoginInfoBean loginInfoBean;
-    private final UserDataReader userDataReader;
 
     private static final Map<MacroImplementation.Scope,Map<Pattern,MacroImplementation>> BUILTIN_MACROS = makeImplementations();
 
     public MacroMachine(
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
-            final UserInfoBean userInfoBean,
-            final LoginInfoBean loginInfoBean,
-            final UserDataReader userDataReader
+            final UserInfo userInfo,
+            final LoginInfoBean loginInfoBean
     )
     {
         this.pwmApplication = pwmApplication;
         this.sessionLabel = sessionLabel;
-        this.userInfoBean = userInfoBean;
+        this.userInfo = userInfo;
         this.loginInfoBean = loginInfoBean;
-        this.userDataReader = userDataReader;
     }
 
     private static  Map<MacroImplementation.Scope,Map<Pattern,MacroImplementation>> makeImplementations() {
@@ -87,7 +82,7 @@ public class MacroMachine {
                 final MacroImplementation macroImplementation = (MacroImplementation)macroClass.newInstance();
                 final Pattern pattern = macroImplementation.getRegExPattern();
                 if (!map.containsKey(scope)) {
-                    map.put(scope, new LinkedHashMap<Pattern, MacroImplementation>());
+                    map.put(scope, new LinkedHashMap<>());
                 }
                 map.get(scope).put(pattern,macroImplementation);
             } catch (Exception e) {
@@ -144,9 +139,9 @@ public class MacroMachine {
             }
 
             @Override
-            public UserInfoBean getUserInfoBean()
+            public UserInfo getUserInfo()
             {
-                return userInfoBean;
+                return userInfo;
             }
 
             @Override
@@ -154,22 +149,19 @@ public class MacroMachine {
             {
                 return loginInfoBean;
             }
-
-            @Override
-            public UserDataReader getUserDataReader()
-            {
-                return userDataReader;
-            }
         };
 
         final Set<MacroImplementation.Scope> scopes = effectiveScopes(macroRequestInfo);
         final Map<Pattern,MacroImplementation> macroImplementations = new LinkedHashMap<>();
-        for (final MacroImplementation.Scope scope : scopes) {
-            macroImplementations.putAll(BUILTIN_MACROS.get(scope));
-        }
+        //First the User macros
         if (scopes.contains(MacroImplementation.Scope.User)) {
             macroImplementations.putAll(makeExternalImplementations(pwmApplication));
         }
+        //last the buitin macros for Encrypt/Encode to work properly
+        for (final MacroImplementation.Scope scope : scopes) {
+            macroImplementations.putAll(BUILTIN_MACROS.get(scope));
+        }
+
 
         String workingString = input;
         final String previousString = workingString;
@@ -205,7 +197,7 @@ public class MacroMachine {
         if (appModeOk) {
             scopes.add(MacroImplementation.Scope.System);
 
-            if (macroRequestInfo.getUserInfoBean() != null || macroRequestInfo.getUserDataReader() != null) {
+            if (macroRequestInfo.getUserInfo() != null) {
                 scopes.add(MacroImplementation.Scope.User);
             }
         }
@@ -250,8 +242,8 @@ public class MacroMachine {
         }
 
         if (replaceStr != null && replaceStr.length() > 0) {
-            final boolean sensitive = Helper.enumArrayContainsValue(macroImplementation.flags(), MacroImplementation.MacroDefinitionFlag.SensitiveValue);
-            final boolean debugOnlyLogging = Helper.enumArrayContainsValue(macroImplementation.flags(), MacroImplementation.MacroDefinitionFlag.OnlyDebugLogging);
+            final boolean sensitive = JavaHelper.enumArrayContainsValue(macroImplementation.flags(), MacroImplementation.MacroDefinitionFlag.SensitiveValue);
+            final boolean debugOnlyLogging = JavaHelper.enumArrayContainsValue(macroImplementation.flags(), MacroImplementation.MacroDefinitionFlag.OnlyDebugLogging);
             if (!debugOnlyLogging || (pwmApplication != null && pwmApplication.getConfig().isDevDebugMode())) {
                 LOGGER.trace(sessionLabel, "replaced macro " + matchedStr + " with value: "
                         + (sensitive ? PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT : replaceStr));
@@ -261,7 +253,7 @@ public class MacroMachine {
     }
 
     public static MacroMachine forStatic() {
-        return new MacroMachine(null,null,null,null,null);
+        return new MacroMachine(null,null,null,null);
     }
 
     public interface StringReplacer {
@@ -291,10 +283,8 @@ public class MacroMachine {
     )
             throws PwmUnrecoverableException
     {
-        final UserDataReader userDataReader = LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity);
-        final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, sessionLabel);
-        final UserInfoBean userInfoBean = userStatusReader.populateUserInfoBean(userLocale, userIdentity);
-        return new MacroMachine(pwmApplication, sessionLabel, userInfoBean, null, userDataReader);
+        final UserInfo userInfoBean = UserInfoFactory.newUserInfoUsingProxy(pwmApplication, sessionLabel, userIdentity, userLocale);
+        return new MacroMachine(pwmApplication, sessionLabel, userInfoBean, null);
     }
 
     public static MacroMachine forNonUserSpecific(
@@ -303,6 +293,6 @@ public class MacroMachine {
     )
             throws PwmUnrecoverableException
     {
-        return new MacroMachine(pwmApplication, sessionLabel, null, null, null);
+        return new MacroMachine(pwmApplication, sessionLabel, null, null);
     }
 }

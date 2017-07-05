@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,73 +22,29 @@
 
 package password.pwm.bean;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 import java.io.Serializable;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
+@Getter
+@AllArgsConstructor
 public class StatsPublishBean implements Serializable {
-    private String instanceID;
-    private Date timestamp;
-    private Map<String,String> totalStatistics;
-    private List<String> configuredSettings;
-    private String versionBuild;
-    private String versionVersion;
-    private Map<String,String> otherInfo;
+    private final String instanceID;
+    private final Instant timestamp;
+    private final Map<String,String> totalStatistics;
+    private final List<String> configuredSettings;
+    private final String versionBuild;
+    private final String versionVersion;
+    private final Map<String,String> otherInfo;
 
     public enum KEYS {
         SITE_URL,
         SITE_DESCRIPTION,
         INSTALL_DATE,
         LDAP_VENDOR
-    }
-
-    public StatsPublishBean() {
-    }
-
-    public StatsPublishBean(
-            final String instanceID,
-            final Date timestamp,
-            final Map<String, String> totalStatistics,
-            final List<String> configuredSettings,
-            final String versionBuild,
-            final String versionVersion,
-            final Map<String,String> otherInfo
-    ) {
-        this.instanceID = instanceID;
-        this.timestamp = timestamp;
-        this.totalStatistics = totalStatistics;
-        this.configuredSettings = configuredSettings;
-        this.versionBuild = versionBuild;
-        this.versionVersion = versionVersion;
-        this.otherInfo = otherInfo;
-    }
-
-    public String getInstanceID() {
-        return instanceID;
-    }
-
-    public Date getTimestamp() {
-        return timestamp;
-    }
-
-    public Map<String, String> getTotalStatistics() {
-        return totalStatistics;
-    }
-
-    public List<String> getConfiguredSettings() {
-        return configuredSettings;
-    }
-
-    public String getVersionBuild() {
-        return versionBuild;
-    }
-
-    public String getVersionVersion() {
-        return versionVersion;
-    }
-
-    public Map<String, String> getOtherInfo() {
-        return otherInfo;
     }
 }

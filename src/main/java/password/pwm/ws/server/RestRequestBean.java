@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,56 +22,24 @@
 
 package password.pwm.ws.server;
 
+import lombok.Getter;
+import lombok.Setter;
 import password.pwm.PwmApplication;
 import password.pwm.bean.UserIdentity;
+import password.pwm.config.option.WebServiceUsage;
 import password.pwm.http.PwmSession;
 
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 
+@Getter
+@Setter
 public class RestRequestBean implements Serializable {
     private boolean authenticated;
     private boolean external;
     private UserIdentity userIdentity;
     private PwmSession pwmSession;
     private PwmApplication pwmApplication;
-
-    public boolean isAuthenticated() {
-        return authenticated;
-    }
-
-    public void setAuthenticated(final boolean authenticated) {
-        this.authenticated = authenticated;
-    }
-
-    public boolean isExternal() {
-        return external;
-    }
-
-    public void setExternal(final boolean external) {
-        this.external = external;
-    }
-
-    public UserIdentity getUserIdentity() {
-        return userIdentity;
-    }
-
-    public void setUserIdentity(final UserIdentity userIdentity) {
-        this.userIdentity = userIdentity;
-    }
-
-    public PwmSession getPwmSession() {
-        return pwmSession;
-    }
-
-    public void setPwmSession(final PwmSession pwmSession) {
-        this.pwmSession = pwmSession;
-    }
-
-    public PwmApplication getPwmApplication() {
-        return pwmApplication;
-    }
-
-    public void setPwmApplication(final PwmApplication pwmApplication) {
-        this.pwmApplication = pwmApplication;
-    }
+    private final Set<WebServiceUsage> webServiceUsages = new HashSet<>();
 }

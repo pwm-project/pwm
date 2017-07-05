@@ -3,7 +3,7 @@
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2016 The PWM Project
+  ~ Copyright (c) 2009-2017 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -21,14 +21,17 @@
   --%>
 
 <%@ page import="password.pwm.i18n.Admin" %>
-<%@ page import="password.pwm.util.JsonUtil" %>
-<%@ page import="password.pwm.util.StringUtil" %>
+<%@ page import="password.pwm.util.java.JavaHelper" %>
+<%@ page import="password.pwm.util.java.JsonUtil" %>
+<%@ page import="password.pwm.util.java.StringUtil" %>
 <%@ page import="password.pwm.util.logging.LocalDBLogger" %>
 <%@ page import="password.pwm.util.logging.PwmLogEvent" %>
 <%@ page import="password.pwm.util.logging.PwmLogLevel" %>
 <%@ page import="java.text.NumberFormat" %>
 <%@ page import="java.util.LinkedHashMap" %>
 <%@ page import="java.util.Map" %>
+<%@ page import="password.pwm.util.logging.LocalDBSearchQuery" %>
+<%@ page import="password.pwm.util.logging.LocalDBSearchResults" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html" %>
@@ -182,9 +185,9 @@
             } catch (Exception e) {
             }
 
-            LocalDBLogger.SearchResults searchResults = null;
+            LocalDBSearchResults searchResults = null;
             try {
-                final LocalDBLogger.SearchParameters searchParameters = new LocalDBLogger.SearchParameters(logLevel, eventCount, username, text, maxTime, logType);
+                final LocalDBSearchQuery searchParameters = new LocalDBSearchQuery(logLevel, eventCount, username, text, maxTime, logType);
                 searchResults = localDBLogger.readStoredEvents(searchParameters);
             } catch (Exception e) {
                 out.write("<p>Unexpected error while searching: " + e.getMessage()+"</p>");
@@ -284,7 +287,7 @@
             history. This history is stored in the LocalDB cache of the debug log. For a
             permanent log
             record of events, see the application server's log file.  The LocalDB contains <%=numberFormat.format(localDBLogger.getStoredEventCount())%> events. The oldest event is from
-            <span class="timestamp"><%= PwmConstants.DEFAULT_DATETIME_FORMAT.format(ContextManager.getPwmApplication(session).getLocalDBLogger().getTailDate()) %></span>.
+            <span class="timestamp"><%= JavaHelper.toIsoDate(ContextManager.getPwmApplication(session).getLocalDBLogger().getTailDate()) %></span>.
         </p><p>
         The LocalDB is configured to capture events of level
         <b><%=ContextManager.getPwmApplication(session).getConfig().readSettingAsString(PwmSetting.EVENTS_LOCALDB_LOG_LEVEL)%>

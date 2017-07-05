@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,9 +41,9 @@ public class MainOptions implements Serializable {
     private static final String OPT_FORCE = "-force";
 
 
-    private PwmLogLevel pwmLogLevel = null;
-    private File applicationPath = null;
-    private boolean forceFlag = false;
+    private PwmLogLevel pwmLogLevel;
+    private File applicationPath;
+    private boolean forceFlag;
     private Collection<PwmEnvironment.ApplicationFlag> applicationFlags;
     private String[] remainingArguments;
 

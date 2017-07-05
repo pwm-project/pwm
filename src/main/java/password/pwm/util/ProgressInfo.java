@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,26 +22,29 @@
 
 package password.pwm.util;
 
+import password.pwm.util.java.Percent;
+import password.pwm.util.java.TimeDuration;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.text.NumberFormat;
-import java.util.Date;
+import java.time.Instant;
 
 public class ProgressInfo implements Serializable {
-    private final Date startTime;
-    private final Date nowTime;
+    private final Instant startTime;
+    private final Instant nowTime;
     private final long totalItems;
     private final long nowItems;
 
     public ProgressInfo(
-            final Date startTime,
+            final Instant startTime,
             final long totalItems,
             final long nowItems
     )
     {
         this.startTime = startTime;
-        this.nowTime = new Date();
+        this.nowTime = Instant.now();
         this.totalItems = totalItems;
         this.nowItems = nowItems;
     }
@@ -76,9 +79,9 @@ public class ProgressInfo implements Serializable {
         return new TimeDuration(remainingMs.longValue());
     }
 
-    public Date estimatedCompletion() {
+    public Instant estimatedCompletion() {
         final TimeDuration remainingDuration = remainingDuration();
-        return new Date(System.currentTimeMillis() + remainingDuration.getTotalMilliseconds());
+        return Instant.ofEpochMilli(System.currentTimeMillis() + remainingDuration.getTotalMilliseconds());
     }
 
     public String debugOutput() {

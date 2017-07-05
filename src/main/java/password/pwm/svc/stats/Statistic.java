@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ import password.pwm.PwmApplication;
 import password.pwm.config.PwmSetting;
 import password.pwm.i18n.Admin;
 import password.pwm.util.LocaleHelper;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.Arrays;
@@ -105,6 +105,7 @@ public enum Statistic {
     REST_VERIFYCHALLENGES               (Type.INCREMENTOR, "RestVerifyChallenges", null),
     INTRUDER_ATTEMPTS                   (Type.INCREMENTOR, "IntruderAttempts", null),
     FOREIGN_SESSIONS_ACCEPTED           (Type.INCREMENTOR, "ForeignSessionsAccepted", null),
+    OBSOLETE_URL_REQUESTS               (Type.INCREMENTOR, "ObsoleteUrlRequests", null),
 
     AVG_PASSWORD_SYNC_TIME              (Type.AVERAGE, "AvgPasswordSyncTime", null),
     AVG_AUTHENTICATION_TIME             (Type.AVERAGE, "AvgAuthenticationTime", null),

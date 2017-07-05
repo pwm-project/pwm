@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@ package password.pwm.config.value;
 import password.pwm.PwmConstants;
 import password.pwm.config.StoredValue;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.secure.SecureEngine;
 
 import java.io.Serializable;

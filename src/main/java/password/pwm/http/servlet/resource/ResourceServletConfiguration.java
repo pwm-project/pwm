@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@ import password.pwm.PwmApplication;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.value.FileValue;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.ByteArrayInputStream;
@@ -38,7 +38,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,12 +58,10 @@ class ResourceServletConfiguration {
 
     private final Map<String, ZipFile> zipResources = new HashMap<>();
     private final Map<String, FileResource> customFileBundle = new HashMap<>();
-    private final Map<String, String> webJarUriMappings;
     private Pattern noncePattern;
     private String nonceValue;
 
     private ResourceServletConfiguration() {
-        webJarUriMappings = Parsers.parseWebJarMappings(AppProperty.HTTP_RESOURCES_WEBJAR_MAPPINGS.getDefaultValue());
     }
 
     private ResourceServletConfiguration(final PwmApplication pwmApplication) {
@@ -79,7 +76,6 @@ class ResourceServletConfiguration {
         final String noncePrefix = configuration.readAppProperty(AppProperty.HTTP_RESOURCES_NONCE_PATH_PREFIX);
         noncePattern = Pattern.compile(noncePrefix + "[^/]*?/");
         nonceValue = pwmApplication.getInstanceNonce();
-        webJarUriMappings = Parsers.parseWebJarMappings(configuration.readAppProperty(AppProperty.HTTP_RESOURCES_WEBJAR_MAPPINGS));
 
         final String zipFileResourceParam = configuration.readAppProperty(AppProperty.HTTP_RESOURCES_ZIP_FILES);
         if (zipFileResourceParam != null && !zipFileResourceParam.isEmpty()) {
@@ -124,14 +120,6 @@ class ResourceServletConfiguration {
 
     }
 
-    private static class Parsers {
-        static Map<String,String> parseWebJarMappings(final String input)
-        {
-            final Map<String,String> webJarMappings = JsonUtil.deserializeStringMap(input);
-            return Collections.unmodifiableMap(webJarMappings);
-        }
-    }
-
     static ResourceServletConfiguration createResourceServletConfiguration(final PwmApplication pwmApplication) {
         return new ResourceServletConfiguration(pwmApplication);
     }
@@ -140,46 +128,41 @@ class ResourceServletConfiguration {
         return new ResourceServletConfiguration();
     }
 
-    public long getCacheExpireSeconds() {
+    long getCacheExpireSeconds() {
         return cacheExpireSeconds;
     }
 
-    public boolean isEnableGzip() {
+    boolean isEnableGzip() {
         return enableGzip;
     }
 
-    public boolean isEnablePathNonce() {
+    boolean isEnablePathNonce() {
         return enablePathNonce;
     }
 
-    public long getMaxCacheBytes() {
+    long getMaxCacheBytes() {
         return maxCacheBytes;
     }
 
-    public Map<String, ZipFile> getZipResources() {
+    Map<String, ZipFile> getZipResources() {
         return zipResources;
     }
 
-    public Map<String, FileResource> getCustomFileBundle() {
+    Map<String, FileResource> getCustomFileBundle() {
         return customFileBundle;
     }
 
-    public Pattern getNoncePattern() {
+    Pattern getNoncePattern() {
         return noncePattern;
     }
 
-    public String getNonceValue() {
+    String getNonceValue() {
         return nonceValue;
     }
 
-    public int getMaxCacheItems() {
+    int getMaxCacheItems() {
         return maxCacheItems;
     }
-
-    public Map<String, String> getWebJarUriMappings() {
-        return webJarUriMappings;
-    }
-
 
     private static Map<String, FileResource> makeMemoryFileMapFromZipInput(final byte[] content)
             throws IOException
@@ -214,11 +197,11 @@ class ResourceServletConfiguration {
             this.url = url;
         }
 
-        public String getZipFile() {
+        String getZipFile() {
             return zipFile;
         }
 
-        public void setZipFile(final String zipFile) {
+        void setZipFile(final String zipFile) {
             this.zipFile = zipFile;
         }
     }

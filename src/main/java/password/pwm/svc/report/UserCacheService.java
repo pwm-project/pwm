@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,19 +26,19 @@ import com.google.gson.JsonSyntaxException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmApplication;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.svc.PwmService;
-import password.pwm.util.ClosableIterator;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.ClosableIterator;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.SecureEngine;
+import password.pwm.util.secure.SecureService;
 
 import java.util.Collections;
 import java.util.List;
@@ -50,15 +50,17 @@ public class UserCacheService implements PwmService {
     private CacheStoreWrapper cacheStore;
     private STATUS status;
 
+    private PwmApplication pwmApplication;
+
 
     public STATUS status() {
         return status;
     }
 
-    public UserCacheRecord updateUserCache(final UserInfoBean userInfoBean)
+    public UserCacheRecord updateUserCache(final UserInfo userInfo)
             throws PwmUnrecoverableException
     {
-        final StorageKey storageKey = StorageKey.fromUserInfoBean(userInfoBean);
+        final StorageKey storageKey = StorageKey.fromUserInfo(userInfo, pwmApplication);
 
         boolean preExisting = false;
         try {
@@ -68,13 +70,13 @@ public class UserCacheService implements PwmService {
             } else {
                 preExisting = true;
             }
-            userCacheRecord.addUiBeanData(userInfoBean);
+            userCacheRecord.addUiBeanData(userInfo);
             store(userCacheRecord);
             return userCacheRecord;
         } catch (LocalDBException e) {
             LOGGER.error("unable to store user status cache to localdb: " + e.getMessage());
         }
-        LOGGER.trace("updateCache: " + (preExisting?"updated existing":"created new") + " user cache for " + userInfoBean.getUserIdentity() + " user key " + storageKey.getKey());
+        LOGGER.trace("updateCache: " + (preExisting?"updated existing":"created new") + " user cache for " + userInfo.getUserIdentity() + " user key " + storageKey.getKey());
         return null;
     }
 
@@ -91,7 +93,7 @@ public class UserCacheService implements PwmService {
     public void store(final UserCacheRecord userCacheRecord)
             throws LocalDBException, PwmUnrecoverableException
     {
-        final StorageKey storageKey = StorageKey.fromUserGUID(userCacheRecord.getUserGUID());
+        final StorageKey storageKey = StorageKey.fromUserGUID(userCacheRecord.getUserGUID(), pwmApplication);
         cacheStore.write(storageKey, userCacheRecord);
     }
 
@@ -138,6 +140,7 @@ public class UserCacheService implements PwmService {
 
     public void init(final PwmApplication pwmApplication) throws PwmException {
         status = STATUS.OPENING;
+        this.pwmApplication = pwmApplication;
         this.cacheStore = new CacheStoreWrapper(pwmApplication.getLocalDB());
         status = STATUS.OPEN;
     }
@@ -150,9 +153,9 @@ public class UserCacheService implements PwmService {
         return Collections.emptyList();
     }
 
-    public ServiceInfo serviceInfo()
+    public ServiceInfoBean serviceInfo()
     {
-        return new ServiceInfo(Collections.singletonList(DataStorageMethod.LOCALDB));
+        return new ServiceInfoBean(Collections.singletonList(DataStorageMethod.LOCALDB));
     }
 
     public int size()
@@ -176,24 +179,25 @@ public class UserCacheService implements PwmService {
             return key;
         }
 
-        public static StorageKey fromUserInfoBean(final UserInfoBean userInfoBean)
+        public static StorageKey fromUserInfo(final UserInfo userInfo, final PwmApplication pwmApplication)
                 throws PwmUnrecoverableException
         {
-            final String userGUID = userInfoBean.getUserGuid();
-            return fromUserGUID(userGUID);
+            final String userGUID = userInfo.getUserGuid();
+            return fromUserGUID(userGUID, pwmApplication);
         }
 
         public static StorageKey fromUserIdentity(final PwmApplication pwmApplication, final UserIdentity userIdentity)
                 throws ChaiUnavailableException, PwmUnrecoverableException
         {
             final String userGUID = LdapOperationsHelper.readLdapGuidValue(pwmApplication, null, userIdentity, true);
-            return fromUserGUID(userGUID);
+            return fromUserGUID(userGUID, pwmApplication);
         }
 
-        private static StorageKey fromUserGUID(final String userGUID)
+        private static StorageKey fromUserGUID(final String userGUID, final PwmApplication pwmApplication)
                 throws PwmUnrecoverableException
         {
-            return new StorageKey(SecureEngine.md5sum(userGUID));
+            final SecureService secureService = pwmApplication.getSecureService();
+            return new StorageKey(secureService.hash(userGUID));
         }
     }
 

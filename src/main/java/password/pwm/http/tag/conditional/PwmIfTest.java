@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,6 +28,8 @@ import password.pwm.Permission;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.PwmEnvironment;
+import password.pwm.bean.PasswordStatus;
+import password.pwm.ldap.UserInfo;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.ProfileType;
 import password.pwm.error.PwmUnrecoverableException;
@@ -37,14 +39,14 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestFlag;
 import password.pwm.http.servlet.peoplesearch.PeopleSearchConfiguration;
 import password.pwm.svc.PwmService;
-import password.pwm.util.Helper;
 
 public enum PwmIfTest {
     authenticated(new AuthenticatedTest()),
     configurationOpen(new ConfigurationOpen()),
-    endUserFunctionalityAvaiable(new EndUserFunctionalityTest()),
+    endUserFunctionalityAvailable(new EndUserFunctionalityTest()),
     showIcons(new BooleanAppPropertyTest(AppProperty.CLIENT_JSP_SHOW_ICONS)),
     showCancel(new BooleanPwmSettingTest(PwmSetting.DISPLAY_CANCEL_BUTTON)),
+    maskTokenInput(new BooleanPwmSettingTest(PwmSetting.DISPLAY_MASK_TOKEN_FIELDS)),
     showHome(new BooleanPwmSettingTest(PwmSetting.DISPLAY_HOME_BUTTON)),
     showLogout(new BooleanPwmSettingTest(PwmSetting.DISPLAY_LOGOUT_BUTTON)),
     showLoginOptions(new BooleanPwmSettingTest(PwmSetting.DISPLAY_LOGIN_PAGE_OPTIONS)),
@@ -59,6 +61,7 @@ public enum PwmIfTest {
     shortcutsEnabled(new BooleanPwmSettingTest(PwmSetting.SHORTCUT_ENABLE)),
     peopleSearchEnabled(new BooleanPwmSettingTest(PwmSetting.PEOPLE_SEARCH_ENABLE)),
     orgChartEnabled(new OrgChartEnabled()),
+    passwordExpired(new PasswordExpired()),
 
     accountInfoEnabled(new BooleanPwmSettingTest(PwmSetting.ACCOUNT_INFORMATION_ENABLED)),
 
@@ -69,7 +72,7 @@ public enum PwmIfTest {
 
     updateProfileAvailable(new BooleanPwmSettingTest(PwmSetting.UPDATE_PROFILE_ENABLE), new ActorHasProfileTest(ProfileType.UpdateAttributes)),
     helpdeskAvailable(new BooleanPwmSettingTest(PwmSetting.HELPDESK_ENABLE), new ActorHasProfileTest(ProfileType.Helpdesk)),
-    DeleteAccountAvailalable(new BooleanPwmSettingTest(PwmSetting.DELETE_ACCOUNT_ENABLE), new ActorHasProfileTest(ProfileType.DeleteAccount)),
+    DeleteAccountAvailable(new BooleanPwmSettingTest(PwmSetting.DELETE_ACCOUNT_ENABLE), new ActorHasProfileTest(ProfileType.DeleteAccount)),
     guestRegistrationAvailable(new BooleanPwmSettingTest(PwmSetting.GUEST_ENABLE), new BooleanPermissionTest(Permission.GUEST_REGISTRATION)),
 
     booleanSetting(new BooleanPwmSettingTest(null)),
@@ -81,7 +84,7 @@ public enum PwmIfTest {
     trialMode(new TrialModeTest()),
     appliance(new EnvironmentFlagTest(PwmEnvironment.ApplicationFlag.Appliance)),
 
-    healthWarningsVisible(new HealthWarningsVisibileTest()),
+    healthWarningsVisible(new HealthWarningsVisibleTest()),
 
     headerMenuIsVisible(new HeaderMenuIsVisibleTest()),
 
@@ -253,8 +256,8 @@ public enum PwmIfTest {
             if (!pwmRequest.isAuthenticated()) {
                 return false;
             }
-            if (pwmRequest.getPwmSession().getUserInfoBean().getOtpUserRecord() != null) {
-                if (pwmRequest.getPwmSession().getUserInfoBean().getOtpUserRecord().getTimestamp() != null) {
+            if (pwmRequest.getPwmSession().getUserInfo().getOtpUserRecord() != null) {
+                if (pwmRequest.getPwmSession().getUserInfo().getOtpUserRecord().getTimestamp() != null) {
                     return true;
                 }
             }
@@ -269,7 +272,7 @@ public enum PwmIfTest {
         )
                 throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            return Helper.determineIfDetailErrorMsgShown(pwmRequest.getPwmApplication());
+            return pwmRequest.getPwmApplication().determineIfDetailErrorMsgShown();
         }
     }
 
@@ -304,7 +307,7 @@ public enum PwmIfTest {
     }
 
 
-    private static class HealthWarningsVisibileTest implements Test {
+    private static class HealthWarningsVisibleTest implements Test {
         @Override
         public boolean test(final PwmRequest pwmRequest, final PwmIfOptions options) throws ChaiUnavailableException, PwmUnrecoverableException {
             if (pwmRequest.isFlag(PwmRequestFlag.HIDE_HEADER_WARNINGS)) {
@@ -344,6 +347,10 @@ public enum PwmIfTest {
 
             if (pwmRequest.getPwmApplication().getApplicationMode() != PwmApplicationMode.RUNNING) {
                 return true;
+            }
+
+            if (pwmRequest.isForcedPageView()) {
+                return false;
             }
 
             if (pwmRequest.isAuthenticated()) {
@@ -410,6 +417,20 @@ public enum PwmIfTest {
             }
 
             return new PeopleSearchConfiguration(pwmRequest.getConfig()).isOrgChartEnabled();
+        }
+    }
+
+    private static class PasswordExpired implements Test {
+        @Override
+        public boolean test(final PwmRequest pwmRequest, final PwmIfOptions options) throws ChaiUnavailableException, PwmUnrecoverableException
+        {
+            if (!pwmRequest.isAuthenticated()) {
+                return false;
+            }
+
+            final UserInfo userInfoBean = pwmRequest.getPwmSession().getUserInfo();
+            final PasswordStatus passwordStatus = userInfoBean.getPasswordStatus();
+            return passwordStatus.isExpired() || passwordStatus.isPreExpired() || passwordStatus.isViolatesPolicy();
         }
     }
 }

@@ -1,9 +1,9 @@
-<%--
+<%@ page import="password.pwm.http.PwmRequestAttribute" %><%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2016 The PWM Project
+  ~ Copyright (c) 2009-2017 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -24,9 +24,9 @@
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final String maxValidDate = (String)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.GuestMaximumExpirationDate); %>
-<% final String selectedDate = (String)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.GuestCurrentExpirationDate); %>
-<% final String maxValidDays = (String)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.GuestMaximumValidDays); %>
+<% final String maxValidDate = (String)JspUtility.getAttribute(pageContext, PwmRequestAttribute.GuestMaximumExpirationDate); %>
+<% final String selectedDate = (String)JspUtility.getAttribute(pageContext, PwmRequestAttribute.GuestCurrentExpirationDate); %>
+<% final String maxValidDays = (String)JspUtility.getAttribute(pageContext, PwmRequestAttribute.GuestMaximumValidDays); %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">

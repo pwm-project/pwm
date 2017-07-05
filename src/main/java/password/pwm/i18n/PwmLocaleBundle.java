@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,7 +46,7 @@ public enum PwmLocaleBundle {
 
     private final Class<? extends PwmDisplayBundle> theClass;
     private final boolean adminOnly;
-    private Set<String> keys = null;
+    private Set<String> keys;
 
     PwmLocaleBundle(final Class<? extends PwmDisplayBundle> theClass, final boolean adminOnly) {
         this.theClass = theClass;

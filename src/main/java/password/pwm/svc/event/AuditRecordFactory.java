@@ -1,21 +1,43 @@
+/*
+ * Password Management Servlets (PWM)
+ * http://www.pwm-project.org
+ *
+ * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2017 The PWM Project
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
 package password.pwm.svc.event;
 
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.i18n.PwmDisplayBundle;
-import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.util.JsonUtil;
+import password.pwm.ldap.UserInfo;
+import password.pwm.ldap.UserInfoFactory;
 import password.pwm.util.LocaleHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.Map;
 
 public class AuditRecordFactory {
@@ -77,7 +99,7 @@ public class AuditRecordFactory {
         final AuditUserDefinition perpAuditUserDefintition = userIdentityToUserDefinition(perpetrator);
 
         final HelpdeskAuditRecord record = new HelpdeskAuditRecord(
-                new Date(),
+                Instant.now(),
                 eventCode,
                 perpAuditUserDefintition.getUserID(),
                 perpAuditUserDefintition.getUserDN(),
@@ -104,7 +126,7 @@ public class AuditRecordFactory {
         final AuditUserDefinition perpAuditUserDefintition = userIdentityToUserDefinition(perpetrator);
 
         final UserAuditRecord record = new UserAuditRecord(
-                new Date(),
+                Instant.now(),
                 eventCode,
                 perpAuditUserDefintition.getUserID(),
                 perpAuditUserDefintition.getUserDN(),
@@ -159,13 +181,13 @@ public class AuditRecordFactory {
 
     public UserAuditRecord createUserAuditRecord(
             final AuditEvent eventCode,
-            final UserInfoBean userInfoBean,
+            final UserInfo userInfo,
             final PwmSession pwmSession
     )
     {
         return createUserAuditRecord(
                 eventCode,
-                userInfoBean.getUserIdentity(),
+                userInfo.getUserIdentity(),
                 null,
                 pwmSession.getSessionStateBean().getSrcAddress(),
                 pwmSession.getSessionStateBean().getSrcHostname()
@@ -201,7 +223,12 @@ public class AuditRecordFactory {
             userDN = userIdentity.getUserDN();
             ldapProfile = userIdentity.getLdapProfileID();
             try {
-                userID = LdapOperationsHelper.readLdapUsernameValue(pwmApplication,userIdentity);
+                final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy(
+                        pwmApplication,
+                        SessionLabel.SYSTEM_LABEL,
+                        userIdentity, PwmConstants.DEFAULT_LOCALE
+                );
+                userID = userInfo.getUsername();
             } catch (Exception e) {
                 LOGGER.warn("unable to read userID for " + userIdentity + ", error: " + e.getMessage() );
             }

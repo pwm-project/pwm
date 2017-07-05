@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,13 +39,18 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
+import password.pwm.http.HttpHeader;
+import password.pwm.http.JspUrl;
+import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
 import password.pwm.http.PwmURL;
 import password.pwm.http.bean.ConfigManagerBean;
 import password.pwm.svc.intruder.RecordType;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.PwmSecurityKey;
@@ -112,7 +117,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
 
             if (!pwmRequest.getPwmSession().getSessionManager().checkPermission(pwmRequest.getPwmApplication(), Permission.PWMADMIN)) {
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED);
-                pwmRequest.respondWithError(errorInformation);
+                denyAndError(pwmRequest, errorInformation);
                 return ProcessStatus.Halt;
             }
         }
@@ -128,8 +133,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
         if (!storedConfig.hasPassword()) {
             final String errorMsg = "config file does not have a configuration password";
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorMsg,new String[]{errorMsg});
-            pwmRequest.respondWithError(errorInformation, true);
-            return ProcessStatus.Halt;
+            return denyAndError(pwmRequest, errorInformation);
         }
 
         if (configManagerBean.isPasswordVerified()) {
@@ -148,7 +152,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
             if (PwmApplicationMode.RUNNING == pwmRequest.getPwmApplication().getApplicationMode()) {
                 persistentLoginValue = SecureEngine.hash(
                         storedConfig.readConfigProperty(ConfigurationProperty.PASSWORD_HASH)
-                                + pwmSession.getUserInfoBean().getUserIdentity().toDelimitedKey(),
+                                + pwmSession.getUserInfo().getUserIdentity().toDelimitedKey(),
                         PwmHashAlgorithm.SHA512);
 
             } else {
@@ -168,7 +172,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
                                 if (persistentLoginValue.equals(persistentLoginInfo.getPassword())) {
                                     persistentLoginAccepted = true;
                                     LOGGER.debug(pwmRequest, "accepting persistent config login from cookie (expires "
-                                                    + PwmConstants.DEFAULT_DATETIME_FORMAT.format(persistentLoginInfo.getExpireDate())
+                                                    + JavaHelper.toIsoDate(persistentLoginInfo.getExpireDate())
                                                     + ")"
                                     );
                                 }
@@ -190,7 +194,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
         boolean passwordAccepted = false;
         if (!persistentLoginAccepted) {
             if (password != null && password.length() > 0) {
-                if (storedConfig.verifyPassword(password)) {
+                if (storedConfig.verifyPassword(password, pwmRequest.getConfig())) {
                     passwordAccepted = true;
                     LOGGER.trace(pwmRequest, "valid configuration password accepted");
                     updateLoginHistory(pwmRequest,pwmRequest.getUserInfoIfLoggedIn(), true);
@@ -198,9 +202,9 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
                     LOGGER.trace(pwmRequest, "configuration password is not correct");
                     pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
                     pwmApplication.getIntruderManager().mark(RecordType.USERNAME, PwmConstants.CONFIGMANAGER_INTRUDER_USERNAME, pwmSession.getLabel());
-                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_WRONGPASSWORD);
-                    pwmRequest.setResponseError(errorInformation);
+                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_PASSWORD_ONLY_BAD);
                     updateLoginHistory(pwmRequest,pwmRequest.getUserInfoIfLoggedIn(), false);
+                    return denyAndError(pwmRequest, errorInformation);
                 }
             }
         }
@@ -222,7 +226,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
                             persistentSeconds
                     );
                     LOGGER.debug(pwmRequest, "set persistent config login cookie (expires "
-                                    + PwmConstants.DEFAULT_DATETIME_FORMAT.format(expirationDate)
+                                    + JavaHelper.toIsoDate(expirationDate)
                                     + ")"
                     );
                 }
@@ -253,9 +257,9 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
 
         final ConfigLoginHistory configLoginHistory = readConfigLoginHistory(pwmRequest);
 
-        pwmRequest.setAttribute(PwmRequest.Attribute.ConfigLoginHistory, configLoginHistory);
-        pwmRequest.setAttribute(PwmRequest.Attribute.ConfigPasswordRememberTime,time);
-        pwmRequest.forwardToJsp(PwmConstants.JspUrl.CONFIG_MANAGER_LOGIN);
+        pwmRequest.setAttribute(PwmRequestAttribute.ConfigLoginHistory, configLoginHistory);
+        pwmRequest.setAttribute(PwmRequestAttribute.ConfigPasswordRememberTime,time);
+        pwmRequest.forwardToJsp(JspUrl.CONFIG_MANAGER_LOGIN);
 
     }
 
@@ -356,7 +360,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
     }
 
     private void checkUserAgent(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
-        final String userAgentString = pwmRequest.readHeaderValueAsString(PwmConstants.HttpHeader.UserAgent);
+        final String userAgentString = pwmRequest.readHeaderValueAsString(HttpHeader.UserAgent);
         if (userAgentString == null || userAgentString.isEmpty()) {
             return;
         }
@@ -389,5 +393,13 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
             final String errorMsg = "Internet Explorer version is not supported for this function.  Please use Internet Explorer 11 or higher or another web browser.";
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED, errorMsg));
         }
+    }
+
+    private static ProcessStatus denyAndError(final PwmRequest pwmRequest, final ErrorInformation errorInformation)
+            throws ServletException, PwmUnrecoverableException, IOException
+    {
+        pwmRequest.setAttribute(PwmRequestAttribute.PwmErrorInfo, errorInformation);
+        forwardToJsp(pwmRequest);
+        return ProcessStatus.Halt;
     }
 }

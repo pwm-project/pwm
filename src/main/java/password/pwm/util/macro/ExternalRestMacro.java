@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,10 +26,10 @@ import com.google.gson.reflect.TypeToken;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.bean.pub.PublicUserInfoBean;
 import password.pwm.error.PwmException;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.client.rest.RestClientHelper;
 
@@ -65,7 +65,7 @@ class ExternalRestMacro extends AbstractMacro {
     )
     {
         final PwmApplication pwmApplication = macroRequestInfo.getPwmApplication();
-        final UserInfoBean userInfoBean = macroRequestInfo.getUserInfoBean();
+        final UserInfo userInfoBean = macroRequestInfo.getUserInfo();
 
         final String inputString = matchValue.substring(11,matchValue.length() -1);
         final Map<String,Object> sendData = new HashMap<>();

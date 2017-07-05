@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -59,15 +59,14 @@ import java.util.List;
 @Path("/randompassword")
 public class RestRandomPasswordServer extends AbstractRestServer {
     private static final PwmLogger LOGGER = PwmLogger.forClass(RestRandomPasswordServer.class);
-    private static final ServicePermissions SERVICE_PERMISSIONS = new ServicePermissions();
 
-    static {
-        SERVICE_PERMISSIONS.setAdminOnly(false);
-        SERVICE_PERMISSIONS.setAuthRequired(false);
-        SERVICE_PERMISSIONS.setBlockExternal(true);
-        SERVICE_PERMISSIONS.setHelpdeskPermitted(true);
-        SERVICE_PERMISSIONS.setPublicDuringConfig(true);
-    }
+    private static final ServicePermissions SERVICE_PERMISSIONS = ServicePermissions.builder()
+            .adminOnly(false)
+            .authRequired(false)
+            .blockExternal(true)
+            .helpdeskPermitted(true)
+            .publicDuringConfig(true)
+            .build();
 
     public static class JsonOutput implements Serializable
     {
@@ -204,27 +203,28 @@ public class RestRandomPasswordServer extends AbstractRestServer {
     )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
-        final RandomPasswordGenerator.RandomGeneratorConfig randomConfig = new RandomPasswordGenerator.RandomGeneratorConfig();
+        final RandomPasswordGenerator.RandomGeneratorConfig.RandomGeneratorConfigBuilder randomConfigBuilder
+                = RandomPasswordGenerator.RandomGeneratorConfig.builder();
         if (jsonInput.strength > 0 && jsonInput.strength <= 100) {
-            randomConfig.setMinimumStrength(jsonInput.strength);
+            randomConfigBuilder.minimumStrength(jsonInput.strength);
         }
         if (jsonInput.minLength > 0 && jsonInput.minLength <= 100 * 1024) {
-            randomConfig.setMinimumLength(jsonInput.minLength);
+            randomConfigBuilder.minimumLength(jsonInput.minLength);
         }
         if (jsonInput.maxLength > 0 && jsonInput.maxLength <= 100 * 1024) {
-            randomConfig.setMaximumLength(jsonInput.maxLength);
+            randomConfigBuilder.maximumLength(jsonInput.maxLength);
         }
         if (jsonInput.chars != null) {
             final List<String> charValues = new ArrayList<>();
             for (int i = 0; i < jsonInput.chars.length(); i++) {
                 charValues.add(String.valueOf(jsonInput.chars.charAt(i)));
             }
-            randomConfig.setSeedlistPhrases(charValues);
+            randomConfigBuilder.seedlistPhrases(charValues);
         }
 
         if (!jsonInput.noUser && restRequestBean.getPwmSession().isAuthenticated()) {
             if (jsonInput.username != null && !jsonInput.username.isEmpty()) {
-                final UserIdentity userIdentity = UserIdentity.fromKey(jsonInput.username, restRequestBean.getPwmApplication());
+                final UserIdentity userIdentity = restRequestBean.getUserIdentity();
                 final HelpdeskProfile helpdeskProfile = restRequestBean.getPwmSession().getSessionManager().getHelpdeskProfile(restRequestBean.getPwmApplication());
                 final boolean useProxy = helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_USE_PROXY);
 
@@ -232,22 +232,23 @@ public class RestRandomPasswordServer extends AbstractRestServer {
                         ? restRequestBean.getPwmApplication().getProxiedChaiUser(restRequestBean.getUserIdentity())
                         : restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication(),userIdentity);
 
-                randomConfig.setPasswordPolicy(PasswordUtility.readPasswordPolicyForUser(
+                randomConfigBuilder.passwordPolicy(PasswordUtility.readPasswordPolicyForUser(
                         restRequestBean.getPwmApplication(),
                         restRequestBean.getPwmSession().getLabel(),
                         restRequestBean.getUserIdentity(),
                         theUser,
                         restRequestBean.getPwmSession().getSessionStateBean().getLocale()));
             } else {
-                randomConfig.setPasswordPolicy(restRequestBean.getPwmSession().getUserInfoBean().getPasswordPolicy());
+                randomConfigBuilder.passwordPolicy(restRequestBean.getPwmSession().getUserInfo().getPasswordPolicy());
             }
         } else {
             final Configuration config  = restRequestBean.getPwmApplication().getConfig();
-            randomConfig.setPasswordPolicy(config.getPasswordPolicy(
+            randomConfigBuilder.passwordPolicy(config.getPasswordPolicy(
                     config.getPasswordProfileIDs().iterator().next(),
                     restRequestBean.getPwmSession().getSessionStateBean().getLocale()));
         }
 
+        final RandomPasswordGenerator.RandomGeneratorConfig randomConfig = randomConfigBuilder.build();
         final PasswordData randomPassword = RandomPasswordGenerator.createRandomPassword(restRequestBean.getPwmSession().getLabel(), randomConfig, restRequestBean.getPwmApplication());
         final JsonOutput outputMap = new JsonOutput();
         outputMap.password = randomPassword.getStringValue();

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,19 +22,16 @@
 
 package password.pwm.util.logging;
 
-import net.iharder.Base64;
-import password.pwm.PwmConstants;
+import com.google.gson.annotations.SerializedName;
 import password.pwm.bean.SessionLabel;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.StringUtil;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.io.StringWriter;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.time.Instant;
 
 public class PwmLogEvent implements Serializable, Comparable {
 // -------------------------- ENUMERATIONS --------------------------
@@ -54,53 +51,40 @@ public class PwmLogEvent implements Serializable, Comparable {
     // ------------------------------ FIELDS ------------------------------
 
     private final PwmLogLevel level;
+
+    @SerializedName("t")
     private final String topic;
+
+    @SerializedName("m")
     private final String message;
+
+    @SerializedName("s")
     private final String source; //aka network address/host
+
+    @SerializedName("a")
     private final String actor; //aka principal
+
+    @SerializedName("b")
     private final String label; //aka session id
+
+    @SerializedName("e")
     private final Throwable throwable;
-    private final Date date;
+
+    @SerializedName("d")
+    private final Instant date;
 
 // -------------------------- STATIC METHODS --------------------------
 
     public static PwmLogEvent fromEncodedString(final String encodedString)
             throws ClassNotFoundException, IOException
     {
-        final Map<String, String> srcMap = JsonUtil.deserializeStringMap(encodedString);
-
-        if (srcMap == null) {
-            return null;
-        }
-
-        final String topic = srcMap.get(KEY_TOPIC);
-        final String message = srcMap.get(KEY_MESSAGE);
-        final String source = srcMap.get(KEY_SOURCE);
-        final String actor = srcMap.get(KEY_ACTOR);
-        final String label = srcMap.get(KEY_LABEL);
-
-        Date date = null;
-        if (srcMap.containsKey(KEY_DATE)) {
-            date = new Date(Long.valueOf(srcMap.get(KEY_DATE)));
-        }
-
-        Throwable throwable = null;
-        if (srcMap.containsKey(KEY_THROWABLE)) {
-            throwable = (Throwable) Base64.decodeToObject(srcMap.get(KEY_THROWABLE));
-        }
-
-        PwmLogLevel level = null;
-        if (srcMap.containsKey(KEY_LEVEL)) {
-            level = PwmLogLevel.valueOf(srcMap.get(KEY_LEVEL));
-        }
-
-        return createPwmLogEvent(date, topic, message, source, actor, label, throwable, level);
+        return JsonUtil.deserialize(encodedString, PwmLogEvent.class);
     }
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
     private PwmLogEvent(
-            final Date date,
+            final Instant date,
             final String topic,
             final String message,
             final String source,
@@ -164,7 +148,7 @@ public class PwmLogEvent implements Serializable, Comparable {
     }
 
     public static PwmLogEvent createPwmLogEvent(
-            final Date date,
+            final Instant date,
             final String topic,
             final String message,
             final String source,
@@ -178,7 +162,7 @@ public class PwmLogEvent implements Serializable, Comparable {
     }
 
     public static PwmLogEvent createPwmLogEvent(
-            final Date date,
+            final Instant date,
             final String topic,
             final String message,
             final SessionLabel sessionLabel,
@@ -200,7 +184,7 @@ public class PwmLogEvent implements Serializable, Comparable {
         return actor;
     }
 
-    public Date getDate()
+    public Instant getDate()
     {
         return date;
     }
@@ -286,6 +270,8 @@ public class PwmLogEvent implements Serializable, Comparable {
     public String toEncodedString()
             throws IOException
     {
+        return JsonUtil.serialize(this);
+        /*
         final Map<String, String> tempMap = new HashMap<>();
         tempMap.put(KEY_VERSION, VERSION);
         tempMap.put(KEY_TOPIC, topic);
@@ -304,6 +290,7 @@ public class PwmLogEvent implements Serializable, Comparable {
         }
 
         return JsonUtil.serializeMap(tempMap);
+        */
     }
 
     private String getDebugLabel()
@@ -334,7 +321,7 @@ public class PwmLogEvent implements Serializable, Comparable {
     {
         final StringBuilder sb = new StringBuilder();
         if (includeTimeStamp) {
-            sb.append(PwmConstants.DEFAULT_DATETIME_FORMAT.format(this.date));
+            sb.append(this.getDate().toString());
             sb.append(", ");
         }
         sb.append(StringUtil.padEndToLength(getLevel().toString(),5,' '));

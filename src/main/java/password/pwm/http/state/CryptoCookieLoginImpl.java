@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,11 +40,11 @@ import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
 class CryptoCookieLoginImpl implements SessionLoginProvider {
@@ -67,7 +67,7 @@ class CryptoCookieLoginImpl implements SessionLoginProvider {
     public void saveLoginSessionState(final PwmRequest pwmRequest) {
         try {
             final LoginInfoBean loginInfoBean = pwmRequest.getPwmSession().getLoginInfoBean();
-            loginInfoBean.setReqTime(new Date());
+            loginInfoBean.setReqTime(Instant.now());
 
             pwmRequest.getPwmResponse().writeEncryptedCookie(
                     cookieName,
@@ -101,7 +101,7 @@ class CryptoCookieLoginImpl implements SessionLoginProvider {
                 try {
                     checkIfRemoteLoginCookieIsValid(pwmRequest, remoteLoginCookie);
                 } catch (PwmOperationalException e) {
-                    LOGGER.warn(pwmRequest, e.getErrorInformation().toDebugStr());
+                    LOGGER.debug(pwmRequest, e.getErrorInformation().toDebugStr());
                     clearLoginSession(pwmRequest);
                     return;
                 }
@@ -182,7 +182,7 @@ class CryptoCookieLoginImpl implements SessionLoginProvider {
             final PwmRequest pwmRequest,
             final LoginInfoBean loginInfoBean
     )
-            throws PwmOperationalException
+            throws PwmOperationalException, PwmUnrecoverableException
     {
         if (loginInfoBean.isAuthenticated() && loginInfoBean.getAuthTime() == null) {
             final String errorMsg = "decrypted login cookie does not specify a local auth time";

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,18 +25,17 @@ package password.pwm.svc.cache;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
-import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.logging.PwmLogger;
 
+import java.time.Instant;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 public class CacheService implements PwmService {
@@ -47,7 +46,7 @@ public class CacheService implements PwmService {
 
     private STATUS status = STATUS.NEW;
 
-    private Date lastTraceOutput;
+    private Instant lastTraceOutput;
 
     @Override
     public STATUS status() {
@@ -98,8 +97,8 @@ public class CacheService implements PwmService {
     }
 
     @Override
-    public ServiceInfo serviceInfo() {
-        return new ServiceInfo(Collections.<DataStorageMethod>emptyList());
+    public ServiceInfoBean serviceInfo() {
+        return new ServiceInfoBean(Collections.emptyList());
     }
 
     public void put(final CacheKey cacheKey, final CachePolicy cachePolicy, final String payload)
@@ -116,7 +115,7 @@ public class CacheService implements PwmService {
         if (payload == null) {
             throw new NullPointerException("payload can not be null");
         }
-        final Date expirationDate = cachePolicy.getExpiration();
+        final Instant expirationDate = cachePolicy.getExpiration();
         memoryCacheStore.store(cacheKey, expirationDate, payload);
         if (localDBCacheStore != null) {
             localDBCacheStore.store(cacheKey, expirationDate, payload);
@@ -150,7 +149,7 @@ public class CacheService implements PwmService {
 
     private void outputTraceInfo() {
         if (lastTraceOutput == null || TimeDuration.fromCurrent(lastTraceOutput).isLongerThan(30 * 1000)) {
-            lastTraceOutput = new Date();
+            lastTraceOutput = Instant.now();
         } else {
             return;
         }

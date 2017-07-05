@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,7 +33,6 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
 import password.pwm.config.ActionConfiguration;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
@@ -45,19 +44,22 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
+import password.pwm.http.JspUrl;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.GuestRegistrationBean;
 import password.pwm.i18n.Message;
-import password.pwm.ldap.LdapUserDataReader;
-import password.pwm.ldap.UserDataReader;
-import password.pwm.ldap.UserSearchEngine;
-import password.pwm.ldap.UserStatusReader;
+import password.pwm.ldap.LdapOperationsHelper;
+import password.pwm.ldap.UserInfo;
+import password.pwm.ldap.UserInfoFactory;
+import password.pwm.ldap.search.SearchConfiguration;
+import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.FormMap;
-import password.pwm.util.Helper;
 import password.pwm.util.PasswordData;
 import password.pwm.util.RandomPasswordGenerator;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.ActionExecutor;
@@ -170,7 +172,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
                     return;
 
                 default:
-                    Helper.unhandledSwitchStatement(action);
+                    JavaHelper.unhandledSwitchStatement(action);
             }
         }
 
@@ -232,7 +234,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
             final Date expirationDate = readExpirationFromRequest(pwmRequest);
 
             // Update user attributes
-            Helper.writeFormValuesToLdap(pwmApplication, pwmSession, theGuest, formValues, false);
+            LdapOperationsHelper.writeFormValuesToLdap(pwmApplication, pwmSession, theGuest, formValues, false);
 
             // Write expirationDate
             if (expirationDate != null) {
@@ -240,11 +242,10 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
             }
 
             // send email.
-            final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication,pwmSession.getLabel());
-            final UserInfoBean guestUserInfoBean = new UserInfoBean();
-            userStatusReader.populateUserInfoBean(
-                    guestUserInfoBean,
-                    pwmSession.getSessionStateBean().getLocale(),
+            final UserInfo guestUserInfoBean = UserInfoFactory.newUserInfo(
+                    pwmApplication,
+                    pwmRequest.getSessionLabel(),
+                    pwmRequest.getLocale(),
                     guestRegistrationBean.getUpdateUserIdentity(),
                     theGuest.getChaiProvider()
             );
@@ -257,18 +258,18 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
             return;
         } catch (PwmOperationalException e) {
             LOGGER.error(pwmSession, e.getErrorInformation().toDebugStr());
-            pwmRequest.setResponseError(e.getErrorInformation());
+            setLastError(pwmRequest, e.getErrorInformation());
         } catch (ChaiOperationException e) {
             final ErrorInformation info = new ErrorInformation(PwmError.ERROR_UNKNOWN, "unexpected error writing to ldap: " + e.getMessage());
             LOGGER.error(pwmSession, info);
-            pwmRequest.setResponseError(info);
+            setLastError(pwmRequest, info);
         }
         this.forwardToUpdateJSP(pwmRequest, guestRegistrationBean);
     }
 
     private void sendUpdateGuestEmailConfirmation(
             final PwmRequest pwmRequest,
-            final UserInfoBean guestUserInfoBean
+            final UserInfo guestUserInfo
     )
             throws PwmUnrecoverableException
     {
@@ -281,7 +282,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
             return;
         }
 
-        pwmRequest.getPwmApplication().getEmailQueue().submitEmail(configuredEmailSetting, guestUserInfoBean, null);
+        pwmRequest.getPwmApplication().getEmailQueue().submitEmail(configuredEmailSetting, guestUserInfo, null);
     }
 
     protected void handleSearchRequest(
@@ -302,15 +303,20 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
         final String usernameParam = pwmRequest.readParameterAsString("username");
         final GuestRegistrationBean guBean = pwmApplication.getSessionStateService().getBean(pwmRequest, GuestRegistrationBean.class);
 
-        final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
-        searchConfiguration.setChaiProvider(chaiProvider);
-        searchConfiguration.setContexts(Collections.singletonList(config.readSettingAsString(PwmSetting.GUEST_CONTEXT)));
-        searchConfiguration.setEnableContextValidation(false);
-        searchConfiguration.setUsername(usernameParam);
-        final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, pwmSession.getLabel());
+
+        SearchConfiguration.builder();
+
+        final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
+                    .chaiProvider(chaiProvider)
+                    .contexts(Collections.singletonList(config.readSettingAsString(PwmSetting.GUEST_CONTEXT)))
+                    .enableContextValidation(false)
+                    .username(usernameParam)
+                    .build();
+
+        final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
 
         try {
-            final UserIdentity theGuest = userSearchEngine.performSingleUserSearch(searchConfiguration);
+            final UserIdentity theGuest = userSearchEngine.performSingleUserSearch(searchConfiguration, pwmSession.getLabel());
             final FormMap formProps = guBean.getFormValues();
             try {
                 final List<FormConfiguration> guestUpdateForm = config.readSettingAsForm(PwmSetting.GUEST_UPDATE_FORM);
@@ -320,15 +326,20 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
                         involvedAttrs.add(formItem.getName());
                     }
                 }
-                final UserDataReader userDataReader = LdapUserDataReader.selfProxiedReader(pwmApplication, pwmSession,
-                        theGuest);
-                final Map<String,String> userAttrValues = userDataReader.readStringAttributes(involvedAttrs);
+                final UserInfo guestUserInfo = UserInfoFactory.newUserInfo(
+                        pwmApplication,
+                        pwmSession.getLabel(),
+                        pwmRequest.getLocale(),
+                        theGuest,
+                        pwmSession.getSessionManager().getChaiProvider()
+                );
+                final Map<String,String> userAttrValues = guestUserInfo.readStringAttributes(involvedAttrs);
                 if (origAdminOnly && adminDnAttribute != null && adminDnAttribute.length() > 0) {
                     final String origAdminDn = userAttrValues.get(adminDnAttribute);
                     if (origAdminDn != null && origAdminDn.length() > 0) {
-                        if (!pwmSession.getUserInfoBean().getUserIdentity().getUserDN().equalsIgnoreCase(origAdminDn)) {
+                        if (!pwmSession.getUserInfo().getUserIdentity().getUserDN().equalsIgnoreCase(origAdminDn)) {
                             final ErrorInformation info = new ErrorInformation(PwmError.ERROR_ORIG_ADMIN_ONLY);
-                            pwmRequest.setResponseError(info);
+                            setLastError(pwmRequest, info);
                             LOGGER.warn(pwmSession, info);
                             this.forwardToJSP(pwmRequest, guestRegistrationBean);
                         }
@@ -336,7 +347,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
                 }
                 final String expirationAttribute = config.readSettingAsString(PwmSetting.GUEST_EXPIRATION_ATTRIBUTE);
                 if (expirationAttribute != null && expirationAttribute.length() > 0) {
-                    final Date expiration = userDataReader.readDateAttribute(expirationAttribute);
+                    final Date expiration = guestUserInfo.readDateAttribute(expirationAttribute);
                     if (expiration != null) {
                         guBean.setUpdateUserExpirationDate(expiration);
                     }
@@ -354,12 +365,12 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
 
                 this.forwardToUpdateJSP(pwmRequest, guestRegistrationBean);
                 return;
-            } catch (ChaiOperationException e) {
+            } catch (PwmUnrecoverableException e) {
                 LOGGER.warn(pwmSession, "error reading current attributes for user: " + e.getMessage());
             }
         } catch (PwmOperationalException e) {
             final ErrorInformation error = e.getErrorInformation();
-            pwmRequest.setResponseError(error);
+            setLastError(pwmRequest, error);
             this.forwardToJSP(pwmRequest, guestRegistrationBean);
             return;
         }
@@ -410,7 +421,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
             }
 
             // Write creator DN
-            createAttributes.put(config.readSettingAsString(PwmSetting.GUEST_ADMIN_ATTRIBUTE), pwmSession.getUserInfoBean().getUserIdentity().getUserDN());
+            createAttributes.put(config.readSettingAsString(PwmSetting.GUEST_ADMIN_ATTRIBUTE), pwmSession.getUserInfo().getUserIdentity().getUserDN());
 
             // read the creation object classes.
             final Set<String> createObjectClasses = new HashSet<>(config.readSettingAsStringArray(PwmSetting.DEFAULT_OBJECT_CLASSES));
@@ -419,7 +430,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
             LOGGER.info(pwmSession, "created user object: " + guestUserDN);
 
             final ChaiUser theUser = ChaiFactory.createChaiUser(guestUserDN, provider);
-            final UserIdentity userIdentity = new UserIdentity(guestUserDN, pwmSession.getUserInfoBean().getUserIdentity().getLdapProfileID());
+            final UserIdentity userIdentity = new UserIdentity(guestUserDN, pwmSession.getUserInfo().getUserIdentity().getLdapProfileID());
 
             // write the expiration date:
             if (expirationDate != null) {
@@ -467,12 +478,12 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
             pwmRequest.getPwmResponse().forwardToSuccessPage(Message.Success_CreateGuest);
         } catch (ChaiOperationException e) {
             final ErrorInformation info = new ErrorInformation(PwmError.ERROR_NEW_USER_FAILURE, "error creating user: " + e.getMessage());
-            pwmRequest.setResponseError(info);
+            setLastError(pwmRequest, info);
             LOGGER.warn(pwmSession, info);
             this.forwardToJSP(pwmRequest, guestRegistrationBean);
         } catch (PwmOperationalException e) {
             LOGGER.error(pwmSession, e.getErrorInformation().toDebugStr());
-            pwmRequest.setResponseError(e.getErrorInformation());
+            setLastError(pwmRequest, e.getErrorInformation());
             this.forwardToJSP(pwmRequest, guestRegistrationBean);
         }
     }
@@ -566,10 +577,10 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
         calculateFutureDateFlags(pwmRequest, guestRegistrationBean);
         if (Page.search == guestRegistrationBean.getCurrentPage()) {
             pwmRequest.addFormInfoToRequestAttr(PwmSetting.GUEST_UPDATE_FORM, false, false);
-            pwmRequest.forwardToJsp(PwmConstants.JspUrl.GUEST_UPDATE_SEARCH);
+            pwmRequest.forwardToJsp(JspUrl.GUEST_UPDATE_SEARCH);
         } else {
             pwmRequest.addFormInfoToRequestAttr(PwmSetting.GUEST_FORM, false, false);
-            pwmRequest.forwardToJsp(PwmConstants.JspUrl.GUEST_REGISTRATION);
+            pwmRequest.forwardToJsp(JspUrl.GUEST_REGISTRATION);
         }
     }
 
@@ -588,7 +599,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
         }
 
         pwmRequest.addFormInfoToRequestAttr(guestUpdateForm, formValueMap, false, false);
-        pwmRequest.forwardToJsp(PwmConstants.JspUrl.GUEST_UPDATE);
+        pwmRequest.forwardToJsp(JspUrl.GUEST_UPDATE);
     }
 
     private static void checkConfiguration(final Configuration configuration)
@@ -617,7 +628,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
         final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 
         final long maxValidDays = pwmRequest.getConfig().readSettingAsLong(PwmSetting.GUEST_MAX_VALID_DAYS);
-        pwmRequest.setAttribute(PwmRequest.Attribute.GuestMaximumValidDays, String.valueOf(maxValidDays));
+        pwmRequest.setAttribute(PwmRequestAttribute.GuestMaximumValidDays, String.valueOf(maxValidDays));
 
 
         final String maxExpirationDate;
@@ -647,8 +658,8 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
             }
         }
 
-        pwmRequest.setAttribute(PwmRequest.Attribute.GuestCurrentExpirationDate, currentExpirationDate);
-        pwmRequest.setAttribute(PwmRequest.Attribute.GuestMaximumExpirationDate, maxExpirationDate);
+        pwmRequest.setAttribute(PwmRequestAttribute.GuestCurrentExpirationDate, currentExpirationDate);
+        pwmRequest.setAttribute(PwmRequestAttribute.GuestMaximumExpirationDate, maxExpirationDate);
     }
 }
 

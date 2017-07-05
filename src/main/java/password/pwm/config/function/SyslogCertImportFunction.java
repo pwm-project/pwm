@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.i18n.Message;
 import password.pwm.svc.event.SyslogAuditService;
-import password.pwm.util.X509Utils;
+import password.pwm.util.secure.X509Utils;
 
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
@@ -79,7 +79,7 @@ public class SyslogCertImportFunction implements SettingUIFunction {
             }
         }
 
-        final UserIdentity userIdentity = pwmSession.isAuthenticated() ? pwmSession.getUserInfoBean().getUserIdentity() : null;
+        final UserIdentity userIdentity = pwmSession.isAuthenticated() ? pwmSession.getUserInfo().getUserIdentity() : null;
         storedConfiguration.writeSetting(setting, new X509CertificateValue(resultCertificates), userIdentity);
         return Message.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(), Message.Success_Unknown, pwmApplication.getConfig());
     }

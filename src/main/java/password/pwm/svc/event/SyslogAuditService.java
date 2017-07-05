@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,10 +45,10 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.health.HealthTopic;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.TimeDuration;
-import password.pwm.util.WorkQueueProcessor;
-import password.pwm.util.X509Utils;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.TimeDuration;
+import password.pwm.util.localdb.WorkQueueProcessor;
+import password.pwm.util.secure.X509Utils;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.localdb.LocalDBStoredQueue;
@@ -99,10 +99,11 @@ public class SyslogAuditService {
             LOGGER.error("error parsing syslog configuration for '" + syslogConfigString + "', error: " + e.getMessage());
         }
 
-        final WorkQueueProcessor.Settings settings = new WorkQueueProcessor.Settings();
-        settings.setMaxEvents(Integer.parseInt(configuration.readAppProperty(AppProperty.QUEUE_SYSLOG_MAX_COUNT)));
-        settings.setRetryDiscardAge(new TimeDuration(Long.parseLong(configuration.readAppProperty(AppProperty.QUEUE_SYSLOG_MAX_AGE_MS))));
-        settings.setRetryInterval(new TimeDuration(Long.parseLong(configuration.readAppProperty(AppProperty.QUEUE_SYSLOG_RETRY_TIMEOUT_MS))));
+        final WorkQueueProcessor.Settings settings = WorkQueueProcessor.Settings.builder()
+                .maxEvents(Integer.parseInt(configuration.readAppProperty(AppProperty.QUEUE_SYSLOG_MAX_COUNT)))
+                .retryDiscardAge(new TimeDuration(Long.parseLong(configuration.readAppProperty(AppProperty.QUEUE_SYSLOG_MAX_AGE_MS))))
+                .retryInterval(new TimeDuration(Long.parseLong(configuration.readAppProperty(AppProperty.QUEUE_SYSLOG_RETRY_TIMEOUT_MS))))
+                .build();
 
         final LocalDBStoredQueue localDBStoredQueue = LocalDBStoredQueue.createLocalDBStoredQueue(pwmApplication, pwmApplication.getLocalDB(), LocalDB.DB.SYSLOG_QUEUE);
 

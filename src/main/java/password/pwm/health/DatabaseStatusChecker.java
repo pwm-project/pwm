@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,9 +23,10 @@
 package password.pwm.health;
 
 import password.pwm.PwmApplication;
+import password.pwm.PwmEnvironment;
 import password.pwm.config.Configuration;
 import password.pwm.error.PwmException;
-import password.pwm.util.db.DatabaseAccessorImpl;
+import password.pwm.util.db.DatabaseAccessor;
 import password.pwm.util.db.DatabaseTable;
 import password.pwm.util.logging.PwmLogger;
 
@@ -41,25 +42,31 @@ public class DatabaseStatusChecker implements HealthChecker {
         return Collections.emptyList();
     }
 
-    public static List<HealthRecord> checkNewDatabaseStatus(final Configuration config) {
-        return checkDatabaseStatus(config);
+    public static List<HealthRecord> checkNewDatabaseStatus(final PwmApplication pwmApplication, final Configuration config) {
+        return checkDatabaseStatus(pwmApplication, config);
     }
 
-    private static List<HealthRecord> checkDatabaseStatus(final Configuration config)
+    private static List<HealthRecord> checkDatabaseStatus(final PwmApplication pwmApplication, final Configuration config)
     {
         if (!config.hasDbConfigured()) {
             return Collections.singletonList(new HealthRecord(HealthStatus.INFO,HealthTopic.Database,"Database not configured"));
         }
-        final DatabaseAccessorImpl impl = new DatabaseAccessorImpl();
+
+        PwmApplication runtimeInstance = null;
         try {
-            impl.init(config);
-            impl.get(DatabaseTable.PWM_META, "test");
-            return impl.healthCheck();
+            final PwmEnvironment runtimeEnvironment = pwmApplication.getPwmEnvironment().makeRuntimeInstance(config);
+            runtimeInstance = new PwmApplication(runtimeEnvironment);
+            final DatabaseAccessor accessor = runtimeInstance.getDatabaseService().getAccessor();
+            accessor.get(DatabaseTable.PWM_META, "test");
+            return runtimeInstance.getDatabaseService().healthCheck();
         } catch (PwmException e) {
             LOGGER.error("error during healthcheck: " + e.getMessage());
-            return impl.healthCheck();
+            e.printStackTrace();
+            return runtimeInstance.getDatabaseService().healthCheck();
         } finally {
-            impl.close();
+            if (runtimeInstance != null) {
+                runtimeInstance.shutdown();
+            }
         }
     }
 }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,20 +21,32 @@
  */
 
 
+import { IConfigService } from './services/config.service';
+import { IQService } from 'angular';
+import LocalStorageService from './services/local-storage.service';
+
 export default [
     '$stateProvider',
     '$urlRouterProvider',
-    '$locationProvider',
     (
         $stateProvider: angular.ui.IStateProvider,
-        $urlRouterProvider: angular.ui.IUrlRouterProvider,
-        $locationProvider: angular.ILocationProvider
+        $urlRouterProvider: angular.ui.IUrlRouterProvider
     ) => {
-        $urlRouterProvider.otherwise('/search/cards');
-        $locationProvider.html5Mode({
-            enabled: true,
-            requireBase: false
-        });
+        $urlRouterProvider.otherwise(
+            ($injector: angular.auto.IInjectorService, $location: angular.ILocationService) => {
+                let $state: angular.ui.IStateService = <angular.ui.IStateService>$injector.get('$state');
+                let localStorageService: LocalStorageService =
+                    <LocalStorageService>$injector.get('LocalStorageService');
+
+                let storedView = localStorageService.getItem(localStorageService.keys.SEARCH_VIEW);
+
+                if (storedView) {
+                    $state.go(storedView);
+                }
+                else {
+                    $location.url('search/cards');
+                }
+            });
 
         $stateProvider.state('search', {
             url: '/search?query',
@@ -51,7 +63,31 @@ export default [
             url: '/details/{personId}',
             component: 'personDetailsDialogComponent'
         });
-        $stateProvider.state('orgchart', { url: '/orgchart?query', abstract: true, template: '<ui-view/>' });
+        $stateProvider.state('orgchart', { url: '/orgchart?query',
+            abstract: true,
+            template: '<ui-view/>',
+            resolve: {
+                enabled: [
+                    '$q',
+                    'ConfigService',
+                    ($q: IQService, configService: IConfigService) => {
+                        let deferred = $q.defer();
+
+                        configService
+                            .orgChartEnabled()
+                            .then((orgChartEnabled: boolean) => {
+                                if (!orgChartEnabled) {
+                                    deferred.reject('OrgChart disabled');
+                                }
+                                else {
+                                    deferred.resolve();
+                                }
+                            });
+
+                        return deferred.promise;
+                    }]
+            }
+        });
         $stateProvider.state('orgchart.index', { url: '', component: 'orgChartSearch' });
         $stateProvider.state('orgchart.search', { url: '/{personId}', component: 'orgChartSearch' });
         $stateProvider.state('orgchart.search.details', { url: '/details', component: 'personDetailsDialogComponent' });

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,7 +31,6 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
@@ -43,18 +42,19 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.i18n.Display;
 import password.pwm.ldap.LdapPermissionTester;
-import password.pwm.ldap.LdapUserDataReader;
-import password.pwm.ldap.UserDataReader;
-import password.pwm.ldap.UserSearchEngine;
-import password.pwm.ldap.UserStatusReader;
+import password.pwm.ldap.UserInfo;
+import password.pwm.ldap.UserInfoFactory;
+import password.pwm.ldap.search.SearchConfiguration;
+import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchResults;
 import password.pwm.svc.cache.CacheKey;
 import password.pwm.svc.cache.CachePolicy;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.JsonUtil;
 import password.pwm.util.LocaleHelper;
-import password.pwm.util.StringUtil;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
@@ -63,9 +63,9 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.URLConnection;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -114,18 +114,20 @@ public class PeopleSearchDataReader {
     }
 
     public OrgChartDataBean makeOrgChartData(
-            final UserIdentity userIdentity
+            final UserIdentity userIdentity,
+            final boolean noChildren
 
     )
             throws PwmUnrecoverableException
     {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
 
-        final CacheKey cacheKey = makeCacheKey(OrgChartDataBean.class.getSimpleName(), userIdentity.toDelimitedKey());
+        final CacheKey cacheKey = makeCacheKey(OrgChartDataBean.class.getSimpleName(), userIdentity.toDelimitedKey() + "|" + noChildren);
         { // if value is cached then return;
             final String cachedOutput = pwmRequest.getPwmApplication().getCacheService().get(cacheKey);
             if (cachedOutput != null) {
                 StatisticsManager.incrementStat(pwmRequest, Statistic.PEOPLESEARCH_CACHE_HITS);
+                LOGGER.trace(pwmRequest, "completed makeOrgChartData of " + userIdentity.toDisplayString() + " from cache");
                 return JsonUtil.deserialize(cachedOutput, OrgChartDataBean.class);
             } else {
                 StatisticsManager.incrementStat(pwmRequest, Statistic.PEOPLESEARCH_CACHE_MISSES);
@@ -146,7 +148,7 @@ public class PeopleSearchDataReader {
         }
 
         int childCount = 0;
-        { // make children reference
+        if (!noChildren) { // make children reference
             final Map<String,OrgChartReferenceBean> sortedChildren = new TreeMap<>();
             final List<UserIdentity> childIdentities = readUserDNAttributeValues(userIdentity, config.getOrgChartChildAttr());
             for (final UserIdentity  childIdentity : childIdentities) {
@@ -165,6 +167,7 @@ public class PeopleSearchDataReader {
         }
 
         final TimeDuration totalTime = TimeDuration.fromCurrent(startTime);
+        storeDataInCache(pwmRequest.getPwmApplication(), cacheKey, orgChartData);
         LOGGER.trace(pwmRequest, "completed makeOrgChartData in " + totalTime.asCompactString() + " with " + childCount + " children" );
         return orgChartData;
     }
@@ -174,7 +177,7 @@ public class PeopleSearchDataReader {
     )
             throws PwmUnrecoverableException, IOException, ServletException, PwmOperationalException, ChaiUnavailableException
     {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         final UserIdentity userIdentity = UserIdentity.fromKey(userKey, pwmRequest.getPwmApplication());
 
         final CacheKey cacheKey = makeCacheKey(UserDetailBean.class.getSimpleName(), userIdentity.toDelimitedKey());
@@ -195,7 +198,7 @@ public class PeopleSearchDataReader {
             throw e;
         }
 
-        final UserSearchEngine.UserSearchResults detailResults = doDetailLookup(userIdentity);
+        final UserSearchResults detailResults = doDetailLookup(userIdentity);
         final Map<String, String> searchResults = detailResults.getResults().get(userIdentity);
 
         final UserDetailBean userDetailBean = new UserDetailBean();
@@ -498,19 +501,16 @@ public class PeopleSearchDataReader {
     )
             throws PwmUnrecoverableException
     {
-        final ChaiUser chaiUser = getChaiUser(userIdentity);
-        final UserInfoBean userInfoBean;
-        if (Boolean.parseBoolean(pwmRequest.getConfig().readAppProperty(AppProperty.PEOPLESEARCH_DISPLAYNAME_USEALLMACROS))) {
-            final Locale locale = pwmRequest.getLocale();
-            final ChaiProvider chaiProvider = pwmRequest.getPwmApplication().getProxiedChaiUser(userIdentity).getChaiProvider();
-            userInfoBean = new UserInfoBean();
-            final UserStatusReader userStatusReader = new UserStatusReader(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel());
-            userStatusReader.populateUserInfoBean(userInfoBean, locale, userIdentity, chaiProvider);
-        } else {
-            userInfoBean = null;
-        }
-        final UserDataReader userDataReader = new LdapUserDataReader(userIdentity, chaiUser);
-        return new MacroMachine(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), userInfoBean, null, userDataReader);
+        final Locale locale = pwmRequest.getLocale();
+        final ChaiProvider chaiProvider = pwmRequest.getPwmApplication().getProxiedChaiUser(userIdentity).getChaiProvider();
+        final UserInfo userInfo = UserInfoFactory.newUserInfo(
+                pwmRequest.getPwmApplication(),
+                pwmRequest.getSessionLabel(),
+                locale,
+                userIdentity,
+                chaiProvider
+        );
+        return new MacroMachine(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), userInfo, null);
     }
 
     public void checkIfUserIdentityViewable(
@@ -560,13 +560,13 @@ public class PeopleSearchDataReader {
         return useProxy || !pwmRequest.isAuthenticated() && publicAccessEnabled;
     }
 
-    private UserSearchEngine.UserSearchResults doDetailLookup(
+    private UserSearchResults doDetailLookup(
             final UserIdentity userIdentity
     )
             throws PwmUnrecoverableException
     {
         final List<FormConfiguration> detailFormConfig = pwmRequest.getConfig().readSettingAsForm(PwmSetting.PEOPLE_SEARCH_DETAIL_FORM);
-        final Map<String, String> attributeHeaderMap = UserSearchEngine.UserSearchResults.fromFormConfiguration(
+        final Map<String, String> attributeHeaderMap = UserSearchResults.fromFormConfiguration(
                 detailFormConfig, pwmRequest.getLocale());
 
         if (config.isOrgChartEnabled()) {
@@ -583,7 +583,7 @@ public class PeopleSearchDataReader {
         try {
             final ChaiUser theUser = getChaiUser(userIdentity);
             final Map<String, String> values = theUser.readStringAttributes(attributeHeaderMap.keySet());
-            return new UserSearchEngine.UserSearchResults(
+            return new UserSearchResults(
                     attributeHeaderMap,
                     Collections.singletonMap(userIdentity, values),
                     false
@@ -627,27 +627,33 @@ public class PeopleSearchDataReader {
     )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
 
         if (username == null || username.length() < 1) {
             return new SearchResultBean();
         }
 
         final boolean useProxy = useProxy();
-        final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmRequest);
-        final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
-        searchConfiguration.setContexts(
-                pwmRequest.getConfig().readSettingAsStringArray(PwmSetting.PEOPLE_SEARCH_SEARCH_BASE));
-        searchConfiguration.setEnableContextValidation(false);
-        searchConfiguration.setUsername(username);
-        searchConfiguration.setEnableValueEscaping(false);
-        searchConfiguration.setFilter(getSearchFilter(pwmRequest.getConfig()));
-        if (!useProxy) {
-            searchConfiguration.setLdapProfile(pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity().getLdapProfileID());
-            searchConfiguration.setChaiProvider(pwmRequest.getPwmSession().getSessionManager().getChaiProvider());
+        final UserSearchEngine userSearchEngine = pwmRequest.getPwmApplication().getUserSearchEngine();
+
+        final SearchConfiguration searchConfiguration;
+        {
+            final SearchConfiguration.SearchConfigurationBuilder builder = SearchConfiguration.builder();
+            builder.contexts(pwmRequest.getConfig().readSettingAsStringArray(PwmSetting.PEOPLE_SEARCH_SEARCH_BASE));
+            builder.enableContextValidation(false);
+            builder.username(username);
+            builder.enableValueEscaping(false);
+            builder.filter(getSearchFilter(pwmRequest.getConfig()));
+            builder.enableSplitWhitespace(true);
+
+            if (!useProxy) {
+                builder.ldapProfile(pwmRequest.getPwmSession().getUserInfo().getUserIdentity().getLdapProfileID());
+                builder.chaiProvider(pwmRequest.getPwmSession().getSessionManager().getChaiProvider());
+            }
+            searchConfiguration = builder.build();
         }
 
-        final UserSearchEngine.UserSearchResults results;
+        final UserSearchResults results;
         final boolean sizeExceeded;
         try {
             final List<FormConfiguration> searchForm = pwmRequest.getConfig().readSettingAsForm(
@@ -655,7 +661,7 @@ public class PeopleSearchDataReader {
             final int maxResults = (int) pwmRequest.getConfig().readSettingAsLong(
                     PwmSetting.PEOPLE_SEARCH_RESULT_LIMIT);
             final Locale locale = pwmRequest.getLocale();
-            results = userSearchEngine.performMultiUserSearchFromForm(locale, searchConfiguration, maxResults, searchForm);
+            results = userSearchEngine.performMultiUserSearchFromForm(locale, searchConfiguration, maxResults, searchForm, pwmRequest.getSessionLabel());
             sizeExceeded = results.isSizeExceeded();
         } catch (PwmOperationalException e) {
             final ErrorInformation errorInformation = e.getErrorInformation();

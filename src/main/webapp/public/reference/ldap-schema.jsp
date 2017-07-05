@@ -7,7 +7,7 @@
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2016 The PWM Project
+  ~ Copyright (c) 2009-2017 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -38,7 +38,7 @@
 <body class="nihilo">
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
-        <jsp:param name="pwm.PageName" value="Localization Report"/>
+        <jsp:param name="pwm.PageName" value="LDAP Schema Definition"/>
     </jsp:include>
     <div id="centerbody">
         <%@ include file="reference-nav.jsp"%>

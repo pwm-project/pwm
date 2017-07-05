@@ -3,7 +3,7 @@
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2016 The PWM Project
+  ~ Copyright (c) 2009-2017 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -25,6 +25,8 @@
 <%@ page import="password.pwm.http.bean.ForgottenPasswordBean" %>
 <%@ page import="password.pwm.http.servlet.forgottenpw.ForgottenPasswordServlet"%>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
+<%  final boolean resendEnabled = Boolean.parseBoolean(JspUtility.getPwmRequest(pageContext).getConfig().readAppProperty(AppProperty.TOKEN_RESEND_ENABLED)); %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%@ include file="fragment/header.jsp" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
@@ -38,16 +40,54 @@
         <% final ForgottenPasswordBean fpb = JspUtility.getSessionBean(pageContext, ForgottenPasswordBean.class); %>
         <% final String destination = fpb.getProgress().getTokenSentAddress(); %>
         <p><pwm:display key="Display_RecoverEnterCode" value1="<%=destination%>"/></p>
+        <% if (resendEnabled) { %>
+        <p><pwm:display key="Display_TokenResend"/></p>
+        <p>
+            <button type="button" id="button-resend-token" class="btn">
+                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-refresh"></span></pwm:if>
+                <pwm:display key="Button_TokenResend"/>
+            </button>
+        </p>
+        <br/>
+        <pwm:script>
+            <script type="text/javascript">
+                PWM_GLOBAL['startupFunctions'].push(function() {
+                    PWM_MAIN.addEventHandler('button-resend-token','click',function(){
+                        PWM_MAIN.showWaitDialog({loadFunction:function(){
+                            var loadFunction = function(data){
+                                if (data['error']) {
+                                    PWM_MAIN.showErrorDialog(data);
+                                } else {
+                                    var resultText = data['successMessage'];
+                                    PWM_MAIN.showDialog({
+                                        title: PWM_MAIN.showString('Title_Success'),
+                                        text: resultText,
+                                        okAction: function () {
+                                            var inputField = PWM_MAIN.getObject('<%=PwmConstants.PARAM_TOKEN%>');
+                                            if (inputField) {
+                                                inputField.value = '';
+                                                inputField.focus();
+                                            }
+                                        }
+                                    });
+                                }
+                            };
+                            PWM_MAIN.ajaxRequest('forgottenpassword?processAction=resendToken',loadFunction);
+                        }});
+                    })
+                });
+            </script>
+        </pwm:script>
+        <% } %>
         <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="search" class="pwm-form" autocomplete="off">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-            <h2><label for="<%=PwmConstants.PARAM_TOKEN%>"><pwm:display key="Field_Code"/></label></h2>
-            <textarea id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" class="tokenInput" required="required" <pwm:autofocus/> ></textarea>
+            <%@ include file="/WEB-INF/jsp/fragment/token-form-field.jsp" %>
             <div class="buttonbar">
                 <button type="submit" class="btn" name="search" id="submitBtn">
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-check"></span></pwm:if>
                     <pwm:display key="Button_CheckCode"/>
                 </button>
-                <% if ("true".equals(JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ForgottenPasswordOptionalPageView))) { %>
+                <% if ("true".equals(JspUtility.getAttribute(pageContext, PwmRequestAttribute.ForgottenPasswordOptionalPageView))) { %>
                 <button type="submit" id="button-goBack" name="button-goBack" class="btn" form="form-goBack">
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-backward"></span></pwm:if>
                     <pwm:display key="Button_GoBack"/>

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,8 +26,10 @@ import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.PwmSessionBean;
+import password.pwm.i18n.Display;
 import password.pwm.i18n.PwmDisplayBundle;
 import password.pwm.util.LocaleHelper;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletRequest;
@@ -35,6 +37,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.PageContext;
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.Locale;
 
 public abstract class JspUtility {
@@ -45,7 +48,7 @@ public abstract class JspUtility {
             final ServletRequest request
     )
     {
-        final PwmRequest pwmRequest = (PwmRequest)request.getAttribute(PwmRequest.Attribute.PwmRequest.toString());
+        final PwmRequest pwmRequest = (PwmRequest)request.getAttribute(PwmRequestAttribute.PwmRequest.toString());
         if (pwmRequest == null) {
             LOGGER.warn("unable to load pwmRequest object during jsp execution");
         }
@@ -62,7 +65,7 @@ public abstract class JspUtility {
         return null;
     }
 
-    public static Serializable getAttribute(final PageContext pageContext, final PwmRequest.Attribute requestAttr) {
+    public static Serializable getAttribute(final PageContext pageContext, final PwmRequestAttribute requestAttr) {
         final PwmRequest pwmRequest = forRequest(pageContext.getRequest());
         return pwmRequest.getAttribute(requestAttr);
     }
@@ -130,6 +133,29 @@ public abstract class JspUtility {
 
     public static PwmRequest getPwmRequest(final PageContext pageContext) {
         return forRequest(pageContext.getRequest());
+    }
+
+    public static String freindlyWrite(final PageContext pageContext, final boolean value) {
+        final PwmRequest pwmRequest = forRequest(pageContext.getRequest());
+        return value
+                ? LocaleHelper.getLocalizedMessage(Display.Value_True, pwmRequest)
+                : LocaleHelper.getLocalizedMessage(Display.Value_False, pwmRequest);
+    }
+
+    public static String freindlyWrite(final PageContext pageContext, final String input) {
+        final PwmRequest pwmRequest = forRequest(pageContext.getRequest());
+        if (StringUtil.isEmpty(input)) {
+            return LocaleHelper.getLocalizedMessage(Display.Value_NotApplicable, pwmRequest);
+        }
+        return StringUtil.escapeHtml(input);
+    }
+
+    public static String freindlyWrite(final PageContext pageContext, final Instant instant) {
+        final PwmRequest pwmRequest = forRequest(pageContext.getRequest());
+        if (instant == null) {
+            return LocaleHelper.getLocalizedMessage(Display.Value_NotApplicable, pwmRequest);
+        }
+        return "<span class=\"timestamp\">" + instant.toString() + "</span>";
     }
 
     public static String localizedString(final PageContext pageContext, final String key, final Class<? extends PwmDisplayBundle> bundleClass, final String... values) {

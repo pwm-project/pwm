@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,6 +44,9 @@ public enum HealthMessage {
     Email_SendFailure                       (HealthStatus.WARN,     HealthTopic.Email),
     MissingResource                         (HealthStatus.DEBUG,    HealthTopic.Integrity),
     BrokenMethod                            (HealthStatus.DEBUG,    HealthTopic.Integrity),
+    Appliance_PendingUpdates                (HealthStatus.CAUTION,  HealthTopic.Appliance),
+    Appliance_UpdatesNotEnabled             (HealthStatus.CAUTION,  HealthTopic.Appliance),
+    Appliance_UpdateServiceNotConfigured    (HealthStatus.WARN,     HealthTopic.Appliance),
     Config_MissingProxyDN                   (HealthStatus.CONFIG,   HealthTopic.Configuration),
     Config_MissingProxyPassword             (HealthStatus.CONFIG,   HealthTopic.Configuration),
     Config_NoSiteURL                        (HealthStatus.WARN,     HealthTopic.Configuration),

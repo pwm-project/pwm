@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,51 +23,51 @@
 package password.pwm.svc.cache;
 
 import java.io.Serializable;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class CacheStoreInfo implements Serializable {
-    private int storeCount;
-    private int readCount;
-    private int hitCount;
-    private int missCount;
-    private int itemCount;
+    private final AtomicLong storeCount = new AtomicLong();
+    private final AtomicLong readCount = new AtomicLong();
+    private final AtomicLong hitCount = new AtomicLong();
+    private final AtomicLong missCount = new AtomicLong();
 
-    public int getStoreCount() {
-        return storeCount;
+    public void incrementStoreCount()
+    {
+        storeCount.incrementAndGet();
     }
 
-    public void setStoreCount(final int storeCount) {
-        this.storeCount = storeCount;
+    public void incrementReadCount()
+    {
+        readCount.incrementAndGet();
     }
 
-    public int getReadCount() {
-        return readCount;
+    public void incrementHitCount()
+    {
+        hitCount.incrementAndGet();
     }
 
-    public void setReadCount(final int readCount) {
-        this.readCount = readCount;
+    public void incrementMissCount()
+    {
+        missCount.incrementAndGet();
     }
 
-    public int getHitCount() {
-        return hitCount;
+    public long getStoreCount()
+    {
+        return storeCount.get();
     }
 
-    public void setHitCount(final int hitCount) {
-        this.hitCount = hitCount;
+    public long getReadCount()
+    {
+        return readCount.get();
     }
 
-    public int getMissCount() {
-        return missCount;
+    public long getHitCount()
+    {
+        return hitCount.get();
     }
 
-    public void setMissCount(final int missCount) {
-        this.missCount = missCount;
-    }
-
-    public int getItemCount() {
-        return itemCount;
-    }
-
-    public void setItemCount(final int itemCount) {
-        this.itemCount = itemCount;
+    public long getMissCount()
+    {
+        return missCount.get();
     }
 }

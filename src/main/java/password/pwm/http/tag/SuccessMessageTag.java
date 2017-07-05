@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 package password.pwm.http.tag;
 
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestAttribute;
 import password.pwm.i18n.Message;
 import password.pwm.util.macro.MacroMachine;
 
@@ -45,7 +46,7 @@ public class SuccessMessageTag extends PwmAbstractTag {
             final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
             final PwmRequest pwmRequest = PwmRequest.forRequest(req, (HttpServletResponse) pageContext.getResponse());
 
-            final String successMsg = (String)pwmRequest.getAttribute(PwmRequest.Attribute.SuccessMessage);
+            final String successMsg = (String)pwmRequest.getAttribute(PwmRequestAttribute.SuccessMessage);
 
             final String outputMsg;
             if (successMsg == null || successMsg.isEmpty()) {

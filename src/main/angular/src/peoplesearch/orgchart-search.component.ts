@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,68 +22,99 @@
 
 
 import { Component } from '../component';
-import { isArray, isString, IPromise, IQService, IScope } from 'angular';
+import { IConfigService } from '../services/config.service';
 import { IPeopleService } from '../services/people.service';
-import Person from '../models/person.model';
+import IPwmService from '../services/pwm.service';
+import { isArray, isString, IPromise, IQService, IScope } from 'angular';
+import LocalStorageService from '../services/local-storage.service';
 import OrgChartData from '../models/orgchart-data.model';
+import { IPerson } from '../models/person.model';
 
 @Component({
     stylesheetUrl: require('peoplesearch/orgchart-search.component.scss'),
     templateUrl: require('peoplesearch/orgchart-search.component.html')
 })
 export default class OrgChartSearchComponent {
-    directReports: Person[];
-    managementChain: Person[];
-    person: Person;
+    directReports: IPerson[];
+    inputDebounce: number;
+    managementChain: IPerson[];
+    person: IPerson;
+    photosEnabled: boolean;
     query: string;
+    searchTextLocalStorageKey: string;
 
-    static $inject = [ '$q', '$scope', '$state', '$stateParams', 'PeopleService' ];
+    static $inject = [ '$q',
+        '$scope',
+        '$state',
+        '$stateParams',
+        'ConfigService',
+        'LocalStorageService',
+        'PeopleService',
+        'PwmService'
+    ];
     constructor(private $q: IQService,
                 private $scope: IScope,
                 private $state: angular.ui.IStateService,
                 private $stateParams: angular.ui.IStateParamsService,
-                private peopleService: IPeopleService) {
+                private configService: IConfigService,
+                private localStorageService: LocalStorageService,
+                private peopleService: IPeopleService,
+                private pwmService: IPwmService) {
+        this.searchTextLocalStorageKey = this.localStorageService.keys.SEARCH_TEXT;
+        this.inputDebounce = this.pwmService.ajaxTypingWait;
     }
 
     $onInit(): void {
         const self = this;
 
-        // Read query from state parameters
-        const queryParameter = this.$stateParams['query'];
-        // If multiple query parameters are defined, use the first one
-        if (isArray(queryParameter)) {
-            this.query = queryParameter[0].trim();
-        }
-        else if (isString(queryParameter)) {
-            this.query = queryParameter.trim();
-        }
+        this.configService.photosEnabled().then(
+            (photosEnabled: boolean) => {
+                this.photosEnabled = photosEnabled;
+            });
+
+        this.query = this.getSearchText();
 
         let personId: string = this.$stateParams['personId'];
 
         this.fetchOrgChartData(personId)
             .then((orgChartData: OrgChartData) => {
+                if (!orgChartData) {
+                    return;
+                }
+
                 // Override personId in case it was undefined
                 personId = orgChartData.self.userKey;
 
-                self.$q.all({
-                    directReports: self.peopleService.getDirectReports(personId),
-                    managementChain: self.peopleService.getManagementChain(personId),
-                    person: self.peopleService.getPerson(personId)
-                })
-                .then((data) => {
-                    self.$scope.$evalAsync(() => {
-                        self.directReports = data['directReports'];
-                        self.managementChain = data['managementChain'];
-                        self.person = data['person'];
-                    });
-                })
-                .catch(() => {
-                    // TODO: error handling
-                });
+                self.peopleService.getPerson(personId)
+                    .then((person: IPerson) => {
+                            self.person = person;
+                        },
+                        (error) => {
+                            // TODO: handle error
+                        });
+
+                self.peopleService.getManagementChain(personId)
+                    .then((managementChain: IPerson[]) => {
+                            self.managementChain = managementChain;
+                        },
+                        (error) => {
+                            // TODO: handle error
+                        });
+
+                self.peopleService.getDirectReports(personId)
+                    .then((directReports: IPerson[]) => {
+                            self.directReports = directReports;
+                        },
+                        (error) => {
+                            // TODO: handle error
+                        });
+            },
+            (error) => {
+                // TODO: handle error
             });
     }
 
-    autoCompleteSearch(query: string): IPromise<Person[]> {
+    autoCompleteSearch(query: string): IPromise<IPerson[]> {
         return this.peopleService.autoComplete(query);
     }
 
@@ -91,15 +122,33 @@ export default class OrgChartSearchComponent {
         this.$state.go(state, { query: this.query });
     }
 
-    onAutoCompleteItemSelected(person: Person): void {
+    onAutoCompleteItemSelected(person: IPerson): void {
         this.$state.go('orgchart.search', { personId: person.userKey, query: null });
     }
 
     onSearchTextChange(value: string): void {
         this.query = value;
+        this.storeSearchText();
     }
 
     private fetchOrgChartData(personId): IPromise<OrgChartData> {
-        return this.peopleService.getOrgChartData(personId);
+        return this.peopleService.getOrgChartData(personId, true);
+    }
+
+    private getSearchText(): string {
+        let param: string = this.$stateParams['query'];
+        // If multiple query parameters are defined, use the first one
+        if (isArray(param)) {
+            param = param[0].trim();
+        }
+        else if (isString(param)) {
+            param = param.trim();
+        }
+
+        return param || this.localStorageService.getItem(this.searchTextLocalStorageKey);
+    }
+
+    protected storeSearchText(): void {
+        this.localStorageService.setItem(this.searchTextLocalStorageKey, this.query || '');
     }
 }

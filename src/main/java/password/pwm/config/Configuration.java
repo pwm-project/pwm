@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,6 +51,7 @@ import password.pwm.config.value.FileValue;
 import password.pwm.config.value.FormValue;
 import password.pwm.config.value.LocalizedStringArrayValue;
 import password.pwm.config.value.LocalizedStringValue;
+import password.pwm.config.value.NamedSecretValue;
 import password.pwm.config.value.NumericValue;
 import password.pwm.config.value.PasswordValue;
 import password.pwm.config.value.StringArrayValue;
@@ -59,10 +60,10 @@ import password.pwm.config.value.UserPermissionValue;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.JsonUtil;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.PasswordData;
-import password.pwm.util.StringUtil;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
@@ -75,8 +76,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -98,6 +97,9 @@ public class Configuration implements Serializable, SettingReader {
 
     private DataCache dataCache = new DataCache();
 
+    private String cachshedConfigurationHash;
+
+
     // --------------------------- CONSTRUCTORS ---------------------------
 
     public Configuration(final StoredConfigurationImpl storedConfiguration) {
@@ -107,7 +109,7 @@ public class Configuration implements Serializable, SettingReader {
     public String toDebugString() {
         final StringBuilder outputText = new StringBuilder();
         outputText.append("  ");
-        outputText.append(JsonUtil.serialize(StoredConfigurationUtil.toJsonDebugObject(storedConfiguration)));
+        outputText.append(JsonUtil.serialize(StoredConfigurationUtil.toJsonDebugObject(storedConfiguration), JsonUtil.Flag.PrettyPrint));
         return outputText.toString().replaceAll("\n","\n  ");
     }
 
@@ -189,6 +191,11 @@ public class Configuration implements Serializable, SettingReader {
         return JavaTypeConverter.valueToPassword(readStoredValue(setting));
     }
 
+    public Map<String,NamedSecretData> readSettingAsNamedPasswords(final PwmSetting setting)
+    {
+        return JavaTypeConverter.valueToNamedPassword(readStoredValue(setting));
+    }
+
     public abstract static class JavaTypeConverter {
         public static long valueToLong(final StoredValue value) {
             if (!(value instanceof NumericValue)) {
@@ -224,7 +231,21 @@ public class Configuration implements Serializable, SettingReader {
             }
             return (PasswordData)nativeObject;
         }
-        
+
+        public static Map<String,NamedSecretData> valueToNamedPassword(final StoredValue value) {
+            if (value == null) {
+                return null;
+            }
+            if ((!(value instanceof NamedSecretValue))) {
+                throw new IllegalArgumentException("setting value is not readable as named password");
+            }
+            final Object nativeObject = value.toNativeObject();
+            if (nativeObject == null) {
+                return null;
+            }
+            return (Map<String,NamedSecretData>)nativeObject;
+        }
+
         public static List<ActionConfiguration> valueToAction(final PwmSetting setting, final StoredValue storedValue) {
             if (PwmSettingSyntax.ACTION != setting.getSyntax()) {
                 throw new IllegalArgumentException("may not read ACTION value for setting: " + setting.toString());
@@ -411,7 +432,7 @@ public class Configuration implements Serializable, SettingReader {
 
         final PwmPasswordPolicy policy = initPasswordPolicy(profile,locale);
         if (!dataCache.cachedPasswordPolicy.containsKey(profile)) {
-            dataCache.cachedPasswordPolicy.put(profile,new HashMap<Locale,PwmPasswordPolicy>());
+            dataCache.cachedPasswordPolicy.put(profile,new LinkedHashMap<>());
         }
         dataCache.cachedPasswordPolicy.get(profile).put(locale,policy);
         return policy;
@@ -776,12 +797,12 @@ public class Configuration implements Serializable, SettingReader {
     }
 
     private static class DataCache implements Serializable {
-        private final Map<String,Map<Locale,PwmPasswordPolicy>> cachedPasswordPolicy = new HashMap<>();
+        private final Map<String,Map<Locale,PwmPasswordPolicy>> cachedPasswordPolicy = new LinkedHashMap<>();
         private Map<Locale,String> localeFlagMap = null;
         private Map<String,LdapProfile> ldapProfiles;
         private final Map<PwmSetting, StoredValue> settings = new EnumMap<>(PwmSetting.class);
-        private final Map<String,Map<Locale,String>> customText = new HashMap<>();
-        private final Map<ProfileType,Map<String,Profile>> profileCache = new HashMap<>();
+        private final Map<String,Map<Locale,String>> customText = new LinkedHashMap<>();
+        private final Map<ProfileType,Map<String,Profile>> profileCache = new LinkedHashMap<>();
     }
 
     public Map<AppProperty,String> readAllNonDefaultAppProperties() {
@@ -837,7 +858,7 @@ public class Configuration implements Serializable, SettingReader {
 
     public Map<String,Profile> profileMap(final ProfileType profileType) {
         if (!dataCache.profileCache.containsKey(profileType)) {
-            dataCache.profileCache.put(profileType,new LinkedHashMap<String, Profile>());
+            dataCache.profileCache.put(profileType,new LinkedHashMap<>());
             for (final String profileID : ProfileUtility.profileIDsForCategory(this, profileType.getCategory())) {
                 final Profile newProfile = newProfileForID(profileType, profileID);
                 dataCache.profileCache.get(profileType).put(profileID, newProfile);
@@ -884,15 +905,18 @@ public class Configuration implements Serializable, SettingReader {
     public boolean isDevDebugMode() {
         return Boolean.parseBoolean(readAppProperty(AppProperty.LOGGING_DEV_OUTPUT));
     }
-    
-    public String configurationHash() 
+
+    public String configurationHash()
             throws PwmUnrecoverableException 
     {
-        return storedConfiguration.settingChecksum();
+        if (this.cachshedConfigurationHash == null) {
+            this.cachshedConfigurationHash = storedConfiguration.settingChecksum();
+        }
+        return cachshedConfigurationHash;
     }
 
     public Set<PwmSetting> nonDefaultSettings() {
-        final HashSet returnSet = new HashSet();
+        final Set returnSet = new LinkedHashSet();
         for (final StoredConfigurationImpl.SettingValueRecord valueRecord : this.storedConfiguration.modifiedSettings()) {
             returnSet.add(valueRecord.getSetting());
         }

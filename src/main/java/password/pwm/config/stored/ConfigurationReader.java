@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,10 +33,9 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.FileSystemUtility;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.FileSystemUtility;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.ByteArrayInputStream;
@@ -47,6 +46,7 @@ import java.io.InputStream;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 
@@ -117,7 +117,7 @@ public class ConfigurationReader {
             return null;
         }
 
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         final InputStream theFileData;
         try {
             final byte[] contents = FileUtils.readFileToByteArray(configFile);
@@ -149,7 +149,7 @@ public class ConfigurationReader {
         }
 
         final String configIsEditable = storedConfiguration.readConfigProperty(ConfigurationProperty.CONFIG_IS_EDITABLE);
-        if (PwmConstants.TRIAL_MODE || (configIsEditable != null && configIsEditable.equalsIgnoreCase("true"))) {
+        if (PwmConstants.TRIAL_MODE || (configIsEditable != null && "true".equalsIgnoreCase(configIsEditable))) {
             this.configMode = PwmApplicationMode.CONFIGURATION;
         } else {
             this.configMode = PwmApplicationMode.RUNNING;
@@ -223,7 +223,7 @@ public class ConfigurationReader {
                 final String configFileName = configFile.getName();
                 final String backupFilePath = backupDirectory.getAbsolutePath() + File.separatorChar + configFileName + "-backup";
                 final File backupFile = new File(backupFilePath);
-                Helper.rotateBackups(backupFile, backupRotations);
+                FileSystemUtility.rotateBackups(backupFile, backupRotations);
                 storedConfiguration.toXml(new FileOutputStream(backupFile, false));
             }
         } finally {

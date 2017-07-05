@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,9 +27,9 @@ import password.pwm.PwmApplication;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.Helper;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.TransactionSizeCalculator;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
@@ -72,7 +73,7 @@ class Populator {
             new TransactionSizeCalculator.SettingsBuilder()
                     .setDurationGoal(new TimeDuration(600, TimeUnit.MILLISECONDS))
                     .setMinTransactions(10)
-                    .setMaxTransactions(50 * 1000)
+                    .setMaxTransactions(350 * 1000)
                     .createSettings()
     );
 
@@ -133,13 +134,13 @@ class Populator {
 
         perReportStats = new PopulationStats();
         return rootWordlist.DEBUG_LABEL + ", lines/second="
-                + lps + ", line=" + overallStats.getLines() + ")"
+                + lps + ", line=" + overallStats.getLines() + ""
                 + " current zipEntry=" + zipFileReader.currentZipName();
     }
 
     void populate() throws IOException, LocalDBException, PwmUnrecoverableException {
         try {
-            rootWordlist.writeMetadata(new StoredWordlistDataBean.Builder().setSource(source).create());
+            rootWordlist.writeMetadata(StoredWordlistDataBean.builder().source(source).build());
             running = true;
             init();
 
@@ -240,13 +241,13 @@ class Populator {
         sb.append(" population complete, added ").append(wordlistSize);
         sb.append(" total words in ").append(new TimeDuration(overallStats.getElapsedSeconds() * 1000).asCompactString());
         {
-            final StoredWordlistDataBean storedWordlistDataBean = new StoredWordlistDataBean.Builder()
-                    .setSha1hash(Helper.binaryArrayToHex(checksumInputStream.closeAndFinalChecksum()))
-                    .setSize(wordlistSize)
-                    .setStoreDate(new Date())
-                    .setSource(source)
-                    .setCompleted(!abortFlag)
-                    .create();
+            final StoredWordlistDataBean storedWordlistDataBean = StoredWordlistDataBean.builder()
+                    .sha1hash(JavaHelper.binaryArrayToHex(checksumInputStream.closeAndFinalChecksum()))
+                    .size(wordlistSize)
+                    .storeDate(Instant.now())
+                    .source(source)
+                    .completed(!abortFlag)
+                    .build();
             rootWordlist.writeMetadata(storedWordlistDataBean);
         }
         LOGGER.info(sb.toString());
@@ -259,7 +260,7 @@ class Populator {
         final int maxWaitMs = 1000 * 30;
         final Date startWaitTime = new Date();
         while (isRunning() && TimeDuration.fromCurrent(startWaitTime).isShorterThan(maxWaitMs)) {
-            Helper.pause(1000);
+            JavaHelper.pause(1000);
         }
         if (isRunning() && TimeDuration.fromCurrent(startWaitTime).isShorterThan(maxWaitMs)) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, "unable to abort in progress population"));

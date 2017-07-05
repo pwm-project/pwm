@@ -3,13 +3,14 @@
 <%@ page import="password.pwm.error.PwmOperationalException" %>
 <%@ page import="password.pwm.i18n.Admin" %>
 <%@ page import="password.pwm.svc.token.TokenPayload" %>
+<%@ page import="password.pwm.util.java.JavaHelper" %>
 <%@ page import="java.util.Iterator" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2016 The PWM Project
+  ~ Copyright (c) 2009-2017 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -68,7 +69,7 @@
                 boolean tokenExpired = false;
                 String lookupError = null;
                 try {
-                    tokenPayload = tokenlookup_pwmRequest.getPwmApplication().getTokenService().retrieveTokenData(tokenKey);
+                    tokenPayload = tokenlookup_pwmRequest.getPwmApplication().getTokenService().retrieveTokenData(tokenlookup_pwmRequest.getSessionLabel(), tokenKey);
                 } catch (PwmOperationalException e) {
                     tokenExpired= e.getError() == PwmError.ERROR_TOKEN_EXPIRED;
                     lookupError = e.getMessage();
@@ -104,7 +105,7 @@
                     Issue Date
                 </td>
                 <td>
-                    <span class="timestamp"><%= PwmConstants.DEFAULT_DATETIME_FORMAT.format(tokenPayload.getDate()) %></span>
+                    <span class="timestamp"><%= JavaHelper.toIsoDate(tokenPayload.getDate()) %></span>
                 </td>
             </tr>
             <tr>

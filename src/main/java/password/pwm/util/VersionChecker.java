@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,6 +40,8 @@ import password.pwm.health.HealthTopic;
 import password.pwm.http.client.PwmHttpClient;
 import password.pwm.i18n.Display;
 import password.pwm.svc.PwmService;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
@@ -281,8 +283,8 @@ public class VersionChecker implements PwmService {
         }
     }
 
-    public ServiceInfo serviceInfo()
+    public ServiceInfoBean serviceInfo()
     {
-        return new ServiceInfo(Collections.<DataStorageMethod>emptyList());
+        return new ServiceInfoBean(Collections.<DataStorageMethod>emptyList());
     }
 }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,26 +22,23 @@
 
 package password.pwm.http.servlet;
 
-import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
+import password.pwm.http.JspUrl;
+import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
 import password.pwm.http.PwmURL;
-import password.pwm.http.filter.AbstractPwmFilter;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;
@@ -67,78 +64,49 @@ public class LogoutServlet extends ControlledPwmServlet {
     private static final String PARAM_PUBLIC_ONLY = "publicOnly";
 
     private enum LogoutAction implements ControlledPwmServlet.ProcessAction {
-        showLogout(ShowLogoutHandler.class),
-        showTimeout(ShowTimeoutHandler.class),
+        showLogout,
+        showTimeout,
 
         ;
 
-        private final Class<? extends ProcessActionHandler> handlerClass;
 
-        LogoutAction(final Class<? extends ProcessActionHandler> handlerClass) {
-            this.handlerClass = handlerClass;
-        }
-
-        public Class<? extends ProcessActionHandler> getHandlerClass() {
-            return handlerClass;
-        }
-
+        @Override
         public Collection<HttpMethod> permittedMethods() {
             return Collections.singletonList(HttpMethod.GET);
         }
-
     }
 
-    protected LogoutAction readProcessAction(final PwmRequest request)
-            throws PwmUnrecoverableException {
-        try {
-            return LogoutAction.valueOf(request.readParameterAsString(PwmConstants.PARAM_ACTION_REQUEST));
-        } catch (IllegalArgumentException e) {
-            return null;
+    @Override
+    public Class<? extends ProcessAction> getProcessActionsClass() {
+        return LogoutAction.class;
+    }
+
+    @ActionHandler(action = "showLogout")
+    public ProcessStatus processShowLogout(
+            final PwmRequest pwmRequest
+    )
+            throws ServletException, PwmUnrecoverableException, IOException
+    {
+        final Optional<String> nextUrl = readAndValidateNextUrlParameter(pwmRequest);
+        if (nextUrl.isPresent()) {
+            pwmRequest.setAttribute(PwmRequestAttribute.NextUrl, nextUrl.get());
         }
-    }
-
-    protected void processAction(final PwmRequest pwmRequest)
-            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException {
-
-        final LogoutAction logoutAction = readProcessAction(pwmRequest);
-        if (logoutAction != null) {
-            final AbstractPwmFilter.ProcessStatus status = dispatchMethod(pwmRequest);
-            if (status == AbstractPwmFilter.ProcessStatus.Halt) {
-                return;
-            }
-        }
-
-        nextStep(pwmRequest);
-    }
-
-    class ShowLogoutHandler implements ProcessActionHandler {
-        public AbstractPwmFilter.ProcessStatus processAction(
-                final PwmRequest pwmRequest
-        )
-                throws ServletException, PwmUnrecoverableException, IOException
-        {
-            final Optional<String> nextUrl = readAndValidateNextUrlParameter(pwmRequest);
-            if (nextUrl.isPresent()) {
-                pwmRequest.setAttribute(PwmRequest.Attribute.NextUrl, nextUrl.get());
-            }
-            pwmRequest.forwardToJsp(PwmConstants.JspUrl.LOGOUT);
-            return AbstractPwmFilter.ProcessStatus.Halt;
-        }
+        pwmRequest.forwardToJsp(JspUrl.LOGOUT);
+        return ProcessStatus.Halt;
     }
 
 
-     class ShowTimeoutHandler implements ProcessActionHandler {
-        public AbstractPwmFilter.ProcessStatus processAction(
-                final PwmRequest pwmRequest
-        )
-                throws ServletException, PwmUnrecoverableException, IOException
-        {
-            pwmRequest.forwardToJsp(PwmConstants.JspUrl.LOGOUT_PUBLIC);
-            return AbstractPwmFilter.ProcessStatus.Halt;
-        }
+    @ActionHandler(action = "showTimeout")
+    public ProcessStatus processShowTimeout(
+            final PwmRequest pwmRequest
+    )
+            throws ServletException, PwmUnrecoverableException, IOException
+    {
+        pwmRequest.forwardToJsp(JspUrl.LOGOUT_PUBLIC);
+        return ProcessStatus.Halt;
     }
 
-    private void nextStep(
+    public void nextStep(
             final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, IOException
@@ -271,38 +239,9 @@ public class LogoutServlet extends ControlledPwmServlet {
         return Optional.empty();
     }
 
-    private AbstractPwmFilter.ProcessStatus dispatchMethod(
-            final PwmRequest pwmRequest
-    )
-            throws PwmUnrecoverableException
-    {
-
-        final LogoutAction action = readProcessAction(pwmRequest);
-        if (action == null) {
-            return AbstractPwmFilter.ProcessStatus.Continue;
-        }
-        final ProcessActionHandler processActionHandler;
-        try {
-            final Class<? extends ProcessActionHandler> theClass = action.getHandlerClass();
-            if (theClass.getEnclosingClass() == null) {
-                processActionHandler = theClass.newInstance();
-            } else {
-                final Constructor constructor = theClass.getDeclaredConstructor(this.getClass());
-                processActionHandler = (ProcessActionHandler) constructor.newInstance(this);
-            }
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            e.printStackTrace();
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, "XXX"));
-        }
-        try {
-            return processActionHandler.processAction(pwmRequest);
-        } catch (ServletException | IOException e) {
-            e.printStackTrace();
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, "XXX"));
-        }
-    }
-
-    interface ProcessActionHandler {
-        AbstractPwmFilter.ProcessStatus processAction(PwmRequest pwmRequest) throws ServletException, PwmUnrecoverableException, IOException;
+    @Override
+    public ProcessStatus preProcessCheck(final PwmRequest pwmRequest) {
+        // no checks required, this is a public module.
+        return ProcessStatus.Continue;
     }
 }

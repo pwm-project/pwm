@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,13 +27,13 @@ import com.novell.ldapchai.ChaiPasswordRule;
 import com.novell.ldapchai.util.DefaultChaiPasswordPolicy;
 import com.novell.ldapchai.util.PasswordRuleHelper;
 import com.novell.ldapchai.util.StringHelper;
-import org.apache.commons.lang3.StringUtils;
 import password.pwm.config.UserPermission;
 import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
@@ -193,20 +193,20 @@ public class PwmPasswordPolicy implements Profile,Serializable {
                         break;
 
                     case ExpirationInterval:
-                        final String expirationIntervalLocalValue = StringUtils.defaultString(policyMap.get(ruleKey), rule.getDefaultValue());
-                        final String expirationIntervalOtherValue = StringUtils.defaultString(otherPolicy.policyMap.get(ruleKey), rule.getDefaultValue());
+                        final String expirationIntervalLocalValue = StringUtil.defaultString(policyMap.get(ruleKey), rule.getDefaultValue());
+                        final String expirationIntervalOtherValue = StringUtil.defaultString(otherPolicy.policyMap.get(ruleKey), rule.getDefaultValue());
                         newPasswordPolicies.put(ruleKey, mergeMin(expirationIntervalLocalValue, expirationIntervalOtherValue));
                         break;
 
                     case MinimumLifetime:
-                        final String minimumLifetimeLocalValue = StringUtils.defaultString(policyMap.get(ruleKey), rule.getDefaultValue());
-                        final String minimumLifetimeOtherValue = StringUtils.defaultString(otherPolicy.policyMap.get(ruleKey), rule.getDefaultValue());
+                        final String minimumLifetimeLocalValue = StringUtil.defaultString(policyMap.get(ruleKey), rule.getDefaultValue());
+                        final String minimumLifetimeOtherValue = StringUtil.defaultString(otherPolicy.policyMap.get(ruleKey), rule.getDefaultValue());
                         newPasswordPolicies.put(ruleKey, mergeMin(minimumLifetimeLocalValue, minimumLifetimeOtherValue));
                         break;
 
                     default:
-                        final String localValueString = StringUtils.defaultString(policyMap.get(ruleKey), rule.getDefaultValue());
-                        final String otherValueString = StringUtils.defaultString(otherPolicy.policyMap.get(ruleKey), rule.getDefaultValue());
+                        final String localValueString = StringUtil.defaultString(policyMap.get(ruleKey), rule.getDefaultValue());
+                        final String otherValueString = StringUtil.defaultString(otherPolicy.policyMap.get(ruleKey), rule.getDefaultValue());
 
                         switch (rule.getRuleType()) {
                             case MIN:
@@ -294,7 +294,7 @@ public class PwmPasswordPolicy implements Profile,Serializable {
         public List<String> getDisallowedAttributes(final Flag ... flags) {
             final List<String> disallowedAttributes = chaiRuleHelper.getDisallowedAttributes();
 
-            if (Helper.enumArrayContainsValue(flags, Flag.KeepThresholds)) {
+            if (JavaHelper.enumArrayContainsValue(flags, Flag.KeepThresholds)) {
                 return disallowedAttributes;
             } else {
                 // Strip off any thresholds from attribute (specified as: "attributeName:N", where N is a numeric value).

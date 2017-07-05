@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,11 +23,11 @@
 package password.pwm.util.cli.commands;
 
 import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
+import password.pwm.bean.SessionLabel;
 import password.pwm.svc.token.TokenPayload;
 import password.pwm.svc.token.TokenService;
-import password.pwm.util.Helper;
 import password.pwm.util.cli.CliParameters;
+import password.pwm.util.java.JavaHelper;
 
 import java.util.Collections;
 
@@ -44,7 +44,7 @@ public class TokenInfoCommand extends AbstractCliCommand {
         TokenPayload tokenPayload = null;
         Exception lookupError = null;
         try {
-            tokenPayload = tokenService.retrieveTokenData(tokenKey);
+            tokenPayload = tokenService.retrieveTokenData(SessionLabel.TOKEN_SESSION_LABEL, tokenKey);
         } catch (Exception e) {
             lookupError = e;
         }
@@ -57,7 +57,7 @@ public class TokenInfoCommand extends AbstractCliCommand {
         } else {
             out("  name: " + tokenPayload.getName());
             out("  user: " + tokenPayload.getUserIdentity());
-            out("issued: " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(tokenPayload.getDate()));
+            out("issued: " + JavaHelper.toIsoDate(tokenPayload.getDate()));
             for (final String key : tokenPayload.getData().keySet()) {
                 final String value = tokenPayload.getData().get(key);
                 out("  payload key: " + key);
@@ -66,7 +66,7 @@ public class TokenInfoCommand extends AbstractCliCommand {
         }
 
         pwmApplication.shutdown();
-        Helper.pause(1000);
+        JavaHelper.pause(1000);
     }
 
     @Override

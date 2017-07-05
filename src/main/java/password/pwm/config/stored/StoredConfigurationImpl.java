@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@ import org.jdom2.xpath.XPathFactory;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
+import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.PwmSettingSyntax;
@@ -40,6 +41,7 @@ import password.pwm.config.PwmSettingTemplate;
 import password.pwm.config.PwmSettingTemplateSet;
 import password.pwm.config.StoredValue;
 import password.pwm.config.option.ADPolicyComplexity;
+import password.pwm.config.value.NamedSecretValue;
 import password.pwm.config.value.PasswordValue;
 import password.pwm.config.value.PrivateKeyValue;
 import password.pwm.config.value.StringArrayValue;
@@ -52,15 +54,15 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.PwmLocaleBundle;
-import password.pwm.util.BCrypt;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.PasswordData;
-import password.pwm.util.StringUtil;
-import password.pwm.util.TimeDuration;
-import password.pwm.util.XmlUtil;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.TimeDuration;
+import password.pwm.util.java.XmlUtil;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.BCrypt;
 import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.util.secure.SecureEngine;
@@ -69,8 +71,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
-import java.text.ParseException;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -103,8 +106,8 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
     private Document document = new Document(new Element(XML_ELEMENT_ROOT));
     private ChangeLog changeLog = new ChangeLog();
 
-    private boolean locked = false;
-    private boolean setting_writeLabels = true;
+    private boolean locked;
+    private final boolean setting_writeLabels = true;
     private final ReentrantReadWriteLock domModifyLock = new ReentrantReadWriteLock();
 
 // -------------------------- STATIC METHODS --------------------------
@@ -197,7 +200,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
 
     public StoredConfigurationImpl() throws PwmUnrecoverableException {
         ConfigurationCleaner.cleanup(this);
-        final String createTime = PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date());
+        final String createTime = JavaHelper.toIsoDate(Instant.now());
         document.getRootElement().setAttribute(XML_ATTRIBUTE_CREATE_TIME,createTime);
     }
 
@@ -235,8 +238,8 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
 
             final XPathExpression xp2 = XPathBuilder.xpathForConfigProperties();
             final Element propertiesElement = (Element)xp2.evaluateFirst(document);
-            propertyElement.setAttribute(XML_ATTRIBUTE_MODIFY_TIME,PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
-            propertiesElement.setAttribute(XML_ATTRIBUTE_MODIFY_TIME,PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
+            propertyElement.setAttribute(XML_ATTRIBUTE_MODIFY_TIME, JavaHelper.toIsoDate(Instant.now()));
+            propertiesElement.setAttribute(XML_ATTRIBUTE_MODIFY_TIME, JavaHelper.toIsoDate(Instant.now()));
             propertiesElement.addContent(propertyElement);
         } finally {
             domModifyLock.writeLock().unlock();
@@ -282,7 +285,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
             final ValueMetaData settingMetaData = readSettingMetadata(settingValueRecord.getSetting(), settingValueRecord.getProfile());
             if (settingMetaData != null) {
                 if (settingMetaData.getModifyDate() != null) {
-                    recordMap.put("modifyTime", PwmConstants.DEFAULT_DATETIME_FORMAT.format(settingMetaData.getModifyDate()));
+                    recordMap.put("modifyTime", JavaHelper.toIsoDate(settingMetaData.getModifyDate()));
                 }
                 if (settingMetaData.getUserIdentity() != null) {
                     recordMap.put("modifyUser",settingMetaData.getUserIdentity().toDisplayString());
@@ -373,7 +376,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
         if (settingElement != null) {
             try {
                 final String strValue = (String) ValueFactory.fromXmlValues(pwmSetting, settingElement, null).toNativeObject();
-                return Helper.readEnumFromString(PwmSettingTemplate.class, null, strValue);
+                return JavaHelper.readEnumFromString(PwmSettingTemplate.class, null, strValue);
             } catch (PwmException e) {
                 LOGGER.error("error reading template", e);
             }
@@ -530,10 +533,10 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
             return null;
         }
 
-        Date modifyDate = null;
+        Instant modifyDate = null;
         try {
             if (settingElement.getAttributeValue(XML_ATTRIBUTE_MODIFY_TIME) != null) {
-                modifyDate = PwmConstants.DEFAULT_DATETIME_FORMAT.parse(
+                modifyDate = JavaHelper.parseIsoToInstant(
                         settingElement.getAttributeValue(XML_ATTRIBUTE_MODIFY_TIME));
             }
         } catch (Exception e) {
@@ -722,7 +725,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
                 valueElement.setContent(new CDATA(localeMap.get(locale)));
                 localeBundleElement.addContent(valueElement);
             }
-            localeBundleElement.setAttribute(XML_ATTRIBUTE_MODIFY_TIME,PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
+            localeBundleElement.setAttribute(XML_ATTRIBUTE_MODIFY_TIME, JavaHelper.toIsoDate(Instant.now()));
             document.getRootElement().addContent(localeBundleElement);
         } finally {
             domModifyLock.writeLock().unlock();
@@ -733,6 +736,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
     public void copyProfileID(final PwmSettingCategory category, final String sourceID, final String destinationID, final UserIdentity userIdentity)
             throws PwmUnrecoverableException
     {
+
         if (!category.hasProfiles()) {
             throw PwmUnrecoverableException.newException(PwmError.ERROR_INVALID_CONFIG, "can not copy profile ID for category " + category + ", category does not have profiles");
         }
@@ -743,12 +747,19 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
         if (existingProfiles.contains(destinationID)) {
             throw PwmUnrecoverableException.newException(PwmError.ERROR_INVALID_CONFIG, "can not copy profile ID for category, destination profileID '" + destinationID+ "' already exists");
         }
-        for (final PwmSetting pwmSetting : category.getSettings()) {
-            if (!isDefaultValue(pwmSetting, sourceID)) {
-                final StoredValue value = readSetting(pwmSetting, sourceID);
-                writeSetting(pwmSetting, destinationID, value, userIdentity);
+
+        {
+            final Collection<PwmSettingCategory> interestedCategories = PwmSettingCategory.associatedProfileCategories(category);
+            for (final PwmSettingCategory interestedCategory : interestedCategories) {
+                for (final PwmSetting pwmSetting : interestedCategory.getSettings()) {
+                    if (!isDefaultValue(pwmSetting, sourceID)) {
+                        final StoredValue value = readSetting(pwmSetting, sourceID);
+                        writeSetting(pwmSetting, destinationID, value, userIdentity);
+                    }
+                }
             }
         }
+
         final List<String> newProfileIDList = new ArrayList<>();
         newProfileIDList.addAll(existingProfiles);
         newProfileIDList.add(destinationID);
@@ -800,6 +811,9 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
             } else if (setting.getSyntax() == PwmSettingSyntax.PRIVATE_KEY) {
                 final List<Element> valueElements = ((PrivateKeyValue)value).toXmlValues("value", getKey());
                 settingElement.addContent(valueElements);
+            } else if (setting.getSyntax() == PwmSettingSyntax.NAMED_SECRET) {
+                final List<Element> valueElements = ((NamedSecretValue)value).toXmlValues("value", getKey());
+                settingElement.addContent(valueElements);
             } else {
                 settingElement.addContent(value.toXmlValues("value"));
             }
@@ -835,7 +849,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
         if (locked) {
             throw new UnsupportedOperationException("StoredConfiguration is locked and cannot be modified");
         }
-        document.getRootElement().setAttribute(XML_ATTRIBUTE_MODIFY_TIME,PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
+        document.getRootElement().setAttribute(XML_ATTRIBUTE_MODIFY_TIME, JavaHelper.toIsoDate(Instant.now()));
     }
 
 // -------------------------- INNER CLASSES --------------------------
@@ -856,12 +870,12 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
         this.writeConfigProperty(ConfigurationProperty.PASSWORD_HASH, passwordHash);
     }
 
-    public boolean verifyPassword(final String password) {
+    public boolean verifyPassword(final String password, final Configuration configuration) {
         if (!hasPassword()) {
             return false;
         }
         final String passwordHash = this.readConfigProperty(ConfigurationProperty.PASSWORD_HASH);
-        return BCrypt.testAnswer(password, passwordHash);
+        return BCrypt.testAnswer(password, passwordHash, configuration);
     }
 
     public boolean hasPassword() {
@@ -1247,7 +1261,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
         return changeLog.changeLogAsDebugString(locale, asHtml);
     }
 
-    private PwmSecurityKey cachedKey = null;
+    private PwmSecurityKey cachedKey;
 
     public PwmSecurityKey getKey() throws PwmUnrecoverableException {
         if (cachedKey == null) {
@@ -1374,8 +1388,8 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
 
     private static void updateMetaData(final Element settingElement, final UserIdentity userIdentity) {
         final Element settingsElement = settingElement.getDocument().getRootElement().getChild(XML_ELEMENT_SETTINGS);
-        settingElement.setAttribute(XML_ATTRIBUTE_MODIFY_TIME,PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
-        settingsElement.setAttribute(XML_ATTRIBUTE_MODIFY_TIME,PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
+        settingElement.setAttribute(XML_ATTRIBUTE_MODIFY_TIME, JavaHelper.toIsoDate(Instant.now()));
+        settingsElement.setAttribute(XML_ATTRIBUTE_MODIFY_TIME, JavaHelper.toIsoDate(Instant.now()));
         settingElement.removeAttribute(XML_ATTRIBUTE_MODIFY_USER);
         settingsElement.removeAttribute(XML_ATTRIBUTE_MODIFY_USER);
         if (userIdentity != null) {
@@ -1507,13 +1521,13 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
     }
 
     @Override
-    public Date modifyTime() {
+    public Instant modifyTime() {
         final Element rootElement = document.getRootElement();
         final String modifyTimeString = rootElement.getAttributeValue(XML_ATTRIBUTE_MODIFY_TIME);
         if (modifyTimeString != null) {
             try {
-                return PwmConstants.DEFAULT_DATETIME_FORMAT.parse(modifyTimeString);
-            } catch (ParseException e) {
+                return JavaHelper.parseIsoToInstant(modifyTimeString);
+            } catch (Exception e) {
                 LOGGER.error("error parsing root last modified timestamp: " + e.getMessage());
             }
         }
@@ -1555,4 +1569,5 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
         }
         return new ArrayList<>(loopResults);
     }
+
 }

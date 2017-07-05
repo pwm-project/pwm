@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,22 +24,36 @@ package password.pwm.manual;
 
 import junit.framework.TestCase;
 import password.pwm.AppProperty;
-import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.svc.stats.EventRateMeter;
-import password.pwm.util.*;
+import password.pwm.util.java.FileSystemUtility;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.Percent;
+import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBFactory;
-import password.pwm.util.logging.*;
+import password.pwm.util.logging.LocalDBLogger;
+import password.pwm.util.logging.LocalDBLoggerSettings;
+import password.pwm.util.logging.PwmLogEvent;
+import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.secure.PwmRandom;
 
 import java.io.File;
 import java.io.Serializable;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
-import java.util.*;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -96,7 +110,7 @@ public class LocalDBLoggerTest extends TestCase {
     }
 
     private void out(String output) {
-        System.out.println(PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date())+ " " + output);
+        System.out.println(JavaHelper.toIsoDate(new Date())+ " " + output);
     }
 
     public void testBulkAddEvents() throws InterruptedException {
@@ -150,7 +164,7 @@ public class LocalDBLoggerTest extends TestCase {
         for (int i = 0; i < count; i++) {
             final String description = randomValueMaker.next();
             PwmLogEvent event = PwmLogEvent.createPwmLogEvent(
-                    new Date(),
+                    Instant.now(),
                     LocalDBLogger.class.getName(),
                     description, "", "", null, null, PwmLogLevel.TRACE);
             events.add(event);
@@ -162,9 +176,9 @@ public class LocalDBLoggerTest extends TestCase {
     private void outputDebugInfo() {
         final StringBuilder sb = new StringBuilder();
         sb.append("added ").append(numberFormat.format(eventsAdded.get()));
-        sb.append(", size: ").append(Helper.formatDiskSize(FileSystemUtility.getFileDirectorySize(localDB.getFileLocation())));
+        sb.append(", size: ").append(StringUtil.formatDiskSize(FileSystemUtility.getFileDirectorySize(localDB.getFileLocation())));
         sb.append(", eventsInDb: ").append(figureEventsInDbStat());
-        sb.append(", free: ").append(Helper.formatDiskSize(
+        sb.append(", free: ").append(StringUtil.formatDiskSize(
                 FileSystemUtility.diskSpaceRemaining(localDB.getFileLocation())));
         sb.append(", eps: ").append(eventRateMeter.readEventRate().setScale(0, RoundingMode.UP));
         sb.append(", remain: ").append(settings.testDuration.subtract(TimeDuration.fromCurrent(startTime)).asCompactString());
@@ -185,7 +199,7 @@ public class LocalDBLoggerTest extends TestCase {
         results.dbClass = config.readAppProperty(AppProperty.LOCALDB_IMPLEMENTATION);
         results.duration = TimeDuration.fromCurrent(startTime).asCompactString();
         results.recordsAdded = eventsAdded.get();
-        results.dbSize = Helper.formatDiskSize(FileSystemUtility.getFileDirectorySize(localDB.getFileLocation()));
+        results.dbSize = StringUtil.formatDiskSize(FileSystemUtility.getFileDirectorySize(localDB.getFileLocation()));
         results.eventsInDb = figureEventsInDbStat();
         return results;
     }

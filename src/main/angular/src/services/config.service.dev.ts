@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@ export default class ConfigService implements IConfigService {
     static $inject = [ '$q' ];
     constructor(private $q: IQService) {}
 
-    getColumnConfiguration(): IPromise<any> {
+    getColumnConfig(): IPromise<any> {
         return this.$q.resolve({
             givenName: 'First Name',
             sn: 'Last Name',
@@ -36,5 +36,17 @@ export default class ConfigService implements IConfigService {
             mail: 'Email',
             telephoneNumber: 'Telephone'
         });
+    }
+
+    photosEnabled(): IPromise<boolean> {
+        return this.$q.resolve(true);
+    }
+
+    orgChartEnabled(): IPromise<boolean> {
+        return this.$q.resolve(true);
+    };
+
+    getValue(key: string): IPromise<any> {
+        return null;
     }
 }

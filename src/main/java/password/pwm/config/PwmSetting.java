@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,9 +29,9 @@ import password.pwm.config.value.ValueFactory;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Config;
-import password.pwm.util.Helper;
 import password.pwm.util.LocaleHelper;
-import password.pwm.util.StringUtil;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
@@ -43,7 +43,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.MissingResourceException;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -112,6 +111,8 @@ public enum PwmSetting {
             "display.maskPasswordFields", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UI_FEATURES),
     DISPLAY_MASK_RESPONSE_FIELDS(
             "display.maskResponseFields", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UI_FEATURES),
+    DISPLAY_MASK_TOKEN_FIELDS(
+            "display.maskTokenFields", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UI_FEATURES),
     DISPLAY_CANCEL_BUTTON(
             "display.showCancelButton", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UI_FEATURES),
     DISPLAY_SUCCESS_PAGES(
@@ -285,6 +286,11 @@ public enum PwmSetting {
             "email.smtp.userpassword", PwmSettingSyntax.PASSWORD, PwmSettingCategory.EMAIL_SETTINGS),
     EMAIL_MAX_QUEUE_AGE(
             "email.queueMaxAge", PwmSettingSyntax.DURATION, PwmSettingCategory.EMAIL_SETTINGS),
+    EMAIL_ADVANCED_SETTINGS(
+            "email.smtp.advancedSettings", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.EMAIL_SETTINGS),
+
+
+    // email template
     EMAIL_CHANGEPASSWORD(
             "email.changePassword", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES),
     EMAIL_CHANGEPASSWORD_HELPDESK(
@@ -321,9 +327,9 @@ public enum PwmSetting {
             "email.helpdesk.unlock", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES),
     EMAIL_UNLOCK(
             "email.unlock", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES),
+    EMAIL_PW_EXPIRATION_NOTICE(
+            "email.pwExpirationNotice", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES),
 
-    EMAIL_ADVANCED_SETTINGS(
-            "email.smtp.advancedSettings", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.EMAIL_SETTINGS),
 
     // sms settings
     SMS_MAX_QUEUE_AGE(
@@ -506,16 +512,12 @@ public enum PwmSetting {
 
 
     // web security
-    SECURITY_ENABLE_REQUEST_SEQUENCE(
-            "security.page.enableRequestSequence", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.WEB_SECURITY),
     SECURITY_ENABLE_FORM_NONCE(
             "security.formNonce.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.WEB_SECURITY),
     ENABLE_SESSION_VERIFICATION(
             "enableSessionVerification", PwmSettingSyntax.SELECT, PwmSettingCategory.WEB_SECURITY),
     DISALLOWED_HTTP_INPUTS(
             "disallowedInputs", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.WEB_SECURITY),
-    REQUIRE_HTTPS(
-            "pwm.requireHTTPS", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.WEB_SECURITY),
     USE_X_FORWARDED_FOR_HEADER(
             "useXForwardedForHeader", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.WEB_SECURITY),
     MULTI_IP_SESSION_ALLOWED(
@@ -675,8 +677,6 @@ public enum PwmSetting {
             "challenge.allowSetup.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.CHALLENGE),
     QUERY_MATCH_CHECK_RESPONSES(
             "command.checkResponses.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.CHALLENGE),
-    CHALLENGE_ENFORCE_MINIMUM_PASSWORD_LIFETIME(
-            "challenge.enforceMinimumPasswordLifetime", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.CHALLENGE),
 
     // challenge policy profile
     CHALLENGE_PROFILE_LIST(
@@ -714,6 +714,8 @@ public enum PwmSetting {
             "response.hashMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_SETTINGS),
     FORGOTTEN_USER_POST_ACTIONS(
             "recovery.postActions", PwmSettingSyntax.ACTION, PwmSettingCategory.RECOVERY_SETTINGS),
+    CHALLENGE_ENFORCE_MINIMUM_PASSWORD_LIFETIME(
+            "challenge.enforceMinimumPasswordLifetime", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_SETTINGS),
 
     // recovery profile
     RECOVERY_PROFILE_LIST(
@@ -794,7 +796,10 @@ public enum PwmSetting {
             "newUser.minimumWaitTime", PwmSettingSyntax.DURATION, PwmSettingCategory.NEWUSER_PROFILE),
     NEWUSER_PROFILE_DISPLAY_NAME(
             "newUser.profile.displayName", PwmSettingSyntax.LOCALIZED_STRING, PwmSettingCategory.NEWUSER_PROFILE),
-
+    NEWUSER_REDIRECT_URL(
+            "newUser.redirectUrl", PwmSettingSyntax.STRING, PwmSettingCategory.NEWUSER_PROFILE),
+    NEWUSER_PROMPT_FOR_PASSWORD(
+            "newUser.promptForPassword", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.NEWUSER_PROFILE),
 
     // guest settings
     GUEST_ENABLE(
@@ -1038,14 +1043,12 @@ public enum PwmSetting {
             "reporting.ldap.searchFilter", PwmSettingSyntax.STRING, PwmSettingCategory.REPORTING),
     REPORTING_MAX_CACHE_AGE(
             "reporting.maxCacheAge", PwmSettingSyntax.DURATION, PwmSettingCategory.REPORTING),
-    REPORTING_MIN_CACHE_AGE(
-            "reporting.minCacheAge", PwmSettingSyntax.DURATION, PwmSettingCategory.REPORTING),
-    REPORTING_REST_TIME_MS(
-            "reporting.reportRestTimeMS", PwmSettingSyntax.NUMERIC, PwmSettingCategory.REPORTING),
     REPORTING_MAX_QUERY_SIZE(
             "reporting.ldap.maxQuerySize", PwmSettingSyntax.NUMERIC, PwmSettingCategory.REPORTING),
     REPORTING_JOB_TIME_OFFSET(
             "reporting.job.timeOffset", PwmSettingSyntax.DURATION, PwmSettingCategory.REPORTING),
+    REPORTING_JOB_INTENSITY(
+            "reporting.job.intensity", PwmSettingSyntax.SELECT, PwmSettingCategory.REPORTING),
     REPORTING_SUMMARY_DAY_VALUES(
             "reporting.summary.dayValues", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.REPORTING),
 
@@ -1098,7 +1101,7 @@ public enum PwmSetting {
     WEBSERVICES_THIRDPARTY_QUERY_MATCH(
             "webservices.thirdParty.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.REST_SERVER),
     WEBSERVICES_EXTERNAL_SECRET(
-            "webservices.external.secret", PwmSettingSyntax.PASSWORD, PwmSettingCategory.REST_SERVER),
+            "webservices.external.secrets", PwmSettingSyntax.NAMED_SECRET, PwmSettingCategory.REST_SERVER),
 
 
     EXTERNAL_MACROS_DEST_TOKEN_URLS(
@@ -1110,16 +1113,6 @@ public enum PwmSetting {
     EXTERNAL_MACROS_REMOTE_RESPONSES_URL(
             "external.remoteResponses.url", PwmSettingSyntax.STRING, PwmSettingCategory.REST_CLIENT),
 
-
-    // NAAF
-    NAAF_WS_URL(
-            "naaf.ws.url", PwmSettingSyntax.STRING, PwmSettingCategory.NAAF),
-    NAAF_WS_CERTIFICATE(
-            "naaf.ws.serverCerts", PwmSettingSyntax.X509CERT, PwmSettingCategory.NAAF),
-    NAAF_USER_IDENTIFIER(
-            "naaf.userIdentifier", PwmSettingSyntax.STRING, PwmSettingCategory.NAAF),
-    NAAF_METHODS(
-            "naaf.requiredMethods", PwmSettingSyntax.OPTIONLIST, PwmSettingCategory.NAAF),
 
     //appliance
     HTTPS_CERT(
@@ -1141,9 +1134,6 @@ public enum PwmSetting {
             "recovery.require.otp", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_SETTINGS),
     HELPDESK_ENABLE_OTP_VERIFY(
             "helpdesk.otp.verify", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_BASE),
-    PWMDB_LOCATION(
-            "pwmDb.location", PwmSettingSyntax.STRING, PwmSettingCategory.GENERAL),
-
 
 
     ;
@@ -1272,7 +1262,7 @@ public enum PwmSetting {
                     if (propertyElement.getAttributeValue("key") == null) {
                         throw new IllegalStateException("property element is missing 'key' attribute for value " + this.getKey());
                     }
-                    final PwmSettingProperty property = Helper.readEnumFromString(PwmSettingProperty.class, null, propertyElement.getAttributeValue("key"));
+                    final PwmSettingProperty property = JavaHelper.readEnumFromString(PwmSettingProperty.class, null, propertyElement.getAttributeValue("key"));
                     if (property == null) {
                         throw new IllegalStateException("property element has unknown 'key' attribute for value " + this.getKey());
                     }
@@ -1313,12 +1303,12 @@ public enum PwmSetting {
         final List<LDAPPermissionInfo> returnObj = new ArrayList<>();
         if (permissionElements != null) {
             for (final Element permissionElement : permissionElements) {
-                final LDAPPermissionInfo.Actor actor = Helper.readEnumFromString(
+                final LDAPPermissionInfo.Actor actor = JavaHelper.readEnumFromString(
                         LDAPPermissionInfo.Actor.class,
                         null,
                         permissionElement.getAttributeValue(PwmSettingXml.XML_ATTRIBUTE_PERMISSION_ACTOR)
                 );
-                final LDAPPermissionInfo.Access type = Helper.readEnumFromString(
+                final LDAPPermissionInfo.Access type = JavaHelper.readEnumFromString(
                         LDAPPermissionInfo.Access.class,
                         null,
                         permissionElement.getAttributeValue(PwmSettingXml.XML_ATTRIBUTE_PERMISSION_ACCESS)
@@ -1333,23 +1323,15 @@ public enum PwmSetting {
     }
 
     public String getLabel(final Locale locale) {
-        final String key = "Setting_Label_" + this.getKey();
-        try {
-            return LocaleHelper.getLocalizedMessage(locale, key, null, password.pwm.i18n.PwmSetting.class);
-        } catch (MissingResourceException e) {
-            return "MISSING_SETTING_LABEL-" + key;
-        }
+        final String propertyKey = "Setting_Label_" + this.getKey();
+        return LocaleHelper.getLocalizedMessage(locale, propertyKey, null, password.pwm.i18n.PwmSetting.class);
     }
 
     public String getDescription(final Locale locale) {
-        final String key = "Setting_Description_" + this.getKey();
-        try {
-            final String storedText = LocaleHelper.getLocalizedMessage(locale, key, null, password.pwm.i18n.PwmSetting.class);
-            final MacroMachine macroMachine = MacroMachine.forStatic();
-            return macroMachine.expandMacros(storedText);
-        } catch (MissingResourceException e) {
-            return "MISSING_DESCRIPTION_LABEL-" + key;
-        }
+        final String propertyKey = "Setting_Description_" + this.getKey();
+        final String storedText = LocaleHelper.getLocalizedMessage(locale, propertyKey, null, password.pwm.i18n.PwmSetting.class);
+        final MacroMachine macroMachine = MacroMachine.forStatic();
+        return macroMachine.expandMacros(storedText);
     }
 
     public String getExample(final PwmSettingTemplateSet template) {

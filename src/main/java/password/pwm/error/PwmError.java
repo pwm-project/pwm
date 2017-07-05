@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,8 +24,8 @@ package password.pwm.error;
 
 import com.novell.ldapchai.exception.ChaiError;
 import password.pwm.config.Configuration;
-import password.pwm.util.Helper;
 import password.pwm.util.LocaleHelper;
+import password.pwm.util.java.JavaHelper;
 
 import java.util.Locale;
 
@@ -162,6 +162,7 @@ public enum PwmError {
     ERROR_ENVIRONMENT_ERROR(        5083, "Error_EnvironmentError",         null, ErrorFlag.Permanent),
     ERROR_APPLICATION_NOT_RUNNING(  5084, "Error_ApplicationNotRunning",    null, ErrorFlag.Permanent),
     ERROR_EMAIL_SEND_FAILURE(       5085, "Error_EmailSendFailure",         null, ErrorFlag.Permanent),
+    ERROR_PASSWORD_ONLY_BAD(        5089, "Error_PasswordOnlyBad",          null),
 
     ERROR_REMOTE_ERROR_VALUE(       6000, "Error_RemoteErrorValue",         null, ErrorFlag.Permanent),
 
@@ -199,8 +200,8 @@ public enum PwmError {
     PwmError(final int errorCode, final String resourceKey, final ChaiError[] chaiErrorCode, final ErrorFlag...errorFlags) {
         this.resourceKey = resourceKey;
         this.errorCode = errorCode;
-        this.errorIsPermanent = Helper.enumArrayContainsValue(errorFlags, ErrorFlag.Permanent);
-        this.forceLogout = Helper.enumArrayContainsValue(errorFlags, ErrorFlag.ForceLogout);
+        this.errorIsPermanent = JavaHelper.enumArrayContainsValue(errorFlags, ErrorFlag.Permanent);
+        this.forceLogout = JavaHelper.enumArrayContainsValue(errorFlags, ErrorFlag.ForceLogout);
         this.chaiErrorCode = chaiErrorCode;
 
     }

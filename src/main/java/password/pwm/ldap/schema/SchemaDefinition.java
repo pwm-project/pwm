@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 
 package password.pwm.ldap.schema;
 
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JsonUtil;
 
 import java.io.Serializable;
 import java.util.ArrayList;

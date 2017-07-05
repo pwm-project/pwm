@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,111 +22,47 @@
 
 package password.pwm.ws.server;
 
+import lombok.Builder;
+import lombok.Getter;
+
 import java.io.Serializable;
 
+@Getter
+@Builder(toBuilder = true)
 public class ServicePermissions implements Serializable {
 
-    public static final ServicePermissions PUBLIC;
-    public static final ServicePermissions ADMIN_OR_CONFIGMODE;
-    public static final ServicePermissions ADMIN_LOCAL_OR_EXTERNAL;
+    public static final ServicePermissions PUBLIC = ServicePermissions.builder()
+            .adminOnly(false)
+            .authRequired(false)
+            .blockExternal(false)
+            .helpdeskPermitted(true)
+            .build();
 
-    static {
-        {
-            final ServicePermissions permission = new ServicePermissions();
-            permission.setAdminOnly(false);
-            permission.setAuthRequired(false);
-            permission.setBlockExternal(false);
-            permission.setHelpdeskPermitted(true);
-            permission.lock();
-            PUBLIC = permission;
-        }
-        {
-            final ServicePermissions permission = new ServicePermissions();
-            permission.setAdminOnly(false);
-            permission.setAuthRequired(false);
-            permission.setBlockExternal(true);
-            permission.setPublicDuringConfig(true);
-            permission.lock();
-            ADMIN_OR_CONFIGMODE = permission;
-        }
-        {
-            final ServicePermissions permission = new ServicePermissions();
-            permission.setAdminOnly(true);
-            permission.setAuthRequired(true);
-            permission.setBlockExternal(false);
-            permission.lock();
-            ADMIN_LOCAL_OR_EXTERNAL = permission;
-        }
-    }
+    public static final ServicePermissions ADMIN_OR_CONFIGMODE = ServicePermissions.builder()
+            .adminOnly(false)
+            .authRequired(false)
+            .blockExternal(true)
+            .publicDuringConfig(true)
+            .build();
 
+    public static final ServicePermissions ADMIN_LOCAL_OR_EXTERNAL = ServicePermissions.builder()
+            .adminOnly(true)
+            .authRequired(true)
+            .blockExternal(false)
+            .build();
+
+    @Builder.Default
     private boolean authRequired = true;
+
+    @Builder.Default
     private boolean adminOnly = true;
+
+    @Builder.Default
     private boolean blockExternal = true;
+
+    @Builder.Default
     private boolean publicDuringConfig = false;
+
+    @Builder.Default
     private boolean helpdeskPermitted = false;
-
-    private boolean locked = false;
-
-    private void preModifyCheck() {
-        if (locked) {
-            throw new UnsupportedOperationException("ServicePermission is locked");
-        }
-    }
-
-    public boolean isAuthRequired() {
-        return authRequired;
-    }
-
-    public void setAuthRequired(final boolean authRequired) {
-        preModifyCheck();
-        this.authRequired = authRequired;
-    }
-
-    public boolean isBlockExternal() {
-        return blockExternal;
-    }
-
-    public void setBlockExternal(final boolean blockExternal) {
-        preModifyCheck();
-        this.blockExternal = blockExternal;
-    }
-
-    public boolean isAdminOnly() {
-        return adminOnly;
-    }
-
-    public void setAdminOnly(final boolean adminOnly) {
-        preModifyCheck();
-        this.adminOnly = adminOnly;
-    }
-
-    public boolean isHelpdeskPermitted()
-    {
-        return helpdeskPermitted;
-    }
-
-    public void setHelpdeskPermitted(final boolean helpdeskPermitted)
-    {
-        preModifyCheck();
-        this.helpdeskPermitted = helpdeskPermitted;
-    }
-
-    public boolean isLocked()
-    {
-        return locked;
-    }
-
-    public void lock() {
-        locked = true;
-    }
-
-    public boolean isPublicDuringConfig()
-    {
-        return publicDuringConfig;
-    }
-
-    public void setPublicDuringConfig(final boolean publicDuringConfig)
-    {
-        this.publicDuringConfig = publicDuringConfig;
-    }
 }

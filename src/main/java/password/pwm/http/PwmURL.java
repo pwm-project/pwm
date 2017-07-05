@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@ package password.pwm.http;
 
 import password.pwm.PwmConstants;
 import password.pwm.http.servlet.PwmServletDefinition;
-import password.pwm.util.StringUtil;
+import password.pwm.util.java.StringUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
@@ -53,6 +53,40 @@ public class PwmURL {
     )
     {
         this(URI.create(req.getRequestURL().toString()), req.getContextPath());
+    }
+
+    /**
+     * Compare two uri strings for equality of 'base'.  Specifically, the schema, host and port
+     * are compared for equality.
+     * @param uri1
+     * @param uri2
+     * @return
+     */
+    public static boolean compareUriBase(final String uri1, final String uri2) {
+        if (uri1 == null && uri2 == null) {
+            return true;
+        }
+
+        if (uri1 == null || uri2 == null) {
+            return false;
+        }
+
+        final URI parsedUri1 = URI.create(uri1);
+        final URI parsedUri2 = URI.create(uri2);
+
+        if (!StringUtil.equals(parsedUri1.getScheme(), parsedUri2.getScheme())) {
+            return false;
+        }
+
+        if (!StringUtil.equals(parsedUri1.getHost(), parsedUri2.getHost())) {
+            return false;
+        }
+
+        if (parsedUri1.getPort() != parsedUri2.getPort()) {
+            return false;
+        }
+
+        return true;
     }
 
     public boolean isLoginServlet() {
@@ -115,7 +149,9 @@ public class PwmURL {
     }
 
     public boolean isCommandServletURL() {
-        return isPwmServletURL(PwmServletDefinition.Command);
+        return isPwmServletURL(PwmServletDefinition.PublicCommand)
+                || isPwmServletURL(PwmServletDefinition.PrivateCommand);
+
     }
 
     public boolean isWebServiceURL() {
@@ -135,7 +171,8 @@ public class PwmURL {
     }
 
     public boolean isChangePasswordURL() {
-        return isPwmServletURL(PwmServletDefinition.ChangePassword);
+        return isPwmServletURL(PwmServletDefinition.PrivateChangePassword)
+                || isPwmServletURL(PwmServletDefinition.PublicChangePassword);
     }
 
     public boolean isSetupResponsesURL() {
@@ -267,5 +304,18 @@ public class PwmURL {
             }
         }
         return "";
+    }
+
+    public String determinePwmServletPath() {
+        final String requestPath = this.uri.getPath();
+        for (final PwmServletDefinition servletDefinition : PwmServletDefinition.values()) {
+            for (final String pattern : servletDefinition.urlPatterns()) {
+                final String testPath = contextPath + pattern;
+                if (requestPath.startsWith(testPath)) {
+                    return testPath;
+                }
+            }
+        }
+        return requestPath;
     }
 }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
+import password.pwm.http.JspUrl;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.i18n.Message;
@@ -37,7 +38,7 @@ import password.pwm.svc.wordlist.StoredWordlistDataBean;
 import password.pwm.svc.wordlist.Wordlist;
 import password.pwm.svc.wordlist.WordlistConfiguration;
 import password.pwm.svc.wordlist.WordlistType;
-import password.pwm.util.Helper;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
 
@@ -112,12 +113,12 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet {
                     return;
 
                 default:
-                    Helper.unhandledSwitchStatement(processAction);
+                    JavaHelper.unhandledSwitchStatement(processAction);
             }
             return;
         }
 
-        pwmRequest.forwardToJsp(PwmConstants.JspUrl.CONFIG_MANAGER_WORDLISTS);
+        pwmRequest.forwardToJsp(JspUrl.CONFIG_MANAGER_WORDLISTS);
     }
 
     void restUploadWordlist(final PwmRequest pwmRequest)
@@ -205,13 +206,13 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet {
                 if (storedWordlistDataBean.isCompleted()) {
                     presentableValues.put("Word Count", numberFormat.format(storedWordlistDataBean.getSize()));
                     if (StoredWordlistDataBean.Source.BuiltIn != storedWordlistDataBean.getSource()) {
-                        presentableValues.put("Population Timestamp", PwmConstants.DEFAULT_DATETIME_FORMAT.format(storedWordlistDataBean.getStoreDate()));
+                        presentableValues.put("Population Timestamp", JavaHelper.toIsoDate(storedWordlistDataBean.getStoreDate()));
                     }
                     presentableValues.put("SHA1 Checksum Hash", storedWordlistDataBean.getSha1hash());
                 }
                 if (wordlist.getAutoImportError() != null) {
                     presentableValues.put("Error During Import", wordlist.getAutoImportError().getDetailedErrorMsg());
-                    presentableValues.put("Last Import Attempt", PwmConstants.DEFAULT_DATETIME_FORMAT.format(wordlist.getAutoImportError().getDate()));
+                    presentableValues.put("Last Import Attempt", JavaHelper.toIsoDate(wordlist.getAutoImportError().getDate()));
                 }
                 wordlistDataBean.getPresentableData().putAll(presentableValues);
             }

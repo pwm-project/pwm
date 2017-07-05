@@ -1,9 +1,9 @@
-/*
+/*!
  * Password Management Servlets (PWM)
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,15 +49,11 @@ mf-dialog {
       position: absolute;
       right: 1px;
       top: 1px;
-    }
-
-    mf-app-bar {
-      background-color: #eaeaea;
+      z-index: 1;
     }
 
     .mf-dialog-content {
       text-align: center;
-      padding: 10px;
 
       > person-card {
         max-width: 100%;
@@ -70,21 +66,13 @@ mf-dialog {
 @media (min-width: 420px) {
   mf-dialog {
     > .mf-dialog-container {
-      border: 2px solid #dddddd;
+      border: 1px solid #dddddd;
       border-radius: 3px;
       height: auto;
       left: 50%;
-      max-width: 100vw;
+      max-width: 420px;
       top: 50%;
       transform: translate(-50%, -50%);
-    }
-  }
-}
-
-@media (min-width: 514px) {
-  mf-dialog {
-    > .mf-dialog-container {
-      max-width: 514px;
     }
   }
 }

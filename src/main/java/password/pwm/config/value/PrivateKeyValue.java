@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,9 +26,9 @@ import org.jdom2.Element;
 import password.pwm.bean.PrivateKeyCertificate;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.StringUtil;
-import password.pwm.util.X509Utils;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
+import password.pwm.util.secure.X509Utils;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmBlockAlgorithm;
 import password.pwm.util.secure.PwmSecurityKey;

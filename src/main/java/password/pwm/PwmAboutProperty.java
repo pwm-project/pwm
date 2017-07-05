@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,13 +24,15 @@ package password.pwm;
 
 import password.pwm.config.PwmSetting;
 import password.pwm.i18n.Display;
-import password.pwm.util.FileSystemUtility;
-import password.pwm.util.Helper;
 import password.pwm.util.LocaleHelper;
-import password.pwm.util.db.DatabaseAccessor;
+import password.pwm.util.db.DatabaseService;
+import password.pwm.util.java.FileSystemUtility;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 
+import java.nio.charset.Charset;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
@@ -89,6 +91,7 @@ public enum PwmAboutProperty {
     java_osName,
     java_osVersion,
     java_randomAlgorithm,
+    java_defaultCharset,
 
     database_driverName,
     database_driverVersion,
@@ -139,12 +142,16 @@ public enum PwmAboutProperty {
 
         if (pwmApplication.getEmailQueue() != null) {
             aboutMap.put(app_emailQueueSize,       Integer.toString(pwmApplication.getEmailQueue().queueSize()));
-            aboutMap.put(app_emailQueueOldestTime, dateFormatForInfoBean(pwmApplication.getEmailQueue().eldestItem()));
+            if (pwmApplication.getEmailQueue().eldestItem() != null) {
+                aboutMap.put(app_emailQueueOldestTime, dateFormatForInfoBean(Date.from(pwmApplication.getEmailQueue().eldestItem())));
+            }
         }
 
         if (pwmApplication.getSmsQueue() != null) {
             aboutMap.put(app_smsQueueSize,         Integer.toString(pwmApplication.getSmsQueue().queueSize()));
-            aboutMap.put(app_smsQueueOldestTime,   dateFormatForInfoBean(pwmApplication.getSmsQueue().eldestItem()));
+            if (pwmApplication.getSmsQueue().eldestItem() != null) {
+                aboutMap.put(app_smsQueueOldestTime, dateFormatForInfoBean(Date.from(pwmApplication.getSmsQueue().eldestItem())));
+            }
         }
 
         if (pwmApplication.getAuditManager() != null) {
@@ -155,8 +162,8 @@ public enum PwmAboutProperty {
             aboutMap.put(app_localDbLogSize,       Integer.toString(pwmApplication.getLocalDBLogger().getStoredEventCount()));
             aboutMap.put(app_localDbLogOldestTime, dateFormatForInfoBean(pwmApplication.getLocalDBLogger().getTailDate()));
 
-            aboutMap.put(app_localDbStorageSize,   Helper.formatDiskSize(FileSystemUtility.getFileDirectorySize(pwmApplication.getLocalDB().getFileLocation())));
-            aboutMap.put(app_localDbFreeSpace,     Helper.formatDiskSize(FileSystemUtility.diskSpaceRemaining(pwmApplication.getLocalDB().getFileLocation())));
+            aboutMap.put(app_localDbStorageSize,   StringUtil.formatDiskSize(FileSystemUtility.getFileDirectorySize(pwmApplication.getLocalDB().getFileLocation())));
+            aboutMap.put(app_localDbFreeSpace,     StringUtil.formatDiskSize(FileSystemUtility.diskSpaceRemaining(pwmApplication.getLocalDB().getFileLocation())));
         }
 
 
@@ -177,6 +184,7 @@ public enum PwmAboutProperty {
             aboutMap.put(java_osName,              System.getProperty("os.name"));
             aboutMap.put(java_osVersion,           System.getProperty("os.version"));
             aboutMap.put(java_randomAlgorithm,     PwmRandom.getInstance().getAlgorithm());
+            aboutMap.put(java_defaultCharset,      Charset.defaultCharset().name());
         }
 
         { // build info
@@ -192,9 +200,9 @@ public enum PwmAboutProperty {
 
         { // database info
             try {
-                final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseAccessor();
-                if (databaseAccessor != null) {
-                    final Map<PwmAboutProperty,String> debugData = databaseAccessor.getConnectionDebugProperties();
+                final DatabaseService databaseService = pwmApplication.getDatabaseService();
+                if (databaseService != null) {
+                    final Map<PwmAboutProperty,String> debugData = databaseService.getConnectionDebugProperties();
                     aboutMap.putAll(debugData);
                 }
             } catch (Throwable t) {
@@ -206,11 +214,16 @@ public enum PwmAboutProperty {
     }
 
     private static String dateFormatForInfoBean(final Date date) {
+        return dateFormatForInfoBean(date == null ? null : date.toInstant());
+    }
+
+    private static String dateFormatForInfoBean(final Instant date) {
         if (date != null) {
-            return PwmConstants.DEFAULT_DATETIME_FORMAT.format(date);
+            return date.toString();
         } else {
             return LocaleHelper.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE, Display.Value_NotApplicable, null);
         }
 
     }
+
 }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,10 +25,8 @@ package password.pwm.http;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
-import password.pwm.config.PwmSetting;
-import password.pwm.http.servlet.PwmServletDefinition;
-import password.pwm.util.StringUtil;
 import password.pwm.util.Validator;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.Cookie;
@@ -37,7 +35,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.net.URI;
 import java.util.Arrays;
 
 public class PwmHttpResponseWrapper {
@@ -67,27 +64,13 @@ public class PwmHttpResponseWrapper {
                     return httpServletRequest.getRequestURI();
 
                 case PwmServlet:
-                    return determinePwmServletPath(httpServletRequest);
+                    return new PwmURL(httpServletRequest).determinePwmServletPath();
 
                 default:
                     throw new IllegalStateException("undefined CookiePath type: " + this);
             }
 
         }
-    }
-
-    private static String determinePwmServletPath(final HttpServletRequest httpServletRequest) {
-        final String context = httpServletRequest.getContextPath();
-        final String requestPath = httpServletRequest.getRequestURI();
-        for (final PwmServletDefinition servletDefinition : PwmServletDefinition.values()) {
-            for (final String pattern : servletDefinition.urlPatterns()) {
-                final String testPath = context + pattern;
-                if (requestPath.startsWith(testPath)) {
-                    return testPath;
-                }
-            }
-        }
-        return requestPath;
     }
 
     public enum Flag {
@@ -121,7 +104,7 @@ public class PwmHttpResponseWrapper {
         return this.httpServletResponse.isCommitted();
     }
 
-    public void setHeader(final PwmConstants.HttpHeader headerName, final String value) {
+    public void setHeader(final HttpHeader headerName, final String value) {
         this.httpServletResponse.setHeader(
                 Validator.sanitizeHeaderValue(configuration, headerName.getHttpName()),
                 Validator.sanitizeHeaderValue(configuration, value)
@@ -167,20 +150,12 @@ public class PwmHttpResponseWrapper {
         if (this.getHttpServletResponse().isCommitted()) {
             LOGGER.warn("attempt to write cookie '" + cookieName + "' after response is committed");
         }
-        boolean secureFlag;
-        {
 
+        final boolean secureFlag;
+        {
             final String configValue = configuration.readAppProperty(AppProperty.HTTP_COOKIE_DEFAULT_SECURE_FLAG);
             if (configValue == null || "auto".equalsIgnoreCase(configValue)) {
                 secureFlag = this.httpServletRequest.isSecure();
-                if (!secureFlag) {
-                    final String siteURLstring = configuration.readSettingAsString(PwmSetting.PWM_SITE_URL);
-                    if (siteURLstring != null && !siteURLstring.isEmpty()) {
-                        if ("https".equals(URI.create(siteURLstring).getScheme())) {
-                            secureFlag = true;
-                        }
-                    }
-                }
             } else {
                 secureFlag = Boolean.parseBoolean(configValue);
             }

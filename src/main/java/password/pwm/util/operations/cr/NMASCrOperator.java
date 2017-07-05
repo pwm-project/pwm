@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -74,10 +74,10 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
 import password.pwm.util.PasswordData;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.security.auth.callback.Callback;
@@ -100,6 +100,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.Provider;
 import java.security.Security;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -216,7 +217,8 @@ public class NMASCrOperator implements CrOperator {
                     LOGGER.debug("starting NMASCrOperator watchdog timer, maxIdleThreadTime=" + maxThreadIdleTime.asCompactString());
                     timer = new Timer(PwmConstants.PWM_APP_NAME + "-NMASCrOperator watchdog timer",true);
                     final long frequency = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.NMAS_THREADS_WATCHDOG_FREQUENCY));
-                    timer.schedule(new ThreadWatchdogTask(),frequency,frequency);
+                    final boolean debugOutput = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.NMAS_THREADS_WATCHDOG_DEBUG));
+                    timer.schedule(new ThreadWatchdogTask(debugOutput),frequency,frequency);
                 }
             }
         }
@@ -631,12 +633,12 @@ public class NMASCrOperator implements CrOperator {
             }
 
             public int awaitRetCode() {
-                final Date startTime = new Date();
+                final Instant startTime = Instant.now();
                 boolean done = this.isNmasDone();
                 Date lastLogTime = new Date();
                 while (!done && TimeDuration.fromCurrent(startTime).isShorterThan(maxThreadIdleTime)) {
                     LOGGER.trace("attempt to read return code, but isNmasDone=false, will await completion");
-                    Helper.pause(10);
+                    JavaHelper.pause(10);
                     if (completeOnUnsupportedFailure) {
                         done = unsupportedCallbackHasOccurred || this.isNmasDone();
                     } else {
@@ -832,9 +834,20 @@ public class NMASCrOperator implements CrOperator {
     }
 
     private class ThreadWatchdogTask extends TimerTask {
+
+        private final boolean debugOutput;
+
+        ThreadWatchdogTask(final boolean debugOutput)
+        {
+            this.debugOutput = debugOutput;
+        }
+
         @Override
         public void run() {
-            logThreadInfo();
+            if (debugOutput) {
+                logThreadInfo();
+            }
+
             final List<NMASSessionThread> threads = new ArrayList<>(sessionMonitorThreads);
             for (final NMASSessionThread thread : threads) {
                 final TimeDuration idleTime = TimeDuration.fromCurrent(thread.getLastActivityTimestamp());

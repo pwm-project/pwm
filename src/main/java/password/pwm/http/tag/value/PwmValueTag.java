@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@ package password.pwm.http.tag.value;
 import password.pwm.PwmApplicationMode;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
-import password.pwm.util.StringUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
@@ -63,10 +63,12 @@ public class PwmValueTag extends TagSupport {
             final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
             final PwmRequest pwmRequest = PwmRequest.forRequest(req, (HttpServletResponse) pageContext.getResponse());
             try {
-                // final VALUE value = Helper.readEnumFromString(VALUE.class, null, getName());
                 final PwmValue value = getName();
                 final String output = calcValue(pwmRequest, pageContext, value);
-                pageContext.getOut().write(StringUtil.escapeHtml(output));
+                final String escapedOutput = value.getFlags().contains(PwmValue.Flag.DoNotEscape)
+                        ? output
+                        : StringUtil.escapeHtml(output);
+                pageContext.getOut().write(escapedOutput);
 
             } catch (IllegalArgumentException e) {
                 LOGGER.error("can't output requested value name '" + getName() + "'");

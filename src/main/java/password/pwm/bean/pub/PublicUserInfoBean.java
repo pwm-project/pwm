@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,56 +22,70 @@
 
 package password.pwm.bean.pub;
 
+import lombok.Getter;
 import password.pwm.bean.PasswordStatus;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.ldap.UserInfo;
 import password.pwm.config.Configuration;
 import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.http.tag.PasswordRequirementsTag;
 import password.pwm.util.macro.MacroMachine;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+@Getter
 public class PublicUserInfoBean implements Serializable {
-    public String userDN;
-    public String ldapProfile;
-    public String userID;
-    public String userEmailAddress;
-    public Date passwordExpirationTime;
-    public Date passwordLastModifiedTime;
-    public boolean requiresNewPassword;
-    public boolean requiresResponseConfig;
-    public boolean requiresUpdateProfile;
-    public boolean requiresInteraction;
+    private String userDN;
+    private String ldapProfile;
+    private String userID;
+    private String userGUID;
+    private String userEmailAddress;
+    private Instant passwordExpirationTime;
+    private Instant passwordLastModifiedTime;
+    private Instant lastLoginTime;
+    private Instant accountExpirationTime;
+    private boolean requiresNewPassword;
+    private boolean requiresResponseConfig;
+    private boolean requiresUpdateProfile;
+    private boolean requiresOtpConfig;
+    private boolean requiresInteraction;
 
-    public PasswordStatus passwordStatus;
-    public Map<String, String> passwordPolicy;
-    public List<String> passwordRules;
-    public Map<String, String> attributes;
+    private PasswordStatus passwordStatus;
+    private Map<String, String> passwordPolicy;
+    private List<String> passwordRules;
+    private Map<String, String> attributes;
 
-    public static PublicUserInfoBean fromUserInfoBean(final UserInfoBean userInfoBean, final Configuration config, final Locale locale, final MacroMachine macroMachine) {
+    public static PublicUserInfoBean fromUserInfoBean(
+            final UserInfo userInfoBean,
+            final Configuration config,
+            final Locale locale,
+            final MacroMachine macroMachine
+    )
+            throws PwmUnrecoverableException
+    {
         final PublicUserInfoBean publicUserInfoBean = new PublicUserInfoBean();
         publicUserInfoBean.userDN = (userInfoBean.getUserIdentity() == null) ? "" : userInfoBean.getUserIdentity().getUserDN();
         publicUserInfoBean.ldapProfile = (userInfoBean.getUserIdentity() == null) ? "" : userInfoBean.getUserIdentity().getLdapProfileID();
         publicUserInfoBean.userID = userInfoBean.getUsername();
+        publicUserInfoBean.userGUID = publicUserInfoBean.getUserGUID();
         publicUserInfoBean.userEmailAddress = userInfoBean.getUserEmailAddress();
         publicUserInfoBean.passwordExpirationTime = userInfoBean.getPasswordExpirationTime();
         publicUserInfoBean.passwordLastModifiedTime = userInfoBean.getPasswordLastModifiedTime();
-        publicUserInfoBean.passwordStatus = userInfoBean.getPasswordState();
+        publicUserInfoBean.passwordStatus = userInfoBean.getPasswordStatus();
+        publicUserInfoBean.accountExpirationTime = userInfoBean.getAccountExpirationTime();
+        publicUserInfoBean.lastLoginTime = userInfoBean.getLastLdapLoginTime();
 
         publicUserInfoBean.requiresNewPassword = userInfoBean.isRequiresNewPassword();
         publicUserInfoBean.requiresResponseConfig = userInfoBean.isRequiresResponseConfig();
-        publicUserInfoBean.requiresUpdateProfile = userInfoBean.isRequiresResponseConfig();
-        publicUserInfoBean.requiresInteraction = userInfoBean.isRequiresNewPassword()
-                || userInfoBean.isRequiresResponseConfig()
-                || userInfoBean.isRequiresUpdateProfile()
-                || userInfoBean.getPasswordState().isWarnPeriod();
-
+        publicUserInfoBean.requiresUpdateProfile = userInfoBean.isRequiresUpdateProfile();
+        publicUserInfoBean.requiresOtpConfig = userInfoBean.isRequiresOtpConfig();
+        publicUserInfoBean.requiresInteraction = userInfoBean.isRequiresInteraction();
 
         publicUserInfoBean.passwordPolicy = new HashMap<>();
         for (final PwmPasswordRule rule : PwmPasswordRule.values()) {

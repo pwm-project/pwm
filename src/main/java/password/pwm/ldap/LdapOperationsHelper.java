@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,29 +39,43 @@ import password.pwm.PwmApplication;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
+import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.PwmSession;
+import password.pwm.ldap.search.SearchConfiguration;
+import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.svc.cache.CacheKey;
+import password.pwm.svc.cache.CachePolicy;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.PasswordData;
-import password.pwm.util.StringUtil;
-import password.pwm.util.X509Utils;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.secure.X509Utils;
 
 import javax.net.ssl.X509TrustManager;
 import java.security.cert.X509Certificate;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 public class LdapOperationsHelper {
     private static final PwmLogger LOGGER = PwmLogger.forClass(LdapOperationsHelper.class);
@@ -153,9 +167,25 @@ public class LdapOperationsHelper {
     )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
-        final String existingValue = GUIDHelper.readExistingGuidValue(pwmApplication, sessionLabel, userIdentity, throwExceptionOnError);
-        final LdapProfile ldapProfile = pwmApplication.getConfig().getLdapProfiles().get(
-                userIdentity.getLdapProfileID());
+
+        final boolean enableCache = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.LDAP_CACHE_USER_GUID_ENABLE));
+        final CacheKey cacheKey = CacheKey.makeCacheKey(LdapOperationsHelper.class, null, "guidValue-" + userIdentity.toDelimitedKey());
+
+        if (enableCache) {
+            final String cachedValue = pwmApplication.getCacheService().get(cacheKey);
+            if (cachedValue != null) {
+                return cachedValue;
+            }
+        }
+
+        final String existingValue = GUIDHelper.readExistingGuidValue(
+                pwmApplication,
+                sessionLabel,
+                userIdentity,
+                throwExceptionOnError
+        );
+
+        final LdapProfile ldapProfile = pwmApplication.getConfig().getLdapProfiles().get(userIdentity.getLdapProfileID());
         final String guidAttributeName = ldapProfile.readSettingAsString(PwmSetting.LDAP_GUID_ATTRIBUTE);
         if (existingValue == null || existingValue.length() < 1) {
             if (!"DN".equalsIgnoreCase(guidAttributeName) && !"VENDORGUID".equalsIgnoreCase(guidAttributeName)) {
@@ -167,7 +197,114 @@ public class LdapOperationsHelper {
             final String errorMsg = "unable to resolve GUID value for user " + userIdentity.toString();
             GUIDHelper.processError(errorMsg,throwExceptionOnError);
         }
+
+        if (enableCache) {
+            final long cacheSeconds = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.LDAP_CACHE_USER_GUID_SECONDS));
+            final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpiration(new TimeDuration(cacheSeconds, TimeUnit.SECONDS));
+            pwmApplication.getCacheService().put(cacheKey, cachePolicy, existingValue);
+        }
+
         return existingValue;
+    }
+
+    /**
+     * Writes a Map of form values to ldap onto the supplied user object.
+     * The map key must be a string of attribute names.
+     * <p/>
+     * Any ldap operation exceptions are not reported (but logged).
+     *
+     * @param pwmSession       for looking up session info
+     * @param theUser          User to write to
+     * @param formValues       A map with {@link password.pwm.config.FormConfiguration} keys and String values.
+     * @throws ChaiUnavailableException if the directory is unavailable
+     * @throws PwmOperationalException if their is an unexpected ldap problem
+     */
+    public static void writeFormValuesToLdap(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final ChaiUser theUser,
+            final Map<FormConfiguration,String> formValues,
+            final boolean expandMacros
+    )
+            throws ChaiUnavailableException, PwmOperationalException, PwmUnrecoverableException
+    {
+        final Map<String,String> tempMap = new HashMap<>();
+
+        for (final FormConfiguration formItem : formValues.keySet()) {
+            if (!formItem.isReadonly()) {
+                tempMap.put(formItem.getName(),formValues.get(formItem));
+            }
+        }
+
+        final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine(pwmApplication);
+        writeMapToLdap(theUser, tempMap, macroMachine, expandMacros);
+    }
+
+    /**
+     * Writes a Map of values to ldap onto the supplied user object.
+     * The map key must be a string of attribute names.
+     * <p/>
+     * Any ldap operation exceptions are not reported (but logged).
+     *
+     * @param theUser          User to write to
+     * @param valueMap       A map with String keys and String values.
+     * @throws ChaiUnavailableException if the directory is unavailable
+     * @throws PwmOperationalException if their is an unexpected ldap problem
+     */
+    public static void writeMapToLdap(
+            final ChaiUser theUser,
+            final Map<String,String> valueMap,
+            final MacroMachine macroMachine,
+            final boolean expandMacros
+    )
+            throws PwmOperationalException, ChaiUnavailableException
+    {
+        final Map<String,String> currentValues;
+        try {
+            currentValues = theUser.readStringAttributes(valueMap.keySet());
+        } catch (ChaiOperationException e) {
+            final String errorMsg = "error reading existing values on user " + theUser.getEntryDN() + " prior to replacing values, error: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+            final PwmOperationalException newException = new PwmOperationalException(errorInformation);
+            newException.initCause(e);
+            throw newException;
+        }
+
+        for (final String attrName : valueMap.keySet()) {
+            String attrValue = valueMap.get(attrName) != null ? valueMap.get(attrName) : "";
+            if (expandMacros) {
+                attrValue = macroMachine.expandMacros(attrValue);
+            }
+            if (!attrValue.equals(currentValues.get(attrName))) {
+                if (attrValue.length() > 0) {
+                    try {
+                        theUser.writeStringAttribute(attrName, attrValue);
+                        LOGGER.info("set attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + attrValue + ")");
+                    } catch (ChaiOperationException e) {
+                        final String errorMsg = "error setting '" + attrName + "' attribute on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
+                        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+                        final PwmOperationalException newException = new PwmOperationalException(errorInformation);
+                        newException.initCause(e);
+                        throw newException;
+                    }
+                } else {
+                    if (currentValues.get(attrName) != null && currentValues.get(attrName).length() > 0) {
+                        try {
+                            theUser.deleteAttribute(attrName, null);
+                            LOGGER.info("deleted attribute value on user " + theUser.getEntryDN() + " (" + attrName + ")");
+                        } catch (ChaiOperationException e) {
+                            final String errorMsg = "error removing '" + attrName + "' attribute value on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
+                            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+                            final PwmOperationalException newException = new PwmOperationalException(errorInformation);
+                            newException.initCause(e);
+                            throw newException;
+                        }
+                    }
+                }
+            } else {
+                LOGGER.debug("skipping attribute modify for attribute '" + attrName + "', no change in value");
+            }
+        }
     }
 
     private static class GUIDHelper {
@@ -234,10 +371,12 @@ public class LdapOperationsHelper {
                 if (!"DN".equalsIgnoreCase(guidAttributeName) && !"VENDORGUID".equalsIgnoreCase(guidAttributeName)) {
                     try {
                         // check if it is unique
-                        final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
-                        searchConfiguration.setFilter("(" + guidAttributeName + "=" + guidValue + ")");
-                        final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, sessionLabel);
-                        final UserIdentity result = userSearchEngine.performSingleUserSearch(searchConfiguration);
+                        final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
+                                .filter("(" + guidAttributeName + "=" + guidValue + ")")
+                                .build();
+
+                        final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
+                        final UserIdentity result = userSearchEngine.performSingleUserSearch(searchConfiguration, sessionLabel);
                         exists = result != null;
                     } catch (PwmOperationalException e) {
                         if (e.getError() != PwmError.ERROR_CANT_MATCH_USER) {
@@ -433,18 +572,6 @@ public class LdapOperationsHelper {
         return chaiConfig;
     }
 
-    public static String readLdapUsernameValue(
-            final PwmApplication pwmApplication,
-            final UserIdentity userIdentity
-    )
-            throws ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException
-    {
-        final String profileID = userIdentity.getLdapProfileID();
-        final String uIDattr = pwmApplication.getConfig().getLdapProfiles().get(profileID).getUsernameAttribute();
-        final UserDataReader userDataReader = LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity);
-        return userDataReader.readStringAttribute(uIDattr);
-    }
-
     /**
      * Update the user's "lastUpdated" attribute. By default this is
      * "pwmLastUpdate" attribute
@@ -491,5 +618,113 @@ public class LdapOperationsHelper {
             return results.values().iterator().next();
         }
         return Collections.emptyMap();
+    }
+
+    public static Iterator<UserIdentity> readAllUsersFromLdap(
+            final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
+            final String searchFilter,
+            final int maxResults
+    )
+            throws ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException, PwmOperationalException
+    {
+        final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
+
+        final SearchConfiguration searchConfiguration;
+        {
+            final SearchConfiguration.SearchConfigurationBuilder builder = SearchConfiguration.builder();
+
+            builder.enableValueEscaping(false);
+            builder.searchTimeout(Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.REPORTING_LDAP_SEARCH_TIMEOUT)));
+
+            if (searchFilter == null) {
+                builder.username("*");
+            } else {
+                builder.filter(searchFilter);
+            }
+
+            searchConfiguration = builder.build();
+        }
+
+        LOGGER.debug(sessionLabel,"beginning user search using parameters: " + (JsonUtil.serialize(searchConfiguration)));
+
+        final Map<UserIdentity,Map<String,String>> searchResults = userSearchEngine.performMultiUserSearch(
+                searchConfiguration,
+                maxResults,
+                Collections.emptyList(),
+                sessionLabel
+
+        );
+        LOGGER.debug(sessionLabel,"user search found " + searchResults.size() + " users");
+
+        final Queue<UserIdentity> tempQueue = new LinkedList<>(searchResults.keySet());
+
+        return new Iterator<UserIdentity>() {
+            @Override
+            public boolean hasNext()
+            {
+                return tempQueue.peek() != null;
+            }
+
+            @Override
+            public UserIdentity next()
+            {
+                return tempQueue.poll();
+            }
+        };
+    }
+
+    public static Instant readPasswordExpirationTime(final ChaiUser theUser) {
+        try {
+            Date ldapPasswordExpirationTime = theUser.readPasswordExpirationDate();
+            if (ldapPasswordExpirationTime != null && ldapPasswordExpirationTime.getTime() < 0) {
+                // If ldapPasswordExpirationTime is less than 0, this may indicate an extremely late date, past the epoch.
+                ldapPasswordExpirationTime = null;
+            }
+            return ldapPasswordExpirationTime == null
+                    ? null
+                    : ldapPasswordExpirationTime.toInstant();
+        } catch (Exception e) {
+            LOGGER.warn("error reading password expiration time: " + e.getMessage());
+        }
+
+        return null;
+    }
+
+    public static PasswordData readLdapPassword(
+            final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
+            final UserIdentity userIdentity
+    )
+            throws ChaiUnavailableException,  PwmUnrecoverableException
+    {
+        if (userIdentity == null || userIdentity.getUserDN() == null || userIdentity.getUserDN().length() < 1) {
+            throw new NullPointerException("invalid user (null)");
+        }
+
+        final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID());
+        final ChaiUser chaiUser = ChaiFactory.createChaiUser(userIdentity.getUserDN(), chaiProvider);
+
+        // use chai (nmas) to retrieve user password
+        if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.EDIRECTORY_READ_USER_PWD)) {
+            String currentPass = null;
+            try {
+                final String readPassword = chaiUser.readPassword();
+                if (readPassword != null && readPassword.length() > 0) {
+                    currentPass = readPassword;
+                    LOGGER.debug(sessionLabel,"successfully retrieved user's current password from ldap, now conducting standard authentication");
+                }
+            } catch (Exception e) {
+                LOGGER.debug(sessionLabel, "unable to retrieve user password from ldap: " + e.getMessage());
+            }
+
+            // actually do the authentication since we have user pw.
+            if (currentPass != null && currentPass.length() > 0) {
+                return new PasswordData(currentPass);
+            }
+        } else {
+            LOGGER.trace(sessionLabel, "skipping attempt to read user password, option disabled");
+        }
+        return null;
     }
 }

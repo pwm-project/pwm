@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,8 +55,8 @@ import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.wordlist.WordlistManager;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.cr.CrOperator;
 import password.pwm.util.operations.cr.DbCrOperator;
@@ -565,11 +565,11 @@ public class CrService implements PwmService {
     }
 
     @Override
-    public ServiceInfo serviceInfo()
+    public ServiceInfoBean serviceInfo()
     {
         final LinkedHashSet<DataStorageMethod> usedStorageMethods = new LinkedHashSet<>();
         usedStorageMethods.addAll(pwmApplication.getConfig().helper().getCrReadPreference());
         usedStorageMethods.addAll(pwmApplication.getConfig().helper().getCrWritePreference());
-        return new ServiceInfo(Collections.unmodifiableList(new ArrayList(usedStorageMethods)));
+        return new ServiceInfoBean(Collections.unmodifiableList(new ArrayList(usedStorageMethods)));
     }
 }

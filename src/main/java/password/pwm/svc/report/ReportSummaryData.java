@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,15 +27,14 @@ import password.pwm.config.Configuration;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.i18n.Admin;
 import password.pwm.util.LocaleHelper;
-import password.pwm.util.Percent;
-import password.pwm.util.TimeDuration;
-import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.java.Percent;
+import password.pwm.util.java.TimeDuration;
 
 import java.math.BigInteger;
 import java.text.NumberFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -43,13 +42,10 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class ReportSummaryData {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(ReportSummaryData.class);
+    private static final long MS_DAY = TimeDuration.DAY.getTotalMilliseconds();
+    private static BigInteger TWO = new BigInteger("2");
 
-    private static final long MS_DAY = 24 * 60 * 60 * 1000;
-
-    private String epoch;
-
-    private Date meanCacheTime;
+    private Instant meanCacheTime;
     private int totalUsers;
     private int hasResponses;
     private int hasResponseSetTime;
@@ -76,15 +72,9 @@ public class ReportSummaryData {
     private ReportSummaryData() {
     }
 
-    public String getEpoch()
-    {
-        return epoch;
-    }
-
     public static ReportSummaryData newSummaryData(final List<Integer> trackedDays) {
         final ReportSummaryData reportSummaryData = new ReportSummaryData();
-        reportSummaryData.epoch = Long.toHexString(System.currentTimeMillis());
-        
+
         if (trackedDays != null) {
             for (final int day : trackedDays) {
                 reportSummaryData.pwExpireDays.put(day, 0);
@@ -95,7 +85,7 @@ public class ReportSummaryData {
                 reportSummaryData.loginDays.put(day, 0);
             }
         }
-        
+
         return reportSummaryData;
     }
 
@@ -124,7 +114,7 @@ public class ReportSummaryData {
         return responseFormatType;
     }
 
-    public Date getMeanCacheTime()
+    public Instant getMeanCacheTime()
     {
         return meanCacheTime;
     }
@@ -266,7 +256,7 @@ public class ReportSummaryData {
 
     }
 
-    private void updateMeanTime(final Date newTime, final boolean adding) {
+    private void updateMeanTime(final Instant newTime, final boolean adding) {
         if (meanCacheTime == null) {
             if (adding) {
                 meanCacheTime = newTime;
@@ -274,28 +264,28 @@ public class ReportSummaryData {
             return;
         }
 
-        final BigInteger currentMillis = BigInteger.valueOf(meanCacheTime.getTime());
-        final BigInteger newMillis = BigInteger.valueOf(newTime.getTime());
+        final BigInteger currentMillis = BigInteger.valueOf(meanCacheTime.toEpochMilli());
+        final BigInteger newMillis = BigInteger.valueOf(newTime.toEpochMilli());
         final BigInteger combinedMillis = currentMillis.add(newMillis);
-        final BigInteger halvedMillis = combinedMillis.divide(new BigInteger("2"));
-        meanCacheTime = new Date(halvedMillis.longValue());
+        final BigInteger halvedMillis = combinedMillis.divide(TWO);
+        meanCacheTime = Instant.ofEpochMilli(halvedMillis.longValue());
     }
 
-    private int calcTimeWindow(final Date eventDate, final long timeWindow, final boolean adding) {
+    private int calcTimeWindow(final Instant eventDate, final long timeWindow, final boolean adding) {
         if (eventDate == null) {
             return 0;
         }
-        
-        final TimeDuration timeBoundary = new TimeDuration(0,timeWindow);
-        final TimeDuration eventDifference = new TimeDuration(System.currentTimeMillis(), eventDate);
 
-        if (timeWindow >= 0 && eventDate.after(new Date()) && eventDifference.isShorterThan(timeBoundary)) {
-                return adding ? 1 : -1;
+        final TimeDuration timeBoundary = new TimeDuration(0,timeWindow);
+        final TimeDuration eventDifference = TimeDuration.fromCurrent(eventDate);
+
+        if (timeWindow >= 0 && eventDate.isAfter(Instant.now()) && eventDifference.isShorterThan(timeBoundary)) {
+            return adding ? 1 : -1;
         }
 
-        if (timeWindow < 0 && eventDate.before(new Date()) && eventDifference.isShorterThan(timeBoundary)) {
+        if (timeWindow < 0 && eventDate.isBefore(Instant.now()) && eventDifference.isShorterThan(timeBoundary)) {
             return adding ? 1 : -1;
-        } 
+        }
 
         return 0;
     }

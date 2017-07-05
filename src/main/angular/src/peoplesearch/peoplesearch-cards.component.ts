@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,10 +23,14 @@
 
 import { Component } from '../component';
 import ElementSizeService from '../ux/element-size.service';
-import { IAugmentedJQuery, IQService, IScope } from 'angular';
+import IConfigService from '../services/config.service';
 import IPeopleService from '../services/people.service';
+import IPwmService from '../services/pwm.service';
+import { isString, IAugmentedJQuery, IQService, IScope } from 'angular';
+import LocalStorageService from '../services/local-storage.service';
 import PeopleSearchBaseComponent from './peoplesearch-base.component';
-import Person from '../models/person.model';
+import { IPerson } from '../models/person.model';
+import PromiseService from '../services/promise.service';
 import SearchResult from '../models/search-result.model';
 
 export enum PeopleSearchCardsSize {
@@ -40,6 +44,8 @@ export enum PeopleSearchCardsSize {
     templateUrl: require('peoplesearch/peoplesearch-cards.component.html')
 })
 export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponent {
+    photosEnabled: boolean;
+
     static $inject = [
         '$element',
         '$q',
@@ -47,8 +53,12 @@ export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponen
         '$state',
         '$stateParams',
         '$translate',
+        'ConfigService',
+        'LocalStorageService',
         'MfElementSizeService',
-        'PeopleService'
+        'PeopleService',
+        'PromiseService',
+        'PwmService'
     ];
     constructor(private $element: IAugmentedJQuery,
                 $q: IQService,
@@ -56,9 +66,22 @@ export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponen
                 $state: angular.ui.IStateService,
                 $stateParams: angular.ui.IStateParamsService,
                 $translate: angular.translate.ITranslateService,
+                configService: IConfigService,
+                localStorageService: LocalStorageService,
                 private elementSizeService: ElementSizeService,
-                peopleService: IPeopleService) {
-        super($q, $scope, $state, $stateParams, $translate, peopleService);
+                peopleService: IPeopleService,
+                promiseService: PromiseService,
+                pwmService: IPwmService) {
+        super($q,
+            $scope,
+            $state,
+            $stateParams,
+            $translate,
+            configService,
+            localStorageService,
+            peopleService,
+            promiseService,
+            pwmService);
     }
 
     $onDestroy(): void {
@@ -69,21 +92,31 @@ export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponen
         this.initialize();
         this.fetchData();
 
+        this.configService.photosEnabled().then((photosEnabled: boolean) => {
+            this.photosEnabled = photosEnabled;
+        });
+
         this.elementSizeService.watchWidth(this.$element, PeopleSearchCardsSize);
     }
 
     gotoTableView() {
-        this.gotoState('search.table');
+        this.toggleView('search.table');
     }
 
     fetchData() {
-        let searchResult = this.fetchSearchData();
-        if (searchResult) {
-            searchResult.then(this.onSearchResult.bind(this));
+        let searchResultPromise = this.fetchSearchData();
+        if (searchResultPromise) {
+
+            searchResultPromise.then(this.onSearchResult.bind(this));
         }
     }
 
     private onSearchResult(searchResult: SearchResult): void {
+        // Aborted request
+        if (!searchResult) {
+            return;
+        }
+
         this.searchResult = new SearchResult({
             sizeExceeded: searchResult.sizeExceeded,
             searchResults: []
@@ -91,18 +124,33 @@ export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponen
 
         let self = this;
 
-        searchResult.people.forEach(
-            (person: Person) => {
-                this.peopleService
-                    .getPerson(person.userKey)
-                    .then((person: Person) => {
+        this.pendingRequests = searchResult.people.map(
+            (person: IPerson) => {
+                // Store this promise because it is abortable
+                let promise = this.peopleService.getPerson(person.userKey);
+
+                promise
+                    .then((person: IPerson) => {
+                        // Aborted request
+                        if (!person) {
+                            return;
+                        }
+
                         // searchResult may be overwritten by ESC->[LETTER] typed in after a search
                         // has started but before all calls to peopleService.getPerson have resolved
                         if (self.searchResult) {
                             self.searchResult.people.push(person);
                         }
+                    },
+                    (error) => {
+                        self.setErrorMessage(error);
+                    })
+                    .finally(() => {
+                        self.removePendingRequest(promise);
                     });
-            },
-            this);
+
+                return promise;
+            }
+        );
     }
 }

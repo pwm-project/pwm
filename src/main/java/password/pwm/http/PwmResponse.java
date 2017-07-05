@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 
 package password.pwm.http;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
@@ -30,8 +31,8 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.i18n.Message;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
 
@@ -42,6 +43,10 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 public class PwmResponse extends PwmHttpResponseWrapper {
     private static final PwmLogger LOGGER = PwmLogger.forClass(PwmResponse.class);
@@ -51,6 +56,24 @@ public class PwmResponse extends PwmHttpResponseWrapper {
     public enum Flag {
         AlwaysShowMessage,
         ForceLogout,
+    }
+
+    public enum RedirectType {
+        Permanent_301(HttpServletResponse.SC_MOVED_PERMANENTLY),
+        Found_302(HttpServletResponse.SC_FOUND),
+        Other_303(303),
+
+        ;
+
+        private final int code;
+
+        RedirectType(final int code) {
+            this.code = code;
+        }
+
+        public int getCode() {
+            return code;
+        }
     }
 
     public PwmResponse(
@@ -63,7 +86,7 @@ public class PwmResponse extends PwmHttpResponseWrapper {
     }
 
     public void forwardToJsp(
-            final PwmConstants.JspUrl jspURL
+            final JspUrl jspURL
     )
             throws ServletException, IOException, PwmUnrecoverableException
     {
@@ -98,7 +121,7 @@ public class PwmResponse extends PwmHttpResponseWrapper {
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        this.pwmRequest.setAttribute(PwmRequest.Attribute.SuccessMessage, message);
+        this.pwmRequest.setAttribute(PwmRequestAttribute.SuccessMessage, message);
 
         final boolean showMessage = !pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_SUCCESS_PAGES)
                 && !Arrays.asList(flags).contains(Flag.AlwaysShowMessage);
@@ -106,14 +129,14 @@ public class PwmResponse extends PwmHttpResponseWrapper {
         if (showMessage) {
             LOGGER.trace(pwmSession, "skipping success page due to configuration setting.");
             final String redirectUrl = pwmRequest.getContextPath()
-                    +  PwmServletDefinition.Command.servletUrl()
-                    + "?processAction=continue";
+                    +  PwmServletDefinition.PublicCommand.servletUrl()
+                    + "?processAction=next";
             sendRedirect(redirectUrl);
             return;
         }
 
         try {
-            forwardToJsp(PwmConstants.JspUrl.SUCCESS);
+            forwardToJsp(JspUrl.SUCCESS);
         } catch (PwmUnrecoverableException e) {
             LOGGER.error("unexpected error sending user to success page: " + e.toString());
         }
@@ -127,28 +150,41 @@ public class PwmResponse extends PwmHttpResponseWrapper {
     {
         LOGGER.error(pwmRequest.getSessionLabel(), errorInformation);
 
-        pwmRequest.setResponseError(errorInformation);
+        pwmRequest.setAttribute(PwmRequestAttribute.PwmErrorInfo, errorInformation);
 
-        if (Helper.enumArrayContainsValue(flags, Flag.ForceLogout)) {
+        if (JavaHelper.enumArrayContainsValue(flags, Flag.ForceLogout)) {
             LOGGER.debug(pwmRequest, "forcing logout due to error " + errorInformation.toDebugStr());
             pwmRequest.getPwmSession().unauthenticateUser(pwmRequest);
+        }
+
+        if (getResponseFlags().contains(PwmResponseFlag.ERROR_RESPONSE_SENT)) {
+            LOGGER.debug(pwmRequest, "response error has been previously set, disregarding new error: " + errorInformation.toDebugStr());
+            return;
+        }
+
+        if (isCommitted()) {
+            final String msg = "cannot respond with error '" + errorInformation.toDebugStr() + "', response is already committed";
+            LOGGER.warn(pwmRequest.getSessionLabel(), ExceptionUtils.getStackTrace(new Throwable(msg)));
+            return;
         }
 
         if (pwmRequest.isJsonRequest()) {
             outputJsonResult(RestResultBean.fromError(errorInformation, pwmRequest));
         } else if (pwmRequest.isHtmlRequest()) {
             try {
-                forwardToJsp(PwmConstants.JspUrl.ERROR);
+                forwardToJsp(JspUrl.ERROR);
             } catch (PwmUnrecoverableException e) {
                 LOGGER.error("unexpected error sending user to error page: " + e.toString());
             }
         } else {
-            final boolean showDetail = Helper.determineIfDetailErrorMsgShown(pwmRequest.getPwmApplication());
+            final boolean showDetail = pwmRequest.getPwmApplication().determineIfDetailErrorMsgShown();
             final String errorStatusText = showDetail
                     ? errorInformation.toDebugStr()
                     : errorInformation.toUserStr(pwmRequest.getPwmSession(),pwmRequest.getPwmApplication());
             getHttpServletResponse().sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, errorStatusText);
         }
+
+        setResponseFlag(PwmResponseFlag.ERROR_RESPONSE_SENT);
     }
 
 
@@ -180,15 +216,25 @@ public class PwmResponse extends PwmHttpResponseWrapper {
     }
 
     public void markAsDownload(final PwmConstants.ContentTypeValue contentType, final String filename) {
-        this.setHeader(PwmConstants.HttpHeader.ContentDisposition,"attachment; fileName=" + filename);
+        this.setHeader(HttpHeader.ContentDisposition,"attachment; fileName=" + filename);
         this.setContentType(contentType);
     }
 
     public void sendRedirect(final String url)
             throws IOException
     {
+        sendRedirect(url, RedirectType.Found_302);
+    }
+
+    public void sendRedirect(final String url, final RedirectType redirectType)
+            throws IOException
+    {
         preCommitActions();
-        super.sendRedirect(url);
+
+        final HttpServletResponse resp = pwmRequest.getPwmResponse().getHttpServletResponse();
+        resp.setStatus(redirectType.getCode()); // http "other" redirect
+        resp.setHeader(HttpHeader.Location.getHttpName(), url);
+        LOGGER.trace("sending " + redirectType.getCode() + " redirect to " + url);
     }
 
     private void preCommitActions() {
@@ -198,5 +244,15 @@ public class PwmResponse extends PwmHttpResponseWrapper {
 
         pwmRequest.getPwmApplication().getSessionStateService().saveLoginSessionState(pwmRequest);
         pwmRequest.getPwmApplication().getSessionStateService().saveSessionBeans(pwmRequest);
+    }
+
+    private final Set<PwmResponseFlag> pwmResponseFlags = new HashSet<>();
+
+    private Collection<PwmResponseFlag> getResponseFlags() {
+        return Collections.unmodifiableSet(pwmResponseFlags);
+    }
+
+    private void setResponseFlag(final PwmResponseFlag flag) {
+        pwmResponseFlags.add(flag);
     }
 }

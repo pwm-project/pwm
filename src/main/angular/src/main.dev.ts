@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +25,9 @@ import { bootstrap, module } from 'angular';
 import ConfigService from './services/config.service.dev';
 import peopleSearchModule from './peoplesearch/peoplesearch.module';
 import PeopleService from './services/people.service.dev';
+import PwmService from './services/pwm.service.dev';
 import routes from './routes';
+import routeErrorHandler from './route-error-handler';
 import uiRouter from 'angular-ui-router';
 
 // fontgen-loader needs this :(
@@ -43,7 +45,9 @@ module('app', [
         $translateProvider.useSanitizeValueStrategy('escapeParameters');
         $translateProvider.preferredLanguage('en');
     }])
+    .run(routeErrorHandler)
     .service('PeopleService', PeopleService)
+    .service('PwmService', PwmService)
     .service('ConfigService', ConfigService);
 
 // Attach to the page document

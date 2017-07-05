@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,10 +31,10 @@ import password.pwm.PwmConstants;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.svc.stats.EventRateMeter;
-import password.pwm.util.Helper;
 import password.pwm.util.ProgressInfo;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.TransactionSizeCalculator;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
@@ -47,6 +47,7 @@ import java.io.PrintStream;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -114,9 +115,8 @@ public class LocalDBUtility {
         },30 * 1000, 30 * 1000);
 
 
-        final CSVPrinter csvPrinter = Helper.makeCsvPrinter(new GZIPOutputStream(outputStream, GZIP_BUFFER_SIZE));
-        try {
-            csvPrinter.printComment(PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " LocalDB export on " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
+        try (CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter(new GZIPOutputStream(outputStream, GZIP_BUFFER_SIZE))) {
+            csvPrinter.printComment(PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " LocalDB export on " + JavaHelper.toIsoDate(new Date()));
             for (final LocalDB.DB loopDB : LocalDB.DB.values()) {
                 if (loopDB.isBackup()) {
                     csvPrinter.printComment("Export of " + loopDB.toString());
@@ -134,11 +134,10 @@ public class LocalDBUtility {
                     csvPrinter.flush();
                 }
             }
-            csvPrinter.printComment("export completed at " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
+            csvPrinter.printComment("export completed at " + JavaHelper.toIsoDate(new Date()));
         } catch (IOException e) {
             writeStringToOut(debugOutput,"IO error during localDB export: " + e.getMessage());
         } finally {
-            IOUtils.closeQuietly(csvPrinter);
             statTimer.cancel();
         }
 
@@ -150,7 +149,7 @@ public class LocalDBUtility {
             return;
         }
 
-        final String msg = PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()) + " " + string + "\n";
+        final String msg = JavaHelper.toIsoDate(new Date()) + " " + string + "\n";
 
         try {
             out.append(msg);
@@ -198,7 +197,7 @@ public class LocalDBUtility {
 
         writeStringToOut(out, "beginning localdb import...");
 
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         final TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(
                 new TransactionSizeCalculator.SettingsBuilder()
                         .setDurationGoal(new TimeDuration(100, TimeUnit.MILLISECONDS))
@@ -209,7 +208,7 @@ public class LocalDBUtility {
 
         final Map<LocalDB.DB,Map<String,String>> transactionMap = new HashMap<>();
         for (final LocalDB.DB loopDB : LocalDB.DB.values()) {
-            transactionMap.put(loopDB,new TreeMap<String, String>());
+            transactionMap.put(loopDB,new TreeMap<>());
         }
 
         final CountingInputStream countingInputStream = new CountingInputStream(inputStream);
@@ -241,7 +240,7 @@ public class LocalDBUtility {
                 importLineCounter++;
                 eventRateMeter.markEvents(1);
                 final String dbName_recordStr = record.get(0);
-                final LocalDB.DB db = Helper.readEnumFromString(LocalDB.DB.class, null, dbName_recordStr);
+                final LocalDB.DB db = JavaHelper.readEnumFromString(LocalDB.DB.class, null, dbName_recordStr);
                 final String key = record.get(1);
                 final String value = record.get(2);
                 if (db == null) {

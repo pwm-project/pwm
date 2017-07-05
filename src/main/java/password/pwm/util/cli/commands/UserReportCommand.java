@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
+import password.pwm.svc.report.ReportCsvUtility;
 import password.pwm.svc.report.ReportService;
 import password.pwm.util.cli.CliParameters;
 
@@ -67,7 +68,8 @@ public class UserReportCommand extends AbstractCliCommand {
             }
             return;
         }
-        userReport.outputToCsv(outputFileStream, true, PwmConstants.DEFAULT_LOCALE);
+        final ReportCsvUtility reportCsvUtility = new ReportCsvUtility(pwmApplication);
+        reportCsvUtility.outputToCsv(outputFileStream, true, PwmConstants.DEFAULT_LOCALE);
 
         try { outputFileStream.close(); } catch (Exception e) { /* nothing */ }
         out("report output complete.");

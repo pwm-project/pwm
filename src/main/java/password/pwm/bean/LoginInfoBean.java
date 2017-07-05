@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,17 +23,19 @@
 package password.pwm.bean;
 
 import com.google.gson.annotations.SerializedName;
+import lombok.Getter;
+import lombok.Setter;
 import password.pwm.PwmConstants;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.util.BasicAuthInfo;
-import password.pwm.util.JsonUtil;
 import password.pwm.util.PasswordData;
+import password.pwm.util.java.JsonUtil;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -44,6 +46,8 @@ import java.util.Set;
  *
  * Short serialized names are used to shrink the effective size of the login cookie.
  */
+@Getter
+@Setter
 public class LoginInfoBean implements Serializable {
 
     public enum LoginFlag {
@@ -51,6 +55,7 @@ public class LoginInfoBean implements Serializable {
         skipNewPw,
         noSso, // bypass sso
         authRecordSet,
+        forcePwChange
     }
 
     @SerializedName("u")
@@ -72,10 +77,10 @@ public class LoginInfoBean implements Serializable {
     private PwmAuthenticationSource authSource;
 
     @SerializedName("at")
-    private Date authTime;
+    private Instant authTime;
 
     @SerializedName("rq")
-    private Date reqTime;
+    private Instant reqTime;
 
     @SerializedName("g")
     private String guid;
@@ -84,7 +89,7 @@ public class LoginInfoBean implements Serializable {
     private BasicAuthInfo basicAuth;
 
     @SerializedName("oe")
-    private Date oauthExp;
+    private Instant oauthExp;
 
     @SerializedName("or")
     private String oauthRefToken;
@@ -95,12 +100,12 @@ public class LoginInfoBean implements Serializable {
     @SerializedName("lf")
     private Set<LoginFlag> loginFlags = new HashSet<>();
 
-    public Date getAuthTime()
+    public Instant getAuthTime()
     {
         return authTime;
     }
 
-    public void setAuthTime(final Date authTime)
+    public void setAuthTime(final Instant authTime)
     {
         this.authTime = authTime;
     }
@@ -135,12 +140,12 @@ public class LoginInfoBean implements Serializable {
         this.basicAuth = basicAuth;
     }
 
-    public Date getOauthExp()
+    public Instant getOauthExp()
     {
         return oauthExp;
     }
 
-    public void setOauthExp(final Date oauthExp)
+    public void setOauthExp(final Instant oauthExp)
     {
         this.oauthExp = oauthExp;
     }
@@ -207,11 +212,11 @@ public class LoginInfoBean implements Serializable {
         this.pw = pw;
     }
 
-    public Date getReqTime() {
+    public Instant getReqTime() {
         return reqTime;
     }
 
-    public void setReqTime(final Date reqTime) {
+    public void setReqTime(final Instant reqTime) {
         this.reqTime = reqTime;
     }
 

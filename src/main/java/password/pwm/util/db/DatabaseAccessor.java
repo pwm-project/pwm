@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,21 +22,16 @@
 
 package password.pwm.util.db;
 
-import password.pwm.PwmAboutProperty;
-import password.pwm.util.ClosableIterator;
+import password.pwm.util.java.ClosableIterator;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.util.Map;
 
 public interface DatabaseAccessor {
-    Map<PwmAboutProperty,String> getConnectionDebugProperties();
-
     /**
      * Indicates if the method is actually performing an DB operation.
      */
     @Retention(RetentionPolicy.RUNTIME)
-    public
     @interface DbOperation {
     }
 
@@ -44,7 +39,6 @@ public interface DatabaseAccessor {
      * Indicates if the method may cause a modification of the database.
      */
     @Retention(RetentionPolicy.RUNTIME)
-    public
     @interface DbModifyOperation {
     }
 
@@ -52,6 +46,15 @@ public interface DatabaseAccessor {
     @DbOperation
     @DbModifyOperation
     boolean put(
+            DatabaseTable table,
+            String key,
+            String value
+    )
+            throws DatabaseException;
+
+    @DbOperation
+    @DbModifyOperation
+    boolean putIfAbsent(
             DatabaseTable table,
             String key,
             String value
@@ -77,7 +80,7 @@ public interface DatabaseAccessor {
 
     @DbOperation
     @DbModifyOperation
-    boolean remove(
+    void remove(
             DatabaseTable table,
             String key
     )

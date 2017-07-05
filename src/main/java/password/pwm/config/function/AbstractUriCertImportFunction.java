@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
-import password.pwm.util.X509Utils;
+import password.pwm.util.secure.X509Utils;
 
 import java.net.URI;
 import java.security.cert.X509Certificate;
@@ -65,7 +65,7 @@ abstract class AbstractUriCertImportFunction implements SettingUIFunction {
             }
 
 
-        final UserIdentity userIdentity = pwmSession.isAuthenticated() ? pwmSession.getUserInfoBean().getUserIdentity() : null;
+        final UserIdentity userIdentity = pwmSession.isAuthenticated() ? pwmSession.getUserInfo().getUserIdentity() : null;
         store(certs, storedConfiguration, setting, profile, extraData, userIdentity);
 
         final StringBuffer returnStr = new StringBuffer();

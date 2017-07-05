@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 package password.pwm.util.localdb;
 
 import password.pwm.PwmApplication;
-import password.pwm.util.ConditionalTaskExecutor;
+import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.logging.PwmLogger;
 
 import java.math.BigInteger;
@@ -899,7 +899,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
                             }
                         }
                     },
-                    new ConditionalTaskExecutor.TimeDurationConditional(30, TimeUnit.SECONDS)
+                    new ConditionalTaskExecutor.TimeDurationPredicate(30, TimeUnit.SECONDS)
             );
 
             // trim the top.

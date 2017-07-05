@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,10 +27,9 @@ import password.pwm.PwmApplication;
 import password.pwm.config.Configuration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
-import password.pwm.util.FileSystemUtility;
-import password.pwm.util.Helper;
-import password.pwm.util.StringUtil;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.FileSystemUtility;
+import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
@@ -100,11 +99,13 @@ public class LocalDBFactory {
 
         final StringBuilder debugText = new StringBuilder();
         debugText.append("LocalDB open in ").append(openTime.asCompactString());
-        debugText.append(", db size: ").append(Helper.formatDiskSize(FileSystemUtility.getFileDirectorySize(localDB.getFileLocation())));
-        debugText.append(" at ").append(dbDirectory.toString());
-        final long freeSpace = FileSystemUtility.diskSpaceRemaining(localDB.getFileLocation());
-        if (freeSpace >= 0) {
-            debugText.append(", ").append(Helper.formatDiskSize(freeSpace)).append(" free");
+        if (localDB.getFileLocation() != null) {
+            debugText.append(", db size: ").append(StringUtil.formatDiskSize(FileSystemUtility.getFileDirectorySize(localDB.getFileLocation())));
+            debugText.append(" at ").append(dbDirectory.toString());
+            final long freeSpace = FileSystemUtility.diskSpaceRemaining(localDB.getFileLocation());
+            if (freeSpace >= 0) {
+                debugText.append(", ").append(StringUtil.formatDiskSize(freeSpace)).append(" free");
+            }
         }
         LOGGER.info(debugText);
 

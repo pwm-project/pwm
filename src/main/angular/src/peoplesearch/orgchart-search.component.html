@@ -1,8 +1,31 @@
+<!--
+  ~ Password Management Servlets (PWM)
+  ~ http://www.pwm-project.org
+  ~
+  ~ Copyright (c) 2006-2009 Novell, Inc.
+  ~ Copyright (c) 2009-2017 The PWM Project
+  ~
+  ~ This program is free software; you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation; either version 2 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program; if not, write to the Free Software
+  ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  -->
+
 <mf-app-bar>
-    <div class="page-content-title" translate="Title_Organization">Organization</div>
+    <div id="page-content-title" translate="Title_Organization">Organization</div>
     <mf-auto-complete search-text="$ctrl.query"
                       on-search-text-change="$ctrl.onSearchTextChange(value)"
                       search="$ctrl.autoCompleteSearch(query)"
+                      input-debounce="$ctrl.inputDebounce"
                       item-selected="$ctrl.onAutoCompleteItemSelected(person)"
                       item="person">
         <content-template>
@@ -13,20 +36,24 @@
     <mf-icon-button
             icon="view-tile"
             ng-click="$ctrl.gotoSearchState('search.cards')"
-            ng-attr-title="{{ 'Title_PeopleSearch' | translate }}"></mf-icon-button>
+            ng-attr-title="{{ 'Title_PeopleSearch' | translate }}"
+            id="view-tile-icon"></mf-icon-button>
     <mf-icon-button
             icon="view-list"
             ng-click="$ctrl.gotoSearchState('search.table')"
-            ng-attr-title="{{ 'Title_PeopleSearch' | translate }}"></mf-icon-button>
+            ng-attr-title="{{ 'Title_PeopleSearch' | translate }}"
+            id="view-list-icon"></mf-icon-button>
     <div class="mf-divider vertical"></div>
     <mf-icon-button
             icon="orgchart"
             disabled="true"
-            ng-attr-title="{{ 'Title_OrgChart' | translate }}"></mf-icon-button>
+            ng-attr-title="{{ 'Title_OrgChart' | translate }}"
+            id="orgcharg-icon"></mf-icon-button>
 </mf-app-bar>
 
 <org-chart person="$ctrl.person"
            direct-reports="$ctrl.directReports"
+           show-images="$ctrl.photosEnabled"
            management-chain="$ctrl.managementChain">
 </org-chart>
 

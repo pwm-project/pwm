@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -42,7 +43,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.i18n.Display;
 import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.util.LocaleHelper;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
@@ -108,7 +109,7 @@ public class UserMatchViewerFunction implements SettingUIFunction {
             }
         }
 
-        return LdapPermissionTester.discoverMatchingUsers(tempApplication, maxResultSize, permissions).keySet();
+        return LdapPermissionTester.discoverMatchingUsers(tempApplication, maxResultSize, permissions, SessionLabel.SYSTEM_LABEL).keySet();
     }
 
 

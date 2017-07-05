@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,58 +22,23 @@
 
 package password.pwm.bean;
 
+import lombok.Builder;
+import lombok.Getter;
+import password.pwm.util.java.JsonUtil;
+
 import java.io.Serializable;
 
+@Getter
+@Builder
 public class PasswordStatus implements Serializable {
-
-    boolean expired = false;
-    boolean preExpired = false;
-    boolean violatesPolicy = false;
-    boolean warnPeriod = false;
-
-    public boolean isExpired() {
-        return expired;
-    }
-
-    public void setExpired(final boolean expired) {
-        this.expired = expired;
-    }
-
-    public boolean isPreExpired() {
-        return preExpired;
-    }
-
-    public void setPreExpired(final boolean preExpired) {
-        this.preExpired = preExpired;
-    }
-
-
-    public boolean isViolatesPolicy() {
-        return violatesPolicy;
-    }
-
-    public void setViolatesPolicy(final boolean violatesPolicy) {
-        this.violatesPolicy = violatesPolicy;
-    }
-
-    public boolean isWarnPeriod() {
-        return warnPeriod;
-    }
-
-    public void setWarnPeriod(final boolean warnPeriod) {
-        this.warnPeriod = warnPeriod;
-    }
+    private final boolean expired;
+    private final boolean preExpired;
+    private final boolean violatesPolicy;
+    private final boolean warnPeriod;
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("PasswordStatus {");
-        sb.append("expired=").append(expired);
-        sb.append(", pre-expired=").append(preExpired);
-        sb.append(", warn=").append(warnPeriod);
-        sb.append(", violatesPolicy=").append(violatesPolicy);
-        sb.append("}");
-        return sb.toString();
+        return JsonUtil.serialize(this);
     }
 
     public boolean isEffectivelyExpired() {

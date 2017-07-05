@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -58,6 +58,7 @@ import password.pwm.http.ContextManager;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
 import password.pwm.http.PwmURL;
 import password.pwm.http.bean.ConfigGuideBean;
@@ -66,13 +67,13 @@ import password.pwm.http.servlet.configeditor.ConfigEditorServlet;
 import password.pwm.ldap.LdapBrowser;
 import password.pwm.ldap.schema.SchemaManager;
 import password.pwm.ldap.schema.SchemaOperationResult;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
 import password.pwm.util.LDAPPermissionCalculator;
-import password.pwm.util.Percent;
-import password.pwm.util.TimeDuration;
-import password.pwm.util.X509Utils;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.Percent;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.X509Utils;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.rest.bean.HealthData;
 
@@ -88,10 +89,10 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.URI;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -238,7 +239,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
                     return;
 
                 default:
-                    Helper.unhandledSwitchStatement(action);
+                    JavaHelper.unhandledSwitchStatement(action);
             }
         }
 
@@ -384,18 +385,18 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
             break;
 
             case DATABASE: {
-                records.addAll(DatabaseStatusChecker.checkNewDatabaseStatus(tempConfiguration));
+                records.addAll(DatabaseStatusChecker.checkNewDatabaseStatus(pwmRequest.getPwmApplication(), tempConfiguration));
             }
             break;
 
             default:
-                Helper.unhandledSwitchStatement(configGuideBean.getStep());
+                JavaHelper.unhandledSwitchStatement(configGuideBean.getStep());
         }
 
         final HealthData jsonOutput = new HealthData();
         jsonOutput.records = password.pwm.ws.server.rest.bean.HealthRecord.fromHealthRecords(records,
                 pwmRequest.getLocale(), tempConfiguration);
-        jsonOutput.timestamp = new Date();
+        jsonOutput.timestamp = Instant.now();
         jsonOutput.overall = HealthMonitor.getMostSevereHealthStatus(records).toString();
         final RestResultBean restResultBean = new RestResultBean();
         restResultBean.setData(jsonOutput);
@@ -442,7 +443,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
             storedConfiguration.resetSetting(PwmSetting.LDAP_PROXY_USER_PASSWORD, LDAP_PROFILE_KEY, null);
         }
 
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         final Map<String, String> inputMap = pwmRequest.readBodyAsJsonStringMap(PwmHttpRequestWrapper.Flag.BypassValidation);
         final String profile = inputMap.get("profile");
         final String dn = inputMap.containsKey("dn") ? inputMap.get("dn") : "";
@@ -587,7 +588,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
 
         if (configGuideBean.getStep() == GuideStep.LDAP_PERMISSIONS) {
             final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator(ConfigGuideForm.generateStoredConfig(configGuideBean));
-            pwmRequest.setAttribute(PwmRequest.Attribute.LdapPermissionItems,ldapPermissionCalculator);
+            pwmRequest.setAttribute(PwmRequestAttribute.LdapPermissionItems,ldapPermissionCalculator);
         }
 
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();

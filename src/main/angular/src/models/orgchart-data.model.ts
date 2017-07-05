@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,10 +21,10 @@
  */
 
 
-import Person from './person.model';
+import { IPerson } from './person.model';
 export default class OrgChartData {
 
-    constructor(public manager: Person,
-                public children: Person[],
-                public self: Person) {}
+    constructor(public manager: IPerson,
+                public children: IPerson[],
+                public self: IPerson) {}
 }

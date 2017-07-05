@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,14 +25,14 @@ package password.pwm.util.cli.commands;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.svc.event.AuditService;
-import password.pwm.util.Helper;
-import password.pwm.util.TimeDuration;
 import password.pwm.util.cli.CliParameters;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.TimeDuration;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.time.Instant;
 import java.util.Collections;
-import java.util.Date;
 
 public class ExportAuditCommand extends AbstractCliCommand {
     @Override
@@ -42,11 +42,11 @@ public class ExportAuditCommand extends AbstractCliCommand {
         final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
         final AuditService auditManager = new AuditService();
         auditManager.init(pwmApplication);
-        Helper.pause(1000);
+        JavaHelper.pause(1000);
 
         final File outputFile = (File)cliEnvironment.getOptions().get(CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName());
 
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         out("beginning output to " + outputFile.getAbsolutePath());
         final FileOutputStream fileOutputStream = new FileOutputStream(outputFile,true);
         final int counter = auditManager.outputVaultToCsv(fileOutputStream, PwmConstants.DEFAULT_LOCALE, false);

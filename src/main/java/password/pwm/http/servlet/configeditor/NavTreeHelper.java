@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@ import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.LocaleHelper;
-import password.pwm.util.StringUtil;
+import password.pwm.util.java.StringUtil;
 
 import java.util.ArrayList;
 import java.util.List;

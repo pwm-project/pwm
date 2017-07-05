@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,9 +38,11 @@ import password.pwm.health.HealthMonitor;
 import password.pwm.http.servlet.resource.ResourceServletService;
 import password.pwm.http.state.SessionStateService;
 import password.pwm.ldap.LdapConnectionService;
+import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.PwmServiceManager;
 import password.pwm.svc.cache.CacheService;
+import password.pwm.svc.cluster.ClusterService;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.event.AuditService;
@@ -56,14 +58,15 @@ import password.pwm.svc.token.TokenService;
 import password.pwm.svc.wordlist.SeedlistManager;
 import password.pwm.svc.wordlist.SharedHistoryManager;
 import password.pwm.svc.wordlist.WordlistManager;
-import password.pwm.util.FileSystemUtility;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
 import password.pwm.util.PasswordData;
-import password.pwm.util.TimeDuration;
 import password.pwm.util.VersionChecker;
 import password.pwm.util.cli.commands.ExportHttpsTomcatConfigCommand;
-import password.pwm.util.db.DatabaseAccessorImpl;
+import password.pwm.util.db.DatabaseAccessor;
+import password.pwm.util.db.DatabaseService;
+import password.pwm.util.java.FileSystemUtility;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBFactory;
 import password.pwm.util.logging.LocalDBLogger;
@@ -86,9 +89,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.security.KeyStore;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -114,7 +117,7 @@ public class PwmApplication {
         LAST_LDAP_ERROR("lastLdapError"),
         TOKEN_COUNTER("tokenCounter"),
         REPORT_STATUS("reporting.status"),
-        REPORT_CLEAN_FLAG("reporting.cleanFlag"),
+        // REPORT_CLEAN_FLAG("reporting.cleanFlag"), deprecated
         SMS_ITEM_COUNTER("smsQueue.itemCount"),
         EMAIL_ITEM_COUNTER("itemQueue.itemCount"),
         LOCALDB_IMPORT_STATUS("localDB.import.status"),
@@ -122,16 +125,19 @@ public class PwmApplication {
         SEEDLIST_METADATA("seedlist.metadata"),
         HTTPS_SELF_CERT("https.selfCert"),
         CONFIG_LOGIN_HISTORY("config.loginHistory"),
+        LOCALDB_LOGGER_STORAGE_FORMAT("localdb.logger.storage.format"),
 
         ;
 
-        private String key;
+        private final String key;
 
-        AppAttribute(final String key) {
+        AppAttribute(final String key)
+        {
             this.key = key;
         }
 
-        public String getKey() {
+        public String getKey()
+        {
             return key;
         }
     }
@@ -143,9 +149,9 @@ public class PwmApplication {
     private LocalDB localDB;
     private LocalDBLogger localDBLogger;
 
-    private final Date startupTime = new Date();
-    private Date installTime = new Date();
-    private ErrorInformation lastLocalDBFailure = null;
+    private final Instant startupTime = Instant.now();
+    private Instant installTime = Instant.now();
+    private ErrorInformation lastLocalDBFailure;
 
     private final PwmEnvironment pwmEnvironment;
 
@@ -168,7 +174,7 @@ public class PwmApplication {
     private void initialize()
             throws PwmUnrecoverableException
     {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
 
         // initialize log4j
         if (!pwmEnvironment.isInternalRuntimeInstance() && !pwmEnvironment.getFlags().contains(PwmEnvironment.ApplicationFlag.CommandLineInstance)) {
@@ -211,9 +217,21 @@ public class PwmApplication {
             pwmEnvironment.waitForFileLock();
         }
 
+        // clear temp dir
+        if (!pwmEnvironment.isInternalRuntimeInstance()) {
+            final File tempFileDirectory = getTempDirectory();
+            try {
+                FileSystemUtility.deleteDirectoryContents(tempFileDirectory);
+            } catch (Exception e) {
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_STARTUP_ERROR,
+                        "unable to clear temp file directory '"+ tempFileDirectory.getAbsolutePath() + "', error: " + e.getMessage()
+                ));
+            }
+        }
+
         LOGGER.info("initializing, application mode=" + getApplicationMode()
                 + ", applicationPath=" + (pwmEnvironment.getApplicationPath() == null ? "null" : pwmEnvironment.getApplicationPath().getAbsolutePath())
-                + ", pwmEnvironment.getConfigFile()=" + (pwmEnvironment.getConfigurationFile() == null ? "null" : pwmEnvironment.getConfigurationFile().getAbsolutePath())
+                + ", configFile=" + (pwmEnvironment.getConfigurationFile() == null ? "null" : pwmEnvironment.getConfigurationFile().getAbsolutePath())
         );
 
         if (!pwmEnvironment.isInternalRuntimeInstance()) {
@@ -227,15 +245,15 @@ public class PwmApplication {
         this.localDBLogger = PwmLogManager.initializeLocalDBLogger(this);
 
         // log the loaded configuration
-        LOGGER.info("configuration load completed");
+        LOGGER.debug("configuration load completed");
 
         // read the pwm servlet instance id
         instanceID = fetchInstanceID(localDB, this);
-        LOGGER.info("using '" + getInstanceID() + "' for instance's ID (instanceID)");
+        LOGGER.debug("using '" + getInstanceID() + "' for instance's ID (instanceID)");
 
         // read the pwm installation date
         installTime = fetchInstallDate(startupTime);
-        LOGGER.debug("this application instance first installed on " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(installTime));
+        LOGGER.debug("this application instance first installed on " + JavaHelper.toIsoDate(installTime));
 
         LOGGER.debug("application environment flags: " + JsonUtil.serializeCollection(pwmEnvironment.getFlags()));
         LOGGER.debug("application environment parameters: " + JsonUtil.serializeMap(pwmEnvironment.getParameters()));
@@ -251,20 +269,16 @@ public class PwmApplication {
             StatisticsManager.incrementStat(this, Statistic.PWM_STARTUPS);
             LOGGER.debug("buildTime=" + PwmConstants.BUILD_TIME + ", javaLocale=" + Locale.getDefault() + ", DefaultLocale=" + PwmConstants.DEFAULT_LOCALE);
 
-            final Thread postInitThread = new Thread() {
-                @Override
-                public void run() {
-                    postInitTasks();
-                }
-            };
+            final Thread postInitThread = new Thread(() -> postInitTasks());
             postInitThread.setDaemon(true);
-            postInitThread.setName(Helper.makeThreadName(this, PwmApplication.class));
+            postInitThread.setName(JavaHelper.makeThreadName(this, PwmApplication.class));
             postInitThread.start();
         }
     }
 
-    private void postInitTasks() {
-        final Date startTime = new Date();
+    private void postInitTasks()
+    {
+        final Instant startTime = Instant.now();
 
         LOGGER.debug("loaded configuration: " + pwmEnvironment.getConfig().toDebugString());
 
@@ -317,7 +331,7 @@ public class PwmApplication {
             final Map<PwmAboutProperty,String> infoMap = PwmAboutProperty.makeInfoBean(this);
             LOGGER.trace("application info: " + JsonUtil.serializeMap(infoMap));
         } catch (Exception e) {
-            LOGGER.error("error generating about application bean: " + e.getMessage());
+            LOGGER.error("error generating about application bean: " + e.getMessage(), e);
         }
 
         try {
@@ -343,7 +357,8 @@ public class PwmApplication {
         LOGGER.trace("completed post init tasks in " + TimeDuration.fromCurrent(startTime).asCompactString());
     }
 
-    private static void outputKeystore(final PwmApplication pwmApplication) throws Exception {
+    private static void outputKeystore(final PwmApplication pwmApplication) throws Exception
+    {
         final Map<PwmEnvironment.ApplicationParameter, String> applicationParams = pwmApplication.getPwmEnvironment().getParameters();
         final String keystoreFileString = applicationParams.get(PwmEnvironment.ApplicationParameter.AutoExportHttpsKeyStoreFile);
         if (keystoreFileString != null && !keystoreFileString.isEmpty()) {
@@ -403,15 +418,18 @@ public class PwmApplication {
         }
     }
 
-    public String getInstanceID() {
+    public String getInstanceID()
+    {
         return instanceID;
     }
 
-    public SharedHistoryManager getSharedHistoryManager() {
+    public SharedHistoryManager getSharedHistoryManager()
+    {
         return (SharedHistoryManager)pwmServiceManager.getService(SharedHistoryManager.class);
     }
 
-    public IntruderManager getIntruderManager() {
+    public IntruderManager getIntruderManager()
+    {
         return (IntruderManager)pwmServiceManager.getService(IntruderManager.class);
     }
 
@@ -432,11 +450,13 @@ public class PwmApplication {
         return getLdapConnectionService().getProxyChaiProvider(identifier);
     }
 
-    public LocalDBLogger getLocalDBLogger() {
+    public LocalDBLogger getLocalDBLogger()
+    {
         return localDBLogger;
     }
 
-    public HealthMonitor getHealthMonitor() {
+    public HealthMonitor getHealthMonitor()
+    {
         return (HealthMonitor)pwmServiceManager.getService(HealthMonitor.class);
     }
 
@@ -476,8 +496,16 @@ public class PwmApplication {
         return (UrlShortenerService)pwmServiceManager.getService(UrlShortenerService.class);
     }
 
+    public UserSearchEngine getUserSearchEngine() {
+        return (UserSearchEngine)pwmServiceManager.getService(UserSearchEngine.class);
+    }
+
     public VersionChecker getVersionChecker() {
         return (VersionChecker)pwmServiceManager.getService(VersionChecker.class);
+    }
+
+    public ClusterService getClusterService() {
+        return (ClusterService) pwmServiceManager.getService(ClusterService.class);
     }
 
     public ErrorInformation getLastLocalDBFailure() {
@@ -508,25 +536,33 @@ public class PwmApplication {
         return pwmEnvironment.getApplicationMode();
     }
 
-    public synchronized DatabaseAccessorImpl getDatabaseAccessor()
+    public DatabaseAccessor getDatabaseAccessor()
+
+            throws PwmUnrecoverableException
     {
-        return (DatabaseAccessorImpl)pwmServiceManager.getService(DatabaseAccessorImpl.class);
+        return getDatabaseService().getAccessor();
     }
 
-    private Date fetchInstallDate(final Date startupTime) {
+    public DatabaseService getDatabaseService() {
+        return (DatabaseService)pwmServiceManager.getService(DatabaseService.class);
+    }
+
+
+
+    private Instant fetchInstallDate(final Instant startupTime) {
         if (localDB != null) {
             try {
                 final String storedDateStr = readAppAttribute(AppAttribute.INSTALL_DATE,String.class);
                 if (storedDateStr == null || storedDateStr.length() < 1) {
-                    writeAppAttribute(AppAttribute.INSTALL_DATE, String.valueOf(startupTime.getTime()));
+                    writeAppAttribute(AppAttribute.INSTALL_DATE, String.valueOf(startupTime.toEpochMilli()));
                 } else {
-                    return new Date(Long.parseLong(storedDateStr));
+                    return Instant.ofEpochMilli(Long.parseLong(storedDateStr));
                 }
             } catch (Exception e) {
                 LOGGER.error("error retrieving installation date from localDB: " + e.getMessage());
             }
         }
-        return new Date();
+        return Instant.now();
     }
 
     private String fetchInstanceID(final LocalDB localDB, final PwmApplication pwmApplication) {
@@ -646,11 +682,11 @@ public class PwmApplication {
         LOGGER.info(PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " closed for bidness, cya!");
     }
 
-    public Date getStartupTime() {
+    public Instant getStartupTime() {
         return startupTime;
     }
 
-    public Date getInstallTime() {
+    public Instant getInstallTime() {
         return installTime;
     }
 
@@ -666,7 +702,7 @@ public class PwmApplication {
             final File databaseDirectory;
             // see if META-INF isn't already there, then use WEB-INF.
             try {
-                final String localDBLocationSetting = pwmApplication.getConfig().readSettingAsString(PwmSetting.PWMDB_LOCATION);
+                final String localDBLocationSetting = pwmApplication.getConfig().readAppProperty(AppProperty.LOCALDB_LOCATION);
                 databaseDirectory = FileSystemUtility.figureFilepath(localDBLocationSetting, pwmApplication.pwmEnvironment.getApplicationPath());
             } catch (Exception e) {
                 pwmApplication.lastLocalDBFailure = new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,"error locating configured LocalDB directory: " + e.getMessage());
@@ -740,6 +776,46 @@ public class PwmApplication {
                 LOGGER.error("error removing bogus appAttribute value for key " + appAttribute.getKey() + ", error: " + localDB);
             }
         }
+    }
+
+    public File getTempDirectory() throws PwmUnrecoverableException {
+        if (pwmEnvironment.getApplicationPath() == null) {
+            final ErrorInformation errorInformation = new ErrorInformation(
+                    PwmError.ERROR_STARTUP_ERROR,
+                    "unable to establish temp work directory: application path unavailable"
+            );
+            throw new PwmUnrecoverableException(errorInformation);
+        }
+        final File tempDirectory = new File(pwmEnvironment.getApplicationPath() + File.separator + "temp");
+        if (!tempDirectory.exists()) {
+            LOGGER.trace("preparing to create temporary directory " + tempDirectory.getAbsolutePath());
+            if (tempDirectory.mkdir()) {
+                LOGGER.debug("created " + tempDirectory.getAbsolutePath());
+            } else {
+                LOGGER.debug("unable to create temporary directory " + tempDirectory.getAbsolutePath());
+                final ErrorInformation errorInformation = new ErrorInformation(
+                        PwmError.ERROR_STARTUP_ERROR,
+                        "unable to establish create temp work directory " + tempDirectory.getAbsolutePath()
+                );
+                throw new PwmUnrecoverableException(errorInformation);
+            }
+        }
+        return tempDirectory;
+    }
+
+    public boolean determineIfDetailErrorMsgShown() {
+        final PwmApplicationMode mode = this.getApplicationMode();
+        if (mode == PwmApplicationMode.CONFIGURATION || mode == PwmApplicationMode.NEW) {
+            return true;
+        }
+        if (mode == PwmApplicationMode.RUNNING) {
+            if (this.getConfig() != null) {
+                if (this.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }
 

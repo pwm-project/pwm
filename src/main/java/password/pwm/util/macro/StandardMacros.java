@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,18 +22,17 @@
 
 package password.pwm.util.macro;
 
-import com.novell.ldapchai.exception.ChaiException;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.ldap.UserDataReader;
-import password.pwm.util.StringUtil;
-import password.pwm.util.TimeDuration;
+import password.pwm.ldap.UserInfo;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 
@@ -41,6 +40,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -58,8 +58,7 @@ public abstract class StandardMacros {
     static {
         final Map<Class<? extends MacroImplementation>, MacroImplementation.Scope> defaultMacros = new LinkedHashMap<>();
 
-        // wrapper macros
-        defaultMacros.put(EncodingMacro.class, MacroImplementation.Scope.System);
+
 
         // system macros
         defaultMacros.put(CurrentTimeMacro.class, MacroImplementation.Scope.System);
@@ -82,6 +81,11 @@ public abstract class StandardMacros {
         defaultMacros.put(UserEmailMacro.class, MacroImplementation.Scope.User);
         defaultMacros.put(UserPasswordMacro.class, MacroImplementation.Scope.User);
         defaultMacros.put(UserLdapProfileMacro.class, MacroImplementation.Scope.User);
+        defaultMacros.put(OtpSetupTimeMacro.class, MacroImplementation.Scope.User);
+        defaultMacros.put(ResponseSetupTimeMacro.class, MacroImplementation.Scope.User);
+
+        // wrapper macros: must be at the end to allow Macro in Macro during parsing
+        defaultMacros.put(EncodingMacro.class, MacroImplementation.Scope.System);
         STANDARD_MACROS = Collections.unmodifiableMap(defaultMacros);
     }
 
@@ -97,9 +101,9 @@ public abstract class StandardMacros {
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
         ) throws MacroParseException {
-            final UserDataReader userDataReader = macroRequestInfo.getUserDataReader();
+            final UserInfo userInfo = macroRequestInfo.getUserInfo();
 
-            if (userDataReader == null) {
+            if (userInfo == null) {
                 return "";
             }
 
@@ -142,12 +146,12 @@ public abstract class StandardMacros {
             }
 
             final String ldapValue;
-            if (ldapAttr.equalsIgnoreCase("dn")) {
-                ldapValue = userDataReader.getUserDN();
+            if ("dn".equalsIgnoreCase(ldapAttr)) {
+                ldapValue = userInfo.getUserIdentity().getUserDN();
             } else {
                 try {
-                    ldapValue = userDataReader.readStringAttribute(ldapAttr);
-                } catch (ChaiException e) {
+                    ldapValue = userInfo.readStringAttribute(ldapAttr);
+                } catch (PwmUnrecoverableException e) {
                     LOGGER.trace("could not replace value for '" + matchValue + "', ldap error: " + e.getMessage());
                     return "";
                 }
@@ -254,13 +258,20 @@ public abstract class StandardMacros {
                 final MacroRequestInfo macroRequestInfo
 
         ) throws MacroParseException {
-            final UserInfoBean userInfoBean = macroRequestInfo.getUserInfoBean();
+            final UserInfo userInfo = macroRequestInfo.getUserInfo();
 
-            if (userInfoBean == null) {
+            if (userInfo == null) {
                 return "";
             }
 
-            final Date pwdExpirationTime = userInfoBean.getPasswordExpirationTime();
+            final Instant pwdExpirationTime;
+            try {
+                pwdExpirationTime = userInfo.getPasswordExpirationTime();
+            } catch (PwmUnrecoverableException e) {
+                LOGGER.error("error reading pwdExpirationTime during macro replacement: " + e.getMessage());
+                return "";
+            }
+
             if (pwdExpirationTime == null) {
                 return "";
             }
@@ -275,7 +286,7 @@ public abstract class StandardMacros {
                 }
             }
 
-            return PwmConstants.DEFAULT_DATETIME_FORMAT.format(pwdExpirationTime);
+            return JavaHelper.toIsoDate(pwdExpirationTime);
         }
     }
 
@@ -290,18 +301,23 @@ public abstract class StandardMacros {
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
         ) {
-            final UserInfoBean userInfoBean = macroRequestInfo.getUserInfoBean();
+            final UserInfo userInfo = macroRequestInfo.getUserInfo();
 
-            if (userInfoBean == null) {
+            if (userInfo == null) {
                 return "";
             }
 
-            final Date pwdExpirationTime = userInfoBean.getPasswordExpirationTime();
-            if (pwdExpirationTime == null) {
+            try {
+                final Instant pwdExpirationTime = userInfo.getPasswordExpirationTime();
+                if (pwdExpirationTime == null) {
+                    return "";
+                }
+
+                return JavaHelper.toIsoDate(pwdExpirationTime);
+            } catch (PwmUnrecoverableException e) {
+                LOGGER.error("error reading pwdExpirationTime during macro replacement: " + e.getMessage());
                 return "";
             }
-
-            return PwmConstants.DEFAULT_DATETIME_FORMAT.format(pwdExpirationTime);
         }
     }
 
@@ -316,19 +332,22 @@ public abstract class StandardMacros {
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
         ) {
-            final UserInfoBean userInfoBean = macroRequestInfo.getUserInfoBean();
+            final UserInfo userInfo = macroRequestInfo.getUserInfo();
 
-            if (userInfoBean == null) {
+            if (userInfo == null) {
                 LOGGER.error("could not replace value for '" + matchValue + "', userInfoBean is null");
                 return "";
             }
 
-            final Date pwdExpirationTime = userInfoBean.getPasswordExpirationTime();
-            final TimeDuration timeUntilExpiration = TimeDuration.fromCurrent(pwdExpirationTime);
-            final long daysUntilExpiration = timeUntilExpiration.getDays();
-
-
-            return String.valueOf(daysUntilExpiration);
+            try {
+                final Instant pwdExpirationTime = userInfo.getPasswordExpirationTime();
+                final TimeDuration timeUntilExpiration = TimeDuration.fromCurrent(pwdExpirationTime);
+                final long daysUntilExpiration = timeUntilExpiration.getDays();
+                return String.valueOf(daysUntilExpiration);
+            } catch (PwmUnrecoverableException e) {
+                LOGGER.error("error reading pwdExpirationTime during macro replacement: " + e.getMessage());
+                return "";
+            }
         }
     }
 
@@ -343,13 +362,18 @@ public abstract class StandardMacros {
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
         ) {
-            final UserInfoBean userInfoBean = macroRequestInfo.getUserInfoBean();
+            final UserInfo userInfo = macroRequestInfo.getUserInfo();
 
-            if (userInfoBean == null || userInfoBean.getUsername() == null) {
+            try {
+                if (userInfo == null || userInfo.getUsername() == null) {
+                    return "";
+                }
+
+                return userInfo.getUsername();
+            } catch (PwmUnrecoverableException e) {
+                LOGGER.error("error reading username during macro replacement: " + e.getMessage());
                 return "";
             }
-
-            return userInfoBean.getUsername();
         }
     }
 
@@ -364,10 +388,10 @@ public abstract class StandardMacros {
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
         ) {
-            final UserInfoBean userInfoBean = macroRequestInfo.getUserInfoBean();
+            final UserInfo userInfo = macroRequestInfo.getUserInfo();
 
-            if (userInfoBean != null) {
-                final UserIdentity userIdentity = userInfoBean.getUserIdentity();
+            if (userInfo != null) {
+                final UserIdentity userIdentity = userInfo.getUserIdentity();
                 if (userIdentity != null) {
                     return userIdentity.getLdapProfileID();
                 }
@@ -388,13 +412,18 @@ public abstract class StandardMacros {
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
         ) {
-            final UserInfoBean userInfoBean = macroRequestInfo.getUserInfoBean();
+            final UserInfo userInfo = macroRequestInfo.getUserInfo();
 
-            if (userInfoBean == null || userInfoBean.getUserEmailAddress() == null) {
+            try {
+                if (userInfo == null || userInfo.getUserEmailAddress() == null) {
+                    return "";
+                }
+
+                return userInfo.getUserEmailAddress();
+            } catch (PwmUnrecoverableException e) {
+                LOGGER.error("error reading user email address during macro replacement: " + e.getMessage());
                 return "";
             }
-
-            return userInfoBean.getUserEmailAddress();
         }
     }
 
@@ -651,6 +680,49 @@ public abstract class StandardMacros {
             value = value.replaceAll("^@Encode:[^:]+:\\[\\[","");
             value = value.replaceAll("\\]\\]@$","");
             return encodeType.encode(value);
+        }
+    }
+
+    public static class OtpSetupTimeMacro extends InternalMacros.InternalAbstractMacro {
+        private static final Pattern PATTERN = Pattern.compile("@OtpSetupTime@");
+
+        public Pattern getRegExPattern() {
+            return PATTERN;
+        }
+
+        public String replaceValue(final String matchValue, final MacroRequestInfo macroRequestInfo)
+        {
+            try {
+                final UserInfo userInfo = macroRequestInfo.getUserInfo();
+                if (userInfo != null && userInfo.getOtpUserRecord() != null && userInfo.getOtpUserRecord().getTimestamp() != null) {
+                    return JavaHelper.toIsoDate(userInfo.getOtpUserRecord().getTimestamp());
+                }
+            } catch (PwmUnrecoverableException e) {
+                LOGGER.error("error reading otp setup time during macro replacement: " + e.getMessage());
+            }
+
+            return "";
+        }
+    }
+
+    public static class ResponseSetupTimeMacro extends InternalMacros.InternalAbstractMacro {
+        private static final Pattern PATTERN = Pattern.compile("@ResponseSetupTime@");
+
+        public Pattern getRegExPattern() {
+            return PATTERN;
+        }
+
+        public String replaceValue(final String matchValue, final MacroRequestInfo macroRequestInfo)
+        {
+            try {
+                final UserInfo userInfo = macroRequestInfo.getUserInfo();
+                if (userInfo != null && userInfo.getResponseInfoBean() != null && userInfo.getResponseInfoBean().getTimestamp() != null) {
+                    return JavaHelper.toIsoDate(userInfo.getResponseInfoBean().getTimestamp());
+                }
+            } catch (PwmUnrecoverableException e) {
+                LOGGER.error("error reading response setup time macro replacement: " + e.getMessage());
+            }
+            return "";
         }
     }
 }

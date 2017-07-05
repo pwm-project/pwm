@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,16 @@
 
 package password.pwm.health;
 
+import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
+import password.pwm.error.PwmException;
+import password.pwm.svc.PwmService;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.TimeDuration;
+import password.pwm.util.logging.PwmLogger;
+
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -36,14 +45,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-
-import password.pwm.PwmApplication;
-import password.pwm.config.option.DataStorageMethod;
-import password.pwm.error.PwmException;
-import password.pwm.svc.PwmService;
-import password.pwm.util.Helper;
-import password.pwm.util.TimeDuration;
-import password.pwm.util.logging.PwmLogger;
 
 public class HealthMonitor implements PwmService {
     private static final PwmLogger LOGGER = PwmLogger.forClass(HealthMonitor.class);
@@ -68,8 +69,8 @@ public class HealthMonitor implements PwmService {
     private ScheduledExecutorService executorService;
     private HealthMonitorSettings settings;
 
-    private volatile Date lastHealthCheckTime = new Date(0);
-    private volatile Date lastRequestedUpdateTime = new Date(0);
+    private volatile Instant lastHealthCheckTime = Instant.now();
+    private volatile Instant lastRequestedUpdateTime = Instant.now();
 
     private Map<HealthMonitorFlag, Serializable> healthProperties = new HashMap<>();
 
@@ -94,11 +95,17 @@ public class HealthMonitor implements PwmService {
     public HealthMonitor() {
     }
 
-    public Date getLastHealthCheckTime() {
+    public Instant getLastHealthCheckTime() {
+        if (status != STATUS.OPEN) {
+            return null;
+        }
         return lastHealthCheckTime;
     }
 
     public HealthStatus getMostSevereHealthStatus(final CheckTimeliness timeliness) {
+        if (status != STATUS.OPEN) {
+            return HealthStatus.GOOD;
+        }
         return getMostSevereHealthStatus(getHealthRecords(timeliness));
     }
 
@@ -123,9 +130,16 @@ public class HealthMonitor implements PwmService {
         this.pwmApplication = pwmApplication;
         settings = HealthMonitorSettings.fromConfiguration(pwmApplication.getConfig());
 
+        if (!Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HEALTHCHECK_ENABLED))) {
+            LOGGER.debug("health monitor will remain inactive due to AppProperty " + AppProperty.HEALTHCHECK_ENABLED.getKey());
+            status = STATUS.CLOSED;
+            return;
+        }
+
+
         executorService = Executors.newSingleThreadScheduledExecutor(
-                Helper.makePwmThreadFactory(
-                        Helper.makeThreadName(pwmApplication, this.getClass()) + "-",
+                JavaHelper.makePwmThreadFactory(
+                        JavaHelper.makeThreadName(pwmApplication, this.getClass()) + "-",
                         true
                 ));
 
@@ -136,7 +150,11 @@ public class HealthMonitor implements PwmService {
     }
 
     public Set<HealthRecord> getHealthRecords(final CheckTimeliness timeliness) {
-        lastRequestedUpdateTime = new Date();
+        if (status != STATUS.OPEN) {
+            return Collections.emptySet();
+        }
+
+        lastRequestedUpdateTime = Instant.now();
 
         {
             final boolean recordsAreStale = TimeDuration.fromCurrent(lastHealthCheckTime).isLongerThan(settings.getMaximumRecordAge());
@@ -144,7 +162,7 @@ public class HealthMonitor implements PwmService {
                 final ScheduledFuture updateTask = executorService.schedule(new ImmediateUpdater(), 0, TimeUnit.NANOSECONDS);
                 final Date beginWaitTime = new Date();
                 while (!updateTask.isDone() && TimeDuration.fromCurrent(beginWaitTime).isShorterThan(settings.getMaximumForceCheckWait())) {
-                    Helper.pause(500);
+                    JavaHelper.pause(500);
                 }
             }
         }
@@ -179,7 +197,7 @@ public class HealthMonitor implements PwmService {
             return;
         }
 
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         LOGGER.trace("beginning background health check process");
         final List<HealthRecord> tempResults = new ArrayList<>();
         for (final HealthChecker loopChecker : HEALTH_CHECKERS) {
@@ -189,7 +207,9 @@ public class HealthMonitor implements PwmService {
                     tempResults.addAll(loopResults);
                 }
             } catch (Exception e) {
-                LOGGER.warn("unexpected error during healthCheck: " + e.getMessage(), e);
+                if (status == STATUS.OPEN) {
+                    LOGGER.warn("unexpected error during healthCheck: " + e.getMessage(), e);
+                }
             }
         }
         for (final PwmService service : pwmApplication.getPwmServices()) {
@@ -199,18 +219,20 @@ public class HealthMonitor implements PwmService {
                     tempResults.addAll(loopResults);
                 }
             } catch (Exception e) {
-                LOGGER.warn("unexpected error during healthCheck: " + e.getMessage(), e);
+                if (status == STATUS.OPEN) {
+                    LOGGER.warn("unexpected error during healthCheck: " + e.getMessage(), e);
+                }
             }
         }
         healthRecords.clear();
         healthRecords.addAll(tempResults);
-        lastHealthCheckTime = new Date();
+        lastHealthCheckTime = Instant.now();
         LOGGER.trace("health check process completed (" + TimeDuration.fromCurrent(startTime).asCompactString() + ")");
     }
 
-    public ServiceInfo serviceInfo()
+    public ServiceInfoBean serviceInfo()
     {
-        return new ServiceInfo(Collections.<DataStorageMethod>emptyList());
+        return new ServiceInfoBean(Collections.emptyList());
     }
 
     public Map<HealthMonitorFlag, Serializable> getHealthProperties()

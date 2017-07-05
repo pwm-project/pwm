@@ -3,7 +3,7 @@
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2016 The PWM Project
+  ~ Copyright (c) 2009-2017 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -49,7 +49,8 @@
             <pwm:if test="<%=PwmIfTest.requestFlag%>" requestFlag="<%=PwmRequestFlag.HIDE_LOCALE%>" negate="true">
                 <span class="footer-segment">
                     <button id="localeSelectionMenu">
-                        <img src="<pwm:context/><pwm:url url='/public/resources/flags/png/'/><pwm:value name="<%=PwmValue.localeFlagFile%>"/>.png"/>
+                        <img src="<pwm:context/><pwm:url url='/public/resources/webjars/famfamfam-flags/dist/png/'/><pwm:value name="<%=PwmValue.localeFlagFile%>"/>.png"
+                             alt="<pwm:value name="<%=PwmValue.localeFlagFile%>"/>"/>
                         <span class="localeDisplayName"><pwm:value name="<%=PwmValue.localeName%>"/></span>
                     </button>
                 </span>
@@ -69,7 +70,8 @@
         PWM_GLOBAL['startupFunctions'].push(function() {
             <pwm:value name="<%=PwmValue.customJavascript%>"/>
         });
+        var dojoConfig = { has: { "csp-restrictions":false }, async:true }
     </script>
 </pwm:script>
-<script nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>" data-dojo-config="async: true" dojo-sync-loader="false" type="text/javascript" src="<pwm:url addContext="true" url='/public/resources/dojo/dojo/dojo.js'/>"></script>
+<script nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>" dojo-sync-loader="false" type="text/javascript" src="<pwm:url addContext="true" url='/public/resources/webjars/dojo/dojo.js'/>"></script>
 <pwm:script-ref url="/public/resources/js/main.js"/>

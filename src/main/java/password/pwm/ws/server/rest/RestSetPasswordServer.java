@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -101,15 +101,17 @@ public class RestSetPasswordServer extends AbstractRestServer {
             final HttpServletResponse response,
             final JsonInputData jsonInputData
 
-    )
+    ) throws PwmUnrecoverableException
     {
         final RestRequestBean restRequestBean;
         try {
-            final ServicePermissions servicePermissions = new ServicePermissions();
-            servicePermissions.setAdminOnly(false);
-            servicePermissions.setAuthRequired(true);
-            servicePermissions.setBlockExternal(true);
-            servicePermissions.setHelpdeskPermitted(true);
+            final ServicePermissions servicePermissions = ServicePermissions.builder()
+                    .adminOnly(false)
+                    .authRequired(true)
+                    .blockExternal(true)
+                    .helpdeskPermitted(true)
+                    .build();
+
             restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, jsonInputData.username);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
@@ -186,9 +188,9 @@ public class RestSetPasswordServer extends AbstractRestServer {
                 }
                 PasswordUtility.setActorPassword(restRequestBean.getPwmSession(), restRequestBean.getPwmApplication(),
                         newPassword);
-                restRequestBean.getPwmApplication().getAuditManager().submit(AuditEvent.CHANGE_PASSWORD, restRequestBean.getPwmSession().getUserInfoBean(), restRequestBean.getPwmSession());
+                restRequestBean.getPwmApplication().getAuditManager().submit(AuditEvent.CHANGE_PASSWORD, restRequestBean.getPwmSession().getUserInfo(), restRequestBean.getPwmSession());
                 jsonResultData.password = null;
-                jsonResultData.username = restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity().toDelimitedKey();
+                jsonResultData.username = restRequestBean.getPwmSession().getUserInfo().getUserIdentity().toDelimitedKey();
             }
             if (restRequestBean.isExternal()) {
                 StatisticsManager.incrementStat(restRequestBean.getPwmApplication(), Statistic.REST_SETPASSWORD);
@@ -196,10 +198,13 @@ public class RestSetPasswordServer extends AbstractRestServer {
             final RestResultBean restResultBean = new RestResultBean();
             restResultBean.setError(false);
             restResultBean.setData(jsonResultData);
-            restResultBean.setSuccessMessage(Message.getLocalizedMessage(
+            final String msg = Message.getLocalizedMessage(
                     restRequestBean.getPwmSession().getSessionStateBean().getLocale(),
-                    Message.Success_PasswordChange,
-                    restRequestBean.getPwmApplication().getConfig()));
+                    Message.Success_ChangedHelpdeskPassword,
+                    restRequestBean.getPwmApplication().getConfig());
+            String[] strs = jsonResultData.username.split("=");
+            strs = strs[1].split(",");
+            restResultBean.setSuccessMessage(msg + strs[0]);
             return restResultBean.asJsonResponse();
         } catch (PwmException e) {
             LOGGER.error("error during set password REST operation: " + e.getMessage());

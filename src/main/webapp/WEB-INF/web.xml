@@ -4,7 +4,7 @@
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2016 The PWM Project
+  ~ Copyright (c) 2009-2017 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -35,11 +35,16 @@
         <param-name>applicationPath</param-name>
         <param-value>unspecified</param-value>
     </context-param>
-   	<!-- uncomment and set parameters for CAS integration
-	<context-param>
-		<param-name>configurationStrategy</param-name>
-		<param-value>WEB_XML</param-value>
-	</context-param>
+    <!-- uncomment and set parameters for CAS integration
+    <context-param>
+        <param-name>configurationStrategy</param-name>
+        <param-value>${java.cas.client.config.strategy}</param-value>
+    </context-param>
+
+    <context-param>
+        <param-name>configFileLocation</param-name>
+        <param-value>${java.cas.client.config.location}</param-value>
+    </context-param>
     End CAS Config -->
     
     <welcome-file-list>
@@ -66,6 +71,7 @@
     <filter>
         <filter-name>CAS Validation Filter</filter-name>
         <filter-class>org.jasig.cas.client.validation.Cas30ProxyReceivingTicketValidationFilter</filter-class>
+        <!-- cas-config-web.xml start -->
         <init-param>
             <param-name>casServerUrlPrefix</param-name>
             <param-value>${cas.server}</param-value>
@@ -82,10 +88,12 @@
             <param-name>proxyReceptorUrl</param-name>
             <param-value>/proxyCallback</param-value>
         </init-param>
+        <!-- cas-config-web.xml end -->
     </filter>
     <filter>
         <filter-name>CAS Authentication Filter</filter-name>
         <filter-class>org.jasig.cas.client.authentication.AuthenticationFilter</filter-class>
+        <!-- cas-config-web.xml start -->
         <init-param>
             <param-name>casServerLoginUrl</param-name>
             <param-value>${cas.server}login</param-value>
@@ -98,14 +106,17 @@
             <param-name>gateway</param-name>
             <param-value>false</param-value>
         </init-param>
+        <!-- cas-config-web.xml end -->
     </filter>
     <filter>
         <filter-name>CAS Single Sign Out Filter</filter-name>
         <filter-class>org.jasig.cas.client.session.SingleSignOutFilter</filter-class>
+        <!-- cas-config-web.xml start -->
         <init-param>
 			<param-name>casServerUrlPrefix</param-name>
 			<param-value>${cas.server}</param-value>
 		</init-param>
+        <!-- cas-config-web.xml end -->
     </filter>
     <filter-mapping>
         <filter-name>CAS Single Sign Out Filter</filter-name>
@@ -136,6 +147,10 @@
         <filter-class>password.pwm.http.filter.RequestInitializationFilter</filter-class>
     </filter>
     <filter>
+        <filter-name>ObsoleteUrlFilter</filter-name>
+        <filter-class>password.pwm.http.filter.ObsoleteUrlFilter</filter-class>
+    </filter>
+    <filter>
         <filter-name>ApplicationModeFilter</filter-name>
         <filter-class>password.pwm.http.filter.ApplicationModeFilter</filter-class>
     </filter>
@@ -164,6 +179,10 @@
         <url-pattern>/*</url-pattern>
     </filter-mapping>
     <filter-mapping>
+        <filter-name>ObsoleteUrlFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
         <filter-name>ApplicationModeFilter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
@@ -174,6 +193,7 @@
     <filter-mapping>
         <filter-name>AuthenticationFilter</filter-name>
         <url-pattern>/private/*</url-pattern>
+        <url-pattern>/public/changepassword</url-pattern>
         <url-pattern>/public/ChangePassword</url-pattern>
     </filter-mapping>
     <filter-mapping>

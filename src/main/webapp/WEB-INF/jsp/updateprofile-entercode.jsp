@@ -10,7 +10,7 @@
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2016 The PWM Project
+  ~ Copyright (c) 2009-2017 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -50,8 +50,7 @@
         <% } %>
         <form action="<pwm:current-url/>" method="post" autocomplete="off" enctype="application/x-www-form-urlencoded" name="search" class="pwm-form">
             <%@ include file="fragment/message.jsp" %>
-            <h2><label for="<%=PwmConstants.PARAM_TOKEN%>"><pwm:display key="Field_Code"/></label></h2>
-            <textarea id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" <pwm:autofocus/> class="tokenInput"></textarea>
+            <%@ include file="/WEB-INF/jsp/fragment/token-form-field.jsp"%>
             <div class="buttonbar">
                 <button type="submit" class="btn" name="search" id="submitBtn">
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-check"></span></pwm:if>
@@ -59,24 +58,34 @@
                 </button>
                 <input type="hidden" id="processAction" name="processAction" value="enterCode"/>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
-                <button type="button" name="button-cancel" class="btn" id="button-cancel">
-                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-times"></span></pwm:if>
-                    <pwm:display key="Button_Cancel"/>
+
+                <button id="button-reset" type="submit" class="btn" name="button" form="form-reset">
+                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-backward"></span></pwm:if>
+                    <pwm:display key="Button_GoBack"/>
                 </button>
             </div>
+        </form>
+        <form id="form-reset" name="form-reset" method="post" name="form-cancel" enctype="application/x-www-form-urlencoded"
+              class="pwm-form">
+            <input type="hidden" name="processAction" value="unConfirm"/>
+            <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
         </form>
     </div>
     <div class="push"></div>
 </div>
-<pwm:script>
-    <script>
-        PWM_GLOBAL['startupFunctions'].push(function(){
-            PWM_MAIN.addEventHandler('button-cancel','click',function() {
-                PWM_MAIN.submitPostAction('NewUser', '<%=NewUserServlet.NewUserAction.reset%>');
+<pwm:script> <%-- ie doesn't support 'from' attribute on buttons, so handle with this script --%>
+    <script type="text/javascript">
+        PWM_GLOBAL['startupFunctions'].push(function() {
+            PWM_MAIN.addEventHandler('button-reset', 'click', function(e){
+                console.log('intercepted cancel button');
+                PWM_MAIN.cancelEvent(e);
+                var cancelForm = PWM_MAIN.getObject('form-reset');
+                PWM_MAIN.handleFormSubmit(cancelForm);
             });
         });
     </script>
 </pwm:script>
+
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

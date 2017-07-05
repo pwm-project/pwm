@@ -1,16 +1,26 @@
-<ng-transclude></ng-transclude>
+<!--
+  ~ Password Management Servlets (PWM)
+  ~ http://www.pwm-project.org
+  ~
+  ~ Copyright (c) 2006-2009 Novell, Inc.
+  ~ Copyright (c) 2009-2017 The PWM Project
+  ~
+  ~ This program is free software; you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation; either version 2 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program; if not, write to the Free Software
+  ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  -->
 
-<div class="table-configuration">
-    <mf-icon-button icon="settings" ng-click="table.toggleConfigurationVisibility($event)"></mf-icon-button>
-    <ul ng-if="table.showConfiguration" ng-click="$event.stopPropagation()">
-        <li ng-repeat="column in table.columns">
-            <label class="label">
-                <input name="column-visibile" type="checkbox" ng-model="column.visible" aria-label="Toggle column visibility"/>
-                {{column.label}}
-            </label>
-        </li>
-    </ul>
-</div>
+<ng-transclude></ng-transclude>
 
 <table st-table="rowCollection" class="table table-striped">
     <thead>
@@ -18,20 +28,35 @@
             <th ng-repeat="column in table.getVisibleColumns()">
                 <div class="column-header">
                     <span class="label" ng-bind="column.label" ng-click="table.sortOnColumn(column)"></span>
-                    <mf-icon icon="chevron-down"
+                    <mf-icon icon="down_thick"
                              ng-if="table.sortColumn === column && table.reverseSort"
                              ng-click="table.toggleSortOrder()"></mf-icon>
-                    <mf-icon icon="chevron-up"
+                    <mf-icon icon="up_thick"
                              ng-if="table.sortColumn === column && !table.reverseSort"
                              ng-click="table.toggleSortOrder()"></mf-icon>
+                </div>
+            </th>
+            <th class="table-configuration-column">
+                <div class="table-configuration">
+                    <mf-icon-button icon="configure_thin" ng-click="table.toggleConfigurationVisibility($event)"></mf-icon-button>
+                    <ul ng-if="table.showConfiguration" ng-click="$event.stopPropagation()">
+                        <li ng-repeat="column in table.columns">
+                            <label class="label">
+                                <input name="column-visibile" type="checkbox" ng-model="column.visible" aria-label="Toggle column visibility"/>
+                                {{column.label}}
+                            </label>
+                        </li>
+                    </ul>
                 </div>
             </th>
         </tr>
     </thead>
     <tbody>
-        <tr ng-repeat="item in table.getItems()" ng-click="table.clickItem(item, $event)">
+        <tr ng-repeat="item in table.getItems()" ng-click="table.clickItem(item, $event)"
+            ng-attr-id="{{'row-' + $index }}">
             <td ng-repeat="column in table.getVisibleColumns()"
                 ng-bind="table.getValue(item, column.valueExpression)"></td>
+            <td></td>
         </tr>
     </tbody>
 </table>

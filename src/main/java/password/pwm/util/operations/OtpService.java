@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,6 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import org.apache.commons.codec.binary.Base32;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
@@ -42,17 +41,17 @@ import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.svc.PwmService;
-import password.pwm.util.Helper;
-import password.pwm.util.StringUtil;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.otp.DbOtpOperator;
 import password.pwm.util.operations.otp.LdapOtpOperator;
 import password.pwm.util.operations.otp.LocalDbOtpOperator;
+import password.pwm.util.operations.otp.OTPUserRecord;
 import password.pwm.util.operations.otp.OtpOperator;
-import password.pwm.util.otp.OTPUserRecord;
-import password.pwm.util.otp.PasscodeGenerator;
+import password.pwm.util.operations.otp.PasscodeGenerator;
 import password.pwm.util.secure.PwmRandom;
 
 import javax.crypto.Mac;
@@ -183,7 +182,7 @@ public class OtpService implements PwmService {
                 break;
 
             default:
-                Helper.unhandledSwitchStatement(settings.getOtpType());
+                JavaHelper.unhandledSwitchStatement(settings.getOtpType());
         }
         final List<String> rawRecoveryCodes;
         if (settings.getOtpStorageFormat().supportsRecoveryCodes()) {
@@ -308,7 +307,7 @@ public class OtpService implements PwmService {
                 + (otpConfig == null
                 ? ", no otp record found"
                 : ", recordType=" + otpConfig.getType() + ", identifier=" + otpConfig.getIdentifier() + ", timestamp="
-                + PwmConstants.DEFAULT_DATETIME_FORMAT.format(otpConfig.getTimestamp()))
+                + JavaHelper.toIsoDate(otpConfig.getTimestamp()))
         );
         return otpConfig;
     }
@@ -414,9 +413,9 @@ public class OtpService implements PwmService {
         return settings;
     }
 
-    public ServiceInfo serviceInfo()
+    public ServiceInfoBean serviceInfo()
     {
-        return new ServiceInfo(Collections.<DataStorageMethod>emptyList());
+        return new ServiceInfoBean(Collections.<DataStorageMethod>emptyList());
     }
 
     private static String readGuidIfNeeded(

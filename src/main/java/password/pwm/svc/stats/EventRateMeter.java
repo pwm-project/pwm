@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,20 +22,29 @@
 
 package password.pwm.svc.stats;
 
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.TimeDuration;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 
 public class EventRateMeter implements Serializable {
+
+    private final TimeDuration maxDuration;
+
     private MovingAverage movingAverage;
-    private double remainder = 0;
+    private double remainder;
 
     public EventRateMeter(final TimeDuration maxDuration) {
         if (maxDuration == null) {
             throw new NullPointerException("maxDuration cannot be null");
         }
+        this.maxDuration = maxDuration;
+        reset();
+    }
+
+    public void reset() {
         movingAverage = new MovingAverage(maxDuration.getTotalMilliseconds());
+        remainder = 0;
     }
 
     public synchronized void markEvents(final int eventCount) {
@@ -87,6 +96,10 @@ public class EventRateMeter implements Serializable {
          *    milliseconds */
         public MovingAverage(final long windowMillis) {
             this.windowMillis = windowMillis;
+        }
+
+        public MovingAverage(final TimeDuration timeDuration) {
+            this.windowMillis = timeDuration.getTotalMilliseconds();
         }
 
         /** Updates the average with the latest measurement.

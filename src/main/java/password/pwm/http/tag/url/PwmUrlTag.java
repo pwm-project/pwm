@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestFlag;
 import password.pwm.http.servlet.resource.ResourceFileServlet;
 import password.pwm.http.tag.PwmAbstractTag;
-import password.pwm.util.StringUtil;
+import password.pwm.util.java.StringUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -158,7 +158,7 @@ public class PwmUrlTag extends PwmAbstractTag {
 
             themeName = figureThemeName(pwmRequest);
 
-            if (themeName.equals("custom")) {
+            if ("custom".equals(themeName)) {
                 if (theme_url == PwmThemeURL.MOBILE_THEME_URL) {
                     themeURL = pwmApplication.getConfig().readSettingAsString(PwmSetting.DISPLAY_CSS_CUSTOM_MOBILE_STYLE);
                 } else {

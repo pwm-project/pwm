@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,9 +26,12 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.HttpHeader;
 import password.pwm.http.PwmRequest;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.Serializable;
 
 /**
@@ -53,7 +56,14 @@ public class BasicAuthInfo implements Serializable {
             final PwmApplication pwmApplication,
             final PwmRequest pwmRequest
     ) {
-        final String authHeader = pwmRequest.readHeaderValueAsString(PwmConstants.HttpHeader.Authorization);
+        return parseAuthHeader(pwmApplication, pwmRequest.getHttpServletRequest());
+    }
+
+    public static BasicAuthInfo parseAuthHeader(
+            final PwmApplication pwmApplication,
+            final HttpServletRequest httpServletRequest
+    ) {
+        final String authHeader = httpServletRequest.getHeader(HttpHeader.Authorization.getHttpName());
 
         if (authHeader != null) {
             if (authHeader.contains(PwmConstants.HTTP_BASIC_AUTH_PREFIX)) {
@@ -71,7 +81,7 @@ public class BasicAuthInfo implements Serializable {
                     //   "cn=user,o=company:chpass" or "user:chpass"
                     return parseHeaderString(decoded);
                 } catch (Exception e) {
-                    LOGGER.debug(pwmRequest, "error decoding auth header");
+                    LOGGER.debug("error decoding auth header");
                 }
             }
         }

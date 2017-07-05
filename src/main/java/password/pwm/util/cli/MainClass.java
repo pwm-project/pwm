@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,18 +27,16 @@ import org.apache.log4j.EnhancedPatternLayout;
 import org.apache.log4j.Layout;
 import org.apache.log4j.Logger;
 import org.apache.log4j.varia.NullAppender;
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.PwmEnvironment;
 import password.pwm.config.Configuration;
-import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.FileSystemUtility;
-import password.pwm.util.Helper;
 import password.pwm.util.cli.commands.ClearResponsesCommand;
 import password.pwm.util.cli.commands.CliCommand;
 import password.pwm.util.cli.commands.ConfigDeleteCommand;
@@ -65,6 +63,8 @@ import password.pwm.util.cli.commands.ShellCommand;
 import password.pwm.util.cli.commands.TokenInfoCommand;
 import password.pwm.util.cli.commands.UserReportCommand;
 import password.pwm.util.cli.commands.VersionCommand;
+import password.pwm.util.java.FileSystemUtility;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.localdb.LocalDBFactory;
@@ -123,6 +123,7 @@ public class MainClass {
         commandList.add(new ShellCommand());
         commandList.add(new ConfigResetHttpsCommand());
         commandList.add(new HelpCommand());
+        //commandList.add(new PasswordExpireNotificationCommand());
 
         final Map<String,CliCommand> sortedMap = new TreeMap<>();
         for (final CliCommand command : commandList) {
@@ -268,7 +269,7 @@ public class MainClass {
                             break;
 
                         default:
-                            Helper.unhandledSwitchStatement(option.getType());
+                            JavaHelper.unhandledSwitchStatement(option.getType());
                     }
                 }
             }
@@ -383,7 +384,7 @@ public class MainClass {
             throws Exception
     {
         final File databaseDirectory;
-        final String pwmDBLocationSetting = config.readSettingAsString(PwmSetting.PWMDB_LOCATION);
+        final String pwmDBLocationSetting = config.readAppProperty(AppProperty.LOCALDB_LOCATION);
         databaseDirectory = FileSystemUtility.figureFilepath(pwmDBLocationSetting, applicationPath);
         return LocalDBFactory.getInstance(databaseDirectory, readonly, null, config);
     }

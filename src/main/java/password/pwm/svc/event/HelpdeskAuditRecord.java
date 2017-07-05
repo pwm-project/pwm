@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 
 package password.pwm.svc.event;
 
-import java.util.Date;
+import java.time.Instant;
 
 public class HelpdeskAuditRecord extends UserAuditRecord {
     protected String targetID;
@@ -30,7 +30,7 @@ public class HelpdeskAuditRecord extends UserAuditRecord {
     protected String targetLdapProfile;
 
     HelpdeskAuditRecord(
-            final Date timestamp,
+            final Instant timestamp,
             final AuditEvent eventCode,
             final String perpetratorID,
             final String perpetratorDN,

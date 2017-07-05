@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,37 +23,19 @@
 package password.pwm.bean;
 
 
-import password.pwm.util.JsonUtil;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import password.pwm.util.java.JsonUtil;
 
 import java.io.Serializable;
 
+@Getter
+@AllArgsConstructor
 public class SmsItemBean implements Serializable {
-    private String to;
-    private String message;
+    private final String to;
+    private final String message;
 
-    // --------------------------- CONSTRUCTORS ---------------------------
-    public SmsItemBean(
-            final String to,
-            final String message
-    ) {
-        this.to = to;
-        this.message = message;
-    }
 
-// --------------------- GETTER / SETTER METHODS ---------------------
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(final String message) {
-        this.message = message;
-    }
-
-    public String getTo() {
-        return to;
-    }
-    
     public String toString() {
         return "SMS Item: " + JsonUtil.serialize(this);
     }

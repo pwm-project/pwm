@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,11 +30,13 @@ import PeopleSearchTableComponent from './peoplesearch-table.component';
 import PeopleSearchCardsComponent from './peoplesearch-cards.component';
 import PersonCardComponent from './person-card.component';
 import PersonDetailsDialogComponent from './person-details-dialog.component';
+import LocalStorageService from '../services/local-storage.service';
+import PromiseService from '../services/promise.service';
 import uxModule from '../ux/ux.module';
 
 require('./peoplesearch.scss');
 
-var moduleName = 'people-search';
+const moduleName = 'people-search';
 
 module(moduleName, [
     'pascalprecht.translate',
@@ -47,6 +49,8 @@ module(moduleName, [
     .component('personCard', PersonCardComponent)
     .component('peopleSearchTable', PeopleSearchTableComponent)
     .component('peopleSearchCards', PeopleSearchCardsComponent)
-    .component('personDetailsDialogComponent', PersonDetailsDialogComponent);
+    .component('personDetailsDialogComponent', PersonDetailsDialogComponent)
+    .service('PromiseService', PromiseService)
+    .service('LocalStorageService', LocalStorageService);
 
 export default moduleName;

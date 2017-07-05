@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,8 @@
 
 package password.pwm.svc;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import password.pwm.PwmApplication;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
@@ -29,7 +31,9 @@ import password.pwm.health.HealthRecord;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * An interface for daemon/background services.  Services are initialized, shutdown and accessed via {@link PwmApplication}.  Some services
@@ -52,19 +56,24 @@ public interface PwmService {
 
     List<HealthRecord> healthCheck();
 
-    ServiceInfo serviceInfo();
+    ServiceInfoBean serviceInfo();
 
-    class ServiceInfo implements Serializable {
-        public Collection<DataStorageMethod> usedStorageMethods;
+    interface ServiceInfo {
+        Collection<DataStorageMethod> getUsedStorageMethods();
 
-        public ServiceInfo(final Collection<DataStorageMethod> usedStorageMethods)
+        Map<String,String> getDebugProperties();
+    }
+
+    @Getter
+    @AllArgsConstructor
+    class ServiceInfoBean implements ServiceInfo, Serializable {
+        private final Collection<DataStorageMethod> usedStorageMethods;
+        private final Map<String,String> debugProperties;
+
+        public ServiceInfoBean(final Collection<DataStorageMethod> usedStorageMethods)
         {
             this.usedStorageMethods = usedStorageMethods;
-        }
-
-        public Collection<DataStorageMethod> getUsedStorageMethods()
-        {
-            return usedStorageMethods;
+            this.debugProperties = Collections.emptyMap();
         }
     }
 }

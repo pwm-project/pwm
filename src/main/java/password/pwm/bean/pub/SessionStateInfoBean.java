@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,13 +22,13 @@
 
 package password.pwm.bean.pub;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.Locale;
 
 public class SessionStateInfoBean implements PublishedBean {
     private String label;
-    private Date createTime;
-    private Date lastTime;
+    private Instant createTime;
+    private Instant lastTime;
     private String idle;
     private Locale locale;
     private String ldapProfile;
@@ -47,19 +47,19 @@ public class SessionStateInfoBean implements PublishedBean {
         this.label = label;
     }
 
-    public Date getCreateTime() {
+    public Instant getCreateTime() {
         return createTime;
     }
 
-    public void setCreateTime(final Date createTime) {
+    public void setCreateTime(final Instant createTime) {
         this.createTime = createTime;
     }
 
-    public Date getLastTime() {
+    public Instant getLastTime() {
         return lastTime;
     }
 
-    public void setLastTime(final Date lastTime) {
+    public void setLastTime(final Instant lastTime) {
         this.lastTime = lastTime;
     }
 

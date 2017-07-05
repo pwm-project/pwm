@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,17 +26,17 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.error.PwmException;
 import password.pwm.svc.PwmService;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.Percent;
-import password.pwm.util.TimeDuration;
 import password.pwm.util.TransactionSizeCalculator;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.Percent;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.localdb.LocalDBStoredQueue;
 import password.pwm.util.logging.PwmLogger;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -48,7 +48,7 @@ public class LocalDbAuditVault implements AuditVault {
 
     private LocalDBStoredQueue auditDB;
     private Settings settings;
-    private Date oldestRecord;
+    private Instant oldestRecord;
 
     private int maxBulkRemovals = 105;
 
@@ -76,8 +76,8 @@ public class LocalDbAuditVault implements AuditVault {
         readOldestRecord();
 
         executorService = Executors.newSingleThreadScheduledExecutor(
-                Helper.makePwmThreadFactory(
-                        Helper.makeThreadName(pwmApplication,this.getClass()) + "-",
+                JavaHelper.makePwmThreadFactory(
+                        JavaHelper.makeThreadName(pwmApplication,this.getClass()) + "-",
                         true
                 ));
 
@@ -95,7 +95,7 @@ public class LocalDbAuditVault implements AuditVault {
     }
 
     @Override
-    public Date oldestRecord() {
+    public Instant oldestRecord() {
         return oldestRecord;
     }
 

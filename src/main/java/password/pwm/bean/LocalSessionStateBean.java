@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,10 +22,11 @@
 
 package password.pwm.bean;
 
+import password.pwm.ldap.UserInfoBean;
 import password.pwm.util.secure.PwmRandom;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.Instant;
 import java.util.Locale;
 
 /**
@@ -55,9 +56,9 @@ public class LocalSessionStateBean implements Serializable {
     private boolean debugInitialized;
     private boolean sessionVerified;
 
-    private Date pageLeaveNoticeTime;
-    private Date sessionCreationTime;
-    private Date sessionLastAccessedTime;
+    private Instant pageLeaveNoticeTime;
+    private Instant sessionCreationTime;
+    private Instant sessionLastAccessedTime;
 
     private boolean passwordModified;
     private boolean privateUrlAccessed;
@@ -169,27 +170,27 @@ public class LocalSessionStateBean implements Serializable {
         this.theme = theme;
     }
 
-    public Date getPageLeaveNoticeTime() {
+    public Instant getPageLeaveNoticeTime() {
         return pageLeaveNoticeTime;
     }
 
-    public void setPageLeaveNoticeTime(final Date pageLeaveNoticeTime) {
+    public void setPageLeaveNoticeTime(final Instant pageLeaveNoticeTime) {
         this.pageLeaveNoticeTime = pageLeaveNoticeTime;
     }
 
-    public Date getSessionCreationTime() {
+    public Instant getSessionCreationTime() {
         return sessionCreationTime;
     }
 
-    public void setSessionCreationTime(final Date sessionCreationTime) {
+    public void setSessionCreationTime(final Instant sessionCreationTime) {
         this.sessionCreationTime = sessionCreationTime;
     }
 
-    public Date getSessionLastAccessedTime() {
+    public Instant getSessionLastAccessedTime() {
         return sessionLastAccessedTime;
     }
 
-    public void setSessionLastAccessedTime(final Date sessionLastAccessedTime) {
+    public void setSessionLastAccessedTime(final Instant sessionLastAccessedTime) {
         this.sessionLastAccessedTime = sessionLastAccessedTime;
     }
 

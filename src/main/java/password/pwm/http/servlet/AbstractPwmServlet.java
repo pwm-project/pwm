@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,8 +32,10 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
 import password.pwm.http.PwmSessionWrapper;
+import password.pwm.http.bean.PwmSessionBean;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.Validator;
 import password.pwm.util.logging.PwmLogger;
@@ -276,5 +278,23 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
             }
         }
         throw new IllegalStateException("unable to determine PwmServletDefinition for class " + this.getClass().getName());
+    }
+
+    protected void setLastError(final PwmRequest pwmRequest, final ErrorInformation errorInformation) throws PwmUnrecoverableException {
+        final Class<? extends PwmSessionBean> beanClass = this.getServletDefinition().getPwmSessionBeanClass();
+        if (beanClass != null) {
+            final PwmSessionBean pwmSessionBean = pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest, beanClass);
+            pwmSessionBean.setLastError(errorInformation);
+            pwmRequest.setAttribute(PwmRequestAttribute.PwmErrorInfo, errorInformation);
+        }
+    }
+
+    protected void examineLastError(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
+        final Class<? extends PwmSessionBean> beanClass = this.getServletDefinition().getPwmSessionBeanClass();
+        final PwmSessionBean pwmSessionBean = pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest, beanClass);
+        if (pwmSessionBean != null && pwmSessionBean.getLastError() != null) {
+            pwmRequest.setAttribute(PwmRequestAttribute.PwmErrorInfo, pwmSessionBean.getLastError());
+            pwmSessionBean.setLastError(null);
+        }
     }
 }

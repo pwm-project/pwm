@@ -1,3 +1,25 @@
+/*
+ * Password Management Servlets (PWM)
+ * http://www.pwm-project.org
+ *
+ * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2017 The PWM Project
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
 package password.pwm.svc.report;
 
 import com.google.gson.reflect.TypeToken;
@@ -9,7 +31,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import password.pwm.config.Configuration;
 import password.pwm.svc.report.ReportService.RecordIterator;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JsonUtil;
 
 import java.io.OutputStream;
 import java.io.StringWriter;
@@ -29,14 +51,14 @@ public class ReportServiceTest {
     private static final Type USER_CACHE_RECORD_LIST_TYPE = new TypeToken<ArrayList<UserCacheRecord>>(){}.getType();
 
     private Configuration configuration;
-    private ReportService reportService;
+    private ReportCsvUtility reportService;
 
     @Before
     public void setUp() throws Exception {
         configuration = mock(Configuration.class);
 
         // Call the real ReportService.outputToCsv() method, but mock the ReportService.iterator() method so it loads the user records from a json file.
-        reportService = mock(ReportService.class);
+        reportService = mock(ReportCsvUtility.class);
         doCallRealMethod().when(reportService).outputToCsv(any(OutputStream.class), anyBoolean(), any(Locale.class), any(Configuration.class), any(ReportColumnFilter.class));
         doAnswer(new Answer<RecordIterator<UserCacheRecord>>() {
             @Override

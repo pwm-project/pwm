@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,7 +31,9 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.JspUrl;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestAttribute;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
@@ -66,16 +68,16 @@ public class AccountInformationServlet extends AbstractPwmServlet {
                 final Map<FormConfiguration, List<String>> ldapValues = FormUtility.populateFormMapFromLdap(
                         formConfiguration,
                         pwmRequest.getSessionLabel(),
-                        pwmRequest.getPwmSession().getSessionManager().getUserDataReader(pwmRequest.getPwmApplication()),
+                        pwmRequest.getPwmSession().getUserInfo(),
                         FormUtility.Flag.ReturnEmptyValues
                 );
-                pwmRequest.setAttribute(PwmRequest.Attribute.FormData, new LinkedHashMap<>(ldapValues));
+                pwmRequest.setAttribute(PwmRequestAttribute.FormData, new LinkedHashMap<>(ldapValues));
             }
         } catch (PwmException e) {
             LOGGER.error(pwmRequest, "error reading user form data: " + e.getMessage());
         }
 
-        pwmRequest.forwardToJsp(PwmConstants.JspUrl.ACCOUNT_INFORMATION);
+        pwmRequest.forwardToJsp(JspUrl.ACCOUNT_INFORMATION);
     }
 
     @Override

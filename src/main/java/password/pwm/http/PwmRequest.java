@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
@@ -41,8 +41,9 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.servlet.PwmServletDefinition;
-import password.pwm.util.StringUtil;
+import password.pwm.http.servlet.command.CommandServlet;
 import password.pwm.util.Validator;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 import password.pwm.ws.server.RestResultBean;
@@ -56,6 +57,7 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -69,12 +71,17 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(PwmRequest.class);
 
-    private static final Set<String> HTTP_DEBUG_STRIP_VALUES = new HashSet<>(
-            Arrays.asList(new String[] {
+    private static final Set<String> HTTP_PARAM_DEBUG_STRIP_VALUES =
+            Collections.unmodifiableSet(new HashSet<>(Arrays.asList(new String[] {
                     "password",
                     PwmConstants.PARAM_TOKEN,
                     PwmConstants.PARAM_RESPONSE_PREFIX,
-            }));
+            })));
+
+    private static final Set<String> HTTP_HEADER_DEBUG_STRIP_VALUES =
+            Collections.unmodifiableSet(new HashSet<>(Arrays.asList(new String[] {
+                    HttpHeader.Authorization.getHttpName(),
+            })));
 
     private final PwmResponse pwmResponse;
     private transient PwmApplication pwmApplication;
@@ -88,12 +95,12 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
     )
             throws PwmUnrecoverableException
     {
-        PwmRequest pwmRequest = (PwmRequest) request.getAttribute(PwmRequest.Attribute.PwmRequest.toString());
+        PwmRequest pwmRequest = (PwmRequest) request.getAttribute(PwmRequestAttribute.PwmRequest.toString());
         if (pwmRequest == null) {
             final PwmSession pwmSession = PwmSessionWrapper.readPwmSession(request);
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
             pwmRequest = new PwmRequest(request, response, pwmApplication, pwmSession);
-            request.setAttribute(PwmRequest.Attribute.PwmRequest.toString(), pwmRequest);
+            request.setAttribute(PwmRequestAttribute.PwmRequest.toString(), pwmRequest);
         }
         return pwmRequest;
     }
@@ -142,7 +149,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         return pwmApplication.getConfig();
     }
 
-    public void forwardToJsp(final PwmConstants.JspUrl jspURL)
+    public void forwardToJsp(final JspUrl jspURL)
             throws ServletException, IOException, PwmUnrecoverableException
     {
         this.getPwmResponse().forwardToJsp(jspURL);
@@ -182,8 +189,8 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
     public void sendRedirectToContinue()
             throws PwmUnrecoverableException, IOException
     {
-        String redirectURL = this.getContextPath() + PwmServletDefinition.Command.servletUrl();
-        redirectURL = PwmURL.appendAndEncodeUrlParameters(redirectURL, Collections.singletonMap(PwmConstants.PARAM_ACTION_REQUEST, "continue"));
+        String redirectURL = this.getContextPath() + PwmServletDefinition.PublicCommand.servletUrl();
+        redirectURL = PwmURL.appendAndEncodeUrlParameters(redirectURL, Collections.singletonMap(PwmConstants.PARAM_ACTION_REQUEST, CommandServlet.CommandAction.next.toString()));
         sendRedirect(redirectURL);
     }
 
@@ -261,64 +268,6 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         return Collections.unmodifiableMap(returnObj);
     }
 
-    public enum Attribute {
-        PwmErrorInfo,
-        SuccessMessage,
-        PwmRequest,
-        OriginalUri,
-        AgreementText,
-        CompleteText,
-        AvailableAuthMethods,
-        ConfigurationSummaryOutput,
-        LdapPermissionItems,
-        PageTitle,
-        ModuleBean,
-        ModuleBean_String,
-        CspNonce,
-
-        FormConfiguration,
-        FormReadOnly,
-        FormShowPasswordFields,
-        FormData,
-
-        SetupResponses_ResponseInfo,
-
-        SetupOtp_QrCodeValue,
-
-        HelpdeskDetail,
-        HelpdeskObfuscatedDN,
-        HelpdeskUsername,
-        HelpdeskVerificationEnabled,
-
-        ConfigFilename,
-        ConfigLastModified,
-        ConfigHasPassword,
-        ConfigPasswordRememberTime,
-        ConfigLoginHistory,
-        ApplicationPath,
-
-        CaptchaClientUrl,
-        CaptchaIframeUrl,
-        CaptchaPublicKey,
-
-        ForgottenPasswordChallengeSet,
-        ForgottenPasswordOptionalPageView,
-        ForgottenPasswordPrompts,
-        ForgottenPasswordInstructions,
-        ForgottenPasswordUserInfo,
-
-        GuestCurrentExpirationDate,
-        GuestMaximumExpirationDate,
-        GuestMaximumValidDays,
-
-        NewUser_FormShowBackButton,
-
-        CookieBeanStorage,
-
-        ShortcutItems,
-        NextUrl,
-    }
-
     public static class FileUploadItem {
         private final String name;
         private final String type;
@@ -353,7 +302,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
 
     public UserIdentity getUserInfoIfLoggedIn() {
         return this.getPwmSession().isAuthenticated()
-                ? this.getPwmSession().getUserInfoBean().getUserIdentity()
+                ? this.getPwmSession().getUserInfo().getUserIdentity()
                 : null;
     }
 
@@ -410,17 +359,11 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         return true;
     }
 
-
-
-    public void setResponseError(final ErrorInformation errorInformation) {
-        setAttribute(PwmRequest.Attribute.PwmErrorInfo, errorInformation);
-    }
-
-    public void setAttribute(final PwmRequest.Attribute name, final Serializable value) {
+    public void setAttribute(final PwmRequestAttribute name, final Serializable value) {
         this.getHttpServletRequest().setAttribute(name.toString(),value);
     }
 
-    public Serializable getAttribute(final PwmRequest.Attribute name) {
+    public Serializable getAttribute(final PwmRequestAttribute name) {
         return (Serializable)this.getHttpServletRequest().getAttribute(name.toString());
     }
 
@@ -458,29 +401,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
             }
             sb.append("\n");
 
-            final Map<String,List<String>> valueMap = this.readMultiParametersAsMap();
-            for (final String paramName : valueMap.keySet()) {
-                for (final String paramValue : valueMap.get(paramName)) {
-                    sb.append("  ").append(paramName).append("=");
-                    boolean strip = false;
-                    for (final String stripValue : HTTP_DEBUG_STRIP_VALUES) {
-                        if (paramName.toLowerCase().contains(stripValue.toLowerCase())) {
-                            strip = true;
-                        }
-                    }
-                    if (strip) {
-                        sb.append(PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT);
-                    } else {
-                        sb.append("'");
-                        sb.append(paramValue);
-                        sb.append("'");
-                    }
-
-                    sb.append("\n");
-                }
-            }
-
-            sb.deleteCharAt(sb.length() - 1);
+            sb.append(debugOutputMapToString(this.readMultiParametersAsMap(), HTTP_PARAM_DEBUG_STRIP_VALUES));
         }
         LOGGER.trace(this.getSessionLabel(), sb.toString());
     }
@@ -489,13 +410,14 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         return pwmSession.isAuthenticated();
     }
 
-    public boolean isForcedPageView() {
+    public boolean isForcedPageView() throws PwmUnrecoverableException
+    {
         if (!isAuthenticated()) {
             return false;
         }
 
         final PwmURL pwmURL = getURL();
-        final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
+        final UserInfo userInfoBean = pwmSession.getUserInfo();
 
         if (userInfoBean.isRequiresNewPassword() && pwmURL.isChangePasswordURL()) {
             return true;
@@ -556,13 +478,13 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
 
     public synchronized String getCspNonce()
     {
-        if (getAttribute(PwmRequest.Attribute.CspNonce) == null) {
+        if (getAttribute(PwmRequestAttribute.CspNonce) == null) {
             final int nonceLength = Integer.parseInt(getConfig().readAppProperty(AppProperty.HTTP_HEADER_CSP_NONCE_BYTES));
             final byte[] cspNonce = PwmRandom.getInstance().newBytes(nonceLength);
             final String cspString = StringUtil.base64Encode(cspNonce);
-            setAttribute(PwmRequest.Attribute.CspNonce, cspString);
+            setAttribute(PwmRequestAttribute.CspNonce, cspString);
         }
-        return (String)getAttribute(PwmRequest.Attribute.CspNonce);
+        return (String)getAttribute(PwmRequestAttribute.CspNonce);
     }
 
     public <T extends Serializable> T readEncryptedCookie(final String cookieName, final Class<T> returnClass)
@@ -604,10 +526,10 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
                 ? new LinkedHashMap<FormConfiguration,String>()
                 : new LinkedHashMap<>(formDataMap);
 
-        this.setAttribute(PwmRequest.Attribute.FormConfiguration, new ArrayList<>(formConfiguration));
-        this.setAttribute(PwmRequest.Attribute.FormData, formDataMapValue);
-        this.setAttribute(PwmRequest.Attribute.FormReadOnly, readOnly);
-        this.setAttribute(PwmRequest.Attribute.FormShowPasswordFields, showPasswordFields);
+        this.setAttribute(PwmRequestAttribute.FormConfiguration, new ArrayList<>(formConfiguration));
+        this.setAttribute(PwmRequestAttribute.FormData, formDataMapValue);
+        this.setAttribute(PwmRequestAttribute.FormReadOnly, readOnly);
+        this.setAttribute(PwmRequestAttribute.FormShowPasswordFields, showPasswordFields);
     }
 
     public void invalidateSession() {
@@ -634,24 +556,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         sb.append("http").append(getHttpServletRequest().isSecure() ? "s " : " non-").append("secure request headers: ");
         sb.append(LINE_SEPERATOR);
 
-        final Map<String,List<String>> headerMap = readHeaderValuesMap();
-        for (final String headerName : headerMap.keySet()) {
-            for (final String value : headerMap.get(headerName)) {
-                sb.append("  ");
-                sb.append(headerName);
-                sb.append("=");
-                if (headerName.contains("Authorization")) {
-                    sb.append(PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT);
-                } else {
-                    sb.append(value);
-                }
-                sb.append(LINE_SEPERATOR);
-            }
-        }
-
-        if (LINE_SEPERATOR.equals(sb.substring(sb.length() - LINE_SEPERATOR.length(), sb.length()))) {
-            sb.delete(sb.length() - LINE_SEPERATOR.length(), sb.length());
-        }
+        sb.append(debugOutputMapToString(readHeaderValuesMap(), HTTP_HEADER_DEBUG_STRIP_VALUES));
 
         return sb.toString();
     }
@@ -668,5 +573,42 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
             return true;
         }
         return false;
+    }
+
+    private static String debugOutputMapToString(
+            final Map<String,List<String>> input,
+            final Collection<String> stripValues
+
+    ) {
+        final String LINE_SEPARATOR = "\n";
+        final StringBuilder sb = new StringBuilder();
+        for (final String paramName : input.keySet()) {
+            for (final String paramValue : input.get(paramName)) {
+                sb.append("  ").append(paramName).append("=");
+                boolean strip = false;
+                for (final String stripValue : stripValues) {
+                    if (paramName.toLowerCase().contains(stripValue.toLowerCase())) {
+                        strip = true;
+                    }
+                }
+                if (strip) {
+                    sb.append(PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT);
+                } else {
+                    sb.append("'");
+                    sb.append(paramValue);
+                    sb.append("'");
+                }
+
+                sb.append(LINE_SEPARATOR);
+            }
+        }
+
+        if (sb.length() > 0) {
+            if (LINE_SEPARATOR.equals(sb.substring(sb.length() - LINE_SEPARATOR.length(), sb.length()))) {
+                sb.delete(sb.length() - LINE_SEPARATOR.length(), sb.length());
+            }
+        }
+
+        return sb.toString();
     }
 }

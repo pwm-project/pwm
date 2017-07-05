@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,91 +22,56 @@
 
 package password.pwm.svc.cache;
 
-import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import password.pwm.error.PwmUnrecoverableException;
 
-import java.io.Serializable;
-import java.util.Date;
-import java.util.Map;
+import java.time.Instant;
 
 class MemoryCacheStore implements CacheStore {
-    private final Map<String,ValueWrapper> memoryStore;
-    private int readCount;
-    private int storeCount;
-    private int hitCount;
-    private int missCount;
+    private final Cache<String,CacheValueWrapper> memoryStore;
+    private final CacheStoreInfo cacheStoreInfo = new CacheStoreInfo();
 
     MemoryCacheStore(final int maxItems) {
-        memoryStore = new ConcurrentLinkedHashMap.Builder<String, ValueWrapper>()
-            .maximumWeightedCapacity(maxItems)
-            .build();
+        memoryStore = Caffeine.newBuilder()
+                .maximumSize(maxItems)
+                .build();
     }
 
     @Override
-    public void store(final CacheKey cacheKey, final Date expirationDate, final String data)
+    public void store(final CacheKey cacheKey, final Instant expirationDate, final String data)
             throws PwmUnrecoverableException {
-        storeCount++;
-        memoryStore.put(cacheKey.getHash(), new ValueWrapper(cacheKey, expirationDate, data));
+        cacheStoreInfo.getStoreCount();
+        memoryStore.put(cacheKey.getHash(), new CacheValueWrapper(cacheKey, expirationDate, data));
     }
 
     @Override
     public String read(final CacheKey cacheKey)
             throws PwmUnrecoverableException 
     {
-        readCount++;
-        final ValueWrapper valueWrapper = memoryStore.get(cacheKey.getHash());
+        cacheStoreInfo.getReadCount();
+        final CacheValueWrapper valueWrapper = memoryStore.getIfPresent(cacheKey.getHash());
         if (valueWrapper != null) {
             if (cacheKey.equals(valueWrapper.getCacheKey())) {
-                if (valueWrapper.getExpirationDate().after(new Date())) {
-                    hitCount++;
-                    return valueWrapper.payload;
+                if (valueWrapper.getExpirationDate().isAfter(Instant.now())) {
+                    cacheStoreInfo.incrementHitCount();
+                    return valueWrapper.getPayload();
                 }
             }
         }
-        missCount++;
+        memoryStore.invalidate(cacheKey.getHash());
+        cacheStoreInfo.incrementMissCount();
         return null;
     }
 
     @Override
     public CacheStoreInfo getCacheStoreInfo() {
-        final CacheStoreInfo cacheStoreInfo = new CacheStoreInfo();
-        cacheStoreInfo.setReadCount(readCount);
-        cacheStoreInfo.setStoreCount(storeCount);
-        cacheStoreInfo.setHitCount(hitCount);
-        cacheStoreInfo.setMissCount(missCount);
-        cacheStoreInfo.setItemCount(memoryStore.size());
         return cacheStoreInfo;
     }
 
-    private static class ValueWrapper implements Serializable {
-        final CacheKey cacheKey;
-        final Date expirationDate;
-        final String payload;
-
-        private ValueWrapper(
-                final CacheKey cacheKey,
-                final Date expirationDate,
-                final String payload
-        )
-        {
-            this.cacheKey = cacheKey;
-            this.expirationDate = expirationDate;
-            this.payload = payload;
-        }
-
-        public CacheKey getCacheKey()
-        {
-            return cacheKey;
-        }
-
-        public Date getExpirationDate() {
-            return expirationDate;
-        }
-
-        public String getPayload()
-        {
-            return payload;
-        }
+    @Override
+    public int itemCount()
+    {
+        return (int)memoryStore.estimatedSize();
     }
-
 }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@ import password.pwm.config.value.FileValue;
 import password.pwm.config.value.FormValue;
 import password.pwm.config.value.LocalizedStringArrayValue;
 import password.pwm.config.value.LocalizedStringValue;
+import password.pwm.config.value.NamedSecretValue;
 import password.pwm.config.value.NumericValue;
 import password.pwm.config.value.OptionListValue;
 import password.pwm.config.value.PasswordValue;
@@ -68,6 +69,7 @@ public enum PwmSettingSyntax {
     PROFILE(StringArrayValue.factory()),
     VERIFICATION_METHOD(VerificationMethodValue.factory()),
     PRIVATE_KEY(PrivateKeyValue.factory()),
+    NAMED_SECRET(NamedSecretValue.factory()),
 
     ;
 

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -57,7 +57,8 @@ public class HttpEventManager implements
         final HttpSession httpSession = httpSessionEvent.getSession();
         try {
             final ContextManager contextManager = ContextManager.getContextManager(httpSession);
-            httpSession.setAttribute(PwmConstants.SESSION_ATTR_CONTEXT_GUID,contextManager.getInstanceGuid());
+            final PwmApplication pwmApplication = contextManager.getPwmApplication();
+            httpSession.setAttribute(PwmConstants.SESSION_ATTR_PWM_APP_NONCE, pwmApplication.getInstanceNonce());
             LOGGER.trace("new http session created");
         } catch (PwmUnrecoverableException e) {
             LOGGER.warn("error during sessionCreated event: " + e.getMessage());

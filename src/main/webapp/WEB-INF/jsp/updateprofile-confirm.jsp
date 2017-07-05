@@ -1,14 +1,15 @@
 <%@ page import="password.pwm.config.FormConfiguration" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ page import="password.pwm.util.LocaleHelper" %>
-<%@ page import="password.pwm.util.StringUtil" %>
+<%@ page import="password.pwm.util.java.StringUtil" %>
 <%@ page import="java.util.Map" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2016 The PWM Project
+  ~ Copyright (c) 2009-2017 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -42,7 +43,7 @@
         <p><pwm:display key="Display_UpdateProfileConfirm"/></p>
         <%@ include file="fragment/message.jsp" %>
         <br/>
-        <% final Map<FormConfiguration,String> formDataMap = (Map<FormConfiguration,String>)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.FormData); %>
+        <% final Map<FormConfiguration,String> formDataMap = (Map<FormConfiguration,String>)JspUtility.getAttribute(pageContext, PwmRequestAttribute.FormData); %>
         <table id="ConfirmProfileTable">
             <% for (final FormConfiguration formConfiguration : formDataMap.keySet()) { %>
             <tr>
@@ -54,9 +55,11 @@
                         final String value = formDataMap.get(formConfiguration);
                         if (formConfiguration.getType() == FormConfiguration.Type.checkbox) {
                     %>
-                    <%= LocaleHelper.booleanString(Boolean.parseBoolean(value),pwmRequest)%>
+                    <label class="checkboxWrapper">
+                        <input id="<%=formConfiguration.getName()%>" name="<%=formConfiguration.getName()%>" disabled type="checkbox" <%=(Boolean.parseBoolean(value))?"checked":""%>/>
+                    </label>
                     <% } else { %>
-                    <%=StringUtil.escapeHtml(value)%>
+                    <%=StringUtil.escapeHtml(formConfiguration.displayValue(value, JspUtility.locale(request), JspUtility.getPwmRequest(pageContext).getConfig()))%>
                     <% } %>
                 </td>
             </tr>

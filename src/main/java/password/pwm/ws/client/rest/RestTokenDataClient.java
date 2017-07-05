@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,15 +27,15 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.ldap.UserInfo;
 import password.pwm.bean.pub.PublicUserInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.ldap.UserStatusReader;
-import password.pwm.util.JsonUtil;
+import password.pwm.ldap.UserInfoFactory;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
@@ -103,14 +103,14 @@ public class RestTokenDataClient implements RestClient {
         final Map<String,Object> sendData = new LinkedHashMap<>();
         sendData.put(DATA_KEY_TOKENDATA, tokenDestinationData);
         if (userIdentity != null) {
-            final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, sessionLabel);
-            final UserInfoBean userInfoBean = userStatusReader.populateUserInfoBean(
-                    locale,
-                    userIdentity
+            final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy(
+                    pwmApplication,
+                    sessionLabel,
+                    userIdentity, locale
             );
 
-            final MacroMachine macroMachine = MacroMachine.forUser(pwmApplication, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, userInfoBean.getUserIdentity());
-            final PublicUserInfoBean publicUserInfoBean = PublicUserInfoBean.fromUserInfoBean(userInfoBean, pwmApplication.getConfig(), PwmConstants.DEFAULT_LOCALE, macroMachine);
+            final MacroMachine macroMachine = MacroMachine.forUser(pwmApplication, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, userInfo.getUserIdentity());
+            final PublicUserInfoBean publicUserInfoBean = PublicUserInfoBean.fromUserInfoBean(userInfo, pwmApplication.getConfig(), PwmConstants.DEFAULT_LOCALE, macroMachine);
             sendData.put(RestClient.DATA_KEY_USERINFO, publicUserInfoBean);
         }
 

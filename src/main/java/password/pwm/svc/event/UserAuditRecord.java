@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 package password.pwm.svc.event;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.Instant;
 
 /**
  * UserAuditRecord data
@@ -36,7 +36,7 @@ public class UserAuditRecord extends AuditRecord implements Serializable {
     protected String sourceHost;
 
     protected UserAuditRecord(
-            final Date timestamp,
+            final Instant timestamp,
             final AuditEvent eventCode,
             final String perpetratorID,
             final String perpetratorDN,

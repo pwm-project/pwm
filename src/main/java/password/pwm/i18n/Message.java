@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,6 +37,7 @@ import java.util.Locale;
  */
 public enum Message implements PwmDisplayBundle {
     Success_PasswordChange(null),
+    Success_ChangedHelpdeskPassword(null),
     Success_SetupResponse(null),
     Success_ClearResponse(null),
     Success_Unknown(null),
@@ -54,6 +55,7 @@ public enum Message implements PwmDisplayBundle {
     Success_PasswordSend(null),
     Success_Action(null),
     Success_OtpSetup(null),
+    Success_TokenResend(null),
 
     EventLog_Startup(null),
     EventLog_Shutdown(null),

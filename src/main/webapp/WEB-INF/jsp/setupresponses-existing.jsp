@@ -3,7 +3,7 @@
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2016 The PWM Project
+  ~ Copyright (c) 2009-2017 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -22,14 +22,15 @@
 
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
 <%@ page import="password.pwm.bean.ResponseInfoBean" %>
-<%@ page import="password.pwm.util.StringUtil" %>
+<%@ page import="password.pwm.util.java.StringUtil" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
-<% final ResponseInfoBean responseInfoBean = (ResponseInfoBean)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.SetupResponses_ResponseInfo); %>
+<% final ResponseInfoBean responseInfoBean = (ResponseInfoBean)JspUtility.getAttribute(pageContext, PwmRequestAttribute.SetupResponses_ResponseInfo); %>
 <body class="nihilo">
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">

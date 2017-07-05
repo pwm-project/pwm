@@ -4,7 +4,7 @@
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2016 The PWM Project
+  ~ Copyright (c) 2009-2017 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -38,7 +38,7 @@
         <table class="noborder">
             <tr>
                 <td style="text-align: center">
-                    <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="search">
+                    <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="search" class="pwm-form">
                         <button class="btn" type="submit" name="submitBtn">
                             <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-file-text"></span></pwm:if>
                             <pwm:display key="Button_Email"/>
@@ -59,7 +59,7 @@
             </tr>
             <tr>
                 <td style="text-align: center">
-                    <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="search">
+                    <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="search" class="pwm-form">
                         <button class="btn" type="submit" name="submitBtn">
                             <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-phone"></span></pwm:if>
                             <pwm:display key="Button_SMS"/>

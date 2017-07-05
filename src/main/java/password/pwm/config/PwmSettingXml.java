@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@ import org.jdom2.JDOMException;
 import org.jdom2.input.SAXBuilder;
 import org.jdom2.xpath.XPathExpression;
 import org.jdom2.xpath.XPathFactory;
-import password.pwm.util.Helper;
+import password.pwm.util.java.JavaHelper;
 
 import javax.xml.XMLConstants;
 import javax.xml.transform.stream.StreamSource;
@@ -54,7 +54,7 @@ public class PwmSettingXml {
     public static final String XML_ATTRIBUTE_TEMPLATE = "template";
 
 
-    private static Document xmlDocCache = null;
+    private static Document xmlDocCache;
 
     private static Document readXml() {
         final Document docRefCopy = xmlDocCache;
@@ -70,11 +70,11 @@ public class PwmSettingXml {
                 final Thread t = new Thread("PwmSettingXml static cache clear thread") {
                     @Override
                     public void run() {
-                        Helper.pause(30 * 1000);
+                        JavaHelper.pause(30 * 1000);
                         xmlDocCache = null;
                     }
                 };
-                t.setDaemon(false);
+                t.setDaemon(true);
                 t.start();
 
                 return newDoc;

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,65 +23,62 @@
 package password.pwm.util.db;
 
 import password.pwm.error.PwmDataStoreException;
-import password.pwm.svc.PwmService;
-import password.pwm.util.ClosableIterator;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.DataStore;
+import password.pwm.util.java.ClosableIterator;
 
 public class DatabaseDataStore implements DataStore {
-    private final DatabaseAccessorImpl databaseAccessor;
+    private final DatabaseService databaseService;
     private final DatabaseTable table;
 
-    public DatabaseDataStore(final DatabaseAccessorImpl databaseAccessor, final DatabaseTable table) {
-        this.databaseAccessor = databaseAccessor;
+    public DatabaseDataStore(final DatabaseService databaseService, final DatabaseTable table) {
+        this.databaseService = databaseService;
         this.table = table;
     }
 
     public void close() throws PwmDataStoreException {
-        databaseAccessor.close();
     }
 
-    public boolean contains(final String key) throws PwmDataStoreException {
-        return databaseAccessor.contains(table, key);
+    public boolean contains(final String key) throws PwmDataStoreException, PwmUnrecoverableException
+    {
+        return databaseService.getAccessor().contains(table, key);
     }
 
-    public String get(final String key) throws PwmDataStoreException {
-        return databaseAccessor.get(table,key);
+    public String get(final String key) throws PwmDataStoreException, PwmUnrecoverableException
+    {
+        return databaseService.getAccessor().get(table,key);
     }
 
-    public ClosableIterator<String> iterator() throws PwmDataStoreException {
-        return databaseAccessor.iterator(table);
+    public ClosableIterator<String> iterator() throws PwmDataStoreException, PwmUnrecoverableException
+    {
+        return databaseService.getAccessor().iterator(table);
     }
 
     public Status status() {
-        final PwmService.STATUS dbStatus = databaseAccessor.status();
-        if (dbStatus == null) {
+        if (databaseService == null) {
             return null;
         }
-        switch (dbStatus) {
-            case OPEN:
-                return Status.OPEN;
 
-            case CLOSED:
-                return Status.CLOSED;
-
-            case NEW:
-            case OPENING:
-                return Status.NEW;
-
-            default:
-                throw new IllegalStateException("unknown databaseAccessor state");
-        }
+        return Status.OPEN;
     }
 
-    public boolean put(final String key, final String value) throws PwmDataStoreException {
-        return databaseAccessor.put(table, key, value);
+    public boolean put(final String key, final String value) throws PwmDataStoreException, PwmUnrecoverableException
+    {
+        return databaseService.getAccessor().put(table, key, value);
     }
 
-    public boolean remove(final String key) throws PwmDataStoreException {
-        return databaseAccessor.remove(table, key);
+    public boolean putIfAbsent(final String key, final String value) throws PwmDataStoreException, PwmUnrecoverableException
+    {
+        return databaseService.getAccessor().putIfAbsent(table, key, value);
     }
 
-    public int size() throws PwmDataStoreException {
-        return databaseAccessor.size(table);
+    public void remove(final String key) throws PwmDataStoreException, PwmUnrecoverableException
+    {
+        databaseService.getAccessor().remove(table, key);
+    }
+
+    public int size() throws PwmDataStoreException, PwmUnrecoverableException
+    {
+        return databaseService.getAccessor().size(table);
     }
 }

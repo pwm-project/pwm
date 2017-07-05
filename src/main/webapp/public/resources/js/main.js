@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -400,10 +400,12 @@ PWM_MAIN.handleLoginFormSubmit = function(form, event) {
                 }
             };
             PWM_MAIN.ajaxRequest(url,loadFunction,options);
-            try {
-                grecaptcha.reset(); // reset the
-            } catch (e) {
-                console.log("error resetting the captcha: " + e)
+            if(typeof grecaptcha != 'undefined'){
+                try {
+                   grecaptcha.reset(); // reset the
+                } catch (e) {
+                    console.log("error resetting the captcha: " + e)
+                }
             }
         }});
     });
@@ -637,7 +639,7 @@ PWM_MAIN.showLocaleSelectionMenu = function(nextFunction, options) {
             if (array.indexOf(excludeLocales, localeKey) == -1) {
                 var loopDisplayName = localeData[localeKey];
                 var flagCode = PWM_GLOBAL['localeFlags'][localeKey];
-                var flagUrl = PWM_GLOBAL['url-resources'] + '/flags/png/' + flagCode + '.png';
+                var flagUrl = PWM_GLOBAL['url-resources'] + '/webjars/famfamfam-flags/dist/png/' + flagCode + '.png';
                 bodyHtml += '<tr style="cursor:pointer" id="locale-row-' + localeKey + '">';
                 bodyHtml += '<td><img src="' + flagUrl + '"/></td>';
                 bodyHtml += '<td>' + loopDisplayName + '</td>';
@@ -704,8 +706,6 @@ PWM_MAIN.showErrorDialog = function(error, options) {
             forceReload = true;
         }
         titleMsg += ' ' + error['errorCode'];
-        logMsg += ' ' + error['errorCode'];
-
         body += error['errorMessage'];
         logMsg += error['errorCode'] + "," + error['errorMessage'];
         if (error['errorDetail']) {
@@ -908,28 +908,47 @@ PWM_MAIN.showEula = function(requireAgreement, agreeFunction) {
         agreeFunction();
         return;
     }
-    var eulaLocation = PWM_GLOBAL['url-resources'] + '/text/eula.html';
-    PWM_GLOBAL['dialog_agreeAction'] = agreeFunction ? agreeFunction : function(){};
-    var bodyText = '<iframe style="width:100%; height:450px: overflow:auto" src="' + eulaLocation + '">';
-    bodyText += '</iframe>';
-    bodyText += '<div style="width: 100%; text-align: center">';
-    bodyText += '</div>';
 
-    var dialogOptions = {};
-    dialogOptions['text'] = bodyText;
-    dialogOptions['title'] = 'End User License Agreement';
-    dialogOptions['dialogClass'] = 'wide';
+    var displayEula = function (data) {
+        PWM_GLOBAL['dialog_agreeAction'] = agreeFunction ? agreeFunction : function(){};
 
-    if (requireAgreement) {
-        dialogOptions['showCancel'] = true;
-        dialogOptions['okLabel'] = PWM_MAIN.showString('Button_Agree');
-        dialogOptions['okAction'] = function() {
-            PWM_GLOBAL['eulaAgreed']=true;
-            agreeFunction();
+        var bodyText = '<div style="height: 400px; overflow: auto"><pre>' + data + '</pre></div>';
+
+        var dialogOptions = {};
+        dialogOptions['text'] = bodyText;
+        dialogOptions['title'] = 'End User License Agreement';
+        dialogOptions['dialogClass'] = 'wide';
+
+        if (requireAgreement) {
+            dialogOptions['showCancel'] = true;
+            dialogOptions['okLabel'] = PWM_MAIN.showString('Button_Agree');
+            dialogOptions['okAction'] = function() {
+                PWM_GLOBAL['eulaAgreed']=true;
+                agreeFunction();
+            };
+        }
+
+        PWM_MAIN.showDialog(dialogOptions);
+    };
+
+    var eulaLocation = PWM_GLOBAL['url-resources'] + '/text/eula.txt';
+
+    require(["dojo/request/xhr"], function (xhr) {
+        var loadFunction = function (data) {
+                displayEula(data);
+            };
+        var postOptions = {
+            method: 'GET'
         };
-    }
 
-    PWM_MAIN.showDialog(dialogOptions);
+        var errorFunction = function(e) {
+            alert('error loading eula text:' + e);
+        };
+
+        xhr(eulaLocation, postOptions).then(loadFunction, errorFunction, function(evt){});
+    });
+
+
 };
 
 PWM_MAIN.showConfirmDialog = function(options) {
@@ -1321,6 +1340,14 @@ PWM_MAIN.JSLibrary.arrayContains = function(array,element) {
     }
 
     return array.indexOf(element) > -1;
+};
+
+PWM_MAIN.JSLibrary.removeFromArray = function(array,element) {
+    for(var i = array.length - 1; i >= 0; i--) {
+        if(array[i] === element) {
+            array.splice(i, 1);
+        }
+    }
 };
 
 PWM_MAIN.toggleFullscreen = function(iconObj,divName) {

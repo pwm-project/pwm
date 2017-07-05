@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,16 @@
 
 import { ILogService, IWindowService } from 'angular';
 
-export default class PwmService {
+export interface IPwmService {
+    getServerUrl(processAction: string, additionalParameters?: any): string;
+    ajaxTypingWait: number;
+    localeStrings: any;
+    startupFunctions: any[];
+}
+
+const DEFAULT_AJAX_TYPING_WAIT = 700;
+
+export default class PwmService implements IPwmService {
     PWM_GLOBAL: any;
     PWM_MAIN: any;
 
@@ -51,11 +60,18 @@ export default class PwmService {
     }
 
     getServerUrl(processAction: string, additionalParameters?: any): string {
-        let url: string = this.urlContext + '/private/peoplesearch?processAction=' + processAction;
+        let url: string = window.location.pathname + '?processAction=' + processAction;
         url = this.addParameters(url, additionalParameters);
-        url = this.addPwmFormIdToUrl(url);
 
         return url;
+    }
+
+    get ajaxTypingWait(): number {
+        if (this.PWM_GLOBAL) {
+            return this.PWM_GLOBAL['client.ajaxTypingWait'] || DEFAULT_AJAX_TYPING_WAIT;
+        }
+
+        return DEFAULT_AJAX_TYPING_WAIT;
     }
 
     get localeStrings(): any {
@@ -72,14 +88,6 @@ export default class PwmService {
         }
 
         return [];
-    }
-
-    private addPwmFormIdToUrl(url: string): string {
-        if (!this.PWM_MAIN) {
-            return url;
-        }
-
-        return this.PWM_MAIN.addPwmFormIDtoURL(url);
     }
 
 

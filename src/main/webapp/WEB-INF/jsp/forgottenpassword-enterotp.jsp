@@ -3,7 +3,7 @@
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2016 The PWM Project
+  ~ Copyright (c) 2009-2017 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -22,10 +22,8 @@
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
-<%@ page import="password.pwm.http.JspUtility"%>
-<%@ page import="password.pwm.util.otp.OTPUserRecord" %>
-<%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
-<%@ page import="password.pwm.bean.UserInfoBean" %>
+<%@ page import="password.pwm.ldap.UserInfo"%>
+<%@ page import="password.pwm.util.operations.otp.OTPUserRecord" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%@ include file="fragment/header.jsp" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
@@ -37,8 +35,7 @@
     <div id="centerbody">
         <div id="page-content-title"><pwm:display key="Title_ForgottenPassword" displayIfMissing="true"/></div>
         <%
-            final UserInfoBean userInfoBean = (UserInfoBean)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ForgottenPasswordUserInfo);
-            final OTPUserRecord otp = userInfoBean.getOtpUserRecord();
+            final OTPUserRecord otp = (OTPUserRecord)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ForgottenPasswordOtpRecord);
             final String identifier = otp.getIdentifier();
 
             if (identifier != null && identifier.length() > 0 ) {
@@ -56,7 +53,7 @@
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-check"></span></pwm:if>
                     <pwm:display key="Button_CheckCode"/>
                 </button>
-                <% if ("true".equals(JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ForgottenPasswordOptionalPageView))) { %>
+                <% if ("true".equals(JspUtility.getAttribute(pageContext, PwmRequestAttribute.ForgottenPasswordOptionalPageView))) { %>
                 <button type="button" id="button-goBack" name="button-goBack" class="btn" >
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-backward"></span></pwm:if>
                     <pwm:display key="Button_GoBack"/>

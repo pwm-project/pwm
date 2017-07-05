@@ -5,15 +5,10 @@ PWM is an open source password self service application for LDAP directories. PW
 Official project page is at [https://github.com/pwm-project/pwm/](https://github.com/pwm-project/pwm/).
 
 # Links
-Current (v1.8)
 * [PWM-General Google Group](https://groups.google.com/group/pwm-general) - please ask for assistance here first.
-* [Current Builds](http://www.pwm-project.org/artifacts/pwm/) - Current downloads built from recent github project commits
-* [PWM Documentation Wiki](https://github.com/pwm-project/pwm/wiki) - Current home for PWM documentation
-* [PWM Reference](http://www.pwm-project.org/pwm/public/reference/) - Reference documentation built into PWM.
-
-Old (v1.7)
-* [Old Release Downloads](https://drive.google.com/folderview?id=0B3oHdiTrftrGV3ZrMi1LUzVCY1U&usp=sharing#list) - the release versions are quite dated, consider using a current build.
-* [Old PWM Admin Guide](https://docs.google.com/document/d/1BBHPcOUxZytrqncYFInTaY2PXgW5p1EmzwV8zcpspRg/pub) - guide for 1.7.  For current documentation, please help us migrate to the [PWM Wiki](https://github.com/pwm-project/pwm/wiki) 
+* [PWM Documentation Wiki](https://github.com/pwm-project/pwm/wiki) - Home for PWM documentation
+* [Current Builds](https://www.pwm-project.org/artifacts/pwm/) - Current downloads built from recent github project commits
+* [PWM Reference](https://www.pwm-project.org/pwm/public/reference/) - Reference documentation built into PWM.
 
 Features
 * Web based configuration manager with over 400 configurable settings
@@ -27,7 +22,7 @@ Features
 * Helpdesk password reset and intruder lockout clearing
 * New User Registration / Account Creation
 * Guest User Registration / Updating
-* PeopleSearch? (white pages)
+* PeopleSearch (white pages)
 * Account Activation  / First time password assignment
 * Administration modules including intruder-lockout manager, and online log viewer, daily stats viewer and user information debugging
 * Easy to customize JSP HTML pages

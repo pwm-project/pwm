@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,12 +31,14 @@ import password.pwm.config.ShortcutItem;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
+import password.pwm.http.JspUrl;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ShortcutsBean;
 import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.util.Helper;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
@@ -109,7 +111,7 @@ public class ShortcutServlet extends AbstractPwmServlet {
                     return;
 
                 default:
-                    Helper.unhandledSwitchStatement(action);
+                    JavaHelper.unhandledSwitchStatement(action);
             }
         }
 
@@ -120,8 +122,8 @@ public class ShortcutServlet extends AbstractPwmServlet {
             throws ServletException, PwmUnrecoverableException, IOException {
         final ArrayList<ShortcutItem> shortcutItems = new ArrayList<>();
         shortcutItems.addAll(shortcutsBean.getVisibleItems().values());
-        pwmRequest.setAttribute(PwmRequest.Attribute.ShortcutItems, shortcutItems);
-        pwmRequest.forwardToJsp(PwmConstants.JspUrl.SHORTCUT);
+        pwmRequest.setAttribute(PwmRequestAttribute.ShortcutItems, shortcutItems);
+        pwmRequest.forwardToJsp(JspUrl.SHORTCUT);
     }
 
     /**
@@ -163,7 +165,7 @@ public class ShortcutServlet extends AbstractPwmServlet {
                 final boolean queryMatch = LdapPermissionTester.testQueryMatch(
                         pwmRequest.getPwmApplication(),
                         pwmRequest.getSessionLabel(),
-                        pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity(),
+                        pwmRequest.getPwmSession().getUserInfo().getUserIdentity(),
                         item.getLdapQuery()
                 );
 
@@ -199,6 +201,6 @@ public class ShortcutServlet extends AbstractPwmServlet {
         }
 
         LOGGER.error(pwmSession, "unknown/unexpected link requested to " + link);
-        pwmRequest.forwardToJsp(PwmConstants.JspUrl.SHORTCUT);
+        pwmRequest.forwardToJsp(JspUrl.SHORTCUT);
     }
 }

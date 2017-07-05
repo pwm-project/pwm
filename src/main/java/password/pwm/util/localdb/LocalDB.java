@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 
 package password.pwm.util.localdb;
 
-import password.pwm.util.ClosableIterator;
+import password.pwm.util.java.ClosableIterator;
 
 import java.io.File;
 import java.io.Serializable;
@@ -44,7 +44,7 @@ import java.util.Map;
 public interface LocalDB {
 // -------------------------- OTHER METHODS --------------------------
 
-    int MAX_KEY_LENGTH = 128;
+    int MAX_KEY_LENGTH = 256;
     int MAX_VALUE_LENGTH = 1024 * 100;
 
     enum Status {
@@ -90,6 +90,10 @@ public interface LocalDB {
             throws LocalDBException;
 
     @WriteOperation
+    boolean putIfAbsent(DB db, String key, String value)
+            throws LocalDBException;
+
+    @WriteOperation
     boolean remove(DB db, String key)
             throws LocalDBException;
 
@@ -130,11 +134,14 @@ public interface LocalDB {
         OTP_SECRET(true),
         TOKENS(true),
         INTRUDER(true),
+        AUDIT_QUEUE(true),
         AUDIT_EVENTS(true),
         USER_CACHE(true),
         TEMP(false),
         SYSLOG_QUEUE(true),
         CACHE(false),
+
+        REPORT_QUEUE(false),
 
         ;
 
@@ -150,8 +157,6 @@ public interface LocalDB {
     }
 
 
-// -------------------------- INNER CLASSES --------------------------
-
     @Retention(RetentionPolicy.RUNTIME)
     @interface
     ReadOperation {
@@ -164,82 +169,5 @@ public interface LocalDB {
 
 
     interface LocalDBIterator<K> extends ClosableIterator<String> {
-    }
-
-    class TransactionItem implements Serializable, Comparable {
-        private final DB db;
-        private final String key;
-        private final String value;
-
-        public TransactionItem(final DB db, final String key, final String value) {
-            if (key == null || value == null || db == null) {
-                throw new IllegalArgumentException("db, key or value can not be null");
-            }
-
-            this.db = db;
-            this.key = key;
-            this.value = value;
-        }
-
-        public DB getDb() {
-            return db;
-        }
-
-        public String getKey() {
-            return key;
-        }
-
-        public String getValue() {
-            return value;
-        }
-
-        @Override
-        public String toString() {
-            return "db=" + db + ", key=" + key + ", value=" + value;
-        }
-
-        @Override
-        public boolean equals(final Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-
-            final TransactionItem that = (TransactionItem) o;
-
-            return db == that.db && key.equals(that.key) && value.equals(that.value);
-        }
-
-        @Override
-        public int hashCode() {
-            int result;
-            result = db.hashCode();
-            result = 31 * result + key.hashCode();
-            result = 31 * result + value.hashCode();
-            return result;
-        }
-
-        @Override
-        public int compareTo(final Object o) {
-            if (!(o instanceof TransactionItem)) {
-                throw new IllegalArgumentException("can only compare same object type");
-            }
-
-            int result = db.compareTo(db);
-
-            if (result == 0) {
-                result = getKey().compareTo(((TransactionItem) o).getKey());
-
-                if (result == 0) {
-                    result = getValue().compareTo(((TransactionItem) o).getValue());
-                }
-            }
-
-            return result;
-        }
-
-
     }
 }

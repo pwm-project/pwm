@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,8 @@
 package password.pwm.util;
 
 import password.pwm.error.PwmDataStoreException;
+import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.java.ClosableIterator;
 
 public interface DataStore {
     enum Status {
@@ -33,22 +35,25 @@ public interface DataStore {
             throws PwmDataStoreException;
 
     boolean contains(String key)
-            throws PwmDataStoreException;
+            throws PwmDataStoreException, PwmUnrecoverableException;
 
     String get(String key)
-            throws PwmDataStoreException;
+            throws PwmDataStoreException, PwmUnrecoverableException;
 
     ClosableIterator<String> iterator()
-            throws PwmDataStoreException;
+            throws PwmDataStoreException, PwmUnrecoverableException;
 
     Status status();
 
     boolean put(String key, String value)
-            throws PwmDataStoreException;
+            throws PwmDataStoreException, PwmUnrecoverableException;
 
-    boolean remove(String key)
-            throws PwmDataStoreException;
+    boolean putIfAbsent(String key, String value)
+            throws PwmDataStoreException, PwmUnrecoverableException;
+
+    void remove(String key)
+            throws PwmDataStoreException, PwmUnrecoverableException;
 
     int size()
-            throws PwmDataStoreException;
+            throws PwmDataStoreException, PwmUnrecoverableException;
 }

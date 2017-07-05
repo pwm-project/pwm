@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -113,8 +113,7 @@ public enum PwmSettingCategory {
     DATABASE_ADV                (DATABASE),
 
     REPORTING                   (SETTINGS),
-    NAAF                        (SETTINGS),
-    
+
     SSO                         (SETTINGS),
     OAUTH                       (SSO),
     HTTP_SSO                    (SSO),
@@ -380,5 +379,19 @@ public enum PwmSettingCategory {
             }
         }
         return Collections.unmodifiableList(values);
+    }
+
+    public static Collection<PwmSettingCategory> associatedProfileCategories(final PwmSettingCategory inputCategory) {
+        final Collection<PwmSettingCategory> returnValues = new ArrayList<>();
+        if (inputCategory != null && inputCategory.hasProfiles()) {
+            PwmSettingCategory topLevelCategory = inputCategory;
+            while (!topLevelCategory.isTopLevelProfile()) {
+                topLevelCategory = topLevelCategory.getParent();
+            }
+            returnValues.add(topLevelCategory);
+            returnValues.addAll(topLevelCategory.getChildCategories());
+        }
+
+        return Collections.unmodifiableCollection(returnValues);
     }
 }

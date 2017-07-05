@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,13 +34,15 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
+import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
+import password.pwm.http.JspUrl;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmResponse;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.i18n.Message;
-import password.pwm.util.Helper;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBFactory;
 import password.pwm.util.localdb.LocalDBUtility;
@@ -56,9 +58,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 
 @WebServlet(
         name = "ConfigManagerLocalDBServlet",
@@ -114,24 +116,24 @@ public class ConfigManagerLocalDBServlet extends AbstractPwmServlet {
                     return;
 
                 default:
-                    Helper.unhandledSwitchStatement(processAction);
+                    JavaHelper.unhandledSwitchStatement(processAction);
 
 
             }
             return;
         }
 
-        pwmRequest.forwardToJsp(PwmConstants.JspUrl.CONFIG_MANAGER_LOCALDB);
+        pwmRequest.forwardToJsp(JspUrl.CONFIG_MANAGER_LOCALDB);
     }
 
     private void doExportLocalDB(final PwmRequest pwmRequest)
             throws IOException, ServletException, PwmUnrecoverableException
     {
         final PwmResponse resp = pwmRequest.getPwmResponse();
-        final Date startTime = new Date();
-        resp.setHeader(PwmConstants.HttpHeader.ContentDisposition, "attachment;filename=" + PwmConstants.PWM_APP_NAME + "-LocalDB.bak");
+        final Instant startTime = Instant.now();
+        resp.setHeader(HttpHeader.ContentDisposition, "attachment;filename=" + PwmConstants.PWM_APP_NAME + "-LocalDB.bak");
         resp.setContentType(PwmConstants.ContentTypeValue.octetstream);
-        resp.setHeader(PwmConstants.HttpHeader.ContentTransferEncoding, "binary");
+        resp.setHeader(HttpHeader.ContentTransferEncoding, "binary");
         final LocalDBUtility localDBUtility = new LocalDBUtility(pwmRequest.getPwmApplication().getLocalDB());
         try {
             final int bufferSize = Integer.parseInt(pwmRequest.getConfig().readAppProperty(AppProperty.HTTP_DOWNLOAD_BUFFER_SIZE));

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,28 +21,41 @@
  */
 
 
-import { IHttpService, IPromise, IQService } from 'angular';
-import Person from '../models/person.model';
-import PwmService from './pwm.service';
+import { isString, IHttpService, ILogService, IPromise, IQService, IWindowService } from 'angular';
+import { IPerson } from '../models/person.model';
+import IPwmService from './pwm.service';
 import OrgChartData from '../models/orgchart-data.model';
 import SearchResult from '../models/search-result.model';
 
 export interface IPeopleService {
-    autoComplete(query: string): IPromise<Person[]>;
-    getDirectReports(personId: string): IPromise<Person[]>;
+    autoComplete(query: string): IPromise<IPerson[]>;
+    getDirectReports(personId: string): IPromise<IPerson[]>;
     getNumberOfDirectReports(personId: string): IPromise<number>;
-    getManagementChain(personId: string): IPromise<Person[]>;
-    getOrgChartData(personId: string): IPromise<OrgChartData>;
-    getPerson(id: string): IPromise<Person>;
-    isOrgChartEnabled(id: string): IPromise<boolean>;
+    getManagementChain(personId: string): IPromise<IPerson[]>;
+    getOrgChartData(personId: string, skipChildren: boolean): IPromise<OrgChartData>;
+    getPerson(id: string): IPromise<IPerson>;
     search(query: string): IPromise<SearchResult>;
 }
 
 export default class PeopleService implements IPeopleService {
-    static $inject = ['$http', '$q', 'PwmService' ];
-    constructor(private $http: IHttpService, private $q: IQService, private pwmService: PwmService) {}
+    PWM_GLOBAL: any;
 
-    autoComplete(query: string): IPromise<Person[]> {
+    static $inject = ['$http', '$log', '$q', 'PwmService', '$window' ];
+    constructor(private $http: IHttpService,
+                private $log: ILogService,
+                private $q: IQService,
+                private pwmService: IPwmService,
+                $window: IWindowService)
+    {
+        if ($window['PWM_GLOBAL']) {
+            this.PWM_GLOBAL = $window['PWM_GLOBAL'];
+        }
+        else {
+            this.$log.warn('PWM_GLOBAL is not defined on window');
+        }
+    }
+
+    autoComplete(query: string): IPromise<IPerson[]> {
         return this.search(query, { 'includeDisplayName': true })
             .then((searchResult: SearchResult) => {
                 let people = searchResult.people;
@@ -55,12 +68,12 @@ export default class PeopleService implements IPeopleService {
             });
     }
 
-    getDirectReports(id: string): IPromise<Person[]> {
-        return this.getOrgChartData(id).then((orgChartData: OrgChartData) => {
-            let people: Person[] = [];
+    getDirectReports(id: string): IPromise<IPerson[]> {
+        return this.getOrgChartData(id, false).then((orgChartData: OrgChartData) => {
+            let people: IPerson[] = [];
 
             for (let directReport of orgChartData.children) {
-                let person: Person = new Person(directReport);
+                let person: IPerson = <IPerson>(directReport);
                 people.push(person);
             }
 
@@ -68,69 +81,124 @@ export default class PeopleService implements IPeopleService {
         });
     }
 
-    getNumberOfDirectReports(personId: string): IPromise<number> {
-        return this.getOrgChartData(personId).then((orgChartData: OrgChartData) => {
-            return this.$q.resolve(orgChartData.children.length);
+    getNumberOfDirectReports(id: string): IPromise<number> {
+        return this.getDirectReports(id).then((people: IPerson[]) => {
+            return this.$q.resolve(people.length);
         });
     }
 
-    getManagementChain(id: string): IPromise<Person[]> {
-        let people: Person[] = [];
+    getManagementChain(id: string): IPromise<IPerson[]> {
+        let people: IPerson[] = [];
         return this.getManagerRecursive(id, people);
     }
 
-    private getManagerRecursive(id: string, people: Person[]): IPromise<Person[]> {
-        return this.getOrgChartData(id).then((orgChartData: OrgChartData) => {
-            if (orgChartData.manager) {
-                people.push(orgChartData.manager);
+    private getManagerRecursive(id: string, people: IPerson[]): IPromise<IPerson[]> {
+        return this.getOrgChartData(id, true)
+            .then((orgChartData: OrgChartData) => {
+                if (orgChartData.manager) {
+                    people.push(orgChartData.manager);
 
-                return this.getManagerRecursive(orgChartData.manager.userKey, people);
-            }
+                    return this.getManagerRecursive(orgChartData.manager.userKey, people);
+                }
 
-            return this.$q.resolve(people);
-        });
-    }
-
-    getOrgChartData(personId: string): angular.IPromise<OrgChartData> {
-        return this.$http
-            .get(this.pwmService.getServerUrl('orgChartData'), { cache: true, params: { userKey: personId } })
-            .then((response) => {
-                let responseData = response.data['data'];
-
-                let manager: Person;
-                if ('parent' in responseData) { manager = new Person(responseData['parent']); }
-                const children = responseData['children'].map((child: any) => new Person(child));
-                const self = new Person(responseData['self']);
-
-                return this.$q.resolve(new OrgChartData(manager, children, self));
+                return this.$q.resolve(people);
             });
     }
 
-    getPerson(id: string): IPromise<Person> {
+    getOrgChartData(personId: string, noChildren: boolean): angular.IPromise<OrgChartData> {
         return this.$http
-            .get(this.pwmService.getServerUrl('detail'), { cache: true, params: { userKey: id } })
-            .then((response) => {
-                let person: Person = new Person(response.data['data']);
+            .get(this.pwmService.getServerUrl('orgChartData'), {
+                cache: true,
+                params: {
+                    userKey: personId,
+                    noChildren: noChildren
+                }
+            })
+            .then(
+                (response) => {
+                    if (response.data['error']) {
+                        return this.handlePwmError(response);
+                    }
+
+                    let responseData = response.data['data'];
+
+                    let manager: IPerson;
+                    if ('parent' in responseData) { manager = <IPerson>(responseData['parent']); }
+                    const children = responseData['children'].map((child: any) => <IPerson>(child));
+                    const self = <IPerson>(responseData['self']);
+
+                    return this.$q.resolve(new OrgChartData(manager, children, self));
+                },
+                this.handleHttpError.bind(this));
+    }
+
+    getPerson(id: string): IPromise<IPerson> {
+        // Deferred object used for aborting requests. See promise.service.ts for more information
+        let httpTimeout = this.$q.defer();
+
+        let request = this.$http
+            .get(this.pwmService.getServerUrl('detail'), {
+                cache: true,
+                params: { userKey: id },
+                timeout: httpTimeout.promise
+            });
+
+        let promise = request.then(
+            (response) => {
+                if (response.data['error']) {
+                    return this.handlePwmError(response);
+                }
+
+                let person: IPerson = <IPerson>(response.data['data']);
                 return this.$q.resolve(person);
-            });
-    }
+            },
+            this.handleHttpError.bind(this));
 
-    isOrgChartEnabled(id: string): IPromise<boolean> {
-        // TODO: need to read this from the server
-        return this.$q.resolve(true);
+        promise['_httpTimeout'] = httpTimeout;
+
+        return promise;
     }
 
     search(query: string, params?: any): IPromise<SearchResult> {
-        return this.$http
-            .get(
-                this.pwmService.getServerUrl('search', params),
-                { cache: true, params: { username: query } }
-            )
-            .then((response) => {
+        // Deferred object used for aborting requests. See promise.service.ts for more information
+        let httpTimeout = this.$q.defer();
+        let formID = encodeURIComponent('&pwmFormID=' + this.PWM_GLOBAL['pwmFormID']);
+        // Search window references to PWM_GLOBAL and PWM_MAIN add by legacy PWM code
+        let request = this.$http
+            .post(this.pwmService.getServerUrl('search') + '&pwmFormID=' + this.PWM_GLOBAL['pwmFormID'], {
+                timeout: httpTimeout.promise,
+                username: query,
+                pwmFormID: formID
+            }, {
+                headers: {'Content-Type': 'multipart/form-data'},
+            });
+
+        let promise = request.then(
+            (response) => {
+                if (response.data['error']) {
+                    return this.handlePwmError(response);
+                }
+
                 let receivedData: any = response.data['data'];
                 let searchResult: SearchResult = new SearchResult(receivedData);
 
                 return this.$q.resolve(searchResult);
-            });
+            },
+            this.handleHttpError.bind(this));
+
+        promise['_httpTimeout'] = httpTimeout;
+
+        return promise;
+    }
+
+    private handleHttpError(error): void {
+        this.$log.error(error);
+    }
+
+    private handlePwmError(response): IPromise<any> {
+        const errorMessage = `${response.data['errorCode']}: ${response.data['errorMessage']}`;
+        this.$log.error(errorMessage);
+
+        return this.$q.reject(response.data['errorMessage']);
     }
 }

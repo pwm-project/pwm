@@ -3,7 +3,7 @@
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2016 The PWM Project
+  ~ Copyright (c) 2009-2017 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -60,8 +60,8 @@
         <link media="only screen and (max-width: 600px)" href="<pwm:url url='/public/resources/mobileStyle.css' addContext="true"/>" type="text/css" rel="stylesheet"/><%-- iphone css --%>
         <link media="only screen and (max-width: 600px)" href="<pwm:url url="%MOBILE_THEME_URL%"/>" type="text/css" rel="stylesheet"/><%-- mobile css --%>
     </pwm:if>
-    <link href="<pwm:url url='/public/resources/dojo/dijit/themes/nihilo/nihilo.css' addContext="true"/>" rel="stylesheet" type="text/css"/>
-    <link href="<pwm:url url='/public/resources/dojo/dgrid/css/dgrid.css' addContext="true"/>" rel="stylesheet" type="text/css"/>
+    <link href="<pwm:url url='/public/resources/webjars/dijit/themes/nihilo/nihilo.css' addContext="true"/>" rel="stylesheet" type="text/css"/>
+    <link href="<pwm:url url='/public/resources/webjars/dgrid/css/dgrid.css' addContext="true"/>" rel="stylesheet" type="text/css"/>
     <pwm:if test="<%=PwmIfTest.requestFlag%>" requestFlag="<%=PwmRequestFlag.INCLUDE_CONFIG_CSS%>">
         <link href="<pwm:url url='<%=PwmThemeURL.CONFIG_THEME_URL.token()%>' addContext="true"/>" rel="stylesheet" type="text/css" media="screen"/>
     </pwm:if>

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@ package password.pwm.util.localdb;
 
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Closeable;
@@ -36,9 +36,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -81,7 +81,7 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
             LOGGER.trace("table " + db + " appears to exist");
         } catch (final LocalDBException e) { // assume error was due to table missing;
             {
-                final Date startTime = new Date();
+                final Instant startTime = Instant.now();
                 final StringBuilder sqlString = new StringBuilder();
                 sqlString.append("CREATE table ").append(db.toString()).append(" (").append("\n");
                 sqlString.append("  " + KEY_COLUMN + " VARCHAR(").append(WIDTH_KEY).append(") NOT NULL PRIMARY KEY,").append("\n");
@@ -103,7 +103,7 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
             }
 
             {
-                final Date startTime = new Date();
+                final Instant startTime = Instant.now();
                 final String indexName = db.toString() + "_IDX";
                 final StringBuilder sqlString = new StringBuilder();
                 sqlString.append("CREATE index ").append(indexName);
@@ -342,6 +342,45 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
         return true;
     }
 
+    public boolean putIfAbsent(final LocalDB.DB db, final String key, final String value)
+            throws LocalDBException
+    {
+        preCheck(true);
+        final String selectSql ="SELECT * FROM " + db.toString() + " WHERE " + KEY_COLUMN + " = ?";
+
+        PreparedStatement selectStatement = null;
+        ResultSet resultSet = null;
+        PreparedStatement insertStatement = null;
+        try {
+            LOCK.writeLock().lock();
+            selectStatement = dbConnection.prepareStatement(selectSql);
+            selectStatement.setString(1, key);
+            selectStatement.setMaxRows(1);
+            resultSet = selectStatement.executeQuery();
+
+            final boolean valueExists = resultSet.next();
+
+            if (!valueExists) {
+                final String insertSql = "INSERT INTO " + db.toString() + "(" + KEY_COLUMN + ", " + VALUE_COLUMN + ") VALUES(?,?)";
+                insertStatement = dbConnection.prepareStatement(insertSql);
+                insertStatement.setString(1, key);
+                insertStatement.setString(2, value);
+                insertStatement.executeUpdate();
+            }
+
+            dbConnection.commit();
+
+            return !valueExists;
+        } catch (final SQLException ex) {
+            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,ex.getMessage()));
+        } finally {
+            close(selectStatement);
+            close(resultSet);
+            close(insertStatement);
+            LOCK.writeLock().unlock();
+        }
+    }
+
     public boolean remove(final LocalDB.DB db, final String key)
             throws LocalDBException {
         preCheck(true);
@@ -400,7 +439,7 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
             throws LocalDBException
     {
         preCheck(true);
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         final StringBuilder sqlText = new StringBuilder();
         sqlText.append("DROP TABLE ").append(db.toString());
 

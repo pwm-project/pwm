@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -895,8 +895,13 @@ PWM_CFGEDIT.drawHtmlOutlineForSetting = function(settingInfo, options) {
         var prefs = PWM_MAIN.Preferences.readSessionStorage('helpExpanded',{});
         var expandHelp = settingKey in prefs;
         htmlBody += '<div class="pane-help" id="pane-help-' + settingKey + '" style="display:' + (expandHelp ? 'inherit' : 'none') + '">'
-            + settingInfo['description'] + '</div>';
+            + settingInfo['description'];
+        if (settingInfo['placeholder']) {
+            htmlBody += '<p><span style="font-weight:bold">Example: </span><code>' + settingInfo['placeholder'] + '</code></p>';
+        }
+        htmlBody += '</div>';
     }
+
 
     htmlBody += '<div class="pane-settingValue noborder" id="table_setting_' + settingKey + '">'
         + '</div>' // close setting;
@@ -941,6 +946,10 @@ PWM_CFGEDIT.initSettingDisplay = function(setting, options) {
 
         case 'PASSWORD':
             ChangePasswordHandler.init(settingKey);
+            break;
+
+        case 'NAMED_SECRET':
+            NamedSecretHandler.init(settingKey);
             break;
 
         case 'NUMERIC':

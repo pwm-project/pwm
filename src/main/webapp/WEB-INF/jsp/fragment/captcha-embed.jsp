@@ -3,7 +3,7 @@
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2016 The PWM Project
+  ~ Copyright (c) 2009-2017 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@
 <%@ page import="password.pwm.http.PwmRequest" %>
 <%@ page import="password.pwm.http.tag.value.PwmValue" %>
 <%@ page import="password.pwm.util.CaptchaUtility" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% if (CaptchaUtility.captchaEnabledForRequest(JspUtility.getPwmRequest(pageContext))) { %>
 <% CaptchaUtility.prepareCaptchaDisplay(JspUtility.getPwmRequest(pageContext)); %>
@@ -42,9 +43,9 @@
             };
 
             console.log('reached google recaptcha onload callback');
-            grecaptcha.render('recaptcha-container',{callback:recaptchaCallback,sitekey:'<%=JspUtility.getAttribute(pageContext,PwmRequest.Attribute.CaptchaPublicKey)%>'});
+            grecaptcha.render('recaptcha-container',{callback:recaptchaCallback,sitekey:'<%=JspUtility.getAttribute(pageContext,PwmRequestAttribute.CaptchaPublicKey)%>'});
         }
     </script>
 </pwm:script>
-<script nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>" src="<%=(String)JspUtility.getAttribute(pageContext,PwmRequest.Attribute.CaptchaClientUrl)%>?onload=onloadCallback&render=explicit" defer async></script>
+<script nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>" src="<%=(String)JspUtility.getAttribute(pageContext,PwmRequestAttribute.CaptchaClientUrl)%>?onload=onloadCallback&render=explicit" defer async></script>
 <% } %>

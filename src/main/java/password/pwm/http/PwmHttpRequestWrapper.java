@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,9 +29,9 @@ import password.pwm.config.Configuration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.PasswordData;
-import password.pwm.util.StringUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.Validator;
 import password.pwm.util.logging.PwmLogger;
 
@@ -71,12 +71,12 @@ public abstract class PwmHttpRequestWrapper {
     }
 
     public boolean isJsonRequest() {
-        final String acceptHeader = this.readHeaderValueAsString(PwmConstants.HttpHeader.Accept);
+        final String acceptHeader = this.readHeaderValueAsString(HttpHeader.Accept);
         return acceptHeader.contains(PwmConstants.AcceptValue.json.getHeaderValue());
     }
 
     public boolean isHtmlRequest() {
-        final String acceptHeader = this.readHeaderValueAsString(PwmConstants.HttpHeader.Accept);
+        final String acceptHeader = this.readHeaderValueAsString(HttpHeader.Accept);
         return acceptHeader.contains(PwmConstants.AcceptValue.html.getHeaderValue()) || acceptHeader.contains("*/*");
     }
 
@@ -147,9 +147,10 @@ public abstract class PwmHttpRequestWrapper {
         return Collections.unmodifiableMap(outputMap);
     }
 
-    public Map<String, Object> readBodyAsJsonMap(final boolean bypassInputValidation)
+    public Map<String, Object> readBodyAsJsonMap(final Flag... flags)
             throws IOException, PwmUnrecoverableException
     {
+        final boolean bypassInputValidation = flags != null && Arrays.asList(flags).contains(Flag.BypassValidation);
         final String bodyString = readRequestBodyAsString();
         final Map<String, Object> inputMap = JsonUtil.deserializeMap(bodyString);
 
@@ -275,7 +276,7 @@ public abstract class PwmHttpRequestWrapper {
         return resultSet;
     }
 
-    public String readHeaderValueAsString(final PwmConstants.HttpHeader headerName) {
+    public String readHeaderValueAsString(final HttpHeader headerName) {
         return readHeaderValueAsString(headerName.getHttpName());
     }
 

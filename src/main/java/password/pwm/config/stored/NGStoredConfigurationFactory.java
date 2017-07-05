@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,6 @@ package password.pwm.config.stored;
 
 import org.jdom2.Document;
 import org.jdom2.Element;
-import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
@@ -32,14 +31,14 @@ import password.pwm.config.value.StringValue;
 import password.pwm.config.value.ValueFactory;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.XmlUtil;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.XmlUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.text.ParseException;
-import java.util.Date;
+import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -204,12 +203,12 @@ public class NGStoredConfigurationFactory {
         static ValueMetaData readValueMetaData(final Element element)
         {
             final String modifyDateStr = element.getAttributeValue(StoredConfiguration.XML_ATTRIBUTE_MODIFY_TIME);
-            Date modifyDate = null;
+            Instant modifyDate = null;
             try {
                 modifyDate = modifyDateStr == null || modifyDateStr.isEmpty()
                         ? null
-                        : PwmConstants.DEFAULT_DATETIME_FORMAT.parse(modifyDateStr);
-            } catch (ParseException e) {
+                        : JavaHelper.parseIsoToInstant(modifyDateStr);
+            } catch (Exception e) {
                 LOGGER.warn("error parsing stored date: " +  e.getMessage());
             }
             final String modifyUser = element.getAttributeValue(StoredConfiguration.XML_ATTRIBUTE_MODIFY_USER);

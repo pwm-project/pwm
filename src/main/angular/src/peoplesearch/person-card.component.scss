@@ -1,9 +1,9 @@
-/*
+/*!
  * Password Management Servlets (PWM)
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@ person-card {
   height: $person-card-height;
   padding: $person-card-spacing;
   position: relative;
-  text-align: start;
+  text-align: left;
   vertical-align: top;
   width: $person-card-width;
 
@@ -52,9 +52,17 @@ person-card {
 
     &:focus,
     &:hover {
+      outline: none;
+    }
+
+    &:focus {
+      background-color: #fff6ce;
+      border-color: #ffd92d;
+    }
+
+    &:hover {
       background-color: $person-card-hover-bg-color;
       border-color: $person-card-border-color;
-      outline: none;
     }
   }
 
@@ -88,7 +96,17 @@ person-card {
       &:focus,
       &:hover {
         background-color: transparent;
+      }
 
+      &:focus {
+        > .person-card-content {
+          > .avatar {
+            border-color: #ffd92d !important;
+          }
+        }
+      }
+
+      &:hover {
         > .person-card-content {
           > .avatar {
             border-color: $person-card-border-color !important;
@@ -125,7 +143,6 @@ person-card {
 
         :first-child {
           font-size: 13px;
-          line-height: 13px;
         }
       }
 
@@ -143,6 +160,7 @@ person-card {
     > .avatar {
       background: transparent url('../../images/user.png') no-repeat center center;
       background-size: contain;
+      border-radius: 3px;
       flex: 0 0 $person-card-avatar-size;
       height: $person-card-avatar-size;
       margin-right: $person-card-spacing;
@@ -176,7 +194,7 @@ person-card {
 
       > .secondary-details {
         border-top: 1px solid #dae1e1;
-        margin-top: 20px;
+        margin-top: 10px;
         padding-top: 8px;
       }
     }
@@ -199,6 +217,8 @@ person-card {
 
 [dir="rtl"] {
   person-card {
+    text-align: right;
+
     &[size="large"] {
       > .person-card-content {
         > .avatar {

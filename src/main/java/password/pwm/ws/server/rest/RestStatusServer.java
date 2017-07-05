@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,18 +22,18 @@
 
 package password.pwm.ws.server.rest;
 
-import password.pwm.bean.UserInfoBean;
 import password.pwm.bean.pub.PublicUserInfoBean;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.ldap.UserStatusReader;
+import password.pwm.ldap.UserInfo;
+import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.ws.server.RestRequestBean;
@@ -48,7 +48,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.URISyntaxException;
-import java.util.Date;
+import java.time.Instant;
 
 @Path("/status")
 public class RestStatusServer extends AbstractRestServer {
@@ -57,7 +57,7 @@ public class RestStatusServer extends AbstractRestServer {
     @GET
     @Produces(MediaType.TEXT_HTML)
     public javax.ws.rs.core.Response doHtmlRedirect() throws URISyntaxException {
-        return RestServerHelper.doHtmlRedirect();
+        return RestServerHelper.handleHtmlRequest();
     }
 
     @GET
@@ -65,36 +65,37 @@ public class RestStatusServer extends AbstractRestServer {
     public Response doGetStatusData(
             @QueryParam("username") final String username
     ) {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         final RestRequestBean restRequestBean;
         try {
-            final ServicePermissions servicePermissions = new ServicePermissions();
-            servicePermissions.setAdminOnly(false);
-            servicePermissions.setAuthRequired(true);
-            servicePermissions.setBlockExternal(true);
+            final ServicePermissions servicePermissions = ServicePermissions.builder()
+                    .adminOnly(false)
+                    .authRequired(true)
+                    .blockExternal(true)
+                    .build();
+
             restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, username);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
 
         try {
-            final UserInfoBean userInfoBean;
+            final UserInfo userInfo;
             if (restRequestBean.getUserIdentity() != null) {
-                userInfoBean = new UserInfoBean();
-                final UserStatusReader userStatusReader = new UserStatusReader(restRequestBean.getPwmApplication(),restRequestBean.getPwmSession().getLabel());
-                userStatusReader.populateUserInfoBean(
-                        userInfoBean,
+                userInfo = UserInfoFactory.newUserInfo(
+                        restRequestBean.getPwmApplication(),
+                        restRequestBean.getPwmSession().getLabel(),
                         restRequestBean.getPwmSession().getSessionStateBean().getLocale(),
                         restRequestBean.getUserIdentity(),
                         restRequestBean.getPwmSession().getSessionManager().getChaiProvider()
                 );
             } else {
-                userInfoBean = restRequestBean.getPwmSession().getUserInfoBean();
+                userInfo = restRequestBean.getPwmSession().getUserInfo();
             }
             final RestResultBean restResultBean = new RestResultBean();
             final MacroMachine macroMachine = restRequestBean.getPwmSession().getSessionManager().getMacroMachine(restRequestBean.getPwmApplication());
             restResultBean.setData(PublicUserInfoBean.fromUserInfoBean(
-                    userInfoBean,
+                    userInfo,
                     restRequestBean.getPwmApplication().getConfig(),
                     restRequestBean.getPwmSession().getSessionStateBean().getLocale(),
                     macroMachine

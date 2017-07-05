@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,11 +63,26 @@ public enum     AppProperty {
     CONFIG_FILE_SCAN_FREQUENCY                      ("config.fileScanFrequencyMS"),
     CONFIG_NEWUSER_PASSWORD_POLICY_CACHE_MS         ("config.newuser.passwordPolicyCacheMS"),
     CONFIG_THEME                                    ("config.theme"),
+    CONFIG_JBCRYPT_PWLIB_ENABLE                     ("config.enableJbCryptPwLibrary"),
     CONFIG_EDITOR_QUERY_FILTER_TEST_LIMIT           ("configEditor.queryFilter.testLimit"),
     CONFIG_EDITOR_IDLE_TIMEOUT                      ("configEditor.idleTimeoutSeconds"),
     CONFIG_GUIDE_IDLE_TIMEOUT                       ("configGuide.idleTimeoutSeconds"),
     CONFIG_MANAGER_ZIPDEBUG_MAXLOGLINES             ("configManager.zipDebug.maxLogLines"),
     CONFIG_MANAGER_ZIPDEBUG_MAXLOGSECONDS           ("configManager.zipDebug.maxLogSeconds"),
+    CLUSTER_DB_ENABLE                               ("cluster.db.enable"),
+    CLUSTER_DB_HEARTBEAT_SECONDS                    ("cluster.db.heartbeatSeconds"),
+    CLUSTER_DB_NODE_TIMEOUT_SECONDS                 ("cluster.db.nodeTimeoutSeconds"),
+    CLUSTER_DB_NODE_PURGE_SECONDS                   ("cluster.db.nodePurgeSeconds"),
+    DB_JDBC_LOAD_STRATEGY                           ("db.jdbcLoadStrategy"),
+    DB_CONNECTIONS_MAX                              ("db.connections.max"),
+    DB_CONNECTIONS_TIMEOUT_MS                       ("db.connections.timeoutMs"),
+    DB_CONNECTIONS_WATCHDOG_FREQUENCY_SECONDS       ("db.connections.watchdogFrequencySeconds"),
+    DOWNLOAD_FILENAME_STATISTICS_CSV                ("download.filename.statistics.csv"),
+    DOWNLOAD_FILENAME_USER_REPORT_SUMMARY_CSV       ("download.filename.reportSummary.csv"),
+    DOWNLOAD_FILENAME_USER_REPORT_RECORDS_CSV       ("download.filename.reportRecords.csv"),
+    DOWNLOAD_FILENAME_AUDIT_RECORDS_CSV             ("download.filename.auditRecords.csv"),
+    DOWNLOAD_FILENAME_LDAP_PERMISSION_CSV           ("download.filename.ldapPermission.csv"),
+    DOWNLOAD_FILENAME_USER_DEBUG_JSON               ("download.filename.userDebug.json"),
     FORM_EMAIL_REGEX                                ("form.email.regexTest"),
     HTTP_RESOURCES_MAX_CACHE_ITEMS                  ("http.resources.maxCacheItems"),
     HTTP_RESOURCES_MAX_CACHE_BYTES                  ("http.resources.maxCacheBytes"),
@@ -75,7 +90,6 @@ public enum     AppProperty {
     HTTP_RESOURCES_ENABLE_GZIP                      ("http.resources.gzip.enable"),
     HTTP_RESOURCES_ENABLE_PATH_NONCE                ("http.resources.pathNonceEnable"),
     HTTP_RESOURCES_NONCE_PATH_PREFIX                ("http.resources.pathNoncePrefix"),
-    HTTP_RESOURCES_WEBJAR_MAPPINGS                  ("http.resources.webjarMappings"),
     HTTP_RESOURCES_ZIP_FILES                        ("http.resources.zipFiles"),
     HTTP_COOKIE_DEFAULT_SECURE_FLAG                 ("http.cookie.default.secureFlag"),
     HTTP_COOKIE_THEME_NAME                          ("http.cookie.theme.name"),
@@ -127,17 +141,16 @@ public enum     AppProperty {
     HTTP_DOWNLOAD_BUFFER_SIZE                       ("http.download.buffer.size"),
     HTTP_SESSION_RECYCLE_AT_AUTH                    ("http.session.recycleAtAuth"),
     HTTP_SESSION_VALIDATION_KEY_LENGTH              ("http.session.validationKeyLength"),
+    HTTP_SERVLET_ENABLE_POST_REDIRECT_GET           ("http.servlet.enablePostRedirectGet"),
     LOCALDB_AGGRESSIVE_COMPACT_ENABLED              ("localdb.aggressiveCompact.enabled"),
     LOCALDB_IMPLEMENTATION                          ("localdb.implementation"),
     LOCALDB_INIT_STRING                             ("localdb.initParameters"),
+    LOCALDB_LOCATION                                ("localdb.location"),
     LOCALDB_LOGWRITER_BUFFER_SIZE                   ("localdb.logWriter.bufferSize"),
     LOCALDB_LOGWRITER_MAX_BUFFER_WAIT_MS            ("localdb.logWriter.maxBufferWaitMs"),
     LOCALDB_LOGWRITER_MAX_TRIM_SIZE                 ("localdb.logWriter.maxTrimSize"),
     MACRO_RANDOM_CHAR_MAX_LENGTH                    ("macro.randomChar.maxLength"),
     MACRO_LDAP_ATTR_CHAR_MAX_LENGTH                 ("macro.ldapAttr.maxLength"),
-    NAAF_ID                                         ("naaf.id"),
-    NAAF_SECRET                                     ("naaf.secret"),
-    NAAF_SALT_LENGTH                                ("naaf.salt.length"),
 
 
     /** Time intruder records exist in the intruder table before being deleted. */
@@ -149,6 +162,7 @@ public enum     AppProperty {
     INTRUDER_MAX_DELAY_PENALTY_MS                   ("intruder.maximumDelayPenaltyMS"),
     INTRUDER_DELAY_PER_COUNT_MS                     ("intruder.delayPerCountMS"),
     INTRUDER_DELAY_MAX_JITTER_MS                    ("intruder.delayMaxJitterMS"),
+    HEALTHCHECK_ENABLED                             ("healthCheck.enabled"),
     HEALTHCHECK_NOMINAL_CHECK_INTERVAL              ("healthCheck.nominalCheckIntervalSeconds"),
     HEALTHCHECK_MIN_CHECK_INTERVAL                  ("healthCheck.minimumCheckIntervalSeconds"),
     HEALTHCHECK_MAX_RECORD_AGE                      ("healthCheck.maximumRecordAgeSeconds"),
@@ -161,7 +175,14 @@ public enum     AppProperty {
     HELPDESK_TOKEN_VALUE                            ("helpdesk.token.value"),
     HELPDESK_VERIFICATION_INVALID_DELAY_MS          ("helpdesk.verification.invalid.delayMs"),
     HELPDESK_VERIFICATION_TIMEOUT_SECONDS           ("helpdesk.verification.timeoutSeconds"),
+    LDAP_RESOLVE_CANONICAL_DN                       ("ldap.resolveCanonicalDN"),
+    LDAP_CACHE_CANONICAL_ENABLE                     ("ldap.cache.canonical.enable"),
+    LDAP_CACHE_CANONICAL_SECONDS                    ("ldap.cache.canonical.seconds"),
+    LDAP_CACHE_USER_GUID_ENABLE                     ("ldap.cache.userGuid.enable"),
+    LDAP_CACHE_USER_GUID_SECONDS                    ("ldap.cache.userGuid.seconds"),
     LDAP_CHAI_SETTINGS                              ("ldap.chaiSettings"),
+    LDAP_PROXY_CONNECTION_PER_PROFILE               ("ldap.proxy.connectionsPerProfile"),
+    LDAP_PROXY_MAX_CONNECTIONS                      ("ldap.proxy.maxConnections"),
     LDAP_EXTENSIONS_NMAS_ENABLE                     ("ldap.extensions.nmas.enable"),
     LDAP_CONNECTION_TIMEOUT                         ("ldap.connection.timeoutMS"),
     LDAP_PROFILE_RETRY_DELAY                        ("ldap.profile.retryDelayMS"),
@@ -174,6 +195,10 @@ public enum     AppProperty {
     LDAP_BROWSER_MAX_ENTRIES                        ("ldap.browser.maxEntries"),
     LDAP_SEARCH_PAGING_ENABLE                       ("ldap.search.paging.enable"),
     LDAP_SEARCH_PAGING_SIZE                         ("ldap.search.paging.size"),
+    LDAP_SEARCH_PARALLEL_ENABLE                     ("ldap.search.parallel.enable"),
+    LDAP_SEARCH_PARALLEL_FACTOR                     ("ldap.search.parallel.factor"),
+    LDAP_SEARCH_PARALLEL_THREAD_MAX                 ("ldap.search.parallel.threadMax"),
+    LDAP_ORACLE_POST_TEMPPW_USE_CURRENT_TIME        ("ldap.oracle.postTempPasswordUseCurrentTime"),
     LOGGING_PATTERN                                 ("logging.pattern"),
     LOGGING_FILE_MAX_SIZE                           ("logging.file.maxSize"),
     LOGGING_FILE_MAX_ROLLOVER                       ("logging.file.maxRollover"),
@@ -185,6 +210,7 @@ public enum     AppProperty {
     NMAS_THREADS_MIN_SECONDS                        ("nmas.threads.minSeconds"),
     NMAS_THREADS_MAX_SECONDS                        ("nmas.threads.maxSeconds"),
     NMAS_THREADS_WATCHDOG_FREQUENCY                 ("nmas.threads.watchdogFrequencyMs"),
+    NMAS_THREADS_WATCHDOG_DEBUG                     ("nmas.threads.watchdogDebug"),
     NMAS_IGNORE_NMASCR_DURING_FORCECHECK            ("nmas.ignoreNmasCrDuringForceSetupCheck"),
     NMAS_USE_LOCAL_SASL_FACTORY                     ("nmas.useLocalSaslFactory"),
     NMAS_FORCE_SASL_FACTORY_REGISTRATION            ("nmas.forceSaslFactoryRegistration"),
@@ -212,13 +238,13 @@ public enum     AppProperty {
     PASSWORD_RANDOMGEN_MAX_ATTEMPTS                 ("password.randomGenerator.maxAttempts"),
     PASSWORD_RANDOMGEN_MAX_LENGTH                   ("password.randomGenerator.maxLength"),
     PASSWORD_RANDOMGEN_JITTER_COUNT                 ("password.randomGenerator.jitter.count"),
-    PEOPLESEARCH_DISPLAYNAME_USEALLMACROS           ("peoplesearch.displayName.enableAllMacros"),
     PEOPLESEARCH_MAX_VALUE_VERIFYUSERDN             ("peoplesearch.values.verifyUserDN"),
     PEOPLESEARCH_VALUE_MAXCOUNT                     ("peoplesearch.values.maxCount"),
     PEOPLESEARCH_VIEW_DETAIL_LINKS                  ("peoplesearch.view.detail.links"),
     QUEUE_EMAIL_RETRY_TIMEOUT_MS                    ("queue.email.retryTimeoutMs"),
     QUEUE_EMAIL_MAX_AGE_MS                          ("queue.email.maxAgeMs"),
     QUEUE_EMAIL_MAX_COUNT                           ("queue.email.maxCount"),
+    QUEUE_EMAIL_MAX_THREADS                         ("queue.email.maxThreads"),
     QUEUE_SMS_RETRY_TIMEOUT_MS                      ("queue.sms.retryTimeoutMs"),
     QUEUE_SMS_MAX_AGE_MS                            ("queue.sms.maxAgeMs"),
     QUEUE_SMS_MAX_COUNT                             ("queue.sms.maxCount"),
@@ -229,9 +255,13 @@ public enum     AppProperty {
     RECAPTCHA_CLIENT_IFRAME_URL                     ("recaptcha.clientIframeUrl"),
     RECAPTCHA_VALIDATE_URL                          ("recaptcha.validateUrl"),
     REPORTING_LDAP_SEARCH_TIMEOUT                   ("reporting.ldap.searchTimeoutMs"),
+    REPORTING_LDAP_SEARCH_THREADS                   ("reporting.ldap.searchThreads"),
     SECURITY_STRIP_INLINE_JAVASCRIPT                ("security.html.stripInlineJavascript"),
+    SECURITY_HTTP_FORCE_REQUEST_SEQUENCING          ("security.http.forceRequestSequencing"),
     SECURITY_HTTP_STRIP_HEADER_REGEX                ("security.http.stripHeaderRegex"),
+    SECURITY_HTTP_PERFORM_CSRF_HEADER_CHECKS        ("security.http.performCsrfHeaderChecks"),
     SECURITY_HTTP_PROMISCUOUS_ENABLE                ("security.http.promiscuousEnable"),
+    SECURITY_HTTP_CONFIG_CSP_HEADER                 ("security.http.config.cspHeader"),
     SECURITY_HTTPSSERVER_SELF_FUTURESECONDS         ("security.httpsServer.selfCert.futureSeconds"),
     SECURITY_HTTPSSERVER_SELF_ALG                   ("security.httpsServer.selfCert.alg"),
     SECURITY_HTTPSSERVER_SELF_KEY_SIZE              ("security.httpsServer.selfCert.keySize"),
@@ -247,21 +277,25 @@ public enum     AppProperty {
     SECURITY_SHAREDHISTORY_CASE_INSENSITIVE         ("security.sharedHistory.caseInsensitive"),
     SECURITY_SHAREDHISTORY_SALT_LENGTH              ("security.sharedHistory.saltLength"),
     SECURITY_CERTIFICATES_VALIDATE_TIMESTAMPS       ("security.certs.validateTimestamps"),
-    SECURITY_LDAP_BASEDN_RESOLVE_CANONICAL_DN       ("security.ldap.resolveCanonicalDN"),
-    SECURITY_LDAP_BASEDN_CANONICAL_CACHE_SECONDS    ("security.ldap.canonicalCacheSeconds"),
     SECURITY_CONFIG_MIN_SECURITY_KEY_LENGTH         ("security.config.minSecurityKeyLength"),
     SECURITY_DEFAULT_EPHEMERAL_BLOCK_ALG            ("security.defaultEphemeralBlockAlg"),
     SECURITY_DEFAULT_EPHEMERAL_HASH_ALG             ("security.defaultEphemeralHashAlg"),
     SEEDLIST_BUILTIN_PATH                           ("seedlist.builtin.path"),
     SMTP_SUBJECT_ENCODING_CHARSET                   ("smtp.subjectEncodingCharset"),
-    TOKEN_REMOVAL_DELAY_MS                          ("token.removalDelayMS"),
-    TOKEN_PURGE_BATCH_SIZE                          ("token.purgeBatchSize"),
     TOKEN_MAX_UNIQUE_CREATE_ATTEMPTS                ("token.maxUniqueCreateAttempts"),
+    TOKEN_RESEND_ENABLED                            ("token.resend.enabled"),
+    TOKEN_RESEND_DELAY_MS                           ("token.resend.delayMS"),
+    TOKEN_REMOVE_ON_CLAIM                           ("token.removeOnClaim"),
+    TOKEN_VERIFY_PW_MODIFY_TIME                     ("token.verifyPwModifyTime"),
+
 
     /** Regular expression to be used for matching URLs to be shortened by the URL Shortening Service Class. */
     URL_SHORTNER_URL_REGEX                          ("urlshortener.url.regex"),
     WORDLIST_BUILTIN_PATH                           ("wordlist.builtin.path"),
+    WORDLIST_CHAR_LENGTH_MAX                        ("wordlist.maxCharLength"),
+    WORDLIST_CHAR_LENGTH_MIN                        ("wordlist.minCharLength"),
     WS_REST_CLIENT_PWRULE_HALTONERROR               ("ws.restClient.pwRule.haltOnError"),
+    WS_REST_SERVER_SIGNING_FORM_TIMEOUT_SECONDS     ("ws.restServer.signing.form.timeoutSeconds"),
     ALLOW_MACRO_IN_REGEX_SETTING                    ("password.policy.allowMacroInRegexSetting"),
 
     ;
@@ -301,6 +335,6 @@ public enum     AppProperty {
     }
 
     private static String readAppPropertiesBundle(final String key) {
-        return  ResourceBundle.getBundle(AppProperty.class.getName()).getString(key);
+        return ResourceBundle.getBundle(AppProperty.class.getName()).getString(key);
     }
 }

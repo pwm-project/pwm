@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,13 +24,12 @@ package password.pwm.util.localdb;
 
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
-import password.pwm.util.Helper;
+import password.pwm.util.java.JavaHelper;
 
 import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -45,15 +44,14 @@ public class Memory_LocalDB implements LocalDBProvider {
 
     private static final long MIN_FREE_MEMORY = 1024 * 1024;  // 1mb
     private LocalDB.Status state = LocalDB.Status.NEW;
-    private Map<LocalDB.DB, Map<String, String>> maps = new HashMap<>();
 
-// -------------------------- STATIC METHODS --------------------------
+    private Map<LocalDB.DB, Map<String, String>> maps = new ConcurrentHashMap<>();
 
     private static void checkFreeMem() throws LocalDBException {
         final long currentFreeMem = Runtime.getRuntime().freeMemory();
         if (currentFreeMem < MIN_FREE_MEMORY) {
             System.gc();
-            Helper.pause(100);
+            JavaHelper.pause(100);
             System.gc();
             if (currentFreeMem < MIN_FREE_MEMORY) {
                 throw new LocalDBException(new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,"out of memory, unable to add new records"));
@@ -68,19 +66,12 @@ public class Memory_LocalDB implements LocalDBProvider {
         checkFreeMem();
     }
 
-// --------------------------- CONSTRUCTORS ---------------------------
-
     public Memory_LocalDB() {
         for (final LocalDB.DB db : LocalDB.DB.values()) {
             final Map<String, String> newMap = new ConcurrentHashMap<>();
             maps.put(db, newMap);
         }
     }
-
-// ------------------------ INTERFACE METHODS ------------------------
-
-
-// --------------------- Interface PwmLocalDB.DB ---------------------
 
     @LocalDB.WriteOperation
     public void close()
@@ -106,8 +97,13 @@ public class Memory_LocalDB implements LocalDBProvider {
     }
 
     @LocalDB.WriteOperation
-    public void init(final File dbDirectory, final Map<String, String> initParameters, final Map<LocalDBProvider.Parameter,String> parameters)
-            throws LocalDBException {
+    public void init(
+            final File dbDirectory,
+            final Map<String, String> initParameters,
+            final Map<LocalDBProvider.Parameter,String> parameters
+    )
+            throws LocalDBException
+    {
         final boolean readOnly = LocalDBUtility.hasBooleanParameter(Parameter.readOnly, parameters);
         if (readOnly) {
             maps = Collections.unmodifiableMap(maps);
@@ -146,15 +142,22 @@ public class Memory_LocalDB implements LocalDBProvider {
     }
 
     @LocalDB.WriteOperation
+    public boolean putIfAbsent(final LocalDB.DB db, final String key, final String value)
+            throws LocalDBException {
+        opertationPreCheck();
+
+        final Map<String, String> map = maps.get(db);
+        final String oldValue = map.putIfAbsent(key, value);
+        return oldValue == null;
+    }
+
+    @LocalDB.WriteOperation
     public boolean remove(final LocalDB.DB db, final String key)
             throws LocalDBException {
         opertationPreCheck();
 
         final Map<String, String> map = maps.get(db);
         return null != map.remove(key);
-    }
-
-    public void returnIterator(final LocalDB.DB db) throws LocalDBException {
     }
 
     public int size(final LocalDB.DB db)
@@ -190,7 +193,7 @@ public class Memory_LocalDB implements LocalDBProvider {
     }
 
 
-    private class DbIterator<K> implements LocalDB.LocalDBIterator<String> {
+    private class DbIterator implements LocalDB.LocalDBIterator<String> {
         private final Iterator<String> iterator;
 
         private DbIterator(final LocalDB.DB db) {

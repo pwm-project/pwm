@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,20 +22,44 @@
 
 package password.pwm.http.tag;
 
+import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
+import password.pwm.bean.FormNonce;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.JspUtility;
 import password.pwm.http.PwmRequest;
-import password.pwm.util.Helper;
+import password.pwm.http.state.SessionStateService;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.tagext.TagSupport;
 import java.io.IOException;
+import java.time.Instant;
 
 public class PwmFormIDTag extends TagSupport {
 // --------------------- Interface Tag ---------------------
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(PwmFormIDTag.class);
+
+    private static String buildPwmFormID(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
+        if (pwmRequest == null || pwmRequest.getPwmApplication() == null) {
+            return "";
+        }
+
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        if (pwmApplication == null) {
+            return "";
+        }
+        final SessionStateService sessionStateService = pwmApplication.getSessionStateService();
+        final String value = sessionStateService.getSessionStateInfo(pwmRequest);
+        final FormNonce formID = new FormNonce(
+                pwmRequest.getPwmSession().getLoginInfoBean().getGuid(),
+                Instant.now(),
+                pwmRequest.getPwmSession().getLoginInfoBean().getReqCounter(),
+                value
+        );
+        return pwmRequest.getPwmApplication().getSecureService().encryptObjectToString(formID);
+    }
 
     public int doEndTag()
             throws javax.servlet.jsp.JspTagException
@@ -46,7 +70,7 @@ public class PwmFormIDTag extends TagSupport {
 
         try {
             final PwmRequest pwmRequest = JspUtility.getPwmRequest(pageContext);
-            final String pwmFormID = Helper.buildPwmFormID(pwmRequest);
+            final String pwmFormID = buildPwmFormID(pwmRequest);
 
             pageContext.getOut().write(pwmFormID);
         } catch (Exception e) {

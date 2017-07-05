@@ -1,14 +1,14 @@
 <%@ page import="password.pwm.http.filter.ConfigAccessFilter" %>
 <%@ page import="password.pwm.i18n.Config" %>
 <%@ page import="password.pwm.util.LocaleHelper" %>
-<%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
-<%@ page import="password.pwm.http.tag.value.PwmValue" %>
+<%@ page import="password.pwm.util.java.JavaHelper" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2016 The PWM Project
+  ~ Copyright (c) 2009-2017 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -57,7 +57,7 @@
             <div class="checkboxWrapper">
                 <label>
                     <input type="checkbox" id="remember" name="remember"/>
-                    <pwm:display key="Display_RememberLogin" bundle="Config" value1="<%=(String)JspUtility.getAttribute(pageContext,PwmRequest.Attribute.ConfigPasswordRememberTime)%>"/>
+                    <pwm:display key="Display_RememberLogin" bundle="Config" value1="<%=(String)JspUtility.getAttribute(pageContext,PwmRequestAttribute.ConfigPasswordRememberTime)%>"/>
                 </label>
             </div>
             <% } %>
@@ -70,7 +70,7 @@
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>" autofocus/>
             </div>
         </form>
-        <% final ConfigAccessFilter.ConfigLoginHistory configLoginHistory = (ConfigAccessFilter.ConfigLoginHistory)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ConfigLoginHistory); %>
+        <% final ConfigAccessFilter.ConfigLoginHistory configLoginHistory = (ConfigAccessFilter.ConfigLoginHistory)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ConfigLoginHistory); %>
         <% if (configLoginHistory != null && !configLoginHistory.successEvents().isEmpty()) { %>
         <h2 style="margin-top: 15px;">Previous Authentications</h2>
         <table>
@@ -82,7 +82,7 @@
             <% for (final ConfigAccessFilter.ConfigLoginEvent event : configLoginHistory.successEvents()) { %>
             <tr>
                 <td><%=event.getUserIdentity()%></td>
-                <td><span  class="timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(event.getDate())%></span></td>
+                <td><span  class="timestamp"><%=JavaHelper.toIsoDate(event.getDate())%></span></td>
                 <td><%=event.getNetworkAddress()%></td>
             </tr>
             <% } %>
@@ -100,7 +100,7 @@
             <% for (final ConfigAccessFilter.ConfigLoginEvent event : configLoginHistory.failedEvents()) { %>
             <tr>
                 <td><%=event.getUserIdentity()%></td>
-                <td><span  class="timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(event.getDate())%></span></td>
+                <td><span  class="timestamp"><%=JavaHelper.toIsoDate(event.getDate())%></span></td>
                 <td><%=event.getNetworkAddress()%></td>
             </tr>
             <% } %>

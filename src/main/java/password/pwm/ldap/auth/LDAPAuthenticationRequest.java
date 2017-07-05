@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@ import com.novell.ldapchai.exception.ImpossiblePasswordPolicyException;
 import com.novell.ldapchai.impl.oracleds.entry.OracleDSEntries;
 import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.provider.ChaiSetting;
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
@@ -54,7 +55,8 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.PasswordData;
 import password.pwm.util.RandomPasswordGenerator;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -273,6 +275,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest {
                 sessionLabel.getSrcHostname()
         );
         pwmApplication.getAuditManager().submit(auditRecord);
+        pwmApplication.getSessionTrackService().addRecentLogin(userIdentity);
 
         return authenticationResult;
     }
@@ -350,40 +353,11 @@ class LDAPAuthenticationRequest implements AuthenticationRequest {
         }
     }
 
-
     private PasswordData learnUserPassword()
             throws ChaiUnavailableException,  PwmUnrecoverableException
     {
         log(PwmLogLevel.TRACE, "beginning auth processes for user with unknown password");
-
-        if (userIdentity == null || userIdentity.getUserDN() == null || userIdentity.getUserDN().length() < 1) {
-            throw new NullPointerException("invalid user (null)");
-        }
-
-        final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID());
-        final ChaiUser chaiUser = ChaiFactory.createChaiUser(userIdentity.getUserDN(), chaiProvider);
-
-        // use chai (nmas) to retrieve user password
-        if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.EDIRECTORY_READ_USER_PWD)) {
-            String currentPass = null;
-            try {
-                final String readPassword = chaiUser.readPassword();
-                if (readPassword != null && readPassword.length() > 0) {
-                    currentPass = readPassword;
-                    log(PwmLogLevel.DEBUG, "successfully retrieved user's current password from ldap, now conducting standard authentication");
-                }
-            } catch (Exception e) {
-                log(PwmLogLevel.ERROR, "unable to retrieve user password from ldap: " + e.getMessage());
-            }
-
-            // actually do the authentication since we have user pw.
-            if (currentPass != null && currentPass.length() > 0) {
-                return new PasswordData(currentPass);
-            }
-        } else {
-            log(PwmLogLevel.TRACE, "skipping attempt to read user password, option disabled");
-        }
-        return null;
+        return LdapOperationsHelper.readLdapPassword(pwmApplication, sessionLabel, userIdentity);
     }
 
     private PasswordData setTempUserPassword(
@@ -409,9 +383,10 @@ class LDAPAuthenticationRequest implements AuthenticationRequest {
             );
 
             // create random password for user
-            final RandomPasswordGenerator.RandomGeneratorConfig randomGeneratorConfig = new RandomPasswordGenerator.RandomGeneratorConfig();
-            randomGeneratorConfig.setSeedlistPhrases(RandomPasswordGenerator.DEFAULT_SEED_PHRASES);
-            randomGeneratorConfig.setPasswordPolicy(passwordPolicy);
+            final RandomPasswordGenerator.RandomGeneratorConfig randomGeneratorConfig = RandomPasswordGenerator.RandomGeneratorConfig.builder()
+                    .seedlistPhrases(RandomPasswordGenerator.DEFAULT_SEED_PHRASES)
+                    .passwordPolicy(passwordPolicy)
+                    .build();
 
             final PasswordData currentPass = RandomPasswordGenerator.createRandomPassword(sessionLabel, randomGeneratorConfig, pwmApplication);
 
@@ -456,13 +431,18 @@ class LDAPAuthenticationRequest implements AuthenticationRequest {
                 ORACLE_ATTR_PW_ALLOW_CHG_TIME);
         log(PwmLogLevel.TRACE,"read OracleDS value of passwordAllowChangeTime value=" + oracleDS_PrePasswordAllowChangeTime);
 
+
         if (oracleDS_PrePasswordAllowChangeTime != null && !oracleDS_PrePasswordAllowChangeTime.isEmpty()) {
             final Date date = OracleDSEntries.convertZuluToDate(oracleDS_PrePasswordAllowChangeTime);
-            if (new Date().before(date)) {
-                final String errorMsg = "change not permitted until " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(
-                        date);
-                throw new PwmUnrecoverableException(
-                        new ErrorInformation(PwmError.PASSWORD_TOO_SOON, errorMsg));
+
+            final boolean enforceFromForgotten = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_ENFORCE_MINIMUM_PASSWORD_LIFETIME);
+            if (enforceFromForgotten) {
+                if (new Date().before(date)) {
+                    final String errorMsg = "change not permitted until " + JavaHelper.toIsoDate(
+                            date);
+                    throw new PwmUnrecoverableException(
+                            new ErrorInformation(PwmError.PASSWORD_TOO_SOON, errorMsg));
+                }
             }
         }
 
@@ -498,11 +478,21 @@ class LDAPAuthenticationRequest implements AuthenticationRequest {
                     chaiUser.getEntryDN(),
                     ORACLE_ATTR_PW_ALLOW_CHG_TIME);
             if (oracleDS_PostPasswordAllowChangeTime != null && !oracleDS_PostPasswordAllowChangeTime.isEmpty()) {
-                // password allow change time has appeared, but wasn't present previously, so delete it.
-                log(PwmLogLevel.TRACE, "a new value for passwordAllowChangeTime attribute to user " + chaiUser.getEntryDN() + " has appeared, will remove");
-                chaiProvider.deleteStringAttributeValue(chaiUser.getEntryDN(), ORACLE_ATTR_PW_ALLOW_CHG_TIME,
-                        oracleDS_PostPasswordAllowChangeTime);
-                log(PwmLogLevel.TRACE, "deleted attribute value for passwordAllowChangeTime attribute on user " + chaiUser.getEntryDN());
+                final boolean PostTempUseCurrentTime = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.LDAP_ORACLE_POST_TEMPPW_USE_CURRENT_TIME));
+                if (PostTempUseCurrentTime) {
+                    log(PwmLogLevel.TRACE, "a new value for passwordAllowChangeTime attribute to user " + chaiUser.getEntryDN() + " has appeared, will replace with current time value");
+                    final String newTimeValue = OracleDSEntries.convertDateToZulu(new Date());
+                    final Set<String> values = new HashSet<>(Collections.singletonList(newTimeValue));
+                    chaiProvider.writeStringAttribute(chaiUser.getEntryDN(), ORACLE_ATTR_PW_ALLOW_CHG_TIME, values, true);
+                    log(PwmLogLevel.TRACE, "wrote attribute value '" + newTimeValue + "' for passwordAllowChangeTime attribute on user " + chaiUser.getEntryDN());
+                } else {
+                    // password allow change time has appeared, but wasn't present previously, so delete it.
+                    log(PwmLogLevel.TRACE, "a new value for passwordAllowChangeTime attribute to user " + chaiUser.getEntryDN() + " has appeared, will remove");
+                    chaiProvider.deleteStringAttributeValue(chaiUser.getEntryDN(), ORACLE_ATTR_PW_ALLOW_CHG_TIME,
+                            oracleDS_PostPasswordAllowChangeTime);
+                    log(PwmLogLevel.TRACE, "deleted attribute value for passwordAllowChangeTime attribute on user " + chaiUser.getEntryDN());
+                }
+
             }
         }
     }

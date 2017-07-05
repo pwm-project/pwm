@@ -1,4 +1,4 @@
-<%@ page import="password.pwm.http.servlet.AdminServlet" %>
+<%@ page import="password.pwm.http.servlet.admin.AdminServlet" %>
 <%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ page import="password.pwm.http.JspUtility" %>
@@ -7,7 +7,7 @@
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2016 The PWM Project
+  ~ Copyright (c) 2009-2017 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,7 +37,6 @@ public enum IdentityVerificationMethod implements ConfigurationOption {
     TOKEN(              true,   Display.Field_VerificationMethodToken,              Display.Description_VerificationMethodToken),
     OTP(                true,   Display.Field_VerificationMethodOTP,                Display.Description_VerificationMethodOTP),
     REMOTE_RESPONSES(   false,  Display.Field_VerificationMethodRemoteResponses,    Display.Description_VerificationMethodRemoteResponses),
-    NAAF(               true,   Display.Field_VerificationMethodNAAF,               Display.Description_VerificationMethodNAAF),
     OAUTH(              true,   Display.Field_VerificationMethodOAuth,              Display.Description_VerificationMethodOAuth),
 
     ;

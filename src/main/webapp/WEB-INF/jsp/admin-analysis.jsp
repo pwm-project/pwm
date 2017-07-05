@@ -4,6 +4,7 @@
 <%@ page import="password.pwm.svc.stats.Statistic" %>
 <%@ page import="password.pwm.svc.stats.StatisticsBundle" %>
 <%@ page import="password.pwm.svc.stats.StatisticsManager" %>
+<%@ page import="password.pwm.util.java.JavaHelper" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.util.Locale" %>
 <%@ page import="java.util.Map" %>
@@ -12,7 +13,7 @@
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2016 The PWM Project
+  ~ Copyright (c) 2009-2017 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -34,7 +35,6 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
     final Locale locale = JspUtility.locale(request);
-    final DateFormat dateFormat = PwmConstants.DEFAULT_DATETIME_FORMAT;
 
     StatisticsManager statsManager = null;
     String statsPeriodSelect = "";
@@ -64,7 +64,6 @@
         <%@ include file="fragment/admin-nav.jsp" %>
         <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;"  data-dojo-props="doLayout: false, persist: true" id="analysis-topLevelTab">
             <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true" title="<pwm:display key="Title_DirectoryReporting" bundle="Admin"/>">
-                <% if (analysis_pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.REPORTING_ENABLE)) { %>
                 <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_ReportEngineStatus" bundle="Admin"/>" class="tabContent">
                     <table style="width:450px" id="statusTable">
                         <tr><td><pwm:display key="Display_PleaseWait"/></td></tr>
@@ -153,12 +152,6 @@
                         </script>
                     </pwm:script>
                 </div>
-                <% } else { %>
-                <div>
-                    <%= PwmError.ERROR_SERVICE_NOT_AVAILABLE.getLocalizedMessage(analysis_pwmRequest.getLocale(),
-                            analysis_pwmRequest.getConfig()) %>
-                </div>
-                <% } %>
             </div>
             <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true" title="<pwm:display key="Title_EventStatistics" bundle="Admin"/>">
                 <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_RawStatistics" bundle="Admin"/>" class="tabContent">
@@ -171,10 +164,10 @@
                                         <select name="statsPeriodSelect"
                                                 style="width: 350px;" data-dojo-props="maxHeight: -1">
                                             <option value="<%=StatisticsManager.KEY_CUMULATIVE%>" <%= StatisticsManager.KEY_CUMULATIVE.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
-                                                since installation - <%= dateFormat.format(analysis_pwmRequest.getPwmApplication().getInstallTime()) %>
+                                                since installation - <%= JavaHelper.toIsoDate(analysis_pwmRequest.getPwmApplication().getInstallTime()) %>
                                             </option>
                                             <option value="<%=StatisticsManager.KEY_CURRENT%>" <%= StatisticsManager.KEY_CURRENT.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
-                                                since startup - <%= dateFormat.format(analysis_pwmRequest.getPwmApplication().getStartupTime()) %>
+                                                since startup - <%= JavaHelper.toIsoDate(analysis_pwmRequest.getPwmApplication().getStartupTime()) %>
                                             </option>
                                             <% final Map<StatisticsManager.DailyKey, String> availableKeys = statsManager.getAvailableKeys(locale); %>
                                             <% for (final StatisticsManager.DailyKey key : availableKeys.keySet()) { %>
@@ -255,11 +248,15 @@
                 dojoParser.parse('centerbody');
                 ready(function(){
                     registry.byId('statsChartSelect').set('value','<%=Statistic.PASSWORD_CHANGES%>');
+
                     setTimeout(function(){
                         refreshChart();
                     },5*1000);
-                    PWM_ADMIN.refreshReportDataSummary(5 * 1000);
-                    PWM_ADMIN.refreshReportDataStatus(5 * 1000);
+
+                    PWM_ADMIN.refreshReportDataSummary();
+                    PWM_ADMIN.refreshReportDataStatus();
+                    setInterval(function () { PWM_ADMIN.refreshReportDataSummary() }, 5 * 1000);
+                    setInterval(function () { PWM_ADMIN.refreshReportDataStatus() }, 5 * 1000);
                 });
 
                 <% for (final Statistic loopStat : Statistic.sortedValues(locale)) { %>
@@ -269,9 +266,9 @@
                 PWM_MAIN.addEventHandler('button-refreshReportDataGrid','click',function(){
                     PWM_ADMIN.refreshReportDataGrid();
                 });
-                PWM_MAIN.addEventHandler('reportStartButton','click',function(){ PWM_ADMIN.reportAction('start') });
-                PWM_MAIN.addEventHandler('reportStopButton','click',function(){ PWM_ADMIN.reportAction('stop') });
-                PWM_MAIN.addEventHandler('reportClearButton','click',function(){ PWM_ADMIN.reportAction('clear') });
+                PWM_MAIN.addEventHandler('reportStartButton','click',function(){ PWM_ADMIN.reportAction('Start') });
+                PWM_MAIN.addEventHandler('reportStopButton','click',function(){ PWM_ADMIN.reportAction('Stop') });
+                PWM_MAIN.addEventHandler('reportClearButton','click',function(){ PWM_ADMIN.reportAction('Clear') });
                 PWM_MAIN.addEventHandler('statsChartSelect','change',function(){ refreshChart() })
 
             });

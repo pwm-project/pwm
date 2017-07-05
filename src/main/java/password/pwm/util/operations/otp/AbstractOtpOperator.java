@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,12 +32,9 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.otp.OTPPamUtil;
-import password.pwm.util.otp.OTPUrlUtil;
-import password.pwm.util.otp.OTPUserRecord;
 import password.pwm.util.secure.PwmBlockAlgorithm;
 import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.util.secure.SecureEngine;
@@ -101,7 +98,7 @@ public abstract class AbstractOtpOperator implements OtpOperator {
 
     public PwmBlockAlgorithm figureBlockAlg() {
         final String otpEncryptionAlgString = pwmApplication.getConfig().readAppProperty(AppProperty.OTP_ENCRYPTION_ALG);
-        return Helper.readEnumFromString(PwmBlockAlgorithm.class, PwmBlockAlgorithm.AES, otpEncryptionAlgString);
+        return JavaHelper.readEnumFromString(PwmBlockAlgorithm.class, PwmBlockAlgorithm.AES, otpEncryptionAlgString);
     }
 
     /**

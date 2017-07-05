@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,7 +35,9 @@ public class PwmHttpClientResponse implements Serializable {
     public PwmHttpClientResponse(final int statusCode, final String statusPhrase, final Map<String, String> headers, final String body) {
         this.statusCode = statusCode;
         this.statusPhrase = statusPhrase;
-        this.headers = headers == null ? Collections.<String,String>emptyMap() : Collections.unmodifiableMap(headers);;
+        this.headers = headers == null
+                ? Collections.emptyMap()
+                : Collections.unmodifiableMap(headers);
         this.body = body;
     }
 

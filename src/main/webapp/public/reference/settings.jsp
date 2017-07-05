@@ -4,14 +4,14 @@
 <%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.util.LocaleHelper" %>
-<%@ page import="password.pwm.util.StringUtil" %>
+<%@ page import="password.pwm.util.java.StringUtil" %>
 <%@ page import="java.util.*" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2016 The PWM Project
+  ~ Copyright (c) 2009-2017 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by

@@ -1,9 +1,9 @@
-/*
+/*!
  * Password Management Servlets (PWM)
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,75 +21,108 @@
  */
 
 
-.detail-link {
-  text-align: center;
-  width:100%;
-}
-
 .person-details {
   mf-app-bar {
     padding: 0 5px;
   }
 
   .mf-dialog-content {
-    > table {
-      border: 1px solid #dae1e1;
-      border-collapse: collapse;
-      //box-sizing: border-box;
-      width: 100%;
+    > .person-details-header {
+      background-color: #eef2f2;
 
-      tr {
-        height: 25px;
+      > mf-button {
+        margin: 0 0 10px 0;
+      }
 
-        td {
-          border: 1px solid #dae1e1;
-          font-size: 12px;
-          height: 19px;
-          padding: 3px 5px;
-          text-align: start;
+      > person-card {
+        height: 120px;
+        max-width: 100%;
+        width: 100%;
 
-          &:first-child {
-            color: #949494;
-            text-align: end;
-            padding: 3px 15px;
+        > .person-card-content {
+          > .avatar {
+            flex-basis: 100px;
+            height: 100px;
+            width: 100px;
           }
+        }
+      }
+    }
 
-          &:last-child {
+    > .person-details-content {
+      padding: 10px;
 
-            > .detail-container {
-              a {
-                cursor: pointer;
-                text-decoration: underline;
-              }
+      > table {
+        border: none;
+        border-collapse: collapse;
+        width: 100%;
 
-              > ul {
-                list-style: none;
-                margin: 0;
-                padding: 0;
+        tr {
+          height: 25px;
 
-                > li {
-                  display: flex;
-                  flex-direction: row;
-                  margin: 0;
-                  padding: 0;
+          td {
+            border: none;
+            font-size: 12px;
+            height: 19px;
+            text-align: left;
 
-                  > [flex] {
-                    flex: 1 1;
-                  }
+            &:first-child {
+              color: #949494;
+              width: 100px;
+              text-align: right;
+              padding: 3px 0;
+            }
 
-                  > mf-icon-button {
-                    display: inline-block;
-                    flex: 0 0 16px;
-                    height: 16px;
-                    width: 16px;
+            &:last-child {
+              padding: 3px 10px;
 
-                    > button {
-                      > mf-icon {
-                        font-size: 16px;
+              > .detail-container {
+                > ul {
+                  > li {
+                    > mf-icon-button {
+                      display: inline-block;
+                      height: 16px;
+                      width: 16px;
+
+                      > button {
+                        > mf-icon {
+                          font-size: 16px;
+                        }
                       }
                     }
                   }
                 }
+              }
+            }
+
+            ul {
+              list-style: none;
+              margin: 0;
+              padding: 0;
+
+              > li {
+                margin: 0;
+                padding: 0;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+[dir="rtl"] {
+  .person-details {
+    .mf-dialog-content {
+      > .person-details-content {
+        > table {
+          tr {
+            td {
+              text-align: right;
+
+              &:first-child {
+                text-align: left;
               }
             }
           }

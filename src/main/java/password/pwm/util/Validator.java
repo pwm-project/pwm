@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -83,9 +83,10 @@ public class Validator {
             throws PwmOperationalException, PwmUnrecoverableException
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
 
-        if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.SECURITY_ENABLE_REQUEST_SEQUENCE)) {
+        final boolean enforceRequestSequencing = Boolean.parseBoolean(pwmRequest.getConfig().readAppProperty(AppProperty.SECURITY_HTTP_FORCE_REQUEST_SEQUENCING));
+
+        if (enforceRequestSequencing) {
             final String requestVerificationKey = String.valueOf(pwmSession.getLoginInfoBean().getReqCounter());
 
             final String submittedPwmFormID = pwmRequest.readParameterAsString(PwmConstants.PARAM_FORM_ID);
@@ -98,7 +99,7 @@ public class Validator {
                         submittedPwmFormID,
                         FormNonce.class
                 );
-                final String submittedRequestVerificationKey = String.valueOf(formNonce.getRequestID());
+                final String submittedRequestVerificationKey = String.valueOf(formNonce.getReqCounter());
                 if (!requestVerificationKey.equals(submittedRequestVerificationKey)) {
                     final String debugMsg = "expectedPageID=" + requestVerificationKey
                             + ", submittedPageID=" + submittedRequestVerificationKey

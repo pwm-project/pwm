@@ -1,12 +1,13 @@
 <%@ page import="password.pwm.bean.PasswordStatus" %>
 <%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2016 The PWM Project
+  ~ Copyright (c) 2009-2017 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -36,13 +37,13 @@
     </jsp:include>
     <div id="centerbody">
         <div id="page-content-title"><pwm:display key="Title_ChangePassword" displayIfMissing="true"/></div>
-        <% final PasswordStatus passwordStatus = JspUtility.getPwmSession(pageContext).getUserInfoBean().getPasswordState(); %>
+        <% final PasswordStatus passwordStatus = JspUtility.getPwmSession(pageContext).getUserInfo().getPasswordStatus(); %>
         <% if (passwordStatus.isExpired() || passwordStatus.isPreExpired() || passwordStatus.isViolatesPolicy()) { %>
         <h1><pwm:display key="Display_PasswordExpired"/></h1><br/>
         <% } %>
         <%@ include file="fragment/message.jsp" %>
         <br/>
-        <div id="agreementText" class="agreementText"><%= (String)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.AgreementText) %></div>
+        <div id="agreementText" class="agreementText"><%= (String)JspUtility.getAttribute(pageContext, PwmRequestAttribute.AgreementText) %></div>
         <div class="buttonbar">
             <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" autocomplete="off">
                 <%-- remove the next line to remove the "I Agree" checkbox --%>

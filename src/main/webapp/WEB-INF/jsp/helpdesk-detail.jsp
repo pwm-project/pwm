@@ -3,7 +3,7 @@
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2016 The PWM Project
+  ~ Copyright (c) 2009-2017 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 <%@ page import="com.novell.ldapchai.ChaiPasswordRule" %>
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
 <%@ page import="password.pwm.bean.ResponseInfoBean" %>
-<%@ page import="password.pwm.bean.UserInfoBean" %>
+<%@ page import="password.pwm.ldap.UserInfo" %>
 <%@ page import="password.pwm.config.ActionConfiguration" %>
 <%@ page import="password.pwm.config.FormConfiguration" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
@@ -36,11 +36,11 @@
 <%@ page import="password.pwm.http.tag.PasswordRequirementsTag" %>
 <%@ page import="password.pwm.i18n.Display" %>
 <%@ page import="password.pwm.svc.event.UserAuditRecord" %>
-<%@ page import="password.pwm.util.StringUtil" %>
-<%@ page import="password.pwm.util.TimeDuration" %>
+<%@ page import="password.pwm.util.java.JavaHelper" %>
+<%@ page import="password.pwm.util.java.StringUtil" %>
+<%@ page import="password.pwm.util.java.TimeDuration" %>
 <%@ page import="password.pwm.util.macro.MacroMachine" %>
-<%@ page import="java.text.DateFormat" %>
-<%@ page import="java.util.Date" %>
+<%@ page import="java.time.Instant" %>
 <%@ page import="java.util.Iterator" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Set" %>
@@ -52,12 +52,11 @@
     final PwmSession pwmSession = pwmRequest.getPwmSession();
     final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
     final HelpdeskProfile helpdeskProfile = pwmSession.getSessionManager().getHelpdeskProfile(pwmApplication);
-    final DateFormat dateFormatter = PwmConstants.DEFAULT_DATETIME_FORMAT;
     final HelpdeskUIMode SETTING_PW_UI_MODE = HelpdeskUIMode.valueOf(helpdeskProfile.readSettingAsString(PwmSetting.HELPDESK_SET_PASSWORD_MODE));
 
     // user info
-    final HelpdeskDetailInfoBean helpdeskDetailInfoBean = (HelpdeskDetailInfoBean)pwmRequest.getAttribute(PwmRequest.Attribute.HelpdeskDetail);
-    final UserInfoBean searchedUserInfo = helpdeskDetailInfoBean.getUserInfoBean();
+    final HelpdeskDetailInfoBean helpdeskDetailInfoBean = (HelpdeskDetailInfoBean)pwmRequest.getAttribute(PwmRequestAttribute.HelpdeskDetail);
+    final UserInfo searchedUserInfo = helpdeskDetailInfoBean.getUserInfo();
     final ResponseInfoBean responseInfoBean = searchedUserInfo.getResponseInfoBean();
 
     final String displayName = helpdeskDetailInfoBean.getUserDisplayName();
@@ -79,8 +78,8 @@
         <pwm:script>
             <script type="text/javascript">
                 PWM_GLOBAL['startupFunctions'].push(function(){
-                    PWM_VAR["helpdesk_obfuscatedDN"] = '<%=JspUtility.getAttribute(pageContext, PwmRequest.Attribute.HelpdeskObfuscatedDN)%>';
-                    PWM_VAR["helpdesk_username"] = '<%=StringUtil.escapeJS((String)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.HelpdeskUsername))%>';
+                    PWM_VAR["helpdesk_obfuscatedDN"] = '<%=JspUtility.getAttribute(pageContext, PwmRequestAttribute.HelpdeskObfuscatedDN)%>';
+                    PWM_VAR["helpdesk_username"] = '<%=StringUtil.escapeJS((String)JspUtility.getAttribute(pageContext, PwmRequestAttribute.HelpdeskUsername))%>';
                 });
             </script>
         </pwm:script>
@@ -202,7 +201,7 @@
                                     </td>
                                     <% } else { %>
                                     <td class="timestamp">
-                                        <%= dateFormatter.format(searchedUserInfo.getAccountExpirationTime()) %>
+                                        <%= JavaHelper.toIsoDate(searchedUserInfo.getAccountExpirationTime()) %>
                                     </td>
                                     <% } %>
                                     </td>
@@ -219,7 +218,7 @@
                                     </td>
                                     <% } else { %>
                                     <td class="timestamp">
-                                        <%= dateFormatter.format(helpdeskDetailInfoBean.getLastLoginTime()) %>
+                                        <%= JavaHelper.toIsoDate(helpdeskDetailInfoBean.getLastLoginTime()) %>
                                     </td>
                                     <% } %>
                                 </tr>
@@ -242,7 +241,7 @@
                                         <pwm:display key="Field_PasswordExpired"/>
                                     </td>
                                     <td>
-                                        <%if (searchedUserInfo.getPasswordState().isExpired()) {%><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
+                                        <%if (searchedUserInfo.getPasswordStatus().isExpired()) {%><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
                                     </td>
                                 </tr>
                                 <% } %>
@@ -252,7 +251,7 @@
                                         <pwm:display key="Field_PasswordPreExpired"/>
                                     </td>
                                     <td>
-                                        <%if (searchedUserInfo.getPasswordState().isPreExpired()) {%><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
+                                        <%if (searchedUserInfo.getPasswordStatus().isPreExpired()) {%><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
                                     </td>
                                 </tr>
                                 <% } %>
@@ -262,7 +261,7 @@
                                         <pwm:display key="Field_PasswordWithinWarningPeriod"/>
                                     </td>
                                     <td>
-                                        <%if (searchedUserInfo.getPasswordState().isWarnPeriod()) { %><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
+                                        <%if (searchedUserInfo.getPasswordStatus().isWarnPeriod()) { %><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
                                     </td>
                                 </tr>
                                 <% } %>
@@ -277,7 +276,7 @@
                                     </td>
                                     <% } else { %>
                                     <td class="timestamp">
-                                        <%= dateFormatter.format(searchedUserInfo.getPasswordLastModifiedTime()) %>
+                                        <%= JavaHelper.toIsoDate(searchedUserInfo.getPasswordLastModifiedTime()) %>
                                     </td>
                                     <% } %>
                                 </tr>
@@ -303,7 +302,7 @@
                                     </td>
                                     <% } else { %>
                                     <td class="timestamp">
-                                        <%= dateFormatter.format(searchedUserInfo.getPasswordExpirationTime()) %>
+                                        <%= JavaHelper.toIsoDate(searchedUserInfo.getPasswordExpirationTime()) %>
                                     </td>
                                     <% } %>
                                 </tr>
@@ -363,7 +362,7 @@
                                     </td>
                                     <% } else { %>
                                     <td class="timestamp">
-                                        <%= dateFormatter.format(responseInfoBean.getTimestamp()) %>
+                                        <%= JavaHelper.toIsoDate(responseInfoBean.getTimestamp()) %>
                                     </td>
                                     <% } %>
                                 </tr>
@@ -390,7 +389,7 @@
                                         </td>
                                         <% } else { %>
                                         <td class="timestamp">
-                                            <%= dateFormatter.format(searchedUserInfo.getOtpUserRecord().getTimestamp()) %>
+                                            <%= JavaHelper.toIsoDate(searchedUserInfo.getOtpUserRecord().getTimestamp()) %>
                                         </td>
                                         <% } %>
                                     </tr>
@@ -415,7 +414,7 @@
                                     <% for (final UserAuditRecord record : helpdeskDetailInfoBean.getUserHistory()) { %>
                                     <tr>
                                         <td class="key timestamp" style="width:50%">
-                                            <%= dateFormatter.format(record.getTimestamp()) %>
+                                            <%= JavaHelper.toIsoDate(record.getTimestamp()) %>
                                         </td>
                                         <td>
                                             <%= record.getEventCode().getLocalizedString(pwmRequest.getConfig(), pwmRequest.getLocale()) %>
@@ -515,7 +514,7 @@
                         <% } %>
                     </div>
                     <br/>
-                    <div class="footnote"><div class="timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date())%></div></div>
+                    <div class="footnote"><div class="timestamp"><%=JavaHelper.toIsoDate(Instant.now())%></div></div>
                 </td>
                 <td class="noborder" style="width: 200px; max-width:200px; text-align: left; vertical-align: top">
                     <div class="noborder" style="margin-top: 25px; margin-left: 5px">
@@ -583,7 +582,7 @@
                         </button>
                         <% } %>
                         <% } %>
-                        <% if ((Boolean)JspUtility.getPwmRequest(pageContext).getAttribute(PwmRequest.Attribute.HelpdeskVerificationEnabled) == true) { %>
+                        <% if ((Boolean)JspUtility.getPwmRequest(pageContext).getAttribute(PwmRequestAttribute.HelpdeskVerificationEnabled) == true) { %>
                         <button id="sendTokenButton" class="helpdesk-detail-btn btn">
                             <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-mobile-phone"></span></pwm:if>
                             <pwm:display key="Button_Verify"/>

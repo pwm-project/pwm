@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,8 +29,8 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
@@ -57,12 +57,12 @@ public class SecureService implements PwmService {
         pwmSecurityKey = config.getSecurityKey();
         {
             final String defaultBlockAlgString = config.readAppProperty(AppProperty.SECURITY_DEFAULT_EPHEMERAL_BLOCK_ALG);
-            defaultBlockAlgorithm = Helper.readEnumFromString(PwmBlockAlgorithm.class, PwmBlockAlgorithm.AES, defaultBlockAlgString);
+            defaultBlockAlgorithm = JavaHelper.readEnumFromString(PwmBlockAlgorithm.class, PwmBlockAlgorithm.AES, defaultBlockAlgString);
             LOGGER.debug("using default ephemeral block algorithm: "+ defaultBlockAlgorithm.getLabel());
         }
         {
             final String defaultHashAlgString = config.readAppProperty(AppProperty.SECURITY_DEFAULT_EPHEMERAL_HASH_ALG);
-            defaultHashAlgorithm = Helper.readEnumFromString(PwmHashAlgorithm.class, PwmHashAlgorithm.SHA512, defaultHashAlgString);
+            defaultHashAlgorithm = JavaHelper.readEnumFromString(PwmHashAlgorithm.class, PwmHashAlgorithm.SHA512, defaultHashAlgString);
             LOGGER.debug("using default ephemeral hash algorithm: "+ defaultHashAlgString.toString());
         }
     }
@@ -78,7 +78,7 @@ public class SecureService implements PwmService {
     }
 
     @Override
-    public ServiceInfo serviceInfo() {
+    public ServiceInfoBean serviceInfo() {
         return null;
     }
 
@@ -141,6 +141,14 @@ public class SecureService implements PwmService {
 
     public String hash(
             final String input
+    )
+            throws PwmUnrecoverableException
+    {
+        return SecureEngine.hash(input, defaultHashAlgorithm);
+    }
+
+    public String hash(
+            final byte[] input
     )
             throws PwmUnrecoverableException
     {

@@ -3,15 +3,15 @@
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ page import="password.pwm.i18n.Config" %>
 <%@ page import="password.pwm.i18n.Display" %>
-<%@ page import="password.pwm.util.FileSystemUtility" %>
-<%@ page import="password.pwm.util.Helper" %>
+<%@ page import="password.pwm.util.java.FileSystemUtility" %>
 <%@ page import="password.pwm.util.LocaleHelper" %>
+<%@ page import="password.pwm.util.java.StringUtil" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2016 The PWM Project
+  ~ Copyright (c) 2009-2017 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -101,7 +101,7 @@
                             ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable)
                             : localdb_pwmApplication.getLocalDB().getFileLocation() == null
                             ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable)
-                            : Helper.formatDiskSize(FileSystemUtility.getFileDirectorySize(
+                            : StringUtil.formatDiskSize(FileSystemUtility.getFileDirectorySize(
                             localdb_pwmApplication.getLocalDB().getFileLocation()))
                     %>
                 </td>
@@ -115,7 +115,7 @@
                             ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable)
                             : localdb_pwmApplication.getLocalDB().getFileLocation() == null
                             ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable)
-                            : Helper.formatDiskSize(FileSystemUtility.diskSpaceRemaining(localdb_pwmApplication.getLocalDB().getFileLocation())) %>
+                            : StringUtil.formatDiskSize(FileSystemUtility.diskSpaceRemaining(localdb_pwmApplication.getLocalDB().getFileLocation())) %>
                 </td>
             </tr>
         </table>

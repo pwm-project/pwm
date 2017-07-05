@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,14 +29,16 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.ResponseInfoBean;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.ldap.UserSearchEngine;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.TimeDuration;
+import password.pwm.ldap.search.SearchConfiguration;
+import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.cli.CliParameters;
 import password.pwm.util.operations.CrService;
 
@@ -148,20 +150,21 @@ public class ResponseStatsCommand extends AbstractCliCommand {
         final List<UserIdentity> returnList = new ArrayList<>();
 
         for (final LdapProfile ldapProfile : pwmApplication.getConfig().getLdapProfiles().values()) {
-            final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication,null);
-            final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
-            searchConfiguration.setEnableValueEscaping(false);
-            searchConfiguration.setSearchTimeout(Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.REPORTING_LDAP_SEARCH_TIMEOUT)));
-
-            searchConfiguration.setUsername("*");
-            searchConfiguration.setEnableValueEscaping(false);
-            searchConfiguration.setFilter(ldapProfile.readSettingAsString(PwmSetting.LDAP_USERNAME_SEARCH_FILTER));
-            searchConfiguration.setLdapProfile(ldapProfile.getIdentifier());
+            final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
+            final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
+                    .enableValueEscaping(false)
+                    .searchTimeout(Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.REPORTING_LDAP_SEARCH_TIMEOUT)))
+                    .username("*")
+                    .enableValueEscaping(false)
+                    .filter(ldapProfile.readSettingAsString(PwmSetting.LDAP_USERNAME_SEARCH_FILTER))
+                    .ldapProfile(ldapProfile.getIdentifier())
+                    .build();
 
             final Map<UserIdentity,Map<String,String>> searchResults = userSearchEngine.performMultiUserSearch(
                     searchConfiguration,
                     Integer.MAX_VALUE,
-                    Collections.<String>emptyList()
+                    Collections.emptyList(),
+                    SessionLabel.SYSTEM_LABEL
             );
             returnList.addAll(searchResults.keySet());
 

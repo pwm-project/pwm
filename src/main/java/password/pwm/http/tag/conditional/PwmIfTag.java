@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -86,7 +86,7 @@ public class PwmIfTag extends BodyTagSupport {
                     final PwmIfTest testEnum = test;
                     if (testEnum != null) {
                         try {
-                            final PwmIfOptions options = new PwmIfOptions(negate, setting, permission, requestFlag);
+                            final PwmIfOptions options = new PwmIfOptions(negate, permission, setting, requestFlag);
                             showBody = testEnum.passed(pwmRequest, options);
                         } catch (ChaiUnavailableException e) {
                             LOGGER.error("error testing jsp if '" + testEnum.toString() + "', error: " + e.getMessage());

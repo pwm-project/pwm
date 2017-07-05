@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,8 +27,9 @@ import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.Helper;
-import password.pwm.util.StringUtil;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.crypto.Cipher;
@@ -41,12 +42,15 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
 import java.util.Arrays;
+import java.util.Random;
 
 
 /**
@@ -217,16 +221,6 @@ public class SecureEngine {
         }
     }
 
-    public static String md5sum(final String input)
-            throws PwmUnrecoverableException {
-        return hash(input, PwmHashAlgorithm.MD5);
-    }
-
-    public static String md5sum(final InputStream is)
-            throws PwmUnrecoverableException {
-        return hash(is, PwmHashAlgorithm.MD5);
-    }
-
     public static String hash(
             final byte[] input,
             final PwmHashAlgorithm algorithm
@@ -257,7 +251,7 @@ public class SecureEngine {
                 byteBuffer.clear();
             }
 
-            return Helper.byteArrayToHexString(messageDigest.digest());
+            return JavaHelper.byteArrayToHexString(messageDigest.digest());
 
         } catch (NoSuchAlgorithmException | IOException e) {
             final String errorMsg = "unexpected error during file hash operation: " + e.getMessage();
@@ -284,10 +278,10 @@ public class SecureEngine {
             final PwmHashAlgorithm algorithm
     )
             throws PwmUnrecoverableException {
-        return Helper.byteArrayToHexString(computeHashToBytes(is, algorithm));
+        return JavaHelper.byteArrayToHexString(computeHashToBytes(is, algorithm));
     }
 
-    static byte[] computeHmacToBytes(
+    private static byte[] computeHmacToBytes(
             final HmacAlgorithm hmacAlgorithm,
             final PwmSecurityKey pwmSecurityKey,
             final byte[] input
@@ -345,7 +339,7 @@ public class SecureEngine {
         }
     }
 
-    static byte[] appendByteArrays(final byte[]... input) {
+    private static byte[] appendByteArrays(final byte[]... input) {
         if (input == null || input.length == 0) {
             return new byte[0];
         }
@@ -408,6 +402,31 @@ public class SecureEngine {
                 }
             } else {
                 value[index]++;
+            }
+        }
+    }
+
+    public static void benchmark(final Writer outputData) throws PwmUnrecoverableException, IOException {
+        final int testIterations = 10 * 1000;
+        final Random random = new Random();
+        final byte[] noise = new byte[1024 * 10];
+        final PwmSecurityKey key = new PwmSecurityKey(PwmRandom.getInstance().newBytes(1024));
+        for (int i = 0; i < 10; i++) {
+            for (final PwmBlockAlgorithm alg : PwmBlockAlgorithm.values()) {
+                final Instant startTime = Instant.now();
+                for (int j = 0; j < testIterations; j++) {
+                    random.nextBytes(noise);
+                    SecureEngine.encryptToString(
+                            JavaHelper.binaryArrayToHex(noise),
+                            key,
+                            alg
+                    );
+                }
+                final TimeDuration executionDuration = TimeDuration.fromCurrent(startTime);
+                outputData.write("processed " + testIterations + " iterations using "
+                        + alg.toString() + " (" + alg.getLabel() + ") in "
+                        + executionDuration.getTotalMilliseconds() + "ms");
+                outputData.write("\n");
             }
         }
     }

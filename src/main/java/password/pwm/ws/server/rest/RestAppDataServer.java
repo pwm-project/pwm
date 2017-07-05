@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2017 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.option.SelectableContextMode;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.IdleTimeoutCalculator;
 import password.pwm.http.PwmRequest;
@@ -50,7 +50,7 @@ import password.pwm.svc.event.UserAuditRecord;
 import password.pwm.svc.intruder.RecordType;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.LocaleHelper;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.secure.PwmHashAlgorithm;
@@ -91,6 +91,12 @@ public class RestAppDataServer extends AbstractRestServer {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(RestAppDataServer.class);
 
+    private static final ServicePermissions SERVICE_PERMISSIONS = ServicePermissions.builder()
+            .adminOnly(true)
+            .authRequired(true)
+            .blockExternal(true)
+            .build();
+
     public static class AppData implements Serializable {
         public Map<String,Object> PWM_GLOBAL;
     }
@@ -100,7 +106,7 @@ public class RestAppDataServer extends AbstractRestServer {
     @GET
     @Produces(MediaType.TEXT_HTML)
     public javax.ws.rs.core.Response doHtmlRedirect() throws URISyntaxException {
-        return RestServerHelper.doHtmlRedirect();
+        return RestServerHelper.handleHtmlRequest();
     }
 
     @GET
@@ -117,11 +123,7 @@ public class RestAppDataServer extends AbstractRestServer {
 
         final RestRequestBean restRequestBean;
         try {
-            final ServicePermissions servicePermissions = new ServicePermissions();
-            servicePermissions.setAdminOnly(true);
-            servicePermissions.setAuthRequired(true);
-            servicePermissions.setBlockExternal(true);
-            restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, null);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, response, SERVICE_PERMISSIONS, null);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
@@ -166,11 +168,7 @@ public class RestAppDataServer extends AbstractRestServer {
                 : 10 * 1000;
         final RestRequestBean restRequestBean;
         try {
-            final ServicePermissions servicePermissions = new ServicePermissions();
-            servicePermissions.setAdminOnly(true);
-            servicePermissions.setAuthRequired(true);
-            servicePermissions.setBlockExternal(true);
-            restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, null);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, response, SERVICE_PERMISSIONS, null);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
@@ -206,11 +204,7 @@ public class RestAppDataServer extends AbstractRestServer {
 
         final RestRequestBean restRequestBean;
         try {
-            final ServicePermissions servicePermissions = new ServicePermissions();
-            servicePermissions.setAdminOnly(true);
-            servicePermissions.setAuthRequired(true);
-            servicePermissions.setBlockExternal(true);
-            restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, null);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, response, SERVICE_PERMISSIONS, null);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
@@ -225,7 +219,7 @@ public class RestAppDataServer extends AbstractRestServer {
             for (final RecordType recordType : RecordType.values()) {
                 returnData.put(recordType.toString(),restRequestBean.getPwmApplication().getIntruderManager().getRecords(recordType, max));
             }
-        } catch (PwmOperationalException e) {
+        } catch (PwmException e) {
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage());
             return RestResultBean.fromError(errorInfo, restRequestBean).asJsonResponse();
         }
@@ -392,7 +386,7 @@ public class RestAppDataServer extends AbstractRestServer {
         final String contextPath = request.getContextPath();
         settingMap.put("url-context", contextPath);
         settingMap.put("url-logout", contextPath + PwmServletDefinition.Logout.servletUrl());
-        settingMap.put("url-command", contextPath + PwmServletDefinition.Command.servletUrl());
+        settingMap.put("url-command", contextPath + PwmServletDefinition.PublicCommand.servletUrl());
         settingMap.put("url-resources", contextPath + "/public/resources" + pwmApplication.getResourceServletService().getResourceNonce());
         settingMap.put("url-restservice", contextPath + "/public/rest");
 
@@ -457,7 +451,7 @@ public class RestAppDataServer extends AbstractRestServer {
         if (pwmApplication.getConfig().readSettingAsEnum(PwmSetting.LDAP_SELECTABLE_CONTEXT_MODE, SelectableContextMode.class) != SelectableContextMode.NONE) {
             final Map<String,Map<String,String>> ldapProfiles = new LinkedHashMap<>();
             for (final String ldapProfile : pwmApplication.getConfig().getLdapProfiles().keySet()) {
-                final Map<String,String> contexts = pwmApplication.getConfig().getLdapProfiles().get(ldapProfile).getLoginContexts();
+                final Map<String,String> contexts = pwmApplication.getConfig().getLdapProfiles().get(ldapProfile).getSelectableContexts(pwmApplication);
                 ldapProfiles.put(ldapProfile,contexts);
             }
             settingMap.put("ldapProfiles",ldapProfiles);
@@ -482,7 +476,7 @@ public class RestAppDataServer extends AbstractRestServer {
     {
         final StringBuilder inputString = new StringBuilder();
         inputString.append(PwmConstants.BUILD_NUMBER);
-        inputString.append(pwmApplication.getStartupTime().getTime());
+        inputString.append(pwmApplication.getStartupTime().toEpochMilli());
         inputString.append(httpServletRequest.getSession().getMaxInactiveInterval());
         inputString.append(pwmApplication.getInstanceNonce());
 
@@ -492,7 +486,7 @@ public class RestAppDataServer extends AbstractRestServer {
 
         inputString.append(pwmSession.getSessionStateBean().getSessionID());
         if (pwmSession.isAuthenticated()) {
-            inputString.append(pwmSession.getUserInfoBean().getUserGuid());
+            inputString.append(pwmSession.getUserInfo().getUserGuid());
             inputString.append(pwmSession.getLoginInfoBean().getAuthTime());
         }
 
