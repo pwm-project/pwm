@@ -70,8 +70,8 @@
     <!-- uncomment and set parameters for CAS integration
     <filter>
         <filter-name>CAS Validation Filter</filter-name>
-        <filter-class>org.jasig.cas.client.validation.Cas30ProxyReceivingTicketValidationFilter</filter-class>
-        <!-- cas-config-web.xml start -->
+        <filter-class>org.jasig.cas.client.validation.Cas20ProxyReceivingTicketValidationFilter</filter-class>
+        <!- cas-config-web.xml start ->
         <init-param>
             <param-name>casServerUrlPrefix</param-name>
             <param-value>${cas.server}</param-value>
@@ -88,12 +88,12 @@
             <param-name>proxyReceptorUrl</param-name>
             <param-value>/proxyCallback</param-value>
         </init-param>
-        <!-- cas-config-web.xml end -->
+        <!- cas-config-web.xml end ->
     </filter>
     <filter>
         <filter-name>CAS Authentication Filter</filter-name>
         <filter-class>org.jasig.cas.client.authentication.AuthenticationFilter</filter-class>
-        <!-- cas-config-web.xml start -->
+        <!- cas-config-web.xml start ->
         <init-param>
             <param-name>casServerLoginUrl</param-name>
             <param-value>${cas.server}login</param-value>
@@ -106,17 +106,15 @@
             <param-name>gateway</param-name>
             <param-value>false</param-value>
         </init-param>
-        <!-- cas-config-web.xml end -->
+        <!- cas-config-web.xml end ->
     </filter>
     <filter>
         <filter-name>CAS Single Sign Out Filter</filter-name>
         <filter-class>org.jasig.cas.client.session.SingleSignOutFilter</filter-class>
-        <!-- cas-config-web.xml start -->
         <init-param>
 			<param-name>casServerUrlPrefix</param-name>
 			<param-value>${cas.server}</param-value>
 		</init-param>
-        <!-- cas-config-web.xml end -->
     </filter>
     <filter-mapping>
         <filter-name>CAS Single Sign Out Filter</filter-name>
