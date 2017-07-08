@@ -2,6 +2,7 @@
 <%@ page import="password.pwm.http.servlet.configguide.ConfigGuideForm" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
 <%@ page import="java.util.Locale" %>
+<%@ page import="password.pwm.http.servlet.configguide.ConfigGuideFormField" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -46,7 +47,7 @@
                 </div>
                 <div class="setting_body">
                     <div class="setting_item">
-                        <div id="titlePane_<%=ConfigGuideForm.FormParameter.PARAM_DB_CLASSNAME%>" style="padding-left: 5px; padding-top: 5px">
+                        <div id="titlePane_<%=ConfigGuideFormField.PARAM_DB_CLASSNAME%>" style="padding-left: 5px; padding-top: 5px">
                             <%=PwmSetting.DATABASE_JDBC_DRIVER.getDescription(userLocale)%>
                             <br/>
                             <% if (configGuideBean.getDatabaseDriver() != null && !configGuideBean.getDatabaseDriver().toInfoMap().isEmpty()) { %>
@@ -86,11 +87,11 @@
                 </div>
                 <div class="setting_body">
                     <div class="setting_item">
-                        <div id="titlePane_<%=ConfigGuideForm.FormParameter.PARAM_DB_CLASSNAME%>" style="padding-left: 5px; padding-top: 5px">
+                        <div id="titlePane_<%=ConfigGuideFormField.PARAM_DB_CLASSNAME%>" style="padding-left: 5px; padding-top: 5px">
                             <label>
                                 <%=PwmSetting.DATABASE_CLASS.getDescription(userLocale)%>
                                 <br/>
-                                <input class="configStringInput" id="<%=ConfigGuideForm.FormParameter.PARAM_DB_CLASSNAME%>" name="<%=ConfigGuideForm.FormParameter.PARAM_DB_CLASSNAME%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_DB_CLASSNAME))%>" required autofocus/>
+                                <input class="configStringInput" id="<%=ConfigGuideFormField.PARAM_DB_CLASSNAME%>" name="<%=ConfigGuideFormField.PARAM_DB_CLASSNAME%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_DB_CLASSNAME))%>" required autofocus/>
                             </label>
                         </div>
                     </div>
@@ -103,11 +104,11 @@
                 </div>
                 <div class="setting_body">
                     <div class="setting_item">
-                        <div id="titlePane_<%=ConfigGuideForm.FormParameter.PARAM_DB_CONNECT_URL%>" style="padding-left: 5px; padding-top: 5px">
+                        <div id="titlePane_<%=ConfigGuideFormField.PARAM_DB_CONNECT_URL%>" style="padding-left: 5px; padding-top: 5px">
                             <label>
                                 <%=PwmSetting.DATABASE_URL.getDescription(userLocale)%>
                                 <br/>
-                                <input class="configStringInput" id="<%=ConfigGuideForm.FormParameter.PARAM_DB_CONNECT_URL%>" name="<%=ConfigGuideForm.FormParameter.PARAM_DB_CONNECT_URL%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_DB_CONNECT_URL))%>" required autofocus/>
+                                <input class="configStringInput" id="<%=ConfigGuideFormField.PARAM_DB_CONNECT_URL%>" name="<%=ConfigGuideFormField.PARAM_DB_CONNECT_URL%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_DB_CONNECT_URL))%>" required autofocus/>
                             </label>
                         </div>
                     </div>
@@ -121,11 +122,11 @@
                 </div>
                 <div class="setting_body">
                 <div class="setting_item">
-                    <div id="titlePane_<%=ConfigGuideForm.FormParameter.PARAM_DB_USERNAME%>" style="padding-left: 5px; padding-top: 5px">
+                    <div id="titlePane_<%=ConfigGuideFormField.PARAM_DB_USERNAME%>" style="padding-left: 5px; padding-top: 5px">
                         <label>
                             <%=PwmSetting.DATABASE_USERNAME.getDescription(userLocale)%>
                             <br/>
-                            <input class="configStringInput" id="<%=ConfigGuideForm.FormParameter.PARAM_DB_USERNAME%>" name="<%=ConfigGuideForm.FormParameter.PARAM_DB_USERNAME%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_DB_USERNAME))%>" required autofocus/>
+                            <input class="configStringInput" id="<%=ConfigGuideFormField.PARAM_DB_USERNAME%>" name="<%=ConfigGuideFormField.PARAM_DB_USERNAME%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_DB_USERNAME))%>" required autofocus/>
                         </label>
                     </div>
                 </div>
@@ -139,11 +140,11 @@
 
                 <div class="setting_body">
                 <div class="setting_item">
-                    <div id="titlePane_<%=ConfigGuideForm.FormParameter.PARAM_DB_PASSWORD%>" style="padding-left: 5px; padding-top: 5px">
+                    <div id="titlePane_<%=ConfigGuideFormField.PARAM_DB_PASSWORD%>" style="padding-left: 5px; padding-top: 5px">
                         <label>
                             <%=PwmSetting.DATABASE_PASSWORD.getDescription(userLocale)%>
                             <br/>
-                            <input style="width:200px" type="password" class="configStringInput passwordfield" id="<%=ConfigGuideForm.FormParameter.PARAM_DB_PASSWORD%>" name="<%=ConfigGuideForm.FormParameter.PARAM_DB_PASSWORD%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_DB_PASSWORD))%>" required autofocus/>
+                            <input style="width:200px" type="password" class="configStringInput passwordfield" id="<%=ConfigGuideFormField.PARAM_DB_PASSWORD%>" name="<%=ConfigGuideFormField.PARAM_DB_PASSWORD%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_DB_PASSWORD))%>" required autofocus/>
                         </label>
                     </div>
                 </div>
@@ -157,14 +158,14 @@
 
                 <div class="setting_body">
                     <div class="setting_item">
-                        <div id="titlePane_<%=ConfigGuideForm.FormParameter.PARAM_DB_VENDOR%>" style="padding-left: 5px; padding-top: 5px">
+                        <div id="titlePane_<%=ConfigGuideFormField.PARAM_DB_VENDOR%>" style="padding-left: 5px; padding-top: 5px">
                             <label>
                                 <%=PwmSetting.DB_VENDOR_TEMPLATE.getDescription(userLocale)%>
                                 <br/>
 
-                                <% final String selectedTemplate = configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_DB_VENDOR); %>
+                                <% final String selectedTemplate = configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_DB_VENDOR); %>
 
-                                <select id="<%=ConfigGuideForm.FormParameter.PARAM_DB_VENDOR%>" name="<%=ConfigGuideForm.FormParameter.PARAM_DB_VENDOR%>">
+                                <select id="<%=ConfigGuideFormField.PARAM_DB_VENDOR%>" name="<%=ConfigGuideFormField.PARAM_DB_VENDOR%>">
                                     <% if (selectedTemplate == null || selectedTemplate.isEmpty()) { %>
                                     <option value="NOTSELECTED" selected disabled> -- Please select a template -- </option>
                                     <% } %>

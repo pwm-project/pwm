@@ -705,6 +705,16 @@ margin-right: 20px;
     font-family: monospace;
 }
 
+.eulaText {
+    border: 0;
+    background-color: #DDDDDD;
+    border-radius: 7px;
+    padding: 10px;
+    max-height: 300px;
+    overflow: auto;
+    font-family: monospace;
+    white-space: pre-wrap;
+}
 
 /* hide recaptcha iframe near footer */
 body > iframe[src="about:blank"] {

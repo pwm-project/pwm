@@ -1,6 +1,7 @@
 <%@ page import="password.pwm.http.servlet.configguide.ConfigGuideForm" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
+<%@ page import="password.pwm.http.servlet.configguide.ConfigGuideFormField" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -48,7 +49,7 @@
                     <div class="setting_item">
                         <b>User Container DN</b>
                         <br/>
-                        <input style="width:400px" class="configStringInput" id="<%=ConfigGuideForm.FormParameter.PARAM_LDAP_CONTEXT%>" name="<%=ConfigGuideForm.FormParameter.PARAM_LDAP_CONTEXT%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_LDAP_CONTEXT))%>" required autofocus/>
+                        <input style="width:400px" class="configStringInput" id="<%=ConfigGuideFormField.PARAM_LDAP_CONTEXT%>" name="<%=ConfigGuideFormField.PARAM_LDAP_CONTEXT%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_LDAP_CONTEXT))%>" required autofocus/>
                         <button type="button" class="btn" id="button-browse-context">
                             <span class="btn-icon pwm-icon pwm-icon-sitemap"></span>
                             <pwm:display key="Button_Browse"/>
@@ -96,13 +97,13 @@
 
             PWM_MAIN.addEventHandler('button-browse-context','click',function(){
                 UILibrary.editLdapDN(function(value){
-                    PWM_MAIN.getObject('<%=ConfigGuideForm.FormParameter.PARAM_LDAP_CONTEXT%>').value = value;
+                    PWM_MAIN.getObject('<%=ConfigGuideFormField.PARAM_LDAP_CONTEXT%>').value = value;
                     handleFormActivity();
                 })
             });
             PWM_MAIN.addEventHandler('button-browse-adminGroup','click',function(){
                 UILibrary.editLdapDN(function(value){
-                    PWM_MAIN.getObject('<%=ConfigGuideForm.FormParameter.PARAM_LDAP_ADMIN_GROUP%>').value = value;
+                    PWM_MAIN.getObject('<%=ConfigGuideFormField.PARAM_LDAP_ADMIN_GROUP%>').value = value;
                     handleFormActivity();
                 })
             });

@@ -1,6 +1,8 @@
 <%@ page import="password.pwm.http.servlet.configguide.ConfigGuideForm" %>
+<%@ page import="password.pwm.http.tag.value.PwmValue" %>
+<%@ page import="com.novell.ldapchai.util.StringHelper" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
-<%@ page import="password.pwm.http.servlet.configguide.ConfigGuideFormField" %>
+<%@ page import="password.pwm.util.java.JavaHelper" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -25,9 +27,9 @@
 
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_LOCALE); %>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.INCLUDE_CONFIG_CSS); %>
+<% final ConfigGuideBean configGuideBean = JspUtility.getSessionBean(pageContext, ConfigGuideBean.class);%>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
-<% final ConfigGuideBean configGuideBean = JspUtility.getSessionBean(pageContext, ConfigGuideBean.class);%>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
@@ -35,32 +37,28 @@
 <div id="wrapper">
     <%@ include file="fragment/configguide-header.jsp"%>
     <div id="centerbody">
-        <form id="configForm">
-            <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-            <br/>
-            <div id="outline_ldap" class="setting_outline">
-                <div class="setting_title">
-                    Site URL
-                </div>
-                <div class="setting_body">
-                    <%=PwmSetting.PWM_SITE_URL.getDescription(JspUtility.locale(request))%>
-                    <br/><br/>
-                    Example: <code><%=PwmSetting.PWM_SITE_URL.getExample(ConfigGuideForm.generateStoredConfig(configGuideBean).getTemplateSet())%></code>
-                    <br/><br/>
-                    <div class="setting_item">
-                        <div id="titlePane_<%=ConfigGuideFormField.PARAM_APP_SITEURL%>" style="padding-left: 5px; padding-top: 5px">
-                            <label>
-                                <b>Site URL</b>
-                                <br/>
-                                <input class="configStringInput" id="<%=ConfigGuideFormField.PARAM_APP_SITEURL%>" name="<%=ConfigGuideFormField.PARAM_APP_SITEURL%>"
-                                       value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_APP_SITEURL))%>" required autofocus
-                                       pattern="<%=PwmSetting.PWM_SITE_URL.getRegExPattern()%>"/>
-                            </label>
-                        </div>
-                    </div>
-                </div>
+        <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
+        <br/>
+        <div id="password" class="setting_outline">
+            <div class="setting_title">
+                End User License Agreement
             </div>
-        </form>
+            <div class="setting_body">
+                <div id="agreementText" class="eulaText"><%=JavaHelper.readEulaText(ContextManager.getContextManager(session),PwmConstants.RESOURCE_FILE_EULA_TXT)%></div>
+            </div>
+
+            <br/><br/>
+            <div style="text-align: center">
+                <form id="configForm">
+
+                    <label class="checkboxWrapper">
+                        <input type="checkbox" id="agreeCheckBox"/>
+                        <pwm:display key="Button_Agree"/>
+                    </label>
+                </form>
+            </div>
+
+        </div>
         <br/>
         <%@ include file="fragment/configguide-buttonbar.jsp" %>
     </div>
@@ -70,27 +68,27 @@
     <script type="text/javascript">
         function handleFormActivity() {
             PWM_GUIDE.updateForm();
-            checkIfNextEnabled();
+            PWM_MAIN.getObject('button_next').disabled = !checkIfNextEnabled();
         }
 
         PWM_GLOBAL['startupFunctions'].push(function(){
-
             PWM_MAIN.addEventHandler('button_next','click',function(){PWM_GUIDE.gotoStep('NEXT')});
             PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('PREVIOUS')});
+            PWM_MAIN.addEventHandler('configForm','input,click',function(){handleFormActivity()});
 
-            PWM_MAIN.addEventHandler('configForm','input',function(){handleFormActivity()});
-
-            checkIfNextEnabled();
+            handleFormActivity();
         });
 
         function checkIfNextEnabled() {
-            var siteUrlInput = PWM_MAIN.getObject('<%=ConfigGuideFormField.PARAM_APP_SITEURL%>');
-            var passed = siteUrlInput.value.length > 1 && new RegExp(siteUrlInput.getAttribute('pattern')).test(siteUrlInput.value);
-            if (passed) {
-                PWM_MAIN.getObject('button_next').disabled = false;
-            } else {
-                PWM_MAIN.getObject('button_next').disabled = true;
+
+            var checkBox = PWM_MAIN.getObject("agreeCheckBox");
+            if (checkBox != null) {
+                if (checkBox.checked) {
+                    return true;
+                }
             }
+
+            return false;
         }
     </script>
 </pwm:script>

@@ -1,5 +1,6 @@
 <%@ page import="password.pwm.config.PwmSettingTemplate" %>
 <%@ page import="password.pwm.http.servlet.configguide.ConfigGuideForm" %>
+<%@ page import="password.pwm.http.servlet.configguide.ConfigGuideFormField" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -49,7 +50,7 @@
                             <br/><br/>
                             <b><pwm:display key="ldap_admin_title_proxy-dn" bundle="ConfigGuide"/></b>
                             <br/>
-                            <input class="configStringInput" type="text" style="width:400px" id="<%=ConfigGuideForm.FormParameter.PARAM_LDAP_PROXY_DN%>" name="<%=ConfigGuideForm.FormParameter.PARAM_LDAP_PROXY_DN%>" value="<%=configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_LDAP_PROXY_DN)%>" <pwm:autofocus/> />
+                            <input class="configStringInput" type="text" style="width:400px" id="<%=ConfigGuideFormField.PARAM_LDAP_PROXY_DN%>" name="<%=ConfigGuideFormField.PARAM_LDAP_PROXY_DN%>" value="<%=configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_LDAP_PROXY_DN)%>" <pwm:autofocus/> />
                             <% if (!isAD) { %>
                             <button type="button" class="btn" id="button-browse-adminDN">
                                 <span class="btn-icon pwm-icon pwm-icon-sitemap"></span>
@@ -63,7 +64,7 @@
                         <label>
                             <b><pwm:display key="ldap_admin_title_proxy-pw" bundle="ConfigGuide"/></b>
                             <br/>
-                            <input style="width:200px" class="configStringInput passwordfield" type="password" id="<%=ConfigGuideForm.FormParameter.PARAM_LDAP_PROXY_PW%>" name="<%=ConfigGuideForm.FormParameter.PARAM_LDAP_PROXY_PW%>" value="<%=configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_LDAP_PROXY_PW)%>"/>
+                            <input style="width:200px" class="configStringInput passwordfield" type="password" id="<%=ConfigGuideFormField.PARAM_LDAP_PROXY_PW%>" name="<%=ConfigGuideFormField.PARAM_LDAP_PROXY_PW%>" value="<%=configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_LDAP_PROXY_PW)%>"/>
                         </label>
                     </div>
                 </div>
@@ -109,7 +110,7 @@
 
             PWM_MAIN.addEventHandler('button-browse-adminDN','click',function(){
                 UILibrary.editLdapDN(function(value){
-                    PWM_MAIN.getObject('<%=ConfigGuideForm.FormParameter.PARAM_LDAP_PROXY_DN%>').value = value;
+                    PWM_MAIN.getObject('<%=ConfigGuideFormField.PARAM_LDAP_PROXY_DN%>').value = value;
                     handleFormActivity();
                 })
             });

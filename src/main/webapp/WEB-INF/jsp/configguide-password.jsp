@@ -1,5 +1,6 @@
 <%@ page import="password.pwm.http.servlet.configguide.ConfigGuideForm" %>
 <%@ page import="password.pwm.http.tag.value.PwmValue" %>
+<%@ page import="password.pwm.http.servlet.configguide.ConfigGuideFormField" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -44,7 +45,7 @@
                 <pwm:display key="password_description" bundle="ConfigGuide"/>
                 <br/><br/>
                 <form id="configForm">
-                    <input type="hidden" id="<%=ConfigGuideForm.FormParameter.PARAM_CONFIG_PASSWORD%>" name="<%=ConfigGuideForm.FormParameter.PARAM_CONFIG_PASSWORD%>"/>
+                    <input type="hidden" id="<%=ConfigGuideFormField.PARAM_CONFIG_PASSWORD%>" name="<%=ConfigGuideFormField.PARAM_CONFIG_PASSWORD%>"/>
                 </form>
                 <div style="text-align: center"><button class="btn" id="button-setPassword">
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-key"></span></pwm:if>
@@ -72,7 +73,7 @@
 
             PWM_MAIN.addEventHandler('button-setPassword','click',function(){
                 var writeFunction = function(password) {
-                    var hiddenInput = PWM_MAIN.getObject('<%=ConfigGuideForm.FormParameter.PARAM_CONFIG_PASSWORD%>');
+                    var hiddenInput = PWM_MAIN.getObject('<%=ConfigGuideFormField.PARAM_CONFIG_PASSWORD%>');
                     hiddenInput.value = password;
                     PWM_GUIDE.updateForm();
                     checkIfNextEnabled();
@@ -85,9 +86,9 @@
         });
 
         function checkIfNextEnabled() {
-            var password = PWM_MAIN.getObject('<%=ConfigGuideForm.FormParameter.PARAM_CONFIG_PASSWORD%>').value;
+            var password = PWM_MAIN.getObject('<%=ConfigGuideFormField.PARAM_CONFIG_PASSWORD%>').value;
 
-            <% final String existingPwd = configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_CONFIG_PASSWORD); %>
+            <% final String existingPwd = configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_CONFIG_PASSWORD); %>
             <% if (existingPwd == null || existingPwd.isEmpty()) { %>
             PWM_MAIN.getObject('button_next').disabled = true;
             if (password.length > 0) {

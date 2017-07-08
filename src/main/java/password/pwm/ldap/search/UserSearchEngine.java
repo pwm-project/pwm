@@ -128,7 +128,7 @@ public class UserSearchEngine implements PwmService {
 
     @Override
     public ServiceInfoBean serviceInfo() {
-        return new ServiceInfoBean(Collections.emptyList());
+        return new ServiceInfoBean(Collections.emptyList(),debugProperties());
     }
 
     public UserIdentity resolveUsername(
