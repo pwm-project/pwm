@@ -2569,9 +2569,7 @@
     </setting>
     <setting hidden="false" key="display.newuser.agreement" level="1">
         <flag>MacroSupport</flag>
-        <default>
-            <value />
-        </default>
+        <default/>
     </setting>
     <setting hidden="false" key="newUser.form" level="1">
         <ldapPermission actor="proxy" access="write"/>
@@ -2639,9 +2637,7 @@
         </properties>
     </setting>
     <setting hidden="false" key="newUser.profile.displayName" level="1">
-        <default>
-            <value></value>
-        </default>
+        <default/>
     </setting>
     <setting hidden="false" key="newUser.redirectUrl" level="1">
         <flag>MacroSupport</flag>

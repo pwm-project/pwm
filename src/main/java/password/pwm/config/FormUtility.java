@@ -144,7 +144,7 @@ public class FormUtility {
     }
 
     public static Map<String,String> asStringMap(final Map<FormConfiguration, String> input) {
-        final Map<String,String> returnObj = new HashMap<>();
+        final Map<String,String> returnObj = new LinkedHashMap<>();
         for (final FormConfiguration formConfiguration : input.keySet()) {
             returnObj.put(formConfiguration.getName(), input.get(formConfiguration));
             if (formConfiguration.isConfirmationRequired()) {
@@ -155,6 +155,17 @@ public class FormUtility {
         }
         return returnObj;
     }
+
+    public static Map<FormConfiguration,String> asFormConfigurationMap(final List<FormConfiguration> formConfigurations, final Map<String, String> values) {
+        final Map<FormConfiguration, String> returnMap = new LinkedHashMap<>();
+        for (final FormConfiguration formConfiguration : formConfigurations) {
+            final String name = formConfiguration.getName();
+            final String value = values.get(name);
+            returnMap.put(formConfiguration, value);
+        }
+        return returnMap;
+    }
+
 
     public static Map<FormConfiguration, String> readFormValuesFromRequest(
             final PwmRequest pwmRequest,
@@ -167,24 +178,35 @@ public class FormUtility {
         return readFormValuesFromMap(tempMap, formItems, locale);
     }
 
+    public enum ValidationFlag {
+        allowResultCaching,
+        checkReadOnlyAndHidden,
+    }
+
     public static void validateFormValueUniqueness(
             final PwmApplication pwmApplication,
             final Map<FormConfiguration, String> formValues,
             final Locale locale,
             final Collection<UserIdentity> excludeDN,
-            final boolean allowResultCaching
+            final ValidationFlag... validationFlags
     )
             throws PwmDataValidationException, PwmUnrecoverableException
     {
+        final boolean allowResultCaching = JavaHelper.enumArrayContainsValue(validationFlags, ValidationFlag.allowResultCaching);
+        final boolean checkReadOnlyAndHidden = JavaHelper.enumArrayContainsValue(validationFlags, ValidationFlag.checkReadOnlyAndHidden);
+
+
         final Map<String, String> filterClauses = new HashMap<>();
         final Map<String,String> labelMap = new HashMap<>();
         for (final FormConfiguration formItem : formValues.keySet()) {
-            if (formItem.isUnique() && !formItem.isReadonly()) {
-                if (formItem.getType() != FormConfiguration.Type.hidden) {
-                    final String value = formValues.get(formItem);
-                    if (value != null && value.length() > 0) {
-                        filterClauses.put(formItem.getName(), value);
-                        labelMap.put(formItem.getName(), formItem.getLabel(locale));
+            if (formItem.isUnique()) {
+                if (checkReadOnlyAndHidden || formItem.isReadonly()) {
+                    if (checkReadOnlyAndHidden || (formItem.getType() != FormConfiguration.Type.hidden)) {
+                        final String value = formValues.get(formItem);
+                        if (value != null && value.length() > 0) {
+                            filterClauses.put(formItem.getName(), value);
+                            labelMap.put(formItem.getName(), formItem.getLabel(locale));
+                        }
                     }
                 }
             }
@@ -250,7 +272,7 @@ public class FormUtility {
                     resultSearchSizeLimit,
                     Collections.emptyList(),
                     SessionLabel.SYSTEM_LABEL
-                    ));
+            ));
 
             if (excludeDN != null && !excludeDN.isEmpty()) {
                 for (final UserIdentity loopIgnoreIdentity : excludeDN) {

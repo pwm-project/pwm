@@ -33,6 +33,7 @@ import password.pwm.http.servlet.newuser.NewUserForm;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -45,7 +46,7 @@ public class NewUserBean extends PwmSessionBean {
     private String profileID;
 
     @SerializedName("f")
-    private NewUserForm newUserForm;
+    private NewUserForm newUserForm = new NewUserForm(new HashMap<>(),null,null);
 
     @SerializedName("r")
     private Map<String,String> remoteInputData;
