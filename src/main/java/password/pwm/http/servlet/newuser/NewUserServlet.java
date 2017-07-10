@@ -47,7 +47,6 @@ import password.pwm.http.PwmURL;
 import password.pwm.http.bean.NewUserBean;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.ControlledPwmServlet;
-import password.pwm.http.servlet.PwmServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.UserInfo;
@@ -185,12 +184,6 @@ public class NewUserServlet extends ControlledPwmServlet {
         final NewUserBean newUserBean = getNewUserBean(pwmRequest);
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final NewUserProfile newUserProfile = getNewUserProfile(pwmRequest);
-
-        if (newUserBean.getCreateStartTime() != null) {
-            forwardToWait(pwmRequest, newUserProfile);
-            return;
-        }
 
         if (newUserBean.getProfileID() == null) {
             final Set<String> newUserProfileIDs = pwmApplication.getConfig().getNewUserProfiles().keySet();
@@ -199,16 +192,26 @@ public class NewUserServlet extends ControlledPwmServlet {
                 return;
             }
 
-            if (newUserProfileIDs.size() == 1) {
+            final LinkedHashMap<String,String> visibleProfiles = new LinkedHashMap<>(NewUserUtils.figureDisplayableProfiles(pwmRequest));
+
+            if (visibleProfiles.size() == 1) {
                 final String singleID =  newUserProfileIDs.iterator().next();
                 LOGGER.trace(pwmRequest, "only one new user profile is defined, auto-selecting profile " + singleID);
                 newUserBean.setProfileID(singleID);
             } else {
                 LOGGER.trace(pwmRequest, "new user profile not yet selected, redirecting to choice page");
+                pwmRequest.setAttribute(PwmRequestAttribute.NewUser_VisibleProfiles, visibleProfiles);
                 pwmRequest.forwardToJsp(JspUrl.NEW_USER_PROFILE_CHOICE);
                 return;
             }
         }
+
+        final NewUserProfile newUserProfile = getNewUserProfile(pwmRequest);
+        if (newUserBean.getCreateStartTime() != null) {
+            forwardToWait(pwmRequest, newUserProfile);
+            return;
+        }
+
 
         // try to read the new user policy to make sure it's readable, that way an exception is thrown here instead of by the jsp
         newUserProfile.getNewUserPasswordPolicy(pwmApplication, pwmSession.getSessionStateBean().getLocale());//

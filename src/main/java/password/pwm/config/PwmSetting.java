@@ -796,6 +796,8 @@ public enum PwmSetting {
             "newUser.minimumWaitTime", PwmSettingSyntax.DURATION, PwmSettingCategory.NEWUSER_PROFILE),
     NEWUSER_PROFILE_DISPLAY_NAME(
             "newUser.profile.displayName", PwmSettingSyntax.LOCALIZED_STRING, PwmSettingCategory.NEWUSER_PROFILE),
+    NEWUSER_PROFILE_DISPLAY_VISIBLE(
+            "newUser.profile.visible", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.NEWUSER_PROFILE),
     NEWUSER_REDIRECT_URL(
             "newUser.redirectUrl", PwmSettingSyntax.STRING, PwmSettingCategory.NEWUSER_PROFILE),
     NEWUSER_PROMPT_FOR_PASSWORD(

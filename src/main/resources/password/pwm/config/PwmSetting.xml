@@ -2639,6 +2639,11 @@
     <setting hidden="false" key="newUser.profile.displayName" level="1">
         <default/>
     </setting>
+    <setting hidden="false" key="newUser.profile.visible" level="1">
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
     <setting hidden="false" key="newUser.redirectUrl" level="1">
         <flag>MacroSupport</flag>
         <default>
