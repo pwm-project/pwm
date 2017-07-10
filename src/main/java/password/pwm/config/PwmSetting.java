@@ -796,6 +796,8 @@ public enum PwmSetting {
             "newUser.minimumWaitTime", PwmSettingSyntax.DURATION, PwmSettingCategory.NEWUSER_PROFILE),
     NEWUSER_PROFILE_DISPLAY_NAME(
             "newUser.profile.displayName", PwmSettingSyntax.LOCALIZED_STRING, PwmSettingCategory.NEWUSER_PROFILE),
+    NEWUSER_PROFILE_DISPLAY_VISIBLE(
+            "newUser.profile.visible", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.NEWUSER_PROFILE),
     NEWUSER_REDIRECT_URL(
             "newUser.redirectUrl", PwmSettingSyntax.STRING, PwmSettingCategory.NEWUSER_PROFILE),
     NEWUSER_PROMPT_FOR_PASSWORD(
@@ -915,6 +917,8 @@ public enum PwmSetting {
             "peopleSearch.orgChart.parentAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.PEOPLE_SEARCH),
     PEOPLE_SEARCH_ORGCHART_CHILD_ATTRIBUTE(
             "peopleSearch.orgChart.childAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.PEOPLE_SEARCH),
+    PEOPLE_SEARCH_ORGCHART_ASSISTANT_ATTRIBUTE(
+            "peopleSearch.orgChart.assistantAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.PEOPLE_SEARCH),
 
 
 

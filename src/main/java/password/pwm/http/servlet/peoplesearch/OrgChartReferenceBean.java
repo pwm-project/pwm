@@ -22,36 +22,17 @@
 
 package password.pwm.http.servlet.peoplesearch;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
+@Setter
 class OrgChartReferenceBean implements Serializable {
     public String userKey;
     public List<String> displayNames = new ArrayList<>();
     public String photoURL;
-
-    public String getPhotoURL() {
-        return photoURL;
-    }
-
-    public void setPhotoURL(final String photoURL) {
-        this.photoURL = photoURL;
-    }
-
-    public String getUserKey() {
-        return userKey;
-    }
-
-    public void setUserKey(final String userKey) {
-        this.userKey = userKey;
-    }
-
-    public List<String> getDisplayNames() {
-        return displayNames;
-    }
-
-    public void setDisplayNames(final List<String> displayNames) {
-        this.displayNames = displayNames;
-    }
 }

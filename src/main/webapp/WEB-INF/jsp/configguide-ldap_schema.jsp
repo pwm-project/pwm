@@ -6,6 +6,7 @@
 <%@ page import="password.pwm.ldap.schema.SchemaExtender" %>
 <%@ page import="password.pwm.ldap.schema.SchemaDefinition" %>
 <%@ page import="java.util.List" %>
+<%@ page import="password.pwm.http.servlet.configguide.ConfigGuideFormField" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -66,7 +67,7 @@
                         <pwm:display key="Display_ConfigGuideLdapSchema" bundle="Config"/>
                     </p>
                     <div>
-                        <div id="titlePane_<%=ConfigGuideForm.FormParameter.PARAM_LDAP_HOST%>" style="padding-left: 5px; padding-top: 5px">
+                        <div id="titlePane_<%=ConfigGuideFormField.PARAM_LDAP_HOST%>" style="padding-left: 5px; padding-top: 5px">
                             <table style="width:100%">
                                 <tr><td>Schema Detail</td></tr>
                                 <tr><td class="setting_table_value"><pre><%=schemaActivityLog%></pre></td></tr>
@@ -99,7 +100,7 @@
                 LDAP Schema
             </div>
             <div class="setting_body">
-                <% final String ldapTemplateName = PwmSetting.TEMPLATE_LDAP.getOptions().get(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_TEMPLATE_LDAP)); %>
+                <% final String ldapTemplateName = PwmSetting.TEMPLATE_LDAP.getOptions().get(configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_TEMPLATE_LDAP)); %>
                 <p>The storage location is set to <i>LDAP</i>, and the LDAP directory setting template is <i><%=ldapTemplateName%></i>.</p>
                 <p>This configuration expects the LDAP server's schema to be extended or you can adjust the configuration to use pre-existing defined attributes in your LDAP directory.</p>
                 <p>LDIF files to process the schema extension are included for several directory types.</p>

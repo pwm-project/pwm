@@ -31,7 +31,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
     final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
-    final Map<String,NewUserProfile> newUserProfiles = pwmRequest.getConfig().getNewUserProfiles();
+    final Map<String,String> newUserProfiles = (Map)pwmRequest.getAttribute(PwmRequestAttribute.NewUser_VisibleProfiles);
 %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
@@ -50,16 +50,16 @@
             <colgroup>
 
             </colgroup>
-            <% for (final NewUserProfile profile : newUserProfiles.values()) { %>
+            <% for (final String profileID : newUserProfiles.values()) { %>
             <tr>
                 <td>
                     <form action="<pwm:current-url/>" method="post" class="pwm-form"
                           enctype="application/x-www-form-urlencoded" name="search">
                         <button class="btn" type="submit" name="submitBtn">
                             <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
-                            <%=profile.getDisplayName(pwmRequest.getLocale())%>
+                            <%=newUserProfiles.get(profileID)%>
                         </button>
-                        <input type="hidden" name="profile" value="<%=profile.getIdentifier()%>"/>
+                        <input type="hidden" name="profile" value="<%=profileID%>"/>
                         <input type="hidden" name="processAction" value="<%=NewUserServlet.NewUserAction.profileChoice%>"/>
                         <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                     </form>

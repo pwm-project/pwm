@@ -90,31 +90,13 @@
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function() {
             PWM_MAIN.addEventHandler('button-startConfigGuide', 'click', function () {
-                if (PWM_GLOBAL['setting-displayEula']) {
-                    PWM_MAIN.showEula(true, function () {
-                        PWM_GUIDE.gotoStep('NEXT');
-                    });
-                } else {
                     PWM_GUIDE.gotoStep('NEXT');
-                }
             });
             PWM_MAIN.addEventHandler('button-manualConfig', 'click', function () {
-                if (PWM_GLOBAL['setting-displayEula']) {
-                    PWM_MAIN.showEula(true,function(){
-                        PWM_GUIDE.skipGuide();
-                    });
-                } else {
                     PWM_GUIDE.skipGuide();
-                }
             });
             PWM_MAIN.addEventHandler('button-uploadConfig', 'click', function () {
-                if (PWM_GLOBAL['setting-displayEula']) {
-                    PWM_MAIN.showEula(true,function(){
-                        PWM_CONFIG.uploadConfigDialog();
-                    });
-                } else {
                     PWM_CONFIG.uploadConfigDialog();
-                }
             });
 
         });

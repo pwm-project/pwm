@@ -1,4 +1,5 @@
 <%@ page import="password.pwm.http.servlet.configguide.ConfigGuideForm" %>
+<%@ page import="password.pwm.http.servlet.configguide.ConfigGuideFormField" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -26,7 +27,7 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <% final ConfigGuideBean configGuideBean = JspUtility.getSessionBean(pageContext, ConfigGuideBean.class);%>
-<% final String selectedTemplate = configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_TEMPLATE_STORAGE); %>
+<% final String selectedTemplate = configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_TEMPLATE_STORAGE); %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
@@ -38,7 +39,7 @@
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <pwm:display key="Display_ConfigGuideSelectStorage" bundle="Config"/>
             <br/>
-            <select id="<%=ConfigGuideForm.FormParameter.PARAM_TEMPLATE_STORAGE%>" name="<%=ConfigGuideForm.FormParameter.PARAM_TEMPLATE_STORAGE%>">
+            <select id="<%=ConfigGuideFormField.PARAM_TEMPLATE_STORAGE%>" name="<%=ConfigGuideFormField.PARAM_TEMPLATE_STORAGE%>">
             <% if (selectedTemplate == null || selectedTemplate.isEmpty()) { %>
             <option value="NOTSELECTED" selected disabled> -- Please select a template -- </option>
             <% } %>
@@ -81,8 +82,8 @@
         }
 
         function getSelectedValue() {
-            var selectedIndex = PWM_MAIN.getObject('<%=ConfigGuideForm.FormParameter.PARAM_TEMPLATE_STORAGE%>').selectedIndex;
-            var newTemplate = PWM_MAIN.getObject('<%=ConfigGuideForm.FormParameter.PARAM_TEMPLATE_STORAGE%>').options[selectedIndex];
+            var selectedIndex = PWM_MAIN.getObject('<%=ConfigGuideFormField.PARAM_TEMPLATE_STORAGE%>').selectedIndex;
+            var newTemplate = PWM_MAIN.getObject('<%=ConfigGuideFormField.PARAM_TEMPLATE_STORAGE%>').options[selectedIndex];
             return newTemplate.value;
         }
 
@@ -97,7 +98,7 @@
                 PWM_MAIN.addEventHandler('button_next','click',function(){ PWM_GUIDE.gotoStep('NEXT')});
                 PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('PREVIOUS')});
 
-                PWM_MAIN.addEventHandler('<%=ConfigGuideForm.FormParameter.PARAM_TEMPLATE_STORAGE%>','change',function(){
+                PWM_MAIN.addEventHandler('<%=ConfigGuideFormField.PARAM_TEMPLATE_STORAGE%>','change',function(){
                     formHandler();
                 });
             });

@@ -28,32 +28,8 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.health.HealthMonitor;
-import password.pwm.http.servlet.resource.ResourceServletService;
-import password.pwm.http.state.SessionStateService;
-import password.pwm.ldap.LdapConnectionService;
-import password.pwm.ldap.search.UserSearchEngine;
-import password.pwm.svc.cache.CacheService;
-import password.pwm.svc.cluster.ClusterService;
-import password.pwm.svc.event.AuditService;
-import password.pwm.svc.intruder.IntruderManager;
-import password.pwm.svc.report.ReportService;
-import password.pwm.svc.sessiontrack.SessionTrackService;
-import password.pwm.svc.shorturl.UrlShortenerService;
-import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.svc.token.TokenService;
-import password.pwm.svc.wordlist.SeedlistManager;
-import password.pwm.svc.wordlist.SharedHistoryManager;
-import password.pwm.svc.wordlist.WordlistManager;
-import password.pwm.util.VersionChecker;
-import password.pwm.util.db.DatabaseService;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.operations.CrService;
-import password.pwm.util.operations.OtpService;
-import password.pwm.util.queue.EmailQueueManager;
-import password.pwm.util.queue.SmsQueueManager;
-import password.pwm.util.secure.SecureService;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -71,59 +47,6 @@ public class PwmServiceManager {
     private final Map<Class<? extends PwmService>, PwmService> runningServices = new HashMap<>();
     private boolean initialized;
 
-    public enum PwmServiceClassEnum {
-        SecureService(          SecureService.class,             true),
-        LdapConnectionService(  LdapConnectionService.class,     true),
-        DatabaseService(        DatabaseService.class,           true),
-        SharedHistoryManager(   SharedHistoryManager.class,      false),
-        AuditService(           AuditService.class,              false),
-        StatisticsManager(      StatisticsManager.class,         false),
-        WordlistManager(        WordlistManager.class,           false),
-        SeedlistManager(        SeedlistManager.class,           false),
-        EmailQueueManager(      EmailQueueManager.class,         false),
-        SmsQueueManager(        SmsQueueManager.class,           false),
-        UrlShortenerService(    UrlShortenerService.class,       false),
-        TokenService(           TokenService.class,              false),
-        VersionChecker(         VersionChecker.class,            false),
-        IntruderManager(        IntruderManager.class,           false),
-        CrService(              CrService.class,                 true),
-        OtpService(             OtpService.class,                false),
-        CacheService(           CacheService.class,              true),
-        HealthMonitor(          HealthMonitor.class,             false),
-        ReportService(          ReportService.class,             true),
-        ResourceServletService( ResourceServletService.class,    false),
-        SessionTrackService(    SessionTrackService.class,       false),
-        SessionStateSvc(        SessionStateService.class,       false),
-        UserSearchEngine(       UserSearchEngine.class,          true),
-        ClusterService(         ClusterService.class,            false),
-
-        ;
-
-        private final Class<? extends PwmService> clazz;
-        private final boolean internalRuntime;
-
-        PwmServiceClassEnum(final Class<? extends PwmService> clazz, final boolean internalRuntime) {
-            this.clazz = clazz;
-            this.internalRuntime = internalRuntime;
-        }
-
-        public boolean isInternalRuntime() {
-            return internalRuntime;
-        }
-
-        static List<Class<? extends PwmService>> allClasses() {
-            final List<Class<? extends PwmService>> pwmServiceClasses = new ArrayList<>();
-            for (final PwmServiceClassEnum enumClass : values()) {
-                pwmServiceClasses.add(enumClass.getPwmServiceClass());
-            }
-            return Collections.unmodifiableList(pwmServiceClasses);
-        }
-
-        public Class<? extends PwmService> getPwmServiceClass() {
-            return clazz;
-        }
-    }
-
     public PwmServiceManager(final PwmApplication pwmApplication) {
         this.pwmApplication = pwmApplication;
     }
@@ -139,7 +62,7 @@ public class PwmServiceManager {
         final boolean internalRuntimeInstance = pwmApplication.getPwmEnvironment().isInternalRuntimeInstance()
                 || pwmApplication.getPwmEnvironment().getFlags().contains(PwmEnvironment.ApplicationFlag.CommandLineInstance);
 
-        for (final PwmServiceClassEnum serviceClassEnum : PwmServiceClassEnum.values()) {
+        for (final PwmServiceEnum serviceClassEnum : PwmServiceEnum.values()) {
             boolean startService = true;
             if (internalRuntimeInstance && !serviceClassEnum.isInternalRuntime()) {
                 startService = false;
@@ -192,7 +115,7 @@ public class PwmServiceManager {
             return;
         }
 
-        final List<Class<? extends PwmService>> reverseServiceList = new ArrayList<>(PwmServiceClassEnum.allClasses());
+        final List<Class<? extends PwmService>> reverseServiceList = new ArrayList<>(PwmServiceEnum.allClasses());
         Collections.reverse(reverseServiceList);
         for (final Class<? extends PwmService> serviceClass : reverseServiceList) {
             if (runningServices.containsKey(serviceClass)) {

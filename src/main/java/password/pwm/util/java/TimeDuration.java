@@ -182,6 +182,12 @@ public class TimeDuration implements Comparable, Serializable {
         return new TimeDuration(this.getTotalMilliseconds() + duration.getTotalMilliseconds());
     }
 
+    public Instant incrementFromInstant(final Instant input) {
+        final long inputMillis = input.toEpochMilli();
+        final long nextMills = inputMillis + this.getTotalMilliseconds();
+        return Instant.ofEpochMilli(nextMills);
+    }
+
     public long getTotalMilliseconds() {
         return ms;
     }

@@ -69,6 +69,7 @@ import password.pwm.ws.server.RestResultBean;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -528,13 +529,18 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
         // see if the values meet form requirements.
         FormUtility.validateFormValues(pwmRequest.getConfig(), formValues, userLocale);
 
+        final List<FormUtility.ValidationFlag> validationFlags = new ArrayList<>();
+        if (allowResultCaching) {
+            validationFlags.add(FormUtility.ValidationFlag.allowResultCaching);
+        }
+
         // check unique fields against ldap
         FormUtility.validateFormValueUniqueness(
                 pwmRequest.getPwmApplication(),
                 formValues,
                 userLocale,
                 Collections.singletonList(pwmRequest.getPwmSession().getUserInfo().getUserIdentity()),
-                allowResultCaching
+                validationFlags.toArray(new FormUtility.ValidationFlag[validationFlags.size()])
         );
     }
 

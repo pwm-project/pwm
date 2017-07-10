@@ -80,6 +80,7 @@ public enum PwmRequestAttribute {
     GuestMaximumValidDays,
 
     NewUser_FormShowBackButton,
+    NewUser_VisibleProfiles,
 
     CookieBeanStorage,
 

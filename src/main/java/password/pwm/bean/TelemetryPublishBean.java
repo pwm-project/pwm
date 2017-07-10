@@ -20,20 +20,40 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.http.servlet.peoplesearch;
+package password.pwm.bean;
 
+import com.novell.ldapchai.provider.ChaiProvider;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.io.Serializable;
-import java.util.Collections;
+import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 @Getter
-@Setter
-class OrgChartDataBean implements Serializable {
-    private OrgChartReferenceBean parent;
-    private OrgChartReferenceBean self;
-    private OrgChartReferenceBean assistant;
-    private List<OrgChartReferenceBean> children = Collections.emptyList();
+@Builder
+public class TelemetryPublishBean implements Serializable {
+    private final String id;
+    private final String instanceID;
+    private final String siteDescription;
+    private final Instant installTime;
+    private final Instant timestamp;
+    private final List<ChaiProvider.DIRECTORY_VENDOR> ldapVendor;
+    private final Map<String,String> statistics;
+    private final List<String> configuredSettings;
+    private final String versionBuild;
+    private final String versionVersion;
+    private final Environment environment;
+
+    @Getter
+    @Builder
+    public static class Environment implements Serializable {
+        String osName;
+        String osVersion;
+        String javaVendor;
+        String javaName;
+        String javaVersion;
+        boolean appliance;
+    }
 }

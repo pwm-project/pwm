@@ -66,7 +66,7 @@
         <example>https://www.example.com/example</example>
         <default/>
     </setting>
-    <setting hidden="false" key="pwm.versionCheck.enable" level="1" required="true">
+    <setting hidden="true" key="pwm.versionCheck.enable" level="1" required="true">
         <default>
             <value>false</value>
         </default>
@@ -2569,9 +2569,7 @@
     </setting>
     <setting hidden="false" key="display.newuser.agreement" level="1">
         <flag>MacroSupport</flag>
-        <default>
-            <value />
-        </default>
+        <default/>
     </setting>
     <setting hidden="false" key="newUser.form" level="1">
         <ldapPermission actor="proxy" access="write"/>
@@ -2639,8 +2637,11 @@
         </properties>
     </setting>
     <setting hidden="false" key="newUser.profile.displayName" level="1">
+        <default/>
+    </setting>
+    <setting hidden="false" key="newUser.profile.visible" level="1">
         <default>
-            <value></value>
+            <value>true</value>
         </default>
     </setting>
     <setting hidden="false" key="newUser.redirectUrl" level="1">
@@ -3099,6 +3100,12 @@
         <ldapPermission actor="self_other" access="read"/>
         <default>
             <value>directReports</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="peopleSearch.orgChart.assistantAttribute" level="1">
+        <ldapPermission actor="self_other" access="read"/>
+        <default>
+            <value>assistant</value>
         </default>
     </setting>
     <setting hidden="false" key="ldap.edirectory.storeNmasResponses" level="1" required="true">

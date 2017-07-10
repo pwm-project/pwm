@@ -69,7 +69,7 @@
     <script>
         PWM_GLOBAL['startupFunctions'].push(function(){
             PWM_MAIN.addEventHandler('button-cancel','click',function() {
-                PWM_MAIN.submitPostAction('NewUser', '<%=NewUserServlet.NewUserAction.reset%>');
+                PWM_MAIN.submitPostAction('newuser', '<%=NewUserServlet.NewUserAction.reset%>');
             });
         });
     </script>
