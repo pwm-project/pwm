@@ -3102,6 +3102,12 @@
             <value>directReports</value>
         </default>
     </setting>
+    <setting hidden="false" key="peopleSearch.orgChart.assistantAttribute" level="1">
+        <ldapPermission actor="self_other" access="read"/>
+        <default>
+            <value>assistant</value>
+        </default>
+    </setting>
     <setting hidden="false" key="ldap.edirectory.storeNmasResponses" level="1" required="true">
         <default>
             <value>false</value>

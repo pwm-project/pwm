@@ -22,36 +22,18 @@
 
 package password.pwm.http.servlet.peoplesearch;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
+@Getter
+@Setter
 class OrgChartDataBean implements Serializable {
     private OrgChartReferenceBean parent;
     private OrgChartReferenceBean self;
+    private OrgChartReferenceBean assistant;
     private List<OrgChartReferenceBean> children = Collections.emptyList();
-
-    public OrgChartReferenceBean getParent() {
-        return parent;
-    }
-
-    public void setParent(final OrgChartReferenceBean parent) {
-        this.parent = parent;
-    }
-
-    public OrgChartReferenceBean getSelf() {
-        return self;
-    }
-
-    public void setSelf(final OrgChartReferenceBean self) {
-        this.self = self;
-    }
-
-    public List<OrgChartReferenceBean> getChildren() {
-        return children;
-    }
-
-    public void setChildren(final List<OrgChartReferenceBean> children) {
-        this.children = children;
-    }
 }
