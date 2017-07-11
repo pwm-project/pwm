@@ -22,33 +22,13 @@
 
 package password.pwm.util;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.security.InvalidKeyException;
-import java.security.KeyFactory;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.util.Map;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.servlet.http.HttpSession;
-
+import com.novell.ldapchai.exception.ChaiUnavailableException;
 import org.jasig.cas.client.authentication.AttributePrincipal;
 import org.jasig.cas.client.ssl.HttpsURLConnectionFactory;
 import org.jasig.cas.client.util.AbstractCasFilter;
 import org.jasig.cas.client.util.CommonUtils;
 import org.jasig.cas.client.util.XmlUtils;
 import org.jasig.cas.client.validation.Assertion;
-
-import com.novell.ldapchai.exception.ChaiUnavailableException;
-
 import password.pwm.PwmApplication;
 import password.pwm.PwmHttpFilterAuthenticationProvider;
 import password.pwm.config.PwmSetting;
@@ -65,6 +45,23 @@ import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.servlet.http.HttpSession;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.security.InvalidKeyException;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.Map;
 
 public class CASFilterAuthenticationProvider implements PwmHttpFilterAuthenticationProvider {
 
