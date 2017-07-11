@@ -142,9 +142,21 @@ org-chart {
           margin-left: 33px;
           position: relative;
 
+          > person-card {
+            > .person-card-content {
+              > .avatar {
+                background-color: $org-chart-secondary-connector-color;
+
+                &:not(:hover) {
+                  border-color: $org-chart-secondary-connector-color;
+                }
+              }
+            }
+          }
+
           > .org-chart-connector {
             background-color: transparent;
-            border-top: 3px dashed $org-chart-connector-color;
+            border-top: 3px dashed $org-chart-secondary-connector-color;
             height: 0;
             left: -37px;
             top: 26px;
