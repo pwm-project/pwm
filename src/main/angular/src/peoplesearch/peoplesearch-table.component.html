@@ -48,14 +48,14 @@
             ng-attr-title="{{ 'Title_OrgChart' | translate }}"></mf-icon-button>
 </mf-app-bar>
 
-<div class="people-search-component-content">
-    <div class="search-info-container">
-        <div class="search-info" ng-class="{'loading': !$ctrl.getMessage()}"
-             ng-if="$ctrl.loading || $ctrl.searchMessage || $ctrl.errorMessage"
-             ng-bind="$ctrl.getMessage() || ('Display_PleaseWait' | translate)">
-        </div>
+<div class="search-info-container">
+    <div class="search-info" ng-class="{'loading': !$ctrl.getMessage()}"
+         ng-if="$ctrl.loading || $ctrl.searchMessage || $ctrl.errorMessage"
+         ng-bind="$ctrl.getMessage() || ('Display_PleaseWait' | translate)">
     </div>
+</div>
 
+<div class="people-search-component-content">
     <mf-table data="person in $ctrl.searchResult.people"
               ng-show="$ctrl.searchResult.people.length"
               search-highlight="$ctrl.query"
