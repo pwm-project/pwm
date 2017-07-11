@@ -28,7 +28,7 @@ import PeopleService from './services/people.service.dev';
 import PwmService from './services/pwm.service.dev';
 import routes from './routes';
 import routeErrorHandler from './route-error-handler';
-import uiRouter from 'angular-ui-router';
+import uiRouter from '@uirouter/angularjs';
 
 // fontgen-loader needs this :(
 require('./icons.json');
