@@ -31,6 +31,11 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <build.number>0</build.number>  <!-- default in case not set on command line -->
         <build.revision>0</build.revision>  <!-- default in case not set on command line -->
+		<!-- Properties used for CAS configuration -->
+		<cas.server>https://cas.localdomain.local:8443/cas/</cas.server>
+        <pwm.server>https://pwm.localdomain.local:8443</pwm.server>
+        <java.cas.client.config.strategy>WEB_XML</java.cas.client.config.strategy>
+        <java.cas.client.config.location>/etc/java-cas-client.properties</java.cas.client.config.location>
     </properties>
 
     <profiles>
