@@ -55,7 +55,7 @@
         <person-card person="directReport"
                      show-direct-report-count="true"
                      show-image="$ctrl.showImages"
-                     ng-repeat="directReport in $ctrl.directReports"
+                     ng-repeat="directReport in $ctrl.directReports | orderBy:'displayNames[0]'"
                      ng-click="$ctrl.selectPerson(directReport.userKey)">
         </person-card>
     </div>
