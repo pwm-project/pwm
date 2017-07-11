@@ -32,6 +32,10 @@ org-chart {
   display: block;
   max-width: 100%;
 
+  .assistant {
+    display: none;
+  }
+
   // (S) Too wide for full width person-card in direct reports
   &.small {
     > .org-chart-section {
@@ -124,6 +128,27 @@ org-chart {
 
           &:not(:last-child) {
             margin-right: 5px;
+          }
+        }
+      }
+
+      &.self {
+        person-card {
+          display: inline-block;
+        }
+
+        > .assistant {
+          display: inline-block;
+          margin-left: 33px;
+          position: relative;
+
+          > .org-chart-connector {
+            background-color: transparent;
+            border-top: 3px dashed $org-chart-connector-color;
+            height: 0;
+            left: -37px;
+            top: 26px;
+            width: 69px;
           }
         }
       }
@@ -312,6 +337,18 @@ org-chart {
 
             &:last-child {
               margin-left: 0;
+            }
+          }
+        }
+
+        &.self {
+          > .assistant {
+            margin-left: 0;
+            margin-right: 33px;
+
+            > .org-chart-connector {
+              left: auto;
+              right: -37px;
             }
           }
         }

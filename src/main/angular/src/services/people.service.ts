@@ -24,7 +24,7 @@
 import { isString, IHttpService, ILogService, IPromise, IQService, IWindowService } from 'angular';
 import { IPerson } from '../models/person.model';
 import IPwmService from './pwm.service';
-import OrgChartData from '../models/orgchart-data.model';
+import IOrgChartData from '../models/orgchart-data.model';
 import SearchResult from '../models/search-result.model';
 
 export interface IPeopleService {
@@ -32,7 +32,7 @@ export interface IPeopleService {
     getDirectReports(personId: string): IPromise<IPerson[]>;
     getNumberOfDirectReports(personId: string): IPromise<number>;
     getManagementChain(personId: string): IPromise<IPerson[]>;
-    getOrgChartData(personId: string, skipChildren: boolean): IPromise<OrgChartData>;
+    getOrgChartData(personId: string, skipChildren: boolean): IPromise<IOrgChartData>;
     getPerson(id: string): IPromise<IPerson>;
     search(query: string): IPromise<SearchResult>;
 }
@@ -68,7 +68,7 @@ export default class PeopleService implements IPeopleService {
     }
 
     getDirectReports(id: string): IPromise<IPerson[]> {
-        return this.getOrgChartData(id, false).then((orgChartData: OrgChartData) => {
+        return this.getOrgChartData(id, false).then((orgChartData: IOrgChartData) => {
             let people: IPerson[] = [];
 
             for (let directReport of orgChartData.children) {
@@ -93,7 +93,7 @@ export default class PeopleService implements IPeopleService {
 
     private getManagerRecursive(id: string, people: IPerson[]): IPromise<IPerson[]> {
         return this.getOrgChartData(id, true)
-            .then((orgChartData: OrgChartData) => {
+            .then((orgChartData: IOrgChartData) => {
                 if (orgChartData.manager) {
                     people.push(orgChartData.manager);
 
@@ -104,7 +104,7 @@ export default class PeopleService implements IPeopleService {
             });
     }
 
-    getOrgChartData(personId: string, noChildren: boolean): angular.IPromise<OrgChartData> {
+    getOrgChartData(personId: string, noChildren: boolean): angular.IPromise<IOrgChartData> {
         return this.$http
             .get(this.pwmService.getServerUrl('orgChartData'), {
                 cache: true,
@@ -122,11 +122,24 @@ export default class PeopleService implements IPeopleService {
                     let responseData = response.data['data'];
 
                     let manager: IPerson;
-                    if ('parent' in responseData) { manager = <IPerson>(responseData['parent']); }
+                    let assistant: IPerson;
+
+                    if ('parent' in responseData) {
+                        manager = <IPerson>(responseData['parent']);
+                    }
+                    if ('assistant' in responseData) {
+                        assistant = <IPerson>(responseData['assistant']);
+                    }
+
                     const children = responseData['children'].map((child: any) => <IPerson>(child));
                     const self = <IPerson>(responseData['self']);
 
-                    return this.$q.resolve(new OrgChartData(manager, children, self));
+                    return this.$q.resolve({
+                        manager: manager,
+                        children: children,
+                        self: self,
+                        assistant: assistant
+                    });
                 },
                 this.handleHttpError.bind(this));
     }

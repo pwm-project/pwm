@@ -710,6 +710,17 @@
             "userKey": 3
           }
         ]
+      },
+      "assistant": {
+        "name": "assistant",
+        "label": "Assistant",
+        "type": "userDN",
+        "userReferences": [
+          {
+            "displayName": "Joe Stevens - Automation Specialist",
+            "userKey": 14
+          }
+        ]
       }
     },
     "links": [

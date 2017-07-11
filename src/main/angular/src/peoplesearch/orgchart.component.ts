@@ -29,13 +29,14 @@ import { IPerson } from '../models/person.model';
 export enum OrgChartSize {
     ExtraSmall = 0,
     Small = 365,
-    Large = 480
+    Large = 631
 }
 
 @Component({
     bindings: {
         directReports: '<',
         managementChain: '<',
+        assistant: '<',
         person: '<',
         showImages: '<'
     },
@@ -48,6 +49,7 @@ export default class OrgChartComponent {
     isLargeLayout: boolean;
     managementChain: IPerson[];
     person: IPerson;
+    assistant: IPerson;
 
     private elementSize: OrgChartSize = OrgChartSize.ExtraSmall;
     private maxVisibleManagers: number;
