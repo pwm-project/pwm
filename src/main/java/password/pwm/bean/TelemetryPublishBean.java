@@ -34,11 +34,11 @@ import java.util.Map;
 @Getter
 @Builder
 public class TelemetryPublishBean implements Serializable {
+    private final Instant timestamp;
     private final String id;
-    private final String instanceID;
+    private final String instanceHash;
     private final String siteDescription;
     private final Instant installTime;
-    private final Instant timestamp;
     private final List<ChaiProvider.DIRECTORY_VENDOR> ldapVendor;
     private final Map<String,String> statistics;
     private final List<String> configuredSettings;

@@ -265,7 +265,7 @@ public class TelemetryService implements PwmService {
         final TelemetryPublishBean.TelemetryPublishBeanBuilder builder = TelemetryPublishBean.builder();
         builder.timestamp(Instant.now());
         builder.id(makeId(pwmApplication));
-        builder.instanceID(pwmApplication.getInstanceID());
+        builder.instanceHash(pwmApplication.getSecureService().hash(pwmApplication.getInstanceID()));
         builder.installTime(pwmApplication.getInstallTime());
         builder.siteDescription(config.readSettingAsString(PwmSetting.PUBLISH_STATS_SITE_DESCRIPTION));
         builder.versionBuild(PwmConstants.BUILD_NUMBER);

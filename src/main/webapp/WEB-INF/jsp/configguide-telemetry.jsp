@@ -52,12 +52,19 @@
                     <br/><br/>
                     <%=PwmSetting.PUBLISH_STATS_ENABLE.getDescription(JspUtility.locale(request))%>
                     <br/><br/>
-                    <% final boolean secureChecked = "true".equalsIgnoreCase(configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_TELEMETRY_ENABLE));%>
-                    <label class="checkboxWrapper">
-                        <input type="checkbox" id="widget_<%=ConfigGuideFormField.PARAM_TELEMETRY_ENABLE%>" name="widget_<%=ConfigGuideFormField.PARAM_TELEMETRY_ENABLE%>" <%=secureChecked ? "checked" : ""%>/> Enabled
-                        <input type="hidden" id="<%=ConfigGuideFormField.PARAM_TELEMETRY_ENABLE%>" name="<%=ConfigGuideFormField.PARAM_TELEMETRY_ENABLE%>" value="false"/>
+                    <%--
+                <label class="checkboxWrapper">
+                    <input type="checkbox" id="widget_<%=ConfigGuideFormField.PARAM_TELEMETRY_ENABLE%>" name="widget_<%=ConfigGuideFormField.PARAM_TELEMETRY_ENABLE%>" <%=telemEnabled ? "checked" : ""%>/> Enabled
+                    <input type="hidden" id="<%=ConfigGuideFormField.PARAM_TELEMETRY_ENABLE%>" name="<%=ConfigGuideFormField.PARAM_TELEMETRY_ENABLE%>" value="false"/>
                     </label>
+                    --%>
+
+                    <label class="checkboxWrapper"><input type="radio" id="<%=ConfigGuideFormField.PARAM_TELEMETRY_ENABLE%>-enabled" name="<%=ConfigGuideFormField.PARAM_TELEMETRY_ENABLE%>" value="true">Enabled</label>
+                    <br/>
+                    <label class="checkboxWrapper"><input type="radio" id="<%=ConfigGuideFormField.PARAM_TELEMETRY_ENABLE%>-disabled" name="<%=ConfigGuideFormField.PARAM_TELEMETRY_ENABLE%>" value="false">Disabled</label>
+
                     <br/><br/>
+                    <div id="descriptionWrapper" style="display: none">
 
                     <label for="<%=ConfigGuideFormField.PARAM_TELEMETRY_DESCRIPTION%>">
                         <b><%=PwmSetting.PUBLISH_STATS_SITE_DESCRIPTION.getLabel(JspUtility.locale(request))%></b>
@@ -68,15 +75,15 @@
                     <br/><br/>
                     <input class="configStringInput" maxlength="100" id="<%=ConfigGuideFormField.PARAM_TELEMETRY_DESCRIPTION%>" name="<%=ConfigGuideFormField.PARAM_TELEMETRY_DESCRIPTION%>" value="<%=configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_TELEMETRY_DESCRIPTION)%>" <pwm:autofocus/> />
                     <br/><br/>
-
+                        <% String privacyText = JavaHelper.readEulaText(ContextManager.getContextManager(session),PwmConstants.RESOURCE_FILE_PRIVACY_TXT); %>
+                        <div id="agreementWrapper" style="display: none" class="fadein">
+                            <% if (!StringUtil.isEmpty(privacyText)) { %>
+                            <label><b>Data Privacy Policy</b></label>
+                            <div id="agreementText" class="eulaText"><%=privacyText%></div>
+                            <% } %>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <% String privacyText = JavaHelper.readEulaText(ContextManager.getContextManager(session),PwmConstants.RESOURCE_FILE_PRIVACY_TXT); %>
-            <div id="agreementWrapper" style="display: none">
-            <% if (!StringUtil.isEmpty(privacyText)) { %>
-            <label><b>Data Privacy Policy</b></label>
-            <div id="agreementText" class="eulaText"><%=privacyText%></div>
-            <% } %>
             </div>
         </form>
         <br/>
@@ -87,16 +94,17 @@
 <pwm:script>
     <script type="text/javascript">
         function handleFormActivity() {
-            PWM_MAIN.getObject('<%=ConfigGuideFormField.PARAM_TELEMETRY_ENABLE%>').value =
-                PWM_MAIN.getObject('widget_<%=ConfigGuideFormField.PARAM_TELEMETRY_ENABLE%>').checked ? "true" : "false";
             PWM_GUIDE.updateForm();
+            checkIfNextEnabled();
 
-            if (PWM_MAIN.getObject('widget_<%=ConfigGuideFormField.PARAM_TELEMETRY_ENABLE%>').checked) {
+            if (PWM_MAIN.getObject('<%=ConfigGuideFormField.PARAM_TELEMETRY_ENABLE%>-enabled').checked) {
                 PWM_MAIN.getObject('<%=ConfigGuideFormField.PARAM_TELEMETRY_DESCRIPTION%>').disabled = false;
+                PWM_MAIN.getObject('descriptionWrapper').style.display = 'inline';
                 PWM_MAIN.getObject('agreementWrapper').style.display = 'inline';
             } else {
                 PWM_MAIN.getObject('<%=ConfigGuideFormField.PARAM_TELEMETRY_DESCRIPTION%>').disabled = true;
                 PWM_MAIN.getObject('<%=ConfigGuideFormField.PARAM_TELEMETRY_DESCRIPTION%>').value = '';
+                PWM_MAIN.getObject('descriptionWrapper').style.display = 'none';
                 PWM_MAIN.getObject('agreementWrapper').style.display = 'none';
             }
         }
@@ -110,9 +118,26 @@
 
             PWM_MAIN.addEventHandler('button_next','click',function(){PWM_GUIDE.gotoStep('NEXT')});
             PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('PREVIOUS')});
+
+            initPage();
+            handleFormActivity();
         });
 
+        function checkIfNextEnabled() {
+            PWM_MAIN.getObject('button_next').disabled =
+                (!(PWM_MAIN.getObject('<%=ConfigGuideFormField.PARAM_TELEMETRY_ENABLE%>-enabled').checked
+                || PWM_MAIN.getObject('<%=ConfigGuideFormField.PARAM_TELEMETRY_ENABLE%>-disabled').checked));
+        }
 
+
+        function initPage() {
+            <% final String currentValue = configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_TELEMETRY_ENABLE);%>
+            <% if ("true".equals(currentValue)) { %>
+            PWM_MAIN.getObject('<%=ConfigGuideFormField.PARAM_TELEMETRY_ENABLE%>-enabled').checked = true;
+            <% } else if ("false".equals(currentValue)) { %>
+            PWM_MAIN.getObject('<%=ConfigGuideFormField.PARAM_TELEMETRY_ENABLE%>-disabled').checked = true;
+            <% } %>
+        }
     </script>
 </pwm:script>
 <%@ include file="fragment/footer.jsp" %>
