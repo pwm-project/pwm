@@ -22,9 +22,9 @@
 
 
 import { IPerson } from './person.model';
-export default class OrgChartData {
-
-    constructor(public manager: IPerson,
-                public children: IPerson[],
-                public self: IPerson) {}
+export default class IOrgChartData {
+    manager?: IPerson;
+    children?: IPerson[];
+    self: IPerson;
+    assistant?: IPerson;
 }

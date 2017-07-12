@@ -498,7 +498,7 @@ div.progress-container > div {
 
 #header-menu-wrapper {
     display: inline-block;
-    margin-right: 20px;
+    margin-right: 10px;
 }
 
 .header-button {
@@ -1053,7 +1053,7 @@ dialog .closeIcon { float: right; cursor: pointer; margin-right: 3px; }
 }
 
 .licenseBlock a {
-    color: #0088ce;
+    color: #007cd0;
     font-weight: normal;
     text-decoration: none;
 }

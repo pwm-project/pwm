@@ -21,8 +21,8 @@
  */
 
 
-$mf-app-bar-height: 29px;
-$mf-app-bar-icon-size: 24px;
+$mf-app-bar-height: 37px;
+$mf-app-bar-icon-size: 32px;
 
 mf-app-bar {
   display: block;
@@ -38,6 +38,16 @@ mf-app-bar {
         flex: 1000 1;
         order: initial;
         width: auto;
+      }
+    }
+  }
+
+  // For extra-large displays, add extra spacing around search bar
+  &.extra-large {
+    > .mf-app-bar-content {
+      > mf-auto-complete,
+      > mf-search-bar {
+        margin: 0 30px;
       }
     }
   }
@@ -61,7 +71,8 @@ mf-app-bar {
     }
 
     > #page-content-title {
-      font-size: 24px;
+      font-size: 20px;
+      font-weight: normal;
       height: $mf-app-bar-height;
       line-height: $mf-app-bar-height;
     }
