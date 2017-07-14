@@ -8,7 +8,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * (at your option) any later version.g
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -22,6 +22,9 @@
 
 package password.pwm.http.servlet.configguide;
 
+import password.pwm.PwmConstants;
+import password.pwm.config.PwmSetting;
+import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.PwmSettingTemplate;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.ConfigGuideBean;
@@ -31,6 +34,8 @@ import java.util.Set;
 
 public enum GuideStep {
     START(null),
+    EULA(EulaVisibilityCheck.class),
+    TELEMETRY(TelemetryVisibilityCheck.class),
     TEMPLATE(null),
     LDAP_SERVER(null),
     LDAP_CERT(null),
@@ -105,6 +110,19 @@ public enum GuideStep {
             } catch (PwmUnrecoverableException e) {
                 return true;
             }
+        }
+    }
+
+    static class EulaVisibilityCheck implements VisibilityCheck {
+        public boolean visible(final ConfigGuideBean configGuideBean) {
+            return PwmConstants.ENABLE_EULA_DISPLAY;
+        }
+    }
+
+    static class TelemetryVisibilityCheck implements VisibilityCheck {
+        public boolean visible(final ConfigGuideBean configGuideBean) {
+            return !PwmSetting.PUBLISH_STATS_ENABLE.isHidden() &&
+                    !PwmSettingCategory.TELEMETRY.isHidden();
         }
     }
 }

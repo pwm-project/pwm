@@ -171,11 +171,11 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
             return;
         }
 
-        if (!configGuideBean.getFormData().containsKey(ConfigGuideForm.FormParameter.PARAM_APP_SITEURL)) {
+        if (!configGuideBean.getFormData().containsKey(ConfigGuideFormField.PARAM_APP_SITEURL)) {
             final URI uri = URI.create(pwmRequest.getHttpServletRequest().getRequestURL().toString());
             final int port = PwmURL.portForUriSchema(uri);
             final String newUri = uri.getScheme() + "://" + uri.getHost() + ":" + port + pwmRequest.getContextPath();
-            configGuideBean.getFormData().put(ConfigGuideForm.FormParameter.PARAM_APP_SITEURL,newUri);
+            configGuideBean.getFormData().put(ConfigGuideFormField.PARAM_APP_SITEURL,newUri);
         }
 
         if (configGuideBean.getStep() == GuideStep.LDAP_CERT) {
@@ -374,7 +374,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
             break;
 
             case LDAP_TESTUSER: {
-                final String testUserValue = configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_LDAP_TEST_USER);
+                final String testUserValue = configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_LDAP_TEST_USER);
                 if (testUserValue != null && !testUserValue.isEmpty()) {
                     records.addAll(ldapStatusChecker.checkBasicLdapConnectivity(tempApplication, tempConfiguration, ldapProfile, false));
                     records.addAll(ldapStatusChecker.doLdapTestUserCheck(tempConfiguration, ldapProfile, tempApplication));
@@ -466,7 +466,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
             throws IOException, PwmUnrecoverableException
     {
         final String bodyString = pwmRequest.readRequestBodyAsString();
-        final Map<ConfigGuideForm.FormParameter,String> incomingFormData = JsonUtil.deserialize(bodyString, new TypeToken<Map<ConfigGuideForm.FormParameter, String>>() {
+        final Map<ConfigGuideFormField,String> incomingFormData = JsonUtil.deserialize(bodyString, new TypeToken<Map<ConfigGuideFormField, String>>() {
         });
 
         if (incomingFormData != null) {
@@ -489,7 +489,8 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
         }
 
         if (GuideStep.START.equals(requestedStep)) {
-            configGuideBean.setFormData(ConfigGuideForm.defaultForm());
+            configGuideBean.getFormData().clear();
+            configGuideBean.getFormData().putAll(ConfigGuideForm.defaultForm());
         }
 
         if ("NEXT".equals(requestedStep)) {
@@ -545,7 +546,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
             final ConfigGuideBean configGuideBean
     ) throws PwmOperationalException, PwmUnrecoverableException {
         final StoredConfigurationImpl storedConfiguration = ConfigGuideForm.generateStoredConfig(configGuideBean);
-        final String configPassword = configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_CONFIG_PASSWORD);
+        final String configPassword = configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_CONFIG_PASSWORD);
         if (configPassword != null && configPassword.length() > 0) {
             storedConfiguration.setPassword(configPassword);
         } else {
@@ -599,11 +600,11 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
     }
 
     public static SchemaOperationResult extendSchema(final ConfigGuideBean configGuideBean, final boolean doSchemaExtension) {
-        final Map<ConfigGuideForm.FormParameter,String> form = configGuideBean.getFormData();
-        final boolean ldapServerSecure = "true".equalsIgnoreCase(form.get(ConfigGuideForm.FormParameter.PARAM_LDAP_SECURE));
-        final String ldapUrl = "ldap" + (ldapServerSecure ? "s" : "") + "://" + form.get(ConfigGuideForm.FormParameter.PARAM_LDAP_HOST) + ":" + form.get(ConfigGuideForm.FormParameter.PARAM_LDAP_PORT);
+        final Map<ConfigGuideFormField,String> form = configGuideBean.getFormData();
+        final boolean ldapServerSecure = "true".equalsIgnoreCase(form.get(ConfigGuideFormField.PARAM_LDAP_SECURE));
+        final String ldapUrl = "ldap" + (ldapServerSecure ? "s" : "") + "://" + form.get(ConfigGuideFormField.PARAM_LDAP_HOST) + ":" + form.get(ConfigGuideFormField.PARAM_LDAP_PORT);
         try {
-            final ChaiConfiguration chaiConfiguration = new ChaiConfiguration(ldapUrl, form.get(ConfigGuideForm.FormParameter.PARAM_LDAP_PROXY_DN), form.get(ConfigGuideForm.FormParameter.PARAM_LDAP_PROXY_PW));
+            final ChaiConfiguration chaiConfiguration = new ChaiConfiguration(ldapUrl, form.get(ConfigGuideFormField.PARAM_LDAP_PROXY_DN), form.get(ConfigGuideFormField.PARAM_LDAP_PROXY_PW));
             chaiConfiguration.setSetting(ChaiSetting.PROMISCUOUS_SSL,"true");
             final ChaiProvider chaiProvider = ChaiProviderFactory.createProvider(chaiConfiguration);
             if (doSchemaExtension) {
@@ -633,9 +634,9 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
 
 
     private void checkLdapServer(final ConfigGuideBean configGuideBean) throws PwmOperationalException, IOException {
-        final Map<ConfigGuideForm.FormParameter,String> formData = configGuideBean.getFormData();
-        final String host = formData.get(ConfigGuideForm.FormParameter.PARAM_LDAP_HOST);
-        final int port = Integer.parseInt(formData.get(ConfigGuideForm.FormParameter.PARAM_LDAP_PORT));
+        final Map<ConfigGuideFormField,String> formData = configGuideBean.getFormData();
+        final String host = formData.get(ConfigGuideFormField.PARAM_LDAP_HOST);
+        final int port = Integer.parseInt(formData.get(ConfigGuideFormField.PARAM_LDAP_PORT));
 
         { // socket test
             final InetAddress inetAddress = InetAddress.getByName(host);
@@ -646,7 +647,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
             socket.connect(socketAddress, timeout);
         }
 
-        if (Boolean.parseBoolean(formData.get(ConfigGuideForm.FormParameter.PARAM_LDAP_SECURE))) {
+        if (Boolean.parseBoolean(formData.get(ConfigGuideFormField.PARAM_LDAP_SECURE))) {
             X509Utils.readRemoteCertificates(host, port);
         }
     }

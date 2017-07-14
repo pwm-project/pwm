@@ -1,6 +1,7 @@
 <%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%@ page import="password.pwm.http.servlet.configguide.ConfigGuideForm" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
+<%@ page import="password.pwm.http.servlet.configguide.ConfigGuideFormField" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -47,35 +48,35 @@
                         <td><b>LDAP Template</b>
                         </td>
                         <td>
-                            <%=StringUtil.escapeHtml(PwmSetting.TEMPLATE_LDAP.getOptions().get(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_TEMPLATE_LDAP)))%>
+                            <%=StringUtil.escapeHtml(PwmSetting.TEMPLATE_LDAP.getOptions().get(configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_TEMPLATE_LDAP)))%>
                         </td>
                     </tr>
                     <tr>
                         <td><b>Site URL</b>
                         </td>
                         <td>
-                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_APP_SITEURL))%>
+                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_APP_SITEURL))%>
                         </td>
                     </tr>
                     <tr>
                         <td><b>LDAP Server Hostname</b>
                         </td>
                         <td>
-                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_LDAP_HOST))%>
+                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_LDAP_HOST))%>
                         </td>
                     </tr>
                     <tr>
                         <td><b>LDAP Port</b>
                         </td>
                         <td>
-                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_LDAP_PORT))%>
+                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_LDAP_PORT))%>
                         </td>
                     </tr>
                     <tr>
                         <td><b>Secure (SSL) Connection</b>
                         </td>
                         <td>
-                            <%if (Boolean.parseBoolean(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_LDAP_SECURE))) {%>
+                            <%if (Boolean.parseBoolean(configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_LDAP_SECURE))) {%>
                             <pwm:display key="Value_True"/>
                             <% } else { %>
                             <pwm:display key="Value_False"/>
@@ -86,7 +87,7 @@
                         <td><b>Proxy LDAP DN</b>
                         </td>
                         <td>
-                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_LDAP_PROXY_DN))%>
+                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_LDAP_PROXY_DN))%>
                         </td>
                     </tr>
                     <tr>
@@ -94,28 +95,28 @@
                         </td>
                         <td>
                             <%=StringUtil.escapeHtml(
-                                    configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_LDAP_CONTEXT))%>
+                                    configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_LDAP_CONTEXT))%>
                         </td>
                     </tr>
                     <tr>
                         <td><b>Administrator Group DN</b>
                         </td>
                         <td>
-                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_LDAP_ADMIN_GROUP))%>
+                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_LDAP_ADMIN_GROUP))%>
                         </td>
                     </tr>
                     <tr>
                         <td><b>LDAP Test User DN</b>
                         </td>
                         <td>
-                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_LDAP_TEST_USER))%>
+                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_LDAP_TEST_USER))%>
                         </td>
                     </tr>
                     <tr>
                         <td><b>Response Storage Preference</b>
                         </td>
                         <td>
-                            <%=StringUtil.escapeHtml(PwmSetting.TEMPLATE_STORAGE.getOptions().get(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_TEMPLATE_STORAGE)))%>
+                            <%=StringUtil.escapeHtml(PwmSetting.TEMPLATE_STORAGE.getOptions().get(configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_TEMPLATE_STORAGE)))%>
                         </td>
                     </tr>
                 </table>

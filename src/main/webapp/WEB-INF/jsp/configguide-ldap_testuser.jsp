@@ -1,6 +1,7 @@
 <%@ page import="password.pwm.http.servlet.configguide.ConfigGuideForm" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
+<%@ page import="password.pwm.http.servlet.configguide.ConfigGuideFormField" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -45,12 +46,12 @@
                 <div class="setting_body">
                     <pwm:display key="ldap_testuser_description" bundle="ConfigGuide"/>
                     <div class="setting_item">
-                        <div id="titlePane_<%=ConfigGuideForm.FormParameter.PARAM_LDAP_TEST_USER%>" style="padding-left: 5px; padding-top: 5px">
+                        <div id="titlePane_<%=ConfigGuideFormField.PARAM_LDAP_TEST_USER%>" style="padding-left: 5px; padding-top: 5px">
                             Example: <code><%=PwmSetting.LDAP_TEST_USER_DN.getExample(ConfigGuideForm.generateStoredConfig(configGuideBean).getTemplateSet())%></code>
                             <br/><br/>
                             <b>LDAP Test User DN</b>
                             <br/>
-                            <input style="width:400px" class="configStringInput" id="<%=ConfigGuideForm.FormParameter.PARAM_LDAP_TEST_USER%>" name="<%=ConfigGuideForm.FormParameter.PARAM_LDAP_TEST_USER%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_LDAP_TEST_USER))%>" autofocus/>
+                            <input style="width:400px" class="configStringInput" id="<%=ConfigGuideFormField.PARAM_LDAP_TEST_USER%>" name="<%=ConfigGuideFormField.PARAM_LDAP_TEST_USER%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_LDAP_TEST_USER))%>" autofocus/>
                             <button type="button" class="btn" id="button-browse-testUser">
                                 <span class="btn-icon pwm-icon pwm-icon-sitemap"></span>
                                 <pwm:display key="Button_Browse"/>
@@ -97,14 +98,14 @@
 
         PWM_MAIN.addEventHandler('button-browse-testUser','click',function(){
             UILibrary.editLdapDN(function(value){
-                PWM_MAIN.getObject('<%=ConfigGuideForm.FormParameter.PARAM_LDAP_TEST_USER%>').value = value;
+                PWM_MAIN.getObject('<%=ConfigGuideFormField.PARAM_LDAP_TEST_USER%>').value = value;
                 handleFormActivity();
             })
         });
     });
 
     function checkIfNextEnabled() {
-        var fieldValue = PWM_MAIN.getObject('<%=ConfigGuideForm.FormParameter.PARAM_LDAP_TEST_USER%>').value;
+        var fieldValue = PWM_MAIN.getObject('<%=ConfigGuideFormField.PARAM_LDAP_TEST_USER%>').value;
         PWM_MAIN.getObject('button_next').disabled = false;
         if (fieldValue.length && fieldValue.length > 0) {
             if (PWM_GLOBAL['pwm-health'] !== 'GOOD' && PWM_GLOBAL['pwm-health'] !== 'CONFIG') {

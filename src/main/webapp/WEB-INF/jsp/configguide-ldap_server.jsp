@@ -1,5 +1,6 @@
 <%@ page import="password.pwm.http.servlet.configguide.ConfigGuideForm" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
+<%@ page import="password.pwm.http.servlet.configguide.ConfigGuideFormField" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -48,38 +49,38 @@
                     <table class="noborder" style="border-spacing: 0; padding: 0; margin: 0">
                         <tr>
                             <td colspan="2">
-                                <label for="<%=ConfigGuideForm.FormParameter.PARAM_LDAP_HOST%>">
+                                <label for="<%=ConfigGuideFormField.PARAM_LDAP_HOST%>">
                                 <b><pwm:display key="ldap_server_title_hostname" bundle="ConfigGuide"/></b>
                                 </label>
                             </td>
                         </tr>
                         <tr>
                             <td colspan="2">
-                                <input class="configStringInput" id="<%=ConfigGuideForm.FormParameter.PARAM_LDAP_HOST%>" name="<%=ConfigGuideForm.FormParameter.PARAM_LDAP_HOST%>" value="<%=configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_LDAP_HOST)%>" <pwm:autofocus/> />
+                                <input class="configStringInput" id="<%=ConfigGuideFormField.PARAM_LDAP_HOST%>" name="<%=ConfigGuideFormField.PARAM_LDAP_HOST%>" value="<%=configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_LDAP_HOST)%>" <pwm:autofocus/> />
                             </td>
                         </tr>
                         <tr><td>&nbsp;</td></tr>
                         <tr>
                             <td style="width: 30%">
-                                <label for="<%=ConfigGuideForm.FormParameter.PARAM_LDAP_PORT%>">
+                                <label for="<%=ConfigGuideFormField.PARAM_LDAP_PORT%>">
                                     <b><pwm:display key="ldap_server_title_port" bundle="ConfigGuide"/></b>
                                 </label>
                             </td>
                             <td style="">
-                                <label for="widget_<%=ConfigGuideForm.FormParameter.PARAM_LDAP_SECURE%>">
+                                <label for="widget_<%=ConfigGuideFormField.PARAM_LDAP_SECURE%>">
                                     <b><pwm:display key="ldap_server_title_secure" bundle="ConfigGuide"/></b>
                                 </label>
                             </td>
                         </tr>
                         <tr>
                             <td>
-                                <input class="configNumericInput" type="number" min="0" max="65535" id="<%=ConfigGuideForm.FormParameter.PARAM_LDAP_PORT%>" name="<%=ConfigGuideForm.FormParameter.PARAM_LDAP_PORT%>" value="<%=configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_LDAP_PORT)%>"/>
+                                <input class="configNumericInput" type="number" min="0" max="65535" id="<%=ConfigGuideFormField.PARAM_LDAP_PORT%>" name="<%=ConfigGuideFormField.PARAM_LDAP_PORT%>" value="<%=configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_LDAP_PORT)%>"/>
                             </td>
                             <td>
-                                <% final boolean secureChecked = "true".equalsIgnoreCase(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_LDAP_SECURE));%>
+                                <% final boolean secureChecked = "true".equalsIgnoreCase(configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_LDAP_SECURE));%>
                                 <label class="checkboxWrapper">
-                                    <input type="checkbox" id="widget_<%=ConfigGuideForm.FormParameter.PARAM_LDAP_SECURE%>" name="nope" <%=secureChecked ? "checked" : ""%>/> Secure
-                                    <input type="hidden" id="<%=ConfigGuideForm.FormParameter.PARAM_LDAP_SECURE%>" name="<%=ConfigGuideForm.FormParameter.PARAM_LDAP_SECURE%>" value="uninitialized"/>
+                                    <input type="checkbox" id="widget_<%=ConfigGuideFormField.PARAM_LDAP_SECURE%>" name="nope" <%=secureChecked ? "checked" : ""%>/> Secure
+                                    <input type="hidden" id="<%=ConfigGuideFormField.PARAM_LDAP_SECURE%>" name="<%=ConfigGuideFormField.PARAM_LDAP_SECURE%>" value="uninitialized"/>
                                 </label>
                             </td>
                         </tr>
@@ -103,8 +104,8 @@
 <pwm:script>
     <script type="text/javascript">
         function handleFormActivity() {
-            PWM_MAIN.getObject('<%=ConfigGuideForm.FormParameter.PARAM_LDAP_SECURE%>').value =
-                    PWM_MAIN.getObject('widget_<%=ConfigGuideForm.FormParameter.PARAM_LDAP_SECURE%>').checked ? "true" : "false";
+            PWM_MAIN.getObject('<%=ConfigGuideFormField.PARAM_LDAP_SECURE%>').value =
+                    PWM_MAIN.getObject('widget_<%=ConfigGuideFormField.PARAM_LDAP_SECURE%>').checked ? "true" : "false";
             PWM_GUIDE.updateForm();
             clearHealthDiv();
         }
@@ -122,12 +123,12 @@
                 handleFormActivity();
             });
 
-            PWM_MAIN.addEventHandler('widget_<%=ConfigGuideForm.FormParameter.PARAM_LDAP_SECURE%>','change',function() {
-                if (!PWM_MAIN.getObject('widget_<%=ConfigGuideForm.FormParameter.PARAM_LDAP_SECURE%>').checked) {
+            PWM_MAIN.addEventHandler('widget_<%=ConfigGuideFormField.PARAM_LDAP_SECURE%>','change',function() {
+                if (!PWM_MAIN.getObject('widget_<%=ConfigGuideFormField.PARAM_LDAP_SECURE%>').checked) {
                     PWM_MAIN.showConfirmDialog({
                         text: PWM_CONFIG.showString('Confirm_SSLDisable'),
                         cancelAction: function () {
-                            PWM_MAIN.getObject('widget_<%=ConfigGuideForm.FormParameter.PARAM_LDAP_SECURE%>').checked=true;
+                            PWM_MAIN.getObject('widget_<%=ConfigGuideFormField.PARAM_LDAP_SECURE%>').checked=true;
                             PWM_MAIN.closeWaitDialog();
                             handleFormActivity();
                         }

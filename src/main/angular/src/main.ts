@@ -29,7 +29,7 @@ import PwmService from './services/pwm.service';
 import routes from './routes';
 import routeErrorHandler from './route-error-handler';
 import TranslationsLoaderFactory from './services/translations-loader.factory';
-import uiRouter from 'angular-ui-router';
+import uiRouter from '@uirouter/angularjs';
 
 // fontgen-loader needs this :(
 require('./icons.json');
@@ -52,6 +52,10 @@ module('app', [
                 .fallbackLanguage('fallback')
                 .forceAsyncReload(true);
         }])
+    .config([
+        '$locationProvider', ($locationProvider: angular.ILocationProvider) => {
+        $locationProvider.hashPrefix('');
+    }])
     .run(routeErrorHandler)
     .service('PeopleService', PeopleService)
     .service('PwmService', PwmService)

@@ -40,6 +40,9 @@
     <!-- chai -->
     <allow pkg="com.novell.ldapchai"/>
 
+    <!-- commons ftp client -->
+    <allow pkg="org.apache.commons.net.ftp"/>
+
     <!-- xml  -->
     <allow pkg="org.jdom2"/>
     <allow pkg="javax.xml"/>

@@ -7,6 +7,7 @@
 <%@ page import="password.pwm.util.secure.X509Utils" %>
 <%@ page import="java.io.ByteArrayInputStream" %>
 <%@ page import="java.security.cert.X509Certificate" %>
+<%@ page import="password.pwm.http.servlet.configguide.ConfigGuideFormField" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -54,10 +55,10 @@
                     LDAP Server Certificates
                 </div>
                 <div class="setting_body">
-                    <% final String serverInfo = configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_LDAP_HOST) + ":" + configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_LDAP_PORT); %>
+                    <% final String serverInfo = configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_LDAP_HOST) + ":" + configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_LDAP_PORT); %>
                     <pwm:display key="ldap_cert_description" bundle="ConfigGuide" value1="<%=serverInfo%>"/>
                     <div>
-                        <div id="titlePane_<%=ConfigGuideForm.FormParameter.PARAM_LDAP_HOST%>" style="padding-left: 5px; padding-top: 5px">
+                        <div id="titlePane_<%=ConfigGuideFormField.PARAM_LDAP_HOST%>" style="padding-left: 5px; padding-top: 5px">
                             <% int counter=0;for (final X509Certificate certificate : configGuideBean.getLdapCertificates()) {%>
                             <% final String md5sum = SecureEngine.hash(new ByteArrayInputStream(certificate.getEncoded()), PwmHashAlgorithm.MD5); %>
                             <% final String sha1sum = SecureEngine.hash(new ByteArrayInputStream(certificate.getEncoded()), PwmHashAlgorithm.SHA1); %>
@@ -106,7 +107,7 @@
                         At least one of the following options must be selected to continue.
                     </div>
                     <br/>
-                    <div id="titlePane_<%=ConfigGuideForm.FormParameter.PARAM_LDAP_PROXY_DN%>" style="padding-left: 5px; padding-top: 5px">
+                    <div id="titlePane_<%=ConfigGuideFormField.PARAM_LDAP_PROXY_DN%>" style="padding-left: 5px; padding-top: 5px">
                         Certificate(s) are trusted by default Java keystore
                         <br/>
                         <label class="checkboxWrapper">

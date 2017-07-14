@@ -38,13 +38,22 @@
     </div>
 </div>
 
-<div class="org-chart-section">
+<div class="org-chart-section self">
     <person-card person="$ctrl.person"
                  direct-reports="$ctrl.directReports"
                  ng-click="$ctrl.onClickPerson()"
+                 class="self"
                  size="large"
                  show-direct-report-count="true"
                  show-image="$ctrl.showImages"></person-card>
+    <div class="assistant" ng-if="$ctrl.assistant">
+        <div class="org-chart-connector dashed"></div>
+        <person-card person="$ctrl.assistant"
+                     size="small"
+                     show-direct-report-count="false"
+                     show-image="$ctrl.showImages"
+                     ng-click="$ctrl.selectPerson($ctrl.assistant.userKey)"></person-card>
+    </div>
 </div>
 
 <div class="org-chart-section direct-reports" ng-if="$ctrl.hasDirectReports()">
@@ -53,9 +62,9 @@
 
     <div class="person-card-list">
         <person-card person="directReport"
-                     show-direct-report-count="false"
+                     show-direct-report-count="true"
                      show-image="$ctrl.showImages"
-                     ng-repeat="directReport in $ctrl.directReports"
+                     ng-repeat="directReport in $ctrl.directReports | orderBy:'displayNames[0]'"
                      ng-click="$ctrl.selectPerson(directReport.userKey)">
         </person-card>
     </div>

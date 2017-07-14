@@ -249,7 +249,7 @@ public class TokenService implements PwmService {
             throw new PwmOperationalException(errorInformation);
         }
 
-        LOGGER.trace(sessionLabel, "generated toke with payload: "  + tokenPayload.toDebugString());
+        LOGGER.trace(sessionLabel, "generated token with payload: "  + tokenPayload.toDebugString());
 
         final AuditRecord auditRecord = new AuditRecordFactory(pwmApplication).createUserAuditRecord(
                 AuditEvent.TOKEN_ISSUED,

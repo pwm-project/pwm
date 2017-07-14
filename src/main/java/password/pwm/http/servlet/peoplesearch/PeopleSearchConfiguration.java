@@ -22,49 +22,35 @@
 
 package password.pwm.http.servlet.peoplesearch;
 
+import lombok.Getter;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 
+@Getter
 public class PeopleSearchConfiguration {
-    private final String photoAttribute;
-    private final String photoUrlOverride;
-    private final boolean photosEnabled;
-    private final boolean orgChartEnabled;
-    private final String orgChartParentAttr;
-    private final String orgChartChildAttr;
+    private String photoAttribute;
+    private String photoUrlOverride;
+    private boolean photosEnabled;
+    private boolean orgChartEnabled;
+    private String orgChartParentAttr;
+    private String orgChartChildAttr;
+    private String orgChartAssistantAttr;
 
-    public PeopleSearchConfiguration(final Configuration configuration) {
-        photoAttribute = configuration.readSettingAsString(PwmSetting.PEOPLE_SEARCH_PHOTO_ATTRIBUTE);
-        photoUrlOverride = configuration.readSettingAsString(PwmSetting.PEOPLE_SEARCH_PHOTO_URL_OVERRIDE);
-        photosEnabled = (photoAttribute != null && !photoAttribute.isEmpty())
-                || (photoUrlOverride != null && !photoUrlOverride.isEmpty());
+    public static PeopleSearchConfiguration fromConfiguration(final Configuration configuration) {
+        final PeopleSearchConfiguration config = new PeopleSearchConfiguration();
+        config.photoAttribute = configuration.readSettingAsString(PwmSetting.PEOPLE_SEARCH_PHOTO_ATTRIBUTE);
+        config.photoUrlOverride = configuration.readSettingAsString(PwmSetting.PEOPLE_SEARCH_PHOTO_URL_OVERRIDE);
+        config.photosEnabled = (config.photoAttribute != null && !config.photoAttribute.isEmpty())
+                || (config.photoUrlOverride != null && !config.photoUrlOverride.isEmpty());
 
-        orgChartParentAttr = configuration.readSettingAsString(PwmSetting.PEOPLE_SEARCH_ORGCHART_PARENT_ATTRIBUTE);
-        orgChartChildAttr = configuration.readSettingAsString(PwmSetting.PEOPLE_SEARCH_ORGCHART_CHILD_ATTRIBUTE);
-        orgChartEnabled = orgChartParentAttr != null && !orgChartParentAttr.isEmpty() && orgChartChildAttr != null && !orgChartChildAttr.isEmpty();
-    }
+        config.orgChartAssistantAttr = configuration.readSettingAsString(PwmSetting.PEOPLE_SEARCH_ORGCHART_ASSISTANT_ATTRIBUTE);
+        config.orgChartParentAttr = configuration.readSettingAsString(PwmSetting.PEOPLE_SEARCH_ORGCHART_PARENT_ATTRIBUTE);
+        config.orgChartChildAttr = configuration.readSettingAsString(PwmSetting.PEOPLE_SEARCH_ORGCHART_CHILD_ATTRIBUTE);
+        config.orgChartEnabled = config.orgChartParentAttr != null
+                && !config.orgChartParentAttr.isEmpty()
+                && config.orgChartChildAttr != null
+                && !config.orgChartChildAttr.isEmpty();
 
-    public String getPhotoAttribute() {
-        return photoAttribute;
-    }
-
-    public String getPhotoUrlOverride() {
-        return photoUrlOverride;
-    }
-
-    public boolean isPhotosEnabled() {
-        return photosEnabled;
-    }
-
-    public boolean isOrgChartEnabled() {
-        return orgChartEnabled;
-    }
-
-    public String getOrgChartParentAttr() {
-        return orgChartParentAttr;
-    }
-
-    public String getOrgChartChildAttr() {
-        return orgChartChildAttr;
+        return config;
     }
 }

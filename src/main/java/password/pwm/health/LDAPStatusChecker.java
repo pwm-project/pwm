@@ -59,6 +59,7 @@ import password.pwm.ldap.UserInfoFactory;
 import password.pwm.util.PasswordData;
 import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
@@ -130,11 +131,16 @@ public class LDAPStatusChecker implements HealthChecker {
             }
         }
 
-        returnRecords.addAll(checkVendorSameness(pwmApplication));
+        if (config.getLdapProfiles() != null && !config.getLdapProfiles().isEmpty()) {
+            final List<String> urls = config.getLdapProfiles().values().iterator().next().readSettingAsStringArray(PwmSetting.LDAP_SERVER_URLS);
+            if (urls != null && !urls.isEmpty() && !StringUtil.isEmpty(urls.iterator().next())) {
+                returnRecords.addAll(checkVendorSameness(pwmApplication));
 
-        returnRecords.addAll(checkUserPermissionValues(pwmApplication));
+                returnRecords.addAll(checkUserPermissionValues(pwmApplication));
 
-        returnRecords.addAll(checkLdapDNSyntaxValues(pwmApplication));
+                returnRecords.addAll(checkLdapDNSyntaxValues(pwmApplication));
+            }
+        }
 
         return returnRecords;
     }

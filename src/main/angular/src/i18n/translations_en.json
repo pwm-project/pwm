@@ -8,8 +8,8 @@
 
   "Display_PleaseWait": "Loading...",
 
-  "Display_SearchResultsExceeded": "Search results exceeded maximum search size.",
-  "Display_SearchResultsNone": "No results.",
+  "Display_SearchResultsExceeded": "Search results exceeded maximum search size",
+  "Display_SearchResultsNone": "No results",
 
   "Placeholder_Search": "Search"
 }

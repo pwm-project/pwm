@@ -23,7 +23,7 @@
 <div class="person-card-content" ng-attr-id="{{'displayName-' + $ctrl.person.displayNames[0] }}" ng-switch="$ctrl.size">
     <div class="avatar" ng-if="$ctrl.isSmall() || $ctrl.showImage" ng-style="$ctrl.getAvatarStyle()" aria-label="User avatar"></div>
     <div class="reports"
-         ng-if="$ctrl.showDirectReportCount && $ctrl.person.numDirectReports"
+         ng-if="$ctrl.numDirectReportsVisible"
          ng-bind="$ctrl.person.numDirectReports"
          ng-attr-title="{{$ctrl.person.numDirectReports}} {{ 'Title_DirectReports' | translate }}"></div>
 
@@ -32,7 +32,7 @@
         <div ng-bind="$ctrl.person.displayNames[1]"></div>
     </div>
 
-    <div class="details" ng-switch-when="large">
+    <div ng-class="{details: true, 'direct-reports': $ctrl.numDirectReportsVisible}" ng-switch-when="large">
         <div ng-bind="$ctrl.person.displayNames[0]"></div>
         <div ng-bind="$ctrl.person.displayNames[1]"></div>
         <div ng-bind="$ctrl.person.displayNames[2]"></div>
@@ -46,7 +46,7 @@
         </div>
     </div>
 
-    <div class="details" ng-switch-default>
+    <div ng-class="{details: true, 'direct-reports': $ctrl.numDirectReportsVisible}" ng-switch-default>
         <div ng-bind="$ctrl.person.displayNames[0]"></div>
         <div ng-bind="$ctrl.person.displayNames[1]"></div>
         <div ng-bind="$ctrl.person.displayNames[2]"></div>

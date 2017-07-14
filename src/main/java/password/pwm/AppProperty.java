@@ -29,7 +29,7 @@ import java.util.ResourceBundle;
  * by an associated {@code AppProperty.properties} file.  Properties can be overridden by the application administrator in
  * the configuration using the setting {@link password.pwm.config.PwmSetting#APP_PROPERTY_OVERRIDES}.
  */
-public enum     AppProperty {
+public enum AppProperty {
 
     APPLICATION_FILELOCK_FILENAME                   ("application.fileLock.filename"),
     APPLICATION_FILELOCK_WAIT_SECONDS               ("application.fileLock.waitSeconds"),
@@ -287,6 +287,11 @@ public enum     AppProperty {
     TOKEN_RESEND_DELAY_MS                           ("token.resend.delayMS"),
     TOKEN_REMOVE_ON_CLAIM                           ("token.removeOnClaim"),
     TOKEN_VERIFY_PW_MODIFY_TIME                     ("token.verifyPwModifyTime"),
+    TELEMETRY_SENDER_IMPLEMENTATION                 ("telemetry.senderImplementation"),
+    TELEMETRY_SENDER_SETTINGS                       ("telemetry.senderSettings"),
+    TELEMETRY_SEND_FREQUENCY_SECONDS                ("telemetry.sendFrequencySeconds"),
+    TELEMETRY_MIN_AUTHENTICATIONS                   ("telemetry.minimumAuthentications"),
+
 
 
     /** Regular expression to be used for matching URLs to be shortened by the URL Shortening Service Class. */

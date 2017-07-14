@@ -35,6 +35,7 @@
 <%@ include file="fragment/header.jsp" %>
 <% response.setHeader("Content-Encoding",""); //remove gzip encoding header %>
 <% final int statusCode = pageContext.getErrorData().getStatusCode(); %>
+
 <body class="nihilo" data-jsp-page="error-http.jsp">
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
