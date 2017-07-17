@@ -36,7 +36,7 @@
 <body class="nihilo">
 <div id="wrapper">
     <%@ include file="fragment/configguide-header.jsp"%>
-    <div id="centerbody">
+    <div id="centerbody" class="wide">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <br/>
         <div id="password" class="setting_outline">

@@ -172,6 +172,7 @@ public abstract class PwmConstants {
 
     public static final String RESOURCE_FILE_EULA_TXT = "eula.txt";
     public static final String RESOURCE_FILE_PRIVACY_TXT = "privacy.txt";
+    public static final String RESOURCE_FILE_WELCOME_TXT = "welcome.txt";
 
     // don't worry.  look over there.
     public static final String[] X_AMB_HEADER = new String[]{

@@ -35,6 +35,7 @@ import java.util.Set;
 public enum GuideStep {
     START(null),
     EULA(EulaVisibilityCheck.class),
+    MENU(null),
     TELEMETRY(TelemetryVisibilityCheck.class),
     TEMPLATE(null),
     LDAP_SERVER(null),

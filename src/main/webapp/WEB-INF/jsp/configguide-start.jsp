@@ -1,6 +1,6 @@
-<%@ page import="password.pwm.PwmEnvironment" %>
-<%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
+<%@ page import="password.pwm.util.java.JavaHelper" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
+<%@ page import="password.pwm.util.macro.MacroMachine" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -40,65 +40,31 @@
         <br/>
         <pwm:display key="Display_ConfigManagerNew" bundle="Config" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-
         <p>
             <pwm:if test="<%=PwmIfTest.appliance%>" negate="true">
                 Application Configuration Path: <code><%=StringUtil.escapeHtml(JspUtility.getPwmRequest(pageContext).getPwmApplication().getPwmEnvironment().getApplicationPath().getAbsolutePath())%></code>
             </pwm:if>
         </p>
-
-        <br/>
-        <table class="noborder">
-            <tr class="noborder">
-                <td class="noborder" class="menubutton_key">
-                    <a class="menubutton" id="button-startConfigGuide">
-                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-rocket"></span></pwm:if>
-                        <pwm:display key="MenuItem_StartConfigGuide" bundle="Config"/>
-                    </a>
-                </td>
-                <td class="noborder">
-                    <p><pwm:display key="MenuDisplay_StartConfigGuide" bundle="Config"/></p>
-                </td>
-            </tr>
-            <tr class="noborder">
-                <td class="noborder" class="menubutton_key">
-                    <a class="menubutton" id="button-manualConfig">
-                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-cogs"></span></pwm:if>
-                        <pwm:display key="MenuItem_ManualConfig" bundle="Config"/>
-                    </a>
-                </td>
-                <td class="noborder">
-                    <p><pwm:display key="MenuDisplay_ManualConfig" bundle="Config"/></p>
-                </td>
-            </tr>
-            <tr class="noborder">
-                <td class="noborder" class="menubutton_key">
-                    <a class="menubutton" id="button-uploadConfig">
-                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-upload"></span></pwm:if>
-                        <pwm:display key="MenuItem_UploadConfig" bundle="Config"/>
-                    </a>
-                </td>
-                <td class="noborder">
-                    <p><pwm:display key="MenuDisplay_UploadConfig" bundle="Config"/></p>
-                </td>
-            </tr>
-        </table>
+        <br/><br/>
+        <% String welcomeText = JavaHelper.readEulaText(ContextManager.getContextManager(session),PwmConstants.RESOURCE_FILE_WELCOME_TXT); %>
+        <% String macroText = MacroMachine.forStatic().expandMacros(welcomeText); %>
+        <% if (!StringUtil.isEmpty(macroText)) { %>
+        <div id="agreementText" class="eulaText"><%=macroText%></div>
+        <br/><br/>
+        <% } %>
+        <div class="buttonbar configguide">
+            <button class="btn" id="button_next">
+                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
+                <pwm:display key="Button_Next" bundle="Config"/>
+            </button>
+        </div>
     </div>
     <div class="push"></div>
 </div>
 <pwm:script>
     <script type="text/javascript">
-        PWM_GLOBAL['startupFunctions'].push(function() {
-            PWM_MAIN.addEventHandler('button-startConfigGuide', 'click', function () {
-                    PWM_GUIDE.gotoStep('NEXT');
-            });
-            PWM_MAIN.addEventHandler('button-manualConfig', 'click', function () {
-                    PWM_GUIDE.skipGuide();
-            });
-            PWM_MAIN.addEventHandler('button-uploadConfig', 'click', function () {
-                    PWM_CONFIG.uploadConfigDialog();
-            });
-
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            PWM_MAIN.addEventHandler('button_next','click',function(){PWM_GUIDE.gotoStep('NEXT')});
         });
     </script>
 </pwm:script>
