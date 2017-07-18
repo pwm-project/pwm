@@ -44,16 +44,5 @@ public class TelemetryPublishBean implements Serializable {
     private final List<String> configuredSettings;
     private final String versionBuild;
     private final String versionVersion;
-    private final Environment environment;
-
-    @Getter
-    @Builder
-    public static class Environment implements Serializable {
-        String osName;
-        String osVersion;
-        String javaVendor;
-        String javaName;
-        String javaVersion;
-        boolean appliance;
-    }
+    private final Map<String,String> about;
 }

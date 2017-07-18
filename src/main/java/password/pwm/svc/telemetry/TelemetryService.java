@@ -26,10 +26,10 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import lombok.Builder;
 import lombok.Getter;
 import password.pwm.AppProperty;
+import password.pwm.PwmAboutProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
-import password.pwm.PwmEnvironment;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.TelemetryPublishBean;
 import password.pwm.config.Configuration;
@@ -87,7 +87,7 @@ public class TelemetryService implements PwmService {
     @Override
     public STATUS status()
     {
-        return null;
+        return status;
     }
 
     @Override
@@ -230,16 +230,19 @@ public class TelemetryService implements PwmService {
     {
         final Map<String,String> debugMap = new LinkedHashMap<>();
         debugMap.put("lastPublishTime", JavaHelper.toIsoDate(lastPublishTime));
-        debugMap.put("lastError", lastError.toDebugStr());
+        if (lastError != null) {
+            debugMap.put("lastError", lastError.toDebugStr());
+        }
         return new ServiceInfoBean(null,Collections.unmodifiableMap(debugMap));
     }
 
 
-    private TelemetryPublishBean generatePublishableBean()
+    public TelemetryPublishBean generatePublishableBean()
             throws URISyntaxException, IOException, PwmUnrecoverableException
     {
         final StatisticsBundle bundle = pwmApplication.getStatisticsManager().getStatBundleForKey(StatisticsManager.KEY_CUMULATIVE);
         final Configuration config = pwmApplication.getConfig();
+        final Map<PwmAboutProperty,String> aboutPropertyStringMap = PwmAboutProperty.makeInfoBean(pwmApplication);
 
         final Map<String,String> statData = new TreeMap<>();
         for (final Statistic loopStat : Statistic.values()) {
@@ -262,6 +265,15 @@ public class TelemetryService implements PwmService {
             }
         }
 
+        final Map<String, String> aboutStrings = new TreeMap<>();
+        {
+            for (final PwmAboutProperty pwmAboutProperty : aboutPropertyStringMap.keySet()) {
+                aboutStrings.put(pwmAboutProperty.name(), aboutPropertyStringMap.get(pwmAboutProperty));
+            }
+            aboutStrings.remove(PwmAboutProperty.app_instanceID.name());
+            aboutStrings.remove(PwmAboutProperty.app_siteUrl.name());
+        }
+
         final TelemetryPublishBean.TelemetryPublishBeanBuilder builder = TelemetryPublishBean.builder();
         builder.timestamp(Instant.now());
         builder.id(makeId(pwmApplication));
@@ -273,17 +285,7 @@ public class TelemetryService implements PwmService {
         builder.ldapVendor(Collections.unmodifiableList(new ArrayList<>(ldapVendors)));
         builder.statistics(Collections.unmodifiableMap(statData));
         builder.configuredSettings(Collections.unmodifiableList(configuredSettings));
-
-        final TelemetryPublishBean.Environment environment = TelemetryPublishBean.Environment.builder()
-                .appliance(pwmApplication.getPwmEnvironment().getFlags().contains(PwmEnvironment.ApplicationFlag.Appliance))
-                .javaVendor(System.getProperty("java.vm.vendor"))
-                .javaName(System.getProperty("java.vm.name"))
-                .javaVersion(System.getProperty("java.vm.version"))
-                .osName(System.getProperty("os.name"))
-                .osVersion(System.getProperty("os.version"))
-                .build();
-        builder.environment(environment);
-
+        builder.about(aboutStrings);
         return builder.build();
     }
 

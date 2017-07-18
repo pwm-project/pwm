@@ -69,6 +69,7 @@ public enum PwmAboutProperty {
     app_configurationRestartCounter,
     app_secureBlockAlgorithm,
     app_secureHashAlgorithm,
+    app_ldapProfileCount,
 
     build_Time,
     build_Number,
@@ -92,6 +93,7 @@ public enum PwmAboutProperty {
     java_osVersion,
     java_randomAlgorithm,
     java_defaultCharset,
+    java_appServerInfo,
 
     database_driverName,
     database_driverVersion,
@@ -113,6 +115,7 @@ public enum PwmAboutProperty {
         aboutMap.put(app_startTime,                dateFormatForInfoBean(pwmApplication.getStartupTime()));
         aboutMap.put(app_installTime,              dateFormatForInfoBean(pwmApplication.getInstallTime()));
         aboutMap.put(app_siteUrl,                  pwmApplication.getConfig().readSettingAsString(PwmSetting.PWM_SITE_URL));
+        aboutMap.put(app_ldapProfileCount,         Integer.toString(pwmApplication.getConfig().getLdapProfiles().size()));
         aboutMap.put(app_instanceID,               pwmApplication.getInstanceID());
         aboutMap.put(app_trialMode,                Boolean.toString(PwmConstants.TRIAL_MODE));
         if (pwmApplication.getPwmEnvironment() != null) {
@@ -208,6 +211,11 @@ public enum PwmAboutProperty {
             } catch (Throwable t) {
                 LOGGER.error("error reading database debug properties");
             }
+        }
+
+        if (pwmApplication.getPwmEnvironment().getContextManager() != null
+                && pwmApplication.getPwmEnvironment().getContextManager().getServerInfo() != null) {
+            aboutMap.put(java_appServerInfo, pwmApplication.getPwmEnvironment().getContextManager().getServerInfo());
         }
 
         return Collections.unmodifiableMap(aboutMap);
