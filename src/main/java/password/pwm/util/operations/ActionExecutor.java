@@ -155,7 +155,7 @@ public class ActionExecutor {
                 }
                 final MacroMachine macroMachine = settings.getMacroMachine();
 
-                url = macroMachine.expandMacros(url, new MacroMachine.URLEncoderReplacer());
+                url = macroMachine.expandMacros(url);
                 body = body == null ? "" : macroMachine.expandMacros(body);
 
                 for (final String headerName : headers.keySet()) {
