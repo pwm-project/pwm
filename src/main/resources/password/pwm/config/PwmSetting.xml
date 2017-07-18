@@ -2576,6 +2576,7 @@
         <flag>Form_ShowUniqueOption</flag>
         <flag>Form_ShowRequiredOption</flag>
         <flag>Form_ShowReadOnlyOption</flag>
+        <flag>Form_ShowSource</flag>
         <default>
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"unique":true,"labels":{"":"Email Address"},"regexErrors":{"":"Email Address has invalid characters"},"description":{"":""},"placeholder":"username@example.com","selectOptions":{},regex:"^[a-zA-Z0-9 .,'@]*$"}</value>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{},regex:"^[a-zA-Z0-9 .,'@]*$"}</value>
@@ -2589,10 +2590,10 @@
             <option value="random">random</option>
             <option value="tel">tel</option>
             <option value="hidden">hidden</option>
-            <option value="date">date</option>
-            <option value="datetime">datetime</option>
-            <option value="week">week</option>
-            <option value="month">month</option>
+            <!--<option value="date">date</option>-->
+            <!--<option value="datetime">datetime</option>-->
+            <!--<option value="week">week</option>-->
+            <!--<option value="month">month</option>-->
             <option value="url">url</option>
             <option value="select">select</option>
             <option value="checkbox">checkbox</option>
@@ -2690,10 +2691,10 @@
             <option value="random">random</option>
             <option value="tel">tel</option>
             <option value="hidden">hidden</option>
-            <option value="date">date</option>
-            <option value="datetime">datetime</option>
-            <option value="week">week</option>
-            <option value="month">month</option>
+            <!--<option value="date">date</option>-->
+            <!--<option value="datetime">datetime</option>-->
+            <!--<option value="week">week</option>-->
+            <!--<option value="month">month</option>-->
             <option value="url">url</option>
             <option value="select">select</option>
             <option value="checkbox">checkbox</option>
@@ -2718,10 +2719,10 @@
             <option value="random">random</option>
             <option value="tel">tel</option>
             <option value="hidden">hidden</option>
-            <option value="date">date</option>
-            <option value="datetime">datetime</option>
-            <option value="week">week</option>
-            <option value="month">month</option>
+            <!--<option value="date">date</option>-->
+            <!--<option value="datetime">datetime</option>-->
+            <!--<option value="week">week</option>-->
+            <!--<option value="month">month</option>-->
             <option value="url">url</option>
             <option value="select">select</option>
             <option value="checkbox">checkbox</option>
@@ -2803,10 +2804,10 @@
             <option value="random">random</option>
             <option value="tel">tel</option>
             <option value="hidden">hidden</option>
-            <option value="date">date</option>
-            <option value="datetime">datetime</option>
-            <option value="week">week</option>
-            <option value="month">month</option>
+            <!--<option value="date">date</option>-->
+            <!--<option value="datetime">datetime</option>-->
+            <!--<option value="week">week</option>-->
+            <!--<option value="month">month</option>-->
             <option value="url">url</option>
             <option value="select">select</option>
             <option value="checkbox">checkbox</option>
@@ -2902,10 +2903,10 @@
             <option value="random">random</option>
             <option value="tel">tel</option>
             <option value="hidden">hidden</option>
-            <option value="date">date</option>
-            <option value="datetime">datetime</option>
-            <option value="week">week</option>
-            <option value="month">month</option>
+            <!--<option value="date">date</option>-->
+            <!--<option value="datetime">datetime</option>-->
+            <!--<option value="week">week</option>-->
+            <!--<option value="month">month</option>-->
             <option value="url">url</option>
             <option value="select">select</option>
             <option value="checkbox">checkbox</option>
@@ -3634,7 +3635,7 @@
         <default/>
         <options>
             <option value="SigningForm">Signing Form Service - /signing/form</option>
-            <option value="Health">Signing Form Service - /health</option>
+            <option value="Health">Health Service - /health</option>
         </options>
     </setting>
     <setting hidden="false" key="webservices.queryMatch" level="2">

@@ -51,14 +51,36 @@ import java.util.regex.PatternSyntaxException;
  * @author Jason D. Rivard
  */
 public class FormConfiguration implements Serializable {
-// ------------------------------ FIELDS ------------------------------
 
-    public enum Type {text, email, number, password, random, tel, hidden, date, datetime, time, week, month, url, select, userDN, checkbox}
+    public enum Type {
+        text,
+        email,
+        number,
+        password,
+        random,
+        tel,
+        hidden,
+        date,
+        datetime,
+        time,
+        week,
+        month,
+        url,
+        select,
+        userDN,
+        checkbox,
+    }
 
-    private String name;
+    public enum Source {
+        ldap,
+        remote,
+    }
+
+    private String name = "";
     private int minimumLength;
     private int maximumLength;
     private Type type = Type.text;
+    private Source source = Source.ldap;
     private boolean required;
     private boolean confirmationRequired;
     private boolean readonly;
@@ -67,9 +89,9 @@ public class FormConfiguration implements Serializable {
     private Map<String,String> labels = Collections.singletonMap("", "");
     private Map<String,String> regexErrors = Collections.singletonMap("","");
     private Map<String,String> description = Collections.singletonMap("","");
-    private String regex;
-    private String placeholder;
-    private String javascript;
+    private String regex = "";
+    private String placeholder = "";
+    private String javascript = "";
     private Map<String,String> selectOptions = Collections.emptyMap();
 
 // -------------------------- STATIC METHODS --------------------------
