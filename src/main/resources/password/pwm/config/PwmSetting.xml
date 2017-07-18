@@ -3634,6 +3634,7 @@
         <default/>
         <options>
             <option value="SigningForm">Signing Form Service - /signing/form</option>
+            <option value="Health">Signing Form Service - /health</option>
         </options>
     </setting>
     <setting hidden="false" key="webservices.queryMatch" level="2">

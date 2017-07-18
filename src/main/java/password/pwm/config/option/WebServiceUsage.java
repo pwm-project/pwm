@@ -23,5 +23,6 @@
 package password.pwm.config.option;
 
 public enum WebServiceUsage {
-    SigningForm
+    Health,
+    SigningForm,
 }

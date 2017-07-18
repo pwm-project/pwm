@@ -34,6 +34,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.secure.PwmBlockAlgorithm;
 import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.util.secure.SecureEngine;
@@ -176,12 +177,37 @@ public class NamedSecretValue implements StoredValue {
 
     @Override
     public String toDebugString(final Locale locale) {
-        return PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT;
+        final StringBuilder sb = new StringBuilder();
+        for (final String name : values.keySet()) {
+            final NamedSecretData existingData = values.get(name);
+            sb.append("Named password '").append(name).append("' with usage for ");
+            sb.append(StringUtil.collectionToString(existingData.getUsage(), ","));
+            sb.append("\n");
+
+        }
+        return sb.toString();
     }
 
     @Override
     public Serializable toDebugJsonObject(final Locale locale) {
-        return PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT;
+        if (values == null) {
+            return null;
+        }
+
+        try {
+            final LinkedHashMap<String,NamedSecretData> copiedValues = new LinkedHashMap<>();
+            for (final String name : values.keySet()) {
+                final NamedSecretData existingData = values.get(name);
+                final NamedSecretData newData = new NamedSecretData(
+                        PasswordData.forStringValue(PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT),
+                        existingData.getUsage()
+                );
+                copiedValues.put(name, newData);
+            }
+            return copiedValues;
+        } catch (PwmUnrecoverableException e) {
+            throw new IllegalStateException(e.getErrorInformation().toDebugStr());
+        }
     }
 
     public boolean requiresStoredUpdate()
