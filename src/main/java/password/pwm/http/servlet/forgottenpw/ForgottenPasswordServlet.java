@@ -29,6 +29,8 @@ import com.novell.ldapchai.cr.ResponseSet;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
+import com.novell.ldapchai.provider.ChaiProvider;
+
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -83,6 +85,7 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.svc.token.TokenPayload;
 import password.pwm.svc.token.TokenType;
+import password.pwm.util.AttributeCompareUtility;
 import password.pwm.util.CaptchaUtility;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.PasswordData;
@@ -99,6 +102,7 @@ import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -744,7 +748,15 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
                     if (theUser.compareStringAttribute(attrName, formValues.get(paramConfig))) {
                         LOGGER.trace(pwmRequest, "successful validation of ldap attribute value for '" + attrName + "'");
                     } else {
-                        throw new PwmDataValidationException(new ErrorInformation(PwmError.ERROR_INCORRECT_RESPONSE, "incorrect value for '" + attrName + "'", new String[]{attrName}));
+                        if (paramConfig.isFuzzyMatch()) {
+                            if (AttributeCompareUtility.compareNormalizedStringAttributes(theUser, attrName, formValues.get(paramConfig))) {
+                                LOGGER.trace(pwmRequest, "successful fuzzy validation of ldap attribute value for '" + attrName + "'");
+                            } else {
+                                throw new PwmDataValidationException(new ErrorInformation(PwmError.ERROR_INCORRECT_RESPONSE, "incorrect value for '" + attrName + "' (fuzzyMatch)", new String[]{attrName}));
+                            }
+                        } else {
+                            throw new PwmDataValidationException(new ErrorInformation(PwmError.ERROR_INCORRECT_RESPONSE, "incorrect value for '" + attrName + "'", new String[]{attrName}));
+                        }
                     }
                 } catch (ChaiOperationException e) {
                     LOGGER.error(pwmRequest, "error during param validation of '" + attrName + "', error: " + e.getMessage());

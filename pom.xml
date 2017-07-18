@@ -658,6 +658,14 @@
             <version>2013.04.26</version>
         </dependency>
         <!-- / Novell jars (not available from a maven repo) -->
+        
+        <!-- Other jars (not available from a maven repo)  -->
+		<dependency>
+		    <groupId>gcardone</groupId>
+		    <artifactId>gcardone.junidecode</artifactId>
+		    <version>0.2</version>
+		</dependency>
+        <!-- / Other jars (not available from a maven repo)  -->
 
         <dependency>
             <groupId>com.github.ldapchai</groupId>
@@ -673,6 +681,11 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-csv</artifactId>
             <version>1.4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-text</artifactId>
+            <version>1.0</version>
         </dependency>
         <dependency>
             <groupId>commons-fileupload</groupId>

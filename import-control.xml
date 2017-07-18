@@ -121,6 +121,11 @@
         <allow pkg="java.sql"/>
     </subpackage>
 
+    <!-- fuzzy match -->
+    <subpackage name="util">
+        <allow pkg="gcardone.junidecode"/>
+    </subpackage>
+
     <subpackage name="http.client">
         <allow pkg="org.apache.http"/>
     </subpackage>
