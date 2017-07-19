@@ -14,6 +14,7 @@
 <%@ page import="password.pwm.http.tag.value.PwmValue" %>
 <%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <%@ page import="java.util.Collections" %>
+<%@ page import="password.pwm.config.CustomLinkConfiguration" %>
 
 <%--
   ~ Password Management Servlets (PWM)
@@ -38,10 +39,22 @@
   --%>
 
 <%@ taglib uri="pwm" prefix="pwm" %>
-<%
-    final PwmRequest formPwmRequest = PwmRequest.forRequest(request,response);
-    final List<FormConfiguration> formConfigurationList = (List<FormConfiguration>)JspUtility.getAttribute(pageContext, PwmRequestAttribute.FormConfiguration);
-%>
+
+    <% final PwmRequest formPwmRequest = PwmRequest.forRequest(request,response); %>
+    <% final List<FormConfiguration> formConfigurationList = (List<FormConfiguration>)JspUtility.getAttribute(pageContext, PwmRequestAttribute.FormConfiguration); %>
+    <% final List<CustomLinkConfiguration> linkConfigurationList = (List<CustomLinkConfiguration>)JspUtility.getAttribute(pageContext, PwmRequestAttribute.FormCustomLinks); %>
+    <% final Locale formLocale = formPwmRequest.getLocale(); %>
+    <% if (linkConfigurationList != null) { %>
+        <% for (final CustomLinkConfiguration loopList : linkConfigurationList) { %>
+           <% if (loopList.isCustomLinkNewWindow()) { %>
+                <a href=<%=loopList.getcustomLinkUrl()%> title=<%=loopList.getDescription(formLocale)%> target="_blank"><%=loopList.getLabel(formLocale)%></a>
+            <% } else { %>
+                <a href=<%=loopList.getcustomLinkUrl()%> title=<%=loopList.getDescription(formLocale)%>><%=loopList.getLabel(formLocale)%></a>
+            <% } %>
+        <% } %>
+    <% } %>
+
+    <hr>
 <% if (formConfigurationList == null) { %>
 [ form definition is not available ]
 <% } else if (formConfigurationList.isEmpty()) { %>
@@ -56,7 +69,6 @@
             : Collections.<String,String>emptyMap();
 
     final PwmApplication pwmApplication = formPwmRequest.getPwmApplication();
-    final Locale formLocale = formPwmRequest.getLocale();
     for (final FormConfiguration loopConfiguration : formConfigurationList) {
         String currentValue = formDataMap != null ? formDataMap.get(loopConfiguration) : "";
         currentValue = currentValue == null ? "" : currentValue;
@@ -67,6 +79,12 @@
     <% if (loopConfiguration.getType().equals(FormConfiguration.Type.hidden)) { %>
     <input style="text-align: left;" id="<%=loopConfiguration.getName()%>" type="hidden" class="inputfield"
            name="<%=loopConfiguration.getName()%>" value="<%= currentValue %>"/>
+    <% } else if (loopConfiguration.getType().equals(FormConfiguration.Type.customLink)) { %>
+        <% if (loopConfiguration.isCustomLinkNewWindow()) { %>
+            <a href=<%=loopConfiguration.getcustomLinkUrl()%> title=<%=loopConfiguration.getDescription(formLocale)%> target="_blank"><%=loopConfiguration.getLabel(formLocale)%></a>
+        <% } else { %>
+            <a href=<%=loopConfiguration.getcustomLinkUrl()%> title=<%=loopConfiguration.getDescription(formLocale)%>><%=loopConfiguration.getLabel(formLocale)%></a>
+        <% } %>
     <% } else if (loopConfiguration.getType().equals(FormConfiguration.Type.checkbox)) { %>
     <% final boolean checked = FormUtility.checkboxValueIsChecked(formDataMap.get(loopConfiguration)); %>
     <label class="checkboxWrapper">

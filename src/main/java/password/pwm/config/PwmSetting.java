@@ -868,7 +868,7 @@ public enum PwmSetting {
             "updateAttributes.sms.verification", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UPDATE_PROFILE),
 
     UPDATE_PROFILE_CUSTOMLINKS(
-            "updateAttributes.customLinks.verification", PwmSettingSyntax.FORM, PwmSettingCategory.UPDATE_PROFILE),
+            "updateAttributes.customLinks", PwmSettingSyntax.CUSTOMLINKS, PwmSettingCategory.UPDATE_PROFILE),
 
     // shortcut settings
     SHORTCUT_ENABLE(

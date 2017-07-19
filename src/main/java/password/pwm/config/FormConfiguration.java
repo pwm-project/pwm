@@ -53,7 +53,7 @@ import java.util.regex.PatternSyntaxException;
 public class FormConfiguration implements Serializable {
 // ------------------------------ FIELDS ------------------------------
 
-    public enum Type {text, email, number, password, random, tel, hidden, date, datetime, time, week, month, url, select, userDN, checkbox}
+    public enum Type {text, email, number, password, random, tel, hidden, date, datetime, time, week, month, url, select, userDN, checkbox, customLink}
 
     private String name;
     private int minimumLength;
@@ -70,6 +70,8 @@ public class FormConfiguration implements Serializable {
     private String regex;
     private String placeholder;
     private String javascript;
+    private String customLinkUrl = "";
+    private boolean customLinkNewWindow = true;
     private Map<String,String> selectOptions = Collections.emptyMap();
 
 // -------------------------- STATIC METHODS --------------------------
@@ -214,6 +216,14 @@ public class FormConfiguration implements Serializable {
 
     public boolean isMultivalue() {
         return multivalue;
+    }
+
+    public boolean isCustomLinkNewWindow() {
+        return customLinkNewWindow;
+    }
+
+    public String getcustomLinkUrl() {
+        return customLinkUrl;
     }
 
     public String getRegex() {
