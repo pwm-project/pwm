@@ -42,6 +42,8 @@ public enum PwmRequestAttribute {
     FormReadOnly,
     FormShowPasswordFields,
     FormData,
+    FormMobileDevices,
+    FormCustomLinks,
 
     SetupResponses_ResponseInfo,
 

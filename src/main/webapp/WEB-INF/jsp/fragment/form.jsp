@@ -14,6 +14,7 @@
 <%@ page import="password.pwm.http.tag.value.PwmValue" %>
 <%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <%@ page import="java.util.Collections" %>
+<%@ page import="password.pwm.config.CustomLinkConfiguration" %>
 
 <%--
   ~ Password Management Servlets (PWM)
@@ -38,10 +39,22 @@
   --%>
 
 <%@ taglib uri="pwm" prefix="pwm" %>
-<%
-    final PwmRequest formPwmRequest = PwmRequest.forRequest(request,response);
-    final List<FormConfiguration> formConfigurationList = (List<FormConfiguration>)JspUtility.getAttribute(pageContext, PwmRequestAttribute.FormConfiguration);
-%>
+
+    <% final PwmRequest formPwmRequest = PwmRequest.forRequest(request,response); %>
+    <% final List<FormConfiguration> formConfigurationList = (List<FormConfiguration>)JspUtility.getAttribute(pageContext, PwmRequestAttribute.FormConfiguration); %>
+    <% final List<CustomLinkConfiguration> linkConfigurationList = (List<CustomLinkConfiguration>)JspUtility.getAttribute(pageContext, PwmRequestAttribute.FormCustomLinks); %>
+    <% final Locale formLocale = formPwmRequest.getLocale(); %>
+    <% if (linkConfigurationList != null) { %>
+        <% for (final CustomLinkConfiguration loopList : linkConfigurationList) { %>
+           <% if (loopList.isCustomLinkNewWindow()) { %>
+                <a href=<%=loopList.getcustomLinkUrl()%> title=<%=loopList.getDescription(formLocale)%> target="_blank"><%=loopList.getLabel(formLocale)%></a><br>
+            <% } else { %>
+                <a href=<%=loopList.getcustomLinkUrl()%> title=<%=loopList.getDescription(formLocale)%>><%=loopList.getLabel(formLocale)%></a><br>
+            <% } %>
+        <% } %>
+    <% } %>
+
+    <hr>
 <% if (formConfigurationList == null) { %>
 [ form definition is not available ]
 <% } else if (formConfigurationList.isEmpty()) { %>
@@ -56,7 +69,6 @@
             : Collections.<String,String>emptyMap();
 
     final PwmApplication pwmApplication = formPwmRequest.getPwmApplication();
-    final Locale formLocale = formPwmRequest.getLocale();
     for (final FormConfiguration loopConfiguration : formConfigurationList) {
         String currentValue = formDataMap != null ? formDataMap.get(loopConfiguration) : "";
         currentValue = currentValue == null ? "" : currentValue;
