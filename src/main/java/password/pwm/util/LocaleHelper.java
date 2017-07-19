@@ -26,7 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.pub.SessionStateInfoBean;
-import password.pwm.config.ChallengeItemConfiguration;
+import password.pwm.config.value.data.ChallengeItemConfiguration;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingTemplateSet;

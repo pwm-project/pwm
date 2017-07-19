@@ -25,7 +25,7 @@ package password.pwm.http.servlet.configguide;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingTemplate;
 import password.pwm.config.StoredValue;
-import password.pwm.config.UserPermission;
+import password.pwm.config.value.data.UserPermission;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.config.value.BooleanValue;
 import password.pwm.config.value.FileValue;

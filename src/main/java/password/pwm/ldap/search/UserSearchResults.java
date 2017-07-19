@@ -24,7 +24,7 @@ package password.pwm.ldap.search;
 
 import password.pwm.PwmApplication;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.FormConfiguration;
+import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.PwmUnrecoverableException;
 
 import java.io.Serializable;

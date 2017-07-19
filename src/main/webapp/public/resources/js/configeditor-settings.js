@@ -845,9 +845,9 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
     }
 
     if (!hideStandardOptions) {
-        bodyText += '<td class="key">Minimum Length</td><td><input min="0", max="65536" style="width: 70px" type="number" id="' + inputID + 'minimumLength' + '"/></td>';
+        bodyText += '<td class="key">Minimum Length</td><td><input min="0" pattern="[0-9]{1,5}" required max="65536" style="width: 70px" type="number" id="' + inputID + 'minimumLength' + '"/></td>';
         bodyText += '</tr><tr>';
-        bodyText += '<td class="key">Maximum Length</td><td><input min="0", max="65536" style="width: 70px" type="number" id="' + inputID + 'maximumLength' + '"/></td>';
+        bodyText += '<td class="key">Maximum Length</td><td><input min="0" pattern="[0-9]{1,5}" max="65536" style="width: 70px" type="number" id="' + inputID + 'maximumLength' + '"/></td>';
         bodyText += '</tr><tr>';
 
         { // regex

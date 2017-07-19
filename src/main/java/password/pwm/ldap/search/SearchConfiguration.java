@@ -25,7 +25,7 @@ package password.pwm.ldap.search;
 import com.novell.ldapchai.provider.ChaiProvider;
 import lombok.Builder;
 import lombok.Getter;
-import password.pwm.config.FormConfiguration;
+import password.pwm.config.value.data.FormConfiguration;
 
 import java.io.Serializable;
 import java.util.List;

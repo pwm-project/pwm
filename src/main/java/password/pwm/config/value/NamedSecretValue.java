@@ -25,7 +25,7 @@ package password.pwm.config.value;
 import com.google.gson.reflect.TypeToken;
 import org.jdom2.Element;
 import password.pwm.PwmConstants;
-import password.pwm.config.NamedSecretData;
+import password.pwm.config.value.data.NamedSecretData;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.error.ErrorInformation;

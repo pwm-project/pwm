@@ -70,6 +70,7 @@ public enum PwmSettingSyntax {
     VERIFICATION_METHOD(VerificationMethodValue.factory()),
     PRIVATE_KEY(PrivateKeyValue.factory()),
     NAMED_SECRET(NamedSecretValue.factory()),
+    REMOTE_WEB_SERVICE(NamedSecretValue.factory()),
 
     ;
 

@@ -22,6 +22,8 @@
 
 package password.pwm.config;
 
+import password.pwm.config.value.data.ActionConfiguration;
+import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.util.PasswordData;
 
 import java.security.cert.X509Certificate;

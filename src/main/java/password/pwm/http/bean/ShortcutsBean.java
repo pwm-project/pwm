@@ -22,7 +22,7 @@
 
 package password.pwm.http.bean;
 
-import password.pwm.config.ShortcutItem;
+import password.pwm.config.value.data.ShortcutItem;
 import password.pwm.config.option.SessionBeanMode;
 
 import java.util.Arrays;

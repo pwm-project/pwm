@@ -1,5 +1,5 @@
 <%@ page import="password.pwm.PwmApplication" %>
-<%@ page import="password.pwm.config.FormConfiguration" %>
+<%@ page import="password.pwm.config.value.data.FormConfiguration" %>
 <%@ page import="password.pwm.config.FormUtility" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.error.PwmError" %>

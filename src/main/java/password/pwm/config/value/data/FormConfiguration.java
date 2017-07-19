@@ -20,10 +20,12 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.config;
+package password.pwm.config.value.data;
 
+import lombok.Getter;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
+import password.pwm.config.Configuration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
@@ -50,6 +52,7 @@ import java.util.regex.PatternSyntaxException;
 /**
  * @author Jason D. Rivard
  */
+@Getter
 public class FormConfiguration implements Serializable {
 
     public enum Type {
@@ -94,7 +97,18 @@ public class FormConfiguration implements Serializable {
     private String javascript = "";
     private Map<String,String> selectOptions = Collections.emptyMap();
 
-// -------------------------- STATIC METHODS --------------------------
+
+    public String getRegexError(final Locale locale) {
+        return LocaleHelper.resolveStringKeyLocaleMap(locale, regexErrors);
+    }
+
+    public String getLabel(final Locale locale) {
+        return LocaleHelper.resolveStringKeyLocaleMap(locale, labels);
+    }
+
+    public String getDescription(final Locale locale) {
+        return LocaleHelper.resolveStringKeyLocaleMap(locale, description);
+    }
 
     public static FormConfiguration parseOldConfigString(final String config)
             throws PwmOperationalException
@@ -173,88 +187,11 @@ public class FormConfiguration implements Serializable {
         }
     }
 
-// --------------------------- CONSTRUCTORS ---------------------------
-
     public FormConfiguration() {
         labels = Collections.singletonMap("","");
         regexErrors = Collections.singletonMap("","");
     }
 
-// --------------------- GETTER / SETTER METHODS ---------------------
-
-    public String getName() {
-        return name;
-    }
-
-    public String getLabel(final Locale locale) {
-        return LocaleHelper.resolveStringKeyLocaleMap(locale, labels);
-    }
-
-    public Map<String,String> getLabelLocaleMap() {
-        return Collections.unmodifiableMap(this.labels);
-    }
-
-    public String getRegexError(final Locale locale) {
-        return LocaleHelper.resolveStringKeyLocaleMap(locale, regexErrors);
-    }
-
-    public String getDescription(final Locale locale) {
-        return LocaleHelper.resolveStringKeyLocaleMap(locale, description);
-    }
-
-    public Map<String,String> getLabelDescriptionLocaleMap() {
-        return Collections.unmodifiableMap(this.description);
-    }
-
-    public int getMaximumLength() {
-        return maximumLength;
-    }
-
-    public int getMinimumLength() {
-        return minimumLength;
-    }
-
-    public Type getType() {
-        return type;
-    }
-
-    public boolean isConfirmationRequired() {
-        return confirmationRequired;
-    }
-
-    public boolean isRequired() {
-        return required;
-    }
-
-    public boolean isReadonly() {
-        return readonly;
-    }
-
-    public boolean isUnique() {
-        return unique;
-    }
-
-    public boolean isMultivalue() {
-        return multivalue;
-    }
-
-    public String getRegex() {
-        return regex;
-    }
-
-    public String getPlaceholder() {
-        return placeholder;
-    }
-
-    public String getJavascript() {
-        return javascript;
-    }
-
-    public Map<String,String> getSelectOptions() {
-        return Collections.unmodifiableMap(selectOptions);
-    }
-
-// ------------------------ CANONICAL METHODS ------------------------
 
     public boolean equals(final Object o) {
         if (this == o) {
@@ -283,8 +220,6 @@ public class FormConfiguration implements Serializable {
     }
 
 
-
-// -------------------------- OTHER METHODS --------------------------
 
     public void checkValue(final Configuration config, final String value, final Locale locale)
             throws PwmDataValidationException, PwmUnrecoverableException {
