@@ -809,33 +809,32 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
     var showMultiValue = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_ShowMultiValueOption');
     var showConfirmation = type != 'checkbox' && type != 'select' && !hideStandardOptions;
 
-
     require(["dijit/Dialog","dijit/form/Textarea","dijit/form/CheckBox","dijit/form/NumberSpinner"],function(){
         var inputID = 'value_' + keyName + '_' + iteration + "_";
-        var bodyText = '<div style="max-height: 500px; overflow-y: auto"><table class="noborder">';
+        var bodyText = '<div style="max-height: 500px; overflow-x: auto"><table class="noborder">';
         if (!hideStandardOptions) {
             bodyText += '<tr>';
             var descriptionValue = PWM_VAR['clientSettingCache'][keyName][iteration]['description'][''];
             bodyText += '<td id="' + inputID + '-label-description" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_Description') + '">Description</td><td>';
             bodyText += '<div class="noWrapTextBox" id="' + inputID + 'description"><span class="btn-icon pwm-icon pwm-icon-edit"></span><span>' + descriptionValue + '...</span></div>';
             bodyText += '</td>';
-        }
 
-        bodyText += '</tr><tr>';
-        if (showRequired) {
-            bodyText += '<td id="' + inputID + '-label-required" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_Required') + '">Required</td><td><input type="checkbox" id="' + inputID + 'required' + '"/></td>';
             bodyText += '</tr><tr>';
         }
         if (showConfirmation) {
             bodyText += '<td id="' + inputID + '-label-confirm" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_Confirm') + '">Confirm</td><td><input type="checkbox" id="' + inputID + 'confirmationRequired' + '"/></td>';
             bodyText += '</tr><tr>';
         }
-        if (showReadOnly) {
-            bodyText += '<td id="' + inputID + '-label-readOnly" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_ReadOnly') + '">Read Only</td><td><input type="checkbox" id="' + inputID + 'readonly' + '"/></td>';
-            bodyText += '</tr><tr>';
-        }
         if (showUnique) {
             bodyText += '<td id="' + inputID + '-label-unique" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_Unique') + '">Unique</td><td><input type="checkbox" id="' + inputID + 'unique' + '"/></td>';
+            bodyText += '</tr><tr>';
+        }
+        if (showRequired) {
+            bodyText += '<td id="' + inputID + '-label-required" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_Required') + '">Required</td><td><input type="checkbox" id="' + inputID + 'required' + '"/></td>';
+            bodyText += '</tr><tr>';
+        }
+        if (showReadOnly) {
+            bodyText += '<td id="' + inputID + '-label-readOnly" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_ReadOnly') + '">Read Only</td><td><input type="checkbox" id="' + inputID + 'readonly' + '"/></td>';
             bodyText += '</tr><tr>';
         }
         if (showMultiValue) {
@@ -843,30 +842,28 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
             bodyText += '</tr><tr>';
         }
 
-        if (!hideStandardOptions) {
-            bodyText += '<td class="key">Minimum Length</td><td><input type="number" id="' + inputID + 'minimumLength' + '"/></td>';
-            bodyText += '</tr><tr>';
-            bodyText += '<td class="key">Maximum Length</td><td><input type="number" id="' + inputID + 'maximumLength' + '"/></td>';
+        bodyText += '<td class="key">Minimum Length</td><td><input type="number" id="' + inputID + 'minimumLength' + '"/></td>';
+        bodyText += '</tr><tr>';
+        bodyText += '<td class="key">Maximum Length</td><td><input type="number" id="' + inputID + 'maximumLength' + '"/></td>';
+        bodyText += '</tr><tr>';
+
+        { // regex
+            bodyText += '<td id="' + inputID + '-label-regex" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_Regex') + '">Regular Expression</td><td><input type="text" class="configStringInput" id="' + inputID + 'regex' + '"/></td>';
             bodyText += '</tr><tr>';
 
-            { // regex
-                bodyText += '<td id="' + inputID + '-label-regex" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_Regex') + '">Regular Expression</td><td><input type="text" class="configStringInput" id="' + inputID + 'regex' + '"/></td>';
-                bodyText += '</tr><tr>';
-
-                var regexErrorValue = PWM_VAR['clientSettingCache'][keyName][iteration]['regexErrors'][''];
-                bodyText += '<td id="' + inputID + '-label-regexError" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_RegexError') + '">Regular Expression<br/>Error Message</td><td>';
-                bodyText += '<div class="noWrapTextBox" id="' + inputID + 'regexErrors"><span class="btn-icon pwm-icon pwm-icon-edit"></span><span>' + regexErrorValue + '...</span></div>';
-                bodyText += '</td>';
-                bodyText += '</tr><tr>';
-            }
-            bodyText += '<td id="' + inputID + '-label-placeholder" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_Placeholder') + '">Placeholder</td><td><input type="text" id="' + inputID + 'placeholder' + '"/></td>';
+            var regexErrorValue = PWM_VAR['clientSettingCache'][keyName][iteration]['regexErrors'][''];
+            bodyText += '<td id="' + inputID + '-label-regexError" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_RegexError') + '">Regular Expression<br/>Error Message</td><td>';
+            bodyText += '<div class="noWrapTextBox" id="' + inputID + 'regexErrors"><span class="btn-icon pwm-icon pwm-icon-edit"></span><span>' + regexErrorValue + '...</span></div>';
+            bodyText += '</td>';
             bodyText += '</tr><tr>';
-            bodyText += '<td id="' + inputID + '-label-js" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_Javascript') + '">JavaScript</td><td><input type="text" id="' + inputID + 'javascript' + '"/></td>';
-            bodyText += '</tr><tr>';
-            if (PWM_VAR['clientSettingCache'][keyName][iteration]['type'] == 'select') {
-                bodyText += '<td class="key">Select Options</td><td><button id="' + inputID + 'editOptionsButton"><span class="btn-icon pwm-icon pwm-icon-list-ul"/> Edit</button></td>';
-                bodyText += '</tr>';
-            }
+        }
+        bodyText += '<td id="' + inputID + '-label-placeholder" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_Placeholder') + '">Placeholder</td><td><input type="text" id="' + inputID + 'placeholder' + '"/></td>';
+        bodyText += '</tr><tr>';
+        bodyText += '<td id="' + inputID + '-label-js" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_Javascript') + '">JavaScript</td><td><input type="text" id="' + inputID + 'javascript' + '"/></td>';
+        bodyText += '</tr><tr>';
+        if (PWM_VAR['clientSettingCache'][keyName][iteration]['type'] == 'select') {
+            bodyText += '<td class="key">Select Options</td><td><button id="' + inputID + 'editOptionsButton"><span class="btn-icon pwm-icon pwm-icon-list-ul"/> Edit</button></td>';
+            bodyText += '</tr>';
         }
         bodyText += '</table></div>';
 
@@ -3334,3 +3331,425 @@ NamedSecretHandler.deletePassword = function(settingKey, key) {
     });
 
 };
+
+
+// -------------------------- Custom link handler ------------------------------------
+
+var CustomLinkHandler = {};
+CustomLinkHandler.newRowValue = {
+    name:'',
+    labels:{'':''},
+    description:{'':''}
+};
+
+CustomLinkHandler.init = function(keyName) {
+    console.log('CustomLinkHandler init for ' + keyName);
+    var parentDiv = 'table_setting_' + keyName;
+    PWM_CFGEDIT.clearDivElements(parentDiv, true);
+    PWM_CFGEDIT.readSetting(keyName, function(resultValue) {
+        PWM_VAR['clientSettingCache'][keyName] = resultValue;
+        CustomLinkHandler.redraw(keyName);
+    });
+};
+
+CustomLinkHandler.redraw = function(keyName) {
+    var resultValue = PWM_VAR['clientSettingCache'][keyName];
+    var parentDiv = 'table_setting_' + keyName;
+    var parentDivElement = PWM_MAIN.getObject(parentDiv);
+
+    parentDivElement.innerHTML = '<table class="noborder" style="margin-left: 0; width:auto" id="table-top-' + keyName + '"></table>';
+    parentDiv = 'table-top-' + keyName;
+    parentDivElement = PWM_MAIN.getObject(parentDiv);
+
+    if (!PWM_MAIN.JSLibrary.isEmpty(resultValue)) {
+        var headerRow = document.createElement("tr");
+        var rowHtml = '<td>Name</td><td></td><td>Label</td>';
+        headerRow.innerHTML = rowHtml;
+        parentDivElement.appendChild(headerRow);
+    }
+
+    for (var i in resultValue) {
+        CustomLinkHandler.drawRow(parentDiv, keyName, i, resultValue[i]);
+    }
+
+    var buttonRow = document.createElement("tr");
+    buttonRow.setAttribute("colspan","5");
+    buttonRow.innerHTML = '<td><button class="btn" id="button-' + keyName + '-addRow"><span class="btn-icon pwm-icon pwm-icon-plus-square"></span>Add Item</button></td>';
+
+    parentDivElement.appendChild(buttonRow);
+
+    PWM_MAIN.addEventHandler('button-' + keyName + '-addRow','click',function(){
+        CustomLinkHandler.addRow(keyName);
+    });
+
+};
+
+CustomLinkHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
+    require(["dojo/json"], function(JSON){
+        var itemCount = PWM_MAIN.JSLibrary.itemCount(PWM_VAR['clientSettingCache'][settingKey]);
+        var inputID = 'value_' + settingKey + '_' + iteration + "_";
+        var options = PWM_SETTINGS['settings'][settingKey]['options'];
+        var properties = PWM_SETTINGS['settings'][settingKey]['properties'];
+
+        var newTableRow = document.createElement("tr");
+        newTableRow.setAttribute("style", "border-width: 0");
+
+        var htmlRow = '';
+        htmlRow += '<td style="background: #f6f9f8; border:1px solid #dae1e1; width:180px"><div class="noWrapTextBox" id="panel-name-' + inputID + '" ></div></td>';
+        htmlRow += '<td style="width:1px" id="icon-editLabel-' + inputID + '"><span class="btn-icon pwm-icon pwm-icon-edit"></span></td>';
+        htmlRow += '<td style="background: #f6f9f8; border:1px solid #dae1e1; width:170px"><div style="" class="noWrapTextBox " id="' + inputID + 'label"><span>' + value['labels'][''] + '</span></div></td>';
+
+        var userDNtypeAllowed = options['type-userDN'] == 'show';
+        if (!PWM_MAIN.JSLibrary.isEmpty(options)) {
+            htmlRow += '<td style="width:15px;">';
+            htmlRow += '<select id="' + inputID + 'type">';
+            for (var optionItem in options) {
+                //if (optionList[optionItem] != 'userDN' || userDNtypeAllowed) {
+                var optionName = options[optionItem];
+                var selected = (optionName == PWM_VAR['clientSettingCache'][settingKey][iteration]['type']);
+                htmlRow += '<option value="' + optionName + '"' + (selected ? " selected" : "") + '>' + optionName + '</option>';
+                //}
+            }
+            htmlRow += '</select>';
+            htmlRow += '</td>';
+        }
+
+        var hideOptions = PWM_MAIN.JSLibrary.arrayContains(PWM_SETTINGS['settings'][settingKey]['flags'], 'Form_HideOptions');
+        if (!hideOptions) {
+            htmlRow += '<td class="noborder" style="min-width:90px;"><button id="' + inputID + 'optionsButton"><span class="btn-icon pwm-icon pwm-icon-sliders"/> Options</button></td>';
+        }
+
+        htmlRow += '<td style="width:10px">';
+        if (itemCount > 1 && iteration != (itemCount -1)) {
+            htmlRow += '<span id="' + inputID + '-moveDown" class="action-icon pwm-icon pwm-icon-chevron-down"></span>';
+        }
+        htmlRow += '</td>';
+
+        htmlRow += '<td style="width:10px">';
+        if (itemCount > 1 && iteration != 0) {
+            htmlRow += '<span id="' + inputID + '-moveUp" class="action-icon pwm-icon pwm-icon-chevron-up"></span>';
+        }
+        htmlRow += '</td>';
+        htmlRow += '<td style="width:10px"><span class="delete-row-icon action-icon pwm-icon pwm-icon-times" id="' + inputID + '-deleteRowButton"></span></td>';
+
+        newTableRow.innerHTML = htmlRow;
+        var parentDivElement = PWM_MAIN.getObject(parentDiv);
+        parentDivElement.appendChild(newTableRow);
+
+        UILibrary.addTextValueToElement("panel-name-" + inputID,value['name']);
+
+        PWM_MAIN.addEventHandler(inputID + "-moveUp", 'click', function () {
+            CustomLinkHandler.move(settingKey, true, iteration);
+        });
+        PWM_MAIN.addEventHandler(inputID + "-moveDown", 'click', function () {
+            CustomLinkHandler.move(settingKey, false, iteration);
+        });
+        PWM_MAIN.addEventHandler(inputID + "-deleteRowButton", 'click', function () {
+            CustomLinkHandler.removeRow(settingKey, iteration);
+        });
+        PWM_MAIN.addEventHandler(inputID + "label", 'click, keypress', function () {
+            CustomLinkHandler.showLabelDialog(settingKey, iteration);
+        });
+       PWM_MAIN.addEventHandler("icon-editLabel-" + inputID, 'click, keypress', function () {
+            CustomLinkHandler.showLabelDialog(settingKey, iteration);
+        });
+        PWM_MAIN.addEventHandler(inputID + "optionsButton", 'click', function () {
+            CustomLinkHandler.showOptionsDialog(settingKey, iteration);
+        });
+        PWM_MAIN.addEventHandler(inputID + "name", 'input', function () {
+            PWM_VAR['clientSettingCache'][settingKey][iteration]['name'] = PWM_MAIN.getObject(inputID + "name").value;
+            CustomLinkHandler.write(settingKey);
+        });
+        PWM_MAIN.addEventHandler(inputID + "type", 'click', function () {
+            PWM_VAR['clientSettingCache'][settingKey][iteration]['type'] = PWM_MAIN.getObject(inputID + "type").value;
+            CustomLinkHandler.write(settingKey);
+        });
+    });
+};
+
+CustomLinkHandler.write = function(settingKey, finishFunction) {
+    var cachedSetting = PWM_VAR['clientSettingCache'][settingKey];
+    PWM_CFGEDIT.writeSetting(settingKey, cachedSetting, finishFunction);
+};
+
+CustomLinkHandler.removeRow = function(keyName, iteration) {
+    PWM_MAIN.showConfirmDialog({
+        text:'Are you sure you wish to delete this item?',
+        okAction:function(){
+            var currentValues = PWM_VAR['clientSettingCache'][keyName];
+            currentValues.splice(iteration,1);
+            CustomLinkHandler.write(keyName,function(){
+                CustomLinkHandler.init(keyName);
+            });
+        }
+    });
+};
+
+CustomLinkHandler.move = function(settingKey, moveUp, iteration) {
+    var currentValues = PWM_VAR['clientSettingCache'][settingKey];
+    if (moveUp) {
+        CustomLinkHandler.arrayMoveUtil(currentValues, iteration, iteration - 1);
+    } else {
+        CustomLinkHandler.arrayMoveUtil(currentValues, iteration, iteration + 1);
+    }
+    CustomLinkHandler.write(settingKey);
+    CustomLinkHandler.redraw(settingKey);
+};
+
+CustomLinkHandler.arrayMoveUtil = function(arr, fromIndex, toIndex) {
+    var element = arr[fromIndex];
+    arr.splice(fromIndex, 1);
+    arr.splice(toIndex, 0, element);
+};
+
+
+CustomLinkHandler.addRow = function(keyName) {
+    UILibrary.stringEditorDialog({
+        title:PWM_SETTINGS['settings'][keyName]['label'] + ' - New Form Field',
+        regex:'^[a-zA-Z][a-zA-Z0-9-]*$',
+        placeholder:'FieldName',
+        completeFunction:function(value){
+            for (var i in PWM_VAR['clientSettingCache'][keyName]) {
+                if (PWM_VAR['clientSettingCache'][keyName][i]['name'] == value) {
+                    alert('field already exists');
+                    return;
+                }
+            }
+            var currentSize = PWM_MAIN.JSLibrary.itemCount(PWM_VAR['clientSettingCache'][keyName]);
+            PWM_VAR['clientSettingCache'][keyName][currentSize + 1] = CustomLinkHandler.newRowValue;
+            PWM_VAR['clientSettingCache'][keyName][currentSize + 1].name = value;
+            PWM_VAR['clientSettingCache'][keyName][currentSize + 1].labels = {'':value};
+            CustomLinkHandler.write(keyName,function(){
+                CustomLinkHandler.init(keyName);
+            });
+        }
+    });
+};
+
+CustomLinkHandler.showOptionsDialog = function(keyName, iteration) {
+    var type = PWM_VAR['clientSettingCache'][keyName][iteration]['type'];
+    var settings = PWM_SETTINGS['settings'][keyName];
+    var options = 'options' in PWM_SETTINGS['settings'][keyName] ? PWM_SETTINGS['settings'][keyName]['options'] : {};
+
+    require(["dijit/Dialog", "dijit/form/Textarea", "dijit/form/CheckBox", "dijit/form/NumberSpinner"], function () {
+        var inputID = 'value_' + keyName + '_' + iteration + '_';
+        var bodyText = '<div style="max-height: 500px; overflow-x: auto"><table class="noborder">';
+
+        bodyText += '<tr>';
+        var descriptionValue = PWM_VAR['clientSettingCache'][keyName][iteration]['description'][''];
+        bodyText += '<td id="' + inputID + '-label-description" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_Description') + '">Description</td><td>';
+        bodyText += '<div class="noWrapTextBox" id="' + inputID + 'DescriptionValue"><span class="btn-icon pwm-icon pwm-icon-edit"></span><span>' + descriptionValue + '...</span></div>';
+        bodyText += '</td>';
+
+        bodyText += '</tr><tr>';
+
+        var customUrl = PWM_VAR['clientSettingCache'][keyName][iteration]['customLinkUrl'];
+        bodyText += '<td id="' + inputID + '-Site-url" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_LinkURL') + '">Link URL</td><td>' +
+            '<input placeholder="https://example.com" style="width: 350px;" type="url" class="key" id="' + inputID + 'SiteURL' + '" value="'+ customUrl +'"/></td>';
+        bodyText += '</tr><tr>';
+
+        var checkedValue = PWM_VAR['clientSettingCache'][keyName][iteration]['customLinkNewWindow'];
+        bodyText += '<td id="' + inputID + '-NewWindow-Option" class="key" title="' + PWM_CONFIG.showString('Tooltip_Form_ShowInNewWindow') + '">Open link in new window</td><td><input type="checkbox" id="' + inputID + 'customLinkNewWindow' + '" ';
+        if(checkedValue) {
+            bodyText += 'checked'
+        }
+        bodyText += '/></td>';
+
+        bodyText += '</tr><tr>';
+
+        bodyText += '</table></div>';
+
+        var initDialogWidgets = function () {
+
+            PWM_MAIN.addEventHandler(inputID + 'DescriptionValue', 'change', function () {
+                CustomLinkHandler.showDescriptionDialog(keyName, iteration);
+            });
+
+            PWM_MAIN.addEventHandler(inputID + 'DescriptionValue', 'click', function () {
+                CustomLinkHandler.showDescriptionDialog(keyName, iteration);
+            });
+
+            PWM_MAIN.addEventHandler(inputID + 'SiteURL', 'change', function () {
+                PWM_VAR['clientSettingCache'][keyName][iteration]['customLinkUrl'] = this.value;
+                CustomLinkHandler.write(keyName)
+            });
+
+            PWM_MAIN.addEventHandler(inputID + 'customLinkNewWindow', 'click', function () {
+                PWM_VAR['clientSettingCache'][keyName][iteration]['customLinkNewWindow'] = this.value;
+                CustomLinkHandler.write(keyName)
+            });
+
+            PWM_MAIN.clearDijitWidget(inputID + "DescriptionValue");
+            //new dijit.form.Textarea({
+            //    value: PWM_VAR['clientSettingCache'][keyName][iteration]['description'][''],
+            //    onChange: function () {
+            //        PWM_VAR['clientSettingCache'][keyName][iteration]['description'][''] = this.value;
+            //        CustomLinkHandler.write(keyName)
+            //    }
+            //}, inputID + "DescriptionValue");
+
+            PWM_MAIN.clearDijitWidget(inputID + "newWindow");
+            //new dijit.form.CheckBox({
+            //    checked: PWM_VAR['clientSettingCache'][keyName][iteration]['customLinkNewWindow'],
+            //    onChange: function () {
+            //        PWM_VAR['clientSettingCache'][keyName][iteration]['customLinkNewWindow'] = this.checked;
+            //        CustomLinkHandler.write(keyName)
+            //    }
+            //}, inputID + "newWindow");
+
+            PWM_MAIN.clearDijitWidget(inputID + "SiteURL");
+            //new dijit.form.Textarea({
+            //    value: PWM_VAR['clientSettingCache'][keyName][iteration]['customLinkUrl'],
+            //    onChange: function () {
+            //        PWM_VAR['clientSettingCache'][keyName][iteration]['customLinkUrl'] = this.value;
+            //        CustomLinkHandler.write(keyName)
+            //    }
+            //}, inputID + "SiteURL");
+        };
+
+        PWM_MAIN.showDialog({
+            title: PWM_SETTINGS['settings'][keyName]['label'] + ' - ' + PWM_VAR['clientSettingCache'][keyName][iteration]['name'],
+            text: bodyText,
+            allowMove: true,
+            loadFunction: initDialogWidgets,
+            okAction: function () {
+                CustomLinkHandler.redraw(keyName);
+            }
+        });
+    });
+};
+
+CustomLinkHandler.showLabelDialog = function(keyName, iteration) {
+    var finishAction = function(){ CustomLinkHandler.redraw(keyName); };
+    var title = 'Label for ' + PWM_VAR['clientSettingCache'][keyName][iteration]['name'];
+    CustomLinkHandler.multiLocaleStringDialog(keyName, iteration, 'labels', finishAction, title);
+};
+
+CustomLinkHandler.multiLocaleStringDialog = function(keyName, iteration, settingType, finishAction, titleText) {
+    require(["dijit/Dialog","dijit/form/Textarea","dijit/form/CheckBox"],function(){
+        var inputID = 'value_' + keyName + '_' + iteration + "_" + "label_";
+        var bodyText = '<table class="noborder" id="' + inputID + 'table">';
+        bodyText += '<tr>';
+        for (var localeName in PWM_VAR['clientSettingCache'][keyName][iteration][settingType]) {
+            var value = PWM_VAR['clientSettingCache'][keyName][iteration][settingType][localeName];
+            var localeID = inputID + localeName;
+            bodyText += '<td>' + localeName + '</td>';
+            bodyText += '<td><input style="width:420px" class="configStringInput" type="text" value="' + value + '" id="' + localeID + '-input"></input></td>';
+            if (localeName != '') {
+                bodyText += '<td><span class="delete-row-icon action-icon pwm-icon pwm-icon-times" id="' + localeID + '-removeLocaleButton"></span></td>';
+            }
+            bodyText += '</tr><tr>';
+        }
+        bodyText += '</tr></table>';
+
+        PWM_MAIN.showDialog({
+            title: titleText,
+            text: bodyText,
+            okAction:function(){
+                finishAction();
+            },
+            loadFunction:function(){
+                for (var iter in PWM_VAR['clientSettingCache'][keyName][iteration][settingType]) {
+                    (function(localeName) {
+                        var localeID = inputID + localeName;
+                        PWM_MAIN.addEventHandler(localeID + '-input', 'input', function () {
+                            var inputElement = PWM_MAIN.getObject(localeID + '-input');
+                            var value = inputElement.value;
+                            PWM_VAR['clientSettingCache'][keyName][iteration][settingType][localeName] = value;
+                            CustomLinkHandler.write(keyName);
+                        });
+                        PWM_MAIN.addEventHandler(localeID + '-removeLocaleButton', 'click', function () {
+                            delete PWM_VAR['clientSettingCache'][keyName][iteration][settingType][localeName];
+                            CustomLinkHandler.write(keyName);
+                            CustomLinkHandler.multiLocaleStringDialog(keyName, iteration, settingType, finishAction, titleText);
+                        });
+                    }(iter));
+                }
+                UILibrary.addAddLocaleButtonRow(inputID + 'table', inputID, function(localeName){
+                    if (localeName in PWM_VAR['clientSettingCache'][keyName][iteration][settingType]) {
+                        alert('Locale is already present');
+                    } else {
+                        PWM_VAR['clientSettingCache'][keyName][iteration][settingType][localeName] = '';
+                        CustomLinkHandler.write(keyName);
+                        CustomLinkHandler.multiLocaleStringDialog(keyName, iteration, settingType, finishAction, titleText);
+                    }
+                }, Object.keys(PWM_VAR['clientSettingCache'][keyName][iteration][settingType]));
+            }
+        });
+    });
+};
+
+CustomLinkHandler.showSelectOptionsDialog = function(keyName, iteration) {
+    var inputID = 'value_' + keyName + '_' + iteration + "_" + "selectOptions_";
+    var bodyText = '';
+    bodyText += '<table class="noborder" id="' + inputID + 'table"">';
+    bodyText += '<tr>';
+    bodyText += '<td><b>Value</b></td><td><b>Display Name</b></td>';
+    bodyText += '</tr><tr>';
+    for (var optionName in PWM_VAR['clientSettingCache'][keyName][iteration]['selectOptions']) {
+        var value = PWM_VAR['clientSettingCache'][keyName][iteration]['selectOptions'][optionName];
+        var optionID = inputID + optionName;
+        bodyText += '<td>' + optionName + '</td><td>' + value + '</td>';
+        bodyText += '<td class="noborder" style="width:15px">';
+        bodyText += '<span id="' + optionID + '-removeButton" class="delete-row-icon action-icon pwm-icon pwm-icon-times"></span>';
+        bodyText += '</td>';
+        bodyText += '</tr><tr>';
+    }
+    bodyText += '</tr></table>';
+    bodyText += '<br/><br/><br/>';
+    bodyText += '<input class="configStringInput" style="width:200px" type="text" placeholder="Value" required id="addSelectOptionName"/>';
+    bodyText += '<input class="configStringInput" style="width:200px" type="text" placeholder="Display Name" required id="addSelectOptionValue"/>';
+    bodyText += '<button id="addSelectOptionButton"><span class="btn-icon pwm-icon pwm-icon-plus-square"/> Add</button>';
+
+    PWM_MAIN.showDialog({
+        title: 'Select Options for ' + PWM_VAR['clientSettingCache'][keyName][iteration]['name'],
+        text: bodyText,
+        okAction: function(){
+            CustomLinkHandler.showOptionsDialog(keyName,iteration);
+        }
+    });
+
+    for (var optionName in PWM_VAR['clientSettingCache'][keyName][iteration]['selectOptions']) {
+        var loopID = inputID + optionName;
+        var optionID = inputID + optionName;
+        PWM_MAIN.clearDijitWidget(loopID);
+        PWM_MAIN.addEventHandler(optionID + '-removeButton','click',function(){
+            CustomLinkHandler.removeSelectOptionsOption(keyName,iteration,optionName);
+        });
+    }
+
+    PWM_MAIN.addEventHandler('addSelectOptionButton','click',function(){
+        var value = PWM_MAIN.getObject('addSelectOptionName').value;
+        var display = PWM_MAIN.getObject('addSelectOptionValue').value;
+        CustomLinkHandler.addSelectOptionsOption(keyName, iteration, value, display);
+    });
+};
+
+CustomLinkHandler.addSelectOptionsOption = function(keyName, iteration, optionName, optionValue) {
+    if (optionName == null || optionName.length < 1) {
+        alert('Name field is required');
+        return;
+    }
+
+    if (optionValue == null || optionValue.length < 1) {
+        alert('Value field is required');
+        return;
+    }
+
+    PWM_VAR['clientSettingCache'][keyName][iteration]['selectOptions'][optionName] = optionValue;
+    CustomLinkHandler.write(keyName);
+    CustomLinkHandler.showSelectOptionsDialog(keyName, iteration);
+};
+
+CustomLinkHandler.removeSelectOptionsOption = function(keyName, iteration, optionName) {
+    delete PWM_VAR['clientSettingCache'][keyName][iteration]['selectOptions'][optionName];
+    CustomLinkHandler.write(keyName);
+    CustomLinkHandler.showSelectOptionsDialog(keyName, iteration);
+};
+
+CustomLinkHandler.showDescriptionDialog = function(keyName, iteration) {
+    var finishAction = function(){ CustomLinkHandler.showOptionsDialog(keyName, iteration); };
+    var title = 'Description for ' + PWM_VAR['clientSettingCache'][keyName][iteration]['description'][''];
+    CustomLinkHandler.multiLocaleStringDialog(keyName, iteration, 'description', finishAction, title);
+};
+
