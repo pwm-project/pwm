@@ -3561,6 +3561,7 @@ CustomLinkHandler.showOptionsDialog = function(keyName, iteration) {
 
         var initDialogWidgets = function () {
 
+            PWM_MAIN.clearDijitWidget(inputID + "DescriptionValue");
             PWM_MAIN.addEventHandler(inputID + 'DescriptionValue', 'change', function () {
                 CustomLinkHandler.showDescriptionDialog(keyName, iteration);
             });
@@ -3569,42 +3570,19 @@ CustomLinkHandler.showOptionsDialog = function(keyName, iteration) {
                 CustomLinkHandler.showDescriptionDialog(keyName, iteration);
             });
 
+            PWM_MAIN.clearDijitWidget(inputID + "SiteURL");
             PWM_MAIN.addEventHandler(inputID + 'SiteURL', 'change', function () {
                 PWM_VAR['clientSettingCache'][keyName][iteration]['customLinkUrl'] = this.value;
                 CustomLinkHandler.write(keyName)
             });
 
+            PWM_MAIN.clearDijitWidget(inputID + "customLinkNewWindow");
             PWM_MAIN.addEventHandler(inputID + 'customLinkNewWindow', 'click', function () {
+                if(this.value === "on")
+                    this.value = "true";
                 PWM_VAR['clientSettingCache'][keyName][iteration]['customLinkNewWindow'] = this.value;
                 CustomLinkHandler.write(keyName)
             });
-
-            PWM_MAIN.clearDijitWidget(inputID + "DescriptionValue");
-            //new dijit.form.Textarea({
-            //    value: PWM_VAR['clientSettingCache'][keyName][iteration]['description'][''],
-            //    onChange: function () {
-            //        PWM_VAR['clientSettingCache'][keyName][iteration]['description'][''] = this.value;
-            //        CustomLinkHandler.write(keyName)
-            //    }
-            //}, inputID + "DescriptionValue");
-
-            PWM_MAIN.clearDijitWidget(inputID + "newWindow");
-            //new dijit.form.CheckBox({
-            //    checked: PWM_VAR['clientSettingCache'][keyName][iteration]['customLinkNewWindow'],
-            //    onChange: function () {
-            //        PWM_VAR['clientSettingCache'][keyName][iteration]['customLinkNewWindow'] = this.checked;
-            //        CustomLinkHandler.write(keyName)
-            //    }
-            //}, inputID + "newWindow");
-
-            PWM_MAIN.clearDijitWidget(inputID + "SiteURL");
-            //new dijit.form.Textarea({
-            //    value: PWM_VAR['clientSettingCache'][keyName][iteration]['customLinkUrl'],
-            //    onChange: function () {
-            //        PWM_VAR['clientSettingCache'][keyName][iteration]['customLinkUrl'] = this.value;
-            //        CustomLinkHandler.write(keyName)
-            //    }
-            //}, inputID + "SiteURL");
         };
 
         PWM_MAIN.showDialog({

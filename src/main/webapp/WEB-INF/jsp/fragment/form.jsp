@@ -47,9 +47,9 @@
     <% if (linkConfigurationList != null) { %>
         <% for (final CustomLinkConfiguration loopList : linkConfigurationList) { %>
            <% if (loopList.isCustomLinkNewWindow()) { %>
-                <a href=<%=loopList.getcustomLinkUrl()%> title=<%=loopList.getDescription(formLocale)%> target="_blank"><%=loopList.getLabel(formLocale)%></a>
+                <a href=<%=loopList.getcustomLinkUrl()%> title=<%=loopList.getDescription(formLocale)%> target="_blank"><%=loopList.getLabel(formLocale)%></a><br>
             <% } else { %>
-                <a href=<%=loopList.getcustomLinkUrl()%> title=<%=loopList.getDescription(formLocale)%>><%=loopList.getLabel(formLocale)%></a>
+                <a href=<%=loopList.getcustomLinkUrl()%> title=<%=loopList.getDescription(formLocale)%>><%=loopList.getLabel(formLocale)%></a><br>
             <% } %>
         <% } %>
     <% } %>
@@ -79,12 +79,6 @@
     <% if (loopConfiguration.getType().equals(FormConfiguration.Type.hidden)) { %>
     <input style="text-align: left;" id="<%=loopConfiguration.getName()%>" type="hidden" class="inputfield"
            name="<%=loopConfiguration.getName()%>" value="<%= currentValue %>"/>
-    <% } else if (loopConfiguration.getType().equals(FormConfiguration.Type.customLink)) { %>
-        <% if (loopConfiguration.isCustomLinkNewWindow()) { %>
-            <a href=<%=loopConfiguration.getcustomLinkUrl()%> title=<%=loopConfiguration.getDescription(formLocale)%> target="_blank"><%=loopConfiguration.getLabel(formLocale)%></a>
-        <% } else { %>
-            <a href=<%=loopConfiguration.getcustomLinkUrl()%> title=<%=loopConfiguration.getDescription(formLocale)%>><%=loopConfiguration.getLabel(formLocale)%></a>
-        <% } %>
     <% } else if (loopConfiguration.getType().equals(FormConfiguration.Type.checkbox)) { %>
     <% final boolean checked = FormUtility.checkboxValueIsChecked(formDataMap.get(loopConfiguration)); %>
     <label class="checkboxWrapper">
