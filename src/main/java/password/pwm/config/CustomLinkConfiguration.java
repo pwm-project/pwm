@@ -22,20 +22,13 @@
 
 package password.pwm.config;
 
-import password.pwm.AppProperty;
-import password.pwm.PwmConstants;
-import password.pwm.error.*;
 import password.pwm.i18n.Display;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 
 import java.io.Serializable;
-import java.math.BigInteger;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 /**
  * @author Jason D. Rivard
