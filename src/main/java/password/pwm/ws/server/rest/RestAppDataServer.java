@@ -156,6 +156,21 @@ public class RestAppDataServer extends AbstractRestServer {
     }
 
     @GET
+    @Path("/ping")
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
+    public Response doPingRequest() {
+        final RestRequestBean restRequestBean;
+        try {
+            restRequestBean = RestServerHelper.initializeRestRequest(request, response, ServicePermissions.PUBLIC, null);
+        } catch (PwmUnrecoverableException e) {
+            return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
+        }
+
+        final String startupTime = restRequestBean.getPwmApplication().getStartupTime().toString();
+        return new RestResultBean(new HashMap<>(Collections.singletonMap("time",startupTime))).asJsonResponse();
+    }
+
+    @GET
     @Path("/session")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     public Response doGetAppSessionData(
