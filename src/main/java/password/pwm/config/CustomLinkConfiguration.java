@@ -22,10 +22,9 @@
 
 package password.pwm.config;
 
-import password.pwm.i18n.Display;
+import lombok.Getter;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.java.JsonUtil;
-import password.pwm.util.java.StringUtil;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -35,8 +34,8 @@ import java.util.Map;
 /**
  * @author Richard A. Keil
  */
+@Getter
 public class CustomLinkConfiguration implements Serializable {
-// ------------------------------ FIELDS ------------------------------
 
     public enum Type {text, url, select, checkbox, customLink}
 
@@ -44,18 +43,9 @@ public class CustomLinkConfiguration implements Serializable {
     private Type type = Type.customLink;
     private Map<String,String> labels = Collections.singletonMap("", "");
     private Map<String,String> description = Collections.singletonMap("","");
-    private String customLinkUrl = "";
-    private boolean customLinkNewWindow;
+    private String url = "";
+    private boolean newWindow;
     private Map<String,String> selectOptions = Collections.emptyMap();
-
-// -------------------------- STATIC METHODS --------------------------
-
-
-// --------------------- GETTER / SETTER METHODS ---------------------
-
-    public String getName() {
-        return name;
-    }
 
     public String getLabel(final Locale locale) {
         return LocaleHelper.resolveStringKeyLocaleMap(locale, labels);
@@ -65,55 +55,12 @@ public class CustomLinkConfiguration implements Serializable {
         return LocaleHelper.resolveStringKeyLocaleMap(locale, description);
     }
 
-    public Map<String,String> getLabelDescriptionLocaleMap() {
-        return Collections.unmodifiableMap(this.description);
-    }
-
-    public Type getType() {
-        return type;
-    }
-
-    public boolean isCustomLinkNewWindow() {
-        return customLinkNewWindow;
-    }
-
-    public String getcustomLinkUrl() {
-        return customLinkUrl;
-    }
-
-    public Map<String,String> getSelectOptions() {
-        return Collections.unmodifiableMap(selectOptions);
-    }
-
     public String toString() {
         final StringBuilder sb = new StringBuilder();
 
-        sb.append("FormItem: ");
+        sb.append("CustomLink: ");
         sb.append(JsonUtil.serialize(this));
 
         return sb.toString();
-    }
-
-// -------------------------- OTHER METHODS --------------------------
-
-    public String displayValue(final String value, final Locale locale, final Configuration config) {
-        if (value == null) {
-            return LocaleHelper.getLocalizedMessage(locale, Display.Value_NotApplicable, config);
-        }
-
-        if (this.getType() == Type.select) {
-            if (this.getSelectOptions() != null) {
-                for (final String key : selectOptions.keySet()) {
-                    if (value.equals(key)) {
-                        final String displayValue = selectOptions.get(key);
-                        if (!StringUtil.isEmpty(displayValue)) {
-                            return displayValue;
-                        }
-                    }
-                }
-            }
-        }
-
-        return value;
     }
 }

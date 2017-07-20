@@ -25,6 +25,7 @@ package password.pwm.config;
 import password.pwm.config.value.ActionValue;
 import password.pwm.config.value.BooleanValue;
 import password.pwm.config.value.ChallengeValue;
+import password.pwm.config.value.CustomLinkValue;
 import password.pwm.config.value.EmailValue;
 import password.pwm.config.value.FileValue;
 import password.pwm.config.value.FormValue;

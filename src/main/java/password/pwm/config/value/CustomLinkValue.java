@@ -51,11 +51,11 @@ public class CustomLinkValue extends AbstractValue implements StoredValue {
             public CustomLinkValue fromJson(final String input)
             {
                 if (input == null) {
-                    return new CustomLinkValue(Collections.<CustomLinkConfiguration>emptyList());
+                    return new CustomLinkValue(Collections.emptyList());
                 } else {
                     List<CustomLinkConfiguration> srcList = JsonUtil.deserialize(input, new TypeToken<List<CustomLinkConfiguration>>() {
                     });
-                    srcList = srcList == null ? Collections.<CustomLinkConfiguration>emptyList() : srcList;
+                    srcList = srcList == null ? Collections.emptyList() : srcList;
                     while (srcList.contains(null)) {
                         srcList.remove(null);
                     }
@@ -117,12 +117,12 @@ public class CustomLinkValue extends AbstractValue implements StoredValue {
         if (values != null && !values.isEmpty()) {
             final StringBuilder sb = new StringBuilder();
             for (final CustomLinkConfiguration formRow : values) {
-                sb.append("FormItem Name:").append(formRow.getName()).append("\n");
+                sb.append("Link Name:").append(formRow.getName()).append("\n");
                 sb.append(" Type:").append(formRow.getType());
                 sb.append("\n");
-                sb.append(" Description:").append(JsonUtil.serializeMap(formRow.getLabelDescriptionLocaleMap())).append("\n");
-                sb.append(" Name:").append(formRow.isCustomLinkNewWindow()).append("\n");
-                sb.append(" Name:").append(formRow.getcustomLinkUrl()).append("\n");
+                sb.append(" Description:").append(JsonUtil.serializeMap(formRow.getLabels())).append("\n");
+                sb.append(" New Window:").append(formRow.isNewWindow()).append("\n");
+                sb.append(" Url:").append(formRow.getUrl()).append("\n");
                 if (formRow.getSelectOptions() != null && !formRow.getSelectOptions().isEmpty()) {
                     sb.append(" Select Options: ").append(JsonUtil.serializeMap(formRow.getSelectOptions())).append("\n");
                 }

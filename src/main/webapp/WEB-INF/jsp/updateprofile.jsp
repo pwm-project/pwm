@@ -33,6 +33,8 @@
     </jsp:include>
     <div id="centerbody">
         <div id="page-content-title"><pwm:display key="Title_UpdateProfile" displayIfMissing="true"/></div>
+        <jsp:include page="fragment/customlink.jsp"/>
+        <br/>
         <p><pwm:display key="Display_UpdateProfile"/></p>
         <%@ include file="fragment/message.jsp" %>
         <br/>
