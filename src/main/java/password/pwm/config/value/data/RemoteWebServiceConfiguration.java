@@ -20,39 +20,31 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.config;
+package password.pwm.config.value.data;
 
-/**
- * Flags defined for {@link PwmSetting} values.  Flags typically correspond to one or more {@link PwmSettingSyntax} types.
- */
-public enum PwmSettingFlag {
-    /* Marker to indicate in setting UI and generated docs that setting supports macros */
-    MacroSupport,
+import lombok.Getter;
+import lombok.Setter;
 
-    /* Setting uses LDAP DN syntax */
-    ldapDNsyntax,
+import java.io.Serializable;
+import java.security.cert.X509Certificate;
+import java.util.Map;
 
-    /* Setting must be a valid email address format */
-    emailSyntax,
+@Getter
+@Setter
+public class RemoteWebServiceConfiguration implements Serializable {
 
-    /* No Default - Makes the setting UI act as if there is not a default to reset to */
-    NoDefault,
+    public enum WebMethod {
+        delete,
+        get,
+        post,
+        put,
+        patch
+    }
 
-    Select_AllowUserInput,
-
-    Permission_HideGroups,
-    Permission_HideMatch,
-
-    Form_HideOptions,
-    Form_ShowUniqueOption,
-    Form_ShowReadOnlyOption,
-    Form_ShowRequiredOption,
-    Form_ShowMultiValueOption,
-    Form_HideStandardOptions,
-    Form_ShowSource,
-
-    Verification_HideMinimumOptional,
-
-    WebService_NoBody,
-
+    private String name;
+    private WebMethod method = WebMethod.get;
+    private Map<String,String> headers;
+    private String url;
+    private String body;
+    private X509Certificate[] certificates;
 }

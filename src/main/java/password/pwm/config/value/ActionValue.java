@@ -57,14 +57,14 @@ public class ActionValue extends AbstractValue implements StoredValue {
             public ActionValue fromJson(final String input)
             {
                 if (input == null) {
-                    return new ActionValue(Collections.<ActionConfiguration>emptyList());
+                    return new ActionValue(Collections.emptyList());
                 } else {
                     List<ActionConfiguration> srcList = JsonUtil.deserialize(input,
                             new TypeToken<List<ActionConfiguration>>() {
                             }
                     );
 
-                    srcList = srcList == null ? Collections.<ActionConfiguration>emptyList() : srcList;
+                    srcList = srcList == null ? Collections.emptyList() : srcList;
                     while (srcList.contains(null)) {
                         srcList.remove(null);
                     }
@@ -155,18 +155,18 @@ public class ActionValue extends AbstractValue implements StoredValue {
             switch (actionConfiguration.getType()) {
                 case webservice: {
                     sb.append("WebService: ");
-                    sb.append("method=" + actionConfiguration.getMethod());
-                    sb.append(" url=" + actionConfiguration.getUrl());
-                    sb.append(" headers=" + JsonUtil.serializeMap(actionConfiguration.getHeaders()));
-                    sb.append(" body=" + actionConfiguration.getBody());
+                    sb.append("method=").append(actionConfiguration.getMethod());
+                    sb.append(" url=").append(actionConfiguration.getUrl());
+                    sb.append(" headers=").append(JsonUtil.serializeMap(actionConfiguration.getHeaders()));
+                    sb.append(" body=").append(actionConfiguration.getBody());
                 }
                 break;
 
                 case ldap: {
                     sb.append("LDAP: ");
-                    sb.append("method=" + actionConfiguration.getLdapMethod());
-                    sb.append(" attribute=" + actionConfiguration.getAttributeName());
-                    sb.append(" value=" + actionConfiguration.getAttributeValue());
+                    sb.append("method=").append(actionConfiguration.getLdapMethod());
+                    sb.append(" attribute=").append(actionConfiguration.getAttributeName());
+                    sb.append(" value=").append(actionConfiguration.getAttributeValue());
                 }
                 break;
 

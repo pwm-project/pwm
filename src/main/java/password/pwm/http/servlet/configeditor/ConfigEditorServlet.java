@@ -42,6 +42,7 @@ import password.pwm.config.stored.ValueMetaData;
 import password.pwm.config.value.ActionValue;
 import password.pwm.config.value.FileValue;
 import password.pwm.config.value.PrivateKeyValue;
+import password.pwm.config.value.RemoteWebServiceValue;
 import password.pwm.config.value.ValueFactory;
 import password.pwm.config.value.X509CertificateValue;
 import password.pwm.error.ErrorInformation;
@@ -359,6 +360,10 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
 
                 case ACTION:
                     returnValue = ((ActionValue)storedConfig.readSetting(theSetting, profile)).toInfoMap();
+                    break;
+
+                case REMOTE_WEB_SERVICE:
+                    returnValue = ((RemoteWebServiceValue)storedConfig.readSetting(theSetting, profile)).toInfoMap();
                     break;
 
                 case FILE:

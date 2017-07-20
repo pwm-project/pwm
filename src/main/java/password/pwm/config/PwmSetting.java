@@ -1116,6 +1116,8 @@ public enum PwmSetting {
             "external.macros.urls", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.REST_CLIENT),
     EXTERNAL_MACROS_REMOTE_RESPONSES_URL(
             "external.remoteResponses.url", PwmSettingSyntax.STRING, PwmSettingCategory.REST_CLIENT),
+    EXTERNAL_REMOTE_DATA_URL(
+            "external.remoteData.url", PwmSettingSyntax.REMOTE_WEB_SERVICE, PwmSettingCategory.REST_CLIENT),
 
 
     //appliance

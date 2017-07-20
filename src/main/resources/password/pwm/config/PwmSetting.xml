@@ -3665,6 +3665,14 @@
     <setting hidden="false" key="external.pwcheck.urls" level="2">
         <default />
     </setting>
+    <setting hidden="false" key="external.remoteData.url" level="2">
+        <properties>
+            <property key="Maximum">1</property>
+            <property key="MethodType">post</property>
+        </properties>
+        <flag>WebService_NoBody</flag>
+        <default />
+    </setting>
     <setting hidden="false" key="webservice.userAttributes" level="2">
         <ldapPermission actor="proxy" access="read"/>
         <default />

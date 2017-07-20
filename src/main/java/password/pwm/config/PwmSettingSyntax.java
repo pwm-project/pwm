@@ -35,6 +35,7 @@ import password.pwm.config.value.NumericValue;
 import password.pwm.config.value.OptionListValue;
 import password.pwm.config.value.PasswordValue;
 import password.pwm.config.value.PrivateKeyValue;
+import password.pwm.config.value.RemoteWebServiceValue;
 import password.pwm.config.value.StringArrayValue;
 import password.pwm.config.value.StringValue;
 import password.pwm.config.value.UserPermissionValue;
@@ -70,7 +71,7 @@ public enum PwmSettingSyntax {
     VERIFICATION_METHOD(VerificationMethodValue.factory()),
     PRIVATE_KEY(PrivateKeyValue.factory()),
     NAMED_SECRET(NamedSecretValue.factory()),
-    REMOTE_WEB_SERVICE(NamedSecretValue.factory()),
+    REMOTE_WEB_SERVICE(RemoteWebServiceValue.factory()),
 
     ;
 

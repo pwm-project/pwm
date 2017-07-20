@@ -1014,6 +1014,10 @@ PWM_CFGEDIT.initSettingDisplay = function(setting, options) {
             VerificationMethodHandler.init(settingKey);
             break;
 
+        case 'REMOTE_WEB_SERVICE':
+            RemoteWebServiceHandler.init(settingKey);
+            break;
+
         case 'NONE':
             break;
 

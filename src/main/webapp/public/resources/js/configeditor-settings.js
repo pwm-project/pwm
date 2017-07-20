@@ -1534,7 +1534,8 @@ ActionHandler.addRow = function(keyName) {
     UILibrary.stringEditorDialog({
         title:'New Action',
         regex:'^[0-9a-zA-Z]+$',
-        placeholder:'Action Name',
+        instructions: 'Please enter a descriptive name for the action.',
+        placeholder:'Name',
         completeFunction:function(value){
             var currentSize = PWM_MAIN.JSLibrary.itemCount(PWM_VAR['clientSettingCache'][keyName]);
             PWM_VAR['clientSettingCache'][keyName][currentSize + 1] = ActionHandler.defaultValue;
@@ -1554,7 +1555,7 @@ ActionHandler.showOptionsDialog = function(keyName, iteration) {
         var value = PWM_VAR['clientSettingCache'][keyName][iteration];
         var titleText = 'title';
         var bodyText = '<table class="noborder">';
-        if (value['type'] == 'webservice') {
+        if (value['type'] === 'webservice') {
             titleText = 'Web Service options for ' + value['name'];
             bodyText += '<tr>';
             bodyText += '<td class="key">HTTP Method</td><td class="noborder" ><select id="select-' + inputID + '-method">';
@@ -1571,7 +1572,7 @@ ActionHandler.showOptionsDialog = function(keyName, iteration) {
             bodyText += '</tr><tr>';
             bodyText += '<td class="key">URL</td><td><input type="text" class="configstringinput" style="width:400px" placeholder="http://www.example.com/service"  id="input-' + inputID + '-url' + '" value="' + value['url'] + '"/></td>';
             bodyText += '</tr>';
-            if (value['method'] != 'get') {
+            if (value['method'] !== 'get') {
                 bodyText += '<tr><td class="key">Body</td><td><textarea style="max-width:400px; height:100px; max-height:100px" class="configStringInput" id="input-' + inputID + '-body' + '"/>' + value['body'] + '</textarea></td></tr>';
             }
             if (!PWM_MAIN.JSLibrary.isEmpty(value['certificateInfos'])) {
@@ -1582,7 +1583,7 @@ ActionHandler.showOptionsDialog = function(keyName, iteration) {
                 bodyText += '</tr>';
             }
             bodyText += '';
-        } else if (value['type'] == 'ldap') {
+        } else if (value['type'] === 'ldap') {
             titleText = 'LDAP options for ' + value['name'];
             bodyText += '<tr>';
             bodyText += '<td class="key">Attribute Name</td><td><input style="width:300px" class="configStringInput" type="text" id="input-' + inputID + '-attributeName' + '" value="' + value['attributeName'] + '"/></td>';
@@ -1602,7 +1603,7 @@ ActionHandler.showOptionsDialog = function(keyName, iteration) {
         }
         bodyText += '</table>';
 
-        if (value['type'] == 'webservice') {
+        if (value['type'] === 'webservice') {
             if (!PWM_MAIN.JSLibrary.isEmpty(value['certificateInfos'])) {
                 bodyText += '<button class="btn" id="button-' + inputID + '-clearCertificates"><span class="btn-icon pwm-icon pwm-icon-trash"></span>Clear Certificates</button>'
             } else {
@@ -1617,10 +1618,10 @@ ActionHandler.showOptionsDialog = function(keyName, iteration) {
                 PWM_MAIN.addEventHandler('button-' + inputID + '-headers','click',function(){
                     ActionHandler.showHeadersDialog(keyName,iteration);
                 });
-                if (value['type'] == 'webservice') {
+                if (value['type'] === 'webservice') {
                     PWM_MAIN.addEventHandler('select-' + inputID + '-method','change',function(){
                         var methodValue = PWM_MAIN.getObject('select-' + inputID + '-method').value;
-                        if (methodValue == 'get') {
+                        if (methodValue === 'get') {
                             value['body'] = '';
                         }
                         value['method'] = methodValue;
