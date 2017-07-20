@@ -44,6 +44,7 @@ import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.config.profile.UpdateAttributesProfile;
 import password.pwm.config.stored.ConfigurationProperty;
+import password.pwm.config.value.CustomLinkValue;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.config.value.BooleanValue;
@@ -263,6 +264,11 @@ public class Configuration implements Serializable, SettingReader {
             if (value == null) {
                 return null;
             }
+
+            if (value instanceof CustomLinkValue) {
+                return (List<FormConfiguration>)value.toNativeObject();
+            }
+
             if ((!(value instanceof FormValue))) {
                 throw new IllegalArgumentException("setting value is not readable as form");
             }

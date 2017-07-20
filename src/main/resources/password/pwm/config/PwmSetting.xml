@@ -2933,7 +2933,11 @@
             <value>false</value>
         </default>
     </setting>
-
+    <setting hidden="false" key="updateAttributes.customLinks" level="1">
+        <default>
+            <value></value>
+        </default>
+    </setting>
     <setting hidden="false" key="shortcut.enable" level="1">
         <default>
             <value>false</value>

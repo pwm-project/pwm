@@ -936,6 +936,10 @@ PWM_CFGEDIT.initSettingDisplay = function(setting, options) {
             OptionListHandler.init(settingKey);
             break;
 
+        case 'CUSTOMLINKS':
+            CustomLinkHandler.init(settingKey, {});
+            break;
+
         case 'EMAIL':
             EmailTableHandler.init(settingKey);
             break;
