@@ -220,7 +220,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
 
             case ERROR_UNKNOWN:
             default:
-                LOGGER.fatal(e.getErrorInformation().toDebugStr());
+                LOGGER.fatal(pwmSession, "unexpected error: " + e.getErrorInformation().toDebugStr());
                 try { // try to update stats
                     if (pwmSession != null) {
                         pwmApplication.getStatisticsManager().incrementValue(Statistic.PWM_UNKNOWN_ERRORS);

@@ -101,7 +101,7 @@
     <% } else { %>
     <input style="text-align: left;" id="<%=loopConfiguration.getName()%>" type="<%=loopConfiguration.getType()%>" class="inputfield"
            name="<%=loopConfiguration.getName()%>" value="<%= currentValue %>"
-        <%if (loopConfiguration.getRegex() != null) {%> pattern="<%=loopConfiguration.getRegex()%>"<%}%>
+        <%if (!StringUtil.isEmpty(loopConfiguration.getRegex())) {%> pattern="<%=loopConfiguration.getRegex()%>"<%}%>
         <%if(loopConfiguration.getPlaceholder()!=null){%> placeholder="<%=loopConfiguration.getPlaceholder()%>"<%}%>
         <%if(loopConfiguration.isRequired()){%> required="required"<%}%>
     <pwm:autofocus/> maxlength="<%=loopConfiguration.getMaximumLength()%>">
@@ -114,7 +114,7 @@
     </label>
     <input style="" id="<%=loopConfiguration.getName()%>_confirm" type="<%=loopConfiguration.getType()%>" class="inputfield"
            name="<%=loopConfiguration.getName()%>_confirm"
-            <%if (loopConfiguration.getRegex() != null) {%> pattern="<%=loopConfiguration.getRegex()%>"<%}%>
+            <%if (!StringUtil.isEmpty(loopConfiguration.getRegex())) {%> pattern="<%=loopConfiguration.getRegex()%>"<%}%>
             <%if(loopConfiguration.isRequired()){%> required="required"<%}%>
             <%if(loopConfiguration.isReadonly()){%> readonly="readonly"<%}%>
            maxlength="<%=loopConfiguration.getMaximumLength()%>"/>
