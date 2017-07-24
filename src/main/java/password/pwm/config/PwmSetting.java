@@ -796,6 +796,8 @@ public enum PwmSetting {
             "newUser.minimumWaitTime", PwmSettingSyntax.DURATION, PwmSettingCategory.NEWUSER_PROFILE),
     NEWUSER_PROFILE_DISPLAY_NAME(
             "newUser.profile.displayName", PwmSettingSyntax.LOCALIZED_STRING, PwmSettingCategory.NEWUSER_PROFILE),
+    NEWUSER_PROFILE_DISPLAY_VISIBLE(
+            "newUser.profile.visible", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.NEWUSER_PROFILE),
     NEWUSER_REDIRECT_URL(
             "newUser.redirectUrl", PwmSettingSyntax.STRING, PwmSettingCategory.NEWUSER_PROFILE),
     NEWUSER_PROMPT_FOR_PASSWORD(
@@ -865,6 +867,8 @@ public enum PwmSetting {
     UPDATE_PROFILE_SMS_VERIFICATION(
             "updateAttributes.sms.verification", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UPDATE_PROFILE),
 
+    UPDATE_PROFILE_CUSTOMLINKS(
+            "updateAttributes.customLinks", PwmSettingSyntax.CUSTOMLINKS, PwmSettingCategory.UPDATE_PROFILE),
 
     // shortcut settings
     SHORTCUT_ENABLE(
@@ -915,6 +919,8 @@ public enum PwmSetting {
             "peopleSearch.orgChart.parentAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.PEOPLE_SEARCH),
     PEOPLE_SEARCH_ORGCHART_CHILD_ATTRIBUTE(
             "peopleSearch.orgChart.childAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.PEOPLE_SEARCH),
+    PEOPLE_SEARCH_ORGCHART_ASSISTANT_ATTRIBUTE(
+            "peopleSearch.orgChart.assistantAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.PEOPLE_SEARCH),
 
 
 
@@ -1071,7 +1077,10 @@ public enum PwmSetting {
     // CAS SSO
     CAS_CLEAR_PASS_URL(
             "cas.clearPassUrl", PwmSettingSyntax.STRING, PwmSettingCategory.CAS_SSO),
-
+    CAS_CLEARPASS_KEY(
+            "cas.clearPass.key", PwmSettingSyntax.FILE, PwmSettingCategory.CAS_SSO),
+    CAS_CLEARPASS_ALGORITHM(
+            "cas.clearPass.alg", PwmSettingSyntax.STRING, PwmSettingCategory.CAS_SSO),
     // http sso
     SSO_AUTH_HEADER_NAME(
             "security.sso.authHeaderName", PwmSettingSyntax.STRING, PwmSettingCategory.HTTP_SSO),
@@ -1109,6 +1118,8 @@ public enum PwmSetting {
             "external.macros.urls", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.REST_CLIENT),
     EXTERNAL_MACROS_REMOTE_RESPONSES_URL(
             "external.remoteResponses.url", PwmSettingSyntax.STRING, PwmSettingCategory.REST_CLIENT),
+    EXTERNAL_REMOTE_DATA_URL(
+            "external.remoteData.url", PwmSettingSyntax.REMOTE_WEB_SERVICE, PwmSettingCategory.REST_CLIENT),
 
 
     //appliance

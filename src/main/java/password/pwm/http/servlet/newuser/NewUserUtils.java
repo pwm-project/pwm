@@ -37,7 +37,7 @@ import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.TokenVerificationProgress;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.ActionConfiguration;
+import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.TokenStorageMethod;
@@ -75,6 +75,7 @@ import password.pwm.ws.client.rest.RestTokenDataClient;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -554,5 +555,16 @@ class NewUserUtils {
                 newUserBean.getTokenVerificationProgress().setPhase(null);
                 JavaHelper.unhandledSwitchStatement(tokenType);
         }
+    }
+
+    static Map<String,String> figureDisplayableProfiles(final PwmRequest pwmRequest) {
+        final Map<String,String> returnMap = new LinkedHashMap<>();
+        for (final NewUserProfile newUserProfile : pwmRequest.getConfig().getNewUserProfiles().values()) {
+            final boolean visible = newUserProfile.readSettingAsBoolean(PwmSetting.NEWUSER_PROFILE_DISPLAY_VISIBLE);
+            if (visible) {
+                returnMap.put(newUserProfile.getIdentifier(), newUserProfile.getDisplayName(pwmRequest.getLocale()));
+            }
+        }
+        return Collections.unmodifiableMap(returnMap);
     }
 }

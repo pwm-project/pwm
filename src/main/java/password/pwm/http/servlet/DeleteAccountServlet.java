@@ -29,7 +29,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.ActionConfiguration;
+import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.DeleteAccountProfile;
@@ -208,7 +208,7 @@ public class DeleteAccountServlet extends ControlledPwmServlet {
                 try {
                     actionExecutor.executeActions(actions, pwmRequest.getPwmSession());
                 } catch (PwmOperationalException e) {
-                    LOGGER.error("error during user delete action execution: ", e);
+                    LOGGER.error("error during user delete action execution: " + e.getMessage());
                     throw new PwmUnrecoverableException(e.getErrorInformation(),e.getCause());
                 }
             }

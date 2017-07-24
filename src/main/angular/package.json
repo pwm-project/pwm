@@ -19,7 +19,7 @@
   "license": "ISC",
   "dependencies": {},
   "devDependencies": {
-    "@types/angular": "1.5.8",
+    "@types/angular": "1.6.6",
     "@types/angular-mocks": "1.5.5",
     "@types/angular-translate": "2.4.33",
     "@types/angular-ui-router": "1.1.34",

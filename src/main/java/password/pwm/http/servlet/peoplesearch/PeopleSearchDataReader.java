@@ -32,9 +32,9 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
-import password.pwm.config.FormConfiguration;
+import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.UserPermission;
+import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -74,18 +74,18 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-public class PeopleSearchDataReader {
+class PeopleSearchDataReader {
     private static final PwmLogger LOGGER = PwmLogger.forClass(PeopleSearchDataReader.class);
 
     private final PwmRequest pwmRequest;
     private final PeopleSearchConfiguration config;
 
-    public PeopleSearchDataReader(final PwmRequest pwmRequest) {
+    PeopleSearchDataReader(final PwmRequest pwmRequest) {
         this.pwmRequest = pwmRequest;
-        this.config= new PeopleSearchConfiguration(pwmRequest.getConfig());
+        this.config = PeopleSearchConfiguration.fromConfiguration(pwmRequest.getConfig());
     }
 
-    public SearchResultBean makeSearchResultBean(
+    SearchResultBean makeSearchResultBean(
             final String searchData,
             final boolean includeDisplayName
     )
@@ -113,7 +113,7 @@ public class PeopleSearchDataReader {
         return searchResultBean;
     }
 
-    public OrgChartDataBean makeOrgChartData(
+    OrgChartDataBean makeOrgChartData(
             final UserIdentity userIdentity,
             final boolean noChildren
 
@@ -166,13 +166,24 @@ public class PeopleSearchDataReader {
             orgChartData.setChildren(Collections.unmodifiableList(new ArrayList<>(sortedChildren.values())));
         }
 
+        if (!StringUtil.isEmpty(config.getOrgChartAssistantAttr())) {
+            final List<UserIdentity> assistantIdentities = readUserDNAttributeValues(userIdentity, config.getOrgChartAssistantAttr());
+            if (assistantIdentities != null && !assistantIdentities.isEmpty()) {
+                final UserIdentity assistantIdentity = assistantIdentities.iterator().next();
+                final OrgChartReferenceBean assistantReference = makeOrgChartReferenceForIdentity(assistantIdentity);
+                if (assistantReference != null) {
+                    orgChartData.setAssistant(assistantReference);
+                }
+            }
+        }
+
         final TimeDuration totalTime = TimeDuration.fromCurrent(startTime);
         storeDataInCache(pwmRequest.getPwmApplication(), cacheKey, orgChartData);
         LOGGER.trace(pwmRequest, "completed makeOrgChartData in " + totalTime.asCompactString() + " with " + childCount + " children" );
         return orgChartData;
     }
 
-    public UserDetailBean makeUserDetailRequest(
+    UserDetailBean makeUserDetailRequest(
             final String userKey
     )
             throws PwmUnrecoverableException, IOException, ServletException, PwmOperationalException, ChaiUnavailableException
@@ -513,7 +524,7 @@ public class PeopleSearchDataReader {
         return new MacroMachine(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), userInfo, null);
     }
 
-    public void checkIfUserIdentityViewable(
+    void checkIfUserIdentityViewable(
             final UserIdentity userIdentity
     )
             throws  PwmUnrecoverableException, PwmOperationalException
@@ -594,7 +605,7 @@ public class PeopleSearchDataReader {
         }
     }
 
-    public PhotoDataBean readPhotoDataFromLdap(
+    PhotoDataBean readPhotoDataFromLdap(
             final UserIdentity userIdentity
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException

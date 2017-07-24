@@ -936,6 +936,10 @@ PWM_CFGEDIT.initSettingDisplay = function(setting, options) {
             OptionListHandler.init(settingKey);
             break;
 
+        case 'CUSTOMLINKS':
+            CustomLinkHandler.init(settingKey, {});
+            break;
+
         case 'EMAIL':
             EmailTableHandler.init(settingKey);
             break;
@@ -1012,6 +1016,10 @@ PWM_CFGEDIT.initSettingDisplay = function(setting, options) {
 
         case 'VERIFICATION_METHOD':
             VerificationMethodHandler.init(settingKey);
+            break;
+
+        case 'REMOTE_WEB_SERVICE':
+            RemoteWebServiceHandler.init(settingKey);
             break;
 
         case 'NONE':

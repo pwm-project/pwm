@@ -52,8 +52,8 @@ PWM_CONFIG.waitForRestart=function(options) {
     console.log("beginning request to determine application status: ");
     var loadFunction = function(data) {
         try {
-            var serverStartTime = data['data']['PWM_GLOBAL']['startupTime'];
-            if (serverStartTime != PWM_GLOBAL['startupTime']) {
+            var serverStartTime = data['time'];
+            if (serverStartTime !== PWM_GLOBAL['startupTime']) {
                 console.log("application appears to be restarted, redirecting to context url: ");
                 var redirectUrl = 'location' in options ? options['location'] : '/';
                 PWM_MAIN.goto(redirectUrl);
@@ -72,8 +72,7 @@ PWM_CONFIG.waitForRestart=function(options) {
         }, 3000);
         console.log('Waiting for server restart, unable to contact server: ' + error);
     };
-    var url = PWM_GLOBAL['url-restservice'] + "/app-data/client?checkForRestart=true";
-    url = PWM_MAIN.addParamToUrl(url,'pageUrl',window.location.href);
+    var url = PWM_GLOBAL['url-restservice'] + "/app-data/ping";
     PWM_MAIN.ajaxRequest(url,loadFunction,{errorFunction:errorFunction,method:'GET'});
 };
 

@@ -165,6 +165,7 @@ public enum PwmError {
     ERROR_PASSWORD_ONLY_BAD(        5089, "Error_PasswordOnlyBad",          null),
 
     ERROR_REMOTE_ERROR_VALUE(       6000, "Error_RemoteErrorValue",         null, ErrorFlag.Permanent),
+    ERROR_TELEMETRY_SEND_ERROR(     6001, "Error_TelemetrySendError",       null),
 
     ERROR_FIELD_REQUIRED(           5100, "Error_FieldRequired",            null),
     ERROR_FIELD_NOT_A_NUMBER(       5101, "Error_FieldNotANumber",          null),

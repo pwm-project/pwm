@@ -20,10 +20,13 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.config;
+package password.pwm.config.value.data;
+
+import lombok.Getter;
 
 import java.io.Serializable;
 
+@Getter
 public class ChallengeItemConfiguration implements Serializable {
     private String text;
     private int minLength;
@@ -47,33 +50,5 @@ public class ChallengeItemConfiguration implements Serializable {
         this.minLength = minimumLength;
         this.maxLength = maximumLength;
         this.adminDefined = adminDefined;
-    }
-
-    public String getText()
-    {
-        return text;
-    }
-
-    public int getMinLength()
-    {
-        return minLength;
-    }
-
-    public int getMaxLength()
-    {
-        return maxLength;
-    }
-
-    public boolean isAdminDefined()
-    {
-        return adminDefined;
-    }
-
-    public int getMaxQuestionCharsInAnswer() {
-        return maxQuestionCharsInAnswer;
-    }
-
-    public boolean isEnforceWordlist() {
-        return enforceWordlist;
     }
 }

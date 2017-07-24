@@ -24,7 +24,7 @@ package password.pwm.config.value;
 
 import com.google.gson.reflect.TypeToken;
 import org.jdom2.Element;
-import password.pwm.config.FormConfiguration;
+import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.StoredValue;
@@ -148,9 +148,11 @@ public class FormValue extends AbstractValue implements StoredValue {
                 sb.append(" Required:").append(formRow.isRequired());
                 sb.append(" Confirm:").append(formRow.isConfirmationRequired());
                 sb.append(" Unique:").append(formRow.isUnique());
+                sb.append(" Multi-Value:").append(formRow.isMultivalue());
+                sb.append(" Source:").append(formRow.getSource());
                 sb.append("\n");
-                sb.append(" Label:").append(JsonUtil.serializeMap(formRow.getLabelLocaleMap())).append("\n");
-                sb.append(" Description:").append(JsonUtil.serializeMap(formRow.getLabelDescriptionLocaleMap())).append("\n");
+                sb.append(" Label:").append(JsonUtil.serializeMap(formRow.getLabels())).append("\n");
+                sb.append(" Description:").append(JsonUtil.serializeMap(formRow.getDescription())).append("\n");
                 if (formRow.getSelectOptions() != null && !formRow.getSelectOptions().isEmpty()) {
                     sb.append(" Select Options: ").append(JsonUtil.serializeMap(formRow.getSelectOptions())).append("\n");
                 }

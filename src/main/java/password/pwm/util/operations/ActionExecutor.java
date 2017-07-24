@@ -27,7 +27,7 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmApplication;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.ActionConfiguration;
+import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -155,7 +155,7 @@ public class ActionExecutor {
                 }
                 final MacroMachine macroMachine = settings.getMacroMachine();
 
-                url = macroMachine.expandMacros(url, new MacroMachine.URLEncoderReplacer());
+                url = macroMachine.expandMacros(url);
                 body = body == null ? "" : macroMachine.expandMacros(body);
 
                 for (final String headerName : headers.keySet()) {

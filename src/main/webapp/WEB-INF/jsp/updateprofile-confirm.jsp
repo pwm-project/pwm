@@ -1,4 +1,4 @@
-<%@ page import="password.pwm.config.FormConfiguration" %>
+<%@ page import="password.pwm.config.value.data.FormConfiguration" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ page import="password.pwm.util.LocaleHelper" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>

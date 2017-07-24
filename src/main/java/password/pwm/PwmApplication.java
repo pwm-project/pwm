@@ -54,12 +54,12 @@ import password.pwm.svc.sessiontrack.SessionTrackService;
 import password.pwm.svc.shorturl.UrlShortenerService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.svc.telemetry.VersionChecker;
 import password.pwm.svc.token.TokenService;
 import password.pwm.svc.wordlist.SeedlistManager;
 import password.pwm.svc.wordlist.SharedHistoryManager;
 import password.pwm.svc.wordlist.WordlistManager;
 import password.pwm.util.PasswordData;
-import password.pwm.util.VersionChecker;
 import password.pwm.util.cli.commands.ExportHttpsTomcatConfigCommand;
 import password.pwm.util.db.DatabaseAccessor;
 import password.pwm.util.db.DatabaseService;
@@ -126,6 +126,8 @@ public class PwmApplication {
         HTTPS_SELF_CERT("https.selfCert"),
         CONFIG_LOGIN_HISTORY("config.loginHistory"),
         LOCALDB_LOGGER_STORAGE_FORMAT("localdb.logger.storage.format"),
+
+        TELEMETRY_LAST_PUBLISH_TIMESTAMP("telemetry.lastPublish.timestamp")
 
         ;
 

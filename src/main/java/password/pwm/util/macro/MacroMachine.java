@@ -34,7 +34,6 @@ import password.pwm.http.PwmRequest;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.Collections;
@@ -260,11 +259,13 @@ public class MacroMachine {
         String replace( String matchedMacro,  String newValue);
     }
 
+    /*
     public static class URLEncoderReplacer implements StringReplacer {
         public String replace(final String matchedMacro, final String newValue) {
             return StringUtil.urlEncode(newValue); // make sure replacement values are properly encoded
         }
     }
+    */
 
     public static MacroMachine forUser(
             final PwmRequest pwmRequest,

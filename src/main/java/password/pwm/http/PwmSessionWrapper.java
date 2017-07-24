@@ -64,7 +64,11 @@ public class PwmSessionWrapper {
         return returnSession;
     }
 
-    public static PwmSession readPwmSession(final HttpServletRequest httpRequest) throws PwmUnrecoverableException {
+    public static PwmSession readPwmSession(
+            final HttpServletRequest httpRequest
+    )
+            throws PwmUnrecoverableException
+    {
         return readPwmSession(httpRequest.getSession());
     }
 
@@ -72,7 +76,8 @@ public class PwmSessionWrapper {
             final PwmApplication pwmApplication,
             final PwmSession pwmSession,
             final HttpSession httpSession
-    ) throws PwmUnrecoverableException
+    )
+            throws PwmUnrecoverableException
     {
         final IdleTimeoutCalculator.MaxIdleTimeoutResult result = IdleTimeoutCalculator.figureMaxSessionTimeout(pwmApplication, pwmSession);
         if (httpSession.getMaxInactiveInterval() != result.getIdleTimeout().getTotalSeconds()) {

@@ -30,9 +30,9 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.TokenVerificationProgress;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.ActionConfiguration;
+import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.Configuration;
-import password.pwm.config.FormConfiguration;
+import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.FormUtility;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.TokenStorageMethod;
@@ -69,6 +69,7 @@ import password.pwm.ws.server.RestResultBean;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -528,13 +529,18 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
         // see if the values meet form requirements.
         FormUtility.validateFormValues(pwmRequest.getConfig(), formValues, userLocale);
 
+        final List<FormUtility.ValidationFlag> validationFlags = new ArrayList<>();
+        if (allowResultCaching) {
+            validationFlags.add(FormUtility.ValidationFlag.allowResultCaching);
+        }
+
         // check unique fields against ldap
         FormUtility.validateFormValueUniqueness(
                 pwmRequest.getPwmApplication(),
                 formValues,
                 userLocale,
                 Collections.singletonList(pwmRequest.getPwmSession().getUserInfo().getUserIdentity()),
-                allowResultCaching
+                validationFlags.toArray(new FormUtility.ValidationFlag[validationFlags.size()])
         );
     }
 
@@ -565,6 +571,8 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
         final List<FormConfiguration> form = updateAttributesProfile.readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
         final Map<FormConfiguration,String> formValueMap = formMapFromBean(updateAttributesProfile, updateProfileBean);
         pwmRequest.addFormInfoToRequestAttr(form, formValueMap, false, false);
+        final List<FormConfiguration> links = updateAttributesProfile.readSettingAsForm(PwmSetting.UPDATE_PROFILE_CUSTOMLINKS);
+        pwmRequest.addFormInfoToRequestAttr(links);
         pwmRequest.forwardToJsp(JspUrl.UPDATE_ATTRIBUTES);
     }
 
@@ -574,6 +582,8 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
         final List<FormConfiguration> form = updateAttributesProfile.readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
         final Map<FormConfiguration,String> formValueMap = formMapFromBean(updateAttributesProfile, updateProfileBean);
         pwmRequest.addFormInfoToRequestAttr(form, formValueMap, true, false);
+        final List<FormConfiguration> links = updateAttributesProfile.readSettingAsForm(PwmSetting.UPDATE_PROFILE_CUSTOMLINKS);
+        pwmRequest.addFormInfoToRequestAttr(links);
         pwmRequest.forwardToJsp(JspUrl.UPDATE_ATTRIBUTES_CONFIRM);
     }
 

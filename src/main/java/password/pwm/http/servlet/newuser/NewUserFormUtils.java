@@ -22,7 +22,7 @@
 
 package password.pwm.http.servlet.newuser;
 
-import password.pwm.config.FormConfiguration;
+import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.FormUtility;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.NewUserProfile;
@@ -149,23 +149,34 @@ class NewUserFormUtils {
         return ldapData;
     }
 
-    static NewUserForm injectRemoteValuesIntoForm(
+    static void injectRemoteValuesIntoForm(final NewUserBean newUserBean, final NewUserProfile newUserProfile)
+            throws PwmUnrecoverableException
+    {
+        final NewUserForm oldForm = newUserBean.getNewUserForm();
+        final List<FormConfiguration> formConfigurations = newUserProfile.readSettingAsForm(PwmSetting.NEWUSER_FORM);
+        final Map<FormConfiguration,String> userFormValues = FormUtility.asFormConfigurationMap(formConfigurations, oldForm.getFormData());
+        final Map<String,String> injectedValues = newUserBean.getRemoteInputData();
+        final NewUserForm newUserForm = injectRemoteValuesIntoForm(userFormValues, injectedValues, newUserProfile, oldForm.getNewUserPassword(), oldForm.getConfirmPassword());
+        newUserBean.setNewUserForm(newUserForm);
+    }
+
+    private static NewUserForm injectRemoteValuesIntoForm(
             final Map<FormConfiguration, String> userFormValues,
             final Map<String,String> injectedValues,
             final NewUserProfile newUserProfile,
             final PasswordData passwordData1,
             final PasswordData passwordData2
     ) {
-        final Map<String,String> newFormValues = new HashMap<>();
+        final Map<String,String> newFormValues = new LinkedHashMap<>();
         newFormValues.putAll(FormUtility.asStringMap(userFormValues));
 
         final List<FormConfiguration> formConfigurations = newUserProfile.readSettingAsForm(PwmSetting.NEWUSER_FORM);
         if (injectedValues != null) {
             for (final FormConfiguration formConfiguration : formConfigurations) {
                 final String name = formConfiguration.getName();
-                if (formConfiguration.isReadonly()
-                        || !newFormValues.containsKey(name) && injectedValues.containsKey(name))
-                {
+                final boolean formHasValue = !StringUtil.isEmpty(newFormValues.get(name));
+
+                if (formConfiguration.isReadonly() || (!formHasValue && injectedValues.containsKey(name))) {
                     newFormValues.put(formConfiguration.getName(), injectedValues.get(formConfiguration.getName()));
                 }
             }

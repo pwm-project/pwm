@@ -49,7 +49,10 @@ public enum PwmSettingFlag {
     Form_ShowRequiredOption,
     Form_ShowMultiValueOption,
     Form_HideStandardOptions,
+    Form_ShowSource,
 
     Verification_HideMinimumOptional,
+
+    WebService_NoBody,
 
 }

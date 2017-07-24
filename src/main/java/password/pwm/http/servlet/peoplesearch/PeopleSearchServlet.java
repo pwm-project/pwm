@@ -24,7 +24,7 @@ package password.pwm.http.servlet.peoplesearch;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.FormConfiguration;
+import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -110,7 +110,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet {
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
     {
-        final PeopleSearchConfiguration peopleSearchConfiguration = new PeopleSearchConfiguration(pwmRequest.getConfig());
+        final PeopleSearchConfiguration peopleSearchConfiguration = PeopleSearchConfiguration.fromConfiguration(pwmRequest.getConfig());
 
         final Map<String, String> searchColumns = new LinkedHashMap<>();
         final List<FormConfiguration> searchForm = pwmRequest.getConfig().readSettingAsForm(PwmSetting.PEOPLE_SEARCH_RESULT_FORM);
@@ -161,7 +161,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet {
     )
             throws IOException, PwmUnrecoverableException, ServletException
     {
-        final PeopleSearchConfiguration peopleSearchConfiguration = new PeopleSearchConfiguration(pwmRequest.getConfig());
+        final PeopleSearchConfiguration peopleSearchConfiguration = PeopleSearchConfiguration.fromConfiguration(pwmRequest.getConfig());
 
         if (!peopleSearchConfiguration.isOrgChartEnabled()) {
             throw new PwmUnrecoverableException(PwmError.ERROR_SERVICE_NOT_AVAILABLE);

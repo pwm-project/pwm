@@ -33,9 +33,9 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.ActionConfiguration;
+import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.Configuration;
-import password.pwm.config.FormConfiguration;
+import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.FormUtility;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.PwmPasswordPolicy;
@@ -227,8 +227,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
                     pwmApplication,
                     formValues,
                     ssBean.getLocale(),
-                    Collections.singletonList(guestRegistrationBean.getUpdateUserIdentity()),
-                    false
+                    Collections.singletonList(guestRegistrationBean.getUpdateUserIdentity())
             );
 
             final Date expirationDate = readExpirationFromRequest(pwmRequest);

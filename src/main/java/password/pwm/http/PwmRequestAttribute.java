@@ -42,6 +42,8 @@ public enum PwmRequestAttribute {
     FormReadOnly,
     FormShowPasswordFields,
     FormData,
+    FormMobileDevices,
+    FormCustomLinks,
 
     SetupResponses_ResponseInfo,
 
@@ -80,6 +82,7 @@ public enum PwmRequestAttribute {
     GuestMaximumValidDays,
 
     NewUser_FormShowBackButton,
+    NewUser_VisibleProfiles,
 
     CookieBeanStorage,
 

@@ -187,6 +187,13 @@ public class PwmURL {
         return isPwmServletURL(PwmServletDefinition.UpdateProfile);
     }
 
+    public boolean isLocalizable() {
+        return !isConfigGuideURL()
+                && !isAdminUrl()
+                && !isReferenceURL()
+                && !isConfigManagerURL();
+    }
+
     public String toString() {
         return uri.toString();
     }

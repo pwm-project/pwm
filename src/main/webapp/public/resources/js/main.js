@@ -1350,6 +1350,22 @@ PWM_MAIN.JSLibrary.removeFromArray = function(array,element) {
     }
 };
 
+PWM_MAIN.JSLibrary.readValueOfSelectElement = function(nodeID) {
+    var element = document.getElementById(nodeID);
+    var stringValue = element.options[element.selectedIndex].value;
+    return stringValue;
+};
+
+PWM_MAIN.JSLibrary.setValueOfSelectElement = function(nodeID, value) {
+    var element = document.getElementById(nodeID);
+    for(var i=0; i < element.options.length; i++) {
+        if (element.options[i].value === value) {
+            element.selectedIndex = i;
+            break;
+        }
+    }
+};
+
 PWM_MAIN.toggleFullscreen = function(iconObj,divName) {
     var obj = PWM_MAIN.getObject(divName);
 

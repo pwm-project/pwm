@@ -24,7 +24,7 @@ package password.pwm.config.value;
 
 import org.jdom2.CDATA;
 import org.jdom2.Element;
-import password.pwm.config.FormConfiguration;
+import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingFlag;
 import password.pwm.config.StoredValue;

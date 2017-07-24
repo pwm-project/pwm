@@ -24,7 +24,7 @@ package password.pwm.ws.server;
 
 import com.novell.ldapchai.util.StringHelper;
 import password.pwm.PwmApplication;
-import password.pwm.config.NamedSecretData;
+import password.pwm.config.value.data.NamedSecretData;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.WebServiceUsage;
 import password.pwm.error.PwmUnrecoverableException;
