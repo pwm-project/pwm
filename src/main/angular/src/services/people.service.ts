@@ -174,14 +174,17 @@ export default class PeopleService implements IPeopleService {
     search(query: string, params?: any): IPromise<SearchResult> {
         // Deferred object used for aborting requests. See promise.service.ts for more information
         let httpTimeout = this.$q.defer();
-        let formID = encodeURIComponent('&pwmFormID=' + this.PWM_GLOBAL['pwmFormID']);
-        // Search window references to PWM_GLOBAL and PWM_MAIN add by legacy PWM code
+
+        let formID: string = encodeURIComponent('&pwmFormID=' + this.PWM_GLOBAL['pwmFormID']);
+        let url: string = this.pwmService.getServerUrl('search', params)
+                        + '&pwmFormID=' + this.PWM_GLOBAL['pwmFormID'];
         let request = this.$http
-            .post(this.pwmService.getServerUrl('search') + '&pwmFormID=' + this.PWM_GLOBAL['pwmFormID'], {
-                timeout: httpTimeout.promise,
+            .post(url, {
                 username: query,
                 pwmFormID: formID
             }, {
+                cache: true,
+                timeout: httpTimeout.promise,
                 headers: {'Content-Type': 'multipart/form-data'},
             });
 
