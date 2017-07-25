@@ -98,18 +98,6 @@ public class FormConfiguration implements Serializable {
     private Map<String,String> selectOptions = Collections.emptyMap();
 
 
-    public String getRegexError(final Locale locale) {
-        return LocaleHelper.resolveStringKeyLocaleMap(locale, regexErrors);
-    }
-
-    public String getLabel(final Locale locale) {
-        return LocaleHelper.resolveStringKeyLocaleMap(locale, labels);
-    }
-
-    public String getDescription(final Locale locale) {
-        return LocaleHelper.resolveStringKeyLocaleMap(locale, description);
-    }
-
     public static FormConfiguration parseOldConfigString(final String config)
             throws PwmOperationalException
     {
@@ -192,7 +180,81 @@ public class FormConfiguration implements Serializable {
         regexErrors = Collections.singletonMap("","");
     }
 
+// --------------------- GETTER / SETTER METHODS ---------------------
 
+    public String getName() {
+        return name;
+    }
+
+    public String getLabel(final Locale locale) {
+        return LocaleHelper.resolveStringKeyLocaleMap(locale, labels);
+    }
+
+    public Map<String,String> getLabelLocaleMap() {
+        return Collections.unmodifiableMap(this.labels);
+    }
+
+    public String getRegexError(final Locale locale) {
+        return LocaleHelper.resolveStringKeyLocaleMap(locale, regexErrors);
+    }
+
+    public String getDescription(final Locale locale) {
+        return LocaleHelper.resolveStringKeyLocaleMap(locale, description);
+    }
+
+    public Map<String,String> getLabelDescriptionLocaleMap() {
+        return Collections.unmodifiableMap(this.description);
+    }
+
+    public int getMaximumLength() {
+        return maximumLength;
+    }
+
+    public int getMinimumLength() {
+        return minimumLength;
+    }
+
+    public Type getType() {
+        return type;
+    }
+
+    public boolean isConfirmationRequired() {
+        return confirmationRequired;
+    }
+
+    public boolean isRequired() {
+        return required;
+    }
+
+    public boolean isReadonly() {
+        return readonly;
+    }
+
+    public boolean isUnique() {
+        return unique;
+    }
+
+    public boolean isMultivalue() {
+        return multivalue;
+    }
+
+    public String getRegex() {
+        return regex;
+    }
+
+    public String getPlaceholder() {
+        return placeholder;
+    }
+
+    public String getJavascript() {
+        return javascript;
+    }
+
+    public Map<String,String> getSelectOptions() {
+        return Collections.unmodifiableMap(selectOptions);
+    }
+
+// ------------------------ CANONICAL METHODS ------------------------
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
