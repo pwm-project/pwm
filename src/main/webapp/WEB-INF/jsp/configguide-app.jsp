@@ -1,5 +1,6 @@
 <%@ page import="password.pwm.http.servlet.configguide.ConfigGuideForm" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
+<%@ page import="password.pwm.http.servlet.configguide.ConfigGuideFormField" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -47,12 +48,12 @@
                     Example: <code><%=PwmSetting.PWM_SITE_URL.getExample(ConfigGuideForm.generateStoredConfig(configGuideBean).getTemplateSet())%></code>
                     <br/><br/>
                     <div class="setting_item">
-                        <div id="titlePane_<%=ConfigGuideForm.FormParameter.PARAM_APP_SITEURL%>" style="padding-left: 5px; padding-top: 5px">
+                        <div id="titlePane_<%=ConfigGuideFormField.PARAM_APP_SITEURL%>" style="padding-left: 5px; padding-top: 5px">
                             <label>
                                 <b>Site URL</b>
                                 <br/>
-                                <input class="configStringInput" id="<%=ConfigGuideForm.FormParameter.PARAM_APP_SITEURL%>" name="<%=ConfigGuideForm.FormParameter.PARAM_APP_SITEURL%>"
-                                       value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_APP_SITEURL))%>" required autofocus
+                                <input class="configStringInput" id="<%=ConfigGuideFormField.PARAM_APP_SITEURL%>" name="<%=ConfigGuideFormField.PARAM_APP_SITEURL%>"
+                                       value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_APP_SITEURL))%>" required autofocus
                                        pattern="<%=PwmSetting.PWM_SITE_URL.getRegExPattern()%>"/>
                             </label>
                         </div>
@@ -83,7 +84,7 @@
         });
 
         function checkIfNextEnabled() {
-            var siteUrlInput = PWM_MAIN.getObject('<%=ConfigGuideForm.FormParameter.PARAM_APP_SITEURL%>');
+            var siteUrlInput = PWM_MAIN.getObject('<%=ConfigGuideFormField.PARAM_APP_SITEURL%>');
             var passed = siteUrlInput.value.length > 1 && new RegExp(siteUrlInput.getAttribute('pattern')).test(siteUrlInput.value);
             if (passed) {
                 PWM_MAIN.getObject('button_next').disabled = false;

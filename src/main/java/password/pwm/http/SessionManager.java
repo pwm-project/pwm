@@ -31,7 +31,7 @@ import password.pwm.PwmApplication;
 import password.pwm.bean.UserIdentity;
 import password.pwm.ldap.UserInfo;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.UserPermission;
+import password.pwm.config.value.data.UserPermission;
 import password.pwm.config.profile.DeleteAccountProfile;
 import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.config.profile.Profile;

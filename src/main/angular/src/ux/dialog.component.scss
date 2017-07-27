@@ -47,8 +47,8 @@ mf-dialog {
 
     > mf-icon-button {
       position: absolute;
-      right: 1px;
-      top: 1px;
+      right: 5px;
+      top: 5px;
       z-index: 1;
     }
 
@@ -82,7 +82,7 @@ mf-dialog {
     > .mf-dialog-container {
       > mf-icon-button {
         right: auto;
-        left: 1px;
+        left: 5px;
       }
     }
   }

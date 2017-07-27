@@ -35,7 +35,7 @@ import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.ldap.UserInfo;
 import password.pwm.config.Configuration;
-import password.pwm.config.FormConfiguration;
+import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -140,6 +140,9 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
 
     public Locale getLocale() {
         if (isFlag(PwmRequestFlag.INCLUDE_CONFIG_CSS)) {
+            return PwmConstants.DEFAULT_LOCALE;
+        }
+        if (!getURL().isLocalizable()) {
             return PwmConstants.DEFAULT_LOCALE;
         }
         return pwmSession.getSessionStateBean().getLocale();
@@ -530,6 +533,13 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         this.setAttribute(PwmRequestAttribute.FormData, formDataMapValue);
         this.setAttribute(PwmRequestAttribute.FormReadOnly, readOnly);
         this.setAttribute(PwmRequestAttribute.FormShowPasswordFields, showPasswordFields);
+        this.setAttribute(PwmRequestAttribute.FormMobileDevices, formDataMapValue);
+        this.setAttribute(PwmRequestAttribute.FormCustomLinks, new ArrayList<>(formConfiguration));
+    }
+
+    public void addFormInfoToRequestAttr(
+            final List<FormConfiguration> FormCustomLinks) {
+        this.setAttribute(PwmRequestAttribute.FormCustomLinks, new ArrayList<>(FormCustomLinks));
     }
 
     public void invalidateSession() {

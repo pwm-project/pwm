@@ -27,7 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
-import password.pwm.config.UserPermission;
+import password.pwm.config.value.data.UserPermission;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.i18n.Display;

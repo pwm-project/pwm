@@ -498,7 +498,7 @@ div.progress-container > div {
 
 #header-menu-wrapper {
     display: inline-block;
-    margin-right: 20px;
+    margin-right: 10px;
 }
 
 .header-button {
@@ -705,6 +705,16 @@ margin-right: 20px;
     font-family: monospace;
 }
 
+.eulaText {
+    border: 0;
+    background-color: #DDDDDD;
+    border-radius: 7px;
+    padding: 10px;
+    max-height: 300px;
+    overflow: auto;
+    font-family: monospace;
+    white-space: pre-wrap;
+}
 
 /* hide recaptcha iframe near footer */
 body > iframe[src="about:blank"] {
@@ -1043,7 +1053,7 @@ dialog .closeIcon { float: right; cursor: pointer; margin-right: 3px; }
 }
 
 .licenseBlock a {
-    color: #0088ce;
+    color: #007cd0;
     font-weight: normal;
     text-decoration: none;
 }

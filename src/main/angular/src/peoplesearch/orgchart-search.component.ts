@@ -27,7 +27,7 @@ import { IPeopleService } from '../services/people.service';
 import IPwmService from '../services/pwm.service';
 import { isArray, isString, IPromise, IQService, IScope } from 'angular';
 import LocalStorageService from '../services/local-storage.service';
-import OrgChartData from '../models/orgchart-data.model';
+import IOrgChartData from '../models/orgchart-data.model';
 import { IPerson } from '../models/person.model';
 
 @Component({
@@ -38,6 +38,7 @@ export default class OrgChartSearchComponent {
     directReports: IPerson[];
     inputDebounce: number;
     managementChain: IPerson[];
+    assistant: IPerson;
     person: IPerson;
     photosEnabled: boolean;
     query: string;
@@ -77,13 +78,17 @@ export default class OrgChartSearchComponent {
         let personId: string = this.$stateParams['personId'];
 
         this.fetchOrgChartData(personId)
-            .then((orgChartData: OrgChartData) => {
+            .then((orgChartData: IOrgChartData) => {
                 if (!orgChartData) {
                     return;
                 }
 
                 // Override personId in case it was undefined
                 personId = orgChartData.self.userKey;
+
+                if (orgChartData.assistant) {
+                    self.assistant = orgChartData.assistant;
+                }
 
                 self.peopleService.getPerson(personId)
                     .then((person: IPerson) => {
@@ -131,7 +136,7 @@ export default class OrgChartSearchComponent {
         this.storeSearchText();
     }
 
-    private fetchOrgChartData(personId): IPromise<OrgChartData> {
+    private fetchOrgChartData(personId): IPromise<IOrgChartData> {
         return this.peopleService.getOrgChartData(personId, true);
     }
 

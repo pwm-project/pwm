@@ -33,5 +33,5 @@ public enum PwmSettingProperty {
 
     Cert_ImportHandler,
 
-
+    MethodType,
 }

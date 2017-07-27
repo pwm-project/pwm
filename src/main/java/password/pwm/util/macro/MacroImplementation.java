@@ -35,6 +35,11 @@ public interface MacroImplementation {
         User,
     }
 
+    enum Sequence {
+        normal,
+        post,
+    }
+
     Pattern getRegExPattern();
 
     String replaceValue( String matchValue,  MacroRequestInfo macroRequestInfo)
@@ -49,6 +54,11 @@ public interface MacroImplementation {
     }
 
     MacroDefinitionFlag[] flags();
+
+    default Sequence getSequence()
+    {
+        return Sequence.normal;
+    }
 
     enum MacroDefinitionFlag {
         SensitiveValue,

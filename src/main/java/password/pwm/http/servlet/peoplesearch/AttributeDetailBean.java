@@ -22,7 +22,7 @@
 
 package password.pwm.http.servlet.peoplesearch;
 
-import password.pwm.config.FormConfiguration;
+import password.pwm.config.value.data.FormConfiguration;
 
 import java.io.Serializable;
 import java.util.Collection;

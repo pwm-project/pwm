@@ -20,13 +20,17 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.config;
+package password.pwm.config.value.data;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
 import java.net.URI;
 
+@Getter
+@AllArgsConstructor
 public class ShortcutItem implements Serializable {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(ShortcutItem.class);
@@ -35,30 +39,6 @@ public class ShortcutItem implements Serializable {
     private final URI shortcutURI;
     private final String ldapQuery;
     private final String description;
-
-    public ShortcutItem(final String label, final URI shortcutURI, final String ldapQuery, final String description) {
-        this.ldapQuery = ldapQuery;
-        this.shortcutURI = shortcutURI;
-        this.label = label;
-        this.description = description;
-    }
-
-    public String getLdapQuery() {
-        return ldapQuery;
-    }
-
-    public URI getShortcutURI() {
-        return shortcutURI;
-    }
-
-    public String getLabel() {
-        return label;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
 
     public String toString() {
         return "ShortcutItem{" +

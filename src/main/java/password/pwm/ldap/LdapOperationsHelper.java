@@ -39,7 +39,7 @@ import password.pwm.PwmApplication;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
-import password.pwm.config.FormConfiguration;
+import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.ErrorInformation;
@@ -215,7 +215,7 @@ public class LdapOperationsHelper {
      *
      * @param pwmSession       for looking up session info
      * @param theUser          User to write to
-     * @param formValues       A map with {@link password.pwm.config.FormConfiguration} keys and String values.
+     * @param formValues       A map with {@link FormConfiguration} keys and String values.
      * @throws ChaiUnavailableException if the directory is unavailable
      * @throws PwmOperationalException if their is an unexpected ldap problem
      */

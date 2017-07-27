@@ -30,7 +30,6 @@ import password.pwm.PwmConstants;
 import password.pwm.PwmHttpFilterAuthenticationProvider;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.UserIdentity;
-import password.pwm.ldap.UserInfo;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -50,6 +49,7 @@ import password.pwm.http.servlet.oauth.OAuthMachine;
 import password.pwm.http.servlet.oauth.OAuthSettings;
 import password.pwm.i18n.Display;
 import password.pwm.ldap.PasswordChangeProgressChecker;
+import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
@@ -65,7 +65,6 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.Serializable;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -291,42 +290,53 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         LoginServlet.redirectToLoginServlet(pwmRequest);
     }
 
-    public static ProcessStatus attemptAuthenticationMethods(final PwmRequest pwmRequest) throws IOException, ServletException {
-        final Set<AuthenticationMethod> authenticationMethods = new HashSet<>(Arrays.asList(AuthenticationMethod.values()));
-        {
-            final String casUrl = pwmRequest.getConfig().readSettingAsString(PwmSetting.CAS_CLEAR_PASS_URL);
-            if (casUrl == null || casUrl.trim().isEmpty()) {
-                authenticationMethods.remove(AuthenticationMethod.CAS);
-            }
+    private static final Set<AuthenticationMethod> IGNORED_AUTH_METHODS = new HashSet<>();
+
+    private static ProcessStatus attemptAuthenticationMethods(final PwmRequest pwmRequest) throws IOException, ServletException {
+        if (pwmRequest.isAuthenticated()) {
+            return ProcessStatus.Continue;
         }
-        for (final AuthenticationMethod authenticationMethod : authenticationMethods) {
-            if (!pwmRequest.isAuthenticated()) {
+
+        for (final AuthenticationMethod authenticationMethod : AuthenticationMethod.values()) {
+            if (!IGNORED_AUTH_METHODS.contains(authenticationMethod)) {
+                PwmHttpFilterAuthenticationProvider filterAuthenticationProvider = null;
                 try {
-                    final Class<? extends PwmHttpFilterAuthenticationProvider> clazz = authenticationMethod.getImplementationClass();
-                    final PwmHttpFilterAuthenticationProvider filterAuthenticationProvider = clazz.newInstance();
-                    filterAuthenticationProvider.attemptAuthentication(pwmRequest);
+                    final String className = authenticationMethod.getClassName();
+                    final Class clazz = Class.forName(className);
+                    final Object newInstance = clazz.newInstance();
+                    filterAuthenticationProvider = (PwmHttpFilterAuthenticationProvider)newInstance;
+                } catch (Exception e) {
+                    LOGGER.trace("could not load authentication class '" + authenticationMethod + "', will ignore");
+                    IGNORED_AUTH_METHODS.add(authenticationMethod);
+                }
 
-                    if (pwmRequest.isAuthenticated()) {
-                        LOGGER.trace(pwmRequest, "authentication provided by method " + clazz.getName());
-                    }
+                if (filterAuthenticationProvider != null) {
+                    try {
+                        filterAuthenticationProvider.attemptAuthentication(pwmRequest);
 
-                    if (filterAuthenticationProvider.hasRedirectedResponse()) {
-                        LOGGER.trace(pwmRequest, "authentication provider " + clazz.getName() + " has issued a redirect, halting authentication process");
+                        if (pwmRequest.isAuthenticated()) {
+                            LOGGER.trace(pwmRequest, "authentication provided by method " + authenticationMethod.name());
+                        }
+
+                        if (filterAuthenticationProvider.hasRedirectedResponse()) {
+                            LOGGER.trace(pwmRequest, "authentication provider " + authenticationMethod.name()
+                                    + " has issued a redirect, halting authentication process");
+                            return ProcessStatus.Halt;
+                        }
+
+                    } catch (Exception e) {
+                        final ErrorInformation errorInformation;
+                        if (e instanceof PwmException) {
+                            final String errorMsg = "error during " + authenticationMethod + " authentication attempt: " + e.getMessage();
+                            errorInformation = new ErrorInformation(((PwmException) e).getError(), errorMsg);
+                        } else {
+                            errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, e.getMessage());
+
+                        }
+                        LOGGER.error(pwmRequest, errorInformation);
+                        pwmRequest.respondWithError(errorInformation);
                         return ProcessStatus.Halt;
                     }
-
-                } catch (Exception e) {
-                    final ErrorInformation errorInformation;
-                    if (e instanceof PwmException) {
-                        final String erorrMessage = "error during " + authenticationMethod + " authentication attempt: " + e.getMessage();
-                        errorInformation = new ErrorInformation(((PwmException) e).getError(), erorrMessage);
-                    } else {
-                        errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, e.getMessage());
-
-                    }
-                    LOGGER.error(pwmRequest, errorInformation);
-                    pwmRequest.respondWithError(errorInformation);
-                    return ProcessStatus.Halt;
                 }
             }
         }
@@ -440,14 +450,8 @@ public class AuthenticationFilter extends AbstractPwmFilter {
             this.className = className;
         }
 
-        public Class<? extends PwmHttpFilterAuthenticationProvider> getImplementationClass() throws PwmUnrecoverableException {
-            try {
-                return (Class<? extends PwmHttpFilterAuthenticationProvider>) Class.forName(className);
-            } catch (ClassNotFoundException | ClassCastException e) {
-                final String errorMsg = "error loading authentication method: " + this.getImplementationClass() + ", error: " + e.getMessage();
-                LOGGER.error(errorMsg,e);
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg));
-            }
+        public String getClassName() {
+            return className;
         }
     }
 

@@ -28,7 +28,7 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
-import password.pwm.config.UserPermission;
+import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.util.logging.PwmLogger;

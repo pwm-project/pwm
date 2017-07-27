@@ -2,6 +2,7 @@
 <%@ page import="password.pwm.util.java.StringUtil" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ page import="password.pwm.config.PwmSettingTemplate" %>
+<%@ page import="password.pwm.http.servlet.configguide.ConfigGuideFormField" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -50,7 +51,7 @@
                         <br/><br/>
                         <b>Administrator Group DN</b>
                         <br/>
-                        <input style="width:400px;" class="configStringInput" id="<%=ConfigGuideForm.FormParameter.PARAM_LDAP_ADMIN_GROUP%>" name="<%=ConfigGuideForm.FormParameter.PARAM_LDAP_ADMIN_GROUP%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_LDAP_ADMIN_GROUP))%>" <pwm:autofocus/> required/>
+                        <input style="width:400px;" class="configStringInput" id="<%=ConfigGuideFormField.PARAM_LDAP_ADMIN_GROUP%>" name="<%=ConfigGuideFormField.PARAM_LDAP_ADMIN_GROUP%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_LDAP_ADMIN_GROUP))%>" <pwm:autofocus/> required/>
                         <button type="button" class="btn" id="button-browse-adminGroup">
                             <span class="btn-icon pwm-icon pwm-icon-sitemap"></span>
                             <pwm:display key="Button_Browse"/>
@@ -114,7 +115,7 @@
 
             PWM_MAIN.addEventHandler('button-browse-adminGroup','click',function(){
                 UILibrary.editLdapDN(function(value){
-                    PWM_MAIN.getObject('<%=ConfigGuideForm.FormParameter.PARAM_LDAP_ADMIN_GROUP%>').value = value;
+                    PWM_MAIN.getObject('<%=ConfigGuideFormField.PARAM_LDAP_ADMIN_GROUP%>').value = value;
                     handleFormActivity();
                 })
             });

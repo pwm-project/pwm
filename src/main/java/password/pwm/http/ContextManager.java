@@ -464,6 +464,10 @@ public class ContextManager implements Serializable {
         }
     }
 
+    public String getServerInfo() {
+        return servletContext.getServerInfo();
+    }
+
     public String getContextPath() {
         return contextPath;
     }

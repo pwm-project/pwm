@@ -34,7 +34,6 @@ import password.pwm.http.PwmRequest;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.Collections;
@@ -166,20 +165,24 @@ public class MacroMachine {
         String workingString = input;
         final String previousString = workingString;
 
-        for (final Pattern pattern : macroImplementations.keySet()) {
-            final MacroImplementation pwmMacro = macroImplementations.get(pattern);
-            boolean matched = true;
-            while (matched) {
-                final Matcher matcher = pattern.matcher(workingString);
-                if (matcher.find()) {
-                    workingString = doReplace(workingString, pwmMacro, matcher, stringReplacer, macroRequestInfo);
-                    if (workingString.equals(previousString)) {
-                        LOGGER.warn(sessionLabel, "macro replace was called but input string was not modified.  "
-                                + " macro=" + pwmMacro.getClass().getName() + ", pattern=" + pwmMacro.getRegExPattern().toString());
-                        break;
+        for (final MacroImplementation.Sequence sequence : MacroImplementation.Sequence.values()) {
+            for (final Pattern pattern : macroImplementations.keySet()) {
+                final MacroImplementation pwmMacro = macroImplementations.get(pattern);
+                if (pwmMacro.getSequence() == sequence) {
+                    boolean matched = true;
+                    while (matched) {
+                        final Matcher matcher = pattern.matcher(workingString);
+                        if (matcher.find()) {
+                            workingString = doReplace(workingString, pwmMacro, matcher, stringReplacer, macroRequestInfo);
+                            if (workingString.equals(previousString)) {
+                                LOGGER.warn(sessionLabel, "macro replace was called but input string was not modified.  "
+                                        + " macro=" + pwmMacro.getClass().getName() + ", pattern=" + pwmMacro.getRegExPattern().toString());
+                                break;
+                            }
+                        } else {
+                            matched = false;
+                        }
                     }
-                } else {
-                    matched = false;
                 }
             }
         }
@@ -260,12 +263,6 @@ public class MacroMachine {
         String replace( String matchedMacro,  String newValue);
     }
 
-    public static class URLEncoderReplacer implements StringReplacer {
-        public String replace(final String matchedMacro, final String newValue) {
-            return StringUtil.urlEncode(newValue); // make sure replacement values are properly encoded
-        }
-    }
-
     public static MacroMachine forUser(
             final PwmRequest pwmRequest,
             final UserIdentity userIdentity
@@ -273,6 +270,16 @@ public class MacroMachine {
             throws PwmUnrecoverableException
     {
         return forUser(pwmRequest.getPwmApplication(), pwmRequest.getLocale(), pwmRequest.getSessionLabel(),userIdentity);
+    }
+
+    public static MacroMachine forUser(
+            final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
+            final UserInfo userInfo,
+            final LoginInfoBean loginInfoBean
+
+    ) {
+        return new MacroMachine(pwmApplication, sessionLabel, userInfo, loginInfoBean);
     }
 
     public static MacroMachine forUser(

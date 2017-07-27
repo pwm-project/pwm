@@ -45,7 +45,7 @@ module.exports = webpackMerge(commonConfig, {
     plugins: [
         // Don't forget to add this to karma.conf.js
         new CopyWebpackPlugin([
-            { from: 'vendor/angular-ui-router.js', to: 'vendor/' },
+            { from: 'node_modules/@uirouter/angularjs/release/angular-ui-router.js', to: 'vendor/' },
             { from: 'node_modules/angular/angular.js', to: 'vendor/' },
             { from: 'node_modules/angular-translate/dist/angular-translate.js', to: 'vendor/' },
             { from: 'images/avatars', to: 'images/avatars' }

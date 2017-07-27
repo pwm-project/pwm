@@ -26,8 +26,10 @@ import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.io.IOUtils;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.http.ContextManager;
 import password.pwm.util.logging.PwmLogger;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -432,5 +434,15 @@ public class JavaHelper {
         }
         sb.append('\n');
         return sb.toString();
+    }
+
+    public static String readEulaText(final ContextManager contextManager, final String filename)
+            throws IOException
+    {
+        final String path = PwmConstants.URL_PREFIX_PUBLIC + "/resources/text/" + filename;
+        final InputStream inputStream = contextManager.getResourceAsStream(path);
+        final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        copyWhilePredicate(inputStream, byteArrayOutputStream, o -> true);
+        return byteArrayOutputStream.toString(PwmConstants.DEFAULT_CHARSET.name());
     }
 }

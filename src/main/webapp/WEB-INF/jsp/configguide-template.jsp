@@ -1,4 +1,5 @@
 <%@ page import="password.pwm.http.servlet.configguide.ConfigGuideForm" %>
+<%@ page import="password.pwm.http.servlet.configguide.ConfigGuideFormField" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -27,7 +28,7 @@
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final ConfigGuideBean configGuideBean = JspUtility.getSessionBean(pageContext, ConfigGuideBean.class);%>
-<% final String selectedTemplate = configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_TEMPLATE_LDAP); %>
+<% final String selectedTemplate = configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_TEMPLATE_LDAP); %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
@@ -38,7 +39,7 @@
         <pwm:display key="template_description" bundle="ConfigGuide"/>
         <br/>
         <form id="configForm">
-            <select id="<%=ConfigGuideForm.FormParameter.PARAM_TEMPLATE_LDAP%>" name="<%=ConfigGuideForm.FormParameter.PARAM_TEMPLATE_LDAP%>" style="width:300px">
+            <select id="<%=ConfigGuideFormField.PARAM_TEMPLATE_LDAP%>" name="<%=ConfigGuideFormField.PARAM_TEMPLATE_LDAP%>" style="width:300px">
                 <% if (selectedTemplate == null || selectedTemplate.isEmpty()) { %>
                 <option value="NOTSELECTED" selected disabled>-- Please select a template --</option>
                 <% } %>
@@ -63,8 +64,8 @@
         }
 
         function getSelectedValue() {
-            var selectedIndex = PWM_MAIN.getObject('<%=ConfigGuideForm.FormParameter.PARAM_TEMPLATE_LDAP%>').selectedIndex;
-            var newTemplate = PWM_MAIN.getObject('<%=ConfigGuideForm.FormParameter.PARAM_TEMPLATE_LDAP%>').options[selectedIndex];
+            var selectedIndex = PWM_MAIN.getObject('<%=ConfigGuideFormField.PARAM_TEMPLATE_LDAP%>').selectedIndex;
+            var newTemplate = PWM_MAIN.getObject('<%=ConfigGuideFormField.PARAM_TEMPLATE_LDAP%>').options[selectedIndex];
             return newTemplate.value;
         }
 
@@ -84,7 +85,7 @@
                 });
             });
             PWM_MAIN.addEventHandler('button_next','click',function(){PWM_GUIDE.gotoStep('NEXT')});
-            PWM_MAIN.addEventHandler('<%=ConfigGuideForm.FormParameter.PARAM_TEMPLATE_LDAP%>','change',function(){formHandler()});
+            PWM_MAIN.addEventHandler('<%=ConfigGuideFormField.PARAM_TEMPLATE_LDAP%>','change',function(){formHandler()});
             updateNextButton();
         });
     </script>

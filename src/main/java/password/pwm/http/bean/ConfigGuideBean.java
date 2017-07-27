@@ -22,9 +22,12 @@
 
 package password.pwm.http.bean;
 
+import lombok.Getter;
+import lombok.Setter;
 import password.pwm.config.option.SessionBeanMode;
 import password.pwm.config.value.FileValue;
 import password.pwm.http.servlet.configguide.ConfigGuideForm;
+import password.pwm.http.servlet.configguide.ConfigGuideFormField;
 import password.pwm.http.servlet.configguide.GuideStep;
 
 import java.security.cert.X509Certificate;
@@ -33,62 +36,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+@Getter
+@Setter
 public class ConfigGuideBean extends PwmSessionBean {
 
     private GuideStep step = GuideStep.START;
-    private Map<ConfigGuideForm.FormParameter,String> formData = new HashMap<>(ConfigGuideForm.defaultForm());
+    private final Map<ConfigGuideFormField,String> formData = new HashMap<>(ConfigGuideForm.defaultForm());
     private X509Certificate[] ldapCertificates;
     private boolean certsTrustedbyKeystore = false;
     private boolean useConfiguredCerts = false;
     private FileValue databaseDriver = null;
-
-    public GuideStep getStep() {
-        return step;
-    }
-
-    public void setStep(final GuideStep step) {
-        this.step = step;
-    }
-
-    public Map<ConfigGuideForm.FormParameter, String> getFormData() {
-        return formData;
-    }
-
-    public void setFormData(final Map<ConfigGuideForm.FormParameter, String> formData) {
-        this.formData = formData;
-    }
-
-    public X509Certificate[] getLdapCertificates() {
-        return ldapCertificates;
-    }
-
-    public void setLdapCertificates(final X509Certificate[] ldapCertificates) {
-        this.ldapCertificates = ldapCertificates;
-    }
-
-    public boolean isCertsTrustedbyKeystore() {
-        return certsTrustedbyKeystore;
-    }
-
-    public void setCertsTrustedbyKeystore(final boolean certsTrustedbyKeystore) {
-        this.certsTrustedbyKeystore = certsTrustedbyKeystore;
-    }
-
-    public boolean isUseConfiguredCerts() {
-        return useConfiguredCerts;
-    }
-
-    public void setUseConfiguredCerts(final boolean useConfiguredCerts) {
-        this.useConfiguredCerts = useConfiguredCerts;
-    }
-
-    public FileValue getDatabaseDriver() {
-        return databaseDriver;
-    }
-
-    public void setDatabaseDriver(final FileValue databaseDriver) {
-        this.databaseDriver = databaseDriver;
-    }
 
     public Type getType() {
         return Type.PUBLIC;

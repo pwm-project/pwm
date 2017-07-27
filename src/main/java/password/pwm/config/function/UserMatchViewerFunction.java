@@ -33,7 +33,7 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.SettingUIFunction;
-import password.pwm.config.UserPermission;
+import password.pwm.config.value.data.UserPermission;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;

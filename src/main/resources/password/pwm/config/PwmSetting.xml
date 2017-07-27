@@ -66,7 +66,7 @@
         <example>https://www.example.com/example</example>
         <default/>
     </setting>
-    <setting hidden="false" key="pwm.versionCheck.enable" level="1" required="true">
+    <setting hidden="true" key="pwm.versionCheck.enable" level="1" required="true">
         <default>
             <value>false</value>
         </default>
@@ -121,6 +121,7 @@
     <setting hidden="false" key="knownLocales" level="2">
         <default>
             <value><![CDATA[en::us]]></value>
+            <value><![CDATA[en_CA::ca]]></value>
             <value><![CDATA[ca::catalonia]]></value>
             <value><![CDATA[cs::cz]]></value>
             <value><![CDATA[da::dk]]></value>
@@ -129,6 +130,7 @@
             <value><![CDATA[es::es]]></value>
             <value><![CDATA[fi::fi]]></value>
             <value><![CDATA[fr::fr]]></value>
+            <value><![CDATA[fr_CA::ca]]></value>
             <value><![CDATA[hu::hu]]></value>
             <value><![CDATA[iw::il]]></value>
             <value><![CDATA[it::it]]></value>
@@ -2008,6 +2010,38 @@
             <value locale="es"><![CDATA[{"text":"¿Cuál es la película que menos le gusta?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
             <value locale="es"><![CDATA[{"text":"¿Quién era el profesor que menos le gustaba?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
             <value locale="es"><![CDATA[{"text":"¿Cuál es la comida que menos le gusta?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="en_CA"><![CDATA[{"text":"What is the name of the main character in your favourite book?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="en_CA"><![CDATA[{"text":"What is the name of your favourite teacher?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="en_CA"><![CDATA[{"text":"What is the name of your favourite pet?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="en_CA"><![CDATA[{"text":"What was the name of your childhood best friend?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="en_CA"><![CDATA[{"text":"What was your favourite show as a child?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="en_CA"><![CDATA[{"text":"Who is your favourite author?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="en_CA"><![CDATA[{"text":"What is your favourite food?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="en_CA"><![CDATA[{"text":"What is your partner's nickname?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="en_CA"><![CDATA[{"text":"What is your favourite team?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="en_CA"><![CDATA[{"text":"What street did you grow up on?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="en_CA"><![CDATA[{"text":"What city/town were you born in?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="en_CA"><![CDATA[{"text":"What is your favourite vehicle?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="en_CA"><![CDATA[{"text":"If you could meet someone from history, who would it be?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="en_CA"><![CDATA[{"text":"What is your least favourite film of all time?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="en_CA"><![CDATA[{"text":"Who was your least favourite teacher?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="en_CA"><![CDATA[{"text":"What food do you dislike the most?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="fr_CA"><![CDATA[{"text":"Comment s'appelle le héros de votre livre préféré?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="fr_CA"><![CDATA[{"text":"Comment s'appelle votre professeur préféré?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="fr_CA"><![CDATA[{"text":"Quel est le nom de votre animal préféré?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="fr_CA"><![CDATA[{"text":"Comment s'appelle votre meilleur ami d'enfance?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="fr_CA"><![CDATA[{"text":"Quelle était votre émission préférée lorsque vous étiez enfant?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="fr_CA"><![CDATA[{"text":"Qui est votre auteur préféré?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="fr_CA"><![CDATA[{"text":"Quel est votre plat préféré?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="fr_CA"><![CDATA[{"text":"Quel est le surnom de votre partenaire?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="fr_CA"><![CDATA[{"text":"Quelle est votre équipe préférée?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="fr_CA"><![CDATA[{"text":"Dans quelle rue avez-vous grandi?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="fr_CA"><![CDATA[{"text":"Quelle est votre ville de naissance?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="fr_CA"><![CDATA[{"text":"Quel est votre véhicule préféré?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="fr_CA"><![CDATA[{"text":"Si vous pouviez rencontrer un personnage historique, qui voudriez-vous rencontrer?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="fr_CA"><![CDATA[{"text":"Quel film avez-vous toujours détesté?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="fr_CA"><![CDATA[{"text":"Qui est le professeur que vous avez le plus détesté?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="fr_CA"><![CDATA[{"text":"Quel plat détestez-vous le plus?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
             <value locale="fr"><![CDATA[{"text":"Comment s'appelle le héros de votre livre préféré ?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
             <value locale="fr"><![CDATA[{"text":"Comment s'appelle votre professeur préféré ?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
             <value locale="fr"><![CDATA[{"text":"Quel est le nom de votre animal préféré ?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
@@ -2024,6 +2058,22 @@
             <value locale="fr"><![CDATA[{"text":"Quel film avez-vous toujours détesté ?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
             <value locale="fr"><![CDATA[{"text":"Qui est le professeur que vous avez le plus détesté ?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
             <value locale="fr"><![CDATA[{"text":"Quel plat détestez-vous le plus ?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="iw"><![CDATA[{"text":"מהו שם הדמות הראשית בספר האהוב עליך?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="iw"><![CDATA[{"text":"מהו שם המורה האהוב/ה עליך?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="iw"><![CDATA[{"text":"מהו שם חיית המחמד האהובה עליך?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="iw"><![CDATA[{"text":"מה היה שמו של חבר הילדות הטוב ביותר שלך?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="iw"><![CDATA[{"text":"מה היתה תוכנית הטלוויזיה האהובה עליך בילדותך?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="iw"><![CDATA[{"text":"מי הסופר האהוב עליך?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="iw"><![CDATA[{"text":"מהו המאכל האהוב עליך?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="iw"><![CDATA[{"text":"מהו הכינוי של בת/בן הזוג שלך?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="iw"><![CDATA[{"text":"מהו שם הקבוצה האהובה עליך?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="iw"><![CDATA[{"text":"באיזה רחוב גדלת?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="iw"><![CDATA[{"text":"באיזו עיר נולדת?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="iw"><![CDATA[{"text":"מהו הרכב האהוב עליך?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="iw"><![CDATA[{"text":"אם היית יכול לפגוש דמות מההיסטוריה, את מי היית רוצה לפגוש?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="iw"><![CDATA[{"text":"מהו שם הסרט הכי פחות אהוב עליך בכל הזמנים?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="iw"><![CDATA[{"text":"מי היה המורה הכי פחות אהוב/ה עליך?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="iw"><![CDATA[{"text":"מהו המאכל שאתה הכי לא אוהב?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
             <value locale="it"><![CDATA[{"text":"Come si chiama il protagonista del tuo libro preferito?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
             <value locale="it"><![CDATA[{"text":"Come si chiama il tuo insegnante preferito?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
             <value locale="it"><![CDATA[{"text":"Come si chiama il tuo animale domestico preferito?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
@@ -2519,15 +2569,14 @@
     </setting>
     <setting hidden="false" key="display.newuser.agreement" level="1">
         <flag>MacroSupport</flag>
-        <default>
-            <value />
-        </default>
+        <default/>
     </setting>
     <setting hidden="false" key="newUser.form" level="1">
         <ldapPermission actor="proxy" access="write"/>
         <flag>Form_ShowUniqueOption</flag>
         <flag>Form_ShowRequiredOption</flag>
         <flag>Form_ShowReadOnlyOption</flag>
+        <flag>Form_ShowSource</flag>
         <default>
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"unique":true,"labels":{"":"Email Address"},"regexErrors":{"":"Email Address has invalid characters"},"description":{"":""},"placeholder":"username@example.com","selectOptions":{},regex:"^[a-zA-Z0-9 .,'@]*$"}</value>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{},regex:"^[a-zA-Z0-9 .,'@]*$"}</value>
@@ -2541,10 +2590,10 @@
             <option value="random">random</option>
             <option value="tel">tel</option>
             <option value="hidden">hidden</option>
-            <option value="date">date</option>
-            <option value="datetime">datetime</option>
-            <option value="week">week</option>
-            <option value="month">month</option>
+            <!--<option value="date">date</option>-->
+            <!--<option value="datetime">datetime</option>-->
+            <!--<option value="week">week</option>-->
+            <!--<option value="month">month</option>-->
             <option value="url">url</option>
             <option value="select">select</option>
             <option value="checkbox">checkbox</option>
@@ -2589,8 +2638,11 @@
         </properties>
     </setting>
     <setting hidden="false" key="newUser.profile.displayName" level="1">
+        <default/>
+    </setting>
+    <setting hidden="false" key="newUser.profile.visible" level="1">
         <default>
-            <value></value>
+            <value>true</value>
         </default>
     </setting>
     <setting hidden="false" key="newUser.redirectUrl" level="1">
@@ -2639,10 +2691,10 @@
             <option value="random">random</option>
             <option value="tel">tel</option>
             <option value="hidden">hidden</option>
-            <option value="date">date</option>
-            <option value="datetime">datetime</option>
-            <option value="week">week</option>
-            <option value="month">month</option>
+            <!--<option value="date">date</option>-->
+            <!--<option value="datetime">datetime</option>-->
+            <!--<option value="week">week</option>-->
+            <!--<option value="month">month</option>-->
             <option value="url">url</option>
             <option value="select">select</option>
             <option value="checkbox">checkbox</option>
@@ -2667,10 +2719,10 @@
             <option value="random">random</option>
             <option value="tel">tel</option>
             <option value="hidden">hidden</option>
-            <option value="date">date</option>
-            <option value="datetime">datetime</option>
-            <option value="week">week</option>
-            <option value="month">month</option>
+            <!--<option value="date">date</option>-->
+            <!--<option value="datetime">datetime</option>-->
+            <!--<option value="week">week</option>-->
+            <!--<option value="month">month</option>-->
             <option value="url">url</option>
             <option value="select">select</option>
             <option value="checkbox">checkbox</option>
@@ -2752,10 +2804,10 @@
             <option value="random">random</option>
             <option value="tel">tel</option>
             <option value="hidden">hidden</option>
-            <option value="date">date</option>
-            <option value="datetime">datetime</option>
-            <option value="week">week</option>
-            <option value="month">month</option>
+            <!--<option value="date">date</option>-->
+            <!--<option value="datetime">datetime</option>-->
+            <!--<option value="week">week</option>-->
+            <!--<option value="month">month</option>-->
             <option value="url">url</option>
             <option value="select">select</option>
             <option value="checkbox">checkbox</option>
@@ -2851,10 +2903,10 @@
             <option value="random">random</option>
             <option value="tel">tel</option>
             <option value="hidden">hidden</option>
-            <option value="date">date</option>
-            <option value="datetime">datetime</option>
-            <option value="week">week</option>
-            <option value="month">month</option>
+            <!--<option value="date">date</option>-->
+            <!--<option value="datetime">datetime</option>-->
+            <!--<option value="week">week</option>-->
+            <!--<option value="month">month</option>-->
             <option value="url">url</option>
             <option value="select">select</option>
             <option value="checkbox">checkbox</option>
@@ -2881,7 +2933,11 @@
             <value>false</value>
         </default>
     </setting>
-
+    <setting hidden="false" key="updateAttributes.customLinks" level="1">
+        <default>
+            <value></value>
+        </default>
+    </setting>
     <setting hidden="false" key="shortcut.enable" level="1">
         <default>
             <value>false</value>
@@ -3049,6 +3105,12 @@
         <ldapPermission actor="self_other" access="read"/>
         <default>
             <value>directReports</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="peopleSearch.orgChart.assistantAttribute" level="1">
+        <ldapPermission actor="self_other" access="read"/>
+        <default>
+            <value>assistant</value>
         </default>
     </setting>
     <setting hidden="false" key="ldap.edirectory.storeNmasResponses" level="1" required="true">
@@ -3534,6 +3596,16 @@
             <value />
         </default>
     </setting>
+    <setting hidden="false" key="cas.clearPass.key" level="2">
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting hidden="false" key="cas.clearPass.alg" level="2">
+        <default>
+            <value />
+        </default>
+    </setting>
     <setting hidden="false" key="urlshortener.classname" level="2">
         <default>
             <value />
@@ -3567,6 +3639,7 @@
         <default/>
         <options>
             <option value="SigningForm">Signing Form Service - /signing/form</option>
+            <option value="Health">Health Service - /health</option>
         </options>
     </setting>
     <setting hidden="false" key="webservices.queryMatch" level="2">
@@ -3594,6 +3667,14 @@
         <default />
     </setting>
     <setting hidden="false" key="external.pwcheck.urls" level="2">
+        <default />
+    </setting>
+    <setting hidden="false" key="external.remoteData.url" level="2">
+        <properties>
+            <property key="Maximum">1</property>
+            <property key="MethodType">post</property>
+        </properties>
+        <flag>WebService_NoBody</flag>
         <default />
     </setting>
     <setting hidden="false" key="webservice.userAttributes" level="2">

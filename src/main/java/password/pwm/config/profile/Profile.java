@@ -22,7 +22,7 @@
 
 package password.pwm.config.profile;
 
-import password.pwm.config.UserPermission;
+import password.pwm.config.value.data.UserPermission;
 
 import java.io.Serializable;
 import java.util.List;

@@ -24,7 +24,7 @@
 import { IPromise, IQService, ITimeoutService } from 'angular';
 import { IPerson } from '../models/person.model';
 import { IPeopleService } from './people.service';
-import OrgChartData from '../models/orgchart-data.model';
+import IOrgChartData from '../models/orgchart-data.model';
 import SearchResult from '../models/search-result.model';
 
 const peopleData = require('./people.data');
@@ -99,16 +99,19 @@ export default class PeopleService implements IPeopleService {
         return this.$q.reject(`Person with id: "${id}" not found.`);
     }
 
-    getOrgChartData(personId: string): angular.IPromise<OrgChartData> {
+    getOrgChartData(personId: string): angular.IPromise<IOrgChartData> {
         if (!personId) {
             personId = '9';
         }
 
         const self = this.findPerson(personId);
-        const manager = this.findManager(self);
-        const children = this.findDirectReports(personId);
 
-        const orgChartData = new OrgChartData(manager, children, self);
+        const orgChartData: IOrgChartData = {
+            manager: this.findManager(self),
+            children: this.findDirectReports(personId),
+            self: self,
+            assistant: this.findAssistant(self)
+        };
 
         return this.$q.resolve(orgChartData);
     }
@@ -181,6 +184,14 @@ export default class PeopleService implements IPeopleService {
 
     private findDirectReports(id: string): IPerson[] {
         return this.people.filter((person: IPerson) => person.detail['manager']['userReferences'][0].userKey == id);
+    }
+
+    private findAssistant(person: IPerson): IPerson {
+        if (!('assistant' in person.detail)) {
+            return null;
+        }
+
+        return this.findPerson(person.detail['assistant']['userReferences'][0].userKey);
     }
 
     private findManager(person: IPerson): IPerson {

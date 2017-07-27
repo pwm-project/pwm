@@ -31,7 +31,6 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.UserInfo;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
@@ -58,8 +57,6 @@ public abstract class StandardMacros {
     static {
         final Map<Class<? extends MacroImplementation>, MacroImplementation.Scope> defaultMacros = new LinkedHashMap<>();
 
-
-
         // system macros
         defaultMacros.put(CurrentTimeMacro.class, MacroImplementation.Scope.System);
         defaultMacros.put(InstanceIDMacro.class, MacroImplementation.Scope.System);
@@ -84,8 +81,6 @@ public abstract class StandardMacros {
         defaultMacros.put(OtpSetupTimeMacro.class, MacroImplementation.Scope.User);
         defaultMacros.put(ResponseSetupTimeMacro.class, MacroImplementation.Scope.User);
 
-        // wrapper macros: must be at the end to allow Macro in Macro during parsing
-        defaultMacros.put(EncodingMacro.class, MacroImplementation.Scope.System);
         STANDARD_MACROS = Collections.unmodifiableMap(defaultMacros);
     }
 
@@ -609,77 +604,6 @@ public abstract class StandardMacros {
                 final MacroRequestInfo macroRequestInfo
         ) {
             return PwmRandom.getInstance().randomUUID().toString();
-        }
-    }
-
-    public static class EncodingMacro extends AbstractMacro {
-        private static final Pattern PATTERN = Pattern.compile("@Encode:[^:]+:\\[\\[.*\\]\\]@");
-        // @Encode:ENCODE_TYPE:value@
-
-        private enum EncodeType {
-            urlPath,
-            urlParameter,
-            base64,
-
-            ;
-
-            private String encode(final String input) throws MacroParseException {
-                switch (this) {
-                    case urlPath:
-                        return StringUtil.urlEncode(input);
-
-                    case urlParameter:
-                        return StringUtil.urlEncode(input);
-
-                    case base64:
-                        return StringUtil.base64Encode(input.getBytes(PwmConstants.DEFAULT_CHARSET));
-
-                    default:
-                        throw new MacroParseException("unimplemented encodeType '" + this.toString() + "' for Encode macro");
-                }
-            }
-
-            private static EncodeType forString(final String input) {
-                for (final EncodeType encodeType : EncodeType.values()) {
-                    if (encodeType.toString().equalsIgnoreCase(input)) {
-                        return encodeType;
-                    }
-                }
-                return null;
-            }
-        }
-
-
-        public Pattern getRegExPattern() {
-            return PATTERN;
-        }
-
-        public String replaceValue(
-                final String matchValue,
-                final MacroRequestInfo macroRequestInfo
-        )
-                throws MacroParseException
-        {
-            if (matchValue == null || matchValue.length() < 1) {
-                return "";
-            }
-
-            final String[] colonParts = matchValue.split(":");
-
-            if (colonParts.length < 3) {
-                throw new MacroParseException("not enough arguments for Encode macro");
-            }
-
-            final String encodeMethodStr = colonParts[1];
-            final EncodeType encodeType = EncodeType.forString(encodeMethodStr);
-            if (encodeType == null) {
-                throw new MacroParseException("unknown encodeType '" + encodeMethodStr + "' for Encode macro");
-            }
-
-            String value = matchValue; // can't use colonParts[2] as it may be split if value contains a colon.
-            value = value.replaceAll("^@Encode:[^:]+:\\[\\[","");
-            value = value.replaceAll("\\]\\]@$","");
-            return encodeType.encode(value);
         }
     }
 

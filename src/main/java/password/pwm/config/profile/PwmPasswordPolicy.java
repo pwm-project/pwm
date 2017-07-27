@@ -27,7 +27,7 @@ import com.novell.ldapchai.ChaiPasswordRule;
 import com.novell.ldapchai.util.DefaultChaiPasswordPolicy;
 import com.novell.ldapchai.util.PasswordRuleHelper;
 import com.novell.ldapchai.util.StringHelper;
-import password.pwm.config.UserPermission;
+import password.pwm.config.value.data.UserPermission;
 import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;

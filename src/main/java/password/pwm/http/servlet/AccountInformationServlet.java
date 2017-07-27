@@ -24,7 +24,7 @@ package password.pwm.http.servlet;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmConstants;
-import password.pwm.config.FormConfiguration;
+import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.FormUtility;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;

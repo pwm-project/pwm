@@ -97,6 +97,10 @@ export default class PersonCardComponent {
         return this.size === 'small';
     }
 
+    get numDirectReportsVisible(): boolean {
+        return this.showDirectReportCount && this.person && !!this.person.numDirectReports;
+    }
+
     private onKeyDown(event: KeyboardEvent): void {
         if (event.keyCode === 13 || event.keyCode === 32) { // 13 = Enter, 32 = Space
             this.$element.triggerHandler('click');

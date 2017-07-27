@@ -26,7 +26,7 @@ import com.google.gson.annotations.SerializedName;
 import com.novell.ldapchai.cr.ChallengeSet;
 import password.pwm.VerificationMethodSystem;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.FormConfiguration;
+import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.SessionBeanMode;

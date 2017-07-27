@@ -34,18 +34,19 @@
     </mf-auto-complete>
     <span flex></span>
     <mf-icon-button
-            icon="view-tile"
+            icon="view-tile_thin"
             ng-click="$ctrl.gotoSearchState('search.cards')"
             ng-attr-title="{{ 'Title_PeopleSearch' | translate }}"
             id="view-tile-icon"></mf-icon-button>
     <mf-icon-button
-            icon="view-list"
+            icon="view-list_thin"
             ng-click="$ctrl.gotoSearchState('search.table')"
             ng-attr-title="{{ 'Title_PeopleSearch' | translate }}"
             id="view-list-icon"></mf-icon-button>
     <div class="mf-divider vertical"></div>
     <mf-icon-button
-            icon="orgchart"
+            icon="orgchart_thin"
+            class="selected"
             disabled="true"
             ng-attr-title="{{ 'Title_OrgChart' | translate }}"
             id="orgcharg-icon"></mf-icon-button>
@@ -54,6 +55,7 @@
 <org-chart person="$ctrl.person"
            direct-reports="$ctrl.directReports"
            show-images="$ctrl.photosEnabled"
+           assistant="$ctrl.assistant"
            management-chain="$ctrl.managementChain">
 </org-chart>
 

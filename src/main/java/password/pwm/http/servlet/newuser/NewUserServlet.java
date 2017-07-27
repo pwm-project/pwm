@@ -27,7 +27,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.TokenVerificationProgress;
 import password.pwm.config.Configuration;
-import password.pwm.config.FormConfiguration;
+import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.FormUtility;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.NewUserProfile;
@@ -69,6 +69,7 @@ import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -191,25 +192,43 @@ public class NewUserServlet extends ControlledPwmServlet {
                 return;
             }
 
-            if (newUserProfileIDs.size() == 1) {
+            final LinkedHashMap<String,String> visibleProfiles = new LinkedHashMap<>(NewUserUtils.figureDisplayableProfiles(pwmRequest));
+
+            if (visibleProfiles.size() == 1) {
                 final String singleID =  newUserProfileIDs.iterator().next();
                 LOGGER.trace(pwmRequest, "only one new user profile is defined, auto-selecting profile " + singleID);
                 newUserBean.setProfileID(singleID);
             } else {
                 LOGGER.trace(pwmRequest, "new user profile not yet selected, redirecting to choice page");
+                pwmRequest.setAttribute(PwmRequestAttribute.NewUser_VisibleProfiles, visibleProfiles);
                 pwmRequest.forwardToJsp(JspUrl.NEW_USER_PROFILE_CHOICE);
                 return;
             }
         }
 
         final NewUserProfile newUserProfile = getNewUserProfile(pwmRequest);
+        if (newUserBean.getCreateStartTime() != null) {
+            forwardToWait(pwmRequest, newUserProfile);
+            return;
+        }
+
 
         // try to read the new user policy to make sure it's readable, that way an exception is thrown here instead of by the jsp
         newUserProfile.getNewUserPasswordPolicy(pwmApplication, pwmSession.getSessionStateBean().getLocale());//
 
-        if (newUserBean.getNewUserForm() == null) {
-            forwardToFormPage(pwmRequest, newUserBean);
-            return;
+        if (!newUserBean.isFormPassed()) {
+            if (showFormPage(newUserProfile)) {
+                forwardToFormPage(pwmRequest, newUserBean);
+                return;
+            } else {
+                NewUserFormUtils.injectRemoteValuesIntoForm(newUserBean, newUserProfile);
+                try {
+                    verifyForm(pwmRequest, newUserBean.getNewUserForm(), false);
+                } catch (PwmDataValidationException e) {
+                    throw new PwmUnrecoverableException(e.getErrorInformation());
+                }
+                newUserBean.setFormPassed(true);
+            }
         }
 
         final TokenVerificationProgress tokenVerificationProgress = newUserBean.getTokenVerificationProgress();
@@ -237,7 +256,7 @@ public class NewUserServlet extends ControlledPwmServlet {
 
         final String newUserAgreementText = newUserProfile.readSettingAsLocalizedString(PwmSetting.NEWUSER_AGREEMENT_MESSAGE,
                 pwmSession.getSessionStateBean().getLocale());
-        if (newUserAgreementText != null && !newUserAgreementText.isEmpty()) {
+        if (!StringUtil.isEmpty(newUserAgreementText)) {
             if (!newUserBean.isAgreementPassed()) {
                 final MacroMachine macroMachine = NewUserUtils.createMacroMachineForNewUser(
                         pwmApplication,
@@ -251,17 +270,13 @@ public class NewUserServlet extends ControlledPwmServlet {
             }
         }
 
-        if (!newUserBean.isFormPassed()) {
-            forwardToFormPage(pwmRequest, newUserBean);
-        }
-
         // success so create the new user.
         final String newUserDN = NewUserUtils.determineUserDN(pwmRequest, newUserBean.getNewUserForm());
 
         try {
             NewUserUtils.createUser(newUserBean.getNewUserForm(), pwmRequest, newUserDN);
             newUserBean.setCreateStartTime(Instant.now());
-            pwmRequest.forwardToJsp(JspUrl.NEW_USER_WAIT);
+            forwardToWait(pwmRequest, newUserProfile);
         } catch (PwmOperationalException e) {
             LOGGER.error(pwmRequest, "error during user creation: " + e.getMessage());
             if (newUserProfile.readSettingAsBoolean(PwmSetting.NEWUSER_DELETE_ON_FAIL)) {
@@ -270,6 +285,18 @@ public class NewUserServlet extends ControlledPwmServlet {
             LOGGER.error(pwmSession, e.getErrorInformation().toDebugStr());
             pwmRequest.respondWithError(e.getErrorInformation());
         }
+    }
+
+    private boolean showFormPage(final NewUserProfile profile) {
+        final boolean promptForPassword = profile.readSettingAsBoolean(PwmSetting.NEWUSER_PROMPT_FOR_PASSWORD);
+        boolean formNeedsShowing = false;
+        final List<FormConfiguration> formConfigurations = profile.readSettingAsForm(PwmSetting.NEWUSER_FORM);
+        for (final FormConfiguration formConfiguration : formConfigurations) {
+            if (formConfiguration.getType() != FormConfiguration.Type.hidden) {
+                formNeedsShowing = true;
+            }
+        }
+        return formNeedsShowing || promptForPassword;
     }
 
     private boolean readProfileFromUrl(final PwmRequest pwmRequest, final NewUserBean newUserBean)
@@ -350,12 +377,17 @@ public class NewUserServlet extends ControlledPwmServlet {
         final Map<FormConfiguration,String> formValueData = FormUtility.readFormValuesFromMap(newUserForm.getFormData(), formDefinition, locale);
 
         FormUtility.validateFormValues(pwmApplication.getConfig(), formValueData, locale);
+        final List<FormUtility.ValidationFlag> validationFlags = new ArrayList<>();
+        validationFlags.add(FormUtility.ValidationFlag.checkReadOnlyAndHidden);
+        if (allowResultCaching) {
+            validationFlags.add(FormUtility.ValidationFlag.allowResultCaching);
+        }
         FormUtility.validateFormValueUniqueness(
                 pwmApplication,
                 formValueData,
                 locale,
                 Collections.emptyList(),
-                allowResultCaching
+                validationFlags.toArray(new FormUtility.ValidationFlag[validationFlags.size()])
         );
         final UserInfo uiBean = UserInfoBean.builder()
                 .cachedPasswordRuleAttributes(FormUtility.asStringMap(formValueData))
@@ -568,7 +600,7 @@ public class NewUserServlet extends ControlledPwmServlet {
         pwmRequest.getPwmApplication().getSessionStateService().clearBean(pwmRequest, NewUserBean.class);
         pwmRequest.sendRedirectToContinue();
 
-        return ProcessStatus.Continue;
+        return ProcessStatus.Halt;
     }
 
     @ActionHandler(action = "complete")
@@ -598,7 +630,7 @@ public class NewUserServlet extends ControlledPwmServlet {
         pwmRequest.getPwmApplication().getSessionStateService().clearBean(pwmRequest, NewUserBean.class);
 
         final String configuredRedirectUrl = newUserProfile.readSettingAsString(PwmSetting.NEWUSER_REDIRECT_URL);
-        if (!StringUtil.isEmpty(configuredRedirectUrl)) {
+        if (!StringUtil.isEmpty(configuredRedirectUrl) && StringUtil.isEmpty(pwmRequest.getPwmSession().getSessionStateBean().getForwardURL())) {
             final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine(pwmRequest.getPwmApplication());
             final String macroedUrl = macroMachine.expandMacros(configuredRedirectUrl);
             pwmRequest.sendRedirect(macroedUrl);
@@ -622,6 +654,23 @@ public class NewUserServlet extends ControlledPwmServlet {
         }
         return pwmRequest.getConfig().getNewUserProfiles().get(profileID);
     }
+
+    private void forwardToWait(final PwmRequest pwmRequest, final NewUserProfile newUserProfile)
+            throws ServletException, PwmUnrecoverableException, IOException
+    {
+        final long pauseSeconds = newUserProfile.readSettingAsLong(PwmSetting.NEWUSER_MINIMUM_WAIT_TIME);
+        if (pauseSeconds > 0) {
+            pwmRequest.forwardToJsp(JspUrl.NEW_USER_WAIT);
+        } else {
+            final String newUserServletUrl = pwmRequest.getContextPath() + PwmServletDefinition.NewUser.servletUrl();
+            final String redirectUrl = PwmURL.appendAndEncodeUrlParameters(
+                    newUserServletUrl,
+                    Collections.singletonMap(PwmConstants.PARAM_ACTION_REQUEST,NewUserAction.complete.name())
+            );
+            pwmRequest.sendRedirect(redirectUrl);
+        }
+    }
+
 
     private void forwardToFormPage(final PwmRequest pwmRequest, final NewUserBean newUserBean)
             throws ServletException, PwmUnrecoverableException, IOException

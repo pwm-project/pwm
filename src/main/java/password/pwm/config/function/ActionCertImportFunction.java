@@ -23,7 +23,7 @@
 package password.pwm.config.function;
 
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.ActionConfiguration;
+import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.config.value.ActionValue;

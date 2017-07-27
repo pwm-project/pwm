@@ -37,13 +37,13 @@ body {
 }
 
 a {
-  color: #0088ce;
+  color: #007cd0;
   cursor: pointer;
   font-weight: normal;
   text-decoration: none;
 
   &:focus {
-    outline: 1px solid #28a9e1;
+    outline: 1px solid #01a9e7;
   }
 
   &:hover {
@@ -64,9 +64,10 @@ a {
   }
 
   .search-info-container {
-    min-height: 38px;
+    text-align: left;
 
     .search-info {
+      background-color: #fff6ce;
       border: 1px solid #dae1e1;
       border-radius: 3px;
       color: #808080;
@@ -74,11 +75,22 @@ a {
       font-size: 14px;
       margin: 0 auto 10px;
       padding: 5px;
-      text-align: center;
+
+      &.loading {
+        background-color: white;
+      }
     }
   }
 }
 
 .highlight {
-  color: #28a9e1;
+  color: #01a9e7;
+}
+
+[dir="rtl"] {
+  .people-search-component {
+    .search-info-container {
+      text-align: right;
+    }
+  }
 }

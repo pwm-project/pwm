@@ -208,7 +208,12 @@ public abstract class RestServerHelper {
             final PwmApplication pwmApplication,
             final PwmSession pwmSession
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException {
+            throws PwmUnrecoverableException, ChaiUnavailableException
+    {
+        if (pwmApplication.getApplicationMode() != PwmApplicationMode.RUNNING) {
+            return;
+        }
+
         if (pwmSession.isAuthenticated()) {
             return;
         }

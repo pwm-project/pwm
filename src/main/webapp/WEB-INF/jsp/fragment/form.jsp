@@ -1,5 +1,5 @@
 <%@ page import="password.pwm.PwmApplication" %>
-<%@ page import="password.pwm.config.FormConfiguration" %>
+<%@ page import="password.pwm.config.value.data.FormConfiguration" %>
 <%@ page import="password.pwm.config.FormUtility" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.error.PwmError" %>
@@ -14,6 +14,7 @@
 <%@ page import="password.pwm.http.tag.value.PwmValue" %>
 <%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <%@ page import="java.util.Collections" %>
+<%@ page import="password.pwm.config.CustomLinkConfiguration" %>
 
 <%--
   ~ Password Management Servlets (PWM)
@@ -38,10 +39,9 @@
   --%>
 
 <%@ taglib uri="pwm" prefix="pwm" %>
-<%
-    final PwmRequest formPwmRequest = PwmRequest.forRequest(request,response);
-    final List<FormConfiguration> formConfigurationList = (List<FormConfiguration>)JspUtility.getAttribute(pageContext, PwmRequestAttribute.FormConfiguration);
-%>
+<% final PwmRequest formPwmRequest = PwmRequest.forRequest(request,response); %>
+<% final List<FormConfiguration> formConfigurationList = (List<FormConfiguration>)JspUtility.getAttribute(pageContext, PwmRequestAttribute.FormConfiguration); %>
+<% final Locale formLocale = formPwmRequest.getLocale(); %>
 <% if (formConfigurationList == null) { %>
 [ form definition is not available ]
 <% } else if (formConfigurationList.isEmpty()) { %>
@@ -56,7 +56,6 @@
             : Collections.<String,String>emptyMap();
 
     final PwmApplication pwmApplication = formPwmRequest.getPwmApplication();
-    final Locale formLocale = formPwmRequest.getLocale();
     for (final FormConfiguration loopConfiguration : formConfigurationList) {
         String currentValue = formDataMap != null ? formDataMap.get(loopConfiguration) : "";
         currentValue = currentValue == null ? "" : currentValue;
@@ -87,7 +86,7 @@
     <% } %>
     <% final boolean readonly = loopConfiguration.isReadonly() || forceReadOnly; %>
     <% if (readonly) { %>
-        <span id="<%=loopConfiguration.getName()%>">
+    <span id="<%=loopConfiguration.getName()%>">
         <span class="pwm-icon pwm-icon-chevron-circle-right"></span>
         <%= currentValue %>
         </span>
@@ -102,7 +101,7 @@
     <% } else { %>
     <input style="text-align: left;" id="<%=loopConfiguration.getName()%>" type="<%=loopConfiguration.getType()%>" class="inputfield"
            name="<%=loopConfiguration.getName()%>" value="<%= currentValue %>"
-        <%if (loopConfiguration.getRegex() != null) {%> pattern="<%=loopConfiguration.getRegex()%>"<%}%>
+        <%if (!StringUtil.isEmpty(loopConfiguration.getRegex())) {%> pattern="<%=loopConfiguration.getRegex()%>"<%}%>
         <%if(loopConfiguration.getPlaceholder()!=null){%> placeholder="<%=loopConfiguration.getPlaceholder()%>"<%}%>
         <%if(loopConfiguration.isRequired()){%> required="required"<%}%>
     <pwm:autofocus/> maxlength="<%=loopConfiguration.getMaximumLength()%>">
@@ -115,7 +114,7 @@
     </label>
     <input style="" id="<%=loopConfiguration.getName()%>_confirm" type="<%=loopConfiguration.getType()%>" class="inputfield"
            name="<%=loopConfiguration.getName()%>_confirm"
-            <%if (loopConfiguration.getRegex() != null) {%> pattern="<%=loopConfiguration.getRegex()%>"<%}%>
+            <%if (!StringUtil.isEmpty(loopConfiguration.getRegex())) {%> pattern="<%=loopConfiguration.getRegex()%>"<%}%>
             <%if(loopConfiguration.isRequired()){%> required="required"<%}%>
             <%if(loopConfiguration.isReadonly()){%> readonly="readonly"<%}%>
            maxlength="<%=loopConfiguration.getMaximumLength()%>"/>

@@ -28,9 +28,9 @@ import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.pub.SessionStateInfoBean;
-import password.pwm.config.ActionConfiguration;
+import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.Configuration;
-import password.pwm.config.FormConfiguration;
+import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.SelectableContextMode;
 import password.pwm.error.ErrorInformation;
@@ -153,6 +153,21 @@ public class RestAppDataServer extends AbstractRestServer {
         restResultBean.setData(outputMap);
         LOGGER.debug(restRequestBean.getPwmSession(),"output " + counter + " audit records.");
         return restResultBean.asJsonResponse();
+    }
+
+    @GET
+    @Path("/ping")
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
+    public Response doPingRequest() {
+        final RestRequestBean restRequestBean;
+        try {
+            restRequestBean = RestServerHelper.initializeRestRequest(request, response, ServicePermissions.PUBLIC, null);
+        } catch (PwmUnrecoverableException e) {
+            return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
+        }
+
+        final String startupTime = restRequestBean.getPwmApplication().getStartupTime().toString();
+        return new RestResultBean(new HashMap<>(Collections.singletonMap("time",startupTime))).asJsonResponse();
     }
 
     @GET

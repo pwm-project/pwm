@@ -20,8 +20,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.config;
+package password.pwm.config.value.data;
 
+import lombok.Getter;
+import lombok.Setter;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -31,6 +33,8 @@ import java.io.Serializable;
 import java.security.cert.X509Certificate;
 import java.util.Map;
 
+@Getter
+@Setter
 public class ActionConfiguration implements Serializable {
 
     public enum Type { webservice, ldap }
@@ -54,50 +58,6 @@ public class ActionConfiguration implements Serializable {
     private LdapMethod ldapMethod = LdapMethod.replace;
     private String attributeName;
     private String attributeValue;
-
-    public String getName() {
-        return name;
-    }
-
-    public X509Certificate[] getCertificates() {
-        return certificates;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public Type getType() {
-        return type;
-    }
-
-    public WebMethod getMethod() {
-        return method;
-    }
-
-    public String getUrl() {
-        return url;
-    }
-
-    public LdapMethod getLdapMethod() {
-        return ldapMethod;
-    }
-
-    public Map<String, String> getHeaders() {
-        return headers;
-    }
-
-    public String getBody() {
-        return body;
-    }
-
-    public String getAttributeName() {
-        return attributeName;
-    }
-
-    public String getAttributeValue() {
-        return attributeValue;
-    }
 
     public static ActionConfiguration parseOldConfigString(final String value) {
         final String[] splitString = value.split("=");

@@ -44,6 +44,7 @@ import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.config.profile.UpdateAttributesProfile;
 import password.pwm.config.stored.ConfigurationProperty;
+import password.pwm.config.value.CustomLinkValue;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.config.value.BooleanValue;
@@ -57,6 +58,10 @@ import password.pwm.config.value.PasswordValue;
 import password.pwm.config.value.StringArrayValue;
 import password.pwm.config.value.StringValue;
 import password.pwm.config.value.UserPermissionValue;
+import password.pwm.config.value.data.ActionConfiguration;
+import password.pwm.config.value.data.FormConfiguration;
+import password.pwm.config.value.data.NamedSecretData;
+import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -259,6 +264,11 @@ public class Configuration implements Serializable, SettingReader {
             if (value == null) {
                 return null;
             }
+
+            if (value instanceof CustomLinkValue) {
+                return (List<FormConfiguration>)value.toNativeObject();
+            }
+
             if ((!(value instanceof FormValue))) {
                 throw new IllegalArgumentException("setting value is not readable as form");
             }

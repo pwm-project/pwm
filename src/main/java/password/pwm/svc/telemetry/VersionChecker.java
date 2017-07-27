@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util;
+package password.pwm.svc.telemetry;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -151,7 +151,7 @@ public class VersionChecker implements PwmService {
         if (PwmConstants.BUILD_NUMBER == null || PwmConstants.BUILD_NUMBER.length() < 1) {
             return true;
         }
-
+        /*
         try {
             final VersionCheckInfoCache versionCheckInfo = getVersionCheckInfo();
             final String currentBuild = versionCheckInfo.getCurrentBuild();
@@ -169,6 +169,7 @@ public class VersionChecker implements PwmService {
         } catch (Exception e) {
             LOGGER.error("unable to retrieve current version data from cloud: " + e.toString());
         }
+        */
         return true;
     }
 
