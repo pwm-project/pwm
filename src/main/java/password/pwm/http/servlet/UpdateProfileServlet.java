@@ -501,9 +501,12 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
                 actionExecutor.executeActions(actions, pwmSession);
             }
         }
-
-        sendProfileUpdateEmailNotice(pwmSession,pwmApplication);
-
+        final boolean verification = updateAttributesProfile.readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_EMAIL_VERIFICATION);
+        if (verification) {
+            sendProfileUpdateEmailNotice(pwmSession, pwmApplication, true);
+        } else {
+            sendProfileUpdateEmailNotice(pwmSession, pwmApplication, false);
+        }
         // mark the event log
         pwmApplication.getAuditManager().submit(AuditEvent.UPDATE_PROFILE, pwmSession.getUserInfo(), pwmSession);
 
@@ -546,23 +549,38 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
 
     private static void sendProfileUpdateEmailNotice(
             final PwmSession pwmSession,
-            final PwmApplication pwmApplication
+            final PwmApplication pwmApplication,
+            final boolean verification
     )
             throws PwmUnrecoverableException, ChaiUnavailableException {
         final Configuration config = pwmApplication.getConfig();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_UPDATEPROFILE, locale);
 
-        if (configuredEmailSetting == null) {
-            LOGGER.debug(pwmSession, "skipping send profile update email for '" + pwmSession.getUserInfo().getUserIdentity() + "' no email configured");
-            return;
-        }
+        if (verification) {
+            final EmailItemBean configuredVerifyEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_UPDATEPROFILE_VERIFICATION, locale);
+            pwmApplication.getEmailQueue().submitEmail(
+                    configuredVerifyEmailSetting,
+                    pwmSession.getUserInfo(),
+                    pwmSession.getSessionManager().getMacroMachine(pwmApplication)
+            );
 
-        pwmApplication.getEmailQueue().submitEmail(
-                configuredEmailSetting,
-                pwmSession.getUserInfo(),
-                pwmSession.getSessionManager().getMacroMachine(pwmApplication)
-        );
+            if (configuredVerifyEmailSetting == null) {
+                LOGGER.debug(pwmSession, "skipping send profile update email for '" + pwmSession.getUserInfo().getUserIdentity() + "' no email configured");
+                return;
+            }
+        } else {
+            pwmApplication.getEmailQueue().submitEmail(
+                    configuredEmailSetting,
+                    pwmSession.getUserInfo(),
+                    pwmSession.getSessionManager().getMacroMachine(pwmApplication)
+            );
+
+            if (configuredEmailSetting == null) {
+                LOGGER.debug(pwmSession, "skipping send profile update email for '" + pwmSession.getUserInfo().getUserIdentity() + "' no email configured");
+                return;
+            }
+        }
     }
 
     private static void forwardToForm(final PwmRequest pwmRequest, final UpdateAttributesProfile updateAttributesProfile, final UpdateProfileBean updateProfileBean)

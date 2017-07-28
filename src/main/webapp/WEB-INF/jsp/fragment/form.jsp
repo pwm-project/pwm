@@ -40,8 +40,8 @@
 
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final PwmRequest formPwmRequest = PwmRequest.forRequest(request,response); %>
-<% final List<FormConfiguration> formConfigurationList = (List<FormConfiguration>)JspUtility.getAttribute(pageContext, PwmRequestAttribute.FormConfiguration); %>
 <% final Locale formLocale = formPwmRequest.getLocale(); %>
+<% final List<FormConfiguration> formConfigurationList = (List<FormConfiguration>)JspUtility.getAttribute(pageContext, PwmRequestAttribute.FormConfiguration); %>
 <% if (formConfigurationList == null) { %>
 [ form definition is not available ]
 <% } else if (formConfigurationList.isEmpty()) { %>
