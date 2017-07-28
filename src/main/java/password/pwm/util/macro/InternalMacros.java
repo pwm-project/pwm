@@ -107,7 +107,14 @@ public abstract class InternalMacros {
 
     public static class EncodingMacro extends AbstractMacro {
         private static final Pattern PATTERN = Pattern.compile("@Encode:[^:]+:\\[\\[.*\\]\\]@");
-        // @Encode:ENCODE_TYPE:value@
+        // @Encode:ENCODE_TYPE:[[value]]@
+
+
+        @Override
+        public Sequence getSequence()
+        {
+            return Sequence.post;
+        }
 
         private enum EncodeType {
             urlPath,
