@@ -555,7 +555,6 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
             throws PwmUnrecoverableException, ChaiUnavailableException {
         final Configuration config = pwmApplication.getConfig();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
-        final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_UPDATEPROFILE, locale);
 
         if (verification) {
             final EmailItemBean configuredVerifyEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_UPDATEPROFILE_VERIFICATION, locale);
@@ -570,6 +569,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
                 return;
             }
         } else {
+            final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_UPDATEPROFILE, locale);
             pwmApplication.getEmailQueue().submitEmail(
                     configuredEmailSetting,
                     pwmSession.getUserInfo(),
