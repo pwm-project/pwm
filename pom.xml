@@ -31,6 +31,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <build.number>0</build.number>  <!-- default in case not set on command line -->
         <build.revision>0</build.revision>  <!-- default in case not set on command line -->
+        <angular.working.directory>${basedir}/target/angular</angular.working.directory>
     </properties>
 
     <profiles>
@@ -444,7 +445,7 @@
                     <nodeVersion>v6.6.0</nodeVersion>
                     <npmVersion>3.10.8</npmVersion>
                     <installDirectory>target</installDirectory>
-                    <workingDirectory>${basedir}/target/angular</workingDirectory>
+                    <workingDirectory>${angular.working.directory}</workingDirectory>
                 </configuration>
                 <executions>
                     <!-- install node & npm -->
