@@ -23,7 +23,7 @@
 package password.pwm.http.servlet.newuser;
 
 import password.pwm.config.value.data.FormConfiguration;
-import password.pwm.config.FormUtility;
+import password.pwm.util.form.FormUtility;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.NewUserProfile;
 import password.pwm.error.ErrorInformation;

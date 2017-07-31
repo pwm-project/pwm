@@ -36,7 +36,7 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.Configuration;
 import password.pwm.config.value.data.FormConfiguration;
-import password.pwm.config.FormUtility;
+import password.pwm.util.form.FormUtility;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.error.ErrorInformation;

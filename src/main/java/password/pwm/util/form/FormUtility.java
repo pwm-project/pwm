@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.config;
+package password.pwm.util.form;
 
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiException;
@@ -31,6 +31,8 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
+import password.pwm.config.Configuration;
+import password.pwm.config.PwmSetting;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmDataValidationException;
@@ -54,7 +56,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -92,7 +93,7 @@ public class FormUtility {
             final String value = inputMap.get(keyName);
 
             if (formItem.isRequired() && !formItem.isReadonly()) {
-                if (value == null || value.length() < 0) {
+                if (StringUtil.isEmpty(value)) {
                     final String errorMsg = "missing required value for field '" + formItem.getName() + "'";
                     final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_REQUIRED, errorMsg, new String[]{formItem.getLabel(locale)});
                     throw new PwmDataValidationException(error);
@@ -277,12 +278,7 @@ public class FormUtility {
 
             if (excludeDN != null && !excludeDN.isEmpty()) {
                 for (final UserIdentity loopIgnoreIdentity : excludeDN) {
-                    for (final Iterator<UserIdentity> iterator = results.keySet().iterator(); iterator.hasNext(); ) {
-                        final UserIdentity loopUser = iterator.next();
-                        if (loopIgnoreIdentity.equals(loopUser)) {
-                            iterator.remove();
-                        }
-                    }
+                    results.keySet().removeIf(loopIgnoreIdentity::equals);
                 }
             }
 
@@ -433,16 +429,18 @@ public class FormUtility {
         final Map<String,List<String>> dataFromLdap = new LinkedHashMap<>();
         try {
             for (final FormConfiguration formConfiguration : formFields) {
-                final String attribute = formConfiguration.getName();
-                if (formConfiguration.isMultivalue()) {
-                    final List<String> values = userInfo.readMultiStringAttribute(attribute);
-                    if (includeNulls || (values != null && !values.isEmpty())) {
-                        dataFromLdap.put(attribute, values);
-                    }
-                } else {
-                    final String value = userInfo.readStringAttribute(attribute);
-                    if (includeNulls || (value != null)) {
-                        dataFromLdap.put(attribute, Collections.singletonList(value));
+                if (formConfiguration.getSource() == FormConfiguration.Source.ldap) {
+                    final String attribute = formConfiguration.getName();
+                    if (formConfiguration.isMultivalue()) {
+                        final List<String> values = userInfo.readMultiStringAttribute(attribute);
+                        if (includeNulls || (values != null && !values.isEmpty())) {
+                            dataFromLdap.put(attribute, values);
+                        }
+                    } else {
+                        final String value = userInfo.readStringAttribute(attribute);
+                        if (includeNulls || (value != null)) {
+                            dataFromLdap.put(attribute, Collections.singletonList(value));
+                        }
                     }
                 }
             }

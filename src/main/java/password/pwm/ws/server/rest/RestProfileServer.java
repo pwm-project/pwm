@@ -26,7 +26,7 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.Permission;
 import password.pwm.config.value.data.FormConfiguration;
-import password.pwm.config.FormUtility;
+import password.pwm.util.form.FormUtility;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
