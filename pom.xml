@@ -96,13 +96,13 @@
                         <version>2.6</version>
                         <configuration>
                             <descriptors>
-                                <descriptor>src/assembly/pwm.xml</descriptor>
+                                <descriptor>src/build/assembly/release-bundle.xml</descriptor>
                             </descriptors>
                             <finalName>${project.build.finalName}-${timestamp.iso}</finalName>
                         </configuration>
                         <executions>
                             <execution>
-                                <id>make-assembly</id>
+                                <id>make-release-bundle</id>
                                 <phase>package</phase>
                                 <goals>
                                     <goal>single</goal>
@@ -117,6 +117,41 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.6</version>
+                <executions>
+                    <execution>
+                        <id>make-ldif-schema-zip</id>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <finalName>${project.build.finalName}/public/reference/ldif-schema</finalName>
+                            <appendAssemblyId>false</appendAssemblyId>
+                            <descriptors>
+                                <descriptor>src/build/assembly/ldif-schema-zip.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>make-source-reference-zip</id>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <finalName>${project.build.finalName}/public/reference/source</finalName>
+                            <appendAssemblyId>false</appendAssemblyId>
+                            <descriptors>
+                                <descriptor>src/build/assembly/source-reference.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -202,7 +237,7 @@
                         <id>validate</id>
                         <phase>validate</phase>
                         <configuration>
-                            <configLocation>checkstyle.xml</configLocation>
+                            <configLocation>src/build/checkstyle.xml</configLocation>
                             <encoding>UTF-8</encoding>
                             <consoleOutput>true</consoleOutput>
                             <includeTestResources>false</includeTestResources>
@@ -566,7 +601,7 @@
     </build>
 
     <reporting>
-        <!-- 
+        <!--
         Note: to run these reports, you can execute the maven command: "mvn site",
         then you can view the results by opening the file: target/site/project-reports.html in your browser.
          -->

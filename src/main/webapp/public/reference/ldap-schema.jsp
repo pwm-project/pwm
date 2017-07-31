@@ -43,6 +43,12 @@
     <div id="centerbody">
         <%@ include file="reference-nav.jsp"%>
         <p>Below is the default LDAP schema definition.</p>
+
+        <p>
+        <form action="ldif-schema.zip" method="get">
+            <button class="btn" type="submit">Download Schema LDIFs</button>
+        </form>
+        </p>
         <%final List<SchemaDefinition> schemaDefinitions = SchemaDefinition.getPwmSchemaDefinitions();%>
         <div class="border">
             <code>

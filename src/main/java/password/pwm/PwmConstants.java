@@ -219,7 +219,7 @@ public abstract class PwmConstants {
             "passwords are like underwear, changing underwear regularly is a good thing.", //menno
             "daisy, daisy, give me your password do...",
             "it's a wholesome can of software goodness", // thx krowten
-
+            "this password is an memorial of the richard d. kiel memorial abend",
     };
 
 

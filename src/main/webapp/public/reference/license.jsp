@@ -83,6 +83,11 @@
                 Error: attribution file not found: attribution.xml
             </div>
         <% } %>
+        <p>
+        <form action="source.zip" method="get">
+            <button class="btn" type="submit">Download Source</button>
+        </form>
+        </p>
         <span class="footnote">nanos gigantum humeris insidentes</span>
     </div>
     <div class="push"></div>

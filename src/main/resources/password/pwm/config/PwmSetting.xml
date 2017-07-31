@@ -2421,7 +2421,7 @@
     </setting>
     <setting hidden="false" key="response.hashMethod" level="2" required="true">
         <default>
-            <value>PBKDF2</value>
+            <value>PBKDF2_SHA512</value>
         </default>
         <options>
             <option value="TEXT">None (Plaintext)</option>

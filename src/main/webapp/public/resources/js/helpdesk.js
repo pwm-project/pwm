@@ -539,7 +539,7 @@ PWM_HELPDESK.sendVerificationToken = function(userKey, methods) {
             dialogText += '<br/><button class="btn" type="button" name="emailChoiceButton" id="emailChoiceButton">'
                 + '<span class="btn-icon pwm-icon pwm-icon-envelope-o"></span>' + PWM_MAIN.showString('Button_Email') + '</button>';
         }
-        if (tokenChoiceFlag || sendMethodSetting == 'EMAILONLY') {
+        if (tokenChoiceFlag || sendMethodSetting == 'SMSONLY') {
             dialogText += '<br/><br/><button class="btn" type="button" name="smsChoiceButton" id="smsChoiceButton">'
                 + '<span class="btn-icon pwm-icon pwm-icon-phone"></span>' + PWM_MAIN.showString('Button_SMS') + '</button>';
         }

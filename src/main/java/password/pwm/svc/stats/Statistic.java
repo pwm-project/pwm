@@ -238,4 +238,18 @@ public enum Statistic {
             return pwmApplication.getConfig().readSettingAsBoolean(pwmSetting);
         }
     }
+
+    public static Statistic forKey(final String key) {
+        if (key == null) {
+            return null;
+        }
+
+        for (final Statistic stat : values()) {
+            if (stat.getKey().equals(key)) {
+                return stat;
+            }
+        }
+
+        return null;
+    }
 }
