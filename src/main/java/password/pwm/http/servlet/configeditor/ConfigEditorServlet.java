@@ -64,6 +64,7 @@ import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ConfigManagerBean;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.configmanager.ConfigManagerServlet;
+import password.pwm.i18n.Config;
 import password.pwm.i18n.Message;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.ldap.LdapBrowser;
@@ -481,7 +482,8 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
             configManagerBean.getStoredConfiguration().setPassword(password);
             configManagerBean.setPasswordVerified(true);
             LOGGER.debug(pwmRequest, "config password updated");
-            final RestResultBean restResultBean = RestResultBean.forSuccessMessage(pwmRequest, Message.Success_Unknown);
+            final RestResultBean restResultBean = RestResultBean.forConfirmMessage(pwmRequest, Config.Confirm_ConfigPasswordStored);
+
             pwmRequest.outputJsonResult(restResultBean);
         } catch (PwmOperationalException e) {
             final RestResultBean restResultBean = RestResultBean.fromError(e.getErrorInformation(), pwmRequest);
