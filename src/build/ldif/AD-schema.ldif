@@ -1,0 +1,208 @@
+#======================================================
+#   -- Creates attributes and Auxiliary class
+#   -- Adds Auxiliary class to "User" class
+# 
+#	You can import this file using the following command
+#
+#	 ldifde -i -f AD-schema.ldif -c "DC=x" "#schemaNaming context"
+#
+#     ex: if your ad forest is "dc=org,dc=acme" then
+#	      ldifde -i -f AD-schema.ldif -c "DC=x" "dc=org,dc=acme"
+#
+#======================================================
+
+
+#------------------------------------------------------
+#-- Attribute:  	pwmEventLog
+#-- Syntax:      	OCTET STRING
+#-- Description:	User event log
+#------------------------------------------------------
+dn: CN=pwmEventLog,CN=Schema,CN=Configuration,DC=x
+changetype: ntdsschemaadd
+objectClass: attributeSchema
+cn: pwmEventLog
+attributeID: 1.3.6.1.4.1.35015.1.2.1
+attributeSyntax: 2.5.5.10
+isSingleValued: FALSE
+oMSyntax: 4
+isMemberOfPartialAttributeSet: FALSE
+lDAPDisplayName: pwmEventLog
+showInAdvancedViewOnly: TRUE
+adminDisplayName: pwmEventLog
+adminDescription: User event log
+searchFlags: 1
+
+#------------------------------------------------------
+#-- Attribute:  	pwmResponseSet
+#-- Syntax:      	OCTET STRING
+#-- Description:    Stores the user's challenge/response answers
+#------------------------------------------------------
+dn: CN=pwmResponseSet,CN=Schema,CN=Configuration,DC=x
+changetype: ntdsschemaadd
+objectClass: attributeSchema
+cn: pwmResponseSet
+attributeID: 1.3.6.1.4.1.35015.1.2.2
+attributeSyntax: 2.5.5.10
+isSingleValued: FALSE
+oMSyntax: 4
+isMemberOfPartialAttributeSet: FALSE
+lDAPDisplayName: pwmResponseSet
+showInAdvancedViewOnly: TRUE
+adminDisplayName: pwmResponseSet
+adminDescription: Stores the user's challenge/response answers
+searchFlags: 1
+
+#------------------------------------------------------
+#-- Attribute:  	pwmLastPwdUpdate
+#-- Syntax:      	TIME
+#-- Description:	Marks the last time the password was changed by user.
+#------------------------------------------------------
+dn: CN=pwmLastPwdUpdate,CN=Schema,CN=Configuration,DC=x
+changetype: ntdsschemaadd
+objectClass: attributeSchema
+cn: pwmLastPwdUpdate
+attributeID: 1.3.6.1.4.1.35015.1.2.3
+attributeSyntax: 2.5.5.11
+isSingleValued: FALSE
+oMSyntax: 24
+isMemberOfPartialAttributeSet: FALSE
+lDAPDisplayName: pwmLastPwdUpdate
+showInAdvancedViewOnly: TRUE
+adminDisplayName: pwmLastPwdUpdate
+adminDescription: Marks the last time the password was changed by user
+searchFlags: 1
+
+#------------------------------------------------------
+#-- Attribute:  	pwmGUID
+#-- Syntax:      	STRING
+#-- Description:	Marks the last time the password was changed by user.
+#------------------------------------------------------
+dn: CN=pwmGUID,CN=Schema,CN=Configuration,DC=x
+changetype: ntdsschemaadd
+objectClass: attributeSchema
+cn: pwmGUID
+attributeID: 1.3.6.1.4.1.35015.1.2.4
+attributeSyntax: 2.5.5.12
+isSingleValued: FALSE
+oMSyntax: 64
+isMemberOfPartialAttributeSet: FALSE
+lDAPDisplayName: pwmGUID
+showInAdvancedViewOnly: TRUE
+adminDisplayName: pwmGUID
+adminDescription: pwmGUID
+searchFlags: 1
+
+#------------------------------------------------------
+#-- Attribute:  	pwmToken
+#-- Syntax:      	STRING
+#-- Description:	Storage of validation token.
+#------------------------------------------------------
+dn: CN=pwmToken,CN=Schema,CN=Configuration,DC=x
+changetype: ntdsschemaadd
+objectClass: attributeSchema
+cn: pwmToken
+attributeID: 1.3.6.1.4.1.35015.1.2.5
+attributeSyntax: 2.5.5.12
+isSingleValued: FALSE
+oMSyntax: 64
+isMemberOfPartialAttributeSet: FALSE
+lDAPDisplayName: pwmToken
+showInAdvancedViewOnly: TRUE
+adminDisplayName: pwmToken
+adminDescription: pwmToken
+searchFlags: 1
+
+
+#------------------------------------------------------
+#-- Attribute:  	pwmOtpSecret
+#-- Syntax:      	OCTET STRING
+#-- Description:	Stores the user's challenge/response answers
+#------------------------------------------------------
+dn: CN=pwmOtpSecret,CN=Schema,CN=Configuration,DC=x
+changetype: ntdsschemaadd
+objectClass: attributeSchema
+cn: pwmOtpSecret
+attributeID: 1.3.6.1.4.1.35015.1.2.6
+attributeSyntax: 2.5.5.10
+isSingleValued: FALSE
+oMSyntax: 4
+isMemberOfPartialAttributeSet: FALSE
+lDAPDisplayName: pwmOtpSecret
+showInAdvancedViewOnly: TRUE
+adminDisplayName: pwmOtpSecret
+adminDescription: Stores the user's challenge/response answers
+searchFlags: 1
+
+
+#------------------------------------------------------
+#--  Update the schema now
+#------------------------------------------------------
+dn: 
+changetype: modify
+add: schemaUpdateNow
+schemaUpdateNow: 1
+-
+
+#------------------------------------------------------
+#-- Class:        pwmUser
+#-- Description:  Aux class
+#-- Req:          none
+#--
+#-- pwmUser aux class
+#--
+#------------------------------------------------------
+dn: CN=pwmuser,CN=Schema,CN=Configuration,DC=x
+changetype: ntdsschemaadd
+objectClass: classSchema
+subClassOf: top
+cn: pwmuser
+governsID: 1.3.6.1.4.1.35015.1.1.1
+mayContain: pwmLastPwdUpdate
+mayContain: pwmResponseSet
+mayContain: pwmEventLog
+mayContain: pwmGUID
+mayContain: pwmToken
+mayContain: pwmOtpSecret
+objectClassCategory: 3
+rDNAttID: cn
+showInAdvancedViewOnly: TRUE
+adminDisplayName: pwmuser
+adminDescription: pwmUser Auxiliary class
+
+#------------------------------------------------------
+#--  Update the schema now
+#------------------------------------------------------
+dn: 
+changetype: modify
+add: schemaUpdateNow
+schemaUpdateNow: 1
+-
+
+#------------------------------------------------------
+#--  Add Auxililary class pwmuser to User 
+#------------------------------------------------------
+dn: CN=User,CN=Schema,CN=Configuration,DC=x
+changetype: ntdsSchemaModify
+add: auxiliaryClass
+auxiliaryClass: pwmuser
+-
+
+#------------------------------------------------------
+#--  Modify the pwmuser Auxililary class (if it existed prior to this, we want to add the newer attributes)
+#------------------------------------------------------
+dn: CN=pwmuser,CN=Schema,CN=Configuration,DC=x
+changetype: ntdsSchemaModify
+add: mayContain
+mayContain: pwmGUID
+mayContain: pwmToken
+mayContain: pwmOtpSecret
+-
+
+#------------------------------------------------------
+#--  Update the schema now
+#------------------------------------------------------
+dn: 
+changetype: modify
+add: schemaUpdateNow
+schemaUpdateNow: 1
+-
