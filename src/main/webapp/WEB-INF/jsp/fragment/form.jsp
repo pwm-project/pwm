@@ -64,7 +64,7 @@
 %>
 <div class="formFieldWrapper">
     <% if (loopConfiguration.getType().equals(FormConfiguration.Type.hidden)) { %>
-    <input style="text-align: left;" id="<%=loopConfiguration.getName()%>" type="hidden" class="inputfield"
+    <input id="<%=loopConfiguration.getName()%>" type="hidden" class="inputfield"
            name="<%=loopConfiguration.getName()%>" value="<%= currentValue %>"/>
     <% } else if (loopConfiguration.getType().equals(FormConfiguration.Type.checkbox)) { %>
     <% final boolean checked = FormUtility.checkboxValueIsChecked(formDataMap.get(loopConfiguration)); %>
@@ -99,7 +99,7 @@
         <% } %>
     </select>
     <% } else { %>
-    <input style="text-align: left;" id="<%=loopConfiguration.getName()%>" type="<%=loopConfiguration.getType()%>" class="inputfield"
+    <input id="<%=loopConfiguration.getName()%>" type="<%=loopConfiguration.getType()%>" class="inputfield"
            name="<%=loopConfiguration.getName()%>" value="<%= currentValue %>"
         <%if (!StringUtil.isEmpty(loopConfiguration.getRegex())) {%> pattern="<%=loopConfiguration.getRegex()%>"<%}%>
         <%if(loopConfiguration.getPlaceholder()!=null){%> placeholder="<%=loopConfiguration.getPlaceholder()%>"<%}%>
