@@ -960,7 +960,15 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         final String dn = inputMap.containsKey("dn") ? inputMap.get("dn") : "";
 
         final LdapBrowser ldapBrowser = new LdapBrowser(configManagerBean.getStoredConfiguration());
-        final LdapBrowser.LdapBrowseResult result = ldapBrowser.doBrowse(profile, dn);
+
+        LdapBrowser.LdapBrowseResult result;
+        try {
+            result = ldapBrowser.doBrowse(profile, dn);
+        } catch (PwmUnrecoverableException e) {
+            // Probably was given a bad dn, better just browse without a DN than error out completely
+            result = ldapBrowser.doBrowse(profile, "");
+        }
+
         ldapBrowser.close();
 
         LOGGER.trace(pwmRequest, "performed ldapBrowse operation in "
