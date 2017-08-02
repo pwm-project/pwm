@@ -120,6 +120,10 @@ table td.key {
     width: 36%;
 }
 
+html[dir="rtl"] table td.key {
+    text-align: left;
+}
+
 .health-body {
     padding-top:5px;
     padding-bottom:10px;
