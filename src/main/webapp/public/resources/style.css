@@ -495,6 +495,20 @@ div.progress-container > div {
   top: 10px;
 }
 
+html[dir="rtl"] #header-center-left {
+    float: none;
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+
+html[dir="rtl"] #header-center-right {
+    position: relative;
+    right: auto;
+    float: left;
+    top: 10px;
+}
+
 #header-menu-alert {
     animation: blink 4s infinite;
     color: #e50000;
