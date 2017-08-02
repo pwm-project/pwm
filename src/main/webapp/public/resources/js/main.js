@@ -1809,7 +1809,14 @@ PWM_MAIN.ajaxRequest = function(url,loadFunction,options) {
     var content = 'content' in options ? options['content'] : null;
     var method = 'method' in options ? options['method'] : 'POST';
     var errorFunction = 'errorFunction' in options ? options['errorFunction'] : function(error){
-        PWM_MAIN.showErrorDialog(error);
+        var status = error['response']['status'];
+        if (status === 0 || status < 200 || status >= 300) {
+            var msg = PWM_MAIN.showString("Display_ClientDisconnect") + "  (" + status + ")";
+            console.log(msg);
+            PWM_MAIN.showErrorDialog(msg);
+        } else {
+            PWM_MAIN.showErrorDialog(error);
+        }
     };
     var preventCache = 'preventCache' in options ? options['preventCache'] : true;
     var addPwmFormID = 'addPwmFormID' in options ? options['addPwmFormID'] : true;
