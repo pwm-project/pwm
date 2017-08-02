@@ -533,7 +533,11 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         this.setAttribute(PwmRequestAttribute.FormData, formDataMapValue);
         this.setAttribute(PwmRequestAttribute.FormReadOnly, readOnly);
         this.setAttribute(PwmRequestAttribute.FormShowPasswordFields, showPasswordFields);
-        this.setAttribute(PwmRequestAttribute.FormMobileDevices, formDataMapValue);
+    }
+
+    public void addFormInfoToRequestAttr(
+            final List<FormConfiguration> FormCustomLinks) {
+        this.setAttribute(PwmRequestAttribute.FormCustomLinks, new ArrayList<>(FormCustomLinks));
     }
 
     public void invalidateSession() {

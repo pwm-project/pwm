@@ -43,9 +43,21 @@ public class CustomLinkConfiguration implements Serializable {
     private Type type = Type.customLink;
     private Map<String,String> labels = Collections.singletonMap("", "");
     private Map<String,String> description = Collections.singletonMap("","");
-    private String url = "";
-    private boolean newWindow;
+    private String customLinkUrl = "";
+    private boolean customLinkNewWindow;
     private Map<String,String> selectOptions = Collections.emptyMap();
+
+    public String getName() {
+        return name;
+    }
+
+    public Map<String, String> getLabels() {
+        return labels;
+    }
+
+    public Type getType() {
+        return type;
+    }
 
     public String getLabel(final Locale locale) {
         return LocaleHelper.resolveStringKeyLocaleMap(locale, labels);
@@ -62,5 +74,13 @@ public class CustomLinkConfiguration implements Serializable {
         sb.append(JsonUtil.serialize(this));
 
         return sb.toString();
+    }
+
+    public boolean isCustomLinkNewWindow() {
+        return customLinkNewWindow;
+    }
+
+    public String getcustomLinkUrl() {
+        return customLinkUrl;
     }
 }

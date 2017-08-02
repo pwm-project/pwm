@@ -34,6 +34,7 @@ public enum Config implements PwmDisplayBundle {
     Button_CheckSettings,
     Button_ShowAdvanced,
     Button_HideAdvanced,
+    Confirm_ConfigPasswordStored,
     Confirm_LockConfig,
     Confirm_SkipGuide,
     Confirm_UploadConfig,

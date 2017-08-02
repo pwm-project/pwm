@@ -26,6 +26,7 @@ import password.pwm.PwmApplication;
 import password.pwm.config.Configuration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.http.PwmRequest;
+import password.pwm.i18n.Config;
 import password.pwm.i18n.Message;
 import password.pwm.util.java.JsonUtil;
 
@@ -163,6 +164,27 @@ public class RestResultBean implements Serializable {
     ) {
         return forSuccessMessage(pwmRequest.getLocale(), pwmRequest.getConfig(), message);
     }
+
+    public static RestResultBean forConfirmMessage(
+            final Locale locale,
+            final Configuration config,
+            final Config message,
+            final String... fieldValues
+
+    ) {
+        final RestResultBean restResultBean = new RestResultBean();
+        final String msgText = Config.getLocalizedMessage(locale, message, config);
+        restResultBean.setSuccessMessage(msgText);
+        return restResultBean;
+    }
+
+    public static RestResultBean forConfirmMessage(
+            final PwmRequest pwmRequest,
+            final Config message
+    ) {
+        return forConfirmMessage(pwmRequest.getLocale(), pwmRequest.getConfig(), message);
+    }
+
 
     public String toJson() {
         return JsonUtil.serialize(this);
