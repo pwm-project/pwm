@@ -1160,3 +1160,11 @@ dialog .closeIcon { float: right; cursor: pointer; margin-right: 3px; }
     border-radius: 3px;
     z-index:1002;
 }
+
+html[dir="rtl"] .nihilo .dijitTabContainerTop-tabs {
+    text-align: right;
+}
+
+html[dir="rtl"] .nihilo .dijitTabContainerTop-tabs > .dijitTabContent:first-child {
+    margin-right: 10px;
+}
