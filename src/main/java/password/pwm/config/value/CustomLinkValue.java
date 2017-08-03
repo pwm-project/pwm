@@ -122,7 +122,7 @@ public class CustomLinkValue extends AbstractValue implements StoredValue {
                 sb.append("\n");
                 sb.append(" Description:").append(JsonUtil.serializeMap(formRow.getLabels())).append("\n");
                 sb.append(" New Window:").append(formRow.isCustomLinkNewWindow()).append("\n");
-                sb.append(" Url:").append(formRow.getcustomLinkUrl()).append("\n");
+                sb.append(" Url:").append(formRow.getCustomLinkUrl()).append("\n");
             }
             return sb.toString();
         } else {

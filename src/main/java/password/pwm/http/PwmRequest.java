@@ -526,18 +526,13 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
             final boolean showPasswordFields
     ) {
         final LinkedHashMap<FormConfiguration,String> formDataMapValue = formDataMap == null
-                ? new LinkedHashMap<FormConfiguration,String>()
+                ? new LinkedHashMap<>()
                 : new LinkedHashMap<>(formDataMap);
 
         this.setAttribute(PwmRequestAttribute.FormConfiguration, new ArrayList<>(formConfiguration));
         this.setAttribute(PwmRequestAttribute.FormData, formDataMapValue);
         this.setAttribute(PwmRequestAttribute.FormReadOnly, readOnly);
         this.setAttribute(PwmRequestAttribute.FormShowPasswordFields, showPasswordFields);
-    }
-
-    public void addFormInfoToRequestAttr(
-            final List<FormConfiguration> FormCustomLinks) {
-        this.setAttribute(PwmRequestAttribute.FormCustomLinks, new ArrayList<>(FormCustomLinks));
     }
 
     public void invalidateSession() {

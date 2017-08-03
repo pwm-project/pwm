@@ -50,7 +50,9 @@ public enum PwmAboutProperty {
     app_siteUrl,
     app_instanceID,
     app_trialMode,
-    app_applianceMode,
+    app_mode_appliance,
+    app_mode_docker,
+    app_mode_manageHttps,
     app_applicationPath,
     app_environmentFlags,
     app_wordlistSize,
@@ -91,6 +93,7 @@ public enum PwmAboutProperty {
     java_vmName,
     java_osName,
     java_osVersion,
+    java_osArch,
     java_randomAlgorithm,
     java_defaultCharset,
     java_appServerInfo,
@@ -119,9 +122,11 @@ public enum PwmAboutProperty {
         aboutMap.put(app_instanceID,               pwmApplication.getInstanceID());
         aboutMap.put(app_trialMode,                Boolean.toString(PwmConstants.TRIAL_MODE));
         if (pwmApplication.getPwmEnvironment() != null) {
-            aboutMap.put(app_applianceMode,            Boolean.toString(pwmApplication.getPwmEnvironment().getFlags().contains(PwmEnvironment.ApplicationFlag.Appliance)));
-            aboutMap.put(app_applicationPath,          pwmApplication.getPwmEnvironment().getApplicationPath().getAbsolutePath());
-            aboutMap.put(app_environmentFlags,         "");
+            aboutMap.put(app_mode_appliance,            Boolean.toString(pwmApplication.getPwmEnvironment().getFlags().contains(PwmEnvironment.ApplicationFlag.Appliance)));
+            aboutMap.put(app_mode_docker,               Boolean.toString(pwmApplication.getPwmEnvironment().getFlags().contains(PwmEnvironment.ApplicationFlag.Docker)));
+            aboutMap.put(app_mode_manageHttps,          Boolean.toString(pwmApplication.getPwmEnvironment().getFlags().contains(PwmEnvironment.ApplicationFlag.ManageHttps)));
+            aboutMap.put(app_applicationPath,           pwmApplication.getPwmEnvironment().getApplicationPath().getAbsolutePath());
+            aboutMap.put(app_environmentFlags,          StringUtil.collectionToString(pwmApplication.getPwmEnvironment().getFlags(),","));
         }
         aboutMap.put(app_chaiApiVersion,           PwmConstants.CHAI_API_VERSION);
 
@@ -186,6 +191,8 @@ public enum PwmAboutProperty {
 
             aboutMap.put(java_osName,              System.getProperty("os.name"));
             aboutMap.put(java_osVersion,           System.getProperty("os.version"));
+            aboutMap.put(java_osArch,              System.getProperty("os.arch"));
+
             aboutMap.put(java_randomAlgorithm,     PwmRandom.getInstance().getAlgorithm());
             aboutMap.put(java_defaultCharset,      Charset.defaultCharset().name());
         }
