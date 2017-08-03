@@ -880,9 +880,13 @@ select {
 	border: 1px solid transparent;
 }
 
-	#login .buttonbar #submitBtn span {
-		display: none;
-	}
+#login .buttonbar #submitBtn span {
+    display: none;
+}
+
+#login .loginFieldLabel {
+    display: none;
+}
 
 input[type=search] {
 }

@@ -41,9 +41,11 @@
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <%@ include file="/WEB-INF/jsp/fragment/ldap-selector.jsp" %>
             <div class="sign-in">
+                <h2 class="loginFieldLabel"><label for="username"><pwm:display key="Field_Username"/></label></h2>
                 <div class="formFieldWrapper">
                     <input type="text" name="username" id="username" title="<pwm:display key="Field_Username"/>" placeholder="<pwm:display key="Field_Username"/>" class="inputfield" <pwm:autofocus/> required="required">
                 </div>
+                <h2 class="loginFieldLabel"><label for="password"><pwm:display key="Field_Password"/></label></h2>
                 <div class="formFieldWrapper">
                     <input type="<pwm:value name="<%=PwmValue.passwordFieldType%>"/>" name="password" id="password" title="<pwm:display key="Field_Password"/>" placeholder="<pwm:display key="Field_Password"/>" required="required" class="inputfield passwordfield"/>
                 </div>
