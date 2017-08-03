@@ -174,14 +174,14 @@ CustomLinkHandler.arrayMoveUtil = function(arr, fromIndex, toIndex) {
 
 CustomLinkHandler.addRow = function(keyName) {
     UILibrary.stringEditorDialog({
-        title:PWM_SETTINGS['settings'][keyName]['label'] + ' - New Form Field',
+        title:PWM_SETTINGS['settings'][keyName]['label'] + ' - New Custom Link Key Name',
+        instructions: 'Acceptable characters, a-z,A-Z,0-9',
         regex:'^[a-zA-Z][a-zA-Z0-9-]*$',
-        instructions:'Please enter a descriptive name for the link service.',
-        placeholder:'FieldName',
+        placeholder:'KeyName',
         completeFunction:function(value){
             for (var i in PWM_VAR['clientSettingCache'][keyName]) {
                 if (PWM_VAR['clientSettingCache'][keyName][i]['name'] == value) {
-                    alert('field already exists');
+                    alert('key name already exists');
                     return;
                 }
             }
@@ -212,12 +212,12 @@ CustomLinkHandler.showOptionsDialog = function(keyName, iteration) {
 
     bodyText += '</tr><tr>';
 
-    var customUrl = PWM_VAR['clientSettingCache'][keyName][iteration]['url'];
+    var customLinkUrl = PWM_VAR['clientSettingCache'][keyName][iteration]['customLinkUrl'];
     bodyText += '<td id="' + inputID + '-Site-url" class="key" >Link URL</td><td>' +
-        '<input placeholder="https://example.com" style="width: 350px;" type="url" class="key" id="' + inputID + 'SiteURL' + '" value="'+ customUrl +'"/></td>';
+        '<input placeholder="https://example.com" style="width: 350px;" type="url" class="key" id="' + inputID + 'SiteURL' + '" value="'+ customLinkUrl +'"/></td>';
     bodyText += '</tr><tr>';
 
-    var checkedValue = PWM_VAR['clientSettingCache'][keyName][iteration]['newWindow'];
+    var checkedValue = PWM_VAR['clientSettingCache'][keyName][iteration]['customLinkNewWindow'];
     bodyText += '<td class="key" title="' + PWM_CONFIG.showString('Tooltip_Form_ShowInNewWindow') + '">Open link in new window</td><td><input type="checkbox" id="' + inputID + 'newWindow' + '" ';
     if(checkedValue) {
         bodyText += 'checked'
@@ -239,12 +239,12 @@ CustomLinkHandler.showOptionsDialog = function(keyName, iteration) {
         });
 
         PWM_MAIN.addEventHandler(inputID + 'SiteURL', 'change', function () {
-            PWM_VAR['clientSettingCache'][keyName][iteration]['url'] = this.value;
+            PWM_VAR['clientSettingCache'][keyName][iteration]['customLinkUrl'] = this.value;
             CustomLinkHandler.write(keyName)
         });
 
         PWM_MAIN.addEventHandler(inputID + 'newWindow', 'click', function () {
-            PWM_VAR['clientSettingCache'][keyName][iteration]['newWindow'] = PWM_MAIN.getObject(inputID + 'newWindow').checked;
+            PWM_VAR['clientSettingCache'][keyName][iteration]['customLinkNewWindow'] = PWM_MAIN.getObject(inputID + 'newWindow').checked;
             CustomLinkHandler.write(keyName)
         });
     };
