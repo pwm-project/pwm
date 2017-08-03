@@ -285,8 +285,9 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
         if (beanClass != null) {
             final PwmSessionBean pwmSessionBean = pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest, beanClass);
             pwmSessionBean.setLastError(errorInformation);
-            pwmRequest.setAttribute(PwmRequestAttribute.PwmErrorInfo, errorInformation);
         }
+
+        pwmRequest.setAttribute(PwmRequestAttribute.PwmErrorInfo, errorInformation);
     }
 
     protected void examineLastError(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
