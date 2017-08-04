@@ -145,15 +145,33 @@ public class LDAPStatusChecker implements HealthChecker {
         return returnRecords;
     }
 
-    public List<HealthRecord> doLdapTestUserCheck(final Configuration config, final LdapProfile ldapProfile, final PwmApplication pwmApplication)
+    public List<HealthRecord> doLdapTestUserCheck(
+            final Configuration config,
+            final LdapProfile ldapProfile,
+            final PwmApplication pwmApplication
+    )
     {
-        final String testUserDN = ldapProfile.readSettingAsString(PwmSetting.LDAP_TEST_USER_DN);
-        final String proxyUserDN = ldapProfile.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
+        String testUserDN = ldapProfile.readSettingAsString(PwmSetting.LDAP_TEST_USER_DN);
+        String proxyUserDN = ldapProfile.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
         final PasswordData proxyUserPW = ldapProfile.readSettingAsPassword(PwmSetting.LDAP_PROXY_USER_PASSWORD);
 
         final List<HealthRecord> returnRecords = new ArrayList<>();
 
         if (testUserDN == null || testUserDN.length() < 1) {
+            return returnRecords;
+        }
+
+        try {
+            testUserDN = ldapProfile.readCanonicalDN(pwmApplication, testUserDN);
+            proxyUserDN = ldapProfile.readCanonicalDN(pwmApplication, proxyUserDN);
+        } catch (PwmUnrecoverableException e) {
+            final String msgString = e.getMessage();
+            LOGGER.trace(SessionLabel.HEALTH_SESSION_LABEL, "unexpected error while testing test user (during object creation): message="
+                    + msgString + " debug info: " + JavaHelper.readHostileExceptionMessage(e));
+            returnRecords.add(HealthRecord.forMessage(HealthMessage.LDAP_TestUserUnexpected,
+                    PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug(ldapProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE),
+                    msgString
+            ));
             return returnRecords;
         }
 
@@ -189,7 +207,8 @@ public class LDAPStatusChecker implements HealthChecker {
                 return returnRecords;
             } catch (Throwable e) {
                 final String msgString = e.getMessage();
-                LOGGER.trace(SessionLabel.HEALTH_SESSION_LABEL, "unexpected error while testing test user (during object creation): message=" + msgString + " debug info: " + JavaHelper.readHostileExceptionMessage(e));
+                LOGGER.trace(SessionLabel.HEALTH_SESSION_LABEL, "unexpected error while testing test user (during object creation): message="
+                        + msgString + " debug info: " + JavaHelper.readHostileExceptionMessage(e));
                 returnRecords.add(HealthRecord.forMessage(HealthMessage.LDAP_TestUserUnexpected,
                         PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug(ldapProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE),
                         msgString
@@ -572,9 +591,12 @@ public class LDAPStatusChecker implements HealthChecker {
             return Collections.emptyList();
         }
 
-        final Map<HealthMonitor.HealthMonitorFlag,Serializable> healthProperties = pwmApplication.getHealthMonitor().getHealthProperties();
-        if (healthProperties.containsKey(HealthMonitor.HealthMonitorFlag.AdPasswordPolicyApiCheck)) {
-            return (List<HealthRecord>)healthProperties.get(HealthMonitor.HealthMonitorFlag.AdPasswordPolicyApiCheck);
+        if (pwmApplication.getHealthMonitor() != null) {
+            final Map<HealthMonitor.HealthMonitorFlag, Serializable> healthProperties = pwmApplication.getHealthMonitor().getHealthProperties();
+            if (healthProperties.containsKey(HealthMonitor.HealthMonitorFlag.AdPasswordPolicyApiCheck)) {
+                final List<HealthRecord> healthRecords = (List<HealthRecord>)healthProperties.get(HealthMonitor.HealthMonitorFlag.AdPasswordPolicyApiCheck);
+                return healthRecords;
+            }
         }
 
         LOGGER.trace(SessionLabel.HEALTH_SESSION_LABEL,"beginning check for ad api password policy (asn " + PwmConstants.LDAP_AD_PASSWORD_POLICY_CONTROL_ASN + ") support");
@@ -611,7 +633,8 @@ public class LDAPStatusChecker implements HealthChecker {
                     "error during ad api password policy (asn " + PwmConstants.LDAP_AD_PASSWORD_POLICY_CONTROL_ASN + ") check: " + e.getMessage());
         }
 
-        if (!errorReachingServer) {
+        if (!errorReachingServer && pwmApplication.getHealthMonitor() != null) {
+            final Map<HealthMonitor.HealthMonitorFlag, Serializable> healthProperties = pwmApplication.getHealthMonitor().getHealthProperties();
             healthProperties.put(HealthMonitor.HealthMonitorFlag.AdPasswordPolicyApiCheck, healthRecords);
         }
 
