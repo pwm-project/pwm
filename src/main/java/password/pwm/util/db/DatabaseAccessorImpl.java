@@ -70,6 +70,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor {
     )
             throws DatabaseException
     {
+        DatabaseUtil.rollbackTransaction(connection);
         final DatabaseException databaseException = DatabaseUtil.convertSqlException(debugInfo, e);
         databaseService.setLastError(databaseException.getErrorInformation());
         throw databaseException;

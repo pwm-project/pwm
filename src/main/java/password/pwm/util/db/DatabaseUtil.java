@@ -185,10 +185,21 @@ class DatabaseUtil {
             statement = connection.createStatement();
             resultSet = statement.executeQuery(sb.toString());
         } catch (SQLException e) {
+            rollbackTransaction(connection);
             throw DatabaseUtil.convertSqlException(debugInfo, e);
         } finally {
             DatabaseUtil.close(statement);
             DatabaseUtil.close(resultSet);
+        }
+    }
+
+    static void rollbackTransaction(final Connection connection) throws DatabaseException {
+        try {
+            connection.rollback();
+        } catch (SQLException e1) {
+            final String errorMsg = "error during transaction rollback: " + e1.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE, errorMsg);
+            throw new DatabaseException(errorInformation);
         }
     }
 
