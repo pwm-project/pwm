@@ -31,7 +31,9 @@
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
 <div id="wrapper">
-    <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_HEADER_BUTTONS); %>
+    <pwm:if test="<%=PwmIfTest.forcedPageView%>">
+        <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_HEADER_BUTTONS); %>
+    </pwm:if>
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_ChangePassword"/>
     </jsp:include>
@@ -51,8 +53,8 @@
                     <input type="checkbox" id="agreeCheckBox"/>
                     <pwm:display key="Button_Agree"/>
                 </label>
-                    <br/>
-                    <br/>
+                <br/>
+                <br/>
                 <input type="hidden" name="processAction" value="agree"/>
                 <button type="submit" name="button" class="btn" id="button_continue">
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
@@ -60,12 +62,18 @@
                 </button>
                 <input type="hidden" name="pwmFormID" id="pwmFormID" value="<pwm:FormID/>"/>
             </form>
-            <form action="<pwm:url url='<%=PwmServletDefinition.Logout.servletUrl()%>' addContext="true"/>" method="post" enctype="application/x-www-form-urlencoded">
-                <button type="submit" name="button" class="btn" id="button_logout">
-                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-sign-out"></span></pwm:if>
-                    <pwm:display key="Button_Logout"/>
-                </button>
-            </form>
+            <pwm:if test="<%=PwmIfTest.forcedPageView%>">
+                <form action="<pwm:url url='<%=PwmServletDefinition.Logout.servletUrl()%>' addContext="true"/>" method="post" enctype="application/x-www-form-urlencoded">
+                    <button type="submit" name="button" class="btn" id="button_logout">
+                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-sign-out"></span></pwm:if>
+                        <pwm:display key="Button_Logout"/>
+                    </button>
+                </form>
+            </pwm:if>
+            <pwm:if test="<%=PwmIfTest.forcedPageView%>" negate="true">
+                <%@ include file="/WEB-INF/jsp/fragment/cancel-button.jsp" %>
+                <%@ include file="/WEB-INF/jsp/fragment/cancel-form.jsp" %>
+            </pwm:if>
         </div>
     </div>
     <div class="push"></div>

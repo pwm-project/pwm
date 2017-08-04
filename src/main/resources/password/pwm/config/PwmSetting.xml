@@ -298,9 +298,7 @@
     </setting>
     <setting hidden="false" key="deleteAccount.agreement" level="1" required="false">
         <flag>MacroSupport</flag>
-        <default>
-            <value/>
-        </default>
+        <default/>
     </setting>
     <setting hidden="false" key="deleteAccount.deleteEntry" level="1" required="false">
         <default>
@@ -398,9 +396,7 @@
     </setting>
     <setting hidden="false" key="display.password.changeAgreement" level="1">
         <flag>MacroSupport</flag>
-        <default>
-            <value />
-        </default>
+        <default/>
     </setting>
     <setting hidden="false" key="display.password.completeMessage" level="1">
         <flag>MacroSupport</flag>
@@ -2780,9 +2776,7 @@
     </setting>
     <setting hidden="false" key="display.activateUser.agreement" level="1">
         <flag>MacroSupport</flag>
-        <default>
-            <value />
-        </default>
+        <default/>
     </setting>
     <setting hidden="false" key="activateUser.form" level="1" required="true">
         <ldapPermission actor="proxy" access="read"/>
@@ -2871,9 +2865,7 @@
     </setting>
     <setting hidden="false" key="display.updateAttributes.agreement" level="1">
         <flag>MacroSupport</flag>
-        <default>
-            <value />
-        </default>
+        <default/>
     </setting>
     <setting hidden="false" key="updateAttributes.queryMatch" level="1" required="true">
         <ldapPermission actor="proxy" access="read"/>
