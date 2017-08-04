@@ -50,6 +50,7 @@ import password.pwm.svc.event.UserAuditRecord;
 import password.pwm.svc.intruder.RecordType;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.LocaleHelper;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -166,7 +167,7 @@ public class RestAppDataServer extends AbstractRestServer {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
 
-        final String startupTime = restRequestBean.getPwmApplication().getStartupTime().toString();
+        final String startupTime = JavaHelper.toIsoDate(restRequestBean.getPwmApplication().getStartupTime());
         return new RestResultBean(new HashMap<>(Collections.singletonMap("time",startupTime))).asJsonResponse();
     }
 

@@ -46,30 +46,57 @@ PWM_CONFIG.lockConfiguration=function() {
 };
 
 PWM_CONFIG.waitForRestart=function(options) {
+    var pingCycleTimeMs = 3 * 1000;
+    var maxWaitTimeMs = 120 * 1000;
+
     PWM_VAR['cancelHeartbeatCheck'] = true;
 
+    var restartFunction = function() {
+        var redirectUrl = 'location' in options ? options['location'] : '/';
+        console.log("application appears to be restarted, redirecting to context url: " + redirectUrl);
+        PWM_MAIN.goto(redirectUrl);
+    };
+
     options = options === undefined ? {} : options;
+    if (!('failbackStartTime' in options)) {
+        options['failbackStartTime'] = Date.now();
+    } else {
+        var elapsedMs = Date.now() - options['failbackStartTime'];
+        if (elapsedMs > maxWaitTimeMs) {
+            restartFunction();
+            return;
+        }
+    }
+
+    var declaredStartupTime = PWM_GLOBAL['startupTime'];
+
     console.log("beginning request to determine application status: ");
     var loadFunction = function(data) {
         try {
-            var serverStartTime = data['time'];
-            if (serverStartTime !== PWM_GLOBAL['startupTime']) {
-                console.log("application appears to be restarted, redirecting to context url: ");
-                var redirectUrl = 'location' in options ? options['location'] : '/';
-                PWM_MAIN.goto(redirectUrl);
-                return;
+            if (data['error']) {
+                console.log('data error reading /ping endpoint: ' + JSON.stringify(data));
+            } else {
+                var serverStartTime = data['data']['time'];
+                console.log("comparing declared timestamp=" + declaredStartupTime + " and xhr read timestamp=" + serverStartTime);
+                if (serverStartTime !== declaredStartupTime) {
+                    console.log("change detected, restarting page");
+                    restartFunction();
+                    return;
+                } else {
+                    console.log("no change detected");
+                }
             }
         } catch (e) {
             console.log("can't read current server startupTime, will retry detection (current error: " + e + ")");
         }
         setTimeout(function() {
             PWM_CONFIG.waitForRestart(options)
-        }, Math.random() * 3000);
+        }, pingCycleTimeMs);
     };
     var errorFunction = function(error) {
         setTimeout(function() {
             PWM_CONFIG.waitForRestart(options)
-        }, 3000);
+        }, pingCycleTimeMs);
         console.log('Waiting for server restart, unable to contact server: ' + error);
     };
     var url = PWM_GLOBAL['url-restservice'] + "/app-data/ping";
