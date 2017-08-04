@@ -100,7 +100,7 @@
                         <pwm:display key="Notice_ReportSummary" bundle="Admin"/>
                     </div>
                     <div style="text-align: center">
-                        <form action="<pwm:current-url/>" method="post">
+                        <form class="submitToDownloadForm" action="<pwm:current-url/>" method="post">
                             <button type="submit" class="btn" id="button-downloadUserSummaryCsv">
                                 <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-download">&nbsp;</span></pwm:if>
                                 <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
@@ -121,7 +121,7 @@
                             <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-refresh">&nbsp;</span></pwm:if>
                             <pwm:display key="Button_Refresh" bundle="Admin"/>
                         </button>
-                        <form id="downloadUserReportCsvForm" action="<pwm:current-url/>" method="post">
+                        <form class="submitToDownloadForm" id="downloadUserReportCsvForm" action="<pwm:current-url/>" method="post">
                             <button type="submit" class="btn" id="button-downloadUserReportCsv">
                                 <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-download">&nbsp;</span></pwm:if>
                                 <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
@@ -199,7 +199,7 @@
                         <pwm:display key="Notice_EventStatistics" bundle="Admin"/>
                     </div>
                     <div style="text-align: center">
-                        <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded">
+                        <form class="submitToDownloadForm" action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded">
                             <button type="submit" class="btn" id="button-downloadStatisticsLogCsv">
                                 <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-download"></span></pwm:if>
                                 <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
@@ -244,7 +244,7 @@
 
 
         PWM_GLOBAL['startupFunctions'].push(function(){
-            require(["dojo/parser","dijit/registry","dojo/ready","dijit/form/Select","dijit/form/NumberSpinner","dijit/layout/TabContainer","dijit/layout/ContentPane"],function(dojoParser,registry,ready){
+            require(["dojo","dojo/query","dojo/parser","dijit/registry","dojo/ready","dijit/form/Select","dijit/form/NumberSpinner","dijit/layout/TabContainer","dijit/layout/ContentPane"],function(dojo,query,dojoParser,registry,ready){
                 dojoParser.parse('centerbody');
                 ready(function(){
                     registry.byId('statsChartSelect').set('value','<%=Statistic.PASSWORD_CHANGES%>');
@@ -269,8 +269,15 @@
                 PWM_MAIN.addEventHandler('reportStartButton','click',function(){ PWM_ADMIN.reportAction('Start') });
                 PWM_MAIN.addEventHandler('reportStopButton','click',function(){ PWM_ADMIN.reportAction('Stop') });
                 PWM_MAIN.addEventHandler('reportClearButton','click',function(){ PWM_ADMIN.reportAction('Clear') });
-                PWM_MAIN.addEventHandler('statsChartSelect','change',function(){ refreshChart() })
+                PWM_MAIN.addEventHandler('statsChartSelect','change',function(){ refreshChart() });
 
+                if (dojo.isIE) {
+                    // The tab containers on this page go wacky in Internet Explorer if the form downloads are submitted
+                    // to the current page.  This is a workaround to submit the forms to a blank page instead.
+                    query("form.submitToDownloadForm").forEach(function(node, index, arr) {
+                        node.target = "_blank";
+                    });
+                }
             });
         });
     </script>
