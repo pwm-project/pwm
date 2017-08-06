@@ -30,14 +30,9 @@
 <%@ page import="password.pwm.http.tag.value.PwmValue" %>
 <%@ page import="password.pwm.http.PwmRequestFlag" %>
 <%@ page import="password.pwm.http.tag.url.PwmThemeURL" %>
-<%@ page import="org.apache.commons.lang3.StringUtils" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 
 <head>
-    <% if (StringUtils.isNotBlank(request.getParameter("baseHref"))) { %>
-        <base href="${param.baseHref}" />
-    <% } %>
-
     <pwm:if test="<%=PwmIfTest.authenticated%>" negate="true"><title><pwm:display key="Title_TitleBar"/></title></pwm:if>
     <pwm:if test="<%=PwmIfTest.authenticated%>"><title><pwm:display key="Title_TitleBarAuthenticated"/></title></pwm:if>
     <meta http-equiv="content-type" content="text/html;charset=utf-8"/>
