@@ -736,6 +736,8 @@ public enum PwmSetting {
             "challenge.requiredAttributes", PwmSettingSyntax.FORM, PwmSettingCategory.RECOVERY_DEF),
     RECOVERY_ALLOW_WHEN_LOCKED(
             "recovery.allowWhenLocked", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_DEF),
+    TOKEN_RESEND_ENABLE(
+            "recovery.token.resend.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_DEF),
 
     // recovery oauth
     RECOVERY_OAUTH_ID_LOGIN_URL(

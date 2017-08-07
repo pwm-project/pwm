@@ -643,7 +643,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
                 outputMap.put(key, new TreeMap<>(returnData.get(key)));
             }
 
-            restResultBean.setData(returnData);
+            restResultBean.setData(outputMap);
             LOGGER.trace(pwmRequest, "finished search operation with " + returnData.size() + " results in " + TimeDuration.fromCurrent(startTime).asCompactString());
         } else {
             restResultBean.setData(new ArrayList<StoredConfigurationImpl.ConfigRecordID>());

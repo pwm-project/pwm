@@ -343,11 +343,6 @@ public class RequestInitializationFilter implements Filter {
             resp.setHeader(HttpHeader.Server, value);
         }
 
-
-        if (pwmRequest.getURL().isResourceURL()) {
-            return;
-        }
-
         // ----- non-resource urls only for the following operations -----
 
         final boolean includeXFrameDeny = config.readSettingAsBoolean(PwmSetting.SECURITY_PREVENT_FRAMING);

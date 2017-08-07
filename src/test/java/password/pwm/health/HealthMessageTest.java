@@ -4,10 +4,8 @@ import org.junit.Assert;
 import org.junit.Test;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
-import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.i18n.Config;
 
 import java.util.HashSet;
 import java.util.Locale;
@@ -29,8 +27,7 @@ public class HealthMessageTest {
         final Configuration configuration = new Configuration(StoredConfigurationImpl.newStoredConfiguration());
         final Locale locale = PwmConstants.DEFAULT_LOCALE;
         for (final HealthMessage healthMessage : HealthMessage.values()) {
-            final String msg = healthMessage.getDescription(locale, configuration, new String[]{"field1", "field2"});
-            System.out.println(msg);
+            healthMessage.getDescription(locale, configuration, new String[]{"field1", "field2"});
         }
     }
 }

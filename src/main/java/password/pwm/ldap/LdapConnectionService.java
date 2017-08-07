@@ -53,7 +53,7 @@ public class LdapConnectionService implements PwmService {
     private PwmApplication pwmApplication;
     private STATUS status = STATUS.NEW;
     private AtomicLoopIntIncrementer slotIncrementer;
-    private final ThreadLocal<ChaiProvider> threadLocalProvider = new ThreadLocal<>();
+    private final ThreadLocal<Map<LdapProfile,ChaiProvider>> threadLocalProvider = new ThreadLocal<>();
 
     public STATUS status()
     {
@@ -115,40 +115,51 @@ public class LdapConnectionService implements PwmService {
         return getProxyChaiProvider(ldapProfile);
     }
 
-    public ChaiProvider getProxyChaiProvider(final LdapProfile identifier)
+    public ChaiProvider getProxyChaiProvider(final LdapProfile ldapProfile)
             throws PwmUnrecoverableException
     {
-        if (threadLocalProvider.get() != null) {
-            return threadLocalProvider.get();
+        final LdapProfile effectiveProfile = ldapProfile == null
+                ? pwmApplication.getConfig().getDefaultLdapProfile()
+                : ldapProfile;
+
+        if (threadLocalProvider.get() != null && threadLocalProvider.get().containsKey(effectiveProfile)) {
+            return threadLocalProvider.get().get(effectiveProfile);
         }
 
+        final ChaiProvider chaiProvider = getNewProxyChaiProvider(effectiveProfile);
+
+        if (threadLocalProvider.get() == null) {
+            threadLocalProvider.set(new ConcurrentHashMap<>());
+        }
+        threadLocalProvider.get().put(effectiveProfile, chaiProvider);
+
+        return chaiProvider;
+    }
+
+    private ChaiProvider getNewProxyChaiProvider(final LdapProfile ldapProfile)
+            throws PwmUnrecoverableException
+    {
         final int slot = slotIncrementer.next();
 
-        final ChaiProvider proxyChaiProvider = proxyChaiProviders.get(identifier).get(slot);
+        final ChaiProvider proxyChaiProvider = proxyChaiProviders.get(ldapProfile).get(slot);
 
         if (proxyChaiProvider != null) {
             return proxyChaiProvider;
         }
 
-        final LdapProfile ldapProfile = identifier == null
-                ? pwmApplication.getConfig().getDefaultLdapProfile()
-                : identifier;
-
         if (ldapProfile == null) {
-            final String errorMsg = "unknown ldap profile requested connection: " + identifier;
+            final String errorMsg = "unknown ldap profile requested connection: " + ldapProfile;
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_NO_LDAP_CONNECTION,errorMsg));
         }
 
         try {
-
             final ChaiProvider newProvider = LdapOperationsHelper.openProxyChaiProvider(
                     null,
                     ldapProfile,
                     pwmApplication.getConfig(),
                     pwmApplication.getStatisticsManager()
             );
-            proxyChaiProviders.get(identifier).put(slot, newProvider);
-            threadLocalProvider.set(newProvider);
+            proxyChaiProviders.get(ldapProfile).put(slot, newProvider);
 
             return newProvider;
         } catch (PwmUnrecoverableException e) {

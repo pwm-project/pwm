@@ -32,6 +32,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
+import password.pwm.bean.TokenDestinationItem;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.value.data.FormConfiguration;
@@ -397,7 +398,6 @@ class ForgottenPasswordUtil {
                 userIdentity,
                 pwmRequest.getLocale());
 
-        final String tokenDestinationAddress = outputDestrestTokenDataClient.getDisplayValue();
         final Set<String> destinationValues = new LinkedHashSet<>();
         if (outputDestrestTokenDataClient.getEmail() != null) {
             destinationValues.add(outputDestrestTokenDataClient.getEmail());
@@ -417,7 +417,7 @@ class ForgottenPasswordUtil {
 
         final String smsMessage = config.readSettingAsLocalizedString(PwmSetting.SMS_CHALLENGE_TOKEN_TEXT, pwmRequest.getLocale());
 
-        TokenService.TokenSender.sendToken(
+        final List<TokenDestinationItem.Type> sentTypes = TokenService.TokenSender.sendToken(
                 pwmRequest.getPwmApplication(),
                 userInfo,
                 macroMachine,
@@ -430,7 +430,14 @@ class ForgottenPasswordUtil {
         );
 
         StatisticsManager.incrementStat(pwmRequest, Statistic.RECOVERY_TOKENS_SENT);
-        return tokenDestinationAddress;
+
+        final String displayDestAddress = TokenService.TokenSender.figureDisplayString(
+                pwmRequest.getConfig(),
+                sentTypes,
+                outputDestrestTokenDataClient.getEmail(),
+                outputDestrestTokenDataClient.getSms()
+        );
+        return displayDestAddress;
     }
 
 }
