@@ -53,6 +53,7 @@
                     <pwm:display key="Button_Continue"/>
                 </button>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+                <input type="hidden" name="skipCaptcha" value="${param.skipCaptcha}"/>
 
                 <% if ((Boolean)JspUtility.getAttribute(pageContext, PwmRequestAttribute.NewUser_FormShowBackButton)) { %>
                 <button type="button" id="button-goBack" name="button-goBack" class="btn" >

@@ -509,12 +509,14 @@ public class NewUserServlet extends ControlledPwmServlet {
     {
         final NewUserBean newUserBean = getNewUserBean(pwmRequest);
 
-        if (!CaptchaUtility.verifyReCaptcha(pwmRequest)) {
-            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_BAD_CAPTCHA_RESPONSE);
-            LOGGER.debug(pwmRequest, errorInfo);
-            setLastError(pwmRequest, errorInfo);
-            forwardToFormPage(pwmRequest, newUserBean);
-            return ProcessStatus.Halt;
+        if (CaptchaUtility.captchaEnabledForRequest(pwmRequest)) {
+            if (!CaptchaUtility.verifyReCaptcha(pwmRequest)) {
+                final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_BAD_CAPTCHA_RESPONSE);
+                LOGGER.debug(pwmRequest, errorInfo);
+                setLastError(pwmRequest, errorInfo);
+                forwardToFormPage(pwmRequest, newUserBean);
+                return ProcessStatus.Halt;
+            }
         }
 
         newUserBean.setFormPassed(false);

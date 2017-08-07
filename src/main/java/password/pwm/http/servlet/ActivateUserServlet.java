@@ -211,11 +211,13 @@ public class ActivateUserServlet extends AbstractPwmServlet {
         final Configuration config = pwmApplication.getConfig();
         final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
 
-        if (!CaptchaUtility.verifyReCaptcha(pwmRequest)) {
-            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_BAD_CAPTCHA_RESPONSE);
-            LOGGER.debug(pwmRequest, errorInfo);
-            setLastError(pwmRequest, errorInfo);
-            return;
+        if (CaptchaUtility.captchaEnabledForRequest(pwmRequest)) {
+            if (!CaptchaUtility.verifyReCaptcha(pwmRequest)) {
+                final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_BAD_CAPTCHA_RESPONSE);
+                LOGGER.debug(pwmRequest, errorInfo);
+                setLastError(pwmRequest, errorInfo);
+                return;
+            }
         }
 
 

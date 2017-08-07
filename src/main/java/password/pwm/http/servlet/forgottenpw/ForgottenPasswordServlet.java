@@ -354,13 +354,14 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
         // clear the bean
         clearForgottenPasswordBean(pwmRequest);
 
-        if (!CaptchaUtility.verifyReCaptcha(pwmRequest)) {
-            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_BAD_CAPTCHA_RESPONSE);
-            LOGGER.debug(pwmRequest, errorInfo);
-            setLastError(pwmRequest, errorInfo);
-            return ProcessStatus.Continue;
+        if (CaptchaUtility.captchaEnabledForRequest(pwmRequest)) {
+            if (!CaptchaUtility.verifyReCaptcha(pwmRequest)) {
+                final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_BAD_CAPTCHA_RESPONSE);
+                LOGGER.debug(pwmRequest, errorInfo);
+                setLastError(pwmRequest, errorInfo);
+                return ProcessStatus.Continue;
+            }
         }
-
 
         final List<FormConfiguration> forgottenPasswordForm = pwmApplication.getConfig().readSettingAsForm(
                 PwmSetting.FORGOTTEN_PASSWORD_SEARCH_FORM);

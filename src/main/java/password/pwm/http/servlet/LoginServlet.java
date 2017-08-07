@@ -209,8 +209,10 @@ public class LoginServlet extends ControlledPwmServlet {
             throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER,"missing password parameter"));
         }
 
-        if (!CaptchaUtility.verifyReCaptcha(pwmRequest, recaptchaResponse)) {
-            throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_BAD_CAPTCHA_RESPONSE, "captcha incorrect"));
+        if (CaptchaUtility.captchaEnabledForRequest(pwmRequest)) {
+            if (!CaptchaUtility.verifyReCaptcha(pwmRequest, recaptchaResponse)) {
+                throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_BAD_CAPTCHA_RESPONSE, "captcha incorrect"));
+            }
         }
 
         final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(

@@ -130,12 +130,14 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
 
-        if (!CaptchaUtility.verifyReCaptcha(pwmRequest)) {
-            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_BAD_CAPTCHA_RESPONSE);
-            LOGGER.debug(pwmRequest, errorInfo);
-            setLastError(pwmRequest, errorInfo);
-            forwardToFormJsp(pwmRequest);
-            return;
+        if (CaptchaUtility.captchaEnabledForRequest(pwmRequest)) {
+            if (!CaptchaUtility.verifyReCaptcha(pwmRequest)) {
+                final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_BAD_CAPTCHA_RESPONSE);
+                LOGGER.debug(pwmRequest, errorInfo);
+                setLastError(pwmRequest, errorInfo);
+                forwardToFormJsp(pwmRequest);
+                return;
+            }
         }
 
         final String contextParam = pwmRequest.readParameterAsString(PwmConstants.PARAM_CONTEXT);
