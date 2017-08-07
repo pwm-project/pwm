@@ -33,15 +33,15 @@ import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.SmsItemBean;
+import password.pwm.bean.TokenDestinationItem;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.Configuration;
-import password.pwm.config.value.data.FormConfiguration;
-import password.pwm.util.form.FormUtility;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.value.data.UserPermission;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.profile.LdapProfile;
+import password.pwm.config.value.data.ActionConfiguration;
+import password.pwm.config.value.data.FormConfiguration;
+import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
@@ -70,6 +70,7 @@ import password.pwm.svc.token.TokenService;
 import password.pwm.svc.token.TokenType;
 import password.pwm.util.CaptchaUtility;
 import password.pwm.util.PostChangePasswordAction;
+import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -668,8 +669,8 @@ public class ActivateUserServlet extends AbstractPwmServlet {
             throw new PwmUnrecoverableException(e.getErrorInformation());
         }
 
-        sendToken(pwmRequest, userIdentity, locale, outputDestTokenData.getEmail(), outputDestTokenData.getSms(), tokenKey);
-        activateUserBean.setTokenDisplayText(outputDestTokenData.getDisplayValue());
+        final String displayValue = sendToken(pwmRequest, userIdentity, locale, outputDestTokenData.getEmail(), outputDestTokenData.getSms(), tokenKey);
+        activateUserBean.setTokenDisplayText(displayValue);
         activateUserBean.setTokenIssued(true);
     }
 
@@ -712,7 +713,7 @@ public class ActivateUserServlet extends AbstractPwmServlet {
         this.advanceToNextStage(pwmRequest);
     }
 
-    private static void sendToken(
+    private static String sendToken(
             final PwmRequest pwmRequest,
             final UserIdentity userIdentity,
             final Locale userLocale,
@@ -730,7 +731,7 @@ public class ActivateUserServlet extends AbstractPwmServlet {
 
         final MacroMachine macroMachine = MacroMachine.forUser(pwmRequest, userIdentity);
 
-        TokenService.TokenSender.sendToken(
+        final List<TokenDestinationItem.Type> sentTypes = TokenService.TokenSender.sendToken(
                 pwmApplication,
                 null,
                 macroMachine,
@@ -741,6 +742,13 @@ public class ActivateUserServlet extends AbstractPwmServlet {
                 smsMessage,
                 tokenKey
         );
+
+        return TokenService.TokenSender.figureDisplayString(
+                pwmApplication.getConfig(),
+                sentTypes,
+                toAddress,
+                toSmsNumber
+                );
     }
 
     private static String figureLdapSearchFilter(final PwmRequest pwmRequest)

@@ -36,6 +36,7 @@ import password.pwm.VerificationMethodSystem;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.PasswordStatus;
 import password.pwm.bean.SessionLabel;
+import password.pwm.bean.TokenDestinationItem;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -1381,7 +1382,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
                 }
 
                 if (progress.getTokenSendChoice() == MessageSendMethod.CHOICE_SMS_EMAIL) {
-                    pwmRequest.forwardToJsp(JspUrl.RECOVER_PASSWORD_TOKEN_CHOICE);
+                    forwardToTokenChoiceJsp(pwmRequest);
                     return;
                 }
 
@@ -1441,6 +1442,15 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
                 throw new UnsupportedOperationException("unexpected method during forward: " + method.toString());
         }
 
+    }
+
+    private void forwardToTokenChoiceJsp(final PwmRequest pwmRequest)
+            throws ServletException, PwmUnrecoverableException, IOException
+    {
+        final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo(pwmRequest, forgottenPasswordBean(pwmRequest));
+        final ArrayList<TokenDestinationItem> destItems = new ArrayList<>(TokenDestinationItem.allFromConfig(pwmRequest.getConfig(), userInfo));
+        pwmRequest.setAttribute(PwmRequestAttribute.ForgottenPasswordTokenDestItems, destItems);
+        pwmRequest.forwardToJsp(JspUrl.RECOVER_PASSWORD_TOKEN_CHOICE);
     }
 }
 

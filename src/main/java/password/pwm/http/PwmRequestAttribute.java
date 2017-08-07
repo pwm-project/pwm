@@ -77,6 +77,7 @@ public enum PwmRequestAttribute {
     ForgottenPasswordInstructions,
     ForgottenPasswordOtpRecord,
     ForgottenPasswordResendTokenEnabled,
+    ForgottenPasswordTokenDestItems,
 
     GuestCurrentExpirationDate,
     GuestMaximumExpirationDate,

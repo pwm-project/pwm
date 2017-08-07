@@ -1,4 +1,5 @@
-<%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
+<%@ page import="password.pwm.bean.TokenDestinationItem" %>
+<%@ page import="java.util.List" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -22,6 +23,7 @@
   --%>
 
 <!DOCTYPE html>
+<% List<TokenDestinationItem> tokenDestinationItems = (List)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ForgottenPasswordTokenDestItems); %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
@@ -54,6 +56,17 @@
             </tr>
             <tr>
                 <td>
+                </td>
+                <td>
+                    <% for (final TokenDestinationItem item : tokenDestinationItems) { %>
+                    <% if (item.getType() == TokenDestinationItem.Type.email) { %>
+                    <%=item.getDisplay()%>
+                    <% } %>
+                    <% } %>
+                </td>
+            </tr>
+            <tr>
+                <td>
                     &nbsp;
                 </td>
             </tr>
@@ -71,6 +84,17 @@
                 </td>
                 <td>
                     <pwm:display key="Display_RecoverTokenSendChoiceSMS"/>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                </td>
+                <td>
+                    <% for (final TokenDestinationItem item : tokenDestinationItems) { %>
+                    <% if (item.getType() == TokenDestinationItem.Type.sms) { %>
+                    <%=item.getDisplay()%>
+                    <% } %>
+                    <% } %>
                 </td>
             </tr>
             <tr>

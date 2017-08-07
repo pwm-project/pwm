@@ -29,8 +29,8 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.SmsItemBean;
+import password.pwm.bean.TokenDestinationItem;
 import password.pwm.bean.UserIdentity;
-import password.pwm.ldap.UserInfo;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
@@ -46,6 +46,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmSession;
+import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.event.AuditEvent;
@@ -55,6 +56,7 @@ import password.pwm.svc.intruder.RecordType;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.DataStore;
+import password.pwm.util.ValueObfuscator;
 import password.pwm.util.db.DatabaseDataStore;
 import password.pwm.util.db.DatabaseTable;
 import password.pwm.util.java.JavaHelper;
@@ -612,7 +614,7 @@ public class TokenService implements PwmService {
     }
 
     public static class TokenSender {
-        public static void sendToken(
+        public static List<TokenDestinationItem.Type> sendToken(
                 final PwmApplication pwmApplication,
                 final UserInfo userInfo,
                 final MacroMachine macroMachine,
@@ -627,6 +629,8 @@ public class TokenService implements PwmService {
         {
             final boolean success;
 
+            final List<TokenDestinationItem.Type> sentTypes = new ArrayList<>();
+
             try {
                 switch (tokenSendMethod) {
                     case NONE:
@@ -636,27 +640,49 @@ public class TokenService implements PwmService {
                     case BOTH:
                         // Send both email and SMS, success if one of both succeeds
                         final boolean suc1 = sendEmailToken(pwmApplication, userInfo, macroMachine, configuredEmailSetting, emailAddress, tokenKey);
+                        if (suc1) {
+                            sentTypes.add(TokenDestinationItem.Type.email);
+                        }
                         final boolean suc2 = sendSmsToken(pwmApplication, userInfo, macroMachine, smsNumber, smsMessage, tokenKey);
+                        if (suc2) {
+                            sentTypes.add(TokenDestinationItem.Type.sms);
+                        }
                         success = suc1 || suc2;
                         break;
                     case EMAILFIRST:
                         // Send email first, try SMS if email is not available
-                        success = sendEmailToken(pwmApplication, userInfo, macroMachine, configuredEmailSetting, emailAddress, tokenKey) ||
-                                sendSmsToken(pwmApplication, userInfo, macroMachine, smsNumber, smsMessage, tokenKey);
+                        final boolean emailSuccess = sendEmailToken(pwmApplication, userInfo, macroMachine, configuredEmailSetting, emailAddress, tokenKey);
+                        if (emailSuccess) {
+                            success = true;
+                            sentTypes.add(TokenDestinationItem.Type.email);
+                        } else {
+                            success = sendSmsToken(pwmApplication, userInfo, macroMachine, smsNumber, smsMessage, tokenKey);
+                            if (success) {
+                                sentTypes.add(TokenDestinationItem.Type.sms);
+                            }
+                        }
                         break;
                     case SMSFIRST:
                         // Send SMS first, try email if SMS is not available
-                        success = sendSmsToken(pwmApplication, userInfo, macroMachine, smsNumber, smsMessage, tokenKey) ||
-                                sendEmailToken(pwmApplication, userInfo, macroMachine, configuredEmailSetting, emailAddress, tokenKey);
+                        final boolean smsSuccess = sendSmsToken(pwmApplication, userInfo, macroMachine, smsNumber, smsMessage, tokenKey);
+                        if (smsSuccess) {
+                            success = true;
+                            sentTypes.add(TokenDestinationItem.Type.sms);
+                        } else {
+                            success = sendEmailToken(pwmApplication, userInfo, macroMachine, configuredEmailSetting, emailAddress, tokenKey);
+                            sentTypes.add(TokenDestinationItem.Type.email);
+                        }
                         break;
                     case SMSONLY:
                         // Only try SMS
                         success = sendSmsToken(pwmApplication, userInfo, macroMachine, smsNumber, smsMessage, tokenKey);
+                        sentTypes.add(TokenDestinationItem.Type.sms);
                         break;
                     case EMAILONLY:
                     default:
                         // Only try email
                         success = sendEmailToken(pwmApplication, userInfo, macroMachine, configuredEmailSetting, emailAddress, tokenKey);
+                        sentTypes.add(TokenDestinationItem.Type.email);
                         break;
                 }
             } catch (ChaiUnavailableException e) {
@@ -667,6 +693,8 @@ public class TokenService implements PwmService {
                 throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_TOKEN_MISSING_CONTACT));
             }
             pwmApplication.getStatisticsManager().incrementValue(Statistic.TOKENS_SENT);
+
+            return sentTypes;
         }
 
         public static boolean sendEmailToken(
@@ -719,6 +747,29 @@ public class TokenService implements PwmService {
             pwmApplication.sendSmsUsingQueue(new SmsItemBean(smsNumber, modifiedMessage), macroMachine);
             LOGGER.debug("token SMS added to send queue for " + smsNumber);
             return true;
+        }
+
+        public static String figureDisplayString(
+                final Configuration configuration,
+                final List<TokenDestinationItem.Type> sentTypes,
+                final String email,
+                final String sms
+        ) {
+            final ValueObfuscator valueObfuscator = new ValueObfuscator(configuration);
+            final StringBuilder displayDestAddress = new StringBuilder();
+            {
+                if (sentTypes.contains(TokenDestinationItem.Type.email)) {
+                    displayDestAddress.append(valueObfuscator.maskEmail(email));
+                }
+
+                if (sentTypes.contains(TokenDestinationItem.Type.sms)) {
+                    if (displayDestAddress.length() > 0) {
+                        displayDestAddress.append(" & ");
+                    }
+                    displayDestAddress.append(valueObfuscator.maskPhone(sms));
+                }
+            }
+            return displayDestAddress.toString();
         }
     }
 }
