@@ -2487,6 +2487,11 @@
             <value>false</value>
         </default>
     </setting>
+    <setting hidden="false" key="recovery.token.resend.enable" level="1" required="true">
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
     <setting hidden="false" key="forgottenUsername.enable" level="1" required="true">
         <default>
             <value>false</value>

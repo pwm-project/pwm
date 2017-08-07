@@ -283,7 +283,6 @@ public enum AppProperty {
     SEEDLIST_BUILTIN_PATH                           ("seedlist.builtin.path"),
     SMTP_SUBJECT_ENCODING_CHARSET                   ("smtp.subjectEncodingCharset"),
     TOKEN_MAX_UNIQUE_CREATE_ATTEMPTS                ("token.maxUniqueCreateAttempts"),
-    TOKEN_RESEND_ENABLED                            ("token.resend.enabled"),
     TOKEN_RESEND_DELAY_MS                           ("token.resend.delayMS"),
     TOKEN_REMOVE_ON_CLAIM                           ("token.removeOnClaim"),
     TOKEN_VERIFY_PW_MODIFY_TIME                     ("token.verifyPwModifyTime"),

@@ -26,7 +26,7 @@
 <%@ page import="password.pwm.http.servlet.forgottenpw.ForgottenPasswordServlet"%>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ page import="password.pwm.http.PwmRequestAttribute" %>
-<%  final boolean resendEnabled = Boolean.parseBoolean(JspUtility.getPwmRequest(pageContext).getConfig().readAppProperty(AppProperty.TOKEN_RESEND_ENABLED)); %>
+<%  final boolean resendEnabled = (Boolean)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ForgottenPasswordResendTokenEnabled); %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%@ include file="fragment/header.jsp" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
