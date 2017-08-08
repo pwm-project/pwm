@@ -502,11 +502,8 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
             }
         }
         final boolean verification = updateAttributesProfile.readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_EMAIL_VERIFICATION);
-        if (verification) {
-            sendProfileUpdateEmailNotice(pwmSession, pwmApplication, true);
-        } else {
-            sendProfileUpdateEmailNotice(pwmSession, pwmApplication, false);
-        }
+        sendProfileUpdateEmailNotice(pwmSession, pwmApplication, verification);
+
         // mark the event log
         pwmApplication.getAuditManager().submit(AuditEvent.UPDATE_PROFILE, pwmSession.getUserInfo(), pwmSession);
 
@@ -556,30 +553,16 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
         final Configuration config = pwmApplication.getConfig();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
 
-        if (verification) {
-            final EmailItemBean configuredVerifyEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_UPDATEPROFILE_VERIFICATION, locale);
-            pwmApplication.getEmailQueue().submitEmail(
-                    configuredVerifyEmailSetting,
-                    pwmSession.getUserInfo(),
-                    pwmSession.getSessionManager().getMacroMachine(pwmApplication)
-            );
+        final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_UPDATEPROFILE, locale);
+        pwmApplication.getEmailQueue().submitEmail(
+                configuredEmailSetting,
+                pwmSession.getUserInfo(),
+                pwmSession.getSessionManager().getMacroMachine(pwmApplication)
+        );
 
-            if (configuredVerifyEmailSetting == null) {
-                LOGGER.debug(pwmSession, "skipping send profile update email for '" + pwmSession.getUserInfo().getUserIdentity() + "' no email configured");
-                return;
-            }
-        } else {
-            final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_UPDATEPROFILE, locale);
-            pwmApplication.getEmailQueue().submitEmail(
-                    configuredEmailSetting,
-                    pwmSession.getUserInfo(),
-                    pwmSession.getSessionManager().getMacroMachine(pwmApplication)
-            );
-
-            if (configuredEmailSetting == null) {
-                LOGGER.debug(pwmSession, "skipping send profile update email for '" + pwmSession.getUserInfo().getUserIdentity() + "' no email configured");
-                return;
-            }
+        if (configuredEmailSetting == null) {
+            LOGGER.debug(pwmSession, "skipping send profile update email for '" + pwmSession.getUserInfo().getUserIdentity() + "' no email configured");
+            return;
         }
     }
 
