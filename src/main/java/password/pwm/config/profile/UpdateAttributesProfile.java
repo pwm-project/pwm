@@ -25,9 +25,11 @@ package password.pwm.config.profile;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.util.java.TimeDuration;
 
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class UpdateAttributesProfile extends AbstractProfile implements Profile {
 
@@ -52,5 +54,23 @@ public class UpdateAttributesProfile extends AbstractProfile implements Profile 
     @Override
     public ProfileType profileType() {
         return PROFILE_TYPE;
+    }
+
+    public TimeDuration getTokenDurationEmail() {
+        final long duration = readSettingAsLong(PwmSetting.UPDATE_PROFILE_TOKEN_LIFETIME_EMAIL);
+        if (duration < 1) {
+            final long defaultDuration = readSettingAsLong(PwmSetting.TOKEN_LIFETIME);
+            return new TimeDuration(defaultDuration, TimeUnit.SECONDS);
+        }
+        return new TimeDuration(duration, TimeUnit.SECONDS);
+    }
+
+    public TimeDuration getTokenDurationSMS() {
+        final long duration = readSettingAsLong(PwmSetting.UPDATE_PROFILE_TOKEN_LIFETIME_SMS);
+        if (duration < 1) {
+            final long defaultDuration = readSettingAsLong(PwmSetting.TOKEN_LIFETIME);
+            return new TimeDuration(defaultDuration, TimeUnit.SECONDS);
+        }
+        return new TimeDuration(duration, TimeUnit.SECONDS);
     }
 }

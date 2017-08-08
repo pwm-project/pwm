@@ -282,6 +282,7 @@ public enum AppProperty {
     SECURITY_DEFAULT_EPHEMERAL_HASH_ALG             ("security.defaultEphemeralHashAlg"),
     SEEDLIST_BUILTIN_PATH                           ("seedlist.builtin.path"),
     SMTP_SUBJECT_ENCODING_CHARSET                   ("smtp.subjectEncodingCharset"),
+    TOKEN_CLEANER_INTERVAL_SECONDS                  ("token.cleaner.intervalSeconds"),
     TOKEN_MASK_EMAIL_REGEX                          ("token.mask.email.regex"),
     TOKEN_MASK_EMAIL_REPLACE                        ("token.mask.email.replace"),
     TOKEN_MASK_SMS_REGEX                            ("token.mask.sms.regex"),

@@ -80,6 +80,7 @@ import java.util.TimerTask;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * This PWM service is responsible for reading/writing tokens used for forgotten password,
@@ -92,17 +93,13 @@ public class TokenService implements PwmService {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(TokenService.class);
 
-    private static final TimeDuration MAX_CLEANER_INTERVAL_MS = new TimeDuration(1, TimeUnit.DAYS);
-    private static final TimeDuration MIN_CLEANER_INTERVAL_MS = new TimeDuration(5, TimeUnit.MINUTES);
-
     private ScheduledExecutorService executorService;
 
     private PwmApplication pwmApplication;
     private Configuration configuration;
     private TokenStorageMethod storageMethod;
-    private long maxTokenAgeMS;
     private TokenMachine tokenMachine;
-    private long counter;
+    private AtomicLong counter = new AtomicLong();
 
     private ServiceInfoBean serviceInfo = new ServiceInfoBean(Collections.emptyList());
     private STATUS status = STATUS.NEW;
@@ -118,11 +115,18 @@ public class TokenService implements PwmService {
 
     public synchronized TokenPayload createTokenPayload(
             final TokenType name,
+            final TimeDuration lifetime,
             final Map<String, String> data,
             final UserIdentity userIdentity,
             final Set<String> dest
     ) {
-        final long count = counter++;
+        final long count = counter.getAndUpdate(operand -> {
+            operand++;
+            if (operand <= 0) {
+                operand = 0;
+            }
+            return operand;
+        });
         final StringBuilder guid = new StringBuilder();
         try {
             final SecureService secureService = pwmApplication.getSecureService();
@@ -132,7 +136,8 @@ public class TokenService implements PwmService {
         } catch (Exception e) {
             LOGGER.error("error making payload guid: " + e.getMessage(),e);
         }
-        return new TokenPayload(name.name(), data, userIdentity, dest, guid.toString());
+        final Instant expiration = lifetime.incrementFromInstant(Instant.now());
+        return new TokenPayload(name.name(), expiration, data, userIdentity, dest, guid.toString());
     }
 
     public void init(final PwmApplication pwmApplication)
@@ -147,14 +152,6 @@ public class TokenService implements PwmService {
         storageMethod = configuration.getTokenStorageMethod();
         if (storageMethod == null) {
             final String errorMsg = "no storage method specified";
-            errorInformation = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG,errorMsg);
-            status = STATUS.CLOSED;
-            throw new PwmOperationalException(errorInformation);
-        }
-        try {
-            maxTokenAgeMS = configuration.readSettingAsLong(PwmSetting.TOKEN_LIFETIME) * 1000;
-        } catch (Exception e) {
-            final String errorMsg = "unable to parse max token age value: " + e.getMessage();
             errorInformation = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG,errorMsg);
             status = STATUS.CLOSED;
             throw new PwmOperationalException(errorInformation);
@@ -208,22 +205,19 @@ public class TokenService implements PwmService {
 
         final TimerTask cleanerTask = new CleanerTask();
 
-        final long cleanerFrequency = Math.max(
-                MIN_CLEANER_INTERVAL_MS.getTotalMilliseconds(),
-                Math.min(
-                        maxTokenAgeMS / 2,
-                        MAX_CLEANER_INTERVAL_MS.getTotalMilliseconds()
-                ));
-
-
-        executorService.scheduleAtFixedRate(cleanerTask, 10 * 1000, cleanerFrequency, TimeUnit.MILLISECONDS);
-        LOGGER.trace("token cleanup will occur every " + TimeDuration.asCompactString(cleanerFrequency));
+        {
+            final int cleanerFrequencySeconds = Integer.parseInt(configuration.readAppProperty(AppProperty.TOKEN_CLEANER_INTERVAL_SECONDS));
+            final TimeDuration cleanerFrequency = new TimeDuration(cleanerFrequencySeconds, TimeUnit.SECONDS);
+            executorService.scheduleAtFixedRate(cleanerTask, 10 , cleanerFrequencySeconds, TimeUnit.SECONDS);
+            LOGGER.trace("token cleanup will occur every " + cleanerFrequency.asCompactString());
+        }
 
         final String counterString = pwmApplication.readAppAttribute(PwmApplication.AppAttribute.TOKEN_COUNTER, String.class);
         try {
-            counter = Long.parseLong(counterString);
+            final long storedCounter = Long.parseLong(counterString);
+            counter = new AtomicLong(storedCounter);
         } catch (Exception e) {
-            /* noop */
+            LOGGER.trace("can not parse stored last counter position, setting issue counter at 0");
         }
 
         verifyPwModifyTime = Boolean.parseBoolean(configuration.readAppProperty(AppProperty.TOKEN_VERIFY_PW_MODIFY_TIME));
@@ -367,13 +361,16 @@ public class TokenService implements PwmService {
         if (theToken == null) {
             return false;
         }
-        final Instant issueDate = theToken.getDate();
+        final Instant issueDate = theToken.getIssueTime();
         if (issueDate == null) {
             LOGGER.error(sessionLabel, "retrieved token has no issueDate, marking as expired: " + theToken.toDebugString());
             return true;
         }
-        final TimeDuration duration = TimeDuration.fromCurrent(issueDate);
-        return duration.isLongerThan(maxTokenAgeMS);
+        if (theToken.getExpiration() == null) {
+            LOGGER.error(sessionLabel, "retrieved token has no expiration timestamp, marking as expired: " + theToken.toDebugString());
+            return true;
+        }
+        return theToken.getExpiration().isBefore(Instant.now());
     }
 
     private static String makeRandomCode(final Configuration config) {
@@ -771,5 +768,16 @@ public class TokenService implements PwmService {
             }
             return displayDestAddress.toString();
         }
+    }
+
+    static TimeDuration maxTokenAge(final Configuration configuration) {
+        long maxValue = 0;
+        maxValue = Math.max(maxValue, configuration.readSettingAsLong(PwmSetting.TOKEN_LIFETIME));
+        maxValue = Math.max(maxValue, configuration.readSettingAsLong(PwmSetting.TOKEN_LIFETIME));
+        for (NewUserProfile newUserProfile : configuration.getNewUserProfiles().values()) {
+            maxValue = Math.max(maxValue, newUserProfile.readSettingAsLong(PwmSetting.NEWUSER_TOKEN_LIFETIME_EMAIL));
+            maxValue = Math.max(maxValue, newUserProfile.readSettingAsLong(PwmSetting.NEWUSER_TOKEN_LIFETIME_SMS));
+        }
+        return new TimeDuration(maxValue, TimeUnit.SECONDS);
     }
 }

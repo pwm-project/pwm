@@ -30,14 +30,13 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.TokenVerificationProgress;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.Configuration;
-import password.pwm.config.value.data.FormConfiguration;
-import password.pwm.util.form.FormUtility;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.TokenStorageMethod;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.profile.UpdateAttributesProfile;
+import password.pwm.config.value.data.ActionConfiguration;
+import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
@@ -61,6 +60,8 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.token.TokenPayload;
 import password.pwm.svc.token.TokenService;
 import password.pwm.svc.token.TokenType;
+import password.pwm.util.form.FormUtility;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.ActionExecutor;
@@ -674,6 +675,8 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
             }
         }
 
+        LOGGER.trace(pwmRequest, "determined required verification phases: " + StringUtil.collectionToString(returnObj,","));
+
         return returnObj;
     }
 
@@ -693,6 +696,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
             }));
         }
 
+        final UpdateAttributesProfile profile = getProfile(pwmRequest);
         final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine(pwmApplication);
         final Configuration config = pwmApplication.getConfig();
         final LdapProfile ldapProfile = pwmRequest.getUserInfoIfLoggedIn().getLdapProfile(pwmRequest.getConfig());
@@ -705,6 +709,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
                 try {
                     final TokenPayload tokenPayload = pwmApplication.getTokenService().createTokenPayload(
                             TokenType.UPDATE_SMS,
+                            profile.getTokenDurationSMS(),
                             Collections.emptyMap(),
                             pwmRequest.getUserInfoIfLoggedIn(),
                             Collections.singleton(toNum)
@@ -742,7 +747,8 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
                 try {
                     final TokenPayload tokenPayload = pwmApplication.getTokenService().createTokenPayload(
                             TokenType.UPDATE_EMAIL,
-                            Collections.<String,String>emptyMap(),
+                            profile.getTokenDurationEmail(),
+                            Collections.emptyMap(),
                             pwmRequest.getUserInfoIfLoggedIn(),
                             Collections.singleton(toAddress)
                     );

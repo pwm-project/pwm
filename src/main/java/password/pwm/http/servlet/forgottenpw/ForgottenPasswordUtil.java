@@ -35,12 +35,12 @@ import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.TokenDestinationItem;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
-import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.RecoveryAction;
 import password.pwm.config.profile.ForgottenPasswordProfile;
+import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -56,6 +56,7 @@ import password.pwm.svc.token.TokenPayload;
 import password.pwm.svc.token.TokenService;
 import password.pwm.svc.token.TokenType;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.PasswordUtility;
@@ -71,6 +72,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 class ForgottenPasswordUtil {
     private static final PwmLogger LOGGER = PwmLogger.forClass(ForgottenPasswordUtil.class);
@@ -409,7 +411,13 @@ class ForgottenPasswordUtil {
         final String tokenKey;
         final TokenPayload tokenPayload;
         try {
-            tokenPayload = pwmRequest.getPwmApplication().getTokenService().createTokenPayload(TokenType.FORGOTTEN_PW, tokenMapData, userIdentity, destinationValues);
+            tokenPayload = pwmRequest.getPwmApplication().getTokenService().createTokenPayload(
+                    TokenType.FORGOTTEN_PW,
+                    new TimeDuration(config.readSettingAsLong(PwmSetting.TOKEN_LIFETIME), TimeUnit.SECONDS),
+                    tokenMapData,
+                    userIdentity,
+                    destinationValues
+            );
             tokenKey = pwmRequest.getPwmApplication().getTokenService().generateNewToken(tokenPayload, pwmRequest.getSessionLabel());
         } catch (PwmOperationalException e) {
             throw new PwmUnrecoverableException(e.getErrorInformation());

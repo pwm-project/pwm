@@ -76,14 +76,23 @@ public class PwmSettingTest {
     @Test
     public void testProperties() throws PwmUnrecoverableException, PwmOperationalException {
         for (PwmSetting pwmSetting : PwmSetting.values()) {
-            pwmSetting.getProperties();
+            try {
+                pwmSetting.getProperties();
+            } catch (Throwable t) {
+                throw new IllegalStateException("unable to read properties for setting '" + pwmSetting.toString() + "', error: " + t.getMessage(),t);
+            }
         }
     }
 
     @Test
     public void testOptions() throws PwmUnrecoverableException, PwmOperationalException {
         for (PwmSetting pwmSetting : PwmSetting.values()) {
-            pwmSetting.getOptions();
+            try {
+                pwmSetting.getOptions();
+            } catch (Throwable t) {
+                throw new IllegalStateException("unable to read options for setting '" + pwmSetting.toString() + "', error: " + t.getMessage(),t);
+            }
+
         }
     }
 

@@ -2,8 +2,6 @@ package password.pwm.svc.token;
 
 import password.pwm.PwmApplication;
 import password.pwm.bean.SessionLabel;
-import password.pwm.config.Configuration;
-import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
@@ -15,12 +13,10 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.time.Instant;
-import java.util.concurrent.TimeUnit;
 
 public class DataStoreTokenMachine implements TokenMachine {
     private static final PwmLogger LOGGER = PwmLogger.forClass(DataStoreTokenMachine.class);
     private final TokenService tokenService;
-    private final TimeDuration maxTokenPurgeAge;
 
     private final DataStore dataStore;
 
@@ -34,11 +30,6 @@ public class DataStoreTokenMachine implements TokenMachine {
         this.pwmApplication = pwmApplication;
         this.tokenService = tokenService;
         this.dataStore = dataStore;
-
-        final Configuration configuration = pwmApplication.getConfig();
-
-        final long maxTokenAgeMS = configuration.readSettingAsLong(PwmSetting.TOKEN_LIFETIME) * 1000;
-        this.maxTokenPurgeAge = new TimeDuration(maxTokenAgeMS, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -81,13 +72,16 @@ public class DataStoreTokenMachine implements TokenMachine {
         if (theToken == null) {
             return false;
         }
-        final Instant issueDate = theToken.getDate();
+        final Instant issueDate = theToken.getIssueTime();
         if (issueDate == null) {
             LOGGER.error("retrieved token has no issueDate, marking as purgable: " + JsonUtil.serialize(theToken));
             return true;
         }
-        final TimeDuration duration = TimeDuration.fromCurrent(issueDate);
-        return duration.isLongerThan(maxTokenPurgeAge);
+        if (theToken.getExpiration() == null) {
+            LOGGER.error("retrieved token has no expiration, marking as purgable: " + JsonUtil.serialize(theToken));
+            return true;
+        }
+        return theToken.getExpiration().isBefore(Instant.now());
     }
 
     public String generateToken(
@@ -116,7 +110,7 @@ public class DataStoreTokenMachine implements TokenMachine {
             }
 
             if (testIfTokenNeedsPurging(tokenPayload)) {
-                LOGGER.trace("stored token key '" + storedHash + "', has an outdated issue date and will be purged");
+                LOGGER.trace("stored token key '" + storedHash + "', has an outdated issue/expire date and will be purged");
                 dataStore.remove(storedHash);
             } else {
                 return tokenPayload;
@@ -147,4 +141,5 @@ public class DataStoreTokenMachine implements TokenMachine {
     public boolean supportsName() {
         return true;
     }
+
 }

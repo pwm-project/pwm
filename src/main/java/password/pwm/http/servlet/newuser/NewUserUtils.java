@@ -457,6 +457,7 @@ class NewUserUtils {
             }));
         }
 
+        final NewUserProfile newUserProfile = NewUserServlet.getNewUserProfile(pwmRequest);
         final Configuration config = pwmApplication.getConfig();
         final Map<String, String> tokenPayloadMap = NewUserFormUtils.toTokenPayload(pwmRequest, newUserBean);
         final MacroMachine macroMachine = createMacroMachineForNewUser(pwmApplication, pwmRequest.getSessionLabel(), newUserBean.getNewUserForm());
@@ -478,6 +479,7 @@ class NewUserUtils {
                 try {
                     final TokenPayload tokenPayload = pwmApplication.getTokenService().createTokenPayload(
                             password.pwm.svc.token.TokenType.NEWUSER_SMS,
+                            newUserProfile.getTokenDurationSMS(),
                             tokenPayloadMap,
                             null,
                             Collections.singleton(outputDestTokenData.getSms())
@@ -523,6 +525,7 @@ class NewUserUtils {
                 try {
                     final TokenPayload tokenPayload = pwmApplication.getTokenService().createTokenPayload(
                             password.pwm.svc.token.TokenType.NEWUSER_EMAIL,
+                            newUserProfile.getTokenDurationEmail(),
                             tokenPayloadMap,
                             null,
                             Collections.singleton(outputDestTokenData.getEmail())

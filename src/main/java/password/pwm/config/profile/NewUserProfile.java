@@ -43,6 +43,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class NewUserProfile extends AbstractProfile {
 
@@ -126,4 +127,21 @@ public class NewUserProfile extends AbstractProfile {
         return thePolicy;
     }
 
+    public TimeDuration getTokenDurationEmail() {
+        final long newUserDuration = readSettingAsLong(PwmSetting.NEWUSER_TOKEN_LIFETIME_EMAIL);
+        if (newUserDuration < 1) {
+            final long defaultDuration = readSettingAsLong(PwmSetting.TOKEN_LIFETIME);
+            return new TimeDuration(defaultDuration, TimeUnit.SECONDS);
+        }
+        return new TimeDuration(newUserDuration, TimeUnit.SECONDS);
+    }
+
+    public TimeDuration getTokenDurationSMS() {
+        final long newUserDuration = readSettingAsLong(PwmSetting.NEWUSER_TOKEN_LIFETIME_SMS);
+        if (newUserDuration < 1) {
+            final long defaultDuration = readSettingAsLong(PwmSetting.TOKEN_LIFETIME);
+            return new TimeDuration(defaultDuration, TimeUnit.SECONDS);
+        }
+        return new TimeDuration(newUserDuration, TimeUnit.SECONDS);
+    }
 }

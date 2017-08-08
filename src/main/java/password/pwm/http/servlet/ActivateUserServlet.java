@@ -72,6 +72,7 @@ import password.pwm.util.CaptchaUtility;
 import password.pwm.util.PostChangePasswordAction;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.ActionExecutor;
@@ -91,6 +92,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * User interaction servlet for creating new users (self registration)
@@ -665,7 +667,13 @@ public class ActivateUserServlet extends AbstractPwmServlet {
         final String tokenKey;
         final TokenPayload tokenPayload;
         try {
-            tokenPayload = pwmApplication.getTokenService().createTokenPayload(TokenType.ACTIVATION, tokenMapData, userIdentity, destinationValues);
+            tokenPayload = pwmApplication.getTokenService().createTokenPayload(
+                    TokenType.ACTIVATION,
+                    new TimeDuration(config.readSettingAsLong(PwmSetting.TOKEN_LIFETIME), TimeUnit.SECONDS),
+                    tokenMapData,
+                    userIdentity,
+                    destinationValues
+            );
             tokenKey = pwmApplication.getTokenService().generateNewToken(tokenPayload, pwmRequest.getSessionLabel());
         } catch (PwmOperationalException e) {
             throw new PwmUnrecoverableException(e.getErrorInformation());

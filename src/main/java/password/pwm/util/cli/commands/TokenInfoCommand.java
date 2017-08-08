@@ -57,7 +57,8 @@ public class TokenInfoCommand extends AbstractCliCommand {
         } else {
             out("  name: " + tokenPayload.getName());
             out("  user: " + tokenPayload.getUserIdentity());
-            out("issued: " + JavaHelper.toIsoDate(tokenPayload.getDate()));
+            out("issued: " + JavaHelper.toIsoDate(tokenPayload.getIssueTime()));
+            out("expire: " + JavaHelper.toIsoDate(tokenPayload.getExpiration()));
             for (final String key : tokenPayload.getData().keySet()) {
                 final String value = tokenPayload.getData().get(key);
                 out("  payload key: " + key);

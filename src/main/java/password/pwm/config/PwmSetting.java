@@ -804,6 +804,11 @@ public enum PwmSetting {
             "newUser.redirectUrl", PwmSettingSyntax.STRING, PwmSettingCategory.NEWUSER_PROFILE),
     NEWUSER_PROMPT_FOR_PASSWORD(
             "newUser.promptForPassword", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.NEWUSER_PROFILE),
+    NEWUSER_TOKEN_LIFETIME_EMAIL(
+            "newUser.token.lifetime", PwmSettingSyntax.DURATION, PwmSettingCategory.NEWUSER_PROFILE),
+    NEWUSER_TOKEN_LIFETIME_SMS(
+            "newUser.token.lifetime.sms", PwmSettingSyntax.DURATION, PwmSettingCategory.NEWUSER_PROFILE),
+
 
     // guest settings
     GUEST_ENABLE(
@@ -868,6 +873,11 @@ public enum PwmSetting {
             "updateAttributes.email.verification", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UPDATE_PROFILE),
     UPDATE_PROFILE_SMS_VERIFICATION(
             "updateAttributes.sms.verification", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UPDATE_PROFILE),
+    UPDATE_PROFILE_TOKEN_LIFETIME_EMAIL(
+            "updateAttributes.token.lifetime", PwmSettingSyntax.DURATION, PwmSettingCategory.UPDATE_PROFILE),
+    UPDATE_PROFILE_TOKEN_LIFETIME_SMS(
+            "updateAttributes.token.lifetime.sms", PwmSettingSyntax.DURATION, PwmSettingCategory.UPDATE_PROFILE),
+
 
     UPDATE_PROFILE_CUSTOMLINKS(
             "updateAttributes.customLinks", PwmSettingSyntax.CUSTOMLINKS, PwmSettingCategory.UPDATE_PROFILE),

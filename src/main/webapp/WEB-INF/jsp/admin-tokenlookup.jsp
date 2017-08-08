@@ -105,7 +105,15 @@
                     Issue Date
                 </td>
                 <td>
-                    <span class="timestamp"><%= JavaHelper.toIsoDate(tokenPayload.getDate()) %></span>
+                    <span class="timestamp"><%= JavaHelper.toIsoDate(tokenPayload.getIssueTime()) %></span>
+                </td>
+            </tr>
+            <tr>
+                <td class="key">
+                    Expiration Date
+                </td>
+                <td>
+                    <span class="timestamp"><%= JavaHelper.toIsoDate(tokenPayload.getExpiration()) %></span>
                 </td>
             </tr>
             <tr>

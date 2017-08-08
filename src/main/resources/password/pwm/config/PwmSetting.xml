@@ -2657,6 +2657,16 @@
             <value>true</value>
         </default>
     </setting>
+    <setting hidden="false" key="newUser.token.lifetime" level="1" required="true">
+        <default>
+            <value>0</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="newUser.token.lifetime.sms" level="1" required="true">
+        <default>
+            <value>0</value>
+        </default>
+    </setting>
     <setting hidden="false" key="guest.enable" level="1" required="true">
         <default>
             <value>false</value>
@@ -2933,6 +2943,21 @@
     <setting hidden="false" key="updateAttributes.customLinks" level="1">
         <default>
             <value></value>
+        </default>
+    </setting>
+    <setting hidden="false" key="updateAttributes.token.lifetime" level="1" required="true">
+        <default>
+            <value>0</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="updateAttributes.token.lifetime.sms" level="1" required="true">
+        <default>
+            <value>0</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="updateAttributes.enable" level="1">
+        <default>
+            <value>false</value>
         </default>
     </setting>
     <setting hidden="false" key="shortcut.enable" level="1">

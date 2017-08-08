@@ -37,17 +37,35 @@ import java.util.Set;
 
 @Getter
 public class TokenPayload implements Serializable {
-    private final Instant date;
+    @SerializedName("t")
+    private final Instant issueTime;
+
+    @SerializedName("e")
+    private final Instant expiration;
+
+    @SerializedName("n")
     private final String name;
+
     private final Map<String,String> data;
 
     @SerializedName("user")
     private final UserIdentity userIdentity;
+
     private final Set<String> dest;
+
+    @SerializedName("g")
     private final String guid;
 
-    TokenPayload(final String name, final Map<String, String> data, final UserIdentity user, final Set<String> dest, final String guid) {
-        this.date = Instant.now();
+    TokenPayload(
+            final String name,
+            final Instant expiration,
+            final Map<String, String> data,
+            final UserIdentity user,
+            final Set<String> dest,
+            final String guid
+    ) {
+        this.issueTime = Instant.now();
+        this.expiration = expiration;
         this.data = data == null ? Collections.emptyMap() : Collections.unmodifiableMap(data);
         this.name = name;
         this.userIdentity = user;
@@ -58,7 +76,8 @@ public class TokenPayload implements Serializable {
 
     public String toDebugString() {
         final Map<String,String> debugMap = new HashMap<>();
-        debugMap.put("date", JavaHelper.toIsoDate(date));
+        debugMap.put("issueTime", JavaHelper.toIsoDate(issueTime));
+        debugMap.put("expiration", JavaHelper.toIsoDate(expiration));
         debugMap.put("name", getName());
         if (getUserIdentity() != null) {
             debugMap.put("user", getUserIdentity().toDisplayString());
