@@ -62,6 +62,7 @@ public enum PwmIfTest {
     peopleSearchEnabled(new BooleanPwmSettingTest(PwmSetting.PEOPLE_SEARCH_ENABLE)),
     orgChartEnabled(new OrgChartEnabled()),
     passwordExpired(new PasswordExpired()),
+    showMaskedTokenSelection(new BooleanAppPropertyTest(AppProperty.TOKEN_MASK_SHOW_SELECTION)),
 
     accountInfoEnabled(new BooleanPwmSettingTest(PwmSetting.ACCOUNT_INFORMATION_ENABLED)),
 

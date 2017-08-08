@@ -285,6 +285,7 @@ public enum AppProperty {
     TOKEN_CLEANER_INTERVAL_SECONDS                  ("token.cleaner.intervalSeconds"),
     TOKEN_MASK_EMAIL_REGEX                          ("token.mask.email.regex"),
     TOKEN_MASK_EMAIL_REPLACE                        ("token.mask.email.replace"),
+    TOKEN_MASK_SHOW_SELECTION                       ("token.mask.showSelection"),
     TOKEN_MASK_SMS_REGEX                            ("token.mask.sms.regex"),
     TOKEN_MASK_SMS_REPLACE                          ("token.mask.sms.replace"),
     TOKEN_MAX_UNIQUE_CREATE_ATTEMPTS                ("token.maxUniqueCreateAttempts"),

@@ -54,22 +54,24 @@
                     <pwm:display key="Display_RecoverTokenSendChoiceEmail"/>
                 </td>
             </tr>
-            <tr>
-                <td>
-                </td>
-                <td>
-                    <% for (final TokenDestinationItem item : tokenDestinationItems) { %>
-                    <% if (item.getType() == TokenDestinationItem.Type.email) { %>
-                    <%=item.getDisplay()%>
-                    <% } %>
-                    <% } %>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    &nbsp;
-                </td>
-            </tr>
+            <pwm:if test="<%=PwmIfTest.showMaskedTokenSelection%>">
+                <tr>
+                    <td>
+                    </td>
+                    <td>
+                        <% for (final TokenDestinationItem item : tokenDestinationItems) { %>
+                        <% if (item.getType() == TokenDestinationItem.Type.email) { %>
+                        <%=item.getDisplay()%>
+                        <% } %>
+                        <% } %>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        &nbsp;
+                    </td>
+                </tr>
+            </pwm:if>
             <tr>
                 <td style="text-align: center">
                     <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="search" class="pwm-form">
@@ -86,22 +88,24 @@
                     <pwm:display key="Display_RecoverTokenSendChoiceSMS"/>
                 </td>
             </tr>
-            <tr>
-                <td>
-                </td>
-                <td>
-                    <% for (final TokenDestinationItem item : tokenDestinationItems) { %>
-                    <% if (item.getType() == TokenDestinationItem.Type.sms) { %>
-                    <%=item.getDisplay()%>
-                    <% } %>
-                    <% } %>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    &nbsp;
-                </td>
-            </tr>
+            <pwm:if test="<%=PwmIfTest.showMaskedTokenSelection%>">
+                <tr>
+                    <td>
+                    </td>
+                    <td>
+                        <% for (final TokenDestinationItem item : tokenDestinationItems) { %>
+                        <% if (item.getType() == TokenDestinationItem.Type.sms) { %>
+                        <%=item.getDisplay()%>
+                        <% } %>
+                        <% } %>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        &nbsp;
+                    </td>
+                </tr>
+            </pwm:if>
             <tr>
                 <td>
                     <%@ include file="/WEB-INF/jsp/fragment/forgottenpassword-cancel.jsp" %>
