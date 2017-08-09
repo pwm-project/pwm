@@ -55,12 +55,14 @@ import password.pwm.config.value.LocalizedStringValue;
 import password.pwm.config.value.NamedSecretValue;
 import password.pwm.config.value.NumericValue;
 import password.pwm.config.value.PasswordValue;
+import password.pwm.config.value.RemoteWebServiceValue;
 import password.pwm.config.value.StringArrayValue;
 import password.pwm.config.value.StringValue;
 import password.pwm.config.value.UserPermissionValue;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.value.data.NamedSecretData;
+import password.pwm.config.value.data.RemoteWebServiceConfiguration;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -191,6 +193,10 @@ public class Configuration implements Serializable, SettingReader {
         return JavaTypeConverter.valueToString(readStoredValue(setting));
     }
 
+    public List<RemoteWebServiceConfiguration> readSettingAsRemoteWebService(final PwmSetting pwmSetting) {
+        return JavaTypeConverter.valueToRemoteWebServiceConfiguration(readStoredValue(pwmSetting));
+    }
+
     public PasswordData readSettingAsPassword(final PwmSetting setting)
     {
         return JavaTypeConverter.valueToPassword(readStoredValue(setting));
@@ -249,6 +255,20 @@ public class Configuration implements Serializable, SettingReader {
                 return null;
             }
             return (Map<String,NamedSecretData>)nativeObject;
+        }
+
+        public static List<RemoteWebServiceConfiguration> valueToRemoteWebServiceConfiguration(final StoredValue value) {
+            if (value == null) {
+                return null;
+            }
+            if ((!(value instanceof RemoteWebServiceValue))) {
+                throw new IllegalArgumentException("setting value is not readable as named password");
+            }
+            final Object nativeObject = value.toNativeObject();
+            if (nativeObject == null) {
+                return null;
+            }
+            return (List<RemoteWebServiceConfiguration>)nativeObject;
         }
 
         public static List<ActionConfiguration> valueToAction(final PwmSetting setting, final StoredValue storedValue) {

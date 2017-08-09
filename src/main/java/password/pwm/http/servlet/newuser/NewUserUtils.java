@@ -45,6 +45,7 @@ import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.profile.NewUserProfile;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
@@ -73,6 +74,9 @@ import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.ws.client.rest.RestTokenDataClient;
+import password.pwm.ws.client.rest.form.FormDataRequestBean;
+import password.pwm.ws.client.rest.form.FormDataResponseBean;
+import password.pwm.ws.client.rest.form.RestFormDataClient;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -252,6 +256,9 @@ class NewUserUtils {
         }
 
         NewUserUtils.LOGGER.trace(pwmSession, "new user ldap creation process complete, now authenticating user");
+
+        // write data to remote web service
+        remoteWriteFormData(pwmRequest, newUserForm);
 
         //authenticate the user to pwm
         final UserIdentity userIdentity = new UserIdentity(newUserDN, pwmApplication.getConfig().getDefaultLdapProfile().getIdentifier());
@@ -573,4 +580,73 @@ class NewUserUtils {
         }
         return Collections.unmodifiableMap(returnMap);
     }
+
+    static void remoteVerifyFormData(
+            final PwmRequest pwmRequest,
+            final NewUserForm newUserForm
+
+    )
+            throws PwmUnrecoverableException, PwmDataValidationException
+    {
+        remoteSendFormData(
+                pwmRequest,
+                newUserForm,
+                FormDataRequestBean.Mode.verify
+        );
+    }
+
+    static void remoteWriteFormData(
+            final PwmRequest pwmRequest,
+            final NewUserForm newUserForm
+
+    )
+            throws PwmUnrecoverableException, PwmDataValidationException
+    {
+        remoteSendFormData(
+                pwmRequest,
+                newUserForm,
+                FormDataRequestBean.Mode.write
+        );
+    }
+
+    private static void remoteSendFormData(
+            final PwmRequest pwmRequest,
+            final NewUserForm newUserForm,
+            final FormDataRequestBean.Mode mode
+
+    )
+            throws PwmUnrecoverableException, PwmDataValidationException
+    {
+        final RestFormDataClient restFormDataClient = new RestFormDataClient(pwmRequest.getPwmApplication());
+        if (!restFormDataClient.isEnabled()) {
+            return;
+        }
+
+        final NewUserBean newUserBean = NewUserServlet.getNewUserBean(pwmRequest);
+        final NewUserProfile newUserProfile = NewUserServlet.getNewUserProfile(pwmRequest);
+
+        final FormDataRequestBean.FormInfo formInfo = FormDataRequestBean.FormInfo.builder()
+                .mode(mode)
+                .moduleProfileID(newUserBean.getProfileID())
+                .sessionID(pwmRequest.getPwmSession().getLoginInfoBean().getGuid())
+                .module(FormDataRequestBean.FormType.NewUser)
+                .build();
+
+        final FormDataRequestBean formDataRequestBean = FormDataRequestBean.builder()
+                .formInfo(formInfo)
+                .formConfigurations(newUserProfile.readSettingAsForm(PwmSetting.NEWUSER_FORM))
+                .formValues(newUserForm.getFormData())
+                .build();
+
+        final FormDataResponseBean formDataResponseBean = restFormDataClient.invoke(formDataRequestBean, pwmRequest.getLocale());
+        if (formDataResponseBean.isError()) {
+            final ErrorInformation error = new ErrorInformation(
+                    PwmError.ERROR_REMOTE_ERROR_VALUE,
+                    formDataResponseBean.getErrorDetail(),
+                    new String[]{formDataResponseBean.getErrorMessage()}
+            );
+            throw new PwmDataValidationException(error);
+        }
+    }
+
 }

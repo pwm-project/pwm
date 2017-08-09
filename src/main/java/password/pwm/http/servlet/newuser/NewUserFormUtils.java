@@ -140,10 +140,12 @@ class NewUserFormUtils {
         final Map<String,String> ldapData = new LinkedHashMap<>();
         final List<FormConfiguration> formConfigurations = newUserProfile.readSettingAsForm(PwmSetting.NEWUSER_FORM);
         for (final FormConfiguration formConfiguration : formConfigurations) {
-            final String attrName = formConfiguration.getName();
-            final String value = newUserForm.getFormData().get(attrName);
-            if (!StringUtil.isEmpty(value)) {
-                ldapData.put(attrName, value);
+            if (formConfiguration.getSource() == FormConfiguration.Source.ldap) {
+                final String attrName = formConfiguration.getName();
+                final String value = newUserForm.getFormData().get(attrName);
+                if (!StringUtil.isEmpty(value)) {
+                    ldapData.put(attrName, value);
+                }
             }
         }
         return ldapData;

@@ -132,7 +132,7 @@ public class NewUserServlet extends ControlledPwmServlet {
     }
 
 
-    private static NewUserBean getNewUserBean(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
+    static NewUserBean getNewUserBean(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
         return pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest, NewUserBean.class);
     }
 
@@ -351,6 +351,7 @@ public class NewUserServlet extends ControlledPwmServlet {
             }
             final RestCheckPasswordServer.JsonData jsonData = RestCheckPasswordServer.JsonData.fromPasswordCheckInfo(
                     passwordCheckInfo);
+
             final RestResultBean restResultBean = new RestResultBean();
             restResultBean.setData(jsonData);
             pwmRequest.outputJsonResult(restResultBean);
@@ -389,6 +390,9 @@ public class NewUserServlet extends ControlledPwmServlet {
                 Collections.emptyList(),
                 validationFlags.toArray(new FormUtility.ValidationFlag[validationFlags.size()])
         );
+
+        NewUserUtils.remoteVerifyFormData(pwmRequest, newUserForm);
+
         final UserInfo uiBean = UserInfoBean.builder()
                 .cachedPasswordRuleAttributes(FormUtility.asStringMap(formValueData))
                 .passwordPolicy(newUserProfile.getNewUserPasswordPolicy(pwmApplication, locale))
