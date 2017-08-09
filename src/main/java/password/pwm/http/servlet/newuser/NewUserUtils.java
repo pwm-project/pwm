@@ -479,7 +479,7 @@ class NewUserUtils {
                 try {
                     final TokenPayload tokenPayload = pwmApplication.getTokenService().createTokenPayload(
                             password.pwm.svc.token.TokenType.NEWUSER_SMS,
-                            newUserProfile.getTokenDurationSMS(),
+                            newUserProfile.getTokenDurationSMS(config),
                             tokenPayloadMap,
                             null,
                             Collections.singleton(outputDestTokenData.getSms())
@@ -525,7 +525,7 @@ class NewUserUtils {
                 try {
                     final TokenPayload tokenPayload = pwmApplication.getTokenService().createTokenPayload(
                             password.pwm.svc.token.TokenType.NEWUSER_EMAIL,
-                            newUserProfile.getTokenDurationEmail(),
+                            newUserProfile.getTokenDurationEmail(config),
                             tokenPayloadMap,
                             null,
                             Collections.singleton(outputDestTokenData.getEmail())

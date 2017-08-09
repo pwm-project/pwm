@@ -127,19 +127,19 @@ public class NewUserProfile extends AbstractProfile {
         return thePolicy;
     }
 
-    public TimeDuration getTokenDurationEmail() {
+    public TimeDuration getTokenDurationEmail(final Configuration configuration) {
         final long newUserDuration = readSettingAsLong(PwmSetting.NEWUSER_TOKEN_LIFETIME_EMAIL);
         if (newUserDuration < 1) {
-            final long defaultDuration = readSettingAsLong(PwmSetting.TOKEN_LIFETIME);
+            final long defaultDuration = configuration.readSettingAsLong(PwmSetting.TOKEN_LIFETIME);
             return new TimeDuration(defaultDuration, TimeUnit.SECONDS);
         }
         return new TimeDuration(newUserDuration, TimeUnit.SECONDS);
     }
 
-    public TimeDuration getTokenDurationSMS() {
+    public TimeDuration getTokenDurationSMS(final Configuration configuration) {
         final long newUserDuration = readSettingAsLong(PwmSetting.NEWUSER_TOKEN_LIFETIME_SMS);
         if (newUserDuration < 1) {
-            final long defaultDuration = readSettingAsLong(PwmSetting.TOKEN_LIFETIME);
+            final long defaultDuration = configuration.readSettingAsLong(PwmSetting.TOKEN_LIFETIME);
             return new TimeDuration(defaultDuration, TimeUnit.SECONDS);
         }
         return new TimeDuration(newUserDuration, TimeUnit.SECONDS);

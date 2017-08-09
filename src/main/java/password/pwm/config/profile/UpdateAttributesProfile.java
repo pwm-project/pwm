@@ -22,6 +22,7 @@
 
 package password.pwm.config.profile;
 
+import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.config.stored.StoredConfiguration;
@@ -56,19 +57,19 @@ public class UpdateAttributesProfile extends AbstractProfile implements Profile 
         return PROFILE_TYPE;
     }
 
-    public TimeDuration getTokenDurationEmail() {
+    public TimeDuration getTokenDurationEmail(final Configuration configuration) {
         final long duration = readSettingAsLong(PwmSetting.UPDATE_PROFILE_TOKEN_LIFETIME_EMAIL);
         if (duration < 1) {
-            final long defaultDuration = readSettingAsLong(PwmSetting.TOKEN_LIFETIME);
+            final long defaultDuration = configuration.readSettingAsLong(PwmSetting.TOKEN_LIFETIME);
             return new TimeDuration(defaultDuration, TimeUnit.SECONDS);
         }
         return new TimeDuration(duration, TimeUnit.SECONDS);
     }
 
-    public TimeDuration getTokenDurationSMS() {
+    public TimeDuration getTokenDurationSMS(final Configuration configuration) {
         final long duration = readSettingAsLong(PwmSetting.UPDATE_PROFILE_TOKEN_LIFETIME_SMS);
         if (duration < 1) {
-            final long defaultDuration = readSettingAsLong(PwmSetting.TOKEN_LIFETIME);
+            final long defaultDuration = configuration.readSettingAsLong(PwmSetting.TOKEN_LIFETIME);
             return new TimeDuration(defaultDuration, TimeUnit.SECONDS);
         }
         return new TimeDuration(duration, TimeUnit.SECONDS);

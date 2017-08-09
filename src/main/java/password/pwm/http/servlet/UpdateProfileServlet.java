@@ -692,7 +692,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
                 try {
                     final TokenPayload tokenPayload = pwmApplication.getTokenService().createTokenPayload(
                             TokenType.UPDATE_SMS,
-                            profile.getTokenDurationSMS(),
+                            profile.getTokenDurationSMS(config),
                             Collections.emptyMap(),
                             pwmRequest.getUserInfoIfLoggedIn(),
                             Collections.singleton(toNum)
@@ -730,7 +730,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
                 try {
                     final TokenPayload tokenPayload = pwmApplication.getTokenService().createTokenPayload(
                             TokenType.UPDATE_EMAIL,
-                            profile.getTokenDurationEmail(),
+                            profile.getTokenDurationEmail(config),
                             Collections.emptyMap(),
                             pwmRequest.getUserInfoIfLoggedIn(),
                             Collections.singleton(toAddress)
