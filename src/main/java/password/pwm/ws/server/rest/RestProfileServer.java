@@ -25,6 +25,7 @@ package password.pwm.ws.server.rest;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.Permission;
+import password.pwm.config.profile.UpdateAttributesProfile;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.FormUtility;
 import password.pwm.config.PwmSetting;
@@ -36,7 +37,6 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.servlet.UpdateProfileServlet;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.UserInfo;
-import password.pwm.ldap.UserInfoFactory;
 import password.pwm.util.FormMap;
 import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
@@ -99,35 +99,25 @@ public class RestProfileServer extends AbstractRestServer {
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
         final RestRequestBean restRequestBean = RestServerHelper.initializeRestRequest(request, response, SERVICE_PERMISSIONS, username);
+        final UpdateAttributesProfile updateAttributesProfile = restRequestBean.getPwmSession().getSessionManager().getUpdateAttributeProfile(restRequestBean.getPwmApplication());
 
         if (!restRequestBean.getPwmApplication().getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE)) {
             throw new PwmUnrecoverableException(PwmError.ERROR_SERVICE_NOT_AVAILABLE);
         }
 
-        if (!restRequestBean.getPwmSession().getSessionManager().checkPermission(restRequestBean.getPwmApplication(), Permission.PROFILE_UPDATE)) {
-            throw new PwmUnrecoverableException(PwmError.ERROR_UNAUTHORIZED);
-        }
-
         final Map<String,String> profileData = new HashMap<>();
         {
             final Map<FormConfiguration,String> formData = new HashMap<>();
-            for (final FormConfiguration formConfiguration : restRequestBean.getPwmApplication().getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM)) {
+            for (final FormConfiguration formConfiguration : updateAttributesProfile.readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM)) {
                 formData.put(formConfiguration,"");
             }
-            final List<FormConfiguration> formFields = restRequestBean.getPwmApplication().getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
+            final List<FormConfiguration> formFields = updateAttributesProfile.readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
 
             if (restRequestBean.getUserIdentity() != null) {
                 final UserInfo userInfo = restRequestBean.getPwmSession().getUserInfo();
                 FormUtility.populateFormMapFromLdap(formFields, restRequestBean.getPwmSession().getLabel(), formData, userInfo);
             } else {
-                final UserInfo userInfo = UserInfoFactory.newUserInfo(
-                        restRequestBean.getPwmApplication(),
-                        restRequestBean.getPwmSession().getLabel(),
-                        restRequestBean.getPwmSession().getSessionStateBean().getLocale(),
-                        restRequestBean.getUserIdentity(),
-                        restRequestBean.getPwmSession().getSessionManager().getChaiProvider()
-                );
-                FormUtility.populateFormMapFromLdap(formFields, restRequestBean.getPwmSession().getLabel(), formData, userInfo);
+                throw new PwmUnrecoverableException(PwmError.ERROR_NO_PROFILE_ASSIGNED);
             }
 
             for (final FormConfiguration formConfig : formData.keySet()) {
@@ -137,7 +127,7 @@ public class RestProfileServer extends AbstractRestServer {
 
         final JsonProfileData outputData = new JsonProfileData();
         outputData.profile = profileData;
-        outputData.formDefinition = restRequestBean.getPwmApplication().getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
+        outputData.formDefinition = updateAttributesProfile.readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
         final RestResultBean restResultBean = new RestResultBean();
         restResultBean.setData(outputData);
         return restResultBean;
