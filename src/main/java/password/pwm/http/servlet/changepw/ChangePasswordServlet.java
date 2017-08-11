@@ -186,7 +186,8 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet {
         try {
             final ChaiUser theUser = pwmRequest.getPwmSession().getSessionManager().getActor(pwmRequest.getPwmApplication());
             final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator(pwmRequest.getPwmApplication(), userInfo.getPasswordPolicy());
-            pwmPasswordRuleValidator.testPassword(password1,null,userInfo,theUser);
+            final PasswordData oldPassword = pwmRequest.getPwmSession().getLoginInfoBean().getUserCurrentPassword();
+            pwmPasswordRuleValidator.testPassword(password1,oldPassword,userInfo,theUser);
         } catch (PwmDataValidationException e) {
             setLastError(pwmRequest, e.getErrorInformation());
             LOGGER.debug(pwmRequest, "failed password validation check: " + e.getErrorInformation().toDebugStr());
