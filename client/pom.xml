@@ -1,0 +1,21 @@
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <parent>
+        <groupId>org.pwm-project</groupId>
+        <artifactId>pwm-parent</artifactId>
+        <version>1.8.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <prerequisites>
+        <maven>3.2</maven>
+    </prerequisites>
+
+    <artifactId>pwm-client</artifactId>
+    <packaging>jar</packaging>
+
+    <name>PWM Password Self Service: Client</name>
+
+</project>
