@@ -178,7 +178,7 @@
         <module name="RedundantImport"/>
         <module name="UnusedImports"/>
         <module name="ImportControl">
-            <property name="file" value="src/build/import-control.xml"/>
+            <property name="file" value="${basedir}/src/build/import-control.xml"/>
         </module>
 
 
