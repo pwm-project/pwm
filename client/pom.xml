@@ -31,7 +31,7 @@
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${project.build.outputDirectory}/META-INF/resources/webjars/pwm-client</outputDirectory>
+                            <outputDirectory>${project.build.outputDirectory}/META-INF/resources/webjars/${project.artifactId}/${project.version}</outputDirectory>
                             <resources>
                                 <resource>
                                     <directory>dist</directory>
@@ -68,7 +68,7 @@
                 <configuration>
                     <nodeVersion>v6.6.0</nodeVersion>
                     <npmVersion>3.10.8</npmVersion>
-                    <installDirectory>target</installDirectory>
+                    <installDirectory>.node</installDirectory>
                 </configuration>
                 <executions>
                     <execution>

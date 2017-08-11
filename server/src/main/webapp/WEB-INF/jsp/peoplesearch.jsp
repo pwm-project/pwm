@@ -44,7 +44,8 @@
 
 <%@ include file="fragment/footer.jsp" %>
 <pwm:script-ref url="/public/resourcess/js/peoplesearch.js" />
-<pwm:script-ref url="/public/resourcess/app/peoplesearch.ng.js" />
+<link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/webjars/pwm-client/fonts.css' addContext="true"/>"/>
+<pwm:script-ref url="/public/resources/webjars/pwm-client/peoplesearch.ng.js" />
 
 </body>
 </html>
