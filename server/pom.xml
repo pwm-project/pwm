@@ -850,9 +850,9 @@
         <!-- client webjar dependencies -->
         <!-- changes in client dependencies require updating AppProperty.properties:http.resources.webjarMappings -->
         <dependency>
-            <groupId>${pom.groupId}</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>pwm-client</artifactId>
-            <version>${pom.version}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.webjars.bower</groupId>
