@@ -36,6 +36,7 @@
     "fontgen-loader": "0.2.1",
     "html-loader": "0.4.4",
     "html-webpack-plugin": "2.22.0",
+    "ignore-loader": "0.1.2",
     "jasmine": "2.5.2",
     "jshint": "2.9.3",
     "jshint-loader": "0.8.3",
