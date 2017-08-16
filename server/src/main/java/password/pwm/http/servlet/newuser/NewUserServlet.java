@@ -148,7 +148,7 @@ public class NewUserServlet extends ControlledPwmServlet {
 
         final NewUserBean newUserBean = pwmApplication.getSessionStateService().getBean(pwmRequest, NewUserBean.class);
 
-        final String signedFormData = pwmRequest.readParameterAsString("signedForm", PwmHttpRequestWrapper.Flag.BypassValidation);
+        final String signedFormData = pwmRequest.readParameterAsString(PwmConstants.PARAM_SIGNED_FORM, PwmHttpRequestWrapper.Flag.BypassValidation);
         if (!StringUtil.isEmpty(signedFormData)) {
             final Map<String,String> jsonForm = RestSigningServer.readSignedFormValue(pwmApplication, signedFormData);
             LOGGER.trace("detected signedForm parameter in request, will read and place in bean; keys=" + JsonUtil.serializeCollection(jsonForm.keySet()));

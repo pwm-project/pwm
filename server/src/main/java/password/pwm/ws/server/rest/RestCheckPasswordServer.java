@@ -30,7 +30,6 @@ import lombok.Getter;
 import password.pwm.PwmApplication;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.UserIdentity;
-import password.pwm.ldap.UserInfo;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.error.ErrorInformation;
@@ -38,6 +37,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
+import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.PasswordData;
@@ -52,15 +52,12 @@ import password.pwm.ws.server.ServicePermissions;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.Serializable;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.time.Instant;
 
 @Path("/checkpassword")
@@ -97,13 +94,6 @@ public class RestCheckPasswordServer extends AbstractRestServer {
             outputMap.errorCode = checkInfo.getErrorCode();
             return outputMap;
         }
-    }
-
-    @GET
-    @Produces(MediaType.TEXT_HTML)
-    public javax.ws.rs.core.Response doHtmlRedirect() throws URISyntaxException {
-        final URI uri = javax.ws.rs.core.UriBuilder.fromUri("../reference/rest.jsp?forwardedFromRestServer=true").build();
-        return javax.ws.rs.core.Response.temporaryRedirect(uri).build();
     }
 
     @POST

@@ -52,12 +52,6 @@
     <%@ include file="reference-nav.jsp"%>
 
     <br/><br/>
-<% if ("true".equals(request.getParameter("forwardedFromRestServer"))) { %>
-<div class="message message-info">
-    It appears you have attempted to request a web service url, however the <i>Accept</i> header was not specified or included a value of <i>html</i>, so you are
-    being shown this page instead.
-</div>
-<% } %>
 <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
 <div data-dojo-type="dijit.layout.ContentPane" title="Introduction">
     <p>This system has a set of <a href="https://en.wikipedia.org/wiki/Representational_state_transfer#RESTful_web_APIs">RESTful web APIs</a> to facilitate 3rd party application development.</p>
@@ -1334,6 +1328,97 @@ cLi2mbers
         </tr>
     </table>
 </div>
+    <div data-dojo-type="dijit.layout.ContentPane" title="signing/form">
+        <table>
+            <tr>
+                <td class="key" style="width:50px">url</td>
+                <td><a href="<pwm:context/>signing/form"><pwm:context/>/public/rest/signing/form</a></td>
+            </tr>
+            <tr>
+            </tr>
+            <tr>
+                <td class="key" style="width:50px">POST Method</td>
+                <td>
+                    <table>
+                        <tr>
+                            <td class="key">Description</td>
+                            <td>Pre-sign (and encrypt) form data for injection into an <pwm:macro value="@PwmAppName@"/> user form.  <pwm:macro value="@PwmAppName@"/> user
+                                forms do not permit a remote application to POST data directly to them through a browser.  Instead this signing/form REST api can
+                                be used to pre-sign and then submit data to the form.</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Usage</td>
+                            <td>After the form data is signed, it can be submitted as part of a request to <pwm:macro value="@PwmAppName@"/> using the
+                                <code>signedForm</code> parameter and the value is the encoded <code>data</code> value returned in the result.
+                                Values expire after a period of time.
+                                <br/><br/><b>Example:</b><br/> <code><pwm:context/>/sspr/public/newuser?signedForm=xxx</code>
+
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Authentication</td>
+                            <td>Required.  Use a named secret username:secret value defined at <code><pwm:macro value="@PwmSettingReference:webservices.external.secrets@"/></code>.</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Accept-Language Header</td>
+                            <td>en
+                                <br/>
+                                <i>The request will be processed in the context of the specified language</i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Accept Header</td>
+                            <td>
+                                application/json
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Content-Type Header</td>
+                            <td>
+                                application/json
+                                <br/>
+                                application/x-www-form-urlencoded
+                            </td>
+                        </tr>
+                    </table>
+                    <table style="max-width: 100%">
+                        <tr>
+                            <td class="title" style="font-size: smaller" colspan="2">Example 1</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Request</td>
+                            <td class="exampleTD">
+<pre>
+POST <pwm:context/>/public/rest/signing/form HTTP/1.1
+Accept-Language: en
+Accept: application/json
+Content-Type: application/json
+Authorization: Basic c2VjcmV0MTpwYXNzd29yZA==
+
+{
+  "givenName":"John",
+  "sn":"Doe"
+}
+</pre>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Response</td>
+                            <td class="exampleTD">
+<pre>
+{
+  "error": false,
+  "errorCode": 0,
+  "data": "H4sIAAAAAAAAAAFxAI7_UFdNLkdDTTEQz1yn2zvAMXknwMu2NNpJLpkD4uwWmFQXq80VZH4cxAXYXLmWq05rNTaBJJ3D8PVLElZA8a_XSdzltDku0kwIkmwTW0D7EYXwFId0EA-mTGygsFuLF--BJLxcwyw5jKkAO2miy-w_f2rPiSaycQAAAA=="
+}
+</pre>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </div>
 <div data-dojo-type="dijit.layout.ContentPane" title="statistics">
     <table>
         <tr>
