@@ -454,7 +454,7 @@
         </default>
     </setting>
     <setting hidden="false" key="ldap.serverUrls" level="0" required="false">
-        <regex>^(ldap|ldaps)://[a-zA-Z0-9.-]+:[0-9]+$</regex>
+        <regex>^(ldap|ldaps)://[a-zA-Z0-9._-]+:[0-9]+$</regex>
         <example>ldaps://ldap.example.com:636</example>
         <example template="AD">ldaps://server1.ad.example.com:636</example>
         <default/>
