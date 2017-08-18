@@ -190,7 +190,7 @@ public class PwmPasswordRuleValidator {
         final PwmPasswordPolicy.RuleHelper ruleHelper = policy.getRuleHelper();
         final MacroMachine macroMachine = userInfo == null || userInfo.getUserIdentity() == null
             ? MacroMachine.forNonUserSpecific(pwmApplication, SessionLabel.SYSTEM_LABEL)
-            : MacroMachine.forUser(pwmApplication, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, userInfo.getUserIdentity());
+                : MacroMachine.forUser(pwmApplication, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, userInfo.getUserIdentity());
 
         //check against old password
         if (oldPasswordString != null && oldPasswordString.length() > 0 && ruleHelper.readBooleanValue(PwmPasswordRule.DisallowCurrent)) {

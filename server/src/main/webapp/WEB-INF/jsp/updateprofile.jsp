@@ -44,15 +44,14 @@
             <jsp:include page="fragment/form.jsp"/>
             <input type="hidden" name="processAction" value="updateProfile"/>
             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+            <div class="buttonbar">
+                <button id="submitBtn" type="submit" class="btn" name="button">
+                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
+                    <pwm:display key="Button_Update"/>
+                </button>
+                <%@ include file="/WEB-INF/jsp/fragment/cancel-button.jsp" %>
+            </div>
         </form>
-
-        <div class="buttonbar">
-            <button id="submitBtn" type="submit" class="btn" name="button" form="updateProfileForm">
-                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
-                <pwm:display key="Button_Update"/>
-            </button>
-            <%@ include file="/WEB-INF/jsp/fragment/cancel-button.jsp" %>
-        </div>
     </div>
     <div class="push"></div>
 </div>

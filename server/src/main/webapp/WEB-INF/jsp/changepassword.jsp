@@ -107,7 +107,7 @@
             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
 
             <div class="buttonbar" style="width:100%">
-                <button type="submit" name="change" class="btn" id="password_button" form="changePasswordForm">
+                <button type="submit" name="change" class="btn" id="password_button">
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
                     <pwm:display key="Button_ChangePassword"/>
                 </button>

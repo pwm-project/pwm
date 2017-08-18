@@ -27,6 +27,8 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import password.pwm.PwmApplication;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.UserIdentity;
@@ -65,12 +67,14 @@ public class RestCheckPasswordServer extends AbstractRestServer {
     private static final PwmLogger LOGGER = PwmLogger.forClass(RestCheckPasswordServer.class);
 
     @Getter
+    @Setter
     @AllArgsConstructor
+    @NoArgsConstructor
     public static class JsonInput implements Serializable
     {
-        public final String password1;
-        public final String password2;
-        public final String username;
+        public String password1;
+        public String password2;
+        public String username;
     }
 
     public static class JsonData implements Serializable

@@ -357,11 +357,14 @@ public class LDAPPermissionCalculator implements Serializable {
         return records;
     }
 
-    private static final Set<PwmSettingTemplate> EDIR_INTERESTED_TEMPLATES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
-            new PwmSettingTemplate[]{ PwmSettingTemplate.NOVL, PwmSettingTemplate.NOVL_IDM}
-    )));
+
 
     private Collection<PermissionRecord> figureStaticRecords() {
+
+        final Set<PwmSettingTemplate> EDIR_INTERESTED_TEMPLATES =
+                Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+                        PwmSettingTemplate.NOVL, PwmSettingTemplate.NOVL_IDM))
+                );
 
         final List<PermissionRecord> permissionRecords = new ArrayList<>();
 
@@ -384,6 +387,21 @@ public class LDAPPermissionCalculator implements Serializable {
                             null,
                             null,
                             ldapAttributes.get(ldapAttribute),
+                            LDAPPermissionInfo.Actor.proxy
+                    ));
+                }
+            }
+        }
+
+        if (configuration.getLdapProfiles() != null && !configuration.getLdapProfiles().isEmpty()) {
+            for (final LdapProfile ldapProfile : configuration.getLdapProfiles().values()) {
+                final List<String> autoAddObjectClasses = ldapProfile.readSettingAsStringArray(PwmSetting.AUTO_ADD_OBJECT_CLASSES);
+                if (autoAddObjectClasses != null && !autoAddObjectClasses.isEmpty()) {
+                    permissionRecords.add(new PermissionRecord(
+                            ChaiConstant.ATTR_LDAP_OBJECTCLASS,
+                            PwmSetting.AUTO_ADD_OBJECT_CLASSES,
+                            ldapProfile.getIdentifier(),
+                            LDAPPermissionInfo.Access.write,
                             LDAPPermissionInfo.Actor.proxy
                     ));
                 }

@@ -617,7 +617,7 @@ class NewUserUtils {
     )
             throws PwmUnrecoverableException, PwmDataValidationException
     {
-        final RestFormDataClient restFormDataClient = new RestFormDataClient(pwmRequest.getPwmApplication());
+        final RestFormDataClient restFormDataClient = new RestFormDataClient(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel());
         if (!restFormDataClient.isEnabled()) {
             return;
         }

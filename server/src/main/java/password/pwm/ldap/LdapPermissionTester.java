@@ -149,7 +149,7 @@ public class LdapPermissionTester {
         final String logMsg = "user " + userIdentity.toDisplayString() + " is "
                 + (result ? "" : "not ")
                 + "a match for group '" + groupDN + "'"
-                + " (" + TimeDuration.fromCurrent(startTime) + ")";
+                + " (" + TimeDuration.fromCurrent(startTime).asCompactString() + ")";
 
         LOGGER.debug(pwmSession, logMsg);
 
@@ -194,7 +194,7 @@ public class LdapPermissionTester {
         final String logMsg = "user " + userIdentity.toDisplayString() + " is "
                 + (result ? "" : "not ")
                 + "a match for filter '" + filterString + "'"
-                + " (" + TimeDuration.fromCurrent(startTime) + ")";
+                + " (" + TimeDuration.fromCurrent(startTime).asCompactString() + ")";
 
         LOGGER.debug(pwmSession, logMsg);
 

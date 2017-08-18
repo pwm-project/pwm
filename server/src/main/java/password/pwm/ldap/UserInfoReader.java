@@ -34,10 +34,7 @@ import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
-import password.pwm.config.value.data.FormConfiguration;
-import password.pwm.util.form.FormUtility;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.value.data.UserPermission;
 import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.option.ForceSetupPolicy;
 import password.pwm.config.profile.ChallengeProfile;
@@ -47,6 +44,8 @@ import password.pwm.config.profile.ProfileUtility;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.config.profile.UpdateAttributesProfile;
+import password.pwm.config.value.data.FormConfiguration;
+import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
@@ -54,6 +53,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.PwmService;
 import password.pwm.util.PasswordData;
 import password.pwm.util.PwmPasswordRuleValidator;
+import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.CachingProxyWrapper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
@@ -119,8 +119,10 @@ public class UserInfoReader implements UserInfo {
             final PwmApplication pwmApplication,
             final ChaiProvider chaiProvider
     )
-            throws ChaiUnavailableException
+            throws ChaiUnavailableException, PwmUnrecoverableException
     {
+        LdapOperationsHelper.addConfiguredUserObjectClass(sessionLabel, userIdentity, pwmApplication);
+
         final UserInfoReader userInfo = new UserInfoReader(userIdentity, currentPassword, sessionLabel, locale, pwmApplication, chaiProvider);
         final UserInfo selfCachedReference = CachingProxyWrapper.create(UserInfo.class, userInfo);
         userInfo.selfCachedReference = selfCachedReference;
