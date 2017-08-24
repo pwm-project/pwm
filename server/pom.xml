@@ -59,7 +59,7 @@
         </profile>
         <profile>
             <!-- Builds a zip file containing the built war file, along with the supplemental directory -->
-            <id>release-bundle</id>
+            <id>release</id>
             <build>
                 <plugins>
                     <plugin>
