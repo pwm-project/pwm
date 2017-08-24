@@ -2,4 +2,6 @@
 /client/target
 /client/.node
 /client/.idea
-*.iml
+pwm-parent.iml
+pwmconfig/
+ssprconfig/
