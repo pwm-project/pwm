@@ -14,19 +14,6 @@
 
     <name>PWM Password Self Service: Server</name>
 
-    <licenses>
-        <license>
-            <name>The GNU General Public License (GPL) Version 2</name>
-            <url>http://www.gnu.org/licenses/gpl-2.0.html</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
-
-    <organization>
-        <name>PWM Project</name>
-        <url>http://www.pwm-project.org</url>
-    </organization>
-
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -34,21 +21,9 @@
         <timestamp.iso>${maven.build.timestamp}</timestamp.iso>
         <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ss'Z'</maven.build.timestamp.format>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <build.number>0</build.number>  <!-- default in case not set on command line -->
-        <build.revision>0</build.revision>  <!-- default in case not set on command line -->
     </properties>
 
     <profiles>
-        <profile>
-            <id>skip-all</id>
-            <properties>
-                <maven.javadoc.skip>true</maven.javadoc.skip>
-                <source.skip>true</source.skip>
-                <jspc.skip>true</jspc.skip>
-                <skipTests>true</skipTests>
-                <checkstyle.skip>true</checkstyle.skip>
-            </properties>
-        </profile>
         <profile>
             <id>skip-tests</id>
             <properties>
@@ -448,6 +423,19 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>3.0.2</version>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Implementation-Title>${project.name}</Implementation-Title>
+                            <Implementation-Version>${project.version}</Implementation-Version>
+                            <Implementation-Vendor>${project.organization.name}</Implementation-Vendor>
+                            <Implementation-URL>${project.organization.url}</Implementation-URL>
+                            <Implementation-Build>${build.number}</Implementation-Build>
+                            <Implementation-Revision>${build.revision}</Implementation-Revision>
+                            <Implementation-Version-Display>v${project.version} b${build.number} r${build.revision}</Implementation-Version-Display>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
                 <executions>
                     <execution>
                         <id>make-a-jar</id>

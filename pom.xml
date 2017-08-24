@@ -12,7 +12,25 @@
     <packaging>pom</packaging>
 
     <name>PWM Password Self Service</name>
-    
+
+    <licenses>
+        <license>
+            <name>The GNU General Public License (GPL) Version 2</name>
+            <url>http://www.gnu.org/licenses/gpl-2.0.html</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <organization>
+        <name>PWM Project</name>
+        <url>http://www.pwm-project.org</url>
+    </organization>
+
+    <properties>
+        <build.number>0</build.number>  <!-- default in case not set on command line -->
+        <build.revision>0</build.revision>  <!-- default in case not set on command line -->
+    </properties>
+
     <modules>
         <module>client</module>
         <module>server</module>
