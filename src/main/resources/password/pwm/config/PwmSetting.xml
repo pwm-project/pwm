@@ -1348,12 +1348,12 @@
     </setting>
     <setting hidden="false" key="useXForwardedForHeader" level="2" required="true">
         <default>
-            <value>true</value>
+            <value>false</value>
         </default>
     </setting>
     <setting hidden="false" key="network.reverseDNS.enable" level="2" required="true">
         <default>
-            <value>true</value>
+            <value>false</value>
         </default>
     </setting>
     <setting hidden="false" key="network.allowMultiIPSession" level="2" required="true">
