@@ -64,6 +64,36 @@ public class MacroTest {
     }
 
     @Test
+    public void testStaticHashMacros() throws Exception
+    {
+        final MacroMachine macroMachine = MacroMachine.forStatic();
+
+        { // md5 macro
+            final String goal = "f96b697d7cb7938d525a2f31aaf161d0";
+            final String expanded = macroMachine.expandMacros("@Hash:md5:[[message digest]]@");
+            Assert.assertEquals(goal,expanded);
+        }
+
+        { // sha1 macro
+            final String goal = "5baa61e4c9b93f3f0682250b6cf8331b7ee68fd8";
+            final String expanded = macroMachine.expandMacros("@Hash:sha1:[[password]]@");
+            Assert.assertEquals(goal,expanded);
+        }
+
+        { // sha256 macro
+            final String goal = "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8";
+            final String expanded = macroMachine.expandMacros("@Hash:sha256:[[password]]@");
+            Assert.assertEquals(goal,expanded);
+        }
+
+        { // sha512 macro
+            final String goal = "b109f3bbbc244eb82441917ed06d618b9008dd09b3befd1b5e07394c706a8bb980b1d7785e5976ec049b46df5f1326af5a2ea6d103fd07c95385ffab0cacbc86";
+            final String expanded = macroMachine.expandMacros("@Hash:sha512:[[password]]@");
+            Assert.assertEquals(goal,expanded);
+        }
+    }
+
+    @Test
     public void testUserMacros() throws Exception
     {
 
