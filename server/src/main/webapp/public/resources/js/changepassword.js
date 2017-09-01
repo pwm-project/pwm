@@ -328,7 +328,7 @@ PWM_CHANGEPW.fetchRandoms=function(randomConfig) {
             PWM_CHANGEPW.fetchRandoms(randomConfig);
         };
 
-        var url = PWM_GLOBAL['url-restservice'] + "/randompassword";
+        var url = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction','randomPassword');
         var content = randomConfig['dataInput'] == null ? { } : randomConfig['dataInput'];
 
         PWM_MAIN.ajaxRequest(url,successFunction,{content:content});

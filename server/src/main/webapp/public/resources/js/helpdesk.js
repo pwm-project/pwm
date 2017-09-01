@@ -55,11 +55,10 @@ PWM_HELPDESK.executeAction = function(actionName) {
 };
 
 PWM_HELPDESK.doResponseClear = function() {
-    var username = PWM_VAR['helpdesk_obfuscatedDN'];
     PWM_MAIN.showWaitDialog({loadFunction:function() {
-        var url = PWM_GLOBAL['url-restservice'] + "/challenges?username=" + username;
+        var url = "helpdesk?processAction=clearResponses&userKey=" + PWM_VAR['helpdesk_obfuscatedDN'];
         var loadFunction = function(results) {
-            if (results['error'] != true) {
+            if (results['error'] !== true) {
                 PWM_MAIN.showDialog({
                     title: PWM_MAIN.showString('Button_ClearResponses'),
                     text: results['successMessage'],
@@ -71,7 +70,7 @@ PWM_HELPDESK.doResponseClear = function() {
                 PWM_MAIN.showErrorDialog(results);
             }
         };
-        PWM_MAIN.ajaxRequest(url,loadFunction,{method:'DELETE'});
+        PWM_MAIN.ajaxRequest(url,loadFunction);
     }});
 };
 
@@ -84,7 +83,7 @@ PWM_HELPDESK.doPasswordChange = function(password, random) {
         inputValues['password'] = password;
     }
     PWM_MAIN.showWaitDialog({loadFunction:function() {
-        var url = PWM_GLOBAL['url-restservice'] + "/setpassword";
+        var url = "helpdesk?processAction=setPassword";
         var loadFunction = function(results) {
             var bodyText = "";
             if (results['error'] == true) {
@@ -399,7 +398,7 @@ PWM_HELPDESK.deleteUser = function() {
     PWM_MAIN.showConfirmDialog({
         text:PWM_MAIN.showString('Confirm_DeleteUser'),
         okAction:function(){
-            var url = "Helpdesk?processAction=deleteUser&userKey=" + PWM_VAR['helpdesk_obfuscatedDN'];
+            var url = "helpdesk?processAction=deleteUser&userKey=" + PWM_VAR['helpdesk_obfuscatedDN'];
             var loadFunction = function(data) {
                 PWM_MAIN.closeWaitDialog();
                 if (data['error'] == true) {

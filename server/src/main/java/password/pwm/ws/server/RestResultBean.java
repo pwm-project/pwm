@@ -160,9 +160,10 @@ public class RestResultBean implements Serializable {
 
     public static RestResultBean forSuccessMessage(
             final PwmRequest pwmRequest,
-            final Message message
+            final Message message,
+            final String... fieldValues
     ) {
-        return forSuccessMessage(pwmRequest.getLocale(), pwmRequest.getConfig(), message);
+        return forSuccessMessage(pwmRequest.getLocale(), pwmRequest.getConfig(), message, fieldValues);
     }
 
     public static RestResultBean forConfirmMessage(

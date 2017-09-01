@@ -24,6 +24,9 @@ package password.pwm.ws.server.rest;
 
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -68,19 +71,25 @@ public class RestRandomPasswordServer extends AbstractRestServer {
             .publicDuringConfig(true)
             .build();
 
+    @Getter
+    @Setter
+    @NoArgsConstructor
     public static class JsonOutput implements Serializable
     {
-        public String password;
+        private String password;
     }
 
+    @Getter
+    @Setter
+    @NoArgsConstructor
     public static class JsonInput implements Serializable
     {
-        public String username;
-        public int strength;
-        public int minLength;
-        public int maxLength;
-        public String chars;
-        public boolean noUser;
+        private String username;
+        private int strength;
+        private int minLength;
+        private int maxLength;
+        private String chars;
+        private boolean noUser;
     }
 
     @POST
