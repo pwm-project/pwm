@@ -23,6 +23,8 @@
 package password.pwm.ws.server.rest;
 
 import com.novell.ldapchai.ChaiUser;
+import lombok.Getter;
+import lombok.Setter;
 import password.pwm.Permission;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.HelpdeskProfile;
@@ -60,6 +62,8 @@ public class RestSetPasswordServer extends AbstractRestServer {
 
     public static final PwmLogger LOGGER = PwmLogger.forClass(RestSetPasswordServer.class);
 
+    @Getter
+    @Setter
     public static class JsonInputData implements Serializable
     {
         public String username;

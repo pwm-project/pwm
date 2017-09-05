@@ -77,7 +77,11 @@ public class RestCheckPasswordServer extends AbstractRestServer {
         public String username;
     }
 
-    public static class JsonData implements Serializable
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class JsonOutput implements Serializable
     {
         public int version;
         public int strength;
@@ -86,10 +90,10 @@ public class RestCheckPasswordServer extends AbstractRestServer {
         public boolean passed;
         public int errorCode;
 
-        public static JsonData fromPasswordCheckInfo(
+        public static JsonOutput fromPasswordCheckInfo(
                 final PasswordUtility.PasswordCheckInfo checkInfo
         ) {
-            final JsonData outputMap = new JsonData();
+            final JsonOutput outputMap = new JsonOutput();
             outputMap.version = 2;
             outputMap.strength = checkInfo.getStrength();
             outputMap.match = checkInfo.getMatch();
@@ -177,7 +181,7 @@ public class RestCheckPasswordServer extends AbstractRestServer {
                 restRequestBean.getPwmApplication().getStatisticsManager().incrementValue(Statistic.PASSWORD_RULE_CHECKS);
             }
 
-            final JsonData jsonData = doPasswordRuleCheck(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession(), checkRequest);
+            final JsonOutput jsonData = doPasswordRuleCheck(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession(), checkRequest);
             final RestResultBean restResultBean = new RestResultBean();
             restResultBean.setData(jsonData);
             final TimeDuration timeDuration = TimeDuration.fromCurrent(startTime);
@@ -230,7 +234,7 @@ public class RestCheckPasswordServer extends AbstractRestServer {
     }
 
 
-    public static JsonData doPasswordRuleCheck(
+    public static JsonOutput doPasswordRuleCheck(
             final PwmApplication pwmApplication,
             final PwmSession pwmSession,
             final PasswordCheckRequest checkRequest
@@ -258,6 +262,6 @@ public class RestCheckPasswordServer extends AbstractRestServer {
                 checkRequest.getPassword2()
         );
 
-        return JsonData.fromPasswordCheckInfo(passwordCheckInfo);
+        return JsonOutput.fromPasswordCheckInfo(passwordCheckInfo);
     }
 }

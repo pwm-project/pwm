@@ -1,7 +1,9 @@
 /.idea
+/*.iml
 /client/target
 /client/.node
 /client/.idea
+/client/*.iml
 pwm-parent.iml
 pwmconfig/
 ssprconfig/

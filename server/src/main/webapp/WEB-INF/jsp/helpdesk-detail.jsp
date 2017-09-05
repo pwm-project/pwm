@@ -514,7 +514,7 @@
                         <% } %>
                     </div>
                     <br/>
-                    <div class="footnote"><div class="timestamp"><%=JavaHelper.toIsoDate(Instant.now())%></div></div>
+                    <div class="footnote"><span class="timestamp"><%=JavaHelper.toIsoDate(Instant.now())%></span></div>
                 </td>
                 <td class="noborder" style="width: 200px; max-width:200px; text-align: left; vertical-align: top">
                     <div class="noborder" style="margin-top: 25px; margin-left: 5px">

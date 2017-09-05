@@ -349,7 +349,7 @@ public class NewUserServlet extends ControlledPwmServlet {
                         passwordCheckInfo.getErrorCode()
                 );
             }
-            final RestCheckPasswordServer.JsonData jsonData = RestCheckPasswordServer.JsonData.fromPasswordCheckInfo(
+            final RestCheckPasswordServer.JsonOutput jsonData = RestCheckPasswordServer.JsonOutput.fromPasswordCheckInfo(
                     passwordCheckInfo);
 
             final RestResultBean restResultBean = new RestResultBean();

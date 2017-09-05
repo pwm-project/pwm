@@ -26,9 +26,12 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmEnvironment;
 import password.pwm.config.PwmSetting;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.PwmHashAlgorithm;
+import password.pwm.util.secure.SecureEngine;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -47,6 +50,8 @@ public abstract class InternalMacros {
         defaultMacros.put(PwmAppName.class, MacroImplementation.Scope.Static);
         defaultMacros.put(PwmContextPath.class, MacroImplementation.Scope.System);
         defaultMacros.put(EncodingMacro.class, MacroImplementation.Scope.Static);
+        defaultMacros.put(CasingMacro.class, MacroImplementation.Scope.Static);
+        defaultMacros.put(HashingMacro.class, MacroImplementation.Scope.Static);
 
         INTERNAL_MACROS = Collections.unmodifiableMap(defaultMacros);
     }
@@ -180,6 +185,182 @@ public abstract class InternalMacros {
             value = value.replaceAll("^@Encode:[^:]+:\\[\\[","");
             value = value.replaceAll("\\]\\]@$","");
             return encodeType.encode(value);
+        }
+    }
+
+    public static class HashingMacro extends AbstractMacro {
+        private static final Pattern PATTERN = Pattern.compile("@Hash:[^:]+:\\[\\[.*\\]\\]@");
+        // @Hash:HASH_TYPE:[[value]]@
+
+
+        @Override
+        public Sequence getSequence()
+        {
+            return Sequence.post;
+        }
+
+        private enum HashType {
+            md5,
+            sha1,
+            sha256,
+            sha512,
+
+            ;
+
+            private String hash(final String input) throws MacroParseException {
+                switch (this) {
+                    case md5:
+                        return doHash(input, PwmHashAlgorithm.MD5);
+
+                    case sha1:
+                        return doHash(input, PwmHashAlgorithm.SHA1);
+
+                    case sha256:
+                        return doHash(input, PwmHashAlgorithm.SHA256);
+
+                    case sha512:
+                        return doHash(input, PwmHashAlgorithm.SHA512);
+
+                    default:
+                        throw new MacroParseException("unimplemented hashtype '" + this.toString() + "' for Hash macro");
+                }
+            }
+
+            private String doHash(final String input, final PwmHashAlgorithm pwmHashAlgorithm)
+                    throws MacroParseException
+            {
+                if (StringUtil.isEmpty(input)) {
+                    return "";
+                }
+                final byte[] inputBytes = input.getBytes(PwmConstants.DEFAULT_CHARSET);
+                final String hashOutput;
+                try {
+                    hashOutput = SecureEngine.hash(inputBytes, pwmHashAlgorithm);
+                } catch (PwmUnrecoverableException e) {
+                    throw new MacroParseException("error during hash operation: " + e.getMessage());
+                }
+                return hashOutput.toLowerCase();
+            }
+
+            private static HashType forString(final String input) {
+                for (final HashType encodeType : HashType.values()) {
+                    if (encodeType.toString().equalsIgnoreCase(input)) {
+                        return encodeType;
+                    }
+                }
+                return null;
+            }
+        }
+
+
+        public Pattern getRegExPattern() {
+            return PATTERN;
+        }
+
+        public String replaceValue(
+                final String matchValue,
+                final MacroRequestInfo macroRequestInfo
+        )
+                throws MacroParseException
+        {
+            if (matchValue == null || matchValue.length() < 1) {
+                return "";
+            }
+
+            final String[] colonParts = matchValue.split(":");
+
+            if (colonParts.length < 3) {
+                throw new MacroParseException("not enough arguments for Encode macro");
+            }
+
+            final String encodeMethodStr = colonParts[1];
+            final HashType encodeType = HashType.forString(encodeMethodStr);
+            if (encodeType == null) {
+                throw new MacroParseException("unknown encodeType '" + encodeMethodStr + "' for Encode macro");
+            }
+
+            String value = matchValue; // can't use colonParts[2] as it may be split if value contains a colon.
+            value = value.replaceAll("^@Hash:[^:]+:\\[\\[","");
+            value = value.replaceAll("\\]\\]@$","");
+            return encodeType.hash(value);
+        }
+    }
+
+    public static class CasingMacro extends AbstractMacro {
+        private static final Pattern PATTERN = Pattern.compile("@Case:[^:]+:\\[\\[.*\\]\\]@");
+        // @Case:CASE_TYPE:[[value]]@
+
+
+        @Override
+        public Sequence getSequence()
+        {
+            return Sequence.post;
+        }
+
+        private enum CaseType {
+            upper,
+            lower,
+
+            ;
+
+            private String hash(final String input) throws MacroParseException {
+                switch (this) {
+                    case upper:
+                        return StringUtil.isEmpty(input)
+                                ? ""
+                                : input.toUpperCase();
+
+                    case lower:
+                        return StringUtil.isEmpty(input)
+                                ? ""
+                                : input.toLowerCase();
+
+                    default:
+                        throw new MacroParseException("unimplemented casetype '" + this.toString() + "' for Case macro");
+                }
+            }
+
+            private static CaseType forString(final String input) {
+                for (final CaseType encodeType : CaseType.values()) {
+                    if (encodeType.toString().equalsIgnoreCase(input)) {
+                        return encodeType;
+                    }
+                }
+                return null;
+            }
+        }
+
+
+        public Pattern getRegExPattern() {
+            return PATTERN;
+        }
+
+        public String replaceValue(
+                final String matchValue,
+                final MacroRequestInfo macroRequestInfo
+        )
+                throws MacroParseException
+        {
+            if (matchValue == null || matchValue.length() < 1) {
+                return "";
+            }
+
+            final String[] colonParts = matchValue.split(":");
+
+            if (colonParts.length < 3) {
+                throw new MacroParseException("not enough arguments for Case macro");
+            }
+
+            final String encodeMethodStr = colonParts[1];
+            final CaseType encodeType = CaseType.forString(encodeMethodStr);
+            if (encodeType == null) {
+                throw new MacroParseException("unknown caseType '" + encodeMethodStr + "' for Case macro");
+            }
+
+            String value = matchValue; // can't use colonParts[2] as it may be split if value contains a colon.
+            value = value.replaceAll("^@Case:[^:]+:\\[\\[","");
+            value = value.replaceAll("\\]\\]@$","");
+            return encodeType.hash(value);
         }
     }
 
