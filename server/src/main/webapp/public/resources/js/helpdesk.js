@@ -338,30 +338,38 @@ PWM_HELPDESK.processHelpdeskSearch = function() {
         PWM_MAIN.getObject('searchIndicator').style.display = 'none';
     };
     validationProps['processResultsFunction'] = function(data) {
-        var grid = PWM_VAR['heldesk_search_grid'];
-        if (data['error']) {
-            PWM_MAIN.showErrorDialog(data);
-            grid.refresh();
+        if (data == null) {
+            PWM_MAIN.showErrorDialog(PWM_MAIN.showString('Display_HelpdeskNoData'));
         } else {
-            var gridData = data['data']['searchResults'];
-            var sizeExceeded = data['data']['sizeExceeded'];
-            grid.refresh();
-            grid.renderArray(gridData);
-            var sortState = grid.get("sort");
-            grid.set("sort", sortState);
-
-            if (sizeExceeded) {
-                PWM_MAIN.getObject('maxResultsIndicator').style.display = 'inherit';
-                PWM_MAIN.showTooltip({id:'maxResultsIndicator',position:'below',text:PWM_MAIN.showString('Display_SearchResultsExceeded')})
-            } else if (PWM_MAIN.JSLibrary.isEmpty(data['data']['searchResults']) && validationProps['usernameField'].length > 0) {
-                PWM_MAIN.getObject('maxResultsIndicator').style.display = 'inherit';
-                PWM_MAIN.showTooltip({
-                    id: 'maxResultsIndicator',
-                    position: 'below',
-                    text: PWM_MAIN.showString('Display_SearchResultsNone')
-                })
+            var grid = PWM_VAR['heldesk_search_grid'];
+            if (data['error']) {
+                PWM_MAIN.showErrorDialog(data);
+                grid.refresh();
             } else {
-                PWM_MAIN.getObject('maxResultsIndicator').style.display = 'none';
+                var gridData = data['data']['searchResults'];
+                var sizeExceeded = data['data']['sizeExceeded'];
+                grid.refresh();
+                grid.renderArray(gridData);
+                var sortState = grid.get("sort");
+                grid.set("sort", sortState);
+
+                if (sizeExceeded) {
+                    PWM_MAIN.getObject('maxResultsIndicator').style.display = 'inherit';
+                    PWM_MAIN.showTooltip({
+                        id: 'maxResultsIndicator',
+                        position: 'below',
+                        text: PWM_MAIN.showString('Display_SearchResultsExceeded')
+                    })
+                } else if (PWM_MAIN.JSLibrary.isEmpty(data['data']['searchResults']) && validationProps['usernameField'].length > 0) {
+                    PWM_MAIN.getObject('maxResultsIndicator').style.display = 'inherit';
+                    PWM_MAIN.showTooltip({
+                        id: 'maxResultsIndicator',
+                        position: 'below',
+                        text: PWM_MAIN.showString('Display_SearchResultsNone')
+                    })
+                } else {
+                    PWM_MAIN.getObject('maxResultsIndicator').style.display = 'none';
+                }
             }
         }
     };
