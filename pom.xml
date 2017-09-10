@@ -8,7 +8,7 @@
 
     <groupId>org.pwm-project</groupId>
     <artifactId>pwm</artifactId>
-    <version>1.8.0.1</version>
+    <version>1.8.0.2</version>
     <packaging>war</packaging>
 
     <licenses>
@@ -34,12 +34,12 @@
         <repository>
             <id>nexus</id>
             <name>Nexus</name>
-            <url>http://167.123.61.7:8081/nexus/content/repositories/releases</url>
+            <url>https://nexus.tools.services.qld.gov.au/nexus/content/repositories/releases</url>
         </repository>
         <snapshotRepository>
             <id>nexus</id>
             <name>Nexus</name>
-            <url>http://167.123.61.7:8081/nexus/content/repositories/snapshots</url>
+            <url>https://nexus.tools.services.qld.gov.au/nexus/content/repositories/snapshots</url>
         </snapshotRepository>
     </distributionManagement>
 
