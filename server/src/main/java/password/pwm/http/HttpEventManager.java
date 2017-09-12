@@ -58,7 +58,7 @@ public class HttpEventManager implements
         try {
             final ContextManager contextManager = ContextManager.getContextManager(httpSession);
             final PwmApplication pwmApplication = contextManager.getPwmApplication();
-            httpSession.setAttribute(PwmConstants.SESSION_ATTR_PWM_APP_NONCE, pwmApplication.getInstanceNonce());
+            httpSession.setAttribute(PwmConstants.SESSION_ATTR_PWM_APP_NONCE, pwmApplication.getRuntimeNonce());
             LOGGER.trace("new http session created");
         } catch (PwmUnrecoverableException e) {
             LOGGER.warn("error during sessionCreated event: " + e.getMessage());

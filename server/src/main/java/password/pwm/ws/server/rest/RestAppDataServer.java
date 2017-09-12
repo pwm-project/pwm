@@ -50,7 +50,6 @@ import password.pwm.svc.event.UserAuditRecord;
 import password.pwm.svc.intruder.RecordType;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.LocaleHelper;
-import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -154,21 +153,6 @@ public class RestAppDataServer extends AbstractRestServer {
         restResultBean.setData(outputMap);
         LOGGER.debug(restRequestBean.getPwmSession(),"output " + counter + " audit records.");
         return restResultBean.asJsonResponse();
-    }
-
-    @GET
-    @Path("/ping")
-    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    public Response doPingRequest() {
-        final RestRequestBean restRequestBean;
-        try {
-            restRequestBean = RestServerHelper.initializeRestRequest(request, response, ServicePermissions.PUBLIC, null);
-        } catch (PwmUnrecoverableException e) {
-            return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
-        }
-
-        final String startupTime = JavaHelper.toIsoDate(restRequestBean.getPwmApplication().getStartupTime());
-        return new RestResultBean(new HashMap<>(Collections.singletonMap("time",startupTime))).asJsonResponse();
     }
 
     @GET
@@ -396,7 +380,7 @@ public class RestAppDataServer extends AbstractRestServer {
             settingMap.put("MaxInactiveInterval", idleSeconds);
         }
         settingMap.put("paramName.locale", config.readAppProperty(AppProperty.HTTP_PARAM_NAME_LOCALE));
-        settingMap.put("startupTime",pwmApplication.getStartupTime());
+        settingMap.put("runtimeNonce",pwmApplication.getRuntimeNonce());
         settingMap.put("applicationMode",pwmApplication.getApplicationMode());
 
         final String contextPath = request.getContextPath();
@@ -494,7 +478,7 @@ public class RestAppDataServer extends AbstractRestServer {
         inputString.append(PwmConstants.BUILD_NUMBER);
         inputString.append(pwmApplication.getStartupTime().toEpochMilli());
         inputString.append(httpServletRequest.getSession().getMaxInactiveInterval());
-        inputString.append(pwmApplication.getInstanceNonce());
+        inputString.append(pwmApplication.getRuntimeNonce());
 
         if (pwmSession.getSessionStateBean().getLocale() != null) {
             inputString.append(pwmSession.getSessionStateBean().getLocale());

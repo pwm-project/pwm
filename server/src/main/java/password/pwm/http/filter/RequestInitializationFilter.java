@@ -22,6 +22,7 @@
 
 package password.pwm.http.filter;
 
+import org.apache.commons.validator.routines.InetAddressValidator;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
@@ -103,6 +104,8 @@ public class RequestInitializationFilter implements Filter {
         try { testPwmApplicationLoad = ContextManager.getPwmApplication(req); } catch (PwmException e) {}
 
         if (testPwmApplicationLoad == null && pwmURL.isResourceURL()) {
+            filterChain.doFilter(req, resp);
+        } else if (pwmURL.isStandaloneWebService() || pwmURL.isJerseyWebService()) {
             filterChain.doFilter(req, resp);
         } else {
             if (mode == PwmApplicationMode.ERROR) {
@@ -220,7 +223,7 @@ public class RequestInitializationFilter implements Filter {
             final HttpSession httpSession = request.getSession(false);
             if (httpSession != null) {
                 final String sessionPwmAppNonce = (String) httpSession.getAttribute(PwmConstants.SESSION_ATTR_PWM_APP_NONCE);
-                if (sessionPwmAppNonce == null || !sessionPwmAppNonce.equals(pwmApplication.getInstanceNonce())) {
+                if (sessionPwmAppNonce == null || !sessionPwmAppNonce.equals(pwmApplication.getRuntimeNonce())) {
                     LOGGER.debug("invalidating http session created with non-current servlet context");
                     httpSession.invalidate();
                 }
@@ -408,20 +411,24 @@ public class RequestInitializationFilter implements Filter {
         String userIP = "";
 
         if (useXForwardedFor) {
-            try {
-                userIP = pwmRequest.readHeaderValueAsString(PwmConstants.HTTP_HEADER_X_FORWARDED_FOR);
-                if (userIP != null) {
-                    final int commaIndex = userIP.indexOf(',');
-                    if (commaIndex > -1) {
-                        userIP = userIP.substring(0, commaIndex);
-                    }
+            userIP = pwmRequest.readHeaderValueAsString(HttpHeader.XForwardedFor);
+            if (!StringUtil.isEmpty(userIP)) {
+                final int commaIndex = userIP.indexOf(',');
+                if (commaIndex > -1) {
+                    userIP = userIP.substring(0, commaIndex);
                 }
-            } catch (Exception e) {
-                //ip address not in header (no X-Forwarded-For)
+            }
+
+            if (!StringUtil.isEmpty(userIP)) {
+                if (!InetAddressValidator.getInstance().isValid(userIP)) {
+                    LOGGER.warn("discarding bogus network address '" + userIP + "' in "
+                            + HttpHeader.XForwardedFor.getHttpName() + " header");
+                    userIP = null;
+                }
             }
         }
 
-        if (userIP == null || userIP.length() < 1) {
+        if (StringUtil.isEmpty(userIP)) {
             userIP = pwmRequest.getHttpServletRequest().getRemoteAddr();
         }
 
@@ -585,7 +592,7 @@ public class RequestInitializationFilter implements Filter {
         if (
                 performCsrfHeaderChecks
                         && !pwmRequest.getMethod().isIdempotent()
-                        && !pwmRequest.getURL().isWebServiceURL()
+                        && !pwmRequest.getURL().isJerseyWebService()
                 )
         {
             final String originValue = pwmRequest.readHeaderValueAsString(HttpHeader.Origin);

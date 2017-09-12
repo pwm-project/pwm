@@ -146,7 +146,7 @@ public class PwmApplication {
 
 
     private String instanceID = DEFAULT_INSTANCE_ID;
-    private String instanceNonce = PwmRandom.getInstance().randomUUID().toString();
+    private String runtimeNonce = PwmRandom.getInstance().randomUUID().toString();
 
     private LocalDB localDB;
     private LocalDBLogger localDBLogger;
@@ -730,8 +730,8 @@ public class PwmApplication {
         return pwmEnvironment;
     }
 
-    public String getInstanceNonce() {
-        return instanceNonce;
+    public String getRuntimeNonce() {
+        return runtimeNonce;
     }
 
     public <T extends Serializable> T readAppAttribute(final AppAttribute appAttribute, final Class<T> returnClass) {

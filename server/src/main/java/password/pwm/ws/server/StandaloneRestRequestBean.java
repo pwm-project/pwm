@@ -34,4 +34,6 @@ import java.util.Set;
 public class StandaloneRestRequestBean {
     private final Set<WebServiceUsage> authorizedUsages;
     private final PwmApplication pwmApplication;
+    private final String body;
+
 }

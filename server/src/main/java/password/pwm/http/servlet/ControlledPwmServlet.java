@@ -41,10 +41,15 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class ControlledPwmServlet extends AbstractPwmServlet implements PwmServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(AbstractPwmServlet.class);
+
+    private Map<String,Method> actionMethodCache;
 
     public String servletUriRemainder(final PwmRequest pwmRequest, final String command) throws PwmUnrecoverableException {
         String uri = pwmRequest.getURLwithoutQueryString();
@@ -163,7 +168,7 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
 
     public abstract ProcessStatus preProcessCheck(PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException, ServletException;
 
-    void sendOtherRedirect(final PwmRequest pwmRequest, final String location) throws IOException, PwmUnrecoverableException {
+    private void sendOtherRedirect(final PwmRequest pwmRequest, final String location) throws IOException, PwmUnrecoverableException {
         final String protocol = pwmRequest.getHttpServletRequest().getProtocol();
         if (protocol != null && protocol.startsWith("HTTP/1.0")) {
             pwmRequest.sendRedirect(location);
@@ -177,19 +182,21 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
         String action();
     }
 
-    public static Method discoverMethodForAction(final Class clazz, final ProcessAction action) {
-        Method interestedMethod = null;
-        final Collection<Method> methods = JavaHelper.getAllMethodsForClass(clazz);
-        for (final Method method : methods) {
-            if (method.getAnnotation(ActionHandler.class) != null) {
-                final String actionName = method.getAnnotation(ActionHandler.class).action();
-                if (action.toString().equals(actionName)) {
-                    interestedMethod = method;
-                    break;
+    private Method discoverMethodForAction(final Class clazz, final ProcessAction action) {
+        if (actionMethodCache == null) {
+            final Map<String,Method> map = new HashMap<>();
+            final Collection<Method> methods = JavaHelper.getAllMethodsForClass(clazz);
+            for (Method method : methods) {
+                if (method.getAnnotation(ActionHandler.class) != null) {
+                    final String actionName = method.getAnnotation(ActionHandler.class).action();
+                        map.put(actionName, method);
+
                 }
             }
+            actionMethodCache = Collections.unmodifiableMap(map);
         }
-        return interestedMethod;
+
+        return actionMethodCache.get(action.toString());
     }
 }
 

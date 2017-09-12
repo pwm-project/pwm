@@ -127,7 +127,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
 
     @Override
     boolean isInterested(final PwmApplicationMode mode, final PwmURL pwmURL) {
-        return !pwmURL.isResourceURL();
+        return !pwmURL.isResourceURL() && !pwmURL.isStandaloneWebService();
     }
 
     private void processAuthenticatedSession(

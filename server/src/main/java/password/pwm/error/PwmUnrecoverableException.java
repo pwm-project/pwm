@@ -43,6 +43,10 @@ public class PwmUnrecoverableException extends PwmException {
         super(error);
     }
 
+    public PwmUnrecoverableException(final PwmError error, final String detailedErrorMsg) {
+        super(error, detailedErrorMsg);
+    }
+
     public static PwmUnrecoverableException fromChaiException(final ChaiException e) {
         final ErrorInformation errorInformation;
         if (e instanceof ChaiUnavailableException) {

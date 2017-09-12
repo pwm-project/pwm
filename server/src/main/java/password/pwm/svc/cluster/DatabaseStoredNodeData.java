@@ -47,7 +47,7 @@ class DatabaseStoredNodeData implements Serializable {
                 Instant.now(),
                 pwmApplication.getStartupTime(),
                 pwmApplication.getInstanceID(),
-                pwmApplication.getInstanceNonce(),
+                pwmApplication.getRuntimeNonce(),
                 pwmApplication.getConfig().configurationHash()
         );
     }

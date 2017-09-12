@@ -31,7 +31,6 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
 import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
-import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmURL;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.util.logging.PwmLogger;
@@ -51,12 +50,9 @@ public class ApplicationModeFilter extends AbstractPwmFilter {
     )
             throws IOException, ServletException
     {
-        // add request url to request attribute
-        pwmRequest.setAttribute(PwmRequestAttribute.OriginalUri, pwmRequest.getHttpServletRequest().getRequestURI());
-
         // ignore if resource request
         final PwmURL pwmURL = pwmRequest.getURL();
-        if (!pwmURL.isResourceURL() && !pwmURL.isWebServiceURL() && !pwmURL.isReferenceURL()) {
+        if (!pwmURL.isResourceURL() && !pwmURL.isStandaloneWebService() && !pwmURL.isReferenceURL()) {
             // check for valid config
             try {
                 if (checkConfigModes(pwmRequest) == ProcessStatus.Halt) {
@@ -76,7 +72,9 @@ public class ApplicationModeFilter extends AbstractPwmFilter {
 
     @Override
     boolean isInterested(final PwmApplicationMode mode, final PwmURL pwmURL) {
-        return !pwmURL.isResourceURL();
+        return !pwmURL.isJerseyWebService()
+                && !pwmURL.isStandaloneWebService()
+                && !pwmURL.isJerseyWebService();
     }
 
     private static ProcessStatus checkConfigModes(
@@ -91,7 +89,7 @@ public class ApplicationModeFilter extends AbstractPwmFilter {
 
         if (mode == PwmApplicationMode.NEW) {
             // check if current request is actually for the config url, if it is, just do nothing.
-            if (pwmURL.isCommandServletURL() || pwmURL.isWebServiceURL()) {
+            if (pwmURL.isCommandServletURL() || pwmURL.isJerseyWebService()) {
                 return ProcessStatus.Continue;
             }
 
@@ -131,7 +129,7 @@ public class ApplicationModeFilter extends AbstractPwmFilter {
                         || pwmURL.isLogoutURL()
                         || pwmURL.isOauthConsumer()
                         || pwmURL.isAdminUrl()
-                        || pwmURL.isWebServiceURL();
+                        || pwmURL.isJerseyWebService();
 
                 if (!permittedURl) {
                     final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_APPLICATION_NOT_RUNNING);

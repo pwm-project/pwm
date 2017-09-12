@@ -69,7 +69,7 @@ public class GZIPFilter implements Filter {
         final String acceptEncoding = ((HttpServletRequest)servletRequest).getHeader(HttpHeader.Accept_Encoding.getHttpName());
         if (acceptEncoding != null && acceptEncoding.contains("gzip") && isEnabled(servletRequest)) {
             final GZIPHttpServletResponseWrapper gzipResponse = new GZIPHttpServletResponseWrapper((HttpServletResponse)servletResponse);
-            gzipResponse.addHeader("Content-Encoding", "gzip");
+            gzipResponse.addHeader(HttpHeader.Content_Encoding.getHttpName(), "gzip");
             filterChain.doFilter(servletRequest, gzipResponse);
             gzipResponse.finish();
 
@@ -82,7 +82,7 @@ public class GZIPFilter implements Filter {
 
         try {
             final PwmURL pwmURL = new PwmURL((HttpServletRequest) servletRequest);
-            if (pwmURL.isResourceURL() || pwmURL.isWebServiceURL()) {
+            if (pwmURL.isResourceURL() || pwmURL.isJerseyWebService()) {
                 return false;
             }
         } catch (Exception e) {

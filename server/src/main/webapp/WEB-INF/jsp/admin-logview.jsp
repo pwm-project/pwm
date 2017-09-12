@@ -213,9 +213,9 @@
                             rowData.put("timestamp", event.getDate());
                             rowData.put("level", event.getLevel().toString());
                             rowData.put("src", event.getSource());
-                            rowData.put("user", event.getActor());
-                            rowData.put("component",event.getTopTopic());
-                            rowData.put("detail",event.getMessage());
+                            rowData.put("user", StringUtil.escapeJS(event.getActor()));
+                            rowData.put("component",StringUtil.escapeJS(event.getTopTopic()));
+                            rowData.put("detail",StringUtil.escapeJS(event.getMessage()));
                 %>
                 data.push(<%=JsonUtil.serializeMap(rowData)%>);
                 <%
