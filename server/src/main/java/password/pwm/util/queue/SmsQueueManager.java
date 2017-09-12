@@ -65,6 +65,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -125,7 +126,7 @@ public class SmsQueueManager implements PwmService {
 
         final WorkQueueProcessor.Settings settings = WorkQueueProcessor.Settings.builder()
                 .maxEvents(Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_SMS_MAX_COUNT)))
-                .retryDiscardAge(new TimeDuration(Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_SMS_MAX_AGE_MS))))
+                .retryDiscardAge(new TimeDuration(pwmApplication.getConfig().readSettingAsLong(PwmSetting.SMS_MAX_QUEUE_AGE), TimeUnit.SECONDS))
                 .retryInterval(new TimeDuration(Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_SMS_RETRY_TIMEOUT_MS))))
                 .build();
 
