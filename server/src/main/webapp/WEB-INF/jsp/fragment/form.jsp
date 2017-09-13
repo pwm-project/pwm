@@ -15,6 +15,7 @@
 <%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <%@ page import="java.util.Collections" %>
 <%@ page import="password.pwm.config.CustomLinkConfiguration" %>
+<%@ page import="org.apache.commons.lang3.StringEscapeUtils" %>
 
 <%--
   ~ Password Management Servlets (PWM)
@@ -138,6 +139,20 @@
             } catch (e) {
                 console.log('error executing custom javascript for form field \'' + <%=loopConfiguration.getName()%> + '\', error: ' + e)
             }
+        </script>
+    </pwm:script>
+    <% } %>
+    <% if (loopConfiguration.getRegexError(formLocale) != null && loopConfiguration.getRegexError(formLocale).length() > 0) { %>
+    <pwm:script>
+        <script type="text/javascript">
+            PWM_GLOBAL['startupFunctions'].push(function(){
+                PWM_MAIN.addEventHandler('<%=loopConfiguration.getName()%>', 'input', function (event) {
+                    event.target.setCustomValidity("");
+                });
+                PWM_MAIN.addEventHandler('<%=loopConfiguration.getName()%>', 'invalid', function (event) {
+                    event.target.setCustomValidity('<%=StringEscapeUtils.escapeEcmaScript(loopConfiguration.getRegexError(formLocale))%>');
+                });
+            });
         </script>
     </pwm:script>
     <% } %>
