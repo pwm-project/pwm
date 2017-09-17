@@ -57,14 +57,14 @@ PWM_RESPONSES.validateResponses=function() {
 };
 
 PWM_RESPONSES.updateDisplay=function(resultInfo) {
-    if (resultInfo == null) {
+    if (resultInfo === null) {
         PWM_MAIN.getObject("button-setResponses").disabled = false;
         return;
     }
 
     var result = resultInfo["message"];
 
-    if (resultInfo["success"] == true) {
+    if (resultInfo["success"] === true) {
         PWM_MAIN.getObject("button-setResponses").disabled = false;
         PWM_MAIN.showSuccess(result);
     } else {
@@ -95,7 +95,7 @@ PWM_RESPONSES.makeSelectOptionsDistinct=function() {
             var selectedElement = PWM_MAIN.getObject(questionID);
             var selectedIndex = selectedElement.selectedIndex;
             var selectedValue = selectedElement.options[selectedIndex].value;
-            if ('UNSELECTED' != selectedValue) {
+            if ('UNSELECTED' !== selectedValue) {
                 currentlySelectedTexts.push(selectedValue);
             }
         }(loopID));
@@ -110,7 +110,7 @@ PWM_RESPONSES.makeSelectOptionsDistinct=function() {
             var selectedValue = selectedElement.options[selectedIndex].value;
             var responseID = selectedElement.getAttribute('data-response-id');
             selectedElement.innerHTML = '';
-            if (selectedValue == 'UNSELECTED') {
+            if (selectedValue === 'UNSELECTED') {
                 var unselectedOption = document.createElement('option');
                 unselectedOption.value = 'UNSELECTED';
                 unselectedOption.innerHTML = '&nbsp;&mdash;&nbsp;' + initialChoiceText + '&nbsp;&mdash;&nbsp;';
@@ -125,8 +125,8 @@ PWM_RESPONSES.makeSelectOptionsDistinct=function() {
                 optionElement.innerHTML = loopText;
 
                 require(["dojo/_base/array"], function(array){
-                    if (loopText == selectedValue || array.indexOf(currentlySelectedTexts,loopText) == -1) {
-                        if (loopText == selectedValue) {
+                    if (loopText === selectedValue || array.indexOf(currentlySelectedTexts,loopText) === -1) {
+                        if (loopText === selectedValue) {
                             optionElement.selected = true;
                         }
                         selectedElement.appendChild(optionElement);
@@ -142,7 +142,7 @@ PWM_RESPONSES.makeSelectOptionsDistinct=function() {
 PWM_RESPONSES.startupResponsesPage=function() {
     PWM_MAIN.doIfQueryHasResults('#pwm-setupResponsesDiv',function(){
         var initialPrompt = PWM_MAIN.showString('Display_ResponsesPrompt');
-        if (initialPrompt != null && initialPrompt.length > 1) {
+        if (initialPrompt !== null && initialPrompt.length > 1) {
             var messageElement = PWM_MAIN.getObject("message");
             if (messageElement.firstChild.nodeValue.length < 2) {
                 PWM_MAIN.showInfo(initialPrompt);
@@ -167,7 +167,7 @@ PWM_RESPONSES.initSimpleRandomElements = function() {
 
     var updateResponseInputField = function(element) {
         var responseID = element.getAttribute('data-response-id');
-        if (element.value == 'UNSELECTED') {
+        if (element.value === 'UNSELECTED') {
             PWM_MAIN.getObject(responseID).disabled = true;
             PWM_MAIN.getObject(responseID).readonly = true;
         } else {
@@ -187,10 +187,10 @@ PWM_RESPONSES.initSimpleRandomElements = function() {
             PWM_VAR['focusInValues'][element.id] = element.selectedIndex;
         });
         PWM_MAIN.addEventHandler(element.id,"click,blur",function(){
-            if (PWM_VAR['focusInValues'][element.id] != element.selectedIndex) {
+            if (PWM_VAR['focusInValues'][element.id] !== element.selectedIndex) {
                 var selectedIndex = element.selectedIndex;
                 var selectedValue = element.options[selectedIndex].value;
-                if (selectedValue != 'UNSELECTED') {
+                if (selectedValue !== 'UNSELECTED') {
                     var responseID = element.getAttribute('data-response-id');
                     var responseElement = PWM_MAIN.getObject(responseID);
                     responseElement.value = '';

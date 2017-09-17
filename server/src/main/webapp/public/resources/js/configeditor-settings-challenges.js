@@ -66,7 +66,7 @@ ChallengeSettingHandler.draw = function(settingKey) {
 
             bodyText += '<table class="noborder"><tr><td>';
             bodyText += '<table class="setting-challenge-question-summary">';
-            var localeLabel = localeName == '' ? 'Default Locale' : PWM_GLOBAL['localeInfo'][localeName] + " (" + localeName + ")";
+            var localeLabel = localeName === '' ? 'Default Locale' : PWM_GLOBAL['localeInfo'][localeName] + " (" + localeName + ")";
             if (PWM_MAIN.JSLibrary.itemCount(PWM_VAR['clientSettingCache'][settingKey]) > 1) {
                 bodyText += '<tr><td class="title" style="font-size:100%; font-weight:normal">' + localeLabel + '</td></tr>';
             }
@@ -90,7 +90,7 @@ ChallengeSettingHandler.draw = function(settingKey) {
             bodyText += '</td></tr>';
 
             bodyText += '</table></td><td class="noborder" style="width:20px; vertical-align:top">';
-            if (localeName != '' || PWM_MAIN.JSLibrary.itemCount(PWM_VAR['clientSettingCache'][settingKey]) < 2) { // add remove locale x
+            if (localeName !== '' || PWM_MAIN.JSLibrary.itemCount(PWM_VAR['clientSettingCache'][settingKey]) < 2) { // add remove locale x
                 bodyText += '<div id="button-deleteRow-' + settingKey + '-' + localeKey + '" style="vertical-align:top" class="delete-row-icon action-icon pwm-icon pwm-icon-times"></div>';
             }
             bodyText += '</td></tr></table><br/>';
@@ -147,7 +147,7 @@ ChallengeSettingHandler.draw = function(settingKey) {
 };
 
 ChallengeSettingHandler.editLocale = function(keyName, localeKey) {
-    var localeDisplay = localeKey == "" ? "Default" : localeKey;
+    var localeDisplay = localeKey === "" ? "Default" : localeKey;
     var dialogBody = '<div id="challengeLocaleDialogDiv" style="max-height:500px; overflow-x: auto">';
 
     var localeName = localeKey;
@@ -218,7 +218,6 @@ ChallengeSettingHandler.editLocale = function(keyName, localeKey) {
             PWM_MAIN.addEventHandler('button-addValue','click',function(){
                 ChallengeSettingHandler.addRow(keyName,localeKey);
             });
-            //dojoParser.parse(PWM_MAIN.getObject('challengeLocaleDialogDiv'));
             for (var iteration in multiValues) {
                 (function(rowKey) {
                     var inputID = "value-" + keyName + "-" + localeName + "-" + rowKey;

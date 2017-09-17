@@ -41,7 +41,7 @@ PWM_CHANGEPW.validatePasswords = function(userDN)
         return;
     }
 
-    if (PWM_GLOBAL['previousP1'] != PWM_MAIN.getObject("password1").value) {  // if p1 is changing, then clear out p2.
+    if (PWM_GLOBAL['previousP1'] !== PWM_MAIN.getObject("password1").value) {  // if p1 is changing, then clear out p2.
         PWM_MAIN.getObject("password2").value = "";
         PWM_GLOBAL['previousP1'] = PWM_MAIN.getObject("password1").value;
     }
@@ -69,9 +69,9 @@ PWM_CHANGEPW.validatePasswords = function(userDN)
 
 
 PWM_CHANGEPW.updateDisplay = function(resultInfo) {
-    if (resultInfo == null) {
+    if (!resultInfo) {
         var passwordButton = PWM_MAIN.getObject("password_button");
-        if (passwordButton != null) {
+        if (passwordButton !== null) {
             passwordButton.disabled = false;
         }
         PWM_MAIN.showSuccess(PWM_MAIN.showString('Display_PasswordPrompt'));
@@ -82,14 +82,14 @@ PWM_CHANGEPW.updateDisplay = function(resultInfo) {
 
     var message = resultInfo["message"];
 
-    if (resultInfo["version"] != "2") {
+    if (resultInfo["version"] !== 2) {
         PWM_MAIN.showError("[ unexpected version string from server ]");
         return;
     }
 
-    if (resultInfo["passed"] == true) {
+    if (resultInfo["passed"] === true) {
         //PWM_MAIN.getObject('password2').disabled = false;
-        if (resultInfo["match"] == "MATCH") {
+        if (resultInfo["match"] === "MATCH") {
             PWM_MAIN.getObject("password_button").disabled = false;
             PWM_MAIN.showSuccess(message);
         } else {
@@ -117,12 +117,12 @@ PWM_CHANGEPW.updateDisplay = function(resultInfo) {
 
 PWM_CHANGEPW.markConfirmationCheck = function(matchStatus) {
     if (PWM_MAIN.getObject("confirmCheckMark") && PWM_MAIN.getObject("confirmCrossMark")) {
-        if (matchStatus == "MATCH") {
+        if (matchStatus === "MATCH") {
             PWM_MAIN.getObject("confirmCheckMark").style.visibility = 'visible';
             PWM_MAIN.getObject("confirmCrossMark").style.visibility = 'hidden';
             PWM_MAIN.getObject("confirmCheckMark").width = '15';
             PWM_MAIN.getObject("confirmCrossMark").width = '0';
-        } else if (matchStatus == "NO_MATCH") {
+        } else if (matchStatus === "NO_MATCH") {
             PWM_MAIN.getObject("confirmCheckMark").style.visibility = 'hidden';
             PWM_MAIN.getObject("confirmCrossMark").style.visibility = 'visible';
             PWM_MAIN.getObject("confirmCheckMark").width = '0';
@@ -137,7 +137,7 @@ PWM_CHANGEPW.markConfirmationCheck = function(matchStatus) {
 };
 
 PWM_CHANGEPW.markStrength = function(strength) { //strength meter
-    if (PWM_MAIN.getObject("strengthBox") == null) {
+    if (PWM_MAIN.getObject("strengthBox") === null) {
         return;
     }
 
@@ -162,14 +162,14 @@ PWM_CHANGEPW.markStrength = function(strength) { //strength meter
     var gradColor = colorFade(COLOR_BAR_BOTTOM, COLOR_BAR_TOP, strength / 100).toString(16) + '';
 
     var barObject = PWM_MAIN.getObject("strengthBar");
-    if (barObject != null) {
+    if (barObject !== null) {
         barObject.style.width = strength + '%';
         barObject.style.backgroundColor = '#' + gradColor;
     }
 
     var labelObject = PWM_MAIN.getObject("strengthLabel");
-    if (labelObject != null) {
-        labelObject.innerHTML = strengthLabel == null ? "" : strengthLabel;
+    if (labelObject !== null) {
+        labelObject.innerHTML = strengthLabel === null ? "" : strengthLabel;
     }
 };
 
@@ -197,24 +197,6 @@ PWM_CHANGEPW.showPasswordGuide=function() {
         title: PWM_MAIN.showString('Title_PasswordGuide'),
         text: '<div id="passwordGuideTextContent">' + PWM_GLOBAL['passwordGuideText'] + '</div>'
     });
-    /*
-    PWM_MAIN.clearDijitWidget('dialogPopup');
-    require(["dojo","dijit/Dialog"],function(dojo, Dialog){
-        var theDialog = new Dialog({
-            title: PWM_MAIN.showString('Title_PasswordGuide'),
-            style: "border: 2px solid #D4D4D4; min-width: 300px",
-            content: '<div id="passwordGuideTextContent">' + PWM_GLOBAL['passwordGuideText'] + '</div>',
-            closable: true,
-            draggable: true,
-            id: "dialogPopup"
-        });
-        theDialog.show();
-
-        dojo.connect(theDialog, "hide", function(){
-            dojo.destroy(PWM_MAIN.getObject("passwordGuideTextContent"));
-        });
-    });
-    */
 };
 
 PWM_CHANGEPW.handleChangePasswordSubmit=function() {
@@ -230,7 +212,7 @@ PWM_CHANGEPW.doRandomGeneration=function(randomConfig) {
 
     var eventHandlers = [];
     var dialogBody = "";
-    if (randomConfig['dialog'] != null && randomConfig['dialog'].length > 0) {
+    if (randomConfig['dialog'] && randomConfig['dialog'].length > 0) {
         dialogBody += randomConfig['dialog'];
     } else {
         dialogBody += PWM_MAIN.showString('Display_PasswordGeneration');
@@ -278,7 +260,7 @@ PWM_CHANGEPW.doRandomGeneration=function(randomConfig) {
 
 
 
-    var titleString = randomConfig['title'] == null ? PWM_MAIN.showString('Title_RandomPasswords') : randomConfig['title'];
+    var titleString = randomConfig['title'] === null ? PWM_MAIN.showString('Title_RandomPasswords') : randomConfig['title'];
     PWM_MAIN.showDialog({
         title:titleString,
         dialogClass:'narrow',
@@ -309,7 +291,7 @@ PWM_CHANGEPW.beginFetchRandoms=function(randomConfig) {
 PWM_CHANGEPW.fetchRandoms=function(randomConfig) {
     if (randomConfig['fetchList'].length < 1) {
         var moreButton = PWM_MAIN.getObject('moreRandomsButton');
-        if (moreButton != null) {
+        if (moreButton !== null) {
             moreButton.disabled = false;
             moreButton.focus();
         }
@@ -321,7 +303,7 @@ PWM_CHANGEPW.fetchRandoms=function(randomConfig) {
             var password = resultInfo['data']["password"];
             var elementID = randomConfig['fetchList'].pop();
             var element = PWM_MAIN.getObject(elementID);
-            if (element != null) {
+            if (element !== null) {
                 element.innerHTML = password;
                 PWM_MAIN.setStyle(elementID,'visibility','visible');
             }
@@ -329,7 +311,7 @@ PWM_CHANGEPW.fetchRandoms=function(randomConfig) {
         };
 
         var url = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction','randomPassword');
-        var content = randomConfig['dataInput'] == null ? { } : randomConfig['dataInput'];
+        var content = randomConfig['dataInput'] === null ? { } : randomConfig['dataInput'];
 
         PWM_MAIN.ajaxRequest(url,successFunction,{content:content});
     }
@@ -348,26 +330,24 @@ PWM_CHANGEPW.startupChangePasswordPage=function() {
     PWM_CHANGEPW.markStrength(0);
 
     // add handlers for main form
-    require(["dojo/on"], function(on){
-        var changePasswordForm = PWM_MAIN.getObject('changePasswordForm');
-        on(changePasswordForm,"keyup, change",function(){
-            PWM_CHANGEPW.validatePasswords(null);
-        });
-        on(changePasswordForm,"submit",function(event){
-            PWM_CHANGEPW.handleChangePasswordSubmit();
-            PWM_MAIN.handleFormSubmit(changePasswordForm, event);
-            return false;
-        });
-        on(changePasswordForm,"reset",function(){
-            PWM_CHANGEPW.validatePasswords(null);
-            PWM_CHANGEPW.setInputFocus();
-            return false;
-        });
+    var changePasswordForm = PWM_MAIN.getObject('changePasswordForm');
+    PWM_MAIN.addEventHandler(changePasswordForm,"keyup, change",function(){
+        PWM_CHANGEPW.validatePasswords(null);
+    });
+    PWM_MAIN.addEventHandler(changePasswordForm,"submit",function(event){
+        PWM_CHANGEPW.handleChangePasswordSubmit();
+        PWM_MAIN.handleFormSubmit(changePasswordForm, event);
+        return false;
+    });
+    PWM_MAIN.addEventHandler(changePasswordForm,"reset",function(){
+        PWM_CHANGEPW.validatePasswords(null);
+        PWM_CHANGEPW.setInputFocus();
+        return false;
     });
 
     // show the auto generate password panel
     var autoGenPasswordElement = PWM_MAIN.getObject("autogenerate-icon");
-    if (autoGenPasswordElement != null) {
+    if (autoGenPasswordElement !== null) {
         autoGenPasswordElement.style.visibility = 'visible';
         PWM_MAIN.addEventHandler(autoGenPasswordElement,'click',function(){
             PWM_CHANGEPW.doRandomGeneration();
@@ -430,7 +410,7 @@ PWM_CHANGEPW.startupChangePasswordPage=function() {
 
 PWM_CHANGEPW.setInputFocus=function() {
     var currentPassword = PWM_MAIN.getObject('currentPassword');
-    if (currentPassword != null) {
+    if (currentPassword !== null) {
         setTimeout(function() { currentPassword.focus(); },10);
     } else {
         var password1 = PWM_MAIN.getObject('password1');
@@ -480,7 +460,7 @@ PWM_CHANGEPW.refreshCreateStatus=function(refreshInterval) {
                 console.log('unable to update progressMessageTable, error: ' + e);
             }
 
-            if (data['data']['complete'] == true) {
+            if (data['data']['complete'] === true) {
                 PWM_MAIN.goto(completedUrl,{delay:1000})
             } else {
                 setTimeout(function(){

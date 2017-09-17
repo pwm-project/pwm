@@ -74,7 +74,7 @@ PWM_ADMIN.initAdminNavMenu = function() {
                         PWM_MAIN.newWindowOpen(PWM_GLOBAL['url-context'] + '/public/reference/','referencedoc');
                     }
                 }));
-                if (PWM_GLOBAL['setting-displayEula'] == true) {
+                if (PWM_GLOBAL['setting-displayEula'] === true) {
                     pMenu.addChild(new MenuItem({
                         label: 'View EULA',
                         id: 'viewEULA_dropitem',
@@ -174,17 +174,17 @@ PWM_ADMIN.initReportDataGrid=function() {
 };
 
 PWM_ADMIN.initDownloadUserReportCsvForm = function() {
-    require(["dojo/on", "dojo/query"], function(on, query) {
-        query("#downloadUserReportCsvForm").on("click", function(e) {
+    PWM_MAIN.doQuery("#downloadUserReportCsvForm", function(node){
+        PWM_MAIN.addEventHandler(node, "click", function() {
             var selectedColumns = [];
 
-            query("#grid-hider-menu input:checked").forEach(function(node, index, nodeList) {
-                selectedColumns.push(node.id.replace('grid-hider-menu-check-', ''));
+            PWM_MAIN.doQuery("#grid-hider-menu input:checked",function(element){
+                selectedColumns.push(element.id.replace('grid-hider-menu-check-', ''));
             });
 
             console.log("Selected columns: " + selectedColumns);
             downloadUserReportCsvForm.selectedColumns.value = selectedColumns;
-        });
+        })
     });
 };
 
@@ -563,7 +563,7 @@ PWM_ADMIN.showStatChart = function(statName,days,divName,options) {
                         for (var loopEpsDurationsIndex = 0; loopEpsDurationsIndex < epsDurations.length; loopEpsDurationsIndex++) { // clear all the gauges
                             var loopEpsDuration = epsDurations[loopEpsDurationsIndex] + '';
                             var loopEpsID = "EPS-GAUGE-" + loopEpsName + "_" + loopEpsDuration;
-                            if (PWM_MAIN.getObject(loopEpsID) != null) {
+                            if (PWM_MAIN.getObject(loopEpsID) !== null) {
                                 if (registry.byId(loopEpsID)) {
                                     registry.byId(loopEpsID).setAttribute('value','0');
                                 }
@@ -586,13 +586,13 @@ PWM_ADMIN.showStatChart = function(statName,days,divName,options) {
                                 var loopEpsValue = data['EPS'][loopEpsName + "_" + loopEpsDuration];
                                 var loopEpmValue = (loopEpsValue * 60).toFixed(3);
                                 var loopTop = PWM_GLOBAL['client.activityMaxEpsRate'];
-                                if (loopEpsDuration == "HOURLY") {
+                                if (loopEpsDuration === "HOURLY") {
                                     activityCount += loopEpsValue;
                                 }
-                                if (PWM_MAIN.getObject(loopFieldEpsID) != null) {
+                                if (PWM_MAIN.getObject(loopFieldEpsID) !== null) {
                                     PWM_MAIN.getObject(loopFieldEpsID).innerHTML = loopEpmValue;
                                 }
-                                if (PWM_MAIN.getObject(loopEpsID) != null) {
+                                if (PWM_MAIN.getObject(loopEpsID) !== null) {
                                     console.log('EpsID=' + loopEpsID + ', ' + 'Eps=' + loopEpsValue + ', ' + 'Epm=' + loopEpmValue);
                                     if (registry.byId(loopEpsID)) {
                                         registry.byId(loopEpsID).setAttribute('value',loopEpmValue);
@@ -617,7 +617,7 @@ PWM_ADMIN.showStatChart = function(statName,days,divName,options) {
                         }
                         PWM_GLOBAL['epsActivityCount'] = activityCount;
                     }
-                    if (divName != null && PWM_MAIN.getObject(divName)) { // stats chart
+                    if (divName !== null && PWM_MAIN.getObject(divName)) { // stats chart
                         var values = [];
                         for(var key in data['nameData']) {
                             var value = data['nameData'][key];
@@ -656,7 +656,7 @@ PWM_ADMIN.showAppHealth = function(parentDivID, options, refreshNow) {
     console.log('starting showPwmHealth: refreshTime=' + refreshTime);
     require(["dojo"],function(dojo){
         var parentDiv = dojo.byId(parentDivID);
-        if (PWM_GLOBAL['inhibitHealthUpdate'] == true) {
+        if (PWM_GLOBAL['inhibitHealthUpdate'] === true) {
             try { parentDiv.innerHTML = ''; } catch (e) { console.log('unable to update health div' + e) };
             return;
         }
@@ -702,7 +702,7 @@ PWM_ADMIN.showAppHealth = function(parentDivID, options, refreshNow) {
         };
 
         var errorFunction = function(error) {
-            if (error != null) {
+            if (error !== null) {
                 console.log('error reaching server: ' + error);
             }
             var htmlBody = '<div style="text-align:center; background-color: #d20734">';
@@ -772,30 +772,27 @@ PWM_ADMIN.detailView = function(evt, headers, grid){
         (function(key){
             var value = key in row.data ? row.data[key] : '';
             var label = headers[key];
+            var id = "record-detail-" + key;
             text += '<tr><td class="key">' + label + '</td>';
-            text += '<td>';
+            text += '<td><span id="' + id + '" style="max-height: 200px; overflow: auto; max-width: 400px" class="timestamp">';
             if (key.toLowerCase().indexOf('time') >= 0) {
-                text += '<span class="timestamp" id="field-detail-' + key + '">' + value + '</span>';
                 PWM_MAIN.TimestampHandler.testIfStringIsTimestamp(value,function(){
                     postExecuteFunctions.push(function() {
-                        PWM_MAIN.TimestampHandler.initElement(PWM_MAIN.getObject('field-detail-' + key));
+                        PWM_MAIN.TimestampHandler.initElement(PWM_MAIN.getObject(id));
                     });
                 });
-            } else if (key == 'message') {
-                var out = value.replace('\n', '<br/>');
-                text += '<div style="max-height: 200px; overflow: auto; max-width: 400px">' + out + '</div>'
-            } else {
-                text += value;
             }
-            text += '</td></tr>';
+            text += '</span></td></tr>';
+            postExecuteFunctions.push(function(){
+                PWM_MAIN.getObject(id).appendChild(document.createTextNode(value));
+            });
         })(item);
     }
     text += '</table>';
     PWM_MAIN.showDialog({title:"Record Detail",text:text,showClose:true,allowMove:true,loadFunction:function(){
-        for (i = 0; i < postExecuteFunctions.length; i++) {
+        for (var i = 0; i < postExecuteFunctions.length; i++) {
             postExecuteFunctions[i]();
         }
-
     }});
 };
 

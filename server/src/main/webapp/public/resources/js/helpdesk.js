@@ -40,7 +40,7 @@ PWM_HELPDESK.executeAction = function(actionName) {
                 url = PWM_MAIN.addParamToUrl(url, "name", actionName);
                 var loadFunction = function(data) {
                     PWM_MAIN.closeWaitDialog();
-                    if (data['error'] == true) {
+                    if (data['error'] === true) {
                         PWM_MAIN.showDialog({title: PWM_MAIN.showString('Title_Error'), text: data['errorDetail']});
                     } else {
                         PWM_MAIN.showDialog({title: PWM_MAIN.showString('Title_Success'), text: data['successMessage'], nextAction: function () {
@@ -86,7 +86,7 @@ PWM_HELPDESK.doPasswordChange = function(password, random) {
         var url = "helpdesk?processAction=setPassword";
         var loadFunction = function(results) {
             var bodyText = "";
-            if (results['error'] == true) {
+            if (results['error'] === true) {
                 bodyText += results['errorMessage'];
                 if (results['errorMessage']) {
                     bodyText += '<br/><br/>';
@@ -109,7 +109,7 @@ PWM_HELPDESK.doPasswordChange = function(password, random) {
             }
             bodyText += '<br/><br/><button class="btn" id="button-continue">'
                 + '<span class="btn-icon pwm-icon pwm-icon-forward"></span>' + PWM_MAIN.showString('Button_OK') + '</button>';
-            if (PWM_VAR['helpdesk_setting_clearResponses'] == 'ask') {
+            if (PWM_VAR['helpdesk_setting_clearResponses'] === 'ask') {
                 bodyText += '<span style="padding-left: 10px">&nbsp;</span>';
                 bodyText += '<button class="btn" id="button-clearResponses">';
                 bodyText += '<span class="btn-icon pwm-icon pwm-icon-eraser"></span>' + PWM_MAIN.showString('Button_ClearResponses') + '</button>';
@@ -188,7 +188,7 @@ PWM_HELPDESK.changePasswordPopup = function() {
 
     bodyText += '</tr></table><br/>';
     bodyText += '<button name="change" class="btn" id="password_button" disabled="true"><span class="btn-icon pwm-icon pwm-icon-key"></span>' + PWM_MAIN.showString('Button_ChangePassword') + '</button>';
-    if (PWM_VAR['helpdesk_setting_PwUiMode'] == 'both') {
+    if (PWM_VAR['helpdesk_setting_PwUiMode'] === 'both') {
         bodyText += '<button name="random" class="btn" id="button-autoGeneratePassword"><span class="btn-icon pwm-icon pwm-icon-retweet"></span>' + PWM_MAIN.showString('Title_RandomPasswords') + '</button>';
     }
 
@@ -225,9 +225,9 @@ PWM_HELPDESK.changePasswordPopup = function() {
 };
 
 PWM_HELPDESK.initiateChangePasswordDialog = function() {
-    if (PWM_VAR['helpdesk_setting_PwUiMode'] == 'autogen') {
+    if (PWM_VAR['helpdesk_setting_PwUiMode'] === 'autogen') {
         PWM_HELPDESK.generatePasswordPopup();
-    } else if (PWM_VAR['helpdesk_setting_PwUiMode'] == 'random') {
+    } else if (PWM_VAR['helpdesk_setting_PwUiMode'] === 'random') {
         PWM_HELPDESK.setRandomPasswordPopup();
     } else {
         PWM_HELPDESK.changePasswordPopup();
@@ -338,7 +338,7 @@ PWM_HELPDESK.processHelpdeskSearch = function() {
         PWM_MAIN.getObject('searchIndicator').style.display = 'none';
     };
     validationProps['processResultsFunction'] = function(data) {
-        if (data == null) {
+        if (data === null) {
             PWM_MAIN.showErrorDialog(PWM_MAIN.showString('Display_HelpdeskNoData'));
         } else {
             var grid = PWM_VAR['heldesk_search_grid'];
@@ -409,7 +409,7 @@ PWM_HELPDESK.deleteUser = function() {
             var url = "helpdesk?processAction=deleteUser&userKey=" + PWM_VAR['helpdesk_obfuscatedDN'];
             var loadFunction = function(data) {
                 PWM_MAIN.closeWaitDialog();
-                if (data['error'] == true) {
+                if (data['error'] === true) {
                     PWM_MAIN.showErrorDialog(error);
                 } else {
                     PWM_MAIN.showDialog({title: PWM_MAIN.showString('Title_Success'), text: data['successMessage'], okAction: function () {
@@ -491,7 +491,7 @@ PWM_HELPDESK.validateCode = function(options) {
         + '</tr></td></table></div>';
 
     var successFunction = function() {
-        if (PWM_MAIN.getObject('application-info').getAttribute('data-jsp-name') == 'helpdesk.jsp') {
+        if (PWM_MAIN.getObject('application-info').getAttribute('data-jsp-name') === 'helpdesk.jsp') {
             PWM_HELPDESK.loadSearchDetails(userKey);
         }
     };
@@ -512,7 +512,7 @@ PWM_HELPDESK.validateCode = function(options) {
 
 PWM_HELPDESK.sendVerificationToken = function(userKey, methods) {
     var sendMethodSetting = PWM_VAR["helpdesk_setting_tokenSendMethod"];
-    var tokenChoiceFlag = sendMethodSetting == 'CHOICE_SMS_EMAIL';
+    var tokenChoiceFlag = sendMethodSetting === 'CHOICE_SMS_EMAIL';
 
     var sendTokenAction = function(choice) {
         var sendContent = {};
@@ -542,11 +542,11 @@ PWM_HELPDESK.sendVerificationToken = function(userKey, methods) {
             + '<span class="btn-icon pwm-icon pwm-icon-database "></span>' + PWM_MAIN.showString('Button_Attributes') + '</button><br/>';
     }
     if (PWM_MAIN.JSLibrary.arrayContains(methods,'TOKEN')) {
-        if (tokenChoiceFlag || sendMethodSetting == 'EMAILONLY') {
+        if (tokenChoiceFlag || sendMethodSetting === 'EMAILONLY') {
             dialogText += '<br/><button class="btn" type="button" name="emailChoiceButton" id="emailChoiceButton">'
                 + '<span class="btn-icon pwm-icon pwm-icon-envelope-o"></span>' + PWM_MAIN.showString('Button_Email') + '</button>';
         }
-        if (tokenChoiceFlag || sendMethodSetting == 'SMSONLY') {
+        if (tokenChoiceFlag || sendMethodSetting === 'SMSONLY') {
             dialogText += '<br/><br/><button class="btn" type="button" name="smsChoiceButton" id="smsChoiceButton">'
                 + '<span class="btn-icon pwm-icon pwm-icon-phone"></span>' + PWM_MAIN.showString('Button_SMS') + '</button>';
         }
@@ -680,7 +680,7 @@ PWM_HELPDESK.initHelpdeskDetailPage = function() {
 PWM_HELPDESK.initPage = function() {
     var applicationData = PWM_MAIN.getObject("application-info");
     var jspName = applicationData ? applicationData.getAttribute("data-jsp-name") : "";
-    if ("helpdesk.jsp" == jspName || "helpdesk-detail.jsp" == jspName) {
+    if ("helpdesk.jsp" === jspName || "helpdesk-detail.jsp" === jspName) {
         PWM_MAIN.ajaxRequest("helpdesk?processAction=clientData",function(data){
             if (data['error']) {
                 PWM_MAIN.showErrorDialog(data);
@@ -690,10 +690,10 @@ PWM_HELPDESK.initPage = function() {
                 PWM_VAR[keyName] = data['data'][keyName];
             }
             console.log('loaded helpdesk clientData');
-            if ("helpdesk.jsp" == jspName) {
+            if ("helpdesk.jsp" === jspName) {
                 PWM_HELPDESK.initHelpdeskSearchPage();
             }
-            if ("helpdesk-detail.jsp" == jspName) {
+            if ("helpdesk-detail.jsp" === jspName) {
                 PWM_HELPDESK.initHelpdeskDetailPage();
             }
         },{method:"GET"});
@@ -714,7 +714,7 @@ PWM_HELPDESK.unlockIntruder = function() {
                     var url = PWM_MAIN.addParamToUrl(window.location.href,"processAction", "unlockIntruder");
                     url = PWM_MAIN.addParamToUrl(url, "userKey", PWM_VAR['helpdesk_obfuscatedDN']);
                     var load = function(data) {
-                        if (data['error'] == true) {
+                        if (data['error'] === true) {
                             PWM_MAIN.showErrorDialog(error);
                         } else {
                             PWM_MAIN.showDialog({
@@ -739,7 +739,7 @@ PWM_HELPDESK.doOtpClear = function() {
     PWM_MAIN.showWaitDialog({loadFunction:function() {
         var url = PWM_MAIN.addParamToUrl(window.location.href,"processAction", "clearOtpSecret");
         var loadFunction = function(results) {
-            if (results['error'] != true) {
+            if (results['error'] !== true) {
                 PWM_MAIN.showDialog({
                     title: PWM_MAIN.showString('Button_HelpdeskClearOtpSecret'),
                     text: results['successMessage'],

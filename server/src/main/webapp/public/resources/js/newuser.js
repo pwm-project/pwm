@@ -65,8 +65,8 @@ PWM_NEWUSER.updateDisplay=function(data) {
         var resultInfo = data['data'];
         var message = resultInfo["message"];
 
-        if (resultInfo["passed"] == true) {
-            if (resultInfo["match"] == "MATCH") {
+        if (resultInfo["passed"] === true) {
+            if (resultInfo["match"] === "MATCH") {
                 PWM_MAIN.getObject("submitBtn").disabled = false;
                 PWM_MAIN.showSuccess(message);
             } else {
@@ -85,12 +85,12 @@ PWM_NEWUSER.updateDisplay=function(data) {
 
 PWM_NEWUSER.markConfirmationCheck=function(matchStatus) {
     if (PWM_MAIN.getObject("confirmCheckMark") || PWM_MAIN.getObject("confirmCrossMark")) {
-        if (matchStatus == "MATCH") {
+        if (matchStatus === "MATCH") {
             PWM_MAIN.getObject("confirmCheckMark").style.visibility = 'visible';
             PWM_MAIN.getObject("confirmCrossMark").style.visibility = 'hidden';
             PWM_MAIN.getObject("confirmCheckMark").width = '15';
             PWM_MAIN.getObject("confirmCrossMark").width = '0';
-        } else if (matchStatus == "NO_MATCH") {
+        } else if (matchStatus === "NO_MATCH") {
             PWM_MAIN.getObject("confirmCheckMark").style.visibility = 'hidden';
             PWM_MAIN.getObject("confirmCrossMark").style.visibility = 'visible';
             PWM_MAIN.getObject("confirmCheckMark").width = '0';
@@ -105,7 +105,7 @@ PWM_NEWUSER.markConfirmationCheck=function(matchStatus) {
 };
 
 PWM_NEWUSER.markStrength=function(strength) { //strength meter
-    if (PWM_MAIN.getObject("strengthBox") == null) {
+    if (PWM_MAIN.getObject("strengthBox") === null) {
         return;
     }
 
@@ -130,14 +130,14 @@ PWM_NEWUSER.markStrength=function(strength) { //strength meter
     var gradColor = colorFade(COLOR_BAR_BOTTOM, COLOR_BAR_TOP, strength / 100).toString(16) + '';
 
     var barObject = PWM_MAIN.getObject("strengthBar");
-    if (barObject != null && strength != null) {
+    if (barObject !== null && strength !== null) {
         barObject.style.width = strength + '%';
         barObject.style.backgroundColor = '#' + gradColor;
     }
 
     var labelObject = PWM_MAIN.getObject("strengthLabel");
-    if (labelObject != null) {
-        labelObject.innerHTML = strengthLabel == null ? "" : strengthLabel;
+    if (labelObject !== null) {
+        labelObject.innerHTML = strengthLabel === null ? "" : strengthLabel;
     }
 };
 
@@ -158,7 +158,7 @@ PWM_NEWUSER.refreshCreateStatus=function(refreshInterval) {
                 progressBar.set("value",data['data']['percentComplete']);
             }
 
-            if (data['data']['complete'] == true) {
+            if (data['data']['complete'] === true) {
                 PWM_MAIN.goto(completedUrl,{delay:1000})
             } else {
                 setTimeout(function(){

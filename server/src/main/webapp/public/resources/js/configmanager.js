@@ -30,7 +30,7 @@ PWM_CONFIG.lockConfiguration=function() {
         PWM_MAIN.showWaitDialog({loadFunction:function() {
             var url = 'ConfigManager?processAction=lockConfiguration';
             var loadFunction = function(data) {
-                if (data['error'] == true) {
+                if (data['error'] === true) {
                     PWM_MAIN.closeWaitDialog();
                     PWM_MAIN.showDialog({
                         title: PWM_MAIN.showString('Title_Error'),
@@ -208,7 +208,7 @@ PWM_CONFIG.showHeaderHealth = function() {
     if (parentDiv && headerDiv) {
         var loadFunction = function(data) {
             if (data['data'] && data['data']['overall']) {
-                var hasWarnTopics = data['data']['overall'] == 'WARN';
+                var hasWarnTopics = data['data']['overall'] === 'WARN';
                 console.log('has health errors: ' + hasWarnTopics);
                 if (hasWarnTopics) {
                     PWM_MAIN.removeCssClass('header-menu-alert','display-none');
@@ -261,7 +261,7 @@ PWM_CONFIG.downloadConfig = function () {
 
 PWM_CONFIG.downloadSupportBundle = function() {
     var dialogText = '';
-    if (PWM_VAR['config_localDBLogLevel'] != 'TRACE') {
+    if (PWM_VAR['config_localDBLogLevel'] !== 'TRACE') {
         dialogText += PWM_CONFIG.showString("Warning_MakeSupportZipNoTrace");
         dialogText += '<br/><br/>';
     }
@@ -313,7 +313,7 @@ PWM_CONFIG.heartbeatCheck = function() {
     var loadFunction = function(data) {
         try {
             var serverStartTime = data['data']['PWM_GLOBAL']['startupTime'];
-            if (serverStartTime != PWM_GLOBAL['startupTime']) {
+            if (serverStartTime !== PWM_GLOBAL['startupTime']) {
                 var message = "Application appears to have be restarted.";
                 handleErrorFunction(message);
             } else {

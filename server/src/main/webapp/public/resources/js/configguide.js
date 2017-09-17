@@ -32,7 +32,7 @@ PWM_GUIDE.selectTemplate = function(template) {
         url = PWM_MAIN.addParamToUrl(url, 'template', template);
         PWM_MAIN.showDialog(url,function(result){
             if (!result['error']) {
-                PWM_MAIN.getObject('button_next').disabled = template == "NOTSELECTED";
+                PWM_MAIN.getObject('button_next').disabled = template === "NOTSELECTED";
                 PWM_MAIN.closeWaitDialog();
             } else {
                 PWM_MAIN.showError(result['errorDetail']);

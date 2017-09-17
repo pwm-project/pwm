@@ -66,7 +66,7 @@ LocalizedStringValueHandler.draw = function(settingKey) {
         PWM_MAIN.addEventHandler('button-' + settingKey + '-addValue','click',function(){
             UILibrary.stringEditorDialog({
                 title:'Add Value',
-                textarea:('LOCALIZED_TEXT_AREA' == settingData['syntax']),
+                textarea:('LOCALIZED_TEXT_AREA' === settingData['syntax']),
                 regex:'pattern' in settingData ? settingData['pattern'] : '.+',
                 placeholder:settingData['placeholder'],
                 value:'',
@@ -95,7 +95,7 @@ LocalizedStringValueHandler.drawRow = function(parentDiv, settingKey, localeStri
     newTableRow.setAttribute("style", "border-width: 0");
 
     var tableHtml = '<td style="border-width:0; width: 15px">';
-    if (localeString != null && localeString.length > 0) {
+    if (localeString !== null && localeString.length > 0) {
         tableHtml += localeString;
     }
     tableHtml += '</td>';
@@ -106,7 +106,7 @@ LocalizedStringValueHandler.drawRow = function(parentDiv, settingKey, localeStri
     tableHtml += '<div id="value-' + inputID + '" class="configStringPanel"></div>';
     tableHtml += '</td>';
 
-    var defaultLocale = (localeString == null || localeString.length < 1);
+    var defaultLocale = (localeString === null || localeString.length < 1);
     var required = settingData['required'];
     var hasNonDefaultValues = PWM_MAIN.JSLibrary.itemCount(PWM_VAR['clientSettingCache'][settingKey]) > 1 ;
 
@@ -122,12 +122,12 @@ LocalizedStringValueHandler.drawRow = function(parentDiv, settingKey, localeStri
     PWM_MAIN.addEventHandler("button-" + settingKey + '-' + localeString + "-deleteRow","click",function(){
         LocalizedStringValueHandler.removeLocaleSetting(settingKey, localeString);
     });
-    UILibrary.addTextValueToElement('value-' + inputID, (value != null && value.length > 0) ? value : ' ');
+    UILibrary.addTextValueToElement('value-' + inputID, (value !== null && value.length > 0) ? value : ' ');
 
     var editFunction = function() {
         UILibrary.stringEditorDialog({
             title:'Edit Value',
-            textarea:('LOCALIZED_TEXT_AREA' == settingData['syntax']),
+            textarea:('LOCALIZED_TEXT_AREA' === settingData['syntax']),
             regex:'pattern' in settingData ? settingData['pattern'] : '.+',
             placeholder:settingData['placeholder'],
             value:value,
@@ -163,7 +163,7 @@ LocalizedStringValueHandler.addLocaleSetting = function(settingKey, localeKey) {
     } else {
         UILibrary.stringEditorDialog({
             title:'Add Value - ' + localeKey,
-            textarea:('LOCALIZED_TEXT_AREA' == settingData['syntax']),
+            textarea:('LOCALIZED_TEXT_AREA' === settingData['syntax']),
             regex:'pattern' in settingData ? settingData['pattern'] : '.+',
             placeholder:settingData['placeholder'],
             value:'',
@@ -196,7 +196,7 @@ StringArrayValueHandler.init = function(keyName) {
         StringArrayValueHandler.draw(keyName);
 
         var syntax = PWM_SETTINGS['settings'][keyName]['syntax'];
-        if (syntax == 'PROFILE') {
+        if (syntax === 'PROFILE') {
             PWM_MAIN.getObject("resetButton-" + keyName).style.display = 'none';
             PWM_MAIN.getObject("helpButton-" + keyName).style.display = 'none';
             PWM_MAIN.getObject("modifiedNoticeIcon-" + keyName).style.display = 'none';
@@ -216,7 +216,7 @@ StringArrayValueHandler.draw = function(settingKey) {
     tableElement.setAttribute("style", "border-width: 0;");
 
     var syntax = PWM_SETTINGS['settings'][settingKey]['syntax'];
-    if (syntax == 'PROFILE') {
+    if (syntax === 'PROFILE') {
         var divDescriptionElement = document.createElement("div");
         var text = PWM_SETTINGS['settings'][settingKey]['description'];
         text += '<br/>' + PWM_CONFIG.showString('Display_ProfileNamingRules');
@@ -246,7 +246,7 @@ StringArrayValueHandler.draw = function(settingKey) {
         addItemButton.setAttribute("type", "button");
         addItemButton.setAttribute("class", "btn");
         addItemButton.setAttribute("id", "button-" + settingKey + "-addItem");
-        addItemButton.innerHTML = '<span class="btn-icon pwm-icon pwm-icon-plus-square"></span>' + (syntax == 'PROFILE' ? "Add Profile" : "Add Value");
+        addItemButton.innerHTML = '<span class="btn-icon pwm-icon pwm-icon-plus-square"></span>' + (syntax === 'PROFILE' ? "Add Profile" : "Add Value");
         parentDivElement.appendChild(addItemButton);
 
         PWM_MAIN.addEventHandler('button-' + settingKey + '-addItem', 'click', function () {
@@ -266,12 +266,12 @@ StringArrayValueHandler.drawRow = function(settingKey, iteration, value, itemCou
     valueRow.setAttribute("id",inputID + "_row");
 
     var rowHtml = '';
-    if (syntax != 'PROFILE') {
+    if (syntax !== 'PROFILE') {
         rowHtml = '<td id="button-' + inputID + '" style="border-width:0; width: 15px"><span class="pwm-icon pwm-icon-edit"/></td>';
     }
     rowHtml += '<td style=""><div class="configStringPanel" id="' + inputID + '"></div></td>';
 
-    if (syntax == 'PROFILE') {
+    if (syntax === 'PROFILE') {
         var copyButtonID = 'button-' + settingKey + '-' + iteration + '-copy';
         rowHtml += '<td class="noborder nopadding" style="width:10px" title="Copy">';
         rowHtml += '<span id="' + copyButtonID + '" class="action-icon pwm-icon pwm-icon-copy"></span>';
@@ -280,14 +280,14 @@ StringArrayValueHandler.drawRow = function(settingKey, iteration, value, itemCou
 
     var downButtonID = 'button-' + settingKey + '-' + iteration + '-moveDown';
     rowHtml += '<td class="noborder nopadding" style="width:10px" title="Move Down">';
-    if (itemCount > 1 && iteration != (itemCount -1)) {
+    if (itemCount > 1 && iteration !== (itemCount -1)) {
         rowHtml += '<span id="' + downButtonID + '" class="action-icon pwm-icon pwm-icon-chevron-down"></span>';
     }
     rowHtml += '</td>';
 
     var upButtonID = 'button-' + settingKey + '-' + iteration + '-moveUp';
     rowHtml += '<td class="noborder nopadding" style="width:10px" title="Move Up">';
-    if (itemCount > 1 && iteration != 0) {
+    if (itemCount > 1 && iteration !== 0) {
         rowHtml += '<span id="' + upButtonID + '" class="action-icon pwm-icon pwm-icon-chevron-up"></span>';
     }
     rowHtml += '</td>';
@@ -305,7 +305,7 @@ StringArrayValueHandler.drawRow = function(settingKey, iteration, value, itemCou
     parentDivElement.appendChild(valueRow);
 
     UILibrary.addTextValueToElement(inputID, value);
-    if (syntax != 'PROFILE') {
+    if (syntax !== 'PROFILE') {
         PWM_MAIN.addEventHandler(inputID,'click',function(){
             StringArrayValueHandler.valueHandler(settingKey,iteration);
         });
@@ -338,11 +338,11 @@ StringArrayValueHandler.drawRow = function(settingKey, iteration, value, itemCou
         });
     }
 
-    if (itemCount > 1 && iteration != (itemCount -1)) {
+    if (itemCount > 1 && iteration !== (itemCount -1)) {
         PWM_MAIN.addEventHandler(downButtonID,'click',function(){StringArrayValueHandler.move(settingKey,false,iteration)});
     }
 
-    if (itemCount > 1 && iteration != 0) {
+    if (itemCount > 1 && iteration !== 0) {
         PWM_MAIN.addEventHandler(upButtonID,'click',function(){StringArrayValueHandler.move(settingKey,true,iteration)});
     }
 
@@ -400,7 +400,7 @@ StringArrayValueHandler.removeValue = function(settingKey, iteration) {
         currentValues.splice(iteration,1);
         StringArrayValueHandler.writeSetting(settingKey,false);
     };
-    if (syntax == 'PROFILE') {
+    if (syntax === 'PROFILE') {
         PWM_MAIN.showConfirmDialog({
             text:PWM_CONFIG.showString('Confirm_RemoveProfile',{value1:profileName}),
             okAction:function(){
@@ -415,7 +415,7 @@ StringArrayValueHandler.removeValue = function(settingKey, iteration) {
 StringArrayValueHandler.writeSetting = function(settingKey, reload) {
     var syntax = PWM_SETTINGS['settings'][settingKey]['syntax'];
     var nextFunction = function() {
-        if (syntax == 'PROFILE') {
+        if (syntax === 'PROFILE') {
             PWM_MAIN.goto('editor');
         }
         if (reload) {
@@ -479,7 +479,7 @@ MultiLocaleTableHandler.draw = function(keyName) {
                 // clear the old dijit node (if it exists)
                 var inputID = "value-" + keyName + "-" + localeName + "-" + iteration;
                 var oldDijitNode = registry.byId(inputID);
-                if (oldDijitNode != null) {
+                if (oldDijitNode !== null) {
                     try {
                         oldDijitNode.destroy();
                     } catch (error) {
@@ -525,7 +525,7 @@ MultiLocaleTableHandler.draw = function(keyName) {
                 localeTableElement.appendChild(newTableRow);
             }
 
-            if (localeName != '') { // add remove locale x
+            if (localeName !== '') { // add remove locale x
                 var imgElement2 = document.createElement("div");
                 imgElement2.setAttribute("id", "div-" + keyName + "-" + localeName + "-remove");
                 imgElement2.setAttribute("class", "delete-row-icon action-icon pwm-icon pwm-icon-times");
@@ -580,15 +580,15 @@ MultiLocaleTableHandler.draw = function(keyName) {
 };
 
 MultiLocaleTableHandler.writeMultiLocaleSetting = function(settingKey, locale, iteration, value) {
-    if (locale != null) {
-        if (PWM_VAR['clientSettingCache'][settingKey][locale] == null) {
+    if (locale !== null) {
+        if (PWM_VAR['clientSettingCache'][settingKey][locale] === null) {
             PWM_VAR['clientSettingCache'][settingKey][locale] = [ "" ];
         }
 
-        if (iteration == null) {
+        if (iteration === null) {
             delete PWM_VAR['clientSettingCache'][settingKey][locale];
         } else {
-            if (value == null) {
+            if (value === null) {
                 PWM_VAR['clientSettingCache'][settingKey][locale].splice(iteration,1);
             } else {
                 PWM_VAR['clientSettingCache'][settingKey][locale][iteration] = value;
@@ -670,14 +670,14 @@ FormTableHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
         htmlRow += '<td style="width:1px" id="icon-editLabel-' + inputID + '"><span class="btn-icon pwm-icon pwm-icon-edit"></span></td>';
         htmlRow += '<td style="background: #f6f9f8; border:1px solid #dae1e1; width:170px"><div style="" class="noWrapTextBox " id="' + inputID + 'label"><span>' + value['labels'][''] + '</span></div></td>';
 
-        var userDNtypeAllowed = options['type-userDN'] == 'show';
+        var userDNtypeAllowed = options['type-userDN'] === 'show';
         if (!PWM_MAIN.JSLibrary.isEmpty(options)) {
             htmlRow += '<td style="width:15px;">';
             htmlRow += '<select id="' + inputID + 'type">';
             for (var optionItem in options) {
-                //if (optionList[optionItem] != 'userDN' || userDNtypeAllowed) {
+                //if (optionList[optionItem] !== 'userDN' || userDNtypeAllowed) {
                 var optionName = options[optionItem];
-                var selected = (optionName == PWM_VAR['clientSettingCache'][settingKey][iteration]['type']);
+                var selected = (optionName === PWM_VAR['clientSettingCache'][settingKey][iteration]['type']);
                 htmlRow += '<option value="' + optionName + '"' + (selected ? " selected" : "") + '>' + optionName + '</option>';
                 //}
             }
@@ -691,13 +691,13 @@ FormTableHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
         }
 
         htmlRow += '<td style="width:10px">';
-        if (itemCount > 1 && iteration != (itemCount -1)) {
+        if (itemCount > 1 && iteration !== (itemCount -1)) {
             htmlRow += '<span id="' + inputID + '-moveDown" class="action-icon pwm-icon pwm-icon-chevron-down"></span>';
         }
         htmlRow += '</td>';
 
         htmlRow += '<td style="width:10px">';
-        if (itemCount > 1 && iteration != 0) {
+        if (itemCount > 1 && iteration !== 0) {
             htmlRow += '<span id="' + inputID + '-moveUp" class="action-icon pwm-icon pwm-icon-chevron-up"></span>';
         }
         htmlRow += '</td>';
@@ -781,7 +781,7 @@ FormTableHandler.addRow = function(keyName) {
         placeholder:'FieldName',
         completeFunction:function(value){
             for (var i in PWM_VAR['clientSettingCache'][keyName]) {
-                if (PWM_VAR['clientSettingCache'][keyName][i]['name'] == value) {
+                if (PWM_VAR['clientSettingCache'][keyName][i]['name'] === value) {
                     alert('field already exists');
                     return;
                 }
@@ -804,11 +804,11 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
     var currentValue = PWM_VAR['clientSettingCache'][keyName][iteration];
 
     var hideStandardOptions = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_HideStandardOptions');
-    var showRequired = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_ShowRequiredOption') && (type != 'checkbox');
+    var showRequired = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_ShowRequiredOption') && (type !== 'checkbox');
     var showUnique = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_ShowUniqueOption');
     var showReadOnly = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_ShowReadOnlyOption');
     var showMultiValue = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_ShowMultiValueOption');
-    var showConfirmation = type != 'checkbox' && type != 'select' && !hideStandardOptions;
+    var showConfirmation = type !== 'checkbox' && type !== 'select' && !hideStandardOptions;
     var showSource = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_ShowSource');
 
 
@@ -1004,7 +1004,7 @@ FormTableHandler.multiLocaleStringDialog = function(keyName, iteration, settingT
             var localeID = inputID + localeName;
             bodyText += '<td>' + localeName + '</td>';
             bodyText += '<td><input style="width:420px" class="configStringInput" type="text" value="' + value + '" id="' + localeID + '-input"></input></td>';
-            if (localeName != '') {
+            if (localeName !== '') {
                 bodyText += '<td><span class="delete-row-icon action-icon pwm-icon pwm-icon-times" id="' + localeID + '-removeLocaleButton"></span></td>';
             }
             bodyText += '</tr><tr>';
@@ -1103,12 +1103,12 @@ FormTableHandler.showSelectOptionsDialog = function(keyName, iteration) {
 };
 
 FormTableHandler.addSelectOptionsOption = function(keyName, iteration, optionName, optionValue) {
-    if (optionName == null || optionName.length < 1) {
+    if (optionName === null || optionName.length < 1) {
         alert('Name field is required');
         return;
     }
 
-    if (optionValue == null || optionValue.length < 1) {
+    if (optionValue === null || optionValue.length < 1) {
         alert('Value field is required');
         return;
     }
@@ -1209,7 +1209,7 @@ ChangePasswordHandler.validatePasswordPopupFields = function(settingKey) {
         PWM_MAIN.removeCssClass('field-password-length','invalid-value');
         if (password2.length > 0) {
 
-            if (password1 == password2) {
+            if (password1 === password2) {
                 matchStatus = "MATCH";
                 PWM_MAIN.getObject('button-storePassword').disabled = false;
             } else {
@@ -1222,12 +1222,12 @@ ChangePasswordHandler.validatePasswordPopupFields = function(settingKey) {
 };
 
 ChangePasswordHandler.markConfirmationCheck = function(matchStatus) {
-    if (matchStatus == "MATCH") {
+    if (matchStatus === "MATCH") {
         PWM_MAIN.getObject("confirmCheckMark").style.visibility = 'visible';
         PWM_MAIN.getObject("confirmCrossMark").style.visibility = 'hidden';
         PWM_MAIN.getObject("confirmCheckMark").width = '15';
         PWM_MAIN.getObject("confirmCrossMark").width = '0';
-    } else if (matchStatus == "NO_MATCH") {
+    } else if (matchStatus === "NO_MATCH") {
         PWM_MAIN.getObject("confirmCheckMark").style.visibility = 'hidden';
         PWM_MAIN.getObject("confirmCrossMark").style.visibility = 'visible';
         PWM_MAIN.getObject("confirmCheckMark").width = '0';
@@ -1464,7 +1464,7 @@ ActionHandler.drawRow = function(settingKey, iteration, value) {
     htmlRow += '</td><td>';
     htmlRow += '<select id="select-' + inputID + '-type">';
     for (var optionItem in optionList) {
-        var selected = optionList[optionItem] == PWM_VAR['clientSettingCache'][settingKey][iteration]['type'];
+        var selected = optionList[optionItem] === PWM_VAR['clientSettingCache'][settingKey][iteration]['type'];
         htmlRow += '<option value="' + optionList[optionItem] + '"' + (selected ? ' selected' : '') + '>' + optionList[optionItem] + '</option>';
     }
     htmlRow += '</select>';
@@ -1563,7 +1563,7 @@ ActionHandler.showOptionsDialog = function(keyName, iteration) {
             for (var optionItem in ActionHandler.httpMethodOptions) {
                 var label = ActionHandler.httpMethodOptions[optionItem]['label'];
                 var optionValue = ActionHandler.httpMethodOptions[optionItem]['value'];
-                var selected = optionValue == value['method'];
+                var selected = optionValue === value['method'];
                 bodyText += '<option value="' + optionValue + '"' + (selected ? ' selected' : '') + '>' + label + '</option>';
             }
             bodyText += '</td>';
@@ -1596,7 +1596,7 @@ ActionHandler.showOptionsDialog = function(keyName, iteration) {
             for (var optionItem in ActionHandler.ldapMethodOptions) {
                 var label = ActionHandler.ldapMethodOptions[optionItem]['label'];
                 var optionValue = ActionHandler.ldapMethodOptions[optionItem]['value'];
-                var selected = optionValue == value['ldapMethod'];
+                var selected = optionValue === value['ldapMethod'];
                 bodyText += '<option value="' + optionValue + '"' + (selected ? ' selected' : '') + '>' + label + '</option>';
             }
             bodyText += '</td></tr>';
@@ -1681,7 +1681,7 @@ ActionHandler.showOptionsDialog = function(keyName, iteration) {
                         });
                     }
 
-                } else if (value['type'] == 'ldap') {
+                } else if (value['type'] === 'ldap') {
                     PWM_MAIN.addEventHandler('input-' + inputID + '-attributeName','input',function(){
                         value['attributeName'] = PWM_MAIN.getObject('input-' + inputID + '-attributeName').value;
                         ActionHandler.write(keyName);
@@ -1845,7 +1845,7 @@ EmailTableHandler.draw = function(settingKey) {
 };
 
 EmailTableHandler.drawRowHtml = function(settingKey, localeName) {
-    var localeLabel = localeName == '' ? 'Default Locale' : PWM_GLOBAL['localeInfo'][localeName] + " (" + localeName + ")";
+    var localeLabel = localeName === '' ? 'Default Locale' : PWM_GLOBAL['localeInfo'][localeName] + " (" + localeName + ")";
     var idPrefix = "setting-" + localeName + "-" + settingKey;
     var htmlBody = '';
     htmlBody += '<table class="noborder" style=""><tr ><td class="noborder" style="max-width: 440px">';
@@ -1866,7 +1866,7 @@ EmailTableHandler.drawRowHtml = function(settingKey, localeName) {
     outputFunction('HTML Body', 'bodyHtml');
 
     htmlBody += '</table></td><td class="noborder" style="width:20px; vertical-align:top">';
-    if (localeName != '' || PWM_MAIN.JSLibrary.itemCount(PWM_VAR['clientSettingCache'][settingKey]) < 2) { // add remove locale x
+    if (localeName !== '' || PWM_MAIN.JSLibrary.itemCount(PWM_VAR['clientSettingCache'][settingKey]) < 2) { // add remove locale x
         htmlBody += '<div id="button-deleteRow-' + idPrefix + '" style="vertical-align:top" class="delete-row-icon action-icon pwm-icon pwm-icon-times"></div>';
     }
     htmlBody += '</td></tr></table><br/>';
@@ -2039,7 +2039,7 @@ UserPermissionHandler.draw = function(keyName) {
                 + '<datalist id="' + inputID + '-datalist"/></td>'
                 + '</tr>';
 
-            if (resultValue[rowKey]['type'] != 'ldapGroup') {
+            if (resultValue[rowKey]['type'] !== 'ldapGroup') {
                 htmlBody += '<tr>'
                     + '<td><span id="' + inputID + '_FilterHeader' + '">' + PWM_CONFIG.showString('Setting_Permission_Filter') + '</span></td>'
                     + '<td id="icon-edit-query-' + inputID + '"><div title="Edit Value" class="btn-icon pwm-icon pwm-icon-edit"></div></td>'
@@ -2049,7 +2049,7 @@ UserPermissionHandler.draw = function(keyName) {
 
             htmlBody += '<tr>'
                 + '<td><span id="' + inputID + '_BaseHeader' + '">'
-                + PWM_CONFIG.showString((resultValue[rowKey]['type'] == 'ldapGroup') ?  'Setting_Permission_Base_Group' : 'Setting_Permission_Base')
+                + PWM_CONFIG.showString((resultValue[rowKey]['type'] === 'ldapGroup') ?  'Setting_Permission_Base_Group' : 'Setting_Permission_Base')
                 + '</span></td>'
                 + '<td id="icon-edit-base-' + inputID + '"><div title="Edit Value" class="btn-icon pwm-icon pwm-icon-edit"></div></td>'
                 + '<td><div style="width: 350px; padding: 5px;" class="configStringPanel noWrapTextBox border" id="' + inputID + '-base">&nbsp;</div></td>'
@@ -2080,7 +2080,7 @@ UserPermissionHandler.draw = function(keyName) {
                     UserPermissionHandler.write(keyName);
                 });
 
-                if (resultValue[rowKey]['type'] != 'ldapGroup') {
+                if (resultValue[rowKey]['type'] !== 'ldapGroup') {
                     UILibrary.addTextValueToElement(inputID + '-query', PWM_VAR['clientSettingCache'][keyName][rowKey]['ldapQuery']);
                     var queryEditor = function(){
                         UILibrary.stringEditorDialog({
@@ -2275,9 +2275,9 @@ NumericValueHandler.impl = function(settingKey, type, defaultMin, defaultMax) {
     var max = 'Maximum' in properties ? parseInt(properties['Maximum']) : defaultMax;
 
     var htmlBody = '<input type="number" id="value_' + settingKey + '" class="configNumericInput" min="'+min+'" max="'+max+'"/>';
-    if (type == 'number') {
+    if (type === 'number') {
         htmlBody += '<span class="configNumericLimits">' + min + ' - ' + max + '</span>';
-    } else if (type == 'duration') {
+    } else if (type === 'duration') {
         htmlBody +=  '<span class="configNumericLimits">' + PWM_MAIN.showString('Display_Seconds')  + '</span>'
         htmlBody +=  '<span style="margin-left:20px" id="display-' + settingKey + '-duration"></span>';
     }
@@ -2301,7 +2301,7 @@ NumericValueHandler.updateDurationDisplay = function(settingKey, numberValue) {
     numberValue = parseInt(numberValue);
     var displayElement = PWM_MAIN.getObject('display-' + settingKey + '-duration');
     if (displayElement) {
-        displayElement.innerHTML = (numberValue && numberValue != 0)
+        displayElement.innerHTML = (numberValue && numberValue !== 0)
             ? PWM_MAIN.convertSecondsToDisplayTimeDuration(numberValue, true)
             : '';
     }
@@ -2366,7 +2366,7 @@ StringValueHandler.init = function(settingKey) {
             } else {
                 UILibrary.stringEditorDialog({
                     title:'Edit Value - ' + settingData['label'],
-                    textarea:('TEXT_AREA' == settingData['syntax']),
+                    textarea:('TEXT_AREA' === settingData['syntax']),
                     regex:'pattern' in settingData ? settingData['pattern'] : '.+',
                     placeholder:settingData['placeholder'],
                     value:value,
@@ -2803,7 +2803,7 @@ PrivateKeyHandler.draw = function(keyName) {
 
     var htmlBody = '<div style="max-height: 300px; overflow-y: auto">';
 
-    var hasValue = resultValue != null && 'key' in resultValue;
+    var hasValue = resultValue !== null && 'key' in resultValue;
 
     if (hasValue) {
         var certificates = resultValue['certificates'];

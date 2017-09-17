@@ -38,7 +38,7 @@ UILibrary.stringEditorDialog = function(options){
     text += '<div style="visibility: hidden;" id="panel-valueWarning"><span class="pwm-icon pwm-icon-warning message-error"></span>&nbsp;' + PWM_CONFIG.showString('Warning_ValueIncorrectFormat') + '</div>';
     text += '<br/>';
 
-    if (instructions != null) {
+    if (instructions !== null) {
         text += '<div id="panel-valueInstructions">&nbsp;' + options['instructions'] + '</div>';
         text += '<br/>';
     }
@@ -55,7 +55,7 @@ UILibrary.stringEditorDialog = function(options){
 
         var value = PWM_MAIN.getObject('addValueDialog_input').value;
         if (value.length > 0) {
-            var passedValidation = regexObject  != null && regexObject.test(value);
+            var passedValidation = regexObject  !== null && regexObject.test(value);
 
             if (passedValidation) {
                 PWM_MAIN.getObject('dialog_ok_button').disabled = false;
@@ -141,7 +141,7 @@ UILibrary.manageNumericInput = function(elementID, readFunction) {
         if (!value) {
             return false;
         }
-        if (value.match('^[0-9]*$') == null) {
+        if (value.match('^[0-9]*$') === null) {
             return false;
         }
         if (element.hasAttribute('min')) {
@@ -281,7 +281,7 @@ UILibrary.editLdapDN = function(nextFunction, options) {
                         var optionElement = document.createElement('option');
                         optionElement.innerHTML = loopProfile;
                         optionElement.value = loopProfile;
-                        if (loopProfile == profile) {
+                        if (loopProfile === profile) {
                             optionElement.selected = true;
                         }
                         profileSelect.appendChild(optionElement);
@@ -335,7 +335,7 @@ UILibrary.uploadFileDialog = function(options) {
 
     var completeFunction = function(data){
         console.log('upload dialog completeFunction() starting');
-        if (data['error'] == true) {
+        if (data['error'] === true) {
             var errorText = 'The file upload has failed.  Please try again or check the server logs for error information.';
             PWM_MAIN.showErrorDialog(data,{text:errorText,okAction:function(){
                 location.reload();
@@ -392,9 +392,9 @@ UILibrary.uploadFileDialog = function(options) {
         var fd = new FormData();
         xhr.onreadystatechange = function() {
             console.log('upload handler onreadystate change: ' + xhr.readyState);
-            if (xhr.readyState == 4) {
+            if (xhr.readyState === 4) {
                 xhr.upload.onprogress = null;
-                if( xhr.status == 200) {
+                if( xhr.status === 200) {
                     // Every thing ok, file uploaded
                     console.log(xhr.responseText); // handle response.
                     try {
@@ -480,12 +480,12 @@ UILibrary.passwordDialogPopup = function(options, state) {
     state['randomLength'] = 'randomLength' in state ? state['randomLength'] : option_randomLength;
 
     var markConfirmationCheckFunction = function(matchStatus) {
-        if (matchStatus == "MATCH") {
+        if (matchStatus === "MATCH") {
             PWM_MAIN.getObject("confirmCheckMark").style.visibility = 'visible';
             PWM_MAIN.getObject("confirmCrossMark").style.visibility = 'hidden';
             PWM_MAIN.getObject("confirmCheckMark").width = '15';
             PWM_MAIN.getObject("confirmCrossMark").width = '0';
-        } else if (matchStatus == "NO_MATCH") {
+        } else if (matchStatus === "NO_MATCH") {
             PWM_MAIN.getObject("confirmCheckMark").style.visibility = 'hidden';
             PWM_MAIN.getObject("confirmCrossMark").style.visibility = 'visible';
             PWM_MAIN.getObject("confirmCheckMark").width = '0';
@@ -544,7 +544,7 @@ UILibrary.passwordDialogPopup = function(options, state) {
         } else {
             PWM_MAIN.removeCssClass('field-password-length','invalid-value');
             if (password2.length > 0) {
-                if (password1 == password2) {
+                if (password1 === password2) {
                     matchStatus = "MATCH";
                     PWM_MAIN.getObject('button-storePassword').disabled = false;
                 } else {

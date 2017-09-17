@@ -108,10 +108,10 @@ PWM_PS.convertDetailResultToHtml = function(data) {
     htmlBody += '<div id="peopleSearch-userDetailWrapper">';
 
 //    if (data['hasOrgChart']) {
-        htmlBody += '<div style="text-align: center"><button class="btn" id="button-peoplesearch-orgChart">'
-            + '<span class="btn-icon pwm-icon pwm-icon-sitemap"></span>'
-            + PWM_MAIN.showString('Title_OrgChart')
-            + '</div>';
+    htmlBody += '<div style="text-align: center"><button class="btn" id="button-peoplesearch-orgChart">'
+        + '<span class="btn-icon pwm-icon pwm-icon-sitemap"></span>'
+        + PWM_MAIN.showString('Title_OrgChart')
+        + '</div>';
 //    }
 
     htmlBody += '<table class="peopleSearch-userDetails">';
@@ -122,7 +122,7 @@ PWM_PS.convertDetailResultToHtml = function(data) {
             var type = attributeData['type'];
             htmlBody += '<tr><td class="key">' + label + '</td><td><div style="width:100%">';
 
-            if (type == 'userDN') {
+            if (type === 'userDN') {
                 var userReferences = attributeData['userReferences'];
                 htmlBody += '<div style="max-height: 100px; overflow-y: auto">';
                 for (var refIter in userReferences) {
@@ -143,12 +143,12 @@ PWM_PS.convertDetailResultToHtml = function(data) {
                     if (i > 0) {
                         htmlBody += '</br>'
                     }
-                    if (type == 'email') {
+                    if (type === 'email') {
                         htmlBody += '<a href="mailto:' + values[i] + '">' + values[i] + '</a>';
                     } else {
                         htmlBody += values[i];
                     }
-                    if (attributeData['searchable'] == true) {
+                    if (attributeData['searchable'] === true) {
                         var likeSearchID = 'link-' + attributeData['name'] + '-' + values[i] + '-likeUserSearch';
                         htmlBody += '<span id="' + likeSearchID + '" class="icon-likeUserSearch btn-icon pwm-icon pwm-icon-search" title="' + PWM_MAIN.showString('Button_Search') + ' &quot;' + values[i] + '&quot;"></span>';
                     }
@@ -158,7 +158,7 @@ PWM_PS.convertDetailResultToHtml = function(data) {
         })(iter);
     }
     htmlBody += '</table></div>';
-    
+
     return htmlBody;
 };
 
@@ -171,21 +171,21 @@ PWM_PS.applyEventHandlersToDetailView = function(data) {
 
 //  TODO: need to get this setting from: /peoplesearch?processAction=clientData, see line 426
 //    if (data['hasOrgChart']) {
-        PWM_MAIN.addEventHandler('button-peoplesearch-orgChart', 'click', function () {
+    PWM_MAIN.addEventHandler('button-peoplesearch-orgChart', 'click', function () {
 
-            // Access the angular StateService on this page, and use it to navigate to the orgchart using the provided person ID
-            angular.element(document.body).injector().get('$state').go('orgchart', {personId: data['userKey']});
+        // Access the angular StateService on this page, and use it to navigate to the orgchart using the provided person ID
+        angular.element(document.body).injector().get('$state').go('orgchart', {personId: data['userKey']});
 
-            PWM_MAIN.clearDijitWidget('dialogPopup');
+        PWM_MAIN.clearDijitWidget('dialogPopup');
 //            PWM_PS.showOrgChartView(data['userKey']);
-        });
+    });
 //    }
 
 
     for (var iter in data['detail']) {
         (function(iterCount){
             var attributeData = data['detail'][iterCount];
-            if (attributeData['searchable'] == true) {
+            if (attributeData['searchable'] === true) {
                 var values = attributeData['values'];
                 for (var i in values) {
                     var likeSearchID = 'link-' + attributeData['name'] + '-' + values[i] + '-likeUserSearch';
@@ -195,7 +195,7 @@ PWM_PS.applyEventHandlersToDetailView = function(data) {
                 }
             }
             var type = attributeData['type'];
-            if (type == 'userDN') {
+            if (type === 'userDN') {
                 var userReferences = attributeData['userReferences'];
                 for (var refIter in userReferences) {
                     (function(refIterInner){
@@ -224,7 +224,7 @@ PWM_PS.showUserDetail = function(userKey) {
         loadFunction:function(){
             var url = "PeopleSearch?processAction=detail&userKey=" + userKey;
             var loadFunction = function(data) {
-                if (data['error'] == true) {
+                if (data['error'] === true) {
                     PWM_MAIN.closeWaitDialog();
                     PWM_MAIN.showErrorDialog(data);
                     return;
@@ -343,7 +343,7 @@ PWM_PS.showOrgChartView = function(userKey, asParent) {
         loadFunction:function(){
             var url = "PeopleSearch?processAction=orgChartData";
             var loadFunction = function(data) {
-                if (data['error'] == true) {
+                if (data['error'] === true) {
                     PWM_MAIN.closeWaitDialog();
                     PWM_MAIN.showErrorDialog(data);
                     return;
@@ -404,25 +404,23 @@ PWM_PS.makeSearchGrid = function(nextFunction) {
 };
 
 PWM_PS.loadPicture = function(parentDiv,url,cssClass) {
-    require(["dojo/on"], function(on){
-        var image = new Image();
-        image.setAttribute('class',cssClass);
-        on(image,"load",function(){
-            if (parentDiv) {
-                while (parentDiv.firstChild) {
-                    parentDiv.removeChild(parentDiv.firstChild);
-                }
-                parentDiv.appendChild(image);
+    var image = new Image();
+    image.setAttribute('class',cssClass);
+    PWM_MAIN.addEventHandler(image,"load",function(){
+        if (parentDiv) {
+            while (parentDiv.firstChild) {
+                parentDiv.removeChild(parentDiv.firstChild);
             }
-        });
-        image.src = url;
+            parentDiv.appendChild(image);
+        }
     });
+    image.src = url;
 };
 
 PWM_PS.initPeopleSearchPage = function() {
     var applicationData = PWM_MAIN.getObject("application-info");
     var jspName = applicationData ? applicationData.getAttribute("data-jsp-name") : "";
-    if ("peoplesearch.jsp" == jspName) {
+    if ("peoplesearch.jsp" === jspName) {
         var url = PWM_MAIN.addParamToUrl(window.location.href.replace(window.location.hash, ''),'processAction','clientData');
         PWM_MAIN.ajaxRequest(url,function(data){
             if (data['error']) {
@@ -443,7 +441,7 @@ PWM_PS.initPeopleSearchPage = function() {
                 }
 
                 PWM_MAIN.addEventHandler('username', "keyup, input", function () {
-                   try {
+                    try {
                         var fieldUsername = PWM_MAIN.getObject('username').value;
                         PWM_MAIN.Preferences.writeSessionStorage("peoplesearch_field_username", fieldUsername);
                     } catch (e) {

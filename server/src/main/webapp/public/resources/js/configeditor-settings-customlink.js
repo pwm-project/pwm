@@ -72,7 +72,6 @@ CustomLinkHandler.redraw = function(keyName) {
 };
 
 CustomLinkHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
-    require(["dojo/json"], function(JSON){
         var itemCount = PWM_MAIN.JSLibrary.itemCount(PWM_VAR['clientSettingCache'][settingKey]);
         var inputID = 'value_' + settingKey + '_' + iteration + "_";
         var options = PWM_SETTINGS['settings'][settingKey]['options'];
@@ -89,13 +88,13 @@ CustomLinkHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
         htmlRow += '<td class="noborder" style="min-width:90px;"><button id="' + inputID + 'optionsButton"><span class="btn-icon pwm-icon pwm-icon-sliders"/> Options</button></td>';
 
         htmlRow += '<td style="width:10px">';
-        if (itemCount > 1 && iteration != (itemCount -1)) {
+        if (itemCount > 1 && iteration !== (itemCount -1)) {
             htmlRow += '<span id="' + inputID + '-moveDown" class="action-icon pwm-icon pwm-icon-chevron-down"></span>';
         }
         htmlRow += '</td>';
 
         htmlRow += '<td style="width:10px">';
-        if (itemCount > 1 && iteration != 0) {
+        if (itemCount > 1 && iteration !== 0) {
             htmlRow += '<span id="' + inputID + '-moveUp" class="action-icon pwm-icon pwm-icon-chevron-up"></span>';
         }
         htmlRow += '</td>';
@@ -133,7 +132,6 @@ CustomLinkHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
             PWM_VAR['clientSettingCache'][settingKey][iteration]['type'] = PWM_MAIN.getObject(inputID + "type").value;
             CustomLinkHandler.write(settingKey);
         });
-    });
 };
 
 CustomLinkHandler.write = function(settingKey, finishFunction) {
@@ -180,7 +178,7 @@ CustomLinkHandler.addRow = function(keyName) {
         placeholder:'KeyName',
         completeFunction:function(value){
             for (var i in PWM_VAR['clientSettingCache'][keyName]) {
-                if (PWM_VAR['clientSettingCache'][keyName][i]['name'] == value) {
+                if (PWM_VAR['clientSettingCache'][keyName][i]['name'] === value) {
                     alert('key name already exists');
                     return;
                 }
@@ -276,7 +274,7 @@ CustomLinkHandler.multiLocaleStringDialog = function(keyName, iteration, setting
             var localeID = inputID + localeName;
             bodyText += '<td>' + localeName + '</td>';
             bodyText += '<td><input style="width:420px" class="configStringInput" type="text" value="' + value + '" id="' + localeID + '-input"></input></td>';
-            if (localeName != '') {
+            if (localeName !== '') {
                 bodyText += '<td><span class="delete-row-icon action-icon pwm-icon pwm-icon-times" id="' + localeID + '-removeLocaleButton"></span></td>';
             }
             bodyText += '</tr><tr>';

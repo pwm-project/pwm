@@ -51,7 +51,7 @@ PWM_CFGEDIT.readSetting = function(keyName, valueWriter) {
         if (PWM_SETTINGS['settings'][keyName] && PWM_SETTINGS['settings'][keyName]['level']) {
             settingLevel = PWM_SETTINGS['settings'][keyName]['level'];
         }
-        var showSetting = (PWM_SETTINGS['settings'][keyName] && PWM_SETTINGS['settings'][keyName]['syntax'] == 'PROFILE') ||   (!modifiedOnly || !isDefault) && (maxLevel < 0 || settingLevel  <= maxLevel );
+        var showSetting = (PWM_SETTINGS['settings'][keyName] && PWM_SETTINGS['settings'][keyName]['syntax'] === 'PROFILE') ||   (!modifiedOnly || !isDefault) && (maxLevel < 0 || settingLevel  <= maxLevel );
         if (showSetting) {
             valueWriter(resultValue);
             PWM_MAIN.setStyle('outline_' + keyName,'display','inherit');
@@ -87,7 +87,7 @@ PWM_CFGEDIT.updateLastModifiedInfo = function(keyName, data) {
     if (PWM_MAIN.getObject('panel-' + keyName + '-modifyUser')) {
         if (data['data']['modifyUser']) {
             var output = 'Modified by ' + data['data']['modifyUser']['userDN'];
-            if (data['data']['modifyUser']['ldapProfile'] && data['data']['modifyUser']['ldapProfile'] != "default") {
+            if (data['data']['modifyUser']['ldapProfile'] && data['data']['modifyUser']['ldapProfile'] !== "default") {
                 output += ' [' + data['data']['modifyUser']['ldapProfile'] + ']';
             }
             PWM_MAIN.getObject('panel-' + keyName + '-modifyUser').innerHTML = output;
@@ -195,7 +195,7 @@ PWM_CFGEDIT.getSettingValueElement = function(settingKey) {
 
 PWM_CFGEDIT.clearDivElements = function(parentDiv) {
     var parentDivElement = PWM_MAIN.getObject(parentDiv);
-    if (parentDivElement != null) {
+    if (parentDivElement !== null) {
         if (parentDivElement.hasChildNodes()) {
             while (parentDivElement.childNodes.length >= 1) {
                 var firstChild = parentDivElement.firstChild;
@@ -247,7 +247,7 @@ PWM_CFGEDIT.saveConfiguration = function() {
         var confirmFunction = function(){
             var url = "editor?processAction=finishEditing";
             var loadFunction = function(data) {
-                if (data['error'] == true) {
+                if (data['error'] === true) {
                     PWM_MAIN.showErrorDialog(data);
                 } else {
                     console.log('save completed');
@@ -390,10 +390,10 @@ PWM_CFGEDIT.showChangeLog=function(confirmText, confirmFunction) {
                     bodyText += '</ul></div>';
                 }
 
-                if (confirmText != undefined) {
+                if (confirmText !== undefined) {
                     bodyText += '<br/><div>' + confirmText + '</div>';
                 }
-                if (confirmFunction == undefined) {
+                if (confirmFunction === undefined) {
                     PWM_MAIN.showDialog({title: "Unsaved Configuration Editor Changes", text: bodyText, dialogClass:'wide', showClose: true});
                 } else {
                     PWM_MAIN.showConfirmDialog({title: "Unsaved Configuration Editor Changes", text: bodyText, dialogClass:'wide', showClose: true, okAction:confirmFunction});
@@ -599,7 +599,7 @@ PWM_CFGEDIT.cancelEditing = function() {
             if (data['error']) {
                 PWM_MAIN.showDialog({title: PWM_MAIN.showString("Title_Error"), text: data['errorMessage']});
             } else {
-                if (data['data']['modified'] == true) {
+                if (data['data']['modified'] === true) {
                     var bodyText = '<div class="changeLogViewBox">';
                     bodyText += data['data']['html'];
                     bodyText += '</div><br/><div>';
@@ -799,7 +799,7 @@ PWM_CFGEDIT.loadMainPageBody = function() {
         var uri = window.location.href;
         var queryString = uri.substring(uri.indexOf("?") + 1, uri.length);
         var queryParams = ioQuery.queryToObject(queryString);
-        if (queryParams['processAction'] == 'gotoSetting') {
+        if (queryParams['processAction'] === 'gotoSetting') {
             PWM_CFGEDIT.gotoSetting(queryParams['category'],queryParams['settingKey'],queryParams['profile']);
             return;
         }
@@ -818,15 +818,15 @@ PWM_CFGEDIT.displaySettingsCategory = function(category) {
     }
     var htmlSettingBody = '';
 
-    if (category == 'LDAP_BASE') {
+    if (category === 'LDAP_BASE') {
         htmlSettingBody += '<div style="width: 100%; text-align: center">'
             + '<button class="btn" id="button-test-LDAP_BASE"><span class="btn-icon pwm-icon pwm-icon-bolt"></span>Test LDAP Profile</button>'
             + '</div>';
-    } else if (category == 'DATABASE_SETTINGS') {
+    } else if (category === 'DATABASE_SETTINGS') {
         htmlSettingBody += '<div style="width: 100%; text-align: center">'
             + '<button class="btn" id="button-test-DATABASE_SETTINGS"><span class="btn-icon pwm-icon pwm-icon-bolt"></span>Test Database Connection</button>'
             + '</div>';
-    } else if (category == 'SMS_GATEWAY') {
+    } else if (category === 'SMS_GATEWAY') {
         htmlSettingBody += '<div style="width: 100%; text-align: center">'
             + '<button class="btn" id="button-test-SMS"><span class="btn-icon pwm-icon pwm-icon-bolt"></span>Test SMS Settings</button>'
             + '</div>';
@@ -836,7 +836,7 @@ PWM_CFGEDIT.displaySettingsCategory = function(category) {
     for (var loopSetting in PWM_SETTINGS['settings']) {
         (function(settingKey) {
             var settingInfo = PWM_SETTINGS['settings'][settingKey];
-            if (settingInfo['category'] == category && !settingInfo['hidden']) {
+            if (settingInfo['category'] === category && !settingInfo['hidden']) {
                 htmlSettingBody += PWM_CFGEDIT.drawHtmlOutlineForSetting(settingInfo);
             }
         })(loopSetting);
@@ -847,18 +847,18 @@ PWM_CFGEDIT.displaySettingsCategory = function(category) {
     for (var loopSetting in PWM_SETTINGS['settings']) {
         (function(settingKey) {
             var settingInfo = PWM_SETTINGS['settings'][settingKey];
-            if (settingInfo['category'] == category && !settingInfo['hidden']) {
+            if (settingInfo['category'] === category && !settingInfo['hidden']) {
                 PWM_CFGEDIT.initSettingDisplay(settingInfo);
             }
         })(loopSetting);
     }
-    if (category == 'LDAP_BASE') {
+    if (category === 'LDAP_BASE') {
         PWM_MAIN.addEventHandler('button-test-LDAP_BASE', 'click', function(){PWM_CFGEDIT.ldapHealthCheck();});
-    } else if (category == 'DATABASE_SETTINGS') {
+    } else if (category === 'DATABASE_SETTINGS') {
         PWM_MAIN.addEventHandler('button-test-DATABASE_SETTINGS', 'click', function(){PWM_CFGEDIT.databaseHealthCheck();});
-    } else if (category == 'SMS_GATEWAY') {
+    } else if (category === 'SMS_GATEWAY') {
         PWM_MAIN.addEventHandler('button-test-SMS', 'click', function(){PWM_CFGEDIT.smsHealthCheck();});
-    } else if (category == 'HTTPS_SERVER') {
+    } else if (category === 'HTTPS_SERVER') {
         PWM_MAIN.addEventHandler('button-test-HTTPS_SERVER', 'click', function(){PWM_CFGEDIT.httpsCertificateView();});
     }
     PWM_CFGEDIT.applyGotoSettingHandlers();
@@ -1053,7 +1053,7 @@ PWM_CFGEDIT.drawNavigationMenu = function() {
                     store: myStore,
                     query: {id: 'ROOT'},
                     mayHaveChildren: function(object){
-                        return object.type == 'navigation';
+                        return object.type === 'navigation';
                     }
                 });
 
@@ -1105,23 +1105,23 @@ PWM_CFGEDIT.dispatchNavigationItem = function(item) {
     var currentID = item['id'];
     var type = item['type'];
     //debugger;
-    if  (type == 'navigation') {
+    if  (type === 'navigation') {
         /* not used, nav tree set to auto-expand */
-    } else if (type == 'category') {
+    } else if (type === 'category') {
         var category = item['category'];
         if (item['profile']) {
             PWM_CFGEDIT.gotoSetting(category,null,item['profile']);
         } else {
             PWM_CFGEDIT.gotoSetting(category);
         }
-    } else if (type == 'displayText') {
+    } else if (type === 'displayText') {
         var keys = item['keys'];
         PWM_CFGEDIT.setBreadcrumbText('Display Text - ' + item['name']);
         PWM_CFGEDIT.drawDisplayTextPage(currentID,keys);
-    } else if (type == 'profile') {
+    } else if (type === 'profile') {
         var category = item['category'];
         PWM_CFGEDIT.gotoSetting(category,null,currentID);
-    } else if (type == 'profileDefinition') {
+    } else if (type === 'profileDefinition') {
         var profileSettingKey = item['profileSetting'];
         PWM_CFGEDIT.drawProfileEditorPage(profileSettingKey);
     }
@@ -1171,7 +1171,7 @@ PWM_CFGEDIT.drawDisplayTextPage = function(settingKey, keys) {
     var checkForFinishFunction = function() {
         console.log('checking for finish function...');
         setTimeout(function(){
-            if (PWM_VAR['outstandingOperations'] == 0) {
+            if (PWM_VAR['outstandingOperations'] === 0) {
                 PWM_MAIN.getObject('displaytext-loading-panel').style.display = 'none';
                 PWM_MAIN.getObject('localetext-editor-wrapper').style.display = 'inherit';
             } else {
@@ -1186,7 +1186,7 @@ PWM_CFGEDIT.drawDisplayTextPage = function(settingKey, keys) {
 PWM_CFGEDIT.initConfigSettingsDefinition=function(nextFunction) {
     var clientConfigUrl = PWM_GLOBAL['url-context'] + "/private/config/editor?processAction=settingData";
     var loadFunction = function(data) {
-        if (data['error'] == true) {
+        if (data['error'] === true) {
             console.error('unable to load ' + clientConfigUrl + ', error: ' + data['errorDetail'])
         } else {
             for (var settingKey in data['data']) {
@@ -1210,7 +1210,7 @@ PWM_CFGEDIT.displaySettingHelp = function(settingKey) {
     var helpExpandedPrefs = PWM_MAIN.Preferences.readSessionStorage('helpExpanded',{});
     var element = PWM_MAIN.getObject('pane-help-' + settingKey);
     if (element) {
-        if (element.style.display == 'none') {
+        if (element.style.display === 'none') {
             element.style.display = 'inherit';
             helpExpandedPrefs[settingKey] = true;
         } else {
@@ -1241,7 +1241,7 @@ PWM_CFGEDIT.showSettingFilter = function() {
         PWM_MAIN.getObject('panel-settingLevelDescription').innerHTML = descriptionText;
     };
     var updateIcon = function() {
-        var isDefault = PWM_VAR['settingFilter_modifiedSettingsOnly'] == false && PWM_VAR['settingFilter_level'] == 2;
+        var isDefault = PWM_VAR['settingFilter_modifiedSettingsOnly'] === false && PWM_VAR['settingFilter_level'] === 2;
         if (isDefault) {
             PWM_MAIN.removeCssClass('settingFilter_icon', "modified");
         } else {
