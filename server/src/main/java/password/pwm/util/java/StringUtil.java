@@ -24,8 +24,8 @@ package password.pwm.util.java;
 
 import net.iharder.Base64;
 import org.apache.commons.codec.binary.Base32;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import password.pwm.PwmConstants;
 import password.pwm.util.logging.PwmLogger;
 

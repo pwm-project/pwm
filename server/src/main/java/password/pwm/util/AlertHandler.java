@@ -22,7 +22,7 @@
 
 package password.pwm.util;
 
-import org.apache.commons.lang3.text.WordUtils;
+import org.apache.commons.text.WordUtils;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;

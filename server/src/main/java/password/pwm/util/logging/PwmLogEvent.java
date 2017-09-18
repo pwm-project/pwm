@@ -23,6 +23,7 @@
 package password.pwm.util.logging;
 
 import com.google.gson.annotations.SerializedName;
+import lombok.Getter;
 import password.pwm.bean.SessionLabel;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
@@ -33,20 +34,11 @@ import java.io.Serializable;
 import java.io.StringWriter;
 import java.time.Instant;
 
+@Getter
 public class PwmLogEvent implements Serializable, Comparable {
-// -------------------------- ENUMERATIONS --------------------------
 
-    private static final String VERSION = "1";
+    private static final int MAX_MESSAGE_LENGTH = 1_000_000;
 
-    private static final String KEY_VERSION = "v";
-    private static final String KEY_LEVEL = "l";
-    private static final String KEY_TOPIC = "t";
-    private static final String KEY_MESSAGE = "m";
-    private static final String KEY_SOURCE = "s";
-    private static final String KEY_ACTOR = "a";
-    private static final String KEY_LABEL = "b";
-    private static final String KEY_THROWABLE = "e";
-    private static final String KEY_DATE = "d";
 
     // ------------------------------ FIELDS ------------------------------
 
@@ -100,6 +92,10 @@ public class PwmLogEvent implements Serializable, Comparable {
 
         if (level == null) {
             throw new IllegalArgumentException("level may not be null");
+        }
+
+        if (message != null && message.length() > MAX_MESSAGE_LENGTH) {
+            throw new IllegalStateException("log message length is too long (" + message.length() + " chars)");
         }
 
         this.date = date;
@@ -177,48 +173,6 @@ public class PwmLogEvent implements Serializable, Comparable {
     }
 
 
-// --------------------- GETTER / SETTER METHODS ---------------------
-
-    public String getActor()
-    {
-        return actor;
-    }
-
-    public Instant getDate()
-    {
-        return date;
-    }
-
-    public PwmLogLevel getLevel()
-    {
-        return level;
-    }
-
-    public String getMessage()
-    {
-        return message;
-    }
-
-    public String getSource()
-    {
-        return source;
-    }
-
-    public Throwable getThrowable()
-    {
-        return throwable;
-    }
-
-    public String getTopic()
-    {
-        return topic;
-    }
-
-    public String getLabel()
-    {
-        return label;
-    }
-
     public String getTopTopic()
     {
         if (topic == null) {
@@ -229,7 +183,7 @@ public class PwmLogEvent implements Serializable, Comparable {
         return lastDot != -1 ? topic.substring(lastDot + 1, topic.length()) : topic;
     }
 
-    public String getEnhancedMessage()
+    String getEnhancedMessage()
     {
         final StringBuilder output = new StringBuilder();
         output.append(getDebugLabel());
@@ -267,30 +221,10 @@ public class PwmLogEvent implements Serializable, Comparable {
         return this.getDate().compareTo(((PwmLogEvent) o).getDate());
     }
 
-    public String toEncodedString()
+    String toEncodedString()
             throws IOException
     {
         return JsonUtil.serialize(this);
-        /*
-        final Map<String, String> tempMap = new HashMap<>();
-        tempMap.put(KEY_VERSION, VERSION);
-        tempMap.put(KEY_TOPIC, topic);
-        tempMap.put(KEY_MESSAGE, message);
-        tempMap.put(KEY_SOURCE, source);
-        tempMap.put(KEY_ACTOR, actor);
-        tempMap.put(KEY_LEVEL, level.toString());
-        tempMap.put(KEY_DATE, String.valueOf(date.getTime()));
-
-        if (label != null) {
-            tempMap.put(KEY_LABEL, label);
-        }
-
-        if (throwable != null) {
-            tempMap.put(KEY_THROWABLE, Base64.encodeObject(throwable, Base64.NO_OPTIONS));
-        }
-
-        return JsonUtil.serializeMap(tempMap);
-        */
     }
 
     private String getDebugLabel()
