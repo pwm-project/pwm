@@ -26,51 +26,44 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.config.option.WebServiceUsage;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.HttpMethod;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.secure.SecureService;
+import password.pwm.ws.server.PwmRestServlet;
 import password.pwm.ws.server.RestResultBean;
-import password.pwm.ws.server.StandaloneRestHelper;
 import password.pwm.ws.server.StandaloneRestRequestBean;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import javax.servlet.annotation.WebServlet;
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-@Path("/signing")
-public class RestSigningServer extends AbstractRestServer {
-
-    @POST
-    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Path("/form")
-    public Response doGetProfileJsonData(
-            final Map<String,String> inputFormData
-
-    )
-            throws PwmUnrecoverableException
-    {
-        final StandaloneRestRequestBean restRequestBean;
-        try {
-            restRequestBean = StandaloneRestHelper.initialize(request);
-        } catch (PwmUnrecoverableException e) {
-            return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
+@WebServlet(
+        name="RestFormSigningServer",
+        urlPatterns={
+                PwmConstants.URL_PREFIX_PUBLIC + PwmConstants.URL_PREFIX_REST + "/signing/form",
         }
+)
+public class RestFormSigningServer extends PwmRestServlet {
+
+
+    @Override
+    public RestResultBean invokeWebService(final StandaloneRestRequestBean restRequestBean) {
+        final Map<String,String> inputFormData = JsonUtil.deserializeStringMap(restRequestBean.getBody());
+
 
         if (!restRequestBean.getAuthorizedUsages().contains(WebServiceUsage.SigningForm)) {
             final String errorMsg = "request is not authenticated with permission for SigningForm";
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED, errorMsg);
-            return RestResultBean.fromError(errorInformation).asJsonResponse();
+            return RestResultBean.fromError(errorInformation);
         }
 
         try {
@@ -79,15 +72,15 @@ public class RestSigningServer extends AbstractRestServer {
                 final SignedFormData signedFormData = new SignedFormData(Instant.now(), inputFormData);
                 final String signedValue = securityService.encryptObjectToString(signedFormData);
                 final RestResultBean restResultBean = new RestResultBean(signedValue);
-                return restResultBean.asJsonResponse();
+                return restResultBean;
             }
-            return RestResultBean.fromError(new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER,"no json form in body")).asJsonResponse();
+            return RestResultBean.fromError(new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER,"no json form in body"));
         } catch (PwmUnrecoverableException e) {
-            return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
+            return RestResultBean.fromError(e.getErrorInformation());
         } catch (Exception e) {
             final String errorMsg = "unexpected error building json response: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-            return RestResultBean.fromError(errorInformation).asJsonResponse();
+            return RestResultBean.fromError(errorInformation);
         }
     }
 
@@ -113,5 +106,10 @@ public class RestSigningServer extends AbstractRestServer {
     private static class SignedFormData implements Serializable  {
         private Instant timestamp;
         private Map<String,String> formData;
+    }
+
+    @Override
+    public PwmRestServlet.ServiceInfo getServiceInfo() {
+        return new ServiceInfo(Collections.singleton(HttpMethod.POST));
     }
 }

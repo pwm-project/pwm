@@ -98,6 +98,7 @@ public enum Display implements PwmDisplayBundle {
     Display_GuestRegistration,
     Display_GuestUpdate,
     Display_Helpdesk,
+    Display_HelpdeskNoData,
     Display_Hour,
     Display_Hours,
     Display_IdleTimeout,

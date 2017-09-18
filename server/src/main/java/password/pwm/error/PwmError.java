@@ -185,6 +185,8 @@ public enum PwmError {
 
     ERROR_HTTP_404(                 5300, "Error_HTTP_404",                 null),
 
+    ERROR_REST_INVOCATION_ERROR(    7000, "Error_RestInvocationError",      null),
+
     ;
 
     enum ErrorFlag {

@@ -72,6 +72,8 @@ public class RestHealthServer extends AbstractRestServer {
         final PwmApplication pwmApplication;
         try {
             pwmApplication = processAuthentication();
+        } catch (IOException e) {
+            return e.getMessage();
         } catch (PwmUnrecoverableException e) {
             RestServerHelper.handleNonJsonErrorResult(e.getErrorInformation());
             return null;
@@ -98,6 +100,11 @@ public class RestHealthServer extends AbstractRestServer {
         final PwmApplication pwmApplication;
         try {
             pwmApplication = processAuthentication();
+        } catch (IOException e) {
+            final RestResultBean restResultBean = new RestResultBean();
+            restResultBean.setError(true);
+            restResultBean.setErrorMessage(e.getMessage());
+            return restResultBean.asJsonResponse();
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
@@ -117,7 +124,7 @@ public class RestHealthServer extends AbstractRestServer {
         }
     }
 
-    private PwmApplication processAuthentication() throws PwmUnrecoverableException
+    private PwmApplication processAuthentication() throws PwmUnrecoverableException, IOException
     {
         final ServicePermissions servicePermissions = figurePermissions();
         {

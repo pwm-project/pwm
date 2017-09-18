@@ -23,17 +23,20 @@
 package password.pwm.ws.server;
 
 import com.novell.ldapchai.util.StringHelper;
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.config.value.data.NamedSecretData;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.WebServiceUsage;
+import password.pwm.config.value.data.NamedSecretData;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
+import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -44,15 +47,19 @@ public class StandaloneRestHelper {
     private static final PwmLogger LOGGER = PwmLogger.forClass(StandaloneRestHelper.class);
 
     public static StandaloneRestRequestBean initialize(final HttpServletRequest httpServletRequest)
-            throws PwmUnrecoverableException
+            throws PwmUnrecoverableException, IOException
     {
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(httpServletRequest.getServletContext());
 
         final Set<WebServiceUsage> usages = readWebServiceSecretAuthorizations(pwmApplication, httpServletRequest);
 
+        final int maxChars = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_BODY_MAXREAD_LENGTH));
+        final String body = PwmHttpRequestWrapper.readRequestBodyAsString(httpServletRequest, maxChars);
+
         return StandaloneRestRequestBean.builder()
                 .pwmApplication(pwmApplication)
                 .authorizedUsages(Collections.unmodifiableSet(usages))
+                .body(body)
                 .build();
     }
 

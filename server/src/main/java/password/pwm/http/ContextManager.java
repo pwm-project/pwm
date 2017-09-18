@@ -81,7 +81,7 @@ public class ContextManager implements Serializable {
     // -------------------------- STATIC METHODS --------------------------
 
     public static PwmApplication getPwmApplication(final HttpServletRequest request) throws PwmUnrecoverableException {
-        return getPwmApplication(request.getSession());
+        return getPwmApplication(request.getServletContext());
     }
 
     public static PwmApplication getPwmApplication(final HttpSession session) throws PwmUnrecoverableException {
@@ -97,7 +97,7 @@ public class ContextManager implements Serializable {
     }
 
     public static ContextManager getContextManager(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
-        return getContextManager(pwmRequest.getHttpServletRequest().getSession());
+        return getContextManager(pwmRequest.getHttpServletRequest().getServletContext());
     }
 
     public static ContextManager getContextManager(final ServletContext theContext) throws PwmUnrecoverableException {

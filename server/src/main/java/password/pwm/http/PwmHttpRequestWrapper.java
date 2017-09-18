@@ -93,9 +93,15 @@ public abstract class PwmHttpRequestWrapper {
     public String readRequestBodyAsString(final int maxChars)
             throws IOException, PwmUnrecoverableException
     {
+        return readRequestBodyAsString(this.getHttpServletRequest(), maxChars);
+    }
+
+    public static String readRequestBodyAsString(final HttpServletRequest httpServletRequest, final int maxChars)
+            throws IOException, PwmUnrecoverableException
+    {
         final StringWriter stringWriter = new StringWriter();
         final Reader readerStream = new InputStreamReader(
-                getHttpServletRequest().getInputStream(),
+                httpServletRequest.getInputStream(),
                 PwmConstants.DEFAULT_CHARSET
         );
 

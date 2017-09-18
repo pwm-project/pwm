@@ -111,7 +111,6 @@ public abstract class PwmConstants {
     public static final float JAVA_MINIMUM_VERSION = (float)1.6;
 
     public static final String HTTP_BASIC_AUTH_PREFIX = readPwmConstantsBundle("httpHeaderAuthorizationBasic");
-    public static final String HTTP_HEADER_X_FORWARDED_FOR = readPwmConstantsBundle("httpHeaderXForwardedFor");
     public static final String HTTP_HEADER_REST_CLIENT_KEY = readPwmConstantsBundle("httpRestClientKey");
 
     public static final String DEFAULT_BAD_PASSWORD_ATTEMPT = readPwmConstantsBundle("defaultBadPasswordAttempt");
@@ -146,6 +145,7 @@ public abstract class PwmConstants {
 
     public static final String URL_PREFIX_PRIVATE = "/private";
     public static final String URL_PREFIX_PUBLIC = "/public";
+    public static final String URL_PREFIX_REST = "/rest";
 
 
     public static final String PARAM_ACTION_REQUEST = "processAction";

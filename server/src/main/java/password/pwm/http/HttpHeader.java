@@ -44,6 +44,7 @@ public enum HttpHeader {
     UserAgent("User-Agent"),
     Referer("Referer"),
     Origin("Origin"),
+    XForwardedFor("X-Forwarded-For"),
 
     XFrameOptions("X-Frame-Options"),
     XContentTypeOptions("X-Content-Type-Options"),

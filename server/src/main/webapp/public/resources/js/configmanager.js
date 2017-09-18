@@ -46,7 +46,7 @@ PWM_CONFIG.lockConfiguration=function() {
 };
 
 PWM_CONFIG.waitForRestart=function(options) {
-    var pingCycleTimeMs = 3 * 1000;
+    var pingCycleTimeMs = 1000;
     var maxWaitTimeMs = 120 * 1000;
 
     PWM_VAR['cancelHeartbeatCheck'] = true;
@@ -68,7 +68,7 @@ PWM_CONFIG.waitForRestart=function(options) {
         }
     }
 
-    var declaredStartupTime = PWM_GLOBAL['startupTime'];
+    var originalRuntimeNonce = PWM_GLOBAL['runtimeNonce'];
 
     console.log("beginning request to determine application status: ");
     var loadFunction = function(data) {
@@ -76,9 +76,9 @@ PWM_CONFIG.waitForRestart=function(options) {
             if (data['error']) {
                 console.log('data error reading /ping endpoint: ' + JSON.stringify(data));
             } else {
-                var serverStartTime = data['data']['time'];
-                console.log("comparing declared timestamp=" + declaredStartupTime + " and xhr read timestamp=" + serverStartTime);
-                if (serverStartTime !== declaredStartupTime) {
+                var currentNonce = data['data']['runtimeNonce'];
+                console.log("comparing declared nonce=" + originalRuntimeNonce + " and xhr read nonce=" + currentNonce);
+                if (currentNonce !== originalRuntimeNonce) {
                     console.log("change detected, restarting page");
                     restartFunction();
                     return;
@@ -87,7 +87,7 @@ PWM_CONFIG.waitForRestart=function(options) {
                 }
             }
         } catch (e) {
-            console.log("can't read current server startupTime, will retry detection (current error: " + e + ")");
+            console.log("can't read current server nonce, will retry detection (current error: " + e + ")");
         }
         setTimeout(function() {
             PWM_CONFIG.waitForRestart(options)
@@ -99,7 +99,7 @@ PWM_CONFIG.waitForRestart=function(options) {
         }, pingCycleTimeMs);
         console.log('Waiting for server restart, unable to contact server: ' + error);
     };
-    var url = PWM_GLOBAL['url-restservice'] + "/app-data/ping";
+    var url = PWM_GLOBAL['url-restservice'] + "/ping";
     PWM_MAIN.ajaxRequest(url,loadFunction,{errorFunction:errorFunction,method:'GET'});
 };
 

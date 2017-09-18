@@ -62,7 +62,7 @@ import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.rest.RestCheckPasswordServer;
-import password.pwm.ws.server.rest.RestSigningServer;
+import password.pwm.ws.server.rest.RestFormSigningServer;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -150,7 +150,7 @@ public class NewUserServlet extends ControlledPwmServlet {
 
         final String signedFormData = pwmRequest.readParameterAsString(PwmConstants.PARAM_SIGNED_FORM, PwmHttpRequestWrapper.Flag.BypassValidation);
         if (!StringUtil.isEmpty(signedFormData)) {
-            final Map<String,String> jsonForm = RestSigningServer.readSignedFormValue(pwmApplication, signedFormData);
+            final Map<String,String> jsonForm = RestFormSigningServer.readSignedFormValue(pwmApplication, signedFormData);
             LOGGER.trace("detected signedForm parameter in request, will read and place in bean; keys=" + JsonUtil.serializeCollection(jsonForm.keySet()));
             newUserBean.setRemoteInputData(jsonForm);
         }

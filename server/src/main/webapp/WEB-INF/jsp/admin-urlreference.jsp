@@ -59,6 +59,12 @@
                 <td class="key">New User Registration</td>
                 <td><a href="<pwm:context/><%=PwmServletDefinition.NewUser.servletUrl()%>"><pwm:context/><%=PwmServletDefinition.NewUser.servletUrl()%></a></td>
             </tr>
+            <% for (final String id : JspUtility.getPwmRequest(pageContext).getConfig().getNewUserProfiles().keySet()) { %>
+            <tr>
+                <td class="key">New User Registration "<%=id%>" profile</td>
+                <td><a href="<pwm:context/><%=PwmServletDefinition.NewUser.servletUrl()%>"><pwm:context/><%=PwmServletDefinition.NewUser.servletUrl()%>/profile/<%=id%></a></td>
+            </tr>
+            <% } %>
             <tr>
                 <td class="key">Public People Search </td>
                 <td><a href="<pwm:context/><%=PwmServletDefinition.PublicPeopleSearch.servletUrl()%>"><pwm:context/><%=PwmServletDefinition.PublicPeopleSearch.servletUrl()%></a></td>

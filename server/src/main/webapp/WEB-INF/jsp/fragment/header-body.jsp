@@ -80,3 +80,6 @@
         </div>
     </div>
 </div>
+<% if (request.getParameter("debug") != null) { %>
+<%@ include file="debug.jsp" %>
+<% } %>

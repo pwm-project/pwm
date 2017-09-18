@@ -7,3 +7,4 @@
 pwm-parent.iml
 pwmconfig/
 ssprconfig/
+/server/src/main/webapp/public/resources/webjars

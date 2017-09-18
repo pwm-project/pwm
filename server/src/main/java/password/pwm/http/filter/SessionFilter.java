@@ -79,7 +79,7 @@ public class SessionFilter extends AbstractPwmFilter {
 
     @Override
     boolean isInterested(final PwmApplicationMode mode, final PwmURL pwmURL) {
-        return true;
+        return !pwmURL.isStandaloneWebService();
     }
 
     private static final AtomicInteger REQUEST_COUNTER = new AtomicInteger(0);
@@ -98,7 +98,7 @@ public class SessionFilter extends AbstractPwmFilter {
         pwmRequest.debugHttpRequestToLog("requestID=" + requestID);
 
         final PwmURL pwmURL = pwmRequest.getURL();
-        if (!pwmURL.isWebServiceURL() && !pwmURL.isResourceURL()) {
+        if (!pwmURL.isStandaloneWebService() && !pwmURL.isResourceURL()) {
             if (handleStandardRequestOperations(pwmRequest) == ProcessStatus.Halt) {
                 return;
             }
