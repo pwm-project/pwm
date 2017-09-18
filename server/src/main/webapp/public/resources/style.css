@@ -1190,3 +1190,58 @@ html[dir="rtl"] .nihilo .dijitTabContainerTop-tabs {
 html[dir="rtl"] .nihilo .dijitTabContainerTop-tabs > .dijitTabContent:first-child {
     margin-right: 10px;
 }
+
+
+@keyframes wait-fadein {
+    0% { opacity: 0 }
+    20% { opacity: 0 }
+    100% { opacity: 0.6 }
+}
+#wait-overlay {
+    position:fixed;
+    top:0;
+    bottom:0;
+    left:0;
+    right:0;
+    background-color: black;
+    opacity: 0.6;
+    z-index:1001;
+    animation: wait-fadein 5s;
+    cursor: wait;
+}
+
+@keyframes wait-fadein-message {
+    0% { opacity: 0 }
+    50% { opacity: 0 }
+    100% { opacity: 1 }
+}
+#wait-overlay-message{
+    cursor: wait;
+    position: absolute;
+    margin: auto;
+    opacity: 1;
+    padding: 15px;
+    text-align:center;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 500px;
+    height: 100px;
+    border-radius: 3px;
+    z-index:1002;
+    animation: wait-fadein-message 2s;
+    background-color: white;
+    background-image: url('loading.gif');
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+#wait-overlay-inner {
+    margin-left: auto;
+    margin-right: auto;
+    width: 50px;
+    height: 50px;
+    position: relative;
+    z-index:1003;
+}

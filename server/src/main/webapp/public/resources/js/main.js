@@ -702,35 +702,38 @@ PWM_MAIN.showErrorDialog = function(error, options) {
 };
 
 PWM_MAIN.showWaitDialog = function(options) {
-    require(["dojo","dijit/Dialog","dijit/ProgressBar"],function(dojo,Dialog,ProgressBar){
-        options = options || {};
-        var requestedLoadFunction = options['loadFunction'];
-        options['loadFunction'] = function() {
-            PWM_MAIN.clearDijitWidget('progressBar');
-            var progressBar = new ProgressBar({
-                style: '',
-                indeterminate:true
-            },"progressBar");
-            PWM_MAIN.preloadResources(function(){
-                if (requestedLoadFunction) {
-                    requestedLoadFunction();
-                }
-            });
-        };
-        options['title'] = options['title'] || PWM_MAIN.showString('Display_PleaseWait');
-        var supportsProgress = (document.createElement('progress').max !== undefined);
-        if (supportsProgress) {
-            options['text'] = options['text'] || '<progress id="wait">';
-        } else {
-            options['text'] = options['text'] || '<div id="progressBar" style="margin: 8px; width: 100%"/>';
+    PWM_MAIN.closeWaitDialog();
+
+    options = options || {};
+    options['title'] = options['title'] || '';
+
+    var waitOverlayDiv = document.createElement('div');
+    waitOverlayDiv.setAttribute('id','wait-overlay');
+    document.body.appendChild(waitOverlayDiv);
+
+    var waitOverlayMessage = document.createElement('div');
+    waitOverlayMessage.setAttribute('id','wait-overlay-message');
+    waitOverlayMessage.innerHTML = '<span>' + options['title'] + '</span><div id="wait-overlay-inner"></div>';
+    document.body.appendChild(waitOverlayMessage);
+
+    if ('loadFunction' in options) {
+        options.loadFunction();
+    }
+};
+
+PWM_MAIN.closeWaitDialog = function(idName) {
+
+    var html5Mode = PWM_MAIN.html5DialogSupport();
+    if (html5Mode) {
+        if (PWM_MAIN.getObject('html5Dialog')) {
+            PWM_MAIN.getObject('html5Dialog').parentNode.removeChild(PWM_MAIN.getObject('html5Dialog'));
         }
+    }
 
-
-        options['dialogClass'] = 'narrow';
-        options['showOk'] = false;
-
-        PWM_MAIN.showDialog(options);
-    });
+    idName = idName === undefined ? 'dialogPopup' : idName;
+    PWM_MAIN.clearDijitWidget(idName);
+    PWM_MAIN.JSLibrary.removeElementFromDom('wait-overlay');
+    PWM_MAIN.JSLibrary.removeElementFromDom('wait-overlay-message');
 };
 
 PWM_MAIN.html5DialogSupport = function() {
@@ -921,19 +924,6 @@ PWM_MAIN.showConfirmDialog = function(options) {
     options['title'] = 'title' in options ? options['title'] : PWM_MAIN.showString('Button_Confirm');
     options['text'] = 'text' in options ? options['text'] : PWM_MAIN.showString('Confirm');
     PWM_MAIN.showDialog(options);
-};
-
-PWM_MAIN.closeWaitDialog = function(idName) {
-    var html5Mode = PWM_MAIN.html5DialogSupport();
-    if (html5Mode) {
-        if (PWM_MAIN.getObject('html5Dialog')) {
-            PWM_MAIN.getObject('html5Dialog').parentNode.removeChild(PWM_MAIN.getObject('html5Dialog'));
-        }
-        return;
-    }
-
-    idName = idName === undefined ? 'dialogPopup' : idName;
-    PWM_MAIN.clearDijitWidget(idName);
 };
 
 PWM_MAIN.clearError=function() {
@@ -1327,6 +1317,13 @@ PWM_MAIN.JSLibrary.setValueOfSelectElement = function(nodeID, value) {
             element.selectedIndex = i;
             break;
         }
+    }
+};
+
+PWM_MAIN.JSLibrary.removeElementFromDom = function(elementID) {
+    var element = PWM_MAIN.getObject(elementID);
+    if (element) {
+        element.parentNode.removeChild(element);
     }
 };
 
