@@ -23,6 +23,7 @@
 package password.pwm.http.servlet.peoplesearch;
 
 import lombok.Getter;
+import password.pwm.AppProperty;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 
@@ -35,6 +36,8 @@ public class PeopleSearchConfiguration {
     private String orgChartParentAttr;
     private String orgChartChildAttr;
     private String orgChartAssistantAttr;
+    private boolean orgChartShowChildCount;
+    private int orgChartMaxParents;
 
     public static PeopleSearchConfiguration fromConfiguration(final Configuration configuration) {
         final PeopleSearchConfiguration config = new PeopleSearchConfiguration();
@@ -50,6 +53,9 @@ public class PeopleSearchConfiguration {
                 && !config.orgChartParentAttr.isEmpty()
                 && config.orgChartChildAttr != null
                 && !config.orgChartChildAttr.isEmpty();
+
+        config.orgChartShowChildCount = Boolean.parseBoolean(configuration.readAppProperty(AppProperty.PEOPLESEARCH_ORGCHART_ENABLE_CHILD_COUNT));
+        config.orgChartMaxParents = Integer.parseInt(configuration.readAppProperty(AppProperty.PEOPLESEARCH_ORGCHART_MAX_PARENTS));
 
         return config;
     }
