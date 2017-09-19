@@ -605,7 +605,7 @@ public class UserSearchEngine implements PwmService {
                     final Throwable t = e.getCause();
                     final ErrorInformation errorInformation;
                     final String errorMsg = "unexpected error during ldap search ("
-                            + "profile=" + jobInfo.getUserSearchJob().getLdapProfile() + ")"
+                            + "profile=" + jobInfo.getUserSearchJob().getLdapProfile().getIdentifier() + ")"
                             + ", error: " + (t instanceof PwmException ? t.getMessage() : JavaHelper.readHostileExceptionMessage(t));
                     if (t instanceof PwmException) {
                         errorInformation = new ErrorInformation(((PwmException) t).getError(), errorMsg);

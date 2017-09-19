@@ -37,7 +37,7 @@ import java.time.Instant;
 @Getter
 public class PwmLogEvent implements Serializable, Comparable {
 
-    private static final int MAX_MESSAGE_LENGTH = 1_000_000;
+    private static final int MAX_MESSAGE_LENGTH = 100_000;
 
 
     // ------------------------------ FIELDS ------------------------------
@@ -94,13 +94,13 @@ public class PwmLogEvent implements Serializable, Comparable {
             throw new IllegalArgumentException("level may not be null");
         }
 
-        if (message != null && message.length() > MAX_MESSAGE_LENGTH) {
-            throw new IllegalStateException("log message length is too long (" + message.length() + " chars)");
-        }
+        final String retainedMessage = message != null && message.length() > MAX_MESSAGE_LENGTH
+                ? message.substring(0, MAX_MESSAGE_LENGTH) + " [truncated message]"
+                : message;
 
         this.date = date;
         this.topic = topic;
-        this.message = message;
+        this.message = retainedMessage;
         this.source = source;
         this.actor = actor;
         this.label = label;

@@ -39,9 +39,9 @@ import password.pwm.PwmApplication;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
-import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.LdapProfile;
+import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -159,6 +159,7 @@ public class LdapOperationsHelper {
     }
 
 
+    private static final String NULL_CACHE_GUID = "NULL_CACHE_GUID";
     public static String readLdapGuidValue(
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
@@ -167,14 +168,15 @@ public class LdapOperationsHelper {
     )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
-
         final boolean enableCache = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.LDAP_CACHE_USER_GUID_ENABLE));
         final CacheKey cacheKey = CacheKey.makeCacheKey(LdapOperationsHelper.class, null, "guidValue-" + userIdentity.toDelimitedKey());
 
         if (enableCache) {
             final String cachedValue = pwmApplication.getCacheService().get(cacheKey);
             if (cachedValue != null) {
-                return cachedValue;
+                return NULL_CACHE_GUID.equals(cachedValue)
+                        ? null
+                        : cachedValue;
             }
         }
 
@@ -187,7 +189,7 @@ public class LdapOperationsHelper {
 
         final LdapProfile ldapProfile = pwmApplication.getConfig().getLdapProfiles().get(userIdentity.getLdapProfileID());
         final String guidAttributeName = ldapProfile.readSettingAsString(PwmSetting.LDAP_GUID_ATTRIBUTE);
-        if (existingValue == null || existingValue.length() < 1) {
+        if (StringUtil.isEmpty(existingValue)) {
             if (!"DN".equalsIgnoreCase(guidAttributeName) && !"VENDORGUID".equalsIgnoreCase(guidAttributeName)) {
                 if (ldapProfile.readSettingAsBoolean(PwmSetting.LDAP_GUID_AUTO_ADD)) {
                     LOGGER.trace("assigning new GUID to user " + userIdentity);
@@ -201,7 +203,10 @@ public class LdapOperationsHelper {
         if (enableCache) {
             final long cacheSeconds = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.LDAP_CACHE_USER_GUID_SECONDS));
             final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpiration(new TimeDuration(cacheSeconds, TimeUnit.SECONDS));
-            pwmApplication.getCacheService().put(cacheKey, cachePolicy, existingValue);
+            final String cacheValue = existingValue == null
+                    ? NULL_CACHE_GUID
+                    : existingValue;
+            pwmApplication.getCacheService().put(cacheKey, cachePolicy, cacheValue);
         }
 
         return existingValue;
