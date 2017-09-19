@@ -1771,13 +1771,14 @@ PWM_MAIN.ajaxRequest = function(url,loadFunction,options) {
             PWM_MAIN.showErrorDialog(error);
         }
     };
+    var hasContent = options['content'] !== null && options['content'] !== undefined;
     var preventCache = 'preventCache' in options ? options['preventCache'] : true;
     var addPwmFormID = 'addPwmFormID' in options ? options['addPwmFormID'] : true;
     var ajaxTimeout = options['ajaxTimeout'] ? options['ajaxTimeout'] : PWM_MAIN.ajaxTimeout;
     var requestHeaders = {};
     requestHeaders['Accept'] = "application/json";
     requestHeaders['X-RestClientKey'] = PWM_GLOBAL['restClientKey'];
-    if (content) {
+    if (hasContent) {
         requestHeaders['Content-Type'] = "application/json";
     }
 
@@ -1800,7 +1801,7 @@ PWM_MAIN.ajaxRequest = function(url,loadFunction,options) {
             timeout: ajaxTimeout
         };
 
-        if (content) {
+        if (hasContent) {
             postOptions['data'] = dojoJson.stringify(content);
         }
 
