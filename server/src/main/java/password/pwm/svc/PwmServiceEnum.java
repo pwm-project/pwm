@@ -34,7 +34,7 @@ public enum PwmServiceEnum {
     DatabaseService(        password.pwm.util.db.DatabaseService.class,             Flag.StartDuringRuntimeInstance),
     SharedHistoryManager(   password.pwm.svc.wordlist.SharedHistoryManager.class),
     AuditService(           password.pwm.svc.event.AuditService.class),
-    StatisticsManager(      password.pwm.svc.stats.StatisticsManager.class),
+    StatisticsManager(      password.pwm.svc.stats.StatisticsManager.class,         Flag.StartDuringRuntimeInstance),
     WordlistManager(        password.pwm.svc.wordlist.WordlistManager.class),
     SeedlistManager(        password.pwm.svc.wordlist.SeedlistManager.class),
     EmailQueueManager(      password.pwm.util.queue.EmailQueueManager.class),
