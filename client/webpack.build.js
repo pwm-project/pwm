@@ -28,7 +28,8 @@ var webpackMerge = require('webpack-merge');
 module.exports = webpackMerge(commonConfig, {
     devtool: 'source-map',
     entry: {
-        'peoplesearch.ng': './src/main'
+        'peoplesearch.ng': './src/main',
+        'changepassword.ng': './src/pages/changepassword/changepassword.module'
     },
     module: {
         loaders: [

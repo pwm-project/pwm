@@ -35,7 +35,7 @@
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_ChangePassword"/>
     </jsp:include>
-    <div id="centerbody">
+    <div id="centerbody" ng-app="changepassword.module" ng-controller="ChangePasswordController as $ctrl">
         <div id="page-content-title"><pwm:display key="Title_ChangePassword" displayIfMissing="true"/></div>
         <pwm:if test="<%=PwmIfTest.passwordExpired%>">
         <h1><pwm:display key="Display_PasswordExpired"/></h1><br/>
@@ -54,6 +54,7 @@
         <% } %>
         <br/>
         <%@ include file="fragment/message.jsp" %>
+
         <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" id="changePasswordForm" autocomplete="off">
             <table class="noborder">
                 <tr>
@@ -66,7 +67,7 @@
                             <div class="pwm-icon pwm-icon-question-circle icon_button" id="password-guide-icon" style="cursor: pointer; visibility: hidden"></div>
                             <pwm:if test="<%=PwmIfTest.showRandomPasswordGenerator%>">
                                 &nbsp;&nbsp;
-                                <div class="pwm-icon pwm-icon-retweet icon_button" id="autogenerate-icon" style="cursor: pointer; visibility: hidden" ></div>
+                                <div class="pwm-icon pwm-icon-retweet icon_button" id="autogenerate-icon" ng-click="$ctrl.doRandomGeneration()" style="cursor: pointer; visibility: hidden" ></div>
                             </pwm:if>
                         </div>
                         <input type="<pwm:value name="<%=PwmValue.passwordFieldType%>"/>" name="password1" id="password1" class="changepasswordfield passwordfield" <pwm:autofocus/>/>
@@ -133,9 +134,14 @@
         });
     </script>
 </pwm:script>
+
+<pwm:script-ref url="/public/resources/webjars/angular/angular.min.js" />
+<pwm:script-ref url="/public/resources/webjars/angular-ui-router/release/angular-ui-router.min.js" />
+<pwm:script-ref url="/public/resources/webjars/angular-translate/dist/angular-translate.min.js" />
+
 <pwm:script-ref url="/public/resources/js/changepassword.js"/>
+<pwm:script-ref url="/public/resources/webjars/pwm-client/changepassword.ng.js" />
+
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>
-
-
