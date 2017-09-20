@@ -160,6 +160,7 @@ public class LdapOperationsHelper {
 
 
     private static final String NULL_CACHE_GUID = "NULL_CACHE_GUID";
+
     public static String readLdapGuidValue(
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,

@@ -34,7 +34,7 @@
             <destName>pwm.war</destName>
         </file>
         <file>
-            <source>${project.basedir}/LICENSE</source>
+            <source>${project.basedir}/../LICENSE</source>
         </file>
         <file>
             <source>${project.basedir}/pom.xml</source>

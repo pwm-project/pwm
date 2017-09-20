@@ -33,7 +33,7 @@
             <source>${project.basedir}/pom.xml</source>
         </file>
         <file>
-            <source>${project.basedir}/LICENSE</source>
+            <source>${project.basedir}/../LICENSE</source>
         </file>
     </files>
     <fileSets>
