@@ -292,6 +292,7 @@ public enum AppProperty {
     TOKEN_RESEND_DELAY_MS                           ("token.resend.delayMS"),
     TOKEN_REMOVE_ON_CLAIM                           ("token.removeOnClaim"),
     TOKEN_VERIFY_PW_MODIFY_TIME                     ("token.verifyPwModifyTime"),
+    TOKEN_STORAGE_MAX_KEY_LENGTH                    ("token.storage.maxKeyLength"),
     TELEMETRY_SENDER_IMPLEMENTATION                 ("telemetry.senderImplementation"),
     TELEMETRY_SENDER_SETTINGS                       ("telemetry.senderSettings"),
     TELEMETRY_SEND_FREQUENCY_SECONDS                ("telemetry.sendFrequencySeconds"),

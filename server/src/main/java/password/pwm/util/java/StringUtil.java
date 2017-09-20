@@ -390,4 +390,14 @@ public abstract class StringUtil {
     public static boolean equals(final String input1, final String input2) {
         return StringUtils.equals(input1, input2);
     }
+
+    public static String truncate(final String input, final int length) {
+        if (input == null) {
+            return "";
+        }
+
+        return input.length() > length
+                ? input.substring(0, length)
+                : input;
+    }
 }

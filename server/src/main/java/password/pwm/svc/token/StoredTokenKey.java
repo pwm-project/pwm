@@ -22,8 +22,10 @@
 
 package password.pwm.svc.token;
 
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.secure.SecureService;
 
 class StoredTokenKey implements TokenKey {
@@ -62,8 +64,10 @@ class StoredTokenKey implements TokenKey {
             throw new IllegalArgumentException("new key value has stored suffix");
         }
 
+        final int maxHashLength = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.TOKEN_STORAGE_MAX_KEY_LENGTH));
         final SecureService secureService = pwmApplication.getSecureService();
-        final String storedHash = secureService.hash(input) + SUFFIX;
+        final String generatedHash = secureService.hash(input);
+        final String storedHash = StringUtil.truncate(generatedHash, maxHashLength) + SUFFIX;
 
         return new StoredTokenKey(storedHash);
     }
