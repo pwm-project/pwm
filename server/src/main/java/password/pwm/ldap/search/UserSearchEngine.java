@@ -208,13 +208,18 @@ public class UserSearchEngine implements PwmService {
         if (dupeMode == DuplicateMode.FIRST_PROFILE) {
             final String profile1 = results.get(0).getLdapProfileID();
             final String profile2 = results.get(1).getLdapProfileID();
-            if (profile1 == null && profile2 == null || (profile1 != null && profile1.equals(profile2))) {
-                return results.get(0);
-            } else {
+            final boolean sameProfile = (profile1 == null && profile2 == null)
+                    || (profile1 != null && profile1.equals(profile2));
+
+            if (sameProfile) {
                 final String errorMessage = "multiple user matches in single profile";
                 throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER, errorMessage));
             }
 
+            LOGGER.trace(sessionLabel, "found multiple matches, but will use first match since second match" +
+                    " is in a different profile and dupeMode is set to "
+                    + DuplicateMode.FIRST_PROFILE);
+            return results.get(0);
         }
         final String errorMessage = "multiple user matches found";
         throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER, errorMessage));

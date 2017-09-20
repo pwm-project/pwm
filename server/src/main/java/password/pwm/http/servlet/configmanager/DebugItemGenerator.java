@@ -75,6 +75,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -182,10 +183,13 @@ public class DebugItemGenerator {
                     + PwmConstants.PWM_APP_NAME + " "
                     + PwmConstants.SERVLET_VERSION + "\n");
             writer.write("Timestamp: " + JavaHelper.toIsoDate(storedConfiguration.modifyTime()) + "\n");
-            writer.write("This file is encoded using " + PwmConstants.DEFAULT_CHARSET.displayName() + "\n");
+            writer.write("This file is " + PwmConstants.DEFAULT_CHARSET.displayName() + " encoded\n");
 
             writer.write("\n");
-            final Map<String,String> modifiedSettings = storedConfiguration.getModifiedSettingDebugValues(PwmConstants.DEFAULT_LOCALE, true);
+            final Map<String,String> modifiedSettings = new TreeMap<>(
+                    storedConfiguration.getModifiedSettingDebugValues(PwmConstants.DEFAULT_LOCALE, true)
+            );
+
             for (final String key : modifiedSettings.keySet()) {
                 final String value = modifiedSettings.get(key);
                 writer.write(">> Setting > " + key);
