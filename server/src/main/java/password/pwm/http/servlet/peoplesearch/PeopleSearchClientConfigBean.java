@@ -22,36 +22,49 @@
 
 package password.pwm.http.servlet.peoplesearch;
 
+import lombok.Getter;
+import lombok.Setter;
+import password.pwm.config.Configuration;
+import password.pwm.config.PwmSetting;
+import password.pwm.config.value.data.FormConfiguration;
+
 import java.io.Serializable;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
+@Getter
+@Setter
 public class PeopleSearchClientConfigBean implements Serializable {
 
     private Map<String,String> peoplesearch_search_columns;
     private boolean peoplesearch_enablePhoto;
     private boolean peoplesearch_orgChartEnabled;
+    private boolean orgChartShowChildCount;
+    private int orgChartMaxParents;
 
-    public Map<String, String> getPeoplesearch_search_columns() {
-        return peoplesearch_search_columns;
-    }
 
-    public void setPeoplesearch_search_columns(final Map<String, String> peoplesearch_search_columns) {
-        this.peoplesearch_search_columns = peoplesearch_search_columns;
-    }
+    static PeopleSearchClientConfigBean fromConfig(
+            final Configuration configuration,
+            final PeopleSearchConfiguration peopleSearchConfiguration,
+            final Locale locale
+            )
+    {
+        final Map<String, String> searchColumns = new LinkedHashMap<>();
+        final List<FormConfiguration> searchForm = configuration.readSettingAsForm(PwmSetting.PEOPLE_SEARCH_RESULT_FORM);
+        for (final FormConfiguration formConfiguration : searchForm) {
+            searchColumns.put(formConfiguration.getName(),
+                    formConfiguration.getLabel(locale));
+        }
 
-    public boolean isPeoplesearch_enablePhoto() {
-        return peoplesearch_enablePhoto;
-    }
+        final PeopleSearchClientConfigBean peopleSearchClientConfigBean = new PeopleSearchClientConfigBean();
+        peopleSearchClientConfigBean.setPeoplesearch_search_columns(searchColumns);
+        peopleSearchClientConfigBean.setPeoplesearch_enablePhoto(peopleSearchConfiguration.isPhotosEnabled());
+        peopleSearchClientConfigBean.setPeoplesearch_orgChartEnabled(peopleSearchConfiguration.isOrgChartEnabled());
+        peopleSearchClientConfigBean.setOrgChartShowChildCount(peopleSearchConfiguration.isOrgChartShowChildCount());
+        peopleSearchClientConfigBean.setOrgChartMaxParents(peopleSearchClientConfigBean.getOrgChartMaxParents());
 
-    public void setPeoplesearch_enablePhoto(final boolean peoplesearch_enablePhoto) {
-        this.peoplesearch_enablePhoto = peoplesearch_enablePhoto;
-    }
-
-    public boolean isPeoplesearch_orgChartEnabled() {
-        return peoplesearch_orgChartEnabled;
-    }
-
-    public void setPeoplesearch_orgChartEnabled(final boolean peoplesearch_orgChartEnabled) {
-        this.peoplesearch_orgChartEnabled = peoplesearch_orgChartEnabled;
+        return peopleSearchClientConfigBean;
     }
 }

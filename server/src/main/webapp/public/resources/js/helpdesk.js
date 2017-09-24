@@ -252,7 +252,7 @@ PWM_HELPDESK.loadSearchDetails = function(userKey) {
             if (PWM_MAIN.Preferences.readSessionStorage(PREF_KEY_VERIFICATION_STATE)) {
                 contents[PARAM_VERIFICATION_STATE] = PWM_MAIN.Preferences.readSessionStorage(PREF_KEY_VERIFICATION_STATE);
             }
-            PWM_MAIN.submitPostAction(window.location.href,'detail',contents);
+            PWM_MAIN.submitPostAction(window.location.href,'showDetail',contents);
         }});
     };
 

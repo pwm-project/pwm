@@ -46,6 +46,7 @@ public class PublicUserInfoBean implements Serializable {
     private String userID;
     private String userGUID;
     private String userEmailAddress;
+    private String userSmsNumber;
     private Instant passwordExpirationTime;
     private Instant passwordLastModifiedTime;
     private Instant lastLoginTime;
@@ -75,6 +76,7 @@ public class PublicUserInfoBean implements Serializable {
         publicUserInfoBean.userID = userInfoBean.getUsername();
         publicUserInfoBean.userGUID = publicUserInfoBean.getUserGUID();
         publicUserInfoBean.userEmailAddress = userInfoBean.getUserEmailAddress();
+        publicUserInfoBean.userSmsNumber = userInfoBean.getUserSmsNumber();
         publicUserInfoBean.passwordExpirationTime = userInfoBean.getPasswordExpirationTime();
         publicUserInfoBean.passwordLastModifiedTime = userInfoBean.getPasswordLastModifiedTime();
         publicUserInfoBean.passwordStatus = userInfoBean.getPasswordStatus();

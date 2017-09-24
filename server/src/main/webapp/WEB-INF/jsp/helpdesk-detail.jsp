@@ -23,14 +23,14 @@
 <%@ page import="com.novell.ldapchai.ChaiPasswordRule" %>
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
 <%@ page import="password.pwm.bean.ResponseInfoBean" %>
-<%@ page import="password.pwm.ldap.UserInfo" %>
-<%@ page import="password.pwm.config.value.data.ActionConfiguration" %>
-<%@ page import="password.pwm.config.value.data.FormConfiguration" %>
+<%@ page import="password.pwm.bean.pub.PublicUserInfoBean" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.config.option.HelpdeskUIMode" %>
 <%@ page import="password.pwm.config.option.ViewStatusFields" %>
 <%@ page import="password.pwm.config.profile.HelpdeskProfile" %>
 <%@ page import="password.pwm.config.profile.PwmPasswordRule" %>
+<%@ page import="password.pwm.config.value.data.ActionConfiguration" %>
+<%@ page import="password.pwm.config.value.data.FormConfiguration" %>
 <%@ page import="password.pwm.http.PwmSession" %>
 <%@ page import="password.pwm.http.servlet.helpdesk.HelpdeskDetailInfoBean" %>
 <%@ page import="password.pwm.http.tag.PasswordRequirementsTag" %>
@@ -44,6 +44,7 @@
 <%@ page import="java.util.Iterator" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Set" %>
+<%@ page import="org.apache.commons.text.StringEscapeUtils" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -56,12 +57,11 @@
 
     // user info
     final HelpdeskDetailInfoBean helpdeskDetailInfoBean = (HelpdeskDetailInfoBean)pwmRequest.getAttribute(PwmRequestAttribute.HelpdeskDetail);
-    final UserInfo searchedUserInfo = helpdeskDetailInfoBean.getUserInfo();
-    final ResponseInfoBean responseInfoBean = searchedUserInfo.getResponseInfoBean();
+    final PublicUserInfoBean searchedUserInfo = helpdeskDetailInfoBean.getUserInfo();
+    final ResponseInfoBean responseInfoBean = helpdeskDetailInfoBean.getResponseInfoBean();
 
     final String displayName = helpdeskDetailInfoBean.getUserDisplayName();
     final Set<ViewStatusFields> viewStatusFields = helpdeskProfile.readSettingAsOptionList(PwmSetting.HELPDESK_VIEW_STATUS_VALUES,ViewStatusFields.class);
-    final boolean hasOtp = searchedUserInfo.getOtpUserRecord() != null;
 %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
@@ -117,7 +117,7 @@
                                     </td>
                                     <td>
                                         <span style="word-wrap: break-word; word-break: break-all">
-                                        <%= StringUtil.escapeHtml(searchedUserInfo.getUserIdentity().getUserDN()) %>
+                                        <%= StringUtil.escapeHtml(searchedUserInfo.getUserDN()) %>
                                         </span>
                                     </td>
                                 </tr>
@@ -127,7 +127,7 @@
                                         <pwm:display key="Field_LdapProfile"/>
                                     </td>
                                     <td>
-                                        <%= StringUtil.escapeHtml(pwmApplication.getConfig().getLdapProfiles().get(searchedUserInfo.getUserIdentity().getLdapProfileID()).getDisplayName(pwmSession.getSessionStateBean().getLocale())) %>
+                                        <%= StringUtil.escapeHtml(pwmApplication.getConfig().getLdapProfiles().get(searchedUserInfo.getLdapProfile()).getDisplayName(pwmSession.getSessionStateBean().getLocale())) %>
                                     </td>
                                 </tr>
                                 <% } %>
@@ -138,7 +138,7 @@
                                         <pwm:display key="Field_Username"/>
                                     </td>
                                     <td>
-                                        <%= StringUtil.escapeHtml(searchedUserInfo.getUsername()) %>
+                                        <%= StringUtil.escapeHtml(searchedUserInfo.getUserID()) %>
                                     </td>
                                 </tr>
                                 <% } %>
@@ -374,7 +374,7 @@
                                             <pwm:display key="Field_OTP_Stored"/>
                                         </td>
                                         <td>
-                                            <%if (searchedUserInfo.getOtpUserRecord() != null) {%><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
+                                            <%if (helpdeskDetailInfoBean.isHasOtpRecord()) {%><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
                                         </td>
                                     </tr>
                                     <% } %>
@@ -383,15 +383,9 @@
                                         <td class="key">
                                             <pwm:display key="Field_OTP_Timestamp"/>
                                         </td>
-                                        <% if (searchedUserInfo.getOtpUserRecord() == null || searchedUserInfo.getOtpUserRecord().getTimestamp() == null) { %>
-                                        <td>
-                                            <pwm:display key="Value_NotApplicable"/>
-                                        </td>
-                                        <% } else { %>
                                         <td class="timestamp">
-                                            <%= JavaHelper.toIsoDate(searchedUserInfo.getOtpUserRecord().getTimestamp()) %>
+                                            <%= helpdeskDetailInfoBean.getOtpRecordTimestamp() %>
                                         </td>
-                                        <% } %>
                                     </tr>
                                     <% } %>
                                 </pwm:if>
@@ -401,7 +395,7 @@
                                         <pwm:display key="Field_UserGUID"/>
                                     </td>
                                     <td>
-                                        <%= StringUtil.escapeHtml(searchedUserInfo.getUserGuid()) %>
+                                        <%= StringUtil.escapeHtml(searchedUserInfo.getUserGUID()) %>
                                     </td>
                                 </tr>
                                 <% } %>
@@ -434,14 +428,7 @@
                                             <pwm:display key="Field_Policy"/>
                                         </td>
                                         <td>
-                                            <% if ((searchedUserInfo.getPasswordPolicy() != null)
-                                                    && (searchedUserInfo.getPasswordPolicy().getChaiPasswordPolicy() != null)
-                                                    && (searchedUserInfo.getPasswordPolicy().getChaiPasswordPolicy().getPolicyEntry() != null)
-                                                    && (searchedUserInfo.getPasswordPolicy().getChaiPasswordPolicy().getPolicyEntry().getEntryDN() != null)) { %>
-                                            <%= searchedUserInfo.getPasswordPolicy().getChaiPasswordPolicy().getPolicyEntry().getEntryDN() %>
-                                            <% } else { %>
-                                            <pwm:display key="Value_NotApplicable"/>
-                                            <% } %>
+                                            <%= StringUtil.escapeHtml(helpdeskDetailInfoBean.getPasswordPolicyDN()) %>
                                         </td>
                                     </tr>
                                     <tr>
@@ -449,10 +436,7 @@
                                             <pwm:display key="Field_Profile"/>
                                         </td>
                                         <td>
-                                            <%= searchedUserInfo.getPasswordPolicy().getIdentifier() == null
-                                                    ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable)
-                                                    : searchedUserInfo.getPasswordPolicy().getIdentifier()
-                                            %>
+                                            <%= StringUtil.escapeHtml(helpdeskDetailInfoBean.getPasswordPolicyID()) %>
                                         </td>
                                     </tr>
                                     <tr>
@@ -461,10 +445,7 @@
                                         </td>
                                         <td>
                                             <ul>
-                                                <%
-                                                    final MacroMachine macroMachine = JspUtility.getPwmSession(pageContext).getSessionManager().getMacroMachine(ContextManager.getPwmApplication(session));
-                                                    final List<String> requirementLines = PasswordRequirementsTag.getPasswordRequirementsStrings(searchedUserInfo.getPasswordPolicy(), ContextManager.getPwmApplication(session).getConfig(), pwmSession.getSessionStateBean().getLocale(), macroMachine); %>
-                                                <% for (final String requirementLine : requirementLines) { %>
+                                                <% for (final String requirementLine : helpdeskDetailInfoBean.getPasswordRequirements()) { %>
                                                 <li><%=requirementLine%>
                                                 </li>
                                                 <% } %>
@@ -473,23 +454,13 @@
                                     </tr>
                                 </table>
                                 <table class="nomargin">
-                                    <% for (final PwmPasswordRule rule : PwmPasswordRule.values()) { %>
+                                    <% for (final String key : helpdeskDetailInfoBean.getPasswordPolicyRules().keySet()) { %>
                                     <tr>
                                         <td class="key">
-                                            <%= rule.getLabel(pwmSession.getSessionStateBean().getLocale(),pwmApplication.getConfig()) %>
+                                            <%= StringUtil.escapeHtml(key) %>
                                         </td>
                                         <td>
-                                            <% if (searchedUserInfo.getPasswordPolicy().getValue(rule) != null) { %>
-                                            <% if (ChaiPasswordRule.RuleType.BOOLEAN == rule.getRuleType()) { %>
-                                            <% if (Boolean.parseBoolean(searchedUserInfo.getPasswordPolicy().getValue(rule))) { %>
-                                            <pwm:display key="Value_True"/>
-                                            <% } else { %>
-                                            <pwm:display key="Value_False"/>
-                                            <% } %>
-                                            <% } else { %>
-                                            <%= StringUtil.escapeHtml(searchedUserInfo.getPasswordPolicy().getValue(rule)) %>
-                                            <% } %>
-                                            <% } %>
+                                            <%= StringUtil.escapeHtml(helpdeskDetailInfoBean.getPasswordPolicyRules().get(key)) %>
                                         </td>
                                     </tr>
                                     <% } %>
@@ -570,7 +541,7 @@
                         <% } %>
                         <% } %>
                         <% if (helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_CLEAR_OTP_BUTTON) && pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.OTP_ENABLED)) { %>
-                        <% if (hasOtp) { %>
+                        <% if (helpdeskDetailInfoBean.isHasOtpRecord()) { %>
                         <button id="helpdesk_clearOtpSecretBtn" class="helpdesk-detail-btn btn">
                             <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-eraser"></span></pwm:if>
                             <pwm:display key="Button_HelpdeskClearOtpSecret"/>
@@ -595,6 +566,23 @@
                         </button>
                         <% } %>
                         <% final List<ActionConfiguration> actions = helpdeskProfile.readSettingAsAction(PwmSetting.HELPDESK_ACTIONS); %>
+
+                        <button id="loadDetail" style="display:none">Load Detail</button>
+                        <pwm:script>
+                            <script type="text/javascript">
+                                PWM_GLOBAL['startupFunctions'].push(function(){
+                                    PWM_MAIN.addEventHandler('loadDetail','click',function(){
+                                        var url = 'helpdesk';
+                                        url = PWM_MAIN.addParamToUrl(url, 'processAction', 'detail');
+                                        url = PWM_MAIN.addParamToUrl(url, 'userKey', PWM_VAR['helpdesk_obfuscatedDN']);
+                                        url = PWM_MAIN.addParamToUrl(url, 'verificationState', PWM_MAIN.Preferences.readSessionStorage(PREF_KEY_VERIFICATION_STATE));
+                                        PWM_MAIN.ajaxRequest(url,function () {
+                                        });
+                                    });
+                                });
+                            </script>
+                        </pwm:script>
+
                         <% for (final ActionConfiguration loopAction : actions) { %>
                         <button class="helpdesk-detail-btn btn" name="action-<%=loopAction.getName()%>" id="action-<%=loopAction.getName()%>">
                             <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-location-arrow"></span></pwm:if>

@@ -24,7 +24,6 @@ package password.pwm.http.servlet.peoplesearch;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -50,8 +49,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 public abstract class PeopleSearchServlet extends ControlledPwmServlet {
@@ -112,17 +109,11 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet {
     {
         final PeopleSearchConfiguration peopleSearchConfiguration = PeopleSearchConfiguration.fromConfiguration(pwmRequest.getConfig());
 
-        final Map<String, String> searchColumns = new LinkedHashMap<>();
-        final List<FormConfiguration> searchForm = pwmRequest.getConfig().readSettingAsForm(PwmSetting.PEOPLE_SEARCH_RESULT_FORM);
-        for (final FormConfiguration formConfiguration : searchForm) {
-            searchColumns.put(formConfiguration.getName(),
-                    formConfiguration.getLabel(pwmRequest.getLocale()));
-        }
-
-        final PeopleSearchClientConfigBean peopleSearchClientConfigBean = new PeopleSearchClientConfigBean();
-        peopleSearchClientConfigBean.setPeoplesearch_search_columns(searchColumns);
-        peopleSearchClientConfigBean.setPeoplesearch_enablePhoto(peopleSearchConfiguration.isPhotosEnabled());
-        peopleSearchClientConfigBean.setPeoplesearch_orgChartEnabled(peopleSearchConfiguration.isOrgChartEnabled());
+        final PeopleSearchClientConfigBean peopleSearchClientConfigBean = PeopleSearchClientConfigBean.fromConfig(
+                pwmRequest.getConfig(),
+                peopleSearchConfiguration,
+                pwmRequest.getLocale()
+        );
 
         final RestResultBean restResultBean = new RestResultBean(peopleSearchClientConfigBean);
         LOGGER.trace(pwmRequest, "returning clientData: " + JsonUtil.serialize(restResultBean));

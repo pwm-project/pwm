@@ -22,21 +22,29 @@
 
 package password.pwm.http.servlet.helpdesk;
 
+import com.novell.ldapchai.ChaiPasswordRule;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
+import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.UserIdentity;
-import password.pwm.ldap.UserInfo;
-import password.pwm.ldap.UserInfoBean;
-import password.pwm.config.value.data.FormConfiguration;
-import password.pwm.util.form.FormUtility;
+import password.pwm.bean.pub.PublicUserInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.HelpdeskProfile;
+import password.pwm.config.profile.PwmPasswordRule;
+import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.tag.PasswordRequirementsTag;
 import password.pwm.i18n.Display;
+import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.event.UserAuditRecord;
 import password.pwm.util.LocaleHelper;
+import password.pwm.util.form.FormUtility;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -46,16 +54,19 @@ import javax.servlet.ServletException;
 import java.io.IOException;
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+@Getter
+@Setter(AccessLevel.PRIVATE)
 public class HelpdeskDetailInfoBean implements Serializable {
     private static final PwmLogger LOGGER = PwmLogger.forClass(HelpdeskDetailInfoBean.class);
 
-
-    private UserInfo userInfo = UserInfoBean.builder().build();
+    private PublicUserInfoBean userInfo;
     private String userDisplayName;
 
     private boolean intruderLocked;
@@ -66,6 +77,18 @@ public class HelpdeskDetailInfoBean implements Serializable {
     private List<UserAuditRecord> userHistory;
     private Map<FormConfiguration, List<String>> searchDetails;
     private String passwordSetDelta;
+
+    private Map<String, String> passwordPolicyRules;
+    private List<String> passwordRequirements;
+    private String passwordPolicyDN;
+    private String passwordPolicyID;
+
+    private boolean hasOtpRecord;
+    private String otpRecordTimestamp;
+
+    private ResponseInfoBean responseInfoBean;
+
+    private transient UserInfo backingUserInfo;
 
     static HelpdeskDetailInfoBean makeHelpdeskDetailInfo(
             final PwmRequest pwmRequest,
@@ -91,7 +114,9 @@ public class HelpdeskDetailInfoBean implements Serializable {
                 userIdentity,
                 theUser.getChaiProvider()
         );
-        detailInfo.setUserInfo(userInfo);
+        final MacroMachine macroMachine = new MacroMachine(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), userInfo, null);
+
+        detailInfo.setUserInfo(PublicUserInfoBean.fromUserInfoBean(userInfo, pwmRequest.getConfig(), pwmRequest.getLocale(), macroMachine));
 
         try {
             detailInfo.setIntruderLocked(theUser.isPasswordLocked());
@@ -119,7 +144,7 @@ public class HelpdeskDetailInfoBean implements Serializable {
         }
 
         try {
-            detailInfo.setUserHistory(pwmRequest.getPwmApplication().getAuditManager().readUserHistory(detailInfo.getUserInfo()));
+            detailInfo.setUserHistory(pwmRequest.getPwmApplication().getAuditManager().readUserHistory(userInfo));
         } catch (Exception e) {
             LOGGER.error(pwmRequest, "unexpected error reading userHistory for user '" + userIdentity + "', " + e.getMessage());
         }
@@ -133,13 +158,67 @@ public class HelpdeskDetailInfoBean implements Serializable {
 
         {
             final List<FormConfiguration> detailFormConfig = helpdeskProfile.readSettingAsForm(PwmSetting.HELPDESK_DETAIL_FORM);
-            final Map<FormConfiguration,List<String>> formData = FormUtility.populateFormMapFromLdap(detailFormConfig, pwmRequest.getPwmSession().getLabel(), userInfo);
+            final Map<FormConfiguration, List<String>> formData = FormUtility.populateFormMapFromLdap(detailFormConfig, pwmRequest.getPwmSession().getLabel(), userInfo);
             detailInfo.setSearchDetails(formData);
         }
 
-        final String configuredDisplayName = helpdeskProfile.readSettingAsString(PwmSetting.HELPDESK_DETAIL_DISPLAY_NAME);
+        {
+            final Map<String,String> passwordRules = new LinkedHashMap<>();
+            if (userInfo.getPasswordPolicy() != null) {
+                for (final PwmPasswordRule rule : PwmPasswordRule.values()) {
+                    if (userInfo.getPasswordPolicy().getValue(rule) != null) {
+                        if (ChaiPasswordRule.RuleType.BOOLEAN == rule.getRuleType()) {
+                            final boolean value = Boolean.parseBoolean(userInfo.getPasswordPolicy().getValue(rule));
+                            final String sValue = LocaleHelper.booleanString(value, pwmRequest);
+                            passwordRules.put(rule.getLabel(pwmRequest.getLocale(), pwmRequest.getConfig()), sValue);
+                        } else {
+                            passwordRules.put(rule.getLabel(pwmRequest.getLocale(), pwmRequest.getConfig()),
+                                    userInfo.getPasswordPolicy().getValue(rule));
+                        }
+                    }
+                }
+            }
+            detailInfo.setPasswordPolicyRules(Collections.unmodifiableMap(passwordRules));
+        }
+
+        {
+            final List<String> requirementLines = PasswordRequirementsTag.getPasswordRequirementsStrings(
+                    userInfo.getPasswordPolicy(),
+                    pwmRequest.getConfig(),
+                    pwmRequest.getLocale(),
+                    macroMachine
+            );
+            detailInfo.setPasswordRequirements(Collections.unmodifiableList(requirementLines));
+        }
+
+        if ((userInfo.getPasswordPolicy() != null)
+                && (userInfo.getPasswordPolicy().getChaiPasswordPolicy() != null)
+                && (userInfo.getPasswordPolicy().getChaiPasswordPolicy().getPolicyEntry() != null)
+                && (userInfo.getPasswordPolicy().getChaiPasswordPolicy().getPolicyEntry().getEntryDN() != null)) {
+            detailInfo.setPasswordPolicyDN(userInfo.getPasswordPolicy().getChaiPasswordPolicy().getPolicyEntry().getEntryDN());
+        } else {
+            detailInfo.setPasswordPolicyDN(LocaleHelper.getLocalizedMessage(Display.Value_NotApplicable, pwmRequest));
+        }
+
+        if ((userInfo.getPasswordPolicy() != null)
+                && userInfo.getPasswordPolicy().getIdentifier() != null) {
+            detailInfo.setPasswordPolicyID(userInfo.getPasswordPolicy().getIdentifier());
+        } else {
+            detailInfo.setPasswordPolicyID(LocaleHelper.getLocalizedMessage(Display.Value_NotApplicable, pwmRequest));
+        }
+
+        detailInfo.hasOtpRecord = userInfo.getOtpUserRecord() != null;
+
+        detailInfo.otpRecordTimestamp = userInfo.getOtpUserRecord() != null && userInfo.getOtpUserRecord().getTimestamp() != null
+                ? JavaHelper.toIsoDate(userInfo.getOtpUserRecord().getTimestamp())
+                : LocaleHelper.getLocalizedMessage(Display.Value_NotApplicable, pwmRequest);
+
+        detailInfo.responseInfoBean = userInfo.getResponseInfoBean();
+
+        detailInfo.setBackingUserInfo(userInfo);
+
+            final String configuredDisplayName = helpdeskProfile.readSettingAsString(PwmSetting.HELPDESK_DETAIL_DISPLAY_NAME);
         if (configuredDisplayName != null && !configuredDisplayName.isEmpty()) {
-            final MacroMachine macroMachine = new MacroMachine(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), detailInfo.getUserInfo(), null);
             final String displayName = macroMachine.expandMacros(configuredDisplayName);
             detailInfo.setUserDisplayName(displayName);
         }
@@ -149,78 +228,9 @@ public class HelpdeskDetailInfoBean implements Serializable {
             LOGGER.trace(pwmRequest, "completed assembly of detail data report for user " + userIdentity
                     + " in " + timeDuration.asCompactString() + ", contents: " + JsonUtil.serialize(detailInfo));
         }
+
+
         return detailInfo;
     }
-
-    public String getUserDisplayName() {
-        return userDisplayName;
-    }
-
-    public void setUserDisplayName(final String userDisplayName) {
-        this.userDisplayName = userDisplayName;
-    }
-
-    public UserInfo getUserInfo() {
-        return userInfo;
-    }
-
-    public void setUserInfo(final UserInfo userInfo) {
-        this.userInfo = userInfo;
-    }
-
-    public boolean isIntruderLocked() {
-        return intruderLocked;
-    }
-
-    public void setIntruderLocked(final boolean intruderLocked) {
-        this.intruderLocked = intruderLocked;
-    }
-
-    public boolean isAccountEnabled() {
-        return accountEnabled;
-    }
-
-    public void setAccountEnabled(final boolean accountEnabled) {
-        this.accountEnabled = accountEnabled;
-    }
-
-    public Instant getLastLoginTime() {
-        return lastLoginTime;
-    }
-
-    public void setLastLoginTime(final Instant lastLoginTime) {
-        this.lastLoginTime = lastLoginTime;
-    }
-
-    public List<UserAuditRecord> getUserHistory() {
-        return userHistory;
-    }
-
-    public void setUserHistory(final List<UserAuditRecord> userHistory) {
-        this.userHistory = userHistory;
-    }
-
-    public Map<FormConfiguration, List<String>> getSearchDetails() {
-        return searchDetails;
-    }
-
-    public void setSearchDetails(final Map<FormConfiguration, List<String>> searchDetails) {
-        this.searchDetails = searchDetails;
-    }
-
-    public String getPasswordSetDelta() {
-        return passwordSetDelta;
-    }
-
-    public void setPasswordSetDelta(final String passwordSetDelta) {
-        this.passwordSetDelta = passwordSetDelta;
-    }
-
-    public boolean isAccountExpired() {
-        return accountExpired;
-    }
-
-    public void setAccountExpired(final boolean accountExpired) {
-        this.accountExpired = accountExpired;
-    }
 }
+

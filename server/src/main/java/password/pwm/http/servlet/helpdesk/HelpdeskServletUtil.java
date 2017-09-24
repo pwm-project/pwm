@@ -18,6 +18,9 @@ import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.ldap.LdapPermissionTester;
+import password.pwm.svc.event.AuditEvent;
+import password.pwm.svc.event.AuditRecordFactory;
+import password.pwm.svc.event.HelpdeskAuditRecord;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.logging.PwmLogger;
@@ -76,7 +79,34 @@ class HelpdeskServletUtil {
         }
     }
 
-    static void processDetailRequest(
+    static void processShowDetailRequest(
+            final PwmRequest pwmRequest,
+            final HelpdeskProfile helpdeskProfile,
+            final UserIdentity userIdentity
+    )
+            throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
+    {
+        final HelpdeskDetailInfoBean helpdeskDetailInfoBean;
+        try {
+            helpdeskDetailInfoBean = processDetailRequestImpl(pwmRequest, helpdeskProfile, userIdentity);
+        } catch (PwmUnrecoverableException e) {
+            LOGGER.debug(pwmRequest, e.getErrorInformation());
+            pwmRequest.respondWithError(e.getErrorInformation(), false);
+            return;
+        }
+
+        if (helpdeskDetailInfoBean != null && helpdeskDetailInfoBean.getUserInfo() != null) {
+            final String obfuscatedDN = helpdeskDetailInfoBean.getBackingUserInfo().getUserIdentity().toObfuscatedKey(pwmRequest.getPwmApplication());
+            pwmRequest.setAttribute(PwmRequestAttribute.HelpdeskObfuscatedDN, obfuscatedDN);
+            pwmRequest.setAttribute(PwmRequestAttribute.HelpdeskUsername, helpdeskDetailInfoBean.getUserInfo().getUserID());
+        }
+
+        pwmRequest.setAttribute(PwmRequestAttribute.HelpdeskDetail, helpdeskDetailInfoBean);
+        pwmRequest.setAttribute(PwmRequestAttribute.HelpdeskVerificationEnabled, !helpdeskProfile.readOptionalVerificationMethods().isEmpty());
+        pwmRequest.forwardToJsp(JspUrl.HELPDESK_DETAIL);
+    }
+
+    static HelpdeskDetailInfoBean processDetailRequestImpl(
             final PwmRequest pwmRequest,
             final HelpdeskProfile helpdeskProfile,
             final UserIdentity userIdentity
@@ -88,9 +118,7 @@ class HelpdeskServletUtil {
         if (actorUserIdentity.canonicalEquals(userIdentity, pwmRequest.getPwmApplication())) {
             final String errorMsg = "cannot select self";
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,errorMsg);
-            LOGGER.debug(pwmRequest, errorInformation);
-            pwmRequest.respondWithError(errorInformation, false);
-            return;
+            throw new PwmUnrecoverableException(errorInformation);
         }
         LOGGER.trace(pwmRequest, "helpdesk detail view request for user details of " + userIdentity.toString() + " by actor " + actorUserIdentity.toString());
 
@@ -102,23 +130,22 @@ class HelpdeskServletUtil {
         if (!HelpdeskServletUtil.checkIfRequiredVerificationPassed(userIdentity, verificationStateBean, helpdeskProfile)) {
             final String errorMsg = "selected user has not been verified";
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,errorMsg);
-            LOGGER.debug(pwmRequest, errorInformation);
-            pwmRequest.respondWithError(errorInformation, false);
-            return;
+            throw new PwmUnrecoverableException(errorInformation);
         }
 
         final HelpdeskDetailInfoBean helpdeskDetailInfoBean = HelpdeskDetailInfoBean.makeHelpdeskDetailInfo(pwmRequest, helpdeskProfile, userIdentity);
-        pwmRequest.setAttribute(PwmRequestAttribute.HelpdeskDetail, helpdeskDetailInfoBean);
-
-        if (helpdeskDetailInfoBean != null && helpdeskDetailInfoBean.getUserInfo() != null) {
-            final String obfuscatedDN = helpdeskDetailInfoBean.getUserInfo().getUserIdentity().toObfuscatedKey(pwmRequest.getPwmApplication());
-            pwmRequest.setAttribute(PwmRequestAttribute.HelpdeskObfuscatedDN, obfuscatedDN);
-            pwmRequest.setAttribute(PwmRequestAttribute.HelpdeskUsername, helpdeskDetailInfoBean.getUserInfo().getUsername());
-        }
+        final HelpdeskAuditRecord auditRecord = new AuditRecordFactory(pwmRequest).createHelpdeskAuditRecord(
+                AuditEvent.HELPDESK_VIEW_DETAIL,
+                pwmRequest.getPwmSession().getUserInfo().getUserIdentity(),
+                null,
+                userIdentity,
+                pwmRequest.getSessionLabel().getSrcAddress(),
+                pwmRequest.getSessionLabel().getSrcHostname()
+        );
+        pwmRequest.getPwmApplication().getAuditManager().submit(auditRecord);
 
         StatisticsManager.incrementStat(pwmRequest, Statistic.HELPDESK_USER_LOOKUP);
-        pwmRequest.setAttribute(PwmRequestAttribute.HelpdeskVerificationEnabled, !helpdeskProfile.readOptionalVerificationMethods().isEmpty());
-        pwmRequest.forwardToJsp(JspUrl.HELPDESK_DETAIL);
+        return helpdeskDetailInfoBean;
     }
 
     static UserIdentity userIdentityFromMap(final PwmRequest pwmRequest, final Map<String,String> bodyMap) throws PwmUnrecoverableException {
@@ -165,13 +192,13 @@ class HelpdeskServletUtil {
         final MacroMachine macroMachine = new MacroMachine(
                 pwmApplication,
                 pwmRequest.getSessionLabel(),
-                helpdeskDetailInfoBean.getUserInfo(),
+                helpdeskDetailInfoBean.getBackingUserInfo(),
                 null
         );
 
         pwmApplication.getEmailQueue().submitEmail(
                 configuredEmailSetting,
-                helpdeskDetailInfoBean.getUserInfo(),
+                helpdeskDetailInfoBean.getBackingUserInfo(),
                 macroMachine
         );
     }
