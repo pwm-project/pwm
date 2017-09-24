@@ -79,6 +79,7 @@ public enum PwmServletDefinition {
     GuestRegistration(password.pwm.http.servlet.GuestRegistrationServlet.class, null),
     SelfDelete(DeleteAccountServlet.class, DeleteAccountBean.class),
 
+    ClientApi(ClientApiServlet.class, null),
     Admin(AdminServlet.class, AdminBean.class),
     ConfigGuide(ConfigGuideServlet.class, ConfigGuideBean.class),
     ConfigEditor(ConfigEditorServlet.class, null),

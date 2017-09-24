@@ -77,7 +77,7 @@ PWM_MAIN.pageLoadHandler = function() {
 
 PWM_MAIN.loadClientData=function(completeFunction) {
     PWM_GLOBAL['app-data-client-retry-count'] = PWM_GLOBAL['app-data-client-retry-count'] + 1;
-    var url = PWM_GLOBAL['url-context'] + "/public/rest/app-data/client?etag=" + PWM_GLOBAL['clientEtag'];
+    var url = PWM_GLOBAL['url-context'] + "/public/api?processAction=clientData&etag=" + PWM_GLOBAL['clientEtag'];
     url = PWM_MAIN.addParamToUrl(url,'pageUrl',window.location.href);
     var loadFunction = function(data) {
         for (var globalProp in data['data']['PWM_GLOBAL']) {
@@ -96,7 +96,7 @@ PWM_MAIN.loadClientData=function(completeFunction) {
 };
 
 PWM_MAIN.loadLocaleBundle = function(bundleName, completeFunction) {
-    var clientConfigUrl = PWM_GLOBAL['url-context'] + "/public/rest/app-data/strings/" + bundleName;
+    var clientConfigUrl = PWM_GLOBAL['url-context'] + "/public/api?processAction=strings&bundle=" + bundleName;
     clientConfigUrl = PWM_MAIN.addParamToUrl(clientConfigUrl,'etag',PWM_GLOBAL['clientEtag']);
     var loadFunction = function(data){
         if (data['error'] === true) {

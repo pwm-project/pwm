@@ -99,8 +99,8 @@ PWM_CONFIG.waitForRestart=function(options) {
         }, pingCycleTimeMs);
         console.log('Waiting for server restart, unable to contact server: ' + error);
     };
-    var url = PWM_GLOBAL['url-restservice'] + "/ping";
-    PWM_MAIN.ajaxRequest(url,loadFunction,{errorFunction:errorFunction,method:'GET'});
+    var url = PWM_GLOBAL['url-context'] + "/public/api?processAction=ping";
+    PWM_MAIN.ajaxRequest(url,loadFunction,{errorFunction:errorFunction,method:'GET',preventCache:true});
 };
 
 PWM_CONFIG.startNewConfigurationEditor=function(template) {
@@ -199,7 +199,7 @@ PWM_CONFIG.openLogViewer=function(level) {
 };
 
 PWM_CONFIG.showHeaderHealth = function() {
-    var refreshUrl = PWM_GLOBAL['url-restservice'] + "/health";
+    var refreshUrl = PWM_GLOBAL['url-context'] + "/public/api?processAction=health";
     var parentDiv = PWM_MAIN.getObject('panel-header-healthData');
     if (!parentDiv) {
         return;
@@ -326,7 +326,7 @@ PWM_CONFIG.heartbeatCheck = function() {
     var errorFunction = function(e) {
         handleErrorFunction('I/O error communicating with server.');
     };
-    var url = PWM_GLOBAL['url-restservice'] + "/app-data/client?heartbeat=true";
+    var url = PWM_GLOBAL['url-context'] + "/public/api?processAction=clientData&heartbeat=true";
     url = PWM_MAIN.addParamToUrl(url,'pageUrl',window.location.href);
     PWM_MAIN.ajaxRequest(url,loadFunction,{errorFunction:errorFunction,method:'GET'});
 };

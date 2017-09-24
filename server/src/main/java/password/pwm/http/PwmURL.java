@@ -172,6 +172,10 @@ public class PwmURL {
         return checkIfStartsWithURL(PwmConstants.URL_PREFIX_PRIVATE + "/config/");
     }
 
+    public boolean isClientApiServlet() {
+        return isPwmServletURL(PwmServletDefinition.ClientApi);
+    }
+
     public boolean isConfigGuideURL() {
         return isPwmServletURL(PwmServletDefinition.ConfigGuide);
     }

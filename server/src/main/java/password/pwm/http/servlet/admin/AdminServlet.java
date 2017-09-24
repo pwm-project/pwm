@@ -28,8 +28,10 @@ import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
+import password.pwm.bean.pub.SessionStateInfoBean;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
@@ -43,6 +45,11 @@ import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.ControlledPwmServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.svc.event.AuditRecord;
+import password.pwm.svc.event.HelpdeskAuditRecord;
+import password.pwm.svc.event.SystemAuditRecord;
+import password.pwm.svc.event.UserAuditRecord;
+import password.pwm.svc.intruder.RecordType;
 import password.pwm.svc.report.ReportColumnFilter;
 import password.pwm.svc.report.ReportCsvUtility;
 import password.pwm.svc.report.ReportService;
@@ -62,10 +69,15 @@ import java.io.OutputStream;
 import java.io.Writer;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.TreeMap;
 
 @WebServlet(
         name = "AdminServlet",
@@ -90,6 +102,9 @@ public class AdminServlet extends ControlledPwmServlet {
         reportStatus(HttpMethod.GET),
         reportSummary(HttpMethod.GET),
         downloadUserDebug(HttpMethod.GET),
+        auditData(HttpMethod.GET),
+        sessionData(HttpMethod.GET),
+        intruderData(HttpMethod.GET),
 
         ;
 
@@ -341,6 +356,80 @@ public class AdminServlet extends ControlledPwmServlet {
         return ProcessStatus.Halt;
     }
 
+    @ActionHandler(action = "auditData")
+    private ProcessStatus restAuditDataHandler(final PwmRequest pwmRequest)
+            throws ChaiUnavailableException, PwmUnrecoverableException, IOException
+    {
+        final int max = readMaxParameter(pwmRequest, 1000, 10* 1000);
+        final ArrayList<UserAuditRecord> userRecords = new ArrayList<>();
+        final ArrayList<HelpdeskAuditRecord> helpdeskRecords = new ArrayList<>();
+        final ArrayList<SystemAuditRecord> systemRecords = new ArrayList<>();
+        final Iterator<AuditRecord> iterator = pwmRequest.getPwmApplication().getAuditManager().readVault();
+        int counter = 0;
+        while (iterator.hasNext() && counter <= max) {
+            final AuditRecord loopRecord = iterator.next();
+            counter++;
+            if (loopRecord instanceof SystemAuditRecord) {
+                systemRecords.add((SystemAuditRecord)loopRecord);
+            } else if (loopRecord instanceof HelpdeskAuditRecord) {
+                helpdeskRecords.add((HelpdeskAuditRecord)loopRecord);
+            } else if (loopRecord instanceof UserAuditRecord) {
+                userRecords.add((UserAuditRecord)loopRecord);
+            }
+        }
+        final HashMap<String,List> outputMap = new HashMap<>();
+        outputMap.put("user",userRecords);
+        outputMap.put("helpdesk",helpdeskRecords);
+        outputMap.put("system",systemRecords);
+
+        final RestResultBean restResultBean = new RestResultBean();
+        restResultBean.setData(outputMap);
+        LOGGER.debug(pwmRequest.getPwmSession(),"output " + counter + " audit records.");
+        pwmRequest.outputJsonResult(restResultBean);
+        return ProcessStatus.Halt;
+    }
+
+    @ActionHandler(action = "sessionData")
+    private ProcessStatus restSessionDataHandler(final PwmRequest pwmRequest)
+            throws ChaiUnavailableException, PwmUnrecoverableException, IOException {
+        final int max = readMaxParameter(pwmRequest, 1000, 10* 1000);
+
+        final ArrayList<SessionStateInfoBean> gridData = new ArrayList<>();
+        int counter = 0;
+        final Iterator<SessionStateInfoBean> infos = pwmRequest.getPwmApplication().getSessionTrackService().getSessionInfoIterator();
+        while (counter < max && infos.hasNext()) {
+            gridData.add(infos.next());
+            counter++;
+        }
+        final RestResultBean restResultBean = new RestResultBean();
+        restResultBean.setData(gridData);
+        pwmRequest.outputJsonResult(restResultBean);
+        return ProcessStatus.Halt;
+    }
+
+    @ActionHandler(action = "intruderData")
+    private ProcessStatus restIntruderDataHandler(final PwmRequest pwmRequest)
+            throws ChaiUnavailableException, PwmUnrecoverableException, IOException {
+        final int max = readMaxParameter(pwmRequest, 1000, 10* 1000);
+
+        final TreeMap<String,Object> returnData = new TreeMap<>();
+        try {
+            for (final RecordType recordType : RecordType.values()) {
+                returnData.put(recordType.toString(),pwmRequest.getPwmApplication().getIntruderManager().getRecords(recordType, max));
+            }
+        } catch (PwmException e) {
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage());
+            LOGGER.debug(pwmRequest, errorInfo);
+            pwmRequest.outputJsonResult(RestResultBean.fromError(errorInfo));
+        }
+
+        final RestResultBean restResultBean = new RestResultBean();
+        restResultBean.setData(returnData);
+        pwmRequest.outputJsonResult(restResultBean);
+        return ProcessStatus.Halt;
+    }
+
+
     private void processDebugUserSearch(final PwmRequest pwmRequest)
             throws PwmUnrecoverableException
     {
@@ -394,6 +483,13 @@ public class AdminServlet extends ControlledPwmServlet {
         pwmRequest.sendRedirect(pwmRequest.getContextPath() + PwmServletDefinition.Admin.servletUrl() + Page.dashboard.getUrlSuffix());
     }
 
+    private static int readMaxParameter(final PwmRequest pwmRequest, final int defaultValue, final int maxValue)
+            throws PwmUnrecoverableException
+    {
+            final String stringMax = pwmRequest.readParameterAsString("maximum",String.valueOf(defaultValue));
+            return Math.max(Integer.parseInt(stringMax), maxValue);
+    }
+
     public enum Page {
         dashboard(JspUrl.ADMIN_DASHBOARD,"/dashboard"),
         analysis(JspUrl.ADMIN_ANALYSIS,"/analysis"),
@@ -432,4 +528,6 @@ public class AdminServlet extends ControlledPwmServlet {
             return null;
         }
     }
+
+
 }

@@ -148,7 +148,7 @@ public class RestHealthServer extends AbstractRestServer {
                 : HealthMonitor.CheckTimeliness.CurrentButNotAncient;
     }
 
-    private static HealthData processGetHealthCheckData(
+    public static HealthData processGetHealthCheckData(
             final PwmApplication pwmApplication,
             final Locale locale,
             final boolean refreshImmediate

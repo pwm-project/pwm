@@ -31,11 +31,11 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.IdleTimeoutCalculator;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.servlet.ClientApiServlet;
 import password.pwm.i18n.Admin;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
-import password.pwm.ws.server.rest.RestAppDataServer;
 
 import javax.servlet.jsp.JspPage;
 import javax.servlet.jsp.PageContext;
@@ -199,7 +199,7 @@ public enum PwmValue {
     static class ClientETag implements ValueOutput {
         @Override
         public String valueOutput(final PwmRequest pwmRequest, final PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
-            return RestAppDataServer.makeClientEtag(pwmRequest);
+            return ClientApiServlet.makeClientEtag(pwmRequest);
         }
     }
 

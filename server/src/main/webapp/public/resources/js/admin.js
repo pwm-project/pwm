@@ -348,7 +348,8 @@ PWM_ADMIN.refreshActiveSessionGrid=function() {
         grid.refresh();
 
         var maximum = PWM_MAIN.getObject('maxActiveSessionResults').value;
-        var url = PWM_GLOBAL['url-restservice'] + "/app-data/session?maximum=" + maximum;
+        var url = PWM_MAIN.addParamToUrl(window.location.href,"processAction", "sessionData");
+        url = PWM_MAIN.addParamToUrl(url,'maximum',maximum);
         var loadFunction = function(data) {
             grid.renderArray(data['data']);
             grid.set("sort", { attribute : 'createTime', ascending: false, descending: true });
@@ -405,7 +406,8 @@ PWM_ADMIN.refreshIntruderGrid=function() {
     } catch (e) {
         maximum = 1000;
     }
-    var url = PWM_GLOBAL['url-restservice'] + "/app-data/intruder?maximum=" + maximum;
+    var url = PWM_MAIN.addParamToUrl(window.location.href,"processAction", "intruderData");
+    url = PWM_MAIN.addParamToUrl(url,'maximum',maximum);
     var loadFunction = function(data) {
         for (var i = 0; i < PWM_VAR['intruderRecordTypes'].length; i++) {
             var recordType = PWM_VAR['intruderRecordTypes'][i];
@@ -511,7 +513,8 @@ PWM_ADMIN.refreshAuditGridData=function(maximum) {
     if (!maximum) {
         maximum = 1000;
     }
-    var url = PWM_GLOBAL['url-restservice'] + "/app-data/audit?maximum=" + maximum;
+    var url = PWM_MAIN.addParamToUrl(window.location.href,"processAction", "auditData");
+    url = PWM_MAIN.addParamToUrl(url,'maximum',maximum);
     var loadFunction = function(data) {
         PWM_VAR['auditUserGrid'].renderArray(data['data']['user']);
         PWM_VAR['auditUserGrid'].set("sort", { attribute : 'timestamp', ascending: false, descending: true });
@@ -647,7 +650,7 @@ PWM_ADMIN.showAppHealth = function(parentDivID, options, refreshNow) {
 
     var inputOpts = options || PWM_GLOBAL['showPwmHealthOptions'] || {};
     PWM_GLOBAL['showPwmHealthOptions'] = options;
-    var refreshUrl = inputOpts['sourceUrl'] || PWM_GLOBAL['url-restservice'] + "/health";
+    var refreshUrl = inputOpts['sourceUrl'] || PWM_GLOBAL['url-context'] + "/public/api?processAction=health";
     var showRefresh = inputOpts['showRefresh'];
     var showTimestamp = inputOpts['showTimestamp'];
     var refreshTime = inputOpts['refreshTime'] || 60 * 1000;
