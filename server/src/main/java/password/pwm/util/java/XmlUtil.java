@@ -22,7 +22,9 @@
 
 package password.pwm.util.java;
 
+import lombok.Value;
 import org.jdom2.Document;
+import org.jdom2.Element;
 import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
@@ -38,6 +40,9 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class XmlUtil {
 
@@ -88,5 +93,56 @@ public class XmlUtil {
         return builder;
     }
 
+    @Value
+    public static class DependencyInfo {
+        private String projectUrl;
+        private String name;
+        private String artifactId;
+        private String version;
+        private String type;
+        private List<LicenseInfo> licenses;
+    }
 
+    @Value
+    public static class LicenseInfo {
+        private String licenseUrl;
+        private String licenseName;
+    }
+
+    public static List<DependencyInfo> getLicenseInfos() throws PwmUnrecoverableException {
+        final List<DependencyInfo> returnList = new ArrayList<>();
+
+        final InputStream attributionInputStream = XmlUtil.class.getResourceAsStream("/attribution.xml");
+
+        if (attributionInputStream != null) {
+            final Document document = XmlUtil.parseXml(attributionInputStream);
+            final Element dependencies = document.getRootElement().getChild("dependencies");
+
+            for (final Element dependency : dependencies.getChildren("dependency")) {
+                final String projectUrl = dependency.getChildText("projectUrl");
+                final String name = dependency.getChildText("name");
+                final String artifactId = dependency.getChildText("artifactId");
+                final String version = dependency.getChildText("version");
+                final String type = dependency.getChildText("type");
+
+                final List<LicenseInfo> licenseInfos = new ArrayList<>();
+                {
+                    final Element licenses = dependency.getChild("licenses");
+                    final List<Element> licenseList = licenses.getChildren("license");
+                    for (final Element license : licenseList) {
+                        final String licenseUrl = license.getChildText("url");
+                        final String licenseName = license.getChildText("name");
+                        final LicenseInfo licenseInfo = new LicenseInfo(licenseUrl, licenseName);
+                        licenseInfos.add(licenseInfo);
+                    }
+                }
+
+                final DependencyInfo dependencyInfo = new DependencyInfo(projectUrl, name, artifactId, version, type,
+                        Collections.unmodifiableList(licenseInfos));
+
+                returnList.add(dependencyInfo);
+            }
+        }
+        return Collections.unmodifiableList(returnList);
+    }
 }

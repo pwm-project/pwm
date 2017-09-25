@@ -5,6 +5,8 @@
 <%@ page import="java.util.List" %>
 <%@ page import="java.io.InputStream" %>
 <%@ page import="org.apache.commons.lang3.StringUtils" %>
+<%@ page import="password.pwm.util.java.StringUtil" %>
+<%@ page import="password.pwm.Permission" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -40,6 +42,7 @@
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo">
 <link href="<pwm:url url='/public/resources/referenceStyle.css' addContext="true"/>" rel="stylesheet" type="text/css"/>
+<% List<XmlUtil.DependencyInfo> dependencyInfos = XmlUtil.getLicenseInfos(); %>
 <div id="wrapper">
     <jsp:include page="../../WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Software License Reference"/>
@@ -50,57 +53,58 @@
 
         <p class="page-title">Software License Reference</p>
 
-        <%
-        final InputStream attributionInputStream = getClass().getResourceAsStream("/attribution.xml");
+        <pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.PWMADMIN%>" negate="true">
+            <p>
+                Additional data is available for authenticated administrators.
+            </p>
+        </pwm:if>
 
-        if (attributionInputStream != null) {
-            final Document document = XmlUtil.parseXml(attributionInputStream);
-            final Element dependencies = document.getRootElement().getChild("dependencies");
+        <% if (dependencyInfos != null) { %>
+        <% for (final XmlUtil.DependencyInfo dependencyInfo : dependencyInfos) { %>
+        <div class="licenseBlock">
+            <div class="dependency-name"><%=StringUtil.escapeHtml(dependencyInfo.getName())%></div>
 
-            for (final Element dependency : dependencies.getChildren("dependency")) {
-                final String projectUrl = dependency.getChildText("projectUrl");
-            %>
-                <div class="licenseBlock">
-                    <div class="dependency-name"><%=dependency.getChildText("name") %></div>
-
-                    <% if (projectUrl != null) { %>
-                        <div class="dependency-url"><a href="<%=projectUrl%>" target="_blank"><%=projectUrl%></a></div>
-                    <% } else { %>
-                        <div class="dependency-url-not-provided">URL not provided</div>
-                    <% } %>
-
-                    <div class="dependency-file"><%=dependency.getChildText("artifactId") %>-<%=dependency.getChildText("version") %>.<%=dependency.getChildText("type") %></div>
-                    <%
-                    final Element licenses = dependency.getChild("licenses");
-                    final List<Element> licenseList = licenses.getChildren("license");
-                    for (final Element license : licenseList) { %>
-                    <div class="dependency-license"><a href="<%=license.getChildText("url")%>" target="_blank" class="license-link"><%=license.getChildText("name")%></a></div>
-                    <% } %>
-                </div>
-            <% } %>
-        <% } else { %>
-            <div class="licenseBlock">
-                Error: attribution file not found: attribution.xml
+            <% if (dependencyInfo.getProjectUrl() != null) { %>
+            <div class="dependency-url">
+                <a href="<%=dependencyInfo.getProjectUrl()%>" target="_blank">
+                    <%=dependencyInfo.getProjectUrl()%>
+                </a>
             </div>
+            <% } else { %>
+            <div class="dependency-url-not-provided">URL not provided</div>
+            <% } %>
+            <pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.PWMADMIN%>">
+                <div class="dependency-file">
+                    <%=dependencyInfo.getArtifactId() %>-<%=dependencyInfo.getVersion()%>.<%=dependencyInfo.getType() %>
+                </div>
+            </pwm:if>
+            <%
+                for (final XmlUtil.LicenseInfo licenseInfo : dependencyInfo.getLicenses()) { %>
+            <div class="dependency-license">
+                License:
+                <a href="<%=licenseInfo.getLicenseUrl()%>" target="_blank" class="license-link">
+                    <%=licenseInfo.getLicenseName()%>
+                </a>
+            </div>
+            <% } %>
+        </div>
         <% } %>
-        <p>
-        <form action="source.zip" method="get">
-            <button class="btn" type="submit">Download Source</button>
-        </form>
-        </p>
+        <% } else { %>
+        <div class="licenseBlock">
+            Error: attribution file not found: attribution.xml
+        </div>
+        <% } %>
+        <pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.PWMADMIN%>">
+            <p>
+            <form action="source.zip" method="get">
+                <button class="btn" type="submit">Download Source</button>
+            </form>
+            </p>
+        </pwm:if>
         <span class="footnote">nanos gigantum humeris insidentes</span>
     </div>
     <div class="push"></div>
 </div>
-<pwm:script>
-<script type="text/javascript">
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        require(["dojo/parser","dijit/TitlePane"],function(dojoParser){
-            dojoParser.parse();
-        });
-    });
-</script>
-</pwm:script>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>
