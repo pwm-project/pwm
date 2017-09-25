@@ -746,6 +746,7 @@ PWM_MAIN.html5DialogSupport = function() {
 };
 
 PWM_MAIN.showDialog = function(options) {
+    PWM_MAIN.closeWaitDialog();
     var html5Dialog = PWM_MAIN.html5DialogSupport();
 
     options = options === undefined ? {} : options;
