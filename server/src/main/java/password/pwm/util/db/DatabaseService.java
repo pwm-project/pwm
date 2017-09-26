@@ -38,7 +38,7 @@ import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.health.HealthTopic;
 import password.pwm.svc.PwmService;
-import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.JavaHelper;
@@ -332,10 +332,10 @@ public class DatabaseService implements PwmService
             final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
             if (statisticsManager != null && statisticsManager.status() == PwmService.STATUS.OPEN) {
                 if (operationType == OperationType.READ) {
-                    statisticsManager.updateEps(Statistic.EpsType.DB_READS,1);
+                    statisticsManager.updateEps(EpsStatistic.DB_READS,1);
                 }
                 if (operationType == OperationType.WRITE) {
-                    statisticsManager.updateEps(Statistic.EpsType.DB_WRITES,1);
+                    statisticsManager.updateEps(EpsStatistic.DB_WRITES,1);
                 }
             }
         }

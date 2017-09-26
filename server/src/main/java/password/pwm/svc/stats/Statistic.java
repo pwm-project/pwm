@@ -179,32 +179,6 @@ public enum Statistic {
         }
     }
 
-    public enum EpsType {
-        PASSWORD_CHANGES(Statistic.PASSWORD_CHANGES),
-        AUTHENTICATION(Statistic.AUTHENTICATIONS),
-        INTRUDER_ATTEMPTS(Statistic.INTRUDER_ATTEMPTS),
-        PWMDB_WRITES(null),
-        PWMDB_READS(null),
-        DB_WRITES(null),
-        DB_READS(null),
-        ;
-
-        private Statistic relatedStatistic;
-
-        EpsType(final Statistic relatedStatistic) {
-            this.relatedStatistic = relatedStatistic;
-        }
-
-        public Statistic getRelatedStatistic() {
-            return relatedStatistic;
-        }
-
-        public String getLabel(final Locale locale) {
-            final String keyName = "Statistic_Label." + EpsType.class.getSimpleName() + "_" + this.name();
-            return LocaleHelper.getLocalizedMessage(locale, keyName, null, Admin.class);
-        }
-    }
-
     public enum EpsDuration {
         MINUTE(TimeDuration.MINUTE),
         HOUR(TimeDuration.HOUR),

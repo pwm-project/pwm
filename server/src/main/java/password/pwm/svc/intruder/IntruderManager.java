@@ -48,6 +48,7 @@ import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.event.SystemAuditRecord;
 import password.pwm.svc.event.UserAuditRecord;
+import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.DataStore;
@@ -374,7 +375,7 @@ public class IntruderManager implements Serializable, PwmService {
                 final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
                 if (statisticsManager != null && statisticsManager.status() == STATUS.OPEN) {
                     statisticsManager.incrementValue(Statistic.INTRUDER_ATTEMPTS);
-                    statisticsManager.updateEps(Statistic.EpsType.INTRUDER_ATTEMPTS,1);
+                    statisticsManager.updateEps(EpsStatistic.INTRUDER_ATTEMPTS,1);
                     statisticsManager.incrementValue(recordType.getLockStatistic());
                 }
             }

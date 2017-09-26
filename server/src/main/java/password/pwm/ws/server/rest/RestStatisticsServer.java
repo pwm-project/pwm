@@ -22,16 +22,18 @@
 
 package password.pwm.ws.server.rest;
 
-import com.novell.ldapchai.util.StringHelper;
+import lombok.Data;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
+import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsBundle;
 import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
@@ -69,6 +71,7 @@ public class RestStatisticsServer extends AbstractRestServer {
     @Context
     ServletContext context;
 
+    @Data
     public static class JsonOutput implements Serializable
     {
         public Map<String,String> EPS;
@@ -119,16 +122,16 @@ public class RestStatisticsServer extends AbstractRestServer {
         }
     }
 
-    private Map<String,Object> doNameStat(final StatisticsManager statisticsManager, final String statName, final String days) {
+    public static Map<String,Object> doNameStat(final StatisticsManager statisticsManager, final String statName, final String days) {
         final Statistic statistic = Statistic.valueOf(statName);
-        final int historyDays = StringHelper.convertStrToInt(days, 30);
+        final int historyDays = StringUtil.convertStrToInt(days, 30);
 
         final Map<String,Object> results = new HashMap<>();
         results.putAll(statisticsManager.getStatHistory(statistic, historyDays));
         return results;
     }
 
-    private Map<String,Object> doKeyStat(final StatisticsManager statisticsManager, final String statKey) {
+    public static Map<String,Object> doKeyStat(final StatisticsManager statisticsManager, final String statKey) {
         final String key = (statKey == null)
                 ? StatisticsManager.KEY_CUMULATIVE
                 : statKey;
@@ -142,9 +145,9 @@ public class RestStatisticsServer extends AbstractRestServer {
         return outputValueMap;
     }
 
-    private Map<String,String> addEpsStats(final StatisticsManager statisticsManager){
+    public static Map<String,String> addEpsStats(final StatisticsManager statisticsManager){
         final Map<String,String> outputMap = new TreeMap<>();
-        for (final Statistic.EpsType loopEps : Statistic.EpsType.values()) {
+        for (final EpsStatistic loopEps : EpsStatistic.values()) {
             for (final Statistic.EpsDuration loopDuration : Statistic.EpsDuration.values()) {
                 final BigDecimal loopValue = statisticsManager.readEps(loopEps,loopDuration);
                 final BigDecimal outputValue = loopValue.setScale(3, RoundingMode.UP);

@@ -25,6 +25,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.PwmURL;
 import password.pwm.i18n.Display;
+import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.java.TimeDuration;
@@ -344,7 +345,7 @@ public class ClientApiServlet extends ControlledPwmServlet {
 
         {
             final List<String> epsTypes = new ArrayList<>();
-            for (final Statistic.EpsType loopEpsType : Statistic.EpsType.values()) {
+            for (final EpsStatistic loopEpsType : EpsStatistic.values()) {
                 epsTypes.add(loopEpsType.toString());
             }
             settingMap.put("epsTypes",epsTypes);

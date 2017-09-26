@@ -51,6 +51,7 @@ import password.pwm.svc.event.AuditRecord;
 import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.intruder.IntruderManager;
 import password.pwm.svc.intruder.RecordType;
+import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.PasswordData;
@@ -233,7 +234,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest {
         }
 
         statisticsManager.incrementValue(Statistic.AUTHENTICATIONS);
-        statisticsManager.updateEps(Statistic.EpsType.AUTHENTICATION, 1);
+        statisticsManager.updateEps(EpsStatistic.AUTHENTICATION, 1);
         statisticsManager.updateAverageValue(Statistic.AVG_AUTHENTICATION_TIME,
                 TimeDuration.fromCurrent(startTime).getTotalMilliseconds());
 

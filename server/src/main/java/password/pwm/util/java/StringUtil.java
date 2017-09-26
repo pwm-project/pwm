@@ -400,4 +400,16 @@ public abstract class StringUtil {
                 ? input.substring(0, length)
                 : input;
     }
+
+    public static int convertStrToInt(final String string, final int defaultValue) {
+        if (string == null) {
+            return defaultValue;
+        }
+
+        try {
+            return Integer.parseInt(string);
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
+    }
 }

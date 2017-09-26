@@ -61,6 +61,7 @@ import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.reports.ReportUtils;
 import password.pwm.ws.server.RestResultBean;
+import password.pwm.ws.server.rest.RestStatisticsServer;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -105,6 +106,7 @@ public class AdminServlet extends ControlledPwmServlet {
         auditData(HttpMethod.GET),
         sessionData(HttpMethod.GET),
         intruderData(HttpMethod.GET),
+        statistics(HttpMethod.GET),
 
         ;
 
@@ -429,6 +431,28 @@ public class AdminServlet extends ControlledPwmServlet {
         return ProcessStatus.Halt;
     }
 
+    @ActionHandler(action = "statistics")
+    private ProcessStatus restStatisticsHandler(final PwmRequest pwmRequest)
+            throws ChaiUnavailableException, PwmUnrecoverableException, IOException
+    {
+        final String statKey = pwmRequest.readParameterAsString("statKey");
+        final String statName = pwmRequest.readParameterAsString("statName");
+        final String days = pwmRequest.readParameterAsString("days");
+
+        final StatisticsManager statisticsManager = pwmRequest.getPwmApplication().getStatisticsManager();
+        final RestStatisticsServer.JsonOutput jsonOutput = new RestStatisticsServer.JsonOutput();
+        jsonOutput.EPS = RestStatisticsServer.addEpsStats(statisticsManager);
+
+        if (statName != null && statName.length() > 0) {
+            jsonOutput.nameData = RestStatisticsServer.doNameStat(statisticsManager, statName, days);
+        } else {
+            jsonOutput.keyData = RestStatisticsServer.doKeyStat(statisticsManager, statKey);
+        }
+
+        final RestResultBean restResultBean = new RestResultBean(jsonOutput);
+        pwmRequest.outputJsonResult(restResultBean);
+        return ProcessStatus.Halt;
+    }
 
     private void processDebugUserSearch(final PwmRequest pwmRequest)
             throws PwmUnrecoverableException

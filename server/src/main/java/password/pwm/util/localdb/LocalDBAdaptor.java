@@ -25,7 +25,7 @@ package password.pwm.util.localdb;
 import password.pwm.PwmApplication;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
-import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -386,7 +386,7 @@ public class LocalDBAdaptor implements LocalDB {
     private void markRead(final int events) {
         if (pwmApplication != null) {
             if (pwmApplication.getStatisticsManager() != null) {
-                pwmApplication.getStatisticsManager().updateEps(Statistic.EpsType.PWMDB_READS,events);
+                pwmApplication.getStatisticsManager().updateEps(EpsStatistic.PWMDB_READS,events);
             }
         }
     }
@@ -394,7 +394,7 @@ public class LocalDBAdaptor implements LocalDB {
     private void markWrite(final int events) {
         if (pwmApplication != null) {
             if (pwmApplication.getStatisticsManager() != null) {
-                pwmApplication.getStatisticsManager().updateEps(Statistic.EpsType.PWMDB_WRITES,events);
+                pwmApplication.getStatisticsManager().updateEps(EpsStatistic.PWMDB_WRITES,events);
             }
         }
     }

@@ -88,6 +88,7 @@ public enum AppProperty {
     HTTP_RESOURCES_MAX_CACHE_BYTES                  ("http.resources.maxCacheBytes"),
     HTTP_RESOURCES_EXPIRATION_SECONDS               ("http.resources.expirationSeconds"),
     HTTP_RESOURCES_ENABLE_GZIP                      ("http.resources.gzip.enable"),
+    HTTP_RESOURCES_PATH_NONCE_LENGTH                ("http.resources.pathNonce.length"),
     HTTP_RESOURCES_ENABLE_PATH_NONCE                ("http.resources.pathNonceEnable"),
     HTTP_RESOURCES_NONCE_PATH_PREFIX                ("http.resources.pathNoncePrefix"),
     HTTP_RESOURCES_ZIP_FILES                        ("http.resources.zipFiles"),

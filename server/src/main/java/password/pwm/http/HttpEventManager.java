@@ -25,6 +25,7 @@ package password.pwm.http;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletContextEvent;
@@ -59,6 +60,11 @@ public class HttpEventManager implements
             final ContextManager contextManager = ContextManager.getContextManager(httpSession);
             final PwmApplication pwmApplication = contextManager.getPwmApplication();
             httpSession.setAttribute(PwmConstants.SESSION_ATTR_PWM_APP_NONCE, pwmApplication.getRuntimeNonce());
+
+            if (pwmApplication != null && pwmApplication.getStatisticsManager() != null) {
+                pwmApplication.getStatisticsManager().updateEps(EpsStatistic.SESSIONS, 1);
+            }
+
             LOGGER.trace("new http session created");
         } catch (PwmUnrecoverableException e) {
             LOGGER.warn("error during sessionCreated event: " + e.getMessage());

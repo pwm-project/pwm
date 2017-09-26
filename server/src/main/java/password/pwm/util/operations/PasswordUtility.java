@@ -74,6 +74,7 @@ import password.pwm.svc.cache.CacheService;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.event.HelpdeskAuditRecord;
+import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.PasswordCharCounter;
 import password.pwm.util.PasswordData;
@@ -367,7 +368,7 @@ public class PasswordUtility {
         // update statistics
         {
             pwmApplication.getStatisticsManager().incrementValue(Statistic.PASSWORD_CHANGES);
-            pwmApplication.getStatisticsManager().updateEps(Statistic.EpsType.PASSWORD_CHANGES,1);
+            pwmApplication.getStatisticsManager().updateEps(EpsStatistic.PASSWORD_CHANGES,1);
             final int passwordStrength = PasswordUtility.judgePasswordStrength(newPassword.getStringValue());
             pwmApplication.getStatisticsManager().updateAverageValue(Statistic.AVG_PASSWORD_STRENGTH,passwordStrength);
         }
@@ -469,7 +470,7 @@ public class PasswordUtility {
         }
 
         // update statistics
-        pwmApplication.getStatisticsManager().updateEps(Statistic.EpsType.PASSWORD_CHANGES,1);
+        pwmApplication.getStatisticsManager().updateEps(EpsStatistic.PASSWORD_CHANGES,1);
         pwmApplication.getStatisticsManager().incrementValue(Statistic.HELPDESK_PASSWORD_SET);
 
         // create a uib for end user

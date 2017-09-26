@@ -343,19 +343,17 @@ PWM_ADMIN.initActiveSessionGrid=function() {
 };
 
 PWM_ADMIN.refreshActiveSessionGrid=function() {
-    require(["dojo"],function(dojo){
-        var grid = PWM_VAR['activeSessionsGrid'];
-        grid.refresh();
+    var grid = PWM_VAR['activeSessionsGrid'];
+    grid.refresh();
 
-        var maximum = PWM_MAIN.getObject('maxActiveSessionResults').value;
-        var url = PWM_MAIN.addParamToUrl(window.location.href,"processAction", "sessionData");
-        url = PWM_MAIN.addParamToUrl(url,'maximum',maximum);
-        var loadFunction = function(data) {
-            grid.renderArray(data['data']);
-            grid.set("sort", { attribute : 'createTime', ascending: false, descending: true });
-        };
-        PWM_MAIN.ajaxRequest(url,loadFunction,{method:'GET'});
-    });
+    var maximum = PWM_MAIN.getObject('maxActiveSessionResults').value;
+    var url = PWM_MAIN.addParamToUrl(window.location.href,"processAction", "sessionData");
+    url = PWM_MAIN.addParamToUrl(url,'maximum',maximum);
+    var loadFunction = function(data) {
+        grid.renderArray(data['data']);
+        grid.set("sort", { attribute : 'createTime', ascending: false, descending: true });
+    };
+    PWM_MAIN.ajaxRequest(url,loadFunction,{method:'GET'});
 };
 
 PWM_ADMIN.intruderHeaders = function(){
@@ -550,99 +548,95 @@ PWM_ADMIN.showStatChart = function(statName,days,divName,options) {
             "dojox/gauges/GlossyCircularGauge",
             "dojo/domReady!"],
         function(dojo,dijit,registry){
-            var statsGetUrl = PWM_GLOBAL['url-restservice'] + "/statistics";
-            statsGetUrl += "?statName=" + statName;
-            statsGetUrl += "&days=" + days;
+            var statsGetUrl = PWM_MAIN.addParamToUrl(window.location.href,"processAction","statistics");
+            statsGetUrl = PWM_MAIN.addParamToUrl(statsGetUrl, "statName", statName);
+            statsGetUrl = PWM_MAIN.addParamToUrl(statsGetUrl, "days", days);
 
-            dojo.xhrGet({
-                url: statsGetUrl,
-                handleAs: "json",
-                headers: {"Accept":"application/json","X-RestClientKey":PWM_GLOBAL['restClientKey']},
-                timeout: 15 * 1000,
-                preventCache: true,
-                error: function(data) {
-                    for (var loopEpsTypeIndex = 0; loopEpsTypeIndex < epsTypes.length; loopEpsTypeIndex++) { // clear all the gauges
-                        var loopEpsName = epsTypes[loopEpsTypeIndex] + '';
+            var errorFunction = function() {
+                for (var loopEpsTypeIndex = 0; loopEpsTypeIndex < epsTypes.length; loopEpsTypeIndex++) { // clear all the gauges
+                    var loopEpsName = epsTypes[loopEpsTypeIndex] + '';
+                    for (var loopEpsDurationsIndex = 0; loopEpsDurationsIndex < epsDurations.length; loopEpsDurationsIndex++) { // clear all the gauges
+                        var loopEpsDuration = epsDurations[loopEpsDurationsIndex] + '';
+                        var loopEpsID = "EPS-GAUGE-" + loopEpsName + "_" + loopEpsDuration;
+                        if (PWM_MAIN.getObject(loopEpsID) !== null) {
+                            if (registry.byId(loopEpsID)) {
+                                registry.byId(loopEpsID).setAttribute('value','0');
+                            }
+                        }
+                    }
+                }
+                doRefresh();
+            };
+
+            var loadFunction = function(data) {
+                {// gauges
+                    console.log('Beginning stats update process...');
+                    data = data['data'];
+                    var activityCount = 0;
+                    for (var loopEpsIndex = 0; loopEpsIndex < epsTypes.length; loopEpsIndex++) {
+                        var loopEpsName = epsTypes[loopEpsIndex] + '';
                         for (var loopEpsDurationsIndex = 0; loopEpsDurationsIndex < epsDurations.length; loopEpsDurationsIndex++) { // clear all the gauges
                             var loopEpsDuration = epsDurations[loopEpsDurationsIndex] + '';
                             var loopEpsID = "EPS-GAUGE-" + loopEpsName + "_" + loopEpsDuration;
+                            var loopFieldEpsID = "FIELD_" + loopEpsName + "_" + loopEpsDuration;
+                            var loopEpsValue = data['EPS'][loopEpsName + "_" + loopEpsDuration];
+                            var loopEpmValue = (loopEpsValue * 60).toFixed(3);
+                            var loopTop = PWM_GLOBAL['client.activityMaxEpsRate'];
+                            if (loopEpsDuration === "HOURLY") {
+                                activityCount += loopEpsValue;
+                            }
+                            if (PWM_MAIN.getObject(loopFieldEpsID) !== null) {
+                                PWM_MAIN.getObject(loopFieldEpsID).innerHTML = loopEpmValue;
+                            }
                             if (PWM_MAIN.getObject(loopEpsID) !== null) {
+                                console.log('EpsID=' + loopEpsID + ', ' + 'Eps=' + loopEpsValue + ', ' + 'Epm=' + loopEpmValue);
                                 if (registry.byId(loopEpsID)) {
-                                    registry.byId(loopEpsID).setAttribute('value','0');
+                                    registry.byId(loopEpsID).setAttribute('value',loopEpmValue);
+                                    registry.byId(loopEpsID).setAttribute('max',loopTop);
+                                } else {
+                                    var glossyCircular = new dojox.gauges.GlossyCircularGauge({
+                                        background: [255, 255, 255, 0],
+                                        noChange: true,
+                                        value: loopEpmValue,
+                                        max: loopTop,
+                                        needleColor: '#FFDC8B',
+                                        majorTicksInterval: Math.abs(loopTop / 10),
+                                        minorTicksInterval: Math.abs(loopTop / 10),
+                                        id: loopEpsID,
+                                        width: 200,
+                                        height: 150
+                                    }, dojo.byId(loopEpsID));
+                                    glossyCircular.startup();
                                 }
                             }
                         }
                     }
-                    doRefresh();
-                },
-                load: function(data) {
-                    {// gauges
-                        console.log('Beginning stats update process...');
-                        data = data['data'];
-                        var activityCount = 0;
-                        for (var loopEpsIndex = 0; loopEpsIndex < epsTypes.length; loopEpsIndex++) {
-                            var loopEpsName = epsTypes[loopEpsIndex] + '';
-                            for (var loopEpsDurationsIndex = 0; loopEpsDurationsIndex < epsDurations.length; loopEpsDurationsIndex++) { // clear all the gauges
-                                var loopEpsDuration = epsDurations[loopEpsDurationsIndex] + '';
-                                var loopEpsID = "EPS-GAUGE-" + loopEpsName + "_" + loopEpsDuration;
-                                var loopFieldEpsID = "FIELD_" + loopEpsName + "_" + loopEpsDuration;
-                                var loopEpsValue = data['EPS'][loopEpsName + "_" + loopEpsDuration];
-                                var loopEpmValue = (loopEpsValue * 60).toFixed(3);
-                                var loopTop = PWM_GLOBAL['client.activityMaxEpsRate'];
-                                if (loopEpsDuration === "HOURLY") {
-                                    activityCount += loopEpsValue;
-                                }
-                                if (PWM_MAIN.getObject(loopFieldEpsID) !== null) {
-                                    PWM_MAIN.getObject(loopFieldEpsID).innerHTML = loopEpmValue;
-                                }
-                                if (PWM_MAIN.getObject(loopEpsID) !== null) {
-                                    console.log('EpsID=' + loopEpsID + ', ' + 'Eps=' + loopEpsValue + ', ' + 'Epm=' + loopEpmValue);
-                                    if (registry.byId(loopEpsID)) {
-                                        registry.byId(loopEpsID).setAttribute('value',loopEpmValue);
-                                        registry.byId(loopEpsID).setAttribute('max',loopTop);
-                                    } else {
-                                        var glossyCircular = new dojox.gauges.GlossyCircularGauge({
-                                            background: [255, 255, 255, 0],
-                                            noChange: true,
-                                            value: loopEpmValue,
-                                            max: loopTop,
-                                            needleColor: '#FFDC8B',
-                                            majorTicksInterval: Math.abs(loopTop / 10),
-                                            minorTicksInterval: Math.abs(loopTop / 10),
-                                            id: loopEpsID,
-                                            width: 200,
-                                            height: 150
-                                        }, dojo.byId(loopEpsID));
-                                        glossyCircular.startup();
-                                    }
-                                }
-                            }
-                        }
-                        PWM_GLOBAL['epsActivityCount'] = activityCount;
-                    }
-                    if (divName !== null && PWM_MAIN.getObject(divName)) { // stats chart
-                        var values = [];
-                        for(var key in data['nameData']) {
-                            var value = data['nameData'][key];
-                            values.push(parseInt(value));
-                        }
-
-                        if (PWM_GLOBAL[divName + '-stored-reference']) {
-                            var existingChart = PWM_GLOBAL[divName + '-stored-reference'];
-                            existingChart.destroy();
-                        }
-                        var c = new dojox.charting.Chart2D(divName);
-                        PWM_GLOBAL[divName + '-stored-reference'] = c;
-                        c.addPlot("default", {type: "Columns", gap:'2'});
-                        c.addAxis("x", {});
-                        c.addAxis("y", {vertical: true});
-                        c.setTheme(dojox.charting.themes.Wetland);
-                        c.addSeries("Series 1", values);
-                        c.render();
-                    }
-                    doRefresh();
+                    PWM_GLOBAL['epsActivityCount'] = activityCount;
                 }
-            });
+                if (divName !== null && PWM_MAIN.getObject(divName)) { // stats chart
+                    var values = [];
+                    for(var key in data['nameData']) {
+                        var value = data['nameData'][key];
+                        values.push(parseInt(value));
+                    }
+
+                    if (PWM_GLOBAL[divName + '-stored-reference']) {
+                        var existingChart = PWM_GLOBAL[divName + '-stored-reference'];
+                        existingChart.destroy();
+                    }
+                    var c = new dojox.charting.Chart2D(divName);
+                    PWM_GLOBAL[divName + '-stored-reference'] = c;
+                    c.addPlot("default", {type: "Columns", gap:'2'});
+                    c.addAxis("x", {});
+                    c.addAxis("y", {vertical: true});
+                    c.setTheme(dojox.charting.themes.Wetland);
+                    c.addSeries("Series 1", values);
+                    c.render();
+                }
+                doRefresh();
+            };
+
+            PWM_MAIN.ajaxRequest(statsGetUrl, loadFunction, {errorFunction:errorFunction,method:'GET'});
         });
 };
 

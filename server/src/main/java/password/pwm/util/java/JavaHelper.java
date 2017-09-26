@@ -240,6 +240,14 @@ public class JavaHelper {
         throw exception;
     }
 
+    public static long copy(final InputStream input, final OutputStream output)
+            throws IOException
+    {
+        final int bufferSize = 4 * 1024;
+        final byte[] buffer = new byte[bufferSize];
+        return IOUtils.copyLarge(input, output, 0 , bufferSize, buffer);
+    }
+
     public static long copyWhilePredicate(final InputStream input, final OutputStream output, final Predicate predicate)
             throws IOException
     {

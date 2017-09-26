@@ -37,6 +37,7 @@ import password.pwm.svc.stats.EventRateMeter;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.Percent;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.ChecksumOutputStream;
@@ -47,7 +48,6 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -157,13 +157,14 @@ public class ResourceServletService implements PwmService {
     private String makeResourcePathNonce()
             throws PwmUnrecoverableException, IOException
     {
+        final int nonceLength = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_RESOURCES_PATH_NONCE_LENGTH));
         final boolean enablePathNonce = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_RESOURCES_ENABLE_PATH_NONCE));
         if (!enablePathNonce) {
             return "";
         }
 
         final Instant startTime = Instant.now();
-        final ChecksumOutputStream checksumOs = new ChecksumOutputStream(PwmHashAlgorithm.MD5, new NullOutputStream());
+        final ChecksumOutputStream checksumStream = new ChecksumOutputStream(PwmHashAlgorithm.SHA512, new NullOutputStream());
 
         if (pwmApplication.getPwmEnvironment().getContextManager() != null) {
             try {
@@ -173,10 +174,8 @@ public class ResourceServletService implements PwmService {
                     if (basePath != null && basePath.exists()) {
                         final File resourcePath = new File(basePath.getAbsolutePath() + File.separator + "public" + File.separator + "resources");
                         if (resourcePath.exists()) {
-                            final List<FileSystemUtility.FileSummaryInformation> fileSummaryInformations = new ArrayList<>();
-                            fileSummaryInformations.addAll(FileSystemUtility.readFileInformation(resourcePath));
-                            for (final FileSystemUtility.FileSummaryInformation fileSummaryInformation : fileSummaryInformations) {
-                                checksumOs.write((fileSummaryInformation.getSha1sum()).getBytes(PwmConstants.DEFAULT_CHARSET));
+                            for (final FileSystemUtility.FileSummaryInformation fileSummaryInformation : FileSystemUtility.readFileInformation(resourcePath)) {
+                                checksumStream.write((fileSummaryInformation.getSha1sum()).getBytes(PwmConstants.DEFAULT_CHARSET));
                             }
                         }
                     }
@@ -187,21 +186,22 @@ public class ResourceServletService implements PwmService {
         }
 
         for (final FileResource fileResource : getResourceServletConfiguration().getCustomFileBundle().values()) {
-            JavaHelper.copyWhilePredicate(fileResource.getInputStream(), checksumOs, o -> true);
+            JavaHelper.copy(fileResource.getInputStream(), checksumStream);
         }
 
         if (getResourceServletConfiguration().getZipResources() != null) {
             for (final String key : getResourceServletConfiguration().getZipResources().keySet()) {
-                final ZipFile value = getResourceServletConfiguration().getZipResources().get(key);
-                checksumOs.write(key.getBytes(PwmConstants.DEFAULT_CHARSET));
-                for (Enumeration<? extends ZipEntry> zipEnum = value.entries(); zipEnum.hasMoreElements(); ) {
+                final ZipFile zipFile = getResourceServletConfiguration().getZipResources().get(key);
+                checksumStream.write(key.getBytes(PwmConstants.DEFAULT_CHARSET));
+                for (Enumeration<? extends ZipEntry> zipEnum = zipFile.entries(); zipEnum.hasMoreElements(); ) {
                     final ZipEntry entry = zipEnum.nextElement();
-                    checksumOs.write(Long.toHexString(entry.getSize()).getBytes(PwmConstants.DEFAULT_CHARSET));
+                    JavaHelper.copy(zipFile.getInputStream(entry),checksumStream);
                 }
             }
         }
 
-        final String nonce = JavaHelper.byteArrayToHexString(checksumOs.getInProgressChecksum()).toLowerCase();
+        final byte[] checksumBytes = checksumStream.getInProgressChecksum();
+        final String nonce = StringUtil.truncate(JavaHelper.byteArrayToHexString(checksumBytes).toLowerCase(), nonceLength);
         LOGGER.debug("completed generation of nonce '" + nonce + "' in " + TimeDuration.fromCurrent(startTime).asCompactString());
 
         final String noncePrefix = pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_RESOURCES_NONCE_PATH_PREFIX);

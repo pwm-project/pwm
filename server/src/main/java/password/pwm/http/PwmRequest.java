@@ -87,6 +87,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
     private final PwmResponse pwmResponse;
     private transient PwmApplication pwmApplication;
     private transient PwmSession pwmSession;
+    private PwmURL pwmURL;
 
     private final Set<PwmRequestFlag> flags = new HashSet<>();
 
@@ -372,7 +373,10 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
     }
 
     public PwmURL getURL() {
-        return new PwmURL(this.getHttpServletRequest());
+        if (pwmURL == null) {
+            pwmURL = new PwmURL(this.getHttpServletRequest());
+        }
+        return pwmURL;
     }
 
     public void debugHttpRequestToLog()

@@ -44,6 +44,7 @@ import password.pwm.http.PwmResponse;
 import password.pwm.http.PwmSession;
 import password.pwm.http.PwmSessionWrapper;
 import password.pwm.http.PwmURL;
+import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.IPMatcher;
@@ -102,6 +103,12 @@ public class RequestInitializationFilter implements Filter {
 
         PwmApplication testPwmApplicationLoad = null;
         try { testPwmApplicationLoad = ContextManager.getPwmApplication(req); } catch (PwmException e) {}
+
+        if (testPwmApplicationLoad != null && mode == PwmApplicationMode.RUNNING) {
+            if (testPwmApplicationLoad.getStatisticsManager() != null) {
+                testPwmApplicationLoad.getStatisticsManager().updateEps(EpsStatistic.REQUESTS, 1);
+            }
+        }
 
         if (testPwmApplicationLoad == null && pwmURL.isResourceURL()) {
             filterChain.doFilter(req, resp);

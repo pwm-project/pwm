@@ -45,6 +45,7 @@
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Locale" %>
 <%@ page import="java.util.Map" %>
+<%@ page import="password.pwm.svc.stats.EpsStatistic" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html" %>
@@ -111,8 +112,8 @@
                             <pwm:display key="Title_LastDay" bundle="Admin"/>
                         </td>
                     </tr>
-                    <% for (final Statistic.EpsType loopEpsType : Statistic.EpsType.values()) { %>
-                    <% if ((loopEpsType != Statistic.EpsType.DB_READS && loopEpsType != Statistic.EpsType.DB_WRITES) || dashboard_pwmApplication.getConfig().hasDbConfigured()) { %>
+                    <% for (final EpsStatistic loopEpsType : EpsStatistic.values()) { %>
+                    <% if ((loopEpsType != EpsStatistic.DB_READS && loopEpsType != EpsStatistic.DB_WRITES) || dashboard_pwmApplication.getConfig().hasDbConfigured()) { %>
                     <tr>
                         <td class="key">
                             <%= loopEpsType.getLabel(dashboard_pwmSession.getSessionStateBean().getLocale()) %> / Minute

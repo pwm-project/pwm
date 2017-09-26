@@ -212,7 +212,7 @@ public class StatisticsManager implements PwmService {
     }
 
     public void init(final PwmApplication pwmApplication) throws PwmException {
-        for (final Statistic.EpsType type : Statistic.EpsType.values()) {
+        for (final EpsStatistic type : EpsStatistic.values()) {
             for (final Statistic.EpsDuration duration : Statistic.EpsDuration.values()) {
                 epsMeterMap.put(type.toString() + duration.toString(), new EventRateMeter(duration.getTimeDuration()));
             }
@@ -240,8 +240,8 @@ public class StatisticsManager implements PwmService {
         }
 
         {
-            for (final Statistic.EpsType loopEpsType : Statistic.EpsType.values()) {
-                for (final Statistic.EpsType loopEpsDuration : Statistic.EpsType.values()) {
+            for (final EpsStatistic loopEpsType : EpsStatistic.values()) {
+                for (final EpsStatistic loopEpsDuration : EpsStatistic.values()) {
                     final String key = "EPS-" + loopEpsType.toString() + loopEpsDuration.toString();
                     final String storedValue = localDB.get(LocalDB.DB.PWM_STATS,key);
                     if (storedValue != null && storedValue.length() > 0) {
@@ -299,7 +299,7 @@ public class StatisticsManager implements PwmService {
                 localDB.put(LocalDB.DB.PWM_STATS, DB_KEY_CUMULATIVE, statsCummulative.output());
                 localDB.put(LocalDB.DB.PWM_STATS, currentDailyKey.toString(), statsDaily.output());
 
-                for (final Statistic.EpsType loopEpsType : Statistic.EpsType.values()) {
+                for (final EpsStatistic loopEpsType : EpsStatistic.values()) {
                     for (final Statistic.EpsDuration loopEpsDuration : Statistic.EpsDuration.values()) {
                         final String key = "EPS-" + loopEpsType.toString();
                         final String mapKey = loopEpsType.toString() + loopEpsDuration.toString();
@@ -441,13 +441,13 @@ public class StatisticsManager implements PwmService {
         }
     }
 
-    public void updateEps(final Statistic.EpsType type, final int itemCount) {
+    public void updateEps(final EpsStatistic type, final int itemCount) {
         for (final Statistic.EpsDuration duration : Statistic.EpsDuration.values()) {
             epsMeterMap.get(type.toString() + duration.toString()).markEvents(itemCount);
         }
     }
 
-    public BigDecimal readEps(final Statistic.EpsType type, final Statistic.EpsDuration duration) {
+    public BigDecimal readEps(final EpsStatistic type, final Statistic.EpsDuration duration) {
         return epsMeterMap.get(type.toString() + duration.toString()).readEventRate();
     }
 

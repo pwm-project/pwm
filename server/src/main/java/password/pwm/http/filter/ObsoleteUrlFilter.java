@@ -54,6 +54,9 @@ public class ObsoleteUrlFilter extends AbstractPwmFilter {
     private ProcessStatus redirectOldUrls(final PwmRequest pwmRequest)
             throws PwmUnrecoverableException, IOException
     {
+        if (pwmRequest == null || pwmRequest.getURL() == null) {
+            return ProcessStatus.Continue;
+        }
         final PwmURL pwmURL = pwmRequest.getURL();
         if (pwmURL.isResourceURL() || pwmURL.isCommandServletURL()) {
             return ProcessStatus.Continue;
