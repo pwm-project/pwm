@@ -81,7 +81,7 @@ class LdapTokenMachine  implements TokenMachine {
         }
 
         try {
-            final UserSearchEngine userSearchEngine = new UserSearchEngine();
+            final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
             final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
                     .filter(searchFilter)
                     .build();
