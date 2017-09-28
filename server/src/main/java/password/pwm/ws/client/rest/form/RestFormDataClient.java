@@ -41,6 +41,7 @@ import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.security.cert.X509Certificate;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -81,6 +82,17 @@ public class RestFormDataClient {
             httpHeaders.put(HttpHeader.Accept_Language.getHttpName(), locale.toString());
         }
 
+        {
+            final List<RemoteWebServiceConfiguration> webServiceConfigurations = pwmApplication.getConfig().readSettingAsRemoteWebService(PwmSetting.EXTERNAL_REMOTE_DATA_URL);
+            final Map<String,String> configuredHeaders = webServiceConfigurations != null && !webServiceConfigurations.isEmpty()
+                    ? webServiceConfigurations.iterator().next().getHeaders()
+                    : Collections.emptyMap();
+
+            for (final String headerName : configuredHeaders.keySet()) {
+                httpHeaders.put(headerName, configuredHeaders.get(headerName));
+            }
+        }
+
         final String jsonRequestBody = JsonUtil.serialize(formDataRequestBean);
 
         final PwmHttpClientRequest pwmHttpClientRequest = new PwmHttpClientRequest(
@@ -117,7 +129,7 @@ public class RestFormDataClient {
         final List<RemoteWebServiceConfiguration> webServiceConfigurations = configuration.readSettingAsRemoteWebService(PwmSetting.EXTERNAL_REMOTE_DATA_URL);
 
         final X509Certificate[] certificates;
-        certificates = webServiceConfigurations != null && webServiceConfigurations.isEmpty()
+        certificates = webServiceConfigurations != null && !webServiceConfigurations.isEmpty()
                 ? webServiceConfigurations.iterator().next().getCertificates()
                 : null;
 
