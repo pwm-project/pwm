@@ -30,6 +30,12 @@ import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
+import password.pwm.config.StoredValue;
+import password.pwm.config.profile.ForgottenPasswordProfile;
+import password.pwm.config.profile.ProfileType;
+import password.pwm.config.profile.ProfileUtility;
+import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.http.bean.ForgottenPasswordBean;
 import password.pwm.ldap.UserInfo;
 import password.pwm.config.Configuration;
 import password.pwm.config.value.data.FormConfiguration;
@@ -497,7 +503,9 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet {
         }
 
         try {
-            ChangePasswordServletUtil.checkMinimumLifetime(pwmApplication, pwmSession, changePasswordBean, pwmSession.getUserInfo());
+            final boolean enforce = pwmRequest.getPwmApplication().getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_ENFORCE_MINIMUM_PASSWORD_LIFETIME);
+            if (enforce)
+                ChangePasswordServletUtil.checkMinimumLifetime(pwmApplication, pwmSession, changePasswordBean, pwmSession.getUserInfo());
         } catch (PwmOperationalException e) {
             throw new PwmUnrecoverableException(e.getErrorInformation());
         } catch (ChaiException e) {
