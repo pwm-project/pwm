@@ -503,9 +503,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet {
         }
 
         try {
-            final boolean enforce = pwmRequest.getPwmApplication().getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_ENFORCE_MINIMUM_PASSWORD_LIFETIME);
-            if (enforce)
-                ChangePasswordServletUtil.checkMinimumLifetime(pwmApplication, pwmSession, changePasswordBean, pwmSession.getUserInfo());
+            ChangePasswordServletUtil.checkMinimumLifetime(pwmApplication, pwmSession, changePasswordBean, pwmSession.getUserInfo());
         } catch (PwmOperationalException e) {
             throw new PwmUnrecoverableException(e.getErrorInformation());
         } catch (ChaiException e) {
