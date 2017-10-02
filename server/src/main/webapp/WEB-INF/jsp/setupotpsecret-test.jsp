@@ -22,6 +22,9 @@
 
 <%@ page import="password.pwm.http.bean.SetupOtpBean" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
+<%@ page import="password.pwm.i18n.Display" %>
+<%@ page import="password.pwm.util.LocaleHelper" %>
+<%@ page import="org.apache.commons.lang3.StringEscapeUtils" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html" %>
@@ -73,6 +76,14 @@
     PWM_GLOBAL['startupFunctions'].push(function() {
         PWM_MAIN.addEventHandler('button-goback','click',function(){PWM_MAIN.handleFormSubmit(PWM_MAIN.getObject('goBackForm'))});
         document.getElementById("<%= PwmConstants.PARAM_OTP_TOKEN%>").focus();
+
+        <%--Calling setCustomValidity allows us to set a custom error message on the input field--%>
+        PWM_MAIN.addEventHandler('<%= PwmConstants.PARAM_OTP_TOKEN%>', 'input', function (event) {
+            event.target.setCustomValidity("");
+        });
+        PWM_MAIN.addEventHandler('<%= PwmConstants.PARAM_OTP_TOKEN%>', 'invalid', function (event) {
+            event.target.setCustomValidity("<%=StringEscapeUtils.escapeEcmaScript(LocaleHelper.getLocalizedMessage(Display.Display_SetupOtp_VerificationCodeFormat, JspUtility.getPwmRequest(pageContext)))%>");
+        });
     });
 </script>
 </pwm:script>

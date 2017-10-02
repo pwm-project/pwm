@@ -161,6 +161,7 @@ public enum Display implements PwmDisplayBundle {
     Display_SetupOtp_iPhone_Steps,
     Display_SetupOtp_Other_Title,
     Display_SetupOtp_Other_Steps,
+    Display_SetupOtp_VerificationCodeFormat,
     Display_WarnExistingOtpSecretTime,
     Display_WarnExistingOtpSecret,
     Display_WarnExistingResponseTime,
