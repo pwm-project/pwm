@@ -657,7 +657,7 @@ PWM_MAIN.showErrorDialog = function(error, options) {
         body += error['errorMessage'];
         logMsg += error['errorCode'] + "," + error['errorMessage'];
         if (error['errorDetail']) {
-            body += "<br/><br/><div style='max-height: 250px; overflow-y: auto'>" + error['errorDetail'] + '</div>';
+            body += "<br/><br/><div class='errorDetail' style='max-height: 250px; overflow-y: auto'>" + error['errorDetail'] + '</div>';
             logMsg += ", detail: " + error['errorDetail'];
         }
     } else {

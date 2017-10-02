@@ -1254,3 +1254,13 @@ html[dir="rtl"] .nihilo .dijitTabContainerTop-tabs > .dijitTabContent:first-chil
     position: relative;
     z-index:1003;
 }
+
+html[dir="rtl"] .errorDetail {
+    direction: ltr;
+    text-align: right;
+    unicode-bidi: bidi-override;
+}
+
+html[dir="rtl"] .message.message-error .errorDetail {
+    display: inline-block;
+}

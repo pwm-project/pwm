@@ -79,7 +79,7 @@ public class ErrorMessageTag extends PwmAbstractTag {
                 if (showErrorDetail) {
                     final String errorDetail = error.toDebugStr() == null ? "" : " { " + error.toDebugStr() + " }";
                     // detail should always be escaped - it may contain untrusted data
-                    outputMsg += StringUtil.escapeHtml(errorDetail);
+                    outputMsg += "<span class='errorDetail'>" + StringUtil.escapeHtml(errorDetail) + "</span>";
                 }
 
                 outputMsg = outputMsg.replace("\n","<br/>");
