@@ -306,9 +306,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet {
             );
             passwordChangeProgress = checker.figureProgress(progressTracker);
         }
-        final RestResultBean restResultBean = new RestResultBean();
-        restResultBean.setData(passwordChangeProgress);
-
+        final RestResultBean restResultBean = RestResultBean.withData(passwordChangeProgress);
         LOGGER.trace(pwmRequest, "returning result for restCheckProgress: " + JsonUtil.serialize(restResultBean));
         pwmRequest.outputJsonResult(restResultBean);
         return ProcessStatus.Halt;
@@ -376,12 +374,20 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet {
                 userInfo
         );
 
-        final RestCheckPasswordServer.JsonOutput checkResult = RestCheckPasswordServer.doPasswordRuleCheck(
+        final PasswordUtility.PasswordCheckInfo passwordCheckInfo = PasswordUtility.checkEnteredPassword(
                 pwmRequest.getPwmApplication(),
-                pwmRequest.getPwmSession(),
-                passwordCheckRequest);
+                pwmRequest.getLocale(),
+                pwmRequest.getPwmSession().getSessionManager().getActor(pwmRequest.getPwmApplication()),
+                userInfo,
+                pwmRequest.getPwmSession().getLoginInfoBean(),
+                PasswordData.forStringValue(jsonInput.getPassword1()),
+                PasswordData.forStringValue(jsonInput.getPassword1())
+        );
 
-        final RestResultBean restResultBean = new RestResultBean(checkResult);
+
+        final RestCheckPasswordServer.JsonOutput checkResult = RestCheckPasswordServer.JsonOutput.fromPasswordCheckInfo(passwordCheckInfo);
+
+        final RestResultBean restResultBean = RestResultBean.withData(checkResult);
         pwmRequest.outputJsonResult(restResultBean);
 
         return ProcessStatus.Halt;
@@ -393,7 +399,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet {
         final PasswordData passwordData = RandomPasswordGenerator.createRandomPassword(pwmRequest.getPwmSession(), pwmRequest.getPwmApplication());
         final RestRandomPasswordServer.JsonOutput jsonOutput = new RestRandomPasswordServer.JsonOutput();
         jsonOutput.setPassword(passwordData.getStringValue());
-        final RestResultBean restResultBean = new RestResultBean(jsonOutput);
+        final RestResultBean restResultBean = RestResultBean.withData(jsonOutput);
         pwmRequest.outputJsonResult(restResultBean);
         return ProcessStatus.Halt;
     }

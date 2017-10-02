@@ -22,6 +22,10 @@
 
 package password.pwm.ws.server;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import password.pwm.PwmApplication;
 import password.pwm.config.Configuration;
 import password.pwm.error.ErrorInformation;
@@ -30,10 +34,12 @@ import password.pwm.i18n.Config;
 import password.pwm.i18n.Message;
 import password.pwm.util.java.JsonUtil;
 
-import javax.ws.rs.core.Response;
 import java.io.Serializable;
 import java.util.Locale;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@Getter
+@Setter(AccessLevel.PRIVATE)
 public class RestResultBean implements Serializable {
     private boolean error;
     private int errorCode;
@@ -42,59 +48,10 @@ public class RestResultBean implements Serializable {
     private String successMessage;
     private Serializable data;
 
-    public RestResultBean() {
-    }
-
-    public RestResultBean(final Serializable data) {
-        this.data = data;
-    }
-
-    public boolean isError() {
-        return error;
-    }
-
-    public void setError(final boolean error) {
-        this.error = error;
-    }
-
-    public int getErrorCode() {
-        return errorCode;
-    }
-
-    public void setErrorCode(final int errorCode) {
-        this.errorCode = errorCode;
-    }
-
-    public String getErrorMessage() {
-        return errorMessage;
-    }
-
-    public void setErrorMessage(final String errorMessage) {
-        this.errorMessage = errorMessage;
-    }
-
-    public String getSuccessMessage() {
-        return successMessage;
-    }
-
-    public void setSuccessMessage(final String successMessage) {
-        this.successMessage = successMessage;
-    }
-
-    public Serializable getData() {
-        return data;
-    }
-
-    public void setData(final Serializable data) {
-        this.data = data;
-    }
-
-    public String getErrorDetail() {
-        return errorDetail;
-    }
-
-    public void setErrorDetail(final String errorDetail) {
-        this.errorDetail = errorDetail;
+    public static RestResultBean withData(final Serializable data) {
+        final RestResultBean restResultBean = new RestResultBean();
+        restResultBean.setData(data);
+        return restResultBean;
     }
 
     public static RestResultBean fromError(
@@ -125,9 +82,27 @@ public class RestResultBean implements Serializable {
     }
 
     public static RestResultBean fromError(
+            final RestRequest restRequestBean,
+            final ErrorInformation errorInformation
+    ) {
+        final PwmApplication pwmApplication = restRequestBean.getPwmApplication();
+        final Configuration config = restRequestBean.getPwmApplication().getConfig();
+        final Locale locale = restRequestBean.getLocale();
+        return fromError(errorInformation, pwmApplication, locale, config, false);
+    }
+
+    public static RestResultBean fromError(
             final ErrorInformation errorInformation
     ) {
         return fromError(errorInformation, null, null, null, false);
+    }
+
+    public static RestResultBean fromError(
+            final ErrorInformation errorInformation,
+            final boolean showDetails
+    )
+    {
+        return fromError(errorInformation, null, null, null, showDetails);
     }
 
     public static RestResultBean fromError(
@@ -145,6 +120,22 @@ public class RestResultBean implements Serializable {
         return fromError(errorInformation, pwmRequest.getPwmApplication(), pwmRequest.getLocale(), pwmRequest.getConfig(), false);
     }
 
+
+    public static RestResultBean forSuccessMessage(
+            final Serializable data,
+            final Locale locale,
+            final Configuration config,
+            final Message message,
+            final String... fieldValues
+
+    ) {
+        final RestResultBean restResultBean = new RestResultBean();
+        final String msgText = Message.getLocalizedMessage(locale, message, config, fieldValues);
+        restResultBean.setSuccessMessage(msgText);
+        restResultBean.setData(data);
+        return restResultBean;
+    }
+
     public static RestResultBean forSuccessMessage(
             final Locale locale,
             final Configuration config,
@@ -159,6 +150,32 @@ public class RestResultBean implements Serializable {
     }
 
     public static RestResultBean forSuccessMessage(
+            final Serializable data,
+            final PwmRequest pwmRequest,
+            final Message message,
+            final String... fieldValues
+    ) {
+        return forSuccessMessage(data, pwmRequest.getLocale(), pwmRequest.getConfig(), message, fieldValues);
+    }
+
+    public static RestResultBean forSuccessMessage(
+            final Serializable data,
+            final RestRequest restRequest,
+            final Message message,
+            final String... fieldValues
+    ) {
+        return forSuccessMessage(data, restRequest.getLocale(), restRequest.getConfig(), message, fieldValues);
+    }
+
+    public static RestResultBean forSuccessMessage(
+            final RestRequest restRequest,
+            final Message message,
+            final String... fieldValues
+    ) {
+        return forSuccessMessage(restRequest.getLocale(), restRequest.getConfig(), message, fieldValues);
+    }
+
+    public static RestResultBean forSuccessMessage(
             final PwmRequest pwmRequest,
             final Message message,
             final String... fieldValues
@@ -169,9 +186,7 @@ public class RestResultBean implements Serializable {
     public static RestResultBean forConfirmMessage(
             final Locale locale,
             final Configuration config,
-            final Config message,
-            final String... fieldValues
-
+            final Config message
     ) {
         final RestResultBean restResultBean = new RestResultBean();
         final String msgText = Config.getLocalizedMessage(locale, message, config);
@@ -188,13 +203,6 @@ public class RestResultBean implements Serializable {
 
 
     public String toJson() {
-        return JsonUtil.serialize(this);
-    }
-
-    public Response asJsonResponse() {
-        final Response.ResponseBuilder responseBuilder = Response.ok();
-        final String body = this.toJson();
-        responseBuilder.entity(body);
-        return responseBuilder.build();
+        return JsonUtil.serialize(this, JsonUtil.Flag.PrettyPrint) + "\n";
     }
 }

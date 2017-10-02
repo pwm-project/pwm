@@ -54,7 +54,6 @@ import password.pwm.svc.sessiontrack.SessionTrackService;
 import password.pwm.svc.shorturl.UrlShortenerService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.svc.telemetry.VersionChecker;
 import password.pwm.svc.token.TokenService;
 import password.pwm.svc.wordlist.SeedlistManager;
 import password.pwm.svc.wordlist.SharedHistoryManager;
@@ -500,10 +499,6 @@ public class PwmApplication {
 
     public UserSearchEngine getUserSearchEngine() {
         return (UserSearchEngine)pwmServiceManager.getService(UserSearchEngine.class);
-    }
-
-    public VersionChecker getVersionChecker() {
-        return (VersionChecker)pwmServiceManager.getService(VersionChecker.class);
     }
 
     public ClusterService getClusterService() {

@@ -31,36 +31,49 @@ import password.pwm.config.option.WebServiceUsage;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.secure.SecureService;
-import password.pwm.ws.server.PwmRestServlet;
 import password.pwm.ws.server.RestResultBean;
-import password.pwm.ws.server.StandaloneRestRequestBean;
+import password.pwm.ws.server.RestAuthenticationType;
+import password.pwm.ws.server.RestMethodHandler;
+import password.pwm.ws.server.RestRequest;
+import password.pwm.ws.server.RestServlet;
+import password.pwm.ws.server.RestWebServer;
 
 import javax.servlet.annotation.WebServlet;
+import java.io.IOException;
 import java.io.Serializable;
 import java.time.Instant;
-import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @WebServlet(
-        name="RestFormSigningServer",
         urlPatterns={
                 PwmConstants.URL_PREFIX_PUBLIC + PwmConstants.URL_PREFIX_REST + "/signing/form",
         }
 )
-public class RestFormSigningServer extends PwmRestServlet {
-
+@RestWebServer(webService = WebServiceUsage.SigningForm, requireAuthentication = true)
+public class RestFormSigningServer extends RestServlet {
 
     @Override
-    public RestResultBean invokeWebService(final StandaloneRestRequestBean restRequestBean) {
-        final Map<String,String> inputFormData = JsonUtil.deserializeStringMap(restRequestBean.getBody());
+    public void preCheckRequest(final RestRequest restRequest)
+            throws PwmUnrecoverableException {
+        if (restRequest.getRestAuthentication().getType() == RestAuthenticationType.PUBLIC) {
+            throw new PwmUnrecoverableException(PwmError.ERROR_AUTHENTICATION_REQUIRED);
+        }
+    }
 
+    @RestMethodHandler(method = HttpMethod.POST, produces = HttpContentType.json)
+    private RestResultBean handleRestJsonPostRequest(final RestRequest restRequest)
+            throws IOException, PwmUnrecoverableException
+    {
 
-        if (!restRequestBean.getAuthorizedUsages().contains(WebServiceUsage.SigningForm)) {
+        final Map<String,String> inputFormData = restRequest.readBodyAsJsonStringMap(PwmHttpRequestWrapper.Flag.BypassValidation);
+
+        if (!restRequest.getRestAuthentication().getUsages().contains(WebServiceUsage.SigningForm)) {
             final String errorMsg = "request is not authenticated with permission for SigningForm";
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED, errorMsg);
             return RestResultBean.fromError(errorInformation);
@@ -68,10 +81,10 @@ public class RestFormSigningServer extends PwmRestServlet {
 
         try {
             if (inputFormData != null) {
-                final SecureService securityService = restRequestBean.getPwmApplication().getSecureService();
+                final SecureService securityService = restRequest.getPwmApplication().getSecureService();
                 final SignedFormData signedFormData = new SignedFormData(Instant.now(), inputFormData);
                 final String signedValue = securityService.encryptObjectToString(signedFormData);
-                final RestResultBean restResultBean = new RestResultBean(signedValue);
+                final RestResultBean restResultBean = RestResultBean.withData(signedValue);
                 return restResultBean;
             }
             return RestResultBean.fromError(new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER,"no json form in body"));
@@ -106,10 +119,5 @@ public class RestFormSigningServer extends PwmRestServlet {
     private static class SignedFormData implements Serializable  {
         private Instant timestamp;
         private Map<String,String> formData;
-    }
-
-    @Override
-    public PwmRestServlet.ServiceInfo getServiceInfo() {
-        return new ServiceInfo(Collections.singleton(HttpMethod.POST));
     }
 }

@@ -158,9 +158,8 @@ public class LoginServlet extends ControlledPwmServlet {
 
         // login has succeeded
         final String nextLoginUrl = determinePostLoginUrl(pwmRequest);
-        final RestResultBean restResultBean = new RestResultBean();
         final HashMap<String,String> resultMap = new HashMap<>(Collections.singletonMap("nextURL", nextLoginUrl));
-        restResultBean.setData(resultMap);
+        final RestResultBean restResultBean = RestResultBean.withData(resultMap);
         LOGGER.debug(pwmRequest, "rest login succeeded");
         pwmRequest.outputJsonResult(restResultBean);
         return ProcessStatus.Halt;

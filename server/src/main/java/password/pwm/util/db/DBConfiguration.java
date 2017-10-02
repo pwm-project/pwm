@@ -51,6 +51,7 @@ public class DBConfiguration implements Serializable {
     private final List<JDBCDriverLoader.ClassLoaderStrategy> classLoaderStrategies;
     private final int maxConnections;
     private final int connectionTimeout;
+    private final int keyColumnLength;
 
     public boolean isEnabled() {
         return
@@ -81,6 +82,8 @@ public class DBConfiguration implements Serializable {
          final int maxConnections = Integer.parseInt(config.readAppProperty(AppProperty.DB_CONNECTIONS_MAX));
          final int connectionTimeout = Integer.parseInt(config.readAppProperty(AppProperty.DB_CONNECTIONS_TIMEOUT_MS));
 
+         final int keyColumnLength = Integer.parseInt(config.readAppProperty(AppProperty.DB_SCHEMA_KEY_LENGTH));
+
          return new DBConfiguration(
                  config.readSettingAsString(PwmSetting.DATABASE_CLASS),
                  config.readSettingAsString(PwmSetting.DATABASE_URL),
@@ -91,7 +94,8 @@ public class DBConfiguration implements Serializable {
                  jdbcDriverBytes,
                  strategies,
                  maxConnections,
-                 connectionTimeout
+                 connectionTimeout,
+                 keyColumnLength
          );
      }
 }

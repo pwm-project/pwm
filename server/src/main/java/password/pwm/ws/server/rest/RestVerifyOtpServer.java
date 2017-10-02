@@ -22,105 +22,74 @@
 
 package password.pwm.ws.server.rest;
 
-import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.Permission;
-import password.pwm.bean.UserIdentity;
+import lombok.Data;
+import password.pwm.PwmConstants;
+import password.pwm.config.option.WebServiceUsage;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.HttpContentType;
+import password.pwm.http.HttpMethod;
 import password.pwm.i18n.Message;
-import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.util.operations.OtpService;
 import password.pwm.util.operations.otp.OTPUserRecord;
-import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
-import password.pwm.ws.server.RestServerHelper;
-import password.pwm.ws.server.ServicePermissions;
+import password.pwm.ws.server.RestMethodHandler;
+import password.pwm.ws.server.RestRequest;
+import password.pwm.ws.server.RestServlet;
+import password.pwm.ws.server.RestWebServer;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import javax.servlet.annotation.WebServlet;
+import java.io.IOException;
 import java.io.Serializable;
-import java.net.URISyntaxException;
 
-@Path("/verifyotp")
-public class RestVerifyOtpServer extends AbstractRestServer {
+@WebServlet(
+        urlPatterns={
+                PwmConstants.URL_PREFIX_PUBLIC + PwmConstants.URL_PREFIX_REST + "/verifyotp",
+        }
+)
+@RestWebServer(webService = WebServiceUsage.VerifyOtp, requireAuthentication = true)
+public class RestVerifyOtpServer extends RestServlet {
 
+    @Data
     public static class JsonPutOtpInput implements Serializable {
         public String token;
         public String username;
     }
 
-    @GET
-    @Produces(MediaType.TEXT_HTML)
-    public Response doHtmlRedirect() throws URISyntaxException {
-        return RestServerHelper.handleHtmlRequest();
+    @Override
+    public void preCheckRequest(final RestRequest request) throws PwmUnrecoverableException {
     }
 
-    @POST
-    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response doSetOtpDataJson(final RestVerifyOtpServer.JsonPutOtpInput jsonInput) {
-        final RestRequestBean restRequestBean;
+    @RestMethodHandler(method = HttpMethod.POST, consumes = HttpContentType.json, produces = HttpContentType.json)
+    public RestResultBean doSetOtpDataJson(final RestRequest restRequest)
+            throws IOException, PwmUnrecoverableException
+    {
+        final RestVerifyOtpServer.JsonPutOtpInput jsonInput = deserializeJsonBody(restRequest, JsonPutOtpInput.class);
+
+        final TargetUserIdentity targetUserIdentity = resolveRequestedUsername(restRequest, jsonInput.getUsername());
+
         try {
-            final ServicePermissions servicePermissions = ServicePermissions.builder()
-                    .adminOnly(false)
-                    .authRequired(true)
-                    .blockExternal(true)
-                    .build();
+            final OtpService otpService = restRequest.getPwmApplication().getOtpService();
+            final OTPUserRecord otpUserRecord = otpService.readOTPUserConfiguration(restRequest.getSessionLabel(), targetUserIdentity.getUserIdentity());
 
-            restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, jsonInput.username);
-        } catch (PwmUnrecoverableException e) {
-            return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
-        }
-        try {
-            if (!restRequestBean.getPwmSession().getSessionManager().checkPermission(restRequestBean.getPwmApplication(), Permission.SETUP_OTP_SECRET)) {
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"actor does not have required permission"));
-            }
-
-            final UserSearchEngine userSearchEngine = restRequestBean.getPwmApplication().getUserSearchEngine();
-            UserIdentity userIdentity = restRequestBean.getUserIdentity();
-            if (userIdentity == null) {
-                final ChaiUser chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication());
-                userIdentity = userSearchEngine.resolveUsername(chaiUser.readUsername(), null, null, restRequestBean.getPwmSession().getLabel());
-            }
-
-            final OtpService otpService = restRequestBean.getPwmApplication().getOtpService();
-            final OTPUserRecord otpUserRecord = otpService.readOTPUserConfiguration(restRequestBean.getPwmSession().getLabel(),userIdentity);
             final boolean verified = otpUserRecord !=null && otpService.validateToken(
-                    restRequestBean.getPwmSession(),
-                    userIdentity,
+                    restRequest.getSessionLabel(),
+                    targetUserIdentity.getUserIdentity(),
                     otpUserRecord,
-                    jsonInput.token,
+                    jsonInput.getToken(),
                     false
             );
-            final String successMsg = Message.Success_Unknown.getLocalizedMessage(request.getLocale(),restRequestBean.getPwmApplication().getConfig());
-            final RestResultBean resultBean = new RestResultBean();
-            resultBean.setError(false);
-            resultBean.setData(verified);
-            resultBean.setSuccessMessage(successMsg);
-            return resultBean.asJsonResponse();
-        } catch (PwmUnrecoverableException e) {
-            return RestResultBean.fromError(e.getErrorInformation(),restRequestBean).asJsonResponse();
+
+            return RestResultBean.forSuccessMessage(verified, restRequest, Message.Success_Unknown);
         } catch (ChaiUnavailableException e) {
-            final String errorMsg = "unexpected error reading json input: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-            return RestResultBean.fromError(errorInformation,restRequestBean).asJsonResponse();
-        } catch (ChaiOperationException e) {
-            final String errorMsg = "unexpected error reading json input: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-            return RestResultBean.fromError(errorInformation,restRequestBean).asJsonResponse();
+            throw PwmUnrecoverableException.fromChaiException(e);
         } catch (PwmOperationalException e) {
             final String errorMsg = "unexpected error reading json input: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-            return RestResultBean.fromError(errorInformation,restRequestBean).asJsonResponse();
+            return RestResultBean.fromError(restRequest, errorInformation);
         }
 
     }

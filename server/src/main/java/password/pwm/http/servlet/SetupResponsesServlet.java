@@ -243,7 +243,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet {
         }
 
         final ValidationResponseBean validationResponseBean = new ValidationResponseBean(userMessage,success);
-        final RestResultBean restResultBean = new RestResultBean(validationResponseBean);
+        final RestResultBean restResultBean = RestResultBean.withData(validationResponseBean);
         LOGGER.trace(pwmRequest,"completed rest validate response in "
                 + TimeDuration.fromCurrent(startTime).asCompactString()
                 + ", result=" + JsonUtil.serialize(restResultBean));

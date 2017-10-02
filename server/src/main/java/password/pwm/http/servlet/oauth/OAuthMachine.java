@@ -29,7 +29,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import password.pwm.AppProperty;
-import password.pwm.PwmConstants;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
@@ -38,6 +37,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmURL;
@@ -240,7 +240,7 @@ public class OAuthMachine {
         httpPost.setHeader(HttpHeader.Authorization.getHttpName(),
                 new BasicAuthInfo(settings.getClientID(), settings.getSecret()).toAuthHeader());
         final StringEntity bodyEntity = new StringEntity(requestBody);
-        bodyEntity.setContentType(PwmConstants.ContentTypeValue.form.getHeaderValue());
+        bodyEntity.setContentType(HttpContentType.form.getHeaderValue());
         httpPost.setEntity(bodyEntity);
 
         final X509Certificate[] certs = settings.getCertificates();

@@ -41,7 +41,6 @@ public enum PwmServiceEnum {
     SmsQueueManager(        password.pwm.util.queue.SmsQueueManager.class),
     UrlShortenerService(    password.pwm.svc.shorturl.UrlShortenerService.class),
     TokenService(           password.pwm.svc.token.TokenService.class),
-    VersionChecker(         password.pwm.svc.telemetry.VersionChecker.class),
     IntruderManager(        password.pwm.svc.intruder.IntruderManager.class),
     CrService(              password.pwm.util.operations.CrService.class,           Flag.StartDuringRuntimeInstance),
     OtpService(             password.pwm.util.operations.OtpService.class),

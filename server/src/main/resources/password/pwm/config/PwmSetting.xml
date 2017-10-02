@@ -66,11 +66,6 @@
         <example>https://www.example.com/example</example>
         <default/>
     </setting>
-    <setting hidden="true" key="pwm.versionCheck.enable" level="1" required="true">
-        <default>
-            <value>false</value>
-        </default>
-    </setting>
     <setting hidden="false" key="pwm.publishStats.enable" level="1" required="true">
         <default>
             <value>false</value>
@@ -3660,8 +3655,17 @@
     <setting hidden="false" key="webservices.external.secrets" level="2">
         <default/>
         <options>
-            <option value="SigningForm">Signing Form Service - /signing/form</option>
-            <option value="Health">Health Service - /health</option>
+            <option value="Challenges">Challenges - /challenges</option>
+            <option value="CheckPassword">Check Password - /checkpassword</option>
+            <option value="Health">Health - /health</option>
+            <option value="Profile">Profile - /profile</option>
+            <option value="RandomPassword">Random Password - /randompassword</option>
+            <option value="SetPassword">Set Password - /setpassword</option>
+            <option value="SigningForm">Signing (Form) - /signing/form</option>
+            <option value="Statistics">Statistics - /statistics</option>
+            <option value="Status">User Status - /status</option>
+            <option value="VerifyOtp">Verify OTP - /verifyotp</option>
+            <option value="VerifyResponses">Verify Responses - /verifyresponses</option>
         </options>
     </setting>
     <setting hidden="false" key="webservices.queryMatch" level="2">

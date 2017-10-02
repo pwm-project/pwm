@@ -862,7 +862,16 @@ select {
 }
 .sign-in { margin-left: 15px;}
 
-#login .inputfield, #configLogin .inputfield {
+#login .selectfield, #configLogin .selectfield {
+    margin: 0;
+    padding: 6px;
+    width: 250px;
+    margin-right: 8px;
+    font-size: 15px;
+    box-sizing:content-box;
+}
+
+#login .inputfield , #configLogin .inputfield {
 	margin: 0;
 	padding: 6px;
 	width: 250px;

@@ -112,7 +112,7 @@ public class RequestInitializationFilter implements Filter {
 
         if (testPwmApplicationLoad == null && pwmURL.isResourceURL()) {
             filterChain.doFilter(req, resp);
-        } else if (pwmURL.isStandaloneWebService() || pwmURL.isJerseyWebService()) {
+        } else if (pwmURL.isRestService()) {
             filterChain.doFilter(req, resp);
         } else {
             if (mode == PwmApplicationMode.ERROR) {
@@ -390,17 +390,16 @@ public class RequestInitializationFilter implements Filter {
     }
 
 
-    public static String readUserHostname(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
-        final Configuration config = pwmRequest.getConfig();
+    public static String readUserHostname(final HttpServletRequest request, final Configuration config) throws PwmUnrecoverableException {
         if (config != null && !config.readSettingAsBoolean(PwmSetting.REVERSE_DNS_ENABLE)) {
             return "";
         }
 
-        final String userIPAddress = readUserIPAddress(pwmRequest);
+        final String userIPAddress = readUserIPAddress(request, config);
         try {
             return InetAddress.getByName(userIPAddress).getCanonicalHostName();
         } catch (UnknownHostException e) {
-            LOGGER.trace(pwmRequest, "unknown host while trying to compute hostname for src request: " + e.getMessage());
+            LOGGER.trace("unknown host while trying to compute hostname for src request: " + e.getMessage());
         }
         return "";
     }
@@ -411,14 +410,13 @@ public class RequestInitializationFilter implements Filter {
      *
      * @return String containing the textual representation of the source IP address, or null if the request is invalid.
      */
-    public static String readUserIPAddress(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
-        final Configuration config = pwmRequest.getConfig();
+    public static String readUserIPAddress(final HttpServletRequest request, final Configuration config) throws PwmUnrecoverableException {
         final boolean useXForwardedFor = config != null && config.readSettingAsBoolean(PwmSetting.USE_X_FORWARDED_FOR_HEADER);
 
         String userIP = "";
 
         if (useXForwardedFor) {
-            userIP = pwmRequest.readHeaderValueAsString(HttpHeader.XForwardedFor);
+            userIP = request.getHeader(HttpHeader.XForwardedFor.getHttpName());
             if (!StringUtil.isEmpty(userIP)) {
                 final int commaIndex = userIP.indexOf(',');
                 if (commaIndex > -1) {
@@ -436,7 +434,7 @@ public class RequestInitializationFilter implements Filter {
         }
 
         if (StringUtil.isEmpty(userIP)) {
-            userIP = pwmRequest.getHttpServletRequest().getRemoteAddr();
+            userIP = request.getRemoteAddr();
         }
 
         return userIP == null ? "" : userIP;
@@ -459,12 +457,12 @@ public class RequestInitializationFilter implements Filter {
 
         // mark session ip address
         if (ssBean.getSrcAddress() == null) {
-            ssBean.setSrcAddress(readUserIPAddress(pwmRequest));
+            ssBean.setSrcAddress(readUserIPAddress(pwmRequest.getHttpServletRequest(), pwmRequest.getConfig()));
         }
 
         // mark the user's hostname in the session bean
         if (ssBean.getSrcHostname() == null) {
-            ssBean.setSrcHostname(readUserHostname(pwmRequest));
+            ssBean.setSrcHostname(readUserHostname(pwmRequest.getHttpServletRequest(), pwmRequest.getConfig()));
         }
 
         // update the privateUrlAccessed flag
@@ -517,7 +515,7 @@ public class RequestInitializationFilter implements Filter {
 
         // check the user's IP address
         if (!pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.MULTI_IP_SESSION_ALLOWED)) {
-            final String remoteAddress = readUserIPAddress(pwmRequest);
+            final String remoteAddress = readUserIPAddress(pwmRequest.getHttpServletRequest(), pwmRequest.getConfig());
             if (!ssBean.getSrcAddress().equals(remoteAddress)) {
                 final String errorMsg = "current network address '" + remoteAddress + "' has changed from original network address '" + ssBean.getSrcAddress() + "'";
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SECURITY_VIOLATION,errorMsg);
@@ -599,7 +597,7 @@ public class RequestInitializationFilter implements Filter {
         if (
                 performCsrfHeaderChecks
                         && !pwmRequest.getMethod().isIdempotent()
-                        && !pwmRequest.getURL().isJerseyWebService()
+                        && !pwmRequest.getURL().isRestService()
                 )
         {
             final String originValue = pwmRequest.readHeaderValueAsString(HttpHeader.Origin);

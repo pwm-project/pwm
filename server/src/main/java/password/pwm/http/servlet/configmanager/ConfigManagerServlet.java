@@ -37,6 +37,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
+import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.JspUrl;
@@ -251,7 +252,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
         }
         final HashMap<String,String> resultData = new HashMap<>();
         LOGGER.info(pwmSession, "Configuration Locked");
-        pwmRequest.outputJsonResult(new RestResultBean(resultData));
+        pwmRequest.outputJsonResult(RestResultBean.withData(resultData));
     }
 
     public static void saveConfiguration(
@@ -313,7 +314,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
             final StoredConfigurationImpl storedConfiguration = readCurrentConfiguration(pwmRequest);
             final OutputStream responseWriter = resp.getOutputStream();
             resp.setHeader(HttpHeader.ContentDisposition, "attachment;filename=" + PwmConstants.DEFAULT_CONFIG_FILE_FILENAME);
-            resp.setContentType(PwmConstants.ContentTypeValue.xml);
+            resp.setContentType(HttpContentType.xml);
             storedConfiguration.toXml(responseWriter);
             responseWriter.close();
         } catch (Exception e) {
@@ -326,7 +327,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
     {
         final PwmResponse resp = pwmRequest.getPwmResponse();
         resp.setHeader(HttpHeader.ContentDisposition, "attachment;filename=" + PwmConstants.PWM_APP_NAME + "-Support.zip");
-        resp.setContentType(PwmConstants.ContentTypeValue.zip);
+        resp.setContentType(HttpContentType.zip);
 
         final String pathPrefix = PwmConstants.PWM_APP_NAME + "-Support" + "/";
 
@@ -384,7 +385,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
             throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
     {
         pwmRequest.getPwmResponse().markAsDownload(
-                PwmConstants.ContentTypeValue.csv,
+                HttpContentType.csv,
                 pwmRequest.getConfig().readAppProperty(AppProperty.DOWNLOAD_FILENAME_LDAP_PERMISSION_CSV)
         );
 

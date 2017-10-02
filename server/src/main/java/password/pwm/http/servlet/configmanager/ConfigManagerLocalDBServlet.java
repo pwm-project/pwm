@@ -34,6 +34,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
+import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.JspUrl;
@@ -132,7 +133,7 @@ public class ConfigManagerLocalDBServlet extends AbstractPwmServlet {
         final PwmResponse resp = pwmRequest.getPwmResponse();
         final Instant startTime = Instant.now();
         resp.setHeader(HttpHeader.ContentDisposition, "attachment;filename=" + PwmConstants.PWM_APP_NAME + "-LocalDB.bak");
-        resp.setContentType(PwmConstants.ContentTypeValue.octetstream);
+        resp.setContentType(HttpContentType.octetstream);
         resp.setHeader(HttpHeader.ContentTransferEncoding, "binary");
         final LocalDBUtility localDBUtility = new LocalDBUtility(pwmRequest.getPwmApplication().getLocalDB());
         try {

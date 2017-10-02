@@ -154,8 +154,6 @@ public class ControlledPwmServletTest {
                 ));
 
 
-        new Reflections("password.pwm");
-
         Set<Class<? extends ControlledPwmServlet>> classes = reflections.getSubTypesOf(ControlledPwmServlet.class);
 
         final Map<Class<? extends ControlledPwmServlet>,Map<String,Method>> returnMap = new HashMap<>();

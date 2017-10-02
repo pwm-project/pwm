@@ -22,7 +22,6 @@
 
 package password.pwm.http.filter;
 
-import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
@@ -127,7 +126,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
 
     @Override
     boolean isInterested(final PwmApplicationMode mode, final PwmURL pwmURL) {
-        return !pwmURL.isResourceURL() && !pwmURL.isStandaloneWebService();
+        return !pwmURL.isResourceURL() && !pwmURL.isRestService();
     }
 
     private void processAuthenticatedSession(
@@ -492,11 +491,10 @@ public class AuthenticationFilter extends AbstractPwmFilter {
                 sessionAuthenticator.authenticateUser(userIdentity, basicAuthInfo.getPassword());
                 pwmSession.getLoginInfoBean().setBasicAuth(basicAuthInfo);
 
-            } catch (ChaiUnavailableException e) {
-                StatisticsManager.incrementStat(pwmRequest, Statistic.LDAP_UNAVAILABLE_COUNT);
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE, e.getMessage());
-                throw new PwmUnrecoverableException(errorInformation);
             } catch (PwmException e) {
+                if (e.getError() == PwmError.ERROR_DIRECTORY_UNAVAILABLE) {
+                    StatisticsManager.incrementStat(pwmRequest, Statistic.LDAP_UNAVAILABLE_COUNT);
+                }
                 throw new PwmUnrecoverableException(e.getError());
             }
         }

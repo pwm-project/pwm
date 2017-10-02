@@ -25,15 +25,15 @@ package password.pwm.svc.wordlist;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
-import password.pwm.http.PwmSession;
 import password.pwm.svc.PwmService;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.Sleeper;
 import password.pwm.util.java.TimeDuration;
-import password.pwm.util.java.JavaHelper;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
@@ -236,7 +236,10 @@ public class SharedHistoryManager implements PwmService {
         return word.length() > 0 ? word : null;
     }
 
-    public synchronized void addWord(final PwmSession pwmSession, final String word) {
+    public synchronized void addWord(
+            final SessionLabel sessionLabel,
+            final String word
+    ) {
         if (status != STATUS.OPEN) {
             return;
         }
@@ -263,7 +266,7 @@ public class SharedHistoryManager implements PwmService {
                 LOGGER.trace(logOutput.toString());
             }
         } catch (Exception e) {
-            LOGGER.warn(pwmSession, "error adding word to global history list: " + e.getMessage());
+            LOGGER.warn(sessionLabel, "error adding word to global history list: " + e.getMessage());
         }
     }
 

@@ -22,101 +22,91 @@
 
 package password.pwm.ws.server.rest;
 
+import com.novell.ldapchai.provider.ChaiProvider;
+import password.pwm.PwmConstants;
 import password.pwm.bean.pub.PublicUserInfoBean;
+import password.pwm.config.option.WebServiceUsage;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.HttpContentType;
+import password.pwm.http.HttpMethod;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
-import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
-import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
-import password.pwm.ws.server.RestServerHelper;
-import password.pwm.ws.server.ServicePermissions;
+import password.pwm.ws.server.RestMethodHandler;
+import password.pwm.ws.server.RestRequest;
+import password.pwm.ws.server.RestServlet;
+import password.pwm.ws.server.RestWebServer;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.net.URISyntaxException;
+import javax.servlet.annotation.WebServlet;
 import java.time.Instant;
 
-@Path("/status")
-public class RestStatusServer extends AbstractRestServer {
+
+@WebServlet(
+        urlPatterns={
+                PwmConstants.URL_PREFIX_PUBLIC + PwmConstants.URL_PREFIX_REST + "/status",
+        }
+)
+@RestWebServer(webService = WebServiceUsage.Status, requireAuthentication = true)
+public class RestStatusServer extends RestServlet {
     public static final PwmLogger LOGGER = PwmLogger.forClass(RestStatusServer.class);
 
-    @GET
-    @Produces(MediaType.TEXT_HTML)
-    public javax.ws.rs.core.Response doHtmlRedirect() throws URISyntaxException {
-        return RestServerHelper.handleHtmlRequest();
+    @Override
+    public void preCheckRequest(final RestRequest restRequest) throws PwmUnrecoverableException {
     }
 
-    @GET
-    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    public Response doGetStatusData(
-            @QueryParam("username") final String username
-    ) {
+    @RestMethodHandler(method = HttpMethod.GET, produces = HttpContentType.json, consumes = HttpContentType.json)
+    public RestResultBean doGetStatusData(final RestRequest restRequest)
+            throws PwmUnrecoverableException
+    {
         final Instant startTime = Instant.now();
-        final RestRequestBean restRequestBean;
-        try {
-            final ServicePermissions servicePermissions = ServicePermissions.builder()
-                    .adminOnly(false)
-                    .authRequired(true)
-                    .blockExternal(true)
-                    .build();
 
-            restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, username);
-        } catch (PwmUnrecoverableException e) {
-            return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
-        }
+        final String username = restRequest.readParameterAsString("username");
+        final TargetUserIdentity targetUserIdentity = RestServlet.resolveRequestedUsername(restRequest, username);
 
         try {
-            final UserInfo userInfo;
-            if (restRequestBean.getUserIdentity() != null) {
-                userInfo = UserInfoFactory.newUserInfo(
-                        restRequestBean.getPwmApplication(),
-                        restRequestBean.getPwmSession().getLabel(),
-                        restRequestBean.getPwmSession().getSessionStateBean().getLocale(),
-                        restRequestBean.getUserIdentity(),
-                        restRequestBean.getPwmSession().getSessionManager().getChaiProvider()
-                );
-            } else {
-                userInfo = restRequestBean.getPwmSession().getUserInfo();
-            }
-            final RestResultBean restResultBean = new RestResultBean();
-            final MacroMachine macroMachine = restRequestBean.getPwmSession().getSessionManager().getMacroMachine(restRequestBean.getPwmApplication());
-            restResultBean.setData(PublicUserInfoBean.fromUserInfoBean(
+            final ChaiProvider chaiProvider = targetUserIdentity.getChaiProvider();
+            final UserInfo userInfo = UserInfoFactory.newUserInfo(
+                    restRequest.getPwmApplication(),
+                    restRequest.getSessionLabel(),
+                    restRequest.getLocale(),
+                    targetUserIdentity.getUserIdentity(),
+                    chaiProvider
+            );
+            final MacroMachine macroMachine = MacroMachine.forUser(
+                    restRequest.getPwmApplication(),
+                    restRequest.getLocale(),
+                    restRequest.getSessionLabel(),
+                    targetUserIdentity.getUserIdentity()
+            );
+
+            final PublicUserInfoBean publicUserInfoBean = PublicUserInfoBean.fromUserInfoBean(
                     userInfo,
-                    restRequestBean.getPwmApplication().getConfig(),
-                    restRequestBean.getPwmSession().getSessionStateBean().getLocale(),
+                    restRequest.getPwmApplication().getConfig(),
+                    restRequest.getLocale(),
                     macroMachine
-            ));
+            );
 
-            final StatisticsManager statsMgr = restRequestBean.getPwmApplication().getStatisticsManager();
-            if (statsMgr != null && statsMgr.status() == PwmService.STATUS.OPEN) {
-                if (restRequestBean.isExternal()) {
-                    statsMgr.incrementValue(Statistic.REST_STATUS);
-                }
-            }
+            StatisticsManager.incrementStat(restRequest.getPwmApplication(), Statistic.REST_STATUS);
 
-            final TimeDuration timeDuration = TimeDuration.fromCurrent(startTime);
-            LOGGER.debug(restRequestBean.getPwmSession(),"completed REST status request in " + timeDuration.asCompactString() + ", result=" + JsonUtil.serialize(restResultBean));
-            return restResultBean.asJsonResponse();
+            final RestResultBean restResultBean = RestResultBean.withData(publicUserInfoBean);
+            LOGGER.debug(restRequest.getSessionLabel(),"completed REST status request in "
+                    + TimeDuration.compactFromCurrent(startTime) + ", result=" + JsonUtil.serialize(restResultBean));
+            return restResultBean;
         } catch (PwmException e) {
-            return RestResultBean.fromError(e.getErrorInformation(), restRequestBean).asJsonResponse();
+            return RestResultBean.fromError(e.getErrorInformation());
         } catch (Exception e) {
             final String errorMsg = "unexpected error building json response: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-            return RestResultBean.fromError(errorInformation, restRequestBean).asJsonResponse();
+            return RestResultBean.fromError(restRequest, errorInformation);
         }
     }
 }

@@ -29,6 +29,7 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.TelemetryPublishBean;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.client.PwmHttpClient;
@@ -65,7 +66,7 @@ public class HttpTelemetrySender implements TelemetrySender {
         final PwmHttpClient pwmHttpClient = new PwmHttpClient(pwmApplication, SessionLabel.TELEMETRY_SESSION_LABEL, pwmHttpClientConfiguration);
         final String body = JsonUtil.serialize(statsPublishBean);
         final Map<String,String> headers = new HashMap<>();
-        headers.put(HttpHeader.Content_Type.getHttpName(), PwmConstants.ContentTypeValue.json.getHeaderValue());
+        headers.put(HttpHeader.Content_Type.getHttpName(), HttpContentType.json.getHeaderValue());
         headers.put(HttpHeader.Accept.getHttpName(), PwmConstants.AcceptValue.json.getHeaderValue());
         final PwmHttpClientRequest pwmHttpClientRequest = new PwmHttpClientRequest(
                 HttpMethod.POST,

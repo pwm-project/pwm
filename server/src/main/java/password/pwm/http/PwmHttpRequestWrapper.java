@@ -379,6 +379,9 @@ public abstract class PwmHttpRequestWrapper {
         return HttpMethod.fromString(this.getHttpServletRequest().getMethod());
     }
 
+    public Configuration getConfig() {
+        return configuration;
+    }
 
 }
 

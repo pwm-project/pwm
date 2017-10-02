@@ -57,7 +57,6 @@ public enum PwmValue {
     instanceID(new InstanceIDOutput()),
     headerMenuNotice(new HeaderMenuNoticeOutput()),
     clientETag(new ClientETag()),
-    restClientKey(new RestClientKey()),
     localeCode(new LocaleCodeOutput()),
     localeDir(new LocaleDirOutput()),
     localeFlagFile(new LocaleFlagFileOutput()),
@@ -200,13 +199,6 @@ public enum PwmValue {
         @Override
         public String valueOutput(final PwmRequest pwmRequest, final PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
             return ClientApiServlet.makeClientEtag(pwmRequest);
-        }
-    }
-
-    static class RestClientKey implements ValueOutput {
-        @Override
-        public String valueOutput(final PwmRequest pwmRequest, final PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
-            return pwmRequest.getPwmSession().getRestClientKey();
         }
     }
 

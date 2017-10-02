@@ -227,7 +227,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet {
             }
             outputData.put(wordlistType,wordlistDataBean);
         }
-        pwmRequest.outputJsonResult(new RestResultBean(outputData));
+        pwmRequest.outputJsonResult(RestResultBean.withData(outputData));
     }
 
     public static class WordlistDataBean implements Serializable {

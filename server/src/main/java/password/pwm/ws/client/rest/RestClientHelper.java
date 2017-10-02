@@ -32,6 +32,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.HttpContentType;
 import password.pwm.http.client.PwmHttpClient;
 import password.pwm.util.logging.PwmLogger;
 
@@ -53,7 +54,7 @@ public class RestClientHelper {
         if (locale != null) {
             httpPost.setHeader("Accept-Locale", locale.toString());
         }
-        httpPost.setHeader("Content-Type", PwmConstants.ContentTypeValue.json.getHeaderValue());
+        httpPost.setHeader("Content-Type", HttpContentType.json.getHeaderValue());
         final HttpResponse httpResponse;
         try {
             final StringEntity stringEntity = new StringEntity(jsonRequestBody);

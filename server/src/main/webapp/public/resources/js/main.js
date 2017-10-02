@@ -33,7 +33,6 @@ PWM_MAIN.pageLoadHandler = function() {
     PWM_GLOBAL['url-context']=PWM_MAIN.getObject('application-info').getAttribute('data-url-context');
     PWM_GLOBAL['pwmFormID']=PWM_MAIN.getObject('application-info').getAttribute('data-pwmFormID');
     PWM_GLOBAL['clientEtag']=PWM_MAIN.getObject('application-info').getAttribute('data-clientEtag');
-    PWM_GLOBAL['restClientKey']=PWM_MAIN.getObject('application-info').getAttribute('data-restClientKey');
 
     require(["dojo/_base/array","dojo/_base/Deferred","dojo/promise/all"], function(array,Deferred,all){
         var promises = [];
@@ -265,25 +264,10 @@ PWM_MAIN.applyFormAttributes = function() {
 PWM_MAIN.preloadAll = function(nextFunction) {
     require(["dijit/Dialog","dijit/ProgressBar","dijit/registry","dojo/_base/array","dojo/data/ObjectStore",
         "dojo/store/Memory","dijit/Tooltip","dijit/Menu","dijit/MenuItem","dijit/MenuSeparator"],function(){
-        PWM_MAIN.preloadResources(nextFunction);
+        if (nextFunction) {
+            nextFunction();
+        }
     });
-};
-
-PWM_MAIN.preloadResources = function(nextFunction) {
-    /*
-    var prefix = PWM_GLOBAL['url-resources'] + '/dojo/dijit/themes/';
-    var images = [
-        prefix + 'a11y/indeterminate_progress.gif',
-        prefix + 'nihilo/images/progressBarAnim.gif',
-        prefix + 'nihilo/images/progressBarEmpty.png',
-        prefix + 'nihilo/images/spriteRoundedIconsSmall.png',
-        prefix + 'nihilo/images/titleBar.png'
-    ];
-    PWM_MAIN.preloadImages(images);
-    */
-    if (nextFunction) {
-        nextFunction();
-    }
 };
 
 PWM_MAIN.showString = function (key, options) {
@@ -1778,7 +1762,6 @@ PWM_MAIN.ajaxRequest = function(url,loadFunction,options) {
     var ajaxTimeout = options['ajaxTimeout'] ? options['ajaxTimeout'] : PWM_MAIN.ajaxTimeout;
     var requestHeaders = {};
     requestHeaders['Accept'] = "application/json";
-    requestHeaders['X-RestClientKey'] = PWM_GLOBAL['restClientKey'];
     if (hasContent) {
         requestHeaders['Content-Type'] = "application/json";
     }

@@ -313,36 +313,9 @@ public class PasswordUtility {
             }
         }
 
-        try {
-            final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
-            final ChaiUser theUser = ChaiFactory.createChaiUser(pwmSession.getUserInfo().getUserIdentity().getUserDN(), provider);
-            final boolean boundAsSelf = theUser.getEntryDN().equals(provider.getChaiConfiguration().getSetting(ChaiSetting.BIND_DN));
-            LOGGER.trace(pwmSession, "preparing to setActorPassword for '" + theUser.getEntryDN() + "', bindAsSelf=" + boundAsSelf + ", authType=" + pwmSession.getLoginInfoBean().getType());
+        final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
 
-            final boolean setting_enableChange = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.LDAP_PASSWORD_CHANGE_SELF_ENABLE));
-            if (setting_enableChange) {
-                if (setPasswordWithoutOld) {
-                    theUser.setPassword(newPassword.getStringValue(), true);
-                } else {
-                    theUser.changePassword(oldPassword.getStringValue(), newPassword.getStringValue());
-                }
-            } else {
-                LOGGER.debug(pwmSession, "skipping actual ldap password change operation due to app property " + AppProperty.LDAP_PASSWORD_CHANGE_SELF_ENABLE.getKey() + "=false");
-            }
-        } catch (ChaiPasswordPolicyException e) {
-            final String errorMsg = "error setting password for user '" + userInfo.getUserIdentity() + "'' " + e.toString();
-            final PwmError pwmError = PwmError.forChaiError(e.getErrorCode());
-            final ErrorInformation error = new ErrorInformation(pwmError == null ? PwmError.PASSWORD_UNKNOWN_VALIDATION : pwmError, errorMsg);
-            throw new PwmOperationalException(error);
-        } catch (ChaiOperationException e) {
-            final String errorMsg = "error setting password for user '" + userInfo.getUserIdentity() + "'' " + e.getMessage();
-            final PwmError pwmError = PwmError.forChaiError(e.getErrorCode()) == null ? PwmError.ERROR_UNKNOWN : PwmError.forChaiError(e.getErrorCode());
-            final ErrorInformation error = new ErrorInformation(pwmError, errorMsg);
-            throw new PwmOperationalException(error);
-        }
-
-        // at this point the password has been changed, so log it.
-        LOGGER.info(pwmSession, "user '" + userInfo.getUserIdentity() + "' successfully changed password");
+        setPassword(pwmApplication, pwmSession.getLabel(), provider, userInfo.getUserIdentity(), setPasswordWithoutOld ? null : oldPassword, newPassword);
 
         // update the session state bean's password modified flag
         pwmSession.getSessionStateBean().setPasswordModified(true);
@@ -368,14 +341,6 @@ public class PasswordUtility {
         // update statistics
         {
             pwmApplication.getStatisticsManager().incrementValue(Statistic.PASSWORD_CHANGES);
-            pwmApplication.getStatisticsManager().updateEps(EpsStatistic.PASSWORD_CHANGES,1);
-            final int passwordStrength = PasswordUtility.judgePasswordStrength(newPassword.getStringValue());
-            pwmApplication.getStatisticsManager().updateAverageValue(Statistic.AVG_PASSWORD_STRENGTH,passwordStrength);
-        }
-
-        // add the old password to the global history list (if the old password is known)
-        if (oldPassword != null && pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHAREDHISTORY_ENABLE)) {
-            pwmApplication.getSharedHistoryManager().addWord(pwmSession, oldPassword.getStringValue());
         }
 
         // invoke post password change actions
@@ -399,12 +364,77 @@ public class PasswordUtility {
                         .setMacroMachine(macroMachine)
                         .setExpandPwmMacros(true)
                         .createActionExecutor();
-                actionExecutor.executeActions(configValues, pwmSession);
+                actionExecutor.executeActions(configValues, pwmSession.getLabel());
             }
         }
 
         //update the current last password update field in ldap
         LdapOperationsHelper.updateLastPasswordUpdateAttribute(pwmApplication, pwmSession.getLabel(), userInfo.getUserIdentity());
+    }
+
+    public static void setPassword(
+            final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
+            final ChaiProvider chaiProvider,
+            final UserIdentity userIdentity,
+            final PasswordData oldPassword,
+            final PasswordData newPassword
+    )
+            throws PwmUnrecoverableException, PwmOperationalException
+    {
+        final Instant startTime = Instant.now();
+        final boolean bindIsSelf;
+        final String bindDN;
+
+        try {
+            final ChaiUser theUser = ChaiFactory.createChaiUser(userIdentity.getUserDN(), chaiProvider);
+            bindDN = chaiProvider.getChaiConfiguration().getSetting(ChaiSetting.BIND_DN);
+            bindIsSelf = userIdentity.canonicalEquals(new UserIdentity(bindDN, userIdentity.getLdapProfileID()), pwmApplication);
+
+            LOGGER.trace(sessionLabel, "preparing to setActorPassword for '" + theUser.getEntryDN() + "', using bind DN: " + bindDN);
+
+            final boolean setting_enableChange = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.LDAP_PASSWORD_CHANGE_SELF_ENABLE));
+            if (setting_enableChange) {
+                if (oldPassword == null) {
+                    theUser.setPassword(newPassword.getStringValue(), true);
+                } else {
+                    theUser.changePassword(oldPassword.getStringValue(), newPassword.getStringValue());
+                }
+            } else {
+                LOGGER.debug(sessionLabel, "skipping actual ldap password change operation due to app property " + AppProperty.LDAP_PASSWORD_CHANGE_SELF_ENABLE.getKey() + "=false");
+            }
+        } catch (ChaiPasswordPolicyException e) {
+            final String errorMsg = "error setting password for user '" + userIdentity.toDisplayString() + "'' " + e.toString();
+            final PwmError pwmError = PwmError.forChaiError(e.getErrorCode());
+            final ErrorInformation error = new ErrorInformation(pwmError == null ? PwmError.PASSWORD_UNKNOWN_VALIDATION : pwmError, errorMsg);
+            throw new PwmOperationalException(error);
+        } catch (ChaiOperationException e) {
+            final String errorMsg = "error setting password for user '" + userIdentity.toDisplayString() + "'' " + e.getMessage();
+            final PwmError pwmError = PwmError.forChaiError(e.getErrorCode()) == null ? PwmError.ERROR_UNKNOWN : PwmError.forChaiError(e.getErrorCode());
+            final ErrorInformation error = new ErrorInformation(pwmError, errorMsg);
+            throw new PwmOperationalException(error);
+        } catch (ChaiUnavailableException e) {
+            throw PwmUnrecoverableException.fromChaiException(e);
+        }
+
+        // add the old password to the global history list (if the old password is known)
+        if (oldPassword != null && pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHAREDHISTORY_ENABLE)) {
+            pwmApplication.getSharedHistoryManager().addWord(sessionLabel, oldPassword.getStringValue());
+        }
+
+        // update stats
+        pwmApplication.getStatisticsManager().updateEps(EpsStatistic.PASSWORD_CHANGES,1);
+
+        final int passwordStrength = PasswordUtility.judgePasswordStrength(newPassword.getStringValue());
+        pwmApplication.getStatisticsManager().updateAverageValue(Statistic.AVG_PASSWORD_STRENGTH,passwordStrength);
+
+        // at this point the password has been changed, so log it.
+        final String msg = (bindIsSelf
+                ? "user " + userIdentity.toDisplayString() + " has changed own password"
+                : "password for user '" + userIdentity.toDisplayString() + "' has been changed by " + bindDN)
+                + " (" + TimeDuration.fromCurrent(startTime).asCompactString() + ")";
+
+        LOGGER.info(sessionLabel, msg);
     }
 
     public static void helpdeskSetUserPassword(
@@ -431,27 +461,7 @@ public class PasswordUtility {
             throw new PwmOperationalException(errorInformation);
         }
 
-        final boolean setting_enableChange = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.LDAP_PASSWORD_CHANGE_HELPDESK_ENABLE));
-        try {
-            if (setting_enableChange) {
-                chaiUser.setPassword(newPassword.getStringValue());
-            } else {
-                LOGGER.debug(pwmSession, "skipping actual ldap password change operation due to app property " + AppProperty.LDAP_PASSWORD_CHANGE_HELPDESK_ENABLE.getKey() + "=false");
-            }
-        } catch (ChaiPasswordPolicyException e) {
-            final String errorMsg = "error setting password for user '" + chaiUser.getEntryDN() + "'' " + e.toString();
-            final PwmError pwmError = PwmError.forChaiError(e.getErrorCode());
-            final ErrorInformation error = new ErrorInformation(pwmError == null ? PwmError.PASSWORD_UNKNOWN_VALIDATION : pwmError, errorMsg);
-            throw new PwmOperationalException(error);
-        } catch (ChaiOperationException e) {
-            final String errorMsg = "error setting password for user '" + chaiUser.getEntryDN() + "'' " + e.getMessage();
-            final PwmError pwmError = PwmError.forChaiError(e.getErrorCode()) == null ? PwmError.ERROR_UNKNOWN : PwmError.forChaiError(e.getErrorCode());
-            final ErrorInformation error = new ErrorInformation(pwmError, errorMsg);
-            throw new PwmOperationalException(error);
-        }
-
-        // at this point the password has been changed, so log it.
-        LOGGER.info(sessionLabel, "user '" + pwmSession.getUserInfo().getUserIdentity() + "' successfully changed password for " + chaiUser.getEntryDN());
+        setPassword(pwmApplication, pwmSession.getLabel(), chaiUser.getChaiProvider(), userIdentity, null, newPassword);
 
         // create a proxy user object for pwm to update/read the user.
         final ChaiUser proxiedUser = pwmApplication.getProxiedChaiUser(userIdentity);
@@ -470,7 +480,6 @@ public class PasswordUtility {
         }
 
         // update statistics
-        pwmApplication.getStatisticsManager().updateEps(EpsStatistic.PASSWORD_CHANGES,1);
         pwmApplication.getStatisticsManager().incrementValue(Statistic.HELPDESK_PASSWORD_SET);
 
         // create a uib for end user
@@ -504,12 +513,14 @@ public class PasswordUtility {
                         .setExpandPwmMacros(true)
                         .createActionExecutor();
 
-                actionExecutor.executeActions(actions,pwmSession);
+                actionExecutor.executeActions(actions, pwmSession.getLabel());
             }
         }
 
         final HelpdeskClearResponseMode settingClearResponses = HelpdeskClearResponseMode.valueOf(
-                helpdeskProfile.readSettingAsString(PwmSetting.HELPDESK_CLEAR_RESPONSES));
+                helpdeskProfile.readSettingAsString(PwmSetting.HELPDESK_CLEAR_RESPONSES)
+        );
+
         if (settingClearResponses == HelpdeskClearResponseMode.yes) {
             final String userGUID = LdapOperationsHelper.readLdapGuidValue(pwmApplication, sessionLabel, userIdentity, false);
             pwmApplication.getCrService().clearResponses(pwmSession.getLabel(), userIdentity, proxiedUser, userGUID);

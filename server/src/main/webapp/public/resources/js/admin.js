@@ -194,7 +194,8 @@ PWM_ADMIN.refreshReportDataGrid=function() {
     }
     PWM_VAR['reportGrid'].refresh();
     var maximum = PWM_MAIN.getObject('maxReportDataResults').value;
-    var url = PWM_GLOBAL['url-restservice'] + "/report?maximum=" + maximum;
+    var url = PWM_MAIN.addParamToUrl(window.location.href,'processAction','reportData');
+    url =PWM_MAIN.addParamToUrl(url,"maximum",maximum);
     var loadFunction = function(data) {
         if (PWM_MAIN.getObject('button-refreshReportDataGrid')) {
             PWM_MAIN.getObject('button-refreshReportDataGrid').disabled = false;

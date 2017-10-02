@@ -352,8 +352,7 @@ public class NewUserServlet extends ControlledPwmServlet {
             final RestCheckPasswordServer.JsonOutput jsonData = RestCheckPasswordServer.JsonOutput.fromPasswordCheckInfo(
                     passwordCheckInfo);
 
-            final RestResultBean restResultBean = new RestResultBean();
-            restResultBean.setData(jsonData);
+            final RestResultBean restResultBean = RestResultBean.withData(jsonData);
             pwmRequest.outputJsonResult(restResultBean);
         } catch (PwmOperationalException e) {
             final RestResultBean restResultBean = RestResultBean.fromError(e.getErrorInformation(), pwmRequest);
@@ -575,8 +574,7 @@ public class NewUserServlet extends ControlledPwmServlet {
         outputMap.put("percentComplete", percentComplete);
         outputMap.put("complete", complete);
 
-        final RestResultBean restResultBean = new RestResultBean();
-        restResultBean.setData(outputMap);
+        final RestResultBean restResultBean = RestResultBean.withData(outputMap);
 
         LOGGER.trace(pwmRequest, "returning result for restCheckProgress: " + JsonUtil.serialize(restResultBean));
         pwmRequest.outputJsonResult(restResultBean);

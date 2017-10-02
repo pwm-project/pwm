@@ -43,8 +43,7 @@
           data-jsp-name="<pwm:value name="<%=PwmValue.currentJspFilename%>"/>"
           data-url-context="<pwm:context/>"
           data-pwmFormID="<pwm:FormID/>"
-          data-clientEtag="<pwm:value name="<%=PwmValue.clientETag%>"/>"
-          data-restClientKey="<pwm:value name="<%=PwmValue.restClientKey%>"/>">
+          data-clientEtag="<pwm:value name="<%=PwmValue.clientETag%>"/>">
     <meta name="viewport" content="width=device-width, initial-scale = 1.0, user-scalable=no"/>
     <meta http-equiv="X-UA-Compatible" content="IE=10; IE=9; IE=8; IE=7" />
     <link rel="icon" type="image/png" href="<pwm:url url='/public/resources/favicon.png' addContext="true"/>"/>

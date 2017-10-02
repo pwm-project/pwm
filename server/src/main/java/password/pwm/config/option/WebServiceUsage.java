@@ -23,6 +23,15 @@
 package password.pwm.config.option;
 
 public enum WebServiceUsage {
+    Challenges,
+    CheckPassword,
     Health,
+    Profile,
+    RandomPassword,
+    SetPassword,
     SigningForm,
+    Statistics,
+    Status,
+    VerifyOtp,
+    VerifyResponses,
 }

@@ -70,7 +70,6 @@ public class PwmSession implements Serializable {
     private UserInfo userInfoBean;
     private UserSessionDataCacheBean userSessionDataCacheBean;
 
-    private Settings settings = new Settings();
     private static final Object CREATION_LOCK = new Object();
 
     private transient SessionManager sessionManager;
@@ -113,7 +112,6 @@ public class PwmSession implements Serializable {
 
         pwmApplication.getSessionTrackService().addSessionData(this);
 
-        settings.restKeyLength = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.SECURITY_WS_REST_CLIENT_KEY_LENGTH));
         LOGGER.trace(this,"created new session");
     }
 
@@ -303,27 +301,8 @@ public class PwmSession implements Serializable {
         }
     }
 
-    public String getRestClientKey() {
-        if (!this.isAuthenticated()) {
-            return "";
-        }
-
-        final String restClientKey = this.getSessionStateBean().getRestClientKey();
-        if (restClientKey != null && restClientKey.length() > 0) {
-            return restClientKey;
-        }
-
-        final String newKey = Long.toString(System.currentTimeMillis(),36) + PwmRandom.getInstance().alphaNumericString(settings.restKeyLength);
-        this.getSessionStateBean().setRestClientKey(newKey);
-        return newKey;
-    }
-
     public boolean isAuthenticated() {
         return getLoginInfoBean().isAuthenticated();
-    }
-
-    private static class Settings implements Serializable {
-        private int restKeyLength = 36; // default
     }
 
     public int size() {

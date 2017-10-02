@@ -64,6 +64,7 @@ import password.pwm.http.PwmURL;
 import password.pwm.http.bean.ConfigGuideBean;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.configeditor.ConfigEditorServlet;
+import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapBrowser;
 import password.pwm.ldap.schema.SchemaManager;
 import password.pwm.ldap.schema.SchemaOperationResult;
@@ -273,8 +274,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
                     }
                     writeConfig(ContextManager.getContextManager(req.getSession()),storedConfig);
                     LOGGER.trace(pwmSession, "read config from file: " + storedConfig.toString());
-                    final RestResultBean restResultBean = new RestResultBean();
-                    restResultBean.setSuccessMessage("read message");
+                    final RestResultBean restResultBean = RestResultBean.forSuccessMessage(pwmRequest, Message.Success_Unknown);
                     pwmRequest.getPwmResponse().outputJsonResult(restResultBean);
                     req.getSession().invalidate();
                 } catch (PwmException e) {
@@ -300,7 +300,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
     {
         final boolean value = Boolean.parseBoolean(pwmRequest.readParameterAsString("value"));
         configGuideBean.setUseConfiguredCerts(value);
-        pwmRequest.outputJsonResult(new RestResultBean());
+        pwmRequest.outputJsonResult(RestResultBean.forSuccessMessage(pwmRequest, Message.Success_Unknown));
     }
 
 
@@ -398,8 +398,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
                 pwmRequest.getLocale(), tempConfiguration);
         jsonOutput.timestamp = Instant.now();
         jsonOutput.overall = HealthMonitor.getMostSevereHealthStatus(records).toString();
-        final RestResultBean restResultBean = new RestResultBean();
-        restResultBean.setData(jsonOutput);
+        final RestResultBean restResultBean = RestResultBean.withData(jsonOutput);
         pwmRequest.outputJsonResult(restResultBean);
     }
 
@@ -420,7 +419,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
             final UserMatchViewerFunction userMatchViewerFunction = new UserMatchViewerFunction();
             final StoredConfigurationImpl storedConfiguration = ConfigGuideForm.generateStoredConfig(configGuideBean);
             final Serializable output = userMatchViewerFunction.provideFunction(pwmRequest, storedConfiguration, PwmSetting.QUERY_MATCH_PWM_ADMIN, null, null);
-            pwmRequest.outputJsonResult(new RestResultBean(output));
+            pwmRequest.outputJsonResult(RestResultBean.withData(output));
         } catch (PwmException e) {
             LOGGER.error(pwmRequest,e.getErrorInformation());
             pwmRequest.respondWithError(e.getErrorInformation());
@@ -456,7 +455,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
                 + TimeDuration.fromCurrent(startTime).asCompactString()
                 + ", result=" + JsonUtil.serialize(result));
 
-        pwmRequest.outputJsonResult(new RestResultBean(result));
+        pwmRequest.outputJsonResult(RestResultBean.withData(result));
     }
 
     private void restUpdateLdapForm(
@@ -473,8 +472,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
             configGuideBean.getFormData().putAll(incomingFormData);
         }
 
-        final RestResultBean restResultBean = new RestResultBean();
-        pwmRequest.outputJsonResult(restResultBean);
+        pwmRequest.outputJsonResult(RestResultBean.forSuccessMessage(pwmRequest, Message.Success_Unknown));
     }
 
     private void restGotoStep(final PwmRequest pwmRequest, final ConfigGuideBean configGuideBean)
@@ -530,11 +528,11 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
             }
             final HashMap<String,String> resultData = new HashMap<>();
             resultData.put("serverRestart","true");
-            pwmRequest.outputJsonResult(new RestResultBean(resultData));
+            pwmRequest.outputJsonResult(RestResultBean.withData(resultData));
             pwmRequest.invalidateSession();
         } else {
             configGuideBean.setStep(step);
-            pwmRequest.outputJsonResult(new RestResultBean());
+            pwmRequest.outputJsonResult(RestResultBean.forSuccessMessage(pwmRequest, Message.Success_Unknown));
             LOGGER.trace("setting current step to: " + step);
         }
     }
@@ -623,7 +621,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
     {
         try {
             final SchemaOperationResult schemaOperationResult = extendSchema(configGuideBean, true);
-            pwmRequest.outputJsonResult(new RestResultBean(schemaOperationResult.getOperationLog()));
+            pwmRequest.outputJsonResult(RestResultBean.withData(schemaOperationResult.getOperationLog()));
         } catch (Exception e) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage());
             pwmRequest.outputJsonResult(RestResultBean.fromError(errorInformation, pwmRequest));
@@ -659,8 +657,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
             final int maxFileSize = Integer.parseInt(pwmRequest.getConfig().readAppProperty(AppProperty.CONFIG_MAX_JDBC_JAR_SIZE));
             final FileValue fileValue = ConfigEditorServlet.readFileUploadToSettingValue(pwmRequest, maxFileSize);
             configGuideBean.setDatabaseDriver(fileValue);
-            final RestResultBean restResultBean = new RestResultBean();
-            restResultBean.setSuccessMessage("upload completed");
+            final RestResultBean restResultBean = RestResultBean.forSuccessMessage(pwmRequest, Message.Success_Unknown);
             pwmRequest.getPwmResponse().outputJsonResult(restResultBean);
         } catch (PwmException e) {
             final RestResultBean restResultBean = RestResultBean.fromError(e.getErrorInformation(), pwmRequest);
@@ -678,7 +675,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
             storedConfiguration.writeConfigProperty(ConfigurationProperty.CONFIG_IS_EDITABLE, "true");
             storedConfiguration.setPassword(password);
             writeConfig(contextManager, storedConfiguration);
-            pwmRequest.outputJsonResult(new RestResultBean());
+            pwmRequest.outputJsonResult(RestResultBean.forSuccessMessage(pwmRequest, Message.Success_Unknown));
             pwmRequest.invalidateSession();
         } catch (PwmOperationalException e) {
             LOGGER.error("error during skip config guide: " + e.getMessage(),e);

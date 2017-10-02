@@ -52,7 +52,7 @@ public class ApplicationModeFilter extends AbstractPwmFilter {
     {
         // ignore if resource request
         final PwmURL pwmURL = pwmRequest.getURL();
-        if (!pwmURL.isResourceURL() && !pwmURL.isStandaloneWebService() && !pwmURL.isReferenceURL() && !pwmURL.isClientApiServlet()) {
+        if (!pwmURL.isResourceURL() && !pwmURL.isRestService() && !pwmURL.isReferenceURL() && !pwmURL.isClientApiServlet()) {
             // check for valid config
             try {
                 if (checkConfigModes(pwmRequest) == ProcessStatus.Halt) {
@@ -72,9 +72,8 @@ public class ApplicationModeFilter extends AbstractPwmFilter {
 
     @Override
     boolean isInterested(final PwmApplicationMode mode, final PwmURL pwmURL) {
-        return !pwmURL.isJerseyWebService()
-                && !pwmURL.isStandaloneWebService()
-                && !pwmURL.isJerseyWebService();
+        return !pwmURL.isRestService()
+                && !pwmURL.isRestService();
     }
 
     private static ProcessStatus checkConfigModes(
@@ -89,7 +88,7 @@ public class ApplicationModeFilter extends AbstractPwmFilter {
 
         if (mode == PwmApplicationMode.NEW) {
             // check if current request is actually for the config url, if it is, just do nothing.
-            if (pwmURL.isCommandServletURL() || pwmURL.isJerseyWebService()) {
+            if (pwmURL.isCommandServletURL() || pwmURL.isRestService()) {
                 return ProcessStatus.Continue;
             }
 
@@ -129,7 +128,7 @@ public class ApplicationModeFilter extends AbstractPwmFilter {
                         || pwmURL.isLogoutURL()
                         || pwmURL.isOauthConsumer()
                         || pwmURL.isAdminUrl()
-                        || pwmURL.isJerseyWebService();
+                        || pwmURL.isRestService();
 
                 if (!permittedURl) {
                     final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_APPLICATION_NOT_RUNNING);

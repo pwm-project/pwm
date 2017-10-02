@@ -206,7 +206,7 @@ public class DeleteAccountServlet extends ControlledPwmServlet {
                         .createActionExecutor();
 
                 try {
-                    actionExecutor.executeActions(actions, pwmRequest.getPwmSession());
+                    actionExecutor.executeActions(actions, pwmRequest.getSessionLabel());
                 } catch (PwmOperationalException e) {
                     LOGGER.error("error during user delete action execution: " + e.getMessage());
                     throw new PwmUnrecoverableException(e.getErrorInformation(),e.getCause());

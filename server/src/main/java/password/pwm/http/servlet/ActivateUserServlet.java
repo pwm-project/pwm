@@ -398,7 +398,7 @@ public class ActivateUserServlet extends AbstractPwmServlet {
                             .setMacroMachine(macroMachine)
                             .createActionExecutor();
 
-                    actionExecutor.executeActions(configValues, pwmSession);
+                    actionExecutor.executeActions(configValues, pwmRequest.getSessionLabel());
                 }
             }
 
@@ -441,7 +441,7 @@ public class ActivateUserServlet extends AbstractPwmServlet {
                                     .setExpandPwmMacros(true)
                                     .setMacroMachine(macroMachine)
                                     .createActionExecutor();
-                            actionExecutor.executeActions(configValues, pwmSession);
+                            actionExecutor.executeActions(configValues, pwmRequest.getSessionLabel());
                         }
                     } catch (PwmOperationalException e) {
                         final ErrorInformation info = new ErrorInformation(PwmError.ERROR_ACTIVATION_FAILURE, e.getErrorInformation().getDetailedErrorMsg(), e.getErrorInformation().getFieldValues());

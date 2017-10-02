@@ -22,6 +22,7 @@
 
 package password.pwm.bean;
 
+import lombok.Data;
 import password.pwm.ldap.UserInfoBean;
 import password.pwm.util.secure.PwmRandom;
 
@@ -38,8 +39,9 @@ import java.util.Locale;
  *
  * @author Jason D. Rivard
  */
+
+@Data
 public class LocalSessionStateBean implements Serializable {
-// ------------------------------ FIELDS ------------------------------
 
     private String srcAddress;
     private String srcHostname;
@@ -51,7 +53,6 @@ public class LocalSessionStateBean implements Serializable {
     private String lastRequestURL;
 
     private String sessionVerificationKey = "key";
-    private String restClientKey;
 
     private boolean debugInitialized;
     private boolean sessionVerified;
@@ -66,144 +67,11 @@ public class LocalSessionStateBean implements Serializable {
     private int intruderAttempts;
     private boolean oauthInProgress;
 
-    // settings
     private int sessionVerificationKeyLength;
     private boolean sessionIdRecycleNeeded;
 
-
-
-// --------------------- GETTER / SETTER METHODS ---------------------
-
     public LocalSessionStateBean(final int sessionVerificationKeyLength) {
         this.sessionVerificationKeyLength = sessionVerificationKeyLength;
-    }
-
-    public boolean isPasswordModified() {
-        return passwordModified;
-    }
-
-    public void setPasswordModified(final boolean passwordModified) {
-        this.passwordModified = passwordModified;
-    }
-
-    public boolean isPrivateUrlAccessed() {
-        return this.privateUrlAccessed;
-    }
-
-    public void setPrivateUrlAccessed(final boolean privateUrlAccessed) {
-        this.privateUrlAccessed = privateUrlAccessed;
-    }
-
-    public String getForwardURL() {
-        return forwardURL;
-    }
-
-    public void setForwardURL(final String forwardURL) {
-        this.forwardURL = forwardURL;
-    }
-
-    public Locale getLocale() {
-        return locale;
-    }
-
-    public void setLocale(final Locale locale) {
-        this.locale = locale;
-    }
-
-    public String getLogoutURL() {
-        return logoutURL;
-    }
-
-    public void setLogoutURL(final String logoutURL) {
-        this.logoutURL = logoutURL;
-    }
-
-    public String getSessionID() {
-        return sessionID;
-    }
-
-    public void setSessionID(final String sessionID) {
-        this.sessionID = sessionID;
-    }
-
-    public String getSrcAddress() {
-        return srcAddress;
-    }
-
-    public void setSrcAddress(final String srcAddress) {
-        this.srcAddress = srcAddress;
-    }
-
-    public String getSrcHostname() {
-        return srcHostname;
-    }
-
-    public void setSrcHostname(final String srcHostname) {
-        this.srcHostname = srcHostname;
-    }
-
-    public String getSessionVerificationKey() {
-        return sessionVerificationKey;
-    }
-
-    public boolean isSessionVerified() {
-        return sessionVerified;
-    }
-
-    public void setSessionVerified(final boolean sessionVerified) {
-        this.sessionVerified = sessionVerified;
-    }
-
-    public boolean isDebugInitialized() {
-        return debugInitialized;
-    }
-
-    public void setDebugInitialized(final boolean debugInitialized) {
-        this.debugInitialized = debugInitialized;
-    }
-
-    public String getTheme() {
-        return theme;
-    }
-
-    public void setTheme(final String theme) {
-        this.theme = theme;
-    }
-
-    public Instant getPageLeaveNoticeTime() {
-        return pageLeaveNoticeTime;
-    }
-
-    public void setPageLeaveNoticeTime(final Instant pageLeaveNoticeTime) {
-        this.pageLeaveNoticeTime = pageLeaveNoticeTime;
-    }
-
-    public Instant getSessionCreationTime() {
-        return sessionCreationTime;
-    }
-
-    public void setSessionCreationTime(final Instant sessionCreationTime) {
-        this.sessionCreationTime = sessionCreationTime;
-    }
-
-    public Instant getSessionLastAccessedTime() {
-        return sessionLastAccessedTime;
-    }
-
-    public void setSessionLastAccessedTime(final Instant sessionLastAccessedTime) {
-        this.sessionLastAccessedTime = sessionLastAccessedTime;
-    }
-
-    public String getLastRequestURL() {
-        return lastRequestURL;
-    }
-
-    public void setLastRequestURL(final String lastRequestURL) {
-        this.lastRequestURL = lastRequestURL;
-    }
-
-    public int getIntruderAttempts() {
-        return intruderAttempts;
     }
 
     public void incrementIntruderAttempts() {
@@ -214,34 +82,8 @@ public class LocalSessionStateBean implements Serializable {
         intruderAttempts = 0;
     }
 
-    public boolean isOauthInProgress()
-    {
-        return oauthInProgress;
-    }
-
-    public void setOauthInProgress(final boolean oauthInProgress)
-    {
-        this.oauthInProgress = oauthInProgress;
-    }
-
-    public String getRestClientKey() {
-        return restClientKey;
-    }
-
-    public void setRestClientKey(final String restClientKey) {
-        this.restClientKey = restClientKey;
-    }
-
     public void regenerateSessionVerificationKey() {
         sessionVerificationKey = PwmRandom.getInstance().alphaNumericString(sessionVerificationKeyLength) + Long.toHexString(System.currentTimeMillis());
-    }
-
-    public boolean isSessionIdRecycleNeeded() {
-        return sessionIdRecycleNeeded;
-    }
-
-    public void setSessionIdRecycleNeeded(final boolean sessionIdRecycleNeeded) {
-        this.sessionIdRecycleNeeded = sessionIdRecycleNeeded;
     }
 }
 

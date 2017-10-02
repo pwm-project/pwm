@@ -71,7 +71,6 @@ public class DatabaseService implements PwmService
     static final String VALUE_COLUMN = "value";
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(DatabaseService.class);
-    static final int KEY_COLUMN_LENGTH = PwmConstants.DATABASE_ACCESSOR_KEY_LENGTH;
 
     private DBConfiguration dbConfiguration;
 

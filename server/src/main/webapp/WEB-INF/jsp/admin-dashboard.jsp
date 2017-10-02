@@ -195,28 +195,6 @@
                                 <%= PwmConstants.SERVLET_VERSION %>
                             </td>
                         </tr>
-                        <% if (dashboard_pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.VERSION_CHECK_ENABLE)) { %>
-                        <tr>
-                            <td class="key">
-                                Current Published Version
-                            </td>
-                            <td>
-                                <%
-                                    String publishedVersion = JspUtility.getMessage(pageContext, Display.Value_NotApplicable);
-                                    Date readDate = null;
-                                    if (dashboard_pwmApplication.getVersionChecker() != null) {
-                                        publishedVersion = dashboard_pwmApplication.getVersionChecker().currentVersion();
-                                        readDate = dashboard_pwmApplication.getVersionChecker().lastReadTimestamp();
-
-                                    }
-                                %>
-                                <%= publishedVersion %>
-                                <% if (readDate != null) { %>
-                                as of <span class="timestamp"><%=JavaHelper.toIsoDate(readDate)%></span>
-                                <% } %>
-                            </td>
-                        </tr>
-                        <% } %>
                         <tr>
                             <td class="key">
                                 <pwm:display key="Field_CurrentTime" bundle="Admin"/>

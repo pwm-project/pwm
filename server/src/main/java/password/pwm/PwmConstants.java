@@ -80,10 +80,6 @@ public abstract class PwmConstants {
 
     public static final String PWM_APP_NAME_VERSION = PWM_APP_NAME + " " + SERVLET_VERSION;
 
-    public static final long VERSION_CHECK_FREQUENCEY_MS = Long.parseLong(readPwmConstantsBundle("versionCheckFrequencyMs"));
-    public static final long VERSION_CHECK_FAIL_RETRY_MS = Long.parseLong(readPwmConstantsBundle("versionCheckFailRetryMs"));
-    public static final long STATISTICS_PUBLISH_FREQUENCY_MS = Long.parseLong(readPwmConstantsBundle("statisticsPublishFrequencyMs"));
-
     public static final String CONFIGMANAGER_INTRUDER_USERNAME = "ConfigurationManagerLogin";
 
     public static final Locale DEFAULT_LOCALE = new Locale(readPwmConstantsBundle("locale.defaultLocale"));
@@ -102,8 +98,6 @@ public abstract class PwmConstants {
     public static final int TRIAL_MAX_TOTAL_AUTH = 10000;
 
 
-    public static final int DATABASE_ACCESSOR_KEY_LENGTH = Integer.parseInt(readPwmConstantsBundle("databaseAccessor.keyLength"));
-
     public static final String LDAP_AD_PASSWORD_POLICY_CONTROL_ASN = "1.2.840.113556.1.4.2066";
     public static final String PROFILE_ID_ALL = "all";
 
@@ -111,7 +105,6 @@ public abstract class PwmConstants {
     public static final float JAVA_MINIMUM_VERSION = (float)1.6;
 
     public static final String HTTP_BASIC_AUTH_PREFIX = readPwmConstantsBundle("httpHeaderAuthorizationBasic");
-    public static final String HTTP_HEADER_REST_CLIENT_KEY = readPwmConstantsBundle("httpRestClientKey");
 
     public static final String DEFAULT_BAD_PASSWORD_ATTEMPT = readPwmConstantsBundle("defaultBadPasswordAttempt");
 
@@ -243,30 +236,6 @@ public abstract class PwmConstants {
 
 // -------------------------- ENUMERATIONS --------------------------
 
-
-    public enum ContentTypeValue {
-        json("application/json; charset=" + PwmConstants.DEFAULT_CHARSET),
-        zip("application/zip"),
-        xml("text/xml; charset=" + PwmConstants.DEFAULT_CHARSET),
-        csv("text/csv; charset=" + PwmConstants.DEFAULT_CHARSET),
-        javascript("text/javascript; charset=" + PwmConstants.DEFAULT_CHARSET),
-        plain("text/plain; charset=" + PwmConstants.DEFAULT_CHARSET),
-        html("text/html; charset=" + PwmConstants.DEFAULT_CHARSET),
-        form("application/x-www-form-urlencoded; charset=" + PwmConstants.DEFAULT_CHARSET),
-        png("image/png"),
-        octetstream("application/octet-stream"),
-        ;
-
-        private final String headerValue;
-
-        ContentTypeValue(final String headerValue) {
-            this.headerValue = headerValue;
-        }
-
-        public String getHeaderValue() {
-            return headerValue;
-        }
-    }
 
     public enum AcceptValue {
         json("application/json"),

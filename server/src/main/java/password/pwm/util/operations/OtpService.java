@@ -93,7 +93,7 @@ public class OtpService implements PwmService {
     }
 
     public boolean validateToken(
-            final PwmSession pwmSession,
+            final SessionLabel sessionLabel,
             final UserIdentity userIdentity,
             final OTPUserRecord otpUserRecord,
             final String userInput,
@@ -119,7 +119,7 @@ public class OtpService implements PwmService {
                     throw new UnsupportedOperationException("OTP type not supported: " + otpUserRecord.getType());
             }
         } catch (Exception e) {
-            LOGGER.error(pwmSession.getLabel(),"error checking otp secret: " + e.getMessage());
+            LOGGER.error(sessionLabel,"error checking otp secret: " + e.getMessage());
         }
 
         if (!otpCorrect && allowRecoveryCodes && otpUserRecord.getRecoveryCodes() != null && otpUserRecord.getRecoveryInfo() != null) {

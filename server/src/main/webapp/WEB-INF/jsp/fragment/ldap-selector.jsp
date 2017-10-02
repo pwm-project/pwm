@@ -53,20 +53,24 @@
     }
 %>
 <% if (selectableContextMode != SelectableContextMode.NONE && ldapProfiles.size() > 1) { %>
-<h2><label for="<%=PwmConstants.PARAM_LDAP_PROFILE%>"><pwm:display key="Field_LdapProfile"/></label></h2>
-<select name="<%=PwmConstants.PARAM_LDAP_PROFILE%>" id="<%=PwmConstants.PARAM_LDAP_PROFILE%>" class="selectfield">
-    <% for (final String profileID : ldapProfiles.keySet()) { %>
-    <% final String displayName = ldapProfiles.get(profileID).getDisplayName(JspUtility.locale(request)); %>
-    <option value="<%=profileID%>"<%=(profileID.equals(selectedProfileParam))?" selected=\"selected\"":""%>><%=StringUtil.escapeHtml(
-            displayName)%></option>
-    <% } %>
-</select>
-<% } %>
-<div style="display: <%=showContextSelector?"inherit":"none"%>" id="contextSelectorWrapper">
-    <h2><label for="<%=PwmConstants.PARAM_CONTEXT%>"><pwm:display key="Field_Location"/></label></h2>
-    <select name="<%=PwmConstants.PARAM_CONTEXT%>" id="<%=PwmConstants.PARAM_CONTEXT%>" class="selectfield">
-        <% for (final String key : selectableContexts.keySet()) { %>
-        <option value="<%=StringUtil.escapeHtml(key)%>"><%=StringUtil.escapeHtml(selectableContexts.get(key))%></option>
+<h2 class="loginFieldLabel"><label for="<%=PwmConstants.PARAM_LDAP_PROFILE%>"><pwm:display key="Field_LdapProfile"/></label></h2>
+<div class="formFieldWrapper">
+    <select name="<%=PwmConstants.PARAM_LDAP_PROFILE%>" id="<%=PwmConstants.PARAM_LDAP_PROFILE%>" class="selectfield" title="<pwm:display key="Field_LdapProfile"/>">
+        <% for (final String profileID : ldapProfiles.keySet()) { %>
+        <% final String displayName = ldapProfiles.get(profileID).getDisplayName(JspUtility.locale(request)); %>
+        <option value="<%=profileID%>"<%=(profileID.equals(selectedProfileParam))?" selected=\"selected\"":""%>><%=StringUtil.escapeHtml(
+                displayName)%></option>
         <% } %>
     </select>
+</div>
+<% } %>
+<div style="display: <%=showContextSelector?"inherit":"none"%>" id="contextSelectorWrapper">
+    <h2 class="loginFieldLabel"><label for="<%=PwmConstants.PARAM_CONTEXT%>"><pwm:display key="Field_Location"/></label></h2>
+    <div class="formFieldWrapper">
+        <select name="<%=PwmConstants.PARAM_CONTEXT%>" id="<%=PwmConstants.PARAM_CONTEXT%>" class="selectfield" title="<pwm:display key="Field_Location"/>">
+            <% for (final String key : selectableContexts.keySet()) { %>
+            <option value="<%=StringUtil.escapeHtml(key)%>"><%=StringUtil.escapeHtml(selectableContexts.get(key))%></option>
+            <% } %>
+        </select>
+    </div>
 </div>

@@ -123,7 +123,7 @@ class DatabaseUtil {
             final StringBuilder sqlString = new StringBuilder();
             sqlString.append("CREATE table ").append(table.toString()).append(" (").append("\n");
             sqlString.append("  " + DatabaseService.KEY_COLUMN + " ").append(dbConfiguration.getColumnTypeKey()).append("(").append(
-                    DatabaseService.KEY_COLUMN_LENGTH).append(") NOT NULL PRIMARY KEY,").append("\n");
+                    dbConfiguration.getKeyColumnLength()).append(") NOT NULL PRIMARY KEY,").append("\n");
             sqlString.append("  " + DatabaseService.VALUE_COLUMN + " ").append(dbConfiguration.getColumnTypeValue()).append(" ");
             sqlString.append("\n");
             sqlString.append(")").append("\n");

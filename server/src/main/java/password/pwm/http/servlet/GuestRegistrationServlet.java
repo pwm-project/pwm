@@ -233,7 +233,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
             final Date expirationDate = readExpirationFromRequest(pwmRequest);
 
             // Update user attributes
-            LdapOperationsHelper.writeFormValuesToLdap(pwmApplication, pwmSession, theGuest, formValues, false);
+            LdapOperationsHelper.writeFormValuesToLdap(pwmApplication, pwmSession.getSessionManager().getMacroMachine(pwmApplication), theGuest, formValues, false);
 
             // Write expirationDate
             if (expirationDate != null) {
@@ -465,7 +465,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
                             .setMacroMachine(macroMachine)
                             .createActionExecutor();
 
-                    actionExecutor.executeActions(actions, pwmSession);
+                    actionExecutor.executeActions(actions, pwmRequest.getSessionLabel());
                 }
             }
 

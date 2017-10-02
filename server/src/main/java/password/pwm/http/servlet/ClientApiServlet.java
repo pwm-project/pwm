@@ -138,8 +138,7 @@ public class ClientApiServlet extends ControlledPwmServlet {
         pwmRequest.getPwmResponse().setHeader(HttpHeader.Cache_Control, "public, max-age=" + maxCacheAgeSeconds);
 
         final AppData appData = makeAppData(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession(), pwmRequest.getHttpServletRequest(), pwmRequest.getPwmResponse().getHttpServletResponse(), pageUrl);
-        final RestResultBean restResultBean = new RestResultBean();
-        restResultBean.setData(appData);
+        final RestResultBean restResultBean = RestResultBean.withData(appData);
         pwmRequest.outputJsonResult(restResultBean);
         return ProcessStatus.Halt;
     }
@@ -160,8 +159,7 @@ public class ClientApiServlet extends ControlledPwmServlet {
         try {
             final LinkedHashMap<String,String> displayData = new LinkedHashMap<>(makeDisplayData(pwmRequest.getPwmApplication(),
                     pwmRequest.getPwmSession(), bundleName));
-            final RestResultBean restResultBean = new RestResultBean();
-            restResultBean.setData(displayData);
+            final RestResultBean restResultBean = RestResultBean.withData(displayData);
             pwmRequest.outputJsonResult(restResultBean);
         } catch (Exception e) {
             final String errorMSg = "error during rest /strings call for bundle " + bundleName + ", error: " + e.getMessage();
@@ -198,8 +196,7 @@ public class ClientApiServlet extends ControlledPwmServlet {
                     pwmRequest.getPwmApplication(),
                     pwmRequest.getLocale(),
                     false);
-            final RestResultBean restResultBean = new RestResultBean();
-            restResultBean.setData(jsonOutput);
+            final RestResultBean restResultBean = RestResultBean.withData(jsonOutput);
             pwmRequest.outputJsonResult(restResultBean);
         } catch (PwmException e) {
             final ErrorInformation errorInformation = e.getErrorInformation();
@@ -221,7 +218,7 @@ public class ClientApiServlet extends ControlledPwmServlet {
         final PingResponse pingResponse = new PingResponse();
         pingResponse.setTime(Instant.now());
         pingResponse.setRuntimeNonce(pwmRequest.getPwmApplication().getRuntimeNonce());
-        pwmRequest.outputJsonResult(new RestResultBean(pingResponse));
+        pwmRequest.outputJsonResult(RestResultBean.withData(pingResponse));
         return ProcessStatus.Halt;
     }
 

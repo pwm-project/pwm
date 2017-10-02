@@ -26,6 +26,7 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmApplication;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.error.ErrorInformation;
@@ -33,7 +34,6 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
-import password.pwm.http.PwmSession;
 import password.pwm.http.client.PwmHttpClient;
 import password.pwm.http.client.PwmHttpClientConfiguration;
 import password.pwm.http.client.PwmHttpClientRequest;
@@ -60,41 +60,41 @@ public class ActionExecutor {
 
     public void executeActions(
             final List<ActionConfiguration> configValues,
-            final PwmSession pwmSession
+            final SessionLabel sessionLabel
     )
             throws ChaiUnavailableException, PwmOperationalException, PwmUnrecoverableException
     {
         for (final ActionConfiguration loopAction : configValues) {
-            this.executeAction(loopAction, pwmSession);
+            this.executeAction(loopAction, sessionLabel);
         }
     }
 
     public void executeAction(
             final ActionConfiguration actionConfiguration,
-            final PwmSession pwmSession
+            final SessionLabel sessionLabel
     )
             throws ChaiUnavailableException, PwmOperationalException, PwmUnrecoverableException
     {
-        LOGGER.trace(pwmSession, "preparing to execute " + actionConfiguration.getType() + " action " + actionConfiguration.getName());
+        LOGGER.trace(sessionLabel, "preparing to execute " + actionConfiguration.getType() + " action " + actionConfiguration.getName());
 
         switch (actionConfiguration.getType()) {
             case ldap:
-                executeLdapAction(pwmSession, actionConfiguration);
+                executeLdapAction(sessionLabel, actionConfiguration);
                 break;
 
             case webservice:
-                executeWebserviceAction(pwmSession, actionConfiguration);
+                executeWebserviceAction(sessionLabel, actionConfiguration);
                 break;
 
             default:
                 JavaHelper.unhandledSwitchStatement(actionConfiguration.getType());
         }
 
-        LOGGER.info(pwmSession, "action " + actionConfiguration.getName() + " completed successfully");
+        LOGGER.info(sessionLabel, "action " + actionConfiguration.getName() + " completed successfully");
     }
 
     private void executeLdapAction(
-            final PwmSession pwmSession,
+            final SessionLabel sessionLabel,
             final ActionConfiguration actionConfiguration
     )
             throws ChaiUnavailableException, PwmOperationalException, PwmUnrecoverableException
@@ -125,7 +125,7 @@ public class ActionExecutor {
         }
 
         writeLdapAttribute(
-                pwmSession,
+                sessionLabel,
                 theUser,
                 attributeName,
                 attributeValue,
@@ -135,7 +135,7 @@ public class ActionExecutor {
     }
 
     private void executeWebserviceAction(
-            final PwmSession pwmSession,
+            final SessionLabel sessionLabel,
             final ActionConfiguration actionConfiguration
     )
             throws PwmOperationalException, PwmUnrecoverableException
@@ -173,9 +173,9 @@ public class ActionExecutor {
             {
                 if (actionConfiguration.getCertificates() != null) {
                     final PwmHttpClientConfiguration clientConfiguration = new PwmHttpClientConfiguration.Builder().setCertificate(actionConfiguration.getCertificates()).create();
-                    client = new PwmHttpClient(pwmApplication, pwmSession.getLabel(), clientConfiguration);
+                    client = new PwmHttpClient(pwmApplication, sessionLabel, clientConfiguration);
                 } else {
-                    client = new PwmHttpClient(pwmApplication, pwmSession.getLabel());
+                    client = new PwmHttpClient(pwmApplication, sessionLabel);
                 }
             }
             final PwmHttpClientResponse clientResponse = client.makeRequest(clientRequest);
@@ -200,7 +200,7 @@ public class ActionExecutor {
     }
 
     private static void writeLdapAttribute(
-            final PwmSession pwmSession,
+            final SessionLabel sessionLabel,
             final ChaiUser theUser,
             final String attrName,
             final String attrValue,
@@ -218,13 +218,13 @@ public class ActionExecutor {
                 : attrValue;
 
 
-        LOGGER.trace(pwmSession,"beginning ldap " + effectiveLdapMethod.toString() + " operation on " + theUser.getEntryDN() + ", attribute " + attrName);
+        LOGGER.trace(sessionLabel,"beginning ldap " + effectiveLdapMethod.toString() + " operation on " + theUser.getEntryDN() + ", attribute " + attrName);
         switch (effectiveLdapMethod) {
             case replace:
             {
                 try {
                     theUser.writeStringAttribute(attrName, effectiveAttrValue);
-                    LOGGER.info(pwmSession,"replaced attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + effectiveAttrValue + ")");
+                    LOGGER.info(sessionLabel,"replaced attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + effectiveAttrValue + ")");
                 } catch (ChaiOperationException e) {
                     final String errorMsg = "error setting '" + attrName + "' attribute on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
                     final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
@@ -239,7 +239,7 @@ public class ActionExecutor {
             {
                 try {
                     theUser.addAttribute(attrName, effectiveAttrValue);
-                    LOGGER.info(pwmSession,"added attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + effectiveAttrValue + ")");
+                    LOGGER.info(sessionLabel,"added attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + effectiveAttrValue + ")");
                 } catch (ChaiOperationException e) {
                     final String errorMsg = "error adding '" + attrName + "' attribute value from user " + theUser.getEntryDN() + ", error: " + e.getMessage();
                     final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
@@ -255,7 +255,7 @@ public class ActionExecutor {
             {
                 try {
                     theUser.deleteAttribute(attrName, effectiveAttrValue);
-                    LOGGER.info(pwmSession,"deleted attribute value on user " + theUser.getEntryDN() + " (" + attrName + ")");
+                    LOGGER.info(sessionLabel,"deleted attribute value on user " + theUser.getEntryDN() + " (" + attrName + ")");
                 } catch (ChaiOperationException e) {
                     final String errorMsg = "error deletig '" + attrName + "' attribute value on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
                     final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);

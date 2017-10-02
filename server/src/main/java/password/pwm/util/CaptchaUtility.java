@@ -34,6 +34,7 @@ import password.pwm.config.option.ApplicationPage;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
@@ -101,7 +102,7 @@ public class CaptchaUtility {
                     HttpMethod.POST,
                     pwmApplication.getConfig().readAppProperty(AppProperty.RECAPTCHA_VALIDATE_URL),
                     bodyText.toString(),
-                    Collections.singletonMap("Content-Type",PwmConstants.ContentTypeValue.form.getHeaderValue())
+                    Collections.singletonMap("Content-Type", HttpContentType.form.getHeaderValue())
             );
             LOGGER.debug(pwmRequest, "sending reCaptcha verification request" );
             final PwmHttpClient client = new PwmHttpClient(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel());

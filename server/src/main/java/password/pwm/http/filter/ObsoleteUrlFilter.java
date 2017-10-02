@@ -101,6 +101,6 @@ public class ObsoleteUrlFilter extends AbstractPwmFilter {
 
     @Override
     boolean isInterested(final PwmApplicationMode mode, final PwmURL pwmURL) {
-        return !pwmURL.isStandaloneWebService();
+        return !pwmURL.isRestService();
     }
 }

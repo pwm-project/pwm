@@ -29,7 +29,7 @@ var PWM_VAR = PWM_VAR || {};
 var PWM_UPDATE = PWM_UPDATE || {};
 
 PWM_UPDATE.validateForm = function() {
-    var validationProps = new Array();
+    var validationProps = [];
     validationProps['serviceURL'] = PWM_MAIN.addParamToUrl(window.location.href,"processAction","validate");
     validationProps['readDataFunction'] = function(){
         var paramData = { };
@@ -43,7 +43,7 @@ PWM_UPDATE.validateForm = function() {
     };
     validationProps['processResultsFunction'] = function(data){
         data = data['data'];
-        if (data["success"] === "true") {
+        if (data["success"] === true) {
             PWM_MAIN.getObject("submitBtn").disabled = false;
             PWM_MAIN.showSuccess(data["message"]);
         } else {

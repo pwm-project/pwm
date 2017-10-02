@@ -115,7 +115,7 @@ public class PwmHttpResponseWrapper {
         httpServletResponse.setStatus(status);
     }
 
-    public void setContentType(final PwmConstants.ContentTypeValue contentType) {
+    public void setContentType(final HttpContentType contentType) {
         this.getHttpServletResponse().setContentType(contentType.getHeaderValue());
     }
 

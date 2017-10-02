@@ -31,6 +31,7 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.ProcessStatus;
@@ -113,7 +114,7 @@ public abstract class CommandServlet extends ControlledPwmServlet {
         pwmRequest.validatePwmFormID();
         if (!pwmRequest.getPwmResponse().isCommitted()) {
             pwmRequest.getPwmResponse().setHeader(HttpHeader.Cache_Control, "no-cache, no-store, must-revalidate");
-            pwmRequest.getPwmResponse().setContentType(PwmConstants.ContentTypeValue.plain);
+            pwmRequest.getPwmResponse().setContentType(HttpContentType.plain);
         }
         return ProcessStatus.Halt;
     }
@@ -157,7 +158,7 @@ public abstract class CommandServlet extends ControlledPwmServlet {
         LOGGER.debug("pageLeaveNotice indicated at " + pageLeaveNoticeTime.toString() + ", referer=" + referrer);
         if (!pwmRequest.getPwmResponse().isCommitted()) {
             pwmRequest.getPwmResponse().setHeader(HttpHeader.Cache_Control, "no-cache, no-store, must-revalidate");
-            pwmRequest.getPwmResponse().setContentType(PwmConstants.ContentTypeValue.plain);
+            pwmRequest.getPwmResponse().setContentType(HttpContentType.plain);
         }
         return ProcessStatus.Halt;
     }

@@ -115,7 +115,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet {
                 pwmRequest.getLocale()
         );
 
-        final RestResultBean restResultBean = new RestResultBean(peopleSearchClientConfigBean);
+        final RestResultBean restResultBean = RestResultBean.withData(peopleSearchClientConfigBean);
         LOGGER.trace(pwmRequest, "returning clientData: " + JsonUtil.serialize(restResultBean));
         pwmRequest.outputJsonResult(restResultBean);
         return ProcessStatus.Halt;
@@ -137,7 +137,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet {
         final PeopleSearchDataReader peopleSearchDataReader = new PeopleSearchDataReader(pwmRequest);
 
         final SearchResultBean searchResultBean = peopleSearchDataReader.makeSearchResultBean(username, includeDisplayName);
-        final RestResultBean restResultBean = new RestResultBean(searchResultBean);
+        final RestResultBean restResultBean = RestResultBean.withData(searchResultBean);
 
         addExpiresHeadersToResponse(pwmRequest);
         pwmRequest.outputJsonResult(restResultBean);
@@ -178,7 +178,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet {
             final OrgChartDataBean orgChartData = peopleSearchDataReader.makeOrgChartData(userIdentity, noChildren);
 
             addExpiresHeadersToResponse(pwmRequest);
-            pwmRequest.outputJsonResult(new RestResultBean(orgChartData));
+            pwmRequest.outputJsonResult(RestResultBean.withData(orgChartData));
             StatisticsManager.incrementStat(pwmRequest, Statistic.PEOPLESEARCH_ORGCHART);
         } catch (PwmException e) {
             LOGGER.error(pwmRequest, "error generating user detail object: " + e.getMessage());
@@ -204,7 +204,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet {
             final UserDetailBean detailData = peopleSearchDataReader.makeUserDetailRequest(userKey);
 
             addExpiresHeadersToResponse(pwmRequest);
-            pwmRequest.outputJsonResult(new RestResultBean(detailData));
+            pwmRequest.outputJsonResult(RestResultBean.withData(detailData));
             pwmRequest.getPwmApplication().getStatisticsManager().incrementValue(Statistic.PEOPLESEARCH_DETAILS);
         } catch (PwmOperationalException e) {
             LOGGER.error(pwmRequest, "error generating user detail object: " + e.getMessage());

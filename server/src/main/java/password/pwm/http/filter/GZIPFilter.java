@@ -82,7 +82,7 @@ public class GZIPFilter implements Filter {
 
         try {
             final PwmURL pwmURL = new PwmURL((HttpServletRequest) servletRequest);
-            if (pwmURL.isResourceURL() || pwmURL.isJerseyWebService()) {
+            if (pwmURL.isResourceURL() || pwmURL.isRestService()) {
                 return false;
             }
         } catch (Exception e) {

@@ -24,7 +24,6 @@ package password.pwm.http;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
@@ -195,7 +194,7 @@ public class PwmResponse extends PwmHttpResponseWrapper {
         preCommitActions();
         final HttpServletResponse resp = this.getHttpServletResponse();
         final String outputString = restResultBean.toJson();
-        resp.setContentType(PwmConstants.ContentTypeValue.json.getHeaderValue());
+        resp.setContentType(HttpContentType.json.getHeaderValue());
         resp.getWriter().print(outputString);
         resp.getWriter().close();
     }
@@ -215,7 +214,7 @@ public class PwmResponse extends PwmHttpResponseWrapper {
         writeCookie(cookieName, encryptedValue, seconds, path, PwmHttpResponseWrapper.Flag.BypassSanitation);
     }
 
-    public void markAsDownload(final PwmConstants.ContentTypeValue contentType, final String filename) {
+    public void markAsDownload(final HttpContentType contentType, final String filename) {
         this.setHeader(HttpHeader.ContentDisposition,"attachment; fileName=" + filename);
         this.setContentType(contentType);
     }

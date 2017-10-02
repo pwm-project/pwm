@@ -84,7 +84,6 @@ import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.svc.token.TokenPayload;
 import password.pwm.svc.token.TokenType;
 import password.pwm.util.CaptchaUtility;
-import password.pwm.util.LocaleHelper;
 import password.pwm.util.PasswordData;
 import password.pwm.util.PostChangePasswordAction;
 import password.pwm.util.RandomPasswordGenerator;
@@ -717,8 +716,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
             ForgottenPasswordUtil.initializeAndSendToken(pwmRequest, userInfo, tokenSendMethod);
         }
 
-        final RestResultBean restResultBean = new RestResultBean();
-        restResultBean.setSuccessMessage(LocaleHelper.getLocalizedMessage(Message.Success_TokenResend, pwmRequest));
+        final RestResultBean restResultBean = RestResultBean.forSuccessMessage(pwmRequest, Message.Success_TokenResend);
         pwmRequest.outputJsonResult(restResultBean);
         return ProcessStatus.Halt;
     }
@@ -1156,7 +1154,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
                                 .setExpandPwmMacros(true)
                                 .createActionExecutor();
 
-                        actionExecutor.executeActions(configValues, pwmSession);
+                        actionExecutor.executeActions(configValues, pwmSession.getLabel());
                     }
                 } catch (PwmOperationalException e) {
                     final ErrorInformation info = new ErrorInformation(PwmError.ERROR_UNKNOWN, e.getErrorInformation().getDetailedErrorMsg(), e.getErrorInformation().getFieldValues());

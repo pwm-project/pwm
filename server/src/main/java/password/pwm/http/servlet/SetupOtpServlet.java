@@ -316,14 +316,13 @@ public class SetupOtpServlet extends AbstractPwmServlet {
 
         try {
             final boolean passed = otpService.validateToken(
-                    pwmSession,
+                    pwmRequest.getSessionLabel(),
                     pwmSession.getUserInfo().getUserIdentity(),
                     otpUserRecord,
                     code,
                     false
             );
-            final RestResultBean restResultBean = new RestResultBean();
-            restResultBean.setData(passed);
+            final RestResultBean restResultBean = RestResultBean.withData(passed);
 
             LOGGER.trace(pwmSession,"returning result for restValidateCode: " + JsonUtil.serialize(restResultBean));
             pwmRequest.outputJsonResult(restResultBean);
@@ -375,7 +374,7 @@ public class SetupOtpServlet extends AbstractPwmServlet {
                 }
 
                 if (otpService.validateToken(
-                        pwmSession,
+                        pwmRequest.getSessionLabel(),
                         pwmSession.getUserInfo().getUserIdentity(),
                         otpBean.getOtpUserRecord(),
                         otpToken,

@@ -23,34 +23,27 @@
 package password.pwm.ws.server.rest;
 
 import lombok.Data;
-import password.pwm.config.Configuration;
-import password.pwm.config.PwmSetting;
+import password.pwm.PwmConstants;
+import password.pwm.config.option.WebServiceUsage;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.ContextManager;
+import password.pwm.http.HttpContentType;
+import password.pwm.http.HttpMethod;
+import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsBundle;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.ws.server.RestRequestBean;
+import password.pwm.ws.server.RestMethodHandler;
+import password.pwm.ws.server.RestRequest;
 import password.pwm.ws.server.RestResultBean;
-import password.pwm.ws.server.RestServerHelper;
-import password.pwm.ws.server.ServicePermissions;
+import password.pwm.ws.server.RestServlet;
+import password.pwm.ws.server.RestWebServer;
 
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import javax.servlet.annotation.WebServlet;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -58,46 +51,39 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
-@Path("/statistics")
-public class RestStatisticsServer extends AbstractRestServer {
+@WebServlet(
+        urlPatterns={
+                PwmConstants.URL_PREFIX_PUBLIC + PwmConstants.URL_PREFIX_REST + "/statistics"
+        }
+)
+@RestWebServer(webService = WebServiceUsage.Statistics, requireAuthentication = true)
+public class RestStatisticsServer extends RestServlet {
     private static final PwmLogger LOGGER = PwmLogger.forClass(RestStatisticsServer.class);
 
-    @Context
-    HttpServletRequest request;
-
-    @Context
-    HttpServletResponse response;
-
-    @Context
-    ServletContext context;
-
     @Data
-    public static class JsonOutput implements Serializable
-    {
-        public Map<String,String> EPS;
-        public Map<String,Object> nameData;
-        public Map<String,Object> keyData;
+    public static class JsonOutput implements Serializable {
+        public Map<String, String> EPS;
+        public Map<String, Object> nameData;
+        public Map<String, Object> keyData;
     }
 
-    @GET
-    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public Response doPwmStatisticJsonGet(
-            @QueryParam("statKey") final String statKey,
-            @QueryParam("statName") final String statName,
-            @QueryParam("days") final String days
-    )
-    {
-        final ServicePermissions servicePermissions = figurePermissions();
-        final RestRequestBean restRequestBean;
-        try {
-            restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, null);
-        } catch (PwmUnrecoverableException e) {
-            return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
+    @Override
+    public void preCheckRequest(final RestRequest restRequest) throws PwmUnrecoverableException {
+        if (!restRequest.getRestAuthentication().getUsages().contains(WebServiceUsage.Health)) {
+            throw PwmUnrecoverableException.newException(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"public statistics service is not enabled");
         }
+    }
+
+    @RestMethodHandler(method = HttpMethod.GET, consumes = HttpContentType.form, produces = HttpContentType.json)
+    public RestResultBean doPwmStatisticJsonGet(final RestRequest restRequest)
+            throws PwmUnrecoverableException
+    {
+        final String statKey = restRequest.readParameterAsString("statKey", PwmHttpRequestWrapper.Flag.BypassValidation);
+        final String statName = restRequest.readParameterAsString("statName", PwmHttpRequestWrapper.Flag.BypassValidation);
+        final String days = restRequest.readParameterAsString("days", PwmHttpRequestWrapper.Flag.BypassValidation);
 
         try {
-            final StatisticsManager statisticsManager = restRequestBean.getPwmApplication().getStatisticsManager();
+            final StatisticsManager statisticsManager = restRequest.getPwmApplication().getStatisticsManager();
             final JsonOutput jsonOutput = new JsonOutput();
             jsonOutput.EPS = addEpsStats(statisticsManager);
 
@@ -107,20 +93,18 @@ public class RestStatisticsServer extends AbstractRestServer {
                 jsonOutput.keyData = doKeyStat(statisticsManager, statKey);
             }
 
-            if (restRequestBean.isExternal()) {
-                StatisticsManager.incrementStat(restRequestBean.getPwmApplication(), Statistic.REST_STATISTICS);
-            }
+            StatisticsManager.incrementStat(restRequest.getPwmApplication(), Statistic.REST_STATISTICS);
 
-            final RestResultBean resultBean = new RestResultBean();
-            resultBean.setData(jsonOutput);
-            return resultBean.asJsonResponse();
+            final RestResultBean resultBean = RestResultBean.withData(jsonOutput);
+            return resultBean;
         } catch (Exception e) {
             final String errorMsg = "unexpected error building json response: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-            return RestResultBean.fromError(errorInformation,restRequestBean).asJsonResponse();
+            return RestResultBean.fromError(restRequest, errorInformation);
 
         }
     }
+
 
     public static Map<String,Object> doNameStat(final StatisticsManager statisticsManager, final String statName, final String days) {
         final Statistic statistic = Statistic.valueOf(statName);
@@ -156,18 +140,5 @@ public class RestStatisticsServer extends AbstractRestServer {
         }
 
         return outputMap;
-    }
-
-    private ServicePermissions figurePermissions() {
-        ServicePermissions servicePermissions = ServicePermissions.ADMIN_OR_CONFIGMODE;
-        try {
-            final Configuration config = ContextManager.getContextManager(context).getPwmApplication().getConfig();
-            if (config.readSettingAsBoolean(PwmSetting.PUBLIC_HEALTH_STATS_WEBSERVICES)) {
-                servicePermissions = ServicePermissions.PUBLIC;
-            }
-        } catch (PwmUnrecoverableException e) {
-            LOGGER.error("unable to read service permissions, defaulting to non-public; error: " + e.getMessage());
-        }
-        return servicePermissions;
     }
 }

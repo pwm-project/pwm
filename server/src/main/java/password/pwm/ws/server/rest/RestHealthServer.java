@@ -22,120 +22,76 @@
 
 package password.pwm.ws.server.rest;
 
-import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmApplication;
-import password.pwm.config.Configuration;
-import password.pwm.config.PwmSetting;
+import password.pwm.PwmConstants;
 import password.pwm.config.option.WebServiceUsage;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMonitor;
-import password.pwm.http.ContextManager;
+import password.pwm.http.HttpContentType;
+import password.pwm.http.HttpMethod;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
-import password.pwm.ws.server.RestServerHelper;
-import password.pwm.ws.server.ServicePermissions;
-import password.pwm.ws.server.StandaloneRestHelper;
-import password.pwm.ws.server.StandaloneRestRequestBean;
+import password.pwm.ws.server.RestMethodHandler;
+import password.pwm.ws.server.RestRequest;
+import password.pwm.ws.server.RestServlet;
+import password.pwm.ws.server.RestWebServer;
 import password.pwm.ws.server.rest.bean.HealthData;
 import password.pwm.ws.server.rest.bean.HealthRecord;
 
-import javax.servlet.ServletException;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-@Path("/health")
-public class RestHealthServer extends AbstractRestServer {
+@WebServlet(
+        urlPatterns={
+                PwmConstants.URL_PREFIX_PUBLIC + PwmConstants.URL_PREFIX_REST + "/health",
+        }
+)
+@RestWebServer(webService = WebServiceUsage.Health, requireAuthentication = false)
+public class RestHealthServer extends RestServlet {
     private static final PwmLogger LOGGER = PwmLogger.forClass(RestHealthServer.class);
 
     private static final String PARAM_IMMEDIATE_REFRESH = "refreshImmediate";
 
-    @GET
-    @Produces(MediaType.TEXT_PLAIN)
-    public String doPwmHealthPlainGet(
-            @QueryParam(PARAM_IMMEDIATE_REFRESH) final boolean requestImmediateParam
-    ) {
-
-        final PwmApplication pwmApplication;
-        try {
-            pwmApplication = processAuthentication();
-        } catch (IOException e) {
-            return e.getMessage();
-        } catch (PwmUnrecoverableException e) {
-            RestServerHelper.handleNonJsonErrorResult(e.getErrorInformation());
-            return null;
+    @Override
+    public void preCheckRequest(final RestRequest restRequest) throws PwmUnrecoverableException {
+        if (!restRequest.getRestAuthentication().getUsages().contains(WebServiceUsage.Health)) {
+            throw PwmUnrecoverableException.newException(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"public health service is not enabled");
         }
+    }
+
+    @RestMethodHandler(method = HttpMethod.GET, produces = HttpContentType.plain)
+    private RestResultBean doPwmHealthPlainGet(final RestRequest restRequest)
+            throws PwmUnrecoverableException
+    {
+        final boolean requestImmediateParam = restRequest.readParameterAsBoolean(PARAM_IMMEDIATE_REFRESH);
 
         try {
             final HealthMonitor.CheckTimeliness timeliness = determineDataTimeliness(requestImmediateParam);
-            final String resultString = pwmApplication.getHealthMonitor().getMostSevereHealthStatus(timeliness).toString() + "\n";
-            StatisticsManager.incrementStat(pwmApplication, Statistic.REST_HEALTH);
-            return resultString;
+            final String resultString = restRequest.getPwmApplication().getHealthMonitor().getMostSevereHealthStatus(timeliness).toString() + "\n";
+            StatisticsManager.incrementStat(restRequest.getPwmApplication(), Statistic.REST_HEALTH);
+            return RestResultBean.withData(resultString);
         } catch (Exception e) {
             final String errorMessage = "unexpected error executing web service: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMessage);
-            RestServerHelper.handleNonJsonErrorResult(errorInformation);
-            return null;
+            return RestResultBean.fromError(restRequest, errorInformation);
         }
     }
 
-    @GET
-    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    public Response doPwmHealthJsonGet(
-            @QueryParam(PARAM_IMMEDIATE_REFRESH) final boolean requestImmediateParam
-    ) {
-        final PwmApplication pwmApplication;
-        try {
-            pwmApplication = processAuthentication();
-        } catch (IOException e) {
-            final RestResultBean restResultBean = new RestResultBean();
-            restResultBean.setError(true);
-            restResultBean.setErrorMessage(e.getMessage());
-            return restResultBean.asJsonResponse();
-        } catch (PwmUnrecoverableException e) {
-            return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
-        }
+    @RestMethodHandler(method = HttpMethod.GET, consumes = HttpContentType.json, produces = HttpContentType.json)
+    private RestResultBean doPwmHealthJsonGet(final RestRequest restRequest)
+            throws PwmUnrecoverableException, IOException {
+        final boolean requestImmediateParam = restRequest.readParameterAsBoolean(PARAM_IMMEDIATE_REFRESH);
 
-        try {
-            final HealthData jsonOutput = processGetHealthCheckData(pwmApplication, request.getLocale(), requestImmediateParam);
-            StatisticsManager.incrementStat(pwmApplication, Statistic.REST_HEALTH);
-            final RestResultBean restResultBean = new RestResultBean();
-            restResultBean.setData(jsonOutput);
-            return restResultBean.asJsonResponse();
-        } catch (PwmException e) {
-            return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
-        } catch (Exception e) {
-            final String errorMessage = "unexpected error executing web service: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMessage);
-            return RestResultBean.fromError(errorInformation).asJsonResponse();
-        }
-    }
-
-    private PwmApplication processAuthentication() throws PwmUnrecoverableException, IOException
-    {
-        final ServicePermissions servicePermissions = figurePermissions();
-        {
-            final StandaloneRestRequestBean standaloneRestRequestBean = StandaloneRestHelper.initialize(request);
-            if (standaloneRestRequestBean.getAuthorizedUsages().contains(WebServiceUsage.Health)) {
-                return standaloneRestRequestBean.getPwmApplication();
-            }
-        }
-
-        final RestRequestBean restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, null);
-        return restRequestBean.getPwmApplication();
+        final HealthData jsonOutput = processGetHealthCheckData(restRequest.getPwmApplication(), restRequest.getLocale(), requestImmediateParam);
+        StatisticsManager.incrementStat(restRequest.getPwmApplication(), Statistic.REST_HEALTH);
+        return RestResultBean.withData(jsonOutput);
     }
 
     private static HealthMonitor.CheckTimeliness determineDataTimeliness(
@@ -153,7 +109,7 @@ public class RestHealthServer extends AbstractRestServer {
             final Locale locale,
             final boolean refreshImmediate
     )
-            throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException
+            throws IOException, PwmUnrecoverableException
     {
         final HealthMonitor healthMonitor = pwmApplication.getHealthMonitor();
         final HealthMonitor.CheckTimeliness timeliness = determineDataTimeliness(refreshImmediate);
@@ -165,18 +121,5 @@ public class RestHealthServer extends AbstractRestServer {
         healthData.overall = healthMonitor.getMostSevereHealthStatus(timeliness).toString();
         healthData.records = healthRecordBeans;
         return healthData;
-    }
-
-    private ServicePermissions figurePermissions() {
-        ServicePermissions servicePermissions = ServicePermissions.ADMIN_OR_CONFIGMODE;
-        try {
-            final Configuration config = ContextManager.getContextManager(context).getPwmApplication().getConfig();
-            if (config.readSettingAsBoolean(PwmSetting.PUBLIC_HEALTH_STATS_WEBSERVICES)) {
-                servicePermissions = ServicePermissions.PUBLIC;
-            }
-        } catch (PwmUnrecoverableException e) {
-            LOGGER.error("unable to read service permissions, defaulting to non-public; error: " + e.getMessage());
-        }
-        return servicePermissions;
     }
 }

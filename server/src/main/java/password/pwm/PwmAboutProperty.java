@@ -130,13 +130,6 @@ public enum PwmAboutProperty {
         }
         aboutMap.put(app_chaiApiVersion,           PwmConstants.CHAI_API_VERSION);
 
-        if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.VERSION_CHECK_ENABLE)) {
-            if (pwmApplication.getVersionChecker() != null) {
-                aboutMap.put(app_currentPublishedVersion, pwmApplication.getVersionChecker().currentVersion());
-                aboutMap.put(app_currentPublishedVersionCheckTime, dateFormatForInfoBean(pwmApplication.getVersionChecker().lastReadTimestamp()));
-            }
-        }
-
         aboutMap.put(app_secureBlockAlgorithm,     pwmApplication.getSecureService().getDefaultBlockAlgorithm().getLabel());
         aboutMap.put(app_secureHashAlgorithm,      pwmApplication.getSecureService().getDefaultHashAlgorithm().toString());
 

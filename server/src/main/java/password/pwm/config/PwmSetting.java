@@ -69,8 +69,6 @@ public enum PwmSetting {
     // application settings
     PWM_SITE_URL(
             "pwm.selfURL", PwmSettingSyntax.STRING, PwmSettingCategory.GENERAL),
-    VERSION_CHECK_ENABLE(
-            "pwm.versionCheck.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.TELEMETRY),
     PUBLISH_STATS_ENABLE(
             "pwm.publishStats.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.TELEMETRY),
     PUBLISH_STATS_SITE_DESCRIPTION(
@@ -1114,12 +1112,12 @@ public enum PwmSetting {
             "webservices.enableReadAnswers", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.REST_SERVER),
     PUBLIC_HEALTH_STATS_WEBSERVICES(
             "webservices.healthStats.makePublic", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.REST_SERVER),
+    WEBSERVICES_EXTERNAL_SECRET(
+            "webservices.external.secrets", PwmSettingSyntax.NAMED_SECRET, PwmSettingCategory.REST_SERVER),
     WEBSERVICES_QUERY_MATCH(
             "webservices.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.REST_SERVER),
     WEBSERVICES_THIRDPARTY_QUERY_MATCH(
             "webservices.thirdParty.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.REST_SERVER),
-    WEBSERVICES_EXTERNAL_SECRET(
-            "webservices.external.secrets", PwmSettingSyntax.NAMED_SECRET, PwmSettingCategory.REST_SERVER),
 
 
     EXTERNAL_MACROS_DEST_TOKEN_URLS(

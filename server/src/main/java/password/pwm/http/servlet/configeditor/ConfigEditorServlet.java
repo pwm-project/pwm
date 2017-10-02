@@ -280,19 +280,15 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
             final Class implementingClass = Class.forName(functionName);
             final SettingUIFunction function = (SettingUIFunction) implementingClass.newInstance();
             final Serializable result = function.provideFunction(pwmRequest, configManagerBean.getStoredConfiguration(), pwmSetting, profileID, extraData);
-            final RestResultBean restResultBean = new RestResultBean();
-            restResultBean.setSuccessMessage(Message.Success_Unknown.getLocalizedMessage(pwmRequest.getLocale(),pwmRequest.getConfig()));
-            restResultBean.setData(result);
+            final RestResultBean restResultBean = RestResultBean.forSuccessMessage(result, pwmRequest, Message.Success_Unknown);
             pwmRequest.outputJsonResult(restResultBean);
         } catch (Exception e) {
             final RestResultBean restResultBean;
             if (e instanceof PwmException) {
                 restResultBean = RestResultBean.fromError(((PwmException) e).getErrorInformation(), pwmRequest, true);
             } else {
-                restResultBean = new RestResultBean();
-                restResultBean.setError(true);
-                restResultBean.setErrorDetail(e.getMessage());
-                restResultBean.setErrorMessage("error performing user search: " + e.getMessage());
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, "error performing user search: " + e.getMessage());
+                restResultBean = RestResultBean.fromError(errorInformation, pwmRequest);
             }
             pwmRequest.outputJsonResult(restResultBean);
         }
@@ -396,7 +392,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
             returnMap.put("syntax", theSetting.getSyntax().toString());
         }
         returnMap.put("value", returnValue);
-        pwmRequest.outputJsonResult(new RestResultBean(returnMap));
+        pwmRequest.outputJsonResult(RestResultBean.withData(returnMap));
     }
 
     private void restWriteSetting(
@@ -443,7 +439,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
             returnMap.put("syntax", setting.getSyntax().toString());
             returnMap.put("isDefault", storedConfig.isDefaultValue(setting, profileID));
         }
-        pwmRequest.outputJsonResult(new RestResultBean(returnMap));
+        pwmRequest.outputJsonResult(RestResultBean.withData(returnMap));
     }
 
     private void restResetSetting(
@@ -495,31 +491,29 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
             throws IOException, ServletException, PwmUnrecoverableException {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
-        RestResultBean restResultBean = new RestResultBean();
-        final HashMap<String, String> resultData = new HashMap<>();
-        restResultBean.setData(resultData);
 
         final List<String> validationErrors = configManagerBean.getStoredConfiguration().validateValues();
         if (!validationErrors.isEmpty()) {
             final String errorString = validationErrors.get(0);
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR, errorString, new String[]{errorString});
-            restResultBean = RestResultBean.fromError(errorInfo, pwmRequest);
-            LOGGER.error(pwmSession, "save configuration aborted, error: " + errorString);
+            pwmRequest.outputJsonResult(RestResultBean.fromError(errorInfo, pwmRequest));
+            LOGGER.error(pwmSession, errorInfo);
+            return;
         } else {
             try {
                 ConfigManagerServlet.saveConfiguration(pwmRequest, configManagerBean.getStoredConfiguration());
                 configManagerBean.setConfiguration(null);
-                restResultBean.setError(false);
                 configManagerBean.setConfiguration(null);
                 LOGGER.debug(pwmSession, "save configuration operation completed");
+                pwmRequest.outputJsonResult(RestResultBean.forSuccessMessage(pwmRequest, Message.Success_Unknown));
             } catch (PwmUnrecoverableException e) {
                 final ErrorInformation errorInfo = e.getErrorInformation();
-                restResultBean = RestResultBean.fromError(errorInfo, pwmRequest);
-                LOGGER.warn(pwmSession, "unable to save configuration: " + e.getMessage());
+                pwmRequest.outputJsonResult(RestResultBean.fromError(errorInfo, pwmRequest));
+                LOGGER.error(pwmSession, errorInfo);
+                return;
             }
         }
 
-        pwmRequest.outputJsonResult(restResultBean);
     }
 
     private void restCancelEditing(
@@ -593,8 +587,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
             LOGGER.error(pwmRequest, "error generating health records: " + e.getMessage());
         }
 
-        final RestResultBean restResultBean = new RestResultBean();
-        restResultBean.setData(returnObj);
+        final RestResultBean restResultBean = RestResultBean.withData(returnObj);
         pwmRequest.outputJsonResult(restResultBean);
     }
 
@@ -608,7 +601,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         final String bodyData = pwmRequest.readRequestBodyAsString();
         final Map<String, String> valueMap = JsonUtil.deserializeStringMap(bodyData);
         final Locale locale = pwmRequest.getLocale();
-        final RestResultBean restResultBean = new RestResultBean();
+        final RestResultBean restResultBean;
         final String searchTerm = valueMap.get("search");
         final StoredConfigurationImpl storedConfiguration = configManagerBean.getStoredConfiguration();
 
@@ -643,10 +636,10 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
                 outputMap.put(key, new TreeMap<>(returnData.get(key)));
             }
 
-            restResultBean.setData(outputMap);
+            restResultBean = RestResultBean.withData(outputMap);
             LOGGER.trace(pwmRequest, "finished search operation with " + returnData.size() + " results in " + TimeDuration.fromCurrent(startTime).asCompactString());
         } else {
-            restResultBean.setData(new ArrayList<StoredConfigurationImpl.ConfigRecordID>());
+            restResultBean = RestResultBean.withData(new ArrayList<StoredConfigurationImpl.ConfigRecordID>());
         }
 
         pwmRequest.outputJsonResult(restResultBean);
@@ -663,8 +656,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         final String profileID = pwmRequest.readParameterAsString("profile");
         final Configuration config = new Configuration(configManagerBean.getStoredConfiguration());
         final HealthData healthData = LDAPStatusChecker.healthForNewConfiguration(pwmRequest.getPwmApplication(), config, pwmRequest.getLocale(), profileID, true, true);
-        final RestResultBean restResultBean = new RestResultBean();
-        restResultBean.setData(healthData);
+        final RestResultBean restResultBean = RestResultBean.withData(healthData);
 
         pwmRequest.outputJsonResult(restResultBean);
         LOGGER.debug(pwmRequest, "completed restLdapHealthCheck in " + TimeDuration.fromCurrent(startTime).asCompactString());
@@ -680,8 +672,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         final Configuration config = new Configuration(configManagerBean.getStoredConfiguration());
         final List<HealthRecord> healthRecords = DatabaseStatusChecker.checkNewDatabaseStatus(pwmRequest.getPwmApplication(), config);
         final HealthData healthData = HealthRecord.asHealthDataBean(config, pwmRequest.getLocale(), healthRecords);
-        final RestResultBean restResultBean = new RestResultBean();
-        restResultBean.setData(healthData);
+        final RestResultBean restResultBean = RestResultBean.withData(healthData);
         pwmRequest.outputJsonResult(restResultBean);
         LOGGER.debug(pwmRequest, "completed restDatabaseHealthCheck in " + TimeDuration.fromCurrent(startTime).asCompactString());
     }
@@ -711,9 +702,8 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
             }
         }
 
-        final RestResultBean restResultBean = new RestResultBean();
         final HealthData healthData = HealthRecord.asHealthDataBean(config, pwmRequest.getLocale(), returnRecords);
-        restResultBean.setData(healthData);
+        final RestResultBean restResultBean = RestResultBean.withData(healthData);
         pwmRequest.outputJsonResult(restResultBean);
         LOGGER.debug(pwmRequest, "completed restSmsHealthCheck in " + TimeDuration.fromCurrent(startTime).asCompactString());
     }
@@ -876,7 +866,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         NavTreeHelper.moveNavItemToTopOfList(PwmSettingCategory.TEMPLATES.toString(), navigationData);
 
         LOGGER.trace(pwmRequest,"completed navigation tree data request in " + TimeDuration.fromCurrent(startTime).asCompactString());
-        pwmRequest.outputJsonResult(new RestResultBean(navigationData));
+        pwmRequest.outputJsonResult(RestResultBean.withData(navigationData));
     }
 
     private void restConfigSettingData(final PwmRequest pwmRequest, final ConfigManagerBean configManagerBean)
@@ -924,9 +914,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
             returnMap.put("var", varMap);
         }
 
-        final RestResultBean restResultBean = new RestResultBean();
-
-        restResultBean.setData(returnMap);
+        final RestResultBean restResultBean = RestResultBean.withData(returnMap);
         pwmRequest.outputJsonResult(restResultBean);
     }
 
@@ -934,7 +922,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         try {
             final Map<String, String> inputMap = pwmRequest.readBodyAsJsonStringMap(PwmHttpRequestWrapper.Flag.BypassValidation);
             if (inputMap == null || !inputMap.containsKey("input")) {
-                pwmRequest.outputJsonResult(new RestResultBean("missing input"));
+                pwmRequest.outputJsonResult(RestResultBean.withData("missing input"));
                 return;
             }
 
@@ -946,7 +934,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
             }
             final String input = inputMap.get("input");
             final String output = macroMachine.expandMacros(input);
-            pwmRequest.outputJsonResult(new RestResultBean(output));
+            pwmRequest.outputJsonResult(RestResultBean.withData(output));
         } catch (PwmUnrecoverableException e) {
             LOGGER.error(pwmRequest, e.getErrorInformation());
             pwmRequest.respondWithError(e.getErrorInformation());
@@ -977,7 +965,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
                 + TimeDuration.fromCurrent(startTime).asCompactString()
                 + ", result=" + JsonUtil.serialize(result));
 
-        pwmRequest.outputJsonResult(new RestResultBean(result));
+        pwmRequest.outputJsonResult(RestResultBean.withData(result));
     }
 
     private void restCopyProfile(final PwmRequest pwmRequest, final ConfigManagerBean configManagerBean)

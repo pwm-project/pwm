@@ -276,7 +276,7 @@ class NewUserUtils {
                         .setMacroMachine(pwmSession.getSessionManager().getMacroMachine(pwmApplication))
                         .createActionExecutor();
 
-                actionExecutor.executeActions(actions, pwmSession);
+                actionExecutor.executeActions(actions, pwmSession.getLabel());
             }
         }
 

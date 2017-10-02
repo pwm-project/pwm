@@ -46,7 +46,6 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.PwmSession;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.cache.CacheKey;
@@ -227,7 +226,7 @@ public class LdapOperationsHelper {
      */
     public static void writeFormValuesToLdap(
             final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
+            final MacroMachine macroMachine,
             final ChaiUser theUser,
             final Map<FormConfiguration,String> formValues,
             final boolean expandMacros
@@ -242,7 +241,6 @@ public class LdapOperationsHelper {
             }
         }
 
-        final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine(pwmApplication);
         writeMapToLdap(theUser, tempMap, macroMachine, expandMacros);
     }
 

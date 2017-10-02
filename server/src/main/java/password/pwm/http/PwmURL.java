@@ -154,18 +154,9 @@ public class PwmURL {
 
     }
 
-    public boolean isJerseyWebService() {
-        return checkIfStartsWithURL(PwmConstants.URL_PREFIX_PUBLIC + "/rest/")
-                && !isStandaloneWebService();
-    }
+    public boolean isRestService() {
+        return checkIfStartsWithURL(PwmConstants.URL_PREFIX_PUBLIC + "/rest/");
 
-    public boolean isStandaloneWebService() {
-        return checkIfStartsWithURL(PwmConstants.URL_PREFIX_PUBLIC + "/rest/")
-                && (
-                checkIfStartsWithURL(PwmConstants.URL_PREFIX_PUBLIC + "/rest/signing")
-                        ||
-                        checkIfStartsWithURL(PwmConstants.URL_PREFIX_PUBLIC + "/rest/ping")
-        );
     }
 
     public boolean isConfigManagerURL() {

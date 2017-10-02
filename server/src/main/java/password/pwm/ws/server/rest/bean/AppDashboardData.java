@@ -95,26 +95,6 @@ public class AppDashboardData implements Serializable {
                     l.forKey("Field_AppVersion", PwmConstants.PWM_APP_NAME),
                     PwmConstants.SERVLET_VERSION
             ));
-            if (config.readSettingAsBoolean(PwmSetting.VERSION_CHECK_ENABLE)) {
-                if (pwmApplication.getVersionChecker() != null) {
-                    final Date readDate = pwmApplication.getVersionChecker().lastReadTimestamp();
-                    if (readDate != null) {
-                        data.add(new DataElement(
-                                "currentPubVersion",
-                                Type.timestamp,
-                                l.forKey("Field_CurrentPubVersion"),
-                                readDate
-                        ));
-                    } else {
-                        data.add(new DataElement(
-                                "currentPubVersion",
-                                Type.string,
-                                l.forKey("Field_CurrentPubVersion"),
-                                NA_VALUE
-                        ));
-                    }
-                }
-            }
             data.add(new DataElement(
                     "currentTime",
                     Type.timestamp,

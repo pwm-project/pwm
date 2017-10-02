@@ -37,7 +37,6 @@ import java.util.Set;
 @Setter
 public class RestRequestBean implements Serializable {
     private boolean authenticated;
-    private boolean external;
     private UserIdentity userIdentity;
     private PwmSession pwmSession;
     private PwmApplication pwmApplication;

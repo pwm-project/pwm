@@ -95,7 +95,7 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet {
         final ArrayList<CertificateDebugDataItem> certificateDebugDataItems = new ArrayList<>(makeCertificateDebugData(pwmRequest.getConfig()));
 
         if (action != null && action == ConfigManagerCertificateAction.certificateData) {
-            final RestResultBean restResultBean = new RestResultBean(certificateDebugDataItems);
+            final RestResultBean restResultBean = RestResultBean.withData(certificateDebugDataItems);
             pwmRequest.outputJsonResult(restResultBean);
             return;
         }

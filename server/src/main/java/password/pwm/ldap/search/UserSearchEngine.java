@@ -137,7 +137,7 @@ public class UserSearchEngine implements PwmService {
             final String profile,
             final SessionLabel sessionLabel
     )
-            throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
+            throws PwmUnrecoverableException, PwmOperationalException
     {
         //check if username is a key
         {
@@ -156,6 +156,8 @@ public class UserSearchEngine implements PwmService {
                     }
                 } catch (ChaiOperationException e) {
                     throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER, e.getMessage()));
+                } catch (ChaiUnavailableException e) {
+                    throw PwmUnrecoverableException.fromChaiException(e);
                 }
             }
         }
@@ -178,6 +180,8 @@ public class UserSearchEngine implements PwmService {
             }
         } catch (PwmOperationalException e) {
             throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER,e.getErrorInformation().getDetailedErrorMsg(),e.getErrorInformation().getFieldValues()));
+        } catch (ChaiUnavailableException e) {
+            throw PwmUnrecoverableException.fromChaiException(e);
         }
     }
 

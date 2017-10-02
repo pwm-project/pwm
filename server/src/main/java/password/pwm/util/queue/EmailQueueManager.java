@@ -37,6 +37,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
+import password.pwm.http.HttpContentType;
 import password.pwm.ldap.UserInfo;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
@@ -408,15 +409,15 @@ public class EmailQueueManager implements PwmService {
                     final MimeMultipart content = new MimeMultipart("alternative");
                     final MimeBodyPart text = new MimeBodyPart();
                     final MimeBodyPart html = new MimeBodyPart();
-                    text.setContent(emailItemBean.getBodyPlain(), PwmConstants.ContentTypeValue.plain.getHeaderValue());
-                    html.setContent(emailItemBean.getBodyHtml(), PwmConstants.ContentTypeValue.html.getHeaderValue());
+                    text.setContent(emailItemBean.getBodyPlain(), HttpContentType.plain.getHeaderValue());
+                    html.setContent(emailItemBean.getBodyHtml(), HttpContentType.html.getHeaderValue());
                     content.addBodyPart(text);
                     content.addBodyPart(html);
                     message.setContent(content);
                 } else if (hasPlainText) {
-                    message.setContent(emailItemBean.getBodyPlain(), PwmConstants.ContentTypeValue.plain.getHeaderValue());
+                    message.setContent(emailItemBean.getBodyPlain(), HttpContentType.plain.getHeaderValue());
                 } else if (hasHtml) {
-                    message.setContent(emailItemBean.getBodyHtml(), PwmConstants.ContentTypeValue.html.getHeaderValue());
+                    message.setContent(emailItemBean.getBodyHtml(), HttpContentType.html.getHeaderValue());
                 }
 
                 messages.add(message);
