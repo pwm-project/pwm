@@ -114,8 +114,8 @@
                     <div id="grid">
                     </div>
                     <div style="text-align: center">
-                        <input name="maxResults" id="maxReportDataResults" value="1000" data-dojo-type="dijit.form.NumberSpinner" style="width: 70px"
-                               data-dojo-props="constraints:{min:10,max:50000,pattern:'#'},smallDelta:100"/>
+                        <input name="maxResults" id="maxReportDataResults" value="1000" type="number" style="width: 70px"
+                               min="10" max="50000" step="100"/>
                         Rows
                         <button class="btn" type="button" id="button-refreshReportDataGrid">
                             <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-refresh">&nbsp;</span></pwm:if>
@@ -213,14 +213,13 @@
                     <div style="height:100%; width: 100%">
                         <div id="statsChartOptionsDiv" style="width:580px; text-align: center; margin:0 auto;">
                             <label for="statsChartSelect">Statistic</label>
-                            <select name="statsChartSelect" id="statsChartSelect" data-dojo-type="dijit.form.Select" style="width: 300px;" data-dojo-props="maxHeight: -1">
+                            <select name="statsChartSelect" id="statsChartSelect" style="width: 300px;">
                                 <% for (final Statistic loopStat : Statistic.sortedValues(locale)) { %>
                                 <option value="<%=loopStat %>"><%=loopStat.getLabel(locale)%></option>
                                 <% } %>
                             </select>
                             <label for="statsChartDays" style="padding-left: 10px">Days</label>
-                            <input id="statsChartDays" value="30" data-dojo-type="dijit.form.NumberSpinner" style="width: 60px"
-                                   data-dojo-props="constraints:{min:7,max:120}"/>
+                            <input id="statsChartDays" value="30" type="number" style="width: 60px" min="7" max="120"/>
                         </div>
                         <div id="statsChart">
                         </div>
@@ -235,29 +234,26 @@
 <pwm:script>
     <script type="text/javascript">
         function refreshChart() {
-            require(["dijit/registry"],function(registry){
-                var keyName = registry.byId('statsChartSelect').get('value');
-                var days = PWM_MAIN.getObject('statsChartDays').value;
-                PWM_ADMIN.showStatChart(keyName,days,'statsChart',{});
-            });
+            var statsChartSelect = PWM_MAIN.getObject('statsChartSelect');
+            var keyName = statsChartSelect.options[statsChartSelect.selectedIndex].value;
+            var days = PWM_MAIN.getObject('statsChartDays').value;
+            PWM_ADMIN.showStatChart(keyName,days,'statsChart',{});
         }
 
 
         PWM_GLOBAL['startupFunctions'].push(function(){
-            require(["dojo","dojo/query","dojo/parser","dijit/registry","dojo/ready","dijit/form/Select","dijit/form/NumberSpinner","dijit/layout/TabContainer","dijit/layout/ContentPane"],function(dojo,query,dojoParser,registry,ready){
+            require(["dojo","dojo/query","dojo/parser","dijit/registry","dojo/ready","dijit/layout/TabContainer","dijit/layout/ContentPane"],function(dojo,query,dojoParser,registry,ready){
                 dojoParser.parse('centerbody');
-                ready(function(){
-                    registry.byId('statsChartSelect').set('value','<%=Statistic.PASSWORD_CHANGES%>');
+                PWM_MAIN.JSLibrary.setValueOfSelectElement('statsChartSelect','<%=Statistic.PASSWORD_CHANGES%>');
 
-                    setTimeout(function(){
-                        refreshChart();
-                    },5*1000);
+                setTimeout(function(){
+                    refreshChart();
+                },5*1000);
 
-                    PWM_ADMIN.refreshReportDataSummary();
-                    PWM_ADMIN.refreshReportDataStatus();
-                    setInterval(function () { PWM_ADMIN.refreshReportDataSummary() }, 5 * 1000);
-                    setInterval(function () { PWM_ADMIN.refreshReportDataStatus() }, 5 * 1000);
-                });
+                PWM_ADMIN.refreshReportDataSummary();
+                PWM_ADMIN.refreshReportDataStatus();
+                setInterval(function () { PWM_ADMIN.refreshReportDataSummary() }, 5 * 1000);
+                setInterval(function () { PWM_ADMIN.refreshReportDataStatus() }, 5 * 1000);
 
                 <% for (final Statistic loopStat : Statistic.sortedValues(locale)) { %>
                 PWM_MAIN.showTooltip({id:'Statistic_Key_<%=loopStat.getKey()%>',width:400,position:'above',text:PWM_ADMIN.showString("Statistic_Description.<%=loopStat.getKey()%>")});
@@ -272,8 +268,10 @@
                 PWM_MAIN.addEventHandler('statsChartSelect','change',function(){ refreshChart() });
 
                 if (dojo.isIE) {
+                    <%--
                     // The tab containers on this page go wacky in Internet Explorer if the form downloads are submitted
                     // to the current page.  This is a workaround to submit the forms to a blank page instead.
+                    --%>
                     query("form.submitToDownloadForm").forEach(function(node, index, arr) {
                         node.target = "_blank";
                     });
