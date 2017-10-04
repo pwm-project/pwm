@@ -63,6 +63,7 @@ public enum PwmIfTest {
     orgChartEnabled(new OrgChartEnabled()),
     passwordExpired(new PasswordExpired()),
     showMaskedTokenSelection(new BooleanAppPropertyTest(AppProperty.TOKEN_MASK_SHOW_SELECTION)),
+    clientFormShowRegexEnabled(new BooleanAppPropertyTest(AppProperty.CLIENT_FORM_CLIENT_REGEX_ENABLED)),
 
     accountInfoEnabled(new BooleanPwmSettingTest(PwmSetting.ACCOUNT_INFORMATION_ENABLED)),
 

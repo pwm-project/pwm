@@ -30,6 +30,7 @@ import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.StoredValue;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.ArrayList;
@@ -155,6 +156,11 @@ public class FormValue extends AbstractValue implements StoredValue {
                 sb.append(" Description:").append(JsonUtil.serializeMap(formRow.getDescription())).append("\n");
                 if (formRow.getSelectOptions() != null && !formRow.getSelectOptions().isEmpty()) {
                     sb.append(" Select Options: ").append(JsonUtil.serializeMap(formRow.getSelectOptions())).append("\n");
+                }
+                if (!StringUtil.isEmpty(formRow.getRegex())) {
+                    sb.append(" Regex:").append(formRow.getRegex())
+                            .append(" Regex Error:").append(JsonUtil.serializeMap(formRow.getRegexErrors()))
+                            .append("\n");
                 }
 
             }

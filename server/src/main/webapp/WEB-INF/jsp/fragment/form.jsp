@@ -15,7 +15,7 @@
 <%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <%@ page import="java.util.Collections" %>
 <%@ page import="password.pwm.config.CustomLinkConfiguration" %>
-<%@ page import="org.apache.commons.lang3.StringEscapeUtils" %>
+<%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 
 <%--
   ~ Password Management Servlets (PWM)
@@ -102,7 +102,9 @@
     <% } else { %>
     <input id="<%=loopConfiguration.getName()%>" type="<%=loopConfiguration.getType()%>" class="inputfield"
            name="<%=loopConfiguration.getName()%>" value="<%= currentValue %>"
-        <%if (!StringUtil.isEmpty(loopConfiguration.getRegex())) {%> pattern="<%=loopConfiguration.getRegex()%>"<%}%>
+        <pwm:if test="<%=PwmIfTest.clientFormShowRegexEnabled%>">
+            <%if (!StringUtil.isEmpty(loopConfiguration.getRegex())) {%> pattern="<%=loopConfiguration.getRegex()%>"<%}%>
+        </pwm:if>
         <%if(loopConfiguration.getPlaceholder()!=null){%> placeholder="<%=loopConfiguration.getPlaceholder()%>"<%}%>
         <%if(loopConfiguration.isRequired()){%> required="required"<%}%>
     <pwm:autofocus/> maxlength="<%=loopConfiguration.getMaximumLength()%>">
@@ -115,7 +117,9 @@
     </label>
     <input style="" id="<%=loopConfiguration.getName()%>_confirm" type="<%=loopConfiguration.getType()%>" class="inputfield"
            name="<%=loopConfiguration.getName()%>_confirm"
-            <%if (!StringUtil.isEmpty(loopConfiguration.getRegex())) {%> pattern="<%=loopConfiguration.getRegex()%>"<%}%>
+            <pwm:if test="<%=PwmIfTest.clientFormShowRegexEnabled%>">
+                <%if (!StringUtil.isEmpty(loopConfiguration.getRegex())) {%> pattern="<%=loopConfiguration.getRegex()%>"<%}%>
+            </pwm:if>
             <%if(loopConfiguration.isRequired()){%> required="required"<%}%>
             <%if(loopConfiguration.isReadonly()){%> readonly="readonly"<%}%>
            maxlength="<%=loopConfiguration.getMaximumLength()%>"/>
@@ -142,6 +146,7 @@
         </script>
     </pwm:script>
     <% } %>
+    <pwm:if test="<%=PwmIfTest.clientFormShowRegexEnabled%>">
     <% if (loopConfiguration.getRegexError(formLocale) != null && loopConfiguration.getRegexError(formLocale).length() > 0) { %>
     <pwm:script>
         <script type="text/javascript">
@@ -150,12 +155,13 @@
                     event.target.setCustomValidity("");
                 });
                 PWM_MAIN.addEventHandler('<%=loopConfiguration.getName()%>', 'invalid', function (event) {
-                    event.target.setCustomValidity('<%=StringEscapeUtils.escapeEcmaScript(loopConfiguration.getRegexError(formLocale))%>');
+                    event.target.setCustomValidity('<%=StringUtil.escapeJS(loopConfiguration.getRegexError(formLocale))%>');
                 });
             });
         </script>
     </pwm:script>
     <% } %>
+    </pwm:if>
     <pwm:script>
         <script type="text/javascript">
             PWM_GLOBAL['startupFunctions'].push(function(){
