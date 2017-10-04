@@ -899,7 +899,7 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
             });
         }
 
-        {
+        if (PWM_MAIN.getObject(inputID + "confirmationRequired") != null) {
             PWM_MAIN.getObject(inputID + "confirmationRequired").checked = currentValue['confirmationRequired'];
             PWM_MAIN.addEventHandler(inputID + "confirmationRequired", "change", function () {
                 currentValue['confirmationRequired'] = PWM_MAIN.getObject(inputID + "confirmationRequired").checked;
