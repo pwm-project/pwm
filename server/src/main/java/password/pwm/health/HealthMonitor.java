@@ -69,8 +69,8 @@ public class HealthMonitor implements PwmService {
     private ScheduledExecutorService executorService;
     private HealthMonitorSettings settings;
 
-    private volatile Instant lastHealthCheckTime = Instant.now();
-    private volatile Instant lastRequestedUpdateTime = Instant.now();
+    private volatile Instant lastHealthCheckTime = Instant.ofEpochMilli(0);
+    private volatile Instant lastRequestedUpdateTime = Instant.ofEpochMilli(0);
 
     private Map<HealthMonitorFlag, Serializable> healthProperties = new HashMap<>();
 
