@@ -39,6 +39,8 @@ import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -229,5 +231,27 @@ public class LdapConnectionService implements PwmService {
         }
 
         return perProfile;
+    }
+
+    private Collection<ChaiProvider> getAllProviders() {
+        final List<ChaiProvider> returnList = new ArrayList<>();
+        for (final Map<Integer,ChaiProvider> loopProfileMap : proxyChaiProviders.values()) {
+            for (final ChaiProvider chaiProvider : loopProfileMap.values()) {
+                if (chaiProvider != null) {
+                    returnList.add(chaiProvider);
+                }
+            }
+        }
+        return Collections.unmodifiableList(returnList);
+    }
+
+    public int connectionCount() {
+        int count = 0;
+        for (final ChaiProvider chaiProvider : getAllProviders()) {
+            if (chaiProvider.isConnected()) {
+                count++;
+            }
+        }
+        return count;
     }
 }

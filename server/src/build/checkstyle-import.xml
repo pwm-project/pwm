@@ -80,6 +80,8 @@
     <allow pkg="lombok"/>
     <allow pkg="com.github.benmanes.caffeine"/>
 
+    <allow pkg="sun.management"/>
+
 
     <!--servlet -->
     <subpackage name="http.servlet">

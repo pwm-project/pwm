@@ -38,7 +38,7 @@ public class NodeInfo implements Serializable {
     private NodeState nodeState;
     private boolean configMatch;
 
-    enum NodeState {
+    public enum NodeState {
         master,
         online,
         offline

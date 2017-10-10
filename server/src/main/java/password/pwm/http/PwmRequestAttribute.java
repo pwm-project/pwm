@@ -92,4 +92,5 @@ public enum PwmRequestAttribute {
     NextUrl,
 
     UserDebugData,
+    AppDashboardData,
 }

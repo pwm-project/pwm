@@ -22,52 +22,27 @@
 
 <%@ page import="password.pwm.config.option.DataStorageMethod" %>
 <%@ page import="password.pwm.config.profile.LdapProfile" %>
-<%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.health.HealthRecord" %>
-<%@ page import="password.pwm.http.PwmSession" %>
 <%@ page import="password.pwm.i18n.Admin" %>
 <%@ page import="password.pwm.i18n.Display" %>
-<%@ page import="password.pwm.svc.PwmService" %>
-<%@ page import="password.pwm.svc.cluster.NodeInfo" %>
-<%@ page import="password.pwm.svc.sessiontrack.SessionTrackService" %>
-<%@ page import="password.pwm.svc.stats.Statistic" %>
-<%@ page import="password.pwm.util.java.FileSystemUtility" %>
 <%@ page import="password.pwm.util.java.JavaHelper" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
-<%@ page import="password.pwm.util.java.TimeDuration" %>
 <%@ page import="password.pwm.util.localdb.LocalDB" %>
-<%@ page import="java.lang.management.ManagementFactory" %>
-<%@ page import="java.lang.management.ThreadInfo" %>
-<%@ page import="java.text.NumberFormat" %>
 <%@ page import="java.time.Instant" %>
 <%@ page import="java.util.Collection" %>
-<%@ page import="java.util.Date" %>
-<%@ page import="java.util.List" %>
 <%@ page import="java.util.Locale" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="password.pwm.svc.stats.EpsStatistic" %>
+<%@ page import="password.pwm.http.servlet.admin.AppDashboardData" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<%
-    final Locale locale = JspUtility.locale(request);
-    final NumberFormat numberFormat = NumberFormat.getInstance(locale);
-    final ThreadInfo[] threads = ManagementFactory.getThreadMXBean().dumpAllThreads(true,true);
-    SessionTrackService sessionTrackService = null;
-
-    PwmRequest dashboard_pwmRequest = null;
-    PwmApplication dashboard_pwmApplication = null;
-    PwmSession dashboard_pwmSession = null;
-    try {
-        dashboard_pwmRequest = PwmRequest.forRequest(request, response);
-        dashboard_pwmApplication = dashboard_pwmRequest.getPwmApplication();
-        dashboard_pwmSession = dashboard_pwmRequest.getPwmSession();
-        sessionTrackService = dashboard_pwmApplication.getSessionTrackService();
-    } catch (PwmException e) {
-        JspUtility.logError(pageContext, "error during page setup: " + e.getMessage());
-    }
-%>
+<% final AppDashboardData appDashboardData = (AppDashboardData)JspUtility.getAttribute(pageContext, PwmRequestAttribute.AppDashboardData); %>
+<% final PwmRequest dashboard_pwmRequest = JspUtility.getPwmRequest(pageContext); %>
+<% final PwmApplication dashboard_pwmApplication = dashboard_pwmRequest.getPwmApplication(); %>
+<% final Locale locale = JspUtility.locale(request); %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <% final String PageName = JspUtility.localizedString(pageContext,"Title_Dashboard",Admin.class);%>
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
@@ -87,14 +62,14 @@
                             <pwm:display key="Title_Sessions" bundle="Admin"/>
                         </td>
                         <td id="SessionCount">
-                            <%= sessionTrackService.sessionCount() %>
+                            <%= appDashboardData.getSessionCount() %>
                         </td>
                         <td class="key">
                             <pwm:display key="Title_LDAPConnections" bundle="Admin"/>
 
                         </td>
                         <td id="LDAPConnectionCount">
-                            <%= sessionTrackService.ldapConnectionCount() %>
+                            <%= appDashboardData.getLdapConnectionCount() %>
                         </td>
                     </tr>
                 </table>
@@ -116,7 +91,7 @@
                     <% if ((loopEpsType != EpsStatistic.DB_READS && loopEpsType != EpsStatistic.DB_WRITES) || dashboard_pwmApplication.getConfig().hasDbConfigured()) { %>
                     <tr>
                         <td class="key">
-                            <%= loopEpsType.getLabel(dashboard_pwmSession.getSessionStateBean().getLocale()) %> / Minute
+                            <%= loopEpsType.getLabel(locale) %> / Minute
                         </td>
                         <td style="text-align: center" id="FIELD_<%=loopEpsType.toString()%>_MINUTE">
                             <span style="font-size: smaller; font-style: italic"><pwm:display key="Display_PleaseWait"/></span>
@@ -187,62 +162,22 @@
             <div id="AboutTab" data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_About" bundle="Admin"/>" class="tabContent">
                 <div style="max-height: 400px; overflow: auto;">
                     <table class="nomargin">
+                        <% for (final AppDashboardData.DataElement dataElement : appDashboardData.getAbout()) { %>
                         <tr>
                             <td class="key">
-                                <%=PwmConstants.PWM_APP_NAME%> Version
+                                <%= dataElement.getLabel() %>
                             </td>
-                            <td>
-                                <%= PwmConstants.SERVLET_VERSION %>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="key">
-                                <pwm:display key="Field_CurrentTime" bundle="Admin"/>
-                            </td>
+                            <% if (dataElement.getType() == AppDashboardData.Type.timestamp) { %>
                             <td class="timestamp">
-                                <%= JavaHelper.toIsoDate(Instant.now()) %>
+                                <%= StringUtil.escapeHtml(dataElement.getValue()) %>
                             </td>
-                        </tr>
-                        <tr>
-                            <td class="key">
-                                <pwm:display key="Field_StartTime" bundle="Admin"/>
-                            </td>
-                            <td class="timestamp">
-                                <%= JavaHelper.toIsoDate(dashboard_pwmApplication.getStartupTime()) %>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="key">
-                                Up Time
-                            </td>
+                            <% } else { %>
                             <td>
-                                <%= TimeDuration.fromCurrent(dashboard_pwmApplication.getStartupTime()).asLongString() %>
+                                <%= StringUtil.escapeHtml(dataElement.getValue()) %>
                             </td>
+                            <% } %>
                         </tr>
-                        <tr>
-                            <td class="key">
-                                <pwm:display key="Field_InstallTime" bundle="Admin"/>
-                            </td>
-                            <td class="timestamp">
-                                <%= JavaHelper.toIsoDate(dashboard_pwmApplication.getInstallTime()) %>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="key">
-                                Site URL
-                            </td>
-                            <td>
-                                <%= dashboard_pwmApplication.getConfig().readSettingAsString(PwmSetting.PWM_SITE_URL) %>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="key">
-                                Instance ID
-                            </td>
-                            <td>
-                                <%= dashboard_pwmApplication.getInstanceID() %>
-                            </td>
-                        </tr>
+                        <% } %>
                         <tr>
                             <td class="key">
                                 Last LDAP Unavailable Time
@@ -258,7 +193,7 @@
                                 <table class="nomargin">
                                     <% for (final LdapProfile ldapProfile : ldapProfiles) { %>
                                     <tr>
-                                        <td><%=ldapProfile.getDisplayName(dashboard_pwmSession.getSessionStateBean().getLocale())%></td>
+                                        <td><%=ldapProfile.getDisplayName(locale)%></td>
                                         <td class="timestamp">
                                             <% final Instant lastError = dashboard_pwmApplication.getLdapConnectionService().getLastLdapFailureTime(ldapProfile); %>
                                             <%= lastError == null ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable) :JavaHelper.toIsoDate(lastError) %>
@@ -267,14 +202,6 @@
                                     <% } %>
                                 </table>
                                 <% } %>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="key">
-                                Chai API Version
-                            </td>
-                            <td>
-                                <%= com.novell.ldapchai.ChaiConstant.CHAI_API_VERSION %>
                             </td>
                         </tr>
                         <tr>
@@ -321,26 +248,23 @@
                             Health
                         </td>
                     </tr>
-                    <% for (final PwmService loopService : dashboard_pwmApplication.getPwmServices()) { %>
+                    <% for (final AppDashboardData.ServiceData loopService : appDashboardData.getServices()) { %>
                     <tr>
                         <td>
-                            <%= loopService.getClass().getSimpleName() %>
+                            <%= loopService.getName() %>
                         </td>
                         <td>
-                            <%= loopService.status() %>
-                            <% final List<HealthRecord> healthRecords = loopService.healthCheck(); %>
+                            <%= loopService.getStatus() %>
                         </td>
                         <td>
-                            <% if (loopService.serviceInfo() != null && loopService.serviceInfo().getUsedStorageMethods() != null) { %>
-                            <% for (final DataStorageMethod loopMethod : loopService.serviceInfo().getUsedStorageMethods()) { %>
+                            <% for (final DataStorageMethod loopMethod : loopService.getStorageMethod()) { %>
                             <%=loopMethod.toString()%>
                             <br/>
                             <% } %>
-                            <% } %>
                         </td>
                         <td>
-                            <% if (healthRecords != null && !healthRecords.isEmpty()) { %>
-                            <% for (final HealthRecord loopRecord : healthRecords) { %>
+                            <% if (!JavaHelper.isEmpty(loopService.getHealth())) { %>
+                            <% for (final HealthRecord loopRecord : loopService.getHealth()) { %>
                             <%= loopRecord.getTopic(locale, dashboard_pwmApplication.getConfig()) %> - <%= loopRecord.getStatus().toString() %> - <%= loopRecord.getDetail(locale,
                                 dashboard_pwmApplication.getConfig()) %>
                             <br/>
@@ -356,155 +280,27 @@
             <div id="LocalDBTab" data-dojo-type="dijit.layout.ContentPane" title="LocalDB" class="tabContent">
                 <div style="max-height: 400px; overflow: auto;">
                     <table class="nomargin">
+                        <% for (final AppDashboardData.DataElement dataElement : appDashboardData.getLocalDbInfo()) { %>
                         <tr>
                             <td class="key">
-                                Word List Dictionary Size
+                                <%= dataElement.getLabel() %>
                             </td>
+                            <% if (dataElement.getType() == AppDashboardData.Type.timestamp) { %>
+                            <td class="timestamp">
+                                <%= StringUtil.escapeHtml(dataElement.getValue()) %>
+                            </td>
+                            <% } else { %>
                             <td>
-                                <%= numberFormat.format(dashboard_pwmApplication.getWordlistManager().size()) %>
+                                <%= StringUtil.escapeHtml(dataElement.getValue()) %>
                             </td>
+                            <% } %>
                         </tr>
-                        <tr>
-                            <td class="key">
-                                Seed List Size
-                            </td>
-                            <td>
-                                <%= numberFormat.format(dashboard_pwmApplication.getSeedlistManager().size()) %>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="key">
-                                Shared Password History Size
-                            </td>
-                            <td>
-                                <%= numberFormat.format(dashboard_pwmApplication.getSharedHistoryManager().size()) %>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="key">
-                                Email Queue Size
-                            </td>
-                            <td>
-                                <%= dashboard_pwmApplication.getEmailQueue().queueSize() %>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="key">
-                                SMS Queue Size
-                            </td>
-                            <td>
-                                <%= dashboard_pwmApplication.getSmsQueue().queueSize() %>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="key">
-                                Syslog Queue Size
-                            </td>
-                            <td>
-                                <%= dashboard_pwmApplication.getAuditManager().syslogQueueSize() %>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="key">
-                                Local Audit Records
-                            </td>
-                            <td>
-                                <%= dashboard_pwmApplication.getAuditManager().sizeToDebugString() %>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="key">
-                                Oldest Local Audit Records
-                            </td>
-                            <td>
-                                <% final Instant eldestAuditRecord = dashboard_pwmApplication.getAuditManager().eldestVaultRecord(); %>
-                                <%= eldestAuditRecord != null
-                                        ? TimeDuration.fromCurrent(eldestAuditRecord).asLongString()
-                                        : JspUtility.getMessage(pageContext, Display.Value_NotApplicable)
-                                %>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="key">
-                                Log Events in LocalDB
-                            </td>
-                            <td>
-                                <%= dashboard_pwmApplication.getLocalDBLogger().sizeToDebugString() %>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="key">
-                                Oldest Log Event in LocalDB
-                            </td>
-                            <td>
-                                <%= dashboard_pwmApplication.getLocalDBLogger() != null && dashboard_pwmApplication.getLocalDBLogger().getTailDate() != null
-                                        ? TimeDuration.fromCurrent(dashboard_pwmApplication.getLocalDBLogger().getTailDate()).asLongString()
-                                        : JspUtility.getMessage(pageContext, Display.Value_NotApplicable)
-                                %>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="key">
-                                Oldest Shared Password Entry
-                            </td>
-                            <td>
-                                <% final Date oldestEntryAge = dashboard_pwmApplication.getSharedHistoryManager().getOldestEntryTime(); %>
-                                <%= oldestEntryAge == null ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable) : TimeDuration.fromCurrent(oldestEntryAge).asCompactString() %>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="key">
-                                LocalDB Size On Disk
-                            </td>
-                            <td>
-                                <%= dashboard_pwmApplication.getLocalDB() == null
-                                        ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable)
-                                        : dashboard_pwmApplication.getLocalDB().getFileLocation() == null
-                                        ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable)
-                                        : StringUtil.formatDiskSize(FileSystemUtility.getFileDirectorySize(
-                                        dashboard_pwmApplication.getLocalDB().getFileLocation()))
-                                %>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="key">
-                                User Responses in LocalDB
-                            </td>
-                            <td>
-                                <%
-                                    String responseCount = JspUtility.getMessage(pageContext, Display.Value_NotApplicable);
-                                    try {
-                                        responseCount = String.valueOf(dashboard_pwmApplication.getLocalDB().size(LocalDB.DB.RESPONSE_STORAGE));
-                                    } catch (Exception e) { /* na */ }
-                                %>
-                                <%= responseCount %>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="key">
-                                LocalDB Free Space
-                            </td>
-                            <td>
-                                <%= dashboard_pwmApplication.getLocalDB() == null
-                                        ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable)
-                                        : dashboard_pwmApplication.getLocalDB().getFileLocation() == null
-                                        ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable)
-                                        : StringUtil.formatDiskSize(FileSystemUtility.diskSpaceRemaining(dashboard_pwmApplication.getLocalDB().getFileLocation())) %>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="key">
-                                Configuration Restart Counter
-                            </td>
-                            <td>
-                                <%= ContextManager.getContextManager(request.getSession()).getRestartCount() %>
-                            </td>
-                        </tr>
+                        <% } %>
                     </table>
                 </div>
-            </div>
-            <div id="LocalDBSizesTab" data-dojo-type="dijit.layout.ContentPane" title="LocalDB Sizes" class="tabContent">
-                <% if (dashboard_pwmApplication.getLocalDB() != null && dashboard_pwmRequest.readParameterAsBoolean("showLocalDBCounts")) { %>
+                <br/>
+                <div style="max-height: 400px; overflow: auto;">
+                <% if (!JavaHelper.isEmpty(appDashboardData.getLocalDbSizes())) { %>
                 <table class="nomargin">
                     <tr>
                         <td class="key">
@@ -514,13 +310,13 @@
                             Record Count
                         </td>
                     </tr>
-                    <% for (final LocalDB.DB loopDB : LocalDB.DB.values()) { %>
+                    <% for (final Map.Entry<LocalDB.DB,String> entry : appDashboardData.getLocalDbSizes().entrySet()) { %>
                     <tr>
                         <td style="text-align: right">
-                            <%= loopDB %>
+                            <%= entry.getKey() %>
                         </td>
                         <td>
-                            <%= numberFormat.format(dashboard_pwmApplication.getLocalDB().size(loopDB)) %>
+                            <%= entry.getValue() %>
                         </td>
                     </tr>
                     <% } %>
@@ -530,137 +326,29 @@
                     <a style="cursor: pointer" id="button-showLocalDBCounts">Show LocalDB record counts</a> (may be slow to load)
                 </div>
                 <% } %>
+                </div>
             </div>
             <div id="JavaTab" data-dojo-type="dijit.layout.ContentPane" title="Java" class="tabContent">
                 <table class="nomargin">
+                    <% for (final AppDashboardData.DataElement dataElement : appDashboardData.getJavaAbout()) { %>
                     <tr>
                         <td class="key">
-                            Java Vendor
+                            <%= dataElement.getLabel() %>
                         </td>
+                        <% if (dataElement.getType() == AppDashboardData.Type.timestamp) { %>
+                        <td class="timestamp">
+                            <%= StringUtil.escapeHtml(dataElement.getValue()) %>
+                        </td>
+                        <% } else { %>
                         <td>
-                            <%= System.getProperty("java.vm.vendor") %>
+                            <%= StringUtil.escapeHtml(dataElement.getValue()) %>
                         </td>
+                        <% } %>
                     </tr>
-                    <tr>
-                        <td class="key">
-                            Java Runtime Version
-                        </td>
-                        <td>
-                            <%= System.getProperty("java.runtime.version") %>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">
-                            Java VM Version
-                        </td>
-                        <td>
-                            <%= System.getProperty("java.vm.version") %>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">
-                            Java Name
-                        </td>
-                        <td>
-                            <%= System.getProperty("java.vm.name") %>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">
-                            Java Home
-                        </td>
-                        <td>
-                            <%= System.getProperty("java.home") %>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">
-                            OS Name
-                        </td>
-                        <td>
-                            <%= System.getProperty("os.name") %>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">
-                            OS Version
-                        </td>
-                        <td>
-                            <%= System.getProperty("os.version") %>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">
-                            Free Memory
-                        </td>
-                        <td>
-                            <%= numberFormat.format(Runtime.getRuntime().freeMemory()) %>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">
-                            Memory Allocated
-                        </td>
-                        <td>
-                            <%= numberFormat.format(Runtime.getRuntime().totalMemory()) %>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">
-                            Memory Limit
-                        </td>
-                        <td>
-                            <%= numberFormat.format(Runtime.getRuntime().maxMemory()) %>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">
-                            Threads
-                        </td>
-                        <td>
-                            <%= threads.length %>
-                        </td>
-                    </tr>
+                    <% } %>
                 </table>
-                <table class="nomargin">
-                    <tr>
-                        <td class="key">
-                            ResourceFileServlet Cache
-                        </td>
-                        <td>
-                            <%= numberFormat.format(dashboard_pwmApplication.getResourceServletService().itemsInCache()) %> items
-                            (<%= numberFormat.format(dashboard_pwmApplication.getResourceServletService().bytesInCache()) %> bytes)
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">
-                            ResourceFileServlet Cache Hit Ratio
-                        </td>
-                        <td>
-                            <%= dashboard_pwmApplication.getResourceServletService().cacheHitRatio().pretty(2) %>
-                        </td>
-                    </tr>
-                    <% final Map<SessionTrackService.DebugKey,String> debugInfoMap = sessionTrackService.getDebugData(); %>
-                    <tr>
-                        <td class="key">
-                            Session Total Size
-                        </td>
-                        <td>
-                            <%= numberFormat.format(Integer.valueOf(debugInfoMap.get(SessionTrackService.DebugKey.HttpSessionTotalSize))) %> bytes
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">
-                            Session Average Size
-                        </td>
-                        <td>
-                            <%= numberFormat.format(Integer.valueOf(debugInfoMap.get(SessionTrackService.DebugKey.HttpSessionAvgSize))) %> bytes
-                        </td>
-                    </tr>
-                </table>
-            </div>
-            <div id="ThreadsTab" data-dojo-type="dijit.layout.ContentPane" title="Threads" class="tabContent">
-                <% if (dashboard_pwmApplication.getLocalDB() != null && dashboard_pwmRequest.readParameterAsBoolean("showThreadDetails")) { %>
+                <br/>
+                <% if (!JavaHelper.isEmpty(appDashboardData.getThreads())) { %>
                 <div style="max-height: 400px; overflow: auto;">
                     <table class="nomargin">
                         <tr>
@@ -674,35 +362,28 @@
                                 State
                             </td>
                         </tr>
-                        <%
-                            try {
-                                for (final ThreadInfo t : threads) {
-                        %>
-                        <tr id="thread_<%=t.getThreadId()%>">
+                        <% for (final AppDashboardData.ThreadData threadData : appDashboardData.getThreads()) { %>
+                        <tr id="<%=threadData.getId()%>">
                             <td>
-                                <%= t.getThreadId() %>
+                                <%= threadData.getId() %>
                             </td>
                             <td>
-                                <%= t.getThreadName() != null ? t.getThreadName() : JspUtility.getMessage(pageContext, Display.Value_NotApplicable) %>
+                                <%= threadData.getName() %>
                             </td>
                             <td>
-                                <%= t.getThreadState().toString().toLowerCase() %>
+                                <%= threadData.getState() %>
                             </td>
                         </tr>
-                        <%
-                            final String threadTrace = JavaHelper.threadInfoToString(t);
-                        %>
                         <pwm:script>
                             <script type="application/javascript">
                                 PWM_GLOBAL['startupFunctions'].push(function(){
-                                    PWM_MAIN.addEventHandler('thread_<%=t.getThreadId()%>','click',function(){
-                                        PWM_MAIN.showDialog({class:'wide',title:'Thread <%=t.getThreadId()%>',text:'<pre>' +'<%=StringUtil.escapeJS(threadTrace)%>' + '</pre>'})
+                                    PWM_MAIN.addEventHandler('<%=threadData.getId()%>','click',function(){
+                                        PWM_MAIN.showDialog({class:'wide',title:'Thread <%=threadData.getId()%>',text:'<pre>' +'<%=StringUtil.escapeJS(threadData.getTrace())%>' + '</pre>'})
                                     });
                                 });
                             </script>
                         </pwm:script>
                         <% } %>
-                        <% } catch (Exception e) { /* */ } %>
                     </table>
                 </div>
                 <% } else { %>
@@ -711,7 +392,7 @@
                 </div>
                 <% } %>
             </div>
-            <% if (dashboard_pwmApplication.getClusterService().status() == PwmService.STATUS.OPEN) { %>
+            <% if (!JavaHelper.isEmpty(appDashboardData.getNodeData())) { %>
             <div id="Status" data-dojo-type="dijit.layout.ContentPane" title="Nodes" class="tabContent">
                 <div style="max-height: 400px; overflow: auto;">
                     <table class="nomargin">
@@ -732,39 +413,31 @@
                                 Config Match
                             </td>
                         </tr>
-                        <% for (final NodeInfo nodeInfo : dashboard_pwmApplication.getClusterService().nodes()) { %>
+                        <% for (final AppDashboardData.NodeData nodeData : appDashboardData.getNodeData()) { %>
                         <tr>
                             <td>
-                                <%= nodeInfo.getInstanceID()  %>
+                                <%= nodeData.getInstanceID()  %>
                             </td>
                             <td>
-                                <% if (nodeInfo.getStartupTime() == null) { %>
-                                <pwm:display key="Value_NotApplicable"/>
-                                <% } else { %>
-                                <%= TimeDuration.fromCurrent(nodeInfo.getStartupTime()).asLongString(dashboard_pwmRequest.getLocale()) %>
-                                <% } %>
+                                <%= nodeData.getUptime() %>
                             </td>
                             <td>
                                 <span class="timestamp">
-                                    <%= JspUtility.freindlyWrite(pageContext, nodeInfo.getLastSeen()) %>
+                                    <%= nodeData.getLastSeen() %>
                                 </span>
                             </td>
                             <td>
-                                <%= nodeInfo.getNodeState() %>
+                                <%= nodeData.getState() %>
                             </td>
                             <td>
-                                <%= JspUtility.freindlyWrite(pageContext, nodeInfo.isConfigMatch())%>
+                                <%= JspUtility.freindlyWrite(pageContext, nodeData.isConfigMatch())%>
                             </td>
                         </tr>
                         <% } %>
                     </table>
                     <br/>
                     <div class="footnote">
-                    <% if (dashboard_pwmApplication.getClusterService().isMaster()) { %>
-                    This node is the current master.
-                    <% } else { %>
-                    This node is not the current master.
-                    <% } %>
+                        <%=appDashboardData.getNodeSummary()%>
                     </div>
                 </div>
             </div>

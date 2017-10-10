@@ -1,0 +1,529 @@
+/*
+ * Password Management Servlets (PWM)
+ * http://www.pwm-project.org
+ *
+ * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2017 The PWM Project
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+package password.pwm.http.servlet.admin;
+
+import lombok.Builder;
+import lombok.Value;
+import password.pwm.PwmAboutProperty;
+import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
+import password.pwm.config.PwmSetting;
+import password.pwm.config.option.DataStorageMethod;
+import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.health.HealthRecord;
+import password.pwm.http.ContextManager;
+import password.pwm.i18n.Admin;
+import password.pwm.i18n.Display;
+import password.pwm.svc.PwmService;
+import password.pwm.svc.cluster.NodeInfo;
+import password.pwm.svc.sessiontrack.SessionTrackService;
+import password.pwm.util.LocaleHelper;
+import password.pwm.util.java.FileSystemUtility;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.PwmNumberFormat;
+import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.TimeDuration;
+import password.pwm.util.localdb.LocalDB;
+import password.pwm.util.localdb.LocalDBException;
+import password.pwm.util.logging.PwmLogger;
+
+import java.io.Serializable;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.TreeMap;
+
+
+@Value
+@Builder
+public class AppDashboardData implements Serializable {
+
+    private static final PwmLogger LOGGER = PwmLogger.forClass(AppDashboardData.class);
+
+    @Value
+    public static class DataElement implements Serializable {
+        private String key;
+        private Type type;
+        private String label;
+        private String value;
+    }
+
+    @Value
+    public static class ServiceData implements Serializable {
+        private String name;
+        private PwmService.STATUS status;
+        private Collection<DataStorageMethod> storageMethod;
+        private List<HealthRecord> health;
+        private Map<String, String> debugData;
+    }
+
+    @Value
+    public static class ThreadData implements Serializable {
+        private String id;
+        private String name;
+        private String state;
+        private String trace;
+    }
+
+    @Value
+    public static class NodeData implements Serializable {
+        private String instanceID;
+        private String uptime;
+        private String lastSeen;
+        private NodeInfo.NodeState state;
+        private boolean configMatch;
+    }
+
+    public enum Type {
+        string,
+        timestamp,
+        number,
+    }
+
+    public enum Flag {
+        IncludeLocalDbTableSizes,
+        ShowThreadData,
+    }
+
+    private List<DataElement> about;
+    private List<ServiceData> services;
+    private List<DataElement> localDbInfo;
+    private List<DataElement> javaAbout;
+    private List<ThreadData> threads;
+    private Map<LocalDB.DB, String> localDbSizes;
+    private List<NodeData> nodeData;
+    private String nodeSummary;
+    private int ldapConnectionCount;
+    private int sessionCount;
+
+
+    static AppDashboardData makeDashboardData(
+            final PwmApplication pwmApplication,
+            final ContextManager contextManager,
+            final Locale locale,
+            final Flag... flags
+    ) {
+        final Instant startTime = Instant.now();
+
+        final AppDashboardDataBuilder builder = AppDashboardData.builder();
+        builder.about(makeAboutData(pwmApplication, contextManager, locale));
+        builder.services(getServiceData(pwmApplication));
+        builder.localDbInfo(makeLocalDbInfo(pwmApplication, locale));
+        builder.javaAbout(makeAboutJavaData(pwmApplication, locale));
+
+        if (JavaHelper.enumArrayContainsValue(flags, Flag.IncludeLocalDbTableSizes)) {
+            builder.localDbSizes(makeLocalDbTableSizes(pwmApplication, locale));
+        } else {
+            builder.localDbSizes(Collections.emptyMap());
+        }
+
+        if (JavaHelper.enumArrayContainsValue(flags, Flag.ShowThreadData)) {
+            builder.threads(makeThreadInfo());
+        } else {
+            builder.threads(Collections.emptyList());
+        }
+
+        builder.nodeData = makeNodeData(pwmApplication, locale);
+        builder.nodeSummary = pwmApplication.getClusterService().isMaster()
+                ? "This node is the current master"
+                : "This node is not the current master";
+
+        builder.ldapConnectionCount(ldapConnectionCount(pwmApplication));
+        builder.sessionCount(pwmApplication.getSessionTrackService().sessionCount());
+
+        LOGGER.trace("AppDashboardData bean created in " + TimeDuration.compactFromCurrent(startTime));
+        return builder.build();
+    }
+
+    private static int ldapConnectionCount(final PwmApplication pwmApplication) {
+        return pwmApplication.getSessionTrackService().ldapConnectionCount()
+                + pwmApplication.getLdapConnectionService().connectionCount();
+    }
+
+    private static List<DataElement> makeAboutData(
+            final PwmApplication pwmApplication,
+            final ContextManager contextManager,
+            final Locale locale
+    ) {
+        final LocaleHelper.DisplayMaker l = new LocaleHelper.DisplayMaker(locale, Admin.class, pwmApplication);
+        final String NA_VALUE = Display.getLocalizedMessage(locale, Display.Value_NotApplicable, pwmApplication.getConfig());
+        final PwmNumberFormat numberFormat = PwmNumberFormat.forLocale(locale);
+
+        final List<DataElement> aboutData = new ArrayList<>();
+        aboutData.add(new DataElement(
+                "appVersion",
+                Type.string,
+                l.forKey("Field_AppVersion", PwmConstants.PWM_APP_NAME),
+                PwmConstants.SERVLET_VERSION
+        ));
+        aboutData.add(new DataElement(
+                "currentTime",
+                Type.timestamp,
+                l.forKey("Field_CurrentTime"),
+                JavaHelper.toIsoDate(Instant.now())
+        ));
+        aboutData.add(new DataElement(
+                "startupTime",
+                Type.timestamp,
+                l.forKey("Field_StartTime"),
+                JavaHelper.toIsoDate(pwmApplication.getStartupTime())
+        ));
+        aboutData.add(new DataElement(
+                "runningDuration",
+                Type.string,
+                l.forKey("Field_UpTime"),
+                TimeDuration.fromCurrent(pwmApplication.getStartupTime()).asLongString(locale)
+        ));
+        aboutData.add(new DataElement(
+                "installTime",
+                Type.timestamp,
+                l.forKey("Field_InstallTime"),
+                JavaHelper.toIsoDate(pwmApplication.getInstallTime())
+        ));
+        aboutData.add(new DataElement(
+                "siteURL",
+                Type.string,
+                l.forKey("Field_SiteURL"),
+                pwmApplication.getConfig().readSettingAsString(PwmSetting.PWM_SITE_URL)
+        ));
+        aboutData.add(new DataElement(
+                "instanceID",
+                Type.string,
+                l.forKey("Field_InstanceID"),
+                pwmApplication.getInstanceID()
+        ));
+        aboutData.add(new DataElement(
+                "configRestartCounter",
+                Type.number,
+                "Configuration Restart Counter",
+                contextManager == null ? NA_VALUE : numberFormat.format(contextManager.getRestartCount())
+        ));
+        aboutData.add(new DataElement(
+                "chaiApiVersion",
+                Type.string,
+                l.forKey("Field_ChaiAPIVersion"),
+                com.novell.ldapchai.ChaiConstant.CHAI_API_VERSION
+        ));
+
+        return Collections.unmodifiableList(aboutData);
+    }
+
+    private static List<ServiceData> getServiceData(final PwmApplication pwmApplication) {
+        final Map<String, ServiceData> returnData = new TreeMap<>();
+        for (final PwmService pwmService : pwmApplication.getPwmServices()) {
+            final PwmService.ServiceInfo serviceInfo = pwmService.serviceInfo();
+            final Collection<DataStorageMethod> storageMethods = serviceInfo == null
+                    ? Collections.emptyList()
+                    : serviceInfo.getUsedStorageMethods() == null
+                    ? Collections.emptyList()
+                    : serviceInfo.getUsedStorageMethods();
+
+            final Map<String, String> debugData = serviceInfo == null
+                    ? Collections.emptyMap()
+                    : serviceInfo.getDebugProperties() == null
+                    ? Collections.emptyMap()
+                    : serviceInfo.getDebugProperties();
+
+            returnData.put(pwmService.getClass().getSimpleName(), new ServiceData(
+                    pwmService.getClass().getSimpleName(),
+                    pwmService.status(),
+                    storageMethods,
+                    pwmService.healthCheck(),
+                    debugData
+            ));
+        }
+
+        return Collections.unmodifiableList(new ArrayList<>(returnData.values()));
+    }
+
+    private static List<DataElement> makeLocalDbInfo(final PwmApplication pwmApplication, final Locale locale) {
+        final List<DataElement> localDbInfo = new ArrayList<>();
+        final String NA_VALUE = Display.getLocalizedMessage(locale, Display.Value_NotApplicable, pwmApplication.getConfig());
+        final PwmNumberFormat numberFormat = PwmNumberFormat.forLocale(locale);
+
+        localDbInfo.add(new DataElement(
+                "worlistSize",
+                Type.number,
+                "Word List Dictionary Size",
+                numberFormat.format(pwmApplication.getWordlistManager().size())
+        ));
+        localDbInfo.add(new DataElement(
+                "seedlistSize",
+                Type.number,
+                "Seed List Dictionary Size",
+                numberFormat.format(pwmApplication.getSeedlistManager().size())
+        ));
+        localDbInfo.add(new DataElement(
+                "sharedHistorySize",
+                Type.number,
+                "Shared Password History Size",
+                numberFormat.format(pwmApplication.getSharedHistoryManager().size())
+        ));
+        {
+            final Date oldestEntryAge = pwmApplication.getSharedHistoryManager().getOldestEntryTime();
+            final String display = oldestEntryAge == null
+                    ? NA_VALUE
+                    : TimeDuration.fromCurrent(oldestEntryAge).asCompactString();
+            localDbInfo.add(new DataElement(
+                    "oldestSharedHistory",
+                    Type.string,
+                    "OldestShared Password Entry",
+                    display
+            ));
+        }
+        localDbInfo.add(new DataElement(
+                "emailQueueSize",
+                Type.number,
+                "Email Queue Size",
+                numberFormat.format(pwmApplication.getEmailQueue().queueSize())
+        ));
+        localDbInfo.add(new DataElement(
+                "smsQueueSize",
+                Type.number,
+                "SMS Queue Size",
+                numberFormat.format(pwmApplication.getSmsQueue().queueSize())
+        ));
+        localDbInfo.add(new DataElement(
+                "sharedHistorySize",
+                Type.number,
+                "Syslog Queue Size",
+                String.valueOf(pwmApplication.getAuditManager().syslogQueueSize())
+        ));
+        localDbInfo.add(new DataElement(
+                "localAuditRecords",
+                Type.number,
+                "Audit Records",
+                pwmApplication.getAuditManager().sizeToDebugString()
+        ));
+        {
+            final Instant eldestAuditRecord = pwmApplication.getAuditManager().eldestVaultRecord();
+            final String display = eldestAuditRecord != null
+                    ? TimeDuration.fromCurrent(eldestAuditRecord).asLongString()
+                    : NA_VALUE;
+            localDbInfo.add(new DataElement(
+                    "oldestLocalAuditRecords",
+                    Type.string,
+                    "Oldest Audit Record",
+                    display
+            ));
+        }
+        localDbInfo.add(new DataElement(
+                "logEvents",
+                Type.number,
+                "Log Events",
+                pwmApplication.getLocalDBLogger().sizeToDebugString()
+        ));
+        {
+            final String display = pwmApplication.getLocalDBLogger() != null && pwmApplication.getLocalDBLogger().getTailDate() != null
+                    ? TimeDuration.fromCurrent(pwmApplication.getLocalDBLogger().getTailDate()).asLongString()
+                    : NA_VALUE;
+            localDbInfo.add(new DataElement(
+                    "oldestLogEvents",
+                    Type.string,
+                    "Oldest Log Event",
+                    display
+            ));
+        }
+        {
+            final String display = pwmApplication.getLocalDB() == null
+                    ? NA_VALUE
+                    : pwmApplication.getLocalDB().getFileLocation() == null
+                    ? NA_VALUE
+                    : StringUtil.formatDiskSize(FileSystemUtility.getFileDirectorySize(
+                    pwmApplication.getLocalDB().getFileLocation()));
+            localDbInfo.add(new DataElement(
+                    "localDbSizeOnDisk",
+                    Type.string,
+                    "LocalDB Size On Disk",
+                    display
+            ));
+        }
+        {
+            final String display = pwmApplication.getLocalDB() == null
+                    ? NA_VALUE
+                    : pwmApplication.getLocalDB().getFileLocation() == null
+                    ? NA_VALUE
+                    : StringUtil.formatDiskSize(FileSystemUtility.diskSpaceRemaining(pwmApplication.getLocalDB().getFileLocation()));
+            localDbInfo.add(new DataElement(
+                    "localDbFreeSpace",
+                    Type.string,
+                    "LocalDB Free Space",
+                    display
+            ));
+        }
+
+        return Collections.unmodifiableList(localDbInfo);
+    }
+
+    private static Map<LocalDB.DB, String> makeLocalDbTableSizes(
+            final PwmApplication pwmApplication,
+            final Locale locale
+    ) {
+        final Map<LocalDB.DB, String> returnData = new LinkedHashMap<>();
+        final LocalDB localDB = pwmApplication.getLocalDB();
+        final PwmNumberFormat numberFormat = PwmNumberFormat.forLocale(locale);
+        try {
+            for (final LocalDB.DB db : LocalDB.DB.values()) {
+                returnData.put(db, numberFormat.format(localDB.size(db)));
+            }
+        } catch (LocalDBException e) {
+            LOGGER.error("error making localDB size bean: " + e.getMessage());
+        }
+        return Collections.unmodifiableMap(returnData);
+    }
+
+
+    private static List<DataElement> makeAboutJavaData(
+            final PwmApplication pwmApplication,
+            final Locale locale
+    ) {
+        final Map<PwmAboutProperty, String> aboutMap = PwmAboutProperty.makeInfoBean(pwmApplication);
+        final List<DataElement> javaInfo = new ArrayList<>();
+        final String NA_VALUE = Display.getLocalizedMessage(locale, Display.Value_NotApplicable, pwmApplication.getConfig());
+
+        {
+            final List<PwmAboutProperty> interestedProperties = Arrays.asList(
+                    PwmAboutProperty.java_vmName,
+                    PwmAboutProperty.java_vmVendor,
+                    PwmAboutProperty.java_vmVersion,
+                    PwmAboutProperty.java_runtimeVersion,
+                    PwmAboutProperty.java_vmLocation,
+                    PwmAboutProperty.java_appServerInfo,
+                    PwmAboutProperty.java_osName,
+                    PwmAboutProperty.java_osVersion,
+                    PwmAboutProperty.java_osArch,
+                    PwmAboutProperty.java_memoryFree,
+                    PwmAboutProperty.java_memoryAllocated,
+                    PwmAboutProperty.java_memoryMax,
+                    PwmAboutProperty.java_threadCount
+            );
+
+            for (final PwmAboutProperty property : interestedProperties) {
+                javaInfo.add(new DataElement(
+                        property.name(),
+                        Type.string,
+                        property.getLabel(),
+                        aboutMap.getOrDefault(property, NA_VALUE)
+                ));
+            }
+        }
+
+        {
+            final PwmNumberFormat numberFormat = PwmNumberFormat.forLocale(locale);
+
+            final String display = numberFormat.format(pwmApplication.getResourceServletService().itemsInCache())
+                    + "items (" + numberFormat.format(pwmApplication.getResourceServletService().bytesInCache()) + " bytes)";
+
+            javaInfo.add(new DataElement(
+                    "resourceFileServletCacheSize",
+                    Type.string,
+                    "ResourceFileServlet Cache",
+                    display
+            ));
+        }
+
+        javaInfo.add(new DataElement(
+                "resourceFileServletCacheHitRatio",
+                Type.string,
+                "ResourceFileServlet Cache Hit Ratio",
+                pwmApplication.getResourceServletService().cacheHitRatio().pretty(2)
+        ));
+
+        {
+            final Map<SessionTrackService.DebugKey, String> debugInfoMap = pwmApplication.getSessionTrackService().getDebugData();
+
+            javaInfo.add(new DataElement(
+                    "sessionTotalSize",
+                    Type.string,
+                    "Estimated Session Total Size",
+                    debugInfoMap.get(SessionTrackService.DebugKey.HttpSessionTotalSize)
+            ));
+
+            javaInfo.add(new DataElement(
+                    "sessionAverageSize",
+                    Type.string,
+                    "Estimated Session Total Size",
+                    debugInfoMap.get(SessionTrackService.DebugKey.HttpSessionAvgSize)
+            ));
+        }
+
+        return Collections.unmodifiableList(javaInfo);
+    }
+
+    private static List<ThreadData> makeThreadInfo() {
+        final Map<Long, ThreadData> returnData = new TreeMap<>();
+        final ThreadInfo[] threads = ManagementFactory.getThreadMXBean().dumpAllThreads(true, true);
+        for (final ThreadInfo threadInfo : threads) {
+            returnData.put(threadInfo.getThreadId(), new ThreadData(
+                    "thread-" + Long.toString(threadInfo.getThreadId()),
+                    threadInfo.getThreadName(),
+                    threadInfo.getThreadState().toString().toLowerCase(),
+                    JavaHelper.threadInfoToString(threadInfo)
+            ));
+        }
+        return Collections.unmodifiableList(new ArrayList<>(returnData.values()));
+    }
+
+    private static List<NodeData> makeNodeData(
+            final PwmApplication pwmApplication,
+            final Locale locale
+    )
+    {
+        if (pwmApplication.getClusterService().status() == PwmService.STATUS.OPEN) {
+            return Collections.emptyList();
+        }
+
+        final String NA_VALUE = Display.getLocalizedMessage(locale, Display.Value_NotApplicable, pwmApplication.getConfig());
+        final List<NodeData> nodeData = new ArrayList<>();
+
+        try {
+            for (final NodeInfo nodeInfo : pwmApplication.getClusterService().nodes()) {
+
+                final String uptime = nodeInfo.getStartupTime() == null
+                        ? NA_VALUE
+                        : TimeDuration.fromCurrent(nodeInfo.getStartupTime()).asLongString(locale);
+
+                nodeData.add(new NodeData(
+                        nodeInfo.getInstanceID(),
+                        uptime,
+                        JavaHelper.toIsoDate(nodeInfo.getLastSeen()),
+                        nodeInfo.getNodeState(),
+                        nodeInfo.isConfigMatch()
+                ));
+            }
+        } catch (PwmUnrecoverableException e) {
+            LOGGER.trace("error building AppDashboardData node-state: " + e.getMessage());
+        }
+
+        return Collections.unmodifiableList(nodeData);
+    }
+}

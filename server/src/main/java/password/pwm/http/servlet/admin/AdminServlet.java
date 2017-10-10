@@ -532,6 +532,25 @@ public class AdminServlet extends ControlledPwmServlet {
             return;
         }
 
+        if (currentPage == Page.dashboard) {
+            final List<AppDashboardData.Flag> flags = new ArrayList<>();
+            if (pwmRequest.readParameterAsBoolean("showLocalDBCounts")) {
+                flags.add(AppDashboardData.Flag.IncludeLocalDbTableSizes);
+            }
+
+            if (pwmRequest.readParameterAsBoolean("showThreadDetails")) {
+                flags.add(AppDashboardData.Flag.ShowThreadData);
+            }
+
+            final AppDashboardData appDashboardData = AppDashboardData.makeDashboardData(
+                    pwmRequest.getPwmApplication(),
+                    pwmRequest.getContextManager(),
+                    pwmRequest.getLocale(),
+                    flags.toArray(new AppDashboardData.Flag[flags.size()])
+            );
+            pwmRequest.setAttribute(PwmRequestAttribute.AppDashboardData, appDashboardData);
+        }
+
         if (currentPage != null) {
             pwmRequest.forwardToJsp(currentPage.getJspURL());
             return;

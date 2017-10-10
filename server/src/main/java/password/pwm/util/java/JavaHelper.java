@@ -54,6 +54,7 @@ import java.util.Enumeration;
 import java.util.GregorianCalendar;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.TimeZone;
 import java.util.TreeSet;
@@ -452,5 +453,13 @@ public class JavaHelper {
         final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         copyWhilePredicate(inputStream, byteArrayOutputStream, o -> true);
         return byteArrayOutputStream.toString(PwmConstants.DEFAULT_CHARSET.name());
+    }
+
+    public static boolean isEmpty(final Collection collection) {
+        return collection == null ? true : collection.isEmpty();
+    }
+
+    public static boolean isEmpty(final Map map) {
+        return map == null ? true : map.isEmpty();
     }
 }
