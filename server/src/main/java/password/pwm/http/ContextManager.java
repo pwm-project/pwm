@@ -139,13 +139,6 @@ public class ContextManager implements Serializable {
             outputError("unable to set default locale as Java machine default locale: " + e.getMessage());
         }
 
-        final EnvironmentTest[] tests = new EnvironmentTest[]{
-                new JavaVersionCheck(),
-        };
-        for (final EnvironmentTest doTest : tests) {
-            startupErrorInformation = doTest.doTest();
-        }
-
         Configuration configuration = null;
         PwmApplicationMode mode = PwmApplicationMode.ERROR;
 
@@ -347,25 +340,6 @@ public class ContextManager implements Serializable {
 
     public ErrorInformation getStartupErrorInformation() {
         return startupErrorInformation;
-    }
-
-    private interface EnvironmentTest {
-        ErrorInformation doTest();
-    }
-
-    private static class JavaVersionCheck implements EnvironmentTest {
-        public ErrorInformation doTest() {
-            String stringVersion = java.lang.System.getProperty("java.version");
-            stringVersion = stringVersion.substring(0, 3);
-            final Float f = Float.valueOf(stringVersion);
-            if (f < PwmConstants.JAVA_MINIMUM_VERSION) {
-                final String errorMsg = "the minimum java version required is Java v" + PwmConstants.JAVA_MINIMUM_VERSION;
-                outputError(errorMsg);
-                LOGGER.fatal(errorMsg);
-                return new ErrorInformation(PwmError.ERROR_APP_UNAVAILABLE, errorMsg);
-            }
-            return null;
-        }
     }
 
     public int getRestartCount()

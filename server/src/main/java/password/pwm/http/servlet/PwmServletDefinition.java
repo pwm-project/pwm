@@ -39,6 +39,7 @@ import password.pwm.http.bean.SetupOtpBean;
 import password.pwm.http.bean.SetupResponsesBean;
 import password.pwm.http.bean.ShortcutsBean;
 import password.pwm.http.bean.UpdateProfileBean;
+import password.pwm.http.servlet.accountinfo.AccountInformationServlet;
 import password.pwm.http.servlet.admin.AdminServlet;
 import password.pwm.http.servlet.changepw.PrivateChangePasswordServlet;
 import password.pwm.http.servlet.changepw.PublicChangePasswordServlet;

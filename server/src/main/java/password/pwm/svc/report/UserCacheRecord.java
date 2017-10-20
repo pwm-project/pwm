@@ -104,7 +104,7 @@ public class UserCacheRecord implements Serializable {
 
         this.setHasOtpSecret(userInfo.getOtpUserRecord() != null);
         this.setOtpSecretSetTime(userInfo.getOtpUserRecord() != null && userInfo.getOtpUserRecord().getTimestamp() != null
-                        ? userInfo.getOtpUserRecord().getTimestamp().toInstant()
+                        ? userInfo.getOtpUserRecord().getTimestamp()
                         : null
         );
 

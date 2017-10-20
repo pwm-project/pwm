@@ -45,6 +45,8 @@ public enum PwmRequestAttribute {
     FormMobileDevices,
     FormCustomLinks,
 
+    AccountInfo,
+
     SetupResponses_ResponseInfo,
 
     SetupOtp_QrCodeValue,

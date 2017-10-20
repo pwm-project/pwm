@@ -23,15 +23,15 @@
 package password.pwm.util.operations.otp;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public class OTPUserRecord implements Serializable {
 
     private static final String CURRENT_VERSION = "1";
 
-    private Date timestamp = new Date();
+    private Instant timestamp = Instant.now();
     private String identifier;
     private String secret;
     private List<RecoveryCode> recoveryCodes = new ArrayList<>();
@@ -140,12 +140,12 @@ public class OTPUserRecord implements Serializable {
         this.type = type;
     }
 
-    public Date getTimestamp()
+    public Instant getTimestamp()
     {
         return timestamp;
     }
 
-    public void setTimestamp(final Date timestamp)
+    public void setTimestamp(final Instant timestamp)
     {
         this.timestamp = timestamp;
     }

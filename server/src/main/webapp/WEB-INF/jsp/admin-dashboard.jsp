@@ -35,6 +35,7 @@
 <%@ page import="password.pwm.svc.stats.EpsStatistic" %>
 <%@ page import="password.pwm.http.servlet.admin.AppDashboardData" %>
 <%@ page import="password.pwm.http.PwmRequestAttribute" %>
+<%@ page import="password.pwm.http.bean.DisplayElement" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html" %>
@@ -162,21 +163,9 @@
             <div id="AboutTab" data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_About" bundle="Admin"/>" class="tabContent">
                 <div style="max-height: 400px; overflow: auto;">
                     <table class="nomargin">
-                        <% for (final AppDashboardData.DataElement dataElement : appDashboardData.getAbout()) { %>
-                        <tr>
-                            <td class="key">
-                                <%= dataElement.getLabel() %>
-                            </td>
-                            <% if (dataElement.getType() == AppDashboardData.Type.timestamp) { %>
-                            <td class="timestamp">
-                                <%= StringUtil.escapeHtml(dataElement.getValue()) %>
-                            </td>
-                            <% } else { %>
-                            <td>
-                                <%= StringUtil.escapeHtml(dataElement.getValue()) %>
-                            </td>
-                            <% } %>
-                        </tr>
+                        <% for (final DisplayElement displayElement : appDashboardData.getAbout()) { %>
+                        <% request.setAttribute("displayElement", displayElement); %>
+                        <jsp:include page="fragment/displayelement-row.jsp"/>
                         <% } %>
                         <tr>
                             <td class="key">
@@ -280,21 +269,9 @@
             <div id="LocalDBTab" data-dojo-type="dijit.layout.ContentPane" title="LocalDB" class="tabContent">
                 <div style="max-height: 400px; overflow: auto;">
                     <table class="nomargin">
-                        <% for (final AppDashboardData.DataElement dataElement : appDashboardData.getLocalDbInfo()) { %>
-                        <tr>
-                            <td class="key">
-                                <%= dataElement.getLabel() %>
-                            </td>
-                            <% if (dataElement.getType() == AppDashboardData.Type.timestamp) { %>
-                            <td class="timestamp">
-                                <%= StringUtil.escapeHtml(dataElement.getValue()) %>
-                            </td>
-                            <% } else { %>
-                            <td>
-                                <%= StringUtil.escapeHtml(dataElement.getValue()) %>
-                            </td>
-                            <% } %>
-                        </tr>
+                        <% for (final DisplayElement displayElement : appDashboardData.getLocalDbInfo()) { %>
+                        <% request.setAttribute("displayElement", displayElement); %>
+                        <jsp:include page="fragment/displayelement-row.jsp"/>
                         <% } %>
                     </table>
                 </div>
@@ -330,21 +307,9 @@
             </div>
             <div id="JavaTab" data-dojo-type="dijit.layout.ContentPane" title="Java" class="tabContent">
                 <table class="nomargin">
-                    <% for (final AppDashboardData.DataElement dataElement : appDashboardData.getJavaAbout()) { %>
-                    <tr>
-                        <td class="key">
-                            <%= dataElement.getLabel() %>
-                        </td>
-                        <% if (dataElement.getType() == AppDashboardData.Type.timestamp) { %>
-                        <td class="timestamp">
-                            <%= StringUtil.escapeHtml(dataElement.getValue()) %>
-                        </td>
-                        <% } else { %>
-                        <td>
-                            <%= StringUtil.escapeHtml(dataElement.getValue()) %>
-                        </td>
-                        <% } %>
-                    </tr>
+                    <% for (final DisplayElement displayElement : appDashboardData.getJavaAbout()) { %>
+                    <% request.setAttribute("displayElement", displayElement); %>
+                    <jsp:include page="fragment/displayelement-row.jsp"/>
                     <% } %>
                 </table>
                 <br/>
