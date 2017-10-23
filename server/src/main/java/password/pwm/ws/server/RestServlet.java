@@ -105,7 +105,7 @@ public abstract class RestServlet extends HttpServlet{
 
             final RestRequest restRequest = RestRequest.forRequest(pwmApplication, restAuthentication, sessionLabel, req);
 
-            checkRestServiceClassPermissions(restRequest);
+            preCheck(restRequest);
 
             preCheckRequest(restRequest);
 
@@ -157,6 +157,8 @@ public abstract class RestServlet extends HttpServlet{
         final HttpContentType reqContent = restRequest.readContentType();
         final HttpContentType reqAccept = restRequest.readAcceptType();
 
+        final boolean careAboutContentType = reqMethod.isHasBody();
+
         final MethodMatcher anyMatch = new MethodMatcher();
 
         final Collection<Method> methods = JavaHelper.getAllMethodsForClass(clazz);
@@ -170,7 +172,7 @@ public abstract class RestServlet extends HttpServlet{
                     anyMatch.setMethodMatch(true);
                 }
 
-                if (annotation.consumes().length == 0 || Arrays.asList(annotation.consumes()).contains(reqContent)) {
+                if (!careAboutContentType || annotation.consumes().length == 0 || Arrays.asList(annotation.consumes()).contains(reqContent)) {
                     loopMatch.setContentMatch(true);
                     anyMatch.setContentMatch(true);
                 }
@@ -204,7 +206,7 @@ public abstract class RestServlet extends HttpServlet{
         throw PwmUnrecoverableException.newException(PwmError.ERROR_REST_INVOCATION_ERROR, errorMsg);
     }
 
-    private void checkRestServiceClassPermissions(final RestRequest restRequest)
+    private void preCheck(final RestRequest restRequest)
             throws PwmUnrecoverableException
     {
         final RestWebServer classAnnotation = this.getClass().getDeclaredAnnotation(RestWebServer.class);
@@ -216,8 +218,17 @@ public abstract class RestServlet extends HttpServlet{
             throw PwmUnrecoverableException.newException(PwmError.ERROR_UNAUTHORIZED, "access to " + classAnnotation.webService() + " service is not permitted for this login");
         }
 
-        if (restRequest.getRestAuthentication().getType() == RestAuthenticationType.PUBLIC) {
-            throw PwmUnrecoverableException.newException(PwmError.ERROR_UNAUTHORIZED, "this service requires authentication");
+        if (classAnnotation.requireAuthentication()) {
+            if (restRequest.getRestAuthentication().getType() == RestAuthenticationType.PUBLIC) {
+                throw PwmUnrecoverableException.newException(PwmError.ERROR_UNAUTHORIZED, "this service requires authentication");
+            }
+        }
+
+        if (restRequest.getMethod().isHasBody()) {
+            if (restRequest.readContentType() == null) {
+                final String message = restRequest.getMethod() + " method requires " + HttpHeader.Content_Type.getHttpName() + " header";
+                throw PwmUnrecoverableException.newException(PwmError.ERROR_UNAUTHORIZED, message);
+            }
         }
     }
 
@@ -230,7 +241,7 @@ public abstract class RestServlet extends HttpServlet{
     )
             throws IOException
     {
-        final HttpContentType acceptType = HttpContentType.fromContentTypeHeader(request.getHeader(HttpHeader.Accept.getHttpName()));
+        final HttpContentType acceptType = RestRequest.readAcceptType(request);
         resp.setHeader(HttpHeader.Server.getHttpName(), PwmConstants.PWM_APP_NAME);
 
         if (acceptType != null) {
@@ -258,12 +269,17 @@ public abstract class RestServlet extends HttpServlet{
                 break;
 
                 default: {
-                    final String msg = "unhandled " + HttpHeader.Content_Type.getHttpName() + " header value in request";
+                    final String msg = "unhandled " + HttpHeader.Accept.getHttpName() + " header value in request";
                     outputLastHopeError(msg, resp);
                 }
             }
         } else {
-            final String msg = "unknown " + HttpHeader.Content_Type.getHttpName() + " header value in request";
+            final String msg;
+            if (StringUtil.isEmpty(request.getHeader(HttpHeader.Accept.getHttpName()))) {
+                msg = "missing " + HttpHeader.Accept.getHttpName() + " header value in request";
+            } else {
+                msg = "unknown value for " + HttpHeader.Accept.getHttpName() + " header value in request";
+            }
             outputLastHopeError(msg, resp);
         }
     }

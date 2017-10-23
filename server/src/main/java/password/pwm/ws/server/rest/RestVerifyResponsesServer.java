@@ -33,6 +33,7 @@ import password.pwm.config.option.WebServiceUsage;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
+import password.pwm.i18n.Message;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -108,7 +109,7 @@ public class RestVerifyResponsesServer extends RestServlet {
 
             final boolean verified = responseSet.test(jsonInput.toCrMap());
 
-            final RestResultBean restResultBean = RestResultBean.withData(verified);
+            final RestResultBean restResultBean = RestResultBean.forSuccessMessage(verified, restRequest, Message.Success_Unknown);
 
             LOGGER.debug(restRequest.getSessionLabel(), "completed /verifyresponses REST service in "
                     + TimeDuration.fromCurrent(startTime).asCompactString()

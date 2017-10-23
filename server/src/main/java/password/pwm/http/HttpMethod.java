@@ -23,17 +23,19 @@
 package password.pwm.http;
 
 public enum HttpMethod {
-    POST(false),
-    GET(true),
-    DELETE(false),
-    PUT(false),
-    PATCH(false),
+    POST(   false,  true),
+    GET(    true,   false),
+    DELETE( false,  true),
+    PUT(    false,  true),
+    PATCH(  false,  true),
 
     ;
 
     private final boolean idempotent;
+    private final boolean hasBody;
 
-    HttpMethod(final boolean idempotent) {
+    HttpMethod(final boolean idempotent, final boolean hasBody) {
+        this.hasBody = hasBody;
         this.idempotent = idempotent;
     }
 
@@ -48,5 +50,9 @@ public enum HttpMethod {
 
     public boolean isIdempotent() {
         return idempotent;
+    }
+
+    public boolean isHasBody() {
+        return hasBody;
     }
 }

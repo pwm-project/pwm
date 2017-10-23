@@ -22,6 +22,7 @@
 
 package password.pwm.http.tag;
 
+import password.pwm.PwmConstants;
 import password.pwm.http.JspUtility;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.tag.url.PwmUrlTag;
@@ -51,6 +52,7 @@ public class PwmScriptRefTag extends TagSupport {
             final String cspNonce = pwmRequest.getCspNonce();
 
             String url = getUrl();
+            url = convertUrl(url);
             url = PwmUrlTag.insertContext(pageContext,url);
             url = PwmUrlTag.insertResourceNonce(pwmRequest.getPwmApplication(), url);
 
@@ -62,4 +64,12 @@ public class PwmScriptRefTag extends TagSupport {
         return EVAL_PAGE;
     }
 
+    private String convertUrl(final String input) {
+        final String pwmClientUrl = "/resources/webjars/pwm-client/";
+        if (input.contains(pwmClientUrl)) {
+            final String correctedUrl = "/resources/webjars/" + PwmConstants.PWM_APP_NAME.toLowerCase() + "-client/";
+            return input.replace(pwmClientUrl, correctedUrl);
+        }
+        return input;
+    }
 }
