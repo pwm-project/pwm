@@ -42,7 +42,7 @@ public class EventRateMeter implements Serializable {
         reset();
     }
 
-    public void reset() {
+    public synchronized void reset() {
         movingAverage = new MovingAverage(maxDuration.getTotalMilliseconds());
         remainder = 0;
     }
@@ -58,7 +58,7 @@ public class EventRateMeter implements Serializable {
         }
     }
 
-    public BigDecimal readEventRate() {
+    public synchronized BigDecimal readEventRate() {
         return new BigDecimal(this.movingAverage.getAverage());
     }
 

@@ -247,8 +247,9 @@ public class UserSearchEngine implements PwmService {
         );
         final boolean resultsExceeded = searchResults.size() > maxResults;
         final Map<UserIdentity,Map<String,String>> returnData = new LinkedHashMap<>();
-        for (final UserIdentity loopUser : searchResults.keySet()) {
-            returnData.put(loopUser, searchResults.get(loopUser));
+        for (final Map.Entry<UserIdentity,Map<String,String>> entry : searchResults.entrySet()) {
+            final UserIdentity loopUser = entry.getKey();
+            returnData.put(loopUser, entry.getValue());
             if (returnData.size() >= maxResults) {
                 break;
             }
@@ -280,7 +281,7 @@ public class UserSearchEngine implements PwmService {
 
         final List<String> errors = new ArrayList<>();
 
-        final long profileRetryDelayMS = Long.valueOf(pwmApplication.getConfig().readAppProperty(AppProperty.LDAP_PROFILE_RETRY_DELAY));
+        final long profileRetryDelayMS = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.LDAP_PROFILE_RETRY_DELAY));
 
         final List<UserSearchJob> searchJobs = new ArrayList<>();
         for (final LdapProfile ldapProfile : ldapProfiles) {
@@ -461,9 +462,10 @@ public class UserSearchEngine implements PwmService {
         log(PwmLogLevel.TRACE, sessionLabel, searchID, jobID, "found " + results.size() + " results in " + searchDuration.asCompactString() + "; " + debugInfo);
 
         final Map<UserIdentity,Map<String,String>> returnMap = new LinkedHashMap<>();
-        for (final String userDN : results.keySet()) {
+        for (final Map.Entry<String,Map<String,String>> entry : results.entrySet()) {
+            final String userDN = entry.getKey();
+            final Map<String,String> attributeMap = entry.getValue();
             final UserIdentity userIdentity = new UserIdentity(userDN, userSearchJob.getLdapProfile().getIdentifier());
-            final Map<String,String> attributeMap = results.get(userDN);
             returnMap.put(userIdentity, attributeMap);
         }
         return returnMap;
@@ -745,9 +747,10 @@ public class UserSearchEngine implements PwmService {
     {
         String newSearchFilter = searchFilter;
 
-        for (final FormConfiguration formItem : formValues.keySet()) {
+        for (final Map.Entry<FormConfiguration,String> entry : formValues.entrySet()) {
+            final FormConfiguration formItem = entry.getKey();
             final String attrName = "%" + formItem.getName() + "%";
-            String value = formValues.get(formItem);
+            String value = entry.getValue();
             if (enableValueEscaping) {
                 value = StringUtil.escapeLdapFilter(value);
             }

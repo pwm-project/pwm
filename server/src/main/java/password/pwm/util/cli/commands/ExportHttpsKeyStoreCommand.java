@@ -49,9 +49,11 @@ public class ExportHttpsKeyStoreCommand extends AbstractCliCommand {
         final String alias = (String)cliEnvironment.getOptions().get(ALIAS_OPTIONNAME);
 
         final KeyStore keyStore = HttpsServerCertificateManager.keyStoreForApplication(cliEnvironment.getPwmApplication(), new PasswordData(password), alias);
-        final FileOutputStream fos = new FileOutputStream(outputFile);
-        keyStore.store(fos,password.toCharArray());
-        fos.close();
+
+        try (FileOutputStream fos = new FileOutputStream(outputFile)) {
+            keyStore.store(fos,password.toCharArray());
+            fos.close();
+        }
 
         out("successfully exported java keystore to " + outputFile.getAbsolutePath());
     }

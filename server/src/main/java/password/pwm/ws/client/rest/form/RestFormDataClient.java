@@ -89,9 +89,7 @@ public class RestFormDataClient {
                     ? webServiceConfigurations.iterator().next().getHeaders()
                     : Collections.emptyMap();
 
-            for (final String headerName : configuredHeaders.keySet()) {
-                httpHeaders.put(headerName, configuredHeaders.get(headerName));
-            }
+            httpHeaders.putAll(configuredHeaders);
         }
 
         final String jsonRequestBody = JsonUtil.serialize(formDataRequestBean);
@@ -129,14 +127,14 @@ public class RestFormDataClient {
     {
         final List<RemoteWebServiceConfiguration> webServiceConfigurations = configuration.readSettingAsRemoteWebService(PwmSetting.EXTERNAL_REMOTE_DATA_URL);
 
-        final X509Certificate[] certificates;
+        final List<X509Certificate> certificates;
         certificates = webServiceConfigurations != null && !webServiceConfigurations.isEmpty()
                 ? webServiceConfigurations.iterator().next().getCertificates()
                 : null;
 
-        final PwmHttpClientConfiguration pwmHttpClientConfiguration = new PwmHttpClientConfiguration.Builder()
-                .setCertificate(certificates)
-                .create();
+        final PwmHttpClientConfiguration pwmHttpClientConfiguration = PwmHttpClientConfiguration.builder()
+                .certificates(certificates)
+                .build();
         return new PwmHttpClient(pwmApplication, null, pwmHttpClientConfiguration);
     }
 

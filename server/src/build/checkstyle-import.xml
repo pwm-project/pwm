@@ -67,6 +67,7 @@
     <allow pkg="com.novell.ldap"/>
     <allow pkg="java.security"/>
     <allow pkg="javax.swing"/>
+    <allow pkg="javax.annotation"/>
     <allow pkg="java.awt"/>
     <allow pkg="javax.security"/>
     <allow pkg="eu.bitwalker.useragentutils"/>
@@ -80,7 +81,11 @@
     <allow pkg="lombok"/>
     <allow pkg="com.github.benmanes.caffeine"/>
 
-    <allow pkg="sun.management"/>
+    <allow pkg="edu.umd.cs.findbugs.annotations"/>
+
+    <subpackage name="password.pwm.util">
+        <allow pkg="sun.management"/>
+    </subpackage>
 
 
     <!--servlet -->

@@ -82,11 +82,12 @@ public class LdapBrowser {
             final Map<String, Boolean> childDNs = new TreeMap<>();
             childDNs.putAll(getChildEntries(profileID, dn));
 
-            for (final String childDN : childDNs.keySet()) {
+            for (final Map.Entry<String, Boolean> entry : childDNs.entrySet()) {
+                final String childDN = entry.getKey();
                 final DNInformation dnInformation = new DNInformation();
                 dnInformation.setDn(childDN);
                 dnInformation.setEntryName(entryNameFromDN(childDN));
-                if (childDNs.get(childDN)) {
+                if (entry.getValue()) {
                     result.getNavigableDNlist().add(dnInformation);
                 } else {
                     result.getSelectableDNlist().add(dnInformation);
@@ -166,16 +167,19 @@ public class LdapBrowser {
                 results = chaiProvider.searchMultiValues(dn, searchHelper);
 
             }
-            for (final String resultDN : results.keySet()) {
+
+            for (final Map.Entry<String, Map<String, List<String>>> entry : results.entrySet()) {
+                final String resultDN = entry.getKey();
+                final Map<String, List<String>> attributeResults = entry.getValue();
                 boolean hasSubs = false;
-                if (results.get(resultDN).containsKey("subordinateCount")) { // only eDir actually returns this operational attribute
-                    final Integer subordinateCount = Integer.parseInt(results.get(resultDN).get("subordinateCount").iterator().next());
+                if (attributeResults.containsKey("subordinateCount")) { // only eDir actually returns this operational attribute
+                    final Integer subordinateCount = Integer.parseInt(attributeResults.get("subordinateCount").iterator().next());
                     hasSubs = subordinateCount > 0;
                 } else {
                     final SearchHelper searchHelper = new SearchHelper();
                     searchHelper.setFilter("(objectclass=*)");
                     searchHelper.setMaxResults(1);
-                    searchHelper.setAttributes(Collections.<String>emptyList());
+                    searchHelper.setAttributes(Collections.emptyList());
                     searchHelper.setSearchScope(ChaiProvider.SEARCH_SCOPE.ONE);
                     try {
                         final Map<String, Map<String, String>> subSearchResults = chaiProvider.search(resultDN, searchHelper);
@@ -211,7 +215,7 @@ public class LdapBrowser {
         return dn.substring(start,end);
     }
 
-    public class LdapBrowseResult implements Serializable {
+    public static class LdapBrowseResult implements Serializable {
         private String dn;
         private String profileID;
         private String parentDN;

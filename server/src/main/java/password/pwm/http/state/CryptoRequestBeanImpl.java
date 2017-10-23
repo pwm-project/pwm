@@ -74,7 +74,6 @@ public class CryptoRequestBeanImpl implements SessionBeanProvider {
         if (cachedMap.size() > 1) {
             throw new IllegalStateException("unable to handle multiple session state beans");
         }
-        final Class beanClass= cachedMap.keySet().iterator().next();
         final PwmSessionBean bean = cachedMap.values().iterator().next();
         return secureService.encryptObjectToString(bean);
     }

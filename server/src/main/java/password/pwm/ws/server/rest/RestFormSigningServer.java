@@ -34,6 +34,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmHttpRequestWrapper;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.secure.SecureService;
 import password.pwm.ws.server.RestResultBean;
@@ -80,7 +81,7 @@ public class RestFormSigningServer extends RestServlet {
         }
 
         try {
-            if (inputFormData != null) {
+            if (JavaHelper.isEmpty(inputFormData)) {
                 final SecureService securityService = restRequest.getPwmApplication().getSecureService();
                 final SignedFormData signedFormData = new SignedFormData(Instant.now(), inputFormData);
                 final String signedValue = securityService.encryptObjectToString(signedFormData);

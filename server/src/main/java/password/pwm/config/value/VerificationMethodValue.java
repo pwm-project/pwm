@@ -22,6 +22,7 @@
 
 package password.pwm.config.value;
 
+import lombok.Value;
 import org.jdom2.CDATA;
 import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
@@ -78,16 +79,9 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
         }
     }
 
-    public static class VerificationMethodSetting {
-        private EnabledState enabledState = EnabledState.disabled;
-
-        public VerificationMethodSetting(final EnabledState enabledState) {
-            this.enabledState = enabledState;
-        }
-
-        public EnabledState getEnabledState() {
-            return enabledState;
-        }
+    @Value
+    public static class VerificationMethodSetting implements Serializable {
+        private final EnabledState enabledState;
     }
 
     public VerificationMethodValue() {

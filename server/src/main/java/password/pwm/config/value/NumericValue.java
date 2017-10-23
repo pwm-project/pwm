@@ -50,7 +50,7 @@ public class NumericValue extends AbstractValue implements StoredValue {
             {
                 final Element valueElement = settingElement.getChild("value");
                 final String value = valueElement.getText();
-                return new NumericValue(Long.valueOf(value));
+                return new NumericValue(Long.parseLong(value));
             }
         };
     }

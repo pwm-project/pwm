@@ -100,6 +100,8 @@ import password.pwm.ws.server.RestResultBean;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -128,8 +130,6 @@ import java.util.Set;
         }
 )
 public class ForgottenPasswordServlet extends ControlledPwmServlet {
-// ------------------------------ FIELDS ------------------------------
-
     private static final PwmLogger LOGGER = PwmLogger.forClass(ForgottenPasswordServlet.class);
 
     public enum ForgottenPasswordAction implements AbstractPwmServlet.ProcessAction {
@@ -492,10 +492,11 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
         final Map<String,String> remoteResponses = new LinkedHashMap<>();
         {
             final Map<String,String> inputMap = pwmRequest.readParametersAsMap();
-            for (final String name : inputMap.keySet()) {
+            for (final Map.Entry<String, String> entry : inputMap.entrySet()) {
+                final String name = entry.getKey();
                 if (name != null && name.startsWith(PREFIX)) {
                     final String strippedName = name.substring(PREFIX.length(), name.length());
-                    final String value = inputMap.get(name);
+                    final String value = entry.getValue();
                     remoteResponses.put(strippedName, value);
                 }
             }
@@ -747,11 +748,13 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
 
             final Map<FormConfiguration,String> formValues = FormUtility.readFormValuesFromRequest(
                     pwmRequest, requiredAttributesForm, userLocale);
-            for (final FormConfiguration paramConfig : formValues.keySet()) {
+
+            for (final Map.Entry<FormConfiguration, String> entry : formValues.entrySet()) {
+                final FormConfiguration paramConfig = entry.getKey();
                 final String attrName = paramConfig.getName();
 
                 try {
-                    if (theUser.compareStringAttribute(attrName, formValues.get(paramConfig))) {
+                    if (theUser.compareStringAttribute(attrName, entry.getValue())) {
                         LOGGER.trace(pwmRequest, "successful validation of ldap attribute value for '" + attrName + "'");
                     } else {
                         throw new PwmDataValidationException(new ErrorInformation(PwmError.ERROR_INCORRECT_RESPONSE, "incorrect value for '" + attrName + "'", new String[]{attrName}));
@@ -1135,44 +1138,58 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
             final UserIdentity userIdentity
     )
     {
-        final PostChangePasswordAction postAction = new PostChangePasswordAction() {
-            @Override
-            public String getLabel() {
-                return "Forgotten Password Post Actions";
-            }
-
-            @Override
-            public boolean doAction(final PwmSession pwmSession, final String newPassword)
-                    throws PwmUnrecoverableException {
-                try {
-                    {  // execute configured actions
-                        final ChaiUser proxiedUser = pwmRequest.getPwmApplication().getProxiedChaiUser(userIdentity);
-                        LOGGER.debug(pwmSession, "executing post-forgotten password configured actions to user " + proxiedUser.getEntryDN());
-                        final List<ActionConfiguration> configValues = pwmRequest.getConfig().readSettingAsAction(PwmSetting.FORGOTTEN_USER_POST_ACTIONS);
-                        final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings(pwmRequest.getPwmApplication(),userIdentity)
-                                .setMacroMachine(pwmSession.getSessionManager().getMacroMachine(pwmRequest.getPwmApplication()))
-                                .setExpandPwmMacros(true)
-                                .createActionExecutor();
-
-                        actionExecutor.executeActions(configValues, pwmSession.getLabel());
-                    }
-                } catch (PwmOperationalException e) {
-                    final ErrorInformation info = new ErrorInformation(PwmError.ERROR_UNKNOWN, e.getErrorInformation().getDetailedErrorMsg(), e.getErrorInformation().getFieldValues());
-                    final PwmUnrecoverableException newException = new PwmUnrecoverableException(info);
-                    newException.initCause(e);
-                    throw newException;
-                } catch (ChaiUnavailableException e) {
-                    final String errorMsg = "unable to reach ldap server while writing post-forgotten password attributes: " + e.getMessage();
-                    final ErrorInformation info = new ErrorInformation(PwmError.ERROR_ACTIVATION_FAILURE, errorMsg);
-                    final PwmUnrecoverableException newException = new PwmUnrecoverableException(info);
-                    newException.initCause(e);
-                    throw newException;
-                }
-                return true;
-            }
-        };
-
+        final PostChangePasswordAction postAction = new PostChangeAction(pwmRequest.getPwmApplication(), userIdentity);
         pwmRequest.getPwmSession().getUserSessionDataCacheBean().addPostChangePasswordActions("forgottenPasswordPostActions", postAction);
+    }
+
+    private static class PostChangeAction implements PostChangePasswordAction, Serializable {
+
+        private final transient PwmApplication pwmApplication;
+        private final transient UserIdentity userIdentity;
+
+        PostChangeAction(final PwmApplication pwmApplication, final UserIdentity userIdentity) {
+            this.pwmApplication = pwmApplication;
+            this.userIdentity = userIdentity;
+        }
+
+        private void readObject(final ObjectInputStream in) throws IOException,ClassNotFoundException {
+            throw new IllegalStateException("this class does not support deserialization");
+        }
+
+        @Override
+        public String getLabel() {
+            return "Forgotten Password Post Actions";
+        }
+
+        @Override
+        public boolean doAction(final PwmSession pwmSession, final String newPassword)
+                throws PwmUnrecoverableException {
+            try {
+                {  // execute configured actions
+                    final ChaiUser proxiedUser = pwmApplication.getProxiedChaiUser(userIdentity);
+                    LOGGER.debug(pwmSession, "executing post-forgotten password configured actions to user " + proxiedUser.getEntryDN());
+                    final List<ActionConfiguration> configValues = pwmApplication.getConfig().readSettingAsAction(PwmSetting.FORGOTTEN_USER_POST_ACTIONS);
+                    final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings(pwmApplication, userIdentity)
+                            .setMacroMachine(pwmSession.getSessionManager().getMacroMachine(pwmApplication))
+                            .setExpandPwmMacros(true)
+                            .createActionExecutor();
+
+                    actionExecutor.executeActions(configValues, pwmSession.getLabel());
+                }
+            } catch (PwmOperationalException e) {
+                final ErrorInformation info = new ErrorInformation(PwmError.ERROR_UNKNOWN, e.getErrorInformation().getDetailedErrorMsg(), e.getErrorInformation().getFieldValues());
+                final PwmUnrecoverableException newException = new PwmUnrecoverableException(info);
+                newException.initCause(e);
+                throw newException;
+            } catch (ChaiUnavailableException e) {
+                final String errorMsg = "unable to reach ldap server while writing post-forgotten password attributes: " + e.getMessage();
+                final ErrorInformation info = new ErrorInformation(PwmError.ERROR_ACTIVATION_FAILURE, errorMsg);
+                final PwmUnrecoverableException newException = new PwmUnrecoverableException(info);
+                newException.initCause(e);
+                throw newException;
+            }
+            return true;
+        }
     }
 
 

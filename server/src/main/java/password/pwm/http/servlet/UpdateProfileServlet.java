@@ -594,7 +594,6 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
         final List<FormConfiguration> form = updateAttributesProfile.readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
         final Map<FormConfiguration,String> formValueMap = formMapFromBean(updateAttributesProfile, updateProfileBean);
         pwmRequest.addFormInfoToRequestAttr(form, formValueMap, true, false);
-        final List<FormConfiguration> links = updateAttributesProfile.readSettingAsForm(PwmSetting.UPDATE_PROFILE_CUSTOMLINKS);
         pwmRequest.forwardToJsp(JspUrl.UPDATE_ATTRIBUTES_CONFIRM);
     }
 

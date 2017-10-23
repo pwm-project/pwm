@@ -94,7 +94,7 @@ public class PwmHttpClient {
     public PwmHttpClient(final PwmApplication pwmApplication, final SessionLabel sessionLabel) {
         this.pwmApplication = pwmApplication;
         this.sessionLabel = sessionLabel;
-        this.pwmHttpClientConfiguration = new PwmHttpClientConfiguration.Builder().setCertificate(null).create();
+        this.pwmHttpClientConfiguration = PwmHttpClientConfiguration.builder().certificates(null).build();
     }
 
     public PwmHttpClient(final PwmApplication pwmApplication, final SessionLabel sessionLabel, final PwmHttpClientConfiguration pwmHttpClientConfiguration) {
@@ -106,7 +106,7 @@ public class PwmHttpClient {
     public static HttpClient getHttpClient(final Configuration configuration)
             throws PwmUnrecoverableException
     {
-        return getHttpClient(configuration, new PwmHttpClientConfiguration.Builder().setCertificate(null).create());
+        return getHttpClient(configuration, PwmHttpClientConfiguration.builder().certificates(null).build());
     }
 
     public static HttpClient getHttpClient(final Configuration configuration, final PwmHttpClientConfiguration pwmHttpClientConfiguration)
@@ -178,8 +178,10 @@ public class PwmHttpClient {
             msg.append(" (no body)");
         }
         msg.append("\n");
-        for (final String key : headers.keySet()) {
-            msg.append("  header: ").append(key).append("=").append(headers.get(key)).append("\n");
+        for (final Map.Entry<String,String> entry : headers.entrySet()) {
+            final String key = entry.getKey();
+            final String value = entry.getValue();
+            msg.append("  header: ").append(key).append("=").append(value).append("\n");
         }
         if (body != null && !body.isEmpty()) {
             msg.append("  body: ").append(body);
@@ -196,8 +198,9 @@ public class PwmHttpClient {
         }
     }
 
-    PwmHttpClientResponse makeRequestImpl(final PwmHttpClientRequest clientRequest)
-            throws IOException, URISyntaxException, PwmUnrecoverableException {
+    private PwmHttpClientResponse makeRequestImpl(final PwmHttpClientRequest clientRequest)
+            throws IOException, URISyntaxException, PwmUnrecoverableException
+    {
         final Instant startTime = Instant.now();
         final int counter = classCounter++;
 
@@ -280,7 +283,7 @@ public class PwmHttpClient {
         return httpClient.execute(httpRequest);
     }
 
-    protected static SSLContext promiscuousSSLContext() throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException {
+    private static SSLContext promiscuousSSLContext() throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException {
         return new SSLContextBuilder().loadTrustMaterial(null, new TrustStrategy() {
             public boolean isTrusted(final X509Certificate[] arg0, final String arg1) throws CertificateException {
                 return true;

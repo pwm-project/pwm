@@ -48,9 +48,11 @@ public class ExportAuditCommand extends AbstractCliCommand {
 
         final Instant startTime = Instant.now();
         out("beginning output to " + outputFile.getAbsolutePath());
-        final FileOutputStream fileOutputStream = new FileOutputStream(outputFile,true);
-        final int counter = auditManager.outputVaultToCsv(fileOutputStream, PwmConstants.DEFAULT_LOCALE, false);
-        fileOutputStream.close();
+        final int counter;
+        try (FileOutputStream fileOutputStream = new FileOutputStream(outputFile,true)) {
+            counter = auditManager.outputVaultToCsv(fileOutputStream, PwmConstants.DEFAULT_LOCALE, false);
+            fileOutputStream.close();
+        }
         out("completed writing " + counter + " rows of audit output in " + TimeDuration.fromCurrent(startTime).asLongString());
     }
 

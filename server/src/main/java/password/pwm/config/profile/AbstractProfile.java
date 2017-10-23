@@ -38,6 +38,8 @@ import password.pwm.util.PasswordData;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -94,14 +96,15 @@ public abstract class AbstractProfile implements Profile, SettingReader {
     }
 
     @Override
-    public X509Certificate[] readSettingAsCertificate(final PwmSetting setting) {
+    public List<X509Certificate> readSettingAsCertificate(final PwmSetting setting) {
         if (PwmSettingSyntax.X509CERT != setting.getSyntax()) {
             throw new IllegalArgumentException("may not read X509CERT value for setting: " + setting.toString());
         }
         if (storedValueMap.containsKey(setting)) {
-            return (X509Certificate[])storedValueMap.get(setting).toNativeObject();
+            final X509Certificate[] arrayCert = (X509Certificate[])storedValueMap.get(setting).toNativeObject();
+            return arrayCert == null ? Collections.emptyList() : Arrays.asList(arrayCert);
         }
-        return new X509Certificate[0];
+        return Collections.emptyList();
     }
 
     @Override

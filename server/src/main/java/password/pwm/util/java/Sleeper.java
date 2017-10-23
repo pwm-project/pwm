@@ -30,7 +30,6 @@ package password.pwm.util.java;
  * @author Jason D. Rivard
  */
 public class Sleeper {
-// ------------------------------ FIELDS ------------------------------
 
     private static final long MAX_SLEEP_TIME = 500;
     private static final long STANDARD_SLEEP_TIME = 20;
@@ -41,21 +40,15 @@ public class Sleeper {
     private long startTime = System.currentTimeMillis();
     private long sleepTime = 0;
 
-// --------------------------- CONSTRUCTORS ---------------------------
-
     public Sleeper(final int loadFactor) {
         this.loadFactor = loadFactor >= 0 ? loadFactor : 0;
 
         doSleep = loadFactor > 0;
     }
 
-// --------------------- GETTER / SETTER METHODS ---------------------
-
     public int getLoadFactor() {
         return loadFactor;
     }
-
-// -------------------------- OTHER METHODS --------------------------
 
     public void reset() {
         startTime = System.currentTimeMillis();

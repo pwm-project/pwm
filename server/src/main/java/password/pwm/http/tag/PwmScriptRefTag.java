@@ -30,7 +30,6 @@ import password.pwm.util.logging.PwmLogger;
 import javax.servlet.jsp.tagext.TagSupport;
 
 public class PwmScriptRefTag extends TagSupport {
-// --------------------- Interface Tag ---------------------
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(PwmScriptRefTag.class);
 

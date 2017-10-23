@@ -22,10 +22,6 @@
 
 package password.pwm.util.localdb;
 
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmError;
-import password.pwm.util.java.JavaHelper;
-
 import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
@@ -40,30 +36,14 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Jason D. Rivard
  */
 public class Memory_LocalDB implements LocalDBProvider {
-// ------------------------------ FIELDS ------------------------------
-
-    private static final long MIN_FREE_MEMORY = 1024 * 1024;  // 1mb
     private LocalDB.Status state = LocalDB.Status.NEW;
 
     private Map<LocalDB.DB, Map<String, String>> maps = new ConcurrentHashMap<>();
-
-    private static void checkFreeMem() throws LocalDBException {
-        final long currentFreeMem = Runtime.getRuntime().freeMemory();
-        if (currentFreeMem < MIN_FREE_MEMORY) {
-            System.gc();
-            JavaHelper.pause(100);
-            System.gc();
-            if (currentFreeMem < MIN_FREE_MEMORY) {
-                throw new LocalDBException(new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,"out of memory, unable to add new records"));
-            }
-        }
-    }
 
     private void opertationPreCheck() throws LocalDBException {
         if (state != LocalDB.Status.OPEN) {
             throw new IllegalStateException("db is not open");
         }
-        checkFreeMem();
     }
 
     public Memory_LocalDB() {

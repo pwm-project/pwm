@@ -40,6 +40,8 @@ import password.pwm.http.PwmRequestFlag;
 import password.pwm.http.servlet.peoplesearch.PeopleSearchConfiguration;
 import password.pwm.svc.PwmService;
 
+import java.util.Arrays;
+
 public enum PwmIfTest {
     authenticated(new AuthenticatedTest()),
     configurationOpen(new ConfigurationOpen()),
@@ -105,7 +107,7 @@ public enum PwmIfTest {
 
     public Test[] getTests()
     {
-        return tests;
+        return tests == null ? null : Arrays.copyOf(tests, tests.length);
     }
 
     public boolean passed(final PwmRequest pwmRequest, final PwmIfOptions options)

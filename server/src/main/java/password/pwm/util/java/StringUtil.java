@@ -160,7 +160,7 @@ public abstract class StringUtil {
 
     public static String formatDiskSize(final long diskSize) {
         final float COUNT = 1000;
-        if (diskSize < 1) {
+        if (diskSize < 0) {
             return "n/a";
         }
 
@@ -185,7 +185,7 @@ public abstract class StringUtil {
             return sb.toString();
         }
 
-        return NumberFormat.getInstance().format(diskSize) + " bytes";
+        return PwmNumberFormat.forDefaultLocale().format(diskSize) + " bytes";
     }
 
     public enum Base64Options {
@@ -258,7 +258,7 @@ public abstract class StringUtil {
             throws IOException
     {
         final Base32 base32 = new Base32();
-        return new String(base32.encode(input));
+        return new String(base32.encode(input), PwmConstants.DEFAULT_CHARSET);
     }
 
     public static byte[] base64Decode(final String input, final StringUtil.Base64Options... options)

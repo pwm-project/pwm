@@ -120,20 +120,18 @@ class DatabaseUtil {
             throws DatabaseException
     {
         {
-            final StringBuilder sqlString = new StringBuilder();
-            sqlString.append("CREATE table ").append(table.toString()).append(" (").append("\n");
-            sqlString.append("  " + DatabaseService.KEY_COLUMN + " ").append(dbConfiguration.getColumnTypeKey()).append("(").append(
-                    dbConfiguration.getKeyColumnLength()).append(") NOT NULL PRIMARY KEY,").append("\n");
-            sqlString.append("  " + DatabaseService.VALUE_COLUMN + " ").append(dbConfiguration.getColumnTypeValue()).append(" ");
-            sqlString.append("\n");
-            sqlString.append(")").append("\n");
+            final String sqlString = "CREATE table " + table.toString() + " (" + "\n"
+                    + "  " + DatabaseService.KEY_COLUMN + " " + dbConfiguration.getColumnTypeKey() + "("
+                    + dbConfiguration.getKeyColumnLength() + ") NOT NULL PRIMARY KEY" + "\n"
+                    + "  " + DatabaseService.VALUE_COLUMN + " " + dbConfiguration.getColumnTypeValue() + " " + "\n"
+                    + ")" + "\n";
 
-            LOGGER.trace("attempting to execute the following sql statement:\n " + sqlString.toString());
+            LOGGER.trace("attempting to execute the following sql statement:\n " + sqlString);
 
             Statement statement = null;
             try {
                 statement = connection.createStatement();
-                statement.execute(sqlString.toString());
+                statement.execute(sqlString);
                 connection.commit();
                 LOGGER.debug("created table " + table.toString());
             } catch (SQLException ex) {
@@ -147,17 +145,17 @@ class DatabaseUtil {
 
         {
             final String indexName = table.toString() + "_IDX";
-            final StringBuilder sqlString = new StringBuilder();
-            sqlString.append("CREATE index ").append(indexName);
-            sqlString.append(" ON ").append(table.toString());
-            sqlString.append(" (").append(DatabaseService.KEY_COLUMN).append(")");
+            final String sqlString = "CREATE index " + indexName
+                    + " ON " + table.toString()
+                    + " (" + DatabaseService.KEY_COLUMN + ")";
+
             Statement statement = null;
 
-            LOGGER.trace("attempting to execute the following sql statement:\n " + sqlString.toString());
+            LOGGER.trace("attempting to execute the following sql statement:\n " + sqlString);
 
             try {
                 statement = connection.createStatement();
-                statement.execute(sqlString.toString());
+                statement.execute(sqlString);
                 connection.commit();
                 LOGGER.debug("created index " + indexName);
             } catch (SQLException ex) {
@@ -177,19 +175,16 @@ class DatabaseUtil {
             throws DatabaseException
     {
         final DatabaseUtil.DebugInfo debugInfo = DatabaseUtil.DebugInfo.create("checkIfTableExists",null,null,null);
-        final StringBuilder sb = new StringBuilder();
-        sb.append("SELECT * FROM  ").append(table.toString()).append(" WHERE " + DatabaseService.KEY_COLUMN + " = '0'");
-        Statement statement = null;
+        final String sqlText = "SELECT * FROM  " + table.toString() + " WHERE " + DatabaseService.KEY_COLUMN + " = '0'";
+
         ResultSet resultSet = null;
-        try {
-            statement = connection.createStatement();
-            resultSet = statement.executeQuery(sb.toString());
+        try (Statement statement = connection.createStatement()) {
+            resultSet = statement.executeQuery(sqlText);
         } catch (SQLException e) {
             rollbackTransaction(connection);
             throw DatabaseUtil.convertSqlException(debugInfo, e);
         } finally {
-            DatabaseUtil.close(statement);
-            DatabaseUtil.close(resultSet);
+             close(resultSet);
         }
     }
 

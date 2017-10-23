@@ -142,10 +142,12 @@ public class LocalDBAdaptor implements LocalDB {
     @WriteOperation
     public void putAll(final DB db, final Map<String, String> keyValueMap) throws LocalDBException {
         ParameterValidator.validateDBValue(db);
-        for (final String loopKey : keyValueMap.keySet()) {
+        for (final Map.Entry<String,String> entry : keyValueMap.entrySet()) {
+            final String loopKey = entry.getKey();
+            final String loopValue = entry.getValue();
             try {
                 ParameterValidator.validateKeyValue(loopKey);
-                ParameterValidator.validateValueValue(keyValueMap.get(loopKey));
+                ParameterValidator.validateValueValue(loopValue);
             } catch (NullPointerException e) {
                 throw new NullPointerException(e.getMessage() + " for transaction record: '" + loopKey + "'");
             } catch (IllegalArgumentException e) {

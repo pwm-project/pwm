@@ -10,11 +10,11 @@ import java.util.Map;
 
 @Getter
 @Builder
-public class FormDataRequestBean implements Serializable{
+public class FormDataRequestBean implements Serializable {
 
     @Getter
     @Builder
-    public static class FormInfo {
+    public static class FormInfo implements Serializable {
         private FormType module;
         private String moduleProfileID;
         private Mode mode;

@@ -42,11 +42,7 @@ import java.util.Map;
  * @author Jason D. Rivard
  */
 public class LocalDBFactory {
-// ------------------------------ FIELDS ------------------------------
-
     private static final PwmLogger LOGGER = PwmLogger.forClass(LocalDBFactory.class);
-
-// -------------------------- STATIC METHODS --------------------------
 
     public static synchronized LocalDB getInstance(
             final File dbDirectory,

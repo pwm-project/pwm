@@ -55,8 +55,6 @@ public class Berkeley_LocalDB {}
 
 
 /*implements LocalDBProvider {
-// ------------------------------ FIELDS ------------------------------
-
     private static final PwmLogger LOGGER = PwmLogger.forClass(Berkeley_LocalDB.class, true);
 
     private final static boolean IS_TRANSACTIONAL = true;
@@ -88,8 +86,6 @@ public class Berkeley_LocalDB {}
     private Map<DB, ReadWriteLock> lockMap = new ConcurrentHashMap<>();
 
     private boolean readOnly;
-
-// -------------------------- STATIC METHODS --------------------------
 
     private static Database openDatabase(final DB db, final Environment environment, final boolean readonly)
             throws DatabaseException {
@@ -147,8 +143,6 @@ public class Berkeley_LocalDB {}
         LOGGER.trace("db environment open");
         return environment;
     }
-
-// --------------------------- CONSTRUCTORS ---------------------------
 
     Berkeley_LocalDB()
             throws Exception {
@@ -397,8 +391,6 @@ public class Berkeley_LocalDB {}
             lockMap.get(db).writeLock().unlock();
         }
     }
-
-// -------------------------- INNER CLASSES --------------------------
 
     private class BerkeleyDbIterator<K> implements LocalDB.LocalDBIterator<String> {
         private DB db;

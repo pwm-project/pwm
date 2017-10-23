@@ -22,17 +22,15 @@
 
 package password.pwm.http.servlet.peoplesearch;
 
-import java.io.IOException;
+import org.apache.commons.lang3.StringUtils;
+import password.pwm.PwmConstants;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.apache.commons.lang3.StringUtils;
-
-import password.pwm.PwmConstants;
+import java.io.IOException;
 
 @WebServlet(
     name="PeopleSearchResourcesServlet",
@@ -42,7 +40,6 @@ import password.pwm.PwmConstants;
     }
 )
 public class PeopleSearchResourcesServlet extends HttpServlet {
-    private static final long serialVersionUID = 1L;
 
     @Override
     protected void service(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {

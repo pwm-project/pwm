@@ -28,6 +28,7 @@ import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.profile.NewUserProfile;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.PwmPasswordRule;
+import password.pwm.error.PwmException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.servlet.newuser.NewUserServlet;
@@ -42,6 +43,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.tagext.TagSupport;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -51,14 +53,10 @@ import java.util.MissingResourceException;
  * @author Jason D. Rivard
  */
 public class PasswordRequirementsTag extends TagSupport {
-// ------------------------------ FIELDS ------------------------------
-
     private static final PwmLogger LOGGER = PwmLogger.forClass(PasswordRequirementsTag.class);
     private String separator;
     private String prepend;
     private String form;
-
-// -------------------------- STATIC METHODS --------------------------
 
     public static List<String> getPasswordRequirementsStrings(
             final PwmPasswordPolicy pwordPolicy,
@@ -299,7 +297,6 @@ public class PasswordRequirementsTag extends TagSupport {
         }
         return "UNKNOWN MESSAGE STRING";
     }
-// --------------------- GETTER / SETTER METHODS ---------------------
 
     public String getSeparator() {
         return separator;
@@ -324,11 +321,6 @@ public class PasswordRequirementsTag extends TagSupport {
     public void setForm(final String form) {
         this.form = form;
     }
-
-    // ------------------------ INTERFACE METHODS ------------------------
-
-
-    // --------------------- Interface Tag ---------------------
 
     public int doEndTag()
             throws javax.servlet.jsp.JspTagException {
@@ -368,7 +360,7 @@ public class PasswordRequirementsTag extends TagSupport {
 
                 pageContext.getOut().write(requirementsText.toString());
             }
-        } catch (Exception e) {
+        } catch (IOException | PwmException e) {
             LOGGER.error("unexpected error during password requirements generation: " + e.getMessage(), e);
             throw new JspTagException(e.getMessage());
         }

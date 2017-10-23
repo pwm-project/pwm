@@ -486,7 +486,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
             } catch (IllegalArgumentException e) { /* */ }
         }
 
-        if (GuideStep.START.equals(requestedStep)) {
+        if (GuideStep.START.equals(GuideStep.valueOf(requestedStep))) {
             configGuideBean.getFormData().clear();
             configGuideBean.getFormData().putAll(ConfigGuideForm.defaultForm());
         }
@@ -587,7 +587,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
 
         if (configGuideBean.getStep() == GuideStep.LDAP_PERMISSIONS) {
             final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator(ConfigGuideForm.generateStoredConfig(configGuideBean));
-            pwmRequest.setAttribute(PwmRequestAttribute.LdapPermissionItems,ldapPermissionCalculator);
+            pwmRequest.setAttribute(PwmRequestAttribute.LdapPermissionItems, ldapPermissionCalculator);
         }
 
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();

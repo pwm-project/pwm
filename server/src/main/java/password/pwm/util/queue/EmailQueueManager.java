@@ -323,7 +323,7 @@ public class EmailQueueManager implements PwmService {
             LOGGER.debug("sent email: " + emailItemBean.toDebugString());
             StatisticsManager.incrementStat(pwmApplication, Statistic.EMAIL_SEND_SUCCESSES);
             return WorkQueueProcessor.ProcessResult.SUCCESS;
-        } catch (Exception e) {
+        } catch (MessagingException | PwmException e) {
 
             final ErrorInformation errorInformation;
             if (e instanceof PwmException) {
@@ -439,9 +439,7 @@ public class EmailQueueManager implements PwmService {
 
         //Specify configured advanced settings.
         final Map<String, String> advancedSettingValues = StringUtil.convertStringListToNameValuePair(config.readSettingAsStringArray(PwmSetting.EMAIL_ADVANCED_SETTINGS), "=");
-        for (final String key : advancedSettingValues.keySet()) {
-            props.put(key, advancedSettingValues.get(key));
-        }
+        props.putAll(advancedSettingValues);
 
         return props;
     }

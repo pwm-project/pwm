@@ -27,6 +27,7 @@ import password.pwm.http.HttpMethod;
 import java.io.Serializable;
 import java.security.cert.X509Certificate;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 public class PwmHttpClientRequest implements Serializable {
@@ -34,7 +35,7 @@ public class PwmHttpClientRequest implements Serializable {
     private final String url;
     private final String body;
     private final Map<String,String> headers;
-    private final X509Certificate[] trustedCertificates;
+    private final List<X509Certificate> trustedCertificates;
 
     public PwmHttpClientRequest(
             final HttpMethod method,
@@ -45,7 +46,7 @@ public class PwmHttpClientRequest implements Serializable {
         this.method = method;
         this.url = url;
         this.body = body;
-        this.headers = headers == null ? Collections.<String,String>emptyMap() : Collections.unmodifiableMap(headers);
+        this.headers = headers == null ? Collections.emptyMap() : Collections.unmodifiableMap(headers);
         this.trustedCertificates = null;
     }
 
@@ -54,12 +55,12 @@ public class PwmHttpClientRequest implements Serializable {
             final String url,
             final String body,
             final Map<String, String> headers,
-            final X509Certificate[] trustedCertificates
+            final List<X509Certificate> trustedCertificates
     ) {
         this.method = method;
         this.url = url;
         this.body = body;
-        this.headers = headers == null ? Collections.<String,String>emptyMap() : Collections.unmodifiableMap(headers);
+        this.headers = headers == null ? Collections.emptyMap() : Collections.unmodifiableMap(headers);
         this.trustedCertificates = trustedCertificates;
     }
 
@@ -79,7 +80,7 @@ public class PwmHttpClientRequest implements Serializable {
         return headers;
     }
 
-    public X509Certificate[] getTrustedCertificates() {
+    public List<X509Certificate> getTrustedCertificates() {
         return trustedCertificates;
     }
 

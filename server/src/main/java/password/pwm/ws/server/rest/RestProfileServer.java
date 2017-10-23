@@ -138,8 +138,9 @@ public class RestProfileServer extends RestServlet {
             );
             FormUtility.populateFormMapFromLdap(formFields, restRequest.getSessionLabel(), formData, userInfo);
 
-            for (final FormConfiguration formConfig : formData.keySet()) {
-                profileData.put(formConfig.getName(),formData.get(formConfig));
+            for (final Map.Entry<FormConfiguration,String> entry : formData.entrySet()) {
+                final FormConfiguration formConfig = entry.getKey();
+                profileData.put(formConfig.getName(), entry.getValue());
             }
         }
 

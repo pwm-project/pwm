@@ -75,6 +75,7 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.util.PasswordData;
+import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
@@ -94,7 +95,6 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.io.IOException;
-import java.io.Serializable;
 import java.io.StringReader;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -115,7 +115,7 @@ import java.util.TreeMap;
 public class NMASCrOperator implements CrOperator {
     private static final PwmLogger LOGGER = PwmLogger.forClass(NMASCrOperator.class);
 
-    private int threadCounter = 0;
+    private final AtomicLoopIntIncrementer threadCounter = new AtomicLoopIntIncrementer(Integer.MAX_VALUE);
     private final List<NMASSessionThread> sessionMonitorThreads = Collections.synchronizedList(new ArrayList<NMASSessionThread>());
     private final PwmApplication pwmApplication;
     private final TimeDuration maxThreadIdleTime;
@@ -368,7 +368,7 @@ public class NMASCrOperator implements CrOperator {
         return DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new InputSource(new StringReader(xml.toString())));
     }
 
-    public class NMASCRResponseSet implements ResponseSet, Serializable {
+    public class NMASCRResponseSet implements ResponseSet {
         private final PwmApplication pwmApplication;
         private final UserIdentity userIdentity;
 
@@ -673,7 +673,7 @@ public class NMASCrOperator implements CrOperator {
         NMASSessionThread(final NMASResponseSession nmasResponseSession)
         {
             this.nmasResponseSession = nmasResponseSession;
-            this.threadID = threadCounter++;
+            this.threadID = threadCounter.next();
             setLoginState(NMASThreadState.NEW);
         }
 

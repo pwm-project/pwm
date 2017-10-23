@@ -2803,7 +2803,7 @@ PrivateKeyHandler.draw = function(keyName) {
 
     var htmlBody = '<div style="max-height: 300px; overflow-y: auto">';
 
-    var hasValue = resultValue !== null && 'key' in resultValue;
+    var hasValue = resultValue !== undefined && 'key' in resultValue;
 
     if (hasValue) {
         var certificates = resultValue['certificates'];

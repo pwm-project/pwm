@@ -34,21 +34,12 @@ import javax.servlet.jsp.tagext.TagSupport;
  * @author Jason D. Rivard
  */
 public class UserInfoTag extends TagSupport {
-// ------------------------------ FIELDS ------------------------------
-
     private String attribute;
-
-// --------------------- GETTER / SETTER METHODS ---------------------
 
     public void setAttribute(final String attribute)
     {
         this.attribute = attribute;
     }
-
-// ------------------------ INTERFACE METHODS ------------------------
-
-
-// --------------------- Interface Tag ---------------------
 
     public int doEndTag()
             throws JspTagException

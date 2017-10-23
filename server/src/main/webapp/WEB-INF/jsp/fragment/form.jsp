@@ -16,6 +16,7 @@
 <%@ page import="java.util.Collections" %>
 <%@ page import="password.pwm.config.CustomLinkConfiguration" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
+<%@ page import="password.pwm.util.java.JavaHelper" %>
 
 <%--
   ~ Password Management Servlets (PWM)
@@ -43,18 +44,13 @@
 <% final PwmRequest formPwmRequest = PwmRequest.forRequest(request,response); %>
 <% final Locale formLocale = formPwmRequest.getLocale(); %>
 <% final List<FormConfiguration> formConfigurationList = (List<FormConfiguration>)JspUtility.getAttribute(pageContext, PwmRequestAttribute.FormConfiguration); %>
-<% if (formConfigurationList == null) { %>
+<% if (JavaHelper.isEmpty(formConfigurationList)) { %>
 [ form definition is not available ]
-<% } else if (formConfigurationList.isEmpty()) { %>
-<!-- form contains no items ] -->
 <% } else { %>
 <%
     final boolean forceReadOnly = (Boolean)JspUtility.getAttribute(pageContext, PwmRequestAttribute.FormReadOnly);
     final boolean showPasswordFields = (Boolean)JspUtility.getAttribute(pageContext, PwmRequestAttribute.FormShowPasswordFields);
     final Map<FormConfiguration,String> formDataMap = (Map<FormConfiguration,String>)JspUtility.getAttribute(pageContext, PwmRequestAttribute.FormData);
-    final Map<String,String> initalValues = (JspUtility.getAttribute(pageContext, PwmRequestAttribute.FormInitialValues) != null)
-            ? (Map<String,String>)JspUtility.getAttribute(pageContext, PwmRequestAttribute.FormInitialValues)
-            : Collections.<String,String>emptyMap();
 
     final PwmApplication pwmApplication = formPwmRequest.getPwmApplication();
     for (final FormConfiguration loopConfiguration : formConfigurationList) {

@@ -32,6 +32,7 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.io.Serializable;
 
 /**
@@ -69,7 +70,7 @@ public class BasicAuthInfo implements Serializable {
             if (authHeader.contains(PwmConstants.HTTP_BASIC_AUTH_PREFIX)) {
                 // ***** Get the encoded username/chpass string
                 // Strip off "Basic " from "Basic c2pvaG5zLmNzaTo=bm92ZWxs"
-                final String toStrip = PwmConstants.HTTP_BASIC_AUTH_PREFIX+" ";
+                final String toStrip = PwmConstants.HTTP_BASIC_AUTH_PREFIX  +" ";
                 final String encodedValue = authHeader.substring(toStrip.length(), authHeader.length());
 
                 try {
@@ -80,8 +81,8 @@ public class BasicAuthInfo implements Serializable {
                     // The decoded string should now look something like:
                     //   "cn=user,o=company:chpass" or "user:chpass"
                     return parseHeaderString(decoded);
-                } catch (Exception e) {
-                    LOGGER.debug("error decoding auth header");
+                } catch (IOException e) {
+                    LOGGER.debug("error decoding auth header" + e.getMessage());
                 }
             }
         }
@@ -124,8 +125,6 @@ public class BasicAuthInfo implements Serializable {
         return sb.toString();
     }
 
-// --------------------------- CONSTRUCTORS ---------------------------
-
     public BasicAuthInfo(
             final String username,
             final PasswordData password
@@ -134,8 +133,6 @@ public class BasicAuthInfo implements Serializable {
         this.password = password;
     }
 
-// --------------------- GETTER / SETTER METHODS ---------------------
-
     public PasswordData getPassword() {
         return password;
     }
@@ -143,8 +140,6 @@ public class BasicAuthInfo implements Serializable {
     public String getUsername() {
         return username;
     }
-
-// ------------------------ CANONICAL METHODS ------------------------
 
     public boolean equals(final Object o) {
         if (this == o) {

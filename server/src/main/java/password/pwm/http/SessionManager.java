@@ -29,24 +29,23 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.bean.UserIdentity;
-import password.pwm.ldap.UserInfo;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.value.data.UserPermission;
 import password.pwm.config.profile.DeleteAccountProfile;
 import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.config.profile.Profile;
 import password.pwm.config.profile.ProfileType;
 import password.pwm.config.profile.UpdateAttributesProfile;
+import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.LdapPermissionTester;
+import password.pwm.ldap.UserInfo;
 import password.pwm.util.PasswordData;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -56,7 +55,7 @@ import java.util.List;
  *
  * @author Jason D. Rivard
  */
-public class SessionManager implements Serializable {
+public class SessionManager {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(SessionManager.class);
 

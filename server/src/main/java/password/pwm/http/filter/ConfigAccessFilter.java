@@ -59,9 +59,9 @@ import password.pwm.util.secure.SecureEngine;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 public class ConfigAccessFilter extends AbstractPwmFilter {
@@ -168,7 +168,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
                         final String jsonStr = pwmApplication.getSecureService().decryptStringValue(cookieStr);
                         final PersistentLoginInfo persistentLoginInfo = JsonUtil.deserialize(jsonStr, PersistentLoginInfo.class);
                         if (persistentLoginInfo != null && persistentLoginValue != null) {
-                            if (persistentLoginInfo.getExpireDate().after(new Date())) {
+                            if (persistentLoginInfo.getExpireDate().isAfter(Instant.now())) {
                                 if (persistentLoginValue.equals(persistentLoginInfo.getPassword())) {
                                     persistentLoginAccepted = true;
                                     LOGGER.debug(pwmRequest, "accepting persistent config login from cookie (expires "
@@ -216,7 +216,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
             if (persistentLoginEnabled && !persistentLoginAccepted && "on".equals(pwmRequest.readParameterAsString("remember"))) {
                 final int persistentSeconds = figureMaxLoginSeconds(pwmRequest);
                 if (persistentSeconds > 0) {
-                    final Date expirationDate = new Date(System.currentTimeMillis() + (persistentSeconds * 1000));
+                    final Instant expirationDate = Instant.ofEpochMilli(System.currentTimeMillis() + (persistentSeconds * 1000));
                     final PersistentLoginInfo persistentLoginInfo = new PersistentLoginInfo(expirationDate, persistentLoginValue);
                     final String jsonPersistentLoginInfo = JsonUtil.serialize(persistentLoginInfo);
                     final String cookieValue = pwmApplication.getSecureService().encryptToString(jsonPersistentLoginInfo);
@@ -274,7 +274,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
         final ConfigLoginHistory configLoginHistory = readConfigLoginHistory(pwmRequest);
         final ConfigLoginEvent event = new ConfigLoginEvent(
                 userIdentity == null ? "n/a" : userIdentity.toDisplayString(),
-                new Date(),
+                Instant.now(),
                 pwmRequest.getPwmSession().getSessionStateBean().getSrcAddress()
         );
         final int maxEvents = Integer.parseInt(pwmRequest.getPwmApplication().getConfig().readAppProperty(AppProperty.CONFIG_HISTORY_MAX_ITEMS));
@@ -283,11 +283,11 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
     }
 
     private static class PersistentLoginInfo implements Serializable {
-        private Date expireDate;
+        private Instant expireDate;
         private String password;
 
         private PersistentLoginInfo(
-                final Date expireDate,
+                final Instant expireDate,
                 final String password
         )
         {
@@ -295,7 +295,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
             this.password = password;
         }
 
-        public Date getExpireDate()
+        public Instant getExpireDate()
         {
             return expireDate;
         }
@@ -333,10 +333,10 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
 
     public static class ConfigLoginEvent implements Serializable {
         private final String userIdentity;
-        private final Date date;
+        private final Instant date;
         private final String networkAddress;
 
-        public ConfigLoginEvent(final String userIdentity, final Date date, final String networkAddress) {
+        public ConfigLoginEvent(final String userIdentity, final Instant date, final String networkAddress) {
             this.userIdentity = userIdentity;
             this.date = date;
             this.networkAddress = networkAddress;
@@ -346,7 +346,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
             return userIdentity;
         }
 
-        public Date getDate() {
+        public Instant getDate() {
             return date;
         }
 

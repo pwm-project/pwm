@@ -58,6 +58,7 @@ import password.pwm.http.servlet.peoplesearch.PublicPeopleSearchServlet;
 
 import javax.servlet.annotation.WebServlet;
 import java.lang.annotation.Annotation;
+import java.util.Arrays;
 
 public enum PwmServletDefinition {
     Login(password.pwm.http.servlet.LoginServlet.class, LoginServletBean.class),
@@ -117,7 +118,7 @@ public enum PwmServletDefinition {
     }
 
     public String[] urlPatterns() {
-        return patterns;
+        return patterns == null ? null : Arrays.copyOf(patterns, patterns.length);
     }
 
     public String servletUrlName() {

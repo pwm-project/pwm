@@ -22,6 +22,7 @@
 
 package password.pwm.util.cli.commands;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.health.HealthRecord;
@@ -33,45 +34,47 @@ import password.pwm.util.cli.CliParameters;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
 public class UserReportCommand extends AbstractCliCommand {
-    protected static final String OUTPUT_FILE_OPTIONNAME = "outputFile";
+    private static final String OUTPUT_FILE_OPTIONNAME = "outputFile";
 
     @Override
+    @SuppressFBWarnings("DM_EXIT")
+
     void doCommand()
             throws Exception
     {
         final File outputFile = (File)cliEnvironment.getOptions().get(OUTPUT_FILE_OPTIONNAME);
-        final OutputStream outputFileStream;
-        try {
-            outputFileStream = new BufferedOutputStream(new FileOutputStream(outputFile));
-        } catch (Exception e) {
+
+        try (OutputStream outputFileStream = new BufferedOutputStream(new FileOutputStream(outputFile))) {
+
+            final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
+
+            final ReportService userReport = pwmApplication.getReportService();
+            if (userReport.status() != PwmService.STATUS.OPEN) {
+                out("report service is not open or enabled");
+                final List<HealthRecord> healthIssues = userReport.healthCheck();
+                if (healthIssues != null) {
+                    for (final HealthRecord record : healthIssues) {
+                        out("report health status: " + record.toDebugString(Locale.getDefault(), pwmApplication.getConfig()));
+                    }
+                }
+                return;
+            }
+
+            final ReportCsvUtility reportCsvUtility = new ReportCsvUtility(pwmApplication);
+            reportCsvUtility.outputToCsv(outputFileStream, true, PwmConstants.DEFAULT_LOCALE);
+        } catch (IOException e) {
             out("unable to open file '" + outputFile.getAbsolutePath() + "' for writing");
             System.exit(-1);
             throw new Exception();
         }
 
-        final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
-
-        final ReportService userReport = pwmApplication.getReportService();
-        if (userReport.status() != PwmService.STATUS.OPEN) {
-            out("report service is not open or enabled");
-            final List<HealthRecord> healthIssues = userReport.healthCheck();
-            if (healthIssues != null) {
-                for (final HealthRecord record : healthIssues) {
-                    out("report health status: " + record.toDebugString(Locale.getDefault(), pwmApplication.getConfig()));
-                }
-            }
-            return;
-        }
-        final ReportCsvUtility reportCsvUtility = new ReportCsvUtility(pwmApplication);
-        reportCsvUtility.outputToCsv(outputFileStream, true, PwmConstants.DEFAULT_LOCALE);
-
-        try { outputFileStream.close(); } catch (Exception e) { /* nothing */ }
         out("report output complete.");
     }
 

@@ -235,9 +235,10 @@ public class LdapOperationsHelper {
     {
         final Map<String,String> tempMap = new HashMap<>();
 
-        for (final FormConfiguration formItem : formValues.keySet()) {
+        for (final Map.Entry<FormConfiguration, String> entry : formValues.entrySet()) {
+            final FormConfiguration formItem = entry.getKey();
             if (!formItem.isReadonly()) {
-                tempMap.put(formItem.getName(),formValues.get(formItem));
+                tempMap.put(formItem.getName(), entry.getValue());
             }
         }
 
@@ -274,11 +275,17 @@ public class LdapOperationsHelper {
             throw newException;
         }
 
-        for (final String attrName : valueMap.keySet()) {
-            String attrValue = valueMap.get(attrName) != null ? valueMap.get(attrName) : "";
+        for (final Map.Entry<String, String> entry : valueMap.entrySet()) {
+            final String attrName = entry.getKey();
+            final String value = entry.getValue();
+            String attrValue = value != null
+                    ? value
+                    : "";
+
             if (expandMacros) {
                 attrValue = macroMachine.expandMacros(attrValue);
             }
+
             if (!attrValue.equals(currentValues.get(attrName))) {
                 if (attrValue.length() > 0) {
                     try {
@@ -524,8 +531,8 @@ public class LdapOperationsHelper {
             LOGGER.warn("unknown CR storage format type '" + storageMethodString + "' ");
         }
 
-        final X509Certificate[] ldapServerCerts = ldapProfile.readSettingAsCertificate(PwmSetting.LDAP_SERVER_CERTS);
-        if (ldapServerCerts != null && ldapServerCerts.length > 0) {
+        final List<X509Certificate> ldapServerCerts = ldapProfile.readSettingAsCertificate(PwmSetting.LDAP_SERVER_CERTS);
+        if (ldapServerCerts != null && ldapServerCerts.size() > 0) {
             final X509TrustManager tm = new X509Utils.CertMatchingTrustManager(config, ldapServerCerts);
             chaiConfig.setTrustManager(new X509TrustManager[]{tm});
         }
@@ -554,13 +561,14 @@ public class LdapOperationsHelper {
         final String rawValue = config.readAppProperty(AppProperty.LDAP_CHAI_SETTINGS);
         final String[] rawValues = rawValue != null ? rawValue.split(AppProperty.VALUE_SEPARATOR) : new String[0];
         final Map<String, String> configuredSettings = StringUtil.convertStringListToNameValuePair(Arrays.asList(rawValues), "=");
-        for (final String key : configuredSettings.keySet()) {
+        for (final Map.Entry<String, String> entry : configuredSettings.entrySet()) {
+            final String key = entry.getKey();
             if (key != null && !key.isEmpty()) {
                 final ChaiSetting theSetting = ChaiSetting.forKey(key);
                 if (theSetting == null) {
                     LOGGER.warn("ignoring unknown chai setting '" + key + "'");
                 } else {
-                    chaiConfig.setSetting(theSetting, configuredSettings.get(key));
+                    chaiConfig.setSetting(theSetting, entry.getValue());
                 }
             }
         }

@@ -38,6 +38,7 @@ import password.pwm.util.macro.MacroMachine;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -1162,18 +1163,79 @@ public enum PwmSetting {
     private final PwmSettingSyntax syntax;
     private final PwmSettingCategory category;
 
-    private List<TemplateSetAssociation> defaultValues;
-    private List<TemplateSetAssociation> examples;
-    private Map<String,String> options;
+    private static final Map<PwmSetting,List<TemplateSetAssociation>> DEFAULT_VALUES;
+    private static final Map<PwmSetting, Map<String,String>> OPTIONS;
+    private static final Map<PwmSetting, List<TemplateSetAssociation>> EXAMPLES;
     private Collection<PwmSettingFlag> flags;
     private Boolean required;
     private Boolean hidden;
     private Integer level;
     private Pattern pattern;
 
+    static {
+        final Map<PwmSetting,List<TemplateSetAssociation>> returnMap = new HashMap<>();
+        for (final PwmSetting pwmSetting : PwmSetting.values()) {
+            final List<TemplateSetAssociation> returnObj = new ArrayList<>();
+            final Element settingElement = PwmSettingXml.readSettingXml(pwmSetting);
+            final List<Element> defaultElements = settingElement.getChildren(PwmSettingXml.XML_ELEMENT_DEFAULT);
+            if (pwmSetting.getSyntax() == PwmSettingSyntax.PASSWORD) {
+                returnObj.add(new TemplateSetAssociation(new PasswordValue(null), Collections.emptySet()));
+            } else {
+                for (final Element defaultElement : defaultElements) {
+                    final Set<PwmSettingTemplate> definedTemplates = PwmSettingXml.parseTemplateAttribute(defaultElement);
+                    final StoredValue storedValue = ValueFactory.fromXmlValues(pwmSetting, defaultElement, null);
+                    returnObj.add(new TemplateSetAssociation(storedValue, definedTemplates));
+                }
+            }
+            if (returnObj.isEmpty()) {
+                throw new IllegalStateException("no default value for setting " + pwmSetting.getKey());
+            }
+            returnMap.put(pwmSetting, returnObj);
+        }
+        DEFAULT_VALUES = Collections.unmodifiableMap(returnMap);
+    }
 
+    static {
+        final Map<PwmSetting, Map<String,String>> returnObj = new HashMap<>();
+        for (final PwmSetting pwmSetting : PwmSetting.values()) {
+            final Map<String, String> returnList = new LinkedHashMap<>();
+            final Element settingElement = PwmSettingXml.readSettingXml(pwmSetting);
+            final Element optionsElement = settingElement.getChild("options");
+            if (optionsElement != null) {
+                final List<Element> optionElements = optionsElement.getChildren("option");
+                if (optionElements != null) {
+                    for (final Element optionElement : optionElements) {
+                        if (optionElement.getAttribute("value") == null) {
+                            throw new IllegalStateException("option element is missing 'value' attribute for key " + pwmSetting.getKey());
+                        }
+                        returnList.put(optionElement.getAttribute("value").getValue(), optionElement.getValue());
+                    }
+                }
+            }
+            returnObj.put(pwmSetting, Collections.unmodifiableMap(returnList));
+        }
+        OPTIONS = Collections.unmodifiableMap(returnObj);
+    }
 
-// --------------------------- CONSTRUCTORS ---------------------------
+    static {
+        final Map<PwmSetting, List<TemplateSetAssociation>> returnMap = new HashMap<>();
+        for (final PwmSetting pwmSetting : PwmSetting.values()) {
+            final List<TemplateSetAssociation> returnObj = new ArrayList<>();
+            final MacroMachine macroMachine = MacroMachine.forStatic();
+            final Element settingElement = PwmSettingXml.readSettingXml(pwmSetting);
+            final List<Element> exampleElements = settingElement.getChildren(PwmSettingXml.XML_ELEMENT_EXAMPLE);
+            for (final Element exampleElement : exampleElements) {
+                final Set<PwmSettingTemplate> definedTemplates = PwmSettingXml.parseTemplateAttribute(exampleElement);
+                final String exampleString = macroMachine.expandMacros(exampleElement.getText());
+                returnObj.add(new TemplateSetAssociation(exampleString, Collections.unmodifiableSet(definedTemplates)));
+            }
+            if (returnObj.isEmpty()) {
+                returnObj.add(new TemplateSetAssociation("", Collections.emptySet()));
+            }
+            returnMap.put(pwmSetting, Collections.unmodifiableList(returnObj));
+        }
+        EXAMPLES = Collections.unmodifiableMap(returnMap);
+    }
 
     PwmSetting(
             final String key,
@@ -1184,10 +1246,6 @@ public enum PwmSetting {
         this.syntax = syntax;
         this.category = category;
     }
-
-
-// --------------------- GETTER / SETTER METHODS ---------------------
-
 
     public String getKey() {
         return key;
@@ -1205,40 +1263,18 @@ public enum PwmSetting {
         return syntax;
     }
 
-
-    // -------------------------- OTHER METHODS --------------------------
-
     public StoredValue getDefaultValue(final PwmSettingTemplateSet templateSet)
             throws PwmOperationalException, PwmUnrecoverableException
     {
-        if (defaultValues == null) {
-            final List<TemplateSetAssociation> returnObj = new ArrayList<>();
-            final Element settingElement = PwmSettingXml.readSettingXml(this);
-            final List<Element> defaultElements = settingElement.getChildren(PwmSettingXml.XML_ELEMENT_DEFAULT);
-            if (this.getSyntax() == PwmSettingSyntax.PASSWORD) {
-                returnObj.add(new TemplateSetAssociation(new PasswordValue(null), Collections.<PwmSettingTemplate>emptySet()));
-            } else {
-                for (final Element defaultElement : defaultElements) {
-                    final Set<PwmSettingTemplate> definedTemplates = PwmSettingXml.parseTemplateAttribute(defaultElement);
-                    final StoredValue storedValue = ValueFactory.fromXmlValues(this, defaultElement, null);
-                    returnObj.add(new TemplateSetAssociation(storedValue, definedTemplates));
-                }
-            }
-            if (returnObj.isEmpty()) {
-                throw new IllegalStateException("no default value for setting " + this.getKey());
-            }
-            defaultValues = Collections.unmodifiableList(returnObj);
-        }
-
+        final List<TemplateSetAssociation> defaultValues = DEFAULT_VALUES.get(this);
         return (StoredValue)associationForTempleSet(defaultValues, templateSet).getObject();
     }
 
     public Map<String,String> getDefaultValueDebugStrings(final Locale locale)
             throws PwmOperationalException, PwmUnrecoverableException
     {
-        getDefaultValue(PwmSettingTemplateSet.getDefault()); // ensure value has been read into cache
         final Map<String,String> returnObj = new LinkedHashMap<>();
-        for (final TemplateSetAssociation templateSetAssociation : defaultValues) {
+        for (final TemplateSetAssociation templateSetAssociation : DEFAULT_VALUES.get(this)) {
             returnObj.put(
                     StringUtil.join(templateSetAssociation.getSettingTemplates(),","),
                     ((StoredValue) templateSetAssociation.getObject()).toDebugString(locale)
@@ -1248,25 +1284,7 @@ public enum PwmSetting {
     }
 
     public Map<String, String> getOptions() {
-        if (options == null) {
-            final Map<String, String> returnList = new LinkedHashMap<>();
-            final Element settingElement = PwmSettingXml.readSettingXml(this);
-            final Element optionsElement = settingElement.getChild("options");
-            if (optionsElement != null) {
-                final List<Element> optionElements = optionsElement.getChildren("option");
-                if (optionElements != null) {
-                    for (final Element optionElement : optionElements) {
-                        if (optionElement.getAttribute("value") == null) {
-                            throw new IllegalStateException("option element is missing 'value' attribute for key " + this.getKey());
-                        }
-                        returnList.put(optionElement.getAttribute("value").getValue(), optionElement.getValue());
-                    }
-                }
-            }
-            options = Collections.unmodifiableMap(returnList);
-        }
-
-        return options;
+        return OPTIONS.get(this);
     }
 
     public Map<PwmSettingProperty, String> getProperties() {
@@ -1353,21 +1371,7 @@ public enum PwmSetting {
     }
 
     public String getExample(final PwmSettingTemplateSet template) {
-        if (examples == null) {
-            final List<TemplateSetAssociation> returnObj = new ArrayList<>();
-            final MacroMachine macroMachine = MacroMachine.forStatic();
-            final Element settingElement = PwmSettingXml.readSettingXml(this);
-            final List<Element> exampleElements = settingElement.getChildren(PwmSettingXml.XML_ELEMENT_EXAMPLE);
-            for (final Element exampleElement : exampleElements) {
-                final Set<PwmSettingTemplate> definedTemplates = PwmSettingXml.parseTemplateAttribute(exampleElement);
-                final String exampleString = macroMachine.expandMacros(exampleElement.getText());
-                returnObj.add(new TemplateSetAssociation(exampleString, definedTemplates));
-            }
-            if (returnObj.isEmpty()) {
-                returnObj.add(new TemplateSetAssociation("",Collections.<PwmSettingTemplate>emptySet()));
-            }
-            examples = returnObj;
-        }
+        final List<TemplateSetAssociation> examples = EXAMPLES.get(this);
         return (String)associationForTempleSet(examples,template).getObject();
     }
 

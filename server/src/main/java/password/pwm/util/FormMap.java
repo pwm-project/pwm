@@ -36,11 +36,13 @@ public class FormMap implements Serializable,Map<String, String> {
 
     public FormMap(final Map inputStringMap) {
         if (inputStringMap != null) {
-            for (final Object key : inputStringMap.keySet()) {
+            for (final Object entrySet : inputStringMap.entrySet()) {
+                final Entry entry = (Entry) entrySet;
+                final Object key = entry.getKey();
                 if (key != null) {
-                    final Object value = inputStringMap.get(key);
+                    final Object value = entry.getValue();
                     if (value != null) {
-                        backingMap.put(key.toString(),value.toString());
+                        backingMap.put(key.toString(), value.toString());
                     }
                 }
             }
@@ -73,7 +75,7 @@ public class FormMap implements Serializable,Map<String, String> {
     }
 
     public String get(final String key, final String defaultValue) {
-        return backingMap.containsKey(key) ? backingMap.get(key) : defaultValue;
+        return backingMap.getOrDefault(key, defaultValue);
     }
 
     @Override

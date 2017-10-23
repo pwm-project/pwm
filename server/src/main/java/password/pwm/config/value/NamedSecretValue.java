@@ -144,8 +144,9 @@ public class NamedSecretValue implements StoredValue {
         }
         final List<Element> valuesElement = new ArrayList<>();
         try {
-            for (final String name : values.keySet()) {
-                final PasswordData passwordData = values.get(name).getPassword();
+            for (final Map.Entry<String,NamedSecretData> entry : values.entrySet()) {
+                final String name = entry.getKey();
+                final PasswordData passwordData = entry.getValue().getPassword();
                 final String encodedValue = SecureEngine.encryptToString(passwordData.getStringValue(), key, PwmBlockAlgorithm.CONFIG);
                 final Element newValueElement = new Element("value");
                 final Element nameElement = new Element(ELEMENT_NAME);
@@ -178,9 +179,9 @@ public class NamedSecretValue implements StoredValue {
     @Override
     public String toDebugString(final Locale locale) {
         final StringBuilder sb = new StringBuilder();
-        for (final String name : values.keySet()) {
-            final NamedSecretData existingData = values.get(name);
-            sb.append("Named password '").append(name).append("' with usage for ");
+        for (final Map.Entry<String,NamedSecretData> entry: values.entrySet()) {
+            final NamedSecretData existingData = entry.getValue();
+            sb.append("Named password '").append(entry.getKey()).append("' with usage for ");
             sb.append(StringUtil.collectionToString(existingData.getUsage(), ","));
             sb.append("\n");
 
@@ -196,8 +197,9 @@ public class NamedSecretValue implements StoredValue {
 
         try {
             final LinkedHashMap<String,NamedSecretData> copiedValues = new LinkedHashMap<>();
-            for (final String name : values.keySet()) {
-                final NamedSecretData existingData = values.get(name);
+            for (final Map.Entry<String,NamedSecretData> entry: values.entrySet()) {
+                final String name = entry.getKey();
+                final NamedSecretData existingData = entry.getValue();
                 final NamedSecretData newData = new NamedSecretData(
                         PasswordData.forStringValue(PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT),
                         existingData.getUsage()

@@ -53,15 +53,14 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class ContextManager implements Serializable {
-// ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(ContextManager.class);
 
-    private ServletContext servletContext;
-    private Timer taskMaster;
+    private transient ServletContext servletContext;
+    private transient Timer taskMaster;
 
     private transient PwmApplication pwmApplication;
-    private ConfigurationReader configReader;
+    private transient ConfigurationReader configReader;
     private ErrorInformation startupErrorInformation;
 
     private volatile boolean restartRequestedFlag = false;
@@ -78,7 +77,6 @@ public class ContextManager implements Serializable {
         this.contextPath = servletContext.getContextPath();
     }
 
-    // -------------------------- STATIC METHODS --------------------------
 
     public static PwmApplication getPwmApplication(final HttpServletRequest request) throws PwmUnrecoverableException {
         return getPwmApplication(request.getServletContext());
@@ -112,8 +110,6 @@ public class ContextManager implements Serializable {
         return (ContextManager) theManager;
     }
 
-// --------------------- GETTER / SETTER METHODS ---------------------
-
     public PwmApplication getPwmApplication()
             throws PwmUnrecoverableException
     {
@@ -128,8 +124,6 @@ public class ContextManager implements Serializable {
         }
         return pwmApplication;
     }
-
-// -------------------------- OTHER METHODS --------------------------
 
     public void initialize() {
 
@@ -163,11 +157,7 @@ public class ContextManager implements Serializable {
             configReader.getStoredConfiguration().lock();
             configuration = configReader.getConfiguration();
 
-            if (configReader == null) {
-                mode = startupErrorInformation == null ? PwmApplicationMode.ERROR : PwmApplicationMode.ERROR;
-            } else {
-                mode = startupErrorInformation == null ? configReader.getConfigMode() : PwmApplicationMode.ERROR;
-            }
+            mode = startupErrorInformation == null ? configReader.getConfigMode() : PwmApplicationMode.ERROR;
 
             if (startupErrorInformation == null) {
                 startupErrorInformation = configReader.getConfigFileError();

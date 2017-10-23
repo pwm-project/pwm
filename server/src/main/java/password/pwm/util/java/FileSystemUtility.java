@@ -54,12 +54,15 @@ public class FileSystemUtility {
             throws PwmUnrecoverableException, IOException
     {
         final ArrayList<FileSummaryInformation> results = new ArrayList<>();
-        for (final File loopFile : rootFile.listFiles()) {
-            final String path = relativePath + loopFile.getName();
-            if (loopFile.isDirectory()) {
-                results.addAll(readFileInformation(loopFile, path + "/"));
-            } else {
-                results.add(fileInformationForFile(loopFile));
+        final File[] files = rootFile.listFiles();
+        if (files != null) {
+            for (final File loopFile : files) {
+                final String path = relativePath + loopFile.getName();
+                if (loopFile.isDirectory()) {
+                    results.addAll(readFileInformation(loopFile, path + "/"));
+                } else {
+                    results.add(fileInformationForFile(loopFile));
+                }
             }
         }
         return results;
@@ -203,9 +206,12 @@ public class FileSystemUtility {
             throw new FileNotFoundException(path.getAbsolutePath());
         }
 
-        if (path.isDirectory()){
-            for (final File f : path.listFiles()){
-                deleteDirectoryContents(f, true);
+        if (path.isDirectory()) {
+            final File[] files = path.listFiles();
+            if (files != null) {
+                for (final File f : files) {
+                    deleteDirectoryContents(f, true);
+                }
             }
         }
 

@@ -114,7 +114,6 @@ import java.util.concurrent.ConcurrentHashMap;
         }
 )
 public class ConfigEditorServlet extends AbstractPwmServlet {
-// ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(ConfigEditorServlet.class);
 
@@ -624,10 +623,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
                         final String returnCategory = item.getNavigation();
 
 
-                        if (!returnData.containsKey(returnCategory)) {
-                            returnData.put(returnCategory, new ConcurrentHashMap<>());
-                        }
-
+                        returnData.putIfAbsent(returnCategory, new ConcurrentHashMap<>());
                         returnData.get(returnCategory).put(setting.getKey(), item);
                     });
 
@@ -731,7 +727,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
                 }
 
                 final Map<String, PwmRequest.FileUploadItem> fileUploads = pwmRequest.readFileUploads(maxFileSize, 1);
-                final ByteArrayInputStream fileIs = new ByteArrayInputStream(fileUploads.get(PwmConstants.PARAM_FILE_UPLOAD).getContent());
+                final ByteArrayInputStream fileIs = new ByteArrayInputStream(fileUploads.get(PwmConstants.PARAM_FILE_UPLOAD).getContent().getBytes());
 
                 HttpsServerCertificateManager.importKey(
                         configManagerBean.getStoredConfiguration(),

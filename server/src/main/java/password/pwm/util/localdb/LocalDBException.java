@@ -27,8 +27,6 @@ import password.pwm.error.PwmDataStoreException;
 import password.pwm.error.PwmError;
 
 public class LocalDBException extends PwmDataStoreException {
-// --------------------------- CONSTRUCTORS ---------------------------
-
 
     public LocalDBException(final ErrorInformation error) {
         super(error);

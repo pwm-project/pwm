@@ -134,13 +134,14 @@ public abstract class PwmHttpRequestWrapper {
 
         final Map<String, String> outputMap = new LinkedHashMap<>();
         if (inputMap != null) {
-            for (final String key : inputMap.keySet()) {
+            for (final Map.Entry<String,String> entry : inputMap.entrySet()) {
+                final String key = entry.getKey();
                 if (key != null) {
                     final boolean passwordType = key.toLowerCase().contains("password");
                     String value;
                     value = bypassInputValidation
-                            ? inputMap.get(key)
-                            : Validator.sanitizeInputValue(configuration, inputMap.get(key), maxLength);
+                            ? entry.getValue()
+                            : Validator.sanitizeInputValue(configuration, entry.getValue(), maxLength);
                     value = passwordType && passwordTrim ? value.trim() : value;
                     value = !passwordType && trim ? value.trim() : value;
 
@@ -166,19 +167,20 @@ public abstract class PwmHttpRequestWrapper {
 
         final Map<String, Object> outputMap = new LinkedHashMap<>();
         if (inputMap != null) {
-            for (final String key : inputMap.keySet()) {
+            for (final Map.Entry<String,Object> entry : inputMap.entrySet()) {
+                final String key = entry.getKey();
                 if (key != null) {
                     final boolean passwordType = key.toLowerCase().contains("password");
                     final Object value;
                     if (inputMap.get(key) instanceof String) {
                         String stringValue = bypassInputValidation
-                                ? (String)inputMap.get(key) :
-                                Validator.sanitizeInputValue(configuration, (String)inputMap.get(key), maxLength);
+                                ? (String)entry.getValue() :
+                                Validator.sanitizeInputValue(configuration, (String)entry.getValue(), maxLength);
                         stringValue = passwordType && passwordTrim ? stringValue.trim() : stringValue;
                         stringValue = !passwordType && trim ? stringValue.trim() : stringValue;
                         value = stringValue;
                     } else {
-                        value = inputMap.get(key);
+                        value = entry.getValue();
                     }
 
                     final String sanitizedName = Validator.sanitizeInputValue(configuration, key, maxLength);

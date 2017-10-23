@@ -111,7 +111,6 @@ class DatabaseAccessorImpl implements DatabaseAccessor {
         });
     }
 
-
     @Override
     public boolean putIfAbsent(
             final DatabaseTable table,
@@ -125,14 +124,14 @@ class DatabaseAccessorImpl implements DatabaseAccessor {
         return execute(debugInfo, () -> {
             boolean valueExists = false;
             try {
-                valueExists = containsImpl(table, key);
+                valueExists = DatabaseAccessorImpl.this.containsImpl(table, key);
             } catch (final SQLException e) {
-                processSqlException(debugInfo, e);
+                DatabaseAccessorImpl.this.processSqlException(debugInfo, e);
             }
 
             if (!valueExists) {
                 final String insertSql = "INSERT INTO " + table.name() + "(" + DatabaseService.KEY_COLUMN + ", " + DatabaseService.VALUE_COLUMN + ") VALUES(?,?)";
-                executeUpdate(insertSql, debugInfo, key, value);
+                DatabaseAccessorImpl.this.executeUpdate(insertSql, debugInfo, key, value);
             }
 
             return !valueExists;
@@ -284,11 +283,12 @@ class DatabaseAccessorImpl implements DatabaseAccessor {
         private ResultSet init() throws DatabaseException {
             final String sqlText = "SELECT " + DatabaseService.KEY_COLUMN + " FROM " + table.name();
 
-            try {
-                final PreparedStatement statement = connection.prepareStatement(sqlText);
-                final ResultSet resultSet = statement.executeQuery();
-                connection.commit();
-                return resultSet;
+
+            try (PreparedStatement statement = connection.prepareStatement(sqlText)) {
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    connection.commit();
+                    return resultSet;
+                }
             } catch (SQLException e) {
                 processSqlException(null, e);
             }

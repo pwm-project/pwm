@@ -28,61 +28,65 @@ import password.pwm.config.option.DataStorageMethod;
 import password.pwm.i18n.Admin;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.java.Percent;
+import password.pwm.util.java.PwmNumberFormat;
 import password.pwm.util.java.TimeDuration;
 
 import java.math.BigInteger;
-import java.text.NumberFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 public class ReportSummaryData {
     private static final long MS_DAY = TimeDuration.DAY.getTotalMilliseconds();
     private static BigInteger TWO = new BigInteger("2");
 
     private Instant meanCacheTime;
-    private int totalUsers;
-    private int hasResponses;
-    private int hasResponseSetTime;
-    private int hasHelpdeskResponses;
-    private int hasPasswordExpirationTime;
-    private int hasAccountExpirationTime;
-    private int hasLoginTime;
-    private int hasChangePwTime;
-    private int hasOtpSecret;
-    private int hasOtpSecretSetTime;
-    private Map<DataStorageMethod, Integer> responseStorage = new HashMap<>();
-    private Map<Answer.FormatType, Integer> responseFormatType = new HashMap<>();
-    private Map<String, Integer> ldapProfile = new HashMap<>();
-    private int pwExpired;
-    private int pwPreExpired;
-    private int pwWarnPeriod;
-    private Map<Integer,Integer> pwExpireDays = new TreeMap<>();
-    private Map<Integer,Integer> accountExpireDays = new TreeMap<>();
-    private Map<Integer,Integer> changePwDays = new TreeMap<>();
-    private Map<Integer,Integer> responseSetDays = new TreeMap<>();
-    private Map<Integer,Integer> otpSetDays = new TreeMap<>();
-    private Map<Integer,Integer> loginDays = new TreeMap<>();
+    private final AtomicInteger totalUsers = new AtomicInteger(0);
+    private final AtomicInteger hasResponses = new AtomicInteger(0);
+    private final AtomicInteger hasResponseSetTime = new AtomicInteger(0);
+    private final AtomicInteger hasHelpdeskResponses = new AtomicInteger(0);
+    private final AtomicInteger hasPasswordExpirationTime = new AtomicInteger(0);
+    private final AtomicInteger hasAccountExpirationTime = new AtomicInteger(0);
+    private final AtomicInteger hasLoginTime = new AtomicInteger(0);
+    private final AtomicInteger hasChangePwTime = new AtomicInteger(0);
+    private final AtomicInteger hasOtpSecret = new AtomicInteger(0);
+    private final AtomicInteger hasOtpSecretSetTime = new AtomicInteger(0);
+    private final AtomicInteger pwExpired = new AtomicInteger(0);
+    private final AtomicInteger pwPreExpired = new AtomicInteger(0);
+    private final AtomicInteger pwWarnPeriod = new AtomicInteger(0);
+
+    private final Map<DataStorageMethod, AtomicInteger> responseStorage = new ConcurrentHashMap<>();
+    private final Map<Answer.FormatType, AtomicInteger> responseFormatType = new ConcurrentHashMap<>();
+    private final Map<String, AtomicInteger> ldapProfile = new ConcurrentHashMap<>();
+    private final Map<Integer,AtomicInteger> pwExpireDays = new ConcurrentHashMap<>();
+    private final Map<Integer,AtomicInteger> accountExpireDays = new ConcurrentHashMap<>();
+    private final Map<Integer,AtomicInteger> changePwDays = new ConcurrentHashMap<>();
+    private final Map<Integer,AtomicInteger> responseSetDays = new ConcurrentHashMap<>();
+    private final Map<Integer,AtomicInteger> otpSetDays = new ConcurrentHashMap<>();
+    private final Map<Integer,AtomicInteger> loginDays = new ConcurrentHashMap<>();
 
     private ReportSummaryData() {
     }
 
-    public static ReportSummaryData newSummaryData(final List<Integer> trackedDays) {
+    static ReportSummaryData newSummaryData(final List<Integer> trackedDays) {
         final ReportSummaryData reportSummaryData = new ReportSummaryData();
 
         if (trackedDays != null) {
             for (final int day : trackedDays) {
-                reportSummaryData.pwExpireDays.put(day, 0);
-                reportSummaryData.accountExpireDays.put(day, 0);
-                reportSummaryData.changePwDays.put(day, 0);
-                reportSummaryData.responseSetDays.put(day, 0);
-                reportSummaryData.otpSetDays.put(day, 0);
-                reportSummaryData.loginDays.put(day, 0);
+                reportSummaryData.pwExpireDays.put(day, new AtomicInteger(0));
+                reportSummaryData.accountExpireDays.put(day, new AtomicInteger(0));
+                reportSummaryData.changePwDays.put(day, new AtomicInteger(0));
+                reportSummaryData.responseSetDays.put(day, new AtomicInteger(0));
+                reportSummaryData.otpSetDays.put(day, new AtomicInteger(0));
+                reportSummaryData.loginDays.put(day, new AtomicInteger(0));
             }
         }
 
@@ -91,27 +95,33 @@ public class ReportSummaryData {
 
     public int getTotalUsers()
     {
-        return totalUsers;
+        return totalUsers.get();
     }
 
     public int getHasResponses()
     {
-        return hasResponses;
+        return hasResponses.get();
     }
 
     public int getHasPasswordExpirationTime()
     {
-        return hasPasswordExpirationTime;
+        return hasPasswordExpirationTime.get();
     }
 
     public Map<DataStorageMethod, Integer> getResponseStorage()
     {
-        return Collections.unmodifiableMap(responseStorage);
+        return Collections.unmodifiableMap(responseStorage.entrySet()
+                .stream()
+                .collect(Collectors.toMap(Map.Entry::getKey,
+                        e -> e.getValue().get())));
     }
 
     public Map<Answer.FormatType, Integer> getResponseFormatType()
     {
-        return responseFormatType;
+        return Collections.unmodifiableMap(responseFormatType.entrySet()
+                .stream()
+                .collect(Collectors.toMap(Map.Entry::getKey,
+                        e -> e.getValue().get())));
     }
 
     public Instant getMeanCacheTime()
@@ -127,133 +137,134 @@ public class ReportSummaryData {
         update(userCacheRecord,false);
     }
 
-    private synchronized void update(final UserCacheRecord userCacheRecord, final boolean adding) {
+    private void update(final UserCacheRecord userCacheRecord, final boolean adding) {
         final int modifier = adding ? 1 : -1;
 
-        totalUsers += modifier;
+        totalUsers.addAndGet(modifier);
 
         updateMeanTime(userCacheRecord.cacheTimestamp,adding);
 
         if (userCacheRecord.hasResponses) {
-            hasResponses += modifier;
+            hasResponses.addAndGet(modifier);
         }
 
         if (userCacheRecord.hasHelpdeskResponses) {
-            hasHelpdeskResponses += modifier;
+            hasHelpdeskResponses.addAndGet(modifier);
         }
 
         if (userCacheRecord.responseSetTime != null) {
-            hasResponseSetTime += modifier;
+            hasResponseSetTime.addAndGet(modifier);
 
-            for (final int day : responseSetDays.keySet()) {
-                responseSetDays.put(day, responseSetDays.get(day) + calcTimeWindow(userCacheRecord.responseSetTime, MS_DAY * day, adding));
+            for (final Map.Entry<Integer,AtomicInteger> entry : responseSetDays.entrySet()) {
+                final Integer day = entry.getKey();
+                entry.getValue().addAndGet(calcTimeWindow(userCacheRecord.responseSetTime, MS_DAY * day, adding));
             }
         }
 
         if (userCacheRecord.passwordExpirationTime != null) {
-            hasPasswordExpirationTime += modifier;
+            hasPasswordExpirationTime.addAndGet(modifier);
 
-            for (final int day : pwExpireDays.keySet()) {
-                pwExpireDays.put(day, pwExpireDays.get(day) + calcTimeWindow(userCacheRecord.passwordExpirationTime, MS_DAY * day, adding));
+            for (final Map.Entry<Integer,AtomicInteger> entry : pwExpireDays.entrySet()) {
+                final Integer day = entry.getKey();
+                entry.getValue().addAndGet(calcTimeWindow(userCacheRecord.passwordExpirationTime, MS_DAY * day, adding));
             }
         }
 
         if (userCacheRecord.accountExpirationTime != null) {
-            hasAccountExpirationTime += modifier;
+            hasAccountExpirationTime.addAndGet(modifier);
 
-            for (final int day : accountExpireDays.keySet()) {
-                accountExpireDays.put(day, accountExpireDays.get(day) + calcTimeWindow(userCacheRecord.accountExpirationTime, MS_DAY * day, adding));
+            for (final Map.Entry<Integer,AtomicInteger> entry : accountExpireDays.entrySet()) {
+                final Integer day = entry.getKey();
+                entry.getValue().addAndGet(calcTimeWindow(userCacheRecord.accountExpirationTime, MS_DAY * day, adding));
             }
         }
 
         if (userCacheRecord.lastLoginTime != null) {
-            hasLoginTime += modifier;
+            hasLoginTime.addAndGet(modifier);
 
-            for (final int day : loginDays.keySet()) {
-                loginDays.put(day, loginDays.get(day) + calcTimeWindow(userCacheRecord.lastLoginTime, MS_DAY * day, adding));
+            for (final Map.Entry<Integer,AtomicInteger> entry : loginDays.entrySet()) {
+                final Integer day = entry.getKey();
+                entry.getValue().addAndGet(calcTimeWindow(userCacheRecord.lastLoginTime, MS_DAY * day, adding));
             }
         }
 
         if (userCacheRecord.passwordChangeTime != null) {
-            hasChangePwTime += modifier;
+            hasChangePwTime.addAndGet(modifier);
 
-            for (final int day : changePwDays.keySet()) {
-                changePwDays.put(day, changePwDays.get(day) + calcTimeWindow(userCacheRecord.passwordChangeTime, MS_DAY * day, adding));
+            for (final Map.Entry<Integer,AtomicInteger> entry : changePwDays.entrySet()) {
+                final Integer day = entry.getKey();
+                entry.getValue().addAndGet(calcTimeWindow(userCacheRecord.passwordChangeTime, MS_DAY * day, adding));
             }
         }
 
         if (userCacheRecord.passwordStatus != null) {
             if (adding) {
                 if (userCacheRecord.passwordStatus.isExpired()) {
-                    pwExpired++;
+                    pwExpired.incrementAndGet();
                 }
                 if (userCacheRecord.passwordStatus.isPreExpired()) {
-                    pwPreExpired++;
+                    pwPreExpired.incrementAndGet();
                 }
                 if (userCacheRecord.passwordStatus.isWarnPeriod()) {
-                    pwWarnPeriod++;
+                    pwWarnPeriod.incrementAndGet();
                 }
             } else {
                 if (userCacheRecord.passwordStatus.isExpired()) {
-                    pwExpired--;
+                    pwExpired.decrementAndGet();
                 }
                 if (userCacheRecord.passwordStatus.isPreExpired()) {
-                    pwPreExpired--;
+                    pwPreExpired.decrementAndGet();
                 }
                 if (userCacheRecord.passwordStatus.isWarnPeriod()) {
-                    pwWarnPeriod--;
+                    pwWarnPeriod.decrementAndGet();
                 }
             }
         }
 
         if (userCacheRecord.responseStorageMethod != null) {
             final DataStorageMethod method = userCacheRecord.responseStorageMethod;
-            if (!responseStorage.containsKey(method)) {
-                responseStorage.put(method,0);
-            }
+            responseStorage.putIfAbsent(method, new AtomicInteger(0));
             if (adding) {
-                responseStorage.put(method, responseStorage.get(method) + 1);
+                responseStorage.get(method).incrementAndGet();
             } else {
-                responseStorage.put(method, responseStorage.get(method) - 1);
+                responseStorage.get(method).decrementAndGet();
             }
         }
 
         if (userCacheRecord.getLdapProfile() != null) {
             final String userProfile = userCacheRecord.getLdapProfile();
             if (!ldapProfile.containsKey(userProfile)) {
-                ldapProfile.put(userProfile,0);
+                ldapProfile.put(userProfile,new AtomicInteger(0));
             }
             if (adding) {
-                ldapProfile.put(userProfile, ldapProfile.get(userProfile) + 1);
+                ldapProfile.get(userProfile).incrementAndGet();
             } else {
-                ldapProfile.put(userProfile, ldapProfile.get(userProfile) - 1);
+                ldapProfile.get(userProfile).decrementAndGet();
             }
         }
 
         if (userCacheRecord.responseFormatType != null) {
             final Answer.FormatType type = userCacheRecord.responseFormatType;
-            if (!responseFormatType.containsKey(type)) {
-                responseFormatType.put(type,0);
-            }
+            responseFormatType.putIfAbsent(type, new AtomicInteger(0));
             if (adding) {
-                responseFormatType.put(type, responseFormatType.get(type) + 1);
+                responseFormatType.get(type).incrementAndGet();
             } else {
-                responseFormatType.put(type, responseFormatType.get(type) + 1);
+                responseFormatType.get(type).decrementAndGet();
             }
         }
 
         if (userCacheRecord.isHasOtpSecret()) {
-            hasOtpSecret += modifier;
+            hasOtpSecret.addAndGet(modifier);
         }
 
         if (userCacheRecord.getOtpSecretSetTime() != null) {
-            hasOtpSecretSetTime += modifier;
+            hasOtpSecretSetTime.addAndGet(modifier);
 
-            for (final int day : otpSetDays.keySet()) {
-                otpSetDays.put(day, otpSetDays.get(day) + calcTimeWindow(userCacheRecord.getOtpSecretSetTime(), MS_DAY * day, adding));
+            for (final Map.Entry<Integer, AtomicInteger> entry : otpSetDays.entrySet()) {
+                final int day = entry.getKey();
+                entry.getValue().addAndGet(calcTimeWindow(userCacheRecord.getOtpSecretSetTime(), MS_DAY * day, adding));
             }
         }
-
     }
 
     private void updateMeanTime(final Instant newTime, final boolean adding) {
@@ -293,16 +304,17 @@ public class ReportSummaryData {
 
     public List<PresentationRow> asPresentableCollection(final Configuration config, final Locale locale) {
         final ArrayList<PresentationRow> returnCollection = new ArrayList<>();
-        final PresentationRowBuilder builder = new PresentationRowBuilder(config,this.totalUsers,locale);
+        final PresentationRowBuilder builder = new PresentationRowBuilder(config,this.totalUsers.get(),locale);
 
-        returnCollection.add(builder.makeNoPctRow("Field_Report_Sum_Total", this.totalUsers, null));
-        if (totalUsers == 0) {
+        returnCollection.add(builder.makeNoPctRow("Field_Report_Sum_Total", this.totalUsers.get(), null));
+        if (totalUsers.get() == 0) {
             return returnCollection;
         }
 
         if (config.getLdapProfiles().keySet().size() > 1) {
-            for (final String userProfile : ldapProfile.keySet()) {
-                final int count = this.ldapProfile.get(userProfile);
+            for (final Map.Entry<String,AtomicInteger> entry : new TreeMap<>(ldapProfile).entrySet()) {
+                final String userProfile = entry.getKey();
+                final int count = entry.getValue().get();
                 final String displayName = config.getLdapProfiles().containsKey(userProfile)
                         ? config.getLdapProfiles().get(userProfile).getDisplayName(locale)
                         : userProfile;
@@ -311,58 +323,58 @@ public class ReportSummaryData {
             }
         }
 
-        returnCollection.add(builder.makeRow("Field_Report_Sum_HaveLoginTime", this.hasLoginTime));
-        for (final Integer day : loginDays.keySet()) {
+        returnCollection.add(builder.makeRow("Field_Report_Sum_HaveLoginTime", this.hasLoginTime.get()));
+        for (final Integer day : new TreeSet<>(loginDays.keySet())) {
             if (day < 0) {
-                returnCollection.add(builder.makeRow("Field_Report_Sum_LoginTimePrevious", this.loginDays.get(day), String.valueOf(Math.abs(day))));
+                returnCollection.add(builder.makeRow("Field_Report_Sum_LoginTimePrevious", this.loginDays.get(day).get(), String.valueOf(Math.abs(day))));
             }
         }
 
-        returnCollection.add(builder.makeRow("Field_Report_Sum_HaveAccountExpirationTime", this.hasAccountExpirationTime));
-        for (final Integer day : accountExpireDays.keySet()) {
+        returnCollection.add(builder.makeRow("Field_Report_Sum_HaveAccountExpirationTime", this.hasAccountExpirationTime.get()));
+        for (final Integer day : new TreeSet<>(accountExpireDays.keySet())) {
             final String key = day < 0 ? "Field_Report_Sum_AccountExpirationPrevious" : "Field_Report_Sum_AccountExpirationNext";
-            returnCollection.add(builder.makeRow(key, this.accountExpireDays.get(day), String.valueOf(Math.abs(day))));
+            returnCollection.add(builder.makeRow(key, this.accountExpireDays.get(day).get(), String.valueOf(Math.abs(day))));
         }
-        returnCollection.add(builder.makeRow("Field_Report_Sum_HavePwExpirationTime", this.hasPasswordExpirationTime));
-        returnCollection.add(builder.makeRow("Field_Report_Sum_HaveExpiredPw",this.pwExpired));
-        returnCollection.add(builder.makeRow("Field_Report_Sum_HavePreExpiredPw",this.pwPreExpired));
-        returnCollection.add(builder.makeRow("Field_Report_Sum_HaveExpiredPwWarn",this.pwWarnPeriod));
-        for (final Integer day : pwExpireDays.keySet()) {
+        returnCollection.add(builder.makeRow("Field_Report_Sum_HavePwExpirationTime", this.hasPasswordExpirationTime.get()));
+        returnCollection.add(builder.makeRow("Field_Report_Sum_HaveExpiredPw",this.pwExpired.get()));
+        returnCollection.add(builder.makeRow("Field_Report_Sum_HavePreExpiredPw",this.pwPreExpired.get()));
+        returnCollection.add(builder.makeRow("Field_Report_Sum_HaveExpiredPwWarn",this.pwWarnPeriod.get()));
+        for (final Integer day : new TreeSet<>(pwExpireDays.keySet())) {
             final String key = day < 0 ? "Field_Report_Sum_PwExpirationPrevious" : "Field_Report_Sum_PwExpirationNext";
-            returnCollection.add(builder.makeRow(key, this.pwExpireDays.get(day), String.valueOf(Math.abs(day))));
+            returnCollection.add(builder.makeRow(key, this.pwExpireDays.get(day).get(), String.valueOf(Math.abs(day))));
         }
 
-        returnCollection.add(builder.makeRow("Field_Report_Sum_HaveChgPw", this.hasChangePwTime));
-        for (final Integer day : changePwDays.keySet()) {
+        returnCollection.add(builder.makeRow("Field_Report_Sum_HaveChgPw", this.hasChangePwTime.get()));
+        for (final Integer day : new TreeSet<>(changePwDays.keySet())) {
             if (day < 0) {
-                returnCollection.add(builder.makeRow("Field_Report_Sum_ChgPwPrevious", this.changePwDays.get(day), String.valueOf(Math.abs(day))));
+                returnCollection.add(builder.makeRow("Field_Report_Sum_ChgPwPrevious", this.changePwDays.get(day).get(), String.valueOf(Math.abs(day))));
             }
         }
 
-        returnCollection.add(builder.makeRow("Field_Report_Sum_HaveResponses", this.hasResponses));
-        returnCollection.add(builder.makeRow("Field_Report_Sum_HaveHelpdeskResponses", this.hasHelpdeskResponses));
-        for (final DataStorageMethod storageMethod : this.getResponseStorage().keySet()) {
+        returnCollection.add(builder.makeRow("Field_Report_Sum_HaveResponses", this.hasResponses.get()));
+        returnCollection.add(builder.makeRow("Field_Report_Sum_HaveHelpdeskResponses", this.hasHelpdeskResponses.get()));
+        for (final DataStorageMethod storageMethod : new TreeSet<>(this.getResponseStorage().keySet())) {
             final int count = this.getResponseStorage().get(storageMethod);
             returnCollection.add(builder.makeRow("Field_Report_Sum_StorageMethod", count, storageMethod.toString()));
         }
-        for (final Answer.FormatType formatType : this.getResponseFormatType().keySet()) {
+        for (final Answer.FormatType formatType : new TreeSet<>(this.getResponseFormatType().keySet())) {
             final int count = this.getResponseFormatType().get(formatType);
             returnCollection.add(builder.makeRow("Field_Report_Sum_ResponseFormatType", count, formatType.toString()));
         }
 
-        returnCollection.add(builder.makeRow("Field_Report_Sum_HaveResponseTime", this.hasResponseSetTime));
-        for (final Integer day : responseSetDays.keySet()) {
+        returnCollection.add(builder.makeRow("Field_Report_Sum_HaveResponseTime", this.hasResponseSetTime.get()));
+        for (final Integer day : new TreeSet<>(responseSetDays.keySet())) {
             if (day < 0) {
-                returnCollection.add(builder.makeRow("Field_Report_Sum_ResponseTimePrevious", this.responseSetDays.get(day), String.valueOf(Math.abs(day))));
+                returnCollection.add(builder.makeRow("Field_Report_Sum_ResponseTimePrevious", this.responseSetDays.get(day).get(), String.valueOf(Math.abs(day))));
             }
         }
 
-        if (this.hasOtpSecret > 0) {
-            returnCollection.add(builder.makeRow("Field_Report_Sum_HaveOtpSecret", this.hasOtpSecret));
-            returnCollection.add(builder.makeRow("Field_Report_Sum_HaveOtpSecretSetTime", this.hasOtpSecretSetTime));
-            for (final Integer day : otpSetDays.keySet()) {
+        if (this.hasOtpSecret.get() > 0) {
+            returnCollection.add(builder.makeRow("Field_Report_Sum_HaveOtpSecret", this.hasOtpSecret.get()));
+            returnCollection.add(builder.makeRow("Field_Report_Sum_HaveOtpSecretSetTime", this.hasOtpSecretSetTime.get()));
+            for (final Integer day : new TreeSet<>(otpSetDays.keySet())) {
                 if (day < 0) {
-                    returnCollection.add(builder.makeRow("Field_Report_Sum_OtpSecretTimePrevious", this.otpSetDays.get(day), String.valueOf(Math.abs(day))));
+                    returnCollection.add(builder.makeRow("Field_Report_Sum_OtpSecretTimePrevious", this.otpSetDays.get(day).get(), String.valueOf(Math.abs(day))));
                 }
             }
         }
@@ -428,7 +440,7 @@ public class ReportSummaryData {
                     ? LocaleHelper.getLocalizedMessage(locale, labelKey, config, Admin.class)
                     : LocaleHelper.getLocalizedMessage(locale, labelKey, config, Admin.class, new String[]{replacement});
             final String pct = valueCount > 0 ? new Percent(valueCount,totalUsers).pretty(2) : "";
-            final NumberFormat numberFormat = NumberFormat.getInstance(locale);
+            final PwmNumberFormat numberFormat = PwmNumberFormat.forLocale(locale);
             final String formattedCount = numberFormat.format(valueCount);
             return new PresentationRow(display, formattedCount, pct);
         }
@@ -438,7 +450,7 @@ public class ReportSummaryData {
             final String display = replacement == null
                     ? LocaleHelper.getLocalizedMessage(locale, labelKey, config, Admin.class)
                     : LocaleHelper.getLocalizedMessage(locale, labelKey, config, Admin.class, new String[]{replacement});
-            final NumberFormat numberFormat = NumberFormat.getInstance(locale);
+            final PwmNumberFormat numberFormat = PwmNumberFormat.forLocale(locale);
             final String formattedCount = numberFormat.format(valueCount);
             return new PresentationRow(display, formattedCount, null);
         }

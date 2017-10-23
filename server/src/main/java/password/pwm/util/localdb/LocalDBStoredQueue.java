@@ -50,10 +50,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * synchronized.
  */
 public class
-LocalDBStoredQueue implements Queue<String>, Deque<String>
-{
-// ------------------------------ FIELDS ------------------------------
-
+LocalDBStoredQueue implements Queue<String>, Deque<String> {
     private static final PwmLogger LOGGER = PwmLogger.forClass(LocalDBStoredQueue.class, true);
     private static final int MAX_SIZE = Integer.MAX_VALUE - 3;
 
@@ -63,8 +60,6 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
     private static final String VALUE_VERSION = "7a";
 
     private final InternalQueue internalQueue;
-
-// --------------------------- CONSTRUCTORS ---------------------------
 
     private LocalDBStoredQueue(
             final LocalDB localDB,
@@ -120,12 +115,6 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
             throw new IllegalStateException("unexpected localDB error while modifying queue: " + e.getMessage(), e);
         }
     }
-
-// ------------------------ INTERFACE METHODS ------------------------
-
-
-// --------------------- Interface Collection ---------------------
-
 
     public boolean isEmpty() {
         try {
@@ -211,9 +200,6 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
             throw new IllegalStateException(e);
         }
     }
-
-// --------------------- Interface Deque ---------------------
-
 
     public void addFirst(final String s) {
         try {
@@ -357,8 +343,6 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         }
     }
 
-// --------------------- Interface Iterable ---------------------
-
     public Iterator<String> iterator() {
         try {
             return new InnerIterator(internalQueue, true);
@@ -366,9 +350,6 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
             throw new IllegalStateException(e);
         }
     }
-
-// --------------------- Interface Queue ---------------------
-
 
     public boolean offer(final String s) {
         this.add(s);
@@ -399,9 +380,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         return internalQueue.localDB;
     }
 
-// -------------------------- INNER CLASSES --------------------------
-
-    private class InnerIterator implements Iterator<String> {
+    private static class InnerIterator implements Iterator<String> {
         private Position position;
         private final InternalQueue internalQueue;
         private final boolean first;
@@ -635,7 +614,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
                 debugOutput("pre removeFirst()");
 
                 if (removalCount < 1) {
-                    Collections.emptyList();
+                    return Collections.emptyList();
                 }
 
                 final List<String> removalKeys = new ArrayList<>();
@@ -671,7 +650,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
                 debugOutput("pre removeLast()");
 
                 if (removalCount < 1) {
-                    Collections.emptyList();
+                    return Collections.emptyList();
                 }
 
                 final List<String> removalKeys = new ArrayList<>();

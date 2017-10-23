@@ -45,14 +45,15 @@
         <br/>
         <% final Map<FormConfiguration,String> formDataMap = (Map<FormConfiguration,String>)JspUtility.getAttribute(pageContext, PwmRequestAttribute.FormData); %>
         <table id="ConfirmProfileTable">
-            <% for (final FormConfiguration formConfiguration : formDataMap.keySet()) { %>
+            <% for (final Map.Entry<FormConfiguration, String> entry : formDataMap.entrySet()) { %>
+            <% final FormConfiguration formConfiguration = entry.getKey(); %>
             <tr>
                 <td class="key">
                     <%=formConfiguration.getLabel(JspUtility.locale(request))%>
                 </td>
                 <td>
                     <%
-                        final String value = formDataMap.get(formConfiguration);
+                        final String value = entry.getValue();
                         if (formConfiguration.getType() == FormConfiguration.Type.checkbox) {
                     %>
                     <label class="checkboxWrapper">

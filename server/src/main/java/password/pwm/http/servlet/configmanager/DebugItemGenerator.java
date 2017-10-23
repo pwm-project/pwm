@@ -67,7 +67,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -127,11 +126,11 @@ public class DebugItemGenerator {
                 zipOutput.flush();
                 final String finishMsg = "completed output of " + newGeneratorItem.getFilename() + " in " + TimeDuration.fromCurrent(startTime).asCompactString();
                 LOGGER.trace(pwmRequest, finishMsg);
-                debugGeneratorLogFile.printRecord(JavaHelper.toIsoDate(new Date()),finishMsg);
+                debugGeneratorLogFile.printRecord(JavaHelper.toIsoDate(Instant.now()),finishMsg);
             } catch (Throwable e) {
                 final String errorMsg = "unexpected error executing debug item output class '" + serviceClass.getName() + "', error: " + e.toString();
                 LOGGER.error(pwmRequest, errorMsg);
-                debugGeneratorLogFile.printRecord(JavaHelper.toIsoDate(new Date()),errorMsg);
+                debugGeneratorLogFile.printRecord(JavaHelper.toIsoDate(Instant.now()),errorMsg);
                 final Writer stackTraceOutput = new StringWriter();
                 e.printStackTrace(new PrintWriter(stackTraceOutput));
                 debugGeneratorLogFile.printRecord(stackTraceOutput);
@@ -190,8 +189,9 @@ public class DebugItemGenerator {
                     storedConfiguration.getModifiedSettingDebugValues(PwmConstants.DEFAULT_LOCALE, true)
             );
 
-            for (final String key : modifiedSettings.keySet()) {
-                final String value = modifiedSettings.get(key);
+            for (final Map.Entry<String, String> entry : modifiedSettings.entrySet()) {
+                final String key = entry.getKey();
+                final String value = entry.getValue();
                 writer.write(">> Setting > " + key);
                 writer.write("\n");
                 writer.write(value);
@@ -237,11 +237,13 @@ public class DebugItemGenerator {
             };
 
             final Map<PwmAboutProperty,String> infoBean = PwmAboutProperty.makeInfoBean(pwmApplication);
-            for (final PwmAboutProperty aboutProperty : infoBean.keySet()) {
-                outputProps.put(aboutProperty.toString().replace("_","."), infoBean.get(aboutProperty));
+            for (final Map.Entry<PwmAboutProperty, String> entry : infoBean.entrySet()) {
+                final PwmAboutProperty aboutProperty = entry.getKey();
+                final String value = entry.getValue();
+                outputProps.put(aboutProperty.toString().replace("_","."), value);
             }
             final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            outputProps.store(baos, JavaHelper.toIsoDate(new Date()));
+            outputProps.store(baos, JavaHelper.toIsoDate(Instant.now()));
             outputStream.write(baos.toByteArray());
         }
     }
@@ -256,14 +258,9 @@ public class DebugItemGenerator {
         public void outputItem(final PwmApplication pwmApplication, final PwmRequest pwmRequest, final OutputStream outputStream) throws Exception
         {
             final Properties outputProps = JavaHelper.newSortedProperties();
-
-            // java threads
-            final Map<String,String> envProps = System.getenv();
-            for (final String key : envProps.keySet()) {
-                outputProps.put(key, envProps.get(key));
-            }
+            outputProps.putAll(System.getenv());
             final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            outputProps.store(baos,JavaHelper.toIsoDate(new Date()));
+            outputProps.store(baos,JavaHelper.toIsoDate(Instant.now()));
             outputStream.write(baos.toByteArray());
         }
     }
@@ -286,7 +283,7 @@ public class DebugItemGenerator {
             }
 
             final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            outputProps.store(baos,JavaHelper.toIsoDate(new Date()));
+            outputProps.store(baos,JavaHelper.toIsoDate(Instant.now()));
             outputStream.write(baos.toByteArray());
         }
     }

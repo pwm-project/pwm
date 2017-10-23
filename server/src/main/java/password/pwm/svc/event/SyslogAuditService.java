@@ -76,7 +76,7 @@ public class SyslogAuditService {
 
     private SyslogIF syslogInstance = null;
     private ErrorInformation lastError = null;
-    private X509Certificate[] certificates = null;
+    private List<X509Certificate> certificates = null;
 
     private WorkQueueProcessor<String> workQueueProcessor;
 
@@ -334,7 +334,7 @@ public class SyslogAuditService {
         @Override
         protected SocketFactory obtainSocketFactory()
         {
-            if (certificates != null && certificates.length >= 1) {
+            if (certificates != null && certificates.size() >= 1) {
                 try {
                     final SSLContext sc = SSLContext.getInstance("SSL");
                     sc.init(null, new X509TrustManager[]{new X509Utils.CertMatchingTrustManager(configuration, certificates)},

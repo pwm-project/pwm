@@ -27,6 +27,7 @@ import lombok.Setter;
 
 import java.io.Serializable;
 import java.security.cert.X509Certificate;
+import java.util.List;
 import java.util.Map;
 
 @Getter
@@ -46,5 +47,5 @@ public class RemoteWebServiceConfiguration implements Serializable {
     private Map<String,String> headers;
     private String url;
     private String body;
-    private X509Certificate[] certificates;
+    private List<X509Certificate> certificates;
 }

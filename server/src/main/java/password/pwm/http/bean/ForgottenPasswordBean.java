@@ -42,7 +42,6 @@ import java.util.Set;
  * @author Jason D. Rivard
  */
 public class ForgottenPasswordBean extends PwmSessionBean {
-// ------------------------------ FIELDS ------------------------------
 
     @SerializedName("u")
     private UserIdentity userIdentity;

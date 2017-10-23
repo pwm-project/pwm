@@ -33,12 +33,11 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.Configuration;
-import password.pwm.config.value.data.FormConfiguration;
-import password.pwm.util.form.FormUtility;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.PwmPasswordPolicy;
+import password.pwm.config.value.data.ActionConfiguration;
+import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -59,6 +58,7 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.util.FormMap;
 import password.pwm.util.PasswordData;
 import password.pwm.util.RandomPasswordGenerator;
+import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -70,6 +70,7 @@ import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -302,9 +303,6 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
         final String usernameParam = pwmRequest.readParameterAsString("username");
         final GuestRegistrationBean guBean = pwmApplication.getSessionStateService().getBean(pwmRequest, GuestRegistrationBean.class);
 
-
-        SearchConfiguration.builder();
-
         final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
                     .chaiProvider(chaiProvider)
                     .contexts(Collections.singletonList(config.readSettingAsString(PwmSetting.GUEST_CONTEXT)))
@@ -348,7 +346,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
                 if (expirationAttribute != null && expirationAttribute.length() > 0) {
                     final Date expiration = guestUserInfo.readDateAttribute(expirationAttribute);
                     if (expiration != null) {
-                        guBean.setUpdateUserExpirationDate(expiration);
+                        guBean.setUpdateUserExpirationDate(expiration.toInstant());
                     }
                 }
 
@@ -410,8 +408,10 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
 
             // set up the user creation attributes
             final Map<String,String> createAttributes = new HashMap<>();
-            for (final FormConfiguration formItem : formValues.keySet()) {
-                LOGGER.debug(pwmSession, "Attribute from form: "+ formItem.getName()+" = "+formValues.get(formItem));
+            for (final Map.Entry<FormConfiguration, String> entry : formValues.entrySet()) {
+                final FormConfiguration formItem = entry.getKey();
+                final String value = entry.getValue();
+                LOGGER.debug(pwmSession, "Attribute from form: " + formItem.getName() + " = " + value);
                 final String n = formItem.getName();
                 final String v = formValues.get(formItem);
                 if (n != null && n.length() > 0 && v != null && v.length() > 0) {
@@ -534,9 +534,10 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
     {
         final String namingAttribute = config.getDefaultLdapProfile().readSettingAsString(
                 PwmSetting.LDAP_NAMING_ATTRIBUTE);
-        for (final FormConfiguration formItem : formValues.keySet()) {
+        for (final Map.Entry<FormConfiguration, String> entry : formValues.entrySet()) {
+            final FormConfiguration formItem = entry.getKey();
             if (namingAttribute.equals(formItem.getName())) {
-                final String namingValue = formValues.get(formItem);
+                final String namingValue = entry.getValue();
                 final String gestUserContextDN = config.readSettingAsString(PwmSetting.GUEST_CONTEXT);
                 return namingAttribute + "=" + namingValue + "," + gestUserContextDN;
             }
@@ -645,7 +646,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
         {
             final String selectedDate = guestRegistrationBean.getFormValues().get(HTTP_PARAM_EXPIRATION_DATE);
             if (selectedDate == null || selectedDate.isEmpty()) {
-                final Date currentDate = guestRegistrationBean.getUpdateUserExpirationDate();
+                final Instant currentDate = guestRegistrationBean.getUpdateUserExpirationDate();
 
                 if (currentDate == null) {
                     currentExpirationDate = maxExpirationDate;

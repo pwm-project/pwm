@@ -22,6 +22,7 @@
 
 package password.pwm.util.secure;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.bouncycastle.crypto.generators.OpenBSDBCrypt;
 import password.pwm.AppProperty;
 import password.pwm.config.Configuration;
@@ -29,6 +30,7 @@ import password.pwm.config.Configuration;
 import java.io.UnsupportedEncodingException;
 import java.security.SecureRandom;
 
+@SuppressWarnings("all")
 public class BCrypt {
     public static String hashPassword(final String password) {
         final int bcryptRounds = 10;
@@ -94,7 +96,7 @@ public class BCrypt {
      * @author Damien Miller
      * @version 0.2
      */
-    @SuppressWarnings("all")
+    @SuppressFBWarnings("INT_BAD_COMPARISON_WITH_NONNEGATIVE_VALUE")
     private static class JBCrypt {
         // BCrypt parameters
         private static final int GENSALT_DEFAULT_LOG2_ROUNDS = 10;

@@ -31,6 +31,7 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
@@ -151,15 +152,16 @@ public class ActionExecutor {
             // expand using pwm macros
             if (settings.isExpandPwmMacros()) {
                 if (settings.getMacroMachine() == null) {
-                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"executor specified macro expansion but did not supply macro machine"));
+                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, "executor specified macro expansion but did not supply macro machine"));
                 }
                 final MacroMachine macroMachine = settings.getMacroMachine();
 
                 url = macroMachine.expandMacros(url);
                 body = body == null ? "" : macroMachine.expandMacros(body);
 
-                for (final String headerName : headers.keySet()) {
-                    final String headerValue = headers.get(headerName);
+                for (final Map.Entry<String, String> entry : headers.entrySet()) {
+                    final String headerName = entry.getKey();
+                    final String headerValue = entry.getValue();
                     if (headerValue != null) {
                         headers.put(headerName, macroMachine.expandMacros(headerValue));
                     }
@@ -172,7 +174,10 @@ public class ActionExecutor {
             final PwmHttpClient client;
             {
                 if (actionConfiguration.getCertificates() != null) {
-                    final PwmHttpClientConfiguration clientConfiguration = new PwmHttpClientConfiguration.Builder().setCertificate(actionConfiguration.getCertificates()).create();
+                    final PwmHttpClientConfiguration clientConfiguration = PwmHttpClientConfiguration.builder()
+                            .certificates(actionConfiguration.getCertificates())
+                            .build();
+
                     client = new PwmHttpClient(pwmApplication, sessionLabel, clientConfiguration);
                 } else {
                     client = new PwmHttpClient(pwmApplication, sessionLabel);
@@ -188,7 +193,7 @@ public class ActionExecutor {
                 ));
             }
 
-        } catch (Exception e) {
+        } catch (PwmException e) {
             if (e instanceof PwmOperationalException) {
                 throw (PwmOperationalException)e;
             }

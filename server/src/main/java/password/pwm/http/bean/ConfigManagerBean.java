@@ -29,7 +29,7 @@ import java.util.Collections;
 import java.util.Set;
 
 public class ConfigManagerBean extends PwmSessionBean {
-    private StoredConfigurationImpl storedConfiguration;
+    private transient StoredConfigurationImpl storedConfiguration;
     private boolean passwordVerified;
     private boolean configUnlockedWarningShown;
 

@@ -44,10 +44,10 @@ import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.config.profile.UpdateAttributesProfile;
 import password.pwm.config.stored.ConfigurationProperty;
-import password.pwm.config.value.CustomLinkValue;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.config.value.BooleanValue;
+import password.pwm.config.value.CustomLinkValue;
 import password.pwm.config.value.FileValue;
 import password.pwm.config.value.FormValue;
 import password.pwm.config.value.LocalizedStringArrayValue;
@@ -80,6 +80,7 @@ import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -95,19 +96,14 @@ import java.util.TreeMap;
 /**
  * @author Jason D. Rivard
  */
-public class Configuration implements Serializable, SettingReader {
-// ------------------------------ FIELDS ------------------------------
-
+public class Configuration implements SettingReader {
     private static final PwmLogger LOGGER = PwmLogger.forClass(Configuration.class);
 
     private final StoredConfigurationImpl storedConfiguration;
 
     private DataCache dataCache = new DataCache();
 
-    private String cachshedConfigurationHash;
-
-
-    // --------------------------- CONSTRUCTORS ---------------------------
+    private String cashedConfigurationHash;
 
     public Configuration(final StoredConfigurationImpl storedConfiguration) {
         this.storedConfiguration = storedConfiguration;
@@ -155,8 +151,9 @@ public class Configuration implements Serializable, SettingReader {
 
         final Map<String, EmailItemBean> storedValues = (Map<String, EmailItemBean>)readStoredValue(setting).toNativeObject();
         final Map<Locale, EmailItemBean> availableLocaleMap = new LinkedHashMap<>();
-        for (final String localeStr : storedValues.keySet()) {
-            availableLocaleMap.put(LocaleHelper.parseLocaleString(localeStr), storedValues.get(localeStr));
+        for (final Map.Entry<String, EmailItemBean> entry : storedValues.entrySet()) {
+            final String localeStr = entry.getKey();
+            availableLocaleMap.put(LocaleHelper.parseLocaleString(localeStr), entry.getValue());
         }
         final Locale matchedLocale = LocaleHelper.localeResolver(locale, availableLocaleMap.keySet());
 
@@ -345,8 +342,9 @@ public class Configuration implements Serializable, SettingReader {
 
             final Map<String, String> availableValues = (Map<String, String>)value.toNativeObject();
             final Map<Locale, String> availableLocaleMap = new LinkedHashMap<>();
-            for (final String localeStr : availableValues.keySet()) {
-                availableLocaleMap.put(LocaleHelper.parseLocaleString(localeStr), availableValues.get(localeStr));
+            for (final Map.Entry<String,String> entry : availableValues.entrySet()) {
+                final String localeStr = entry.getKey();
+                availableLocaleMap.put(LocaleHelper.parseLocaleString(localeStr), entry.getValue());
             }
             final Locale matchedLocale = LocaleHelper.localeResolver(locale, availableLocaleMap.keySet());
 
@@ -359,8 +357,9 @@ public class Configuration implements Serializable, SettingReader {
             }
             final Map<String, List<String>> storedValues = (Map<String, List<String>>)value.toNativeObject();
             final Map<Locale, List<String>> availableLocaleMap = new LinkedHashMap<>();
-            for (final String localeStr : storedValues.keySet()) {
-                availableLocaleMap.put(LocaleHelper.parseLocaleString(localeStr), storedValues.get(localeStr));
+            for (final Map.Entry<String, List<String>> entry : storedValues.entrySet()) {
+                final String localeStr = entry.getKey();
+                availableLocaleMap.put(LocaleHelper.parseLocaleString(localeStr), entry.getValue());
             }
             final Locale matchedLocale = LocaleHelper.localeResolver(locale, availableLocaleMap.keySet());
 
@@ -423,8 +422,9 @@ public class Configuration implements Serializable, SettingReader {
         }
 
         final Map<Locale,String> localizedMap = new LinkedHashMap<>();
-        for (final String localeKey : storedValue.keySet()) {
-            localizedMap.put(LocaleHelper.parseLocaleString(localeKey),storedValue.get(localeKey));
+        for (final Map.Entry<String,String> entry: storedValue.entrySet()) {
+            final String localeKey = entry.getKey();
+            localizedMap.put(LocaleHelper.parseLocaleString(localeKey),entry.getValue());
         }
 
         dataCache.customText.put(key, localizedMap);
@@ -580,14 +580,15 @@ public class Configuration implements Serializable, SettingReader {
         return (Map)fileValue.toNativeObject();
     }
 
-    public X509Certificate[] readSettingAsCertificate(final PwmSetting setting) {
+    public List<X509Certificate> readSettingAsCertificate(final PwmSetting setting) {
         if (PwmSettingSyntax.X509CERT != setting.getSyntax()) {
             throw new IllegalArgumentException("may not read X509CERT value for setting: " + setting.toString());
         }
         if (readStoredValue(setting) == null) {
-            return new X509Certificate[0];
+            return Collections.emptyList();
         }
-        return (X509Certificate[])readStoredValue(setting).toNativeObject();
+        final X509Certificate[] arrayCerts = (X509Certificate[])readStoredValue(setting).toNativeObject();
+        return arrayCerts == null ? Collections.emptyList() : Arrays.asList(arrayCerts);
     }
 
     public PrivateKeyCertificate readSettingAsPrivateKey(final PwmSetting setting) {
@@ -699,8 +700,7 @@ public class Configuration implements Serializable, SettingReader {
 
         //ensure default is first.
         returnList.add(defaultLocaleAsString);
-        for (final String localeDisplayString : sortedMap.keySet()) {
-            final String localeString = sortedMap.get(localeDisplayString);
+        for (final String localeString : sortedMap.values()) {
             if (!defaultLocaleAsString.equals(localeString)) {
                 returnList.add(localeString);
             }
@@ -853,8 +853,8 @@ public class Configuration implements Serializable, SettingReader {
     public Map<String,NewUserProfile> getNewUserProfiles() {
         final Map<String,NewUserProfile> returnMap = new LinkedHashMap<>();
         final Map<String,Profile> profileMap = profileMap(ProfileType.NewUser);
-        for (final String profileID : profileMap.keySet()) {
-            returnMap.put(profileID, (NewUserProfile)profileMap.get(profileID));
+        for (final Map.Entry<String,Profile> entry : profileMap.entrySet()) {
+            returnMap.put(entry.getKey(), (NewUserProfile) entry.getValue());
         }
         return returnMap;
     }
@@ -862,8 +862,8 @@ public class Configuration implements Serializable, SettingReader {
     public Map<String,HelpdeskProfile> getHelpdeskProfiles() {
         final Map<String,HelpdeskProfile> returnMap = new LinkedHashMap<>();
         final Map<String,Profile> profileMap = profileMap(ProfileType.Helpdesk);
-        for (final String profileID : profileMap.keySet()) {
-            returnMap.put(profileID, (HelpdeskProfile)profileMap.get(profileID));
+        for (final Map.Entry<String,Profile> entry: profileMap.entrySet()) {
+            returnMap.put(entry.getKey(), (HelpdeskProfile)entry.getValue());
         }
         return returnMap;
     }
@@ -871,8 +871,8 @@ public class Configuration implements Serializable, SettingReader {
     public Map<String,UpdateAttributesProfile> getUpdateAttributesProfile() {
         final Map<String,UpdateAttributesProfile> returnMap = new LinkedHashMap<>();
         final Map<String,Profile> profileMap = profileMap(ProfileType.UpdateAttributes);
-        for (final String profileID : profileMap.keySet()) {
-            returnMap.put(profileID, (UpdateAttributesProfile)profileMap.get(profileID));
+        for (final Map.Entry<String,Profile> entry : profileMap.entrySet()) {
+            returnMap.put(entry.getKey(), (UpdateAttributesProfile) entry.getValue());
         }
         return returnMap;
     }
@@ -880,8 +880,8 @@ public class Configuration implements Serializable, SettingReader {
     public Map<String,ForgottenPasswordProfile> getForgottenPasswordProfiles() {
         final Map<String,ForgottenPasswordProfile> returnMap = new LinkedHashMap<>();
         final Map<String,Profile> profileMap = profileMap(ProfileType.ForgottenPassword);
-        for (final String profileID : profileMap.keySet()) {
-            returnMap.put(profileID, (ForgottenPasswordProfile)profileMap.get(profileID));
+        for (final Map.Entry<String,Profile> entry : profileMap.entrySet()) {
+            returnMap.put(entry.getKey(), (ForgottenPasswordProfile) entry.getValue());
         }
         return returnMap;
     }
@@ -939,10 +939,10 @@ public class Configuration implements Serializable, SettingReader {
     public String configurationHash()
             throws PwmUnrecoverableException 
     {
-        if (this.cachshedConfigurationHash == null) {
-            this.cachshedConfigurationHash = storedConfiguration.settingChecksum();
+        if (this.cashedConfigurationHash == null) {
+            this.cashedConfigurationHash = storedConfiguration.settingChecksum();
         }
-        return cachshedConfigurationHash;
+        return cashedConfigurationHash;
     }
 
     public Set<PwmSetting> nonDefaultSettings() {

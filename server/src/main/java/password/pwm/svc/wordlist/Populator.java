@@ -49,15 +49,9 @@ import java.util.concurrent.TimeUnit;
  * @author Jason D. Rivard
  */
 class Populator {
-// ------------------------------ FIELDS ------------------------------
-
     private static final PwmLogger LOGGER = PwmLogger.forClass(Populator.class);
-
-
     private static final int MAX_LINE_LENGTH = 64; // words truncated to this length, prevents massive words if the input
-
     private static final long DEBUG_OUTPUT_FREQUENCY = 3 * 60 * 1000;  // 3 minutes
-
     private static final String COMMENT_PREFIX = "!#comment:"; // words tarting with this prefix are ignored.
     private static final NumberFormat PERCENT_FORMAT = DecimalFormat.getPercentInstance();
 
@@ -120,9 +114,6 @@ class Populator {
             }
         }
     }
-
-
-// -------------------------- OTHER METHODS --------------------------
 
     public String makeStatString()
     {
@@ -273,19 +264,14 @@ class Populator {
     }
 
     private static class PopulationStats {
-        // ------------------------------ FIELDS ------------------------------
 
         private long startTime = System.currentTimeMillis();
         private int lines;
-
-        // --------------------- GETTER / SETTER METHODS ---------------------
 
         public int getLines()
         {
             return lines;
         }
-
-        // -------------------------- OTHER METHODS --------------------------
 
         public void incrementLines()
         {

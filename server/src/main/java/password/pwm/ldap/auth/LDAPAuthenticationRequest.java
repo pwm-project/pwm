@@ -56,6 +56,7 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.PasswordData;
 import password.pwm.util.RandomPasswordGenerator;
+import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogLevel;
@@ -82,7 +83,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest {
     private AuthenticationStrategy strategy = AuthenticationStrategy.BIND;
     private Date startTime;
 
-    private static int counter = 0;
+    private static final AtomicLoopIntIncrementer OPERATION_COUNTER = new AtomicLoopIntIncrementer(0);
     private int operationNumber = 0;
 
 
@@ -100,7 +101,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest {
         this.requestedAuthType = requestedAuthType;
         this.authenticationSource = authenticationSource;
 
-        this.operationNumber = counter++;
+        this.operationNumber = OPERATION_COUNTER.next();
     }
 
     static AuthenticationRequest createLDAPAuthenticationRequest(

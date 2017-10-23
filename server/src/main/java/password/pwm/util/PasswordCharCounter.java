@@ -208,53 +208,17 @@ public class PasswordCharCounter {
     }
 
     private enum CharType {
-        UPPERCASE(new CharTester() {
-            public boolean isType(final char character)
-            {
-                return Character.isUpperCase(character);
-            }
-        }),
-        LOWERCASE(new CharTester() {
-            public boolean isType(final char character)
-            {
-                return Character.isLowerCase(character);
-            }
-        }),
-        SPECIAL(new CharTester() {
-            public boolean isType(final char character)
-            {
-                return !Character.isLetterOrDigit(character);
-            }
-        }),
-        NUMBER(new CharTester() {
-            public boolean isType(final char character)
-            {
-                return Character.isDigit(character);
-            }
-        }),
-        LETTER(new CharTester() {
-            public boolean isType(final char character)
-            {
-                return Character.isLetter(character);
-            }
-        }),
-        NON_LETTER(new CharTester() {
-            public boolean isType(final char character)
-            {
-                return !Character.isLetter(character);
-            }
-        }),
-        OTHER_LETTER(new CharTester() {
-            public boolean isType(final char character)
-            {
-                return Character.getType(character) == Character.OTHER_LETTER;
-            }
-        }),
-
+        UPPERCASE(Character::isUpperCase),
+        LOWERCASE(Character::isLowerCase),
+        SPECIAL(character -> !Character.isLetterOrDigit(character)),
+        NUMBER(Character::isDigit),
+        LETTER(Character::isLetter),
+        NON_LETTER(character -> !Character.isLetter(character)),
+        OTHER_LETTER(character -> Character.getType(character) == Character.OTHER_LETTER),
 
         ;
 
-        private final CharTester charTester;
+        private final transient CharTester charTester;
 
         CharType(final CharTester charClassType)
         {

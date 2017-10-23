@@ -242,8 +242,9 @@ public class LocaleHelper {
                 : desiredLocale;
 
         final Map<Locale,String> localeMap = new LinkedHashMap<>();
-        for (final String localeStringKey : inputMap.keySet()) {
-            localeMap.put(parseLocaleString(localeStringKey),inputMap.get(localeStringKey));
+        for (final Map.Entry<String,String> entry : inputMap.entrySet()) {
+            final String localeStringKey = entry.getKey();
+            localeMap.put(parseLocaleString(localeStringKey), entry.getValue());
         }
 
         final Locale selectedLocale = localeResolver(locale, localeMap.keySet());
@@ -512,8 +513,7 @@ public class LocaleHelper {
                     : pwmLocaleBundle.getTheClass().getSimpleName() + "_" + locale.toString() + ".properties";
             final Properties checkProperties = new Properties();
 
-            try {
-                final InputStream stream = pwmLocaleBundle.getTheClass().getResourceAsStream(bundleFilename);
+            try (InputStream stream = pwmLocaleBundle.getTheClass().getResourceAsStream(bundleFilename)) {
                 if (stream == null) {
                     if (DEBUG_FLAG) {
                         LOGGER.trace("missing resource bundle: bundle=" + pwmLocaleBundle.getTheClass().getName() + ", locale=" + locale.toString());

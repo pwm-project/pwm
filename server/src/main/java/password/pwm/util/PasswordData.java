@@ -22,12 +22,14 @@
 
 package password.pwm.util;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.PwmBlockAlgorithm;
 import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.secure.PwmSecurityKey;
@@ -50,6 +52,8 @@ public class PasswordData implements Serializable {
     private static final transient PwmSecurityKey STATIC_KEY;
     private static final transient String STATIC_KEY_HASH;
     private static final transient ErrorInformation INITIALIZATION_ERROR;
+
+    private static final PwmBlockAlgorithm IN_MEMORY_PASSWORD_ENCRYPT_METHOD = PwmBlockAlgorithm.AES;
 
     private String passwordHashCache;
 
@@ -86,7 +90,7 @@ public class PasswordData implements Serializable {
         if (passwordData.isEmpty()) {
             throw new NullPointerException("password data can not be empty");
         }
-        this.passwordData = SecureEngine.encryptToBytes(passwordData, STATIC_KEY, PwmConstants.IN_MEMORY_PASSWORD_ENCRYPT_METHOD);
+        this.passwordData = SecureEngine.encryptToBytes(passwordData, STATIC_KEY, IN_MEMORY_PASSWORD_ENCRYPT_METHOD);
         this.keyHash = STATIC_KEY_HASH;
     }
 
@@ -110,7 +114,7 @@ public class PasswordData implements Serializable {
             throws PwmUnrecoverableException
     {
         checkCurrentStatus();
-        return SecureEngine.decryptBytes(passwordData, STATIC_KEY, PwmConstants.IN_MEMORY_PASSWORD_ENCRYPT_METHOD);
+        return SecureEngine.decryptBytes(passwordData, STATIC_KEY, IN_MEMORY_PASSWORD_ENCRYPT_METHOD);
     }
 
     @Override
@@ -120,6 +124,7 @@ public class PasswordData implements Serializable {
     }
 
     @Override
+    @SuppressFBWarnings("EQ_UNUSUAL")
     public boolean equals(final Object obj)
     {
         return equals(obj, false);

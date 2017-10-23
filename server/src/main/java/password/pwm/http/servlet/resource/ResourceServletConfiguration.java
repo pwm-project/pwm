@@ -29,6 +29,7 @@ import password.pwm.PwmApplication;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.value.FileValue;
+import password.pwm.http.bean.ImmutableByteArray;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 
@@ -104,8 +105,9 @@ class ResourceServletConfiguration {
 
         final Map<FileValue.FileInformation, FileValue.FileContent> files = configuration.readSettingAsFile(PwmSetting.DISPLAY_CUSTOM_RESOURCE_BUNDLE);
         if (files != null && !files.isEmpty()) {
-            final FileValue.FileInformation fileInformation = files.keySet().iterator().next();
-            final FileValue.FileContent fileContent = files.get(fileInformation);
+            final Map.Entry<FileValue.FileInformation, FileValue.FileContent> entry = files.entrySet().iterator().next();
+            final FileValue.FileInformation fileInformation = entry.getKey();
+            final FileValue.FileContent fileContent = entry.getValue();
             LOGGER.debug("examining configured zip file resource for items name=" + fileInformation.getFilename() + ", size=" + fileContent.size());
 
             try {
@@ -164,10 +166,10 @@ class ResourceServletConfiguration {
         return maxCacheItems;
     }
 
-    private static Map<String, FileResource> makeMemoryFileMapFromZipInput(final byte[] content)
+    private static Map<String, FileResource> makeMemoryFileMapFromZipInput(final ImmutableByteArray content)
             throws IOException
     {
-        final ZipInputStream stream = new ZipInputStream(new ByteArrayInputStream(content));
+        final ZipInputStream stream = new ZipInputStream(new ByteArrayInputStream(content.getBytes()));
         final Map<String, FileResource> memoryMap = new HashMap<>();
 
         ZipEntry entry;
@@ -177,7 +179,7 @@ class ResourceServletConfiguration {
                 final long lastModified = entry.getTime();
                 final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
                 IOUtils.copy(stream,byteArrayOutputStream);
-                final byte[] contents = byteArrayOutputStream.toByteArray();
+                final ImmutableByteArray contents = new ImmutableByteArray(byteArrayOutputStream.toByteArray());
                 memoryMap.put(name,new MemoryFileResource(name,contents,lastModified));
                 LOGGER.trace("discovered file in configured resource bundle: " + entry.getName());
             }

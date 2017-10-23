@@ -25,6 +25,8 @@ package password.pwm.svc.intruder;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.java.ClosableIterator;
 
+import java.util.NoSuchElementException;
+
 class StubRecordManager implements RecordManager {
     public boolean checkSubject(final String subject) {
         return false;
@@ -54,7 +56,7 @@ class StubRecordManager implements RecordManager {
             }
 
             public IntruderRecord next() {
-                return null;
+                throw new NoSuchElementException();
             }
 
             public void remove() {

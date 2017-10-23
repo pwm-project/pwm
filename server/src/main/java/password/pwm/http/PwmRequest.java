@@ -22,6 +22,7 @@
 
 package password.pwm.http;
 
+import lombok.Value;
 import org.apache.commons.fileupload.FileItemIterator;
 import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
@@ -39,6 +40,7 @@ import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.bean.ImmutableByteArray;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.http.servlet.command.CommandServlet;
 import password.pwm.ldap.UserInfo;
@@ -66,22 +68,21 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
-// ------------------------------ FIELDS ------------------------------
+public class PwmRequest extends PwmHttpRequestWrapper {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(PwmRequest.class);
 
     private static final Set<String> HTTP_PARAM_DEBUG_STRIP_VALUES =
-            Collections.unmodifiableSet(new HashSet<>(Arrays.asList(new String[] {
+            Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
                     "password",
                     PwmConstants.PARAM_TOKEN,
-                    PwmConstants.PARAM_RESPONSE_PREFIX,
-            })));
+                    PwmConstants.PARAM_RESPONSE_PREFIX))
+            );
 
     private static final Set<String> HTTP_HEADER_DEBUG_STRIP_VALUES =
-            Collections.unmodifiableSet(new HashSet<>(Arrays.asList(new String[] {
-                    HttpHeader.Authorization.getHttpName(),
-            })));
+            Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+                    HttpHeader.Authorization.getHttpName()))
+            );
 
     private final PwmResponse pwmResponse;
     private transient PwmApplication pwmApplication;
@@ -257,7 +258,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
                     final FileUploadItem fileUploadItem = new FileUploadItem(
                             item.getName(),
                             item.getContentType(),
-                            outputFile
+                            new ImmutableByteArray(outputFile)
                     );
                     returnObj.put(item.getFieldName(),fileUploadItem);
                 }
@@ -268,36 +269,11 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         return Collections.unmodifiableMap(returnObj);
     }
 
+    @Value
     public static class FileUploadItem {
         private final String name;
         private final String type;
-        private final byte[] content;
-
-        public FileUploadItem(
-                final String name,
-                final String type,
-                final byte[] content
-        )
-        {
-            this.name = name;
-            this.type = type;
-            this.content = content;
-        }
-
-        public String getName()
-        {
-            return name;
-        }
-
-        public String getType()
-        {
-            return type;
-        }
-
-        public byte[] getContent()
-        {
-            return content;
-        }
+        private final ImmutableByteArray content;
     }
 
     public UserIdentity getUserInfoIfLoggedIn() {
@@ -546,7 +522,6 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
     }
 
     public String getURLwithQueryString() throws PwmUnrecoverableException {
-        final HttpServletRequest req = this.getHttpServletRequest();
         return PwmURL.appendAndEncodeUrlParameters(getURLwithoutQueryString(), readParametersAsMap());
     }
 
@@ -586,12 +561,14 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
     private static String debugOutputMapToString(
             final Map<String,List<String>> input,
             final Collection<String> stripValues
-
-    ) {
+    )
+    {
         final String LINE_SEPARATOR = "\n";
+
         final StringBuilder sb = new StringBuilder();
-        for (final String paramName : input.keySet()) {
-            for (final String paramValue : input.get(paramName)) {
+        for (final Map.Entry<String,List<String>> entry : input.entrySet()) {
+            final String paramName = entry.getKey();
+            for (final String paramValue : entry.getValue()) {
                 sb.append("  ").append(paramName).append("=");
                 boolean strip = false;
                 for (final String stripValue : stripValues) {

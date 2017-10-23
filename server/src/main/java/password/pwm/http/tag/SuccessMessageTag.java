@@ -35,10 +35,6 @@ import javax.servlet.jsp.JspTagException;
  * @author Jason D. Rivard
  */
 public class SuccessMessageTag extends PwmAbstractTag {
-// ------------------------ INTERFACE METHODS ------------------------
-
-
-// --------------------- Interface Tag ---------------------
 
     public int doEndTag()
             throws javax.servlet.jsp.JspTagException {

@@ -47,7 +47,7 @@ public class PwmSecurityKey {
     private final Map<Type,SecretKey> keyCache = new HashMap<>();
 
     public PwmSecurityKey(final byte[] keyData) {
-        this.keyData = keyData;
+        this.keyData = Arrays.copyOf(keyData, keyData.length);
     }
 
     public PwmSecurityKey(final String keyData) throws PwmUnrecoverableException {

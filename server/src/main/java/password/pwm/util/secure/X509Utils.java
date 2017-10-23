@@ -23,6 +23,7 @@
 package password.pwm.util.secure;
 
 import password.pwm.AppProperty;
+import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -40,6 +41,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.URI;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
@@ -48,6 +50,8 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,7 +59,7 @@ import java.util.Map;
 public abstract class X509Utils {
     private static final PwmLogger LOGGER = PwmLogger.forClass(X509Utils.class);
 
-    public static X509Certificate[] readRemoteCertificates(final URI uri)
+    public static List<X509Certificate> readRemoteCertificates(final URI uri)
             throws PwmOperationalException
     {
         final String host = uri.getHost();
@@ -66,7 +70,7 @@ public abstract class X509Utils {
 
 
 
-    public static X509Certificate[] readRemoteCertificates(final String host, final int port)
+    public static List<X509Certificate> readRemoteCertificates(final String host, final int port)
             throws PwmOperationalException
     {
         LOGGER.debug("ServerCertReader: beginning certificate read procedure to import certificates from host=" + host + ", port=" + port);
@@ -77,7 +81,9 @@ public abstract class X509Utils {
             final SSLSocketFactory factory = ctx.getSocketFactory();
             final SSLSocket sslSock = (SSLSocket) factory.createSocket(host,port);
             LOGGER.debug("ServerCertReader: socket established to host=" + host + ", port=" + port);
-            sslSock.isConnected();
+            if (!sslSock.isConnected()) {
+                throw PwmUnrecoverableException.newException(PwmError.ERROR_CERTIFICATE_ERROR, "unable to connect to " + host + ":" + port);
+            }
             LOGGER.debug("ServerCertReader: connected to host=" + host + ", port=" + port);
             sslSock.startHandshake();
             LOGGER.debug("ServerCertReader: handshake completed to host=" + host + ", port=" + port);
@@ -102,22 +108,28 @@ public abstract class X509Utils {
             }
         }
         LOGGER.debug("ServerCertReader: process completed");
-        return certs;
+        return certs == null ? Collections.emptyList() : Arrays.asList(certs);
     }
 
     public static boolean testIfLdapServerCertsInDefaultKeystore(final URI serverURI) {
         final String ldapHost = serverURI.getHost();
         final int ldapPort = serverURI.getPort();
+
         try { // use default socket factory to test if certs work with it
             final SSLSocketFactory factory = (SSLSocketFactory)SSLSocketFactory.getDefault();
             final SSLSocket sslSock = (SSLSocket) factory.createSocket(ldapHost,ldapPort);
-            sslSock.isConnected();
-            sslSock.getOutputStream().write("data!".getBytes());
+            if (!sslSock.isConnected()) {
+                throw PwmUnrecoverableException.newException(PwmError.ERROR_CERTIFICATE_ERROR, "unable to connect to " + serverURI);
+            }
+            try (OutputStream outputStream = sslSock.getOutputStream()) {
+                outputStream.write("data!".getBytes(PwmConstants.DEFAULT_CHARSET));
+            }
             sslSock.close();
             return true;
         } catch (Exception e) {
-            /* noop */
+            LOGGER.trace("exception while testing ldap server cert validity against default keystore: " + e.getMessage());
         }
+
         return false;
     }
 
@@ -169,11 +181,11 @@ public abstract class X509Utils {
     }
 
     public static class CertMatchingTrustManager implements X509TrustManager {
-        final X509Certificate[] certificates;
+        final List<X509Certificate> certificates;
         final boolean validateTimestamps;
 
-        public CertMatchingTrustManager(final Configuration config, final X509Certificate[] certificates) {
-            this.certificates = certificates;
+        public CertMatchingTrustManager(final Configuration config, final List<X509Certificate> certificates) {
+            this.certificates = new ArrayList<>(certificates);
             validateTimestamps = config != null && Boolean.parseBoolean(config.readAppProperty(AppProperty.SECURITY_CERTIFICATES_VALIDATE_TIMESTAMPS));
         }
 
@@ -252,7 +264,7 @@ public abstract class X509Utils {
         IncludeCertificateDetail
     }
 
-    public static List<Map<String,String>> makeDebugInfoMap(final X509Certificate[] certificates, final DebugInfoFlag... flags) {
+    public static List<Map<String,String>> makeDebugInfoMap(final List<X509Certificate> certificates, final DebugInfoFlag... flags) {
         final List<Map<String,String>> returnList = new ArrayList<>();
         if (certificates != null) {
             for (final X509Certificate cert : certificates) {

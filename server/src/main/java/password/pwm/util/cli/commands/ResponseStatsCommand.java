@@ -69,9 +69,9 @@ public class ResponseStatsCommand extends AbstractCliCommand {
         final File outputFile = (File)cliEnvironment.getOptions().get(CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName());
         final long startTime = System.currentTimeMillis();
         out("beginning output to " + outputFile.getAbsolutePath());
-        final FileOutputStream fileOutputStream = new FileOutputStream(outputFile,true);
-        fileOutputStream.write(JsonUtil.serialize(responseStats, JsonUtil.Flag.PrettyPrint).getBytes(PwmConstants.DEFAULT_CHARSET));
-        fileOutputStream.close();
+        try (FileOutputStream fileOutputStream = new FileOutputStream(outputFile,true)) {
+            fileOutputStream.write(JsonUtil.serialize(responseStats, JsonUtil.Flag.PrettyPrint).getBytes(PwmConstants.DEFAULT_CHARSET));
+        }
         out("completed writing stats output in " + TimeDuration.fromCurrent(startTime).asLongString());
     }
 

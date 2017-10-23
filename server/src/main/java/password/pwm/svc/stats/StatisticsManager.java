@@ -384,8 +384,8 @@ public class StatisticsManager implements PwmService {
         public DailyKey(final String value) {
             final String strippedValue = value.substring(DB_KEY_PREFIX_DAILY.length(),value.length());
             final String[] splitValue = strippedValue.split("_");
-            year = Integer.valueOf(splitValue[0]);
-            day = Integer.valueOf(splitValue[1]);
+            year = Integer.parseInt(splitValue[0]);
+            day = Integer.parseInt(splitValue[1]);
         }
 
         private DailyKey() {

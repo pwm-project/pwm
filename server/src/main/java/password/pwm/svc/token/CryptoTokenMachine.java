@@ -25,7 +25,6 @@ package password.pwm.svc.token;
 import password.pwm.bean.SessionLabel;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.ClosableIterator;
 
 class CryptoTokenMachine implements TokenMachine {
 
@@ -68,24 +67,6 @@ class CryptoTokenMachine implements TokenMachine {
 
     public int size() throws PwmOperationalException, PwmUnrecoverableException {
         return 0;
-    }
-
-    public ClosableIterator<TokenKey> keyIterator() throws PwmOperationalException, PwmUnrecoverableException {
-        return new ClosableIterator<TokenKey>() {
-            @Override
-            public void close() {
-            }
-
-            @Override
-            public boolean hasNext() {
-                return false;
-            }
-
-            @Override
-            public TokenKey next() {
-                return null;
-            }
-        };
     }
 
     public void cleanup() {

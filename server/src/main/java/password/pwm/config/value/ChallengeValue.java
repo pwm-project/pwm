@@ -99,8 +99,9 @@ public class ChallengeValue extends AbstractValue implements StoredValue {
 
     public List<Element> toXmlValues(final String valueElementName) {
         final List<Element> returnList = new ArrayList<>();
-        for (final String locale : values.keySet()) {
-            for (final ChallengeItemConfiguration value : values.get(locale)) {
+        for (final Map.Entry<String,List<ChallengeItemConfiguration>> entry : values.entrySet()) {
+            final String locale = entry.getKey();
+            for (final ChallengeItemConfiguration value : entry.getValue()) {
                 if (value != null) {
                     final Element valueElement = new Element(valueElementName);
                     valueElement.addContent(new CDATA(JsonUtil.serialize(value)));
@@ -126,8 +127,9 @@ public class ChallengeValue extends AbstractValue implements StoredValue {
         }
 
         if (values != null) {
-            for (final String localeKey : values.keySet()) {
-                for (final ChallengeItemConfiguration itemBean : values.get(localeKey)) {
+            for (final Map.Entry<String,List<ChallengeItemConfiguration>> entry : values.entrySet()) {
+                final String localeKey = entry.getKey();
+                for (final ChallengeItemConfiguration itemBean : entry.getValue()) {
                     if (itemBean != null) {
                         if (itemBean.isAdminDefined() && (itemBean.getText() == null || itemBean.getText().length() < 1)) {
                             return Collections.singletonList("admin-defined challenge must contain text (locale='" + localeKey + "')");
@@ -193,8 +195,9 @@ public class ChallengeValue extends AbstractValue implements StoredValue {
             return "No Actions";
         }
         final StringBuilder sb = new StringBuilder();
-        for (final String localeKey : values.keySet()) {
-            final List<ChallengeItemConfiguration> challengeItems = values.get(localeKey);
+        for (final Map.Entry<String,List<ChallengeItemConfiguration>> entry: values.entrySet()) {
+            final String localeKey = entry.getKey();
+            final List<ChallengeItemConfiguration> challengeItems = entry.getValue();
             sb.append("Locale: ").append(LocaleHelper.debugLabel(LocaleHelper.parseLocaleString(localeKey))).append("\n");
             for (final ChallengeItemConfiguration challengeItemBean : challengeItems) {
                 sb.append(" ChallengeItem: [AdminDefined: ").append(challengeItemBean.isAdminDefined());

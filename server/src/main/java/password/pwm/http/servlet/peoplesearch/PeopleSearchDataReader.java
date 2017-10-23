@@ -248,8 +248,9 @@ class PeopleSearchDataReader {
         }
         final List<LinkReferenceBean> returnList = new ArrayList<>();
         final MacroMachine macroMachine = getMacroMachine(actorIdentity);
-        for (final String key : linkMap.keySet()) {
-            final String value = linkMap.get(key);
+        for (final Map.Entry<String,String> entry : linkMap.entrySet()) {
+            final String key = entry.getKey();
+            final String value = entry.getValue();
             final String parsedValue = macroMachine.expandMacros(value);
             final LinkReferenceBean linkReference = new LinkReferenceBean();
             linkReference.setName(key);

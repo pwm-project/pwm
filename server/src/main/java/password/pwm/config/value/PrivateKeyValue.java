@@ -86,8 +86,7 @@ public class PrivateKeyValue extends AbstractValue {
                         }
 
                         if (!certificates.isEmpty() && privateKey != null) {
-                            final X509Certificate[] certs = certificates.toArray(new X509Certificate[certificates.size()]);
-                            final PrivateKeyCertificate privateKeyCertificate = new PrivateKeyCertificate(certs, privateKey);
+                            final PrivateKeyCertificate privateKeyCertificate = new PrivateKeyCertificate(certificates, privateKey);
                             return new PrivateKeyValue(privateKeyCertificate);
                         }
                     }

@@ -56,8 +56,7 @@ import java.util.List;
  *
  * @author Jason D. Rivard
  */
-class LdapXmlUserHistory implements UserHistoryStore, Serializable {
-// ------------------------------ FIELDS ------------------------------
+class LdapXmlUserHistory implements UserHistoryStore {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(LdapXmlUserHistory.class);
 
@@ -70,7 +69,6 @@ class LdapXmlUserHistory implements UserHistoryStore, Serializable {
 
     private static final String COR_RECORD_ID = "0001";
 
-    // -------------------------- STATIC METHODS --------------------------
     private final PwmApplication pwmApplication;
 
     LdapXmlUserHistory(final PwmApplication pwmApplication) {
@@ -87,7 +85,7 @@ class LdapXmlUserHistory implements UserHistoryStore, Serializable {
         }
     }
 
-    void updateUserHistoryImpl(final UserAuditRecord auditRecord)
+    private void updateUserHistoryImpl(final UserAuditRecord auditRecord)
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
         // user info
@@ -170,8 +168,8 @@ class LdapXmlUserHistory implements UserHistoryStore, Serializable {
             final UserIdentity userIdentity,
             final ChaiUser chaiUser
     )
-            throws ChaiUnavailableException, PwmUnrecoverableException {
-        final String corRecordIdentifer = COR_RECORD_ID;
+            throws ChaiUnavailableException, PwmUnrecoverableException
+    {
         final LdapProfile ldapProfile = userIdentity.getLdapProfile(pwmApplication.getConfig());
         final String corAttribute = ldapProfile.readSettingAsString(PwmSetting.EVENTS_LDAP_ATTRIBUTE);
 
@@ -181,7 +179,7 @@ class LdapXmlUserHistory implements UserHistoryStore, Serializable {
         }
 
         try {
-            final List corList = ConfigObjectRecord.readRecordFromLDAP(chaiUser, corAttribute, corRecordIdentifer, null, null);
+            final List corList = ConfigObjectRecord.readRecordFromLDAP(chaiUser, corAttribute, COR_RECORD_ID, null, null);
 
             if (!corList.isEmpty()) {
                 final ConfigObjectRecord theCor = (ConfigObjectRecord) corList.get(0);
@@ -196,7 +194,7 @@ class LdapXmlUserHistory implements UserHistoryStore, Serializable {
     private static class StoredHistory {
         private final LinkedList<StoredEvent> records = new LinkedList<>();
 
-        public void addEvent(final StoredEvent storedEvent) {
+        void addEvent(final StoredEvent storedEvent) {
             records.add(storedEvent);
         }
 
@@ -206,7 +204,7 @@ class LdapXmlUserHistory implements UserHistoryStore, Serializable {
             }
         }
 
-        public List<UserAuditRecord> asAuditRecords(final UserInfo userInfoBean) {
+        List<UserAuditRecord> asAuditRecords(final UserInfo userInfoBean) {
             final List<UserAuditRecord> returnList = new LinkedList<>();
             for (final StoredEvent loopEvent : records) {
                 returnList.add(loopEvent.asAuditRecord(userInfoBean));
@@ -214,7 +212,7 @@ class LdapXmlUserHistory implements UserHistoryStore, Serializable {
             return Collections.unmodifiableList(returnList);
         }
 
-        public String toXml() {
+        String toXml() {
             final Element rootElement = new Element(XML_NODE_ROOT);
 
             for (final StoredEvent loopEvent : records) {
@@ -241,7 +239,7 @@ class LdapXmlUserHistory implements UserHistoryStore, Serializable {
             return outputter.outputString(doc);
         }
 
-        public static StoredHistory fromXml(final String input) {
+        static StoredHistory fromXml(final String input) {
             final StoredHistory returnHistory = new StoredHistory();
 
             if (input == null || input.length() < 1) {
@@ -263,9 +261,7 @@ class LdapXmlUserHistory implements UserHistoryStore, Serializable {
                     final StoredEvent storedEvent = new StoredEvent(eventCode,timeStamp,message,srcAddr,srcHost);
                     returnHistory.addEvent(storedEvent);
                 }
-            } catch (JDOMException e) {
-                LOGGER.error("error parsing user event history record: " + e.getMessage());
-            } catch (IOException e) {
+            } catch (JDOMException | IOException e) {
                 LOGGER.error("error parsing user event history record: " + e.getMessage());
             }
             return returnHistory;
@@ -288,7 +284,7 @@ class LdapXmlUserHistory implements UserHistoryStore, Serializable {
             this.sourceHost = sourceHost;
         }
 
-        public AuditEvent getAuditEvent() {
+        AuditEvent getAuditEvent() {
             return auditEvent;
         }
 
@@ -300,15 +296,15 @@ class LdapXmlUserHistory implements UserHistoryStore, Serializable {
             return message;
         }
 
-        public String getSourceAddress() {
+        String getSourceAddress() {
             return sourceAddress;
         }
 
-        public String getSourceHost() {
+        String getSourceHost() {
             return sourceHost;
         }
 
-        public static StoredEvent fromAuditRecord(final UserAuditRecord auditRecord) {
+        static StoredEvent fromAuditRecord(final UserAuditRecord auditRecord) {
             return new StoredEvent(
                     auditRecord.getEventCode(),
                     auditRecord.getTimestamp().toEpochMilli(),
@@ -318,7 +314,7 @@ class LdapXmlUserHistory implements UserHistoryStore, Serializable {
             );
         }
 
-        public UserAuditRecord asAuditRecord(final UserInfo userInfoBean) {
+        UserAuditRecord asAuditRecord(final UserInfo userInfoBean) {
             return new UserAuditRecord(
                     Instant.ofEpochMilli(this.getTimestamp()),
                     this.getAuditEvent(),
@@ -331,8 +327,5 @@ class LdapXmlUserHistory implements UserHistoryStore, Serializable {
             );
         }
     }
-
-// -------------------------- INNER CLASSES --------------------------
-
 }
 

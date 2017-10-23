@@ -42,9 +42,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 class LdapTokenMachine  implements TokenMachine {
+
+    private static final String KEY_VALUE_DELIMITER = " ";
+
     private PwmApplication pwmApplication;
     private String tokenAttribute;
-    private final String KEY_VALUE_DELIMITER = " ";
     private TokenService tokenService;
 
     LdapTokenMachine(final TokenService tokenService, final PwmApplication pwmApplication)

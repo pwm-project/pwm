@@ -84,8 +84,9 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
 
     public List<Element> toXmlValues(final String valueElementName) {
         final List<Element> returnList = new ArrayList<>();
-        for (final String locale : values.keySet()) {
-            for (final String value : values.get(locale)) {
+        for (final Map.Entry<String,List<String>> entry : values.entrySet()) {
+            final String locale = entry.getKey();
+            for (final String value : entry.getValue()) {
                 final Element valueElement = new Element(valueElementName);
                 valueElement.addContent(new CDATA(value));
                 if (locale != null && locale.length() > 0) {
@@ -109,8 +110,8 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
         }
 
         final Pattern pattern = pwmSetting.getRegExPattern();
-        for (final String locale : values.keySet()) {
-            for (final String loopValue : values.get(locale)) {
+        for (final List<String> loopValues : values.values()) {
+            for (final String loopValue : loopValues) {
                 if (loopValue != null && loopValue.length() > 0) {
                     final Matcher matcher = pattern.matcher(loopValue);
                     if (!matcher.matches()) {
@@ -129,10 +130,11 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
             return "";
         }
         final StringBuilder sb = new StringBuilder();
-        for (final String localeKey : values.keySet()) {
+        for (final Map.Entry<String,List<String>> entry : values.entrySet()) {
+            final String localeKey = entry.getKey();
             if (!values.get(localeKey).isEmpty()) {
                 sb.append("Locale: ").append(LocaleHelper.debugLabel(LocaleHelper.parseLocaleString(localeKey))).append("\n");
-                for (final String value : values.get(localeKey)) {
+                for (final String value : entry.getValue()) {
                     sb.append("  ").append(value).append("\n");
                 }
             }

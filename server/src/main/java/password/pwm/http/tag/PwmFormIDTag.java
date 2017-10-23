@@ -37,7 +37,6 @@ import java.io.IOException;
 import java.time.Instant;
 
 public class PwmFormIDTag extends TagSupport {
-// --------------------- Interface Tag ---------------------
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(PwmFormIDTag.class);
 

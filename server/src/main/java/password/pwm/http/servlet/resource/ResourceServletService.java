@@ -84,8 +84,7 @@ public class ResourceServletService implements PwmService {
     public long bytesInCache() {
         final Map<CacheKey, CacheEntry> cacheCopy = new HashMap<>(cache.asMap());
         long cacheByteCount = 0;
-        for (final CacheKey cacheKey : cacheCopy.keySet()) {
-            final CacheEntry cacheEntry = cacheCopy.get(cacheKey);
+        for (final CacheEntry cacheEntry : cacheCopy.values()) {
             if (cacheEntry != null && cacheEntry.getEntity() != null) {
                 cacheByteCount += cacheEntry.getEntity().length;
             }

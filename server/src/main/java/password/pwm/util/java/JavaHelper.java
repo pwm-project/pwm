@@ -22,6 +22,7 @@
 
 package password.pwm.util.java;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.io.IOUtils;
 import password.pwm.PwmApplication;
@@ -29,6 +30,7 @@ import password.pwm.PwmConstants;
 import password.pwm.http.ContextManager;
 import password.pwm.util.logging.PwmLogger;
 
+import javax.annotation.CheckReturnValue;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -79,6 +81,7 @@ public class JavaHelper {
      * @param in byte[] buffer to convert to string format
      * @return result String buffer in String format
      */
+    @SuppressFBWarnings("ICAST_QUESTIONABLE_UNSIGNED_RIGHT_SHIFT")
     public static String byteArrayToHexString(final byte[] in) {
         final String[] pseudo = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"};
 
@@ -106,6 +109,7 @@ public class JavaHelper {
      * @param sleepTimeMS - a time duration in milliseconds
      * @return time actually spent sleeping
      */
+    @CheckReturnValue(when = javax.annotation.meta.When.NEVER)
     public static long pause(final long sleepTimeMS) {
         final long startTime = System.currentTimeMillis();
         do {
@@ -203,23 +207,24 @@ public class JavaHelper {
      * @return A string containing any meaningful extractable cause information, suitable for debugging.
      */
     public static String readHostileExceptionMessage(final Throwable e) {
-        String errorMsg = e.getClass().getName();
+        final StringBuilder errorMsg = new StringBuilder();
+        errorMsg.append(e.getClass().getName());
         if (e.getMessage() != null) {
-            errorMsg += ": " + e.getMessage();
+            errorMsg.append(": ").append(e.getMessage());
         }
 
         Throwable cause = e.getCause();
         int safetyCounter = 0;
         while (cause != null && safetyCounter < 10) {
             safetyCounter++;
-            errorMsg += ", cause:" + cause.getClass().getName();
+            errorMsg.append(", cause:").append(cause.getClass().getName());
             if (cause.getMessage() != null) {
-                errorMsg += ": " + cause.getMessage();
+                errorMsg.append(": ").append(cause.getMessage());
             }
             cause = cause.getCause();
         }
 
-        return errorMsg;
+        return errorMsg.toString();
     }
 
     public static <E extends Enum<E>> boolean enumArrayContainsValue(final E[] enumArray, final E enumValue) {
@@ -291,6 +296,7 @@ public class JavaHelper {
         return Instant.parse(input);
     }
 
+    @CheckReturnValue(when = javax.annotation.meta.When.NEVER)
     public static boolean closeAndWaitExecutor(final ExecutorService executor, final TimeDuration timeDuration)
     {
         if (executor == null) {
@@ -357,7 +363,7 @@ public class JavaHelper {
     public static CSVPrinter makeCsvPrinter(final OutputStream outputStream)
             throws IOException
     {
-        return new CSVPrinter(new OutputStreamWriter(outputStream,PwmConstants.DEFAULT_CHARSET), PwmConstants.DEFAULT_CSV_FORMAT);
+        return new CSVPrinter(new OutputStreamWriter(outputStream, PwmConstants.DEFAULT_CHARSET), PwmConstants.DEFAULT_CSV_FORMAT);
     }
 
     public static ScheduledExecutorService makeSingleThreadExecutorService(
@@ -461,5 +467,22 @@ public class JavaHelper {
 
     public static boolean isEmpty(final Map map) {
         return map == null ? true : map.isEmpty();
+    }
+
+    public static int rangeCheck(final int min, final int max, final int value) {
+        if (min > max) {
+            throw new IllegalArgumentException("min range is greater than max range");
+        }
+        if (max < min) {
+            throw new IllegalArgumentException("max range is less than min range");
+        }
+        int returnValue = value;
+        if (value < min) {
+            returnValue = min;
+        }
+        if (value > max) {
+            returnValue = max;
+        }
+        return returnValue;
     }
 }

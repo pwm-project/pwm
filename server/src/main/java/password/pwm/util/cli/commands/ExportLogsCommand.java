@@ -22,6 +22,7 @@
 
 package password.pwm.util.cli.commands;
 
+import password.pwm.PwmConstants;
 import password.pwm.util.cli.CliParameters;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBStoredQueue;
@@ -52,9 +53,7 @@ public class ExportLogsCommand extends AbstractCliCommand {
         final File outputFile = (File)cliEnvironment.getOptions().get(CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName());
         out("outputting " + logQueue.size() + " log events to " + outputFile.getAbsolutePath() + "....");
 
-        Writer outputWriter = null;
-        try {
-            outputWriter = new OutputStreamWriter(new FileOutputStream(outputFile));
+        try (Writer outputWriter = new OutputStreamWriter(new FileOutputStream(outputFile), PwmConstants.DEFAULT_CHARSET)) {
             for (final Iterator<String> iter = logQueue.descendingIterator(); iter.hasNext(); ) {
                 final String loopString = iter.next();
                 final PwmLogEvent logEvent = PwmLogEvent.fromEncodedString(loopString);
@@ -62,10 +61,6 @@ public class ExportLogsCommand extends AbstractCliCommand {
                     outputWriter.write(logEvent.toLogString());
                     outputWriter.write("\n");
                 }
-            }
-        } finally {
-            if (outputWriter != null) {
-                outputWriter.close();
             }
         }
 

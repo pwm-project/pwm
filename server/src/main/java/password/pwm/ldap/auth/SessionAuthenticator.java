@@ -337,7 +337,7 @@ public class SessionAuthenticator {
                         authenticationResult.getUserPassword()
                 );
             }
-            pwmSession.setUserInfoBean(userInfoBean);
+            pwmSession.setUserInfo(userInfoBean);
         }
 
         //mark the auth time

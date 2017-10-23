@@ -41,12 +41,19 @@ import javax.net.ssl.SSLHandshakeException;
 import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.cert.X509Certificate;
+import java.util.Collections;
+import java.util.List;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 public class PwmHttpClientTest {
     @Rule public WireMockRule wm = new WireMockRule(wireMockConfig()
@@ -55,7 +62,6 @@ public class PwmHttpClientTest {
 
     // Create a few mock objects, in case they're needed by the tests
     private Configuration configuration = spy(new Configuration(StoredConfigurationImpl.newStoredConfiguration()));
-    private PwmHttpClientConfiguration pwmHttpClientConfiguration = mock(PwmHttpClientConfiguration.class);
 
     public PwmHttpClientTest() throws PwmUnrecoverableException {
     }
@@ -72,7 +78,7 @@ public class PwmHttpClientTest {
                 .withBody("Hello from the local mock server")));
 
         // Obtain the HTTP client from PWM
-        HttpClient httpClient = PwmHttpClient.getHttpClient(configuration, pwmHttpClientConfiguration);
+        HttpClient httpClient = PwmHttpClient.getHttpClient(configuration);
 
         // Execute the HTTP request
         HttpGet httpGet = new HttpGet(String.format("http://localhost:%d/simpleHello", wm.port()));
@@ -101,7 +107,7 @@ public class PwmHttpClientTest {
                 .withHeader("Content-Type", "text/plain")
                 .withBody("Hello from the local mock server")));
 
-        HttpClient httpClient = PwmHttpClient.getHttpClient(configuration, pwmHttpClientConfiguration);
+        HttpClient httpClient = PwmHttpClient.getHttpClient(configuration);
 
         HttpGet httpGet = new HttpGet(String.format("https://localhost:%d/simpleHello", wm.httpsPort()));
 
@@ -123,7 +129,7 @@ public class PwmHttpClientTest {
         // Stub out some mock object behavior
         when(configuration.readAppProperty(AppProperty.SECURITY_HTTP_PROMISCUOUS_ENABLE)).thenReturn("true");
 
-        HttpClient httpClient = PwmHttpClient.getHttpClient(configuration, pwmHttpClientConfiguration);
+        HttpClient httpClient = PwmHttpClient.getHttpClient(configuration);
 
         HttpGet httpGet = new HttpGet(String.format("https://localhost:%d/simpleHello", wm.httpsPort()));
         HttpResponse response = httpClient.execute(httpGet);
@@ -147,9 +153,9 @@ public class PwmHttpClientTest {
                 .withHeader("Content-Type", "text/plain")
                 .withBody("Hello from the local mock server")));
 
-        // Stub out some mock object behavior
-        X509Certificate[] certificates = new X509Certificate[] { getWireMockSelfSignedCertificate() };
-        when(pwmHttpClientConfiguration.getCertificates()).thenReturn(certificates);
+        PwmHttpClientConfiguration pwmHttpClientConfiguration = PwmHttpClientConfiguration.builder()
+                .certificates(getWireMockSelfSignedCertificate())
+                .build();
 
         HttpClient httpClient = PwmHttpClient.getHttpClient(configuration, pwmHttpClientConfiguration);
 
@@ -178,7 +184,7 @@ public class PwmHttpClientTest {
         // Stub out some mock object behavior
         when(configuration.readSettingAsString(PwmSetting.HTTP_PROXY_URL)).thenReturn(String.format("http://localhost:%d/simpleHello", wm.port()));
 
-        HttpClient httpClient = PwmHttpClient.getHttpClient(configuration, pwmHttpClientConfiguration);
+        HttpClient httpClient = PwmHttpClient.getHttpClient(configuration);
 
         // We are making a request to www.microfocus.com, but our server on localhost will receive it
         HttpGet httpGet = new HttpGet(String.format("http://www.microfocus.com/simpleHello"));
@@ -192,17 +198,18 @@ public class PwmHttpClientTest {
         assertThat(responseContent).startsWith("Hello");
     }
 
-    private X509Certificate getWireMockSelfSignedCertificate() {
+    private List<X509Certificate> getWireMockSelfSignedCertificate() {
         InputStream keystoreInputStream = WireMock.class.getResourceAsStream("/keystore");
 
         try {
             KeyStore keyStore  = KeyStore.getInstance(KeyStore.getDefaultType());
             keyStore.load(keystoreInputStream, "password".toCharArray());
-            return (X509Certificate) keyStore.getCertificate("wiremock");
+            final X509Certificate cert = (X509Certificate) keyStore.getCertificate("wiremock");
+            return Collections.singletonList(cert);
         } catch (Exception e) {
             fail("Unable to load wiremock self-signed certificate", e);
         }
 
-        return null;
+        return Collections.emptyList();
     }
 }

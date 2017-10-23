@@ -69,13 +69,13 @@ public class CertificateChecker implements HealthChecker {
         for (final PwmSetting setting : PwmSetting.values()) {
             if (setting.getSyntax() == PwmSettingSyntax.X509CERT && !setting.getCategory().hasProfiles()) {
                 if (setting != PwmSetting.LDAP_SERVER_CERTS) {
-                    final X509Certificate[] certs = configuration.readSettingAsCertificate(setting);
+                    final List<X509Certificate> certs = configuration.readSettingAsCertificate(setting);
                     returnList.addAll(doHealthCheck(configuration,setting,null,certs));
                 }
             }
         }
         for (final LdapProfile ldapProfile : configuration.getLdapProfiles().values()) {
-           final X509Certificate[] certificates = configuration.getLdapProfiles().get(ldapProfile.getIdentifier()).readSettingAsCertificate(PwmSetting.LDAP_SERVER_CERTS);
+           final List<X509Certificate> certificates = configuration.getLdapProfiles().get(ldapProfile.getIdentifier()).readSettingAsCertificate(PwmSetting.LDAP_SERVER_CERTS);
             returnList.addAll(doHealthCheck(configuration,PwmSetting.LDAP_SERVER_CERTS,ldapProfile.getIdentifier(),certificates));
         }
         return Collections.unmodifiableList(returnList);
@@ -93,7 +93,7 @@ public class CertificateChecker implements HealthChecker {
                 if (pwmSetting != null && pwmSetting.getSyntax() == PwmSettingSyntax.ACTION) {
                     final ActionValue value = (ActionValue)storedConfiguration.readSetting(pwmSetting, storedConfigReference.getProfileID());
                     for (final ActionConfiguration actionConfiguration : value.toNativeObject()) {
-                        final X509Certificate[] certificates = actionConfiguration.getCertificates();
+                        final List<X509Certificate> certificates = actionConfiguration.getCertificates();
                         returnList.addAll(doHealthCheck(configuration, pwmSetting, storedConfigReference.getProfileID(), certificates));
                     }
                 }
@@ -102,7 +102,12 @@ public class CertificateChecker implements HealthChecker {
         return Collections.unmodifiableList(returnList);
     }
 
-    private static List<HealthRecord> doHealthCheck(final Configuration configuration, final PwmSetting setting, final String profileID, final X509Certificate[] certificates) {
+    private static List<HealthRecord> doHealthCheck(
+            final Configuration configuration,
+            final PwmSetting setting,
+            final String profileID,
+            final List<X509Certificate> certificates
+    ) {
         final long warnDurationMs = 1000 * Long.parseLong(configuration.readAppProperty(AppProperty.HEALTH_CERTIFICATE_WARN_SECONDS));
 
         if (certificates != null) {

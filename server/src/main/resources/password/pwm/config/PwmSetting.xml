@@ -3835,7 +3835,7 @@
     </category>
     <category hidden="false" key="PASSWORD_GLOBAL">
     </category>
-    <category hidden="false" key="CHALLENGE">
+    <category hidden="false" key="CHALLENGE">0
     </category>
     <category hidden="false" key="CHALLENGE_POLICY">
         <profile setting="challenge.profile.list"/>

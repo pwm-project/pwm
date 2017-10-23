@@ -180,8 +180,6 @@ public class FormConfiguration implements Serializable {
         regexErrors = Collections.singletonMap("","");
     }
 
-// --------------------- GETTER / SETTER METHODS ---------------------
-
     public String getName() {
         return name;
     }
@@ -254,7 +252,6 @@ public class FormConfiguration implements Serializable {
         return Collections.unmodifiableMap(selectOptions);
     }
 
-// ------------------------ CANONICAL METHODS ------------------------
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -380,9 +377,10 @@ public class FormConfiguration implements Serializable {
 
         if (this.getType() == Type.select) {
             if (this.getSelectOptions() != null) {
-                for (final String key : selectOptions.keySet()) {
+                for (final Map.Entry<String,String> entry : selectOptions.entrySet()) {
+                    final String key = entry.getKey();
                     if (value.equals(key)) {
-                        final String displayValue = selectOptions.get(key);
+                        final String displayValue = entry.getValue();
                         if (!StringUtil.isEmpty(displayValue)) {
                             return displayValue;
                         }

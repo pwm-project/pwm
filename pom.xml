@@ -26,6 +26,7 @@
         <build.number>0</build.number>  <!-- default in case not set on command line -->
         <build.revision>0</build.revision>  <!-- default in case not set on command line -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <pwm.minimum.maven.version>3.2</pwm.minimum.maven.version>
     </properties>
 
     <modules>
@@ -48,7 +49,7 @@
                         <configuration>
                             <rules>
                                 <requireMavenVersion>
-                                    <version>3.2</version>
+                                    <version>${pwm.minimum.maven.version}</version>
                                 </requireMavenVersion>
                             </rules>
                         </configuration>

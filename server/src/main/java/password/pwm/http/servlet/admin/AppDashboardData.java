@@ -56,7 +56,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -276,7 +275,7 @@ public class AppDashboardData implements Serializable {
                 numberFormat.format(pwmApplication.getSharedHistoryManager().size())
         ));
         {
-            final Date oldestEntryAge = pwmApplication.getSharedHistoryManager().getOldestEntryTime();
+            final Instant oldestEntryAge = pwmApplication.getSharedHistoryManager().getOldestEntryTime();
             final String display = oldestEntryAge == null
                     ? NA_VALUE
                     : TimeDuration.fromCurrent(oldestEntryAge).asCompactString();

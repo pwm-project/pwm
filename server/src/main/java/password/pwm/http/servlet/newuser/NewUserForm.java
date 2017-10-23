@@ -58,8 +58,9 @@ public class NewUserForm implements Serializable {
             return false;
         }
 
-        for (final String formKey : formData.keySet()) {
-            final String value = formData.get(formKey);
+        for (final Map.Entry<String,String> entry : formData.entrySet()) {
+            final String formKey = entry.getKey();
+            final String value = entry.getValue();
             final String otherValue = otherForm.formData.get(formKey);
             if (value != null && !value.equals(otherValue)) {
                 return false;

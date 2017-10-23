@@ -20,8 +20,6 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-// -------------------------- challenge handler ------------------------------------
-
 var ChallengeSettingHandler = {};
 ChallengeSettingHandler.defaultItem = {text:'Question',minLength:4,maxLength:200,adminDefined:true,enforceWordlist:true,maxQuestionCharsInAnswer:3};
 

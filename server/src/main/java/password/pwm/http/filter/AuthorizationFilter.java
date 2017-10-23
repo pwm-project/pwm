@@ -42,14 +42,8 @@ import java.io.IOException;
  * @author Jason D. Rivard
  */
 public class AuthorizationFilter extends AbstractPwmFilter {
-// ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(AuthenticationFilter.class);
-
-// ------------------------ INTERFACE METHODS ------------------------
-
-
-// --------------------- Interface Filter ---------------------
 
     public void init(final FilterConfig filterConfig)
             throws ServletException {

@@ -41,21 +41,6 @@
         <description>Displays the current success message (if any)</description>
     </tag>
     <tag>
-        <name>DisplayLocationOptions</name>
-        <tag-class>
-            password.pwm.http.tag.DisplayLocationOptionsTag
-        </tag-class>
-        <body-content>empty</body-content>
-        <description>Shows the list of ldap contexts available during a
-            login
-        </description>
-        <attribute>
-            <name>name</name>
-            <required>false</required>
-            <rtexprvalue>false</rtexprvalue>
-        </attribute>
-    </tag>
-    <tag>
         <name>UserInfo</name>
         <tag-class>password.pwm.http.tag.UserInfoTag</tag-class>
         <body-content>empty</body-content>

@@ -58,7 +58,7 @@ import java.util.concurrent.locks.LockSupport;
  * A work item queue manager.   Items submitted to the queue will eventually be worked on by the client side @code {@link ItemProcessor}.
  * @param <W>
  */
-public class WorkQueueProcessor<W extends Serializable> {
+public final class WorkQueueProcessor<W extends Serializable> {
 
     private static final TimeDuration SUBMIT_QUEUE_FULL_RETRY_CYCLE_INTERVAL = new TimeDuration(100, TimeUnit.MILLISECONDS);
     private static final TimeDuration CLOSE_RETRY_CYCLE_INTERVAL = new TimeDuration(100, TimeUnit.MILLISECONDS);

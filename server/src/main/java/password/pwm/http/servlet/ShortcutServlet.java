@@ -140,9 +140,10 @@ public class ShortcutServlet extends AbstractPwmServlet {
             final Map<String, List<String>> headerValueMap = pwmRequest.readHeaderValuesMap();
             final List<String> interestedHeaderNames = pwmRequest.getConfig().readSettingAsStringArray(PwmSetting.SHORTCUT_HEADER_NAMES);
 
-            for (final String headerName : headerValueMap.keySet()) {
+            for (final Map.Entry<String, List<String>> entry : headerValueMap.entrySet()) {
+                final String headerName = entry.getKey();
                 if (interestedHeaderNames.contains(headerName)) {
-                    for (final String loopValues : headerValueMap.get(headerName)) {
+                    for (final String loopValues : entry.getValue()) {
                         labelsFromHeader.addAll(StringHelper.tokenizeString(loopValues, ","));
                     }
                 }

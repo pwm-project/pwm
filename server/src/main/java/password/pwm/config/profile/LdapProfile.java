@@ -70,8 +70,9 @@ public class LdapProfile extends AbstractProfile implements Profile {
         final List<String> rawValues = readSettingAsStringArray(PwmSetting.LDAP_LOGIN_CONTEXTS);
         final Map<String, String> configuredValues = StringUtil.convertStringListToNameValuePair(rawValues, ":::");
         final Map<String, String> canonicalValues = new LinkedHashMap<>();
-        for (final String dn : configuredValues.keySet() ) {
-            final String label = configuredValues.get(dn);
+        for (final Map.Entry<String,String> entry : configuredValues.entrySet()) {
+            final String dn = entry.getKey();
+            final String label = entry.getValue();
             final String canonicalDN = readCanonicalDN(pwmApplication, dn);
             canonicalValues.put(canonicalDN, label);
         }

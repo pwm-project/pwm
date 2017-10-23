@@ -27,9 +27,11 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.SecureEngine;
 
-public class CacheKey {
+import java.io.Serializable;
+
+public class CacheKey implements Serializable{
     private final String cacheKey;
-    private String hash;
+    private transient String hash;
 
     private CacheKey(final String cacheKey)
     {

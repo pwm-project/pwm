@@ -18,6 +18,7 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <skipTests>false</skipTests>
+        <skipSpotbugs>false</skipSpotbugs>
         <timestamp.iso>${maven.build.timestamp}</timestamp.iso>
         <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ss'Z'</maven.build.timestamp.format>
     </properties>
@@ -45,6 +46,12 @@
             <id>skip-jspc</id>
             <properties>
                 <jspc.skip>true</jspc.skip>
+            </properties>
+        </profile>
+        <profile>
+            <id>skip-spotbugs</id>
+            <properties>
+                <skipSpotbugs>true</skipSpotbugs>
             </properties>
         </profile>
         <profile>
@@ -89,6 +96,38 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>com.github.hazendaz.spotbugs</groupId>
+                <artifactId>spotbugs-maven-plugin</artifactId>
+                <version>3.1.0-RC4</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.github.spotbugs</groupId>
+                        <artifactId>spotbugs</artifactId>
+                        <version>3.1.0-RC7</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <excludeFilterFile>src/build/spotbugs-exclude.xml</excludeFilterFile>
+                    <includeTests>false</includeTests>
+                    <skip>${skipSpotbugs}</skip>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>findbugs-test-compile</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
                 <version>3.0.0-M1</version>
@@ -101,7 +140,7 @@
                         <configuration>
                             <rules>
                                 <requireMavenVersion>
-                                    <version>3.2</version>
+                                    <version>${pwm.minimum.maven.version}</version>
                                 </requireMavenVersion>
                             </rules>
                         </configuration>
@@ -520,9 +559,9 @@
          -->
         <plugins>
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>findbugs-maven-plugin</artifactId>
-                <version>3.0.4</version>
+                <groupId>com.github.hazendaz.spotbugs</groupId>
+                <artifactId>spotbugs-maven-plugin</artifactId>
+                <version>3.1.0-RC4</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -538,6 +577,12 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.16.18</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.spotbugs</groupId>
+            <artifactId>spotbugs-annotations</artifactId>
+            <version>3.1.0-RC7</version>
             <scope>provided</scope>
         </dependency>
 

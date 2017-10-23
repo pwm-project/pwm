@@ -41,7 +41,6 @@ import password.pwm.util.secure.X509Utils;
 
 import java.net.URI;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -66,9 +65,9 @@ public class LdapCertImportFunction implements SettingUIFunction {
                 final List<String> ldapUrlStrings = ldapUrlsValue.toNativeObject();
                 for (final String ldapUrlString : ldapUrlStrings) {
                     final URI ldapURI = new URI(ldapUrlString);
-                    final X509Certificate[] certs = X509Utils.readRemoteCertificates(ldapURI);
+                    final List<X509Certificate> certs = X509Utils.readRemoteCertificates(ldapURI);
                     if (certs != null) {
-                        resultCertificates.addAll(Arrays.asList(certs));
+                        resultCertificates.addAll(certs);
                     }
                 }
             }

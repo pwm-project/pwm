@@ -29,7 +29,6 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.config.value.StringValue;
 import password.pwm.config.value.ValueFactory;
-import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.XmlUtil;
@@ -138,7 +137,7 @@ public class NGStoredConfigurationFactory {
                 if (settingElement.getChild(StoredConfiguration.XML_ELEMENT_DEFAULT) != null) {
                     try {
                         return ValueFactory.fromXmlValues(pwmSetting, settingElement, pwmSecurityKey);
-                    } catch (PwmException e) {
+                    } catch (IllegalStateException e) {
                         LOGGER.error("error parsing configuration setting " + storedConfigReference + ", error: " + e.getMessage());
                     }
                 }
@@ -152,15 +151,10 @@ public class NGStoredConfigurationFactory {
         )
         {
             final String key = storedConfigReference.getRecordID();
-            final ConfigurationProperty configProperty = ConfigurationProperty.valueOf(key);
 
-            if (configProperty == null) {
-                LOGGER.debug("ignoring property for unknown key: " + key);
-            } else {
-                LOGGER.trace("parsing property key=" + key + ", profile=" + storedConfigReference.getProfileID());
-                if (settingElement.getChild(StoredConfiguration.XML_ELEMENT_DEFAULT) != null) {
-                    return new StringValue(settingElement.getValue());
-                }
+            LOGGER.trace("parsing property key=" + key + ", profile=" + storedConfigReference.getProfileID());
+            if (settingElement.getChild(StoredConfiguration.XML_ELEMENT_DEFAULT) != null) {
+                return new StringValue(settingElement.getValue());
             }
             return null;
         }

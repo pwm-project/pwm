@@ -75,8 +75,6 @@ import java.util.regex.Pattern;
 public class SmsQueueManager implements PwmService {
     private static final PwmLogger LOGGER = PwmLogger.forClass(SmsQueueManager.class);
 
-// ------------------------------ FIELDS ------------------------------
-
     public enum SmsNumberFormat {
         PLAIN,
         PLUS,
@@ -464,7 +462,7 @@ public class SmsQueueManager implements PwmService {
 
             if (requestData.contains(TOKEN_REQUESTID)) {
                 final String chars = config.readSettingAsString(PwmSetting.SMS_REQUESTID_CHARS);
-                final int idLength = new Long(config.readSettingAsLong(PwmSetting.SMS_REQUESTID_LENGTH)).intValue();
+                final int idLength = Long.valueOf(config.readSettingAsLong(PwmSetting.SMS_REQUESTID_LENGTH)).intValue();
                 final String requestId = PwmRandom.getInstance().alphaNumericString(chars, idLength);
                 requestData = requestData.replaceAll(TOKEN_REQUESTID, smsDataEncode(requestId, encoding));
             }

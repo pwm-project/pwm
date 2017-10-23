@@ -64,9 +64,6 @@ public class ChangePasswordBean extends PwmSessionBean {
     @SerializedName("mc")
     private Instant changePasswordMaxCompletion;
 
-
-// --------------------- GETTER / SETTER METHODS ---------------------
-
     public boolean isAgreementPassed() {
         return agreementPassed;
     }

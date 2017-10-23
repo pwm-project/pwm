@@ -25,6 +25,7 @@ package password.pwm.svc.wordlist;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
+import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
@@ -41,16 +42,14 @@ import password.pwm.util.secure.PwmRandom;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
 
 public class SharedHistoryManager implements PwmService {
-// ------------------------------ FIELDS ------------------------------
-
     private static final PwmLogger LOGGER = PwmLogger.forClass(SharedHistoryManager.class);
 
     private static final String KEY_OLDEST_ENTRY = "oldest_entry";
@@ -73,13 +72,8 @@ public class SharedHistoryManager implements PwmService {
 
     private final Settings settings = new Settings();
 
-
-// --------------------------- CONSTRUCTORS ---------------------------
-
     public SharedHistoryManager() throws LocalDBException {
     }
-
-// -------------------------- OTHER METHODS --------------------------
 
     public void close() {
         status = STATUS.CLOSED;
@@ -126,9 +120,9 @@ public class SharedHistoryManager implements PwmService {
         return status;
     }
 
-    public Date getOldestEntryTime() {
+    public Instant getOldestEntryTime() {
         if (size() > 0) {
-            return new Date(oldestEntry);
+            return Instant.ofEpochMilli(oldestEntry);
         }
         return null;
     }
@@ -274,7 +268,7 @@ public class SharedHistoryManager implements PwmService {
         final MessageDigest md = MessageDigest.getInstance(settings.hashName);
         final String wordWithSalt = salt + word;
         final int hashLoopCount = settings.hashIterations;
-        byte[] hashedAnswer = md.digest((wordWithSalt).getBytes());
+        byte[] hashedAnswer = md.digest((wordWithSalt).getBytes(PwmConstants.DEFAULT_CHARSET));
 
         for (int i = 0; i < hashLoopCount; i++) {
             hashedAnswer = md.digest(hashedAnswer);
@@ -282,8 +276,6 @@ public class SharedHistoryManager implements PwmService {
 
         return JavaHelper.binaryArrayToHex(hashedAnswer);
     }
-
-    // -------------------------- INNER CLASSES --------------------------
 
     private class CleanerTask extends TimerTask {
         final Sleeper sleeper = new Sleeper(10);

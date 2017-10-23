@@ -28,8 +28,6 @@ package password.pwm.error;
  * @author Jason D. Rivard
  */
 public class PwmDataValidationException extends PwmOperationalException {
-// ------------------------------ FIELDS ------------------------------
-
     public PwmDataValidationException(final ErrorInformation error) {
         super(error);
     }

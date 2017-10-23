@@ -329,8 +329,7 @@ public class PasswordChangeProgressChecker {
             } else {
                 final HashSet<Instant> tempHashSet = new HashSet<>();
                 int duplicateValues = 0;
-                for (final String replicaUrl : checkResults.keySet()) {
-                    final Instant date = checkResults.get(replicaUrl);
+                for (final Instant date : checkResults.values()) {
                     if (tempHashSet.contains(date)) {
                         duplicateValues++;
                     } else {

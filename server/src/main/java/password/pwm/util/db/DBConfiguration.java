@@ -53,6 +53,10 @@ public class DBConfiguration implements Serializable {
     private final int connectionTimeout;
     private final int keyColumnLength;
 
+    public byte[] getJdbcDriver() {
+        return jdbcDriver == null ? null : Arrays.copyOf(jdbcDriver, jdbcDriver.length);
+    }
+
     public boolean isEnabled() {
         return
                 !StringUtil.isEmpty(driverClassname)
@@ -66,9 +70,8 @@ public class DBConfiguration implements Serializable {
                  PwmSetting.DATABASE_JDBC_DRIVER);
          final byte[] jdbcDriverBytes;
          if (fileValue != null && !fileValue.isEmpty()) {
-             final FileValue.FileInformation fileInformation1 = fileValue.keySet().iterator().next();
-             final FileValue.FileContent fileContent = fileValue.get(fileInformation1);
-             jdbcDriverBytes = fileContent.getContents();
+             final FileValue.FileContent fileContent = fileValue.values().iterator().next();
+             jdbcDriverBytes = fileContent.getContents().getBytes();
          } else {
              jdbcDriverBytes = null;
          }

@@ -27,6 +27,8 @@ import password.pwm.PwmConstants;
 import password.pwm.i18n.Display;
 import password.pwm.util.LocaleHelper;
 
+import javax.annotation.CheckReturnValue;
+import javax.annotation.meta.When;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
@@ -47,7 +49,6 @@ import java.util.concurrent.TimeUnit;
  * @author Jason D. Rivard
  */
 public class TimeDuration implements Comparable, Serializable {
-// ------------------------------ FIELDS ------------------------------
 
     public static final TimeDuration ZERO = new TimeDuration(0);
     public static final TimeDuration MILLISECOND = new TimeDuration(1, TimeUnit.MILLISECONDS);
@@ -60,8 +61,6 @@ public class TimeDuration implements Comparable, Serializable {
 
     private final long ms;
     private transient TimeDetail cachedTimeDetail;
-
-// --------------------------- CONSTRUCTORS ---------------------------
 
     /**
      * Create a new TimeDuration using the specified duration, in milliseconds
@@ -156,8 +155,6 @@ public class TimeDuration implements Comparable, Serializable {
         this(Math.abs(milliseconds1 - milliseconds2));
     }
 
-// ------------------------ CANONICAL METHODS ------------------------
-
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -175,8 +172,6 @@ public class TimeDuration implements Comparable, Serializable {
         return (int) (ms ^ (ms >>> 32));
     }
 
-
-// -------------------------- OTHER METHODS --------------------------
 
     public TimeDuration add(final TimeDuration duration) {
         return new TimeDuration(this.getTotalMilliseconds() + duration.getTotalMilliseconds());
@@ -281,7 +276,7 @@ public class TimeDuration implements Comparable, Serializable {
     }
 
     public boolean isLongerThan(final TimeDuration duration) {
-        return this.compareTo(duration) == 1;
+        return this.compareTo(duration) > 0;
     }
 
     public int compareTo(final Object o) {
@@ -413,7 +408,7 @@ public class TimeDuration implements Comparable, Serializable {
     }
 
     public boolean isShorterThan(final TimeDuration duration) {
-        return this.compareTo(duration) == -1;
+        return this.compareTo(duration) < 0;
     }
 
     public TimeDuration subtract(final TimeDuration duration) {
@@ -450,12 +445,11 @@ public class TimeDuration implements Comparable, Serializable {
      *
      * @return time actually spent sleeping
      */
+    @CheckReturnValue(when = When.NEVER)
     public TimeDuration pause() {
         return pause(this.getTotalMilliseconds());
     }
 
-
-    // -------------------------- INNER CLASSES --------------------------
 
     private static class TimeDetail implements Serializable {
         private final long milliseconds;

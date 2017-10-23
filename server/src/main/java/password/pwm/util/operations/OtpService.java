@@ -26,6 +26,7 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import org.apache.commons.codec.binary.Base32;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
@@ -246,7 +247,7 @@ public class OtpService implements PwmService {
                 : recoveryInfo.getSalt().trim() + input.trim();
 
         final int hashCount = recoveryInfo.getHashCount();
-        byte[] hashedBytes = raw.getBytes();
+        byte[] hashedBytes = raw.getBytes(PwmConstants.DEFAULT_CHARSET);
         for (int i = 0; i < hashCount; i++) {
             hashedBytes = md.digest(hashedBytes);
         }

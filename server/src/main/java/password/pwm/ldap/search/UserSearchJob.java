@@ -24,15 +24,14 @@ package password.pwm.ldap.search;
 
 import com.novell.ldapchai.provider.ChaiProvider;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Value;
 import password.pwm.config.profile.LdapProfile;
 
-import java.io.Serializable;
 import java.util.Collection;
 
-@Getter
+@Value
 @Builder
-public class UserSearchJob implements Serializable {
+public class UserSearchJob {
     private final LdapProfile ldapProfile;
     private final String searchFilter;
     private final String context;

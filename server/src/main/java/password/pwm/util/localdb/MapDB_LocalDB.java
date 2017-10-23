@@ -47,8 +47,6 @@ import static password.pwm.util.localdb.LocalDB.DB;
 
 public class MapDB_LocalDB implements LocalDBProvider {
 
-// ------------------------------ FIELDS ------------------------------
-
     private static final PwmLogger LOGGER = PwmLogger.forClass(MapDB_LocalDB.class, true);
     private static final String FILE_NAME = "mapdb";
 
@@ -61,15 +59,8 @@ public class MapDB_LocalDB implements LocalDBProvider {
 
     private LocalDB.Status status = LocalDB.Status.NEW;
 
-// --------------------------- CONSTRUCTORS ---------------------------
-
     MapDB_LocalDB() {
     }
-
-// ------------------------ INTERFACE METHODS ------------------------
-
-
-// --------------------- Interface PwmDB ---------------------
 
     public void close()
             throws LocalDBException {
@@ -262,8 +253,6 @@ public class MapDB_LocalDB implements LocalDBProvider {
             LOCK.writeLock().unlock();
         }
     }
-
-// -------------------------- OTHER METHODS --------------------------
 
     private Map<String, String> getHTree(final DB keyName)
             throws IOException {

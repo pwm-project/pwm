@@ -27,12 +27,6 @@ import password.pwm.PwmConstants;
 import javax.swing.JOptionPane;
 
 public class JarMain {
-// ----------------------------- CONSTANTS ----------------------------
-
-
-// ------------------------------ FIELDS ------------------------------
-
-// --------------------------- main() method ---------------------------
 
     public static void main(final String[] args)
     {

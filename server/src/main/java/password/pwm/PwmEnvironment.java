@@ -340,11 +340,9 @@ public class PwmEnvironment {
                 return Collections.emptyMap();
             }
 
-            Properties propValues = null;
-            try {
-                final Properties newProps = new Properties();
-                newProps.load(new FileInputStream(new File(input)));
-                propValues = newProps;
+            final Properties propValues = new Properties();
+            try (FileInputStream fileInputStream = new FileInputStream(new File(input))) {
+                propValues.load(fileInputStream);
             } catch (Exception e) {
                 LOGGER.warn("error reading properties file '" + input + "' specified by environment setting " + EnvironmentParameter.applicationParamFile.toString() + ", error: " + e.getMessage());
             }

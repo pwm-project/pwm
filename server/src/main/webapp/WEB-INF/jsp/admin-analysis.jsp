@@ -170,9 +170,10 @@
                                                 since startup - <%= JavaHelper.toIsoDate(analysis_pwmRequest.getPwmApplication().getStartupTime()) %>
                                             </option>
                                             <% final Map<StatisticsManager.DailyKey, String> availableKeys = statsManager.getAvailableKeys(locale); %>
-                                            <% for (final StatisticsManager.DailyKey key : availableKeys.keySet()) { %>
+                                            <% for (final Map.Entry<StatisticsManager.DailyKey, String> entry : availableKeys.entrySet()) { %>
+                                            <% final StatisticsManager.DailyKey key = entry.getKey(); %>
                                             <option value="<%=key%>" <%= key.toString().equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
-                                                <%= availableKeys.get(key) %>
+                                                <%= entry.getValue() %>
                                             </option>
                                             <% } %>
                                         </select>

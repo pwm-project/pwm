@@ -97,8 +97,8 @@ import java.util.stream.Collectors;
 /**
  * @author Jason D. Rivard
  */
-public class StoredConfigurationImpl implements Serializable, StoredConfiguration {
-// ------------------------------ FIELDS ------------------------------
+@SuppressWarnings("all") // this class will be replaced by NGStoredConfiguration
+public class StoredConfigurationImpl implements StoredConfiguration {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(StoredConfigurationImpl.class);
     private static final String XML_FORMAT_VERSION = "4";
@@ -109,8 +109,6 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
     private boolean locked;
     private final boolean setting_writeLabels = true;
     private final ReentrantReadWriteLock domModifyLock = new ReentrantReadWriteLock();
-
-// -------------------------- STATIC METHODS --------------------------
 
     public static StoredConfigurationImpl newStoredConfiguration() throws PwmUnrecoverableException {
         return new StoredConfigurationImpl();
@@ -125,7 +123,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
     public static StoredConfigurationImpl fromXml(final InputStream xmlData)
             throws PwmUnrecoverableException
     {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         //validateXmlSchema(xmlData);
 
         final Document inputDocument = XmlUtil.parseXml(xmlData);
@@ -142,8 +140,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
         }
 
         checkIfXmlRequiresUpdate(newConfiguration);
-        final TimeDuration totalDuration = TimeDuration.fromCurrent(startTime);
-        LOGGER.debug("successfully loaded configuration (" + totalDuration.asCompactString() + ")");
+        LOGGER.debug("successfully loaded configuration (" + TimeDuration.compactFromCurrent(startTime) + ")");
         return newConfiguration;
     }
 
@@ -320,8 +317,8 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
     public void resetSetting(final PwmSetting setting, final String profileID, final UserIdentity userIdentity) {
         changeLog.updateChangeLog(setting, profileID, defaultValue(setting, this.getTemplateSet()));
         domModifyLock.writeLock().lock();
-        preModifyActions();
         try {
+            preModifyActions();
             final Element settingElement = createOrGetSettingElement(document, setting, profileID);
             settingElement.removeContent();
             settingElement.addContent(new Element(XML_ELEMENT_DEFAULT));
@@ -377,7 +374,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
             try {
                 final String strValue = (String) ValueFactory.fromXmlValues(pwmSetting, settingElement, null).toNativeObject();
                 return JavaHelper.readEnumFromString(PwmSettingTemplate.class, null, strValue);
-            } catch (PwmException e) {
+            } catch (IllegalStateException e) {
                 LOGGER.error("error reading template", e);
             }
         }
@@ -717,12 +714,14 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
             final Element localeBundleElement = new Element("localeBundle");
             localeBundleElement.setAttribute("bundle",bundleName);
             localeBundleElement.setAttribute("key",keyName);
-            for (final String locale : localeMap.keySet()) {
+            for (final Map.Entry<String,String> entry : localeMap.entrySet()) {
+                final String locale = entry.getKey();
+                final String value = entry.getValue();
                 final Element valueElement = new Element("value");
                 if (locale != null && locale.length() > 0) {
                     valueElement.setAttribute("locale",locale);
                 }
-                valueElement.setContent(new CDATA(localeMap.get(locale)));
+                valueElement.setContent(new CDATA(value));
                 localeBundleElement.addContent(valueElement);
             }
             localeBundleElement.setAttribute(XML_ATTRIBUTE_MODIFY_TIME, JavaHelper.toIsoDate(Instant.now()));
@@ -851,8 +850,6 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
         }
         document.getRootElement().setAttribute(XML_ATTRIBUTE_MODIFY_TIME, JavaHelper.toIsoDate(Instant.now()));
     }
-
-// -------------------------- INNER CLASSES --------------------------
 
     public void setPassword(final String password)
             throws PwmOperationalException
@@ -1230,7 +1227,9 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
 
         @Override
         public boolean equals(final Object o) {
-            return o instanceof StoredConfigReference && toString().equals(o);
+            return o != null
+                    && o instanceof ConfigRecordID
+                    && toString().equals(o.toString());
 
         }
 
@@ -1274,7 +1273,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
         return changeLog.isModified();
     }
 
-    private class ChangeLog implements Serializable {
+    private class ChangeLog {
         /* values contain the _original_ toJson version of the value. */
         private Map<ConfigRecordID,String> changeLog = new LinkedHashMap<>();
 
@@ -1316,8 +1315,9 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
             if (outputMap.isEmpty()) {
                 output.append("No setting changes.");
             } else {
-                for (final String keyName : outputMap.keySet()) {
-                    final String value = outputMap.get(keyName);
+                for (final Map.Entry<String, String> entry : outputMap.entrySet()) {
+                    final String keyName = entry.getKey();
+                    final String value = entry.getValue();
                     if (asHtml) {
                         output.append("<div class=\"changeLogKey\">");
                         output.append(keyName);

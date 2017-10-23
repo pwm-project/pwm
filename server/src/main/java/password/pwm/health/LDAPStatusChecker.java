@@ -93,10 +93,11 @@ public class LDAPStatusChecker implements HealthChecker {
         final List<HealthRecord> returnRecords = new ArrayList<>();
         final Map<String,LdapProfile> ldapProfiles = pwmApplication.getConfig().getLdapProfiles();
 
-        for (final String profileID : ldapProfiles.keySet()) {
+        for (final Map.Entry<String, LdapProfile> entry : ldapProfiles.entrySet()) {
+            final String profileID = entry.getKey();
             final List<HealthRecord> profileRecords = new ArrayList<>();
             profileRecords.addAll(
-                    checkBasicLdapConnectivity(pwmApplication, config, ldapProfiles.get(profileID), true));
+                    checkBasicLdapConnectivity(pwmApplication, config, entry.getValue(), true));
 
             if (profileRecords.isEmpty()) {
                 profileRecords.addAll(checkLdapServerUrls(config, ldapProfiles.get(profileID)));
@@ -561,9 +562,10 @@ public class LDAPStatusChecker implements HealthChecker {
 
         if (discoveredVendors.size() >= 2) {
             final StringBuilder vendorMsg = new StringBuilder();
-            for (final Iterator<String> iterator = replicaVendorMap.keySet().iterator(); iterator.hasNext(); ) {
-                final String key = iterator.next();
-                vendorMsg.append(key).append("=").append(replicaVendorMap.get(key).toString());
+            for (final Iterator<Map.Entry<String,ChaiProvider.DIRECTORY_VENDOR>> iterator = replicaVendorMap.entrySet().iterator(); iterator.hasNext(); ) {
+                final Map.Entry<String,ChaiProvider.DIRECTORY_VENDOR> entry = iterator.next();
+                final String key = entry.getKey();
+                vendorMsg.append(key).append("=").append(entry.getValue().toString());
                 if (iterator.hasNext()) {
                     vendorMsg.append(", ");
                 }

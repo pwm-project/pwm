@@ -22,7 +22,6 @@
 
 package password.pwm.util.cli.commands;
 
-import password.pwm.config.Configuration;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.cli.CliParameters;
 import password.pwm.util.localdb.LocalDB;
@@ -36,7 +35,6 @@ public class ImportLocalDBCommand extends AbstractCliCommand {
     void doCommand()
             throws Exception
     {
-        final Configuration config = cliEnvironment.getConfig();
         final LocalDB localDB = cliEnvironment.getLocalDB();
 
         final String msg = "Proceeding with this operation will clear ALL data from the LocalDB." + "\n"

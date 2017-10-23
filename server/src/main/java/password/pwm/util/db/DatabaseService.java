@@ -264,8 +264,9 @@ public class DatabaseService implements PwmService
     public ServiceInfoBean serviceInfo()
     {
         final Map<String,String> debugProperties = new LinkedHashMap<>();
-        for (final PwmAboutProperty pwmAboutProperty : debugInfo.keySet()) {
-            debugProperties.put(pwmAboutProperty.name(), debugInfo.get(pwmAboutProperty));
+        for (final Map.Entry<PwmAboutProperty,String> entry : debugInfo.entrySet()) {
+            final PwmAboutProperty pwmAboutProperty = entry.getKey();
+            debugProperties.put(pwmAboutProperty.name(), entry.getValue());
         }
         if (status() == STATUS.OPEN) {
             return new ServiceInfoBean(Collections.singletonList(DataStorageMethod.DB), debugProperties);

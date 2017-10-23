@@ -31,11 +31,11 @@ import com.novell.ldapchai.exception.ChaiError;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import com.novell.ldapchai.provider.ChaiProvider;
+import lombok.Value;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.ResponseInfoBean;
-import password.pwm.ldap.UserInfo;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.ChallengeProfile;
 import password.pwm.error.ErrorInformation;
@@ -51,6 +51,7 @@ import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.SetupResponsesBean;
 import password.pwm.i18n.Message;
+import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecordFactory;
@@ -602,30 +603,10 @@ public class SetupResponsesServlet extends ControlledPwmServlet {
         return setupData;
     }
 
+    @Value
     private static class ValidationResponseBean implements Serializable {
-        private final int version = 1;
-        private final String message;
-        private final boolean success;
-
-        private ValidationResponseBean(
-                final String message,
-                final boolean success
-        ) {
-            this.message = message;
-            this.success = success;
-        }
-
-        public int getVersion() {
-            return version;
-        }
-
-        public String getMessage() {
-            return message;
-        }
-
-        public boolean isSuccess() {
-            return success;
-        }
+        private String message;
+        private boolean success;
     }
 }
 

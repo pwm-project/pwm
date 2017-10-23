@@ -42,8 +42,6 @@ public abstract class PwmException extends Exception {
         this.errorInformation = new ErrorInformation(error, detailedErrorMsg);
     }
 
-    // --------------------- GETTER / SETTER METHODS ---------------------
-
     public ErrorInformation getErrorInformation() {
         return errorInformation;
     }

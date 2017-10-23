@@ -730,7 +730,8 @@ public class PasswordUtility {
         }
 
         // mixed case
-        if ((charCounter.getAlphaChars() != charCounter.getUpperChars()) && (charCounter.getAlphaChars() != charCounter.getLowerChars())) {
+        if ((charCounter.getAlphaChars().length() != charCounter.getUpperChars().length())
+                && (charCounter.getAlphaChars().length() != charCounter.getLowerChars().length())) {
             score = score + 10;
         }
 

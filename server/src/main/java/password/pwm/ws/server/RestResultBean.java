@@ -71,15 +71,6 @@ public class RestResultBean implements Serializable {
         return restResultBean;
     }
 
-    public static RestResultBean fromError(
-            final ErrorInformation errorInformation,
-            final RestRequestBean restRequestBean
-    ) {
-        final PwmApplication pwmApplication = restRequestBean.getPwmApplication();
-        final Configuration config = restRequestBean.getPwmApplication().getConfig();
-        final Locale locale = restRequestBean.getPwmSession().getSessionStateBean().getLocale();
-        return fromError(errorInformation, pwmApplication, locale, config, false);
-    }
 
     public static RestResultBean fromError(
             final RestRequest restRequestBean,

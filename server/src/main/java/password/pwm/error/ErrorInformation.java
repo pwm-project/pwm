@@ -37,8 +37,6 @@ import java.util.Locale;
  * to use when presenting error messages to users.
  */
 public class ErrorInformation implements Serializable {
-// ------------------------------ FIELDS ------------------------------
-
     private final PwmError error;
     private final String detailedErrorMsg;
     private final String userStrOverride;
@@ -81,8 +79,6 @@ public class ErrorInformation implements Serializable {
         this.fieldValues = fields == null ? new String[0] : fields;
     }
 
-// --------------------- GETTER / SETTER METHODS ---------------------
-
     public String getDetailedErrorMsg() {
         return detailedErrorMsg;
     }
@@ -91,10 +87,8 @@ public class ErrorInformation implements Serializable {
         return error;
     }
 
-// -------------------------- OTHER METHODS --------------------------
-
     public String[] getFieldValues() {
-        return fieldValues;
+        return fieldValues == null ? null : Arrays.copyOf(fieldValues, fieldValues.length);
     }
 
     public String toDebugStr() {

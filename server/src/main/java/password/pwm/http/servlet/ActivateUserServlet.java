@@ -109,7 +109,6 @@ import java.util.concurrent.TimeUnit;
         }
 )
 public class ActivateUserServlet extends AbstractPwmServlet {
-// ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(ActivateUserServlet.class);
 
@@ -479,13 +478,14 @@ public class ActivateUserServlet extends AbstractPwmServlet {
         final String searchFilter = figureLdapSearchFilter(pwmRequest);
         final ChaiUser chaiUser = ChaiFactory.createChaiUser(userIdentity.getUserDN(), pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID()));
 
-        for (final FormConfiguration formItem : formValues.keySet()) {
+        for (final Map.Entry<FormConfiguration, String> entry : formValues.entrySet()) {
+            final FormConfiguration formItem = entry.getKey();
             final String attrName = formItem.getName();
             final String tokenizedAttrName = "%" + attrName + "%";
             if (searchFilter.contains(tokenizedAttrName)) {
                 LOGGER.trace(pwmSession, "skipping validation of ldap value for '" + attrName + "' because it is in search filter");
             } else {
-                final String value = formValues.get(formItem);
+                final String value = entry.getValue();
                 try {
                     if (!chaiUser.compareStringAttribute(attrName, value)) {
                         final String errorMsg = "incorrect value for '" + attrName + "'";

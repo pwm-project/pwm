@@ -54,10 +54,6 @@ public class UrlShortenerService implements PwmService {
     public UrlShortenerService() {
     }
 
-// ------------------------ INTERFACE METHODS ------------------------
-
-// --------------------- Interface PwmService ---------------------
-
     public void init(final PwmApplication pwmApplication) throws PwmUnrecoverableException {
         this.pwmApplication = pwmApplication;
         final Configuration config = this.pwmApplication.getConfig();
@@ -101,7 +97,6 @@ public class UrlShortenerService implements PwmService {
         return Collections.emptyList();
     }
 
-// -------------------------- OTHER METHODS --------------------------
     public String shortenUrl(final String text) throws PwmUnrecoverableException {
         if (theShortener != null) {
             return theShortener.shorten(text, pwmApplication);
@@ -114,27 +109,27 @@ public class UrlShortenerService implements PwmService {
         try {
             final Pattern p = Pattern.compile(urlRegex);
             final Matcher m = p.matcher(text);
-            String result = "";
+            final StringBuilder result = new StringBuilder();
             Boolean found = m.find();
             if (found) {
                 int start = 0;
                 int end = m.start();
-                result += text.substring(start,end);
+                result.append(text.substring(start,end));
                 start = end;
                 end = m.end();
                 while (found) {
-                    result += shortenUrl(text.substring(start,end));
+                    result.append(shortenUrl(text.substring(start,end)));
                     start = end;
                     found = m.find();
                     if (found) {
                         end = m.start();
-                        result += text.substring(start,end);
+                        result.append(text.substring(start,end));
                         start = end;
                         end = m.end();
                     }
                 }
-                result += text.substring(end);
-                return result;
+                result.append(text.substring(end));
+                return result.toString();
             }
         } catch (PatternSyntaxException e) {
             LOGGER.error("Error compiling pattern: " + e.getMessage());

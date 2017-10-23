@@ -81,9 +81,9 @@ public class ApplianceStatusChecker implements HealthChecker {
         final String url = figureUrl(pwmApplication);
         final Map<String,String> requestHeaders = Collections.singletonMap("sspr-authorization-token", getApplianceAccessToken(pwmApplication));
 
-        final PwmHttpClientConfiguration pwmHttpClientConfiguration = new PwmHttpClientConfiguration.Builder()
-                .setPromiscuous(true)
-                .create();
+        final PwmHttpClientConfiguration pwmHttpClientConfiguration = PwmHttpClientConfiguration.builder()
+                .promiscuous(true)
+                .build();
 
         final PwmHttpClient pwmHttpClient = new PwmHttpClient(pwmApplication, SessionLabel.HEALTH_SESSION_LABEL, pwmHttpClientConfiguration);
         final PwmHttpClientRequest pwmHttpClientRequest = new PwmHttpClientRequest(HttpMethod.GET, url, null, requestHeaders);

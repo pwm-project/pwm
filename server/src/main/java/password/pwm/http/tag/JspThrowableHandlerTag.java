@@ -78,7 +78,7 @@ public class JspThrowableHandlerTag extends TagSupport {
             userLocale = pwmRequest.getLocale();
             configuration = pwmRequest.getConfig();
         } catch (Exception e) {
-            /* system isn't working enough, so default values will suffice */
+            LOGGER.error("error during pwmFormIDTag output of pwmFormID: " + e.getMessage());
         }
         final String[] strArgs = new String[] {errorReference};
         return LocaleHelper.getLocalizedMessage(userLocale, Display.Display_ErrorReference, configuration, strArgs);

@@ -23,6 +23,7 @@
 package password.pwm.http;
 
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import password.pwm.AppProperty;
 import password.pwm.Permission;
@@ -135,6 +136,7 @@ public class IdleTimeoutCalculator {
 
     @Getter
     @AllArgsConstructor
+    @EqualsAndHashCode
     static class MaxIdleTimeoutResult implements Comparable<MaxIdleTimeoutResult> {
         private final String reason;
         private final TimeDuration idleTimeout;

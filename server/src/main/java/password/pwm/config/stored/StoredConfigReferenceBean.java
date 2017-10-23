@@ -58,7 +58,9 @@ class StoredConfigReferenceBean implements StoredConfigReference, Serializable, 
 
     @Override
     public boolean equals(final Object o) {
-        return o instanceof StoredConfigReference && toString().equals(o);
+        return o != null
+                && o instanceof StoredConfigReference
+                && toString().equals(o.toString());
 
     }
 

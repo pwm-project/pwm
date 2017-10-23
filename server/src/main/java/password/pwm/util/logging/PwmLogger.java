@@ -46,8 +46,6 @@ import java.util.Map;
  * @author Jason D. Rivard
  */
 public class PwmLogger {
-// ------------------------------ FIELDS ------------------------------
-
     private static LocalDBLogger localDBLogger;
     private static PwmLogLevel minimumDbLogLevel;
     private static PwmApplication pwmApplication;
@@ -97,24 +95,15 @@ public class PwmLogger {
         return new PwmLogger(name, localDBDisabled);
     }
 
-
-
-// --------------------------- CONSTRUCTORS ---------------------------
-
     PwmLogger(final String name, final boolean localDBDisabled) {
         this.name = name;
         this.localDBDisabled = localDBDisabled;
         log4jLogger = org.apache.log4j.Logger.getLogger(name);
     }
 
-// --------------------- GETTER / SETTER METHODS ---------------------
-
     public String getName() {
         return name;
     }
-
-// -------------------------- OTHER METHODS --------------------------
-
 
     private void doPwmRequestLogEvent(final PwmLogLevel level, final PwmRequest pwmRequest, final Object message, final Throwable e)
     {
@@ -138,9 +127,11 @@ public class PwmLogger {
 
     private void doLogEvent(final PwmLogLevel level, final SessionLabel sessionLabel, final Object message, final Throwable e)
     {
+        final PwmLogLevel effectiveLevel = level == null ? PwmLogLevel.TRACE : level;
         final String topic = log4jLogger.getName();
-        final PwmLogEvent logEvent = PwmLogEvent.createPwmLogEvent(Instant.now(), topic, message.toString(), sessionLabel,
-                e, level);
+        final String effectiveMessage = message == null ? "" : message.toString();
+        final PwmLogEvent logEvent = PwmLogEvent.createPwmLogEvent(Instant.now(), topic, effectiveMessage, sessionLabel,
+                e, effectiveLevel);
         doLogEvent(logEvent);
     }
 
@@ -159,7 +150,7 @@ public class PwmLogger {
             if (logEvent.getLevel() == PwmLogLevel.FATAL) {
                 if (!logEvent.getMessage().contains("5039")) {
                     final Map<String,String> messageInfo = new HashMap<>();
-                    messageInfo.put("level",logEvent.getLevel().toString());
+                    messageInfo.put("level",logEvent.getLevel() == null ? "null" : logEvent.getLevel().toString());
                     messageInfo.put("actor",logEvent.getActor());
                     messageInfo.put("source",logEvent.getSource());
                     messageInfo.put("topic",logEvent.getTopic());

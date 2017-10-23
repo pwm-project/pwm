@@ -28,6 +28,7 @@ import com.novell.ldapchai.cr.Challenge;
 import com.novell.ldapchai.cr.ChallengeSet;
 import com.novell.ldapchai.cr.ResponseSet;
 import com.novell.ldapchai.cr.bean.ChallengeBean;
+import com.novell.ldapchai.exception.ChaiException;
 import lombok.Data;
 import password.pwm.PwmConstants;
 import password.pwm.bean.ResponseInfoBean;
@@ -49,9 +50,9 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.operations.CrService;
 import password.pwm.util.operations.PasswordUtility;
-import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestMethodHandler;
 import password.pwm.ws.server.RestRequest;
+import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServlet;
 import password.pwm.ws.server.RestWebServer;
 
@@ -74,7 +75,7 @@ import java.util.Map;
 public class RestChallengesServer extends RestServlet {
 
     @Data
-    public static class Policy {
+    public static class Policy implements Serializable {
         public List<ChallengeBean> challenges;
         public List<ChallengeBean> helpdeskChallenges;
         public int minimumRandoms;
@@ -206,7 +207,7 @@ public class RestChallengesServer extends RestServlet {
             // update statistics
             StatisticsManager.incrementStat(restRequest.getPwmApplication(), Statistic.REST_CHALLENGES);
             return RestResultBean.withData(jsonData);
-        } catch (Exception e) {
+        } catch (ChaiException e) {
             final String errorMsg = "unexpected error building json response: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
             return RestResultBean.fromError(restRequest, errorInformation);

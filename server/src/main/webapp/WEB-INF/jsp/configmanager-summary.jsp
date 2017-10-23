@@ -142,13 +142,15 @@
       <% final Configuration pwmConfig = JspUtility.getPwmRequest(pageContext).getConfig(); %>
       <% final Map<PwmLocaleBundle,Map<String,List<Locale>>> modifiedKeys = LocaleHelper.getModifiedKeysInConfig(pwmConfig); %>
       <% if (modifiedKeys != null && !modifiedKeys.isEmpty()) { %>
-      <% for (final PwmLocaleBundle pwmLocaleBundle : modifiedKeys.keySet()) { %>
-      <% for (final String key : modifiedKeys.get(pwmLocaleBundle).keySet()) { %>
+      <% for (final Map.Entry<PwmLocaleBundle,Map<String,List<Locale>>> entry : modifiedKeys.entrySet()) { %>
+      <% final PwmLocaleBundle pwmLocaleBundle = entry.getKey(); %>
+      <% for (final Map.Entry<String,List<Locale>> innerEntry : entry.getValue().entrySet()) { %>
+      <% final String key = innerEntry.getKey(); %>
       <table style="width: 800px">
         <tr>
-          <td colspan="5"><%=pwmLocaleBundle.getTheClass().getSimpleName()%> - <%= key%></td>
+          <td colspan="5"><%=pwmLocaleBundle.getTheClass().getSimpleName()%> - <%= key %></td>
         </tr>
-        <% for (final Locale locale : modifiedKeys.get(pwmLocaleBundle).get(key)) { %>
+        <% for (final Locale locale : innerEntry.getValue()) { %>
         <tr>
           <td class="key"><%=LocaleHelper.debugLabel(locale)%></td>
           <td><%=LocaleHelper.getLocalizedMessage(locale,key,pwmConfig,pwmLocaleBundle.getTheClass())%></td>

@@ -53,10 +53,10 @@ public class LocalizedStringValue extends AbstractValue implements StoredValue {
             public LocalizedStringValue fromJson(final String input)
             {
                 if (input == null) {
-                    return new LocalizedStringValue(Collections.<String, String>emptyMap());
+                    return new LocalizedStringValue(Collections.emptyMap());
                 } else {
                     Map<String, String> srcMap = JsonUtil.deserialize(input, new TypeToken<Map<String, String>>() {});
-                    srcMap = srcMap == null ? Collections.<String, String>emptyMap() : new TreeMap<>(srcMap);
+                    srcMap = srcMap == null ? Collections.emptyMap() : new TreeMap<>(srcMap);
                     return new LocalizedStringValue(Collections.unmodifiableMap(srcMap));
                 }
             }
@@ -78,10 +78,11 @@ public class LocalizedStringValue extends AbstractValue implements StoredValue {
 
     public List<Element> toXmlValues(final String valueElementName) {
         final List<Element> returnList = new ArrayList<>();
-        for (final String locale : value.keySet()) {
-            final String value = this.value.get(locale);
+        for (final Map.Entry<String,String> entry : value.entrySet()) {
+            final String locale = entry.getKey();
+            final String loopValue = entry.getValue();
             final Element valueElement = new Element(valueElementName);
-            valueElement.addContent(new CDATA(value));
+            valueElement.addContent(new CDATA(loopValue));
             if (locale != null && locale.length() > 0) {
                 valueElement.setAttribute("locale", locale);
             }
@@ -102,8 +103,7 @@ public class LocalizedStringValue extends AbstractValue implements StoredValue {
         }
 
         final Pattern pattern = pwmSetting.getRegExPattern();
-        for (final String locale : value.keySet()) {
-            final String loopValue = value.get(locale);
+        for (final String loopValue : value.values()) {
             final Matcher matcher = pattern.matcher(loopValue);
             if (loopValue.length() > 0 && !matcher.matches()) {
                 return Collections.singletonList("incorrect value format for value '" + loopValue + "'");
@@ -116,11 +116,12 @@ public class LocalizedStringValue extends AbstractValue implements StoredValue {
     @Override
     public String toDebugString(final Locale locale) {
         final StringBuilder sb = new StringBuilder();
-        for (final String localeKey : value.keySet()) {
+        for (final Map.Entry<String,String> entry : value.entrySet()) {
+            final String localeKey = entry.getKey();
             if (value.size() > 1) {
                 sb.append("Locale: ").append(LocaleHelper.debugLabel(LocaleHelper.parseLocaleString(localeKey))).append("\n");
             }
-            sb.append(" ").append(value.get(localeKey)).append("\n");
+            sb.append(" ").append(entry.getValue()).append("\n");
         }
         return sb.toString();
     }

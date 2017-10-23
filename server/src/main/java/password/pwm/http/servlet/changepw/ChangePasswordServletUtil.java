@@ -80,9 +80,10 @@ public class ChangePasswordServletUtil {
     )
             throws ChaiUnavailableException, PwmDataValidationException
     {
-        for (final FormConfiguration formItem : formValues.keySet()) {
+        for (final Map.Entry<FormConfiguration, String> entry : formValues.entrySet()) {
+            final FormConfiguration formItem = entry.getKey();
             final String attrName = formItem.getName();
-            final String value = formValues.get(formItem);
+            final String value = entry.getValue();
             try {
                 if (!theUser.compareStringAttribute(attrName, value)) {
                     final String errorMsg = "incorrect value for '" + attrName + "'";

@@ -56,8 +56,6 @@ import java.util.List;
  * @author Jason D. Rivard
  */
 public class ConfigurationReader {
-// ------------------------------ FIELDS ------------------------------
-
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ConfigurationReader.class.getName());
 
     private final File configFile;
@@ -101,8 +99,13 @@ public class ConfigurationReader {
 
     public Configuration getConfiguration() throws PwmUnrecoverableException {
         if (configuration == null) {
-            configuration = new Configuration(this.storedConfiguration == null ? StoredConfigurationImpl.newStoredConfiguration() : this.storedConfiguration);
-            storedConfiguration.lock();
+            final StoredConfigurationImpl newStoredConfig = this.storedConfiguration == null
+                    ? StoredConfigurationImpl.newStoredConfiguration()
+                    : this.storedConfiguration;
+            configuration = new Configuration(newStoredConfig);
+            if (storedConfiguration != null) {
+                storedConfiguration.lock();
+            }
         }
         return configuration;
     }
@@ -164,7 +167,7 @@ public class ConfigurationReader {
             final StoredConfigurationImpl storedConfiguration,
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel
-            )
+    )
             throws IOException, PwmUnrecoverableException, PwmOperationalException
     {
         File backupDirectory = null;
@@ -203,7 +206,10 @@ public class ConfigurationReader {
             LOGGER.info(sessionLabel, "beginning write to configuration file " + tempWriteFile);
             saveInProgress = true;
 
-            storedConfiguration.toXml(new FileOutputStream(tempWriteFile, false));
+            try (FileOutputStream fileOutputStream = new FileOutputStream(tempWriteFile, false)) {
+                storedConfiguration.toXml(fileOutputStream);
+            }
+
             LOGGER.info("saved configuration " + JsonUtil.serialize(storedConfiguration.toJsonDebugObject()));
             if (pwmApplication != null) {
                 final String actualChecksum = storedConfiguration.settingChecksum();
@@ -224,7 +230,9 @@ public class ConfigurationReader {
                 final String backupFilePath = backupDirectory.getAbsolutePath() + File.separatorChar + configFileName + "-backup";
                 final File backupFile = new File(backupFilePath);
                 FileSystemUtility.rotateBackups(backupFile, backupRotations);
-                storedConfiguration.toXml(new FileOutputStream(backupFile, false));
+                try (FileOutputStream fileOutputStream = new FileOutputStream(backupFile, false)) {
+                    storedConfiguration.toXml(fileOutputStream);
+                }
             }
         } finally {
             saveInProgress = false;
@@ -242,10 +250,6 @@ public class ConfigurationReader {
         }
 
         return String.valueOf(file.lastModified() + String.valueOf(file.length()));
-    }
-
-    public Date getConfigurationReadTime() {
-        return configurationReadTime;
     }
 
     public ErrorInformation getConfigFileError() {

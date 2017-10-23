@@ -160,8 +160,9 @@ public class Xodus_LocalDB implements LocalDBProvider {
         environmentConfig.setEnvCloseForcedly(true);
         environmentConfig.setMemoryUsage(50 * 1024 * 1024);
 
-        for (final String key : initParameters.keySet()) {
-            final String value = initParameters.get(key);
+        for (final Map.Entry<String,String> entry : initParameters.entrySet()) {
+            final String key = entry.getKey();
+            final String value = entry.getValue();
             final Map<String,String> singleMap = Collections.singletonMap(key,value);
             try {
                 environmentConfig.setSettings(singleMap);
@@ -289,10 +290,9 @@ public class Xodus_LocalDB implements LocalDBProvider {
         checkStatus(true);
         environment.executeInTransaction(transaction -> {
             final Store store = getStore(db);
-            for (final String key : keyValueMap.keySet()) {
-                final String value = keyValueMap.get(key);
-                final ByteIterable k = bindMachine.keyToEntry(key);
-                final ByteIterable v = bindMachine.valueToEntry(value);
+            for (final Map.Entry<String,String> entry : keyValueMap.entrySet()) {
+                final ByteIterable k = bindMachine.keyToEntry(entry.getKey());
+                final ByteIterable v = bindMachine.valueToEntry(entry.getValue());
                 store.put(transaction,k,v);
             }
         });
@@ -438,7 +438,7 @@ public class Xodus_LocalDB implements LocalDBProvider {
         }
 
         ByteIterable valueToEntry(final String value) {
-            if (!enableCompression || value == null || value.length() < minCompressionLength) {
+            if (!enableCompression || value.length() < minCompressionLength) {
                 final ByteIterable byteIterable = StringBinding.stringToEntry(value);
                 return new ArrayByteIterable(UNCOMPRESSED_PREFIX, byteIterable);
             }

@@ -38,6 +38,7 @@ import password.pwm.util.secure.X509Utils;
 
 import java.net.URI;
 import java.security.cert.X509Certificate;
+import java.util.List;
 
 abstract class AbstractUriCertImportFunction implements SettingUIFunction {
 
@@ -51,7 +52,7 @@ abstract class AbstractUriCertImportFunction implements SettingUIFunction {
             throws PwmOperationalException, PwmUnrecoverableException
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final X509Certificate[] certs;
+        final List<X509Certificate> certs;
 
         final String urlString = getUri(storedConfiguration, setting, profile, extraData);
             try {
@@ -79,7 +80,16 @@ abstract class AbstractUriCertImportFunction implements SettingUIFunction {
     abstract String getUri(StoredConfigurationImpl storedConfiguration,  PwmSetting pwmSetting,  String profile,  String extraData) throws PwmOperationalException;
 
 
-    void store(final X509Certificate[] certs, final StoredConfigurationImpl storedConfiguration, final PwmSetting pwmSetting, final String profile, final String extraData, final UserIdentity userIdentity) throws PwmOperationalException, PwmUnrecoverableException {
+    void store(
+            final List<X509Certificate> certs,
+            final StoredConfigurationImpl storedConfiguration,
+            final PwmSetting pwmSetting,
+            final String profile,
+            final String extraData,
+            final UserIdentity userIdentity
+    )
+            throws PwmOperationalException, PwmUnrecoverableException
+    {
         storedConfiguration.writeSetting(pwmSetting, profile, new X509CertificateValue(certs), userIdentity);
     }
 

@@ -27,9 +27,9 @@ import password.pwm.config.option.SessionBeanMode;
 import password.pwm.http.servlet.GuestRegistrationServlet;
 import password.pwm.util.FormMap;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -37,14 +37,11 @@ import java.util.Set;
  * @author Jason D. Rivard, Menno Pieters
  */
 public class GuestRegistrationBean extends PwmSessionBean {
-// ------------------------------ FIELDS ------------------------------
 
     private UserIdentity updateUserIdentity;
-    private Date updateUserExpirationDate;
+    private Instant updateUserExpirationDate;
     private FormMap formValues = new FormMap();
     private GuestRegistrationServlet.Page currentPage = GuestRegistrationServlet.Page.create;
-
-// --------------------- GETTER / SETTER METHODS ---------------------
 
     public UserIdentity getUpdateUserIdentity() {
         return updateUserIdentity;
@@ -54,11 +51,11 @@ public class GuestRegistrationBean extends PwmSessionBean {
         this.updateUserIdentity = updateUserIdentity;
     }
 
-    public Date getUpdateUserExpirationDate() {
+    public Instant getUpdateUserExpirationDate() {
         return updateUserExpirationDate;
     }
 
-    public void setUpdateUserExpirationDate(final Date updateUserExpirationDate) {
+    public void setUpdateUserExpirationDate(final Instant updateUserExpirationDate) {
         this.updateUserExpirationDate = updateUserExpirationDate;
     }
 

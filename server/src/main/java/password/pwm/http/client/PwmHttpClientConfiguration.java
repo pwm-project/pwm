@@ -22,41 +22,15 @@
 
 package password.pwm.http.client;
 
+import lombok.Builder;
+import lombok.Value;
+
 import java.security.cert.X509Certificate;
+import java.util.List;
 
+@Value
+@Builder
 public class PwmHttpClientConfiguration {
-    private X509Certificate[] certificates;
+    private List<X509Certificate> certificates;
     private boolean promiscuous;
-
-    private PwmHttpClientConfiguration(final X509Certificate[] certificate, final boolean promiscuous) {
-        this.certificates = certificate;
-        this.promiscuous = promiscuous;
-    }
-
-    public X509Certificate[] getCertificates() {
-        return certificates;
-    }
-
-    public boolean isPromiscuous() {
-        return promiscuous;
-    }
-
-    public static class Builder {
-        private X509Certificate[] certificate;
-        private boolean promiscuous;
-
-        public Builder setCertificate(final X509Certificate[] certificate) {
-            this.certificate = certificate;
-            return this;
-        }
-
-        public Builder setPromiscuous(final boolean promiscuous) {
-            this.promiscuous = promiscuous;
-            return this;
-        }
-
-        public PwmHttpClientConfiguration create() {
-            return new PwmHttpClientConfiguration(certificate, promiscuous);
-        }
-    }
 }

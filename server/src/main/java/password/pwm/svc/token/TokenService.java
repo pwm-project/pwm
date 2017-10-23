@@ -731,8 +731,6 @@ public class TokenService implements PwmService {
         )
                 throws PwmUnrecoverableException, ChaiUnavailableException
         {
-            final Configuration config = pwmApplication.getConfig();
-
             if (smsNumber == null || smsNumber.length() < 1) {
                 return false;
             }

@@ -117,14 +117,15 @@ class CryptoCookieBeanImpl implements SessionBeanProvider {
             if (pwmRequest != null && pwmRequest.getPwmResponse() != null) {
                 final Map<Class<? extends PwmSessionBean>,PwmSessionBean> beansInRequest = getRequestBeanMap(pwmRequest);
                 if (beansInRequest != null) {
-                    for (final Class<? extends PwmSessionBean> theClass : beansInRequest.keySet()) {
+                    for (final Map.Entry<Class<? extends PwmSessionBean>,PwmSessionBean> entry : beansInRequest.entrySet()) {
+                        final Class<? extends PwmSessionBean> theClass = entry.getKey();
                         final String cookieName = nameForClass(theClass);
-                        final PwmSessionBean bean = beansInRequest.get(theClass);
+                        final PwmSessionBean bean = entry.getValue();
                         if (bean == null) {
                             pwmRequest.getPwmResponse().removeCookie(cookieName, COOKIE_PATH);
                         } else {
                             final PwmSecurityKey key = keyForSession(pwmRequest);
-                            final String encrytedValue = pwmRequest.getPwmApplication().getSecureService().encryptObjectToString(beansInRequest.get(theClass), key);
+                            final String encrytedValue = pwmRequest.getPwmApplication().getSecureService().encryptObjectToString(entry.getValue(), key);
                             pwmRequest.getPwmResponse().writeCookie(cookieName, encrytedValue, -1, COOKIE_PATH);
                         }
                     }

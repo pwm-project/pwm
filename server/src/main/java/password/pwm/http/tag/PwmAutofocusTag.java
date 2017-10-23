@@ -27,7 +27,6 @@ import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.tagext.TagSupport;
 
 public class PwmAutofocusTag extends TagSupport {
-// --------------------- Interface Tag ---------------------
 
     public int doEndTag()
             throws javax.servlet.jsp.JspTagException

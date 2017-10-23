@@ -56,9 +56,10 @@ public class StatisticsBundle {
     public static StatisticsBundle input(final String inputString) {
         final Map<Statistic, String> srcMap = new HashMap<>();
         final Map<String, String> loadedMap = JsonUtil.deserializeStringMap(inputString);
-        for (final String key : loadedMap.keySet()) {
+        for (final Map.Entry<String, String> entry : loadedMap.entrySet()) {
+            final String key = entry.getKey();
             try {
-                srcMap.put(Statistic.valueOf(key),loadedMap.get(key));
+                srcMap.put(Statistic.valueOf(key), entry.getValue());
             } catch (IllegalArgumentException e) {
                 LOGGER.error("error parsing statistic key '" + key + "', reason: " + e.getMessage());
             }

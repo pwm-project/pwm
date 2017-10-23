@@ -60,7 +60,8 @@
             <% final ResourceBundle resourceBundle = ResourceBundle.getBundle(bundle.getTheClass().getName()); %>
             <% for (final String key : new TreeSet<String>(Collections.list(resourceBundle.getKeys()))) { %>
             <% final Map<Locale,String> values = LocaleHelper.getUniqueLocalizations(pwmRequest != null ? pwmRequest.getConfig() : null, bundle.getTheClass(), key, PwmConstants.DEFAULT_LOCALE); %>
-            <% for (final Locale locale : values.keySet()) { %>
+            <% for (final Map.Entry<Locale,String> entry : values.entrySet()) { %>
+            <% final Locale locale = entry.getKey(); %>
             <% if (locale.equals(PwmConstants.DEFAULT_LOCALE)) { %>
             <tr>
                 <td rowspan="<%=values.size()%>">
@@ -70,7 +71,7 @@
                     <%= locale.toString()%> - <%=locale.getDisplayName(userLocale)%>
                 </td>
                 <td>
-                    <%= StringUtil.escapeHtml(values.get(locale)) %>
+                    <%= StringUtil.escapeHtml(entry.getValue()) %>
                 </td>
             </tr>
             <% } else { %>
@@ -79,7 +80,7 @@
                     <%= locale.toString()%> - <%=locale.getDisplayName(userLocale)%>
                 </td>
                 <td>
-                    <%= StringUtil.escapeHtml(values.get(locale)) %>
+                    <%= StringUtil.escapeHtml(entry.getValue()) %>
                 </td>
             </tr>
             <% } %>

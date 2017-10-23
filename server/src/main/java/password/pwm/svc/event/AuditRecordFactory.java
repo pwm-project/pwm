@@ -205,8 +205,9 @@ public class AuditRecordFactory {
         }
 
         final Map<String,String> recordFields = JsonUtil.deserializeStringMap(JsonUtil.serialize(auditRecord));
-        for (final String key : recordFields.keySet()) {
-            final String value = recordFields.get(key);
+        for (final Map.Entry<String, String> entry : recordFields.entrySet()) {
+            final String key = entry.getKey();
+            final String value = entry.getValue();
             final String parametrizedKey = "%" + key + "%";
             outputString = outputString.replace(parametrizedKey, value);
         }

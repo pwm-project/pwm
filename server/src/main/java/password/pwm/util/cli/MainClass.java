@@ -75,6 +75,7 @@ import password.pwm.util.logging.PwmLogger;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -202,17 +203,19 @@ public class MainClass {
         out("environment initialized");
         out("");
 
-        return new CliEnvironment(
-                configReader,
-                configurationFile,
-                config,
-                applicationPath,
-                pwmApplication,
-                localDB,
-                new OutputStreamWriter(System.out),
-                options,
-                MAIN_OPTIONS
-        );
+        try (Writer outputStream = new OutputStreamWriter(System.out, PwmConstants.DEFAULT_CHARSET)) {
+            return new CliEnvironment(
+                    configReader,
+                    configurationFile,
+                    config,
+                    applicationPath,
+                    pwmApplication,
+                    localDB,
+                    outputStream,
+                    options,
+                    MAIN_OPTIONS
+            );
+        }
     }
 
     public static Map<String,Object> parseCommandOptions(
@@ -286,12 +289,12 @@ public class MainClass {
             throws Exception
     {
         out(PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " Command Line Utility");
-        MAIN_OPTIONS = MainOptions.parseMainCommandLineOptions(args, new OutputStreamWriter(System.out));
-        final String[] workingArgs = MAIN_OPTIONS.getRemainingArguments();
+        MAIN_OPTIONS = MainOptions.parseMainCommandLineOptions(args, new OutputStreamWriter(System.out, PwmConstants.DEFAULT_CHARSET));
+        final List<String> workingArgs = MAIN_OPTIONS.getRemainingArguments();
 
         initLog4j(MAIN_OPTIONS.getPwmLogLevel());
 
-        final String commandStr = workingArgs == null || workingArgs.length < 1 ? null : workingArgs[0];
+        final String commandStr = workingArgs == null || workingArgs.size() < 1 ? null : workingArgs.iterator().next();
 
         if (commandStr == null) {
             out("\n");
@@ -299,11 +302,11 @@ public class MainClass {
         } else {
             for (final CliCommand command : COMMANDS.values()) {
                 if (commandStr.equalsIgnoreCase(command.getCliParameters().commandName)) {
-                    executeCommand(command, commandStr, workingArgs);
+                    executeCommand(command, commandStr, workingArgs.toArray(new String[workingArgs.size()]));
                     break;
                 }
             }
-            out("unknown command '" + workingArgs[0] + "'");
+            out("unknown command '" + workingArgs.iterator().next() + "'");
         }
     }
 

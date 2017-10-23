@@ -29,6 +29,7 @@ import password.pwm.util.PasswordData;
 
 import java.io.Serializable;
 import java.security.cert.X509Certificate;
+import java.util.List;
 
 public class OAuthSettings implements Serializable {
     private String loginURL;
@@ -38,7 +39,7 @@ public class OAuthSettings implements Serializable {
     private PasswordData secret;
     private String dnAttributeName;
     private OAuthUseCase use;
-    private X509Certificate[] certificates;
+    private List<X509Certificate> certificates;
     private String usernameSendValue;
 
 
@@ -80,7 +81,7 @@ public class OAuthSettings implements Serializable {
         return use;
     }
 
-    public X509Certificate[] getCertificates() {
+    public List<X509Certificate> getCertificates() {
         return certificates;
     }
 

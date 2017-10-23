@@ -55,7 +55,6 @@ import java.util.regex.PatternSyntaxException;
  * @author Jason D. Rivard
  */
 public class PwmPasswordPolicy implements Profile,Serializable {
-// ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(PwmPasswordPolicy.class);
 
@@ -83,8 +82,6 @@ public class PwmPasswordPolicy implements Profile,Serializable {
     public String getDisplayName(final Locale locale) {
         return getIdentifier();
     }
-
-// -------------------------- STATIC METHODS --------------------------
 
     static {
         PwmPasswordPolicy newDefaultPolicy = null;
@@ -273,9 +270,6 @@ public class PwmPasswordPolicy implements Profile,Serializable {
         return createPwmPasswordPolicy(policyMap, null);
     }
 
-
-// -------------------------- INNER CLASSES --------------------------
-
     public static class RuleHelper {
         public enum Flag { KeepThresholds }
 
@@ -429,8 +423,9 @@ public class PwmPasswordPolicy implements Profile,Serializable {
         rulePairs.put(PwmPasswordRule.MinimumNonAlpha, PwmPasswordRule.MaximumNonAlpha);
         rulePairs.put(PwmPasswordRule.MinimumUnique, PwmPasswordRule.MaximumUnique);
 
-        for (final PwmPasswordRule minRule : rulePairs.keySet()) {
-            final PwmPasswordRule maxRule = rulePairs.get(minRule);
+        for (final Map.Entry<PwmPasswordRule, PwmPasswordRule> entry : rulePairs.entrySet()) {
+            final PwmPasswordRule minRule = entry.getKey();
+            final PwmPasswordRule maxRule = entry.getValue();
 
             final int minValue = ruleHelper.readIntValue(minRule);
             final int maxValue = ruleHelper.readIntValue(maxRule);

@@ -90,8 +90,6 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
     private PopulationManager populationManager = new PopulationManager();
 
 
-// --------------------------- CONSTRUCTORS ---------------------------
-
     protected AbstractWordlist() {
     }
 
@@ -544,9 +542,9 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
 
         private InputStream autoImportInputStream() throws IOException, PwmUnrecoverableException {
             final boolean promiscuous = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_CLIENT_PROMISCUOUS_WORDLIST_ENABLE));
-            final PwmHttpClientConfiguration pwmHttpClientConfiguration = new PwmHttpClientConfiguration.Builder()
-                    .setPromiscuous(promiscuous)
-                    .create();
+            final PwmHttpClientConfiguration pwmHttpClientConfiguration = PwmHttpClientConfiguration.builder()
+                    .promiscuous(promiscuous)
+                    .build();
             final PwmHttpClient client = new PwmHttpClient(pwmApplication, null, pwmHttpClientConfiguration);
             return client.streamForUrl(wordlistConfiguration.getAutoImportUrl());
         }

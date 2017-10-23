@@ -28,7 +28,6 @@ import password.pwm.config.StoredValue;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
-import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
 
@@ -54,7 +53,6 @@ public class ValueFactory {
     }
 
     public static StoredValue fromXmlValues(final PwmSetting setting, final Element settingElement, final PwmSecurityKey key)
-            throws PwmUnrecoverableException, PwmOperationalException
     {
         try {
             final StoredValue.StoredValueFactory factory = setting.getSyntax().getStoredValueImpl();
@@ -66,7 +64,7 @@ public class ValueFactory {
                 errorMsg.append(", cause: ").append(e.getCause().getMessage());
             }
             LOGGER.error(errorMsg,e);
-            throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorMsg.toString()));
+            throw new IllegalStateException("unable to read xml element '" + settingElement.getName() + "' from setting '" + setting.getKey() + "' error: " + e.getMessage());
         }
     }
 }

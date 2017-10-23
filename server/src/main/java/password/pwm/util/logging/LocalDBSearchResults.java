@@ -24,13 +24,12 @@ package password.pwm.util.logging;
 
 import password.pwm.util.java.TimeDuration;
 
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class LocalDBSearchResults implements Serializable, Iterator<PwmLogEvent> {
-    private final LocalDBLogger localDBLogger;
+public class LocalDBSearchResults implements Iterator<PwmLogEvent> {
+    private transient LocalDBLogger localDBLogger;
     private final Iterator<String> localDBIterator;
     private final LocalDBSearchQuery searchParameters;
 

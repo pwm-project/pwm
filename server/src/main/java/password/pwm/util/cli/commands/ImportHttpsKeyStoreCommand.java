@@ -63,11 +63,11 @@ public class ImportHttpsKeyStoreCommand extends AbstractCliCommand {
         final ConfigurationReader configurationReader = new ConfigurationReader(cliEnvironment.getConfigurationFile());
         final StoredConfigurationImpl storedConfiguration = configurationReader.getStoredConfiguration();
 
-        try {
+        try (FileInputStream fileInputStream = new FileInputStream(inputFile)) {
             HttpsServerCertificateManager.importKey(
                     storedConfiguration,
                     format,
-                    new FileInputStream(inputFile),
+                    fileInputStream,
                     new PasswordData(keyStorePassword),
                     inputAliasName
             );

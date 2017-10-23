@@ -175,8 +175,9 @@ public class LocalDBUtility {
             throw new PwmOperationalException(PwmError.ERROR_UNKNOWN,"inputFile for importLocalDB is empty");
         }
 
-        final InputStream inputStream = new FileInputStream(inputFile);
-        importLocalDB(inputStream, out, totalBytes);
+        try (InputStream inputStream = new FileInputStream(inputFile)) {
+            importLocalDB(inputStream, out, totalBytes);
+        }
     }
 
     public void importLocalDB(final InputStream inputStream, final Appendable out)

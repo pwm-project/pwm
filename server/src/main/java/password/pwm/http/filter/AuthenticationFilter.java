@@ -76,7 +76,6 @@ import java.util.Set;
  * @author Jason D. Rivard
  */
 public class AuthenticationFilter extends AbstractPwmFilter {
-// ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(AuthenticationFilter.class.getName());
 

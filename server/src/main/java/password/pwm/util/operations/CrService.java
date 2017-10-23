@@ -40,10 +40,10 @@ import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.value.data.UserPermission;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.profile.ChallengeProfile;
 import password.pwm.config.profile.PwmPasswordPolicy;
+import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
@@ -55,6 +55,7 @@ import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.wordlist.WordlistManager;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -68,12 +69,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -249,12 +250,7 @@ public class CrService implements PwmService {
             throws PwmDataValidationException, PwmUnrecoverableException
     {
         //strip null keys from responseMap;
-        for (final Iterator<Challenge> iter = responseMap.keySet().iterator(); iter.hasNext(); ) {
-            final Challenge loopChallenge = iter.next();
-            if (loopChallenge == null) {
-                iter.remove();
-            }
-        }
+        responseMap.keySet().removeIf(Objects::isNull);
 
         { // check for missing question texts
             for (final Challenge challenge : responseMap.keySet()) {
@@ -268,14 +264,13 @@ public class CrService implements PwmService {
             }
         }
 
-        final Configuration config = pwmApplication.getConfig();
-
         { // check responses against wordlist
             final WordlistManager wordlistManager = pwmApplication.getWordlistManager();
             if (wordlistManager.status() == PwmService.STATUS.OPEN) {
-                for (final Challenge loopChallenge : responseMap.keySet()) {
+                for (final Map.Entry<Challenge, String> entry : responseMap.entrySet()) {
+                    final Challenge loopChallenge = entry.getKey();
                     if (loopChallenge.isEnforceWordlist()) {
-                        final String answer = responseMap.get(loopChallenge);
+                        final String answer = entry.getValue();
                         if (wordlistManager.containsWord(answer)) {
                             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_RESPONSE_WORDLIST, null, new String[]{loopChallenge.getChallengeText()});
                             throw new PwmDataValidationException(errorInfo);
@@ -322,7 +317,7 @@ public class CrService implements PwmService {
             throw new PwmDataValidationException(errorInfo);
         }
 
-        if (responseMap == null || responseMap.isEmpty()) {
+        if (JavaHelper.isEmpty(responseMap)) {
             final String errorMsg = "empty response set";
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER, errorMsg);
             throw new PwmDataValidationException(errorInfo);

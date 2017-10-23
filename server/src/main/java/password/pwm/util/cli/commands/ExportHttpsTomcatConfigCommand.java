@@ -46,11 +46,14 @@ public class ExportHttpsTomcatConfigCommand extends AbstractCliCommand {
     void doCommand() throws Exception {
         final File sourceFile = (File)cliEnvironment.getOptions().get("sourceFile");
         final File outputFile = (File)cliEnvironment.getOptions().get("outputFile");
-        try {
+        try (
+                FileInputStream fileInputStream = new FileInputStream(sourceFile);
+                FileOutputStream fileOutputStream = new FileOutputStream(outputFile)
+        ) {
             TomcatConfigWriter.writeOutputFile(
                     cliEnvironment.getConfig(),
-                    new FileInputStream(sourceFile),
-                    new FileOutputStream(outputFile)
+                    fileInputStream,
+                    fileOutputStream
             );
         } catch (IOException e) {
             out("error during tomcat config file export: " + e.getMessage());

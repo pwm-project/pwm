@@ -22,6 +22,7 @@
 
 package password.pwm.health;
 
+import lombok.EqualsAndHashCode;
 import password.pwm.config.Configuration;
 import password.pwm.ws.server.rest.bean.HealthData;
 
@@ -31,7 +32,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
-public class HealthRecord implements Serializable,Comparable<HealthRecord> {
+@EqualsAndHashCode
+public class HealthRecord implements Serializable, Comparable<HealthRecord> {
     private final HealthStatus status;
 
     // new fields
@@ -149,6 +151,8 @@ public class HealthRecord implements Serializable,Comparable<HealthRecord> {
 
         return 0;
     }
+
+
 
     public List<HealthRecord> singletonList() {
         return Collections.singletonList(this);

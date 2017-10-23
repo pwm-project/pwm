@@ -28,6 +28,7 @@ import password.pwm.util.cli.CliException;
 import password.pwm.util.cli.CliParameters;
 import password.pwm.util.cli.MainClass;
 
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -60,7 +61,7 @@ public class ShellCommand extends AbstractCliCommand {
     {
         boolean exitFlag = false;
 
-        final Scanner scanner = new Scanner(System.in);
+        final Scanner scanner = new Scanner(new InputStreamReader(System.in, PwmConstants.DEFAULT_CHARSET));
         while (!exitFlag) {
             System.out.print(PwmConstants.PWM_APP_NAME+">");
             final String command = scanner.nextLine();

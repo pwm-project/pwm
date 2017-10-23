@@ -421,10 +421,11 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
 
         {// check files system zip files.
             final Map<String,ZipFile> zipResources = resourceServletConfiguration.getZipResources();
-            for (final String path : zipResources.keySet()) {
+            for (final Map.Entry<String,ZipFile> entry : zipResources.entrySet()) {
+                final String path = entry.getKey();
                 if (filename.startsWith(path)) {
                     final String zipSubPath = filename.substring(path.length() + 1, filename.length());
-                    final ZipFile zipFile = zipResources.get(path);
+                    final ZipFile zipFile = entry.getValue();
                     final ZipEntry zipEntry = zipFile.getEntry(zipSubPath);
                     if (zipEntry != null) {
                         return new ZipFileResource(zipFile, zipEntry);
@@ -466,10 +467,11 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
 
         if (!fileSystemResource.exists()) { // check custom (configuration defined) zip file bundles
             final Map<String,FileResource> customResources = resourceServletConfiguration.getCustomFileBundle();
-            for (final String customFileName : customResources.keySet()) {
+            for (final Map.Entry<String,FileResource> entry : customResources.entrySet()) {
+                final String customFileName = entry.getKey();
                 final String testName = RESOURCE_PATH + "/" + customFileName;
                 if (testName.equals(resourcePathUri)) {
-                    return customResources.get(customFileName);
+                    return entry.getValue();
                 }
             }
         }
@@ -513,7 +515,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
             addExpirationHeaders(resourceServletConfiguration, response);
             if (bodyText != null && bodyText.length() > 0) {
                 response.setIntHeader("Content-Length", bodyText.length());
-                copy(new ByteArrayInputStream(bodyText.getBytes()), response.getOutputStream());
+                copy(new ByteArrayInputStream(bodyText.getBytes(PwmConstants.DEFAULT_CHARSET)), response.getOutputStream());
             } else {
                 response.setIntHeader("Content-Length", 0);
             }

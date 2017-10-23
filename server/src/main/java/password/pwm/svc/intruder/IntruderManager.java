@@ -28,10 +28,10 @@ import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
-import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.IntruderStorageMethod;
+import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -66,7 +66,6 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.secure.PwmRandom;
 
-import java.io.Serializable;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -78,9 +77,7 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
-// ------------------------------ FIELDS ------------------------------
-
-public class IntruderManager implements Serializable, PwmService {
+public class IntruderManager implements PwmService {
     private static final PwmLogger LOGGER = PwmLogger.forClass(IntruderManager.class);
 
     private PwmApplication pwmApplication;
@@ -90,7 +87,7 @@ public class IntruderManager implements Serializable, PwmService {
 
     private final Map<RecordType, RecordManager> recordManagers = new HashMap<>();
 
-    private ServiceInfoBean serviceInfo = new ServiceInfoBean(Collections.<DataStorageMethod>emptyList());
+    private ServiceInfoBean serviceInfo = new ServiceInfoBean(Collections.emptyList());
 
     public IntruderManager() {
         for (final RecordType recordType : RecordType.values()) {
@@ -554,8 +551,9 @@ public class IntruderManager implements Serializable, PwmService {
         private List<String> attributeFormToList(final Map<FormConfiguration, String> formValues) {
             final List<String> returnList = new ArrayList<>();
             if (formValues != null) {
-                for (final FormConfiguration formConfiguration : formValues.keySet()) {
-                    final String value = formValues.get(formConfiguration);
+                for (final Map.Entry<FormConfiguration, String> entry : formValues.entrySet()) {
+                    final FormConfiguration formConfiguration = entry.getKey();
+                    final String value = entry.getValue();
                     if (value != null && value.length() > 0) {
                         returnList.add(formConfiguration.getName() + ":" + value);
                     }

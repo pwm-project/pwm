@@ -75,8 +75,9 @@ public class MacroMachine {
         implementations.putAll(InternalMacros.INTERNAL_MACROS);
         final LinkedHashMap<MacroImplementation.Scope,Map<Pattern,MacroImplementation>> map = new LinkedHashMap<>();
 
-        for (final Class macroClass : implementations.keySet()) {
-            final MacroImplementation.Scope scope = implementations.get(macroClass);
+        for (final Map.Entry<Class<? extends MacroImplementation>,MacroImplementation.Scope> entry : implementations.entrySet()) {
+            final Class macroClass = entry.getKey();
+            final MacroImplementation.Scope scope = entry.getValue();
             try {
                 final MacroImplementation macroImplementation = (MacroImplementation)macroClass.newInstance();
                 final Pattern pattern = macroImplementation.getRegExPattern();
@@ -166,8 +167,9 @@ public class MacroMachine {
         final String previousString = workingString;
 
         for (final MacroImplementation.Sequence sequence : MacroImplementation.Sequence.values()) {
-            for (final Pattern pattern : macroImplementations.keySet()) {
-                final MacroImplementation pwmMacro = macroImplementations.get(pattern);
+            for (final Map.Entry<Pattern,MacroImplementation> entry : macroImplementations.entrySet()) {
+                final Pattern pattern = entry.getKey();
+                final MacroImplementation pwmMacro = entry.getValue();
                 if (pwmMacro.getSequence() == sequence) {
                     boolean matched = true;
                     while (matched) {

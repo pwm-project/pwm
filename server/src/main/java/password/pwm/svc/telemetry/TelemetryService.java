@@ -267,8 +267,9 @@ public class TelemetryService implements PwmService {
 
         final Map<String, String> aboutStrings = new TreeMap<>();
         {
-            for (final PwmAboutProperty pwmAboutProperty : aboutPropertyStringMap.keySet()) {
-                aboutStrings.put(pwmAboutProperty.name(), aboutPropertyStringMap.get(pwmAboutProperty));
+            for (final Map.Entry<PwmAboutProperty, String> entry : aboutPropertyStringMap.entrySet()) {
+                final PwmAboutProperty pwmAboutProperty = entry.getKey();
+                aboutStrings.put(pwmAboutProperty.name(), entry.getValue());
             }
             aboutStrings.remove(PwmAboutProperty.app_instanceID.name());
             aboutStrings.remove(PwmAboutProperty.app_siteUrl.name());

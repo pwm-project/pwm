@@ -38,6 +38,7 @@ import java.io.Serializable;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -74,7 +75,7 @@ public class X509CertificateValue extends AbstractValue implements StoredValue {
         if (certificates == null) {
             throw new NullPointerException("certificates cannot be null");
         }
-        this.certificates = certificates;
+        this.certificates = Arrays.copyOf(certificates, certificates.length);
     }
 
     public boolean hasCertificates() {
@@ -106,7 +107,7 @@ public class X509CertificateValue extends AbstractValue implements StoredValue {
 
     @Override
     public Object toNativeObject() {
-        return certificates;
+        return certificates == null ? null : Arrays.copyOf(certificates, certificates.length);
     }
 
     @Override

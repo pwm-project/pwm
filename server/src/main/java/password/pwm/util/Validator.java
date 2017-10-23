@@ -46,16 +46,9 @@ import java.util.regex.Pattern;
  * @author Jason D. Rivard
  */
 public class Validator {
-// ------------------------------ FIELDS ------------------------------
-
     private static final PwmLogger LOGGER = PwmLogger.forClass(Validator.class);
 
     public static final String PARAM_CONFIRM_SUFFIX = "_confirm";
-
-
-
-// -------------------------- STATIC METHODS --------------------------
-
 
     public static void validatePwmFormID(final PwmRequest pwmRequest)
             throws PwmUnrecoverableException

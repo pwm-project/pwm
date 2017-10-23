@@ -46,7 +46,6 @@ import java.util.Map;
 @Getter
 @Builder
 public class UserInfoBean implements UserInfo {
-// ------------------------------ FIELDS ------------------------------
 
     private final UserIdentity userIdentity;
     private final String username;

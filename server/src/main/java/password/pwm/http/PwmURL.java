@@ -257,8 +257,7 @@ public class PwmURL {
         output.append(inputUrl == null ? "" : inputUrl);
 
         if (parameters != null) {
-            for (final String key : parameters.keySet()) {
-                final String value = parameters.get(key);
+            parameters.forEach((key, value) -> {
                 final String encodedValue = value == null
                         ? ""
                         : StringUtil.urlEncode(value);
@@ -267,7 +266,7 @@ public class PwmURL {
                 output.append(key);
                 output.append("=");
                 output.append(encodedValue);
-            }
+            });
         }
 
         if (output.charAt(0) == '?' || output.charAt(0) == '&') {

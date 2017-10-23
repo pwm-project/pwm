@@ -43,30 +43,19 @@ public enum Permission {
     ;
 
 
-// ------------------------------ FIELDS ------------------------------
-
     private static final PwmLogger LOGGER = PwmLogger.forClass(Permission.class);
 
     private PwmSetting pwmSetting;
-
-// -------------------------- STATIC METHODS --------------------------
-
-
-// --------------------------- CONSTRUCTORS ---------------------------
 
     Permission(final PwmSetting pwmSetting)
     {
         this.pwmSetting = pwmSetting;
     }
 
-// --------------------- GETTER / SETTER METHODS ---------------------
-
     public PwmSetting getPwmSetting()
     {
         return pwmSetting;
     }
-
-// -------------------------- ENUMERATIONS --------------------------
 
     public enum PermissionStatus {
         UNCHECKED,

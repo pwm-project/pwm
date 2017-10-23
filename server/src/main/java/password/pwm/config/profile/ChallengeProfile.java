@@ -242,8 +242,9 @@ public class ChallengeProfile implements Profile, Serializable {
         }
         final Map<String, List<ChallengeItemConfiguration>> storedValues = (Map<String, List<ChallengeItemConfiguration>>)value.toNativeObject();
         final Map<Locale, List<ChallengeItemConfiguration>> availableLocaleMap = new LinkedHashMap<>();
-        for (final String localeStr : storedValues.keySet()) {
-            availableLocaleMap.put(LocaleHelper.parseLocaleString(localeStr), storedValues.get(localeStr));
+        for (final Map.Entry<String,List<ChallengeItemConfiguration>> entry : storedValues.entrySet()) {
+            final String localeStr = entry.getKey();
+            availableLocaleMap.put(LocaleHelper.parseLocaleString(localeStr), entry.getValue());
         }
         final Locale matchedLocale = LocaleHelper.localeResolver(locale, availableLocaleMap.keySet());
 

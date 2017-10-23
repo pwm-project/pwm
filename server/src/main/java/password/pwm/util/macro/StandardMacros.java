@@ -157,19 +157,22 @@ public abstract class StandardMacros {
                 }
             }
 
-            String returnValue = ldapValue == null
+            final StringBuilder returnValue = new StringBuilder();
+            returnValue.append(ldapValue == null
                     ? ""
-                    : ldapValue;
+                    : ldapValue);
+
             if (length > 0 && length < returnValue.length()) {
-                returnValue = returnValue.substring(0, length);
+                returnValue.delete(length, returnValue.length());
             }
+
             if (length > 0 && paddingChar.length() > 0) {
                 while (returnValue.length() < length) {
-                    returnValue += paddingChar;
+                    returnValue.append(paddingChar);
                 }
             }
 
-            return returnValue;
+            return returnValue.toString();
         }
     }
 

@@ -40,8 +40,8 @@ import password.pwm.svc.event.SyslogAuditService;
 import password.pwm.util.secure.X509Utils;
 
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 public class SyslogCertImportFunction implements SettingUIFunction {
@@ -64,9 +64,9 @@ public class SyslogCertImportFunction implements SettingUIFunction {
             final SyslogAuditService.SyslogConfig syslogConfig = SyslogAuditService.SyslogConfig.fromConfigString(syslogConfigStr);
             if (syslogConfig != null) {
                 try {
-                    final X509Certificate[] certs = X509Utils.readRemoteCertificates(syslogConfig.getHost(), syslogConfig.getPort());
+                    final List<X509Certificate> certs = X509Utils.readRemoteCertificates(syslogConfig.getHost(), syslogConfig.getPort());
                     if (certs != null) {
-                        resultCertificates.addAll(Arrays.asList(certs));
+                        resultCertificates.addAll(certs);
                     }
                 } catch (Exception e) {
                     if (e instanceof PwmException) {

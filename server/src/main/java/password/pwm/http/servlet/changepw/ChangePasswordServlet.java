@@ -367,13 +367,6 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet {
         );
 
         final UserInfo userInfo = pwmRequest.getPwmSession().getUserInfo();
-        final RestCheckPasswordServer.PasswordCheckRequest passwordCheckRequest = new RestCheckPasswordServer.PasswordCheckRequest(
-                userInfo.getUserIdentity(),
-                PasswordData.forStringValue(jsonInput.getPassword1()),
-                PasswordData.forStringValue(jsonInput.getPassword2()),
-                userInfo
-        );
-
         final PasswordUtility.PasswordCheckInfo passwordCheckInfo = PasswordUtility.checkEnteredPassword(
                 pwmRequest.getPwmApplication(),
                 pwmRequest.getLocale(),

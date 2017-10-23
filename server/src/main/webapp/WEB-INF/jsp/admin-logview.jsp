@@ -27,11 +27,11 @@
 <%@ page import="password.pwm.util.logging.LocalDBLogger" %>
 <%@ page import="password.pwm.util.logging.PwmLogEvent" %>
 <%@ page import="password.pwm.util.logging.PwmLogLevel" %>
-<%@ page import="java.text.NumberFormat" %>
 <%@ page import="java.util.LinkedHashMap" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="password.pwm.util.logging.LocalDBSearchQuery" %>
 <%@ page import="password.pwm.util.logging.LocalDBSearchResults" %>
+<%@ page import="password.pwm.util.java.PwmNumberFormat" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html" %>
@@ -39,7 +39,7 @@
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <% final PwmRequest pwmRequest = PwmRequest.forRequest(request,response); %>
-<% final NumberFormat numberFormat = NumberFormat.getInstance(pwmRequest.getLocale()); %>
+<% final PwmNumberFormat numberFormat = PwmNumberFormat.forLocale(pwmRequest.getLocale()); %>
 <% final LocalDBLogger localDBLogger = pwmRequest.getPwmApplication().getLocalDBLogger(); %>
 <body class="nihilo">
 <div id="wrapper">

@@ -42,7 +42,10 @@ public class ConfigNewCommand extends AbstractCliCommand {
                 ConfigurationProperty.CONFIG_EPOCH, String.valueOf(0));
 
         final File outputFile = (File)cliEnvironment.getOptions().get(CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName());
-        storedConfiguration.toXml(new FileOutputStream(outputFile, false));
+
+        try (FileOutputStream fileOutputStream = new FileOutputStream(outputFile, false)) {
+            storedConfiguration.toXml(fileOutputStream);
+        }
         out("success");
     }
 

@@ -19,15 +19,16 @@ public enum HttpContentType {
     ;
 
     private final String mimeType;
-    private final Charset charset;
+    private final String charset;
 
     HttpContentType(final String mimeType, final Charset charset) {
         this.mimeType = mimeType;
-        this.charset = charset;
+        this.charset = charset.name();
     }
 
     HttpContentType(final String mimeType) {
-        this(mimeType, null);
+        this.mimeType = mimeType;
+        this.charset = null;
     }
 
     public String getHeaderValue() {

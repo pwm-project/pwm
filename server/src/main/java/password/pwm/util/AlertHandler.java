@@ -145,8 +145,9 @@ public abstract class AlertHandler {
             metadata.put("Timestamp", JavaHelper.toIsoDate(Instant.now()));
             metadata.put("Up Time", TimeDuration.fromCurrent(pwmApplication.getStartupTime()).asLongString());
 
-            for (final String key : metadata.keySet()) {
-                final String value = metadata.get(key);
+            for (final Map.Entry<String, String> entry : metadata.entrySet()) {
+                final String key = entry.getKey();
+                final String value = entry.getValue();
                 htmlBody.append(key).append(": ").append(value).append("<br/>");
                 textBody.append(key).append(": ").append(value).append("\n");
             }

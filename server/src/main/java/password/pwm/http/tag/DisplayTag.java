@@ -42,8 +42,6 @@ import java.util.MissingResourceException;
  * @author Jason D. Rivard
  */
 public class DisplayTag extends PwmAbstractTag {
-// ------------------------------ FIELDS ------------------------------
-
     private static final PwmLogger LOGGER = PwmLogger.forClass(DisplayTag.class);
 
     private String key;
@@ -52,8 +50,6 @@ public class DisplayTag extends PwmAbstractTag {
     private String value3;
     private boolean displayIfMissing;
     private String bundle;
-
-// --------------------- GETTER / SETTER METHODS ---------------------
 
     public String getKey() {
         return key;
@@ -104,11 +100,6 @@ public class DisplayTag extends PwmAbstractTag {
     public void setBundle(final String bundle) {
         this.bundle = bundle;
     }
-
-    // ------------------------ INTERFACE METHODS ------------------------
-
-
-// --------------------- Interface Tag ---------------------
 
     public int doEndTag()
             throws javax.servlet.jsp.JspTagException {

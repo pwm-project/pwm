@@ -33,6 +33,7 @@ import password.pwm.http.servlet.configguide.GuideStep;
 import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -42,7 +43,7 @@ public class ConfigGuideBean extends PwmSessionBean {
 
     private GuideStep step = GuideStep.START;
     private final Map<ConfigGuideFormField,String> formData = new HashMap<>(ConfigGuideForm.defaultForm());
-    private X509Certificate[] ldapCertificates;
+    private List<X509Certificate> ldapCertificates;
     private boolean certsTrustedbyKeystore = false;
     private boolean useConfiguredCerts = false;
     private FileValue databaseDriver = null;

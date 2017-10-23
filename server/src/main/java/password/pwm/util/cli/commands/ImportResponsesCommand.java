@@ -50,39 +50,40 @@ public class ImportResponsesCommand extends AbstractCliCommand {
         final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
 
         final File inputFile = (File)cliEnvironment.getOptions().get(CliParameters.REQUIRED_EXISTING_INPUT_FILE.getName());
-        final BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(inputFile),PwmConstants.DEFAULT_CHARSET.toString()));
-        out("importing stored responses from " + inputFile.getAbsolutePath() + "....");
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(inputFile),PwmConstants.DEFAULT_CHARSET.toString()))) {
+            out("importing stored responses from " + inputFile.getAbsolutePath() + "....");
 
-        int counter = 0;
-        String line;
-        final long startTime = System.currentTimeMillis();
-        while ((line = reader.readLine()) != null) {
-            counter++;
-            final RestChallengesServer.JsonChallengesData inputData;
+            int counter = 0;
+            String line;
+            final long startTime = System.currentTimeMillis();
+            while ((line = reader.readLine()) != null) {
+                counter++;
+                final RestChallengesServer.JsonChallengesData inputData;
                 inputData = JsonUtil.deserialize(line, RestChallengesServer.JsonChallengesData.class);
 
-            final UserIdentity userIdentity = UserIdentity.fromDelimitedKey(inputData.username);
-            final ChaiUser user = pwmApplication.getProxiedChaiUser(userIdentity);
-            if (user.isValid()) {
-                out("writing responses to user '" + user.getEntryDN() + "'");
-                try {
-                    final ChallengeProfile challengeProfile = pwmApplication.getCrService().readUserChallengeProfile(
-                            null, userIdentity, user, PwmPasswordPolicy.defaultPolicy(), PwmConstants.DEFAULT_LOCALE);
-                    final ChallengeSet challengeSet = challengeProfile.getChallengeSet();
-                    final String userGuid = LdapOperationsHelper.readLdapGuidValue(pwmApplication, null, userIdentity, false);
-                    final ResponseInfoBean responseInfoBean = inputData.toResponseInfoBean(PwmConstants.DEFAULT_LOCALE,challengeSet.getIdentifier());
-                    pwmApplication.getCrService().writeResponses(userIdentity, user, userGuid, responseInfoBean );
-                } catch (Exception e) {
-                    out("error writing responses to user '" + user.getEntryDN() + "', error: " + e.getMessage());
+                final UserIdentity userIdentity = UserIdentity.fromDelimitedKey(inputData.username);
+                final ChaiUser user = pwmApplication.getProxiedChaiUser(userIdentity);
+                if (user.isValid()) {
+                    out("writing responses to user '" + user.getEntryDN() + "'");
+                    try {
+                        final ChallengeProfile challengeProfile = pwmApplication.getCrService().readUserChallengeProfile(
+                                null, userIdentity, user, PwmPasswordPolicy.defaultPolicy(), PwmConstants.DEFAULT_LOCALE);
+                        final ChallengeSet challengeSet = challengeProfile.getChallengeSet();
+                        final String userGuid = LdapOperationsHelper.readLdapGuidValue(pwmApplication, null, userIdentity, false);
+                        final ResponseInfoBean responseInfoBean = inputData.toResponseInfoBean(PwmConstants.DEFAULT_LOCALE,challengeSet.getIdentifier());
+                        pwmApplication.getCrService().writeResponses(userIdentity, user, userGuid, responseInfoBean );
+                    } catch (Exception e) {
+                        out("error writing responses to user '" + user.getEntryDN() + "', error: " + e.getMessage());
+                        return;
+                    }
+                } else {
+                    out("user '" + user.getEntryDN() + "' is not a valid userDN");
                     return;
                 }
-            } else {
-                out("user '" + user.getEntryDN() + "' is not a valid userDN");
-                return;
             }
-        }
 
-        out("output complete, " + counter + " responses imported in " + TimeDuration.fromCurrent(startTime).asCompactString());
+            out("output complete, " + counter + " responses imported in " + TimeDuration.fromCurrent(startTime).asCompactString());
+        }
     }
 
     @Override
@@ -100,4 +101,3 @@ public class ImportResponsesCommand extends AbstractCliCommand {
         return cliParameters;
     }
 }
-

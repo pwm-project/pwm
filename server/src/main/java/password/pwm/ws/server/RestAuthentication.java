@@ -5,6 +5,7 @@ import lombok.Value;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.option.WebServiceUsage;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.Set;
 
@@ -16,4 +17,8 @@ public class RestAuthentication implements Serializable {
     private Set<WebServiceUsage> usages;
     private boolean thirdPartyEnabled;
     private transient ChaiProvider chaiProvider;
+
+    public final Object readObject() throws IOException, ClassNotFoundException {
+        throw new IOException("class can not be de-serialized");
+    }
 }

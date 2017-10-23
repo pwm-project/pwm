@@ -23,19 +23,20 @@
 package password.pwm.util;
 
 import com.novell.ldapchai.ChaiConstant;
-import password.pwm.config.value.data.ActionConfiguration;
+import lombok.Value;
 import password.pwm.config.Configuration;
-import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.LDAPPermissionInfo;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.PwmSettingTemplate;
 import password.pwm.config.PwmSettingTemplateSet;
-import password.pwm.config.value.data.UserPermission;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.config.stored.StoredConfigurationUtil;
+import password.pwm.config.value.data.ActionConfiguration;
+import password.pwm.config.value.data.FormConfiguration;
+import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -58,8 +59,8 @@ import java.util.TreeMap;
 public class LDAPPermissionCalculator implements Serializable {
     private static final PwmLogger LOGGER = PwmLogger.forClass(LDAPPermissionCalculator.class);
 
-    private final StoredConfigurationImpl storedConfiguration;
-    private final Configuration configuration;
+    private final transient StoredConfigurationImpl storedConfiguration;
+    private final transient Configuration configuration;
     private final Collection<PermissionRecord> permissionRecords;
 
     public LDAPPermissionCalculator(final StoredConfigurationImpl storedConfiguration) throws PwmUnrecoverableException {
@@ -381,12 +382,13 @@ public class LDAPPermissionCalculator implements Serializable {
                 ldapAttributes.put(ChaiConstant.ATTR_LDAP_LOGIN_GRACE_REMAINING,LDAPPermissionInfo.Access.write);
                 ldapAttributes.put(ChaiConstant.ATTR_LDAP_PASSWORD_EXPIRE_TIME,LDAPPermissionInfo.Access.read);
 
-                for (final String ldapAttribute : ldapAttributes.keySet()) {
+                for (final Map.Entry<String, LDAPPermissionInfo.Access> entry : ldapAttributes.entrySet()) {
+                    final String ldapAttribute = entry.getKey();
                     permissionRecords.add(new PermissionRecord(
                             ldapAttribute,
                             null,
                             null,
-                            ldapAttributes.get(ldapAttribute),
+                            entry.getValue(),
                             LDAPPermissionInfo.Actor.proxy
                     ));
                 }
@@ -411,39 +413,12 @@ public class LDAPPermissionCalculator implements Serializable {
         return permissionRecords;
     }
 
+    @Value
     public static class PermissionRecord implements Serializable {
         private final String attribute;
         private final PwmSetting pwmSetting;
         private final String profile;
         private final LDAPPermissionInfo.Access access;
         private final LDAPPermissionInfo.Actor actor;
-
-        public PermissionRecord(final String attribute, final PwmSetting pwmSetting, final String profile, final LDAPPermissionInfo.Access access, final LDAPPermissionInfo.Actor actor) {
-            this.attribute = attribute;
-            this.pwmSetting = pwmSetting;
-            this.profile = profile;
-            this.access = access;
-            this.actor = actor;
-        }
-
-        public String getAttribute() {
-            return attribute;
-        }
-
-        public PwmSetting getPwmSetting() {
-            return pwmSetting;
-        }
-
-        public String getProfile() {
-            return profile;
-        }
-
-        public LDAPPermissionInfo.Access getAccess() {
-            return access;
-        }
-
-        public LDAPPermissionInfo.Actor getActor() {
-            return actor;
-        }
     }
 }

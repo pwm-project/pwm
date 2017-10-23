@@ -23,6 +23,7 @@
 package password.pwm.util.logging;
 
 import com.google.gson.annotations.SerializedName;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import password.pwm.bean.SessionLabel;
 import password.pwm.util.java.JsonUtil;
@@ -35,12 +36,10 @@ import java.io.StringWriter;
 import java.time.Instant;
 
 @Getter
+@EqualsAndHashCode
 public class PwmLogEvent implements Serializable, Comparable {
 
     private static final int MAX_MESSAGE_LENGTH = 100_000;
-
-
-    // ------------------------------ FIELDS ------------------------------
 
     private final PwmLogLevel level;
 
@@ -65,15 +64,11 @@ public class PwmLogEvent implements Serializable, Comparable {
     @SerializedName("d")
     private final Instant date;
 
-// -------------------------- STATIC METHODS --------------------------
-
     public static PwmLogEvent fromEncodedString(final String encodedString)
             throws ClassNotFoundException, IOException
     {
         return JsonUtil.deserialize(encodedString, PwmLogEvent.class);
     }
-
-// --------------------------- CONSTRUCTORS ---------------------------
 
     private PwmLogEvent(
             final Instant date,

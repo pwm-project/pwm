@@ -155,18 +155,8 @@ public class RequestInitializationFilter implements Filter {
         } catch (Throwable e) {
             LOGGER.error("can't load application: " + e.getMessage(),e);
             if (!(new PwmURL(req).isResourceURL())) {
-                ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_APP_UNAVAILABLE);
-                try {
-                    final ContextManager contextManager = ContextManager.getContextManager(req.getServletContext());
-                    if (contextManager != null) {
-                        errorInformation = contextManager.getStartupErrorInformation();
-                    }
-                } catch (Throwable e2) {
-                    e2.getMessage();
-                }
-                req.setAttribute(PwmRequestAttribute.PwmErrorInfo.toString(),errorInformation);
-                final String url = JspUrl.APP_UNAVAILABLE.getPath();
-                req.getServletContext().getRequestDispatcher(url).forward(req, resp);
+                respondWithUnavalailbleError(req, resp);
+                return;
             }
             return;
         }
@@ -201,23 +191,31 @@ public class RequestInitializationFilter implements Filter {
                 LOGGER.error(logMsg,e);
             }
             if (!(new PwmURL(req).isResourceURL())) {
-                ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_APP_UNAVAILABLE);
-                try {
-                    final ContextManager contextManager = ContextManager.getContextManager(req.getServletContext());
-                    if (contextManager != null) {
-                        errorInformation = contextManager.getStartupErrorInformation();
-                    }
-                } catch (Throwable e2) {
-                    e2.getMessage();
-                }
-                req.setAttribute(PwmRequestAttribute.PwmErrorInfo.toString(),errorInformation);
-                final String url = JspUrl.APP_UNAVAILABLE.getPath();
-                req.getServletContext().getRequestDispatcher(url).forward(req, resp);
+                respondWithUnavalailbleError(req, resp);
+                return;
             }
             return;
         }
 
         filterChain.doFilter(req, resp);
+    }
+
+    private void respondWithUnavalailbleError(final HttpServletRequest req, final HttpServletResponse resp)
+            throws ServletException, IOException
+    {
+        ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_APP_UNAVAILABLE);
+        try {
+            final ContextManager contextManager = ContextManager.getContextManager(req.getServletContext());
+            if (contextManager != null && contextManager.getStartupErrorInformation() != null) {
+                errorInformation = contextManager.getStartupErrorInformation();
+            }
+        } catch (PwmUnrecoverableException e2) {
+            LOGGER.error("error reading session context from servlet container: " + e2.getMessage());
+        }
+
+        req.setAttribute(PwmRequestAttribute.PwmErrorInfo.toString(),errorInformation);
+        final String url = JspUrl.APP_UNAVAILABLE.getPath();
+        req.getServletContext().getRequestDispatcher(url).forward(req, resp);
     }
 
     private void checkAndInitSessionState(final HttpServletRequest request)
@@ -284,9 +282,7 @@ public class RequestInitializationFilter implements Filter {
         final HttpSession newSession = req.getSession(true);
 
         // write back all the session data
-        for (final String attrName : sessionAttributes.keySet()) {
-            newSession.setAttribute(attrName, sessionAttributes.get(attrName));
-        }
+        sessionAttributes.keySet().forEach(attrName -> newSession.setAttribute(attrName, sessionAttributes.get(attrName)));
 
         newSession.setMaxInactiveInterval(oldMaxInactiveInterval);
 
@@ -364,7 +360,9 @@ public class RequestInitializationFilter implements Filter {
         }
 
         if (includeXAmb) {
-            resp.setHeader(HttpHeader.XAmb, PwmConstants.X_AMB_HEADER[PwmRandom.getInstance().nextInt(PwmConstants.X_AMB_HEADER.length)]);
+            resp.setHeader(HttpHeader.XAmb, PwmConstants.X_AMB_HEADER.get(
+                    PwmRandom.getInstance().nextInt(PwmConstants.X_AMB_HEADER.size())
+            ));
         }
 
         if (includeContentLanguage) {
@@ -541,9 +539,11 @@ public class RequestInitializationFilter implements Filter {
             final List<String> requiredHeaders = pwmRequest.getConfig().readSettingAsStringArray(PwmSetting.REQUIRED_HEADERS);
             if (requiredHeaders != null && !requiredHeaders.isEmpty()) {
                 final Map<String, String> configuredValues  = StringUtil.convertStringListToNameValuePair(requiredHeaders, "=");
-                for (final String key : configuredValues.keySet()) {
+
+                for (final Map.Entry<String,String> entry : configuredValues.entrySet()) {
+                    final String key = entry.getKey();
                     if (key != null && key.length() > 0) {
-                        final String requiredValue = configuredValues.get(key);
+                        final String requiredValue = entry.getValue();
                         if (requiredValue != null && requiredValue.length() > 0) {
                             final String value = pwmRequest.readHeaderValueAsString(key);
                             if (value == null || value.length() < 1) {

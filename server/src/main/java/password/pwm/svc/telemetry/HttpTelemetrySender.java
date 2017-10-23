@@ -60,9 +60,9 @@ public class HttpTelemetrySender implements TelemetrySender {
     public void publish(final TelemetryPublishBean statsPublishBean)
             throws PwmUnrecoverableException
     {
-        final PwmHttpClientConfiguration pwmHttpClientConfiguration = new PwmHttpClientConfiguration.Builder()
-                .setPromiscuous(true)
-                .create();
+        final PwmHttpClientConfiguration pwmHttpClientConfiguration = PwmHttpClientConfiguration.builder()
+                .promiscuous(true)
+                .build();
         final PwmHttpClient pwmHttpClient = new PwmHttpClient(pwmApplication, SessionLabel.TELEMETRY_SESSION_LABEL, pwmHttpClientConfiguration);
         final String body = JsonUtil.serialize(statsPublishBean);
         final Map<String,String> headers = new HashMap<>();

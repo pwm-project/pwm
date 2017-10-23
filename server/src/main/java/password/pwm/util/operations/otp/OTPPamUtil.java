@@ -119,20 +119,21 @@ public class OTPPamUtil {
         final String secret = otp.getSecret();
         final OTPUserRecord.Type type = otp.getType();
         final List<OTPUserRecord.RecoveryCode> recoveryCodes = otp.getRecoveryCodes();
-        String pamData = secret + "\n";
+        final StringBuilder pamData = new StringBuilder();
+        pamData.append(secret).append("\n");
         if (OTPUserRecord.Type.HOTP.equals(type)) {
-            pamData += String.format("\" HOTP_COUNTER %d\n", otp.getAttemptCount());
+            pamData.append(String.format("\" HOTP_COUNTER %d%n", otp.getAttemptCount()));
         } else {
-            pamData += "\" TOTP_AUTH\n";
+            pamData.append("\" TOTP_AUTH\n");
         }
         if (recoveryCodes != null && recoveryCodes.size() > 0) {
             // The codes are assumed to be non-hashed
             for (final OTPUserRecord.RecoveryCode code : recoveryCodes) {
                 if (!code.isUsed()) {
-                    pamData += code.getHashCode() + "\n";
+                    pamData.append(code.getHashCode() + "\n");
                 }
             }
         }
-        return pamData;
+        return pamData.toString();
     }
 }

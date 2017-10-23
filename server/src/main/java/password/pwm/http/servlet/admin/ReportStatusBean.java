@@ -24,13 +24,13 @@ package password.pwm.http.servlet.admin;
 
 import password.pwm.svc.report.ReportService;
 import password.pwm.svc.report.ReportStatusInfo;
+import password.pwm.util.java.PwmNumberFormat;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDBException;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.text.NumberFormat;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Locale;
@@ -46,7 +46,7 @@ public class ReportStatusBean implements Serializable {
     public static ReportStatusBean makeReportStatusData(final ReportService reportService, final Locale locale)
             throws LocalDBException
     {
-        final NumberFormat numberFormat = NumberFormat.getInstance();
+        final PwmNumberFormat numberFormat = PwmNumberFormat.forLocale(locale);
 
         final ReportStatusBean returnMap = new ReportStatusBean();
         final ReportStatusInfo reportInfo = reportService.getReportStatusInfo();

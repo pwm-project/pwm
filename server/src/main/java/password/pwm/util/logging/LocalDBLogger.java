@@ -30,6 +30,7 @@ import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.PwmNumberFormat;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
@@ -58,8 +59,6 @@ import java.util.regex.PatternSyntaxException;
  * @author Jason D. Rivard
  */
 public class LocalDBLogger implements PwmService {
-// ------------------------------ FIELDS ------------------------------
-
     private static final PwmLogger LOGGER = PwmLogger.forClass(LocalDBLogger.class);
 
     private final LocalDB localDB;
@@ -75,17 +74,22 @@ public class LocalDBLogger implements PwmService {
 
     private static final String STORAGE_FORMAT_VERSION = "2";
 
-// --------------------------- CONSTRUCTORS ---------------------------
-
     public LocalDBLogger(final PwmApplication pwmApplication, final LocalDB localDB, final LocalDBLoggerSettings settings)
             throws LocalDBException
     {
+        if (localDB == null) {
+            throw new NullPointerException("localDB can not be null");
+        }
+
         final Instant startTime = Instant.now();
         status = STATUS.OPENING;
         this.settings = settings;
         this.localDB = localDB;
-        this.localDBListQueue = LocalDBStoredQueue.createLocalDBStoredQueue(pwmApplication,
-                this.localDB, LocalDB.DB.EVENTLOG_EVENTS);
+        this.localDBListQueue = LocalDBStoredQueue.createLocalDBStoredQueue(
+                pwmApplication,
+                localDB,
+                LocalDB.DB.EVENTLOG_EVENTS
+        );
 
         if (settings.getMaxEvents() == 0) {
             LOGGER.info("maxEvents set to zero, clearing LocalDBLogger history and LocalDBLogger will remain closed");
@@ -165,8 +169,6 @@ public class LocalDBLogger implements PwmService {
         sb.append(", localDBSize=").append(StringUtil.formatDiskSize(FileSystemUtility.getFileDirectorySize(localDB.getFileLocation())));
         return sb.toString();
     }
-
-// -------------------------- OTHER METHODS --------------------------
 
     public void close() {
         if (status != STATUS.CLOSED) {
@@ -329,7 +331,7 @@ public class LocalDBLogger implements PwmService {
 
     private void flushEvents() {
         final List<String> localBuffer = new ArrayList<>();
-        while (localBuffer.size() < (settings.getMaxBufferSize()) - 1 & !eventQueue.isEmpty()) {
+        while (localBuffer.size() < (settings.getMaxBufferSize()) - 1 && !eventQueue.isEmpty()) {
             final PwmLogEvent pwmLogEvent = eventQueue.poll();
             try {
                 localBuffer.add(pwmLogEvent.toEncodedString());
@@ -372,7 +374,8 @@ public class LocalDBLogger implements PwmService {
                         final Instant startTime = Instant.now();
                         localDBListQueue.removeLast(cleanupCount);
                         final TimeDuration purgeTime = TimeDuration.fromCurrent(startTime);
-                        JavaHelper.pause(Math.max(Math.min(purgeTime.getMilliseconds(),20),2000));
+                        final TimeDuration pauseTime = new TimeDuration(JavaHelper.rangeCheck(20,2000, (int)purgeTime.getTotalMilliseconds()));
+                        pauseTime.pause();
                     }
                 }
             } catch (Exception e) {
@@ -396,7 +399,7 @@ public class LocalDBLogger implements PwmService {
 
         final int eventCount = getStoredEventCount();
         if (eventCount > settings.getMaxEvents() + 5000) {
-            final NumberFormat numberFormat = NumberFormat.getInstance();
+            final PwmNumberFormat numberFormat = PwmNumberFormat.forDefaultLocale();
             healthRecords.add(HealthRecord.forMessage(HealthMessage.LocalDBLogger_HighRecordCount,numberFormat.format(eventCount),numberFormat.format(settings.getMaxEvents())));
         }
 

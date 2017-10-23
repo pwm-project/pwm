@@ -280,10 +280,6 @@ public class UserInfoReader implements UserInfo {
                                         + diff.asCompactString()
                                         + ", marking as within warn period");
                         passwordStatusBuilder.warnPeriod(true);
-                    } else if (ldapPasswordExpired) {
-                        LOGGER.debug(sessionLabel,
-                                "user " + userDN + " password is expired, marking as within warn period");
-                        passwordStatusBuilder.warnPeriod(true);
                     }
                 }
             }
@@ -583,8 +579,9 @@ public class UserInfoReader implements UserInfo {
     {
         final Map<String,List<String>> valueMap = readMultiStringAttributesImpl(attributes);
         final Map<String,String> returnValue = new LinkedHashMap<>();
-        for (final String key : valueMap.keySet()) {
-            final List<String> values = valueMap.get(key);
+        for (final Map.Entry<String, List<String>> entry : valueMap.entrySet()) {
+            final String key = entry.getKey();
+            final List<String> values = entry.getValue();
             if (values != null && !values.isEmpty()) {
                 returnValue.put(key, values.iterator().next());
             }

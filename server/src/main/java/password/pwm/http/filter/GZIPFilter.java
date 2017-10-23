@@ -167,11 +167,9 @@ public class GZIPFilter implements Filter {
 
     public static class ServletResponseGZIPOutputStream extends ServletOutputStream {
         private final AtomicBoolean open = new AtomicBoolean(true);
-        private ServletOutputStream servletOutputStream;
         private GZIPOutputStream gzipStream;
 
         public ServletResponseGZIPOutputStream(final ServletOutputStream output) throws IOException {
-            servletOutputStream = output;
             gzipStream = new GZIPOutputStream(output);
         }
 

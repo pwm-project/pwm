@@ -24,12 +24,12 @@ package password.pwm;
 
 import org.apache.commons.csv.CSVFormat;
 import password.pwm.util.java.JsonUtil;
-import password.pwm.util.secure.PwmBlockAlgorithm;
 import password.pwm.util.secure.PwmHashAlgorithm;
 
 import java.nio.charset.Charset;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -43,9 +43,7 @@ import java.util.TimeZone;
  * @author Jason D. Rivard
  */
 public abstract class PwmConstants {
-// ------------------------------ FIELDS ------------------------------
 
-    // ------------------------- PUBLIC CONSTANTS -------------------------
     public static final String BUILD_TIME           = readBuildInfoBundle("build.time", Instant.now().toString());
     public static final String BUILD_NUMBER         = readBuildInfoBundle("build.number","0");
     public static final String BUILD_TYPE           = readBuildInfoBundle("build.type","");
@@ -102,21 +100,18 @@ public abstract class PwmConstants {
     public static final String PROFILE_ID_ALL = "all";
 
     public static final String TOKEN_KEY_PWD_CHG_DATE = "_lastPwdChange";
-    public static final float JAVA_MINIMUM_VERSION = (float)1.6;
 
     public static final String HTTP_BASIC_AUTH_PREFIX = readPwmConstantsBundle("httpHeaderAuthorizationBasic");
 
     public static final String DEFAULT_BAD_PASSWORD_ATTEMPT = readPwmConstantsBundle("defaultBadPasswordAttempt");
 
     public static final String CONTEXT_ATTR_CONTEXT_MANAGER = "ContextManager";
-    public static final String CONTEXT_ATTR_RESOURCE_DATA = "ResourceFileServlet-Data";
 
     public static final String SESSION_ATTR_PWM_SESSION = "PwmSession";
     public static final String SESSION_ATTR_BEANS = "SessionBeans";
     public static final String SESSION_ATTR_PWM_APP_NONCE = "PwmApplication-Nonce";
     public static final String SESSION_ATTR_FORGOTTEN_PW_USERINFO_CACHE = "ForgottenPw-UserInfoCache";
 
-    public static final PwmBlockAlgorithm IN_MEMORY_PASSWORD_ENCRYPT_METHOD = PwmBlockAlgorithm.AES;
     public static final PwmHashAlgorithm SETTING_CHECKSUM_HASH_METHOD = PwmHashAlgorithm.SHA256;
 
 
@@ -169,7 +164,7 @@ public abstract class PwmConstants {
     public static final String RESOURCE_FILE_WELCOME_TXT = "welcome.txt";
 
     // don't worry.  look over there.
-    public static final String[] X_AMB_HEADER = new String[]{
+    public static final List<String> X_AMB_HEADER = Collections.unmodifiableList(Arrays.asList(
             "bonjour!",
             "something witty!",
             "just like X-Fry, only ambier",
@@ -213,8 +208,8 @@ public abstract class PwmConstants {
             "passwords are like underwear, changing underwear regularly is a good thing.", //menno
             "daisy, daisy, give me your password do...",
             "it's a wholesome can of software goodness", // thx krowten
-            "this password is an memorial of the richard d. kiel memorial abend",
-    };
+            "this password is an memorial of the richard d. kiel memorial abend"
+    ));
 
 
     private static String readPwmConstantsBundle(final String key) {
@@ -233,9 +228,6 @@ public abstract class PwmConstants {
 
         return defaultValue;
     }
-
-// -------------------------- ENUMERATIONS --------------------------
-
 
     public enum AcceptValue {
         json("application/json"),

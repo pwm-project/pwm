@@ -29,7 +29,7 @@
                         <configuration>
                             <rules>
                                 <requireMavenVersion>
-                                    <version>3.2</version>
+                                    <version>${pwm.minimum.maven.version}</version>
                                 </requireMavenVersion>
                             </rules>
                         </configuration>

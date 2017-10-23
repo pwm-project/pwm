@@ -147,8 +147,9 @@ public class FormUtility {
 
     public static Map<String,String> asStringMap(final Map<FormConfiguration, String> input) {
         final Map<String,String> returnObj = new LinkedHashMap<>();
-        for (final FormConfiguration formConfiguration : input.keySet()) {
-            returnObj.put(formConfiguration.getName(), input.get(formConfiguration));
+        for (final Map.Entry<FormConfiguration, String> entry : input.entrySet()) {
+            final FormConfiguration formConfiguration = entry.getKey();
+            returnObj.put(formConfiguration.getName(), entry.getValue());
             if (formConfiguration.isConfirmationRequired()) {
                 final String confirmFieldName = formConfiguration.getName() + Validator.PARAM_CONFIRM_SUFFIX;
                 returnObj.put(confirmFieldName, input.get(formConfiguration));
@@ -197,14 +198,14 @@ public class FormUtility {
         final boolean allowResultCaching = JavaHelper.enumArrayContainsValue(validationFlags, ValidationFlag.allowResultCaching);
         final boolean checkReadOnlyAndHidden = JavaHelper.enumArrayContainsValue(validationFlags, ValidationFlag.checkReadOnlyAndHidden);
 
-
         final Map<String, String> filterClauses = new HashMap<>();
         final Map<String,String> labelMap = new HashMap<>();
-        for (final FormConfiguration formItem : formValues.keySet()) {
+        for (final Map.Entry<FormConfiguration,String> entry : formValues.entrySet()) {
+            final FormConfiguration formItem = entry.getKey();
             if (formItem.isUnique()) {
                 if (checkReadOnlyAndHidden || formItem.isReadonly()) {
                     if (checkReadOnlyAndHidden || (formItem.getType() != FormConfiguration.Type.hidden)) {
-                        final String value = formValues.get(formItem);
+                        final String value = entry.getValue();
                         if (value != null && value.length() > 0) {
                             filterClauses.put(formItem.getName(), value);
                             labelMap.put(formItem.getName(), formItem.getLabel(locale));
@@ -231,8 +232,9 @@ public class FormUtility {
 
             // attributes
             filter.append("(|");
-            for (final String name : filterClauses.keySet()) {
-                final String value = filterClauses.get(name);
+            for (final Map.Entry<String,String> entry : filterClauses.entrySet()) {
+                final String name = entry.getKey();
+                final String value = entry.getValue();
                 filter.append("(").append(name).append("=").append(StringUtil.escapeLdapFilter(value)).append(")");
             }
             filter.append(")");
@@ -292,9 +294,9 @@ public class FormUtility {
                 }
 
                 // do a compare on a user values to find one that matches.
-
-                for (final String name : filterClauses.keySet()) {
-                    final String value = filterClauses.get(name);
+                for (final Map.Entry<String,String> entry : filterClauses.entrySet()) {
+                    final String name = entry.getKey();
+                    final String value = entry.getValue();
                     final boolean compareResult;
                     try {
                         final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userIdentity);
@@ -345,8 +347,9 @@ public class FormUtility {
     )
             throws PwmUnrecoverableException, PwmDataValidationException
     {
-        for (final FormConfiguration formItem : formValues.keySet()) {
-            final String value = formValues.get(formItem);
+        for (final Map.Entry<FormConfiguration, String> entry : formValues.entrySet()) {
+            final FormConfiguration formItem = entry.getKey();
+            final String value = entry.getValue();
             formItem.checkValue(configuration,value,locale);
         }
     }
@@ -477,8 +480,9 @@ public class FormUtility {
 
     public static Map<FormConfiguration, String> multiValueMapToSingleValue(final Map<FormConfiguration, List<String>> input) {
         final Map<FormConfiguration, String> returnMap = new LinkedHashMap<>();
-        for (final FormConfiguration formConfiguration : input.keySet()) {
-            final List<String> listValue = input.get(formConfiguration);
+        for (final Map.Entry<FormConfiguration, List<String>> entry : input.entrySet()) {
+            final FormConfiguration formConfiguration = entry.getKey();
+            final List<String> listValue = entry.getValue();
             final String value = listValue != null && !listValue.isEmpty()
                     ? listValue.iterator().next()
                     : null;

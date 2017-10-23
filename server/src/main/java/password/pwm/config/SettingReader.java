@@ -40,7 +40,7 @@ public interface SettingReader {
 
     <E extends Enum<E>> E readSettingAsEnum(PwmSetting setting, Class<E> enumClass);
 
-    X509Certificate[] readSettingAsCertificate(PwmSetting setting);
+    List<X509Certificate> readSettingAsCertificate(PwmSetting setting);
 
     boolean readSettingAsBoolean(PwmSetting setting);
 

@@ -31,6 +31,7 @@ import password.pwm.util.java.JsonUtil;
 
 import java.io.Serializable;
 import java.security.cert.X509Certificate;
+import java.util.List;
 import java.util.Map;
 
 @Getter
@@ -52,7 +53,7 @@ public class ActionConfiguration implements Serializable {
     private Map<String,String> headers;
     private String url;
     private String body;
-    private X509Certificate[] certificates;
+    private List<X509Certificate> certificates;
 
 
     private LdapMethod ldapMethod = LdapMethod.replace;
@@ -98,7 +99,7 @@ public class ActionConfiguration implements Serializable {
         }
     }
 
-    public ActionConfiguration copyWithNewCertificate(final X509Certificate[] certificates) {
+    public ActionConfiguration copyWithNewCertificate(final List<X509Certificate> certificates) {
         final ActionConfiguration clone = JsonUtil.cloneUsingJson(this, ActionConfiguration.class);
         clone.certificates = certificates;
         return clone;

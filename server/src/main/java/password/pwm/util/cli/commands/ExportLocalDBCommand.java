@@ -45,8 +45,8 @@ public class ExportLocalDBCommand extends AbstractCliCommand {
         }
 
         final LocalDBUtility localDBUtility = new LocalDBUtility(localDB);
-        try {
-            localDBUtility.exportLocalDB(new FileOutputStream(outputFile), System.out, true);
+        try (FileOutputStream fileOutputStream = new FileOutputStream(outputFile)) {
+            localDBUtility.exportLocalDB(fileOutputStream, System.out, true);
         } catch (PwmOperationalException e) {
             out("error during export: " + e.getMessage());
         }

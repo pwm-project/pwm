@@ -24,6 +24,8 @@ package password.pwm.util.secure;
 
 import password.pwm.PwmConstants;
 
+import java.util.Arrays;
+
 /**
  * A set of predefined arrangements of block cryptography.  Each item has several associated parameters that define the overall implementation.
  * This approach precludes the operator from having to select encrypton combinations that are compatible and effective.
@@ -111,7 +113,7 @@ public enum PwmBlockAlgorithm {
     }
 
     public byte[] getPrefix() {
-        return prefix;
+        return Arrays.copyOf(prefix, prefix.length);
     }
 
     public String getLabel() {

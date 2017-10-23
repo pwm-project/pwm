@@ -45,14 +45,14 @@ public class MainOptions implements Serializable {
     private File applicationPath;
     private boolean forceFlag;
     private Collection<PwmEnvironment.ApplicationFlag> applicationFlags;
-    private String[] remainingArguments;
+    private List<String> remainingArguments;
 
     MainOptions(
             final PwmLogLevel pwmLogLevel,
             final File applicationPath,
             final boolean forceFlag,
             final Collection<PwmEnvironment.ApplicationFlag> applicationFlags,
-            final String[] remainingArguments
+            final List<String> remainingArguments
 
     ) {
         this.pwmLogLevel = pwmLogLevel;
@@ -79,7 +79,7 @@ public class MainOptions implements Serializable {
         return applicationFlags;
     }
 
-    public String[] getRemainingArguments() {
+    public List<String> getRemainingArguments() {
         return remainingArguments;
     }
 
@@ -93,7 +93,7 @@ public class MainOptions implements Serializable {
         File applicationPath = null;
         boolean forceFlag = false;
         Collection<PwmEnvironment.ApplicationFlag> applicationFlags = Collections.emptyList();
-        final String[] remainingArguments;
+        final List<String> remainingArguments;
 
         final List<String> outputArgs = new ArrayList<>();
         if (args != null) {
@@ -138,7 +138,7 @@ public class MainOptions implements Serializable {
             }
         }
 
-        remainingArguments = outputArgs.toArray(new String[outputArgs.size()]);
+        remainingArguments = new ArrayList<>(outputArgs);
         return new MainOptions(pwmLogLevel, applicationPath, forceFlag, applicationFlags, remainingArguments);
     }
 

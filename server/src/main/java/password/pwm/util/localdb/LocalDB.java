@@ -42,8 +42,6 @@ import java.util.Map;
  * @author Jason D. Rivard
  */
 public interface LocalDB {
-// -------------------------- OTHER METHODS --------------------------
-
     int MAX_KEY_LENGTH = 256;
     int MAX_VALUE_LENGTH = 1024 * 100;
 
@@ -112,8 +110,6 @@ public interface LocalDB {
     File getFileLocation();
 
     Map<String,Serializable> debugInfo();
-
-// -------------------------- ENUMERATIONS --------------------------
 
     enum DB {
         /**

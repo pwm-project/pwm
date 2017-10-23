@@ -28,18 +28,15 @@ import password.pwm.bean.EmailItemBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.error.PwmOperationalException;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.LocaleHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 
 public class EmailValue extends AbstractValue implements StoredValue {
@@ -55,13 +52,13 @@ public class EmailValue extends AbstractValue implements StoredValue {
             public EmailValue fromJson(final String input)
             {
                 if (input == null) {
-                    return new EmailValue(Collections.<String, EmailItemBean>emptyMap());
+                    return new EmailValue(Collections.emptyMap());
                 } else {
                     Map<String, EmailItemBean> srcList = JsonUtil.deserialize(input,
                             new TypeToken<Map<String, EmailItemBean>>() {}
                     );
 
-                    srcList = srcList == null ? Collections.<String, EmailItemBean>emptyMap() : srcList;
+                    srcList = srcList == null ? Collections.emptyMap() : srcList;
                     srcList.remove(null);
                     return new EmailValue(Collections.unmodifiableMap(srcList));
                 }
@@ -86,93 +83,6 @@ public class EmailValue extends AbstractValue implements StoredValue {
                         }
                     }
                 }
-                // read old format values.  can be removed someday....      this code iterates through the entire settings xml document to find old format versions
-                {
-                    final Map<String, String> fromMap = new HashMap<>();
-                    final Map<String, String> subjectMap = new HashMap<>();
-                    final Map<String, String> bodyPlainMap = new HashMap<>();
-                    final Map<String, String> bodyHtmlMap = new HashMap<>();
-                    for (final Object loopSettingObj : settingElement.getParentElement().getChildren()) {
-                        final Element loopSetting = (Element) loopSettingObj;
-                        if (loopSetting.getAttribute("key") != null) {
-                            if (loopSetting.getAttribute("key").getValue().equals(
-                                    settingElement.getAttribute("key").getValue() + ".from")) {
-                                final List valueElements = loopSetting.getChildren("value");
-                                for (final Object loopValue : valueElements) {
-                                    final Element loopValueElement = (Element) loopValue;
-                                    final String value = loopValueElement.getText();
-                                    if (value != null && value.length() > 0) {
-                                        final String localeValue = settingElement.getAttribute(
-                                                "locale") == null ? "" : settingElement.getAttribute(
-                                                "locale").getValue();
-                                        fromMap.put(localeValue, value);
-                                    }
-                                }
-                            }
-                            if (loopSetting.getAttribute("key").getValue().equals(
-                                    settingElement.getAttribute("key").getValue() + ".subject")) {
-                                final List valueElements = loopSetting.getChildren("value");
-                                for (final Object loopValue : valueElements) {
-                                    final Element loopValueElement = (Element) loopValue;
-                                    final String value = loopValueElement.getText();
-                                    if (value != null && value.length() > 0) {
-                                        final String localeValue = settingElement.getAttribute(
-                                                "locale") == null ? "" : settingElement.getAttribute(
-                                                "locale").getValue();
-                                        subjectMap.put(localeValue, value);
-                                    }
-                                }
-                            }
-                            if (loopSetting.getAttribute("key").getValue().equals(
-                                    settingElement.getAttribute("key").getValue() + ".plainBody")) {
-                                final List valueElements = loopSetting.getChildren("value");
-                                for (final Object loopValue : valueElements) {
-                                    final Element loopValueElement = (Element) loopValue;
-                                    final String value = loopValueElement.getText();
-                                    if (value != null && value.length() > 0) {
-                                        final String localeValue = settingElement.getAttribute(
-                                                "locale") == null ? "" : settingElement.getAttribute(
-                                                "locale").getValue();
-                                        bodyPlainMap.put(localeValue, value);
-                                    }
-                                }
-                            }
-                            if (loopSetting.getAttribute("key").getValue().equals(
-                                    settingElement.getAttribute("key").getValue() + ".htmlBody")) {
-                                final List valueElements = loopSetting.getChildren("value");
-                                for (final Object loopValue : valueElements) {
-                                    final Element loopValueElement = (Element) loopValue;
-                                    final String value = loopValueElement.getText();
-                                    if (value != null && value.length() > 0) {
-                                        final String localeValue = settingElement.getAttribute(
-                                                "locale") == null ? "" : settingElement.getAttribute(
-                                                "locale").getValue();
-                                        bodyHtmlMap.put(localeValue, value);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    final Set<String> seenLocales = new HashSet<>();
-                    seenLocales.addAll(fromMap.keySet());
-                    seenLocales.addAll(subjectMap.keySet());
-                    seenLocales.addAll(bodyPlainMap.keySet());
-                    seenLocales.addAll(bodyHtmlMap.keySet());
-                    //final String defaultJson = PwmSetting.forKey(settingElement.getAttribute("key").getValue()).getDefaultValue(PwmSetting.Template.NOVL);
-                    //final Map<String,EmailItemBean> defaultList = gson.fromJson(defaultJson, new TypeToken<Map<String,EmailItemBean>>() {}.getType());
-                    //final EmailItemBean defaultBean = defaultList.read("");
-            /*
-            for (final String localeStr : seenLocales) {
-                values.put(localeStr,new EmailItemBean(
-                        null,
-                        fromMap.containsKey(localeStr) ? fromMap.read(localeStr) : defaultBean.getFrom(),
-                        subjectMap.containsKey(localeStr) ? subjectMap.read(localeStr) : defaultBean.getSubject(),
-                        bodyPlainMap.containsKey(localeStr)? bodyPlainMap.read(localeStr) : defaultBean.getBodyPlain(),
-                        bodyHtmlMap.containsKey(localeStr) ? bodyHtmlMap.read(localeStr) : defaultBean.getBodyHtml()
-                        ));
-            }
-            */
-                }
                 return new EmailValue(values);
             }
         };
@@ -180,8 +90,9 @@ public class EmailValue extends AbstractValue implements StoredValue {
 
     public List<Element> toXmlValues(final String valueElementName) {
         final List<Element> returnList = new ArrayList<>();
-        for (final String localeValue : values.keySet()) {
-            final EmailItemBean emailItemBean = values.get(localeValue);
+        for (final Map.Entry<String,EmailItemBean> entry : values.entrySet()) {
+            final String localeValue = entry.getKey();
+            final EmailItemBean emailItemBean = entry.getValue();
             final Element valueElement = new Element(valueElementName);
             if (localeValue.length() > 0) {
                 valueElement.setAttribute("locale",localeValue);
@@ -203,8 +114,9 @@ public class EmailValue extends AbstractValue implements StoredValue {
             }
         }
 
-        for (final String loopLocale : values.keySet()) {
-            final EmailItemBean emailItemBean = values.get(loopLocale);
+        for (final Map.Entry<String,EmailItemBean> entry : values.entrySet()) {
+            final String loopLocale = entry.getKey();
+            final EmailItemBean emailItemBean = entry.getValue();
 
             if (emailItemBean.getSubject() == null || emailItemBean.getSubject().length() < 1) {
                 return Collections.singletonList("subject field is required " + (loopLocale.length() > 0 ? " for locale " + loopLocale:""));
@@ -227,8 +139,9 @@ public class EmailValue extends AbstractValue implements StoredValue {
             return "No Email Item";
         }
         final StringBuilder sb = new StringBuilder();
-        for (final String localeKey : values.keySet()) {
-            final EmailItemBean emailItemBean = values.get(localeKey);
+        for (final Map.Entry<String,EmailItemBean> entry : values.entrySet()) {
+            final String localeKey = entry.getKey();
+            final EmailItemBean emailItemBean = entry.getValue();
             sb.append("EmailItem ").append(LocaleHelper.debugLabel(LocaleHelper.parseLocaleString(localeKey))).append(": \n");
             sb.append("  To:").append(emailItemBean.getTo()).append("\n");
             sb.append("From:").append(emailItemBean.getFrom()).append("\n");

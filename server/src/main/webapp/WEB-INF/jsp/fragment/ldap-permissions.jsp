@@ -54,8 +54,9 @@
         <td class="title">Access</td>
         <td class="title">Associated Configuration Setting</td>
     </tr>
-    <% for (final String attribute : baseMap.keySet()) { %>
-    <% for (final LDAPPermissionInfo.Access access : baseMap.get(attribute).keySet()) { %>
+    <% for (final Map.Entry<String,Map<LDAPPermissionInfo.Access,List<LDAPPermissionCalculator.PermissionRecord>>> entry : baseMap.entrySet()) { %>
+    <% final String attribute = entry.getKey(); %>
+    <% for (final LDAPPermissionInfo.Access access : entry.getValue().keySet()) { %>
     <tr>
         <td style="text-align: left">
             <%= attribute %>
@@ -66,7 +67,7 @@
         <td style="text-align: left">
             <%
                 final Set<String> menuLocations = new TreeSet<String>();
-                for (final LDAPPermissionCalculator.PermissionRecord record : baseMap.get(attribute).get(access)) {
+                for (final LDAPPermissionCalculator.PermissionRecord record : entry.getValue().get(access)) {
                     if (record.getPwmSetting() != null) {
                         menuLocations.add(record.getPwmSetting().toMenuLocationDebug(record.getProfile(), JspUtility.locale(request)));
                     } else {

@@ -22,6 +22,7 @@
 
 package password.pwm.http;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import password.pwm.PwmApplication;
 import password.pwm.config.Configuration;
@@ -84,6 +85,7 @@ public class PwmResponse extends PwmHttpResponseWrapper {
         this.pwmRequest = pwmRequest;
     }
 
+    @SuppressFBWarnings("DE_MIGHT_IGNORE") // its okay to disappear the exception during logging
     public void forwardToJsp(
             final JspUrl jspURL
     )

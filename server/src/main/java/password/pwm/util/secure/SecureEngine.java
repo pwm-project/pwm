@@ -214,7 +214,7 @@ public class SecureEngine {
             }
             final byte[] decrypted = cipher.doFinal(workingValue);
             return new String(decrypted, PwmConstants.DEFAULT_CHARSET);
-        } catch (Exception e) {
+        } catch (GeneralSecurityException e) {
             final String errorMsg = "unexpected error performing simple decrypt operation: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_CRYPT_ERROR, errorMsg);
             throw new PwmUnrecoverableException(errorInformation);

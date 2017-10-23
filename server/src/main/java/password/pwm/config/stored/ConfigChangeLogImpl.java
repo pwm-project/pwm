@@ -24,8 +24,6 @@ package password.pwm.config.stored;
 
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
-import password.pwm.i18n.Config;
-import password.pwm.util.LocaleHelper;
 import password.pwm.util.java.StringUtil;
 
 import java.io.Serializable;
@@ -38,7 +36,7 @@ import java.util.TreeMap;
 public class ConfigChangeLogImpl implements Serializable, ConfigChangeLog {
     private final Map<StoredConfigReference,StoredValue> changeLog = new LinkedHashMap<>();
     private final Map<StoredConfigReference,StoredValue> originalValue = new LinkedHashMap<>();
-    private final StorageEngine storedConfiguration;
+    private final transient StorageEngine storedConfiguration;
 
     public ConfigChangeLogImpl(final StorageEngine storageEngine) {
         this.storedConfiguration = storageEngine;
@@ -52,7 +50,6 @@ public class ConfigChangeLogImpl implements Serializable, ConfigChangeLog {
     @Override
     public String changeLogAsDebugString(final Locale locale, final boolean asHtml) {
         final Map<String,String> outputMap = new TreeMap<>();
-        final String SEPARATOR = LocaleHelper.getLocalizedMessage(locale, Config.Display_SettingNavigationSeparator, null);
 
         for (final StoredConfigReference configReference : changeLog.keySet()) {
             switch (configReference.getRecordType()) {
@@ -67,6 +64,7 @@ public class ConfigChangeLogImpl implements Serializable, ConfigChangeLog {
 
                 /*
                 case LOCALE_BUNDLE: {
+                    final String SEPARATOR = LocaleHelper.getLocalizedMessage(locale, Config.Display_SettingNavigationSeparator, null);
                     final String key = (String) configReference.recordID;
                     final String bundleName = key.split("!")[0];
                     final String keys = key.split("!")[1];
@@ -86,8 +84,9 @@ public class ConfigChangeLogImpl implements Serializable, ConfigChangeLog {
         if (outputMap.isEmpty()) {
             output.append("No setting changes.");
         } else {
-            for (final String keyName : outputMap.keySet()) {
-                final String value = outputMap.get(keyName);
+            for (final Map.Entry<String,String> entry  : outputMap.entrySet()) {
+                final String keyName = entry.getKey();
+                final String value = entry.getValue();
                 if (asHtml) {
                     output.append("<div class=\"changeLogKey\">");
                     output.append(keyName);

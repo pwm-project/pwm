@@ -22,6 +22,7 @@
 
 package password.pwm.util.db;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.xeustechnologies.jcl.JarClassLoader;
 import org.xeustechnologies.jcl.JclObjectFactory;
 import password.pwm.PwmApplication;
@@ -172,6 +173,7 @@ public class JDBCDriverLoader {
         private File tempFile;
 
         @Override
+        @SuppressFBWarnings("DP_CREATE_CLASSLOADER_INSIDE_DO_PRIVILEGED") // not clear if this is worth it to fix
         public Driver loadDriver(final PwmApplication pwmApplication, final DBConfiguration dbConfiguration)
                 throws DatabaseException
         {
@@ -191,9 +193,12 @@ public class JDBCDriverLoader {
                     tempFile = File.createTempFile(prefixName, "jar");
                     LOGGER.trace("created temp file " + tempFile.getAbsolutePath());
                 }
-                final FileOutputStream fos = new FileOutputStream(tempFile);
-                fos.write(jdbcDriverBytes);
-                fos.close();
+
+                try (FileOutputStream fos = new FileOutputStream(tempFile)) {
+                    fos.write(jdbcDriverBytes);
+                    fos.close();
+                }
+
                 final URLClassLoader urlClassLoader = new URLClassLoader(
                         new URL[] {tempFile.toURI().toURL()},
                         this.getClass().getClassLoader()
@@ -231,6 +236,7 @@ public class JDBCDriverLoader {
         // static ccache of classloader to prevent classloader memory leak
         private static Map<String,ClassLoader> driverCache = new ConcurrentHashMap<>();
 
+        @SuppressFBWarnings("DP_CREATE_CLASSLOADER_INSIDE_DO_PRIVILEGED") // not clear if this is worth it to fix
         @Override
         public Driver loadDriver(final PwmApplication pwmApplication, final DBConfiguration dbConfiguration)
                 throws DatabaseException

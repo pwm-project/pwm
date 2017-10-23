@@ -42,14 +42,8 @@ import javax.servlet.jsp.JspTagException;
  * @author Jason D. Rivard
  */
 public class ErrorMessageTag extends PwmAbstractTag {
-// ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(ErrorMessageTag.class);
-
-// ------------------------ INTERFACE METHODS ------------------------
-
-
-// --------------------- Interface Tag ---------------------
 
     public int doEndTag()
             throws javax.servlet.jsp.JspTagException

@@ -155,13 +155,13 @@
                             <tr><td><b>Stored Value</b></td><td><b>Display</b></td></tr>
                             </thead>
                             <tbody>
-                            <% for (final String key : setting.getOptions().keySet()) { %>
+                            <% for (final Map.Entry<String,String> entry : setting.getOptions().entrySet()) { %>
                             <tr>
                                 <td>
-                                    <%=key%>
+                                    <%=entry.getKey()%>
                                 </td>
                                 <td>
-                                    <%=setting.getOptions().get(key)%>
+                                    <%=entry.getValue()%>
                                 </td>
                             </tr>
                             <% } %>
@@ -183,8 +183,9 @@
                             </thead>
                             <tbody>
                             <%
-                                for (final String template : defaultValues.keySet()) {
-                                    final String defaultValue = StringUtil.escapeHtml(defaultValues.get(template));
+                                for (final Map.Entry<String,String> entry : defaultValues.entrySet()) {
+                                    final String template = entry.getKey();
+                                    final String defaultValue = StringUtil.escapeHtml(entry.getValue());
                             %>
                             <tr>
                                 <td>
@@ -237,13 +238,13 @@
                 </td>
             </tr>
             <% final Map<PwmSettingSyntax,Integer> syntaxCounts = (Map<PwmSettingSyntax,Integer>)settingStats.get(PwmSetting.SettingStat.syntaxCounts); %>
-            <% for (final PwmSettingSyntax loopSyntax : syntaxCounts.keySet()) { %>
+            <% for (final Map.Entry<PwmSettingSyntax,Integer> entry : syntaxCounts.entrySet()) { %>
             <tr>
                 <td>
-                    Settings with syntax type <%= loopSyntax.toString() %>
+                    Settings with syntax type <%= entry.getKey().toString() %>
                 </td>
                 <td>
-                    <%= syntaxCounts.get(loopSyntax) %>
+                    <%= entry.getValue() %>
                 </td>
             </tr>
             <% } %>

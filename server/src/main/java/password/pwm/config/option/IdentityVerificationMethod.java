@@ -25,12 +25,13 @@ package password.pwm.config.option;
 import password.pwm.config.Configuration;
 import password.pwm.i18n.Display;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-public enum IdentityVerificationMethod implements ConfigurationOption {
+public enum IdentityVerificationMethod implements Serializable, ConfigurationOption {
     PREVIOUS_AUTH(      false,  Display.Field_VerificationMethodPreviousAuth,       Display.Description_VerificationMethodPreviousAuth),
     ATTRIBUTES(         true,   Display.Field_VerificationMethodAttributes,         Display.Description_VerificationMethodAttributes),
     CHALLENGE_RESPONSES(true,   Display.Field_VerificationMethodChallengeResponses, Display.Description_VerificationMethodChallengeResponses),
@@ -41,9 +42,9 @@ public enum IdentityVerificationMethod implements ConfigurationOption {
 
     ;
     
-    private final boolean userSelectable;
-    private final Display labelKey;
-    private final Display descriptionKey;
+    private final transient boolean userSelectable;
+    private final transient Display labelKey;
+    private final transient Display descriptionKey;
 
     IdentityVerificationMethod(final boolean userSelectable, final Display labelKey, final Display descriptionKey) {
         this.userSelectable = userSelectable;

@@ -46,9 +46,11 @@ public class ExportStatsCommand extends AbstractCliCommand {
         final File outputFile = (File)cliEnvironment.getOptions().get(CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName());
         final long startTime = System.currentTimeMillis();
         out("beginning output to " + outputFile.getAbsolutePath());
-        final FileOutputStream fileOutputStream = new FileOutputStream(outputFile,true);
-        final int counter = statsManger.outputStatsToCsv(fileOutputStream, Locale.getDefault(), true);
-        fileOutputStream.close();
+        final int counter;
+        try (FileOutputStream fileOutputStream = new FileOutputStream(outputFile, true)) {
+            counter = statsManger.outputStatsToCsv(fileOutputStream, Locale.getDefault(), true);
+            fileOutputStream.close();
+        }
         out("completed writing " + counter + " rows of stats output in " + TimeDuration.fromCurrent(startTime).asLongString());
     }
 

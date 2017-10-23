@@ -38,12 +38,14 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.svc.wordlist.SeedlistManager;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.secure.PwmRandom;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -61,8 +63,6 @@ import java.util.Set;
  * @author Jason D. Rivard
  */
 public class RandomPasswordGenerator {
-// ------------------------------ FIELDS ------------------------------
-
     /**
      * Default seed phrases.  Most basic ASCII chars, except those that are visually ambiguous are
      * represented here.  No multi-character phrases are included.
@@ -82,8 +82,6 @@ public class RandomPasswordGenerator {
     private static final PwmRandom RANDOM = PwmRandom.getInstance();
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(RandomPasswordGenerator.class);
-
-// -------------------------- STATIC METHODS --------------------------
 
     public static PasswordData createRandomPassword(
             final PwmSession pwmSession,
@@ -136,7 +134,7 @@ public class RandomPasswordGenerator {
     )
             throws PwmUnrecoverableException
     {
-        final long startTimeMS = System.currentTimeMillis();
+        final Instant startTimeMS = Instant.now();
 
         randomGeneratorConfig.validateSettings(pwmApplication);
 
@@ -236,15 +234,12 @@ public class RandomPasswordGenerator {
             }
         }
 
-        if (pwmApplication != null && pwmApplication.getStatisticsManager() != null) {
-            pwmApplication.getStatisticsManager().incrementValue(Statistic.GENERATED_PASSWORDS);
-        }
+        StatisticsManager.incrementStat(pwmApplication, Statistic.GENERATED_PASSWORDS);
 
-        final StringBuilder sb = new StringBuilder();
-        sb.append("real-time random password generator called");
-        sb.append(" (").append(TimeDuration.fromCurrent(startTimeMS).asCompactString());
-        sb.append(")");
-        LOGGER.trace(sessionLabel, sb.toString());
+        final String logText = "real-time random password generator called" +
+                " (" + TimeDuration.compactFromCurrent(startTimeMS) +
+                ")";
+        LOGGER.trace(sessionLabel, logText);
 
         return new PasswordData(password.toString());
     }
@@ -420,12 +415,8 @@ public class RandomPasswordGenerator {
         return false;
     }
 
-// --------------------------- CONSTRUCTORS ---------------------------
-
     private RandomPasswordGenerator() {
     }
-
-// -------------------------- INNER CLASSES --------------------------
 
     protected static class SeedMachine {
         private final Collection<String> seeds;

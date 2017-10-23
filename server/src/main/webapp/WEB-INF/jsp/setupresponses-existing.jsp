@@ -54,7 +54,7 @@
         <br/>
         <div class="buttonbar">
             <form style="display: inline" action="<pwm:current-url/>" method="post" name="clearExistingForm" id="clearExistingForm"
-                  enctype="application/x-www-form-urlencoded" onsubmit="confirmContinue();return false">
+                  enctype="application/x-www-form-urlencoded" class="pwmForm">
                 <button type="submit" name="confirm_btn" class="btn" id="confirm_btn" value="">
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-times"></span></pwm:if>
                     <pwm:display key="Button_ClearResponses"/>
@@ -68,16 +68,19 @@
     <div class="push"></div>
 </div>
 <pwm:script>
-<script type="application/javascript">
-    function confirmContinue() {
-        PWM_MAIN.showConfirmDialog({
-            text: PWM_MAIN.showString("Display_ResponsesClearWarning"),
-            okAction:function(){
-                PWM_MAIN.handleFormSubmit(PWM_MAIN.getObject('clearExistingForm'));
-            }
+    <script type="text/javascript">
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            PWM_MAIN.addEventHandler('clearExistingForm','submit',function(event){
+                PWM_MAIN.cancelEvent(event);
+                PWM_MAIN.showConfirmDialog({
+                    text: PWM_MAIN.showString("Display_ResponsesClearWarning"),
+                    okAction:function(){
+                        PWM_MAIN.handleFormSubmit(PWM_MAIN.getObject('clearExistingForm'));
+                    }
+                });
+            });
         });
-    }
-</script>
+    </script>
 </pwm:script>
 <%@ include file="/WEB-INF/jsp/fragment/cancel-form.jsp" %>
 <%@ include file="fragment/footer.jsp" %>

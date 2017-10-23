@@ -22,11 +22,13 @@
 
 package password.pwm.util.cli.commands;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import password.pwm.util.cli.CliEnvironment;
 import password.pwm.util.cli.CliParameters;
 
 import java.io.Console;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.Scanner;
 
 public abstract class AbstractCliCommand implements CliCommand {
@@ -70,7 +72,7 @@ public abstract class AbstractCliCommand implements CliCommand {
         out(msg);
         out("");
         out("To proceed, type 'continue'");
-        final Scanner scanner = new Scanner(System.in);
+        final Scanner scanner = new Scanner(System.in, Charset.defaultCharset().name());
         final String input = scanner.nextLine();
 
         if (!"continue".equalsIgnoreCase(input)) {
@@ -82,6 +84,7 @@ public abstract class AbstractCliCommand implements CliCommand {
 
     abstract void doCommand() throws Exception;
 
+    @SuppressFBWarnings("DM_EXIT")
     String promptForPassword() {
         final Console console = System.console();
         console.writer().write("enter password:");

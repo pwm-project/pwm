@@ -80,8 +80,8 @@ public class EdirSchemaExtender implements SchemaExtender {
 
     private boolean allStatesCorrect() {
         boolean allStatesCorrect = true;
-        for (final String key : stateMap.keySet()) {
-            if (SchemaDefinition.State.correct != stateMap.get(key)) {
+        for (final SchemaDefinition.State value : stateMap.values()) {
+            if (SchemaDefinition.State.correct != value) {
                 allStatesCorrect = false;
             }
         }

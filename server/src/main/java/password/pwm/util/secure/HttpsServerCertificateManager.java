@@ -71,14 +71,12 @@ import java.security.Security;
 import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-/**
- * {@link }
- */
 public class HttpsServerCertificateManager
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass(HttpsServerCertificateManager.class);
@@ -127,7 +125,7 @@ public class HttpsServerCertificateManager
                     alias,
                     new KeyStore.PrivateKeyEntry(
                             privateKeyCertificate.getKey(),
-                            privateKeyCertificate.getCertificates()
+                            privateKeyCertificate.getCertificates().toArray(new X509Certificate[privateKeyCertificate.getCertificates().size()])
                     ),
                     passwordProtection
             );
@@ -348,7 +346,7 @@ public class HttpsServerCertificateManager
             }
 
             final PrivateKey key = entry.getPrivateKey();
-            final X509Certificate[] certificates = (X509Certificate[])entry.getCertificateChain();
+            final List<X509Certificate> certificates = Arrays.asList((X509Certificate[]) entry.getCertificateChain());
 
             LOGGER.debug("importing certificate chain: " + JsonUtil.serializeCollection(X509Utils.makeDebugInfoMap(certificates)));
             privateKeyCertificate = new PrivateKeyCertificate(certificates, key);

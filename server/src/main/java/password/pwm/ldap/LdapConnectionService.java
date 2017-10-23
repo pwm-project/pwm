@@ -85,15 +85,11 @@ public class LdapConnectionService implements PwmService {
     {
         status = STATUS.CLOSED;
         LOGGER.trace("closing ldap proxy connections");
-        for (final LdapProfile ldapProfile : proxyChaiProviders.keySet()) {
-            for (final int slot : proxyChaiProviders.get(ldapProfile).keySet()) {
-                final ChaiProvider existingProvider = proxyChaiProviders.get(ldapProfile).get(slot);
-
-                try {
-                    existingProvider.close();
-                } catch (Exception e) {
-                    LOGGER.error("error closing ldap proxy connection: " + e.getMessage(), e);
-                }
+        for (final ChaiProvider existingProvider : getAllProviders()) {
+            try {
+                existingProvider.close();
+            } catch (Exception e) {
+                LOGGER.error("error closing ldap proxy connection: " + e.getMessage(), e);
             }
         }
         proxyChaiProviders.clear();
@@ -141,17 +137,16 @@ public class LdapConnectionService implements PwmService {
     private ChaiProvider getNewProxyChaiProvider(final LdapProfile ldapProfile)
             throws PwmUnrecoverableException
     {
+        if (ldapProfile == null) {
+            throw new NullPointerException("ldapProfile must not be null");
+        }
+
         final int slot = slotIncrementer.next();
 
         final ChaiProvider proxyChaiProvider = proxyChaiProviders.get(ldapProfile).get(slot);
 
         if (proxyChaiProvider != null) {
             return proxyChaiProvider;
-        }
-
-        if (ldapProfile == null) {
-            final String errorMsg = "unknown ldap profile requested connection: " + ldapProfile;
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_NO_LDAP_CONNECTION,errorMsg));
         }
 
         try {
@@ -178,8 +173,9 @@ public class LdapConnectionService implements PwmService {
     public void setLastLdapFailure(final LdapProfile ldapProfile, final ErrorInformation errorInformation) {
         lastLdapErrors.put(ldapProfile, errorInformation);
         final HashMap<String,ErrorInformation> outputMap = new HashMap<>();
-        for (final LdapProfile loopProfile : lastLdapErrors.keySet()) {
-            outputMap.put(loopProfile.getIdentifier(), lastLdapErrors.get(loopProfile));
+        for (final Map.Entry<LdapProfile, ErrorInformation> entry : lastLdapErrors.entrySet()) {
+            final LdapProfile loopProfile = entry.getKey();
+            outputMap.put(loopProfile.getIdentifier(), entry.getValue());
         }
         final String jsonString = JsonUtil.serialize(outputMap);
         pwmApplication.writeAppAttribute(PwmApplication.AppAttribute.LAST_LDAP_ERROR, jsonString);
@@ -204,10 +200,11 @@ public class LdapConnectionService implements PwmService {
             if (lastLdapFailureStr != null && lastLdapFailureStr.length() > 0) {
                 final Map<String, ErrorInformation> fromJson = JsonUtil.deserialize(lastLdapFailureStr,new TypeToken<Map<String, ErrorInformation>>() {});
                 final Map<LdapProfile, ErrorInformation> returnMap = new HashMap<>();
-                for (final String id : fromJson.keySet()) {
+                for (final Map.Entry<String, ErrorInformation> entry : fromJson.entrySet()) {
+                    final String id = entry.getKey();
                     final LdapProfile ldapProfile = pwmApplication.getConfig().getLdapProfiles().get(id);
                     if (ldapProfile != null) {
-                        returnMap.put(ldapProfile, fromJson.get(id));
+                        returnMap.put(ldapProfile, entry.getValue());
                     }
                 }
                 return returnMap;

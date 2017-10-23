@@ -243,15 +243,18 @@ public class OAuthMachine {
         bodyEntity.setContentType(HttpContentType.form.getHeaderValue());
         httpPost.setEntity(bodyEntity);
 
-        final X509Certificate[] certs = settings.getCertificates();
+        final List<X509Certificate> certs = settings.getCertificates();
 
         final HttpResponse httpResponse;
         final String bodyResponse;
         try {
-            if (certs == null || certs.length == 0) {
+            if (JavaHelper.isEmpty(certs)) {
                 httpResponse = PwmHttpClient.getHttpClient(pwmRequest.getConfig()).execute(httpPost);
             } else {
-                httpResponse = PwmHttpClient.getHttpClient(pwmRequest.getConfig(), new PwmHttpClientConfiguration.Builder().setCertificate(certs).create()).execute(httpPost);
+                httpResponse = PwmHttpClient.getHttpClient(pwmRequest.getConfig(), PwmHttpClientConfiguration.builder()
+                        .certificates(certs)
+                        .build()
+                ).execute(httpPost);
             }
             bodyResponse = EntityUtils.toString(httpResponse.getEntity());
         } catch (PwmException | IOException e) {

@@ -23,8 +23,9 @@
 package password.pwm.http.servlet.configmanager;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import lombok.Builder;
+import lombok.Value;
 import password.pwm.PwmConstants;
-import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
@@ -32,14 +33,15 @@ import password.pwm.config.StoredValue;
 import password.pwm.config.stored.StoredConfigReference;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.config.stored.StoredConfigurationUtil;
+import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.JspUrl;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.servlet.AbstractPwmServlet;
-import password.pwm.util.secure.X509Utils;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.X509Utils;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
@@ -50,6 +52,7 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -119,7 +122,8 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet {
                     } else {
                         storedValue = storedConfiguration.readSetting(pwmSetting);
                     }
-                    final X509Certificate[] certificates = (X509Certificate[])storedValue.toNativeObject();
+                    final X509Certificate[] arrayCerts = (X509Certificate[])storedValue.toNativeObject();
+                    final List<X509Certificate> certificates = arrayCerts == null ? Collections.emptyList() : Arrays.asList(arrayCerts);
                     certificateDebugDataItems.addAll(makeItems(pwmSetting, ref.getProfileID(), certificates));
                 } else if (pwmSetting.getSyntax() == PwmSettingSyntax.ACTION) {
                     final StoredValue storedValue;
@@ -130,7 +134,7 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet {
                     }
                     final List<ActionConfiguration> actionConfigurations = (List)storedValue.toNativeObject();
                     for (final ActionConfiguration actionConfiguration : actionConfigurations) {
-                        final X509Certificate[] certificates = actionConfiguration.getCertificates();
+                        final List<X509Certificate> certificates = actionConfiguration.getCertificates();
                         certificateDebugDataItems.addAll(makeItems(pwmSetting, ref.getProfileID(), certificates));
                     }
                 }
@@ -144,7 +148,7 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet {
     Collection<CertificateDebugDataItem> makeItems(
             final PwmSetting setting,
             final String profileId,
-            final X509Certificate[] certificates
+            final List<X509Certificate> certificates
     ) throws PwmUnrecoverableException {
         if (certificates == null) {
             return Collections.emptyList();
@@ -165,21 +169,23 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet {
     )
             throws PwmUnrecoverableException
     {
-        final CertificateDebugDataItem item = new CertificateDebugDataItem();
-        item.setMenuLocation(setting.toMenuLocationDebug(profileId, PwmConstants.DEFAULT_LOCALE));
-        item.setSubject(certificate.getSubjectDN().toString());
-        item.setSerial(certificate.getSerialNumber().toString());
-        item.setAlgorithm(certificate.getSigAlgName());
-        item.setIssueDate(certificate.getNotBefore().toInstant());
-        item.setExpirationDate(certificate.getNotAfter().toInstant());
+        final CertificateDebugDataItem.CertificateDebugDataItemBuilder builder = CertificateDebugDataItem.builder();
+        builder.menuLocation(setting.toMenuLocationDebug(profileId, PwmConstants.DEFAULT_LOCALE));
+        builder.subject(certificate.getSubjectDN().toString());
+        builder.serial(certificate.getSerialNumber().toString());
+        builder.algorithm(certificate.getSigAlgName());
+        builder.issueDate(certificate.getNotBefore().toInstant());
+        builder.expirationDate(certificate.getNotAfter().toInstant());
         try {
-            item.setDetail(X509Utils.makeDetailText(certificate));
+            builder.detail(X509Utils.makeDetailText(certificate));
         } catch (CertificateEncodingException e) {
             LOGGER.error("unexpected error parsing certificate detail text: " + e.getMessage());
         }
-        return item;
+        return builder.build();
     }
 
+    @Value
+    @Builder
     public static class CertificateDebugDataItem implements Serializable, Comparable {
         private String menuLocation;
         private String subject;
@@ -189,64 +195,12 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet {
         private Instant issueDate;
         private String detail;
 
-        public String getMenuLocation() {
-            return menuLocation;
-        }
-
-        public void setMenuLocation(final String menuLocation) {
-            this.menuLocation = menuLocation;
-        }
-
-        public String getSubject() {
-            return subject;
-        }
-
-        public void setSubject(final String subject) {
-            this.subject = subject;
-        }
-
-        public String getSerial() {
-            return serial;
-        }
-
-        public void setSerial(final String serial) {
-            this.serial = serial;
-        }
-
-        public String getAlgorithm() {
-            return algorithm;
-        }
-
-        public void setAlgorithm(final String algorithm) {
-            this.algorithm = algorithm;
-        }
-
-        public Instant getExpirationDate() {
-            return expirationDate;
-        }
-
-        public void setExpirationDate(final Instant expirationDate) {
-            this.expirationDate = expirationDate;
-        }
-
-        public Instant getIssueDate() {
-            return issueDate;
-        }
-
-        public void setIssueDate(final Instant issueDate) {
-            this.issueDate = issueDate;
-        }
-
-        public String getDetail() {
-            return detail;
-        }
-
-        public void setDetail(final String detail) {
-            this.detail = detail;
-        }
-
         @Override
         public int compareTo(final Object o) {
+            if (this == o || this.equals(o)) {
+                return 0;
+            }
+
             return expirationDate.compareTo(((CertificateDebugDataItem)o).getExpirationDate());
         }
     }

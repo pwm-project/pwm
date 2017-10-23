@@ -46,6 +46,7 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.math.BigInteger;
@@ -60,14 +61,13 @@ import java.util.Map;
  * @author Jason D. Rivard
  */
 public class PwmSession implements Serializable {
-// ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(PwmSession.class);
 
     private final LocalSessionStateBean sessionStateBean;
 
     private LoginInfoBean loginInfoBean;
-    private UserInfo userInfoBean;
+    private transient UserInfo userInfo;
     private UserSessionDataCacheBean userSessionDataCacheBean;
 
     private static final Object CREATION_LOCK = new Object();
@@ -100,7 +100,9 @@ public class PwmSession implements Serializable {
             String nextID = pwmApplication.getStatisticsManager().getStatBundleForKey(StatisticsManager.KEY_CUMULATIVE).getStatistic(Statistic.HTTP_SESSIONS);
             try {
                 nextID = new BigInteger(nextID).toString();
-            } catch (Exception e) { /* ignore */ }
+            } catch (NumberFormatException e) {
+                LOGGER.debug(this, "error generating sessionID: " + e.getMessage(),e);
+            }
             this.getSessionStateBean().setSessionID(nextID);
         }
 
@@ -131,14 +133,14 @@ public class PwmSession implements Serializable {
         if (!isAuthenticated()) {
             throw new IllegalStateException("attempt to read user info bean, but session not authenticated");
         }
-        if (userInfoBean == null) {
-            userInfoBean = UserInfoBean.builder().build();
+        if (userInfo == null) {
+            userInfo = UserInfoBean.builder().build();
         }
-        return userInfoBean;
+        return userInfo;
     }
 
-    public void setUserInfoBean(final UserInfo userInfoBean) {
-        this.userInfoBean = userInfoBean;
+    public void setUserInfo(final UserInfo userInfo) {
+        this.userInfo = userInfo;
     }
 
     public void reloadUserInfoBean(final PwmApplication pwmApplication) throws PwmUnrecoverableException
@@ -165,7 +167,7 @@ public class PwmSession implements Serializable {
             );
         }
 
-        setUserInfoBean(userInfo);
+        setUserInfo(userInfo);
     }
 
     public LoginInfoBean getLoginInfoBean() {
@@ -242,7 +244,7 @@ public class PwmSession implements Serializable {
             pwmRequest.getHttpServletRequest().setAttribute(PwmConstants.SESSION_ATTR_BEANS,null);
         }
 
-        userInfoBean = null;
+        userInfo = null;
         loginInfoBean = null;
         userSessionDataCacheBean = null;
     }
@@ -306,12 +308,13 @@ public class PwmSession implements Serializable {
     }
 
     public int size() {
-        try {
-            final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
             final ObjectOutputStream out = new ObjectOutputStream(byteArrayOutputStream);
             out.writeObject(this);
-            return byteArrayOutputStream.size();
-        } catch (Exception e) {
+            out.flush();
+            return byteArrayOutputStream.toByteArray().length;
+        } catch (IOException e) {
+            LOGGER.debug(this, "exception while estimating session size: " + e.getMessage());
             return 0;
         }
     }

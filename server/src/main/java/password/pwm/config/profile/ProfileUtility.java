@@ -48,8 +48,7 @@ public class ProfileUtility {
             throws PwmUnrecoverableException
     {
         final Map<String,Profile> profileMap = pwmApplication.getConfig().profileMap(profileType);
-        for (final String profileID : profileMap.keySet()) {
-            final Profile profile = profileMap.get(profileID);
+        for (final Profile profile : profileMap.values()) {
             final List<UserPermission> queryMatches = profile.getPermissionMatches();
             final boolean match = LdapPermissionTester.testUserPermissions(pwmApplication, sessionLabel, userIdentity, queryMatches);
             if (match) {
@@ -61,8 +60,7 @@ public class ProfileUtility {
 
     public static List<String> profileIDsForCategory(final Configuration configuration, final PwmSettingCategory pwmSettingCategory) {
         final PwmSetting profileSetting = pwmSettingCategory.getProfileSetting();
-        final List<String> profileIDs = configuration.readSettingAsStringArray(profileSetting);
-        return profileIDs;
+        return configuration.readSettingAsStringArray(profileSetting);
     }
 
 

@@ -30,6 +30,7 @@ import org.jasig.cas.client.util.CommonUtils;
 import org.jasig.cas.client.util.XmlUtils;
 import org.jasig.cas.client.validation.Assertion;
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.PwmHttpFilterAuthenticationProvider;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.value.FileValue;
@@ -196,9 +197,8 @@ public class CASFilterAuthenticationProvider implements PwmHttpFilterAuthenticat
         
         final byte[] privateKeyBytes;
         if (privatekey != null && !privatekey.isEmpty()) {
-            final FileValue.FileInformation fileInformation1 = privatekey.keySet().iterator().next();
-            final FileValue.FileContent fileContent = privatekey.get(fileInformation1);
-            privateKeyBytes = fileContent.getContents();
+            final FileValue.FileContent fileContent = privatekey.values().iterator().next();
+            privateKeyBytes = fileContent.getContents().getBytes();
         } else {
             privateKeyBytes = null;
         }
@@ -214,7 +214,7 @@ public class CASFilterAuthenticationProvider implements PwmHttpFilterAuthenticat
                 final byte[] cipherData = cipher.doFinal(cred64);
                 if (cipherData != null) {
                     try {
-                        password = new PasswordData(new String(cipherData));
+                        password = new PasswordData(new String(cipherData, PwmConstants.DEFAULT_CHARSET));
                     } catch (PwmUnrecoverableException e) {
                         LOGGER.error("Decryption failed", e);
                         return password;

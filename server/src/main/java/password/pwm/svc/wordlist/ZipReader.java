@@ -36,19 +36,15 @@ import java.util.zip.ZipInputStream;
 /**
  * @author Jason D. Rivard
  */
-class ZipReader implements Closeable {
+class ZipReader implements AutoCloseable, Closeable {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(ZipReader.class);
-
-// ------------------------------ FIELDS ------------------------------
 
     private final ZipInputStream zipStream;
 
     private BufferedReader reader;
     private ZipEntry zipEntry;
     private int lineCounter = 0;
-
-// --------------------------- CONSTRUCTORS ---------------------------
 
     ZipReader(final InputStream inputStream)
             throws Exception
@@ -83,10 +79,15 @@ class ZipReader implements Closeable {
     {
         try {
             zipStream.close();
-        } catch (Exception e) { /* do nothing */ }
+        } catch (IOException e) {
+            LOGGER.debug("error closing zip stream: " + e.getMessage());
+        }
+
         try {
             reader.close();
-        } catch (Exception e) { /* do nothing */ }
+        } catch (IOException e) {
+            LOGGER.debug("error closing zip stream: " + e.getMessage());
+        }
     }
 
     String currentZipName()

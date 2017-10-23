@@ -103,9 +103,7 @@ import java.util.Map;
  * @author Jason D. Rivard
  */
 public class PwmApplication {
-// ------------------------------ FIELDS ------------------------------
 
-    // ----------------------------- CONSTANTS ----------------------------
     private static final PwmLogger LOGGER = PwmLogger.forClass(PwmApplication.class);
     private static final String DEFAULT_INSTANCE_ID = "-1";
 
@@ -308,8 +306,8 @@ public class PwmApplication {
             final Map<AppProperty,String> nonDefaultProperties = getConfig().readAllNonDefaultAppProperties();
             if (nonDefaultProperties != null && !nonDefaultProperties.isEmpty()) {
                 final Map<String,String> tempMap = new LinkedHashMap<>();
-                for (final AppProperty loopProperty : nonDefaultProperties.keySet()) {
-                    tempMap.put(loopProperty.getKey(), nonDefaultProperties.get(loopProperty));
+                for (final Map.Entry<AppProperty,String> entry : nonDefaultProperties.entrySet()) {
+                    tempMap.put(entry.getKey().getKey(), entry.getValue());
                 }
                 LOGGER.trace("non-default app properties read from configuration: " + JsonUtil.serializeMap(tempMap));
             } else {
@@ -376,7 +374,11 @@ public class PwmApplication {
                     LOGGER.trace("deleted existing keystore file: " + keyStoreFile.getAbsolutePath());
                 }
             }
-            new FileOutputStream(keyStoreFile).write(outputContents.toByteArray());
+
+            try (FileOutputStream fileOutputStream = new FileOutputStream(keyStoreFile)) {
+                fileOutputStream.write(outputContents.toByteArray());
+            }
+
             LOGGER.info("successfully exported application https key to keystore file " + keyStoreFile.getAbsolutePath());
         }
     }
@@ -414,7 +416,11 @@ public class PwmApplication {
                     LOGGER.trace("deleted existing tomcat configuration file: " + tomcatOutputFile.getAbsolutePath());
                 }
             }
-            new FileOutputStream(tomcatOutputFile).write(outputContents.toByteArray());
+
+            try (FileOutputStream fileOutputStream = new FileOutputStream(tomcatOutputFile)) {
+                fileOutputStream.write(outputContents.toByteArray());
+            }
+
             LOGGER.info("successfully wrote tomcat configuration to file " + tomcatOutputFile.getAbsolutePath());
         }
     }
@@ -690,8 +696,6 @@ public class PwmApplication {
     public LocalDB getLocalDB() {
         return localDB;
     }
-
-// -------------------------- INNER CLASSES --------------------------
 
     private static class Initializer {
 
