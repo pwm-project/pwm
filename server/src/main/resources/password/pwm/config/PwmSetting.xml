@@ -666,6 +666,49 @@
             <value><![CDATA[User]]></value>
         </default>
     </setting>
+    <setting hidden="true" key="profile.email.smtp.list" level="1" required="false">
+        <properties>
+            <property key="Minimum">1</property>
+        </properties>
+        <default>
+            <value>default</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="profile.email.smtp.address" level="1" required="false">
+        <default>
+            <value/>
+        </default>
+    </setting>
+    <setting hidden="false" key="profile.email.smtp.port" level="1" required="false">
+        <default>
+                <value>25</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="profile.email.default.fromAddress" level="1" required="false">
+        <flag>emailSyntax</flag>
+        <default>
+            <value>noreply@example.org</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="profile.email.smtp.username" level="1" required="false">
+        <default>
+            <value/>
+        </default>
+    </setting>
+    <setting hidden="false" key="profile.email.smtp.userpassword" level="1" required="false">
+        <default>
+            <value/>
+        </default>
+    </setting>
+
+    <setting hidden="false" key="email.smtp.parameters" level="1">
+        <value>Email Server Address</value>
+        <value>Email Server Post</value>
+        <value>Default Email From Address</value>
+        <value>Email Username</value>
+        <value>Email Password</value>
+    </setting>
+
     <setting hidden="false" key="email.smtp.address" level="1">
         <regex>^[a-zA-Z0-9.-]*$</regex>
         <default>
@@ -1606,6 +1649,7 @@
         <default>
             <value/>
         </default>
+        <example><![CDATA[]]></example>
         <regex>^$|^(udp|tcp|sslTcp|tls)\,.+\,[0-9]*$</regex>
     </setting>
     <setting hidden="false" key="audit.syslog.certificates" level="1" required="false">
@@ -3836,11 +3880,14 @@
     <category hidden="false" key="CHALLENGE_POLICY">
         <profile setting="challenge.profile.list"/>
     </category>
-    <category hidden="false" key="EMAIL">
+    <category hidden="false" key="EMAIL">ema
     </category>
     <category hidden="false" key="EMAIL_SETTINGS">
     </category>
     <category hidden="false" key="EMAIL_TEMPLATES">
+    </category>
+    <category hidden="false" key="EMAIL_PROFILES" profiles="true">
+        <profile setting="profile.email.smtp.list"/>
     </category>
     <category hidden="false" key="SMS">
     </category>

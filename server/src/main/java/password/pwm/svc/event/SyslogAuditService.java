@@ -22,6 +22,7 @@
 
 package password.pwm.svc.event;
 
+//import org.graylog2.syslog4j.Syslog;
 import org.graylog2.syslog4j.SyslogIF;
 import org.graylog2.syslog4j.impl.AbstractSyslogConfigIF;
 import org.graylog2.syslog4j.impl.AbstractSyslogWriter;
@@ -82,6 +83,7 @@ public class SyslogAuditService {
 
 
     private final Configuration configuration;
+    private List<SyslogIF> syslogInstances = new ArrayList<>();
 
     public SyslogAuditService(final PwmApplication pwmApplication)
             throws LocalDBException
@@ -89,14 +91,19 @@ public class SyslogAuditService {
         this.configuration = pwmApplication.getConfig();
         this.certificates = configuration.readSettingAsCertificate(PwmSetting.AUDIT_SYSLOG_CERTIFICATES);
 
-        final String syslogConfigString = configuration.readSettingAsString(PwmSetting.AUDIT_SYSLOG_SERVERS);
-        final SyslogConfig syslogConfig;
+        final List<String> syslogConfigStringArray = configuration.readSettingAsStringArray(PwmSetting.AUDIT_SYSLOG_SERVERS);
+
         try {
-            syslogConfig = SyslogConfig.fromConfigString(syslogConfigString);
-            syslogInstance = makeSyslogInstance(syslogConfig);
-            LOGGER.trace("queued service running for " + syslogConfig);
+            //syslogConfig = SyslogConfig.fromConfigString(syslogConfigStrings);
+            //syslogInstance = makeSyslogInstance(syslogConfig);
+            for(String entry : syslogConfigStringArray) {
+                final SyslogConfig syslogCfg = SyslogConfig.fromConfigString(entry);
+                final SyslogIF syslogInstance = makeSyslogInstance(syslogCfg);
+                syslogInstances.add(syslogInstance);
+            }
+            LOGGER.trace("queued service running for syslog entries");
         } catch (IllegalArgumentException e) {
-            LOGGER.error("error parsing syslog configuration for '" + syslogConfigString + "', error: " + e.getMessage());
+            LOGGER.error("error parsing syslog configuration for  syslogConfigStrings ERROR: " + e.getMessage());
         }
 
         final WorkQueueProcessor.Settings settings = WorkQueueProcessor.Settings.builder()
@@ -188,17 +195,18 @@ public class SyslogAuditService {
 
     private WorkQueueProcessor.ProcessResult processEvent(final String auditRecord) {
 
-        final SyslogIF syslogIF = syslogInstance;
-        try {
-            syslogIF.info(auditRecord);
-            LOGGER.trace("delivered syslog audit event: " + auditRecord);
-            lastError = null;
-            return WorkQueueProcessor.ProcessResult.SUCCESS;
-        } catch (Exception e) {
-            final String errorMsg = "error while sending syslog message to remote service: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SYSLOG_WRITE_ERROR, errorMsg, new String[]{e.getMessage()});
-            lastError = errorInformation;
-            LOGGER.error(errorInformation.toDebugStr());
+        for(SyslogIF syslogInstance : syslogInstances) {
+            try {
+                syslogInstance.info(auditRecord);
+                LOGGER.trace("delivered syslog audit event: " + auditRecord);
+                lastError = null;
+                return WorkQueueProcessor.ProcessResult.SUCCESS;
+            } catch (Exception e) {
+                final String errorMsg = "error while sending syslog message to remote service: " + e.getMessage();
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SYSLOG_WRITE_ERROR, errorMsg, new String[]{e.getMessage()});
+                lastError = errorInformation;
+                LOGGER.error(errorInformation.toDebugStr());
+            }
         }
 
         return WorkQueueProcessor.ProcessResult.RETRY;

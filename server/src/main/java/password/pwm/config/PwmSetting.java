@@ -657,7 +657,7 @@ public enum PwmSetting {
     AUDIT_EMAIL_USER_TO(
             "audit.userEvent.toAddress", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.AUDIT_FORWARD),
     AUDIT_SYSLOG_SERVERS(
-            "audit.syslog.servers", PwmSettingSyntax.STRING, PwmSettingCategory.AUDIT_FORWARD),
+            "audit.syslog.servers", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.AUDIT_FORWARD),
     AUDIT_SYSLOG_CERTIFICATES(
             "audit.syslog.certificates", PwmSettingSyntax.X509CERT, PwmSettingCategory.AUDIT_FORWARD),
 
