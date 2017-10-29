@@ -48,7 +48,7 @@ import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ConfigManagerBean;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
-import password.pwm.http.servlet.configguide.ConfigGuideServlet;
+import password.pwm.http.servlet.configguide.ConfigGuideUtils;
 import password.pwm.i18n.Admin;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.Display;
@@ -143,7 +143,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
                     break;
 
                 case uploadConfig:
-                    ConfigGuideServlet.restUploadConfig(pwmRequest);
+                    ConfigGuideUtils.restUploadConfig(pwmRequest);
                     return;
 
                 case summary:

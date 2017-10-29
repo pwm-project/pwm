@@ -39,6 +39,10 @@
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <p>The installation process is now complete.  You can go back to any previous step if you would like to make changes, or click
             <i>Save Configuration</i> to save the configuration and restart the application.</p>
+            <p>To facilitate further configuration troubleshooting, the setting
+                <code><%=PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS.toMenuLocationDebug(null, JspUtility.locale(request))%></code> will be
+                enabled by default.  It should be disabled before the server is used in a production environment.
+            </p>
         <br/>
         <div id="outline_ldap-server" class="setting_outline">
             <div id="titlePaneHeader-ldap-server" class="setting_title">Configuration Summary</div>

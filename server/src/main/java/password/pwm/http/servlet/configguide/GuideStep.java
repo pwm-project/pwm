@@ -28,6 +28,7 @@ import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.PwmSettingTemplate;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.ConfigGuideBean;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.Set;
@@ -53,6 +54,9 @@ public enum GuideStep {
     END(null),
     FINISH(null),
 
+    NEXT(NeverVisible.class),
+    PREVIOUS(NeverVisible.class),
+
     ;
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(GuideStep.class);
@@ -72,10 +76,24 @@ public enum GuideStep {
     }
 
     private GuideStep peer(final int distance) {
-        return values()[(this.ordinal()+distance) % values().length];
+        if (distance != -1 && distance != 1) {
+            throw new IllegalArgumentException("distance must be +1 or -1");
+        }
+
+        final int nextOrdinal = JavaHelper.rangeCheck(
+                START.ordinal(),
+                FINISH.ordinal(),
+                this.ordinal() + distance
+        );
+
+        return GuideStep.values()[nextOrdinal];
     }
 
     boolean visible(final ConfigGuideBean configGuideBean) {
+        if (this == NEXT || this == PREVIOUS) {
+            return false;
+        }
+
         if (visibilityCheckClass != null) {
             final VisibilityCheck visibilityCheckImpl;
             try {
@@ -85,6 +103,7 @@ public enum GuideStep {
                 LOGGER.error("unexpected error during step visibility check: " + e.getMessage(), e);
             }
         }
+
         return true;
     }
 
@@ -124,6 +143,12 @@ public enum GuideStep {
         public boolean visible(final ConfigGuideBean configGuideBean) {
             return !PwmSetting.PUBLISH_STATS_ENABLE.isHidden() &&
                     !PwmSettingCategory.TELEMETRY.isHidden();
+        }
+    }
+
+    static class NeverVisible implements VisibilityCheck {
+        public boolean visible(final ConfigGuideBean configGuideBean) {
+            return false;
         }
     }
 }

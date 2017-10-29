@@ -22,8 +22,7 @@
 
 package password.pwm.http.bean;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 import password.pwm.config.option.SessionBeanMode;
 import password.pwm.config.value.FileValue;
 import password.pwm.http.servlet.configguide.ConfigGuideForm;
@@ -37,8 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-@Getter
-@Setter
+@Data
 public class ConfigGuideBean extends PwmSessionBean {
 
     private GuideStep step = GuideStep.START;

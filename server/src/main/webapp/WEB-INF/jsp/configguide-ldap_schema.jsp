@@ -7,6 +7,7 @@
 <%@ page import="password.pwm.ldap.schema.SchemaDefinition" %>
 <%@ page import="java.util.List" %>
 <%@ page import="password.pwm.http.servlet.configguide.ConfigGuideFormField" %>
+<%@ page import="password.pwm.http.servlet.configguide.ConfigGuideUtils" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -40,7 +41,7 @@
     boolean existingSchemaGood = false;
     String schemaActivityLog = "";
     try {
-        final SchemaOperationResult schemaManager = ConfigGuideServlet.extendSchema(configGuideBean,false);
+        final SchemaOperationResult schemaManager = ConfigGuideUtils.extendSchema(configGuideBean,false);
         existingSchemaGood = schemaManager.isSuccess();
         schemaActivityLog = schemaManager.getOperationLog();
     } catch (Exception e) {

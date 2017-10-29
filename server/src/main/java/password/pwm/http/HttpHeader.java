@@ -24,6 +24,10 @@ package password.pwm.http;
 
 import password.pwm.PwmConstants;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+
 public enum HttpHeader {
     Accept("Accept"),
     Connection("Connection"),
@@ -40,7 +44,7 @@ public enum HttpHeader {
     Content_Language("Content-Language"),
     Accept_Encoding("Accept-Encoding"),
     Accept_Language("Accept-Language"),
-    Authorization("Authorization"),
+    Authorization("Authorization", Flag.Sensitive),
     UserAgent("User-Agent"),
     Referer("Referer"),
     Origin("Origin"),
@@ -60,11 +64,18 @@ public enum HttpHeader {
 
     ;
 
+    enum Flag {
+        Sensitive
+    }
+
+
+    private final Collection<Flag> flags;
     private final String httpName;
 
-    HttpHeader(final String httpName)
+    HttpHeader(final String httpName, final Flag... flags)
     {
         this.httpName = httpName;
+        this.flags = Collections.unmodifiableList(flags == null ? Collections.emptyList() : Arrays.asList(flags));
     }
 
     public String getHttpName()

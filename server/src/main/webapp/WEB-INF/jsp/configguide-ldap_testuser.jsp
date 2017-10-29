@@ -36,7 +36,7 @@
 <div id="wrapper">
     <%@ include file="fragment/configguide-header.jsp"%>
     <div id="centerbody">
-        <form id="configForm">
+        <form id="configForm" name="configForm">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <br/>
             <div id="outline_ldap" class="setting_outline">
@@ -46,7 +46,12 @@
                 <div class="setting_body">
                     <pwm:display key="ldap_testuser_description" bundle="ConfigGuide"/>
                     <div class="setting_item">
-                        <div id="titlePane_<%=ConfigGuideFormField.PARAM_LDAP_TEST_USER%>" style="padding-left: 5px; padding-top: 5px">
+                        <label class="checkboxWrapper"><input type="radio" id="<%=ConfigGuideFormField.PARAM_LDAP_TEST_USER_ENABLED%>-enabled" name="<%=ConfigGuideFormField.PARAM_LDAP_TEST_USER_ENABLED%>" value="true">Enabled</label>
+                        <br/>
+                        <label class="checkboxWrapper"><input type="radio" id="<%=ConfigGuideFormField.PARAM_LDAP_TEST_USER_ENABLED%>-disabled" name="<%=ConfigGuideFormField.PARAM_LDAP_TEST_USER_ENABLED%>" value="false">Disabled</label>
+                        <br/>
+                        <br/>
+                        <div id="titlePane_<%=ConfigGuideFormField.PARAM_LDAP_TEST_USER%>" style="padding-left: 5px; padding-top: 5px" style="display: none">
                             Example: <code><%=PwmSetting.LDAP_TEST_USER_DN.getExample(ConfigGuideForm.generateStoredConfig(configGuideBean).getTemplateSet())%></code>
                             <br/><br/>
                             <b>LDAP Test User DN</b>
@@ -80,6 +85,12 @@
         PWM_GUIDE.updateForm();
         clearHealthDiv();
         checkIfNextEnabled();
+
+        if (PWM_MAIN.getObject('<%=ConfigGuideFormField.PARAM_LDAP_TEST_USER_ENABLED%>-enabled').checked) {
+            PWM_MAIN.getObject('titlePane_<%=ConfigGuideFormField.PARAM_LDAP_TEST_USER%>').style.display = 'inline';
+        } else {
+            PWM_MAIN.getObject('titlePane_<%=ConfigGuideFormField.PARAM_LDAP_TEST_USER%>').style.display = 'none';
+        }
     }
 
     function clearHealthDiv() {
@@ -89,11 +100,16 @@
     PWM_GLOBAL['startupFunctions'].push(function(){
         PWM_VAR['originalHealthBody'] = PWM_MAIN.getObject('healthBody').innerHTML;
         checkIfNextEnabled();
+        initEnabledField();
+
+        PWM_MAIN.addEventHandler('configForm','input,click',function(){
+            handleFormActivity();
+        });
+
 
         PWM_MAIN.addEventHandler('button_next','click',function(){PWM_GUIDE.gotoStep('NEXT')});
         PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('PREVIOUS')});
 
-        PWM_MAIN.addEventHandler('configForm','input',function(){handleFormActivity()});
         PWM_MAIN.addEventHandler('healthBody','click',function(){loadHealth()});
 
         PWM_MAIN.addEventHandler('button-browse-testUser','click',function(){
@@ -106,12 +122,33 @@
 
     function checkIfNextEnabled() {
         var fieldValue = PWM_MAIN.getObject('<%=ConfigGuideFormField.PARAM_LDAP_TEST_USER%>').value;
-        PWM_MAIN.getObject('button_next').disabled = false;
-        if (fieldValue.length && fieldValue.length > 0) {
+        if (PWM_MAIN.getObject('<%=ConfigGuideFormField.PARAM_LDAP_TEST_USER_ENABLED%>-enabled').checked) {
+            var goodHealth = false;
+            var hasValue = true;
+
             if (PWM_GLOBAL['pwm-health'] !== 'GOOD' && PWM_GLOBAL['pwm-health'] !== 'CONFIG') {
-                PWM_MAIN.getObject('button_next').disabled = true;
+                goodHealth = true;
             }
+
+            if (fieldValue.length > 0) {
+                hasValue = true;
+            }
+
+            PWM_MAIN.getObject('button_next').disabled = (goodHealth && hasValue)
+        } else {
+            PWM_MAIN.getObject('button_next').disabled = false;
         }
+    }
+
+    function initEnabledField() {
+        <% final String currentValue = configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_LDAP_TEST_USER_ENABLED);%>
+        <% if ("true".equals(currentValue)) { %>
+        PWM_MAIN.getObject('<%=ConfigGuideFormField.PARAM_LDAP_TEST_USER_ENABLED%>-enabled').checked = true;
+        <% } else if ("false".equals(currentValue)) { %>
+        PWM_MAIN.getObject('<%=ConfigGuideFormField.PARAM_LDAP_TEST_USER_ENABLED%>-disabled').checked = true;
+        <% } %>
+
+        handleFormActivity();
     }
 
     function loadHealth() {

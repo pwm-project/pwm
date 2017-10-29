@@ -1,6 +1,7 @@
 <%@ page import="password.pwm.http.bean.ConfigGuideBean" %>
 <%@ page import="password.pwm.http.servlet.configguide.ConfigGuideServlet" %>
 <%@ page import="password.pwm.http.JspUtility" %>
+<%@ page import="password.pwm.http.servlet.configguide.ConfigGuideUtils" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -24,7 +25,7 @@
   --%>
 
 <% final ConfigGuideBean headerCgb = JspUtility.getSessionBean(pageContext, ConfigGuideBean.class);%>
-<% final float pctComplete = ConfigGuideServlet.stepProgress(headerCgb.getStep()).asFloat(); %>
+<% final float pctComplete = ConfigGuideUtils.stepProgress(headerCgb.getStep()).asFloat(); %>
 <div id="header" class="configguide-header">
     <div id="header-company-logo">
     </div>

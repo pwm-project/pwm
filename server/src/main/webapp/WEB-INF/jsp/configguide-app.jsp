@@ -1,6 +1,7 @@
 <%@ page import="password.pwm.http.servlet.configguide.ConfigGuideForm" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
 <%@ page import="password.pwm.http.servlet.configguide.ConfigGuideFormField" %>
+<%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -81,7 +82,22 @@
             PWM_MAIN.addEventHandler('configForm','input',function(){handleFormActivity()});
 
             checkIfNextEnabled();
+
+            populateSiteUrl();
         });
+
+        function populateSiteUrl() {
+            var siteUrlInput = PWM_MAIN.getObject('<%=ConfigGuideFormField.PARAM_APP_SITEURL%>');
+            if (siteUrlInput.value.length > 0) {
+                return;
+            }
+
+            var suggestedSiteUrl = window.location.protocol + '//' + window.location.host + PWM_GLOBAL['url-context'];
+            siteUrlInput.value = suggestedSiteUrl;
+
+            handleFormActivity();
+            checkIfNextEnabled();
+        }
 
         function checkIfNextEnabled() {
             var siteUrlInput = PWM_MAIN.getObject('<%=ConfigGuideFormField.PARAM_APP_SITEURL%>');
