@@ -96,14 +96,14 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>com.github.hazendaz.spotbugs</groupId>
+                <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
-                <version>3.1.0-RC4</version>
+                <version>3.1.0-RC6</version>
                 <dependencies>
                     <dependency>
                         <groupId>com.github.spotbugs</groupId>
                         <artifactId>spotbugs</artifactId>
-                        <version>3.1.0-RC7</version>
+                        <version>3.1.0</version>
                     </dependency>
                 </dependencies>
                 <configuration>
@@ -113,14 +113,7 @@
                 </configuration>
                 <executions>
                     <execution>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>findbugs-test-compile</id>
-                        <phase>test-compile</phase>
+                        <phase>test</phase>
                         <goals>
                             <goal>check</goal>
                         </goals>
@@ -464,7 +457,7 @@
             <plugin> <!-- checks owsp vulnerability database during verify phase -->
                 <groupId>org.owasp</groupId>
                 <artifactId>dependency-check-maven</artifactId>
-                <version>1.4.5</version>
+                <version>3.0.1</version>
                 <configuration>
                     <nuspecAnalyzerEnabled>false</nuspecAnalyzerEnabled>
                     <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
@@ -559,9 +552,9 @@
          -->
         <plugins>
             <plugin>
-                <groupId>com.github.hazendaz.spotbugs</groupId>
+                <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
-                <version>3.1.0-RC4</version>
+                <version>3.1.0-RC6</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -582,7 +575,7 @@
         <dependency>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs-annotations</artifactId>
-            <version>3.1.0-RC7</version>
+            <version>3.1.0</version>
             <scope>provided</scope>
         </dependency>
 
@@ -784,7 +777,7 @@
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>webjars-locator-core</artifactId>
-            <version>0.33</version>
+            <version>0.34</version>
         </dependency>
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>
