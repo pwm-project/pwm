@@ -192,6 +192,14 @@
     <error-page>
         <location>/WEB-INF/jsp/error-http.jsp</location>
     </error-page>
+    <error-page>
+        <exception-type>java.lang.Throwable</exception-type>
+        <location>/WEB-INF/jsp/error.jsp</location>
+    </error-page>
+    <error-page>
+        <error-code>500</error-code>
+        <location>/WEB-INF/jsp/error.jsp</location>
+    </error-page>
     <session-config>
         <!-- Please use the application configuration to control the idle session timeout.  This value will not be used.  -->
         <session-timeout>5</session-timeout>

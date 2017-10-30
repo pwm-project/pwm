@@ -29,7 +29,6 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.ContextManager;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
@@ -38,7 +37,10 @@ import password.pwm.http.PwmSessionWrapper;
 import password.pwm.http.bean.PwmSessionBean;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.Validator;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.PwmHashAlgorithm;
+import password.pwm.util.secure.SecureEngine;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
@@ -124,37 +126,9 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
                 throw new ServletException(e);
             }
 
-            final PwmApplication pwmApplication;
-            try {
-                pwmApplication = ContextManager.getPwmApplication(this.getServletContext());
-            } catch (Exception e2) {
-                try {
-                    LOGGER.fatal(
-                            "exception occurred, but exception handler unable to load Application instance; error=" + e.getMessage(),
-                            e);
-                } catch (Exception e3) {
-                    e3.printStackTrace();
-                }
-                throw new ServletException(e);
-            }
+            final PwmUnrecoverableException pue = convertToPwmUnrecoverableException(e, pwmRequest);
 
-            final PwmSession pwmSession;
-            try {
-                pwmSession = PwmSessionWrapper.readPwmSession(req);
-            } catch (Exception e2) {
-                try {
-                    LOGGER.fatal(
-                            "exception occurred, but exception handler unable to load Session wrapper instance; error=" + e.getMessage(),
-                            e);
-                } catch (Exception e3) {
-                    e3.printStackTrace();
-                }
-                throw new ServletException(e);
-            }
-
-            final PwmUnrecoverableException pue = convertToPwmUnrecoverableException(e);
-
-            if (processUnrecoverableException(req, resp, pwmApplication, pwmSession, pue)) {
+            if (processUnrecoverableException(req, resp, pwmRequest.getPwmApplication(), pwmRequest.getPwmSession(), pue)) {
                 return;
             }
 
@@ -163,7 +137,8 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
     }
 
     private PwmUnrecoverableException convertToPwmUnrecoverableException(
-            final Throwable e
+            final Throwable e,
+            final PwmRequest pwmRequest
     ) {
         if (e instanceof PwmUnrecoverableException) {
             return (PwmUnrecoverableException) e;
@@ -178,9 +153,22 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
             return new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE, errorMsg));
         }
 
-        final StringWriter errorStack = new StringWriter();
-        e.printStackTrace(new PrintWriter(errorStack));
-        final String errorMsg = "unexpected error processing request: " + e.getMessage() + "\n" + errorStack.toString();
+        final String stackTraceText;
+        {
+            final StringWriter errorStack = new StringWriter();
+            e.printStackTrace(new PrintWriter(errorStack));
+            stackTraceText = errorStack.toString();
+        }
+
+        String stackTraceHash = "hash";
+        try {
+            stackTraceHash = SecureEngine.hash(stackTraceText, PwmHashAlgorithm.SHA1);
+        } catch (PwmUnrecoverableException e1) {
+            /* */
+        }
+        final String errorMsg = "unexpected error processing request: " + JavaHelper.readHostileExceptionMessage(e) + " [" + stackTraceHash + "]";
+
+        LOGGER.error(pwmRequest, errorMsg, e);
         return new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg));
     }
 
