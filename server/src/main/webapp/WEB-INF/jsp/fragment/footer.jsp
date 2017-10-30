@@ -48,11 +48,11 @@
             </pwm:if>
             <pwm:if test="<%=PwmIfTest.requestFlag%>" requestFlag="<%=PwmRequestFlag.HIDE_LOCALE%>" negate="true">
                 <span class="footer-segment">
-                    <button id="localeSelectionMenu">
+                    <span id="localeSelectionMenu">
                         <img src="<pwm:context/><pwm:url url='/public/resources/webjars/famfamfam-flags/dist/png/'/><pwm:value name="<%=PwmValue.localeFlagFile%>"/>.png"
                              alt="<pwm:value name="<%=PwmValue.localeFlagFile%>"/>"/>
                         <span class="localeDisplayName"><pwm:value name="<%=PwmValue.localeName%>"/></span>
-                    </button>
+                    </span>
                 </span>
             </pwm:if>
         </div>
