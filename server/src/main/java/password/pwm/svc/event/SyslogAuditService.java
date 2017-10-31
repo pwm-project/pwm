@@ -82,6 +82,7 @@ public class SyslogAuditService {
 
 
     private final Configuration configuration;
+    private List<SyslogIF> syslogInstances = new ArrayList<>();
 
     public SyslogAuditService(final PwmApplication pwmApplication)
             throws LocalDBException
@@ -188,19 +189,19 @@ public class SyslogAuditService {
 
     private WorkQueueProcessor.ProcessResult processEvent(final String auditRecord) {
 
-        final SyslogIF syslogIF = syslogInstance;
-        try {
-            syslogIF.info(auditRecord);
-            LOGGER.trace("delivered syslog audit event: " + auditRecord);
-            lastError = null;
-            return WorkQueueProcessor.ProcessResult.SUCCESS;
-        } catch (Exception e) {
-            final String errorMsg = "error while sending syslog message to remote service: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SYSLOG_WRITE_ERROR, errorMsg, new String[]{e.getMessage()});
-            lastError = errorInformation;
-            LOGGER.error(errorInformation.toDebugStr());
+        for(SyslogIF syslogInstance : syslogInstances) {
+            try {
+                syslogInstance.info(auditRecord);
+                LOGGER.trace("delivered syslog audit event: " + auditRecord);
+                lastError = null;
+                return WorkQueueProcessor.ProcessResult.SUCCESS;
+            } catch (Exception e) {
+                final String errorMsg = "error while sending syslog message to remote service: " + e.getMessage();
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SYSLOG_WRITE_ERROR, errorMsg, new String[]{e.getMessage()});
+                lastError = errorInformation;
+                LOGGER.error(errorInformation.toDebugStr());
+            }
         }
-
         return WorkQueueProcessor.ProcessResult.RETRY;
     }
 
