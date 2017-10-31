@@ -1361,12 +1361,12 @@ public enum PwmSetting {
     }
 
     public String getLabel(final Locale locale) {
-        final String propertyKey = "Setting_Label_" + this.getKey();
+        final String propertyKey = password.pwm.i18n.PwmSetting.SETTING_LABEL_PREFIX + this.getKey();
         return LocaleHelper.getLocalizedMessage(locale, propertyKey, null, password.pwm.i18n.PwmSetting.class);
     }
 
     public String getDescription(final Locale locale) {
-        final String propertyKey = "Setting_Description_" + this.getKey();
+        final String propertyKey = password.pwm.i18n.PwmSetting.SETTING_DESCRIPTION_PREFIX + this.getKey();
         final String storedText = LocaleHelper.getLocalizedMessage(locale, propertyKey, null, password.pwm.i18n.PwmSetting.class);
         final MacroMachine macroMachine = MacroMachine.forStatic();
         return macroMachine.expandMacros(storedText);

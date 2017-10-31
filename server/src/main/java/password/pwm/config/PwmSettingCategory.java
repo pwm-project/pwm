@@ -212,12 +212,12 @@ public enum PwmSettingCategory {
     }
 
     public String getLabel(final Locale locale) {
-        final String key = "Category_Label_" + this.getKey();
+        final String key = PwmSetting.CATEGORY_LABEL_PREFIX + this.getKey();
         return LocaleHelper.getLocalizedMessage(locale, key, null, PwmSetting.class);
     }
 
     public String getDescription(final Locale locale) {
-        final String key = "Category_Description_" + this.getKey();
+        final String key = PwmSetting.CATEGORY_DESCRIPTION_PREFIX + this.getKey();
         return LocaleHelper.getLocalizedMessage(locale, key, null, PwmSetting.class);
     }
 
