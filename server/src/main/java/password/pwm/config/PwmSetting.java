@@ -80,6 +80,8 @@ public enum PwmSetting {
             "pwm.logoutURL", PwmSettingSyntax.STRING, PwmSettingCategory.GENERAL),
     URL_HOME(
             "pwm.homeURL", PwmSettingSyntax.STRING, PwmSettingCategory.GENERAL),
+    URL_INTRO(
+            "pwm.introURL", PwmSettingSyntax.SELECT, PwmSettingCategory.GENERAL),
     PWM_INSTANCE_NAME(
             "pwmInstanceName", PwmSettingSyntax.STRING, PwmSettingCategory.GENERAL),
     IDLE_TIMEOUT_SECONDS(
