@@ -102,7 +102,7 @@ public class AuditService implements PwmService {
             return;
         }
 
-        final String syslogConfigString = pwmApplication.getConfig().readSettingAsString(PwmSetting.AUDIT_SYSLOG_SERVERS);
+        final List<String> syslogConfigString = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.AUDIT_SYSLOG_SERVERS);
         if (syslogConfigString != null && !syslogConfigString.isEmpty()) {
             try {
                 syslogManager = new SyslogAuditService(pwmApplication);
