@@ -90,14 +90,17 @@ public class SyslogAuditService {
         this.configuration = pwmApplication.getConfig();
         this.certificates = configuration.readSettingAsCertificate(PwmSetting.AUDIT_SYSLOG_CERTIFICATES);
 
-        final String syslogConfigString = configuration.readSettingAsString(PwmSetting.AUDIT_SYSLOG_SERVERS);
-        final SyslogConfig syslogConfig;
+        final List<String> syslogConfigStringArray = configuration.readSettingAsStringArray(PwmSetting.AUDIT_SYSLOG_SERVERS);
+
         try {
-            syslogConfig = SyslogConfig.fromConfigString(syslogConfigString);
-            syslogInstance = makeSyslogInstance(syslogConfig);
-            LOGGER.trace("queued service running for " + syslogConfig);
+            for(String entry : syslogConfigStringArray) {
+                final SyslogConfig syslogCfg = SyslogConfig.fromConfigString(entry);
+                final SyslogIF syslogInstance = makeSyslogInstance(syslogCfg);
+                syslogInstances.add(syslogInstance);
+            }
+            LOGGER.trace("queued service running for syslog entries");
         } catch (IllegalArgumentException e) {
-            LOGGER.error("error parsing syslog configuration for '" + syslogConfigString + "', error: " + e.getMessage());
+            LOGGER.error("error parsing syslog configuration for  syslogConfigStrings ERROR: " + e.getMessage());
         }
 
         final WorkQueueProcessor.Settings settings = WorkQueueProcessor.Settings.builder()
