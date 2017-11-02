@@ -66,6 +66,10 @@ public enum Admin implements PwmDisplayBundle {
 
     ;
 
+    public static final String STATISTICS_LABEL_PREFIX = "Statistic_Label.";
+    public static final String STATISTICS_DESCRIPTION_PREFIX =  "Statistic_Description.";
+    public static final String EPS_STATISTICS_LABEL_PREFIX = "EpsStatistic_Label.";
+
     @Override
     public String getKey() {
         return this.toString();

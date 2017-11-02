@@ -44,6 +44,8 @@ import password.pwm.health.HealthStatus;
 import password.pwm.health.HealthTopic;
 import password.pwm.http.PwmSession;
 import password.pwm.svc.PwmService;
+import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -345,6 +347,9 @@ public class AuditService implements PwmService {
                 lastError = e.getErrorInformation();
             }
         }
+
+        // update statistics
+        StatisticsManager.incrementStat(pwmApplication, Statistic.AUDIT_EVENTS);
     }
 
 
