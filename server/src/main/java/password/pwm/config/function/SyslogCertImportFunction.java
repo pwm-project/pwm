@@ -54,33 +54,44 @@ public class SyslogCertImportFunction implements SettingUIFunction {
             final String profile,
             final String extraData)
             throws PwmOperationalException, PwmUnrecoverableException {
+        boolean error = false;
+        Exception exeception = null;
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
         final Set<X509Certificate> resultCertificates = new LinkedHashSet<>();
 
-        final String syslogConfigStr = (String)storedConfiguration.readSetting(PwmSetting.AUDIT_SYSLOG_SERVERS).toNativeObject();
-        if (syslogConfigStr != null && !syslogConfigStr.isEmpty()) {
-            final SyslogAuditService.SyslogConfig syslogConfig = SyslogAuditService.SyslogConfig.fromConfigString(syslogConfigStr);
-            if (syslogConfig != null) {
-                try {
-                    final List<X509Certificate> certs = X509Utils.readRemoteCertificates(syslogConfig.getHost(), syslogConfig.getPort());
-                    if (certs != null) {
-                        resultCertificates.addAll(certs);
+        final List<String> syslogConfigStrs = (List<String>)storedConfiguration.readSetting(PwmSetting.AUDIT_SYSLOG_SERVERS).toNativeObject();
+        if (syslogConfigStrs != null && !syslogConfigStrs.isEmpty()) {
+            for(String entry : syslogConfigStrs) {
+                if (entry.toUpperCase().startsWith("TLS")) {
+                    final SyslogAuditService.SyslogConfig syslogConfig = SyslogAuditService.SyslogConfig.fromConfigString(entry);
+                    if (syslogConfig != null) {
+                        try {
+                            final List<X509Certificate> certs = X509Utils.readRemoteCertificates(syslogConfig.getHost(), syslogConfig.getPort());
+                            if (certs != null) {
+                                resultCertificates.addAll(certs);
+                                error = false;
+                            }
+                        } catch (Exception e) {
+                            error = true;
+                            exeception = e;
+                        }
                     }
-                } catch (Exception e) {
-                    if (e instanceof PwmException) {
-                        throw new PwmOperationalException(((PwmException) e).getErrorInformation());
-                    }
-                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"error importing certificates: " + e.getMessage());
-                    throw new PwmOperationalException(errorInformation);
                 }
-
             }
         }
 
-        final UserIdentity userIdentity = pwmSession.isAuthenticated() ? pwmSession.getUserInfo().getUserIdentity() : null;
-        storedConfiguration.writeSetting(setting, new X509CertificateValue(resultCertificates), userIdentity);
-        return Message.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(), Message.Success_Unknown, pwmApplication.getConfig());
+        if (false == error) {
+            final UserIdentity userIdentity = pwmSession.isAuthenticated() ? pwmSession.getUserInfo().getUserIdentity() : null;
+            storedConfiguration.writeSetting(setting, new X509CertificateValue(resultCertificates), userIdentity);
+            return Message.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(), Message.Success_Unknown, pwmApplication.getConfig());
+        } else {
+            if (exeception instanceof PwmException) {
+                throw new PwmOperationalException(((PwmException) exeception).getErrorInformation());
+            }
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"error importing certificates: " + exeception.getMessage());
+            throw new PwmOperationalException(errorInformation);
+        }
     }
 }
