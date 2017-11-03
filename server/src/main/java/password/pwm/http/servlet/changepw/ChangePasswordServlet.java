@@ -374,7 +374,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet {
                 userInfo,
                 pwmRequest.getPwmSession().getLoginInfoBean(),
                 PasswordData.forStringValue(jsonInput.getPassword1()),
-                PasswordData.forStringValue(jsonInput.getPassword1())
+                PasswordData.forStringValue(jsonInput.getPassword2())
         );
 
 
