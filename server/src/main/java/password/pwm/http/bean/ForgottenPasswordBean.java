@@ -24,6 +24,9 @@ package password.pwm.http.bean;
 
 import com.google.gson.annotations.SerializedName;
 import com.novell.ldapchai.cr.ChallengeSet;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.Value;
 import password.pwm.VerificationMethodSystem;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.value.data.FormConfiguration;
@@ -41,6 +44,7 @@ import java.util.Set;
 /**
  * @author Jason D. Rivard
  */
+@Data
 public class ForgottenPasswordBean extends PwmSessionBean {
 
     @SerializedName("u")
@@ -64,65 +68,7 @@ public class ForgottenPasswordBean extends PwmSessionBean {
     @SerializedName("fp")
     private String forgottenPasswordProfileID;
 
-
-    public UserIdentity getUserIdentity() {
-        return userIdentity;
-    }
-
-    public void setUserIdentity(final UserIdentity userIdentity) {
-        this.userIdentity = userIdentity;
-    }
-
-    public Locale getUserLocale()
-    {
-        return userLocale;
-    }
-
-    public void setUserLocale(final Locale userLocale)
-    {
-        this.userLocale = userLocale;
-    }
-
-    public Progress getProgress()
-    {
-        return progress;
-    }
-
-    public ChallengeSet getPresentableChallengeSet()
-    {
-        return presentableChallengeSet;
-    }
-
-    public void setPresentableChallengeSet(final ChallengeSet presentableChallengeSet)
-    {
-        this.presentableChallengeSet = presentableChallengeSet;
-    }
-
-    public List<FormConfiguration> getAttributeForm()
-    {
-        return attributeForm;
-    }
-
-    public void setAttributeForm(final List<FormConfiguration> attributeForm)
-    {
-        this.attributeForm = attributeForm;
-    }
-
-    public void setProgress(final Progress progress)
-    {
-        this.progress = progress;
-    }
-
-    public RecoveryFlags getRecoveryFlags()
-    {
-        return recoveryFlags;
-    }
-
-    public void setRecoveryFlags(final RecoveryFlags recoveryFlags)
-    {
-        this.recoveryFlags = recoveryFlags;
-    }
-
+    @Data
     public static class Progress implements Serializable {
         @SerializedName("s")
         private boolean tokenSent;
@@ -144,66 +90,6 @@ public class ForgottenPasswordBean extends PwmSessionBean {
 
         private transient VerificationMethodSystem remoteRecoveryMethod;
 
-        public Set<IdentityVerificationMethod> getSatisfiedMethods() {
-            return satisfiedMethods;
-        }
-
-        public boolean isTokenSent()
-        {
-            return tokenSent;
-        }
-
-        public void setTokenSent(final boolean tokenSent)
-        {
-            this.tokenSent = tokenSent;
-        }
-
-        public boolean isAllPassed()
-        {
-            return allPassed;
-        }
-
-        public void setAllPassed(final boolean allPassed)
-        {
-            this.allPassed = allPassed;
-        }
-
-        public MessageSendMethod getTokenSendChoice()
-        {
-            return tokenSendChoice;
-        }
-
-        public void setTokenSendChoice(final MessageSendMethod tokenSendChoice)
-        {
-            this.tokenSendChoice = tokenSendChoice;
-        }
-
-        public String getTokenSentAddress()
-        {
-            return tokenSentAddress;
-        }
-
-        public void setTokenSentAddress(final String tokenSentAddress)
-        {
-            this.tokenSentAddress = tokenSentAddress;
-        }
-
-        public IdentityVerificationMethod getInProgressVerificationMethod() {
-            return inProgressVerificationMethod;
-        }
-
-        public void setInProgressVerificationMethod(final IdentityVerificationMethod inProgressVerificationMethod) {
-            this.inProgressVerificationMethod = inProgressVerificationMethod;
-        }
-
-        public VerificationMethodSystem getRemoteRecoveryMethod() {
-            return remoteRecoveryMethod;
-        }
-
-        public void setRemoteRecoveryMethod(final VerificationMethodSystem remoteRecoveryMethod) {
-            this.remoteRecoveryMethod = remoteRecoveryMethod;
-        }
-
         public void clearTokenSentStatus() {
             this.setTokenSent(false);
             this.setTokenSentAddress(null);
@@ -211,6 +97,8 @@ public class ForgottenPasswordBean extends PwmSessionBean {
         }
     }
 
+    @Value
+    @AllArgsConstructor
     public static class RecoveryFlags implements Serializable {
         @SerializedName("a")
         private final boolean allowWhenLdapIntruderLocked;
@@ -235,50 +123,6 @@ public class ForgottenPasswordBean extends PwmSessionBean {
             this.minimumOptionalAuthMethods = 0;
             this.tokenSendMethod = MessageSendMethod.NONE;
         }
-
-        public RecoveryFlags(
-                final Set<IdentityVerificationMethod> requiredAuthMethods,
-                final Set<IdentityVerificationMethod> optionalAuthMethods,
-                final int minimumOptionalAuthMethods,
-                final boolean allowWhenLdapIntruderLocked,
-                final MessageSendMethod tokenSendMethod
-        )
-        {
-            this.requiredAuthMethods = Collections.unmodifiableSet(requiredAuthMethods);
-            this.optionalAuthMethods = Collections.unmodifiableSet(optionalAuthMethods);
-            this.minimumOptionalAuthMethods = minimumOptionalAuthMethods;
-            this.allowWhenLdapIntruderLocked = allowWhenLdapIntruderLocked;
-            this.tokenSendMethod = tokenSendMethod;
-        }
-
-        public Set<IdentityVerificationMethod> getRequiredAuthMethods() {
-            return requiredAuthMethods;
-        }
-
-        public boolean isAllowWhenLdapIntruderLocked()
-        {
-            return allowWhenLdapIntruderLocked;
-        }
-
-        public MessageSendMethod getTokenSendMethod() {
-            return tokenSendMethod;
-        }
-
-        public Set<IdentityVerificationMethod> getOptionalAuthMethods() {
-            return optionalAuthMethods;
-        }
-
-        public int getMinimumOptionalAuthMethods() {
-            return minimumOptionalAuthMethods;
-        }
-    }
-
-    public String getForgottenPasswordProfileID() {
-        return forgottenPasswordProfileID;
-    }
-
-    public void setForgottenPasswordProfileID(final String forgottenPasswordProfileID) {
-        this.forgottenPasswordProfileID = forgottenPasswordProfileID;
     }
 
     public Type getType() {
