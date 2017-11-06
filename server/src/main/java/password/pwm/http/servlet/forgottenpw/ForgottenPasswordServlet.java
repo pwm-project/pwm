@@ -44,8 +44,9 @@ import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.RecoveryAction;
 import password.pwm.config.profile.ForgottenPasswordProfile;
-import password.pwm.config.profile.ProfileType;
 import password.pwm.config.profile.ProfileUtility;
+import password.pwm.config.profile.ProfileType;
+import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.ErrorInformation;
@@ -90,12 +91,14 @@ import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.operations.cr.NMASCrOperator;
 import password.pwm.util.operations.otp.OTPUserRecord;
 import password.pwm.ws.server.RestResultBean;
+import java.time.Instant;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -112,6 +115,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * User interaction servlet for recovering user's password using secret question/answer
@@ -147,6 +151,16 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
         resendToken(HttpMethod.POST),
 
         ;
+
+        public static boolean isUnlockOnlyFlag() {
+            return unlockOnlyFlag;
+        }
+
+        public static void setUnlockOnlyFlag(final boolean unlockOnlyFlag) {
+            ForgottenPasswordAction.unlockOnlyFlag = unlockOnlyFlag;
+        }
+
+        private static boolean unlockOnlyFlag = false;
 
         private final Collection<HttpMethod> method;
 
@@ -226,7 +240,68 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
         return pwmRequest.getConfig().getForgottenPasswordProfiles().get(forgottenPasswordBean.getForgottenPasswordProfileID());
     }
 
+    private boolean insideMinimumLifetime(
+            final PwmApplication pwmApp,
+            final PwmSession pwmSes,
+            final UserInfo userInfo
+    )
+            throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
+    {
+        try {
 
+            final Instant inst  = PasswordUtility.determinePwdLastModified(pwmApp, pwmSes.getLabel(), userInfo.getUserIdentity());
+
+            final TimeDuration minimumLifetime;
+            {
+                final int minimumLifetimeSeconds = userInfo.getPasswordPolicy().getRuleHelper().readIntValue(PwmPasswordRule.MinimumLifetime);
+                if (minimumLifetimeSeconds < 1) {
+                    return true;
+                }
+
+                if (userInfo.getPasswordLastModifiedTime() == null) {
+                    LOGGER.debug(pwmSes.getLabel(), "skipping minimum lifetime check, password last set time is unknown");
+                    return false;
+                }
+
+                minimumLifetime = new TimeDuration(minimumLifetimeSeconds, TimeUnit.SECONDS);
+            }
+
+            final TimeDuration passwordAge = TimeDuration.fromCurrent(userInfo.getPasswordLastModifiedTime());
+            LOGGER.trace(pwmSes.getLabel(), "beginning check for minimum lifetime, lastModified="
+                    + JavaHelper.toIsoDate(userInfo.getPasswordLastModifiedTime())
+                    + ", minimumLifetimeSeconds=" + minimumLifetime.asCompactString()
+                    + ", passwordAge=" + passwordAge.asCompactString());
+
+
+            if (userInfo.getPasswordLastModifiedTime().isAfter(Instant.now())) {
+                LOGGER.debug(pwmSes.getLabel(), "skipping minimum lifetime check, password lastModified time is in the future");
+                return true;
+            }
+
+            final boolean passwordTooSoon = passwordAge.isShorterThan(minimumLifetime);
+            if (!passwordTooSoon) {
+                LOGGER.trace(pwmSes.getLabel(), "minimum lifetime check passed, password age ");
+                return true;
+            }
+
+            if (userInfo.getPasswordStatus().isExpired() || userInfo.getPasswordStatus().isPreExpired() || userInfo.getPasswordStatus().isWarnPeriod()) {
+                LOGGER.debug(pwmSes.getLabel(), "current password is too young, but skipping enforcement of minimum lifetime check because current password is expired");
+                return true;
+            }
+
+
+            //PasswordUtility.checkIfPasswordWithinMinimumLifetime(
+            //        pwmSes.getSessionManager().getActor(pwmApp),
+            //        pwmSes.getLabel(),
+            //        userInfo.getPasswordPolicy(),
+            //        userInfo.getPasswordLastModifiedTime(),
+            //        userInfo.getPasswordStatus()
+            //);
+        } catch (PwmException e) {
+            return false;
+        }
+        return false;
+    }
 
 
     @ActionHandler(action = "actionChoice")
@@ -254,7 +329,17 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
                         break;
 
                     case resetPassword:
-                        this.executeResetPassword(pwmRequest);
+                        final ForgottenPasswordProfile fpp = forgottenPasswordProfile(pwmRequest);
+                        if (fpp.readSettingAsBoolean(PwmSetting.RECOVERY_ALLOW_WHEN_LOCKED)) {
+                            try {
+                                final boolean insideTime = insideMinimumLifetime(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession(), pwmRequest.getPwmSession().getUserInfo());
+                                if (!insideTime) {
+                                    this.executeResetPassword(pwmRequest);
+                                }
+                            } catch (Exception e) {
+                                return ProcessStatus.Halt;
+                            }
+                        }
                         break;
 
                     default:
@@ -444,10 +529,12 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
     {
         final ForgottenPasswordBean forgottenPasswordBean = forgottenPasswordBean(pwmRequest);
         final String userEnteredCode = pwmRequest.readParameterAsString(PwmConstants.PARAM_TOKEN);
+        final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo(pwmRequest, forgottenPasswordBean);
+        TokenPayload tokenPayload = null;
 
         ErrorInformation errorInformation = null;
         try {
-            final TokenPayload tokenPayload = pwmRequest.getPwmApplication().getTokenService().processUserEnteredCode(
+            tokenPayload = pwmRequest.getPwmApplication().getTokenService().processUserEnteredCode(
                     pwmRequest.getPwmSession(),
                     forgottenPasswordBean.getUserIdentity() == null ? null : forgottenPasswordBean.getUserIdentity(),
                     TokenType.FORGOTTEN_PW,
@@ -476,6 +563,19 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
                 errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT);
             }
             handleUserVerificationBadAttempt(pwmRequest, forgottenPasswordBean, errorInformation);
+        }
+
+        // bug fix location
+        final ForgottenPasswordProfile fpp = forgottenPasswordProfile(pwmRequest);
+        if (fpp.readSettingAsBoolean(PwmSetting.RECOVERY_ALLOW_WHEN_LOCKED)) {
+            try {
+                final boolean insideTime = insideMinimumLifetime(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession(), userInfo);
+                if (insideTime) {
+                    ForgottenPasswordAction.setUnlockOnlyFlag(true);
+                }
+            } catch (Exception e) {
+                LOGGER.debug(pwmRequest, "ERROR: " + e.getMessage() + " getting minimum lifetime value.");
+            }
         }
 
         return ProcessStatus.Continue;
@@ -888,7 +988,9 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
                 );
             }
         } catch (PwmOperationalException e) {
-            throw new PwmUnrecoverableException(e.getErrorInformation());
+            if (!forgottenPasswordProfile.readSettingAsBoolean(PwmSetting.RECOVERY_ALLOW_UNLOCK)) {
+                throw new PwmUnrecoverableException(e.getErrorInformation());
+            }
         }
 
         LOGGER.trace(pwmRequest, "all recovery checks passed, proceeding to configured recovery action");
@@ -1034,14 +1136,6 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
         }
 
         try {
-            /*
-            final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(
-                    pwmApplication,
-                    pwmSession,
-                    PwmAuthenticationSource.FORGOTTEN_PASSWORD
-            );
-            sessionAuthenticator.authUserWithUnknownPassword(userIdentity,AuthenticationType.AUTH_FROM_PUBLIC_MODULE);
-            */
             pwmSession.getLoginInfoBean().setAuthenticated(true);
             pwmSession.getLoginInfoBean().getAuthFlags().add(AuthenticationType.AUTH_FROM_PUBLIC_MODULE);
             pwmSession.getLoginInfoBean().setUserIdentity(userIdentity);
