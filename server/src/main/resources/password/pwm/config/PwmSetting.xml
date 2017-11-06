@@ -576,6 +576,9 @@
         <default template="ORACLE_DS">
             <value><![CDATA[pwmGUID]]></value>
         </default>
+        <default template="OPEN_LDAP">
+            <value><![CDATA[entryuuid]]></value>
+        </default>
     </setting>
     <setting hidden="false" key="ldap.namingAttribute" level="1" required="true">
         <ldapPermission actor="proxy" access="read"/>
