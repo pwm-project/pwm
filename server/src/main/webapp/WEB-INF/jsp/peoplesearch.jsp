@@ -43,7 +43,6 @@
 <pwm:script-ref url="/public/resources/webjars/angular-translate/dist/angular-translate.min.js" />
 
 <%@ include file="fragment/footer.jsp" %>
-<pwm:script-ref url="/public/resourcess/js/peoplesearch.js" />
 <link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/webjars/pwm-client/fonts.css' addContext="true"/>"/>
 <pwm:script-ref url="/public/resources/webjars/pwm-client/peoplesearch.ng.js" />
 
