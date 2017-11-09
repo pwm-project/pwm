@@ -120,36 +120,8 @@ public class PasswordUtility {
         final String smsNumber = userInfo.getUserSmsNumber();
         String returnToAddress = emailAddress;
 
-        ErrorInformation error = null;
+        final ErrorInformation error;
         switch (messageSendMethod) {
-            case BOTH:
-                // Send both email and SMS, success if one of both succeeds
-                final ErrorInformation err1 = sendNewPasswordEmail(userInfo, pwmApplication, macroMachine, newPassword, emailAddress, userLocale);
-                final ErrorInformation err2 = sendNewPasswordSms(userInfo, pwmApplication, macroMachine, newPassword, smsNumber, userLocale);
-                if (err1 != null) {
-                    error = err1;
-                    returnToAddress = smsNumber;
-                } else if (err2 != null) {
-                    error = err2;
-                }
-                break;
-            case EMAILFIRST:
-                // Send email first, try SMS if email is not available
-                error = sendNewPasswordEmail(userInfo, pwmApplication, macroMachine, newPassword, emailAddress, userLocale);
-                if (error != null) {
-                    error = sendNewPasswordSms(userInfo, pwmApplication, macroMachine, newPassword, smsNumber, userLocale);
-                    returnToAddress = smsNumber;
-                }
-                break;
-            case SMSFIRST:
-                // Send SMS first, try email if SMS is not available
-                error = sendNewPasswordSms(userInfo, pwmApplication, macroMachine, newPassword, smsNumber, userLocale);
-                if (error != null) {
-                    error = sendNewPasswordEmail(userInfo, pwmApplication, macroMachine, newPassword, emailAddress, userLocale);
-                } else {
-                    returnToAddress = smsNumber;
-                }
-                break;
             case SMSONLY:
                 // Only try SMS
                 error = sendNewPasswordSms(userInfo, pwmApplication, macroMachine, newPassword, smsNumber, userLocale);

@@ -512,22 +512,9 @@ public class ActivateUserServlet extends AbstractPwmServlet {
         final Configuration config = pwmApplication.getConfig();
         final UserInfo userInfo = pwmSession.getUserInfo();
         final MessageSendMethod pref = MessageSendMethod.valueOf(config.readSettingAsString(PwmSetting.ACTIVATE_TOKEN_SEND_METHOD));
+
         final boolean success;
         switch (pref) {
-            case BOTH:
-                // Send both email and SMS, success if one of both succeeds
-                final boolean suc1 = sendPostActivationEmail(pwmRequest);
-                final boolean suc2 = sendPostActivationSms(pwmRequest);
-                success = suc1 || suc2;
-                break;
-            case EMAILFIRST:
-                // Send email first, try SMS if email is not available
-                success = sendPostActivationEmail(pwmRequest) || sendPostActivationSms(pwmRequest);
-                break;
-            case SMSFIRST:
-                // Send SMS first, try email if SMS is not available
-                success = sendPostActivationSms(pwmRequest) || sendPostActivationEmail(pwmRequest);
-                break;
             case SMSONLY:
                 // Only try SMS
                 success = sendPostActivationSms(pwmRequest);

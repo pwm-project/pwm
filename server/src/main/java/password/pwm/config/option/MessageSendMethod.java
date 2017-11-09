@@ -23,11 +23,30 @@
 package password.pwm.config.option;
 
 public enum MessageSendMethod implements ConfigurationOption {
-    NONE,
-    EMAILONLY,
-    BOTH,
-    EMAILFIRST,
-    SMSFIRST,
-    SMSONLY,
-    CHOICE_SMS_EMAIL,
+    NONE(false),
+
+    EMAILONLY(false),
+    SMSONLY(false),
+    CHOICE_SMS_EMAIL(false),
+
+    @Deprecated
+    BOTH(true),         //deprecated oct 2017
+
+    @Deprecated
+    EMAILFIRST(true),   //deprecated oct 2017
+
+    @Deprecated
+    SMSFIRST(true),     //deprecated oct 2017
+
+    ;
+
+    private final boolean deprecated;
+
+    MessageSendMethod(final boolean deprecated) {
+        this.deprecated = deprecated;
+    }
+
+    public boolean isDeprecated() {
+        return deprecated;
+    }
 }

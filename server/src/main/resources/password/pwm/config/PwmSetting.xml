@@ -92,6 +92,17 @@
             <value />
         </default>
     </setting>
+    <setting hidden="false" key="pwm.introURL" level="1">
+        <flag>Select_AllowUserInput</flag>
+        <regex>^/.+</regex>
+        <default>
+            <value>/private</value>
+        </default>
+        <options>
+            <option value="/private">/private</option>
+            <option value="/public">/public</option>
+        </options>
+    </setting>
     <setting hidden="false" key="pwmInstanceName" level="2">
         <default>
             <value />
@@ -812,7 +823,7 @@
             <value>{"to":"@User:Email@","from":"Unlock Account Notice \u003c@DefaultEmailFromAddress@\u003e","subject":"Account Unlock Notice","bodyPlain":"Your account has been unlocked.","bodyHtml":""}</value>
         </default>
     </setting>
-    <setting hidden="false" key="email.pwExpirationNotice" level="1">
+    <setting hidden="true" key="email.pwExpirationNotice" level="1">
         <flag>MacroSupport</flag>
         <default>
             <value>{"to":"@User:Email@","from":"Password Expiration Notice \u003c@DefaultEmailFromAddress@\u003e","subject":"Password Expiration Notice","bodyPlain":"Your password is about to expire.  Your password will expire in @User:DaysUntilPwExpire@ days.","bodyHtml":""}</value>
@@ -2445,11 +2456,8 @@
             <value><![CDATA[EMAILONLY]]></value>
         </default>
         <options>
-            <option value="EMAILONLY">Email Only - Send to email address</option>
-            <option value="SMSONLY">SMS Only - Send via SMS</option>
-            <option value="BOTH">Both - Send token to both email and SMS</option>
-            <option value="EMAILFIRST">Email First - Try to send token via email; if no email address is available, send via SMS</option>
-            <option value="SMSFIRST">SMS First - Try to send token via SMS; if no SMS number is available, send via email</option>
+            <option value="EMAILONLY">Email - Send to email address</option>
+            <option value="SMSONLY">SMS - Send via SMS</option>
             <option value="CHOICE_SMS_EMAIL">User Choice - If both SMS and email address is available, user decides</option>
         </options>
     </setting>
@@ -2468,11 +2476,8 @@
             <value><![CDATA[EMAILONLY]]></value>
         </default>
         <options>
-            <option value="EMAILONLY">Email Only - Send to email address</option>
-            <option value="SMSONLY">SMS Only - Send via SMS</option>
-            <option value="BOTH">Both - Send token to both email and SMS</option>
-            <option value="EMAILFIRST">Email First - Try to send token via email; if no email address is available, send via SMS</option>
-            <option value="SMSFIRST">SMS First - Try to send token via SMS; if no SMS number is available, send via email</option>
+            <option value="EMAILONLY">Email - Send to email address</option>
+            <option value="SMSONLY">SMS - Send via SMS</option>
         </options>
     </setting>
     <setting hidden="false" key="recovery.postActions" level="2">
@@ -2539,11 +2544,8 @@
         </default>
         <options>
             <option value="NONE">None - Do not send email</option>
-            <option value="EMAILONLY">Email Only - Send to email address</option>
-            <option value="SMSONLY">SMS Only - Send via SMS</option>
-            <option value="BOTH">Both - Send token to both email and SMS</option>
-            <option value="EMAILFIRST">Email First - Try to send token via email; if no email address is available, send via SMS</option>
-            <option value="SMSFIRST">SMS First - Try to send token via SMS; if no SMS number is available, send via email</option>
+            <option value="EMAILONLY">Email - Send to email address</option>
+            <option value="SMSONLY">SMS - Send via SMS</option>
         </options>
     </setting>
     <setting hidden="false" key="newUser.enable" level="1" required="true">
@@ -2850,11 +2852,8 @@
         </default>
         <options>
             <option value="NONE">None - Token verification will not be performed</option>
-            <option value="EMAILONLY">Email Only - Send to email address</option>
-            <option value="SMSONLY">SMS Only - Send via SMS</option>
-            <option value="BOTH">Both - Send token to both email and SMS</option>
-            <option value="EMAILFIRST">Email First - Try to send token via email; if no email address is available, send via SMS</option>
-            <option value="SMSFIRST">SMS First - Try to send token via SMS; if no SMS number is available, send via email</option>
+            <option value="EMAILONLY">Email - Send to email address</option>
+            <option value="SMSONLY">SMS - Send via SMS</option>
         </options>
     </setting>
     <setting hidden="false" key="updateAttributes.enable" level="1" required="true">
@@ -3473,8 +3472,8 @@
         </default>
         <options>
             <option value="NONE">None - Token verification will not be available</option>
-            <option value="EMAILONLY">Email Only - Send to email address</option>
-            <option value="SMSONLY">SMS Only - Send via SMS</option>
+            <option value="EMAILONLY">Email - Send to email address</option>
+            <option value="SMSONLY">SMS - Send via SMS</option>
             <option value="CHOICE_SMS_EMAIL">Operator Choice - If both SMS and email address is available, helpdesk operator decides</option>
         </options>
     </setting>
