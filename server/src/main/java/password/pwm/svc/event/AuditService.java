@@ -29,6 +29,7 @@ import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionLabel;
+import password.pwm.i18n.Display;
 import password.pwm.ldap.UserInfo;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -280,7 +281,9 @@ public class AuditService implements PwmService {
     }
 
     public String sizeToDebugString() {
-        return auditVault.sizeToDebugString();
+        return auditVault == null
+                ? LocaleHelper.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE, Display.Value_NotApplicable, null)
+                : auditVault.sizeToDebugString();
     }
 
     public void submit(final AuditEvent auditEvent, final UserInfo userInfo, final PwmSession pwmSession)
