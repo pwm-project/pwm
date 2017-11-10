@@ -31,6 +31,7 @@
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
+<% boolean showForgottenPasswordAction = (Boolean)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ForgottenPasswordShowChangePasswordAction); %>
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
 <div id="wrapper">
@@ -40,10 +41,10 @@
     <div id="centerbody">
         <div id="page-content-title"><pwm:display key="Title_ForgottenPassword" displayIfMissing="true"/></div>
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-        <% if (ForgottenPasswordServlet.ForgottenPasswordAction.isUnlockOnlyFlag()) { %>
-            <p><pwm:display key="Display_RecoverMinLifetimeChoices"/></p>
-        <% } else { %>
+        <% if (showForgottenPasswordAction) { %>
             <p><pwm:display key="Display_RecoverPasswordChoices"/></p>
+        <% } else { %>
+            <p><pwm:display key="Display_RecoverMinLifetimeChoices"/></p>
         <% } %>
 
         <table class="noborder">
@@ -68,28 +69,28 @@
                     &nbsp;
                 </td>
             </tr>
-            <% if (!ForgottenPasswordServlet.ForgottenPasswordAction.isUnlockOnlyFlag()) { %>
-                <tr>
-                    <td>
-                        <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="search">
-                            <button class="btn" type="submit" name="submitBtn">
-                                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-key"></span></pwm:if>
-                                <pwm:display key="Button_ChangePassword"/>
-                            </button>
-                            <input type="hidden" name="choice" value="resetPassword"/>
-                            <input type="hidden" name="processAction" value="<%=ForgottenPasswordServlet.ForgottenPasswordAction.actionChoice%>"/>
-                            <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-                        </form>
-                    </td>
-                    <td>
-                        <pwm:display key="Display_RecoverChoiceReset"/>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        &nbsp;
-                    </td>
-                </tr>
+            <% if (showForgottenPasswordAction) { %>
+            <tr>
+                <td>
+                    <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="search">
+                        <button class="btn" type="submit" name="submitBtn">
+                            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-key"></span></pwm:if>
+                            <pwm:display key="Button_ChangePassword"/>
+                        </button>
+                        <input type="hidden" name="choice" value="resetPassword"/>
+                        <input type="hidden" name="processAction" value="<%=ForgottenPasswordServlet.ForgottenPasswordAction.actionChoice%>"/>
+                        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+                    </form>
+                </td>
+                <td>
+                    <pwm:display key="Display_RecoverChoiceReset"/>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    &nbsp;
+                </td>
+            </tr>
             <% } %>
             <tr>
                 <td>
