@@ -26,7 +26,6 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.Challenge;
 import com.novell.ldapchai.cr.ChallengeSet;
 import com.novell.ldapchai.cr.ResponseSet;
-import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
@@ -35,6 +34,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.VerificationMethodSystem;
 import password.pwm.bean.LoginInfoBean;
+import password.pwm.bean.PasswordStatus;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.TokenDestinationItem;
 import password.pwm.bean.UserIdentity;
@@ -225,6 +225,9 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
         final ForgottenPasswordBean forgottenPasswordBean = forgottenPasswordBean(pwmRequest);
         return pwmRequest.getConfig().getForgottenPasswordProfiles().get(forgottenPasswordBean.getForgottenPasswordProfileID());
     }
+
+
+
 
     @ActionHandler(action = "actionChoice")
     private ProcessStatus processActionChoice(final PwmRequest pwmRequest)
@@ -901,9 +904,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
                 );
             }
         } catch (PwmOperationalException e) {
-            if (!forgottenPasswordProfile.readSettingAsBoolean(PwmSetting.RECOVERY_ALLOW_UNLOCK)) {
-                throw new PwmUnrecoverableException(e.getErrorInformation());
-            }
+            throw new PwmUnrecoverableException(e.getErrorInformation());
         }
 
         LOGGER.trace(pwmRequest, "all recovery checks passed, proceeding to configured recovery action");
@@ -914,18 +915,24 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
             return;
         }
 
-        try {
-            if (ForgottenPasswordUtil.showActionChoicePageToUser(pwmRequest, userInfo, forgottenPasswordProfile, forgottenPasswordBean)) {
-                pwmRequest.forwardToJsp(JspUrl.RECOVER_PASSWORD_ACTION_CHOICE);
-                return;
+        if (forgottenPasswordProfile.readSettingAsBoolean(PwmSetting.RECOVERY_ALLOW_UNLOCK)) {
+            final PasswordStatus passwordStatus = userInfo.getPasswordStatus();
+
+            if (!passwordStatus.isExpired() && !passwordStatus.isPreExpired()) {
+                try {
+                    final ChaiUser theUser = pwmApplication.getProxiedChaiUser(forgottenPasswordBean.getUserIdentity());
+                    if (theUser.isPasswordLocked()) {
+                        pwmRequest.forwardToJsp(JspUrl.RECOVER_PASSWORD_ACTION_CHOICE);
+                        return;
+                    }
+                } catch (ChaiOperationException e) {
+                    LOGGER.error(pwmRequest, "chai operation error checking user lock status: " + e.getMessage());
+                }
             }
-        } catch (ChaiException | PwmException e) {
-            LOGGER.error(pwmRequest, "chai operation error checking user lock status: " + e.getMessage());
         }
 
         this.executeResetPassword(pwmRequest);
     }
-
 
 
     private void executeUnlock(final PwmRequest pwmRequest)
@@ -1194,15 +1201,6 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
     }
 
 
-    /**
-     * This method is invoked after the user search is performed and the forgotten password data bean is initialized
-     * with all the
-     * @param pwmRequest
-     * @param userIdentity
-     * @param forgottenPasswordBean
-     * @throws PwmUnrecoverableException
-     * @throws PwmOperationalException
-     */
     private static void initForgottenPasswordBean(
             final PwmRequest pwmRequest,
             final UserIdentity userIdentity,
@@ -1479,5 +1477,6 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
         pwmRequest.forwardToJsp(JspUrl.RECOVER_PASSWORD_TOKEN_CHOICE);
     }
 }
+
 
 
