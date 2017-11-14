@@ -21,22 +21,17 @@
  */
 
 
-import { module } from 'angular';
-import HelpDeskSearchComponent from './helpdesk-search.component';
-import uxModule from '../ux/ux.module';
-import PersonCardComponent from '../peoplesearch/person-card.component';
-import PromiseService from '../services/promise.service';
+export default [
+    '$stateProvider',
+    '$urlRouterProvider',
+    (
+        $stateProvider: angular.ui.IStateProvider,
+        $urlRouterProvider: angular.ui.IUrlRouterProvider
+    ) => {
+        $urlRouterProvider.otherwise(
+            ($injector: angular.auto.IInjectorService, $location: angular.ILocationService) => {
+                $location.url('search');
+            });
 
-require('../peoplesearch/peoplesearch.scss');
-
-const moduleName = 'help-desk';
-
-module(moduleName, [
-    uxModule
-])
-
-    .component('helpDeskSearch', HelpDeskSearchComponent)
-    .component('personCard', PersonCardComponent)
-    .service('PromiseService', PromiseService);
-
-export default moduleName;
+        $stateProvider.state('search', { url: '/search?query', component: 'helpDeskSearch' });
+    }];

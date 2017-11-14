@@ -48,7 +48,6 @@
 <pwm:script-ref url="/public/resources/webjars/angular-translate/dist/angular-translate.min.js" />
 
 <jsp:include page="/WEB-INF/jsp/fragment/footer.jsp"/>
-<pwm:script-ref url="/public/resources/js/helpdesk.js"/>
 <link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/webjars/pwm-client/fonts.css' addContext="true"/>"/>
 <pwm:script-ref url="/public/resources/webjars/pwm-client/helpdesk.ng.js" />
 

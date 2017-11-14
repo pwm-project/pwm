@@ -21,12 +21,16 @@
  */
 
 
-import { IConfigService } from './config.service';
 import { IPromise, IQService } from 'angular';
+import {ConfigBaseService} from './config-base.service.dev';
+import {IConfigService} from './config-base.service';
 
-export default class ConfigService implements IConfigService {
+
+export default class HelpDeskConfigService extends ConfigBaseService implements IConfigService {
     static $inject = [ '$q' ];
-    constructor(private $q: IQService) {}
+    constructor($q: IQService) {
+        super($q);
+    }
 
     getColumnConfig(): IPromise<any> {
         return this.$q.resolve({
@@ -34,19 +38,8 @@ export default class ConfigService implements IConfigService {
             sn: 'Last Name',
             title: 'Title',
             mail: 'Email',
-            telephoneNumber: 'Telephone'
+            telephoneNumber: 'Telephone',
+            workforceId: 'Workforce ID'
         });
-    }
-
-    photosEnabled(): IPromise<boolean> {
-        return this.$q.resolve(true);
-    }
-
-    orgChartEnabled(): IPromise<boolean> {
-        return this.$q.resolve(true);
-    };
-
-    getValue(key: string): IPromise<any> {
-        return null;
     }
 }

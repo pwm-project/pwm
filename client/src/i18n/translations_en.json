@@ -1,9 +1,14 @@
 {
-  "Title_PeopleSearch": "People Search",
   "Title_Management": "Management",
   "Title_DirectReports": "Direct Report(s)",
+  "Title_HelpDesk": "Help Desk",
+  "Title_HelpDeskCard": "Help Desk Cards",
+  "Title_HelpDeskTable": "Help Desk Table",
   "Title_Organization": "Organization",
   "Title_OrgChart": "Organizational Chart",
+  "Title_PeopleSearch": "People Search",
+  "Title_PeopleSearchCard": "People Search Cards",
+  "Title_PeopleSearchTable": "People Search Table",
   "Title_Details": "Details",
 
   "Display_PleaseWait": "Loading...",

@@ -24,6 +24,10 @@
 import { IPwmService } from './pwm.service';
 
 export default class PwmService implements IPwmService {
+    getPeopleSearchServerUrl(processAction: string, additionalParameters?: any): string {
+        return null;
+    }
+
     getServerUrl(processAction: string, additionalParameters?: any): string {
         return null;
     }

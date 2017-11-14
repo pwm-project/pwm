@@ -87,7 +87,17 @@ module.exports = {
     },
     plugins: [
         new HtmlWebpackPlugin({
+            chunks: ['peoplesearch.ng'],
+            filename: 'peoplesearch.html',
             template: 'index.html',
+            // title: 'PeopleSearch Development',
+            inject: 'body'
+        }),
+        new HtmlWebpackPlugin({
+            chunks: ['helpdesk.ng'],
+            filename: 'helpdesk.html',
+            template: 'index.html',
+            // title: 'PeopleSearch Development',
             inject: 'body'
         })
     ],

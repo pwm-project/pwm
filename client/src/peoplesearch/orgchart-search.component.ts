@@ -22,7 +22,7 @@
 
 
 import { Component } from '../component';
-import { IConfigService } from '../services/config.service';
+import { IPeopleSearchConfigService } from '../services/config-peoplesearch.service';
 import { IPeopleService } from '../services/people.service';
 import IPwmService from '../services/pwm.service';
 import { isArray, isString, IPromise, IQService, IScope } from 'angular';
@@ -57,7 +57,7 @@ export default class OrgChartSearchComponent {
                 private $scope: IScope,
                 private $state: angular.ui.IStateService,
                 private $stateParams: angular.ui.IStateParamsService,
-                private configService: IConfigService,
+                private configService: IPeopleSearchConfigService,
                 private localStorageService: LocalStorageService,
                 private peopleService: IPeopleService,
                 private pwmService: IPwmService) {

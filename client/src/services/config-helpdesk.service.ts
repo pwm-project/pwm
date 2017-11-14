@@ -21,22 +21,21 @@
  */
 
 
-import { module } from 'angular';
-import HelpDeskSearchComponent from './helpdesk-search.component';
-import uxModule from '../ux/ux.module';
-import PersonCardComponent from '../peoplesearch/person-card.component';
-import PromiseService from '../services/promise.service';
+import { IHttpService, ILogService, IPromise, IQService } from 'angular';
+import IPwmService from './pwm.service';
+import PwmService from './pwm.service';
+import {ConfigBaseService, IConfigService} from './config-base.service';
 
-require('../peoplesearch/peoplesearch.scss');
+const COLUMN_CONFIG = 'helpdesk_search_columns';
 
-const moduleName = 'help-desk';
+export default class HelpDeskConfigService extends ConfigBaseService implements IConfigService {
 
-module(moduleName, [
-    uxModule
-])
+    static $inject = ['$http', '$log', '$q', 'PwmService' ];
+    constructor($http: IHttpService, $log: ILogService, $q: IQService, pwmService: IPwmService) {
+        super($http, $log, $q, pwmService);
+    }
 
-    .component('helpDeskSearch', HelpDeskSearchComponent)
-    .component('personCard', PersonCardComponent)
-    .service('PromiseService', PromiseService);
-
-export default moduleName;
+    getColumnConfig(): IPromise<any> {
+        return this.getValue(COLUMN_CONFIG);
+    }
+}

@@ -21,22 +21,31 @@
  */
 
 
-import { module } from 'angular';
-import HelpDeskSearchComponent from './helpdesk-search.component';
-import uxModule from '../ux/ux.module';
-import PersonCardComponent from '../peoplesearch/person-card.component';
-import PromiseService from '../services/promise.service';
+import { IPromise, IQService } from 'angular';
+import {ConfigBaseService} from './config-base.service.dev';
+import {IConfigService} from './config-base.service';
+import {IPeopleSearchConfigService} from './config-peoplesearch.service';
 
-require('../peoplesearch/peoplesearch.scss');
 
-const moduleName = 'help-desk';
+export default class ConfigService
+                     extends ConfigBaseService
+                     implements IConfigService, IPeopleSearchConfigService {
+    static $inject = [ '$q' ];
+    constructor($q: IQService) {
+        super($q);
+    }
 
-module(moduleName, [
-    uxModule
-])
+    getColumnConfig(): IPromise<any> {
+        return this.$q.resolve({
+            givenName: 'First Name',
+            sn: 'Last Name',
+            title: 'Title',
+            mail: 'Email',
+            telephoneNumber: 'Telephone'
+        });
+    }
 
-    .component('helpDeskSearch', HelpDeskSearchComponent)
-    .component('personCard', PersonCardComponent)
-    .service('PromiseService', PromiseService);
-
-export default moduleName;
+    orgChartEnabled(): IPromise<boolean> {
+        return this.$q.resolve(true);
+    };
+}

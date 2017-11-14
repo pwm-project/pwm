@@ -24,6 +24,7 @@
 import { ILogService, IWindowService } from 'angular';
 
 export interface IPwmService {
+    getPeopleSearchServerUrl(processAction: string, additionalParameters?: any): string;
     getServerUrl(processAction: string, additionalParameters?: any): string;
     ajaxTypingWait: number;
     localeStrings: any;
@@ -59,11 +60,24 @@ export default class PwmService implements IPwmService {
         }
     }
 
-    getServerUrl(processAction: string, additionalParameters?: any): string {
-        let url: string = window.location.pathname + '?processAction=' + processAction;
+    private getApiPathname(route: string) {
+        return this.urlContext + route;
+    }
+
+    private getEndpointServerUrl(pathname: string, processAction: string, additionalParameters?: any): string {
+        let url: string = pathname + '?processAction=' + processAction;
         url = this.addParameters(url, additionalParameters);
 
         return url;
+    }
+
+    getPeopleSearchServerUrl(processAction: string, additionalParameters?: any): string {
+        let pathname: string = this.getApiPathname('/private/peoplesearch');
+        return this.getEndpointServerUrl(pathname, processAction, additionalParameters);
+    }
+
+    getServerUrl(processAction: string, additionalParameters?: any): string {
+        return this.getEndpointServerUrl(window.location.pathname, processAction, additionalParameters);
     }
 
     get ajaxTypingWait(): number {
@@ -89,7 +103,6 @@ export default class PwmService implements IPwmService {
 
         return [];
     }
-
 
     private addParameters(url: string, params: any): string {
         if (!this.PWM_MAIN) {

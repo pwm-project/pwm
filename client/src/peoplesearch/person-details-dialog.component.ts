@@ -22,7 +22,7 @@
 
 
 import { Component } from '../component';
-import { IConfigService } from '../services/config.service';
+import { IPeopleSearchConfigService } from '../services/config-peoplesearch.service';
 import { IPeopleService } from '../services/people.service';
 import { IAugmentedJQuery, ITimeoutService } from 'angular';
 import { IPerson } from '../models/person.model';
@@ -42,7 +42,7 @@ export default class PersonDetailsDialogComponent {
                 private $state: angular.ui.IStateService,
                 private $stateParams: angular.ui.IStateParamsService,
                 private $timeout: ITimeoutService,
-                private configService: IConfigService,
+                private configService: IPeopleSearchConfigService,
                 private peopleService: IPeopleService) {
     }
 

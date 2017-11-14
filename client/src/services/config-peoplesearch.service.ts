@@ -24,61 +24,30 @@
 import { IHttpService, ILogService, IPromise, IQService } from 'angular';
 import IPwmService from './pwm.service';
 import PwmService from './pwm.service';
+import {ConfigBaseService, IConfigService} from './config-base.service';
 
 const COLUMN_CONFIG = 'peoplesearch_search_columns';
-const PHOTO_ENABLED = 'peoplesearch_enablePhoto';
 const ORGCHART_ENABLED = 'peoplesearch_orgChartEnabled';
 
-export interface IConfigService {
-    getColumnConfig(): IPromise<any>;
-    photosEnabled(): IPromise<boolean>;
+export interface IPeopleSearchConfigService extends IConfigService {
     orgChartEnabled(): IPromise<boolean>;
-    getValue(key: string): IPromise<any>;
 }
 
-export default class ConfigService implements IConfigService {
+export default class PeopleSearchConfigService
+                     extends ConfigBaseService
+                     implements IConfigService, IPeopleSearchConfigService {
 
     static $inject = ['$http', '$log', '$q', 'PwmService' ];
-    constructor(private $http: IHttpService,
-                private $log: ILogService,
-                private $q: IQService,
-                private pwmService: IPwmService) {
+    constructor($http: IHttpService, $log: ILogService, $q: IQService, pwmService: IPwmService) {
+        super($http, $log, $q, pwmService);
     }
 
     getColumnConfig(): IPromise<any> {
         return this.getValue(COLUMN_CONFIG);
     }
 
-    photosEnabled(): IPromise<boolean> {
-        return this.getValue(PHOTO_ENABLED)
-            .then(null, () => { return this.$q.resolve(true); }); // On error use default
-    }
-
     orgChartEnabled(): IPromise<boolean> {
         return this.getValue(ORGCHART_ENABLED)
             .then(null, () => { return this.$q.resolve(true); }); // On error use default
-    }
-
-    getValue(key: string): IPromise<any> {
-        return this.$http
-            .get(this.pwmService.getServerUrl('clientData'), { cache: true })
-            .then((response) => {
-                if (response.data['error']) {
-                    return this.handlePwmError(response);
-                }
-
-                return this.$q.resolve(response.data['data'][key]);
-            }, this.handleHttpError);
-    }
-
-    private handleHttpError(error): void {
-        this.$log.error(error);
-    }
-
-    private handlePwmError(response): IPromise<any> {
-        const errorMessage = `${response.data['errorCode']}: ${response.data['errorMessage']}`;
-        this.$log.error(errorMessage);
-
-        return this.$q.reject(response.data['errorMessage']);
     }
 }

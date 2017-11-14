@@ -21,22 +21,20 @@
  */
 
 
-import { module } from 'angular';
-import HelpDeskSearchComponent from './helpdesk-search.component';
-import uxModule from '../ux/ux.module';
-import PersonCardComponent from '../peoplesearch/person-card.component';
-import PromiseService from '../services/promise.service';
+import {IConfigService} from './config-base.service';
+import {IPromise, IQService} from 'angular';
 
-require('../peoplesearch/peoplesearch.scss');
+export abstract class ConfigBaseService implements IConfigService {
+    abstract getColumnConfig(): IPromise<any>;
 
-const moduleName = 'help-desk';
+    constructor(protected $q: IQService) {
+    }
 
-module(moduleName, [
-    uxModule
-])
+    getValue(key: string): IPromise<any> {
+        return null;
+    }
 
-    .component('helpDeskSearch', HelpDeskSearchComponent)
-    .component('personCard', PersonCardComponent)
-    .service('PromiseService', PromiseService);
-
-export default moduleName;
+    photosEnabled(): IPromise<boolean> {
+        return this.$q.resolve(true);
+    }
+}

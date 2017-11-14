@@ -20,35 +20,29 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-
 import { bootstrap, module } from 'angular';
-import ConfigService from './services/config-peoplesearch.service.dev';
-import peopleSearchModule from './peoplesearch/peoplesearch.module';
-import PeopleService from './services/people.service.dev';
-import PwmService from './services/pwm.service.dev';
+import helpDeskModule from './helpdesk.module';
 import routes from './routes';
-import routeErrorHandler from './route-error-handler';
 import uiRouter from '@uirouter/angularjs';
+import PeopleService from '../services/people.service.dev';
+import HelpDeskConfigService from '../services/config-helpdesk.service.dev';
 
 // fontgen-loader needs this :(
-require('./icons.json');
+require('../icons.json');
 
 module('app', [
     uiRouter,
-    peopleSearchModule,
+    helpDeskModule,
     'pascalprecht.translate'
 ])
-
-    .config(routes)
     .config(['$translateProvider', ($translateProvider: angular.translate.ITranslateProvider) => {
         $translateProvider.translations('en', require('i18n/translations_en.json'));
         $translateProvider.useSanitizeValueStrategy('escapeParameters');
         $translateProvider.preferredLanguage('en');
     }])
-    .run(routeErrorHandler)
+    .config(routes)
     .service('PeopleService', PeopleService)
-    .service('PwmService', PwmService)
-    .service('ConfigService', ConfigService);
+    .service('ConfigService', HelpDeskConfigService);
 
 // Attach to the page document
 bootstrap(document, ['app']);

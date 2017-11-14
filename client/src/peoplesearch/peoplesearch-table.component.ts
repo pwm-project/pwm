@@ -22,7 +22,7 @@
 
 
 import { Component } from '../component';
-import { IConfigService } from '../services/config.service';
+import { IPeopleSearchConfigService } from '../services/config-peoplesearch.service';
 import IPeopleService from '../services/people.service';
 import IPwmService from '../services/pwm.service';
 import { IQService, IScope } from 'angular';
@@ -55,7 +55,7 @@ export default class PeopleSearchTableComponent extends PeopleSearchBaseComponen
                 $state: angular.ui.IStateService,
                 $stateParams: angular.ui.IStateParamsService,
                 $translate: angular.translate.ITranslateService,
-                configService: IConfigService,
+                configService: IPeopleSearchConfigService,
                 localStorageService: LocalStorageService,
                 peopleService: IPeopleService,
                 promiseService: PromiseService,
