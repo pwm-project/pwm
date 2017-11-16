@@ -35,6 +35,8 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.provider.ChaiProviderFactory;
 import com.novell.ldapchai.provider.ChaiSetting;
 import com.novell.ldapchai.util.ChaiUtility;
+import com.nulabinc.zxcvbn.Strength;
+import com.nulabinc.zxcvbn.Zxcvbn;
 import password.pwm.AppProperty;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
@@ -397,7 +399,7 @@ public class PasswordUtility {
         // update stats
         pwmApplication.getStatisticsManager().updateEps(EpsStatistic.PASSWORD_CHANGES,1);
 
-        final int passwordStrength = PasswordUtility.judgePasswordStrength(newPassword.getStringValue());
+        final int passwordStrength = PasswordUtility.judgePasswordStrength(pwmApplication.getConfig(), newPassword.getStringValue());
         pwmApplication.getStatisticsManager().updateAverageValue(Statistic.AVG_PASSWORD_STRENGTH,passwordStrength);
 
         // at this point the password has been changed, so log it.
@@ -671,6 +673,39 @@ public class PasswordUtility {
     */
 
     public static int judgePasswordStrength(
+            final Configuration configuration,
+            final String password
+    )
+            throws PwmUnrecoverableException
+    {
+        final boolean useZxcvbnLib = configuration.readSettingAsBoolean(PwmSetting.PASSWORD_USE_ZXCVBN_FOR_STRENGTH_METER);
+        if (useZxcvbnLib) {
+            return judgePasswordStrengthUsingZxcvbnAlgorithm(configuration, password);
+        } else {
+            return judgePasswordStrengthUsingTraditionalAlgorithm(password);
+        }
+    }
+
+    public static int judgePasswordStrengthUsingZxcvbnAlgorithm(
+            final Configuration configuration,
+            final String password
+    ) {
+        final Zxcvbn zxcvbn = new Zxcvbn();
+        final Strength strength = zxcvbn.measure(password);
+
+        final int zxcvbnScore = strength.getScore();
+
+        // zxcvbn returns a score of 0-4 (see: https://github.com/dropbox/zxcvbn)
+        switch (zxcvbnScore) {
+            case 4: return Integer.parseInt(configuration.readAppProperty(AppProperty.PASSWORD_STRENGTH_THRESHOLD_VERY_STRONG));
+            case 3: return Integer.parseInt(configuration.readAppProperty(AppProperty.PASSWORD_STRENGTH_THRESHOLD_STRONG));
+            case 2: return Integer.parseInt(configuration.readAppProperty(AppProperty.PASSWORD_STRENGTH_THRESHOLD_GOOD));
+            case 1: return Integer.parseInt(configuration.readAppProperty(AppProperty.PASSWORD_STRENGTH_THRESHOLD_WEAK));
+            default: return Integer.parseInt(configuration.readAppProperty(AppProperty.PASSWORD_STRENGTH_THRESHOLD_VERY_WEAK));
+        }
+    }
+
+    public static int judgePasswordStrengthUsingTraditionalAlgorithm (
             final String password
     )
             throws PwmUnrecoverableException
@@ -914,7 +949,7 @@ public class PasswordUtility {
             }
         }
 
-        final int strength = judgePasswordStrength(password == null ? null : password.getStringValue());
+        final int strength = judgePasswordStrength(pwmApplication.getConfig(), password == null ? null : password.getStringValue());
         return new PasswordCheckInfo(userMessage, pass, strength, matchStatus, errorCode);
     }
 

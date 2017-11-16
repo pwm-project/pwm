@@ -191,6 +191,11 @@
             <value>true</value>
         </default>
     </setting>
+    <setting hidden="false" key="password.useZxcvbnForStrengthMeter" level="1" required="true">
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
     <setting hidden="false" key="display.showHidePasswordFields" level="1" required="true">
         <default>
             <value>true</value>

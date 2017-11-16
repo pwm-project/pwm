@@ -784,6 +784,11 @@
             <artifactId>caffeine</artifactId>
             <version>2.5.6</version>
         </dependency>
+        <dependency>
+            <groupId>com.nulab-inc</groupId>
+            <artifactId>zxcvbn</artifactId>
+            <version>1.2.3</version>
+        </dependency>
 
 
 
