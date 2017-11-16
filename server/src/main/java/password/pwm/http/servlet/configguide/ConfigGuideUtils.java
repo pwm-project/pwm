@@ -89,8 +89,13 @@ public class ConfigGuideUtils {
         final boolean ldapServerSecure = "true".equalsIgnoreCase(form.get(ConfigGuideFormField.PARAM_LDAP_SECURE));
         final String ldapUrl = "ldap" + (ldapServerSecure ? "s" : "") + "://" + form.get(ConfigGuideFormField.PARAM_LDAP_HOST) + ":" + form.get(ConfigGuideFormField.PARAM_LDAP_PORT);
         try {
-            final ChaiConfiguration chaiConfiguration = new ChaiConfiguration(ldapUrl, form.get(ConfigGuideFormField.PARAM_LDAP_PROXY_DN), form.get(ConfigGuideFormField.PARAM_LDAP_PROXY_PW));
-            chaiConfiguration.setSetting(ChaiSetting.PROMISCUOUS_SSL,"true");
+            final ChaiConfiguration chaiConfiguration = ChaiConfiguration.builder(
+                    ldapUrl,
+                    form.get(ConfigGuideFormField.PARAM_LDAP_PROXY_DN),
+                    form.get(ConfigGuideFormField.PARAM_LDAP_PROXY_PW)
+            )
+                    .setSetting(ChaiSetting.PROMISCUOUS_SSL,"true")
+                    .build();
             final ChaiProvider chaiProvider = ChaiProviderFactory.createProvider(chaiConfiguration);
             if (doSchemaExtension) {
                 return SchemaManager.extendSchema(chaiProvider);

@@ -55,7 +55,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.Collections;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -137,8 +136,8 @@ public class HelpdeskDetailInfoBean implements Serializable {
         }
 
         try {
-            final Date lastLoginTime = theUser.readLastLoginTime();
-            detailInfo.setLastLoginTime(lastLoginTime == null ? null : lastLoginTime.toInstant());
+            final Instant lastLoginTime = theUser.readLastLoginTime();
+            detailInfo.setLastLoginTime(lastLoginTime);
         } catch (Exception e) {
             LOGGER.error(pwmRequest, "unexpected error reading last login time for user '" + userIdentity + "', " + e.getMessage());
         }

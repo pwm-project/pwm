@@ -33,6 +33,7 @@ import com.novell.ldapchai.provider.ChaiConfiguration;
 import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.provider.ChaiProviderFactory;
 import com.novell.ldapchai.provider.ChaiSetting;
+import com.novell.ldapchai.provider.DirectoryVendor;
 import com.novell.ldapchai.util.ChaiUtility;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
@@ -230,7 +231,7 @@ public class LDAPStatusChecker implements HealthChecker {
             LOGGER.trace(SessionLabel.HEALTH_SESSION_LABEL, "beginning process to check ldap test user password read/write operations for profile " + ldapProfile.getIdentifier());
             try {
                 final boolean readPwdEnabled = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.EDIRECTORY_READ_USER_PWD)
-                        && theUser.getChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY;
+                        && theUser.getChaiProvider().getDirectoryVendor() == DirectoryVendor.EDIRECTORY;
 
                 if (readPwdEnabled) {
                     try {
@@ -395,7 +396,7 @@ public class LDAPStatusChecker implements HealthChecker {
         final List<HealthRecord> returnRecords = new ArrayList<>();
         ChaiProvider chaiProvider = null;
         try{
-            ChaiProvider.DIRECTORY_VENDOR directoryVendor = null;
+            final DirectoryVendor directoryVendor;
             try {
                 final String proxyDN = ldapProfile.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
                 final PasswordData proxyPW = ldapProfile.readSettingAsPassword(PwmSetting.LDAP_PROXY_USER_PASSWORD);
@@ -439,7 +440,7 @@ public class LDAPStatusChecker implements HealthChecker {
                 return returnRecords;
             }
 
-            if (directoryVendor != null && directoryVendor == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY) {
+            if (directoryVendor != null && directoryVendor == DirectoryVendor.ACTIVE_DIRECTORY) {
                 returnRecords.addAll(checkAd(pwmApplication, config, ldapProfile));
             }
 
@@ -538,7 +539,7 @@ public class LDAPStatusChecker implements HealthChecker {
 
         LOGGER.trace(SessionLabel.HEALTH_SESSION_LABEL,"beginning check for replica vendor sameness");
         boolean errorReachingServer = false;
-        final Map<String,ChaiProvider.DIRECTORY_VENDOR> replicaVendorMap = new HashMap<>();
+        final Map<String, DirectoryVendor> replicaVendorMap = new HashMap<>();
 
         try {
             for (final LdapProfile ldapProfile : pwmApplication.getConfig().getLdapProfiles().values()) {
@@ -549,7 +550,7 @@ public class LDAPStatusChecker implements HealthChecker {
                 final Collection<ChaiConfiguration> replicaConfigs = ChaiUtility.splitConfigurationPerReplica(profileChaiConfiguration, Collections.<ChaiSetting,String>emptyMap());
                 for (final ChaiConfiguration chaiConfiguration : replicaConfigs) {
                     final ChaiProvider loopProvider = ChaiProviderFactory.createProvider(chaiConfiguration);
-                    replicaVendorMap.put(chaiConfiguration.getSetting(ChaiSetting.BIND_URLS),loopProvider.getDirectoryVendor());
+                    replicaVendorMap.put(chaiConfiguration.getSetting(ChaiSetting.BIND_URLS), loopProvider.getDirectoryVendor());
                 }
             }
         } catch (Exception e) {
@@ -558,12 +559,12 @@ public class LDAPStatusChecker implements HealthChecker {
         }
 
         final ArrayList<HealthRecord> healthRecords = new ArrayList<>();
-        final Set<ChaiProvider.DIRECTORY_VENDOR> discoveredVendors = new HashSet<>(replicaVendorMap.values());
+        final Set<DirectoryVendor> discoveredVendors = new HashSet<>(replicaVendorMap.values());
 
         if (discoveredVendors.size() >= 2) {
             final StringBuilder vendorMsg = new StringBuilder();
-            for (final Iterator<Map.Entry<String,ChaiProvider.DIRECTORY_VENDOR>> iterator = replicaVendorMap.entrySet().iterator(); iterator.hasNext(); ) {
-                final Map.Entry<String,ChaiProvider.DIRECTORY_VENDOR> entry = iterator.next();
+            for (final Iterator<Map.Entry<String, DirectoryVendor>> iterator = replicaVendorMap.entrySet().iterator(); iterator.hasNext(); ) {
+                final Map.Entry<String, DirectoryVendor> entry = iterator.next();
                 final String key = entry.getKey();
                 vendorMsg.append(key).append("=").append(entry.getValue().toString());
                 if (iterator.hasNext()) {

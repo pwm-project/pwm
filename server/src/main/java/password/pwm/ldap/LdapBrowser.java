@@ -27,6 +27,8 @@ import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
+import com.novell.ldapchai.provider.DirectoryVendor;
+import com.novell.ldapchai.provider.SearchScope;
 import com.novell.ldapchai.util.ChaiUtility;
 import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.AppProperty;
@@ -150,7 +152,7 @@ public class LdapBrowser {
 
         final HashMap<String, Boolean> returnMap = new HashMap<>();
         final ChaiProvider chaiProvider = getChaiProvider(profile);
-        if ((dn == null || dn.isEmpty()) && chaiProvider.getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY) {
+        if ((dn == null || dn.isEmpty()) && chaiProvider.getDirectoryVendor() == DirectoryVendor.ACTIVE_DIRECTORY) {
             final Set<String> adRootDNList = adRootDNList(profile);
             for (final String rootDN : adRootDNList) {
                 returnMap.put(rootDN, true);
@@ -163,7 +165,7 @@ public class LdapBrowser {
                 searchHelper.setFilter("(objectclass=*)");
                 searchHelper.setMaxResults(getMaxSizeLimit());
                 searchHelper.setAttributes("subordinateCount");
-                searchHelper.setSearchScope(ChaiProvider.SEARCH_SCOPE.ONE);
+                searchHelper.setSearchScope(SearchScope.ONE);
                 results = chaiProvider.searchMultiValues(dn, searchHelper);
 
             }
@@ -180,7 +182,7 @@ public class LdapBrowser {
                     searchHelper.setFilter("(objectclass=*)");
                     searchHelper.setMaxResults(1);
                     searchHelper.setAttributes(Collections.emptyList());
-                    searchHelper.setSearchScope(ChaiProvider.SEARCH_SCOPE.ONE);
+                    searchHelper.setSearchScope(SearchScope.ONE);
                     try {
                         final Map<String, Map<String, String>> subSearchResults = chaiProvider.search(resultDN, searchHelper);
                         hasSubs = !subSearchResults.isEmpty();
@@ -197,7 +199,7 @@ public class LdapBrowser {
     private Set<String> adRootDNList(final String profile) throws ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException {
         final ChaiProvider chaiProvider = getChaiProvider(profile);
         final Set<String> adRootValues = new HashSet<>();
-        if (chaiProvider.getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY) {
+        if (chaiProvider.getDirectoryVendor() == DirectoryVendor.ACTIVE_DIRECTORY) {
             final ChaiEntry chaiEntry = ChaiUtility.getRootDSE(chaiProvider);
             adRootValues.addAll(chaiEntry.readMultiStringAttribute("namingContexts"));
         }

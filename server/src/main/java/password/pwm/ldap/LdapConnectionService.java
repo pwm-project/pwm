@@ -24,6 +24,7 @@ package password.pwm.ldap;
 
 import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.provider.ChaiProvider;
+import com.novell.ldapchai.provider.ChaiProviderFactory;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.config.option.DataStorageMethod;
@@ -56,6 +57,7 @@ public class LdapConnectionService implements PwmService {
     private STATUS status = STATUS.NEW;
     private AtomicLoopIntIncrementer slotIncrementer;
     private final ThreadLocal<Map<LdapProfile,ChaiProvider>> threadLocalProvider = new ThreadLocal<>();
+    private final ChaiProviderFactory chaiProviderFactory = ChaiProviderFactory.newProviderFactory();
 
     public STATUS status()
     {

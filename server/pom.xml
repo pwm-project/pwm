@@ -652,7 +652,7 @@
         <dependency>
             <groupId>com.github.ldapchai</groupId>
             <artifactId>ldapchai</artifactId>
-            <version>0.6.11</version>
+            <version>0.7.0</version>
         </dependency>
         <dependency>
             <groupId>commons-net</groupId>

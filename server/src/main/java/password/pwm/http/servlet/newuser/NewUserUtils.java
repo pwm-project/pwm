@@ -30,6 +30,7 @@ import com.novell.ldapchai.provider.ChaiConfiguration;
 import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.provider.ChaiProviderFactory;
 import com.novell.ldapchai.provider.ChaiSetting;
+import com.novell.ldapchai.provider.DirectoryVendor;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.bean.EmailItemBean;
@@ -174,7 +175,7 @@ class NewUserUtils {
         {
             final String settingValue = pwmApplication.getConfig().readAppProperty(AppProperty.NEWUSER_LDAP_USE_TEMP_PW);
             if ("auto".equalsIgnoreCase(settingValue)) {
-                useTempPw = chaiProvider.getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY;
+                useTempPw = chaiProvider.getDirectoryVendor() == DirectoryVendor.ACTIVE_DIRECTORY;
             } else {
                 useTempPw = Boolean.parseBoolean(settingValue);
             }
@@ -201,7 +202,7 @@ class NewUserUtils {
             }
 
             // add AD-specific attributes
-            if (ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY == chaiProvider.getDirectoryVendor()) {
+            if (DirectoryVendor.ACTIVE_DIRECTORY == chaiProvider.getDirectoryVendor()) {
                 try {
                     NewUserUtils.LOGGER.debug(pwmSession,
                             "setting userAccountControl attribute to enable account " + theUser.getEntryDN());
@@ -217,9 +218,10 @@ class NewUserUtils {
             try { // bind as user
                 NewUserUtils.LOGGER.debug(pwmSession,
                         "attempting bind as user to then allow changing to requested password for new user entry: " + newUserDN);
-                final ChaiConfiguration chaiConfiguration = new ChaiConfiguration(chaiProvider.getChaiConfiguration());
-                chaiConfiguration.setSetting(ChaiSetting.BIND_DN, newUserDN);
-                chaiConfiguration.setSetting(ChaiSetting.BIND_PASSWORD, temporaryPassword.getStringValue());
+                final ChaiConfiguration chaiConfiguration = ChaiConfiguration.builder(chaiProvider.getChaiConfiguration())
+                        .setSetting(ChaiSetting.BIND_DN, newUserDN)
+                        .setSetting(ChaiSetting.BIND_PASSWORD, temporaryPassword.getStringValue())
+                        .build();
                 final ChaiProvider bindAsProvider = ChaiProviderFactory.createProvider(chaiConfiguration);
                 final ChaiUser bindAsUser = ChaiFactory.createChaiUser(newUserDN, bindAsProvider);
                 bindAsUser.changePassword(temporaryPassword.getStringValue(), userPassword.getStringValue());
@@ -243,7 +245,7 @@ class NewUserUtils {
             }
 
             // add AD-specific attributes
-            if (ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY == chaiProvider.getDirectoryVendor()) {
+            if (DirectoryVendor.ACTIVE_DIRECTORY == chaiProvider.getDirectoryVendor()) {
                 try {
                     theUser.writeStringAttribute("userAccountControl", "512");
                 } catch (ChaiOperationException e) {

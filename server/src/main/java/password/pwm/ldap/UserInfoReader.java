@@ -28,6 +28,7 @@ import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
+import com.novell.ldapchai.provider.SearchScope;
 import password.pwm.PwmApplication;
 import password.pwm.bean.PasswordStatus;
 import password.pwm.bean.ResponseInfoBean;
@@ -66,7 +67,6 @@ import password.pwm.util.operations.otp.OTPUserRecord;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -153,10 +153,7 @@ public class UserInfoReader implements UserInfo {
     public Instant getLastLdapLoginTime() throws PwmUnrecoverableException
     {
         try {
-            final Date lastLoginTime = chaiUser.readLastLoginTime();
-            return lastLoginTime == null
-                    ? null
-                    : lastLoginTime.toInstant();
+            return chaiUser.readLastLoginTime();
         } catch (ChaiOperationException e) {
             LOGGER.warn(sessionLabel, "error reading user's last ldap login time: " + e.getMessage());
         } catch (ChaiUnavailableException e) {
@@ -491,10 +488,7 @@ public class UserInfoReader implements UserInfo {
     public Instant getAccountExpirationTime() throws PwmUnrecoverableException
     {
         try {
-            final Date accountExpireDate = chaiUser.readAccountExpirationDate();
-            return accountExpireDate == null
-                    ? null
-                    : accountExpireDate.toInstant();
+            return chaiUser.readAccountExpirationDate();
         } catch (ChaiOperationException e) {
             LOGGER.warn(sessionLabel, "error reading user's account expiration time: " + e.getMessage());
         } catch (ChaiUnavailableException e) {
@@ -554,7 +548,7 @@ public class UserInfoReader implements UserInfo {
     }
 
     @Override
-    public Date readDateAttribute(final String attribute)
+    public Instant readDateAttribute(final String attribute)
             throws PwmUnrecoverableException
     {
         try {
@@ -610,7 +604,7 @@ public class UserInfoReader implements UserInfo {
                         chaiUser.getEntryDN(),
                         "(objectclass=*)",
                         uncachedAttributes,
-                        ChaiProvider.SEARCH_SCOPE.BASE
+                        SearchScope.BASE
                 );
             } catch (ChaiOperationException e) {
                 final String msg = "ldap operational error while reading user data" + e.getMessage();
