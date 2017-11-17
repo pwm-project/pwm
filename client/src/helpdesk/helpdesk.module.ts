@@ -26,6 +26,7 @@ import HelpDeskSearchComponent from './helpdesk-search.component';
 import uxModule from '../ux/ux.module';
 import PersonCardComponent from '../peoplesearch/person-card.component';
 import PromiseService from '../services/promise.service';
+import HelpDeskDetailComponent from './helpdesk-detail.component';
 
 require('../peoplesearch/peoplesearch.scss');
 
@@ -36,6 +37,7 @@ module(moduleName, [
 ])
 
     .component('helpDeskSearch', HelpDeskSearchComponent)
+    .component('helpDeskDetail', HelpDeskDetailComponent)
     .component('personCard', PersonCardComponent)
     .service('PromiseService', PromiseService);
 

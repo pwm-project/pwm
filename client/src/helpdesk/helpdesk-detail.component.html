@@ -1,0 +1,85 @@
+<!--
+  ~ Password Management Servlets (PWM)
+  ~ http://www.pwm-project.org
+  ~
+  ~ Copyright (c) 2006-2009 Novell, Inc.
+  ~ Copyright (c) 2009-2017 The PWM Project
+  ~
+  ~ This program is free software; you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation; either version 2 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program; if not, write to the Free Software
+  ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  -->
+
+<mf-app-bar>
+    <div id="page-content-title" class="page-content-title" translate="Title_HelpDesk">Help Desk</div>
+    <mf-icon-button
+        icon="password_thin"
+        ng-attr-title="{{ 'Title_ChangePassword' | translate }}"
+        ng-click=""
+        id="password-icon"></mf-icon-button>
+    <mf-icon-button
+        icon="unlock_thin"
+        ng-attr-title="{{ 'Title_Unlock' | translate }}"
+        ng-click=""
+        id="unlock-icon"></mf-icon-button>
+    <mf-icon-button
+        icon="reload_refresh_thin"
+        ng-attr-title="{{ 'Title_Refresh' | translate }}"
+        ng-click=""
+        id="reload-refresh-icon"></mf-icon-button>
+</mf-app-bar>
+
+<person-card person="$ctrl.person" show-image="$ctrl.photosEnabled">
+</person-card>
+
+<div class="person-details-content">
+    <mf-tabset>
+        <mf-tab label="Profile">
+            <table>
+                <tbody>
+                <tr ng-repeat="(key, detail) in $ctrl.person.detail">
+                    <td ng-bind="detail.label"></td>
+                    <td ng-switch="detail.type">
+                        <div class="detail-container" ng-switch-when="userDN">
+                            <ul>
+                                <li ng-repeat="user in detail.userReferences">
+                                    <a ng-href="{{$ctrl.getPersonDetailsUrl(user.userKey)}}"
+                                       ng-bind="user.displayName"></a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="detail-container" ng-switch-default>
+                            <ul>
+                                <li ng-repeat="value in detail.values">
+                                    <a ng-href="mailto:{{value}}"
+                                       ng-bind="value"
+                                       ng-if="detail.type === 'email'"></a>
+                                    <a ng-href="tel:{{value}}"
+                                       ng-bind="value"
+                                       ng-if="detail.type === 'tel'"></a>
+                                    <span ng-bind="value"
+                                          ng-if="detail.type !== 'email' && detail.type !== 'tel'"></span>
+                                </li>
+                            </ul>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </mf-tab>
+        <mf-tab label="Status">Tab 2 content</mf-tab>
+        <mf-tab label="Password Policy">Tab 3 content</mf-tab>
+    </mf-tabset>
+</div>
+
+

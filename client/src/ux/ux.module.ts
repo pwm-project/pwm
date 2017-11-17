@@ -33,6 +33,7 @@ import SearchBarComponent from './search-bar.component';
 import TableDirectiveFactory from './table.directive';
 import TableColumnDirectiveFactory from './table-column.directive';
 import ElementSizeService from './element-size.service';
+import TabsetDirective from './tabset.directive';
 
 var moduleName = 'peoplesearch.ux';
 
@@ -46,6 +47,7 @@ module(moduleName, [ ])
     .component('mfSearchBar', SearchBarComponent)
     .directive('mfTable', TableDirectiveFactory)
     .directive('mfTableColumn', TableColumnDirectiveFactory)
+    .directive('mfTabset', TabsetDirective)
     .service('MfElementSizeService', ElementSizeService);
     // .service('MfDialogService', DialogService);
 

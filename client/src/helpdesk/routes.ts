@@ -34,4 +34,5 @@ export default [
             });
 
         $stateProvider.state('search', { url: '/search?query', component: 'helpDeskSearch' });
+        $stateProvider.state('details', { url: '/details/{personId}', component: 'helpDeskDetail' });
     }];

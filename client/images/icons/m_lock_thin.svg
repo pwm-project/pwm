@@ -1,0 +1,23 @@
+<!--
+  ~ Password Management Servlets (PWM)
+  ~ http://www.pwm-project.org
+  ~
+  ~ Copyright (c) 2006-2009 Novell, Inc.
+  ~ Copyright (c) 2009-2017 The PWM Project
+  ~
+  ~ This program is free software; you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation; either version 2 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program; if not, write to the Free Software
+  ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  -->
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72"><title>1-icons_expanded</title><path d="M59.23,34.43a38,38,0,0,0-8-3.38V22.19a15.17,15.17,0,0,0-30.34,0v8.86A38.07,38.07,0,0,0,13,34.37a1.5,1.5,0,0,0-.76,1.3V57.93a1.5,1.5,0,0,0,.76,1.3c6.16,3.51,14.35,5.45,23.07,5.45s17-2,23.18-5.51a1.5,1.5,0,0,0,.75-1.3V35.73A1.5,1.5,0,0,0,59.23,34.43ZM23.88,22.19a12.17,12.17,0,1,1,24.34,0v8.08a55.87,55.87,0,0,0-24.34,0V22.19ZM57,57c-5.64,3-13,4.69-20.93,4.69S20.85,60,15.23,57V36.56c5.63-3,13-4.64,20.82-4.64S51.34,33.59,57,36.62V57Z" fill="gray"/></svg>

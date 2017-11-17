@@ -1,0 +1,93 @@
+/*!
+ * Password Management Servlets (PWM)
+ * http://www.pwm-project.org
+ *
+ * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2017 The PWM Project
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+.mf-tabset {
+  box-sizing: content-box;
+  color: #575b5d;
+  display: flex;
+  flex-flow: row nowrap;
+  font-size: 15px;
+  height: 28px;
+  margin-bottom: 15px;
+  max-width: 100%;
+  overflow: hidden;
+  padding-right: 15px;
+  padding-top: 2px;
+  position: relative;
+}
+
+.mf-tab-base {
+  border-bottom: 1px solid #6a6f71;
+  left: 0;
+  position: absolute;
+  top: 29px;
+  width: 100%;
+}
+
+.mf-tab {
+  &:first-child {
+    margin-left: 10px;
+  }
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  background-color: #f6f9f8;
+  border: 1px solid #dae1e1;
+  border-top-left-radius: 3px;
+  border-top-right-radius: 3px;
+  box-sizing: content-box;
+  color: #434c50;
+  margin-right: 5px;
+  min-width: 40px;
+  padding: 5px 10px;
+  text-align: center;
+
+  &:not([disabled]):not(.mf-selected) {
+    &:focus,
+    &:hover {
+      background-color: #f6f9f8;
+      border-color: #01a9e7;
+      color: #007cd0;
+      cursor: pointer;
+      outline: none;
+    }
+  }
+
+  &[disabled],
+  &.mf-disabled {
+    color: grey;
+    cursor: default;
+  }
+
+  &.mf-selected {
+    color: #434c50;
+    cursor: default;
+    font-weight: 500;
+    background-color: white;
+    border-color: #808080;
+    border-bottom: 4px solid white;
+    outline: none;
+    z-index: 100;
+  }
+}

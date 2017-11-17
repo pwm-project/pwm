@@ -40,12 +40,9 @@ export default class HelpDeskSearchComponent {
     searchResult: SearchResult;
     view: string;
 
-    static $inject = [
-        '$q',
-        'ConfigService',
-        'PeopleService'
-    ];
+    static $inject = [ '$q', '$state', 'ConfigService', 'PeopleService' ];
     constructor(private $q: IQService,
+                private $state: angular.ui.IStateService,
                 private configService: IConfigService,
                 private peopleService: IPeopleService) {
     }
@@ -118,12 +115,14 @@ export default class HelpDeskSearchComponent {
     gotoCardsView(): void {
         if (this.view !== 'cards') {
             this.view = 'cards';
+            this.fetchData();
         }
     }
 
     gotoTableView(): void {
         if (this.view !== 'table') {
             this.view = 'table';
+            this.fetchData();
         }
 
         let self = this;
@@ -139,7 +138,11 @@ export default class HelpDeskSearchComponent {
     }
 
     private onSearchResult(searchResult: SearchResult): void {
-        this.searchResult = searchResult;   // just for now - table view only
+        if (this.view === 'table') {
+            this.searchResult = searchResult;
+            return;
+        }
+
         // Aborted request
         if (!searchResult) {
             return;
@@ -193,5 +196,9 @@ export default class HelpDeskSearchComponent {
         // this.clearSearchMessage();
         // this.clearErrorMessage();
         this.fetchData();
+    }
+
+    selectPerson(person: IPerson): void {
+        this.$state.go('details', { personId: person.userKey });
     }
 }
