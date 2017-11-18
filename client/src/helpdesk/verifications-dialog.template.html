@@ -1,0 +1,46 @@
+<ias-dialog>
+    <div class="ias-actions" ng-if="status==='wait'">
+        <div class="WaitDialogBlank"></div>
+    </div>
+    <div ng-if="status==='select'">
+        <div class="ias-dialog-header">
+            <div class="ias-title">Select verification method</div>
+        </div>
+        <div class="ias-dialog-body">
+            <p>Before this user can be selected, the user's identity must be verified.
+               Please select a verification method.
+            </p>
+            <div ng-repeat="method in methods" class="aligned-inputs">
+                <div class="first-col"></div>
+                <mf-button ng-click="select(method.name)">{{method.label | translate}}</mf-button>
+            </div>
+        </div>
+        <div class="ias-actions">
+            <mf-button ng-click="close()">Cancel</mf-button>
+        </div>
+    </div>
+
+    <div ng-if="status==='verify'">
+        <div class="ias-dialog-header">
+            <div class="ias-title">Validate Code</div>
+        </div>
+        <div class="ias-dialog-body">
+            <div ng-repeat="input in inputs" class="aligned-inputs">
+                <label ng-attr-for="{{input.name}}">{{input.label}}</label>
+                <input ng-attr-id="{{input.name}}" type="text">
+            </div>
+        </div>
+        <div class="ias-actions">
+            <mf-button ng-click="close()">Cancel</mf-button>
+            <mf-button ng-click="verify()">Verify</mf-button>
+        </div>
+    </div>
+    <ias-button class="ias-icon-button ias-dialog-close-button" ng-click="cancel()">
+        <ias-icon icon="close_thick"></ias-icon>
+    </ias-button>
+    <mf-icon-button class="ias-dialog-close-button"
+                    ng-click="close()"
+                    icon="close_thick"
+                    ng-attr-title="{{ 'Title_Close' | translate }}" id="close-icon">
+    </mf-icon-button>
+</ias-dialog>

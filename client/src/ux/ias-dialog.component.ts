@@ -21,26 +21,30 @@
  */
 
 
-import { module } from 'angular';
-import HelpDeskSearchComponent from './helpdesk-search.component';
-import uxModule from '../ux/ux.module';
-import PersonCardComponent from '../peoplesearch/person-card.component';
-import PromiseService from '../services/promise.service';
-import HelpDeskDetailComponent from './helpdesk-detail.component';
-import LocalStorageService from '../services/local-storage.service';
+import { IAugmentedJQuery } from 'angular';
+import { Component } from '../component';
+import DialogService from './ias-dialog.service';
 
-require('../peoplesearch/peoplesearch.scss');
+@Component({
+    stylesheetUrl: require('./ias-dialog.component.scss'),
+    templateUrl: require('./ias-dialog.component.html'),
+    transclude: true
+})
+export default class IasDialogComponent {
+    static $inject = [ '$element', 'IasDialogService' ];
+    constructor(private $element: IAugmentedJQuery, private dialogService: DialogService) {
+        // $element.on('click', this.cancel.bind(this));
+    }
 
-const moduleName = 'help-desk';
+    $destroy(): void {
+        // this.$element.off();
+    }
 
-module(moduleName, [
-    uxModule
-])
+    cancel(): void {
+        this.dialogService.cancel();
+    }
 
-    .component('helpDeskSearch', HelpDeskSearchComponent)
-    .component('helpDeskDetail', HelpDeskDetailComponent)
-    .component('personCard', PersonCardComponent)
-    .service('PromiseService', PromiseService)
-    .service('LocalStorageService', LocalStorageService);
-
-export default moduleName;
+    close(): void {
+        this.dialogService.close();
+    }
+}

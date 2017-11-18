@@ -71,6 +71,45 @@ help-desk-search {
   }
 }
 
+ias-dialog {
+  p {
+    max-width: 400px;
+  }
+
+  .aligned-inputs {
+    margin-top: 8px;
+
+    label, .first-col {
+      color: #808080;
+      display: inline-block;
+      font-size: 13px;
+      font-weight: normal;
+      line-height: 21px;
+      margin-right: 5px;
+      min-width: 150px;
+      text-align: right;
+      user-select: none;
+    }
+
+    input {
+      background-color: transparent;
+      border: 1px solid #dae1e1;
+      border-radius: 3px;
+      font-size: 15px;
+      min-width: 200px;
+      padding: 8px;
+    }
+
+    mf-button {
+      margin: 0;
+
+      > button {
+        min-width: 90px;
+      }
+    }
+  }
+}
+
 [dir="rtl"] {
   people-search-cards {
     &.large {

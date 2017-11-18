@@ -20,27 +20,17 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+import {IHelpDeskService, IVerificationStatus} from './helpdesk.service';
+import {IPromise, IQService} from 'angular';
 
-import { module } from 'angular';
-import HelpDeskSearchComponent from './helpdesk-search.component';
-import uxModule from '../ux/ux.module';
-import PersonCardComponent from '../peoplesearch/person-card.component';
-import PromiseService from '../services/promise.service';
-import HelpDeskDetailComponent from './helpdesk-detail.component';
-import LocalStorageService from '../services/local-storage.service';
+export default class HelpDeskService implements IHelpDeskService {
+    PWM_GLOBAL: any;
 
-require('../peoplesearch/peoplesearch.scss');
+    static $inject = [ '$q' ];
+    constructor(private $q: IQService) {
+    }
 
-const moduleName = 'help-desk';
-
-module(moduleName, [
-    uxModule
-])
-
-    .component('helpDeskSearch', HelpDeskSearchComponent)
-    .component('helpDeskDetail', HelpDeskDetailComponent)
-    .component('personCard', PersonCardComponent)
-    .service('PromiseService', PromiseService)
-    .service('LocalStorageService', LocalStorageService);
-
-export default moduleName;
+    checkVerification(userKey: string): IPromise<IVerificationStatus> {
+        return this.$q.resolve({passed: false});
+    }
+}

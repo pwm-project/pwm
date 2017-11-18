@@ -19,5 +19,10 @@
   "Display_SearchResultsExceeded": "Search results exceeded maximum search size",
   "Display_SearchResultsNone": "No results",
 
-  "Placeholder_Search": "Search"
+  "Placeholder_Search": "Search",
+
+  "Button_Attributes": "User Data",
+  "Button_Email": "Email",
+  "Button_OTP": "OTP",
+  "Button_SMS": "SMS"
 }

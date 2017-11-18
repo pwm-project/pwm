@@ -28,6 +28,7 @@ import routes from './routes';
 import TranslationsLoaderFactory from '../services/translations-loader.factory';
 import uiRouter from '@uirouter/angularjs';
 import HelpDeskConfigService from '../services/config-helpdesk.service';
+import HelpDeskService from '../services/helpdesk.service';
 
 // fontgen-loader needs this :(
 require('../icons.json');
@@ -49,6 +50,7 @@ module('app', [
                 .fallbackLanguage('fallback')
                 .forceAsyncReload(true);
         }])
+    .service('HelpDeskService', HelpDeskService)
     .service('PeopleService', PeopleService)
     .service('PwmService', PwmService)
     .service('ConfigService', HelpDeskConfigService)

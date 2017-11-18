@@ -21,11 +21,17 @@
  */
 
 
-import { ILogService, IWindowService } from 'angular';
+import {IHttpService, ILogService, IPromise, IQService, IWindowService} from 'angular';
+
+export interface IHttpRequestOptions {
+    data?: any;
+    preventCache?: boolean;
+}
 
 export interface IPwmService {
     getPeopleSearchServerUrl(processAction: string, additionalParameters?: any): string;
     getServerUrl(processAction: string, additionalParameters?: any): string;
+    httpRequest<T>(url: string, options: IHttpRequestOptions): IPromise<T>;
     ajaxTypingWait: number;
     localeStrings: any;
     startupFunctions: any[];
@@ -39,8 +45,11 @@ export default class PwmService implements IPwmService {
 
     urlContext: string;
 
-    static $inject = [ '$log', '$window' ];
-    constructor(private $log: ILogService, $window: IWindowService) {
+    static $inject = [ '$http', '$log', '$q', '$window' ];
+    constructor(private $http: IHttpService,
+                private $log: ILogService,
+                private $q: IQService,
+                $window: IWindowService) {
         this.urlContext = '';
 
         // Search window references to PWM_GLOBAL and PWM_MAIN add by legacy PWM code
@@ -80,6 +89,34 @@ export default class PwmService implements IPwmService {
         return this.getEndpointServerUrl(window.location.pathname, processAction, additionalParameters);
     }
 
+    private handlePwmError(response): IPromise<any> {
+        // TODO: show error dialog (like PWM_MAIN.ajaxRequest)
+        const errorMessage = `${response.data['errorCode']}: ${response.data['errorMessage']}`;
+        this.$log.error(errorMessage);
+
+        return this.$q.reject(response.data['errorMessage']);
+    }
+
+    httpRequest<T>(url: string, options: IHttpRequestOptions): IPromise<T> {
+        // TODO: implement alternate http method, no Content-Type if no options.data
+        let formID: string = encodeURIComponent('&pwmFormID=' + this.PWM_GLOBAL['pwmFormID']);
+        url += '&pwmFormID=' + this.PWM_GLOBAL['pwmFormID'];
+        let promise = this.$http
+            .post(url, options.data, {
+                cache: !options.preventCache,
+                headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+            })
+            .then((response) => {
+                if (response.data['error']) {
+                    return this.handlePwmError(response);
+                }
+
+                return this.$q.resolve(response.data['data']);
+            });
+
+        return promise;
+    }
+
     get ajaxTypingWait(): number {
         if (this.PWM_GLOBAL) {
             return this.PWM_GLOBAL['client.ajaxTypingWait'] || DEFAULT_AJAX_TYPING_WAIT;
@@ -110,7 +147,7 @@ export default class PwmService implements IPwmService {
         }
 
         if (params) {
-            for (var name in params) {
+            for (let name in params) {
                 if (params.hasOwnProperty(name)) {
                     url = this.PWM_MAIN.addParamToUrl(url, name, params[name]);
                 }

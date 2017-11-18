@@ -24,9 +24,10 @@
 import { IPromise, IQService } from 'angular';
 import {ConfigBaseService} from './config-base.service.dev';
 import {IConfigService} from './config-base.service';
+import {IHelpDeskConfigService, IVerificationForm, IVerificationMethods} from './config-helpdesk.service';
 
 
-export default class HelpDeskConfigService extends ConfigBaseService implements IConfigService {
+export default class HelpDeskConfigService extends ConfigBaseService implements IConfigService, IHelpDeskConfigService {
     static $inject = [ '$q' ];
     constructor($q: IQService) {
         super($q);
@@ -40,6 +41,20 @@ export default class HelpDeskConfigService extends ConfigBaseService implements 
             mail: 'Email',
             telephoneNumber: 'Telephone',
             workforceId: 'Workforce ID'
+        });
+    }
+
+    getVerificationForm(): angular.IPromise<IVerificationForm> {
+        return this.$q.resolve([
+            { name: 'workforceID', label: 'Workforce ID' },
+            { name: 'mail', label: 'Email Address' }
+        ]);
+    }
+
+    getVerificationMethods(): angular.IPromise<IVerificationMethods> {
+        return this.$q.resolve({
+            optional: [ 'ATTRIBUTES', 'TOKEN' ],
+            required: [ 'ATTRIBUTES', 'TOKEN' ]
         });
     }
 }

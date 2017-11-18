@@ -27,8 +27,27 @@ import PwmService from './pwm.service';
 import {ConfigBaseService, IConfigService} from './config-base.service';
 
 const COLUMN_CONFIG = 'helpdesk_search_columns';
+const VERIFICATION_METHODS_CONFIG = 'verificationMethods';
+const VERIFICATION_FORM_CONFIG = 'verificationForm';
+export const VERIFICATION_METHOD_LABELS = {
+    ATTRIBUTES: 'Button_Attributes',
+    TOKEN: 'Button_Email',
+    OTP: 'Button_OTP'
+};
 
-export default class HelpDeskConfigService extends ConfigBaseService implements IConfigService {
+export interface IVerificationMethods {
+    optional: string[];
+    required: string[];
+}
+
+export type IVerificationForm = {name: string, label: string}[];
+
+export interface IHelpDeskConfigService extends IConfigService {
+    getVerificationForm(): IPromise<IVerificationForm>;
+    getVerificationMethods(): IPromise<IVerificationMethods>;
+}
+
+export default class HelpDeskConfigService extends ConfigBaseService implements IConfigService, IHelpDeskConfigService {
 
     static $inject = ['$http', '$log', '$q', 'PwmService' ];
     constructor($http: IHttpService, $log: ILogService, $q: IQService, pwmService: IPwmService) {
@@ -37,5 +56,13 @@ export default class HelpDeskConfigService extends ConfigBaseService implements 
 
     getColumnConfig(): IPromise<any> {
         return this.getValue(COLUMN_CONFIG);
+    }
+
+    getVerificationForm(): IPromise<IVerificationForm> {
+        return this.getValue(VERIFICATION_FORM_CONFIG);
+    }
+
+    getVerificationMethods(): IPromise<IVerificationMethods> {
+        return this.getValue(VERIFICATION_METHODS_CONFIG);
     }
 }
