@@ -172,8 +172,8 @@ public enum PwmSetting {
             "password.showAutoGen", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.CHANGE_PASSWORD),
     PASSWORD_SHOW_STRENGTH_METER(
             "password.showStrengthMeter", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.CHANGE_PASSWORD),
-    PASSWORD_USE_ZXCVBN_FOR_STRENGTH_METER(
-            "password.useZxcvbnForStrengthMeter", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.CHANGE_PASSWORD),
+    PASSWORD_STRENGTH_METER_TYPE(
+            "password.strengthMeter.type", PwmSettingSyntax.SELECT, PwmSettingCategory.CHANGE_PASSWORD),
 
     // account info
     ACCOUNT_INFORMATION_ENABLED(

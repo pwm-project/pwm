@@ -46,6 +46,7 @@ import password.pwm.bean.PasswordStatus;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserIdentity;
+import password.pwm.config.option.StrengthMeterType;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -678,12 +679,19 @@ public class PasswordUtility {
     )
             throws PwmUnrecoverableException
     {
-        final boolean useZxcvbnLib = configuration.readSettingAsBoolean(PwmSetting.PASSWORD_USE_ZXCVBN_FOR_STRENGTH_METER);
-        if (useZxcvbnLib) {
-            return judgePasswordStrengthUsingZxcvbnAlgorithm(configuration, password);
-        } else {
-            return judgePasswordStrengthUsingTraditionalAlgorithm(password);
+        final StrengthMeterType strengthMeterType = configuration.readSettingAsEnum(PwmSetting.PASSWORD_STRENGTH_METER_TYPE, StrengthMeterType.class);
+        switch (strengthMeterType) {
+            case ZXCVBN:
+                return judgePasswordStrengthUsingZxcvbnAlgorithm(configuration, password);
+
+            case PWM:
+                return judgePasswordStrengthUsingTraditionalAlgorithm(password);
+
+            default:
+                JavaHelper.unhandledSwitchStatement(strengthMeterType);
         }
+
+        return -1;
     }
 
     public static int judgePasswordStrengthUsingZxcvbnAlgorithm(

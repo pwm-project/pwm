@@ -27,6 +27,8 @@ import junit.framework.TestCase;
 import org.mockito.Mockito;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.option.StrengthMeterType;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.operations.PasswordUtility;
 
 import java.util.ArrayList;
@@ -35,7 +37,7 @@ import java.util.List;
 public class PwmPasswordJudgeTest extends TestCase {
     public void testJudgePassword() throws Exception {
         final Configuration configuration = Mockito.mock(Configuration.class);
-        Mockito.when(configuration.readSettingAsBoolean(PwmSetting.PASSWORD_USE_ZXCVBN_FOR_STRENGTH_METER)).thenReturn(false);
+        Mockito.when(configuration.readSettingAsEnum(PwmSetting.PASSWORD_STRENGTH_METER_TYPE, StrengthMeterType.class)).thenReturn(StrengthMeterType.PWM);
 
         Assert.assertEquals(0, PasswordUtility.judgePasswordStrength(configuration,""));
         Assert.assertEquals(100, PasswordUtility.judgePasswordStrength(configuration,
