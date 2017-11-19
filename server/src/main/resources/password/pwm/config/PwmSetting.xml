@@ -191,6 +191,15 @@
             <value>true</value>
         </default>
     </setting>
+    <setting hidden="false" key="password.strengthMeter.type" level="1" required="true">
+        <options>
+            <option value="PWM">Traditional - built in algorithm</option>
+            <option value="ZXCVBN">zxcvbn - open source library</option>
+        </options>
+        <default>
+            <value>PWM</value>
+        </default>
+    </setting>
     <setting hidden="false" key="display.showHidePasswordFields" level="1" required="true">
         <default>
             <value>true</value>
