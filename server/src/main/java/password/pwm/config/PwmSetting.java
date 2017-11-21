@@ -1080,6 +1080,15 @@ public enum PwmSetting
     DATABASE_DEBUG_TRACE(
             "db.debugTrace.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.DATABASE_ADV ),
 
+    // pw expiry notice
+    PW_EXPY_NOTIFY_ENABLE(
+            "pwExpiryNotify.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PW_EXP_NOTIFY),
+    PW_EXPY_NOTIFY_PERMISSION(
+            "pwExpiryNotify.queryString", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.PW_EXP_NOTIFY),
+    PW_EXPY_NOTIFY_INTERVAL(
+            "pwExpiryNotify.intervals", PwmSettingSyntax.DURATION, PwmSettingCategory.PW_EXP_NOTIFY),
+
+
     // reporting
     REPORTING_ENABLE(
             "reporting.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.REPORTING ),

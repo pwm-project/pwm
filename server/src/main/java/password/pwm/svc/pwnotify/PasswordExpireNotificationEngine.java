@@ -69,7 +69,7 @@ public class PasswordExpireNotificationEngine
     private final PwmApplication pwmApplication;
 
 
-    public PasswordExpireNotificationEngine( final PwmApplication pwmApplication )
+    public PasswordExpireNotificationEngine(final PwmApplication pwmApplication)
     {
         this.pwmApplication = pwmApplication;
         this.settings = Settings.fromConfiguration( pwmApplication.getConfig() );
@@ -85,8 +85,7 @@ public class PasswordExpireNotificationEngine
                 1_000_000
         );
 
-        while ( workQueue.hasNext() )
-        {
+        while (workQueue.hasNext()) {
             final UserIdentity userIdentity = workQueue.next();
             processUserIdentity( userIdentity );
         }
@@ -97,10 +96,9 @@ public class PasswordExpireNotificationEngine
     )
             throws PwmUnrecoverableException
     {
-        final ChaiUser theUser = pwmApplication.getProxiedChaiUser( userIdentity );
-        final Instant passwordExpirationTime = LdapOperationsHelper.readPasswordExpirationTime( theUser );
-        if ( passwordExpirationTime == null || passwordExpirationTime.isBefore( Instant.now() ) )
-        {
+        final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userIdentity);
+        final Instant passwordExpirationTime = LdapOperationsHelper.readPasswordExpirationTime(theUser);
+        if (passwordExpirationTime == null || passwordExpirationTime.isBefore(Instant.now())) {
             return;
         }
 
@@ -134,8 +132,7 @@ public class PasswordExpireNotificationEngine
             }
         }
 
-        if ( nextDayInterval < 1 )
-        {
+        if (nextDayInterval < 1) {
             return;
         }
 
@@ -162,7 +159,7 @@ public class PasswordExpireNotificationEngine
                 SESSION_LABEL,
                 userIdentity, userLocale
         );
-        pwmApplication.getEmailQueue().submitEmail( emailItemBean, userInfoBean, macroMachine );
+        pwmApplication.getEmailQueue().submitEmail(emailItemBean, userInfoBean, macroMachine);
     }
 
     static int daysUntilInstant( final Instant instant )

@@ -55,7 +55,8 @@ public enum PwmServiceEnum
     SessionStateSvc( password.pwm.http.state.SessionStateService.class ),
     UserSearchEngine( password.pwm.ldap.search.UserSearchEngine.class, Flag.StartDuringRuntimeInstance ),
     TelemetryService( password.pwm.svc.telemetry.TelemetryService.class ),
-    ClusterService( password.pwm.svc.cluster.ClusterService.class ),;
+    ClusterService( password.pwm.svc.cluster.ClusterService.class ),
+    PwExpiryNotifyService(  password.pwm.svc.pwnotify.PasswordExpireNotificationService.class),;
 
     private final Class<? extends PwmService> clazz;
     private final Flag[] flags;

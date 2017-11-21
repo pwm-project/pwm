@@ -509,8 +509,7 @@ public class AppDashboardData implements Serializable
             final Locale locale
     )
     {
-        if ( pwmApplication.getClusterService().status() == PwmService.STATUS.OPEN )
-        {
+        if (pwmApplication.getClusterService().status() != PwmService.STATUS.OPEN) {
             return Collections.emptyList();
         }
 

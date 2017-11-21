@@ -881,7 +881,7 @@
             <value>{"to":"@User:Email@","from":"Unlock Account Notice \u003c@DefaultEmailFromAddress@\u003e","subject":"Account Unlock Notice","bodyPlain":"Your account has been unlocked.","bodyHtml":""}</value>
         </default>
     </setting>
-    <setting hidden="true" key="email.pwExpirationNotice" level="1">
+    <setting hidden="false" key="email.pwExpirationNotice" level="1">
         <flag>MacroSupport</flag>
         <default>
             <value>{"to":"@User:Email@","from":"Password Expiration Notice \u003c@DefaultEmailFromAddress@\u003e","subject":"Password Expiration Notice","bodyPlain":"Your password is about to expire.  Your password will expire in @User:DaysUntilPwExpire@ days.","bodyHtml":""}</value>
@@ -3660,6 +3660,21 @@
             <value>false</value>
         </default>
     </setting>
+    <setting hidden="false" key="pwExpiryNotify.enable" level="1">
+        <default>
+            <value/>
+        </default>
+    </setting>
+    <setting hidden="false" key="pwExpiryNotify.queryString" level="1">
+        <default>
+            <value/>
+        </default>
+    </setting>
+    <setting hidden="false" key="pwExpiryNotify.intervals" level="1">
+        <default>
+            <value>259200</value>
+        </default>
+    </setting>
     <setting hidden="false" key="reporting.enable" level="1">
         <default>
             <value/>
@@ -4025,6 +4040,8 @@
     <category hidden="false" key="DATABASE_ADV">
     </category>
     <category hidden="false" key="REPORTING">
+    </category>
+    <category hidden="false" key="PW_EXP_NOTIFY">
     </category>
     <category hidden="false" key="WEB_SERVICES" level="2">
     </category>
