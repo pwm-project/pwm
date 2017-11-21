@@ -285,10 +285,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor {
 
 
             try (PreparedStatement statement = connection.prepareStatement(sqlText)) {
-                try (ResultSet resultSet = statement.executeQuery()) {
-                    connection.commit();
-                    return resultSet;
-                }
+                return statement.executeQuery();
             } catch (SQLException e) {
                 processSqlException(null, e);
             }
@@ -331,7 +328,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor {
                 try {
                     resultSet.close();
                 } catch (SQLException e) {
-                    LOGGER.error("error closing inner resultset in iterator: " + e.getMessage());
+                    LOGGER.error("error closing inner resultSet in iterator: " + e.getMessage());
                 }
             }
             finished = true;
