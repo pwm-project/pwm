@@ -21,7 +21,7 @@
  */
 
 
-import {IConfigService} from './config-base.service';
+import {IConfigService} from './base-config.service';
 import {IPromise, IQService} from 'angular';
 
 export abstract class ConfigBaseService implements IConfigService {

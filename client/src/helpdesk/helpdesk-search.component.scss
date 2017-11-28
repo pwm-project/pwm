@@ -72,16 +72,37 @@ help-desk-search {
 }
 
 ias-dialog {
-  p {
+  p,
+  .paragraph {
     max-width: 400px;
   }
 
   .aligned-inputs {
     margin-top: 8px;
 
-    label, .first-col {
-      color: #808080;
+    input,
+    label,
+    .first-col,
+    .second-col {
       display: inline-block;
+    }
+
+    input,
+    .second-col {
+      min-width: 200px;
+    }
+
+    input {
+      background-color: transparent;
+      border: 1px solid #dae1e1;
+      border-radius: 3px;
+      font-size: 15px;
+      padding: 8px;
+    }
+
+    label,
+    .first-col {
+      color: #808080;
       font-size: 13px;
       font-weight: normal;
       line-height: 21px;
@@ -91,21 +112,38 @@ ias-dialog {
       user-select: none;
     }
 
-    input {
-      background-color: transparent;
-      border: 1px solid #dae1e1;
-      border-radius: 3px;
-      font-size: 15px;
-      min-width: 200px;
-      padding: 8px;
-    }
-
     mf-button {
       margin: 0;
 
       > button {
         min-width: 90px;
       }
+    }
+  }
+
+  .ias-actions {
+    mf-icon {
+      .icon_m_check_thick,
+      .icon_m_close_thick {
+        margin-left: 5px;
+      }
+
+      .icon_m_check_thick {
+        color: green;
+      }
+
+      .icon_m_close_thick {
+        color: red;
+      }
+    }
+
+    .loading-gif-25 {
+      background-image: url('../../images/icons/wait_25.gif');
+      display: inline-block;
+      height: 25px;
+      margin-left: 5px;
+      vertical-align: top;
+      width: 25px;
     }
   }
 }

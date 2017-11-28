@@ -21,63 +21,125 @@
  */
 
 
-import {IScope, ITimeoutService} from 'angular';
-import {IHelpDeskConfigService, VERIFICATION_METHOD_LABELS} from '../services/config-helpdesk.service';
-import {IHelpDeskService} from '../services/helpdesk.service';
+import {ui, ITimeoutService} from 'angular';
+import {
+    IHelpDeskConfigService, IVerificationMap, TOKEN_CHOICE,
+    VERIFICATION_METHOD_NAMES
+} from '../services/helpdesk-config.service';
+import {IHelpDeskService, IVerificationTokenResponse} from '../services/helpdesk.service';
 import DialogService from '../ux/ias-dialog.service';
 import {IPerson} from '../models/person.model';
+import ObjectService from '../services/object.service';
+
+const STATUS_FAILED = 'failed';
+const STATUS_NONE = 'none';
+const STATUS_PASSED = 'passed';
+const STATUS_SELECT = 'select';
+const STATUS_VERIFY = 'verify';
+const STATUS_WAIT = 'wait';
 
 export default class VerificationsDialogController {
+    availableVerificationMethods: IVerificationMap;
+    formData: any = {};
+    inputs: { name: string, label: string }[];
+    status: string;
+    tokenData: IVerificationTokenResponse;
+    viewDetailsEnabled: boolean;
+    verificationMethod: string;
+    verificationStatus: string;
+
     static $inject = [
-        '$scope',
         '$state',
         '$timeout',
         'ConfigService',
         'HelpDeskService',
         'IasDialogService',
-        'person'];
-    constructor($scope: IScope,
-                $state: angular.ui.IStateService,
-                $timeout: ITimeoutService,
-                configService: IHelpDeskConfigService,
-                helpDeskService: IHelpDeskService,
-                IasDialogService: DialogService,
-                person: IPerson) {
-        $scope.status = 'wait';
-        helpDeskService
-            .checkVerification(person.userKey)
+        'ObjectService',
+        'person'
+    ];
+
+    constructor(private $state: ui.IStateService,
+                private $timeout: ITimeoutService,
+                private configService: IHelpDeskConfigService,
+                private helpDeskService: IHelpDeskService,
+                private IasDialogService: DialogService,
+                private objectService: ObjectService,
+                private person: IPerson) {
+        this.status = STATUS_WAIT;
+        this.verificationStatus = STATUS_NONE;
+        this.viewDetailsEnabled = false;
+        this.helpDeskService
+            .checkVerification(this.person.userKey)
             .then((response) => {
                 if (response.passed) {
-                    $timeout(() => {
-                        IasDialogService.close();
-                        $state.go('details', { personId: person.userKey });
-                    });
+                    this.gotoDetailsPage();
                 }
                 else {
-                    configService
-                        .getVerificationMethods()   // TODO: SMS/OTP/email don't have forms
-                        .then((response) => {
-                            $scope.status = 'select';
-                            $scope.methods = response.required.map((method: string) => {
-                                return {
-                                    name: method,   // TODO: TOKEN can be sms or email...
-                                    label: VERIFICATION_METHOD_LABELS[method]
-                                };
-                            });
+                    this.configService
+                        .getVerificationMethods()
+                        .then((methods) => {
+                            this.status = STATUS_SELECT;
+                            this.availableVerificationMethods = methods;
                         });
-                    $scope.select = (method: string) => {
-                        // check which method we are using
-                        // assume attributes for now
-                        $scope.status = 'verify';
-                        configService.getVerificationForm()
-                            .then((response) => {
-                                $scope.inputs = response;
-                            });
-                    };
-                    $scope.verify = () => {
-                        // check verification
-                    };
                 }
             });
+    }
+
+    private gotoDetailsPage() {
+        this.$timeout(() => {
+            this.IasDialogService.close();
+            this.$state.go('details', {personId: this.person.userKey});
+        });
+    }
+
+    selectVerificationMethod(method: string) {
+        this.verificationMethod = method;
+
+        if (method === VERIFICATION_METHOD_NAMES.ATTRIBUTES) {
+            this.configService.getVerificationAttributes()
+                .then((response) => {
+                    this.status = STATUS_VERIFY;
+                    this.inputs = response;
+                });
+        }
+        else if (method === VERIFICATION_METHOD_NAMES.SMS || method === VERIFICATION_METHOD_NAMES.EMAIL) {
+            this.status = STATUS_WAIT;
+            this.configService.getTokenSendMethod()
+                .then((tokenSendMethod) => {
+                    let choice = (tokenSendMethod === TOKEN_CHOICE) ? method : null;
+                    return this.helpDeskService.sendVerificationToken(this.person.userKey, choice);
+                })
+                .then((response) => {
+                    this.status = STATUS_VERIFY;
+                    this.tokenData = response;
+                });
+        }
+        else if (method === VERIFICATION_METHOD_NAMES.OTP) {
+            this.status = STATUS_VERIFY;
+        }
+    }
+
+    sendVerificationData() {
+        this.verificationStatus = STATUS_WAIT;
+        let data = {};
+        this.objectService.assign(data, this.formData);
+        if (this.tokenData) {
+            this.objectService.assign(data, this.tokenData);
+        }
+        this.helpDeskService.validateVerificationData(this.person.userKey, data, this.verificationMethod)
+            .then((response) => {
+                if (response.passed) {
+                    this.verificationStatus = STATUS_PASSED;
+                }
+                else {
+                    this.verificationStatus = STATUS_FAILED;
+                }
+            });
+    }
+
+    viewDetails() {
+        if (this.verificationStatus === STATUS_PASSED) {
+            this.gotoDetailsPage();
+        }
     }
 }

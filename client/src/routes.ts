@@ -21,7 +21,7 @@
  */
 
 
-import { IPeopleSearchConfigService } from './services/config-peoplesearch.service';
+import { IPeopleSearchConfigService } from './services/peoplesearch-config.service';
 import { IQService } from 'angular';
 import LocalStorageService from './services/local-storage.service';
 

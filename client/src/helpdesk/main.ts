@@ -27,7 +27,7 @@ import PwmService from '../services/pwm.service';
 import routes from './routes';
 import TranslationsLoaderFactory from '../services/translations-loader.factory';
 import uiRouter from '@uirouter/angularjs';
-import HelpDeskConfigService from '../services/config-helpdesk.service';
+import HelpDeskConfigService from '../services/helpdesk-config.service';
 import HelpDeskService from '../services/helpdesk.service';
 
 // fontgen-loader needs this :(

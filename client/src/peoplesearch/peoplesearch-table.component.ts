@@ -22,7 +22,7 @@
 
 
 import { Component } from '../component';
-import { IPeopleSearchConfigService } from '../services/config-peoplesearch.service';
+import { IPeopleSearchConfigService } from '../services/peoplesearch-config.service';
 import IPeopleService from '../services/people.service';
 import IPwmService from '../services/pwm.service';
 import { IQService, IScope } from 'angular';

@@ -24,22 +24,41 @@
 import {IPwmService} from './pwm.service';
 import {ILogService, IPromise, IQService, IWindowService} from 'angular';
 import LocalStorageService from './local-storage.service';
+import ObjectService from './object.service';
+
+const VERIFICATION_PROCESS_ACTIONS = {
+    ATTRIBUTES: 'validateAttributes',
+    EMAIL: 'verifyVerificationToken',
+    SMS: 'verifyVerificationToken',
+    OTP: 'validateOtpCode'
+};
 
 export interface IHelpDeskService {
     checkVerification(userKey: string): IPromise<IVerificationStatus>;
+    sendVerificationToken(userKey: string, choice: string): IPromise<IVerificationTokenResponse>;
+    validateVerificationData(userKey: string, formData: any, tokenData: any): IPromise<IVerificationStatus>;
+}
+
+interface IValidationStatus extends IVerificationStatus {
+    verificationState: string;
 }
 
 export interface IVerificationStatus {
     passed: boolean;
 }
 
+export interface IVerificationTokenResponse {
+    destination: string;
+}
+
 export default class HelpDeskService implements IHelpDeskService {
     PWM_GLOBAL: any;
 
-    static $inject = [ '$log', '$q', 'LocalStorageService', 'PwmService', '$window' ];
+    static $inject = [ '$log', '$q', 'LocalStorageService', 'ObjectService', 'PwmService', '$window' ];
     constructor(private $log: ILogService,
                 private $q: IQService,
                 private localStorageService: LocalStorageService,
+                private objectService: ObjectService,
                 private pwmService: IPwmService,
                 $window: IWindowService) {
         if ($window['PWM_GLOBAL']) {
@@ -64,5 +83,38 @@ export default class HelpDeskService implements IHelpDeskService {
             });
     }
 
+    sendVerificationToken(userKey: string, choice: string): IPromise<IVerificationTokenResponse> {
+        let url: string = this.pwmService.getServerUrl('sendVerificationToken');
+        let data: any = { userKey: userKey };
 
+        if (choice) {
+            data.method = choice;
+        }
+
+        return this.pwmService
+            .httpRequest(url, { data: data })
+            .then((result: IVerificationTokenResponse) => {
+                return this.$q.resolve(result);
+            });
+    }
+
+    validateVerificationData(userKey: string, data: any, method: string): IPromise<IVerificationStatus> {
+        let processAction = VERIFICATION_PROCESS_ACTIONS[method];
+        let url: string = this.pwmService.getServerUrl(processAction);
+        let content = {
+            userKey: userKey,
+            verificationState: this.localStorageService.getItem(this.localStorageService.keys.VERIFICATION_STATE)
+        };
+        this.objectService.assign(data, content);
+
+        return this.pwmService
+            .httpRequest(url, { data: data })
+            .then((result: IValidationStatus) => {
+                this.localStorageService.setItem(
+                    this.localStorageService.keys.VERIFICATION_STATE,
+                    result.verificationState
+                );
+                return this.$q.resolve(result);
+            });
+    }
 }

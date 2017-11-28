@@ -22,7 +22,7 @@
 
 
 import {Component} from '../component';
-import {IConfigService} from '../services/config-base.service';
+import {IConfigService} from '../services/base-config.service';
 import {IPeopleService} from '../services/people.service';
 import {IPerson} from '../models/person.model';
 
@@ -46,9 +46,9 @@ export default class HelpDeskDetailComponent {
 
         this.configService.photosEnabled().then((photosEnabled: boolean) => {
             this.photosEnabled = photosEnabled;
-        }); // TODO: only if in cards view (some other things are like that too)
+        }); // TODO: always necessary?
 
-        this.peopleService
+        this.peopleService  // TODO: help desk get person. (helpdesk.js:251)
             .getPerson(personId)
             .then(
                 (person: IPerson) => {

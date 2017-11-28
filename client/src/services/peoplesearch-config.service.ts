@@ -24,30 +24,18 @@
 import { IHttpService, ILogService, IPromise, IQService } from 'angular';
 import IPwmService from './pwm.service';
 import PwmService from './pwm.service';
-import {ConfigBaseService, IConfigService} from './config-base.service';
+import {ConfigBaseService, IConfigService} from './base-config.service';
 
-const COLUMN_CONFIG = 'helpdesk_search_columns';
-const VERIFICATION_METHODS_CONFIG = 'verificationMethods';
-const VERIFICATION_FORM_CONFIG = 'verificationForm';
-export const VERIFICATION_METHOD_LABELS = {
-    ATTRIBUTES: 'Button_Attributes',
-    TOKEN: 'Button_Email',
-    OTP: 'Button_OTP'
-};
+const COLUMN_CONFIG = 'peoplesearch_search_columns';
+const ORGCHART_ENABLED = 'peoplesearch_orgChartEnabled';
 
-export interface IVerificationMethods {
-    optional: string[];
-    required: string[];
+export interface IPeopleSearchConfigService extends IConfigService {
+    orgChartEnabled(): IPromise<boolean>;
 }
 
-export type IVerificationForm = {name: string, label: string}[];
-
-export interface IHelpDeskConfigService extends IConfigService {
-    getVerificationForm(): IPromise<IVerificationForm>;
-    getVerificationMethods(): IPromise<IVerificationMethods>;
-}
-
-export default class HelpDeskConfigService extends ConfigBaseService implements IConfigService, IHelpDeskConfigService {
+export default class PeopleSearchConfigService
+                     extends ConfigBaseService
+                     implements IConfigService, IPeopleSearchConfigService {
 
     static $inject = ['$http', '$log', '$q', 'PwmService' ];
     constructor($http: IHttpService, $log: ILogService, $q: IQService, pwmService: IPwmService) {
@@ -58,11 +46,8 @@ export default class HelpDeskConfigService extends ConfigBaseService implements 
         return this.getValue(COLUMN_CONFIG);
     }
 
-    getVerificationForm(): IPromise<IVerificationForm> {
-        return this.getValue(VERIFICATION_FORM_CONFIG);
-    }
-
-    getVerificationMethods(): IPromise<IVerificationMethods> {
-        return this.getValue(VERIFICATION_METHODS_CONFIG);
+    orgChartEnabled(): IPromise<boolean> {
+        return this.getValue(ORGCHART_ENABLED)
+            .then(null, () => { return this.$q.resolve(true); }); // On error use default
     }
 }

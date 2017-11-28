@@ -21,33 +21,31 @@
  */
 
 
-import { IHttpService, ILogService, IPromise, IQService } from 'angular';
-import IPwmService from './pwm.service';
-import PwmService from './pwm.service';
-import {ConfigBaseService, IConfigService} from './config-base.service';
+import { IPromise, IQService } from 'angular';
+import {ConfigBaseService} from './base-config.service.dev';
+import {IConfigService} from './base-config.service';
+import {IPeopleSearchConfigService} from './peoplesearch-config.service';
 
-const COLUMN_CONFIG = 'peoplesearch_search_columns';
-const ORGCHART_ENABLED = 'peoplesearch_orgChartEnabled';
 
-export interface IPeopleSearchConfigService extends IConfigService {
-    orgChartEnabled(): IPromise<boolean>;
-}
-
-export default class PeopleSearchConfigService
+export default class ConfigService
                      extends ConfigBaseService
                      implements IConfigService, IPeopleSearchConfigService {
-
-    static $inject = ['$http', '$log', '$q', 'PwmService' ];
-    constructor($http: IHttpService, $log: ILogService, $q: IQService, pwmService: IPwmService) {
-        super($http, $log, $q, pwmService);
+    static $inject = [ '$q' ];
+    constructor($q: IQService) {
+        super($q);
     }
 
     getColumnConfig(): IPromise<any> {
-        return this.getValue(COLUMN_CONFIG);
+        return this.$q.resolve({
+            givenName: 'First Name',
+            sn: 'Last Name',
+            title: 'Title',
+            mail: 'Email',
+            telephoneNumber: 'Telephone'
+        });
     }
 
     orgChartEnabled(): IPromise<boolean> {
-        return this.getValue(ORGCHART_ENABLED)
-            .then(null, () => { return this.$q.resolve(true); }); // On error use default
-    }
+        return this.$q.resolve(true);
+    };
 }

@@ -24,12 +24,10 @@
 import {Component} from '../component';
 import {IPeopleService} from '../services/people.service';
 import SearchResult from '../models/search-result.model';
-import {IPromise, IQService, IScope, ITimeoutService} from 'angular';
+import {IPromise, IQService} from 'angular';
 import {IPerson} from '../models/person.model';
 import DialogService from '../ux/ias-dialog.service';
-import {IHelpDeskConfigService, VERIFICATION_METHOD_LABELS} from '../services/config-helpdesk.service';
-import {IHelpDeskService} from '../services/helpdesk.service';
-import verificationsDialogController from './verifications-dialog.controller';
+import {IHelpDeskConfigService} from '../services/helpdesk-config.service';
 
 let verificationsDialogTemplateUrl = require('./verifications-dialog.template.html');
 
@@ -46,17 +44,13 @@ export default class HelpDeskSearchComponent {
     view: string;
 
     static $inject = ['$q',
-        '$state',
         'ConfigService',
-        'HelpDeskService',
         'IasDialogService',
         'PeopleService'
     ];
 
     constructor(private $q: IQService,
-                private $state: angular.ui.IStateService,
                 private configService: IHelpDeskConfigService,
-                private helpDeskService: IHelpDeskService,
                 private IasDialogService: DialogService,
                 private peopleService: IPeopleService) {
     }
@@ -215,10 +209,11 @@ export default class HelpDeskSearchComponent {
     selectPerson(person: IPerson): void {
         this.IasDialogService
             .open({
-                controller: verificationsDialogController,
+                controller: 'VerificationsDialogController as $ctrl',
                 templateUrl: verificationsDialogTemplateUrl,
-                locals: {person: person}
+                locals: {
+                    person: person
+                }
             });
-        //
     }
 }

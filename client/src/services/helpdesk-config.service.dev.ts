@@ -22,9 +22,12 @@
 
 
 import { IPromise, IQService } from 'angular';
-import {ConfigBaseService} from './config-base.service.dev';
-import {IConfigService} from './config-base.service';
-import {IHelpDeskConfigService, IVerificationForm, IVerificationMethods} from './config-helpdesk.service';
+import {ConfigBaseService} from './base-config.service.dev';
+import {IConfigService} from './base-config.service';
+import {
+    IHelpDeskConfigService, IVerificationMap, TOKEN_CHOICE, VERIFICATION_METHOD_LABELS,
+    VERIFICATION_METHOD_NAMES
+} from './helpdesk-config.service';
 
 
 export default class HelpDeskConfigService extends ConfigBaseService implements IConfigService, IHelpDeskConfigService {
@@ -44,17 +47,21 @@ export default class HelpDeskConfigService extends ConfigBaseService implements 
         });
     }
 
-    getVerificationForm(): angular.IPromise<IVerificationForm> {
+    getTokenSendMethod(): IPromise<string> {
+        return this.$q.resolve(TOKEN_CHOICE);
+    }
+
+    getVerificationAttributes(): IPromise<IVerificationMap> {
         return this.$q.resolve([
             { name: 'workforceID', label: 'Workforce ID' },
             { name: 'mail', label: 'Email Address' }
         ]);
     }
 
-    getVerificationMethods(): angular.IPromise<IVerificationMethods> {
-        return this.$q.resolve({
-            optional: [ 'ATTRIBUTES', 'TOKEN' ],
-            required: [ 'ATTRIBUTES', 'TOKEN' ]
-        });
+    getVerificationMethods(): IPromise<IVerificationMap> {
+        return this.$q.resolve([
+            { name: VERIFICATION_METHOD_NAMES.ATTRIBUTES, label: VERIFICATION_METHOD_LABELS.ATTRIBUTES },
+            { name: VERIFICATION_METHOD_NAMES.SMS, label: VERIFICATION_METHOD_LABELS.SMS }
+        ]);
     }
 }

@@ -28,6 +28,8 @@ import PersonCardComponent from '../peoplesearch/person-card.component';
 import PromiseService from '../services/promise.service';
 import HelpDeskDetailComponent from './helpdesk-detail.component';
 import LocalStorageService from '../services/local-storage.service';
+import VerificationsDialogController from './verifications-dialog.controller';
+import ObjectService from '../services/object.service';
 
 require('../peoplesearch/peoplesearch.scss');
 
@@ -40,6 +42,8 @@ module(moduleName, [
     .component('helpDeskSearch', HelpDeskSearchComponent)
     .component('helpDeskDetail', HelpDeskDetailComponent)
     .component('personCard', PersonCardComponent)
+    .controller('VerificationsDialogController', VerificationsDialogController)
+    .service('ObjectService', ObjectService)
     .service('PromiseService', PromiseService)
     .service('LocalStorageService', LocalStorageService);
 

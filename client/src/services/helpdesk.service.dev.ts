@@ -20,17 +20,25 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-import {IHelpDeskService, IVerificationStatus} from './helpdesk.service';
-import {IPromise, IQService} from 'angular';
+import {IHelpDeskService, IVerificationStatus, IVerificationTokenResponse} from './helpdesk.service';
+import {IPromise, IQService, IWindowService} from 'angular';
 
 export default class HelpDeskService implements IHelpDeskService {
     PWM_GLOBAL: any;
 
-    static $inject = [ '$q' ];
-    constructor(private $q: IQService) {
+    static $inject = [ '$q', '$window' ];
+    constructor(private $q: IQService, private $window: IWindowService) {
     }
 
     checkVerification(userKey: string): IPromise<IVerificationStatus> {
-        return this.$q.resolve({passed: false});
+        return this.$q.resolve({ passed: false });
+    }
+
+    sendVerificationToken(userKey: string, choice: string): IPromise<IVerificationTokenResponse> {
+        return this.$q.resolve({ destination: 'bcarrolj@paypal.com' });
+    }
+
+    validateVerificationData(userKey: string, data: any, method: string): IPromise<IVerificationStatus> {
+        return this.$q.resolve({ passed: true });
     }
 }

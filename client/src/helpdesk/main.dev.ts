@@ -25,7 +25,7 @@ import helpDeskModule from './helpdesk.module';
 import routes from './routes';
 import uiRouter from '@uirouter/angularjs';
 import PeopleService from '../services/people.service.dev';
-import HelpDeskConfigService from '../services/config-helpdesk.service.dev';
+import HelpDeskConfigService from '../services/helpdesk-config.service.dev';
 import HelpDeskService from '../services/helpdesk.service.dev';
 
 // fontgen-loader needs this :(
