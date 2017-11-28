@@ -22,11 +22,14 @@
 
 package password.pwm.http.servlet.configeditor;
 
+import lombok.Data;
 import password.pwm.config.PwmSettingCategory;
+import password.pwm.util.macro.MacroMachine;
 
 import java.io.Serializable;
 import java.util.Locale;
 
+@Data
 public class CategoryInfo implements Serializable {
     private int level;
     private String key;
@@ -37,43 +40,16 @@ public class CategoryInfo implements Serializable {
     private boolean profiles;
     private String menuLocation;
 
-    public int getLevel() {
-        return level;
-    }
 
-    public String getKey() {
-        return key;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public String getLabel() {
-        return label;
-    }
-
-    public String getParent() {
-        return parent;
-    }
-
-    public boolean isHidden() {
-        return hidden;
-    }
-
-    public boolean isProfiles() {
-        return profiles;
-    }
-
-    public String getMenuLocation() {
-        return menuLocation;
-    }
-
-    public static CategoryInfo forCategory(final PwmSettingCategory category, final Locale locale) {
+    public static CategoryInfo forCategory(
+            final PwmSettingCategory category,
+            final MacroMachine macroMachine,
+            final Locale locale)
+    {
         final CategoryInfo categoryInfo = new CategoryInfo();
         categoryInfo.key = category.getKey();
         categoryInfo.level = category.getLevel();
-        categoryInfo.description = category.getDescription(locale);
+        categoryInfo.description = macroMachine.expandMacros(category.getDescription(locale));
         categoryInfo.label = category.getLabel(locale);
         categoryInfo.hidden = category.isHidden();
         if (category.getParent() != null) {

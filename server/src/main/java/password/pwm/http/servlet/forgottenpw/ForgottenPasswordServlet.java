@@ -1312,10 +1312,10 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
         final boolean allowWhenLdapIntruderLocked = forgottenPasswordProfile.readSettingAsBoolean(PwmSetting.RECOVERY_ALLOW_WHEN_LOCKED);
 
         return new ForgottenPasswordBean.RecoveryFlags(
+                allowWhenLdapIntruderLocked,
                 requiredRecoveryVerificationMethods,
                 optionalRecoveryVerificationMethods,
                 minimumOptionalRecoveryAuthMethods,
-                allowWhenLdapIntruderLocked,
                 tokenSendMethod
         );
     }

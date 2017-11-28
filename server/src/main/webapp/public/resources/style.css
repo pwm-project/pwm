@@ -1264,3 +1264,7 @@ html[dir="rtl"] .errorDetail {
 html[dir="rtl"] .message.message-error .errorDetail {
     display: inline-block;
 }
+
+#strengthLabel {
+    white-space: nowrap;
+}

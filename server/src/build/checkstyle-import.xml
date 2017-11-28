@@ -82,6 +82,7 @@
     <allow pkg="com.github.benmanes.caffeine"/>
 
     <allow pkg="edu.umd.cs.findbugs.annotations"/>
+    <allow pkg="com.nulabinc.zxcvbn" />
 
     <subpackage name="password.pwm.util">
         <allow pkg="sun.management"/>

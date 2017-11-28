@@ -150,12 +150,16 @@ PWM_CHANGEPW.markStrength = function(strength) { //strength meter
     var strengthLabel = "";
     var barColor = "";
 
-    if (strength > 70) {
+    if (strength == 100) {
+        strengthLabel = PWM_MAIN.showString('Display_PasswordStrengthVeryHigh');
+    } else if (strength >= 75) {
         strengthLabel = PWM_MAIN.showString('Display_PasswordStrengthHigh');
-    } else if (strength > 45) {
+    } else if (strength >= 45) {
         strengthLabel = PWM_MAIN.showString('Display_PasswordStrengthMedium');
-    } else {
+    } else if (strength >= 20) {
         strengthLabel = PWM_MAIN.showString('Display_PasswordStrengthLow');
+    } else {
+        strengthLabel = PWM_MAIN.showString('Display_PasswordStrengthVeryLow');
     }
 
     var colorFade = function(h1, h2, p) { return ((h1>>16)+((h2>>16)-(h1>>16))*p)<<16|(h1>>8&0xFF)+((h2>>8&0xFF)-(h1>>8&0xFF))*p<<8|(h1&0xFF)+((h2&0xFF)-(h1&0xFF))*p; }

@@ -1,4 +1,4 @@
-<%--
+<%@ page import="password.pwm.http.JspUtility" %><%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
   ~
@@ -28,7 +28,7 @@
 <%@ include file="WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo">
 <%
-    final String redirectURL = request.getContextPath() + "/private/";
+    final String redirectURL = request.getContextPath() + JspUtility.getPwmRequest(pageContext).getPwmApplication().getConfig().readSettingAsString(PwmSetting.URL_INTRO);
     response.sendRedirect(redirectURL);
 %>
 <div id="wrapper">

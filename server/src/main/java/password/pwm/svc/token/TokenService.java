@@ -445,9 +445,12 @@ public class TokenService implements PwmService {
             return true;
         }
 
-        if (configuration.readSettingAsBoolean(PwmSetting.ACTIVATE_USER_ENABLE) &&
-                MessageSendMethod.NONE != configuration.readSettingAsTokenSendMethod(PwmSetting.ACTIVATE_TOKEN_SEND_METHOD)) {
-            return true;
+
+        if (configuration.readSettingAsBoolean(PwmSetting.ACTIVATE_USER_ENABLE)) {
+            final MessageSendMethod activateMethod = configuration.readSettingAsEnum(PwmSetting.ACTIVATE_TOKEN_SEND_METHOD, MessageSendMethod.class);
+            if (MessageSendMethod.NONE != activateMethod) {
+                return true;
+            }
         }
 
         if (configuration.readSettingAsBoolean(PwmSetting.CHALLENGE_ENABLE)) {
@@ -634,42 +637,6 @@ public class TokenService implements PwmService {
                         // should never read here
                         LOGGER.error("attempt to send token to destination type 'NONE'");
                         throw new PwmUnrecoverableException(PwmError.ERROR_UNKNOWN);
-                    case BOTH:
-                        // Send both email and SMS, success if one of both succeeds
-                        final boolean suc1 = sendEmailToken(pwmApplication, userInfo, macroMachine, configuredEmailSetting, emailAddress, tokenKey);
-                        if (suc1) {
-                            sentTypes.add(TokenDestinationItem.Type.email);
-                        }
-                        final boolean suc2 = sendSmsToken(pwmApplication, userInfo, macroMachine, smsNumber, smsMessage, tokenKey);
-                        if (suc2) {
-                            sentTypes.add(TokenDestinationItem.Type.sms);
-                        }
-                        success = suc1 || suc2;
-                        break;
-                    case EMAILFIRST:
-                        // Send email first, try SMS if email is not available
-                        final boolean emailSuccess = sendEmailToken(pwmApplication, userInfo, macroMachine, configuredEmailSetting, emailAddress, tokenKey);
-                        if (emailSuccess) {
-                            success = true;
-                            sentTypes.add(TokenDestinationItem.Type.email);
-                        } else {
-                            success = sendSmsToken(pwmApplication, userInfo, macroMachine, smsNumber, smsMessage, tokenKey);
-                            if (success) {
-                                sentTypes.add(TokenDestinationItem.Type.sms);
-                            }
-                        }
-                        break;
-                    case SMSFIRST:
-                        // Send SMS first, try email if SMS is not available
-                        final boolean smsSuccess = sendSmsToken(pwmApplication, userInfo, macroMachine, smsNumber, smsMessage, tokenKey);
-                        if (smsSuccess) {
-                            success = true;
-                            sentTypes.add(TokenDestinationItem.Type.sms);
-                        } else {
-                            success = sendEmailToken(pwmApplication, userInfo, macroMachine, configuredEmailSetting, emailAddress, tokenKey);
-                            sentTypes.add(TokenDestinationItem.Type.email);
-                        }
-                        break;
                     case SMSONLY:
                         // Only try SMS
                         success = sendSmsToken(pwmApplication, userInfo, macroMachine, smsNumber, smsMessage, tokenKey);

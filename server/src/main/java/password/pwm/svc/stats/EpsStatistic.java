@@ -28,7 +28,7 @@ public enum EpsStatistic {
     }
 
     public String getLabel(final Locale locale) {
-        final String keyName = "Statistic_Label." + EpsStatistic.class.getSimpleName() + "_" + this.name();
+        final String keyName = Admin.EPS_STATISTICS_LABEL_PREFIX + this.name();
         return LocaleHelper.getLocalizedMessage(locale, keyName, null, Admin.class);
     }
 }

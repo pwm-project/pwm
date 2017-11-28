@@ -714,12 +714,12 @@ public class HelpdeskServlet extends ControlledPwmServlet {
         final String destEmailAddress = macroMachine.expandMacros(emailItemBean.getTo());
         final StringBuilder destDisplayString = new StringBuilder();
         if (destEmailAddress != null && !destEmailAddress.isEmpty()) {
-            if (tokenSendMethod == MessageSendMethod.BOTH || tokenSendMethod == MessageSendMethod.EMAILFIRST || tokenSendMethod == MessageSendMethod.EMAILONLY) {
+            if (tokenSendMethod == MessageSendMethod.EMAILONLY) {
                 destDisplayString.append(destEmailAddress);
             }
         }
         if (userInfo.getUserSmsNumber() != null && !userInfo.getUserSmsNumber().isEmpty()) {
-            if (tokenSendMethod == MessageSendMethod.BOTH || tokenSendMethod == MessageSendMethod.SMSFIRST || tokenSendMethod == MessageSendMethod.SMSONLY) {
+            if (tokenSendMethod == MessageSendMethod.SMSONLY) {
                 if (destDisplayString.length() > 0) {
                     destDisplayString.append(", ");
                 }

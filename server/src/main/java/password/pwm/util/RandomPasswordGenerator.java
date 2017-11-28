@@ -226,7 +226,7 @@ public class RandomPasswordGenerator {
                 LOGGER.trace(sessionLabel, "finished random password generation in " + td.asCompactString() + " after " + tryCount + " tries.");
             } else {
                 final List<ErrorInformation> errors = pwmPasswordRuleValidator.internalPwmPolicyValidator(password.toString(), null, null);
-                final int judgeLevel = PasswordUtility.judgePasswordStrength(password.toString());
+                final int judgeLevel = PasswordUtility.judgePasswordStrength(pwmApplication.getConfig(), password.toString());
                 final StringBuilder sb = new StringBuilder();
                 sb.append("failed random password generation after ").append(td.asCompactString()).append(" after ").append(tryCount).append(" tries. ");
                 sb.append("(errors=").append(errors.size()).append(", judgeLevel=").append(judgeLevel);

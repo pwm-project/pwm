@@ -37,6 +37,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 public enum Statistic {
+    AUDIT_EVENTS                        (Type.INCREMENTOR, "AuditEvents", null),
     AUTHENTICATIONS                     (Type.INCREMENTOR, "Authentications", null),
     AUTHENTICATION_FAILURES             (Type.INCREMENTOR, "AuthenticationFailures", null),
     AUTHENTICATION_EXPIRED              (Type.INCREMENTOR, "Authentications_Expired", null),
@@ -106,6 +107,7 @@ public enum Statistic {
     INTRUDER_ATTEMPTS                   (Type.INCREMENTOR, "IntruderAttempts", null),
     FOREIGN_SESSIONS_ACCEPTED           (Type.INCREMENTOR, "ForeignSessionsAccepted", null),
     OBSOLETE_URL_REQUESTS               (Type.INCREMENTOR, "ObsoleteUrlRequests", null),
+    SYSLOG_MESSAGES_SENT                (Type.INCREMENTOR, "SyslogMessagesSent", null),
 
     AVG_PASSWORD_SYNC_TIME              (Type.AVERAGE, "AvgPasswordSyncTime", null),
     AVG_AUTHENTICATION_TIME             (Type.AVERAGE, "AvgAuthenticationTime", null),
@@ -145,11 +147,7 @@ public enum Statistic {
     }
 
     public static SortedSet<Statistic> sortedValues(final Locale locale) {
-        final Comparator<Statistic> comparator = new Comparator<Statistic>() {
-            public int compare(final Statistic o1, final Statistic o2) {
-                return o1.getLabel(locale).compareTo(o2.getLabel(locale));
-            }
-        };
+        final Comparator<Statistic> comparator = Comparator.comparing(o -> o.getLabel(locale));
         final TreeSet<Statistic> set = new TreeSet<>(comparator);
         set.addAll(Arrays.asList(values()));
         return set;
@@ -162,7 +160,7 @@ public enum Statistic {
 
     public String getLabel(final Locale locale) {
         try {
-            final String keyName = "Statistic_Label." + this.getKey();
+            final String keyName = Admin.STATISTICS_LABEL_PREFIX + this.getKey();
             return LocaleHelper.getLocalizedMessage(locale, keyName, null, Admin.class);
         } catch (MissingResourceException e) {
             return "MISSING STATISTIC LABEL for " + this.getKey();
@@ -170,7 +168,7 @@ public enum Statistic {
     }
 
     public String getDescription(final Locale locale) {
-        final String keyName = "Statistic_Description." + this.getKey();
+        final String keyName = Admin.STATISTICS_DESCRIPTION_PREFIX + this.getKey();
         try {
             return LocaleHelper.getLocalizedMessage(locale, keyName, null, Admin.class);
         } catch (Exception e) {

@@ -109,6 +109,15 @@ public class Configuration implements SettingReader {
         this.storedConfiguration = storedConfiguration;
     }
 
+    public static void deprecatedSettingException(final PwmSetting pwmSetting, final String profile, final MessageSendMethod value)
+    {
+        if (value != null && value.isDeprecated()) {
+            final String msg = pwmSetting.toMenuLocationDebug(profile, PwmConstants.DEFAULT_LOCALE)
+                    + " setting is using a no longer functional setting value: " + value;
+            throw new IllegalStateException(msg);
+        }
+    }
+
     public String toDebugString() {
         final StringBuilder outputText = new StringBuilder();
         outputText.append("  ");
@@ -162,7 +171,12 @@ public class Configuration implements SettingReader {
 
     public <E extends Enum<E>> E readSettingAsEnum(final PwmSetting setting, final Class<E> enumClass) {
         final StoredValue value = readStoredValue(setting);
-        return JavaTypeConverter.valueToEnum(setting, value, enumClass);
+        final E returnValue =  JavaTypeConverter.valueToEnum(setting, value, enumClass);
+        if (MessageSendMethod.class.equals(enumClass)) {
+            deprecatedSettingException(setting, null, (MessageSendMethod) returnValue);
+        }
+
+        return returnValue;
     }
 
     public <E extends Enum<E>> Set<E> readSettingAsOptionList(final PwmSetting setting, final Class<E> enumClass) {
@@ -371,15 +385,17 @@ public class Configuration implements SettingReader {
                 throw new IllegalArgumentException("may not read SELECT enum value for setting: " + setting.toString());
             }
 
-            final String strValue = (String)value.toNativeObject();
-            try {
-                return (E)enumClass.getMethod("valueOf", String.class).invoke(null, strValue);
-            } catch (InvocationTargetException e1) {
-                if (e1.getCause() instanceof IllegalArgumentException) {
-                    LOGGER.error("illegal setting value for option '" + strValue + "' for setting key '" + setting.getKey() + "' is not recognized, will use default");
+            if (value != null) {
+                final String strValue = (String) value.toNativeObject();
+                try {
+                    return (E) enumClass.getMethod("valueOf", String.class).invoke(null, strValue);
+                } catch (InvocationTargetException e1) {
+                    if (e1.getCause() instanceof IllegalArgumentException) {
+                        LOGGER.error("illegal setting value for option '" + strValue + "' for setting key '" + setting.getKey() + "' is not recognized, will use default");
+                    }
+                } catch (Exception e1) {
+                    LOGGER.error("unexpected error", e1);
                 }
-            } catch (Exception e1) {
-                LOGGER.error("unexpected error", e1);
             }
 
             return null;
@@ -907,7 +923,7 @@ public class Configuration implements SettingReader {
             case ForgottenPassword:
                 newProfile = ForgottenPasswordProfile.makeFromStoredConfiguration(storedConfiguration, profileID);
                 break;
-            
+
             case NewUser:
                 newProfile = NewUserProfile.makeFromStoredConfiguration(storedConfiguration, profileID);
                 break;
@@ -937,7 +953,7 @@ public class Configuration implements SettingReader {
     }
 
     public String configurationHash()
-            throws PwmUnrecoverableException 
+            throws PwmUnrecoverableException
     {
         if (this.cashedConfigurationHash == null) {
             this.cashedConfigurationHash = storedConfiguration.settingChecksum();

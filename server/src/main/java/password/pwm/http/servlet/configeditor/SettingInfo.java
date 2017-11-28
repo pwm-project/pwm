@@ -22,6 +22,7 @@
 
 package password.pwm.http.servlet.configeditor;
 
+import lombok.Data;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.PwmSettingFlag;
@@ -36,6 +37,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+@Data
 public class SettingInfo implements Serializable {
     private String key;
     private String label;
@@ -51,64 +53,12 @@ public class SettingInfo implements Serializable {
     private int level;
     private List<PwmSettingFlag> flags;
 
-    public String getKey() {
-        return key;
-    }
-
-    public String getLabel() {
-        return label;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public PwmSettingCategory getCategory() {
-        return category;
-    }
-
-    public PwmSettingSyntax getSyntax() {
-        return syntax;
-    }
-
-    public boolean isHidden() {
-        return hidden;
-    }
-
-    public boolean isRequired() {
-        return required;
-    }
-
-    public Map<String, String> getOptions() {
-        return options;
-    }
-
-    public Map<PwmSettingProperty, String> getProperties() {
-        return properties;
-    }
-
-    public String getPattern() {
-        return pattern;
-    }
-
-    public String getPlaceholder() {
-        return placeholder;
-    }
-
-    public int getLevel() {
-        return level;
-    }
-
-    public List<PwmSettingFlag> getFlags() {
-        return flags;
-    }
-
-    public static SettingInfo forSetting(
+    static SettingInfo forSetting(
             final PwmSetting setting,
             final PwmSettingTemplateSet template,
+            final MacroMachine macroMachine,
             final Locale locale
     ) {
-        final MacroMachine macroMachine = MacroMachine.forStatic();
         final SettingInfo settingInfo = new SettingInfo();
         settingInfo.key = setting.getKey();
         settingInfo.description = macroMachine.expandMacros(setting.getDescription(locale));

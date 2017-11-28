@@ -31,6 +31,9 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.option.DataStorageMethod;
+import password.pwm.config.option.MessageSendMethod;
+import password.pwm.config.profile.ForgottenPasswordProfile;
+import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.profile.NewUserProfile;
 import password.pwm.config.profile.PwmPasswordPolicy;
@@ -49,6 +52,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class ConfigurationChecker implements HealthChecker {
     private static final PwmLogger LOGGER = PwmLogger.forClass(ConfigurationChecker.class);
@@ -157,7 +162,7 @@ public class ConfigurationChecker implements HealthChecker {
                         if (!config.isDefaultValue(setting)) {
                             try {
                                 final PasswordData passwordValue = config.readSettingAsPassword(setting);
-                                final int strength = PasswordUtility.judgePasswordStrength(
+                                final int strength = PasswordUtility.judgePasswordStrength(config,
                                         passwordValue.getStringValue());
                                 if (strength < 50) {
                                     records.add(HealthRecord.forMessage(HealthMessage.Config_WeakPassword,
@@ -175,7 +180,7 @@ public class ConfigurationChecker implements HealthChecker {
                 final PwmSetting setting = PwmSetting.LDAP_PROXY_USER_PASSWORD;
                 try {
                     final PasswordData passwordValue = profile.readSettingAsPassword(setting);
-                    final int strength = PasswordUtility.judgePasswordStrength(passwordValue == null ? null : passwordValue.getStringValue());
+                    final int strength = PasswordUtility.judgePasswordStrength(config, passwordValue == null ? null : passwordValue.getStringValue());
                     if (strength < 50) {
                         records.add(HealthRecord.forMessage(HealthMessage.Config_WeakPassword,
                                 setting.toMenuLocationDebug(profile.getIdentifier(),locale),
@@ -224,7 +229,8 @@ public class ConfigurationChecker implements HealthChecker {
     private static final List<Class<? extends ConfigHealthCheck>> ALL_CHECKS = Collections.unmodifiableList(Arrays.asList(
             VerifyPasswordPolicyConfigs.class,
             VerifyResponseLdapAttribute.class,
-            VerifyDbConfiguredIfNeeded.class
+            VerifyDbConfiguredIfNeeded.class,
+            VerifyIfDeprecatedSendMethodValuesUsed.class
     ));
 
     static class VerifyResponseLdapAttribute implements ConfigHealthCheck {
@@ -290,6 +296,74 @@ public class ConfigurationChecker implements HealthChecker {
                     LOGGER.error("unexpected error during password policy health check: " + e.getMessage(),e);
                 }
             }
+            return records;
+        }
+    }
+
+    static class VerifyIfDeprecatedSendMethodValuesUsed implements ConfigHealthCheck {
+        @Override
+        public List<HealthRecord> healthCheck(final Configuration config, final Locale locale) {
+            final Set<MessageSendMethod> deprecatedMethods = Arrays
+                    .stream(MessageSendMethod.values())
+                    .filter(MessageSendMethod::isDeprecated)
+                    .collect(Collectors.toSet());
+
+            final List<HealthRecord> records = new ArrayList<>();
+
+            {
+                final MessageSendMethod method = config.readSettingAsEnum(PwmSetting.ACTIVATE_TOKEN_SEND_METHOD, MessageSendMethod.class);
+                if (deprecatedMethods.contains(method)) {
+                    records.add(HealthRecord.forMessage(HealthMessage.Config_InvalidSendMethod,
+                            method.toString(),
+                            PwmSetting.ACTIVATE_TOKEN_SEND_METHOD.toMenuLocationDebug(null, locale)
+                    ));
+                }
+            }
+
+            {
+                final MessageSendMethod method = config.readSettingAsEnum(PwmSetting.FORGOTTEN_USERNAME_SEND_USERNAME_METHOD, MessageSendMethod.class);
+                if (deprecatedMethods.contains(method)) {
+                    records.add(HealthRecord.forMessage(HealthMessage.Config_InvalidSendMethod,
+                            method.toString(),
+                            PwmSetting.FORGOTTEN_USERNAME_SEND_USERNAME_METHOD.toMenuLocationDebug(null, locale)
+                    ));
+                }
+            }
+
+            for (final HelpdeskProfile helpdeskProfile : config.getHelpdeskProfiles().values()) {
+                final MessageSendMethod method = helpdeskProfile.readSettingAsEnum(PwmSetting.HELPDESK_TOKEN_SEND_METHOD, MessageSendMethod.class);
+
+                if (deprecatedMethods.contains(method)) {
+                    records.add(HealthRecord.forMessage(HealthMessage.Config_InvalidSendMethod,
+                            method.toString(),
+                            PwmSetting.HELPDESK_TOKEN_SEND_METHOD.toMenuLocationDebug(helpdeskProfile.getIdentifier(), locale)
+                    ));
+                }
+            }
+
+            for (final ForgottenPasswordProfile forgottenPasswordProfile : config.getForgottenPasswordProfiles().values()) {
+                {
+                    final MessageSendMethod method = forgottenPasswordProfile.readSettingAsEnum(PwmSetting.RECOVERY_SENDNEWPW_METHOD, MessageSendMethod.class);
+
+                    if (deprecatedMethods.contains(method)) {
+                        records.add(HealthRecord.forMessage(HealthMessage.Config_InvalidSendMethod,
+                                method.toString(),
+                                PwmSetting.RECOVERY_SENDNEWPW_METHOD.toMenuLocationDebug(forgottenPasswordProfile.getIdentifier(), locale)
+                        ));
+                    }
+                }
+                {
+                    final MessageSendMethod method = forgottenPasswordProfile.readSettingAsEnum(PwmSetting.RECOVERY_TOKEN_SEND_METHOD, MessageSendMethod.class);
+
+                    if (deprecatedMethods.contains(method)) {
+                        records.add(HealthRecord.forMessage(HealthMessage.Config_InvalidSendMethod,
+                                method.toString(),
+                                PwmSetting.RECOVERY_TOKEN_SEND_METHOD.toMenuLocationDebug(forgottenPasswordProfile.getIdentifier(), locale)
+                        ));
+                    }
+                }
+            }
+
             return records;
         }
     }

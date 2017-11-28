@@ -24,8 +24,13 @@ package password.pwm.i18n;
 
 public enum PwmSetting implements PwmDisplayBundle {
 
-
     ;
+
+    public static final String SETTING_LABEL_PREFIX = "Setting_Label_";
+    public static final String SETTING_DESCRIPTION_PREFIX = "Setting_Description_";
+
+    public static final String CATEGORY_LABEL_PREFIX = "Category_Label_";
+    public static final String CATEGORY_DESCRIPTION_PREFIX = "Category_Description_";
 
     @Override
     public String getKey() {

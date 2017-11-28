@@ -29,6 +29,7 @@ import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionLabel;
+import password.pwm.i18n.Display;
 import password.pwm.ldap.UserInfo;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -44,6 +45,8 @@ import password.pwm.health.HealthStatus;
 import password.pwm.health.HealthTopic;
 import password.pwm.http.PwmSession;
 import password.pwm.svc.PwmService;
+import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -278,7 +281,9 @@ public class AuditService implements PwmService {
     }
 
     public String sizeToDebugString() {
-        return auditVault.sizeToDebugString();
+        return auditVault == null
+                ? LocaleHelper.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE, Display.Value_NotApplicable, null)
+                : auditVault.sizeToDebugString();
     }
 
     public void submit(final AuditEvent auditEvent, final UserInfo userInfo, final PwmSession pwmSession)
@@ -345,6 +350,9 @@ public class AuditService implements PwmService {
                 lastError = e.getErrorInformation();
             }
         }
+
+        // update statistics
+        StatisticsManager.incrementStat(pwmApplication, Statistic.AUDIT_EVENTS);
     }
 
 
