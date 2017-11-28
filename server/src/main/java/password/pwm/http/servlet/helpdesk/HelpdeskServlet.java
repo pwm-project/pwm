@@ -240,7 +240,12 @@ public class HelpdeskServlet extends ControlledPwmServlet {
                     final HelpdeskClientDataBean.FormInformation formInformation = new HelpdeskClientDataBean.FormInformation();
                     formInformation.setName(formConfiguration.getName());
                     final String label = formConfiguration.getLabel(pwmRequest.getLocale());
+                    final String placeholder = formConfiguration.getPlaceholder();
+                    final String description = formConfiguration.getDescription(pwmRequest.getLocale());
+
+                    formInformation.setPlaceholder((placeholder != null && !placeholder.isEmpty()) ? placeholder : "");
                     formInformation.setLabel((label != null && !label.isEmpty()) ? label : formConfiguration.getName());
+                    formInformation.setDescription((description != null && !description.isEmpty()) ? description : "");
                     formInformations.add(formInformation);
                 }
             }

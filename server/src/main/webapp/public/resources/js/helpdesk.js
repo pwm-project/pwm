@@ -584,7 +584,13 @@ PWM_HELPDESK.validateAttributes = function(userKey) {
     for (var i in formItems) {
         var name = formItems[i]['name'];
         var label = formItems[i]['label'];
-        bodyText += '<tr><td>' + label + '</td><td>' + '<input id="input-' + name + '"/>' + '</td></tr>';
+        var placeholder = formItems[i]['placeholder'];
+        var description = formItems[i]['description'];
+        bodyText += '<tr><td>' + label + '</td><td>';
+        if (!(description === undefined || description == '')) {
+        	bodyText += '<p>' + description + '</p>';
+        }
+        bodyText += '<input id="input-' + name + '" placeholder="' + placeholder + '"/>' + '</td></tr>';
     }
     bodyText += '</table></div>';
     
