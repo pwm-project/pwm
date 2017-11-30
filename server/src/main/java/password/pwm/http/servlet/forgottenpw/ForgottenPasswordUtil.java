@@ -26,7 +26,7 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.Challenge;
 import com.novell.ldapchai.cr.ChallengeSet;
 import com.novell.ldapchai.cr.ResponseSet;
-import com.novell.ldapchai.exception.ChaiOperationException;
+import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import password.pwm.AppProperty;
@@ -456,14 +456,18 @@ class ForgottenPasswordUtil {
             final ForgottenPasswordProfile forgottenPasswordProfile,
             final ForgottenPasswordBean forgottenPasswordBean
     )
-            throws ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException, PwmOperationalException
+            throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
     {
         boolean showUnlockAction = false;
         {
             if (forgottenPasswordProfile.readSettingAsBoolean(PwmSetting.RECOVERY_ALLOW_UNLOCK)) {
                 final ChaiUser theUser = pwmRequest.getPwmApplication().getProxiedChaiUser(forgottenPasswordBean.getUserIdentity());
-                if (theUser.isPasswordLocked()) {
-                    showUnlockAction = true;
+                try {
+                    if (theUser.isPasswordLocked()) {
+                        showUnlockAction = true;
+                    }
+                } catch (ChaiException e) {
+                    LOGGER.debug(pwmRequest, "unexpected error checking if user's password is locked: " + e.getMessage());
                 }
             }
         }
@@ -519,9 +523,7 @@ class ForgottenPasswordUtil {
             return false;
         } catch (PwmOperationalException e) {
             LOGGER.debug(pwmRequest, "determined password to be within minimum lifetime: " + e.getMessage());
+            return true;
         }
-
-        return true;
     }
-
 }
