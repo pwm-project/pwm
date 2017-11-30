@@ -36,7 +36,7 @@
     <div id="centerbody">
         <div id="page-content-title"><pwm:display key="Title_ForgottenPassword" displayIfMissing="true"/></div>
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-        <% if (showForgottenPasswordAction) { %>
+        <% if (!showForgottenPasswordAction) { %>
             <p><pwm:display key="Display_RecoverPasswordChoices"/></p>
         <% } else { %>
             <p><pwm:display key="Display_RecoverMinLifetimeChoices"/></p>
@@ -64,7 +64,7 @@
                     &nbsp;
                 </td>
             </tr>
-            <% if (showForgottenPasswordAction) { %>
+            <% if (!showForgottenPasswordAction) { %>
             <tr>
                 <td>
                     <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="search">
