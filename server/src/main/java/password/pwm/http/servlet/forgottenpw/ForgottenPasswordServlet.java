@@ -34,7 +34,6 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.VerificationMethodSystem;
 import password.pwm.bean.LoginInfoBean;
-import password.pwm.bean.PasswordStatus;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.TokenDestinationItem;
 import password.pwm.bean.UserIdentity;
@@ -890,10 +889,25 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
             StatisticsManager.incrementStat(pwmRequest, Statistic.RECOVERY_SUCCESSES);
         }
 
+        final RecoveryAction recoveryAction = ForgottenPasswordUtil.getRecoveryAction(config, forgottenPasswordBean);
+        if (recoveryAction == RecoveryAction.SENDNEWPW || recoveryAction == RecoveryAction.SENDNEWPW_AND_EXPIRE) {
+            processSendNewPassword(pwmRequest);
+            return;
+        }
+
         final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo(pwmRequest, forgottenPasswordBean);
         try {
-            final boolean enforceFromForgotten = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_ENFORCE_MINIMUM_PASSWORD_LIFETIME);
-            if (enforceFromForgotten) {
+            final boolean showPage = ForgottenPasswordUtil.showActionChoicePageToUser(
+                    pwmRequest,
+                    userInfo,
+                    forgottenPasswordProfile,
+                    forgottenPasswordBean
+            );
+
+            if (showPage) {
+                pwmRequest.forwardToJsp(JspUrl.RECOVER_PASSWORD_ACTION_CHOICE);
+                return;
+            } else {
                 final ChaiUser theUser = pwmApplication.getProxiedChaiUser(forgottenPasswordBean.getUserIdentity());
                 PasswordUtility.checkIfPasswordWithinMinimumLifetime(
                         theUser,
@@ -908,28 +922,6 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
         }
 
         LOGGER.trace(pwmRequest, "all recovery checks passed, proceeding to configured recovery action");
-
-        final RecoveryAction recoveryAction = ForgottenPasswordUtil.getRecoveryAction(config, forgottenPasswordBean);
-        if (recoveryAction == RecoveryAction.SENDNEWPW || recoveryAction == RecoveryAction.SENDNEWPW_AND_EXPIRE) {
-            processSendNewPassword(pwmRequest);
-            return;
-        }
-
-        if (forgottenPasswordProfile.readSettingAsBoolean(PwmSetting.RECOVERY_ALLOW_UNLOCK)) {
-            final PasswordStatus passwordStatus = userInfo.getPasswordStatus();
-
-            if (!passwordStatus.isExpired() && !passwordStatus.isPreExpired()) {
-                try {
-                    final ChaiUser theUser = pwmApplication.getProxiedChaiUser(forgottenPasswordBean.getUserIdentity());
-                    if (theUser.isPasswordLocked()) {
-                        pwmRequest.forwardToJsp(JspUrl.RECOVER_PASSWORD_ACTION_CHOICE);
-                        return;
-                    }
-                } catch (ChaiOperationException e) {
-                    LOGGER.error(pwmRequest, "chai operation error checking user lock status: " + e.getMessage());
-                }
-            }
-        }
 
         this.executeResetPassword(pwmRequest);
     }
