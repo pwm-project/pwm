@@ -171,7 +171,7 @@ public class ActivateUserServlet extends AbstractPwmServlet {
 
         // convert a url command like /pwm/public/NewUserServlet/12321321 to redirect with a process action.
         if (action == null) {
-            if (pwmRequest.convertURLtokenCommand()) {
+            if (pwmRequest.convertURLtokenCommand(PwmServletDefinition.ActivateUser, ActivateUserAction.enterCode)) {
                 return;
             }
         } else {

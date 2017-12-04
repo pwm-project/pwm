@@ -205,7 +205,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
 
         // convert a url command like /public/newuser/12321321 to redirect with a process action.
         if (action == null) {
-            if (pwmRequest.convertURLtokenCommand()) {
+            if (pwmRequest.convertURLtokenCommand(PwmServletDefinition.ForgottenPassword, ForgottenPasswordAction.enterCode)) {
                 return ProcessStatus.Halt;
             }
         }

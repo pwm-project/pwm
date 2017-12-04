@@ -182,7 +182,7 @@ public class PwmHttpClient {
         for (final Map.Entry<String, String> headerEntry : headers.entrySet()) {
             final HttpHeader httpHeader = HttpHeader.forHttpHeader(headerEntry.getKey());
             final boolean sensitive = httpHeader != null && httpHeader.isSensitive();
-            msg.append("  header: ").append( httpHeader.getHttpName() ).append("=");
+            msg.append("  header: ").append( headerEntry.getValue() ).append("=");
             if (sensitive) {
                 msg.append(PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT);
             } else {

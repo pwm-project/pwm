@@ -164,7 +164,7 @@ public class NewUserServlet extends ControlledPwmServlet {
 
         // convert a url command like /public/newuser/12321321 to redirect with a process action.
         if (action == null) {
-            if (pwmRequest.convertURLtokenCommand()) {
+            if (pwmRequest.convertURLtokenCommand(PwmServletDefinition.NewUser, NewUserAction.enterCode)) {
                 return ProcessStatus.Halt;
             }
         } else if (action != NewUserAction.complete && action != NewUserAction.checkProgress ) {
