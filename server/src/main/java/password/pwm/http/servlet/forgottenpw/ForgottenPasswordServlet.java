@@ -845,9 +845,10 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
                 final Set<IdentityVerificationMethod> remainingAvailableOptionalMethods = ForgottenPasswordUtil.figureRemainingAvailableOptionalAuthMethods(pwmRequest, forgottenPasswordBean);
                 if (remainingAvailableOptionalMethods.isEmpty()) {
                     final String errorMsg = "additional optional verification methods are needed, however all available optional verification methods have been satisified by user";
-                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG,errorMsg);
+                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_MISSING_CONTACT,errorMsg);
                     LOGGER.error(pwmRequest, errorInformation);
-                    throw new PwmUnrecoverableException(errorInformation);
+                    pwmRequest.respondWithError(errorInformation);
+                    return;
                 } else {
                     if (remainingAvailableOptionalMethods.size() == 1) {
                         final IdentityVerificationMethod remainingMethod = remainingAvailableOptionalMethods.iterator().next();
