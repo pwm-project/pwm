@@ -181,6 +181,9 @@ class LDAPAuthenticationRequest implements AuthenticationRequest {
         intruderManager.convenience().checkUserIdentity(userIdentity);
         intruderManager.check(RecordType.ADDRESS, sessionLabel.getSrcAddress());
 
+        // verify user is not account disabled
+        AuthenticationUtility.checkIfUserEligibleToAuthentication(pwmApplication, userIdentity);
+
         boolean allowBindAsUser = true;
         if (strategy == AuthenticationStrategy.ADMIN_PROXY) {
             allowBindAsUser = false;
@@ -229,9 +232,6 @@ class LDAPAuthenticationRequest implements AuthenticationRequest {
                     throw e;
                 }
             }
-        } else {
-            // verify user is not account disabled
-            AuthenticationUtility.checkIfUserEligibleToAuthentication(pwmApplication, userIdentity);
         }
 
         statisticsManager.incrementValue(Statistic.AUTHENTICATIONS);
