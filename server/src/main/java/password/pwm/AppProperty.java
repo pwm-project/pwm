@@ -39,6 +39,8 @@ public enum AppProperty {
     AUDIT_EVENTS_LOCALDB_MAX_BULK_REMOVALS          ("audit.events.localdb.maxBulkRemovals"),
     AUDIT_SYSLOG_MAX_MESSAGE_LENGTH                 ("audit.syslog.message.length"),
     AUDIT_SYSLOG_TRUNCATE_MESSAGE                   ("audit.syslog.message.truncateMsg"),
+    AUDIT_CEF_MAX_MESSAGE_LENGTH                    ("audit.cef.message.length"),
+    AUDIT_CEF_TRUNCATE_MESSAGE                      ("audit.cef.message.truncateMsg"),
     BACKUP_LOCATION                                 ("backup.path"),
     BACKUP_CONFIG_COUNT                             ("backup.config.count"),
     BACKUP_LOCALDB_COUNT                            ("backup.localdb.count"),

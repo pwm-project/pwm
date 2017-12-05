@@ -662,6 +662,12 @@ public enum PwmSetting {
     AUDIT_SYSLOG_CERTIFICATES(
             "audit.syslog.certificates", PwmSettingSyntax.X509CERT, PwmSettingCategory.AUDIT_FORWARD),
 
+    AUDIT_COMMONEVENTFORMAT_ENABLE(
+            "audit.CommonEventFormat.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.AUDIT_FORWARD),
+    AUDIT_COMMONEVENTFORMAT_SERVERS(
+            "audit.CommonEventFormat.servers", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.AUDIT_FORWARD),
+    AUDIT_COMMONEVENTFORMAT_CERTIFICATES(
+            "audit.CommonEventFormat.certificates", PwmSettingSyntax.X509CERT, PwmSettingCategory.AUDIT_FORWARD),
 
     // challenge settings
     CHALLENGE_ENABLE(

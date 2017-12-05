@@ -74,11 +74,13 @@ public class AuditService implements PwmService {
     private ServiceInfoBean serviceInfo = new ServiceInfoBean(Collections.emptyList());
 
     private SyslogAuditService syslogManager;
+    private CEFAuditService cefManager;
     private ErrorInformation lastError;
     private UserHistoryStore userHistoryStore;
     private AuditVault auditVault;
 
     private PwmApplication pwmApplication;
+    private boolean cefEnabled = true;
 
     public AuditService() {
     }
@@ -92,6 +94,7 @@ public class AuditService implements PwmService {
         this.pwmApplication = pwmApplication;
 
         settings = new AuditSettings(pwmApplication.getConfig());
+        cefEnabled = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.AUDIT_COMMONEVENTFORMAT_ENABLE);
 
         if (pwmApplication.getApplicationMode() == null || pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY) {
             this.status = STATUS.CLOSED;
@@ -108,7 +111,11 @@ public class AuditService implements PwmService {
         final List<String> syslogConfigString = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.AUDIT_SYSLOG_SERVERS);
         if (syslogConfigString != null && !syslogConfigString.isEmpty()) {
             try {
-                syslogManager = new SyslogAuditService(pwmApplication);
+                if (cefEnabled) {
+                    cefManager = new CEFAuditService(pwmApplication);
+                } else {
+                    syslogManager = new SyslogAuditService(pwmApplication);
+                }
             } catch (Exception e) {
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SYSLOG_WRITE_ERROR, "startup error: " + e.getMessage());
                 LOGGER.error(errorInformation.toDebugStr());
@@ -177,9 +184,16 @@ public class AuditService implements PwmService {
 
     @Override
     public void close() {
-        if (syslogManager != null) {
-            syslogManager.close();
+        if (cefEnabled) {
+            if (cefManager != null) {
+                cefManager.close();
+            }
+        } else {
+            if (syslogManager != null) {
+                syslogManager.close();
+            }
         }
+
         this.status = STATUS.CLOSED;
     }
 
@@ -190,10 +204,15 @@ public class AuditService implements PwmService {
         }
 
         final List<HealthRecord> healthRecords = new ArrayList<>();
-        if (syslogManager != null) {
-            healthRecords.addAll(syslogManager.healthCheck());
+        if (cefEnabled) {
+            if (cefManager != null) {
+                healthRecords.addAll(cefManager.healthCheck());
+            }
+        } else {
+            if (syslogManager != null) {
+                healthRecords.addAll(syslogManager.healthCheck());
+            }
         }
-
         if (lastError != null) {
             healthRecords.add(new HealthRecord(HealthStatus.WARN, HealthTopic.Audit, lastError.toDebugStr()));
         }
@@ -343,11 +362,21 @@ public class AuditService implements PwmService {
         }
 
         // send to syslog
-        if (syslogManager != null) {
-            try {
-                syslogManager.add(auditRecord);
-            } catch (PwmOperationalException e) {
-                lastError = e.getErrorInformation();
+        if (cefEnabled) {
+            if (cefManager != null) {
+                try {
+                    cefManager.add(auditRecord);
+                } catch (PwmOperationalException e) {
+                    lastError = e.getErrorInformation();
+                }
+            }
+        } else {
+            if (syslogManager != null) {
+                try {
+                    syslogManager.add(auditRecord);
+                } catch (PwmOperationalException e) {
+                    lastError = e.getErrorInformation();
+                }
             }
         }
 
@@ -426,6 +455,10 @@ public class AuditService implements PwmService {
     }
 
     public int syslogQueueSize() {
-        return syslogManager != null ? syslogManager.queueSize() : 0;
+        if (cefEnabled) {
+            return cefManager != null ? cefManager.queueSize() : 0;
+        } else {
+            return syslogManager != null ? syslogManager.queueSize() : 0;
+        }
     }
 }
