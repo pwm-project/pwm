@@ -181,12 +181,19 @@ public class PwmHttpClient {
         msg.append("\n");
         for (final Map.Entry<String, String> headerEntry : headers.entrySet()) {
             final HttpHeader httpHeader = HttpHeader.forHttpHeader(headerEntry.getKey());
-            final boolean sensitive = httpHeader != null && httpHeader.isSensitive();
-            msg.append("  header: ").append( headerEntry.getValue() ).append("=");
-            if (sensitive) {
-                msg.append(PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT);
+            if (httpHeader != null) {
+                final boolean sensitive = httpHeader.isSensitive();
+                msg.append("  header: ").append( httpHeader.getHttpName() ).append("=");
+
+                if (sensitive) {
+                    msg.append(PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT);
+                } else {
+                    msg.append(headerEntry.getValue());
+                }
             } else {
-                msg.append(headerEntry.getValue());
+                // We encountered a header name that doesn't have a corresponding enum in HttpHeader,
+                // so we can't check the sensitive flag.
+                msg.append("  header: ").append(headerEntry.getKey()).append("=").append(headerEntry.getValue());
             }
             msg.append("\n");
         }
