@@ -1,0 +1,66 @@
+<!--
+  ~ Password Management Servlets (PWM)
+  ~ http://www.pwm-project.org
+  ~
+  ~ Copyright (c) 2006-2009 Novell, Inc.
+  ~ Copyright (c) 2009-2017 The PWM Project
+  ~
+  ~ This program is free software; you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation; either version 2 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program; if not, write to the Free Software
+  ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  -->
+
+<ias-dialog>
+    <div class="ias-dialog-header">
+        <div class="ias-title" ng-bind="'Title_RecentVerifications' | translate"></div>
+    </div>
+
+    <div class="ias-dialog-body">
+        <p ng-bind="'Display_SearchResultsNone' | translate"
+           ng-if="!$ctrl.recentVerifications.length"></p>
+        <table ng-if="!!$ctrl.recentVerifications.length">
+            <thead>
+            <tr>
+                <th ng-bind="'Field_LdapProfile' | translate"></th>
+                <th ng-bind="'Field_Username' | translate"></th>
+                <th ng-bind="'Field_DateTime' | translate"></th>
+                <th ng-bind="'Field_Method' | translate"></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="record in $ctrl.recentVerifications">
+                <td ng-bind="record.profile"></td>
+                <td ng-bind="record.username"></td>
+                <td ng-bind="record.timestamp | dateFilter"></td>
+                <td ng-bind="record.method"></td>
+            </tr>
+            </tbody>
+        </table>
+        <div ng-repeat="method in $ctrl.availableVerificationMethods" class="aligned-inputs">
+            <div class="first-col"></div>
+            <mf-button ng-click="$ctrl.selectVerificationMethod(method.name)">
+                {{ method.label | translate }}
+            </mf-button>
+        </div>
+    </div>
+
+    <div class="ias-actions">
+        <mf-button ng-click="close()">{{ 'Button_OK' | translate }}</mf-button>
+    </div>
+    <mf-icon-button class="ias-dialog-close-button"
+                    icon="close_thick"
+                    id="close-icon"
+                    ng-attr-title="{{ 'Title_Close' | translate }}"
+                    ng-click="close()">
+    </mf-icon-button>
+</ias-dialog>

@@ -60,6 +60,7 @@ export interface IHelpDeskConfigService extends IConfigService {
     getTokenSendMethod(): IPromise<string>;
     getVerificationAttributes(): IPromise<IVerificationMap>;
     getVerificationMethods(): IPromise<IVerificationMap>;
+    verificationsEnabled(): IPromise<boolean>;
 }
 
 export default class HelpDeskConfigService extends ConfigBaseService implements IConfigService, IHelpDeskConfigService {
@@ -116,5 +117,12 @@ export default class HelpDeskConfigService extends ConfigBaseService implements 
 
             return verificationMethods;
         });
+    }
+
+    verificationsEnabled(): IPromise<boolean> {
+        return this.getValue(VERIFICATION_METHODS_CONFIG)
+            .then((result: IVerificationResponse) => {
+                return !!result.required.length;
+            });
     }
 }

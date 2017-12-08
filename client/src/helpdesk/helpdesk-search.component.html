@@ -41,6 +41,8 @@
         ng-disabled="$ctrl.view === 'table'"
         id="view-list-icon"></mf-icon-button>
 </mf-app-bar>
+<mf-button ng-if="$ctrl.verificationsEnabled"
+           ng-click="$ctrl.showVerifications()">{{ 'Button_Verifications' | translate }}</mf-button>
 
 <div class="people-search-component-content">
     <div class="person-card-list" ng-show="$ctrl.view === 'cards'">

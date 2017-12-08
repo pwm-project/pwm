@@ -25,6 +25,7 @@ import {Component} from '../component';
 import {IConfigService} from '../services/base-config.service';
 import {IPeopleService} from '../services/people.service';
 import {IPerson} from '../models/person.model';
+import {IHelpDeskService} from '../services/helpdesk.service';
 
 @Component({
     stylesheetUrl: require('helpdesk/helpdesk-detail.component.scss'),
@@ -35,9 +36,10 @@ export default class HelpDeskDetailComponent {
 
     person: IPerson;
 
-    static $inject = [ 'ConfigService', '$stateParams', 'PeopleService' ];
-    constructor(private configService: IConfigService,
-                private $stateParams: angular.ui.IStateParamsService,
+    static $inject = [ '$stateParams', 'ConfigService', 'HelpDeskService', 'PeopleService' ];
+    constructor(private $stateParams: angular.ui.IStateParamsService,
+                private configService: IConfigService,
+                private helpDeskService: IHelpDeskService,
                 private peopleService: IPeopleService) {
     }
 
@@ -48,14 +50,12 @@ export default class HelpDeskDetailComponent {
             this.photosEnabled = photosEnabled;
         }); // TODO: always necessary?
 
-        this.peopleService  // TODO: help desk get person. (helpdesk.js:251)
+        this.helpDeskService
             .getPerson(personId)
-            .then(
-                (person: IPerson) => {
-                    this.person = person;
-                },
-                (error) => {
-                    // TODO: Handle error. NOOP for now will not assign person
-                });
+            .then((person: any) => {
+                console.log(person);
+            }, (error) => {
+                // TODO: Handle error. NOOP for now will not assign person
+            });
     }
 }

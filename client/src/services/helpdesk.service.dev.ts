@@ -20,7 +20,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-import {IHelpDeskService, IVerificationStatus, IVerificationTokenResponse} from './helpdesk.service';
+import {
+    IHelpDeskService, IRecentVerifications, IVerificationStatus,
+    IVerificationTokenResponse
+} from './helpdesk.service';
 import {IPromise, IQService, IWindowService} from 'angular';
 
 export default class HelpDeskService implements IHelpDeskService {
@@ -32,6 +35,33 @@ export default class HelpDeskService implements IHelpDeskService {
 
     checkVerification(userKey: string): IPromise<IVerificationStatus> {
         return this.$q.resolve({ passed: false });
+    }
+
+    getPerson(userKey: string): IPromise<any> {
+        return null;
+    }
+
+    getRecentVerifications(): IPromise<IRecentVerifications> {
+        return this.$q.resolve([
+            {
+                timestamp: '2017-12-06T23:19:07Z',
+                profile: 'default',
+                username: 'aastin',
+                method: 'Personal Data'
+            },
+            {
+                timestamp: '2017-12-03T22:11:07Z',
+                profile: 'default',
+                username: 'bjroach',
+                method: 'Personal Data'
+            },
+            {
+                timestamp: '2017-12-02T13:09:07Z',
+                profile: 'default',
+                username: 'rrhoads',
+                method: 'Personal Data'
+            }
+        ]);
     }
 
     sendVerificationToken(userKey: string, choice: string): IPromise<IVerificationTokenResponse> {

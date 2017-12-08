@@ -146,6 +146,39 @@ ias-dialog {
       width: 25px;
     }
   }
+
+  table {
+    border: 1px solid #dae1e1;
+    border-collapse: collapse;
+    width: 100%;
+
+    > tbody {
+      > tr {
+        height: 25px;
+      }
+    }
+
+    th, td {
+      font-weight: normal;
+      overflow: hidden;
+      padding: 5px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background-color: #eeeeee;
+      color: #697c87;
+      user-select: none;
+    }
+
+    tr {
+      > th,
+      > td {
+        border-bottom: 1px solid #dae1e1;
+      }
+    }
+  }
 }
 
 [dir="rtl"] {

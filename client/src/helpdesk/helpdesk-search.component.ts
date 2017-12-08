@@ -30,6 +30,7 @@ import DialogService from '../ux/ias-dialog.service';
 import {IHelpDeskConfigService} from '../services/helpdesk-config.service';
 
 let verificationsDialogTemplateUrl = require('./verifications-dialog.template.html');
+let recentVerificationsDialogTemplateUrl = require('./recent-verifications-dialog.template.html');
 
 @Component({
     stylesheetUrl: require('helpdesk/helpdesk-search.component.scss'),
@@ -41,6 +42,7 @@ export default class HelpDeskSearchComponent {
     photosEnabled: boolean;
     query: string;
     searchResult: SearchResult;
+    verificationsEnabled: boolean;
     view: string;
 
     static $inject = ['$q',
@@ -61,6 +63,10 @@ export default class HelpDeskSearchComponent {
         this.configService.photosEnabled().then((photosEnabled: boolean) => {
             this.photosEnabled = photosEnabled;
         }); // TODO: only if in cards view (some other things are like that too)
+
+        this.configService.verificationsEnabled().then((verificationsEnabled: boolean) => {
+            this.verificationsEnabled = verificationsEnabled;
+        });
 
         this.fetchData();
     }
@@ -214,6 +220,14 @@ export default class HelpDeskSearchComponent {
                 locals: {
                     person: person
                 }
+            });
+    }
+
+    showVerifications(): void {
+        this.IasDialogService
+            .open({
+                controller: 'RecentVerificationsDialogController as $ctrl',
+                templateUrl: recentVerificationsDialogTemplateUrl
             });
     }
 }

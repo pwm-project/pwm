@@ -57,7 +57,6 @@ export default class VerificationsDialogController {
         'ObjectService',
         'person'
     ];
-
     constructor(private $state: ui.IStateService,
                 private $timeout: ITimeoutService,
                 private configService: IHelpDeskConfigService,

@@ -30,6 +30,8 @@ import HelpDeskDetailComponent from './helpdesk-detail.component';
 import LocalStorageService from '../services/local-storage.service';
 import VerificationsDialogController from './verifications-dialog.controller';
 import ObjectService from '../services/object.service';
+import RecentVerificationsDialogController from './recent-verifications-dialog.controller';
+import {DateFilter} from './date.filter';
 
 require('../peoplesearch/peoplesearch.scss');
 
@@ -43,6 +45,8 @@ module(moduleName, [
     .component('helpDeskDetail', HelpDeskDetailComponent)
     .component('personCard', PersonCardComponent)
     .controller('VerificationsDialogController', VerificationsDialogController)
+    .controller('RecentVerificationsDialogController', RecentVerificationsDialogController)
+    .filter('dateFilter', DateFilter)
     .service('ObjectService', ObjectService)
     .service('PromiseService', PromiseService)
     .service('LocalStorageService', LocalStorageService);

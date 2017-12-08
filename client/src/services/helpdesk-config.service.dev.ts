@@ -64,4 +64,8 @@ export default class HelpDeskConfigService extends ConfigBaseService implements 
             { name: VERIFICATION_METHOD_NAMES.SMS, label: VERIFICATION_METHOD_LABELS.SMS }
         ]);
     }
+
+    verificationsEnabled(): IPromise<boolean> {
+        return this.$q.resolve(true);
+    }
 }

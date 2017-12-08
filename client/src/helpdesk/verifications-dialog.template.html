@@ -87,11 +87,11 @@
                 <div class="paragraph" ng-if="$ctrl.verificationStatus==='failed'">
                     Viewing details only available after a user has been successfully verified
                 </div>
-                <mf-button ng-attr-disabled="{{$ctrl.verificationStatus!=='passed'}}"
+                <mf-button ng-disabled="$ctrl.verificationStatus!=='passed'"
                            ng-click="$ctrl.viewDetails()">
                     View Details
                 </mf-button>
-                <mf-button ng-click="close()">Cancel</mf-button>
+                <mf-button ng-click="close()">{{ 'Button_Cancel' | translate }}</mf-button>
             </div>
         </div>
     </div>

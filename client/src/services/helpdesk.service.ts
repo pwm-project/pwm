@@ -35,8 +35,19 @@ const VERIFICATION_PROCESS_ACTIONS = {
 
 export interface IHelpDeskService {
     checkVerification(userKey: string): IPromise<IVerificationStatus>;
+    getPerson(userKey: string): IPromise<any>
+    getRecentVerifications(): IPromise<IRecentVerifications>;
     sendVerificationToken(userKey: string, choice: string): IPromise<IVerificationTokenResponse>;
     validateVerificationData(userKey: string, formData: any, tokenData: any): IPromise<IVerificationStatus>;
+}
+
+export type IRecentVerifications = IRecentVerification[];
+
+type IRecentVerification = {
+    profile: string,
+    username: string,
+    timestamp: string,
+    method: string
 }
 
 interface IValidationStatus extends IVerificationStatus {
@@ -70,7 +81,7 @@ export default class HelpDeskService implements IHelpDeskService {
     }
 
     checkVerification(userKey: string): IPromise<IVerificationStatus> {
-        let url: string =  this.pwmService.getServerUrl('checkVerification');
+        let url: string = this.pwmService.getServerUrl('checkVerification');
         let data = {
             userKey: userKey,
             verificationState: this.localStorageService.getItem(this.localStorageService.keys.VERIFICATION_STATE)
@@ -80,6 +91,32 @@ export default class HelpDeskService implements IHelpDeskService {
             .httpRequest(url, { data: data })
             .then((result: IVerificationStatus) => {
                 return this.$q.resolve(result);
+            });
+    }
+
+    getPerson(userKey: string): IPromise<any> {
+        let url: string = this.pwmService.getServerUrl('detail');
+        let data = {
+            userKey: userKey,
+            verificationState: this.localStorageService.getItem(this.localStorageService.keys.VERIFICATION_STATE)
+        };
+
+        return this.pwmService
+            .httpRequest(url, { data: data })
+            .then((result: any) => {
+                return this.$q.resolve(result);
+            });
+    }
+
+    getRecentVerifications(): IPromise<IRecentVerifications> {
+        let url: string = this.pwmService.getServerUrl('showVerifications');
+        let data = {
+            verificationState: this.localStorageService.getItem(this.localStorageService.keys.VERIFICATION_STATE)
+        };
+        return this.pwmService
+            .httpRequest(url, { data: data })
+            .then((result: {records: IRecentVerifications}) => {
+                return this.$q.resolve(result.records);
             });
     }
 
