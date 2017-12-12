@@ -109,7 +109,9 @@ public class AuditService implements PwmService {
         }
 
         final List<String> syslogConfigString = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.AUDIT_SYSLOG_SERVERS);
-        if (syslogConfigString != null && !syslogConfigString.isEmpty()) {
+        final List<String> cefConfigString = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.AUDIT_COMMONEVENTFORMAT_SERVERS);
+
+        if ((syslogConfigString != null && !syslogConfigString.isEmpty()) || (cefConfigString != null && !cefConfigString.isEmpty())) {
             try {
                 if (cefEnabled) {
                     cefManager = new CEFAuditService(pwmApplication);

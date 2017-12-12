@@ -119,7 +119,7 @@ public class CEFAuditService {
     private class SyslogItemProcessor implements WorkQueueProcessor.ItemProcessor<String> {
         @Override
         public WorkQueueProcessor.ProcessResult process(final String workItem) {
-            return processEvent(workItem);
+            return processCEFEvent(workItem);
         }
 
         @Override
@@ -191,9 +191,10 @@ public class CEFAuditService {
         return healthRecords;
     }
 
-    private WorkQueueProcessor.ProcessResult processEvent(final String auditRecord) {
+    private WorkQueueProcessor.ProcessResult processCEFEvent(final String auditRecord) {
 
         for (SyslogIF cefInstance : cefInstances) {
+
             try {
                 cefInstance.info(auditRecord);
                 LOGGER.trace("delivered syslog audit event: " + auditRecord);
@@ -353,7 +354,6 @@ public class CEFAuditService {
     }
 
     private class LocalTrustSSLTCPNetSyslog extends SSLTCPNetSyslog {
-
 
         @Override
         public AbstractSyslogWriter createWriter() {
