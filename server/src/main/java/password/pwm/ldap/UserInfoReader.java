@@ -22,7 +22,6 @@
 
 package password.pwm.ldap;
 
-import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiOperationException;
@@ -108,7 +107,7 @@ public class UserInfoReader implements UserInfo {
         this.sessionLabel = sessionLabel;
 
         final ChaiProvider cachingProvider = CachingProxyWrapper.create(ChaiProvider.class, chaiProvider);
-        this.chaiUser = ChaiFactory.createChaiUser(userIdentity.getUserDN(), cachingProvider);
+        this.chaiUser = cachingProvider.getEntryFactory().newChaiUser(userIdentity.getUserDN());
     }
 
     static UserInfo create(

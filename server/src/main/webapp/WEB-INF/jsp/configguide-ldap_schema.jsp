@@ -41,7 +41,8 @@
     boolean existingSchemaGood = false;
     String schemaActivityLog = "";
     try {
-        final SchemaOperationResult schemaManager = ConfigGuideUtils.extendSchema(configGuideBean,false);
+        final PwmApplication pwmApplication = JspUtility.getPwmRequest(pageContext).getPwmApplication();
+        final SchemaOperationResult schemaManager = ConfigGuideUtils.extendSchema(pwmApplication, configGuideBean, false);
         existingSchemaGood = schemaManager.isSuccess();
         schemaActivityLog = schemaManager.getOperationLog();
     } catch (Exception e) {

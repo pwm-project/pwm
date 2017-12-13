@@ -101,7 +101,7 @@ public class HelpdeskDetailInfoBean implements Serializable {
         final Locale actorLocale = pwmRequest.getLocale();
         final ChaiUser theUser = HelpdeskServlet.getChaiUser(pwmRequest, helpdeskProfile, userIdentity);
 
-        if (!theUser.isValid()) {
+        if (!theUser.exists()) {
             return null;
         }
 

@@ -22,13 +22,11 @@
 
 package password.pwm.http.servlet.newuser;
 
-import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiConfiguration;
 import com.novell.ldapchai.provider.ChaiProvider;
-import com.novell.ldapchai.provider.ChaiProviderFactory;
 import com.novell.ldapchai.provider.ChaiSetting;
 import com.novell.ldapchai.provider.DirectoryVendor;
 import password.pwm.AppProperty;
@@ -38,13 +36,13 @@ import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.TokenVerificationProgress;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.TokenStorageMethod;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.profile.NewUserProfile;
 import password.pwm.config.profile.PwmPasswordPolicy;
+import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
@@ -169,7 +167,7 @@ class NewUserUtils {
             throw new PwmOperationalException(errorInformation);
         }
 
-        final ChaiUser theUser = ChaiFactory.createChaiUser(newUserDN, chaiProvider);
+        final ChaiUser theUser = chaiProvider.getEntryFactory().newChaiUser(newUserDN);
 
         final boolean useTempPw;
         {
@@ -190,7 +188,7 @@ class NewUserUtils {
                         .build();
                 temporaryPassword = RandomPasswordGenerator.createRandomPassword(pwmSession.getLabel(), randomGeneratorConfig, pwmApplication);
             }
-            final ChaiUser proxiedUser = ChaiFactory.createChaiUser(newUserDN, chaiProvider);
+            final ChaiUser proxiedUser = chaiProvider.getEntryFactory().newChaiUser(newUserDN);
             try { //set password as admin
                 proxiedUser.setPassword(temporaryPassword.getStringValue());
                 NewUserUtils.LOGGER.debug(pwmSession, "set temporary password for new user entry: " + newUserDN);
@@ -222,8 +220,8 @@ class NewUserUtils {
                         .setSetting(ChaiSetting.BIND_DN, newUserDN)
                         .setSetting(ChaiSetting.BIND_PASSWORD, temporaryPassword.getStringValue())
                         .build();
-                final ChaiProvider bindAsProvider = ChaiProviderFactory.createProvider(chaiConfiguration);
-                final ChaiUser bindAsUser = ChaiFactory.createChaiUser(newUserDN, bindAsProvider);
+                final ChaiProvider bindAsProvider = pwmApplication.getLdapConnectionService().getChaiProviderFactory().newProvider(chaiConfiguration);
+                final ChaiUser bindAsUser = bindAsProvider.getEntryFactory().newChaiUser(newUserDN);
                 bindAsUser.changePassword(temporaryPassword.getStringValue(), userPassword.getStringValue());
                 NewUserUtils.LOGGER.debug(pwmSession, "changed to user requested password for new user entry: " + newUserDN);
                 bindAsProvider.close();

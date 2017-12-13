@@ -22,7 +22,6 @@
 
 package password.pwm.util.operations;
 
-import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiPasswordPolicy;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiException;
@@ -32,7 +31,6 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.impl.oracleds.entry.OracleDSEntries;
 import com.novell.ldapchai.provider.ChaiConfiguration;
 import com.novell.ldapchai.provider.ChaiProvider;
-import com.novell.ldapchai.provider.ChaiProviderFactory;
 import com.novell.ldapchai.provider.ChaiSetting;
 import com.novell.ldapchai.provider.DirectoryVendor;
 import com.novell.ldapchai.util.ChaiUtility;
@@ -359,7 +357,7 @@ public class PasswordUtility {
         final String bindDN;
 
         try {
-            final ChaiUser theUser = ChaiFactory.createChaiUser(userIdentity.getUserDN(), chaiProvider);
+            final ChaiUser theUser = chaiProvider.getEntryFactory().newChaiUser(userIdentity.getUserDN());
             bindDN = chaiProvider.getChaiConfiguration().getSetting(ChaiSetting.BIND_DN);
             bindIsSelf = userIdentity.canonicalEquals(new UserIdentity(bindDN, userIdentity.getLdapProfileID()), pwmApplication);
 
@@ -563,7 +561,7 @@ public class PasswordUtility {
             final String loopReplicaUrl = loopConfiguration.getSetting(ChaiSetting.BIND_DN);
             ChaiProvider loopProvider = null;
             try {
-                loopProvider = ChaiProviderFactory.createProvider(loopConfiguration);
+                loopProvider = pwmApplication.getLdapConnectionService().getChaiProviderFactory().newProvider(loopConfiguration);
                 final Instant lastModifiedDate = determinePwdLastModified(pwmApplication, sessionLabel, userIdentity);
                 returnValue.put(loopReplicaUrl, lastModifiedDate);
             } catch (ChaiUnavailableException e) {

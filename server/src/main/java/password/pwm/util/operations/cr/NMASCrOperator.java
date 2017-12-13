@@ -24,7 +24,6 @@ package password.pwm.util.operations.cr;
 
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPException;
-import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.ChaiChallenge;
 import com.novell.ldapchai.cr.ChaiChallengeSet;
@@ -412,8 +411,9 @@ public class NMASCrOperator implements CrOperator {
         }
 
         private LDAPConnection makeLdapConnection() throws Exception {
-            final ChaiProvider chaiProvider = ChaiProviderFactory.createProvider(chaiConfiguration);
-            final ChaiUser theUser = ChaiFactory.createChaiUser(userIdentity.getUserDN(), chaiProvider);
+            final ChaiProviderFactory chaiProviderFactory = pwmApplication.getLdapConnectionService().getChaiProviderFactory();
+            final ChaiProvider chaiProvider = chaiProviderFactory.newProvider(chaiConfiguration);
+            final ChaiUser theUser = chaiProvider.getEntryFactory().newChaiUser(userIdentity.getUserDN());
             try {
                 if (theUser.isPasswordLocked()) {
                     LOGGER.trace("user " + theUser.getEntryDN() + " appears to be intruder locked, aborting nmas ResponseSet loading" );

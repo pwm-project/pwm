@@ -248,6 +248,7 @@ public class SessionAuthenticator {
             //read a provider using the user's DN and password.
 
             provider = LdapOperationsHelper.createChaiProvider(
+                    pwmApplication,
                     sessionLabel,
                     userIdentity.getLdapProfile(pwmApplication.getConfig()),
                     pwmApplication.getConfig(),

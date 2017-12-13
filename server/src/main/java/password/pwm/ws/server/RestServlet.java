@@ -1,7 +1,6 @@
 package password.pwm.ws.server;
 
 import com.google.gson.stream.MalformedJsonException;
-import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
@@ -306,7 +305,7 @@ public abstract class RestServlet extends HttpServlet{
 
         public ChaiUser getChaiUser() throws PwmUnrecoverableException {
             try {
-                return ChaiFactory.createChaiUser(userIdentity.getUserDN(), getChaiProvider());
+                return getChaiProvider().getEntryFactory().newChaiUser(userIdentity.getUserDN());
             } catch (ChaiUnavailableException e) {
                 throw PwmUnrecoverableException.fromChaiException(e);
             }

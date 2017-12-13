@@ -23,10 +23,10 @@
 package password.pwm.ldap;
 
 import com.novell.ldapchai.ChaiEntry;
-import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
+import com.novell.ldapchai.provider.ChaiProviderFactory;
 import com.novell.ldapchai.provider.DirectoryVendor;
 import com.novell.ldapchai.provider.SearchScope;
 import com.novell.ldapchai.util.ChaiUtility;
@@ -52,11 +52,18 @@ import java.util.TreeMap;
 
 public class LdapBrowser {
     private static final PwmLogger LOGGER = PwmLogger.forClass(LdapBrowser.class);
-    final StoredConfigurationImpl storedConfiguration;
+    private final StoredConfigurationImpl storedConfiguration;
 
-    private Map<String,ChaiProvider> providerCache = new HashMap<>();
+    private final ChaiProviderFactory chaiProviderFactory ;
+    private final Map<String,ChaiProvider> providerCache = new HashMap<>();
 
-    public LdapBrowser(final StoredConfigurationImpl storedConfiguration) throws PwmUnrecoverableException {
+    public LdapBrowser(
+            final ChaiProviderFactory chaiProviderFactory,
+            final StoredConfigurationImpl storedConfiguration
+            )
+            throws PwmUnrecoverableException
+    {
+        this.chaiProviderFactory = chaiProviderFactory;
         this.storedConfiguration = storedConfiguration;
     }
 
@@ -108,7 +115,7 @@ public class LdapBrowser {
         if (adRootDNList(profileID).contains(dn)) {
             result.setParentDN("");
         } else if (dn != null && !dn.isEmpty()) {
-            final ChaiEntry dnEntry = ChaiFactory.createChaiEntry(dn, getChaiProvider(profileID));
+            final ChaiEntry dnEntry = getChaiProvider(profileID).getEntryFactory().newChaiEntry(dn);
             final ChaiEntry parentEntry = dnEntry.getParentEntry();
             if (parentEntry == null) {
                 result.setParentDN("");
@@ -124,7 +131,7 @@ public class LdapBrowser {
         if (!providerCache.containsKey(profile)) {
             final Configuration configuration = new Configuration(storedConfiguration);
             final LdapProfile ldapProfile = LdapProfile.makeFromStoredConfiguration(storedConfiguration, profile);
-            final ChaiProvider chaiProvider = LdapOperationsHelper.openProxyChaiProvider(null,ldapProfile,configuration,null);
+            final ChaiProvider chaiProvider = LdapOperationsHelper.openProxyChaiProvider(chaiProviderFactory, null,ldapProfile,configuration,null);
             providerCache.put(profile,chaiProvider);
         }
         return providerCache.get(profile);

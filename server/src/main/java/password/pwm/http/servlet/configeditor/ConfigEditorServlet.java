@@ -876,7 +876,10 @@ public class ConfigEditorServlet extends ControlledPwmServlet {
         final String profile = inputMap.get("profile");
         final String dn = inputMap.containsKey("dn") ? inputMap.get("dn") : "";
 
-        final LdapBrowser ldapBrowser = new LdapBrowser(configManagerBean.getStoredConfiguration());
+        final LdapBrowser ldapBrowser = new LdapBrowser(
+                pwmRequest.getPwmApplication().getLdapConnectionService().getChaiProviderFactory(),
+                configManagerBean.getStoredConfiguration()
+        );
 
         LdapBrowser.LdapBrowseResult result;
         try {

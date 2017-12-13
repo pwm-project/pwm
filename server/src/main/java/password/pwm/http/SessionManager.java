@@ -22,7 +22,6 @@
 
 package password.pwm.http;
 
-import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
@@ -88,6 +87,7 @@ public class SessionManager {
 
         try {
             this.chaiProvider = LdapOperationsHelper.createChaiProvider(
+                    pwmApplication,
                     pwmSession.getLabel(),
                     userIdentity.getLdapProfile(pwmApplication.getConfig()),
                     pwmApplication.getConfig(),
@@ -95,7 +95,7 @@ public class SessionManager {
                     userPassword
             );
             final String userDN = userIdentity.getUserDN();
-            ChaiFactory.createChaiEntry(userDN,chaiProvider).isValid();
+            chaiProvider.getEntryFactory().newChaiEntry(userDN).exists();
         } catch (ChaiUnavailableException e) {
             final ErrorInformation errorInformation = new ErrorInformation(
                     PwmError.ERROR_DIRECTORY_UNAVAILABLE,
@@ -130,7 +130,7 @@ public class SessionManager {
             throw new IllegalStateException("user not logged in");
         }
 
-        return ChaiFactory.createChaiUser(userDN.getUserDN(), this.getChaiProvider());
+        return this.getChaiProvider().getEntryFactory().newChaiUser(userDN.getUserDN());
     }
 
     public boolean hasActiveLdapConnection() {
@@ -149,7 +149,7 @@ public class SessionManager {
                 throw new PwmUnrecoverableException(PwmError.ERROR_NO_LDAP_CONNECTION);
             }
             final ChaiProvider provider = this.getChaiProvider();
-            return ChaiFactory.createChaiUser(userIdentity.getUserDN(), provider);
+            return provider.getEntryFactory().newChaiUser(userIdentity.getUserDN());
         } catch (ChaiUnavailableException e) {
             throw PwmUnrecoverableException.fromChaiException(e);
         }

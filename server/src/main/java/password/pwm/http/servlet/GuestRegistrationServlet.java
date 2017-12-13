@@ -22,7 +22,6 @@
 
 package password.pwm.http.servlet;
 
-import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
@@ -428,7 +427,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
             provider.createEntry(guestUserDN, createObjectClasses, createAttributes);
             LOGGER.info(pwmSession, "created user object: " + guestUserDN);
 
-            final ChaiUser theUser = ChaiFactory.createChaiUser(guestUserDN, provider);
+            final ChaiUser theUser = provider.getEntryFactory().newChaiUser(guestUserDN);
             final UserIdentity userIdentity = new UserIdentity(guestUserDN, pwmSession.getUserInfo().getUserIdentity().getLdapProfileID());
 
             // write the expiration date:

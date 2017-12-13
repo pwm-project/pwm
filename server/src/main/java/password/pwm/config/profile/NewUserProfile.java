@@ -22,9 +22,9 @@
 
 package password.pwm.config.profile;
 
-import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -115,7 +115,8 @@ public class NewUserProfile extends AbstractProfile {
                 throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_INVALID_CONFIG,"user ldap dn in setting " + PwmSetting.NEWUSER_PASSWORD_POLICY_USER.toMenuLocationDebug(null,PwmConstants.DEFAULT_LOCALE) + " can not be resolved"));
             } else {
                 try {
-                    final ChaiUser chaiUser = ChaiFactory.createChaiUser(lookupDN, pwmApplication.getProxyChaiProvider(defaultLdapProfile.getIdentifier()));
+                    final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider(defaultLdapProfile.getIdentifier());
+                    final ChaiUser chaiUser = chaiProvider.getEntryFactory().newChaiUser(lookupDN);
                     final UserIdentity userIdentity = new UserIdentity(lookupDN, defaultLdapProfile.getIdentifier());
                     thePolicy = PasswordUtility.readPasswordPolicyForUser(pwmApplication, null, userIdentity, chaiUser, userLocale);
                 } catch (ChaiUnavailableException e) {

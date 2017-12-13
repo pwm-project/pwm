@@ -22,11 +22,11 @@
 
 package password.pwm.http.servlet;
 
-import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ImpossiblePasswordPolicyException;
+import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
@@ -476,7 +476,8 @@ public class ActivateUserServlet extends AbstractPwmServlet {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final String searchFilter = figureLdapSearchFilter(pwmRequest);
-        final ChaiUser chaiUser = ChaiFactory.createChaiUser(userIdentity.getUserDN(), pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID()));
+        final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID());
+        final ChaiUser chaiUser = chaiProvider.getEntryFactory().newChaiUser(userIdentity.getUserDN());
 
         for (final Map.Entry<FormConfiguration, String> entry : formValues.entrySet()) {
             final FormConfiguration formItem = entry.getKey();

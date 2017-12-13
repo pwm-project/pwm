@@ -24,7 +24,6 @@ package password.pwm.ldap;
 
 import com.novell.ldapchai.ChaiConstant;
 import com.novell.ldapchai.ChaiEntry;
-import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.Answer;
 import com.novell.ldapchai.exception.ChaiOperationException;
@@ -91,7 +90,7 @@ public class LdapOperationsHelper {
             return;
         }
         final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID());
-        final ChaiUser theUser = ChaiFactory.createChaiUser(userIdentity.getUserDN(), chaiProvider);
+        final ChaiUser theUser = chaiProvider.getEntryFactory().newChaiUser(userIdentity.getUserDN());
         addUserObjectClass(sessionLabel, theUser, newObjClasses);
     }
 
@@ -125,6 +124,25 @@ public class LdapOperationsHelper {
     }
 
     public static ChaiProvider openProxyChaiProvider(
+            final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
+            final LdapProfile ldapProfile,
+            final Configuration config,
+            final StatisticsManager statisticsManager
+    )
+            throws PwmUnrecoverableException
+    {
+        return openProxyChaiProvider(
+                pwmApplication.getLdapConnectionService().getChaiProviderFactory(),
+                sessionLabel,
+                ldapProfile,
+                config,
+                statisticsManager
+        );
+    }
+
+    static ChaiProvider openProxyChaiProvider(
+            final ChaiProviderFactory chaiProviderFactory,
             final SessionLabel sessionLabel,
             final LdapProfile ldapProfile,
             final Configuration config,
@@ -138,7 +156,7 @@ public class LdapOperationsHelper {
         final PasswordData proxyPW = ldapProfile.readSettingAsPassword(PwmSetting.LDAP_PROXY_USER_PASSWORD);
 
         try {
-            return createChaiProvider(sessionLabel, ldapProfile, config, proxyDN, proxyPW);
+            return createChaiProvider(chaiProviderFactory, sessionLabel, ldapProfile, config, proxyDN, proxyPW);
         } catch (ChaiUnavailableException e) {
             if (statisticsManager != null) {
                 statisticsManager.incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
@@ -218,7 +236,6 @@ public class LdapOperationsHelper {
      * <p/>
      * Any ldap operation exceptions are not reported (but logged).
      *
-     * @param pwmSession       for looking up session info
      * @param theUser          User to write to
      * @param formValues       A map with {@link FormConfiguration} keys and String values.
      * @throws ChaiUnavailableException if the directory is unavailable
@@ -449,8 +466,28 @@ public class LdapOperationsHelper {
         }
     }
 
+    public static ChaiProvider createChaiProvider(
+            final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
+            final LdapProfile ldapProfile,
+            final Configuration config,
+            final String userDN,
+            final PasswordData userPassword
+    )
+            throws ChaiUnavailableException, PwmUnrecoverableException
+    {
+        return createChaiProvider(
+                pwmApplication.getLdapConnectionService().getChaiProviderFactory(),
+                sessionLabel,
+                ldapProfile,
+                config,
+                userDN,
+                userPassword
+        );
+    }
 
     public static ChaiProvider createChaiProvider(
+            final ChaiProviderFactory chaiProviderFactory,
             final SessionLabel sessionLabel,
             final LdapProfile ldapProfile,
             final Configuration config,
@@ -462,10 +499,11 @@ public class LdapOperationsHelper {
         final List<String> ldapURLs = ldapProfile.readSettingAsStringArray(PwmSetting.LDAP_SERVER_URLS);
         final ChaiConfiguration chaiConfig = createChaiConfiguration(config, ldapProfile, ldapURLs, userDN, userPassword);
         LOGGER.trace(sessionLabel,"creating new ldap connection using config: " + chaiConfig.toString());
-        return ChaiProviderFactory.createProvider(chaiConfig);
+        return chaiProviderFactory.newProvider(chaiConfig);
     }
 
     public static ChaiProvider createChaiProvider(
+            final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
             final Configuration config,
             final LdapProfile ldapProfile,
@@ -477,7 +515,7 @@ public class LdapOperationsHelper {
     {
         final ChaiConfiguration chaiConfig = createChaiConfiguration( config, ldapProfile, ldapURLs, userDN, userPassword);
         LOGGER.trace(sessionLabel,"creating new ldap connection using config: " + chaiConfig.toString());
-        return ChaiProviderFactory.createProvider(chaiConfig);
+        return pwmApplication.getLdapConnectionService().getChaiProviderFactory().newProvider(chaiConfig);
     }
 
     public static ChaiConfiguration createChaiConfiguration(
@@ -551,7 +589,6 @@ public class LdapOperationsHelper {
         if (idleTimeoutMs > 0) {
             configBuilder.setSetting(ChaiSetting.WATCHDOG_ENABLE, "true");
             configBuilder.setSetting(ChaiSetting.WATCHDOG_IDLE_TIMEOUT, idleTimeoutMsString);
-            configBuilder.setSetting(ChaiSetting.WATCHDOG_CHECK_FREQUENCY, Long.toString(5 * 1000));
         } else {
             configBuilder.setSetting(ChaiSetting.WATCHDOG_ENABLE, "false");
         }
@@ -719,7 +756,7 @@ public class LdapOperationsHelper {
         }
 
         final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID());
-        final ChaiUser chaiUser = ChaiFactory.createChaiUser(userIdentity.getUserDN(), chaiProvider);
+        final ChaiUser chaiUser = chaiProvider.getEntryFactory().newChaiUser(userIdentity.getUserDN());
 
         // use chai (nmas) to retrieve user password
         if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.EDIRECTORY_READ_USER_PWD)) {

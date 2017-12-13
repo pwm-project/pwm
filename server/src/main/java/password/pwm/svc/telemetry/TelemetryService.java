@@ -140,6 +140,8 @@ public class TelemetryService implements PwmService {
         executorService = JavaHelper.makeSingleThreadExecutorService(pwmApplication, TelemetryService.class);
 
         scheduleNextJob();
+
+        status = STATUS.OPEN;
     }
 
     private void initSender() throws PwmUnrecoverableException

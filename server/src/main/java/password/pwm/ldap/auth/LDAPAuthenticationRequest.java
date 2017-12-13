@@ -23,7 +23,6 @@
 package password.pwm.ldap.auth;
 
 import com.novell.ldapchai.ChaiConstant;
-import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiError;
 import com.novell.ldapchai.exception.ChaiException;
@@ -318,6 +317,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest {
         try {
             //read a provider using the user's DN and password.
             userProvider = LdapOperationsHelper.createChaiProvider(
+                    pwmApplication,
                     sessionLabel,
                     userIdentity.getLdapProfile(pwmApplication.getConfig()),
                     pwmApplication.getConfig(),
@@ -372,7 +372,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest {
         final boolean configAlwaysUseProxy = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.AD_USE_PROXY_FOR_FORGOTTEN);
 
         final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID());
-        final ChaiUser chaiUser = ChaiFactory.createChaiUser(userIdentity.getUserDN(), chaiProvider);
+        final ChaiUser chaiUser = chaiProvider.getEntryFactory().newChaiUser(userIdentity.getUserDN());
 
         // try setting a random password on the account to authenticate.
         if (!configAlwaysUseProxy && requestedAuthType == AuthenticationType.AUTH_FROM_PUBLIC_MODULE) {
@@ -523,7 +523,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest {
         final LdapProfile profile = pwmApplication.getConfig().getLdapProfiles().get(userIdentity.getLdapProfileID());
         final String proxyDN = profile.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
         final PasswordData proxyPassword = profile.readSettingAsPassword(PwmSetting.LDAP_PROXY_USER_PASSWORD);
-        return LdapOperationsHelper.createChaiProvider(sessionLabel, profile, pwmApplication.getConfig(), proxyDN, proxyPassword);
+        return LdapOperationsHelper.createChaiProvider(pwmApplication, sessionLabel, profile, pwmApplication.getConfig(), proxyDN, proxyPassword);
     }
 
     private void log(final PwmLogLevel level, final CharSequence message) {
