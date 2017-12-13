@@ -218,7 +218,8 @@ export default class HelpDeskSearchComponent {
                 controller: 'VerificationsDialogController as $ctrl',
                 templateUrl: verificationsDialogTemplateUrl,
                 locals: {
-                    person: person
+                    personUserKey: person.userKey,
+                    search: true
                 }
             });
     }

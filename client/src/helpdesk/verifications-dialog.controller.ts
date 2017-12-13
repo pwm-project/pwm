@@ -42,6 +42,7 @@ export default class VerificationsDialogController {
     availableVerificationMethods: IVerificationMap;
     formData: any = {};
     inputs: { name: string, label: string }[];
+    isDetailsView: boolean;
     status: string;
     tokenData: IVerificationTokenResponse;
     viewDetailsEnabled: boolean;
@@ -55,7 +56,7 @@ export default class VerificationsDialogController {
         'HelpDeskService',
         'IasDialogService',
         'ObjectService',
-        'person'
+        'personUserKey',
     ];
     constructor(private $state: ui.IStateService,
                 private $timeout: ITimeoutService,
@@ -63,32 +64,44 @@ export default class VerificationsDialogController {
                 private helpDeskService: IHelpDeskService,
                 private IasDialogService: DialogService,
                 private objectService: ObjectService,
-                private person: IPerson) {
+                private personUserKey: string,
+                private search: boolean) {
+        this.isDetailsView = (this.$state.current.name === 'details');
         this.status = STATUS_WAIT;
         this.verificationStatus = STATUS_NONE;
         this.viewDetailsEnabled = false;
-        this.helpDeskService
-            .checkVerification(this.person.userKey)
-            .then((response) => {
-                if (response.passed) {
-                    this.gotoDetailsPage();
-                }
-                else {
-                    this.configService
-                        .getVerificationMethods()
-                        .then((methods) => {
-                            this.status = STATUS_SELECT;
-                            this.availableVerificationMethods = methods;
-                        });
-                }
-            });
+
+        if (this.isDetailsView) {
+            this.loadVerificationOptions();
+        }
+        else {
+            this.helpDeskService
+                .checkVerification(this.personUserKey)
+                .then((response) => {
+                    if (response.passed) {
+                        this.gotoDetailsPage();
+                    }
+                    else {
+                        this.loadVerificationOptions();
+                    }
+                });
+        }
     }
 
     private gotoDetailsPage() {
         this.$timeout(() => {
             this.IasDialogService.close();
-            this.$state.go('details', {personId: this.person.userKey});
+            this.$state.go('details', {personId: this.personUserKey});
         });
+    }
+
+    private loadVerificationOptions() {
+        this.configService
+            .getVerificationMethods()
+            .then((methods) => {
+                this.status = STATUS_SELECT;
+                this.availableVerificationMethods = methods;
+            });
     }
 
     selectVerificationMethod(method: string) {
@@ -106,7 +119,7 @@ export default class VerificationsDialogController {
             this.configService.getTokenSendMethod()
                 .then((tokenSendMethod) => {
                     let choice = (tokenSendMethod === TOKEN_CHOICE) ? method : null;
-                    return this.helpDeskService.sendVerificationToken(this.person.userKey, choice);
+                    return this.helpDeskService.sendVerificationToken(this.personUserKey, choice);
                 })
                 .then((response) => {
                     this.status = STATUS_VERIFY;
@@ -125,7 +138,7 @@ export default class VerificationsDialogController {
         if (this.tokenData) {
             this.objectService.assign(data, this.tokenData);
         }
-        this.helpDeskService.validateVerificationData(this.person.userKey, data, this.verificationMethod)
+        this.helpDeskService.validateVerificationData(this.personUserKey, data, this.verificationMethod)
             .then((response) => {
                 if (response.passed) {
                     this.verificationStatus = STATUS_PASSED;

@@ -35,7 +35,7 @@ const VERIFICATION_PROCESS_ACTIONS = {
 
 export interface IHelpDeskService {
     checkVerification(userKey: string): IPromise<IVerificationStatus>;
-    getPerson(userKey: string): IPromise<any>
+    getPerson(userKey: string): IPromise<any>;
     getRecentVerifications(): IPromise<IRecentVerifications>;
     sendVerificationToken(userKey: string, choice: string): IPromise<IVerificationTokenResponse>;
     validateVerificationData(userKey: string, formData: any, tokenData: any): IPromise<IVerificationStatus>;
@@ -96,13 +96,12 @@ export default class HelpDeskService implements IHelpDeskService {
 
     getPerson(userKey: string): IPromise<any> {
         let url: string = this.pwmService.getServerUrl('detail');
-        let data = {
-            userKey: userKey,
-            verificationState: this.localStorageService.getItem(this.localStorageService.keys.VERIFICATION_STATE)
-        };
+        let verificationState = this.localStorageService.getItem(this.localStorageService.keys.VERIFICATION_STATE);
+        url += `&userKey=${userKey}`;
+        url += `&verificationState=${verificationState}`;
 
         return this.pwmService
-            .httpRequest(url, { data: data })
+            .httpRequest(url, {})
             .then((result: any) => {
                 return this.$q.resolve(result);
             });

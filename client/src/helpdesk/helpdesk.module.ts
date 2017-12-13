@@ -31,7 +31,7 @@ import LocalStorageService from '../services/local-storage.service';
 import VerificationsDialogController from './verifications-dialog.controller';
 import ObjectService from '../services/object.service';
 import RecentVerificationsDialogController from './recent-verifications-dialog.controller';
-import {DateFilter} from './date.filter';
+import {DateFilter} from './date.filters';
 
 require('../peoplesearch/peoplesearch.scss');
 

@@ -22,28 +22,49 @@
 
 
 import {Component} from '../component';
-import {IConfigService} from '../services/base-config.service';
-import {IPeopleService} from '../services/people.service';
-import {IPerson} from '../models/person.model';
 import {IHelpDeskService} from '../services/helpdesk.service';
+import {ui} from '@types/angular';
+import {IActionButtons, IHelpDeskConfigService} from '../services/helpdesk-config.service';
+import DialogService from '../ux/ias-dialog.service';
+
+let verificationsDialogTemplateUrl = require('./verifications-dialog.template.html');
 
 @Component({
     stylesheetUrl: require('helpdesk/helpdesk-detail.component.scss'),
     templateUrl: require('helpdesk/helpdesk-detail.component.html')
 })
 export default class HelpDeskDetailComponent {
+    actionButtons: IActionButtons;
     photosEnabled: boolean;
+    person: any;
 
-    person: IPerson;
-
-    static $inject = [ '$stateParams', 'ConfigService', 'HelpDeskService', 'PeopleService' ];
-    constructor(private $stateParams: angular.ui.IStateParamsService,
-                private configService: IConfigService,
+    static $inject = [
+        '$state',
+        '$stateParams',
+        'ConfigService',
+        'HelpDeskService',
+        'IasDialogService'
+    ];
+    constructor(private $state: ui.IStateService,
+                private $stateParams: ui.IStateParamsService,
+                private configService: IHelpDeskConfigService,
                 private helpDeskService: IHelpDeskService,
-                private peopleService: IPeopleService) {
+                private IasDialogService: DialogService) {
     }
 
     $onInit(): void {
+        this.initialize();
+    }
+
+    changePassword(): void {
+        alert('Change password dialog');
+    }
+
+    gotoSearch(): void {
+        this.$state.go('search');
+    }
+
+    initialize(): void {
         const personId = this.$stateParams['personId'];
 
         this.configService.photosEnabled().then((photosEnabled: boolean) => {
@@ -53,9 +74,39 @@ export default class HelpDeskDetailComponent {
         this.helpDeskService
             .getPerson(personId)
             .then((person: any) => {
-                console.log(person);
+                this.person = person;
             }, (error) => {
                 // TODO: Handle error. NOOP for now will not assign person
+            });
+
+        this.configService
+            .getActionButtons()
+            .then((actionButtons: IActionButtons) => {
+                this.actionButtons = actionButtons;
+            });
+    }
+
+    refresh(): void {
+        this.initialize();
+    }
+
+    unlockUser(): void {
+        if (this.person.accountEnabled) {
+            return;
+        }
+
+        alert('Unlock user dialog');
+    }
+
+    verifyUser(): void {
+        this.IasDialogService
+            .open({
+                controller: 'VerificationsDialogController as $ctrl',
+                templateUrl: verificationsDialogTemplateUrl,
+                locals: {
+                    personUserKey: this.$stateParams['personId'],
+                    search: false
+                }
             });
     }
 }

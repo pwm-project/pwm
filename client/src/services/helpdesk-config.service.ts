@@ -26,14 +26,15 @@ import IPwmService from './pwm.service';
 import PwmService from './pwm.service';
 import {ConfigBaseService, IConfigService} from './base-config.service';
 
+const ACTION_BUTTONS_CONFIG = 'actions';
 const COLUMN_CONFIG = 'helpdesk_search_columns';
 const VERIFICATION_METHODS_CONFIG = 'verificationMethods';
 const TOKEN_SEND_METHOD_CONFIG = 'helpdesk_setting_tokenSendMethod';
 const TOKEN_VERIFICATION_METHOD = 'TOKEN';
 const TOKEN_SMS_ONLY = 'SMSONLY';
 const TOKEN_EMAIL_ONLY = 'EMAILONLY';
-export const TOKEN_CHOICE = 'CHOICE_SMS_EMAIL';
 const VERIFICATION_FORM_CONFIG = 'verificationForm';
+export const TOKEN_CHOICE = 'CHOICE_SMS_EMAIL';
 
 export const VERIFICATION_METHOD_NAMES = {
     ATTRIBUTES: 'ATTRIBUTES',
@@ -49,6 +50,10 @@ export const VERIFICATION_METHOD_LABELS = {
     OTP: 'Button_OTP'
 };
 
+export interface IActionButtons {
+    [key: string]: {name: string, description: string};
+}
+
 interface IVerificationResponse {
     optional: string[];
     required: string[];
@@ -57,6 +62,7 @@ interface IVerificationResponse {
 export type IVerificationMap = {name: string, label: string}[];
 
 export interface IHelpDeskConfigService extends IConfigService {
+    getActionButtons(): IPromise<IActionButtons>;
     getTokenSendMethod(): IPromise<string>;
     getVerificationAttributes(): IPromise<IVerificationMap>;
     getVerificationMethods(): IPromise<IVerificationMap>;
@@ -68,6 +74,10 @@ export default class HelpDeskConfigService extends ConfigBaseService implements 
     static $inject = ['$http', '$log', '$q', 'PwmService' ];
     constructor($http: IHttpService, $log: ILogService, $q: IQService, pwmService: IPwmService) {
         super($http, $log, $q, pwmService);
+    }
+
+    getActionButtons(): IPromise<IActionButtons> {
+        return this.getValue(ACTION_BUTTONS_CONFIG);
     }
 
     getColumnConfig(): IPromise<any> {

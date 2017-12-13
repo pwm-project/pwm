@@ -25,6 +25,7 @@ import { IPromise, IQService } from 'angular';
 import {ConfigBaseService} from './base-config.service.dev';
 import {IConfigService} from './base-config.service';
 import {
+    IActionButtons,
     IHelpDeskConfigService, IVerificationMap, TOKEN_CHOICE, VERIFICATION_METHOD_LABELS,
     VERIFICATION_METHOD_NAMES
 } from './helpdesk-config.service';
@@ -34,6 +35,19 @@ export default class HelpDeskConfigService extends ConfigBaseService implements 
     static $inject = [ '$q' ];
     constructor($q: IQService) {
         super($q);
+    }
+
+    getActionButtons(): IPromise<IActionButtons> {
+        return this.$q.resolve({
+            'Confirm New User Generation': {
+                name: 'Generate a New User',
+                description: 'Clones the current user'
+            },
+            'Confirm User Merge': {
+                name: 'Merge Two Users',
+                description: 'Merges the current user with another user'
+            }
+        });
     }
 
     getColumnConfig(): IPromise<any> {

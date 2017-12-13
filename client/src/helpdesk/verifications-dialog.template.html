@@ -88,8 +88,14 @@
                     Viewing details only available after a user has been successfully verified
                 </div>
                 <mf-button ng-disabled="$ctrl.verificationStatus!=='passed'"
-                           ng-click="$ctrl.viewDetails()">
+                           ng-click="$ctrl.viewDetails()"
+                           ng-if="!$ctrl.isDetailsView">
                     View Details
+                </mf-button>
+                <mf-button ng-disabled="$ctrl.verificationStatus!=='passed'"
+                           ng-click="close()"
+                           ng-if="$ctrl.isDetailsView">
+                    {{ 'Button_OK' | translate }}
                 </mf-button>
                 <mf-button ng-click="close()">{{ 'Button_Cancel' | translate }}</mf-button>
             </div>
