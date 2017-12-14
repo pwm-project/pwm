@@ -328,6 +328,33 @@ public class UserInfoReader implements UserInfo {
     }
 
     @Override
+    public boolean isAccountEnabled() throws PwmUnrecoverableException {
+        try {
+            return chaiUser.isAccountEnabled();
+        } catch (ChaiException e) {
+            throw PwmUnrecoverableException.fromChaiException(e);
+        }
+    }
+
+    @Override
+    public boolean isAccountExpired() throws PwmUnrecoverableException {
+        try {
+            return chaiUser.isAccountExpired();
+        } catch (ChaiException e) {
+            throw PwmUnrecoverableException.fromChaiException(e);
+        }
+    }
+
+    @Override
+    public boolean isPasswordLocked() throws PwmUnrecoverableException {
+        try {
+            return chaiUser.isPasswordLocked();
+        } catch (ChaiException e) {
+            throw PwmUnrecoverableException.fromChaiException(e);
+        }
+    }
+
+    @Override
     public boolean isRequiresResponseConfig() throws PwmUnrecoverableException
     {
         final CrService crService = pwmApplication.getCrService();

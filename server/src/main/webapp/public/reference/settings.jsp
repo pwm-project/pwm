@@ -6,6 +6,8 @@
 <%@ page import="password.pwm.util.LocaleHelper" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
 <%@ page import="java.util.*" %>
+<%@ page import="password.pwm.util.macro.MacroMachine" %>
+<%@ page import="com.novell.ldapchai.util.StringHelper" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -42,6 +44,7 @@
     final PwmRequest pwmRequest = JspUtility.getPwmRequest(pageContext);
     final boolean advancedMode = false;
     final List<PwmSettingCategory> sortedCategories = PwmSettingCategory.valuesForReferenceDoc(userLocale);
+    final MacroMachine macroMachine = MacroMachine.forNonUserSpecific(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel());
 %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
@@ -208,7 +211,7 @@
                 </tr>
                 <tr>
                     <td colspan="2">
-                        <%=setting.getDescription(userLocale)%>
+                        <%= macroMachine.expandMacros(setting.getDescription(userLocale)) %>
                     </td>
                 </tr>
                 <% } %>

@@ -57,7 +57,7 @@ import password.pwm.http.PwmURL;
 import password.pwm.http.bean.ConfigGuideBean;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.ControlledPwmServlet;
-import password.pwm.http.servlet.configeditor.ConfigEditorServlet;
+import password.pwm.http.servlet.configeditor.ConfigEditorServletUtils;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapBrowser;
 import password.pwm.ldap.schema.SchemaOperationResult;
@@ -463,7 +463,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet {
         try {
             final ConfigGuideBean configGuideBean = getBean(pwmRequest);
             final int maxFileSize = Integer.parseInt(pwmRequest.getConfig().readAppProperty(AppProperty.CONFIG_MAX_JDBC_JAR_SIZE));
-            final FileValue fileValue = ConfigEditorServlet.readFileUploadToSettingValue(pwmRequest, maxFileSize);
+            final FileValue fileValue = ConfigEditorServletUtils.readFileUploadToSettingValue(pwmRequest, maxFileSize);
             configGuideBean.setDatabaseDriver(fileValue);
             final RestResultBean restResultBean = RestResultBean.forSuccessMessage(pwmRequest, Message.Success_Unknown);
             pwmRequest.getPwmResponse().outputJsonResult(restResultBean);

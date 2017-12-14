@@ -66,6 +66,12 @@ public interface UserInfo {
 
     boolean isRequiresInteraction() throws PwmUnrecoverableException;
 
+    boolean isAccountEnabled() throws PwmUnrecoverableException;
+
+    boolean isAccountExpired() throws PwmUnrecoverableException;
+
+    boolean isPasswordLocked() throws PwmUnrecoverableException;
+
     Instant getPasswordLastModifiedTime() throws PwmUnrecoverableException;
 
     String getUserEmailAddress() throws PwmUnrecoverableException;

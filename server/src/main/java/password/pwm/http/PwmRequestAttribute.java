@@ -53,7 +53,6 @@ public enum PwmRequestAttribute {
 
     HelpdeskDetail,
     HelpdeskObfuscatedDN,
-    HelpdeskUsername,
     HelpdeskVerificationEnabled,
 
     ConfigFilename,

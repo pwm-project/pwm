@@ -80,6 +80,8 @@ public enum PwmSetting {
             "pwm.logoutURL", PwmSettingSyntax.STRING, PwmSettingCategory.GENERAL),
     URL_HOME(
             "pwm.homeURL", PwmSettingSyntax.STRING, PwmSettingCategory.GENERAL),
+    URL_INTRO(
+            "pwm.introURL", PwmSettingSyntax.SELECT, PwmSettingCategory.GENERAL),
     PWM_INSTANCE_NAME(
             "pwmInstanceName", PwmSettingSyntax.STRING, PwmSettingCategory.GENERAL),
     IDLE_TIMEOUT_SECONDS(
@@ -170,6 +172,8 @@ public enum PwmSetting {
             "password.showAutoGen", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.CHANGE_PASSWORD),
     PASSWORD_SHOW_STRENGTH_METER(
             "password.showStrengthMeter", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.CHANGE_PASSWORD),
+    PASSWORD_STRENGTH_METER_TYPE(
+            "password.strengthMeter.type", PwmSettingSyntax.SELECT, PwmSettingCategory.CHANGE_PASSWORD),
 
     // account info
     ACCOUNT_INFORMATION_ENABLED(
@@ -1359,12 +1363,12 @@ public enum PwmSetting {
     }
 
     public String getLabel(final Locale locale) {
-        final String propertyKey = "Setting_Label_" + this.getKey();
+        final String propertyKey = password.pwm.i18n.PwmSetting.SETTING_LABEL_PREFIX + this.getKey();
         return LocaleHelper.getLocalizedMessage(locale, propertyKey, null, password.pwm.i18n.PwmSetting.class);
     }
 
     public String getDescription(final Locale locale) {
-        final String propertyKey = "Setting_Description_" + this.getKey();
+        final String propertyKey = password.pwm.i18n.PwmSetting.SETTING_DESCRIPTION_PREFIX + this.getKey();
         final String storedText = LocaleHelper.getLocalizedMessage(locale, propertyKey, null, password.pwm.i18n.PwmSetting.class);
         final MacroMachine macroMachine = MacroMachine.forStatic();
         return macroMachine.expandMacros(storedText);

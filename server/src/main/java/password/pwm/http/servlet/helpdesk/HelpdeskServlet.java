@@ -537,14 +537,13 @@ public class HelpdeskServlet extends ControlledPwmServlet {
             intruderManager.convenience().clearUserIdentity(userIdentity);
         }
 
-        // send notice email
-        HelpdeskServletUtil.sendUnlockNoticeEmail(pwmRequest, helpdeskProfile, userIdentity);
 
-        final boolean useProxy = helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_USE_PROXY);
         try {
-            final ChaiUser chaiUser = useProxy ?
-                    pwmRequest.getPwmApplication().getProxiedChaiUser(userIdentity) :
-                    pwmRequest.getPwmSession().getSessionManager().getActor(pwmRequest.getPwmApplication(), userIdentity);
+            final ChaiUser chaiUser = getChaiUser(pwmRequest, helpdeskProfile, userIdentity);
+
+            // send notice email
+            HelpdeskServletUtil.sendUnlockNoticeEmail(pwmRequest, helpdeskProfile, userIdentity, chaiUser);
+
             chaiUser.unlockPassword();
             {
                 // mark the event log
@@ -705,7 +704,13 @@ public class HelpdeskServlet extends ControlledPwmServlet {
             pwmRequest.outputJsonResult(RestResultBean.fromError(errorInformation, pwmRequest));
             return ProcessStatus.Halt;
         }
-        final UserInfo userInfo = helpdeskDetailInfoBean.getBackingUserInfo();
+        final UserInfo userInfo = UserInfoFactory.newUserInfo(
+                pwmRequest.getPwmApplication(),
+                pwmRequest.getSessionLabel(),
+                pwmRequest.getLocale(),
+                userIdentity,
+                getChaiUser(pwmRequest, helpdeskProfile, userIdentity).getChaiProvider()
+        );
         final MacroMachine macroMachine = new MacroMachine(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), userInfo, null);
         final String configuredTokenString = config.readAppProperty(AppProperty.HELPDESK_TOKEN_VALUE);
         final String tokenKey = macroMachine.expandMacros(configuredTokenString);
@@ -714,12 +719,12 @@ public class HelpdeskServlet extends ControlledPwmServlet {
         final String destEmailAddress = macroMachine.expandMacros(emailItemBean.getTo());
         final StringBuilder destDisplayString = new StringBuilder();
         if (destEmailAddress != null && !destEmailAddress.isEmpty()) {
-            if (tokenSendMethod == MessageSendMethod.BOTH || tokenSendMethod == MessageSendMethod.EMAILFIRST || tokenSendMethod == MessageSendMethod.EMAILONLY) {
+            if (tokenSendMethod == MessageSendMethod.EMAILONLY) {
                 destDisplayString.append(destEmailAddress);
             }
         }
         if (userInfo.getUserSmsNumber() != null && !userInfo.getUserSmsNumber().isEmpty()) {
-            if (tokenSendMethod == MessageSendMethod.BOTH || tokenSendMethod == MessageSendMethod.SMSFIRST || tokenSendMethod == MessageSendMethod.SMSONLY) {
+            if (tokenSendMethod == MessageSendMethod.SMSONLY) {
                 if (destDisplayString.length() > 0) {
                     destDisplayString.append(", ");
                 }

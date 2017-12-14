@@ -80,6 +80,10 @@ public class UserInfoBean implements UserInfo {
     private final Instant lastLdapLoginTime;
     private final Instant accountExpirationTime;
 
+    private final boolean accountEnabled;
+    private final boolean accountExpired;
+    private final boolean passwordLocked;
+
     private final boolean requiresNewPassword;
     private final boolean requiresResponseConfig;
     private final boolean requiresOtpConfig;

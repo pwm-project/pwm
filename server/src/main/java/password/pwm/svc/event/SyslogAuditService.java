@@ -45,14 +45,16 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.health.HealthTopic;
+import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
-import password.pwm.util.localdb.WorkQueueProcessor;
-import password.pwm.util.secure.X509Utils;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.localdb.LocalDBStoredQueue;
+import password.pwm.util.localdb.WorkQueueProcessor;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.X509Utils;
 
 import javax.net.SocketFactory;
 import javax.net.ssl.SSLContext;
@@ -82,11 +84,13 @@ public class SyslogAuditService {
 
 
     private final Configuration configuration;
+    private final PwmApplication pwmApplication;
     private List<SyslogIF> syslogInstances = new ArrayList<>();
 
     public SyslogAuditService(final PwmApplication pwmApplication)
             throws LocalDBException
     {
+        this.pwmApplication = pwmApplication;
         this.configuration = pwmApplication.getConfig();
         this.certificates = configuration.readSettingAsCertificate(PwmSetting.AUDIT_SYSLOG_CERTIFICATES);
 
@@ -197,6 +201,7 @@ public class SyslogAuditService {
                 syslogInstance.info(auditRecord);
                 LOGGER.trace("delivered syslog audit event: " + auditRecord);
                 lastError = null;
+                StatisticsManager.incrementStat(this.pwmApplication, Statistic.SYSLOG_MESSAGES_SENT);
                 return WorkQueueProcessor.ProcessResult.SUCCESS;
             } catch (Exception e) {
                 final String errorMsg = "error while sending syslog message to remote service: " + e.getMessage();
