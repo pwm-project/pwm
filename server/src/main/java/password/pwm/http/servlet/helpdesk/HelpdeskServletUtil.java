@@ -1,5 +1,6 @@
 package password.pwm.http.servlet.helpdesk;
 
+import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -18,6 +19,8 @@ import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.ldap.LdapPermissionTester;
+import password.pwm.ldap.UserInfo;
+import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.event.HelpdeskAuditRecord;
@@ -95,10 +98,9 @@ class HelpdeskServletUtil {
             return;
         }
 
-        if (helpdeskDetailInfoBean != null && helpdeskDetailInfoBean.getUserInfo() != null) {
-            final String obfuscatedDN = helpdeskDetailInfoBean.getBackingUserInfo().getUserIdentity().toObfuscatedKey(pwmRequest.getPwmApplication());
+        if (helpdeskDetailInfoBean != null) {
+            final String obfuscatedDN = userIdentity.toObfuscatedKey(pwmRequest.getPwmApplication());
             pwmRequest.setAttribute(PwmRequestAttribute.HelpdeskObfuscatedDN, obfuscatedDN);
-            pwmRequest.setAttribute(PwmRequestAttribute.HelpdeskUsername, helpdeskDetailInfoBean.getUserInfo().getUserID());
         }
 
         pwmRequest.setAttribute(PwmRequestAttribute.HelpdeskDetail, helpdeskDetailInfoBean);
@@ -111,7 +113,7 @@ class HelpdeskServletUtil {
             final HelpdeskProfile helpdeskProfile,
             final UserIdentity userIdentity
     )
-            throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
+            throws ChaiUnavailableException, PwmUnrecoverableException
     {
         final UserIdentity actorUserIdentity = pwmRequest.getUserInfoIfLoggedIn().canonicalized(pwmRequest.getPwmApplication());
 
@@ -175,9 +177,11 @@ class HelpdeskServletUtil {
     static void sendUnlockNoticeEmail(
             final PwmRequest pwmRequest,
             final HelpdeskProfile helpdeskProfile,
-            final UserIdentity userIdentity
+            final UserIdentity userIdentity,
+            final ChaiUser chaiUser
+
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException {
+            throws PwmUnrecoverableException, ChaiUnavailableException {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final Configuration config = pwmRequest.getConfig();
         final Locale locale = pwmRequest.getLocale();
@@ -188,17 +192,24 @@ class HelpdeskServletUtil {
             return;
         }
 
-        final HelpdeskDetailInfoBean helpdeskDetailInfoBean = HelpdeskDetailInfoBean.makeHelpdeskDetailInfo(pwmRequest, helpdeskProfile, userIdentity);
+        final UserInfo userInfo = UserInfoFactory.newUserInfo(
+                pwmRequest.getPwmApplication(),
+                pwmRequest.getSessionLabel(),
+                pwmRequest.getLocale(),
+                userIdentity,
+                chaiUser.getChaiProvider()
+        );
+
         final MacroMachine macroMachine = new MacroMachine(
                 pwmApplication,
                 pwmRequest.getSessionLabel(),
-                helpdeskDetailInfoBean.getBackingUserInfo(),
+                userInfo,
                 null
         );
 
         pwmApplication.getEmailQueue().submitEmail(
                 configuredEmailSetting,
-                helpdeskDetailInfoBean.getBackingUserInfo(),
+                userInfo,
                 macroMachine
         );
     }
