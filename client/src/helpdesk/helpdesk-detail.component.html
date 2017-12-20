@@ -39,105 +39,113 @@
         id="reload-refresh-icon"></mf-icon-button>
 </mf-app-bar>
 
-<!--
-    TODO: only display enabled buttons. Show titles?
-    Always Button_GoBack, Display_CaptchaRefresh
-    if (SETTING_PW_UI_MODE != HelpdeskUIMode.none) { Button_ChangePassword }
-    if (helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE_UNLOCK)) { Button_Unlock }
-    if (helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_CLEAR_RESPONSES_BUTTON)) { Button_ClearResponses }
-    if (helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_CLEAR_OTP_BUTTON) && pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.OTP_ENABLED)) { Button_HelpdeskClearOtpSecret }
-    if ((Boolean)JspUtility.getPwmRequest(pageContext).getAttribute(PwmRequestAttribute.HelpdeskVerificationEnabled) == true) { Button_Verify }
-    if (helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_DELETE_USER_BUTTON)) { Button_Delete }
--->
 
-<mf-button ng-click="$ctrl.gotoSearch()">{{ 'Button_GoBack' | translate }}</mf-button>
-<mf-button ng-click="$ctrl.refresh()">{{ 'Display_CaptchaRefresh' | translate }}</mf-button>
-<mf-button ng-click="$ctrl.changePassword()">{{ 'Button_ChangePassword' | translate }}</mf-button>
-<mf-button ng-disabled="!!$ctrl.person.accountEnabled" ng-click="$ctrl.unlockUser()">{{ 'Button_Unlock' | translate }}</mf-button>
-<mf-button ng-disabled="!$ctrl.person.responseInfoBean">{{ 'Button_ClearResponses' | translate }}</mf-button>
-<mf-button ng-disabled="!$ctrl.person.hasOtpRecord">{{ 'Button_HelpdeskClearOtpSecret' | translate }}</mf-button>
-<mf-button ng-click="$ctrl.verifyUser()">{{ 'Button_Verify' | translate }}</mf-button>
-<mf-button>{{ 'Button_Delete' | translate }}</mf-button>
-<mf-button ng-repeat="(key, value) in $ctrl.actionButtons" ng-attr-title="{{value.description}}">{{ key }}</mf-button>
 
-<person-card person="$ctrl.person" show-image="$ctrl.photosEnabled">
+<person-card person="$ctrl.personCard" show-image="$ctrl.photosEnabled">
 </person-card>
 
-<div class="person-details-content">
-    <mf-tabset>
-        <mf-tab id="Field_Profile" label="Profile">
-            <table>
-                <tbody>
-                <tr ng-repeat="(key, detail) in $ctrl.person.searchDetails">
-                    <td ng-bind="key"></td>
-                    <td ng-repeat="item in detail" ng-bind="item"></td>
-                </tr>
-                </tbody>
-            </table>
-        </mf-tab>
-        <mf-tab id="Title_Status" label="Status">
-            <table>
-                <tbody>
-                <tr ng-if="!!$ctrl.person.userInfo.userDN">
-                    <td ng-bind="'Field_UserDN' | translate"></td>
-                    <td ng-bind="$ctrl.person.userInfo.userDN"></td>
-                </tr>
-                <!--'Field_LdapProfile'-->
-                <tr ng-if="!!$ctrl.person.userInfo.userID">
-                    <td ng-bind="'Field_Username' | translate"></td>
-                    <td ng-bind="$ctrl.person.userInfo.userID"></td>
-                </tr>
-                <tr ng-if="!!$ctrl.person.userInfo.userEmailAddress">
-                    <td ng-bind="'Field_UserEmail' | translate"></td>
-                    <td ng-bind="$ctrl.person.userInfo.userEmailAddress"></td>
-                </tr>
-                <!--Value_NotApplicable
-                Field_UserSMS-->
-                <tr ng-if="!!$ctrl.person.userInfo.userDN">
-                    <td ng-bind="'Field_AccountEnabled' | translate"></td>
-                    <td ng-bind="$ctrl.person.userInfo.userDN"></td>
-                </tr>
-                </tbody>
-            </table>
-        </mf-tab>
-        <mf-tab ng-if="!!$ctrl.person.userHistory" id="Title_UserEventHistory" label="Password History">
-            <table>
-                <tbody>
-                <tr ng-repeat="record in $ctrl.person.userHistory">
-                    <td ng-bind="record.timestamp | dateFilter"></td>
-                    <td>Todo: event code & message</td>
-                </tr>
-                </tbody>
-            </table>
-        </mf-tab>
-        <mf-tab id="Title_PasswordPolicy" label="Password Policy">
-            <table>
-                <tbody>
-                <tr>
-                    <td ng-bind="'Field_Policy' | translate"></td>
-                    <td ng-bind="$ctrl.person.passwordPolicyDN"></td>
-                </tr>
-                <tr>
-                    <td ng-bind="'Field_Profile' | translate"></td>
-                    <td ng-bind="$ctrl.person.passwordPolicyID"></td>
-                </tr>
-                <tr>
-                    <td ng-bind="'Field_Display' | translate"></td>
-                    <td>
-                        <ul>
-                            <li ng-repeat="item in $ctrl.person.passwordRequirements" ng-bind="item"></li>
-                        </ul>
-                    </td>
-                </tr>
-                <hr>
-                <tr ng-repeat="(key, item) in $ctrl.person.passwordPolicyRules">
-                    <td ng-bind="key"></td>
-                    <td ng-bind="item"></td>
-                </tr>
-                </tbody>
-            </table>
-        </mf-tab>
-        <mf-tab id="Title_SecurityResponses" label="Security Responses">
-        </mf-tab>
-    </mf-tabset>
+<div class="help-desk-content">
+    <div class="person-details-content">
+        <mf-tabset>
+            <mf-tab id="Field_Profile" label="Profile">
+                <table>
+                    <tbody>
+                    <tr ng-repeat="item in $ctrl.person.profileData">
+                        <td ng-bind="item.label"></td>
+                        <td ng-bind="item.value | dateFilter" ng-if="item.type==='timestamp'"></td>
+                        <td ng-bind="item.value" ng-if="item.type==='string' || item.type==='number'"></td>
+                        <td ng-bind="value" ng-if="item.type==='multiString'" ng-repeat="value in item.values"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </mf-tab>
+            <mf-tab id="Title_Status" label="Status">
+                <table>
+                    <tbody>
+                    <tr ng-repeat="item in $ctrl.person.statusData">
+                        <td ng-bind="item.label"></td>
+                        <td ng-bind="item.value | dateFilter" ng-if="item.type==='timestamp'"></td>
+                        <td ng-bind="item.value" ng-if="item.type==='string' || item.type==='number'"></td>
+                        <td ng-bind="value" ng-if="item.type==='multiString'" ng-repeat="value in item.values"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </mf-tab>
+            <mf-tab ng-if="!!$ctrl.person.userHistory" id="Title_UserEventHistory" label="Password History">
+                <table>
+                    <tbody>
+                    <tr ng-repeat="item in $ctrl.person.userHistory">
+                        <td ng-bind="item.timestamp | dateFilter"></td>
+                        <td ng-bind="item.label"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </mf-tab>
+            <mf-tab id="Title_PasswordPolicy" label="Password Policy">
+                <table>
+                    <tbody>
+                    <tr>
+                        <td ng-bind="'Field_Policy' | translate"></td>
+                        <td ng-bind="$ctrl.person.passwordPolicyDN"></td>
+                    </tr>
+                    <tr>
+                        <td ng-bind="'Field_Profile' | translate"></td>
+                        <td ng-bind="$ctrl.person.passwordPolicyID"></td>
+                    </tr>
+                    <tr>
+                        <td ng-bind="'Field_Display' | translate"></td>
+                        <td>
+                            <ul>
+                                <li ng-repeat="item in $ctrl.person.passwordRequirements" ng-bind="item"></li>
+                            </ul>
+                        </td>
+                    </tr>
+                    <hr>
+                    <tr ng-repeat="(key, item) in $ctrl.person.passwordPolicyRules">
+                        <td ng-bind="key"></td>
+                        <td ng-bind="item"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </mf-tab>
+            <mf-tab id="Title_SecurityResponses" label="Security Responses">
+                <table>
+                    <tbody>
+                    <tr ng-repeat="item in $ctrl.person.helpdeskResponses">
+                        <td ng-bind="item.label"></td>
+                        <td ng-bind="item.value | dateFilter" ng-if="item.type==='timestamp'"></td>
+                        <td ng-bind="item.value" ng-if="item.type==='string' || item.type==='number'"></td>
+                        <td ng-bind="value" ng-if="item.type==='multiString'" ng-repeat="value in item.values"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </mf-tab>
+        </mf-tabset>
+    </div>
+
+    <div class="help-desk-buttons">
+        <mf-button ng-click="$ctrl.gotoSearch()"
+                   ng-disabled="$ctrl.buttonDisabled('back')"
+                   ng-if="$ctrl.buttonVisible('back')">{{ 'Button_GoBack' | translate }}</mf-button>
+        <mf-button ng-click="$ctrl.refresh()"
+                   ng-disabled="$ctrl.buttonDisabled('refresh')"
+                   ng-if="$ctrl.buttonVisible('refresh')">{{ 'Display_CaptchaRefresh' | translate }}</mf-button>
+        <mf-button ng-click="$ctrl.changePassword()"
+                   ng-disabled="$ctrl.buttonDisabled('changePassword')"
+                   ng-if="$ctrl.buttonVisible('changePassword')">{{ 'Button_ChangePassword' | translate }}</mf-button>
+        <mf-button ng-click="$ctrl.unlockUser()"
+                   ng-disabled="$ctrl.buttonDisabled('unlock')"
+                   ng-if="$ctrl.buttonVisible('unlock')">{{ 'Button_Unlock' | translate }}</mf-button>
+        <mf-button ng-disabled="$ctrl.buttonDisabled('clearResponses')"
+                   ng-if="$ctrl.buttonVisible('clearResponses')">{{ 'Button_ClearResponses' | translate }}</mf-button>
+        <mf-button ng-disabled="$ctrl.buttonDisabled('clearOtpSecret')"
+                   ng-if="$ctrl.buttonVisible('clearOtpSecret')">{{ 'Button_HelpdeskClearOtpSecret' | translate }}</mf-button>
+        <mf-button ng-click="$ctrl.verifyUser()"
+                   ng-disabled="$ctrl.buttonDisabled('verification')"
+                   ng-if="$ctrl.buttonVisible('verification')">{{ 'Button_Verify' | translate }}</mf-button>
+        <mf-button ng-disabled="$ctrl.buttonDisabled('deleteUser')"
+                   ng-if="$ctrl.buttonVisible('deleteUser')">{{ 'Button_Delete' | translate }}</mf-button>
+        <mf-button ng-repeat="button in $ctrl.person.customButtons"
+                   ng-attr-title="{{button.description}}">{{ button.label }}</mf-button>
+    </div>
 </div>

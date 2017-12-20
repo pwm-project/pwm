@@ -33,63 +33,89 @@ help-desk-detail {
     margin-top: 20px;
   }
 
-  > .person-details-content {
-    max-width: 500px;
-    padding: 10px;
+  > .help-desk-content {
+    > .person-details-content,
+    > .help-desk-buttons {
+      display: inline-block;
+      vertical-align: top;
+    }
 
-    table {
-      border: none;
-      border-collapse: collapse;
-      width: 100%;
+    > .person-details-content {
+      min-width: 580px;
+      max-width: 700px;
+      padding: 10px;
 
-      tr {
-        height: 25px;
+      .mf-tab-pane-container {
+        max-height: 500px;
+        overflow: auto;
 
-        td {
+        table {
           border: none;
-          font-size: 12px;
-          height: 19px;
-          text-align: left;
+          border-collapse: collapse;
+          max-width: 560px;
+          max-height: 500px;
+          width: 100%;
 
-          &:first-child {
-            color: #949494;
-            width: 100px;
-            text-align: right;
-            padding: 3px 0;
-          }
+          tr {
+            height: 25px;
 
-          &:last-child {
-            padding: 3px 10px;
+            td {
+              border: none;
+              font-size: 12px;
+              height: 19px;
+              text-align: left;
 
-            > .detail-container {
-              > ul {
-                > li {
-                  > mf-icon-button {
-                    display: inline-block;
-                    height: 16px;
-                    width: 16px;
+              &:first-child {
+                color: #949494;
+                width: 200px;
+                text-align: right;
+                padding: 3px 0;
+              }
 
-                    > button {
-                      > mf-icon {
-                        font-size: 16px;
+              &:last-child {
+                padding: 3px 10px;
+
+                > .detail-container {
+                  > ul {
+                    > li {
+                      > mf-icon-button {
+                        display: inline-block;
+                        height: 16px;
+                        width: 16px;
+
+                        > button {
+                          > mf-icon {
+                            font-size: 16px;
+                          }
+                        }
                       }
                     }
                   }
                 }
               }
+
+              ul {
+                list-style: none;
+                margin: 0;
+                padding: 0;
+
+                > li {
+                  margin: 0;
+                  padding: 0;
+                }
+              }
             }
           }
+        }
+      }
+    }
 
-          ul {
-            list-style: none;
-            margin: 0;
-            padding: 0;
+    > .help-desk-buttons {
+      > mf-button {
+        display: block;
 
-            > li {
-              margin: 0;
-              padding: 0;
-            }
-          }
+        > button {
+          margin: 0 auto;
         }
       }
     }

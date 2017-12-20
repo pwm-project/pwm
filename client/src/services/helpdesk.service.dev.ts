@@ -39,152 +39,343 @@ export default class HelpDeskService implements IHelpDeskService {
 
     getPerson(userKey: string): IPromise<any> {
         return this.$q.resolve({
-                'userInfo': {
-                    'userDN': 'cn=acorry,ou=users,o=novell',
-                    'ldapProfile': 'default',
-                    'userID': 'acorry',
-                    'userEmailAddress': 'acorry@ad.utopia.netiq.com',
-                    'requiresNewPassword': false,
-                    'requiresResponseConfig': true,
-                    'requiresUpdateProfile': false,
-                    'requiresOtpConfig': false,
-                    'requiresInteraction': true,
-                    'passwordStatus': {
-                        'expired': false,
-                        'preExpired': false,
-                        'violatesPolicy': false,
-                        'warnPeriod': false
-                    },
-                    'passwordPolicy': {
-                        'DisallowCurrent': 'true',
-                        'MinimumNonAlpha': '0',
-                        'MinimumNumeric': '0',
-                        'AllowNumeric': 'true',
-                        'MaximumSpecial': '0',
-                        'AllowLastCharSpecial': 'true',
-                        'CharGroupsValues': '.*[0-9]\n.*[^A-Za-z0-9]\n.*[A-Z]\n.*[a-z]',
-                        'MinimumLength': '4',
-                        'AllowFirstCharNumeric': 'true',
-                        'MaximumUpperCase': '0',
-                        'MaximumAlpha': '0',
-                        'MinimumLowerCase': '0',
-                        'UniqueRequired': 'false',
-                        'PolicyEnabled': 'true',
-                        'ADComplexityMaxViolations': '2',
-                        'MaximumLength': '12',
-                        'DisallowedValues': 'password\ntest',
-                        'MinimumUnique': '0',
-                        'MinimumLifetime': '0',
-                        'CaseSensitive': 'true',
-                        'AllowMacroInRegExSetting': 'true',
-                        'AllowLastCharNumeric': 'true',
-                        'RegExNoMatch': '',
-                        'MinimumStrength': '0',
-                        'RegExMatch': '',
-                        'ExpirationInterval': '0',
-                        'CharGroupsMinMatch': '0',
-                        'AllowFirstCharSpecial': 'true',
-                        'MinimumSpecial': '0',
-                        'MaximumSequentialRepeat': '0',
-                        'MinimumUpperCase': '0',
-                        'EnableWordlist': 'true',
-                        'MaximumRepeat': '0',
-                        'DisallowedAttributes': 'givenName\ncn\nsn',
-                        'MinimumAlpha': '0',
-                        'MaximumLowerCase': '0',
-                        'MaximumConsecutive': '0',
-                        'ChangeMessage': '',
-                        'MaximumNumeric': '0',
-                        'AllowSpecial': 'true',
-                        'MaximumNonAlpha': '0'
-                    },
-                    'passwordRules': [
-                        'Password is case sensitive.',
-                        'Must be at least 4 characters long.',
-                        'Must be no more than 12 characters long.',
-                        'Must not include any of the following values:  password test',
-                        'Must not include part of your name or user name.',
-                        'Must not include a common word or commonly used sequence of characters.'
+            'userDisplayName': 'Andrew Astin - aastin - aastin@ad.utopia.netiq.com',
+            'userHistory': [
+                {
+                    'timestamp': '2017-12-13T18:36:50Z',
+                    'label': 'Help Desk Set Password'
+                },
+                {
+                    'timestamp': '2017-12-13T18:47:11Z',
+                    'label': 'Help Desk Set Password'
+                },
+                {
+                    'timestamp': '2017-12-13T18:50:35Z',
+                    'label': 'Setup Password Responses'
+                },
+                {
+                    'timestamp': '2017-12-13T19:19:33Z',
+                    'label': 'Help Desk Set Password'
+                },
+                {
+                    'timestamp': '2017-12-13T19:23:50Z',
+                    'label': 'Change Password'
+                },
+                {
+                    'timestamp': '2017-12-13T20:47:57Z',
+                    'label': 'Clear Responses'
+                },
+                {
+                    'timestamp': '2017-12-13T20:48:38Z',
+                    'label': 'Setup Password Responses'
+                }
+            ],
+            'passwordPolicyRules': {
+                'Policy Enabled': 'True',
+                'Minimum Length': '2',
+                'Maximum Length': '64',
+                'Minimum Upper Case': '0',
+                'Maximum Upper Case': '0',
+                'Minimum Lower Case': '0',
+                'Maximum Lower Case': '0',
+                'Allow Numeric': 'True',
+                'Minimum Numeric': '0',
+                'Maximum Numeric': '0',
+                'Minimum Unique': '0',
+                'Allow First Character Numeric': 'True',
+                'Allow Last Character Numeric': 'True',
+                'Allow Special': 'True',
+                'Minimum Special': '0',
+                'Maximum Special': '0',
+                'Allow First Character Special': 'True',
+                'Allow Last Character Special': 'True',
+                'Maximum Repeat': '0',
+                'Maximum Sequential Repeat': '0',
+                'Change Message': '',
+                'Expiration Interval': '0',
+                'Minimum Lifetime': '0',
+                'Case Sensitive': 'True',
+                'Unique Required': 'False',
+                'Disallowed Values': 'password\ntest',
+                'Disallowed Attributes': 'givenName\ncn\nsn',
+                'Disallow Current': 'True',
+                'Maximum AD Complexity Violations': '2',
+                'Regular Expression Match': '',
+                'Regular Expression No Match': '',
+                'Minimum Alpha': '0',
+                'Maximum Alpha': '0',
+                'Minimum Non-Alpha': '0',
+                'Maximum Non-Alpha': '0',
+                'Enable Word List': 'True',
+                'Minimum Strength': '0',
+                'Maximum Consecutive': '0',
+                'Character Groups Minimum Required': '0',
+                'Character Group Values': '.*[0-9]\n.*[^A-Za-z0-9]\n.*[A-Z]\n.*[a-z]',
+                'Rule_AllowMacroInRegExSetting': 'True'
+            },
+            'passwordRequirements': [
+                'Password is case sensitive.',
+                'Must be at least 2 characters long.',
+                'Must not include any of the following values:  password test',
+                'Must not include part of your name or user name.',
+                'Must not include a common word or commonly used sequence of characters.'
+            ],
+            'passwordPolicyDN': 'cn=SSPR,cn=Password Policies,cn=Security',
+            'passwordPolicyID': 'n/a',
+            'statusData': [
+                {
+                    'key': 'Field_Username',
+                    'type': 'string',
+                    'label': 'User Name',
+                    'value': 'aastin'
+                },
+                {
+                    'key': 'Field_UserDN',
+                    'type': 'string',
+                    'label': 'User DN',
+                    'value': 'cn=aastin,ou=users,o=novell'
+                },
+                {
+                    'key': 'Field_UserEmail',
+                    'type': 'string',
+                    'label': 'Email',
+                    'value': 'aastin@ad.utopia.netiq.com'
+                },
+                {
+                    'key': 'Field_UserSMS',
+                    'type': 'string',
+                    'label': 'SMS',
+                    'value': 'n/a'
+                },
+                {
+                    'key': 'Field_AccountEnabled',
+                    'type': 'string',
+                    'label': 'Account Enabled',
+                    'value': 'True'
+                },
+                {
+                    'key': 'Field_AccountExpired',
+                    'type': 'string',
+                    'label': 'Account Expired',
+                    'value': 'False'
+                },
+                {
+                    'key': 'Field_UserGUID',
+                    'type': 'string',
+                    'label': 'User GUID',
+                    'value': 'ae95c9790234624d9848ae95c9790234'
+                },
+                {
+                    'key': 'Field_AccountExpirationTime',
+                    'type': 'timestamp',
+                    'label': 'Account Expiration Time',
+                    'value': 'n/a'
+                },
+                {
+                    'key': 'Field_LastLoginTime',
+                    'type': 'timestamp',
+                    'label': 'Last Login Time',
+                    'value': '2017-12-13T20:48:33Z'
+                },
+                {
+                    'key': 'Field_LastLoginTimeDelta',
+                    'type': 'string',
+                    'label': 'Last Login Time Delta',
+                    'value': '4 days, 22 hours, 49 minutes, 3 seconds'
+                },
+                {
+                    'key': 'Field_PasswordExpired',
+                    'type': 'string',
+                    'label': 'Password Expired',
+                    'value': 'False'
+                },
+                {
+                    'key': 'Field_PasswordPreExpired',
+                    'type': 'string',
+                    'label': 'Password Pre-Expired',
+                    'value': 'False'
+                },
+                {
+                    'key': 'Field_PasswordWithinWarningPeriod',
+                    'type': 'string',
+                    'label': 'Within Warning Period',
+                    'value': 'False'
+                },
+                {
+                    'key': 'Field_PasswordSetTime',
+                    'type': 'timestamp',
+                    'label': 'Password Set Time',
+                    'value': '2017-12-13T19:23:49Z'
+                },
+                {
+                    'key': 'Field_PasswordSetTimeDelta',
+                    'type': 'string',
+                    'label': 'Password Set Time Delta',
+                    'value': '5 days, 13 minutes, 47 seconds'
+                },
+                {
+                    'key': 'Field_PasswordExpirationTime',
+                    'type': 'timestamp',
+                    'label': 'Password Expiration Time',
+                    'value': 'n/a'
+                },
+                {
+                    'key': 'Field_PasswordLocked',
+                    'type': 'string',
+                    'label': 'Password Locked (Intruder Detect)',
+                    'value': 'False'
+                },
+                {
+                    'key': 'Field_ResponsesStored',
+                    'type': 'string',
+                    'label': 'Responses Stored',
+                    'value': 'True'
+                },
+                {
+                    'key': 'Field_ResponsesNeeded',
+                    'type': 'string',
+                    'label': 'Response Updates are Needed',
+                    'value': 'False'
+                },
+                {
+                    'key': 'Field_ResponsesTimestamp',
+                    'type': 'timestamp',
+                    'label': 'Stored Responses Timestamp',
+                    'value': '2017-12-13T20:48:37Z'
+                },
+                {
+                    'key': 'Field_ResponsesTimestamp',
+                    'type': 'timestamp',
+                    'label': 'Stored Responses Timestamp',
+                    'value': '2017-12-13T20:48:37Z'
+                }
+            ],
+            'profileData': [
+                {
+                    'key': 'cn',
+                    'type': 'string',
+                    'label': 'CN',
+                    'value': 'aastin'
+                },
+                {
+                    'key': 'givenName',
+                    'type': 'string',
+                    'label': 'First Name',
+                    'value': 'Andrew'
+                },
+                {
+                    'key': 'sn',
+                    'type': 'string',
+                    'label': 'Last Name',
+                    'value': 'Astin'
+                },
+                {
+                    'key': 'mail',
+                    'type': 'string',
+                    'label': 'Email Address',
+                    'value': 'aastin@ad.utopia.netiq.com'
+                },
+                {
+                    'key': 'telephoneNumber',
+                    'type': 'multiString',
+                    'label': 'Telephone Number',
+                    'values': [
+                        '801-802-0259'
                     ]
                 },
-                'userDisplayName': 'Aaron Corry - acorry - acorry@ad.utopia.netiq.com',
-                'intruderLocked': false,
-                'accountEnabled': true,
-                'accountExpired': false,
-                'userHistory': [],
-                'searchDetails': {
-                    'CN': [ 'acorry' ],
-                    'First Name': [ 'Aaron' ],
-                    'Last Name': [ 'Corry' ],
-                    'Email Address': [ 'acorry@ad.utopia.netiq.com' ],
-                    'Telephone Number': [ '801-802-0260' ],
-                    'Title': [ 'Identity Architect' ],
-                    'Department': [ 'Information Technology' ],
-                    'Business Category': [ 'Identity' ],
-                    'Company': [ 'Utopia Corp' ],
-                    'Street': [ '50 Upper 5th' ],
-                    'City': [ 'New York City' ],
-                    'State': [ 'New York' ],
-                    'Location': [ 'Manhattan' ],
-                    'Employee Status': [ 'A' ],
-                    'Workforce ID': [ 'E000260' ]
+                {
+                    'key': 'title',
+                    'type': 'string',
+                    'label': 'Title',
+                    'value': 'Identity Administrator'
                 },
-                'passwordSetDelta': 'n/a',
-                'passwordPolicyRules': {
-                    'Policy Enabled': 'True',
-                    'Minimum Length': '4',
-                    'Maximum Length': '12',
-                    'Minimum Upper Case': '0',
-                    'Maximum Upper Case': '0',
-                    'Minimum Lower Case': '0',
-                    'Maximum Lower Case': '0',
-                    'Allow Numeric': 'True',
-                    'Minimum Numeric': '0',
-                    'Maximum Numeric': '0',
-                    'Minimum Unique': '0',
-                    'Allow First Character Numeric': 'True',
-                    'Allow Last Character Numeric': 'True',
-                    'Allow Special': 'True',
-                    'Minimum Special': '0',
-                    'Maximum Special': '0',
-                    'Allow First Character Special': 'True',
-                    'Allow Last Character Special': 'True',
-                    'Maximum Repeat': '0',
-                    'Maximum Sequential Repeat': '0',
-                    'Change Message': '',
-                    'Expiration Interval': '0',
-                    'Minimum Lifetime': '0',
-                    'Case Sensitive': 'True',
-                    'Unique Required': 'False',
-                    'Disallowed Values': 'password\ntest',
-                    'Disallowed Attributes': 'givenName\ncn\nsn',
-                    'Disallow Current': 'True',
-                    'Maximum AD Complexity Violations': '2',
-                    'Regular Expression Match': '',
-                    'Regular Expression No Match': '',
-                    'Minimum Alpha': '0',
-                    'Maximum Alpha': '0',
-                    'Minimum Non-Alpha': '0',
-                    'Maximum Non-Alpha': '0',
-                    'Enable Word List': 'True',
-                    'Minimum Strength': '0',
-                    'Maximum Consecutive': '0',
-                    'Character Groups Minimum Required': '0',
-                    'Character Group Values': '.*[0-9]\n.*[^A-Za-z0-9]\n.*[A-Z]\n.*[a-z]',
-                    'Rule_AllowMacroInRegExSetting': 'True'
+                {
+                    'key': 'ou',
+                    'type': 'string',
+                    'label': 'Department',
+                    'value': 'Information Technology'
                 },
-                'passwordRequirements': [
-                    'Password is case sensitive.',
-                    'Must be at least 4 characters long.',
-                    'Must be no more than 12 characters long.',
-                    'Must not include any of the following values:  password test',
-                    'Must not include part of your name or user name.',
-                    'Must not include a common word or commonly used sequence of characters.'
-                ],
-                'passwordPolicyDN': 'cn=SSPR,cn=Password Policies,cn=Security',
-                'passwordPolicyID': 'n/a',
-                'hasOtpRecord': false,
-                'otpRecordTimestamp': 'n/a'
+                {
+                    'key': 'businessCategory',
+                    'type': 'string',
+                    'label': 'Business Category',
+                    'value': 'Identity'
+                },
+                {
+                    'key': 'company',
+                    'type': 'string',
+                    'label': 'Company',
+                    'value': 'Utopia Corp'
+                },
+                {
+                    'key': 'street',
+                    'type': 'string',
+                    'label': 'Street',
+                    'value': '50 Upper 5th'
+                },
+                {
+                    'key': 'physicalDeliveryOfficeName',
+                    'type': 'string',
+                    'label': 'City',
+                    'value': 'New York City'
+                },
+                {
+                    'key': 'st',
+                    'type': 'string',
+                    'label': 'State',
+                    'value': 'New York'
+                },
+                {
+                    'key': 'l',
+                    'type': 'string',
+                    'label': 'Location',
+                    'value': 'Manhattan'
+                },
+                {
+                    'key': 'employeeStatus',
+                    'type': 'string',
+                    'label': 'Employee Status',
+                    'value': 'A'
+                },
+                {
+                    'key': 'workforceID',
+                    'type': 'string',
+                    'label': 'Workforce ID',
+                    'value': 'E000259'
+                }
+            ],
+            'helpdeskResponses': [
+                {
+                    'key': 'item_1',
+                    'type': 'string',
+                    'label': 'How many years old are you?',
+                    'value': '25RRR'
+                }
+            ],
+            'visibleButtons': [
+                'refresh',
+                'back',
+                'changePassword',
+                'unlock',
+                'clearResponses',
+                'verification',
+                'deleteUser'
+            ],
+            'enabledButtons': [
+                'refresh',
+                'back',
+                'changePassword',
+                'clearResponses',
+                'verification',
+                'deleteUser'
+            ],
+            'customButtons': [
+                {
+                    'name': 'custom_0',
+                    'label': 'ConfirmButton2',
+                    'description': 'My Description...'
+                }
+            ]
         });
     }
 

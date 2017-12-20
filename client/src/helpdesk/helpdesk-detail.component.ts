@@ -26,6 +26,8 @@ import {IHelpDeskService} from '../services/helpdesk.service';
 import {ui} from '@types/angular';
 import {IActionButtons, IHelpDeskConfigService} from '../services/helpdesk-config.service';
 import DialogService from '../ux/ias-dialog.service';
+import {IPeopleService} from '../services/people.service';
+import {IPerson} from '../models/person.model';
 
 let verificationsDialogTemplateUrl = require('./verifications-dialog.template.html');
 
@@ -35,25 +37,44 @@ let verificationsDialogTemplateUrl = require('./verifications-dialog.template.ht
 })
 export default class HelpDeskDetailComponent {
     actionButtons: IActionButtons;
-    photosEnabled: boolean;
     person: any;
+    personCard: IPerson;
+    photosEnabled: boolean;
 
     static $inject = [
         '$state',
         '$stateParams',
         'ConfigService',
         'HelpDeskService',
-        'IasDialogService'
+        'IasDialogService',
+        'PeopleService'
     ];
     constructor(private $state: ui.IStateService,
                 private $stateParams: ui.IStateParamsService,
                 private configService: IHelpDeskConfigService,
                 private helpDeskService: IHelpDeskService,
-                private IasDialogService: DialogService) {
+                private IasDialogService: DialogService,
+                private peopleService: IPeopleService) {
     }
 
     $onInit(): void {
         this.initialize();
+    }
+
+    buttonDisabled(buttonName: string): boolean {
+        if (!this.person || !this.person.enabledButtons) {
+            return false;
+        }
+
+        return (this.person.enabledButtons.indexOf(buttonName) === -1);
+    }
+
+    buttonVisible(buttonName: string): boolean {
+        if (!this.person || !this.person.visibleButtons) {
+            return false;
+        }
+
+        return (this.person.visibleButtons.indexOf(buttonName) !== -1);
     }
 
     changePassword(): void {
@@ -70,6 +91,10 @@ export default class HelpDeskDetailComponent {
         this.configService.photosEnabled().then((photosEnabled: boolean) => {
             this.photosEnabled = photosEnabled;
         }); // TODO: always necessary?
+
+        this.peopleService.getPerson(personId).then((personCard: IPerson) => {
+            this.personCard = personCard;
+        });
 
         this.helpDeskService
             .getPerson(personId)
