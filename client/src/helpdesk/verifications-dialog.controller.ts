@@ -88,6 +88,12 @@ export default class VerificationsDialogController {
         }
     }
 
+    clickOkButton() {
+        if (this.verificationStatus === STATUS_PASSED) {
+            this.IasDialogService.close();
+        }
+    }
+
     private gotoDetailsPage() {
         this.$timeout(() => {
             this.IasDialogService.close();

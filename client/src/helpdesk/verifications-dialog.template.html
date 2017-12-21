@@ -40,7 +40,7 @@
                 </div>
             </div>
             <div class="ias-actions">
-                <mf-button ng-click="close()">Cancel</mf-button>
+                <mf-button ng-click="close()">{{ 'Button_Cancel' | translate }}</mf-button>
             </div>
         </div>
 
@@ -93,7 +93,7 @@
                     View Details
                 </mf-button>
                 <mf-button ng-disabled="$ctrl.verificationStatus!=='passed'"
-                           ng-click="close()"
+                           ng-click="$ctrl.clickOkButton()"
                            ng-if="$ctrl.isDetailsView">
                     {{ 'Button_OK' | translate }}
                 </mf-button>
@@ -105,7 +105,7 @@
     <mf-icon-button class="ias-dialog-close-button"
                     icon="close_thick"
                     id="close-icon"
-                    ng-attr-title="{{ 'Title_Close' | translate }}"
+                    ng-attr-title="{{ 'Button_CloseWindow' | translate }}"
                     ng-click="close()">
     </mf-icon-button>
 </ias-dialog>

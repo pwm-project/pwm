@@ -21,24 +21,50 @@
  */
 
 import {
-    IHelpDeskService, IRecentVerifications, IVerificationStatus,
+    IHelpDeskService, IRecentVerifications, ISuccessResponse, IVerificationStatus,
     IVerificationTokenResponse
 } from './helpdesk.service';
-import {IPromise, IQService, IWindowService} from 'angular';
+import {IPromise, IQService, ITimeoutService, IWindowService} from 'angular';
+
+const SIMULATED_RESPONSE_TIME = 300;
 
 export default class HelpDeskService implements IHelpDeskService {
     PWM_GLOBAL: any;
 
-    static $inject = [ '$q', '$window' ];
-    constructor(private $q: IQService, private $window: IWindowService) {
+    static $inject = [ '$q', '$timeout', '$window' ];
+    constructor(private $q: IQService, private $timeout: ITimeoutService, private $window: IWindowService) {
     }
 
     checkVerification(userKey: string): IPromise<IVerificationStatus> {
-        return this.$q.resolve({ passed: false });
+        return this.simulateResponse({ passed: false });
+    }
+
+    clearOtpSecret(userKey: string): IPromise<ISuccessResponse> {
+        return this.simulateResponse({ successMessage: 'OTP Secret successfully cleared.' });
+    }
+
+    clearResponses(userKey: string): IPromise<ISuccessResponse> {
+        return this.simulateResponse({ successMessage: 'Security answers successfully cleared.' });
+    }
+
+    customAction(actionName: string, userKey: string): IPromise<ISuccessResponse> {
+        if (actionName === 'custom_0') {
+            return this.simulateResponse({ successMessage: 'User successfully cloned.' });
+        }
+        else if (actionName === 'custom_1') {
+            return this.simulateResponse({ successMessage: 'User successfully merged.' });
+        }
+        else {
+            this.$q.reject('Error! Action name doesn\'t exist.');
+        }
+    }
+
+    deleteUser(userKey: string): IPromise<ISuccessResponse> {
+        return this.simulateResponse({ successMessage: 'User successfully deleted.' });
     }
 
     getPerson(userKey: string): IPromise<any> {
-        return this.$q.resolve({
+        return this.simulateResponse({
             'userDisplayName': 'Andrew Astin - aastin - aastin@ad.utopia.netiq.com',
             'userHistory': [
                 {
@@ -358,6 +384,7 @@ export default class HelpDeskService implements IHelpDeskService {
                 'changePassword',
                 'unlock',
                 'clearResponses',
+                'clearOtpSecret',
                 'verification',
                 'deleteUser'
             ],
@@ -365,22 +392,29 @@ export default class HelpDeskService implements IHelpDeskService {
                 'refresh',
                 'back',
                 'changePassword',
+                'unlock',
                 'clearResponses',
+                'clearOtpSecret',
                 'verification',
                 'deleteUser'
             ],
             'customButtons': [
                 {
                     'name': 'custom_0',
-                    'label': 'ConfirmButton2',
-                    'description': 'My Description...'
+                    'label': 'Clone User',
+                    'description': 'Clones the current user'
+                },
+                {
+                    'name': 'custom_1',
+                    'label': 'Merge User',
+                    'description': 'Merges the current user with another user'
                 }
             ]
         });
     }
 
     getRecentVerifications(): IPromise<IRecentVerifications> {
-        return this.$q.resolve([
+        return this.simulateResponse([
             {
                 timestamp: '2017-12-06T23:19:07Z',
                 profile: 'default',
@@ -403,10 +437,34 @@ export default class HelpDeskService implements IHelpDeskService {
     }
 
     sendVerificationToken(userKey: string, choice: string): IPromise<IVerificationTokenResponse> {
-        return this.$q.resolve({ destination: 'bcarrolj@paypal.com' });
+        return this.simulateResponse({ destination: 'bcarrolj@paypal.com' });
+    }
+
+    private simulateResponse<T>(data: T): IPromise<T> {
+        let self = this;
+
+        let deferred = this.$q.defer();
+        let deferredAbort = this.$q.defer();
+
+        let timeoutPromise = this.$timeout(() => {
+            deferred.resolve(data);
+        }, SIMULATED_RESPONSE_TIME);
+
+        // To simulate an abortable promise, edit SIMULATED_RESPONSE_TIME
+        deferred.promise['_httpTimeout'] = deferredAbort;
+        deferredAbort.promise.then(() => {
+            self.$timeout.cancel(timeoutPromise);
+            deferred.resolve();
+        });
+
+        return deferred.promise;
+    }
+
+    unlockIntruder(userKey: string): IPromise<ISuccessResponse> {
+        return this.simulateResponse({ successMessage: 'Unlock successful.' });
     }
 
     validateVerificationData(userKey: string, data: any, method: string): IPromise<IVerificationStatus> {
-        return this.$q.resolve({ passed: true });
+        return this.simulateResponse({ passed: true });
     }
 }

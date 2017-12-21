@@ -59,6 +59,10 @@ help-desk-detail {
           tr {
             height: 25px;
 
+            &.bottom-border {
+              border-bottom: 1px solid #949494;
+            }
+
             td {
               border: none;
               font-size: 12px;

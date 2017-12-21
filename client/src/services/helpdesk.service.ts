@@ -35,10 +35,21 @@ const VERIFICATION_PROCESS_ACTIONS = {
 
 export interface IHelpDeskService {
     checkVerification(userKey: string): IPromise<IVerificationStatus>;
+    clearOtpSecret(userKey: string): IPromise<ISuccessResponse>;
+    clearResponses(userKey: string): IPromise<ISuccessResponse>;
+    customAction(actionName: string, userKey: string): IPromise<ISuccessResponse>;
+    deleteUser(userKey: string): IPromise<ISuccessResponse>;
     getPerson(userKey: string): IPromise<any>;
     getRecentVerifications(): IPromise<IRecentVerifications>;
     sendVerificationToken(userKey: string, choice: string): IPromise<IVerificationTokenResponse>;
+    unlockIntruder(userKey: string): IPromise<ISuccessResponse>;
     validateVerificationData(userKey: string, formData: any, tokenData: any): IPromise<IVerificationStatus>;
+}
+
+export interface IButtonInfo {
+    description: string;
+    label: string;
+    name: string;
 }
 
 export type IRecentVerifications = IRecentVerification[];
@@ -48,6 +59,10 @@ type IRecentVerification = {
     username: string,
     timestamp: string,
     method: string
+}
+
+export interface ISuccessResponse {
+    successMessage: string;
 }
 
 interface IValidationStatus extends IVerificationStatus {
@@ -94,6 +109,51 @@ export default class HelpDeskService implements IHelpDeskService {
             });
     }
 
+    clearOtpSecret(userKey: string): IPromise<ISuccessResponse> {
+        let url: string = this.pwmService.getServerUrl('clearOtpSecret');
+        let data: any = { userKey: userKey };
+
+        return this.pwmService
+            .httpRequest(url, { data: data })
+            .then((result: ISuccessResponse) => {
+                return this.$q.resolve(result);
+            });
+    }
+
+    clearResponses(userKey: string): IPromise<ISuccessResponse> {
+        let url: string = this.pwmService.getServerUrl('clearResponses');
+        url += `&userKey=${userKey}`;
+
+        return this.pwmService
+            .httpRequest(url, {})
+            .then((result: ISuccessResponse) => {
+                return this.$q.resolve(result);
+            });
+    }
+
+    customAction(actionName: string, userKey: string): IPromise<ISuccessResponse> {
+        let url: string = this.pwmService.getServerUrl('executeAction');
+        url += `&name=${actionName}`;
+        let data: any = { userKey: userKey };
+
+        return this.pwmService
+            .httpRequest(url, { data: data })
+            .then((result: ISuccessResponse) => {
+                return this.$q.resolve(result);
+            });
+    }
+
+    deleteUser(userKey: string): IPromise<ISuccessResponse> {
+        let url: string = this.pwmService.getServerUrl('deleteUser');
+        url += `&userKey=${userKey}`;
+
+        return this.pwmService
+            .httpRequest(url, {})
+            .then((result: ISuccessResponse) => {
+                return this.$q.resolve(result);
+            });
+    }
+
     getPerson(userKey: string): IPromise<any> {
         let url: string = this.pwmService.getServerUrl('detail');
         let verificationState = this.localStorageService.getItem(this.localStorageService.keys.VERIFICATION_STATE);
@@ -130,6 +190,17 @@ export default class HelpDeskService implements IHelpDeskService {
         return this.pwmService
             .httpRequest(url, { data: data })
             .then((result: IVerificationTokenResponse) => {
+                return this.$q.resolve(result);
+            });
+    }
+
+    unlockIntruder(userKey: string): IPromise<ISuccessResponse> {
+        let url: string = this.pwmService.getServerUrl('unlockIntruder');
+        url += `&userKey=${userKey}`;
+
+        return this.pwmService
+            .httpRequest(url, {})
+            .then((result: ISuccessResponse) => {
                 return this.$q.resolve(result);
             });
     }

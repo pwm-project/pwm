@@ -22,14 +22,20 @@
 
 
 import {Component} from '../component';
-import {IHelpDeskService} from '../services/helpdesk.service';
-import {ui} from '@types/angular';
+import {IButtonInfo, IHelpDeskService, ISuccessResponse} from '../services/helpdesk.service';
+import {IScope, ui} from '@types/angular';
 import {IActionButtons, IHelpDeskConfigService} from '../services/helpdesk-config.service';
 import DialogService from '../ux/ias-dialog.service';
 import {IPeopleService} from '../services/people.service';
 import {IPerson} from '../models/person.model';
+import IasDialogComponent from '../ux/ias-dialog.component';
 
 let verificationsDialogTemplateUrl = require('./verifications-dialog.template.html');
+let helpdeskDetailDialogTemplateUrl = require('./helpdesk-detail-dialog.template.html');
+
+const STATUS_WAIT = 'wait';
+const STATUS_CONFIRM = 'confirm';
+const STATUS_SUCCESS = 'success';
 
 @Component({
     stylesheetUrl: require('helpdesk/helpdesk-detail.component.scss'),
@@ -81,12 +87,159 @@ export default class HelpDeskDetailComponent {
         alert('Change password dialog');
     }
 
+    clearOtpSecret(): void {
+        if (this.buttonDisabled('clearOtpSecret')) {
+            return;
+        }
+
+        let userKey = this.getUserKey();
+
+        this.IasDialogService
+            .open({
+                controller: [
+                    '$scope',
+                    'HelpDeskService',
+                    'translateFilter',
+                    function ($scope: IScope,
+                              helpDeskService: IHelpDeskService,
+                              translateFilter: (id: string) => string) {
+                        $scope.status = STATUS_CONFIRM;
+                        $scope.title = translateFilter('Button_HelpdeskClearOtpSecret');
+                        $scope.text = translateFilter('Confirm');
+                        $scope.confirm = () => {
+                            $scope.status = STATUS_WAIT;
+                            helpDeskService.clearResponses(userKey).then((data: ISuccessResponse) => {
+                                // TODO - error dialog?
+                                $scope.status = STATUS_SUCCESS;
+                                $scope.text = data.successMessage;
+                            });
+                        };
+                    }
+                ],
+                templateUrl: helpdeskDetailDialogTemplateUrl
+            });
+    }
+
+    clearResponses(): void {
+        if (this.buttonDisabled('clearResponses')) {
+            return;
+        }
+
+        let userKey = this.getUserKey();
+
+        this.IasDialogService
+            .open({
+                controller: [
+                    '$scope',
+                    'HelpDeskService',
+                    'translateFilter',
+                    function ($scope: IScope,
+                              helpDeskService: IHelpDeskService,
+                              translateFilter: (id: string) => string) {
+                        $scope.status = STATUS_CONFIRM;
+                        $scope.title = translateFilter('Button_ClearResponses');
+                        $scope.text = translateFilter('Confirm');
+                        $scope.confirm = () => {
+                            $scope.status = STATUS_WAIT;
+                            helpDeskService.clearResponses(userKey).then((data: ISuccessResponse) => {
+                                // TODO - error dialog?
+                                $scope.status = STATUS_SUCCESS;
+                                $scope.text = data.successMessage;
+                            });
+                        };
+                    }
+                ],
+                templateUrl: helpdeskDetailDialogTemplateUrl
+            });
+    }
+
+    clickCustomButton(button: IButtonInfo): void {
+        // Custom buttons are never disabled
+
+        let userKey = this.getUserKey();
+
+        this.IasDialogService
+            .open({
+                controller: [
+                    '$scope',
+                    'HelpDeskService',
+                    'translateFilter',
+                    function ($scope: IScope,
+                              helpDeskService: IHelpDeskService,
+                              translateFilter: (id: string) => string) {
+                        $scope.status = STATUS_CONFIRM;
+                        $scope.title = translateFilter('Button_Confirm') + ' ' + button.label;
+                        $scope.text = button.description;
+                        $scope.secondaryText = translateFilter('Confirm');
+                        $scope.confirm = () => {
+                            $scope.status = STATUS_WAIT;
+                            helpDeskService.customAction(button.name, userKey).then((data: ISuccessResponse) => {
+                                // TODO - error dialog? (btw this error dialog is slightly different)
+                                $scope.status = STATUS_SUCCESS;
+                                $scope.title = translateFilter('Title_Success');
+                                $scope.secondaryText = null;
+                                $scope.text = data.successMessage;
+                            });
+                        };
+                    }
+                ],
+                templateUrl: helpdeskDetailDialogTemplateUrl
+            });
+    }
+
+    deleteUser(): void {
+        if (this.buttonDisabled('deleteUser')) {
+            return;
+        }
+
+        let self = this;
+        let userKey = this.getUserKey();
+
+        this.IasDialogService
+            .open({
+                controller: [
+                    '$scope',
+                    'HelpDeskService',
+                    'IasDialogService',
+                    'translateFilter',
+                    function ($scope: IScope,
+                              helpDeskService: IHelpDeskService,
+                              IasDialogService: DialogService,
+                              translateFilter: (id: string) => string) {
+                        $scope.status = STATUS_CONFIRM;
+                        $scope.title = translateFilter('Button_Confirm');
+                        $scope.text = translateFilter('Confirm_DeleteUser');
+                        $scope.confirm = () => {
+                            $scope.status = STATUS_WAIT;
+                            helpDeskService.deleteUser(userKey).then((data: ISuccessResponse) => {
+                                // TODO - error dialog?
+                                $scope.status = STATUS_SUCCESS;
+                                $scope.title = translateFilter('Title_Success');
+                                $scope.text = data.successMessage;
+                                $scope.close = () => {
+                                    IasDialogService.close();
+                                    self.gotoSearch();
+                                };
+                            });
+                        };
+                    }
+                ],
+                templateUrl: helpdeskDetailDialogTemplateUrl
+            });
+    }
+
+
+
+    getUserKey(): string {
+        return this.$stateParams['personId'];
+    }
+
     gotoSearch(): void {
         this.$state.go('search');
     }
 
     initialize(): void {
-        const personId = this.$stateParams['personId'];
+        const personId = this.getUserKey();
 
         this.configService.photosEnabled().then((photosEnabled: boolean) => {
             this.photosEnabled = photosEnabled;
@@ -108,19 +261,45 @@ export default class HelpDeskDetailComponent {
             .getActionButtons()
             .then((actionButtons: IActionButtons) => {
                 this.actionButtons = actionButtons;
-            });
+            });     // TODO: remove this code
     }
 
     refresh(): void {
+        this.person = null;
         this.initialize();
     }
 
     unlockUser(): void {
-        if (this.person.accountEnabled) {
+        if (this.buttonDisabled('unlock')) {
             return;
         }
 
-        alert('Unlock user dialog');
+        let userKey = this.getUserKey();
+
+        this.IasDialogService
+            .open({
+                controller: [
+                    '$scope',
+                    'HelpDeskService',
+                    'translateFilter',
+                    function ($scope: IScope,
+                              helpDeskService: IHelpDeskService,
+                              translateFilter: (id: string) => string) {
+                        $scope.status = STATUS_CONFIRM;
+                        $scope.title = translateFilter('Button_Unlock');
+                        $scope.text = translateFilter('Confirm');
+                        $scope.confirm = () => {
+                            $scope.status = STATUS_WAIT;
+                            helpDeskService.unlockIntruder(userKey).then((data: ISuccessResponse) => {
+                                // TODO - error dialog?
+                                $scope.status = STATUS_SUCCESS;
+                                $scope.text = data.successMessage;
+                            });
+                        };
+                    }
+                ],
+                templateUrl: helpdeskDetailDialogTemplateUrl
+            });
     }
 
     verifyUser(): void {
@@ -129,7 +308,7 @@ export default class HelpDeskDetailComponent {
                 controller: 'VerificationsDialogController as $ctrl',
                 templateUrl: verificationsDialogTemplateUrl,
                 locals: {
-                    personUserKey: this.$stateParams['personId'],
+                    personUserKey: this.getUserKey(),
                     search: false
                 }
             });
