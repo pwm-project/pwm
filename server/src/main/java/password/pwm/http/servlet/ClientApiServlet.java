@@ -283,7 +283,7 @@ public class ClientApiServlet extends ControlledPwmServlet {
         settingMap.put("client.ajaxTypingWait", Integer.parseInt(config.readAppProperty(AppProperty.CLIENT_AJAX_TYPING_WAIT)));
         settingMap.put("client.activityMaxEpsRate", Integer.parseInt(config.readAppProperty(AppProperty.CLIENT_ACTIVITY_MAX_EPS_RATE)));
         settingMap.put("client.js.enableHtml5Dialog", Boolean.parseBoolean(config.readAppProperty(AppProperty.CLIENT_JS_ENABLE_HTML5DIALOG)));
-        settingMap.put("client.locale", pwmSession.getSessionStateBean().getLocale() );
+        settingMap.put("client.locale", LocaleHelper.getBrowserLocaleString(pwmSession.getSessionStateBean().getLocale()) );
         settingMap.put("client.pwShowRevertTimeout", Integer.parseInt(config.readAppProperty(AppProperty.CLIENT_PW_SHOW_REVERT_TIMEOUT)));
         settingMap.put("enableIdleTimeout", config.readSettingAsBoolean(PwmSetting.DISPLAY_IDLE_TIMEOUT));
         settingMap.put("pageLeaveNotice", config.readSettingAsLong(PwmSetting.SECURITY_PAGE_LEAVE_NOTICE_TIMEOUT));

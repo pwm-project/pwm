@@ -600,4 +600,11 @@ public class LocaleHelper {
 
         return PwmConstants.DEFAULT_LOCALE;
     }
+
+    public static String getBrowserLocaleString(final Locale locale)
+    {
+        return locale == null
+                ? ""
+                : locale.toString().replace("_","-");
+    }
 }
