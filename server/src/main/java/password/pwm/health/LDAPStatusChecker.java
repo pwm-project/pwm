@@ -23,7 +23,6 @@
 package password.pwm.health;
 
 import com.novell.ldapchai.ChaiEntry;
-import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiError;
 import com.novell.ldapchai.exception.ChaiErrors;
@@ -31,8 +30,8 @@ import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiConfiguration;
 import com.novell.ldapchai.provider.ChaiProvider;
-import com.novell.ldapchai.provider.ChaiProviderFactory;
 import com.novell.ldapchai.provider.ChaiSetting;
+import com.novell.ldapchai.provider.DirectoryVendor;
 import com.novell.ldapchai.util.ChaiUtility;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
@@ -100,7 +99,7 @@ public class LDAPStatusChecker implements HealthChecker {
                     checkBasicLdapConnectivity(pwmApplication, config, entry.getValue(), true));
 
             if (profileRecords.isEmpty()) {
-                profileRecords.addAll(checkLdapServerUrls(config, ldapProfiles.get(profileID)));
+                profileRecords.addAll(checkLdapServerUrls(pwmApplication, config, ldapProfiles.get(profileID)));
             }
 
             if (profileRecords.isEmpty()) {
@@ -191,6 +190,7 @@ public class LDAPStatusChecker implements HealthChecker {
             try {
 
                 chaiProvider = LdapOperationsHelper.createChaiProvider(
+                        pwmApplication,
                         SessionLabel.HEALTH_SESSION_LABEL,
                         ldapProfile,
                         config,
@@ -198,7 +198,7 @@ public class LDAPStatusChecker implements HealthChecker {
                         proxyUserPW
                 );
 
-                theUser = ChaiFactory.createChaiUser(testUserDN, chaiProvider);
+                theUser = chaiProvider.getEntryFactory().newChaiUser(testUserDN);
 
             } catch (ChaiUnavailableException e) {
                 returnRecords.add(HealthRecord.forMessage(HealthMessage.LDAP_TestUserUnavailable,
@@ -230,7 +230,7 @@ public class LDAPStatusChecker implements HealthChecker {
             LOGGER.trace(SessionLabel.HEALTH_SESSION_LABEL, "beginning process to check ldap test user password read/write operations for profile " + ldapProfile.getIdentifier());
             try {
                 final boolean readPwdEnabled = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.EDIRECTORY_READ_USER_PWD)
-                        && theUser.getChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY;
+                        && theUser.getChaiProvider().getDirectoryVendor() == DirectoryVendor.EDIRECTORY;
 
                 if (readPwdEnabled) {
                     try {
@@ -352,7 +352,11 @@ public class LDAPStatusChecker implements HealthChecker {
     }
 
 
-    public List<HealthRecord> checkLdapServerUrls(final Configuration config, final LdapProfile ldapProfile)
+    public List<HealthRecord> checkLdapServerUrls(
+            final PwmApplication pwmApplication,
+            final Configuration config,
+            final LdapProfile ldapProfile
+    )
     {
         final List<HealthRecord> returnRecords = new ArrayList<>();
         final List<String> serverURLs = ldapProfile.readSettingAsStringArray(PwmSetting.LDAP_SERVER_URLS);
@@ -361,6 +365,7 @@ public class LDAPStatusChecker implements HealthChecker {
             ChaiProvider chaiProvider = null;
             try {
                 chaiProvider = LdapOperationsHelper.createChaiProvider(
+                        pwmApplication,
                         SessionLabel.HEALTH_SESSION_LABEL,
                         config,
                         ldapProfile,
@@ -368,8 +373,8 @@ public class LDAPStatusChecker implements HealthChecker {
                         proxyDN,
                         ldapProfile.readSettingAsPassword(PwmSetting.LDAP_PROXY_USER_PASSWORD)
                 );
-                final ChaiUser proxyUser = ChaiFactory.createChaiUser(proxyDN, chaiProvider);
-                proxyUser.isValid();
+                final ChaiUser proxyUser = chaiProvider.getEntryFactory().newChaiUser(proxyDN);
+                proxyUser.exists();
             } catch (Exception e) {
                 final String errorString = "error connecting to ldap server '" + loopURL + "': " + e.getMessage();
                 returnRecords.add(new HealthRecord(
@@ -395,7 +400,7 @@ public class LDAPStatusChecker implements HealthChecker {
         final List<HealthRecord> returnRecords = new ArrayList<>();
         ChaiProvider chaiProvider = null;
         try{
-            ChaiProvider.DIRECTORY_VENDOR directoryVendor = null;
+            final DirectoryVendor directoryVendor;
             try {
                 final String proxyDN = ldapProfile.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
                 final PasswordData proxyPW = ldapProfile.readSettingAsPassword(PwmSetting.LDAP_PROXY_USER_PASSWORD);
@@ -405,9 +410,9 @@ public class LDAPStatusChecker implements HealthChecker {
                 if (proxyPW == null) {
                     return Collections.singletonList(new HealthRecord(HealthStatus.WARN,HealthTopic.LDAP,"Missing Proxy User Password"));
                 }
-                chaiProvider = LdapOperationsHelper.createChaiProvider(SessionLabel.HEALTH_SESSION_LABEL,ldapProfile,config,proxyDN,proxyPW);
-                final ChaiEntry adminEntry = ChaiFactory.createChaiEntry(proxyDN,chaiProvider);
-                adminEntry.isValid();
+                chaiProvider = LdapOperationsHelper.createChaiProvider(pwmApplication, SessionLabel.HEALTH_SESSION_LABEL,ldapProfile,config,proxyDN,proxyPW);
+                final ChaiEntry adminEntry = chaiProvider.getEntryFactory().newChaiEntry(proxyDN);
+                adminEntry.exists();
                 directoryVendor = chaiProvider.getDirectoryVendor();
             } catch (ChaiException e) {
                 final ChaiError chaiError = ChaiErrors.getErrorForMessage(e.getMessage());
@@ -439,14 +444,14 @@ public class LDAPStatusChecker implements HealthChecker {
                 return returnRecords;
             }
 
-            if (directoryVendor != null && directoryVendor == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY) {
+            if (directoryVendor != null && directoryVendor == DirectoryVendor.ACTIVE_DIRECTORY) {
                 returnRecords.addAll(checkAd(pwmApplication, config, ldapProfile));
             }
 
             if (testContextlessRoot) {
                 for (final String loopContext : ldapProfile.readSettingAsStringArray(PwmSetting.LDAP_CONTEXTLESS_ROOT)) {
                     try {
-                        final ChaiEntry contextEntry = ChaiFactory.createChaiEntry(loopContext,chaiProvider);
+                        final ChaiEntry contextEntry = chaiProvider.getEntryFactory().newChaiEntry(loopContext);
                         final Set<String> objectClasses = contextEntry.readObjectClass();
 
                         if (objectClasses == null || objectClasses.isEmpty()) {
@@ -538,7 +543,7 @@ public class LDAPStatusChecker implements HealthChecker {
 
         LOGGER.trace(SessionLabel.HEALTH_SESSION_LABEL,"beginning check for replica vendor sameness");
         boolean errorReachingServer = false;
-        final Map<String,ChaiProvider.DIRECTORY_VENDOR> replicaVendorMap = new HashMap<>();
+        final Map<String, DirectoryVendor> replicaVendorMap = new HashMap<>();
 
         try {
             for (final LdapProfile ldapProfile : pwmApplication.getConfig().getLdapProfiles().values()) {
@@ -548,8 +553,8 @@ public class LDAPStatusChecker implements HealthChecker {
                 );
                 final Collection<ChaiConfiguration> replicaConfigs = ChaiUtility.splitConfigurationPerReplica(profileChaiConfiguration, Collections.<ChaiSetting,String>emptyMap());
                 for (final ChaiConfiguration chaiConfiguration : replicaConfigs) {
-                    final ChaiProvider loopProvider = ChaiProviderFactory.createProvider(chaiConfiguration);
-                    replicaVendorMap.put(chaiConfiguration.getSetting(ChaiSetting.BIND_URLS),loopProvider.getDirectoryVendor());
+                    final ChaiProvider loopProvider = pwmApplication.getLdapConnectionService().getChaiProviderFactory().newProvider(chaiConfiguration);
+                    replicaVendorMap.put(chaiConfiguration.getSetting(ChaiSetting.BIND_URLS), loopProvider.getDirectoryVendor());
                 }
             }
         } catch (Exception e) {
@@ -558,12 +563,12 @@ public class LDAPStatusChecker implements HealthChecker {
         }
 
         final ArrayList<HealthRecord> healthRecords = new ArrayList<>();
-        final Set<ChaiProvider.DIRECTORY_VENDOR> discoveredVendors = new HashSet<>(replicaVendorMap.values());
+        final Set<DirectoryVendor> discoveredVendors = new HashSet<>(replicaVendorMap.values());
 
         if (discoveredVendors.size() >= 2) {
             final StringBuilder vendorMsg = new StringBuilder();
-            for (final Iterator<Map.Entry<String,ChaiProvider.DIRECTORY_VENDOR>> iterator = replicaVendorMap.entrySet().iterator(); iterator.hasNext(); ) {
-                final Map.Entry<String,ChaiProvider.DIRECTORY_VENDOR> entry = iterator.next();
+            for (final Iterator<Map.Entry<String, DirectoryVendor>> iterator = replicaVendorMap.entrySet().iterator(); iterator.hasNext(); ) {
+                final Map.Entry<String, DirectoryVendor> entry = iterator.next();
                 final String key = entry.getKey();
                 vendorMsg.append(key).append("=").append(entry.getValue().toString());
                 if (iterator.hasNext()) {
@@ -613,7 +618,7 @@ public class LDAPStatusChecker implements HealthChecker {
                 );
                 final Collection<ChaiConfiguration> replicaConfigs = ChaiUtility.splitConfigurationPerReplica(profileChaiConfiguration, Collections.<ChaiSetting,String>emptyMap());
                 for (final ChaiConfiguration chaiConfiguration : replicaConfigs) {
-                    final ChaiProvider loopProvider = ChaiProviderFactory.createProvider(chaiConfiguration);
+                    final ChaiProvider loopProvider = pwmApplication.getLdapConnectionService().getChaiProviderFactory().newProvider(chaiConfiguration);
                     final ChaiEntry rootDSE = ChaiUtility.getRootDSE(loopProvider);
                     final Set<String> controls = rootDSE.readMultiStringAttribute("supportedControl");
                     final boolean asnSupported = controls.contains(PwmConstants.LDAP_AD_PASSWORD_POLICY_CONTROL_ASN);
@@ -765,8 +770,8 @@ public class LDAPStatusChecker implements HealthChecker {
         final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider(ldapProfileID);
         try {
             if (!isExampleDN(dnValue)) {
-                final ChaiEntry baseDNEntry = ChaiFactory.createChaiEntry(dnValue, chaiProvider);
-                if (!baseDNEntry.isValid()) {
+                final ChaiEntry baseDNEntry = chaiProvider.getEntryFactory().newChaiEntry(dnValue);
+                if (!baseDNEntry.exists()) {
                     return "DN '" + dnValue + "' is invalid";
                 } else {
                     final String canonicalDN = baseDNEntry.readCanonicalDN();
@@ -819,7 +824,7 @@ public class LDAPStatusChecker implements HealthChecker {
         profileRecords.addAll(ldapStatusChecker.checkBasicLdapConnectivity(tempApplication, config, ldapProfile,
                 testContextless));
         if (fullTest) {
-            profileRecords.addAll(ldapStatusChecker.checkLdapServerUrls(config, ldapProfile));
+            profileRecords.addAll(ldapStatusChecker.checkLdapServerUrls(pwmApplication, config, ldapProfile));
         }
 
         if (profileRecords.isEmpty()) {

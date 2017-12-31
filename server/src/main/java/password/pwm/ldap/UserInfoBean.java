@@ -37,7 +37,6 @@ import password.pwm.util.operations.otp.OTPUserRecord;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -100,10 +99,10 @@ public class UserInfoBean implements UserInfo {
     }
 
     @Override
-    public Date readDateAttribute(final String attribute) throws PwmUnrecoverableException
+    public Instant readDateAttribute(final String attribute) throws PwmUnrecoverableException
     {
         if (attributes.containsKey(attribute)) {
-            return EdirEntries.convertZuluToDate(attributes.get(attribute));
+            return EdirEntries.convertZuluToInstant(attributes.get(attribute));
         }
         return null;
     }

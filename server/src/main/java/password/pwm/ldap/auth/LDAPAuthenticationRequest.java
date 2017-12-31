@@ -23,7 +23,6 @@
 package password.pwm.ldap.auth;
 
 import com.novell.ldapchai.ChaiConstant;
-import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiError;
 import com.novell.ldapchai.exception.ChaiException;
@@ -33,6 +32,7 @@ import com.novell.ldapchai.exception.ImpossiblePasswordPolicyException;
 import com.novell.ldapchai.impl.oracleds.entry.OracleDSEntries;
 import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.provider.ChaiSetting;
+import com.novell.ldapchai.provider.DirectoryVendor;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -64,6 +64,7 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.PasswordUtility;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -194,17 +195,17 @@ class LDAPAuthenticationRequest implements AuthenticationRequest {
                 testCredentials(userIdentity, password);
             } catch (PwmOperationalException e) {
                 boolean permitAuthDespiteError = false;
-                final ChaiProvider.DIRECTORY_VENDOR vendor = pwmApplication.getProxyChaiProvider(
+                final DirectoryVendor vendor = pwmApplication.getProxyChaiProvider(
                         userIdentity.getLdapProfileID()).getDirectoryVendor();
                 if (PwmError.PASSWORD_NEW_PASSWORD_REQUIRED == e.getError()) {
-                    if (vendor == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY) {
+                    if (vendor == DirectoryVendor.ACTIVE_DIRECTORY) {
                         if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.AD_ALLOW_AUTH_REQUIRE_NEW_PWD)) {
                             log(PwmLogLevel.INFO,
                                     "auth bind failed, but will allow login due to 'must change password on next login AD error', error: " + e.getErrorInformation().toDebugStr());
                             allowBindAsUser = false;
                             permitAuthDespiteError = true;
                         }
-                    } else if (vendor == ChaiProvider.DIRECTORY_VENDOR.ORACLE_DS) {
+                    } else if (vendor == DirectoryVendor.ORACLE_DS) {
                         if (pwmApplication.getConfig().readSettingAsBoolean(
                                 PwmSetting.ORACLE_DS_ALLOW_AUTH_REQUIRE_NEW_PWD)) {
                             log(PwmLogLevel.INFO,
@@ -214,7 +215,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest {
                         }
                     }
                 } else if (PwmError.PASSWORD_EXPIRED == e.getError()) { // handle ad case where password is expired
-                    if (vendor == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY) {
+                    if (vendor == DirectoryVendor.ACTIVE_DIRECTORY) {
                         if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.AD_ALLOW_AUTH_REQUIRE_NEW_PWD)) {
                             if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.AD_ALLOW_AUTH_EXPIRED)) {
                                 throw e;
@@ -316,6 +317,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest {
         try {
             //read a provider using the user's DN and password.
             userProvider = LdapOperationsHelper.createChaiProvider(
+                    pwmApplication,
                     sessionLabel,
                     userIdentity.getLdapProfile(pwmApplication.getConfig()),
                     pwmApplication.getConfig(),
@@ -370,7 +372,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest {
         final boolean configAlwaysUseProxy = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.AD_USE_PROXY_FOR_FORGOTTEN);
 
         final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID());
-        final ChaiUser chaiUser = ChaiFactory.createChaiUser(userIdentity.getUserDN(), chaiProvider);
+        final ChaiUser chaiUser = chaiProvider.getEntryFactory().newChaiUser(userIdentity.getUserDN());
 
         // try setting a random password on the account to authenticate.
         if (!configAlwaysUseProxy && requestedAuthType == AuthenticationType.AUTH_FROM_PUBLIC_MODULE) {
@@ -423,7 +425,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest {
             return null;
         }
 
-        if (ChaiProvider.DIRECTORY_VENDOR.ORACLE_DS != chaiUser.getChaiProvider().getDirectoryVendor()) {
+        if (DirectoryVendor.ORACLE_DS != chaiUser.getChaiProvider().getDirectoryVendor()) {
             return null;
         }
 
@@ -435,11 +437,11 @@ class LDAPAuthenticationRequest implements AuthenticationRequest {
 
 
         if (oracleDS_PrePasswordAllowChangeTime != null && !oracleDS_PrePasswordAllowChangeTime.isEmpty()) {
-            final Date date = OracleDSEntries.convertZuluToDate(oracleDS_PrePasswordAllowChangeTime);
+            final Instant date = OracleDSEntries.convertZuluToDate(oracleDS_PrePasswordAllowChangeTime);
 
             final boolean enforceFromForgotten = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_ENFORCE_MINIMUM_PASSWORD_LIFETIME);
             if (enforceFromForgotten) {
-                if (new Date().before(date)) {
+                if (Instant.now().isBefore(date)) {
                     final String errorMsg = "change not permitted until " + JavaHelper.toIsoDate(
                             date);
                     throw new PwmUnrecoverableException(
@@ -463,7 +465,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest {
         }
 
         // oracle DS special case: passwordAllowChangeTime handler
-        if (ChaiProvider.DIRECTORY_VENDOR.ORACLE_DS != chaiUser.getChaiProvider().getDirectoryVendor()) {
+        if (DirectoryVendor.ORACLE_DS != chaiUser.getChaiProvider().getDirectoryVendor()) {
             return;
         }
 
@@ -483,7 +485,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest {
                 final boolean PostTempUseCurrentTime = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.LDAP_ORACLE_POST_TEMPPW_USE_CURRENT_TIME));
                 if (PostTempUseCurrentTime) {
                     log(PwmLogLevel.TRACE, "a new value for passwordAllowChangeTime attribute to user " + chaiUser.getEntryDN() + " has appeared, will replace with current time value");
-                    final String newTimeValue = OracleDSEntries.convertDateToZulu(new Date());
+                    final String newTimeValue = OracleDSEntries.convertDateToZulu(Instant.now());
                     final Set<String> values = new HashSet<>(Collections.singletonList(newTimeValue));
                     chaiProvider.writeStringAttribute(chaiUser.getEntryDN(), ORACLE_ATTR_PW_ALLOW_CHG_TIME, values, true);
                     log(PwmLogLevel.TRACE, "wrote attribute value '" + newTimeValue + "' for passwordAllowChangeTime attribute on user " + chaiUser.getEntryDN());
@@ -521,7 +523,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest {
         final LdapProfile profile = pwmApplication.getConfig().getLdapProfiles().get(userIdentity.getLdapProfileID());
         final String proxyDN = profile.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
         final PasswordData proxyPassword = profile.readSettingAsPassword(PwmSetting.LDAP_PROXY_USER_PASSWORD);
-        return LdapOperationsHelper.createChaiProvider(sessionLabel, profile, pwmApplication.getConfig(), proxyDN, proxyPassword);
+        return LdapOperationsHelper.createChaiProvider(pwmApplication, sessionLabel, profile, pwmApplication.getConfig(), proxyDN, proxyPassword);
     }
 
     private void log(final PwmLogLevel level, final CharSequence message) {

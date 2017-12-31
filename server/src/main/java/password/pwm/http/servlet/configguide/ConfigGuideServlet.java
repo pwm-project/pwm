@@ -330,7 +330,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet {
     private ProcessStatus restBrowseLdap(
             final PwmRequest pwmRequest
     )
-            throws IOException, ServletException, PwmUnrecoverableException
+            throws IOException, PwmUnrecoverableException
     {
         final ConfigGuideBean configGuideBean = getBean(pwmRequest);
 
@@ -345,7 +345,10 @@ public class ConfigGuideServlet extends ControlledPwmServlet {
         final String profile = inputMap.get("profile");
         final String dn = inputMap.getOrDefault("dn", "");
 
-        final LdapBrowser ldapBrowser = new LdapBrowser(storedConfiguration);
+        final LdapBrowser ldapBrowser = new LdapBrowser(
+                pwmRequest.getPwmApplication().getLdapConnectionService().getChaiProviderFactory(),
+                storedConfiguration
+        );
         final LdapBrowser.LdapBrowseResult result = ldapBrowser.doBrowse(profile, dn);
         ldapBrowser.close();
 
@@ -445,7 +448,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet {
         final ConfigGuideBean configGuideBean = getBean(pwmRequest);
 
         try {
-            final SchemaOperationResult schemaOperationResult = ConfigGuideUtils.extendSchema(configGuideBean, true);
+            final SchemaOperationResult schemaOperationResult = ConfigGuideUtils.extendSchema(pwmRequest.getPwmApplication(), configGuideBean, true);
             pwmRequest.outputJsonResult(RestResultBean.withData(schemaOperationResult.getOperationLog()));
         } catch (Exception e) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage());

@@ -151,8 +151,7 @@ public class AppDashboardData implements Serializable {
     }
 
     private static int ldapConnectionCount(final PwmApplication pwmApplication) {
-        return pwmApplication.getSessionTrackService().ldapConnectionCount()
-                + pwmApplication.getLdapConnectionService().connectionCount();
+        return pwmApplication.getLdapConnectionService().connectionCount();
     }
 
     private static List<DisplayElement> makeAboutData(

@@ -24,6 +24,7 @@ package password.pwm.ldap;
 
 import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.provider.ChaiProvider;
+import com.novell.ldapchai.provider.ChaiProviderFactory;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.config.option.DataStorageMethod;
@@ -39,10 +40,9 @@ import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -56,6 +56,7 @@ public class LdapConnectionService implements PwmService {
     private STATUS status = STATUS.NEW;
     private AtomicLoopIntIncrementer slotIncrementer;
     private final ThreadLocal<Map<LdapProfile,ChaiProvider>> threadLocalProvider = new ThreadLocal<>();
+    private ChaiProviderFactory chaiProviderFactory;
 
     public STATUS status()
     {
@@ -66,6 +67,8 @@ public class LdapConnectionService implements PwmService {
             throws PwmException
     {
         this.pwmApplication = pwmApplication;
+
+        chaiProviderFactory = ChaiProviderFactory.newProviderFactory();
 
         // read the lastLoginTime
         this.lastLdapErrors.putAll(readLastLdapFailure(pwmApplication));
@@ -85,9 +88,9 @@ public class LdapConnectionService implements PwmService {
     {
         status = STATUS.CLOSED;
         LOGGER.trace("closing ldap proxy connections");
-        for (final ChaiProvider existingProvider : getAllProviders()) {
+        if (chaiProviderFactory != null) {
             try {
-                existingProvider.close();
+                chaiProviderFactory.close();
             } catch (Exception e) {
                 LOGGER.error("error closing ldap proxy connection: " + e.getMessage(), e);
             }
@@ -102,7 +105,13 @@ public class LdapConnectionService implements PwmService {
 
     public ServiceInfoBean serviceInfo()
     {
-        return new ServiceInfoBean(Collections.singletonList(DataStorageMethod.LDAP));
+        final Map<String,String> debugProperties = new LinkedHashMap<>();
+        debugProperties.putAll(chaiProviderFactory.getGlobalStatistics());
+        debugProperties.putAll(connectionDebugInfo());
+        return new ServiceInfoBean(
+                Collections.singletonList(DataStorageMethod.LDAP),
+                Collections.unmodifiableMap(debugProperties)
+        );
     }
 
 
@@ -151,6 +160,7 @@ public class LdapConnectionService implements PwmService {
 
         try {
             final ChaiProvider newProvider = LdapOperationsHelper.openProxyChaiProvider(
+                    pwmApplication,
                     null,
                     ldapProfile,
                     pwmApplication.getConfig(),
@@ -230,25 +240,46 @@ public class LdapConnectionService implements PwmService {
         return perProfile;
     }
 
-    private Collection<ChaiProvider> getAllProviders() {
-        final List<ChaiProvider> returnList = new ArrayList<>();
-        for (final Map<Integer,ChaiProvider> loopProfileMap : proxyChaiProviders.values()) {
-            for (final ChaiProvider chaiProvider : loopProfileMap.values()) {
-                if (chaiProvider != null) {
-                    returnList.add(chaiProvider);
+    public int connectionCount() {
+        int count = 0;
+        if (chaiProviderFactory != null) {
+            for (final ChaiProvider chaiProvider : chaiProviderFactory.activeProviders()) {
+                if (chaiProvider.isConnected()) {
+                    count++;
                 }
             }
         }
-        return Collections.unmodifiableList(returnList);
+        return count;
     }
 
-    public int connectionCount() {
-        int count = 0;
-        for (final ChaiProvider chaiProvider : getAllProviders()) {
-            if (chaiProvider.isConnected()) {
-                count++;
+    public ChaiProviderFactory getChaiProviderFactory() {
+        return chaiProviderFactory;
+    }
+
+    private enum DebugKey {
+        ALLOCATED_CONNECTIONS,
+        ACTIVE_CONNECTIONS,
+        IDLE_CONNECTIONS,
+    }
+
+    private Map<String,String> connectionDebugInfo() {
+        int allocatedConnections = 0;
+        int activeConnections = 0;
+        int idleConnections = 0;
+        if (chaiProviderFactory != null) {
+            for (final ChaiProvider chaiProvider : chaiProviderFactory.activeProviders()) {
+                allocatedConnections++;
+                if (chaiProvider.isConnected()) {
+                    activeConnections++;
+                } else {
+                    idleConnections++;
+                }
             }
         }
-        return count;
+        final Map<String,String> debugInfo = new HashMap<>();
+        debugInfo.put(DebugKey.ALLOCATED_CONNECTIONS.name(), String.valueOf(allocatedConnections));
+        debugInfo.put(DebugKey.ACTIVE_CONNECTIONS.name(), String.valueOf(activeConnections));
+        debugInfo.put(DebugKey.IDLE_CONNECTIONS.name(), String.valueOf(idleConnections));
+        return Collections.unmodifiableMap(debugInfo);
     }
 }

@@ -22,7 +22,6 @@
 
 package password.pwm;
 
-import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
@@ -445,7 +444,7 @@ public class PwmApplication {
     {
         try {
             final ChaiProvider proxiedProvider = getProxyChaiProvider(userIdentity.getLdapProfileID());
-            return ChaiFactory.createChaiUser(userIdentity.getUserDN(), proxiedProvider);
+            return proxiedProvider.getEntryFactory().newChaiUser(userIdentity.getUserDN());
         } catch (ChaiUnavailableException e) {
             throw PwmUnrecoverableException.fromChaiException(e);
         }

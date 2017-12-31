@@ -23,14 +23,13 @@
 package password.pwm.ldap;
 
 import com.novell.ldapchai.ChaiEntry;
-import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiConfiguration;
 import com.novell.ldapchai.provider.ChaiProvider;
-import com.novell.ldapchai.provider.ChaiProviderFactory;
 import com.novell.ldapchai.provider.ChaiSetting;
 import com.novell.ldapchai.util.ChaiUtility;
+import password.pwm.PwmApplication;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -50,6 +49,7 @@ public class LdapDebugDataGenerator {
     private static final PwmLogger LOGGER = PwmLogger.forClass(LdapDebugDataGenerator.class);
 
     public static List<LdapDebugInfo> makeLdapDebugInfos(
+            final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
             final Configuration configuration,
             final Locale locale
@@ -63,6 +63,7 @@ public class LdapDebugDataGenerator {
             ldapDebugInfo.setDisplayName(ldapProfile.getDisplayName(locale));
             try {
                 final ChaiProvider chaiProvider = LdapOperationsHelper.createChaiProvider(
+                        pwmApplication,
                         null,
                         ldapProfile,
                         configuration,
@@ -74,7 +75,7 @@ public class LdapDebugDataGenerator {
                 for (final ChaiConfiguration chaiConfiguration : chaiConfigurations) {
                     final LdapDebugServerInfo ldapDebugServerInfo = new LdapDebugServerInfo();
                     ldapDebugServerInfo.setLdapServerlUrl(chaiConfiguration.getSetting(ChaiSetting.BIND_URLS));
-                    final ChaiProvider loopProvider = ChaiProviderFactory.createProvider(chaiConfiguration);
+                    final ChaiProvider loopProvider = chaiProvider.getProviderFactory().newProvider(chaiConfiguration);
 
                     {
                         final ChaiEntry rootDSEentry = ChaiUtility.getRootDSE(loopProvider);
@@ -86,8 +87,8 @@ public class LdapDebugDataGenerator {
                         final String proxyUserDN = ldapProfile.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
                         if (proxyUserDN != null) {
                             ldapDebugServerInfo.setProxyDN(proxyUserDN);
-                            final ChaiEntry proxyUserEntry = ChaiFactory.createChaiEntry(proxyUserDN, chaiProvider);
-                            if (proxyUserEntry.isValid()) {
+                            final ChaiEntry proxyUserEntry = chaiProvider.getEntryFactory().newChaiEntry(proxyUserDN);
+                            if (proxyUserEntry.exists()) {
                                 final Map<String, List<String>> proxyUserData = LdapOperationsHelper.readAllEntryAttributeValues(proxyUserEntry);
                                 ldapDebugServerInfo.setProxyUserAttributes(proxyUserData);
                             }
@@ -99,8 +100,8 @@ public class LdapDebugDataGenerator {
                         final String testUserDN = ldapProfile.readSettingAsString(PwmSetting.LDAP_TEST_USER_DN);
                         if (testUserDN != null) {
                             ldapDebugServerInfo.setTestUserDN(testUserDN);
-                            final ChaiEntry testUserEntry = ChaiFactory.createChaiEntry(testUserDN, chaiProvider);
-                            if (testUserEntry.isValid()) {
+                            final ChaiEntry testUserEntry = chaiProvider.getEntryFactory().newChaiEntry(testUserDN);
+                            if (testUserEntry.exists()) {
                                 final Map<String, List<String>> testUserdata = LdapOperationsHelper.readAllEntryAttributeValues(testUserEntry);
                                 ldapDebugServerInfo.setTestUserAttributes(testUserdata);
                             }
@@ -122,8 +123,8 @@ public class LdapDebugDataGenerator {
     private Map<String,List<String>> readUserAttributeData(final ChaiProvider chaiProvider, final String userDN)
             throws ChaiUnavailableException, ChaiOperationException
     {
-        final ChaiEntry testUserEntry = ChaiFactory.createChaiEntry(userDN, chaiProvider);
-        if (testUserEntry.isValid()) {
+        final ChaiEntry testUserEntry = chaiProvider.getEntryFactory().newChaiEntry(userDN);
+        if (testUserEntry.exists()) {
             final Map<String,List<String>> returnData = new LinkedHashMap<>();
             final Map<String, List<String>> testUserdata = LdapOperationsHelper.readAllEntryAttributeValues(testUserEntry);
             testUserdata.put("dn",Collections.singletonList(userDN));

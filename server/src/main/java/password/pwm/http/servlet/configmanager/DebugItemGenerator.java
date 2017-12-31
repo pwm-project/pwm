@@ -361,6 +361,7 @@ public class DebugItemGenerator {
         @Override
         public void outputItem(final PwmApplication pwmApplication, final PwmRequest pwmRequest, final OutputStream outputStream) throws Exception {
             final List<LdapDebugDataGenerator.LdapDebugInfo> ldapDebugInfos = LdapDebugDataGenerator.makeLdapDebugInfos(
+                    pwmApplication,
                     pwmRequest.getSessionLabel(),
                     pwmApplication.getConfig(),
                     pwmRequest.getLocale()

@@ -2,7 +2,6 @@ package password.pwm.http.servlet.configguide;
 
 import com.novell.ldapchai.provider.ChaiConfiguration;
 import com.novell.ldapchai.provider.ChaiProvider;
-import com.novell.ldapchai.provider.ChaiProviderFactory;
 import com.novell.ldapchai.provider.ChaiSetting;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import password.pwm.PwmApplication;
@@ -84,14 +83,24 @@ public class ConfigGuideUtils {
         }
     }
 
-    public static SchemaOperationResult extendSchema(final ConfigGuideBean configGuideBean, final boolean doSchemaExtension) {
+    public static SchemaOperationResult extendSchema(
+            final PwmApplication pwmApplication,
+            final ConfigGuideBean configGuideBean,
+            final boolean doSchemaExtension
+    ) {
         final Map<ConfigGuideFormField,String> form = configGuideBean.getFormData();
         final boolean ldapServerSecure = "true".equalsIgnoreCase(form.get(ConfigGuideFormField.PARAM_LDAP_SECURE));
         final String ldapUrl = "ldap" + (ldapServerSecure ? "s" : "") + "://" + form.get(ConfigGuideFormField.PARAM_LDAP_HOST) + ":" + form.get(ConfigGuideFormField.PARAM_LDAP_PORT);
         try {
-            final ChaiConfiguration chaiConfiguration = new ChaiConfiguration(ldapUrl, form.get(ConfigGuideFormField.PARAM_LDAP_PROXY_DN), form.get(ConfigGuideFormField.PARAM_LDAP_PROXY_PW));
-            chaiConfiguration.setSetting(ChaiSetting.PROMISCUOUS_SSL,"true");
-            final ChaiProvider chaiProvider = ChaiProviderFactory.createProvider(chaiConfiguration);
+            final ChaiConfiguration chaiConfiguration = ChaiConfiguration.builder(
+                    ldapUrl,
+                    form.get(ConfigGuideFormField.PARAM_LDAP_PROXY_DN),
+                    form.get(ConfigGuideFormField.PARAM_LDAP_PROXY_PW)
+            )
+                    .setSetting(ChaiSetting.PROMISCUOUS_SSL,"true")
+                    .build();
+
+            final ChaiProvider chaiProvider = pwmApplication.getLdapConnectionService().getChaiProviderFactory().newProvider(chaiConfiguration);
             if (doSchemaExtension) {
                 return SchemaManager.extendSchema(chaiProvider);
             } else {

@@ -23,7 +23,7 @@
 package password.pwm.config.function;
 
 import com.novell.ldapchai.ChaiEntry;
-import com.novell.ldapchai.ChaiFactory;
+import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
@@ -127,13 +127,17 @@ public class UserMatchViewerFunction implements SettingUIFunction {
             ChaiEntry chaiEntry = null;
             try {
                 final ChaiProvider proxiedProvider = pwmApplication.getProxyChaiProvider(loopID);
-                chaiEntry = ChaiFactory.createChaiEntry(baseDN, proxiedProvider);
+                chaiEntry = proxiedProvider.getEntryFactory().newChaiEntry(baseDN);
             } catch (Exception e) {
                 LOGGER.error("error while testing entry DN for profile '" + profileID + "', error:" + profileID);
             }
-            if (chaiEntry != null && !chaiEntry.isValid()) {
-                final String errorMsg = "entry DN '" + baseDN + "' is not valid for profile " + loopID;
-                throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_LDAP_DATA_ERROR, errorMsg));
+            try {
+                if (chaiEntry != null && !chaiEntry.exists()) {
+                    final String errorMsg = "entry DN '" + baseDN + "' is not valid for profile " + loopID;
+                    throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_LDAP_DATA_ERROR, errorMsg));
+                }
+            } catch (ChaiUnavailableException e) {
+                throw PwmUnrecoverableException.fromChaiException(e);
             }
         }
     }

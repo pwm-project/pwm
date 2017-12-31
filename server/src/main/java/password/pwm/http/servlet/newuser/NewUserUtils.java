@@ -22,14 +22,13 @@
 
 package password.pwm.http.servlet.newuser;
 
-import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiConfiguration;
 import com.novell.ldapchai.provider.ChaiProvider;
-import com.novell.ldapchai.provider.ChaiProviderFactory;
 import com.novell.ldapchai.provider.ChaiSetting;
+import com.novell.ldapchai.provider.DirectoryVendor;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.bean.EmailItemBean;
@@ -37,13 +36,13 @@ import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.TokenVerificationProgress;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.TokenStorageMethod;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.profile.NewUserProfile;
 import password.pwm.config.profile.PwmPasswordPolicy;
+import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
@@ -168,13 +167,13 @@ class NewUserUtils {
             throw new PwmOperationalException(errorInformation);
         }
 
-        final ChaiUser theUser = ChaiFactory.createChaiUser(newUserDN, chaiProvider);
+        final ChaiUser theUser = chaiProvider.getEntryFactory().newChaiUser(newUserDN);
 
         final boolean useTempPw;
         {
             final String settingValue = pwmApplication.getConfig().readAppProperty(AppProperty.NEWUSER_LDAP_USE_TEMP_PW);
             if ("auto".equalsIgnoreCase(settingValue)) {
-                useTempPw = chaiProvider.getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY;
+                useTempPw = chaiProvider.getDirectoryVendor() == DirectoryVendor.ACTIVE_DIRECTORY;
             } else {
                 useTempPw = Boolean.parseBoolean(settingValue);
             }
@@ -189,7 +188,7 @@ class NewUserUtils {
                         .build();
                 temporaryPassword = RandomPasswordGenerator.createRandomPassword(pwmSession.getLabel(), randomGeneratorConfig, pwmApplication);
             }
-            final ChaiUser proxiedUser = ChaiFactory.createChaiUser(newUserDN, chaiProvider);
+            final ChaiUser proxiedUser = chaiProvider.getEntryFactory().newChaiUser(newUserDN);
             try { //set password as admin
                 proxiedUser.setPassword(temporaryPassword.getStringValue());
                 NewUserUtils.LOGGER.debug(pwmSession, "set temporary password for new user entry: " + newUserDN);
@@ -201,7 +200,7 @@ class NewUserUtils {
             }
 
             // add AD-specific attributes
-            if (ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY == chaiProvider.getDirectoryVendor()) {
+            if (DirectoryVendor.ACTIVE_DIRECTORY == chaiProvider.getDirectoryVendor()) {
                 try {
                     NewUserUtils.LOGGER.debug(pwmSession,
                             "setting userAccountControl attribute to enable account " + theUser.getEntryDN());
@@ -217,11 +216,12 @@ class NewUserUtils {
             try { // bind as user
                 NewUserUtils.LOGGER.debug(pwmSession,
                         "attempting bind as user to then allow changing to requested password for new user entry: " + newUserDN);
-                final ChaiConfiguration chaiConfiguration = new ChaiConfiguration(chaiProvider.getChaiConfiguration());
-                chaiConfiguration.setSetting(ChaiSetting.BIND_DN, newUserDN);
-                chaiConfiguration.setSetting(ChaiSetting.BIND_PASSWORD, temporaryPassword.getStringValue());
-                final ChaiProvider bindAsProvider = ChaiProviderFactory.createProvider(chaiConfiguration);
-                final ChaiUser bindAsUser = ChaiFactory.createChaiUser(newUserDN, bindAsProvider);
+                final ChaiConfiguration chaiConfiguration = ChaiConfiguration.builder(chaiProvider.getChaiConfiguration())
+                        .setSetting(ChaiSetting.BIND_DN, newUserDN)
+                        .setSetting(ChaiSetting.BIND_PASSWORD, temporaryPassword.getStringValue())
+                        .build();
+                final ChaiProvider bindAsProvider = pwmApplication.getLdapConnectionService().getChaiProviderFactory().newProvider(chaiConfiguration);
+                final ChaiUser bindAsUser = bindAsProvider.getEntryFactory().newChaiUser(newUserDN);
                 bindAsUser.changePassword(temporaryPassword.getStringValue(), userPassword.getStringValue());
                 NewUserUtils.LOGGER.debug(pwmSession, "changed to user requested password for new user entry: " + newUserDN);
                 bindAsProvider.close();
@@ -243,7 +243,7 @@ class NewUserUtils {
             }
 
             // add AD-specific attributes
-            if (ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY == chaiProvider.getDirectoryVendor()) {
+            if (DirectoryVendor.ACTIVE_DIRECTORY == chaiProvider.getDirectoryVendor()) {
                 try {
                     theUser.writeStringAttribute("userAccountControl", "512");
                 } catch (ChaiOperationException e) {

@@ -32,7 +32,7 @@ import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import com.novell.ldapchai.impl.edir.NmasCrFactory;
-import com.novell.ldapchai.provider.ChaiProvider;
+import com.novell.ldapchai.provider.DirectoryVendor;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.bean.ResponseInfoBean;
@@ -132,7 +132,7 @@ public class CrService implements PwmService {
 
         if (config.readSettingAsBoolean(PwmSetting.EDIRECTORY_READ_CHALLENGE_SET)) {
             try {
-                if (theUser.getChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY) {
+                if (theUser.getChaiProvider().getDirectoryVendor() == DirectoryVendor.EDIRECTORY) {
                     if (policy != null && policy.getChaiPasswordPolicy() != null) {
                         returnSet = NmasCrFactory.readAssignedChallengeSet(theUser.getChaiProvider(), policy.getChaiPasswordPolicy(), locale);
                     }
