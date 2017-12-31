@@ -589,7 +589,7 @@ PWM_MAIN.showLocaleSelectionMenu = function(nextFunction, options) {
 
     };
 
-    var bodyHtml = '<table class="noborder" style="width:auto;margin-right:auto;margin-left:auto">';
+    var bodyHtml = '<table class="noborder" style="width:auto;margin-right:auto;margin-left:auto;overflow-x:scroll">';
     localeIterator(function(localeKey){
         if (!PWM_MAIN.JSLibrary.arrayContains(excludeLocales, localeKey)) {
             var loopDisplayName = localeData[localeKey];

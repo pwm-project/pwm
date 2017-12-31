@@ -277,8 +277,11 @@ public class ClientApiServlet extends ControlledPwmServlet {
     )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
+        final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
+
         final Configuration config = pwmApplication.getConfig();
         final TreeMap<String,Object> settingMap = new TreeMap<>();
+
         settingMap.put("client.ajaxTypingTimeout", Integer.parseInt(config.readAppProperty(AppProperty.CLIENT_AJAX_TYPING_TIMEOUT)));
         settingMap.put("client.ajaxTypingWait", Integer.parseInt(config.readAppProperty(AppProperty.CLIENT_AJAX_TYPING_WAIT)));
         settingMap.put("client.activityMaxEpsRate", Integer.parseInt(config.readAppProperty(AppProperty.CLIENT_ACTIVITY_MAX_EPS_RATE)));
@@ -294,7 +297,7 @@ public class ClientApiServlet extends ControlledPwmServlet {
         {
             long idleSeconds = config.readSettingAsLong(PwmSetting.IDLE_TIMEOUT_SECONDS);
             if (pageUrl == null || pageUrl.isEmpty()) {
-                LOGGER.warn(pwmSession, "request to /client data did not incliude pageUrl");
+                LOGGER.warn(pwmSession, "request to /client data did not include pageUrl");
             } else {
                 try {
                     final PwmURL pwmURL = new PwmURL(new URI(pageUrl), request.getContextPath());
@@ -358,14 +361,17 @@ public class ClientApiServlet extends ControlledPwmServlet {
         }
 
         {
-            final Map<String,String> localeInfo = new TreeMap<>();
-            final Map<String,String> localeDisplayNames = new TreeMap<>();
-            final Map<String,String> localeFlags = new TreeMap<>();
+            final Map<String,String> localeInfo = new LinkedHashMap<>();
+            final Map<String,String> localeDisplayNames = new LinkedHashMap<>();
+            final Map<String,String> localeFlags = new LinkedHashMap<>();
 
-            for (final Locale locale : pwmApplication.getConfig().getKnownLocales()) {
+            final List<Locale> knownLocales = new ArrayList<>(pwmApplication.getConfig().getKnownLocales());
+            knownLocales.sort(LocaleHelper.localeComparator( PwmConstants.DEFAULT_LOCALE));
+
+            for (final Locale locale : knownLocales ) {
                 final String flagCode = pwmApplication.getConfig().getKnownLocaleFlagMap().get(locale);
                 localeFlags.put(locale.toString(),flagCode);
-                localeInfo.put(locale.toString(),locale.getDisplayName() + " - " + locale.getDisplayLanguage(locale));
+                localeInfo.put(locale.toString(),locale.getDisplayName( PwmConstants.DEFAULT_LOCALE) + " - " + locale.getDisplayLanguage(userLocale));
                 localeDisplayNames.put(locale.toString(),locale.getDisplayLanguage());
             }
 
