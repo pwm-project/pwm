@@ -237,7 +237,11 @@ public class NewUserServlet extends ControlledPwmServlet {
                 NewUserUtils.initializeToken(pwmRequest, newUserBean, TokenVerificationProgress.TokenChannel.EMAIL);
             }
 
-            if (!tokenVerificationProgress.getPassedTokens().contains(TokenVerificationProgress.TokenChannel.EMAIL)) {
+            if (!tokenVerificationProgress.getPassedTokens().contains(TokenVerificationProgress.TokenChannel.EMAIL)
+                    //if the token has been sent during the InitializeToken call, the issuedTokens member must contains the SMS key. If not, the token has not been sent (SMS number is null) and the verification phase should be ignored 
+                && tokenVerificationProgress.getIssuedTokens().contains(TokenVerificationProgress.TokenChannel.EMAIL)
+                ) 
+            {        
                 pwmRequest.forwardToJsp(JspUrl.NEW_USER_ENTER_CODE);
                 return;
             }
@@ -247,8 +251,11 @@ public class NewUserServlet extends ControlledPwmServlet {
             if (!newUserBean.getTokenVerificationProgress().getIssuedTokens().contains(TokenVerificationProgress.TokenChannel.SMS)) {
                 NewUserUtils.initializeToken(pwmRequest, newUserBean, TokenVerificationProgress.TokenChannel.SMS);
             }
-
-            if (!newUserBean.getTokenVerificationProgress().getPassedTokens().contains(TokenVerificationProgress.TokenChannel.SMS)) {
+            if (!newUserBean.getTokenVerificationProgress().getPassedTokens().contains(TokenVerificationProgress.TokenChannel.SMS)
+                //if the token has been sent during the InitializeToken call, the issuedTokens member must contains the SMS key. If not, the token has not been sent (SMS number is null) and the verification phase should be ignored 
+                && newUserBean.getTokenVerificationProgress().getIssuedTokens().contains(TokenVerificationProgress.TokenChannel.SMS)
+                ) 
+            {
                 pwmRequest.forwardToJsp(JspUrl.NEW_USER_ENTER_CODE);
                 return;
             }

@@ -643,7 +643,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
 
         if (updateAttributesProfile.readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_EMAIL_VERIFICATION)) {
             final String emailAddressAttribute = ldapProfile.readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE);
-            if (userFormData.containsKey(emailAddressAttribute)) {
+            if (userFormData.containsKey(emailAddressAttribute) && !userFormData.get(emailAddressAttribute).isEmpty()) {
                 ldapData = formDataFromLdap(pwmRequest, updateAttributesProfile);
                 if (userFormData.get(emailAddressAttribute) != null && !userFormData.get(emailAddressAttribute).equalsIgnoreCase(ldapData.get(emailAddressAttribute))) {
                     returnObj.add(TokenVerificationProgress.TokenChannel.EMAIL);
@@ -655,7 +655,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
 
         if (updateAttributesProfile.readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_SMS_VERIFICATION)) {
             final String phoneNumberAttribute = ldapProfile.readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE);
-            if (userFormData.containsKey(phoneNumberAttribute)) {
+            if (userFormData.containsKey(phoneNumberAttribute) && !userFormData.get(phoneNumberAttribute).isEmpty()) {
                 if (ldapData == null) {
                     ldapData = formDataFromLdap(pwmRequest, updateAttributesProfile);
                 }

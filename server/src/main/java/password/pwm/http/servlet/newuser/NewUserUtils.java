@@ -471,8 +471,17 @@ class NewUserUtils {
 
         switch (tokenType) {
             case SMS: {
-                final String toNum = tokenPayloadMap.get(pwmApplication.getConfig().getDefaultLdapProfile().readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE));
-
+                String toNum = null;
+                final NewUserForm userForm = newUserBean.getNewUserForm();
+                if(userForm!=null && userForm.getFormData() != null && userForm.getFormData().get(pwmApplication.getConfig().getDefaultLdapProfile().readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE))!=null)
+                {
+                    toNum = userForm.getFormData().get(pwmApplication.getConfig().getDefaultLdapProfile().readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE));    
+                    if(toNum.isEmpty())
+                    {
+                        toNum=null;
+                    }
+                }
+                
                 final RestTokenDataClient.TokenDestinationData inputTokenDestData = new RestTokenDataClient.TokenDestinationData(
                         null, toNum, null);
                 final RestTokenDataClient restTokenDataClient = new RestTokenDataClient(pwmApplication);
@@ -481,7 +490,11 @@ class NewUserUtils {
                         inputTokenDestData,
                         null,
                         pwmRequest.getLocale());
-
+                if(outputDestTokenData == null || outputDestTokenData.getSms() == null || outputDestTokenData.getSms().isEmpty())
+                {
+                    //avoid sending SMS code token
+                    break;
+                }
                 final String tokenKey;
                 try {
                     final TokenPayload tokenPayload = pwmApplication.getTokenService().createTokenPayload(
@@ -527,7 +540,11 @@ class NewUserUtils {
                         inputTokenDestData,
                         null,
                         pwmRequest.getLocale());
-
+                if(outputDestTokenData == null || outputDestTokenData.getEmail() == null || outputDestTokenData.getEmail().isEmpty())
+                {
+                    //avoid sending Email code token
+                    break;
+                }
                 final String tokenKey;
                 try {
                     final TokenPayload tokenPayload = pwmApplication.getTokenService().createTokenPayload(
