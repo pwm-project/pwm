@@ -288,18 +288,17 @@ public class SyslogAuditService {
 
     public static String convertAuditRecordToCEFMessage(final AuditRecord auditRecord, final Configuration configuration) {
 
-        //final String recordType = auditRecord.getType().name();
+        final String recordType = auditRecord.getType().name();
         String recordString = "";
         String translatedString = "";
-        if (auditRecord.getType().name().equals("USER")) {
+        if ("USER".equalsIgnoreCase(recordType)) {
             final UserAuditRecord cefRecord = new UserAuditRecord(auditRecord.timestamp, auditRecord.eventCode, null, null, null,
                     auditRecord.message, null, null);
             recordString = JsonUtil.serialize(cefRecord);
-
-        } else if (auditRecord.getType().name().equals("SYSTEM")) {
+        } else if ("SYSTEM".equalsIgnoreCase(recordType)) {
             final SystemAuditRecord cefRecord = new SystemAuditRecord(auditRecord.eventCode, auditRecord.message, null);
             recordString = JsonUtil.serialize(cefRecord);
-        } else if (auditRecord.getType().name().equals("HELPDESK")) {
+        } else if ("HELPDESK".equalsIgnoreCase(recordType)) {
             final HelpdeskAuditRecord cefRecord = new HelpdeskAuditRecord(auditRecord.timestamp, auditRecord.eventCode, null, null, null,
                     auditRecord.message, null, null, null, null, null);
             recordString = JsonUtil.serialize(cefRecord);
