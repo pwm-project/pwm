@@ -75,27 +75,26 @@ public class SyslogAuditService {
     private static final String SYSLOG_INSTANCE_NAME = "syslog-audit";
     private static final int LENGTH_OVERSIZE = 1024;
 
-
     private SyslogIF syslogInstance = null;
     private ErrorInformation lastError = null;
     private List<X509Certificate> certificates = null;
-
     private WorkQueueProcessor<String> workQueueProcessor;
-
+    private List<SyslogIF> syslogInstances = new ArrayList<>();
 
     private final Configuration configuration;
     private final PwmApplication pwmApplication;
-    private List<SyslogIF> syslogInstances = new ArrayList<>();
+    private static boolean cefEnabled = true;
 
     public SyslogAuditService(final PwmApplication pwmApplication)
             throws LocalDBException
     {
+        cefEnabled = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.AUDIT_COMMONEVENTFORMAT_ENABLE);
         this.pwmApplication = pwmApplication;
         this.configuration = pwmApplication.getConfig();
+
         this.certificates = configuration.readSettingAsCertificate(PwmSetting.AUDIT_SYSLOG_CERTIFICATES);
 
         final List<String> syslogConfigStringArray = configuration.readSettingAsStringArray(PwmSetting.AUDIT_SYSLOG_SERVERS);
-
         try {
             for(String entry : syslogConfigStringArray) {
                 final SyslogConfig syslogCfg = SyslogConfig.fromConfigString(entry);
@@ -129,6 +128,7 @@ public class SyslogAuditService {
             return JsonUtil.serialize(workItem);
         }
     }
+
 
     private SyslogIF makeSyslogInstance(final SyslogConfig syslogConfig)
     {
@@ -174,11 +174,21 @@ public class SyslogAuditService {
     }
 
     public void add(final AuditRecord event) throws PwmOperationalException {
-        try {
-            final String syslogMsg = convertAuditRecordToSyslogMessage(event, configuration);
-            workQueueProcessor.submit(syslogMsg);
-        } catch (PwmOperationalException e) {
-            LOGGER.warn("unable to add email to queue: " + e.getMessage());
+
+        if (cefEnabled) {
+            try {
+                final String CEFMsg = convertAuditRecordToCEFMessage(event, configuration);
+                workQueueProcessor.submit(CEFMsg);
+            } catch (PwmOperationalException e) {
+                LOGGER.warn("unable to add email to queue: " + e.getMessage());
+            }
+        } else {
+            try {
+                final String syslogMsg = convertAuditRecordToSyslogMessage(event, configuration);
+                workQueueProcessor.submit(syslogMsg);
+            } catch (PwmOperationalException e) {
+                LOGGER.warn("unable to add email to queue: " + e.getMessage());
+            }
         }
     }
 
@@ -220,17 +230,20 @@ public class SyslogAuditService {
         syslogInstance = null;
     }
 
+
+
     private static String convertAuditRecordToSyslogMessage(
             final AuditRecord auditRecord,
             final Configuration configuration
     )
     {
         final int maxLength = Integer.parseInt(configuration.readAppProperty(AppProperty.AUDIT_SYSLOG_MAX_MESSAGE_LENGTH));
+        String jsonValue = "";
         final StringBuilder message = new StringBuilder();
         message.append(PwmConstants.PWM_APP_NAME);
         message.append(" ");
 
-        final String jsonValue = JsonUtil.serialize(auditRecord);
+        jsonValue = JsonUtil.serialize(auditRecord);
 
         if (message.length() + jsonValue.length() <= maxLength) {
             message.append(jsonValue);
@@ -271,6 +284,61 @@ public class SyslogAuditService {
         }
 
         return message.toString();
+    }
+
+    public static String convertAuditRecordToCEFMessage(final AuditRecord auditRecord, final Configuration configuration) {
+
+        //final String recordType = auditRecord.getType().name();
+        String recordString = "";
+        String translatedString = "";
+        if (auditRecord.getType().name().equals("USER")) {
+            final UserAuditRecord cefRecord = new UserAuditRecord(auditRecord.timestamp, auditRecord.eventCode, null, null, null,
+                    auditRecord.message, null, null);
+            recordString = JsonUtil.serialize(cefRecord);
+
+        } else if (auditRecord.getType().name().equals("SYSTEM")) {
+            final SystemAuditRecord cefRecord = new SystemAuditRecord(auditRecord.eventCode, auditRecord.message, null);
+            recordString = JsonUtil.serialize(cefRecord);
+        } else if (auditRecord.getType().name().equals("HELPDESK")) {
+            final HelpdeskAuditRecord cefRecord = new HelpdeskAuditRecord(auditRecord.timestamp, auditRecord.eventCode, null, null, null,
+                    auditRecord.message, null, null, null, null, null);
+            recordString = JsonUtil.serialize(cefRecord);
+        } else {
+            recordString = JsonUtil.serialize(auditRecord);
+        }
+        recordString = recordString.replace("\"", "");
+        recordString = recordString.replace("\\", "");
+        recordString = recordString.replace("{", "");
+        recordString = recordString.replace("}", "");
+
+        recordString = recordString.replace("type:", " cat | ");
+        recordString = recordString.replace("eventCode:", " act | ");
+        recordString = recordString.replace("timestamp:", " rt | ");
+        recordString = recordString.replace("message:", " msg | ");
+        recordString = recordString.replace("narrative:", " reason | ");
+        recordString = recordString.replace("perpetratorID:", " suid | ");
+        recordString = recordString.replace("perpetatorDN:", " suser | ");
+        recordString = recordString.replace("sourceAddress:", " dvc | ");
+        recordString = recordString.replace("sourceHost:", " dvchost | ");
+        recordString = recordString.replace("targetID:", " duid | ");
+        recordString = recordString.replace("targetDN:", " duser | ");
+        recordString = recordString.replace("SSPR:", " sproc | ");
+        recordString = recordString.replace("PWM:", " sproc | ");
+
+
+        final int idxStart = recordString.indexOf("act | ");
+        final int idxEnd = recordString.indexOf(",guid");
+        translatedString = auditRecord.getTimestamp().toString();
+        translatedString = translatedString.concat(" host CEF:0 | security | threatmanager | 1.0 | 100 ");
+        if (idxStart != -1 && idxEnd != -1) {
+            translatedString = translatedString.concat(recordString.substring(idxStart, idxEnd));
+        } else {
+            translatedString = translatedString.concat("UNKNOWN REASON");
+        }
+        recordString = recordString.replace(",", " ");
+
+        translatedString = translatedString.concat(recordString);
+        return (translatedString);
     }
 
     public static class SyslogConfig implements Serializable {

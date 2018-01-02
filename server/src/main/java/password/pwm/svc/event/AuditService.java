@@ -74,13 +74,12 @@ public class AuditService implements PwmService {
     private ServiceInfoBean serviceInfo = new ServiceInfoBean(Collections.emptyList());
 
     private SyslogAuditService syslogManager;
-    private CEFAuditService cefManager;
     private ErrorInformation lastError;
     private UserHistoryStore userHistoryStore;
     private AuditVault auditVault;
+    private boolean cefEnabled = false;
 
     private PwmApplication pwmApplication;
-    private boolean cefEnabled = true;
 
     public AuditService() {
     }
@@ -92,9 +91,8 @@ public class AuditService implements PwmService {
     public void init(final PwmApplication pwmApplication) throws PwmException {
         this.status = STATUS.OPENING;
         this.pwmApplication = pwmApplication;
-
-        settings = new AuditSettings(pwmApplication.getConfig());
         cefEnabled = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.AUDIT_COMMONEVENTFORMAT_ENABLE);
+        settings = new AuditSettings(pwmApplication.getConfig());
 
         if (pwmApplication.getApplicationMode() == null || pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY) {
             this.status = STATUS.CLOSED;
@@ -109,15 +107,10 @@ public class AuditService implements PwmService {
         }
 
         final List<String> syslogConfigString = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.AUDIT_SYSLOG_SERVERS);
-        final List<String> cefConfigString = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.AUDIT_COMMONEVENTFORMAT_SERVERS);
 
-        if ((syslogConfigString != null && !syslogConfigString.isEmpty()) || (cefConfigString != null && !cefConfigString.isEmpty())) {
+        if (syslogConfigString != null && !syslogConfigString.isEmpty()) {
             try {
-                if (cefEnabled) {
-                    cefManager = new CEFAuditService(pwmApplication);
-                } else {
-                    syslogManager = new SyslogAuditService(pwmApplication);
-                }
+                syslogManager = new SyslogAuditService(pwmApplication);
             } catch (Exception e) {
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SYSLOG_WRITE_ERROR, "startup error: " + e.getMessage());
                 LOGGER.error(errorInformation.toDebugStr());
@@ -186,16 +179,10 @@ public class AuditService implements PwmService {
 
     @Override
     public void close() {
-        if (cefEnabled) {
-            if (cefManager != null) {
-                cefManager.close();
-            }
-        } else {
-            if (syslogManager != null) {
+
+        if (syslogManager != null) {
                 syslogManager.close();
             }
-        }
-
         this.status = STATUS.CLOSED;
     }
 
@@ -206,14 +193,9 @@ public class AuditService implements PwmService {
         }
 
         final List<HealthRecord> healthRecords = new ArrayList<>();
-        if (cefEnabled) {
-            if (cefManager != null) {
-                healthRecords.addAll(cefManager.healthCheck());
-            }
-        } else {
-            if (syslogManager != null) {
-                healthRecords.addAll(syslogManager.healthCheck());
-            }
+
+        if (syslogManager != null) {
+            healthRecords.addAll(syslogManager.healthCheck());
         }
         if (lastError != null) {
             healthRecords.add(new HealthRecord(HealthStatus.WARN, HealthTopic.Audit, lastError.toDebugStr()));
@@ -364,21 +346,12 @@ public class AuditService implements PwmService {
         }
 
         // send to syslog
-        if (cefEnabled) {
-            if (cefManager != null) {
-                try {
-                    cefManager.add(auditRecord);
-                } catch (PwmOperationalException e) {
-                    lastError = e.getErrorInformation();
-                }
-            }
-        } else {
-            if (syslogManager != null) {
-                try {
-                    syslogManager.add(auditRecord);
-                } catch (PwmOperationalException e) {
-                    lastError = e.getErrorInformation();
-                }
+
+        if (syslogManager != null) {
+            try {
+                syslogManager.add(auditRecord);
+            } catch (PwmOperationalException e) {
+                lastError = e.getErrorInformation();
             }
         }
 
@@ -457,10 +430,6 @@ public class AuditService implements PwmService {
     }
 
     public int syslogQueueSize() {
-        if (cefEnabled) {
-            return cefManager != null ? cefManager.queueSize() : 0;
-        } else {
-            return syslogManager != null ? syslogManager.queueSize() : 0;
-        }
+        return syslogManager != null ? syslogManager.queueSize() : 0;
     }
 }
