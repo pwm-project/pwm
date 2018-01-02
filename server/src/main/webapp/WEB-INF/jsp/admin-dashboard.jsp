@@ -238,9 +238,13 @@
                         </td>
                     </tr>
                     <% for (final AppDashboardData.ServiceData loopService : appDashboardData.getServices()) { %>
-                    <tr>
+                    <tr id="serviceName-<%=loopService.getName()%>">
                         <td>
                             <%= loopService.getName() %>
+                            <% if (!JavaHelper.isEmpty(loopService.getDebugData())) { %>
+                            &nbsp;
+                            <div class="btn-icon pwm-icon pwm-icon-list-alt"></div>
+                            <% } %>
                         </td>
                         <td>
                             <%= loopService.getStatus() %>
@@ -430,6 +434,19 @@
                     }})
                 });
             });
+            <% for (final AppDashboardData.ServiceData loopService : appDashboardData.getServices()) { %>
+            <% if (!JavaHelper.isEmpty(loopService.getDebugData())) { %>
+            PWM_MAIN.addEventHandler('serviceName-<%=loopService.getName()%>','click',function(){
+                var tableText = '<table>';
+                <% for (final Map.Entry<String,String> entry : loopService.getDebugData().entrySet()) { %>
+                tableText += '<tr><td><%=StringUtil.escapeJS(entry.getKey())%></td>'
+                + '<td><%=StringUtil.escapeJS(entry.getValue())%></td></tr>';
+                <% } %>
+                tableText += '</table>';
+                PWM_MAIN.showDialog({title:'Debug Properties',text:tableText});
+            });
+            <% } %>
+            <% } %>
         });
     </script>
 </pwm:script>

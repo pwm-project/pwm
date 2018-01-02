@@ -22,7 +22,7 @@
 
 package password.pwm.bean;
 
-import com.novell.ldapchai.provider.ChaiProvider;
+import com.novell.ldapchai.provider.DirectoryVendor;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -39,7 +39,7 @@ public class TelemetryPublishBean implements Serializable {
     private final String instanceHash;
     private final String siteDescription;
     private final Instant installTime;
-    private final List<ChaiProvider.DIRECTORY_VENDOR> ldapVendor;
+    private final List<DirectoryVendor> ldapVendor;
     private final Map<String,String> statistics;
     private final List<String> configuredSettings;
     private final String versionBuild;

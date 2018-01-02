@@ -23,7 +23,7 @@
 package password.pwm.config.profile;
 
 import com.novell.ldapchai.ChaiEntry;
-import com.novell.ldapchai.ChaiFactory;
+
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
@@ -146,7 +146,7 @@ public class LdapProfile extends AbstractProfile implements Profile {
         if (canonicalValue == null) {
             try {
                 final ChaiProvider chaiProvider = this.getProxyChaiProvider(pwmApplication);
-                final ChaiEntry chaiEntry = ChaiFactory.createChaiEntry(dnValue, chaiProvider);
+                final ChaiEntry chaiEntry = chaiProvider.getEntryFactory().newChaiEntry(dnValue);
                 canonicalValue = chaiEntry.readCanonicalDN();
 
                 if (enableCanonicalCache) {

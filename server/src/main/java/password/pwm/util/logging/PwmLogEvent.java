@@ -39,7 +39,7 @@ import java.time.Instant;
 @EqualsAndHashCode
 public class PwmLogEvent implements Serializable, Comparable {
 
-    private static final int MAX_MESSAGE_LENGTH = 100_000;
+    private static final int MAX_MESSAGE_LENGTH = 50_000;
 
     private final PwmLogLevel level;
 

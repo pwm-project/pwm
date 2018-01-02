@@ -63,7 +63,7 @@ public class ImportResponsesCommand extends AbstractCliCommand {
 
                 final UserIdentity userIdentity = UserIdentity.fromDelimitedKey(inputData.username);
                 final ChaiUser user = pwmApplication.getProxiedChaiUser(userIdentity);
-                if (user.isValid()) {
+                if (user.exists()) {
                     out("writing responses to user '" + user.getEntryDN() + "'");
                     try {
                         final ChallengeProfile challengeProfile = pwmApplication.getCrService().readUserChallengeProfile(

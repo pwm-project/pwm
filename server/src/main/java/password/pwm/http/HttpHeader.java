@@ -23,10 +23,8 @@
 package password.pwm.http;
 
 import password.pwm.PwmConstants;
-
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StringUtil;
 
 public enum HttpHeader {
     Accept("Accept"),
@@ -44,7 +42,7 @@ public enum HttpHeader {
     Content_Language("Content-Language"),
     Accept_Encoding("Accept-Encoding"),
     Accept_Language("Accept-Language"),
-    Authorization("Authorization", Flag.Sensitive),
+    Authorization("Authorization", Property.Sensitive),
     UserAgent("User-Agent"),
     Referer("Referer"),
     Origin("Origin"),
@@ -64,22 +62,39 @@ public enum HttpHeader {
 
     ;
 
-    enum Flag {
+    private enum Property {
         Sensitive
     }
 
-
-    private final Collection<Flag> flags;
     private final String httpName;
+    private final Property[] properties;
 
-    HttpHeader(final String httpName, final Flag... flags)
+    HttpHeader(final String httpName, final Property... properties)
     {
         this.httpName = httpName;
-        this.flags = Collections.unmodifiableList(flags == null ? Collections.emptyList() : Arrays.asList(flags));
+        this.properties = properties;
     }
 
     public String getHttpName()
     {
         return httpName;
+    }
+
+    public boolean isSensitive() {
+        return JavaHelper.enumArrayContainsValue(properties, Property.Sensitive);
+    }
+
+    public static HttpHeader forHttpHeader(final String header) {
+        if (StringUtil.isEmpty(header)) {
+            return null;
+        }
+
+        for (final HttpHeader httpHeader : values()) {
+            if (header.equals(httpHeader.getHttpName())) {
+                return httpHeader;
+            }
+        }
+
+        return null;
     }
 }

@@ -24,7 +24,6 @@ package password.pwm.ldap.schema;
 
 import com.novell.ldap.client.SchemaParser;
 import com.novell.ldapchai.ChaiEntry;
-import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
@@ -52,11 +51,11 @@ public class EdirSchemaExtender implements SchemaExtender {
     private ChaiEntry schemaEntry;
 
     private final StringBuilder activityLog = new StringBuilder();
-    private final Map<String,SchemaDefinition.State> stateMap = new HashMap();
+    private final Map<String,SchemaDefinition.State> stateMap = new HashMap<>();
 
     public void init(final ChaiProvider chaiProvider) throws PwmUnrecoverableException {
         try {
-            schemaEntry = ChaiFactory.createChaiEntry(LDAP_SCHEMA_DN, chaiProvider);
+            schemaEntry = chaiProvider.getEntryFactory().newChaiEntry(LDAP_SCHEMA_DN);
         } catch (ChaiUnavailableException e) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE, e.getMessage()));
         }

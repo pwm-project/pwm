@@ -33,7 +33,6 @@ import password.pwm.util.operations.otp.OTPUserRecord;
 
 import java.time.Instant;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -66,6 +65,12 @@ public interface UserInfo {
 
     boolean isRequiresInteraction() throws PwmUnrecoverableException;
 
+    boolean isAccountEnabled() throws PwmUnrecoverableException;
+
+    boolean isAccountExpired() throws PwmUnrecoverableException;
+
+    boolean isPasswordLocked() throws PwmUnrecoverableException;
+
     Instant getPasswordLastModifiedTime() throws PwmUnrecoverableException;
 
     String getUserEmailAddress() throws PwmUnrecoverableException;
@@ -84,7 +89,7 @@ public interface UserInfo {
 
     String readStringAttribute(String attribute) throws PwmUnrecoverableException;
 
-    Date readDateAttribute(String attribute) throws PwmUnrecoverableException;
+    Instant readDateAttribute(String attribute) throws PwmUnrecoverableException;
 
     List<String> readMultiStringAttribute(String attribute) throws PwmUnrecoverableException;
 

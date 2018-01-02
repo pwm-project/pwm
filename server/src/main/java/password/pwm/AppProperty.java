@@ -243,6 +243,14 @@ public enum AppProperty {
     PASSWORD_RANDOMGEN_MAX_ATTEMPTS                 ("password.randomGenerator.maxAttempts"),
     PASSWORD_RANDOMGEN_MAX_LENGTH                   ("password.randomGenerator.maxLength"),
     PASSWORD_RANDOMGEN_JITTER_COUNT                 ("password.randomGenerator.jitter.count"),
+
+    /* Strength thresholds, introduced by the addition of the zxcvbn strength meter library (since it has 5 levels) */
+    PASSWORD_STRENGTH_THRESHOLD_VERY_STRONG         ("password.strength.threshold.veryStrong"),
+    PASSWORD_STRENGTH_THRESHOLD_STRONG              ("password.strength.threshold.strong"),
+    PASSWORD_STRENGTH_THRESHOLD_GOOD                ("password.strength.threshold.good"),
+    PASSWORD_STRENGTH_THRESHOLD_WEAK                ("password.strength.threshold.weak"),
+    PASSWORD_STRENGTH_THRESHOLD_VERY_WEAK           ("password.strength.threshold.veryWeak"),
+
     PEOPLESEARCH_MAX_VALUE_VERIFYUSERDN             ("peoplesearch.values.verifyUserDN"),
     PEOPLESEARCH_VALUE_MAXCOUNT                     ("peoplesearch.values.maxCount"),
     PEOPLESEARCH_VIEW_DETAIL_LINKS                  ("peoplesearch.view.detail.links"),

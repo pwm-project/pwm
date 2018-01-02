@@ -25,6 +25,11 @@
 var PWM_GLOBAL = PWM_GLOBAL || {};
 var PWM_MAIN = PWM_MAIN || {};
 var PWM_VAR = PWM_VAR || {};
+var PWM_API = PWM_API || {};
+
+PWM_API.formatDate = function(dateObj) {
+    return PWM_MAIN.TimestampHandler.formatDate(dateObj);
+};
 
 PWM_MAIN.ajaxTimeout = 120 * 1000;
 
@@ -240,8 +245,8 @@ PWM_MAIN.applyFormAttributes = function() {
             PWM_MAIN.addEventHandler(linkElement, "click", function (event) {
                 event.preventDefault();
                 PWM_MAIN.showWaitDialog({loadFunction: function () {
-                    PWM_MAIN.goto(hrefValue);
-                }});
+                        PWM_MAIN.goto(hrefValue);
+                    }});
             });
             linkElement.removeAttribute('href');
         }
@@ -333,8 +338,8 @@ PWM_MAIN.goto = function(url,options) {
         executeGoto();
     } else {
         PWM_MAIN.showWaitDialog({loadFunction:function () {
-            executeGoto();
-        }});
+                executeGoto();
+            }});
     }
 };
 
@@ -345,38 +350,38 @@ PWM_MAIN.handleLoginFormSubmit = function(form, event) {
 
     require(["dojo","dojo/dom-form"], function(dojo, domForm) {
         PWM_MAIN.showWaitDialog({loadFunction: function () {
-            var options = {};
-            options['content'] = domForm.toObject(form);
-            delete options['content']['processAction'];
-            delete options['content']['pwmFormID'];
-            var url = 'login?processAction=restLogin&skipCaptcha=' + options['content']['skipCaptcha'];
-            var loadFunction = function(data) {
-                if (data['error'] === true) {
-                    PWM_MAIN.getObject('password').value = '';
-                    PWM_MAIN.showErrorDialog(data,{
-                        okAction:function(){
-                            setTimeout(function(){
-                                PWM_MAIN.getObject('password').focus();
-                            },50);
-                        }
-                    });
-                    return;
+                var options = {};
+                options['content'] = domForm.toObject(form);
+                delete options['content']['processAction'];
+                delete options['content']['pwmFormID'];
+                var url = 'login?processAction=restLogin&skipCaptcha=' + options['content']['skipCaptcha'];
+                var loadFunction = function(data) {
+                    if (data['error'] === true) {
+                        PWM_MAIN.getObject('password').value = '';
+                        PWM_MAIN.showErrorDialog(data,{
+                            okAction:function(){
+                                setTimeout(function(){
+                                    PWM_MAIN.getObject('password').focus();
+                                },50);
+                            }
+                        });
+                        return;
+                    }
+                    console.log('authentication success');
+                    var nextURL = data['data']['nextURL'];
+                    if (nextURL) {
+                        PWM_MAIN.goto(nextURL, {noContext: true});
+                    }
+                };
+                PWM_MAIN.ajaxRequest(url,loadFunction,options);
+                if(typeof grecaptcha !== 'undefined'){
+                    try {
+                        grecaptcha.reset(); // reset the
+                    } catch (e) {
+                        console.log("error resetting the captcha: " + e)
+                    }
                 }
-                console.log('authentication success');
-                var nextURL = data['data']['nextURL'];
-                if (nextURL) {
-                    PWM_MAIN.goto(nextURL, {noContext: true});
-                }
-            };
-            PWM_MAIN.ajaxRequest(url,loadFunction,options);
-            if(typeof grecaptcha !== 'undefined'){
-                try {
-                    grecaptcha.reset(); // reset the
-                } catch (e) {
-                    console.log("error resetting the captcha: " + e)
-                }
-            }
-        }});
+            }});
     });
 };
 
@@ -395,8 +400,8 @@ PWM_MAIN.handleFormSubmit = function(form, event) {
     }
 
     PWM_MAIN.showWaitDialog({loadFunction:function(){
-        form.submit();
-    }});
+            form.submit();
+        }});
     return false;
 };
 
@@ -584,7 +589,7 @@ PWM_MAIN.showLocaleSelectionMenu = function(nextFunction, options) {
 
     };
 
-    var bodyHtml = '<table class="noborder" style="width:auto;margin-right:auto;margin-left:auto">';
+    var bodyHtml = '<table class="noborder" style="width:auto;margin-right:auto;margin-left:auto;overflow-x:scroll">';
     localeIterator(function(localeKey){
         if (!PWM_MAIN.JSLibrary.arrayContains(excludeLocales, localeKey)) {
             var loopDisplayName = localeData[localeKey];
@@ -1652,13 +1657,11 @@ PWM_MAIN.TimestampHandler.initAllElements = function() {
 
 PWM_MAIN.TimestampHandler.testIfStringIsTimestamp = function(input, trueFunction) {
     if (input && input.length > 0) {
-        require(["dojo", "dojo/date/stamp"], function (dojo, IsoDate) {
-            input = dojo.trim(input);
-            var dateObj = IsoDate.fromISOString(input);
-            if (dateObj) {
-                trueFunction(dateObj);
-            }
-        });
+        input = input.trim();
+        var timestamp = Date.parse(input);
+        if (isNaN(timestamp) === false) {
+            trueFunction(new Date(timestamp));
+        }
     }
 };
 
@@ -1673,10 +1676,10 @@ PWM_MAIN.TimestampHandler.initElement = function(element) {
 
     require(["dojo"], function(dojo) {
         var innerText = dojo.attr(element, 'innerHTML');
-        innerText = dojo.trim(innerText);
-        PWM_MAIN.TimestampHandler.testIfStringIsTimestamp(innerText, function (dateObj) {
+        innerText = innerText.trim(innerText);
+        PWM_MAIN.TimestampHandler.testIfStringIsTimestamp(innerText, function () {
             element.setAttribute('data-timestamp-original', innerText);
-            PWM_MAIN.addEventHandler(element.id, 'click', function(){
+            PWM_MAIN.addEventHandler(element, 'click', function(){
                 var LocalizedState = !PWM_MAIN.Preferences.readSessionStorage(PWM_MAIN.TimestampHandler.PreferencesKey,true);
                 PWM_MAIN.Preferences.writeSessionStorage(PWM_MAIN.TimestampHandler.PreferencesKey, LocalizedState);
                 PWM_MAIN.TimestampHandler.updateAllElements();
@@ -1704,17 +1707,24 @@ PWM_MAIN.TimestampHandler.updateAllElements = function() {
 };
 
 PWM_MAIN.TimestampHandler.updateElement = function(element) {
-    require(["dojo","dojo/date/stamp","dojo/date/locale"], function(dojo,IsoDate,LocaleDate) {
+    require(["dojo"], function(dojo) {
         var localized = PWM_MAIN.Preferences.readSessionStorage(PWM_MAIN.TimestampHandler.PreferencesKey,true);
         if (localized) {
             var isoDateStr = element.getAttribute('data-timestamp-original');
-            var date = IsoDate.fromISOString(isoDateStr);
-            var localizedStr = LocaleDate.format(date,{formatLength:'long'});
+            var date = new Date(Date.parse(isoDateStr));
+            var localizedStr = PWM_MAIN.TimestampHandler.formatDate(date);
+
             dojo.attr(element,'innerHTML',localizedStr);
         } else {
             dojo.attr(element,'innerHTML',element.getAttribute('data-timestamp-original'));
         }
     })
+};
+
+PWM_MAIN.TimestampHandler.formatDate = function(dateObj) {
+    var options = {timeZoneName:'short', year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric'};
+    var locale = PWM_GLOBAL['client.locale'];
+    return dateObj.toLocaleString(locale, options);
 };
 
 PWM_MAIN.addPwmFormIDtoURL = function(url) {

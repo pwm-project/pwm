@@ -41,6 +41,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.ImmutableByteArray;
+import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.http.servlet.command.CommandServlet;
 import password.pwm.ldap.UserInfo;
@@ -290,7 +291,10 @@ public class PwmRequest extends PwmHttpRequestWrapper {
         Validator.validatePwmFormID(this);
     }
 
-    public boolean convertURLtokenCommand()
+    public boolean convertURLtokenCommand(
+            final PwmServletDefinition pwmServletDefinition,
+            final AbstractPwmServlet.ProcessAction processAction
+    )
             throws IOException, PwmUnrecoverableException
     {
         final String uri = getURLwithoutQueryString();
@@ -324,9 +328,9 @@ public class PwmRequest extends PwmHttpRequestWrapper {
 
         final StringBuilder redirectURL = new StringBuilder();
         redirectURL.append(this.getHttpServletRequest().getContextPath());
-        redirectURL.append(this.getHttpServletRequest().getServletPath());
+        redirectURL.append(pwmServletDefinition.servletUrl());
         redirectURL.append("?");
-        redirectURL.append(PwmConstants.PARAM_ACTION_REQUEST).append("=enterCode");
+        redirectURL.append(PwmConstants.PARAM_ACTION_REQUEST).append("=").append(processAction.toString());
         redirectURL.append("&");
         redirectURL.append(PwmConstants.PARAM_TOKEN).append("=").append(tokenValue);
 

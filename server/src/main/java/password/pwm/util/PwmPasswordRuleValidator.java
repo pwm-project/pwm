@@ -283,7 +283,7 @@ public class PwmPasswordRuleValidator {
             final int requiredPasswordStrength = ruleHelper.readIntValue(PwmPasswordRule.MinimumStrength);
             if (requiredPasswordStrength > 0) {
                 if (pwmApplication != null) {
-                    final int passwordStrength = PasswordUtility.judgePasswordStrength(passwordString);
+                    final int passwordStrength = PasswordUtility.judgePasswordStrength(pwmApplication.getConfig(), passwordString);
                     if (passwordStrength < requiredPasswordStrength) {
                         errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_WEAK));
                         //LOGGER.trace(pwmSession, "password rejected, password strength of " + passwordStrength + " is lower than policy requirement of " + requiredPasswordStrength);

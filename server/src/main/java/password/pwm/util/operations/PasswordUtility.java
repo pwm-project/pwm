@@ -22,7 +22,6 @@
 
 package password.pwm.util.operations;
 
-import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiPasswordPolicy;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiException;
@@ -32,9 +31,11 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.impl.oracleds.entry.OracleDSEntries;
 import com.novell.ldapchai.provider.ChaiConfiguration;
 import com.novell.ldapchai.provider.ChaiProvider;
-import com.novell.ldapchai.provider.ChaiProviderFactory;
 import com.novell.ldapchai.provider.ChaiSetting;
+import com.novell.ldapchai.provider.DirectoryVendor;
 import com.novell.ldapchai.util.ChaiUtility;
+import com.nulabinc.zxcvbn.Strength;
+import com.nulabinc.zxcvbn.Zxcvbn;
 import password.pwm.AppProperty;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
@@ -44,6 +45,7 @@ import password.pwm.bean.PasswordStatus;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserIdentity;
+import password.pwm.config.option.StrengthMeterType;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -91,7 +93,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -271,7 +272,7 @@ public class PasswordUtility {
 
         boolean setPasswordWithoutOld = false;
         if (oldPassword == null) {
-            if (pwmSession.getSessionManager().getActor(pwmApplication).getChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY) {
+            if (pwmSession.getSessionManager().getActor(pwmApplication).getChaiProvider().getDirectoryVendor() == DirectoryVendor.ACTIVE_DIRECTORY) {
                 setPasswordWithoutOld = true;
             }
         }
@@ -359,7 +360,7 @@ public class PasswordUtility {
         final String bindDN;
 
         try {
-            final ChaiUser theUser = ChaiFactory.createChaiUser(userIdentity.getUserDN(), chaiProvider);
+            final ChaiUser theUser = chaiProvider.getEntryFactory().newChaiUser(userIdentity.getUserDN());
             bindDN = chaiProvider.getChaiConfiguration().getSetting(ChaiSetting.BIND_DN);
             bindIsSelf = userIdentity.canonicalEquals(new UserIdentity(bindDN, userIdentity.getLdapProfileID()), pwmApplication);
 
@@ -397,7 +398,7 @@ public class PasswordUtility {
         // update stats
         pwmApplication.getStatisticsManager().updateEps(EpsStatistic.PASSWORD_CHANGES,1);
 
-        final int passwordStrength = PasswordUtility.judgePasswordStrength(newPassword.getStringValue());
+        final int passwordStrength = PasswordUtility.judgePasswordStrength(pwmApplication.getConfig(), newPassword.getStringValue());
         pwmApplication.getStatisticsManager().updateAverageValue(Statistic.AVG_PASSWORD_STRENGTH,passwordStrength);
 
         // at this point the password has been changed, so log it.
@@ -563,7 +564,7 @@ public class PasswordUtility {
             final String loopReplicaUrl = loopConfiguration.getSetting(ChaiSetting.BIND_DN);
             ChaiProvider loopProvider = null;
             try {
-                loopProvider = ChaiProviderFactory.createProvider(loopConfiguration);
+                loopProvider = pwmApplication.getLdapConnectionService().getChaiProviderFactory().newProvider(loopConfiguration);
                 final Instant lastModifiedDate = determinePwdLastModified(pwmApplication, sessionLabel, userIdentity);
                 returnValue.put(loopReplicaUrl, lastModifiedDate);
             } catch (ChaiUnavailableException e) {
@@ -671,6 +672,46 @@ public class PasswordUtility {
     */
 
     public static int judgePasswordStrength(
+            final Configuration configuration,
+            final String password
+    )
+            throws PwmUnrecoverableException
+    {
+        final StrengthMeterType strengthMeterType = configuration.readSettingAsEnum(PwmSetting.PASSWORD_STRENGTH_METER_TYPE, StrengthMeterType.class);
+        switch (strengthMeterType) {
+            case ZXCVBN:
+                return judgePasswordStrengthUsingZxcvbnAlgorithm(configuration, password);
+
+            case PWM:
+                return judgePasswordStrengthUsingTraditionalAlgorithm(password);
+
+            default:
+                JavaHelper.unhandledSwitchStatement(strengthMeterType);
+        }
+
+        return -1;
+    }
+
+    public static int judgePasswordStrengthUsingZxcvbnAlgorithm(
+            final Configuration configuration,
+            final String password
+    ) {
+        final Zxcvbn zxcvbn = new Zxcvbn();
+        final Strength strength = zxcvbn.measure(password);
+
+        final int zxcvbnScore = strength.getScore();
+
+        // zxcvbn returns a score of 0-4 (see: https://github.com/dropbox/zxcvbn)
+        switch (zxcvbnScore) {
+            case 4: return Integer.parseInt(configuration.readAppProperty(AppProperty.PASSWORD_STRENGTH_THRESHOLD_VERY_STRONG));
+            case 3: return Integer.parseInt(configuration.readAppProperty(AppProperty.PASSWORD_STRENGTH_THRESHOLD_STRONG));
+            case 2: return Integer.parseInt(configuration.readAppProperty(AppProperty.PASSWORD_STRENGTH_THRESHOLD_GOOD));
+            case 1: return Integer.parseInt(configuration.readAppProperty(AppProperty.PASSWORD_STRENGTH_THRESHOLD_WEAK));
+            default: return Integer.parseInt(configuration.readAppProperty(AppProperty.PASSWORD_STRENGTH_THRESHOLD_VERY_WEAK));
+        }
+    }
+
+    public static int judgePasswordStrengthUsingTraditionalAlgorithm (
             final String password
     )
             throws PwmUnrecoverableException
@@ -914,7 +955,7 @@ public class PasswordUtility {
             }
         }
 
-        final int strength = judgePasswordStrength(password == null ? null : password.getStringValue());
+        final int strength = judgePasswordStrength(pwmApplication.getConfig(), password == null ? null : password.getStringValue());
         return new PasswordCheckInfo(userMessage, pass, strength, matchStatus, errorCode);
     }
 
@@ -1030,10 +1071,10 @@ public class PasswordUtility {
     {
         // fetch last password modification time from pwm last update attribute operation
         try {
-            final Date chaiReadDate = theUser.readPasswordModificationDate();
+            final Instant chaiReadDate = theUser.readPasswordModificationDate();
             if (chaiReadDate != null) {
                 LOGGER.trace(sessionLabel, "read last user password change timestamp (via chai) as: " + JavaHelper.toIsoDate(chaiReadDate));
-                return chaiReadDate.toInstant();
+                return chaiReadDate;
             }
         } catch (ChaiOperationException e) {
             LOGGER.error(sessionLabel, "unexpected error reading password last modified timestamp: " + e.getMessage());
@@ -1043,9 +1084,9 @@ public class PasswordUtility {
         final String pwmLastSetAttr = ldapProfile.readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE);
         if (pwmLastSetAttr != null && pwmLastSetAttr.length() > 0) {
             try {
-                final Date pwmPwdLastModified = theUser.readDateAttribute(pwmLastSetAttr);
+                final Instant pwmPwdLastModified = theUser.readDateAttribute(pwmLastSetAttr);
                 LOGGER.trace(sessionLabel, "read pwmPasswordChangeTime as: " + (pwmPwdLastModified == null ? "n/a" : JavaHelper.toIsoDate(pwmPwdLastModified)));
-                return pwmPwdLastModified == null ? null : pwmPwdLastModified.toInstant();
+                return pwmPwdLastModified;
             } catch (ChaiOperationException e) {
                 LOGGER.error(sessionLabel, "error parsing password last modified PWM password value for user " + theUser.getEntryDN() + "; error: " + e.getMessage());
             }
@@ -1067,11 +1108,11 @@ public class PasswordUtility {
 
         // for oracle DS; this check is also handled in UserAuthenticator.
         try {
-            if (ChaiProvider.DIRECTORY_VENDOR.ORACLE_DS == chaiUser.getChaiProvider().getDirectoryVendor()) {
+            if (DirectoryVendor.ORACLE_DS == chaiUser.getChaiProvider().getDirectoryVendor()) {
                 final String oracleDS_PrePasswordAllowChangeTime = chaiUser.readStringAttribute("passwordAllowChangeTime");
                 if (oracleDS_PrePasswordAllowChangeTime != null && !oracleDS_PrePasswordAllowChangeTime.isEmpty()) {
-                    final Date date = OracleDSEntries.convertZuluToDate(oracleDS_PrePasswordAllowChangeTime);
-                    if (new Date().before(date)) {
+                    final Instant date = OracleDSEntries.convertZuluToDate(oracleDS_PrePasswordAllowChangeTime);
+                    if (Instant.now().isBefore(date)) {
                         LOGGER.debug("discovered oracleds allowed change time is set to: " + JavaHelper.toIsoDate(date) + ", won't permit password change");
                         final String errorMsg = "change not permitted until " + JavaHelper.toIsoDate(date);
                         final ErrorInformation errorInformation = new ErrorInformation(PwmError.PASSWORD_TOO_SOON, errorMsg);

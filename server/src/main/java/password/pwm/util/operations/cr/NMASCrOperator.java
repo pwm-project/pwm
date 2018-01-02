@@ -24,7 +24,6 @@ package password.pwm.util.operations.cr;
 
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPException;
-import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.ChaiChallenge;
 import com.novell.ldapchai.cr.ChaiChallengeSet;
@@ -44,6 +43,7 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.provider.ChaiProviderFactory;
 import com.novell.ldapchai.provider.ChaiProviderImplementor;
 import com.novell.ldapchai.provider.ChaiSetting;
+import com.novell.ldapchai.provider.DirectoryVendor;
 import com.novell.ldapchai.provider.JLDAPProviderImpl;
 import com.novell.security.nmas.client.NMASCallback;
 import com.novell.security.nmas.client.NMASCompletionCallback;
@@ -244,7 +244,7 @@ public class NMASCrOperator implements CrOperator {
         pwmApplication.getIntruderManager().convenience().checkUserIdentity(userIdentity);
 
         try {
-            if (theUser.getChaiProvider().getDirectoryVendor() != ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY) {
+            if (theUser.getChaiProvider().getDirectoryVendor() != DirectoryVendor.EDIRECTORY) {
                 return null;
             }
 
@@ -266,7 +266,7 @@ public class NMASCrOperator implements CrOperator {
             throws PwmUnrecoverableException
     {
         try {
-            if (theUser.getChaiProvider().getDirectoryVendor() != ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY) {
+            if (theUser.getChaiProvider().getDirectoryVendor() != DirectoryVendor.EDIRECTORY) {
                 LOGGER.debug("skipping request to read NMAS responses for " + userIdentity + ", directory type is not eDirectory");
                 return null;
             }
@@ -290,7 +290,7 @@ public class NMASCrOperator implements CrOperator {
             throws PwmUnrecoverableException
     {
         try {
-            if (theUser.getChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY) {
+            if (theUser.getChaiProvider().getDirectoryVendor() == DirectoryVendor.EDIRECTORY) {
                 NmasCrFactory.clearResponseSet(theUser);
                 LOGGER.info("cleared responses for user " + theUser.getEntryDN() + " using NMAS method ");
             }
@@ -311,7 +311,7 @@ public class NMASCrOperator implements CrOperator {
             throws PwmUnrecoverableException
     {
         try {
-            if (theUser.getChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY) {
+            if (theUser.getChaiProvider().getDirectoryVendor() == DirectoryVendor.EDIRECTORY) {
 
                 final NmasResponseSet nmasResponseSet = NmasCrFactory.newNmasResponseSet(
                         responseInfoBean.getCrMap(),
@@ -389,9 +389,12 @@ public class NMASCrOperator implements CrOperator {
             final List<String> ldapURLs = ldapProfile.readSettingAsStringArray(PwmSetting.LDAP_SERVER_URLS);
             final String proxyDN = ldapProfile.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
             final PasswordData proxyPW = ldapProfile.readSettingAsPassword(PwmSetting.LDAP_PROXY_USER_PASSWORD);
-            chaiConfiguration = LdapOperationsHelper.createChaiConfiguration(config, ldapProfile, ldapURLs, proxyDN,
+            final ChaiConfiguration newChaiConfig = LdapOperationsHelper.createChaiConfiguration(config, ldapProfile, ldapURLs, proxyDN,
                     proxyPW);
-            chaiConfiguration.setSetting(ChaiSetting.PROVIDER_IMPLEMENTATION, JLDAPProviderImpl.class.getName());
+
+            chaiConfiguration = ChaiConfiguration.builder(newChaiConfig)
+                    .setSetting(ChaiSetting.PROVIDER_IMPLEMENTATION, JLDAPProviderImpl.class.getName())
+                    .build();
 
             cycle();
         }
@@ -408,8 +411,9 @@ public class NMASCrOperator implements CrOperator {
         }
 
         private LDAPConnection makeLdapConnection() throws Exception {
-            final ChaiProvider chaiProvider = ChaiProviderFactory.createProvider(chaiConfiguration);
-            final ChaiUser theUser = ChaiFactory.createChaiUser(userIdentity.getUserDN(), chaiProvider);
+            final ChaiProviderFactory chaiProviderFactory = pwmApplication.getLdapConnectionService().getChaiProviderFactory();
+            final ChaiProvider chaiProvider = chaiProviderFactory.newProvider(chaiConfiguration);
+            final ChaiUser theUser = chaiProvider.getEntryFactory().newChaiUser(userIdentity.getUserDN());
             try {
                 if (theUser.isPasswordLocked()) {
                     LOGGER.trace("user " + theUser.getEntryDN() + " appears to be intruder locked, aborting nmas ResponseSet loading" );
