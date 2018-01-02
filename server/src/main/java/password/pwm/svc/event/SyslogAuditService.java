@@ -317,7 +317,7 @@ public class SyslogAuditService {
         recordString = recordString.replace("message:", " msg | ");
         recordString = recordString.replace("narrative:", " reason | ");
         recordString = recordString.replace("perpetratorID:", " suid | ");
-        recordString = recordString.replace("perpetatorDN:", " suser | ");
+        recordString = recordString.replace("perpetratorDN:", " suser | ");
         recordString = recordString.replace("sourceAddress:", " dvc | ");
         recordString = recordString.replace("sourceHost:", " dvchost | ");
         recordString = recordString.replace("targetID:", " duid | ");
