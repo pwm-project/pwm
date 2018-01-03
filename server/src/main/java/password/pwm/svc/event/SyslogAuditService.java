@@ -324,16 +324,8 @@ public class SyslogAuditService {
         recordString = recordString.replace("SSPR:", " sproc | ");
         recordString = recordString.replace("PWM:", " sproc | ");
 
-
-        final int idxStart = recordString.indexOf("act | ");
-        final int idxEnd = recordString.indexOf(",guid");
         translatedString = auditRecord.getTimestamp().toString();
         translatedString = translatedString.concat(" host CEF:0 | security | threatmanager | 1.0 | 100 ");
-        if (idxStart != -1 && idxEnd != -1) {
-            translatedString = translatedString.concat(recordString.substring(idxStart, idxEnd));
-        } else {
-            translatedString = translatedString.concat("UNKNOWN REASON");
-        }
         recordString = recordString.replace(",", " ");
 
         translatedString = translatedString.concat(recordString);
