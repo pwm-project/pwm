@@ -28,9 +28,12 @@ import password.pwm.util.localdb.LocalDB;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LocalDBHealthChecker implements HealthChecker {
-    public List<HealthRecord> doHealthCheck(final PwmApplication pwmApplication) {
-        if (pwmApplication == null) {
+public class LocalDBHealthChecker implements HealthChecker
+{
+    public List<HealthRecord> doHealthCheck( final PwmApplication pwmApplication )
+    {
+        if ( pwmApplication == null )
+        {
             return null;
         }
 
@@ -38,24 +41,28 @@ public class LocalDBHealthChecker implements HealthChecker {
 
         final LocalDB localDB = pwmApplication.getLocalDB();
 
-        if (localDB == null) {
+        if ( localDB == null )
+        {
             final String detailedError = pwmApplication.getLastLocalDBFailure() == null ? "unknown, check logs" : pwmApplication.getLastLocalDBFailure().toDebugStr();
-            healthRecords.add(HealthRecord.forMessage(HealthMessage.LocalDB_BAD,detailedError));
+            healthRecords.add( HealthRecord.forMessage( HealthMessage.LocalDB_BAD, detailedError ) );
             return healthRecords;
         }
 
-        if (LocalDB.Status.NEW == localDB.status()) {
-            healthRecords.add(HealthRecord.forMessage(HealthMessage.LocalDB_NEW));
+        if ( LocalDB.Status.NEW == localDB.status() )
+        {
+            healthRecords.add( HealthRecord.forMessage( HealthMessage.LocalDB_NEW ) );
             return healthRecords;
         }
 
-        if (LocalDB.Status.CLOSED == localDB.status()) {
-            healthRecords.add(HealthRecord.forMessage(HealthMessage.LocalDB_CLOSED));
+        if ( LocalDB.Status.CLOSED == localDB.status() )
+        {
+            healthRecords.add( HealthRecord.forMessage( HealthMessage.LocalDB_CLOSED ) );
             return healthRecords;
         }
 
-        if (healthRecords.isEmpty()) {
-            healthRecords.add(HealthRecord.forMessage(HealthMessage.LocalDB_OK));
+        if ( healthRecords.isEmpty() )
+        {
+            healthRecords.add( HealthRecord.forMessage( HealthMessage.LocalDB_OK ) );
         }
 
         return healthRecords;

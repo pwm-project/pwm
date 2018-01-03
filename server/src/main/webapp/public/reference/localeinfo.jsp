@@ -167,13 +167,13 @@
                     <%=loopLocale.toString()%>
                 </td>
                 <td>
-                    <%=userFacingStats.getPerLocale_presentLocalizations().get(loopLocale)%>
+                    <%=userFacingStats.getPerLocalePresentLocalizations().get(loopLocale)%>
                 </td>
                 <td>
-                    <%=userFacingStats.getPerLocale_missingLocalizations().get(loopLocale)%>
+                    <%=userFacingStats.getPerLocaleMissingLocalizations().get(loopLocale)%>
                 </td>
                 <td>
-                    <%=userFacingStats.getPerLocale_percentLocalizations().get(loopLocale)%>
+                    <%=userFacingStats.getPerLocalePercentLocalizations().get(loopLocale)%>
                 </td>
             </tr>
             <% } %>
@@ -224,13 +224,13 @@
                     <%=loopLocale.toString()%>
                 </td>
                 <td>
-                    <%=adminFacingStats.getPerLocale_presentLocalizations().get(loopLocale)%>
+                    <%=adminFacingStats.getPerLocalePresentLocalizations().get(loopLocale)%>
                 </td>
                 <td>
-                    <%=adminFacingStats.getPerLocale_missingLocalizations().get(loopLocale)%>
+                    <%=adminFacingStats.getPerLocaleMissingLocalizations().get(loopLocale)%>
                 </td>
                 <td>
-                    <%=adminFacingStats.getPerLocale_percentLocalizations().get(loopLocale)%>
+                    <%=adminFacingStats.getPerLocalePercentLocalizations().get(loopLocale)%>
                 </td>
             </tr>
             <% } %>
@@ -282,13 +282,13 @@
                     <%=loopLocale.toString()%>
                 </td>
                 <td>
-                    <%=allStats.getPerLocale_presentLocalizations().get(loopLocale)%>
+                    <%=allStats.getPerLocalePresentLocalizations().get(loopLocale)%>
                 </td>
                 <td>
-                    <%=allStats.getPerLocale_missingLocalizations().get(loopLocale)%>
+                    <%=allStats.getPerLocaleMissingLocalizations().get(loopLocale)%>
                 </td>
                 <td>
-                    <%=allStats.getPerLocale_percentLocalizations().get(loopLocale)%>
+                    <%=allStats.getPerLocalePercentLocalizations().get(loopLocale)%>
                 </td>
             </tr>
             <% } %>
@@ -339,13 +339,13 @@
                     <%= loopLocale.toString() %>
                 </td>
                 <td>
-                    <%= configLocaleStats.getDescription_presentLocalizations().get(loopLocale) %>
+                    <%= configLocaleStats.getDescriptionPresentLocalizations().get(loopLocale) %>
                 </td>
                 <td>
-                    <%= configLocaleStats.getDescription_missingLocalizations().get(loopLocale) %>
+                    <%= configLocaleStats.getDescriptionMissingLocalizations().get(loopLocale) %>
                 </td>
                 <td>
-                    <%= configLocaleStats.getDescription_percentLocalizations().get(loopLocale) %>
+                    <%= configLocaleStats.getDescriptionPercentLocalizations().get(loopLocale) %>
                 </td>
             </tr>
             <% } %>

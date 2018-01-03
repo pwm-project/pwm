@@ -29,10 +29,10 @@ import lombok.Data;
 import lombok.Value;
 import password.pwm.VerificationMethodSystem;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.SessionBeanMode;
+import password.pwm.config.value.data.FormConfiguration;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -45,77 +45,81 @@ import java.util.Set;
  * @author Jason D. Rivard
  */
 @Data
-public class ForgottenPasswordBean extends PwmSessionBean {
+public class ForgottenPasswordBean extends PwmSessionBean
+{
 
-    @SerializedName("u")
+    @SerializedName( "u" )
     private UserIdentity userIdentity;
 
-    @SerializedName("pc")
+    @SerializedName( "pc" )
     private ChallengeSet presentableChallengeSet;
 
-    @SerializedName("l")
+    @SerializedName( "l" )
     private Locale userLocale;
 
-    @SerializedName("a")
+    @SerializedName( "a" )
     private List<FormConfiguration> attributeForm;
 
-    @SerializedName("p")
+    @SerializedName( "p" )
     private Progress progress = new Progress();
 
-    @SerializedName("f")
+    @SerializedName( "f" )
     private RecoveryFlags recoveryFlags = new RecoveryFlags();
 
-    @SerializedName("fp")
+    @SerializedName( "fp" )
     private String forgottenPasswordProfileID;
 
     @Data
-    public static class Progress implements Serializable {
-        @SerializedName("s")
+    public static class Progress implements Serializable
+    {
+        @SerializedName( "s" )
         private boolean tokenSent;
 
-        @SerializedName("p")
+        @SerializedName( "p" )
         private boolean allPassed;
 
-        @SerializedName("m")
+        @SerializedName( "m" )
         private final Set<IdentityVerificationMethod> satisfiedMethods = new LinkedHashSet<>();
 
-        @SerializedName("c")
+        @SerializedName( "c" )
         private MessageSendMethod tokenSendChoice;
 
-        @SerializedName("a")
+        @SerializedName( "a" )
         private String tokenSentAddress;
 
-        @SerializedName("i")
+        @SerializedName( "i" )
         private IdentityVerificationMethod inProgressVerificationMethod;
 
         private transient VerificationMethodSystem remoteRecoveryMethod;
 
-        public void clearTokenSentStatus() {
-            this.setTokenSent(false);
-            this.setTokenSentAddress(null);
-            this.setTokenSendChoice(null);
+        public void clearTokenSentStatus( )
+        {
+            this.setTokenSent( false );
+            this.setTokenSentAddress( null );
+            this.setTokenSendChoice( null );
         }
     }
 
     @Value
     @AllArgsConstructor
-    public static class RecoveryFlags implements Serializable {
-        @SerializedName("a")
+    public static class RecoveryFlags implements Serializable
+    {
+        @SerializedName( "a" )
         private final boolean allowWhenLdapIntruderLocked;
 
-        @SerializedName("r")
+        @SerializedName( "r" )
         private final Set<IdentityVerificationMethod> requiredAuthMethods;
 
-        @SerializedName("o")
+        @SerializedName( "o" )
         private final Set<IdentityVerificationMethod> optionalAuthMethods;
 
-        @SerializedName("m")
+        @SerializedName( "m" )
         private final int minimumOptionalAuthMethods;
 
-        @SerializedName("t")
+        @SerializedName( "t" )
         private final MessageSendMethod tokenSendMethod;
 
-        public RecoveryFlags()
+        public RecoveryFlags( )
         {
             this.requiredAuthMethods = Collections.emptySet();
             this.optionalAuthMethods = Collections.emptySet();
@@ -125,14 +129,16 @@ public class ForgottenPasswordBean extends PwmSessionBean {
         }
     }
 
-    public Type getType() {
+    public Type getType( )
+    {
         return Type.PUBLIC;
     }
 
     @Override
-    public Set<SessionBeanMode> supportedModes() {
+    public Set<SessionBeanMode> supportedModes( )
+    {
         //return Collections.unmodifiableSet(new HashSet<>(Arrays.asList(SessionBeanMode.LOCAL, SessionBeanMode.CRYPTCOOKIE, SessionBeanMode.CRYPTREQUEST)));
-        return Collections.singleton(SessionBeanMode.LOCAL);
+        return Collections.singleton( SessionBeanMode.LOCAL );
     }
 }
 

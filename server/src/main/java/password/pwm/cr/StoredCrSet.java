@@ -24,10 +24,11 @@ package password.pwm.cr;
 
 import java.util.Date;
 
-public interface StoredCrSet {
-    String getLocale();
+public interface StoredCrSet
+{
+    String getLocale( );
 
-    Date getDate();
+    Date getDate( );
 
-    String getChallengePolicyID();
+    String getChallengePolicyID( );
 }

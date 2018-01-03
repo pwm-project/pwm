@@ -27,20 +27,24 @@ import password.pwm.http.bean.ImmutableByteArray;
 import java.io.Serializable;
 import java.util.Map;
 
-final class CacheEntry implements Serializable {
+final class CacheEntry implements Serializable
+{
     private final ImmutableByteArray entity;
     private final Map<String, String> headerStrings;
 
-    CacheEntry(final byte[] entity, final Map<String, String> headerStrings) {
-        this.entity = new ImmutableByteArray(entity);
+    CacheEntry( final byte[] entity, final Map<String, String> headerStrings )
+    {
+        this.entity = new ImmutableByteArray( entity );
         this.headerStrings = headerStrings;
     }
 
-    public byte[] getEntity() {
+    public byte[] getEntity( )
+    {
         return entity.getBytes();
     }
 
-    public Map<String, String> getHeaderStrings() {
+    public Map<String, String> getHeaderStrings( )
+    {
         return headerStrings;
     }
 }

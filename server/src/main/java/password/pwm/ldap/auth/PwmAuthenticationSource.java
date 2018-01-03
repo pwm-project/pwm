@@ -22,7 +22,8 @@
 
 package password.pwm.ldap.auth;
 
-public enum PwmAuthenticationSource {
+public enum PwmAuthenticationSource
+{
     LOGIN_FORM,
     CAS,
     BASIC_AUTH,

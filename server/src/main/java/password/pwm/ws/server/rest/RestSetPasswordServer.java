@@ -40,9 +40,9 @@ import password.pwm.util.PasswordData;
 import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
-import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestMethodHandler;
 import password.pwm.ws.server.RestRequest;
+import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServlet;
 import password.pwm.ws.server.RestWebServer;
 
@@ -51,14 +51,15 @@ import java.io.IOException;
 import java.io.Serializable;
 
 @WebServlet(
-        urlPatterns={
+        urlPatterns = {
                 PwmConstants.URL_PREFIX_PUBLIC + PwmConstants.URL_PREFIX_REST + "/setpassword"
         }
 )
-@RestWebServer(webService = WebServiceUsage.SetPassword, requireAuthentication = true)
-public class RestSetPasswordServer extends RestServlet {
+@RestWebServer( webService = WebServiceUsage.SetPassword, requireAuthentication = true )
+public class RestSetPasswordServer extends RestServlet
+{
 
-    public static final PwmLogger LOGGER = PwmLogger.forClass(RestSetPasswordServer.class);
+    public static final PwmLogger LOGGER = PwmLogger.forClass( RestSetPasswordServer.class );
 
     @Data
     public static class JsonInputData implements Serializable
@@ -69,30 +70,31 @@ public class RestSetPasswordServer extends RestServlet {
     }
 
     @Override
-    public void preCheckRequest(final RestRequest request) throws PwmUnrecoverableException {
+    public void preCheckRequest( final RestRequest request ) throws PwmUnrecoverableException
+    {
 
     }
 
-    @RestMethodHandler(method = HttpMethod.POST, consumes = HttpContentType.form, produces = HttpContentType.json)
+    @RestMethodHandler( method = HttpMethod.POST, consumes = HttpContentType.form, produces = HttpContentType.json )
     public RestResultBean doPostSetPasswordForm(
             final RestRequest restRequest
     )
             throws PwmUnrecoverableException
     {
         final JsonInputData jsonInputData = new JsonInputData();
-        jsonInputData.username = restRequest.readParameterAsString("username", PwmHttpRequestWrapper.Flag.BypassValidation);
-        jsonInputData.password = restRequest.readParameterAsString("password", PwmHttpRequestWrapper.Flag.BypassValidation);
-        jsonInputData.random = restRequest.readParameterAsBoolean("random");
+        jsonInputData.username = restRequest.readParameterAsString( "username", PwmHttpRequestWrapper.Flag.BypassValidation );
+        jsonInputData.password = restRequest.readParameterAsString( "password", PwmHttpRequestWrapper.Flag.BypassValidation );
+        jsonInputData.random = restRequest.readParameterAsBoolean( "random" );
 
-        return doSetPassword(restRequest, jsonInputData);
+        return doSetPassword( restRequest, jsonInputData );
     }
 
-    @RestMethodHandler(method = HttpMethod.POST, consumes = HttpContentType.json, produces = HttpContentType.json)
-    public RestResultBean doPostSetPasswordJson(final RestRequest restRequest)
+    @RestMethodHandler( method = HttpMethod.POST, consumes = HttpContentType.json, produces = HttpContentType.json )
+    public RestResultBean doPostSetPasswordJson( final RestRequest restRequest )
             throws IOException, PwmUnrecoverableException
     {
-        final JsonInputData jsonInputData = deserializeJsonBody(restRequest, JsonInputData.class);
-        return doSetPassword(restRequest, jsonInputData);
+        final JsonInputData jsonInputData = deserializeJsonBody( restRequest, JsonInputData.class );
+        return doSetPassword( restRequest, jsonInputData );
     }
 
     private static RestResultBean doSetPassword(
@@ -104,26 +106,38 @@ public class RestSetPasswordServer extends RestServlet {
         final String password = jsonInputData.password;
         final boolean random = jsonInputData.random;
 
-        if ((password == null || password.length() < 1) && !random) {
+        if ( ( password == null || password.length() < 1 ) && !random )
+        {
             final String errorMessage = "field 'password' must have a value or field 'random' must be set to true";
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER, errorMessage, new String[]{"password"});
-            return RestResultBean.fromError(restRequest, errorInformation);
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_MISSING_PARAMETER, errorMessage, new String[]
+                    {
+                            "password",
+                    }
+            );
+            return RestResultBean.fromError( restRequest, errorInformation );
         }
 
-        if ((password != null && password.length() > 0) && random) {
+        if ( ( password != null && password.length() > 0 ) && random )
+        {
             final String errorMessage = "field 'password' cannot have a value or field 'random' must be set to true";
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER, errorMessage, new String[]{"password"});
-            return RestResultBean.fromError(restRequest, errorInformation);
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_MISSING_PARAMETER, errorMessage, new String[]
+                    {
+                            "password",
+                    }
+            );
+            return RestResultBean.fromError( restRequest, errorInformation );
         }
 
-        try {
+        try
+        {
             final JsonInputData jsonResultData = new JsonInputData();
             jsonResultData.random = random;
 
-            final TargetUserIdentity targetUserIdentity = resolveRequestedUsername(restRequest, jsonInputData.username);
+            final TargetUserIdentity targetUserIdentity = resolveRequestedUsername( restRequest, jsonInputData.username );
 
             final PasswordData newPassword;
-            if (random) {
+            if ( random )
+            {
                 final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(
                         restRequest.getPwmApplication(),
                         restRequest.getSessionLabel(),
@@ -135,15 +149,20 @@ public class RestSetPasswordServer extends RestServlet {
                         restRequest.getSessionLabel(),
                         passwordPolicy, restRequest.getPwmApplication()
                 );
-            } else {
-                newPassword = new PasswordData(password);
+            }
+            else
+            {
+                newPassword = new PasswordData( password );
             }
 
             final PasswordData oldPassword;
-            if (targetUserIdentity.isSelf()) {
-                final BasicAuthInfo basicAuthInfo = BasicAuthInfo.parseAuthHeader(restRequest.getPwmApplication(), restRequest.getHttpServletRequest());
+            if ( targetUserIdentity.isSelf() )
+            {
+                final BasicAuthInfo basicAuthInfo = BasicAuthInfo.parseAuthHeader( restRequest.getPwmApplication(), restRequest.getHttpServletRequest() );
                 oldPassword = basicAuthInfo.getPassword();
-            } else {
+            }
+            else
+            {
                 oldPassword = null;
             }
 
@@ -156,17 +175,21 @@ public class RestSetPasswordServer extends RestServlet {
                     newPassword
             );
 
-            StatisticsManager.incrementStat(restRequest.getPwmApplication(), Statistic.REST_SETPASSWORD);
-            final RestResultBean restResultBean = RestResultBean.withData(jsonResultData);
+            StatisticsManager.incrementStat( restRequest.getPwmApplication(), Statistic.REST_SETPASSWORD );
+            final RestResultBean restResultBean = RestResultBean.withData( jsonResultData );
             return restResultBean;
-        } catch (PwmException e) {
-            LOGGER.error("error during set password REST operation: " + e.getMessage());
-            return RestResultBean.fromError(restRequest, e.getErrorInformation());
-        } catch (Exception e) {
+        }
+        catch ( PwmException e )
+        {
+            LOGGER.error( "error during set password REST operation: " + e.getMessage() );
+            return RestResultBean.fromError( restRequest, e.getErrorInformation() );
+        }
+        catch ( Exception e )
+        {
             final String errorMessage = "unexpected error executing web service: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMessage);
-            LOGGER.error("error during set password REST operation: " + e.getMessage(),e);
-            return RestResultBean.fromError(restRequest, errorInformation);
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMessage );
+            LOGGER.error( "error during set password REST operation: " + e.getMessage(), e );
+            return RestResultBean.fromError( restRequest, errorInformation );
         }
     }
 }

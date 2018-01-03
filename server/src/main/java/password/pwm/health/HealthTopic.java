@@ -27,7 +27,8 @@ import password.pwm.util.LocaleHelper;
 
 import java.util.Locale;
 
-public enum HealthTopic {
+public enum HealthTopic
+{
     Appliance,
     Application,
     Configuration,
@@ -39,15 +40,15 @@ public enum HealthTopic {
     LocalDB,
     SMS,
     Database,
-    Audit,
+    Audit,;
 
-    ;
-
-    public String getKey() {
+    public String getKey( )
+    {
         return HealthTopic.class.getSimpleName() + "_" + this.toString();
     }
 
-    public String getDescription(final Locale locale, final password.pwm.config.Configuration config) {
-        return LocaleHelper.getLocalizedMessage(locale, this.getKey(), config, Health.class);
+    public String getDescription( final Locale locale, final password.pwm.config.Configuration config )
+    {
+        return LocaleHelper.getLocalizedMessage( locale, this.getKey(), config, Health.class );
     }
 }

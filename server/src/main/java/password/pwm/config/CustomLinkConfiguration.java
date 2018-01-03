@@ -35,31 +35,38 @@ import java.util.Map;
  * @author Richard A. Keil
  */
 @Getter
-public class CustomLinkConfiguration implements Serializable {
+public class CustomLinkConfiguration implements Serializable
+{
 
-    public enum Type {text, url, select, checkbox, customLink}
+    public enum Type
+    {
+        text, url, select, checkbox, customLink
+    }
 
     private String name;
     private Type type = Type.customLink;
-    private Map<String,String> labels = Collections.singletonMap("", "");
-    private Map<String,String> description = Collections.singletonMap("","");
+    private Map<String, String> labels = Collections.singletonMap( "", "" );
+    private Map<String, String> description = Collections.singletonMap( "", "" );
     private String customLinkUrl = "";
     private boolean customLinkNewWindow;
-    private Map<String,String> selectOptions = Collections.emptyMap();
+    private Map<String, String> selectOptions = Collections.emptyMap();
 
-    public String getLabel(final Locale locale) {
-        return LocaleHelper.resolveStringKeyLocaleMap(locale, labels);
+    public String getLabel( final Locale locale )
+    {
+        return LocaleHelper.resolveStringKeyLocaleMap( locale, labels );
     }
 
-    public String getDescription(final Locale locale) {
-        return LocaleHelper.resolveStringKeyLocaleMap(locale, description);
+    public String getDescription( final Locale locale )
+    {
+        return LocaleHelper.resolveStringKeyLocaleMap( locale, description );
     }
 
-    public String toString() {
+    public String toString( )
+    {
         final StringBuilder sb = new StringBuilder();
 
-        sb.append("CustomLink: ");
-        sb.append(JsonUtil.serialize(this));
+        sb.append( "CustomLink: " );
+        sb.append( JsonUtil.serialize( this ) );
 
         return sb.toString();
     }

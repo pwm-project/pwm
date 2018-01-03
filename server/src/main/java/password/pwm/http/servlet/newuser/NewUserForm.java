@@ -33,36 +33,42 @@ import java.util.Map;
 
 @Getter
 @AllArgsConstructor
-public class NewUserForm implements Serializable {
+public class NewUserForm implements Serializable
+{
 
-    @SerializedName("f")
-    private final Map<String,String> formData;
+    @SerializedName( "f" )
+    private final Map<String, String> formData;
 
-    @SerializedName("p")
+    @SerializedName( "p" )
     private final PasswordData newUserPassword;
 
-    @SerializedName("c")
+    @SerializedName( "c" )
     private final PasswordData confirmPassword;
 
-    public boolean isConsistentWith(final NewUserForm otherForm) throws PwmUnrecoverableException
+    public boolean isConsistentWith( final NewUserForm otherForm ) throws PwmUnrecoverableException
     {
-        if (otherForm == null) {
+        if ( otherForm == null )
+        {
             return false;
         }
 
-        if (newUserPassword != null && otherForm.newUserPassword == null || newUserPassword == null && otherForm.newUserPassword != null) {
+        if ( newUserPassword != null && otherForm.newUserPassword == null || newUserPassword == null && otherForm.newUserPassword != null )
+        {
             return false;
         }
 
-        if (newUserPassword == null || !newUserPassword.getStringValue().equals(otherForm.newUserPassword.getStringValue())) {
+        if ( newUserPassword == null || !newUserPassword.getStringValue().equals( otherForm.newUserPassword.getStringValue() ) )
+        {
             return false;
         }
 
-        for (final Map.Entry<String,String> entry : formData.entrySet()) {
+        for ( final Map.Entry<String, String> entry : formData.entrySet() )
+        {
             final String formKey = entry.getKey();
             final String value = entry.getValue();
-            final String otherValue = otherForm.formData.get(formKey);
-            if (value != null && !value.equals(otherValue)) {
+            final String otherValue = otherForm.formData.get( formKey );
+            if ( value != null && !value.equals( otherValue ) )
+            {
                 return false;
             }
         }

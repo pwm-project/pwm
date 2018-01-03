@@ -30,15 +30,17 @@ import java.io.Serializable;
 import java.time.Instant;
 
 @Getter
-@AllArgsConstructor(access = AccessLevel.PACKAGE)
-public class NodeInfo implements Serializable {
+@AllArgsConstructor( access = AccessLevel.PACKAGE )
+public class NodeInfo implements Serializable
+{
     private String instanceID;
     private Instant lastSeen;
     private Instant startupTime;
     private NodeState nodeState;
     private boolean configMatch;
 
-    public enum NodeState {
+    public enum NodeState
+    {
         master,
         online,
         offline

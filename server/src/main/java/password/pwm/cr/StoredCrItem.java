@@ -22,8 +22,9 @@
 
 package password.pwm.cr;
 
-public interface StoredCrItem {
-    String getChallengeText();
+public interface StoredCrItem
+{
+    String getChallengeText( );
 
-    String getIdentifier();
+    String getIdentifier( );
 }

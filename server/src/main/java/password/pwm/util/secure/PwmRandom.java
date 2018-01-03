@@ -25,7 +25,8 @@ package password.pwm.util.secure;
 import java.security.SecureRandom;
 import java.util.UUID;
 
-public class PwmRandom {
+public class PwmRandom
+{
 
     private final SecureRandom internalRand = new SecureRandom();
 
@@ -33,68 +34,83 @@ public class PwmRandom {
 
     private static final String ALPHANUMERIC_STRING = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-    private PwmRandom() {
+    private PwmRandom( )
+    {
     }
 
-    public static PwmRandom getInstance() {
+    public static PwmRandom getInstance( )
+    {
         return SINGLETON;
     }
 
-    public long nextLong() {
+    public long nextLong( )
+    {
         return internalRand.nextLong();
     }
 
-    public int nextInt() {
+    public int nextInt( )
+    {
         return internalRand.nextInt();
     }
 
-    public int nextInt(final int n) {
-        return internalRand.nextInt(n);
+    public int nextInt( final int n )
+    {
+        return internalRand.nextInt( n );
     }
 
-    public boolean nextBoolean() {
+    public boolean nextBoolean( )
+    {
         return internalRand.nextBoolean();
     }
 
-    public String getAlgorithm() {
+    public String getAlgorithm( )
+    {
         return internalRand.getAlgorithm();
     }
 
-    public String alphaNumericString(final int length) {
-        return alphaNumericString(ALPHANUMERIC_STRING,length);
+    public String alphaNumericString( final int length )
+    {
+        return alphaNumericString( ALPHANUMERIC_STRING, length );
     }
 
-    public String alphaNumericString(final String characters, final int length) {
+    public String alphaNumericString( final String characters, final int length )
+    {
         final StringBuilder sb = new StringBuilder();
-        while (sb.length() < length) {
-            sb.append(nextChar(characters));
+        while ( sb.length() < length )
+        {
+            sb.append( nextChar( characters ) );
         }
         return sb.toString();
     }
 
-    public char nextChar() {
-        return nextChar(ALPHANUMERIC_STRING);
-    }
-
-    public char nextChar(final String characters) {
-        if (characters == null) {
-            throw new NullPointerException("characters cannot be null");
-        }
-        return characters.charAt(nextInt(characters.length()));
-    }
-
-    public void nextBytes(final byte[] secArray)
+    public char nextChar( )
     {
-        internalRand.nextBytes(secArray);
+        return nextChar( ALPHANUMERIC_STRING );
     }
 
-    public UUID randomUUID() {
+    public char nextChar( final String characters )
+    {
+        if ( characters == null )
+        {
+            throw new NullPointerException( "characters cannot be null" );
+        }
+        return characters.charAt( nextInt( characters.length() ) );
+    }
+
+    public void nextBytes( final byte[] secArray )
+    {
+        internalRand.nextBytes( secArray );
+    }
+
+    public UUID randomUUID( )
+    {
         return UUID.randomUUID();
     }
 
-    public byte[] newBytes(final int length) {
-        final byte[] newBytes = new byte[length];
-        nextBytes(newBytes);
+    public byte[] newBytes( final int length )
+    {
+        final byte[] newBytes = new byte[ length ];
+        nextBytes( newBytes );
         return newBytes;
     }
 }

@@ -28,24 +28,26 @@ import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.util.cli.CliParameters;
 
-public class ConfigLockCommand extends AbstractCliCommand {
-    public void doCommand()
+public class ConfigLockCommand extends AbstractCliCommand
+{
+    public void doCommand( )
             throws Exception
     {
         final ConfigurationReader configurationReader = cliEnvironment.getConfigurationReader();
         final StoredConfigurationImpl storedConfiguration = configurationReader.getStoredConfiguration();
-        if (!Boolean.parseBoolean(storedConfiguration.readConfigProperty(ConfigurationProperty.CONFIG_IS_EDITABLE))) {
-            out("configuration is already locked");
+        if ( !Boolean.parseBoolean( storedConfiguration.readConfigProperty( ConfigurationProperty.CONFIG_IS_EDITABLE ) ) )
+        {
+            out( "configuration is already locked" );
             return;
         }
 
-        storedConfiguration.writeConfigProperty(ConfigurationProperty.CONFIG_IS_EDITABLE,Boolean.toString(false));
-        configurationReader.saveConfiguration(storedConfiguration, cliEnvironment.getPwmApplication(), SessionLabel.CLI_SESSION_LABEL);
-        out("success");
+        storedConfiguration.writeConfigProperty( ConfigurationProperty.CONFIG_IS_EDITABLE, Boolean.toString( false ) );
+        configurationReader.saveConfiguration( storedConfiguration, cliEnvironment.getPwmApplication(), SessionLabel.CLI_SESSION_LABEL );
+        out( "success" );
     }
 
     @Override
-    public CliParameters getCliParameters()
+    public CliParameters getCliParameters( )
     {
         final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "ConfigLock";

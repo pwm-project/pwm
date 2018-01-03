@@ -26,38 +26,40 @@ import password.pwm.PwmConstants;
 
 import javax.swing.JOptionPane;
 
-public class JarMain {
 
-    public static void main(final String[] args)
+public class JarMain
+{
+
+    public static void main( final String[] args )
     {
-        System.out.println(buildInfoString());
+        System.out.println( buildInfoString() );
 
         JOptionPane.showMessageDialog
-                (null,
+                ( null,
                         buildInfoString(),
                         "About",
-                        JOptionPane.INFORMATION_MESSAGE);
+                        JOptionPane.INFORMATION_MESSAGE );
     }
 
-    private static String buildInfoString()
+    private static String buildInfoString( )
     {
         final StringBuilder sb = new StringBuilder();
 
-        sb.append(PwmConstants.PWM_APP_NAME + " v" + PwmConstants.BUILD_VERSION + " (" + PwmConstants.BUILD_TYPE + ")\n");
-        sb.append("\n");
-        sb.append("Build Information: \n");
+        sb.append( PwmConstants.PWM_APP_NAME + " v" + PwmConstants.BUILD_VERSION + " (" + PwmConstants.BUILD_TYPE + ")\n" );
+        sb.append( "\n" );
+        sb.append( "Build Information: \n" );
 
-        sb.append("build.time=" + PwmConstants.BUILD_TIME + "\n");
-        sb.append("build.number=" + PwmConstants.BUILD_NUMBER + "\n");
-        sb.append("build.type=" + PwmConstants.BUILD_TYPE + "\n");
-        sb.append("build.user=" + PwmConstants.BUILD_USER + "\n");
-        sb.append("build.java.version=" + PwmConstants.BUILD_JAVA_VERSION + "\n");
-        sb.append("build.java.vendor=" + PwmConstants.BUILD_JAVA_VENDOR + "\n");
+        sb.append( "build.time=" + PwmConstants.BUILD_TIME + "\n" );
+        sb.append( "build.number=" + PwmConstants.BUILD_NUMBER + "\n" );
+        sb.append( "build.type=" + PwmConstants.BUILD_TYPE + "\n" );
+        sb.append( "build.user=" + PwmConstants.BUILD_USER + "\n" );
+        sb.append( "build.java.version=" + PwmConstants.BUILD_JAVA_VERSION + "\n" );
+        sb.append( "build.java.vendor=" + PwmConstants.BUILD_JAVA_VENDOR + "\n" );
 
-        sb.append("\n");
-        sb.append("Reference URL: " + PwmConstants.PWM_URL_HOME + "\n");
-        sb.append("\n");
-        sb.append("source files are included inside jar archive");
+        sb.append( "\n" );
+        sb.append( "Reference URL: " + PwmConstants.PWM_URL_HOME + "\n" );
+        sb.append( "\n" );
+        sb.append( "source files are included inside jar archive" );
 
         return sb.toString();
     }

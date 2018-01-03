@@ -40,46 +40,52 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-public class ExportHttpsTomcatConfigCommand extends AbstractCliCommand {
+public class ExportHttpsTomcatConfigCommand extends AbstractCliCommand
+{
 
     @Override
-    void doCommand() throws Exception {
-        final File sourceFile = (File)cliEnvironment.getOptions().get("sourceFile");
-        final File outputFile = (File)cliEnvironment.getOptions().get("outputFile");
+    void doCommand( ) throws Exception
+    {
+        final File sourceFile = ( File ) cliEnvironment.getOptions().get( "sourceFile" );
+        final File outputFile = ( File ) cliEnvironment.getOptions().get( "outputFile" );
         try (
-                FileInputStream fileInputStream = new FileInputStream(sourceFile);
-                FileOutputStream fileOutputStream = new FileOutputStream(outputFile)
-        ) {
+                FileInputStream fileInputStream = new FileInputStream( sourceFile );
+                FileOutputStream fileOutputStream = new FileOutputStream( outputFile )
+        )
+        {
             TomcatConfigWriter.writeOutputFile(
                     cliEnvironment.getConfig(),
                     fileInputStream,
                     fileOutputStream
             );
-        } catch (IOException e) {
-            out("error during tomcat config file export: " + e.getMessage());
         }
-        out("successfully exported tomcat https settings to " + outputFile.getAbsolutePath());
+        catch ( IOException e )
+        {
+            out( "error during tomcat config file export: " + e.getMessage() );
+        }
+        out( "successfully exported tomcat https settings to " + outputFile.getAbsolutePath() );
     }
 
     @Override
-    public CliParameters getCliParameters()
+    public CliParameters getCliParameters( )
     {
         final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "ExportHttpsTomcatConfig";
         cliParameters.description = "Export the https settings to the tomcat configuration based on a tokenized source server.xml file";
 
-        final CliParameters.Option sourceFileOpt= new CliParameters.Option() {
-            public boolean isOptional()
+        final CliParameters.Option sourceFileOpt = new CliParameters.Option()
+        {
+            public boolean isOptional( )
             {
                 return false;
             }
 
-            public Type getType()
+            public Type getType( )
             {
                 return Type.EXISTING_FILE;
             }
 
-            public String getName()
+            public String getName( )
             {
                 return "sourceFile";
             }
@@ -87,8 +93,8 @@ public class ExportHttpsTomcatConfigCommand extends AbstractCliCommand {
         };
 
         final List<CliParameters.Option> options = new ArrayList<>();
-        options.add(sourceFileOpt);
-        options.add(CliParameters.REQUIRED_NEW_OUTPUT_FILE);
+        options.add( sourceFileOpt );
+        options.add( CliParameters.REQUIRED_NEW_OUTPUT_FILE );
 
         cliParameters.options = options;
 
@@ -100,10 +106,11 @@ public class ExportHttpsTomcatConfigCommand extends AbstractCliCommand {
     }
 
 
-    public static class TomcatConfigWriter {
+    public static class TomcatConfigWriter
+    {
 
         private static final String TOKEN_TLS_PROTOCOLS = "%TLS_PROTOCOLS%";
-        private static final String TOKEN_TLS_CIPHERS   = "%TLS_CIPHERS%";
+        private static final String TOKEN_TLS_CIPHERS = "%TLS_CIPHERS%";
 
         public static void writeOutputFile(
                 final Configuration configuration,
@@ -112,22 +119,25 @@ public class ExportHttpsTomcatConfigCommand extends AbstractCliCommand {
         )
                 throws IOException
         {
-            String fileContents = IOUtils.toString(sourceFile, PwmConstants.DEFAULT_CHARSET.toString());
-            fileContents = fileContents.replace(TOKEN_TLS_PROTOCOLS, getTlsProtocolsValue(configuration));
-            final String tlsCiphers = configuration.readSettingAsString(PwmSetting.HTTPS_CIPHERS);
-            fileContents = fileContents.replace(TOKEN_TLS_CIPHERS, tlsCiphers);
-            outputFile.write(fileContents.getBytes(PwmConstants.DEFAULT_CHARSET));
+            String fileContents = IOUtils.toString( sourceFile, PwmConstants.DEFAULT_CHARSET.toString() );
+            fileContents = fileContents.replace( TOKEN_TLS_PROTOCOLS, getTlsProtocolsValue( configuration ) );
+            final String tlsCiphers = configuration.readSettingAsString( PwmSetting.HTTPS_CIPHERS );
+            fileContents = fileContents.replace( TOKEN_TLS_CIPHERS, tlsCiphers );
+            outputFile.write( fileContents.getBytes( PwmConstants.DEFAULT_CHARSET ) );
         }
 
 
-        private static String getTlsProtocolsValue(final Configuration configuration) {
-            final Set<TLSVersion> tlsVersions = configuration.readSettingAsOptionList(PwmSetting.HTTPS_PROTOCOLS, TLSVersion.class);
+        private static String getTlsProtocolsValue( final Configuration configuration )
+        {
+            final Set<TLSVersion> tlsVersions = configuration.readSettingAsOptionList( PwmSetting.HTTPS_PROTOCOLS, TLSVersion.class );
             final StringBuilder output = new StringBuilder();
-            for (final Iterator<TLSVersion> versionIterator = tlsVersions.iterator(); versionIterator.hasNext(); ) {
+            for ( final Iterator<TLSVersion> versionIterator = tlsVersions.iterator(); versionIterator.hasNext(); )
+            {
                 final TLSVersion tlsVersion = versionIterator.next();
-                output.append(tlsVersion.getTomcatValueName());
-                if (versionIterator.hasNext()) {
-                    output.append(", ");
+                output.append( tlsVersion.getTomcatValueName() );
+                if ( versionIterator.hasNext() )
+                {
+                    output.append( ", " );
                 }
             }
             return output.toString();

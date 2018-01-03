@@ -27,9 +27,10 @@ import password.pwm.http.PwmRequest;
 
 import java.io.IOException;
 
-public interface PwmHttpFilterAuthenticationProvider {
-    void attemptAuthentication( PwmRequest pwmRequest)
+public interface PwmHttpFilterAuthenticationProvider
+{
+    void attemptAuthentication( PwmRequest pwmRequest )
             throws PwmUnrecoverableException, IOException;
 
-    boolean hasRedirectedResponse();
+    boolean hasRedirectedResponse( );
 }

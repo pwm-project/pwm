@@ -28,69 +28,72 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-public interface LocalDBProvider {
+public interface LocalDBProvider
+{
 
-    enum Flag {
+    enum Flag
+    {
         SlowSizeOperations,
     }
 
-    enum Parameter {
+    enum Parameter
+    {
         readOnly,
         aggressiveCompact,
     }
 
     @LocalDB.WriteOperation
-    void close()
+    void close( )
             throws LocalDBException;
 
     @LocalDB.ReadOperation
-    boolean contains(LocalDB.DB db, String key)
+    boolean contains( LocalDB.DB db, String key )
             throws LocalDBException;
 
     @LocalDB.ReadOperation
-    String get(LocalDB.DB db, String key)
+    String get( LocalDB.DB db, String key )
             throws LocalDBException;
 
     @LocalDB.WriteOperation
-    void init(File dbDirectory, Map<String, String> initParameters, Map<Parameter,String> parameters)
+    void init( File dbDirectory, Map<String, String> initParameters, Map<Parameter, String> parameters )
             throws LocalDBException;
 
-    LocalDB.LocalDBIterator<String> iterator(LocalDB.DB db)
-            throws LocalDBException;
-
-    @LocalDB.WriteOperation
-    void putAll(LocalDB.DB db, Map<String, String> keyValueMap)
+    LocalDB.LocalDBIterator<String> iterator( LocalDB.DB db )
             throws LocalDBException;
 
     @LocalDB.WriteOperation
-    boolean put(LocalDB.DB db, String key, String value)
+    void putAll( LocalDB.DB db, Map<String, String> keyValueMap )
             throws LocalDBException;
 
     @LocalDB.WriteOperation
-    boolean putIfAbsent(LocalDB.DB db, String key, String value)
+    boolean put( LocalDB.DB db, String key, String value )
             throws LocalDBException;
 
     @LocalDB.WriteOperation
-    boolean remove(LocalDB.DB db, String key)
+    boolean putIfAbsent( LocalDB.DB db, String key, String value )
             throws LocalDBException;
 
     @LocalDB.WriteOperation
-    void removeAll(LocalDB.DB db, Collection<String> key)
+    boolean remove( LocalDB.DB db, String key )
+            throws LocalDBException;
+
+    @LocalDB.WriteOperation
+    void removeAll( LocalDB.DB db, Collection<String> key )
             throws LocalDBException;
 
     @LocalDB.ReadOperation
-    int size(LocalDB.DB db)
+    int size( LocalDB.DB db )
             throws LocalDBException;
 
     @LocalDB.WriteOperation
-    void truncate(LocalDB.DB db)
+    void truncate( LocalDB.DB db )
             throws LocalDBException;
 
-    File getFileLocation();
+    File getFileLocation( );
 
-    LocalDB.Status getStatus();
+    LocalDB.Status getStatus( );
 
-    Map<String,Serializable> debugInfo();
+    Map<String, Serializable> debugInfo( );
 
-    Set<Flag> flags();
+    Set<Flag> flags( );
 }

@@ -48,7 +48,7 @@
                         <label>
                             Example: <code><%=PwmSetting.LDAP_PROXY_USER_DN.getExample(ConfigGuideForm.generateStoredConfig(configGuideBean).getTemplateSet())%></code>
                             <br/><br/>
-                            <b><pwm:display key="ldap_admin_title_proxy-dn" bundle="ConfigGuide"/></b>
+                            <b><pwm:display key="ldap_admin_title_proxy_dn" bundle="ConfigGuide"/></b>
                             <br/>
                             <input class="configStringInput" type="text" style="width:400px" id="<%=ConfigGuideFormField.PARAM_LDAP_PROXY_DN%>" name="<%=ConfigGuideFormField.PARAM_LDAP_PROXY_DN%>" value="<%=configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_LDAP_PROXY_DN)%>" <pwm:autofocus/> />
                             <% if (!isAD) { %>
@@ -62,7 +62,7 @@
                     &nbsp;<br/>
                     <div class="setting_item">
                         <label>
-                            <b><pwm:display key="ldap_admin_title_proxy-pw" bundle="ConfigGuide"/></b>
+                            <b><pwm:display key="ldap_admin_title_proxy_pw" bundle="ConfigGuide"/></b>
                             <br/>
                             <input style="width:200px" class="configStringInput passwordfield" type="password" id="<%=ConfigGuideFormField.PARAM_LDAP_PROXY_PW%>" name="<%=ConfigGuideFormField.PARAM_LDAP_PROXY_PW%>" value="<%=configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_LDAP_PROXY_PW)%>"/>
                         </label>

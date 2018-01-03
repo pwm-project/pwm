@@ -36,9 +36,10 @@ import java.util.Map;
 
 @Getter
 @Setter
-public class PeopleSearchClientConfigBean implements Serializable {
+public class PeopleSearchClientConfigBean implements Serializable
+{
 
-    private Map<String,String> peoplesearch_search_columns;
+    private Map<String, String> peoplesearch_search_columns;
     private boolean peoplesearch_enablePhoto;
     private boolean peoplesearch_orgChartEnabled;
     private boolean orgChartShowChildCount;
@@ -49,21 +50,22 @@ public class PeopleSearchClientConfigBean implements Serializable {
             final Configuration configuration,
             final PeopleSearchConfiguration peopleSearchConfiguration,
             final Locale locale
-            )
+    )
     {
         final Map<String, String> searchColumns = new LinkedHashMap<>();
-        final List<FormConfiguration> searchForm = configuration.readSettingAsForm(PwmSetting.PEOPLE_SEARCH_RESULT_FORM);
-        for (final FormConfiguration formConfiguration : searchForm) {
-            searchColumns.put(formConfiguration.getName(),
-                    formConfiguration.getLabel(locale));
+        final List<FormConfiguration> searchForm = configuration.readSettingAsForm( PwmSetting.PEOPLE_SEARCH_RESULT_FORM );
+        for ( final FormConfiguration formConfiguration : searchForm )
+        {
+            searchColumns.put( formConfiguration.getName(),
+                    formConfiguration.getLabel( locale ) );
         }
 
         final PeopleSearchClientConfigBean peopleSearchClientConfigBean = new PeopleSearchClientConfigBean();
-        peopleSearchClientConfigBean.setPeoplesearch_search_columns(searchColumns);
-        peopleSearchClientConfigBean.setPeoplesearch_enablePhoto(peopleSearchConfiguration.isPhotosEnabled());
-        peopleSearchClientConfigBean.setPeoplesearch_orgChartEnabled(peopleSearchConfiguration.isOrgChartEnabled());
-        peopleSearchClientConfigBean.setOrgChartShowChildCount(peopleSearchConfiguration.isOrgChartShowChildCount());
-        peopleSearchClientConfigBean.setOrgChartMaxParents(peopleSearchClientConfigBean.getOrgChartMaxParents());
+        peopleSearchClientConfigBean.setPeoplesearch_search_columns( searchColumns );
+        peopleSearchClientConfigBean.setPeoplesearch_enablePhoto( peopleSearchConfiguration.isPhotosEnabled() );
+        peopleSearchClientConfigBean.setPeoplesearch_orgChartEnabled( peopleSearchConfiguration.isOrgChartEnabled() );
+        peopleSearchClientConfigBean.setOrgChartShowChildCount( peopleSearchConfiguration.isOrgChartShowChildCount() );
+        peopleSearchClientConfigBean.setOrgChartMaxParents( peopleSearchClientConfigBean.getOrgChartMaxParents() );
 
         return peopleSearchClientConfigBean;
     }

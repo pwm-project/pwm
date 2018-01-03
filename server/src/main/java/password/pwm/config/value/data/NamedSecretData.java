@@ -31,7 +31,8 @@ import java.util.List;
 
 @Getter
 @AllArgsConstructor
-public class NamedSecretData implements Serializable {
+public class NamedSecretData implements Serializable
+{
     private PasswordData password;
     private List<String> usage;
 }

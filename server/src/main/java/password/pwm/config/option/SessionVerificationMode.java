@@ -22,7 +22,8 @@
 
 package password.pwm.config.option;
 
-public enum SessionVerificationMode implements ConfigurationOption {
+public enum SessionVerificationMode implements ConfigurationOption
+{
     OFF,
     VERIFY,
     VERIFY_AND_CACHE,

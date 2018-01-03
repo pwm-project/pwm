@@ -24,7 +24,8 @@ package password.pwm.cr;
 
 import java.io.Serializable;
 
-public class CrChallengeItemBean implements Serializable {
+public class CrChallengeItemBean implements Serializable
+{
     public String challengeText;
     public int minLength;
     public int maxLength;
@@ -33,7 +34,16 @@ public class CrChallengeItemBean implements Serializable {
     public int maxQuestionCharsInAnswer;
     public boolean enforceWordlist;
 
-    public CrChallengeItemBean(final String challengeText, final int minLength, final int maxLength, final boolean adminDefined, final boolean required, final int maxQuestionCharsInAnswer, final boolean enforceWordlist) {
+    public CrChallengeItemBean(
+            final String challengeText,
+            final int minLength,
+            final int maxLength,
+            final boolean adminDefined,
+            final boolean required,
+            final int maxQuestionCharsInAnswer,
+            final boolean enforceWordlist
+    )
+    {
         this.challengeText = challengeText;
         this.minLength = minLength;
         this.maxLength = maxLength;
@@ -43,31 +53,38 @@ public class CrChallengeItemBean implements Serializable {
         this.enforceWordlist = enforceWordlist;
     }
 
-    public String getChallengeText() {
+    public String getChallengeText( )
+    {
         return challengeText;
     }
 
-    public int getMinLength() {
+    public int getMinLength( )
+    {
         return minLength;
     }
 
-    public int getMaxLength() {
+    public int getMaxLength( )
+    {
         return maxLength;
     }
 
-    public boolean isAdminDefined() {
+    public boolean isAdminDefined( )
+    {
         return adminDefined;
     }
 
-    public boolean isRequired() {
+    public boolean isRequired( )
+    {
         return required;
     }
 
-    public int getMaxQuestionCharsInAnswer() {
+    public int getMaxQuestionCharsInAnswer( )
+    {
         return maxQuestionCharsInAnswer;
     }
 
-    public boolean isEnforceWordlist() {
+    public boolean isEnforceWordlist( )
+    {
         return enforceWordlist;
     }
 }

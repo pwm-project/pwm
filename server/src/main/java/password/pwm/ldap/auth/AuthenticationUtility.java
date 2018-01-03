@@ -30,17 +30,21 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 
-public abstract class AuthenticationUtility {
+public abstract class AuthenticationUtility
+{
     public static void checkIfUserEligibleToAuthentication(
             final PwmApplication pwmApplication,
             final UserIdentity userIdentity
     )
             throws PwmUnrecoverableException
     {
-        try {
-            checkIfUserEligibleToAuthenticationImpl(pwmApplication, userIdentity);
-        } catch (ChaiOperationException | ChaiUnavailableException e) {
-            throw new PwmUnrecoverableException(PwmError.forChaiError(e.getErrorCode()));
+        try
+        {
+            checkIfUserEligibleToAuthenticationImpl( pwmApplication, userIdentity );
+        }
+        catch ( ChaiOperationException | ChaiUnavailableException e )
+        {
+            throw new PwmUnrecoverableException( PwmError.forChaiError( e.getErrorCode() ) );
         }
     }
 
@@ -50,14 +54,16 @@ public abstract class AuthenticationUtility {
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, ChaiOperationException
     {
-        final ChaiUser chaiUser = pwmApplication.getProxiedChaiUser(userIdentity);
+        final ChaiUser chaiUser = pwmApplication.getProxiedChaiUser( userIdentity );
 
-        if (!chaiUser.isAccountEnabled()) {
-            throw new PwmUnrecoverableException(PwmError.ERROR_ACCOUNT_DISABLED);
+        if ( !chaiUser.isAccountEnabled() )
+        {
+            throw new PwmUnrecoverableException( PwmError.ERROR_ACCOUNT_DISABLED );
         }
 
-        if (chaiUser.isAccountExpired()) {
-            throw new PwmUnrecoverableException(PwmError.ERROR_ACCOUNT_EXPIRED);
+        if ( chaiUser.isAccountExpired() )
+        {
+            throw new PwmUnrecoverableException( PwmError.ERROR_ACCOUNT_EXPIRED );
         }
     }
 

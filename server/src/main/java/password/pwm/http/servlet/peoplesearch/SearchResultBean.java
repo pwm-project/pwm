@@ -27,41 +27,50 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-class SearchResultBean implements Serializable {
-    private List<Map<String,Object>> searchResults = new ArrayList<>();
+class SearchResultBean implements Serializable
+{
+    private List<Map<String, Object>> searchResults = new ArrayList<>();
     private boolean sizeExceeded;
     private String aboutResultMessage;
     private boolean fromCache;
 
-    public List<Map<String,Object>> getSearchResults() {
+    public List<Map<String, Object>> getSearchResults( )
+    {
         return searchResults;
     }
 
-    public void setSearchResults(final List<Map<String,Object>> searchResults) {
+    public void setSearchResults( final List<Map<String, Object>> searchResults )
+    {
         this.searchResults = searchResults;
     }
 
-    public boolean isSizeExceeded() {
+    public boolean isSizeExceeded( )
+    {
         return sizeExceeded;
     }
 
-    public void setSizeExceeded(final boolean sizeExceeded) {
+    public void setSizeExceeded( final boolean sizeExceeded )
+    {
         this.sizeExceeded = sizeExceeded;
     }
 
-    public String getAboutResultMessage() {
+    public String getAboutResultMessage( )
+    {
         return aboutResultMessage;
     }
 
-    public void setAboutResultMessage(final String aboutResultMessage) {
+    public void setAboutResultMessage( final String aboutResultMessage )
+    {
         this.aboutResultMessage = aboutResultMessage;
     }
 
-    public boolean isFromCache() {
+    public boolean isFromCache( )
+    {
         return fromCache;
     }
 
-    public void setFromCache(final boolean fromCache) {
+    public void setFromCache( final boolean fromCache )
+    {
         this.fromCache = fromCache;
     }
 }

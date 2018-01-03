@@ -22,7 +22,8 @@
 
 package password.pwm.ldap.auth;
 
-public enum AuthenticationStrategy {
+public enum AuthenticationStrategy
+{
     BIND,
     READ_THEN_BIND,
     WRITE_THEN_BIND,

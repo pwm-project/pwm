@@ -29,26 +29,27 @@ import password.pwm.util.cli.CliParameters;
 
 import java.util.Collections;
 
-public class ConfigSetPasswordCommand extends AbstractCliCommand {
+public class ConfigSetPasswordCommand extends AbstractCliCommand
+{
 
-    public void doCommand()
+    public void doCommand( )
             throws Exception
     {
         final ConfigurationReader configurationReader = cliEnvironment.getConfigurationReader();
         final StoredConfigurationImpl storedConfiguration = configurationReader.getStoredConfiguration();
         final String password = getOptionalPassword();
-        storedConfiguration.setPassword(password);
-        configurationReader.saveConfiguration(storedConfiguration, cliEnvironment.getPwmApplication(), SessionLabel.CLI_SESSION_LABEL);
-        out("success");
+        storedConfiguration.setPassword( password );
+        configurationReader.saveConfiguration( storedConfiguration, cliEnvironment.getPwmApplication(), SessionLabel.CLI_SESSION_LABEL );
+        out( "success" );
     }
 
     @Override
-    public CliParameters getCliParameters()
+    public CliParameters getCliParameters( )
     {
         final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "ConfigSetPassword";
         cliParameters.description = "Sets the configuration password";
-        cliParameters.options = Collections.singletonList(CliParameters.OPTIONAL_PASSWORD);
+        cliParameters.options = Collections.singletonList( CliParameters.OPTIONAL_PASSWORD );
         cliParameters.needsPwmApplication = false;
         cliParameters.needsLocalDB = false;
         cliParameters.readOnly = true;

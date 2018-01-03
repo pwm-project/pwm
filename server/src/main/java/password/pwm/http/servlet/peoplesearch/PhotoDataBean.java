@@ -22,20 +22,24 @@
 
 package password.pwm.http.servlet.peoplesearch;
 
-class PhotoDataBean {
+class PhotoDataBean
+{
     private final String mimeType;
     private byte[] contents;
 
-    PhotoDataBean(final String mimeType, final byte[] contents) {
+    PhotoDataBean( final String mimeType, final byte[] contents )
+    {
         this.mimeType = mimeType;
         this.contents = contents;
     }
 
-    public String getMimeType() {
+    public String getMimeType( )
+    {
         return mimeType;
     }
 
-    public byte[] getContents() {
+    public byte[] getContents( )
+    {
         return contents;
     }
 }

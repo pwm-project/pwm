@@ -24,14 +24,16 @@ package password.pwm.config.stored;
 
 import java.io.Serializable;
 
-public interface StoredConfigReference extends Serializable, Comparable {
-    RecordType getRecordType();
+public interface StoredConfigReference extends Serializable, Comparable
+{
+    RecordType getRecordType( );
 
-    String getRecordID();
+    String getRecordID( );
 
-    String getProfileID();
+    String getProfileID( );
 
-    enum RecordType {
+    enum RecordType
+    {
         SETTING,
         LOCALE_BUNDLE,
         PROPERTY,

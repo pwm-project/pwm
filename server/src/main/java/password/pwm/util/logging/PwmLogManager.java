@@ -45,29 +45,33 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class PwmLogManager {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(PwmLogManager.class);
+public class PwmLogManager
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( PwmLogManager.class );
 
-    public static final List<Package> LOGGING_PACKAGES = Collections.unmodifiableList(Arrays.asList(
+    public static final List<Package> LOGGING_PACKAGES = Collections.unmodifiableList( Arrays.asList(
             PwmApplication.class.getPackage(),
             ChaiUser.class.getPackage(),
-            Package.getPackage("org.jasig.cas.client")
-    ));
+            Package.getPackage( "org.jasig.cas.client" )
+    ) );
 
-    public static void deinitializeLogger() {
+    public static void deinitializeLogger( )
+    {
         // clear all existing package loggers
-        for (final Package logPackage : LOGGING_PACKAGES) {
-            if (logPackage != null) {
-                final Logger logger = Logger.getLogger(logPackage.getName());
-                logger.setAdditivity(false);
+        for ( final Package logPackage : LOGGING_PACKAGES )
+        {
+            if ( logPackage != null )
+            {
+                final Logger logger = Logger.getLogger( logPackage.getName() );
+                logger.setAdditivity( false );
                 logger.removeAllAppenders();
-                logger.setLevel(Level.TRACE);
+                logger.setLevel( Level.TRACE );
             }
         }
 
-        PwmLogger.setLocalDBLogger(null,null);
-        PwmLogger.setPwmApplication(null);
-        PwmLogger.setFileAppender(null);
+        PwmLogger.setLocalDBLogger( null, null );
+        PwmLogger.setPwmApplication( null );
+        PwmLogger.setFileAppender( null );
     }
 
     public static void initializeLogger(
@@ -77,31 +81,37 @@ public class PwmLogManager {
             final String consoleLogLevel,
             final File pwmApplicationPath,
             final String fileLogLevel
-    ) {
-        PwmLogger.setPwmApplication(pwmApplication);
+    )
+    {
+        PwmLogger.setPwmApplication( pwmApplication );
 
         // try to configure using the log4j config file (if it exists)
-        if (log4jConfigFile != null) {
-            try {
-                if (!log4jConfigFile.exists()) {
-                    throw new Exception("file not found: " + log4jConfigFile.getAbsolutePath());
+        if ( log4jConfigFile != null )
+        {
+            try
+            {
+                if ( !log4jConfigFile.exists() )
+                {
+                    throw new Exception( "file not found: " + log4jConfigFile.getAbsolutePath() );
                 }
-                DOMConfigurator.configure(log4jConfigFile.getAbsolutePath());
-                LOGGER.debug("successfully initialized log4j using file " + log4jConfigFile.getAbsolutePath());
+                DOMConfigurator.configure( log4jConfigFile.getAbsolutePath() );
+                LOGGER.debug( "successfully initialized log4j using file " + log4jConfigFile.getAbsolutePath() );
                 return;
-            } catch (Exception e) {
-                LOGGER.error("error loading log4jconfig file '" + log4jConfigFile + "' error: " + e.getMessage());
+            }
+            catch ( Exception e )
+            {
+                LOGGER.error( "error loading log4jconfig file '" + log4jConfigFile + "' error: " + e.getMessage() );
             }
         }
 
         deinitializeLogger();
 
-        initConsoleLogger(config, consoleLogLevel);
+        initConsoleLogger( config, consoleLogLevel );
 
-        initFileLogger(config, fileLogLevel, pwmApplicationPath);
+        initFileLogger( config, fileLogLevel, pwmApplicationPath );
 
         // disable jersey warnings.
-        java.util.logging.Logger.getLogger("org.glassfish.jersey").setLevel(java.util.logging.Level.SEVERE);
+        java.util.logging.Logger.getLogger( "org.glassfish.jersey" ).setLevel( java.util.logging.Level.SEVERE );
     }
 
     private static void initConsoleLogger(
@@ -109,22 +119,27 @@ public class PwmLogManager {
             final String consoleLogLevel
     )
     {
-        final Layout patternLayout = new PatternLayout(config.readAppProperty(AppProperty.LOGGING_PATTERN));
+        final Layout patternLayout = new PatternLayout( config.readAppProperty( AppProperty.LOGGING_PATTERN ) );
         // configure console logging
-        if (consoleLogLevel != null && consoleLogLevel.length() > 0 && !"Off".equals(consoleLogLevel)) {
-            final ConsoleAppender consoleAppender = new ConsoleAppender(patternLayout);
-            final Level level = Level.toLevel(consoleLogLevel);
-            consoleAppender.setThreshold(level);
-            for (final Package logPackage : LOGGING_PACKAGES) {
-                if (logPackage != null) {
-                    final Logger logger = Logger.getLogger(logPackage.getName());
-                    logger.setLevel(Level.TRACE);
-                    logger.addAppender(consoleAppender);
+        if ( consoleLogLevel != null && consoleLogLevel.length() > 0 && !"Off".equals( consoleLogLevel ) )
+        {
+            final ConsoleAppender consoleAppender = new ConsoleAppender( patternLayout );
+            final Level level = Level.toLevel( consoleLogLevel );
+            consoleAppender.setThreshold( level );
+            for ( final Package logPackage : LOGGING_PACKAGES )
+            {
+                if ( logPackage != null )
+                {
+                    final Logger logger = Logger.getLogger( logPackage.getName() );
+                    logger.setLevel( Level.TRACE );
+                    logger.addAppender( consoleAppender );
                 }
             }
-            LOGGER.debug("successfully initialized default console log4j config at log level " + level.toString());
-        } else {
-            LOGGER.debug("skipping stdout log4j initialization due to blank setting for log level");
+            LOGGER.debug( "successfully initialized default console log4j config at log level " + level.toString() );
+        }
+        else
+        {
+            LOGGER.debug( "skipping stdout log4j initialization due to blank setting for log level" );
         }
     }
 
@@ -134,81 +149,102 @@ public class PwmLogManager {
             final File pwmApplicationPath
     )
     {
-        final Layout patternLayout = new PatternLayout(config.readAppProperty(AppProperty.LOGGING_PATTERN));
+        final Layout patternLayout = new PatternLayout( config.readAppProperty( AppProperty.LOGGING_PATTERN ) );
 
         // configure file logging
-        final String logDirectorySetting = config.readAppProperty(AppProperty.LOGGING_FILE_PATH);
-        final File logDirectory = FileSystemUtility.figureFilepath(logDirectorySetting, pwmApplicationPath);
+        final String logDirectorySetting = config.readAppProperty( AppProperty.LOGGING_FILE_PATH );
+        final File logDirectory = FileSystemUtility.figureFilepath( logDirectorySetting, pwmApplicationPath );
 
-        if (logDirectory != null && fileLogLevel != null && fileLogLevel.length() > 0 && !"Off".equals(fileLogLevel)) {
-            try {
-                if (!logDirectory.exists()) {
-                    if (logDirectory.mkdir()) {
-                        LOGGER.info("created directory " + logDirectory.getAbsoluteFile());
-                    } else {
-                        throw new IOException("failed to create directory " + logDirectory.getAbsoluteFile());
+        if ( logDirectory != null && fileLogLevel != null && fileLogLevel.length() > 0 && !"Off".equals( fileLogLevel ) )
+        {
+            try
+            {
+                if ( !logDirectory.exists() )
+                {
+                    if ( logDirectory.mkdir() )
+                    {
+                        LOGGER.info( "created directory " + logDirectory.getAbsoluteFile() );
+                    }
+                    else
+                    {
+                        throw new IOException( "failed to create directory " + logDirectory.getAbsoluteFile() );
                     }
                 }
 
                 final String fileName = logDirectory.getAbsolutePath() + File.separator + PwmConstants.PWM_APP_NAME + ".log";
-                final RollingFileAppender fileAppender = new RollingFileAppender(patternLayout,fileName,true);
-                final Level level = Level.toLevel(fileLogLevel);
-                fileAppender.setThreshold(level);
-                fileAppender.setMaxBackupIndex(Integer.parseInt(config.readAppProperty(AppProperty.LOGGING_FILE_MAX_ROLLOVER)));
-                fileAppender.setMaxFileSize(config.readAppProperty(AppProperty.LOGGING_FILE_MAX_SIZE));
+                final RollingFileAppender fileAppender = new RollingFileAppender( patternLayout, fileName, true );
+                final Level level = Level.toLevel( fileLogLevel );
+                fileAppender.setThreshold( level );
+                fileAppender.setMaxBackupIndex( Integer.parseInt( config.readAppProperty( AppProperty.LOGGING_FILE_MAX_ROLLOVER ) ) );
+                fileAppender.setMaxFileSize( config.readAppProperty( AppProperty.LOGGING_FILE_MAX_SIZE ) );
 
-                PwmLogger.setFileAppender(fileAppender);
+                PwmLogger.setFileAppender( fileAppender );
 
-                for (final Package logPackage : LOGGING_PACKAGES) {
-                    if (logPackage != null) {
+                for ( final Package logPackage : LOGGING_PACKAGES )
+                {
+                    if ( logPackage != null )
+                    {
                         //if (!logPackage.equals(PwmApplication.class.getPackage())) {
-                        final Logger logger = Logger.getLogger(logPackage.getName());
-                        logger.setLevel(Level.TRACE);
-                        logger.addAppender(fileAppender);
+                        final Logger logger = Logger.getLogger( logPackage.getName() );
+                        logger.setLevel( Level.TRACE );
+                        logger.addAppender( fileAppender );
                         //}
                     }
                 }
-                LOGGER.debug("successfully initialized default file log4j config at log level " + level.toString());
-            } catch (IOException e) {
-                LOGGER.debug("error initializing RollingFileAppender: " + e.getMessage());
+                LOGGER.debug( "successfully initialized default file log4j config at log level " + level.toString() );
+            }
+            catch ( IOException e )
+            {
+                LOGGER.debug( "error initializing RollingFileAppender: " + e.getMessage() );
             }
         }
     }
 
-    public static LocalDBLogger initializeLocalDBLogger(final PwmApplication pwmApplication) {
+    public static LocalDBLogger initializeLocalDBLogger( final PwmApplication pwmApplication )
+    {
         final LocalDB localDB = pwmApplication.getLocalDB();
 
-        if (pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY) {
-            LOGGER.trace("skipping initialization of LocalDBLogger due to read-only mode");
+        if ( pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY )
+        {
+            LOGGER.trace( "skipping initialization of LocalDBLogger due to read-only mode" );
             return null;
         }
 
         // initialize the localDBLogger
         final LocalDBLogger localDBLogger;
         final PwmLogLevel localDBLogLevel = pwmApplication.getConfig().getEventLogLocalDBLevel();
-        try {
-            localDBLogger = initLocalDBLogger(localDB, pwmApplication);
-            if (localDBLogger != null) {
-                PwmLogger.setLocalDBLogger(localDBLogLevel, localDBLogger);
+        try
+        {
+            localDBLogger = initLocalDBLogger( localDB, pwmApplication );
+            if ( localDBLogger != null )
+            {
+                PwmLogger.setLocalDBLogger( localDBLogLevel, localDBLogger );
             }
-        } catch (Exception e) {
-            LOGGER.warn("unable to initialize localDBLogger: " + e.getMessage());
+        }
+        catch ( Exception e )
+        {
+            LOGGER.warn( "unable to initialize localDBLogger: " + e.getMessage() );
             return null;
         }
 
         // add appender for other packages;
-        try {
-            final LocalDBLog4jAppender localDBLog4jAppender = new LocalDBLog4jAppender(localDBLogger);
-            localDBLog4jAppender.setThreshold(localDBLogLevel.getLog4jLevel());
-            for (final Package logPackage : LOGGING_PACKAGES) {
-                if (logPackage != null && !logPackage.equals(PwmApplication.class.getPackage())) {
-                    final Logger logger = Logger.getLogger(logPackage.getName());
-                    logger.addAppender(localDBLog4jAppender);
-                    logger.setLevel(Level.TRACE);
+        try
+        {
+            final LocalDBLog4jAppender localDBLog4jAppender = new LocalDBLog4jAppender( localDBLogger );
+            localDBLog4jAppender.setThreshold( localDBLogLevel.getLog4jLevel() );
+            for ( final Package logPackage : LOGGING_PACKAGES )
+            {
+                if ( logPackage != null && !logPackage.equals( PwmApplication.class.getPackage() ) )
+                {
+                    final Logger logger = Logger.getLogger( logPackage.getName() );
+                    logger.addAppender( localDBLog4jAppender );
+                    logger.setLevel( Level.TRACE );
                 }
             }
-        } catch (Exception e) {
-            LOGGER.warn("unable to initialize localDBLogger/extraAppender: " + e.getMessage());
+        }
+        catch ( Exception e )
+        {
+            LOGGER.warn( "unable to initialize localDBLogger/extraAppender: " + e.getMessage() );
         }
 
         return localDBLogger;
@@ -217,11 +253,15 @@ public class PwmLogManager {
     static LocalDBLogger initLocalDBLogger(
             final LocalDB pwmDB,
             final PwmApplication pwmApplication
-    ) {
-        try {
-            final LocalDBLoggerSettings settings = LocalDBLoggerSettings.fromConfiguration(pwmApplication.getConfig());
-            return new LocalDBLogger(pwmApplication, pwmDB, settings);
-        } catch (LocalDBException e) {
+    )
+    {
+        try
+        {
+            final LocalDBLoggerSettings settings = LocalDBLoggerSettings.fromConfiguration( pwmApplication.getConfig() );
+            return new LocalDBLogger( pwmApplication, pwmDB, settings );
+        }
+        catch ( LocalDBException e )
+        {
             //nothing to do;
         }
         return null;

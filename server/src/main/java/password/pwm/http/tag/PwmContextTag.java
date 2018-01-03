@@ -26,16 +26,20 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.tagext.TagSupport;
 
-public class PwmContextTag extends TagSupport {
+public class PwmContextTag extends TagSupport
+{
 
-    public int doEndTag()
+    public int doEndTag( )
             throws javax.servlet.jsp.JspTagException
     {
-        try {
-            final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
-            pageContext.getOut().write(req.getContextPath());
-        } catch (Exception e) {
-            throw new JspTagException(e.getMessage());
+        try
+        {
+            final HttpServletRequest req = ( HttpServletRequest ) pageContext.getRequest();
+            pageContext.getOut().write( req.getContextPath() );
+        }
+        catch ( Exception e )
+        {
+            throw new JspTagException( e.getMessage() );
         }
         return EVAL_PAGE;
     }

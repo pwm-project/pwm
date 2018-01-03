@@ -26,28 +26,29 @@ import password.pwm.bean.SessionLabel;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 
-interface TokenMachine {
-    String generateToken( SessionLabel sessionLabel,  TokenPayload tokenPayload)
+interface TokenMachine
+{
+    String generateToken( SessionLabel sessionLabel, TokenPayload tokenPayload )
             throws PwmUnrecoverableException, PwmOperationalException;
 
-    TokenPayload retrieveToken(TokenKey tokenKey)
+    TokenPayload retrieveToken( TokenKey tokenKey )
             throws PwmOperationalException, PwmUnrecoverableException;
 
-    void storeToken(TokenKey tokenKey, TokenPayload tokenPayload)
+    void storeToken( TokenKey tokenKey, TokenPayload tokenPayload )
             throws PwmOperationalException, PwmUnrecoverableException;
 
-    void removeToken(TokenKey tokenKey)
+    void removeToken( TokenKey tokenKey )
             throws PwmOperationalException, PwmUnrecoverableException;
 
-    int size()
+    int size( )
             throws PwmOperationalException, PwmUnrecoverableException;
 
-    void cleanup()
+    void cleanup( )
             throws PwmUnrecoverableException, PwmOperationalException;
 
-    boolean supportsName();
+    boolean supportsName( );
 
-    TokenKey keyFromKey(String key) throws PwmUnrecoverableException;
+    TokenKey keyFromKey( String key ) throws PwmUnrecoverableException;
 
-    TokenKey keyFromStoredHash(String storedHash);
+    TokenKey keyFromStoredHash( String storedHash );
 }

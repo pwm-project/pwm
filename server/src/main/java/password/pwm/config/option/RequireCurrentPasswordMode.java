@@ -22,7 +22,8 @@
 
 package password.pwm.config.option;
 
-public enum RequireCurrentPasswordMode {
+public enum RequireCurrentPasswordMode
+{
     TRUE,
     FALSE,
     NOTEXPIRED,

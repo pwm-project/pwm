@@ -40,28 +40,33 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class SessionStateService implements PwmService {
+public class SessionStateService implements PwmService
+{
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass(SessionStateService.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass( SessionStateService.class );
 
     private SessionBeanProvider sessionBeanProvider = new LocalSessionBeanImpl();
     private final SessionBeanProvider httpSessionProvider = new LocalSessionBeanImpl();
 
     private SessionLoginProvider sessionLoginProvider = new LocalLoginSessionImpl();
 
-    private final Map<Class<? extends PwmSessionBean>,PwmSessionBean> beanInstanceCache = new HashMap<>();
+    private final Map<Class<? extends PwmSessionBean>, PwmSessionBean> beanInstanceCache = new HashMap<>();
 
     @Override
-    public STATUS status() {
+    public STATUS status( )
+    {
         return STATUS.OPEN;
     }
 
     @Override
-    public void init(final PwmApplication pwmApplication) throws PwmException {
+    public void init( final PwmApplication pwmApplication ) throws PwmException
+    {
         {
-            final SessionBeanMode sessionBeanMode = pwmApplication.getConfig().readSettingAsEnum(PwmSetting.SECURITY_MODULE_SESSION_MODE, SessionBeanMode.class);
-            if (sessionBeanMode != null) {
-                switch (sessionBeanMode) {
+            final SessionBeanMode sessionBeanMode = pwmApplication.getConfig().readSettingAsEnum( PwmSetting.SECURITY_MODULE_SESSION_MODE, SessionBeanMode.class );
+            if ( sessionBeanMode != null )
+            {
+                switch ( sessionBeanMode )
+                {
                     case LOCAL:
                         sessionBeanProvider = new LocalSessionBeanImpl();
                         break;
@@ -75,16 +80,18 @@ public class SessionStateService implements PwmService {
                         break;
 
                     default:
-                        throw new IllegalStateException("unhandled session bean state: " + sessionBeanMode);
+                        throw new IllegalStateException( "unhandled session bean state: " + sessionBeanMode );
                 }
             }
         }
 
         {
-            final SessionBeanMode loginSessionMode = pwmApplication.getConfig().readSettingAsEnum(PwmSetting.SECURITY_LOGIN_SESSION_MODE, SessionBeanMode.class);
+            final SessionBeanMode loginSessionMode = pwmApplication.getConfig().readSettingAsEnum( PwmSetting.SECURITY_LOGIN_SESSION_MODE, SessionBeanMode.class );
             {
-                if (loginSessionMode != null) {
-                    switch (loginSessionMode) {
+                if ( loginSessionMode != null )
+                {
+                    switch ( loginSessionMode )
+                    {
                         case LOCAL:
                             sessionLoginProvider = new LocalLoginSessionImpl();
                             break;
@@ -94,97 +101,120 @@ public class SessionStateService implements PwmService {
                             break;
 
                         default:
-                            JavaHelper.unhandledSwitchStatement(loginSessionMode);
+                            JavaHelper.unhandledSwitchStatement( loginSessionMode );
                     }
                 }
-                sessionLoginProvider.init(pwmApplication);
+                sessionLoginProvider.init( pwmApplication );
             }
         }
 
 
-        LOGGER.trace("initialized " + sessionBeanProvider.getClass().getName() + " provider");
+        LOGGER.trace( "initialized " + sessionBeanProvider.getClass().getName() + " provider" );
     }
 
     @Override
-    public void close() {
+    public void close( )
+    {
 
     }
 
     @Override
-    public List<HealthRecord> healthCheck() {
+    public List<HealthRecord> healthCheck( )
+    {
         return null;
     }
 
     @Override
-    public ServiceInfoBean serviceInfo() {
+    public ServiceInfoBean serviceInfo( )
+    {
         return null;
     }
 
-    public <E extends PwmSessionBean> E getBean(final PwmRequest pwmRequest, final Class<E> theClass) throws PwmUnrecoverableException {
-        if (theClass == null) {
+    public <E extends PwmSessionBean> E getBean( final PwmRequest pwmRequest, final Class<E> theClass ) throws PwmUnrecoverableException
+    {
+        if ( theClass == null )
+        {
             return null;
         }
 
-        if (beanSupportsMode(theClass, SessionBeanMode.CRYPTCOOKIE)) {
-            return sessionBeanProvider.getSessionBean(pwmRequest, theClass);
+        if ( beanSupportsMode( theClass, SessionBeanMode.CRYPTCOOKIE ) )
+        {
+            return sessionBeanProvider.getSessionBean( pwmRequest, theClass );
         }
-        return httpSessionProvider.getSessionBean(pwmRequest, theClass);
+        return httpSessionProvider.getSessionBean( pwmRequest, theClass );
     }
 
-    public void clearBean(final PwmRequest pwmRequest, final Class<? extends PwmSessionBean> theClass) throws PwmUnrecoverableException {
-        if (beanSupportsMode(theClass, SessionBeanMode.CRYPTCOOKIE)) {
-            sessionBeanProvider.clearSessionBean(pwmRequest, theClass);
+    public void clearBean( final PwmRequest pwmRequest, final Class<? extends PwmSessionBean> theClass ) throws PwmUnrecoverableException
+    {
+        if ( beanSupportsMode( theClass, SessionBeanMode.CRYPTCOOKIE ) )
+        {
+            sessionBeanProvider.clearSessionBean( pwmRequest, theClass );
             return;
         }
-        httpSessionProvider.clearSessionBean(pwmRequest, theClass);
+        httpSessionProvider.clearSessionBean( pwmRequest, theClass );
     }
 
-    public void saveSessionBeans(final PwmRequest pwmRequest) {
-        sessionBeanProvider.saveSessionBeans(pwmRequest);
+    public void saveSessionBeans( final PwmRequest pwmRequest )
+    {
+        sessionBeanProvider.saveSessionBeans( pwmRequest );
     }
 
-    public void clearLoginSession(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
-        sessionLoginProvider.clearLoginSession(pwmRequest);
+    public void clearLoginSession( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
+    {
+        sessionLoginProvider.clearLoginSession( pwmRequest );
     }
 
-    public void saveLoginSessionState(final PwmRequest pwmRequest) {
-        sessionLoginProvider.saveLoginSessionState(pwmRequest);
+    public void saveLoginSessionState( final PwmRequest pwmRequest )
+    {
+        sessionLoginProvider.saveLoginSessionState( pwmRequest );
     }
 
-    public void readLoginSessionState(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
-        sessionLoginProvider.readLoginSessionState(pwmRequest);
+    public void readLoginSessionState( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
+    {
+        sessionLoginProvider.readLoginSessionState( pwmRequest );
     }
 
-    public String getSessionStateInfo(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
-        return sessionBeanProvider.getSessionStateInfo(pwmRequest);
+    public String getSessionStateInfo( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
+    {
+        return sessionBeanProvider.getSessionStateInfo( pwmRequest );
     }
 
 
-    private boolean beanSupportsMode(final Class<? extends PwmSessionBean> theClass, final SessionBeanMode mode) throws PwmUnrecoverableException {
-        if (theClass == null) {
+    private boolean beanSupportsMode( final Class<? extends PwmSessionBean> theClass, final SessionBeanMode mode ) throws PwmUnrecoverableException
+    {
+        if ( theClass == null )
+        {
             return false;
         }
-        if (!beanInstanceCache.containsKey(theClass)) {
-            beanInstanceCache.put(theClass, newBean(null,theClass));
+        if ( !beanInstanceCache.containsKey( theClass ) )
+        {
+            beanInstanceCache.put( theClass, newBean( null, theClass ) );
         }
-        try {
-            return theClass.newInstance().supportedModes().contains(mode);
-        } catch (InstantiationException | IllegalAccessException e) {
+        try
+        {
+            return theClass.newInstance().supportedModes().contains( mode );
+        }
+        catch ( InstantiationException | IllegalAccessException e )
+        {
             e.printStackTrace();
         }
         return false;
     }
 
-    static <E extends PwmSessionBean> E newBean(final String sessionGuid, final Class<E> theClass) throws PwmUnrecoverableException {
-        try {
+    static <E extends PwmSessionBean> E newBean( final String sessionGuid, final Class<E> theClass ) throws PwmUnrecoverableException
+    {
+        try
+        {
             final E newBean = theClass.newInstance();
-            newBean.setGuid(sessionGuid);
-            newBean.setTimestamp(Instant.now());
+            newBean.setGuid( sessionGuid );
+            newBean.setTimestamp( Instant.now() );
             return newBean;
-        } catch (Exception e) {
+        }
+        catch ( Exception e )
+        {
             final String errorMsg = "unexpected error trying to instantiate bean class " + theClass.getName() + ": " + e.getMessage();
-            LOGGER.error(errorMsg, e);
-            throw PwmUnrecoverableException.newException(PwmError.ERROR_UNKNOWN, errorMsg);
+            LOGGER.error( errorMsg, e );
+            throw PwmUnrecoverableException.newException( PwmError.ERROR_UNKNOWN, errorMsg );
         }
     }
 }

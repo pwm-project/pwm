@@ -36,9 +36,10 @@ import java.util.zip.ZipInputStream;
 /**
  * @author Jason D. Rivard
  */
-class ZipReader implements AutoCloseable, Closeable {
+class ZipReader implements AutoCloseable, Closeable
+{
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass(ZipReader.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass( ZipReader.class );
 
     private final ZipInputStream zipStream;
 
@@ -46,65 +47,80 @@ class ZipReader implements AutoCloseable, Closeable {
     private ZipEntry zipEntry;
     private int lineCounter = 0;
 
-    ZipReader(final InputStream inputStream)
+    ZipReader( final InputStream inputStream )
             throws Exception
     {
-        zipStream = new ZipInputStream(inputStream);
+        zipStream = new ZipInputStream( inputStream );
         nextZipEntry();
-        if (zipEntry == null) {
-            throw new IllegalStateException("input stream does not contain any zip file entries");
+        if ( zipEntry == null )
+        {
+            throw new IllegalStateException( "input stream does not contain any zip file entries" );
         }
     }
 
-    private void nextZipEntry()
+    private void nextZipEntry( )
             throws IOException
     {
-        if (zipEntry != null) {
-            LOGGER.trace("finished reading " + zipEntry.getName() + ", lines=" + lineCounter);
+        if ( zipEntry != null )
+        {
+            LOGGER.trace( "finished reading " + zipEntry.getName() + ", lines=" + lineCounter );
         }
 
         zipEntry = zipStream.getNextEntry();
 
-        while (zipEntry != null && zipEntry.isDirectory()) {
+        while ( zipEntry != null && zipEntry.isDirectory() )
+        {
             zipEntry = zipStream.getNextEntry();
         }
 
-        if (zipEntry != null) {
+        if ( zipEntry != null )
+        {
             lineCounter = 0;
-            reader = new BufferedReader(new InputStreamReader(zipStream, PwmConstants.DEFAULT_CHARSET));
+            reader = new BufferedReader( new InputStreamReader( zipStream, PwmConstants.DEFAULT_CHARSET ) );
         }
     }
 
-    public void close()
+    public void close( )
     {
-        try {
+        try
+        {
             zipStream.close();
-        } catch (IOException e) {
-            LOGGER.debug("error closing zip stream: " + e.getMessage());
+        }
+        catch ( IOException e )
+        {
+            LOGGER.debug( "error closing zip stream: " + e.getMessage() );
         }
 
-        try {
+        try
+        {
             reader.close();
-        } catch (IOException e) {
-            LOGGER.debug("error closing zip stream: " + e.getMessage());
+        }
+        catch ( IOException e )
+        {
+            LOGGER.debug( "error closing zip stream: " + e.getMessage() );
         }
     }
 
-    String currentZipName()
+    String currentZipName( )
     {
         return zipEntry != null ? zipEntry.getName() : "--none--";
     }
 
-    String nextLine()
+    String nextLine( )
             throws IOException
     {
         String line;
 
-        while ((line = reader.readLine()) == null && zipEntry != null) {
+        do
+        {
+            line = reader.readLine();
             nextZipEntry();
         }
+        while ( line == null && zipEntry != null );
 
-        if (line != null) {
+
+        if ( line != null )
+        {
             lineCounter++;
         }
 

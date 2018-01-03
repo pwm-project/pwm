@@ -32,37 +32,42 @@ import password.pwm.util.localdb.LocalDBException;
 import java.time.Instant;
 import java.util.Iterator;
 
-public interface AuditVault {
+public interface AuditVault
+{
 
-    void init( PwmApplication pwmApplication,  LocalDB localDB,  Settings settings) throws LocalDBException, PwmException;
+    void init( PwmApplication pwmApplication, LocalDB localDB, Settings settings ) throws LocalDBException, PwmException;
 
-    void close();
+    void close( );
 
-    int size();
+    int size( );
 
-    Instant oldestRecord();
+    Instant oldestRecord( );
 
-    Iterator<AuditRecord> readVault();
+    Iterator<AuditRecord> readVault( );
 
-    String sizeToDebugString();
+    String sizeToDebugString( );
 
-    void add(AuditRecord record) throws PwmOperationalException;
+    void add( AuditRecord record ) throws PwmOperationalException;
 
-    class Settings {
+    class Settings
+    {
         private long maxRecordCount;
         private TimeDuration maxRecordAge;
 
 
-        public Settings(final long maxRecordCount, final TimeDuration maxRecordAge) {
+        public Settings( final long maxRecordCount, final TimeDuration maxRecordAge )
+        {
             this.maxRecordCount = maxRecordCount;
             this.maxRecordAge = maxRecordAge;
         }
 
-        public long getMaxRecordCount() {
+        public long getMaxRecordCount( )
+        {
             return maxRecordCount;
         }
 
-        public TimeDuration getMaxRecordAge() {
+        public TimeDuration getMaxRecordAge( )
+        {
             return maxRecordAge;
         }
     }

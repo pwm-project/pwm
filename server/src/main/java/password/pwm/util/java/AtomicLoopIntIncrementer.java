@@ -27,24 +27,28 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Thread safe rotating int incrementer with configurable floor and ceiling values.
  */
-public class AtomicLoopIntIncrementer {
-    private final AtomicInteger incrementer = new AtomicInteger(0);
+public class AtomicLoopIntIncrementer
+{
+    private final AtomicInteger incrementer = new AtomicInteger( 0 );
     private final int ceiling;
     private final int floor;
 
-    public AtomicLoopIntIncrementer(final int ceiling)
+    public AtomicLoopIntIncrementer( final int ceiling )
     {
         this.ceiling = ceiling;
         this.floor = 0;
     }
 
-    public int next() {
-        return incrementer.getAndUpdate(operand -> {
+    public int next( )
+    {
+        return incrementer.getAndUpdate( operand ->
+        {
             operand++;
-            if (operand >= ceiling) {
+            if ( operand >= ceiling )
+            {
                 operand = floor;
             }
             return operand;
-        });
+        } );
     }
 }

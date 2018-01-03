@@ -24,18 +24,22 @@ package password.pwm.config.stored;
 
 import java.io.Serializable;
 
-class StoredConfigReferenceBean implements StoredConfigReference, Serializable, Comparable {
+class StoredConfigReferenceBean implements StoredConfigReference, Serializable, Comparable
+{
     private RecordType recordType;
     private String recordID;
     private String profileID;
 
-    StoredConfigReferenceBean(final RecordType type, final String recordID, final String profileID) {
-        if (type == null) {
-            throw new NullPointerException("recordType can not be null");
+    StoredConfigReferenceBean( final RecordType type, final String recordID, final String profileID )
+    {
+        if ( type == null )
+        {
+            throw new NullPointerException( "recordType can not be null" );
         }
 
-        if (recordID == null) {
-            throw new NullPointerException("recordID can not be null");
+        if ( recordID == null )
+        {
+            throw new NullPointerException( "recordID can not be null" );
         }
 
         this.recordType = type;
@@ -43,43 +47,50 @@ class StoredConfigReferenceBean implements StoredConfigReference, Serializable, 
         this.profileID = profileID;
     }
 
-    public RecordType getRecordType() {
+    public RecordType getRecordType( )
+    {
         return recordType;
     }
 
-    public String getRecordID() {
+    public String getRecordID( )
+    {
         return recordID;
     }
 
     @Override
-    public String getProfileID() {
+    public String getProfileID( )
+    {
         return profileID;
     }
 
     @Override
-    public boolean equals(final Object o) {
+    public boolean equals( final Object o )
+    {
         return o != null
                 && o instanceof StoredConfigReference
-                && toString().equals(o.toString());
+                && toString().equals( o.toString() );
 
     }
 
     @Override
-    public int hashCode() {
+    public int hashCode( )
+    {
         return toString().hashCode();
     }
 
     @Override
-    public String toString() {
+    public String toString( )
+    {
         return this.getRecordType().toString()
                 + "-"
-                + (this.getProfileID() == null ? "" : this.getProfileID())
+                + ( this.getProfileID() == null ? "" : this.getProfileID() )
                 + "-"
                 + this.getRecordID();
     }
 
     @Override
-    public int compareTo(final Object o) {
-        return toString().compareTo(o.toString());
+    public int compareTo( final Object o )
+    {
+        return toString().compareTo( o.toString() );
     }
 }

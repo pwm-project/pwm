@@ -22,7 +22,8 @@
 
 package password.pwm.config.option;
 
-public enum UserEventStorageMethod implements ConfigurationOption {
+public enum UserEventStorageMethod implements ConfigurationOption
+{
     AUTO,
     DATABASE,
     LDAP,

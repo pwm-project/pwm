@@ -31,17 +31,18 @@ import java.time.Instant;
 
 @Getter
 @AllArgsConstructor
-public class FormNonce implements Serializable {
+public class FormNonce implements Serializable
+{
 
-    @SerializedName("g")
+    @SerializedName( "g" )
     private final String sessionGUID;
 
-    @SerializedName("t")
+    @SerializedName( "t" )
     private final Instant timestamp;
 
-    @SerializedName("c")
+    @SerializedName( "c" )
     private final int reqCounter;
 
-    @SerializedName("p")
+    @SerializedName( "p" )
     private final String payload;
 }

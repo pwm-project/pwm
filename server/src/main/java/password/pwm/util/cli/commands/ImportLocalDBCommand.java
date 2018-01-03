@@ -30,9 +30,10 @@ import password.pwm.util.localdb.LocalDBUtility;
 import java.io.File;
 import java.util.Collections;
 
-public class ImportLocalDBCommand extends AbstractCliCommand {
+public class ImportLocalDBCommand extends AbstractCliCommand
+{
     @Override
-    void doCommand()
+    void doCommand( )
             throws Exception
     {
         final LocalDB localDB = cliEnvironment.getLocalDB();
@@ -41,27 +42,31 @@ public class ImportLocalDBCommand extends AbstractCliCommand {
                 + "Please consider backing up the LocalDB before proceeding. " + "\n"
                 + "\n"
                 + "The application must be stopped for this operation to succeed.";
-        if (!promptForContinue(msg)) {
-            out("exiting...");
+        if ( !promptForContinue( msg ) )
+        {
+            out( "exiting..." );
             return;
         }
 
-        final LocalDBUtility pwmDBUtility = new LocalDBUtility(localDB);
-        final File inputFile = (File)cliEnvironment.getOptions().get(CliParameters.REQUIRED_EXISTING_INPUT_FILE.getName());
-        try {
-            pwmDBUtility.importLocalDB(inputFile, System.out);
-        } catch (PwmOperationalException e) {
-            out("error during import: " + e.getMessage());
+        final LocalDBUtility pwmDBUtility = new LocalDBUtility( localDB );
+        final File inputFile = ( File ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_EXISTING_INPUT_FILE.getName() );
+        try
+        {
+            pwmDBUtility.importLocalDB( inputFile, System.out );
+        }
+        catch ( PwmOperationalException e )
+        {
+            out( "error during import: " + e.getMessage() );
         }
     }
 
     @Override
-    public CliParameters getCliParameters()
+    public CliParameters getCliParameters( )
     {
         final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "ImportLocalDB";
         cliParameters.description = "Import the entire LocalDB contents from a backup file";
-        cliParameters.options = Collections.singletonList(CliParameters.REQUIRED_EXISTING_INPUT_FILE);
+        cliParameters.options = Collections.singletonList( CliParameters.REQUIRED_EXISTING_INPUT_FILE );
 
         cliParameters.needsLocalDB = true;
         cliParameters.readOnly = false;

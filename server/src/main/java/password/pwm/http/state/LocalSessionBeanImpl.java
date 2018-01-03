@@ -32,50 +32,62 @@ import javax.servlet.http.HttpSession;
 import java.util.HashMap;
 import java.util.Map;
 
-class LocalSessionBeanImpl implements SessionBeanProvider {
+class LocalSessionBeanImpl implements SessionBeanProvider
+{
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass(LocalSessionBeanImpl.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass( LocalSessionBeanImpl.class );
 
     @Override
-    public <E extends PwmSessionBean> E getSessionBean(final PwmRequest pwmRequest, final Class<E> theClass) {
-        final Map<Class<? extends PwmSessionBean>,PwmSessionBean> sessionBeans = getSessionBeanMap(pwmRequest);
+    public <E extends PwmSessionBean> E getSessionBean( final PwmRequest pwmRequest, final Class<E> theClass )
+    {
+        final Map<Class<? extends PwmSessionBean>, PwmSessionBean> sessionBeans = getSessionBeanMap( pwmRequest );
 
-        if (!sessionBeans.containsKey(theClass)) {
-            try {
-                final Object newBean = SessionStateService.newBean(null, theClass);
-                sessionBeans.put(theClass,(PwmSessionBean)newBean);
-            } catch (Exception e) {
-                LOGGER.error("unexpected error trying to instantiate bean class " + theClass.getName() + ": " + e.getMessage(),e);
+        if ( !sessionBeans.containsKey( theClass ) )
+        {
+            try
+            {
+                final Object newBean = SessionStateService.newBean( null, theClass );
+                sessionBeans.put( theClass, ( PwmSessionBean ) newBean );
+            }
+            catch ( Exception e )
+            {
+                LOGGER.error( "unexpected error trying to instantiate bean class " + theClass.getName() + ": " + e.getMessage(), e );
             }
 
         }
-        return (E)sessionBeans.get(theClass);
+        return ( E ) sessionBeans.get( theClass );
     }
 
     @Override
-    public <E extends PwmSessionBean> void clearSessionBean(final PwmRequest pwmRequest, final Class<E> userBeanClass) throws PwmUnrecoverableException {
-        final Map<Class<? extends PwmSessionBean>,PwmSessionBean> sessionBeans = getSessionBeanMap(pwmRequest);
-        sessionBeans.remove(userBeanClass);
+    public <E extends PwmSessionBean> void clearSessionBean( final PwmRequest pwmRequest, final Class<E> userBeanClass ) throws PwmUnrecoverableException
+    {
+        final Map<Class<? extends PwmSessionBean>, PwmSessionBean> sessionBeans = getSessionBeanMap( pwmRequest );
+        sessionBeans.remove( userBeanClass );
     }
 
-    private Map<Class<? extends PwmSessionBean>,PwmSessionBean> getSessionBeanMap(final PwmRequest pwmRequest) {
+    private Map<Class<? extends PwmSessionBean>, PwmSessionBean> getSessionBeanMap( final PwmRequest pwmRequest )
+    {
         final String attributeName = "SessionBeans";
         final HttpSession httpSession = pwmRequest.getHttpServletRequest().getSession();
-        Map<Class<? extends PwmSessionBean>,PwmSessionBean> sessionBeans = (Map<Class<? extends PwmSessionBean>,PwmSessionBean>)httpSession.getAttribute(PwmConstants.SESSION_ATTR_BEANS);
-        if (sessionBeans == null) {
+        Map<Class<? extends PwmSessionBean>, PwmSessionBean> sessionBeans =
+                ( Map<Class<? extends PwmSessionBean>, PwmSessionBean> ) httpSession.getAttribute( PwmConstants.SESSION_ATTR_BEANS );
+        if ( sessionBeans == null )
+        {
             sessionBeans = new HashMap<>();
-            httpSession.setAttribute(attributeName, sessionBeans);
+            httpSession.setAttribute( attributeName, sessionBeans );
         }
         return sessionBeans;
     }
 
     @Override
-    public void saveSessionBeans(final PwmRequest pwmRequest) {
+    public void saveSessionBeans( final PwmRequest pwmRequest )
+    {
 
     }
 
     @Override
-    public String getSessionStateInfo(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
+    public String getSessionStateInfo( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
+    {
         return null;
     }
 }

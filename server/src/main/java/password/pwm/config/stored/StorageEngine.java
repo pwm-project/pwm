@@ -25,18 +25,19 @@ package password.pwm.config.stored;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.StoredValue;
 
-interface StorageEngine {
-    StoredValue read(StoredConfigReference storedConfigReference);
+interface StorageEngine
+{
+    StoredValue read( StoredConfigReference storedConfigReference );
 
-    void write(StoredConfigReference storedConfigReference, StoredValue value, UserIdentity userIdentity);
+    void write( StoredConfigReference storedConfigReference, StoredValue value, UserIdentity userIdentity );
 
-    void reset(StoredConfigReference storedConfigReference, UserIdentity userIdentity);
+    void reset( StoredConfigReference storedConfigReference, UserIdentity userIdentity );
 
-    boolean isWriteLocked();
+    boolean isWriteLocked( );
 
-    void writeLock();
+    void writeLock( );
 
-    ValueMetaData readMetaData(StoredConfigReference storedConfigReference);
+    ValueMetaData readMetaData( StoredConfigReference storedConfigReference );
 
-    ConfigChangeLog changeLog();
+    ConfigChangeLog changeLog( );
 }

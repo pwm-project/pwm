@@ -30,8 +30,8 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.PasswordData;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.secure.PwmBlockAlgorithm;
 import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.util.secure.SecureEngine;
@@ -41,30 +41,38 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
-public class PasswordValue implements StoredValue {
+public class PasswordValue implements StoredValue
+{
     private PasswordData value;
 
-    PasswordValue() {
+    PasswordValue( )
+    {
     }
 
     boolean requiresStoredUpdate;
 
-    public PasswordValue(final PasswordData passwordData) {
+    public PasswordValue( final PasswordData passwordData )
+    {
         value = passwordData;
     }
 
-    public static StoredValueFactory factory()
+    public static StoredValueFactory factory( )
     {
-        return new StoredValueFactory() {
-            public PasswordValue fromJson(final String value)
+        return new StoredValueFactory()
+        {
+            public PasswordValue fromJson( final String value )
             {
-                final String strValue = JsonUtil.deserialize(value, String.class);
-                if (strValue != null && !strValue.isEmpty()) {
-                    try {
-                        return new PasswordValue(new PasswordData(strValue));
-                    } catch (PwmUnrecoverableException e) {
+                final String strValue = JsonUtil.deserialize( value, String.class );
+                if ( strValue != null && !strValue.isEmpty() )
+                {
+                    try
+                    {
+                        return new PasswordValue( new PasswordData( strValue ) );
+                    }
+                    catch ( PwmUnrecoverableException e )
+                    {
                         throw new IllegalStateException(
-                                "PasswordValue can not be json de-serialized: " + e.getMessage());
+                                "PasswordValue can not be json de-serialized: " + e.getMessage() );
                     }
                 }
                 return new PasswordValue();
@@ -76,31 +84,38 @@ public class PasswordValue implements StoredValue {
             )
                     throws PwmOperationalException, PwmUnrecoverableException
             {
-                final Element valueElement = settingElement.getChild("value");
+                final Element valueElement = settingElement.getChild( "value" );
                 final String rawValue = valueElement.getText();
 
                 final PasswordValue newPasswordValue = new PasswordValue();
-                if (rawValue == null || rawValue.isEmpty()) {
+                if ( rawValue == null || rawValue.isEmpty() )
+                {
                     return newPasswordValue;
                 }
 
                 final boolean plainTextSetting;
                 {
-                    final String plainTextAttributeStr = valueElement.getAttributeValue("plaintext");
-                    plainTextSetting = plainTextAttributeStr != null && Boolean.parseBoolean(plainTextAttributeStr);
+                    final String plainTextAttributeStr = valueElement.getAttributeValue( "plaintext" );
+                    plainTextSetting = plainTextAttributeStr != null && Boolean.parseBoolean( plainTextAttributeStr );
                 }
 
-                if (plainTextSetting) {
-                    newPasswordValue.value = new PasswordData(rawValue);
+                if ( plainTextSetting )
+                {
+                    newPasswordValue.value = new PasswordData( rawValue );
                     newPasswordValue.requiresStoredUpdate = true;
-                } else {
-                    try {
-                        newPasswordValue.value = new PasswordData(SecureEngine.decryptStringValue(rawValue, key, PwmBlockAlgorithm.CONFIG));
+                }
+                else
+                {
+                    try
+                    {
+                        newPasswordValue.value = new PasswordData( SecureEngine.decryptStringValue( rawValue, key, PwmBlockAlgorithm.CONFIG ) );
                         return newPasswordValue;
-                    } catch (Exception e) {
+                    }
+                    catch ( Exception e )
+                    {
                         final String errorMsg = "unable to decode encrypted password value for setting: " + e.getMessage();
-                        final ErrorInformation errorInfo = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR, errorMsg);
-                        throw new PwmOperationalException(errorInfo);
+                        final ErrorInformation errorInfo = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, errorMsg );
+                        throw new PwmOperationalException( errorInfo );
                     }
                 }
                 return newPasswordValue;
@@ -108,65 +123,75 @@ public class PasswordValue implements StoredValue {
         };
     }
 
-    public List<Element> toXmlValues(final String valueElementName) {
-        throw new IllegalStateException("password xml output requires hash key");
+    public List<Element> toXmlValues( final String valueElementName )
+    {
+        throw new IllegalStateException( "password xml output requires hash key" );
     }
 
     @Override
-    public Object toNativeObject()
+    public Object toNativeObject( )
     {
         return value;
     }
 
     @Override
-    public List<String> validateValue(final PwmSetting pwm)
+    public List<String> validateValue( final PwmSetting pwm )
     {
         return Collections.emptyList();
     }
 
     @Override
-    public int currentSyntaxVersion()
+    public int currentSyntaxVersion( )
     {
         return 0;
     }
 
-    public List<Element> toXmlValues(final String valueElementName, final PwmSecurityKey key) {
-        if (value == null) {
-            final Element valueElement = new Element(valueElementName);
-            return Collections.singletonList(valueElement);
+    public List<Element> toXmlValues( final String valueElementName, final PwmSecurityKey key )
+    {
+        if ( value == null )
+        {
+            final Element valueElement = new Element( valueElementName );
+            return Collections.singletonList( valueElement );
         }
-        final Element valueElement = new Element(valueElementName);
-        try {
-            final String encodedValue = SecureEngine.encryptToString(value.getStringValue(), key, PwmBlockAlgorithm.CONFIG);
-            valueElement.addContent(encodedValue);
-        } catch (Exception e) {
-            valueElement.addContent("");
-            throw new RuntimeException("missing required AES and SHA1 libraries, or other crypto fault: " + e.getMessage());
+        final Element valueElement = new Element( valueElementName );
+        try
+        {
+            final String encodedValue = SecureEngine.encryptToString( value.getStringValue(), key, PwmBlockAlgorithm.CONFIG );
+            valueElement.addContent( encodedValue );
         }
-        return Collections.singletonList(valueElement);
+        catch ( Exception e )
+        {
+            valueElement.addContent( "" );
+            throw new RuntimeException( "missing required AES and SHA1 libraries, or other crypto fault: " + e.getMessage() );
+        }
+        return Collections.singletonList( valueElement );
     }
 
-    public String toString() {
+    public String toString( )
+    {
         return PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT;
     }
 
     @Override
-    public String toDebugString(final Locale locale) {
+    public String toDebugString( final Locale locale )
+    {
         return PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT;
     }
 
     @Override
-    public Serializable toDebugJsonObject(final Locale locale) {
+    public Serializable toDebugJsonObject( final Locale locale )
+    {
         return PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT;
     }
 
-    public boolean requiresStoredUpdate()
+    public boolean requiresStoredUpdate( )
     {
         return requiresStoredUpdate;
     }
 
     @Override
-    public String valueHash() throws PwmUnrecoverableException {
-        return value == null ? "" : SecureEngine.hash(JsonUtil.serialize(value.getStringValue()), PwmConstants.SETTING_CHECKSUM_HASH_METHOD);
+    public String valueHash( ) throws PwmUnrecoverableException
+    {
+        return value == null ? "" : SecureEngine.hash( JsonUtil.serialize( value.getStringValue() ), PwmConstants.SETTING_CHECKSUM_HASH_METHOD );
     }
 }

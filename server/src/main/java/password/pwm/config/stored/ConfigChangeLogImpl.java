@@ -33,32 +33,39 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class ConfigChangeLogImpl implements Serializable, ConfigChangeLog {
-    private final Map<StoredConfigReference,StoredValue> changeLog = new LinkedHashMap<>();
-    private final Map<StoredConfigReference,StoredValue> originalValue = new LinkedHashMap<>();
+public class ConfigChangeLogImpl implements Serializable, ConfigChangeLog
+{
+    private final Map<StoredConfigReference, StoredValue> changeLog = new LinkedHashMap<>();
+    private final Map<StoredConfigReference, StoredValue> originalValue = new LinkedHashMap<>();
     private final transient StorageEngine storedConfiguration;
 
-    public ConfigChangeLogImpl(final StorageEngine storageEngine) {
+    public ConfigChangeLogImpl( final StorageEngine storageEngine )
+    {
         this.storedConfiguration = storageEngine;
     }
 
     @Override
-    public boolean isModified() {
+    public boolean isModified( )
+    {
         return !changeLog.isEmpty();
     }
 
     @Override
-    public String changeLogAsDebugString(final Locale locale, final boolean asHtml) {
-        final Map<String,String> outputMap = new TreeMap<>();
+    public String changeLogAsDebugString( final Locale locale, final boolean asHtml )
+    {
+        final Map<String, String> outputMap = new TreeMap<>();
 
-        for (final StoredConfigReference configReference : changeLog.keySet()) {
-            switch (configReference.getRecordType()) {
-                case SETTING: {
-                    final PwmSetting pwmSetting = PwmSetting.forKey(configReference.getRecordID());
-                    final StoredValue currentValue = storedConfiguration.read(configReference);
-                    final String keyName = pwmSetting.toMenuLocationDebug(configReference.getProfileID(), locale);
-                    final String debugValue = currentValue.toDebugString(locale);
-                    outputMap.put(keyName,debugValue);
+        for ( final StoredConfigReference configReference : changeLog.keySet() )
+        {
+            switch ( configReference.getRecordType() )
+            {
+                case SETTING:
+                {
+                    final PwmSetting pwmSetting = PwmSetting.forKey( configReference.getRecordID() );
+                    final StoredValue currentValue = storedConfiguration.read( configReference );
+                    final String keyName = pwmSetting.toMenuLocationDebug( configReference.getProfileID(), locale );
+                    final String debugValue = currentValue.toDebugString( locale );
+                    outputMap.put( keyName, debugValue );
                 }
                 break;
 
@@ -81,24 +88,31 @@ public class ConfigChangeLogImpl implements Serializable, ConfigChangeLog {
             }
         }
         final StringBuilder output = new StringBuilder();
-        if (outputMap.isEmpty()) {
-            output.append("No setting changes.");
-        } else {
-            for (final Map.Entry<String,String> entry  : outputMap.entrySet()) {
+        if ( outputMap.isEmpty() )
+        {
+            output.append( "No setting changes." );
+        }
+        else
+        {
+            for ( final Map.Entry<String, String> entry : outputMap.entrySet() )
+            {
                 final String keyName = entry.getKey();
                 final String value = entry.getValue();
-                if (asHtml) {
-                    output.append("<div class=\"changeLogKey\">");
-                    output.append(keyName);
-                    output.append("</div><div class=\"changeLogValue\">");
-                    output.append(StringUtil.escapeHtml(value));
-                    output.append("</div>");
-                } else {
-                    output.append(keyName);
-                    output.append("\n");
-                    output.append(" Value: ");
-                    output.append(value);
-                    output.append("\n");
+                if ( asHtml )
+                {
+                    output.append( "<div class=\"changeLogKey\">" );
+                    output.append( keyName );
+                    output.append( "</div><div class=\"changeLogValue\">" );
+                    output.append( StringUtil.escapeHtml( value ) );
+                    output.append( "</div>" );
+                }
+                else
+                {
+                    output.append( keyName );
+                    output.append( "\n" );
+                    output.append( " Value: " );
+                    output.append( value );
+                    output.append( "\n" );
                 }
             }
         }
@@ -106,26 +120,33 @@ public class ConfigChangeLogImpl implements Serializable, ConfigChangeLog {
     }
 
     @Override
-    public void updateChangeLog(final StoredConfigReference reference, final StoredValue newValue) {
-        changeLog.put(reference,newValue);
-        originalValue.put(reference, null);
+    public void updateChangeLog( final StoredConfigReference reference, final StoredValue newValue )
+    {
+        changeLog.put( reference, newValue );
+        originalValue.put( reference, null );
     }
 
     @Override
-    public void updateChangeLog(final StoredConfigReference reference, final StoredValue currentValue, final StoredValue newValue) {
-        if (originalValue.containsKey(reference)) {
-            if (newValue.equals(originalValue.get(reference))) {
-                originalValue.remove(reference);
-                changeLog.remove(reference);
+    public void updateChangeLog( final StoredConfigReference reference, final StoredValue currentValue, final StoredValue newValue )
+    {
+        if ( originalValue.containsKey( reference ) )
+        {
+            if ( newValue.equals( originalValue.get( reference ) ) )
+            {
+                originalValue.remove( reference );
+                changeLog.remove( reference );
             }
-        } else {
-            originalValue.put(reference, currentValue);
-            changeLog.put(reference, newValue);
+        }
+        else
+        {
+            originalValue.put( reference, currentValue );
+            changeLog.put( reference, newValue );
         }
     }
 
     @Override
-    public Collection<StoredConfigReference> changedValues() {
+    public Collection<StoredConfigReference> changedValues( )
+    {
         return changeLog.keySet();
     }
 }

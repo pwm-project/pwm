@@ -22,7 +22,8 @@
 
 package password.pwm.config.option;
 
-public enum HelpdeskClearResponseMode implements ConfigurationOption {
+public enum HelpdeskClearResponseMode implements ConfigurationOption
+{
     yes,
     ask,
     no

@@ -32,9 +32,11 @@ import java.util.Map;
 
 @Getter
 @Setter
-public class RemoteWebServiceConfiguration implements Serializable {
+public class RemoteWebServiceConfiguration implements Serializable
+{
 
-    public enum WebMethod {
+    public enum WebMethod
+    {
         delete,
         get,
         post,
@@ -44,7 +46,7 @@ public class RemoteWebServiceConfiguration implements Serializable {
 
     private String name;
     private WebMethod method = WebMethod.get;
-    private Map<String,String> headers;
+    private Map<String, String> headers;
     private String url;
     private String body;
     private List<X509Certificate> certificates;

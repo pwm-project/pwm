@@ -22,7 +22,8 @@
 
 package password.pwm.ws.client.rest;
 
-public interface RestClient {
+public interface RestClient
+{
     String DATA_KEY_USERINFO = "userInfo";
     String DATA_KEY_TOKENDATA = "tokenDestination";
 

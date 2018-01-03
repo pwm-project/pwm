@@ -27,9 +27,9 @@ import password.pwm.PwmApplication;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.TimeDuration;
 import password.pwm.util.TransactionSizeCalculator;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
@@ -48,11 +48,18 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author Jason D. Rivard
  */
-class Populator {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(Populator.class);
-    private static final int MAX_LINE_LENGTH = 64; // words truncated to this length, prevents massive words if the input
-    private static final long DEBUG_OUTPUT_FREQUENCY = 3 * 60 * 1000;  // 3 minutes
-    private static final String COMMENT_PREFIX = "!#comment:"; // words tarting with this prefix are ignored.
+class Populator
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( Populator.class );
+
+    // words truncated to this length, prevents massive words if the input
+    private static final int MAX_LINE_LENGTH = 64;
+
+    private static final TimeDuration DEBUG_OUTPUT_FREQUENCY = new TimeDuration( 3, TimeUnit.MINUTES );
+
+    // words tarting with this prefix are ignored.
+    private static final String COMMENT_PREFIX = "!#comment:";
+
     private static final NumberFormat PERCENT_FORMAT = DecimalFormat.getPercentInstance();
 
     private final ZipReader zipFileReader;
@@ -65,15 +72,15 @@ class Populator {
     private PopulationStats perReportStats = new PopulationStats();
     private TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(
             new TransactionSizeCalculator.SettingsBuilder()
-                    .setDurationGoal(new TimeDuration(600, TimeUnit.MILLISECONDS))
-                    .setMinTransactions(10)
-                    .setMaxTransactions(350 * 1000)
+                    .setDurationGoal( new TimeDuration( 600, TimeUnit.MILLISECONDS ) )
+                    .setMinTransactions( 10 )
+                    .setMaxTransactions( 350 * 1000 )
                     .createSettings()
     );
 
     private int loopLines;
 
-    private final Map<String,String> bufferedWords = new TreeMap<>();
+    private final Map<String, String> bufferedWords = new TreeMap<>();
 
     private final LocalDB localDB;
 
@@ -82,8 +89,9 @@ class Populator {
     private final AbstractWordlist rootWordlist;
 
 
-    static {
-        PERCENT_FORMAT.setMinimumFractionDigits(2);
+    static
+    {
+        PERCENT_FORMAT.setMinimumFractionDigits( 2 );
     }
 
     Populator(
@@ -95,29 +103,34 @@ class Populator {
             throws Exception
     {
         this.source = source;
-        this.checksumInputStream = new ChecksumInputStream(AbstractWordlist.CHECKSUM_HASH_ALG, inputStream);
-        this.zipFileReader = new ZipReader(checksumInputStream);
+        this.checksumInputStream = new ChecksumInputStream( AbstractWordlist.CHECKSUM_HASH_ALG, inputStream );
+        this.zipFileReader = new ZipReader( checksumInputStream );
         this.localDB = pwmApplication.getLocalDB();
         this.rootWordlist = rootWordlist;
     }
 
-    private void init() throws LocalDBException, IOException {
-        if (abortFlag) {
+    private void init( ) throws LocalDBException, IOException
+    {
+        if ( abortFlag )
+        {
             return;
         }
 
-        localDB.truncate(rootWordlist.getWordlistDB());
+        localDB.truncate( rootWordlist.getWordlistDB() );
 
-        if (overallStats.getLines() > 0) {
-            for (int i = 0; i < overallStats.getLines(); i++) {
+        if ( overallStats.getLines() > 0 )
+        {
+            for ( int i = 0; i < overallStats.getLines(); i++ )
+            {
                 zipFileReader.nextLine();
             }
         }
     }
 
-    public String makeStatString()
+    public String makeStatString( )
     {
-        if (!running) {
+        if ( !running )
+        {
             return "not running";
         }
 
@@ -129,87 +142,101 @@ class Populator {
                 + " current zipEntry=" + zipFileReader.currentZipName();
     }
 
-    void populate() throws IOException, LocalDBException, PwmUnrecoverableException {
-        try {
-            rootWordlist.writeMetadata(StoredWordlistDataBean.builder().source(source).build());
+    void populate( ) throws IOException, LocalDBException, PwmUnrecoverableException
+    {
+        try
+        {
+            rootWordlist.writeMetadata( StoredWordlistDataBean.builder().source( source ).build() );
             running = true;
             init();
 
-            long lastReportTime = System.currentTimeMillis() - (long) (DEBUG_OUTPUT_FREQUENCY * 0.33);
+            long lastReportTime = System.currentTimeMillis() - ( long ) ( DEBUG_OUTPUT_FREQUENCY.getTotalMilliseconds() * 0.33 );
 
             String line;
-            while (!abortFlag && (line = zipFileReader.nextLine()) != null) {
+            while ( !abortFlag && ( line = zipFileReader.nextLine() ) != null )
+            {
 
                 overallStats.incrementLines();
                 perReportStats.incrementLines();
 
-                addLine(line);
+                addLine( line );
                 loopLines++;
 
-                if (TimeDuration.fromCurrent(lastReportTime).isLongerThan(DEBUG_OUTPUT_FREQUENCY)) {
-                    LOGGER.info(makeStatString());
+                if ( TimeDuration.fromCurrent( lastReportTime ).isLongerThan( DEBUG_OUTPUT_FREQUENCY.getTotalMilliseconds() ) )
+                {
+                    LOGGER.info( makeStatString() );
                     lastReportTime = System.currentTimeMillis();
                 }
 
-                if (bufferedWords.size() > transactionCalculator.getTransactionSize()) {
+                if ( bufferedWords.size() > transactionCalculator.getTransactionSize() )
+                {
                     flushBuffer();
                 }
             }
 
-            if (abortFlag) {
-                LOGGER.warn("pausing " + rootWordlist.DEBUG_LABEL + " population");
-            } else {
+            if ( abortFlag )
+            {
+                LOGGER.warn( "pausing " + rootWordlist.DEBUG_LABEL + " population" );
+            }
+            else
+            {
                 populationComplete();
             }
-        } finally {
+        }
+        finally
+        {
             running = false;
-            IOUtils.closeQuietly(checksumInputStream);
+            IOUtils.closeQuietly( checksumInputStream );
         }
     }
 
-    private void addLine(final String word)
+    private void addLine( final String word )
             throws IOException
     {
         // check for word suitability
-        String normalizedWord = rootWordlist.normalizeWord(word);
+        String normalizedWord = rootWordlist.normalizeWord( word );
 
-        if (normalizedWord == null || normalizedWord.length() < 1 || normalizedWord.startsWith(COMMENT_PREFIX)) {
+        if ( normalizedWord == null || normalizedWord.length() < 1 || normalizedWord.startsWith( COMMENT_PREFIX ) )
+        {
             return;
         }
 
-        if (normalizedWord.length() > MAX_LINE_LENGTH) {
-            normalizedWord = normalizedWord.substring(0,MAX_LINE_LENGTH);
+        if ( normalizedWord.length() > MAX_LINE_LENGTH )
+        {
+            normalizedWord = normalizedWord.substring( 0, MAX_LINE_LENGTH );
         }
 
-        final Map<String,String> wordTxn = rootWordlist.getWriteTxnForValue(normalizedWord);
-        bufferedWords.putAll(wordTxn);
+        final Map<String, String> wordTxn = rootWordlist.getWriteTxnForValue( normalizedWord );
+        bufferedWords.putAll( wordTxn );
     }
 
-    private void flushBuffer()
+    private void flushBuffer( )
             throws LocalDBException
     {
         final long startTime = System.currentTimeMillis();
 
         //add the elements
-        localDB.putAll(rootWordlist.getWordlistDB(), bufferedWords);
+        localDB.putAll( rootWordlist.getWordlistDB(), bufferedWords );
 
-        if (abortFlag) {
+        if ( abortFlag )
+        {
             return;
         }
 
         //mark how long the buffer close took
         final long commitTime = System.currentTimeMillis() - startTime;
-        transactionCalculator.recordLastTransactionDuration(commitTime);
+        transactionCalculator.recordLastTransactionDuration( commitTime );
 
-        if (bufferedWords.size() > 0) {
+        if ( bufferedWords.size() > 0 )
+        {
             final StringBuilder sb = new StringBuilder();
-            sb.append(rootWordlist.DEBUG_LABEL).append(" ");
-            sb.append("read ").append(loopLines).append(", ");
-            sb.append("saved ");
-            sb.append(bufferedWords.size()).append(" words");
-            sb.append(" (").append(new TimeDuration(commitTime).asCompactString()).append(")");
+            sb.append( rootWordlist.DEBUG_LABEL ).append( " " );
+            sb.append( "read " ).append( loopLines ).append( ", " );
+            sb.append( "saved " );
+            sb.append( bufferedWords.size() ).append( " words" );
+            sb.append( " (" ).append( new TimeDuration( commitTime ).asCompactString() ).append( ")" );
 
-            LOGGER.trace(sb.toString());
+            LOGGER.trace( sb.toString() );
         }
 
         //clear the buffers.
@@ -217,70 +244,77 @@ class Populator {
         loopLines = 0;
     }
 
-    private void populationComplete()
-            throws LocalDBException, PwmUnrecoverableException, IOException {
+    private void populationComplete( )
+            throws LocalDBException, PwmUnrecoverableException, IOException
+    {
         flushBuffer();
-        LOGGER.info(makeStatString());
-        LOGGER.trace("beginning wordlist size query");
-        final int wordlistSize = localDB.size(rootWordlist.getWordlistDB());
-        if (wordlistSize < 1) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, rootWordlist.DEBUG_LABEL + " population completed, but no words stored"));
+        LOGGER.info( makeStatString() );
+        LOGGER.trace( "beginning wordlist size query" );
+        final int wordlistSize = localDB.size( rootWordlist.getWordlistDB() );
+        if ( wordlistSize < 1 )
+        {
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, rootWordlist.DEBUG_LABEL + " population completed, but no words stored" ) );
         }
 
         final StringBuilder sb = new StringBuilder();
-        sb.append(rootWordlist.DEBUG_LABEL);
-        sb.append(" population complete, added ").append(wordlistSize);
-        sb.append(" total words in ").append(new TimeDuration(overallStats.getElapsedSeconds() * 1000).asCompactString());
+        sb.append( rootWordlist.DEBUG_LABEL );
+        sb.append( " population complete, added " ).append( wordlistSize );
+        sb.append( " total words in " ).append( new TimeDuration( overallStats.getElapsedSeconds() * 1000 ).asCompactString() );
         {
             final StoredWordlistDataBean storedWordlistDataBean = StoredWordlistDataBean.builder()
-                    .sha1hash(JavaHelper.binaryArrayToHex(checksumInputStream.closeAndFinalChecksum()))
-                    .size(wordlistSize)
-                    .storeDate(Instant.now())
-                    .source(source)
-                    .completed(!abortFlag)
+                    .sha1hash( JavaHelper.binaryArrayToHex( checksumInputStream.closeAndFinalChecksum() ) )
+                    .size( wordlistSize )
+                    .storeDate( Instant.now() )
+                    .source( source )
+                    .completed( !abortFlag )
                     .build();
-            rootWordlist.writeMetadata(storedWordlistDataBean);
+            rootWordlist.writeMetadata( storedWordlistDataBean );
         }
-        LOGGER.info(sb.toString());
+        LOGGER.info( sb.toString() );
     }
 
-    public void cancel() throws PwmUnrecoverableException {
-        LOGGER.debug("cancelling in-progress population");
+    public void cancel( ) throws PwmUnrecoverableException
+    {
+        LOGGER.debug( "cancelling in-progress population" );
         abortFlag = true;
 
         final int maxWaitMs = 1000 * 30;
         final Date startWaitTime = new Date();
-        while (isRunning() && TimeDuration.fromCurrent(startWaitTime).isShorterThan(maxWaitMs)) {
-            JavaHelper.pause(1000);
+        while ( isRunning() && TimeDuration.fromCurrent( startWaitTime ).isShorterThan( maxWaitMs ) )
+        {
+            JavaHelper.pause( 1000 );
         }
-        if (isRunning() && TimeDuration.fromCurrent(startWaitTime).isShorterThan(maxWaitMs)) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, "unable to abort in progress population"));
+        if ( isRunning() && TimeDuration.fromCurrent( startWaitTime ).isShorterThan( maxWaitMs ) )
+        {
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, "unable to abort in progress population" ) );
         }
 
     }
 
-    public boolean isRunning() {
+    public boolean isRunning( )
+    {
         return running;
     }
 
-    private static class PopulationStats {
+    private static class PopulationStats
+    {
 
         private long startTime = System.currentTimeMillis();
         private int lines;
 
-        public int getLines()
+        public int getLines( )
         {
             return lines;
         }
 
-        public void incrementLines()
+        public void incrementLines( )
         {
             lines++;
         }
 
-        public int getElapsedSeconds()
+        public int getElapsedSeconds( )
         {
-            return (int) (System.currentTimeMillis() - startTime) / 1000;
+            return ( int ) ( System.currentTimeMillis() - startTime ) / 1000;
         }
     }
 }

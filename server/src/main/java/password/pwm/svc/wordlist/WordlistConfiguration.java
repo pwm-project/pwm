@@ -29,7 +29,8 @@ import java.io.Serializable;
 
 @Getter
 @AllArgsConstructor
-public class WordlistConfiguration implements Serializable {
+public class WordlistConfiguration implements Serializable
+{
     private final boolean caseSensitive;
     private final int checkSize;
     private final String autoImportUrl;

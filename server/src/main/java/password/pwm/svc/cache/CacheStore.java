@@ -26,12 +26,13 @@ import password.pwm.error.PwmUnrecoverableException;
 
 import java.time.Instant;
 
-public interface CacheStore {
-    void store(CacheKey cacheKey, Instant expirationDate, String data) throws PwmUnrecoverableException;
-    
-    String read(CacheKey cacheKey) throws PwmUnrecoverableException;
-    
-    CacheStoreInfo getCacheStoreInfo();
+public interface CacheStore
+{
+    void store( CacheKey cacheKey, Instant expirationDate, String data ) throws PwmUnrecoverableException;
 
-    int itemCount();
+    String read( CacheKey cacheKey ) throws PwmUnrecoverableException;
+
+    CacheStoreInfo getCacheStoreInfo( );
+
+    int itemCount( );
 }

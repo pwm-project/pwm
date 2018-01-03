@@ -22,7 +22,8 @@
 
 package password.pwm.http;
 
-public enum PwmRequestFlag {
+public enum PwmRequestFlag
+{
     HIDE_LOCALE,
     HIDE_IDLE,
     HIDE_FOOTER_TEXT,

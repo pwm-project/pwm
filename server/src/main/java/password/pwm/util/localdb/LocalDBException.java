@@ -26,13 +26,16 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmDataStoreException;
 import password.pwm.error.PwmError;
 
-public class LocalDBException extends PwmDataStoreException {
+public class LocalDBException extends PwmDataStoreException
+{
 
-    public LocalDBException(final ErrorInformation error) {
-        super(error);
+    public LocalDBException( final ErrorInformation error )
+    {
+        super( error );
     }
 
-    public LocalDBException(final PwmError error) {
-        super(error);
+    public LocalDBException( final PwmError error )
+    {
+        super( error );
     }
 }

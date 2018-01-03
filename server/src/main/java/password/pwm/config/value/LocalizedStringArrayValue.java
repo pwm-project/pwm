@@ -27,8 +27,8 @@ import org.jdom2.CDATA;
 import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.LocaleHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.ArrayList;
@@ -40,82 +40,104 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class LocalizedStringArrayValue extends AbstractValue implements StoredValue {
+public class LocalizedStringArrayValue extends AbstractValue implements StoredValue
+{
     final Map<String, List<String>> values;
 
-    LocalizedStringArrayValue(final Map<String, List<String>> values) {
+    LocalizedStringArrayValue( final Map<String, List<String>> values )
+    {
         this.values = values;
     }
 
-    public static StoredValueFactory factory()
+    public static StoredValueFactory factory( )
     {
-        return new StoredValueFactory() {
-            public LocalizedStringArrayValue fromJson(final String input)
+        return new StoredValueFactory()
+        {
+            public LocalizedStringArrayValue fromJson( final String input )
             {
-                if (input == null) {
-                    return new LocalizedStringArrayValue(Collections.<String, List<String>>emptyMap());
-                } else {
-                    Map<String, List<String>> srcMap = JsonUtil.deserialize(input, new TypeToken<Map<String, List<String>>>() {});
-                    srcMap = srcMap == null ? Collections.<String, List<String>>emptyMap() : new TreeMap<>(srcMap);
-                    return new LocalizedStringArrayValue(Collections.unmodifiableMap(srcMap));
+                if ( input == null )
+                {
+                    return new LocalizedStringArrayValue( Collections.<String, List<String>>emptyMap() );
+                }
+                else
+                {
+                    Map<String, List<String>> srcMap = JsonUtil.deserialize( input, new TypeToken<Map<String, List<String>>>()
+                    {
+                    } );
+                    srcMap = srcMap == null ? Collections.<String, List<String>>emptyMap() : new TreeMap<>( srcMap );
+                    return new LocalizedStringArrayValue( Collections.unmodifiableMap( srcMap ) );
                 }
             }
 
-            public LocalizedStringArrayValue fromXmlElement(final Element settingElement, final PwmSecurityKey key)
+            public LocalizedStringArrayValue fromXmlElement( final Element settingElement, final PwmSecurityKey key )
             {
-                final List valueElements = settingElement.getChildren("value");
+                final List valueElements = settingElement.getChildren( "value" );
                 final Map<String, List<String>> values = new TreeMap<>();
-                for (final Object loopValue : valueElements) {
-                    final Element loopValueElement = (Element) loopValue;
+                for ( final Object loopValue : valueElements )
+                {
+                    final Element loopValueElement = ( Element ) loopValue;
                     final String localeString = loopValueElement.getAttributeValue(
-                            "locale") == null ? "" : loopValueElement.getAttributeValue("locale");
+                            "locale" ) == null ? "" : loopValueElement.getAttributeValue( "locale" );
                     final String value = loopValueElement.getText();
-                    List<String> valueList = values.get(localeString);
-                    if (valueList == null) {
+                    List<String> valueList = values.get( localeString );
+                    if ( valueList == null )
+                    {
                         valueList = new ArrayList<>();
-                        values.put(localeString, valueList);
+                        values.put( localeString, valueList );
                     }
-                    valueList.add(value);
+                    valueList.add( value );
                 }
-                return new LocalizedStringArrayValue(values);
+                return new LocalizedStringArrayValue( values );
             }
         };
     }
 
-    public List<Element> toXmlValues(final String valueElementName) {
+    public List<Element> toXmlValues( final String valueElementName )
+    {
         final List<Element> returnList = new ArrayList<>();
-        for (final Map.Entry<String,List<String>> entry : values.entrySet()) {
+        for ( final Map.Entry<String, List<String>> entry : values.entrySet() )
+        {
             final String locale = entry.getKey();
-            for (final String value : entry.getValue()) {
-                final Element valueElement = new Element(valueElementName);
-                valueElement.addContent(new CDATA(value));
-                if (locale != null && locale.length() > 0) {
-                    valueElement.setAttribute("locale", locale);
+            for ( final String value : entry.getValue() )
+            {
+                final Element valueElement = new Element( valueElementName );
+                valueElement.addContent( new CDATA( value ) );
+                if ( locale != null && locale.length() > 0 )
+                {
+                    valueElement.setAttribute( "locale", locale );
                 }
-                returnList.add(valueElement);
+                returnList.add( valueElement );
             }
         }
         return returnList;
     }
 
-    public Map<String, List<String>> toNativeObject() {
-        return Collections.unmodifiableMap(values);
+    public Map<String, List<String>> toNativeObject( )
+    {
+        return Collections.unmodifiableMap( values );
     }
 
-    public List<String> validateValue(final PwmSetting pwmSetting) {
-        if (pwmSetting.isRequired()) {
-            if (values == null || values.size() < 1 || values.keySet().iterator().next().length() < 1) {
-                return Collections.singletonList("required value missing");
+    public List<String> validateValue( final PwmSetting pwmSetting )
+    {
+        if ( pwmSetting.isRequired() )
+        {
+            if ( values == null || values.size() < 1 || values.keySet().iterator().next().length() < 1 )
+            {
+                return Collections.singletonList( "required value missing" );
             }
         }
 
         final Pattern pattern = pwmSetting.getRegExPattern();
-        for (final List<String> loopValues : values.values()) {
-            for (final String loopValue : loopValues) {
-                if (loopValue != null && loopValue.length() > 0) {
-                    final Matcher matcher = pattern.matcher(loopValue);
-                    if (!matcher.matches()) {
-                        return Collections.singletonList("incorrect value format for value '" + loopValue + "'");
+        for ( final List<String> loopValues : values.values() )
+        {
+            for ( final String loopValue : loopValues )
+            {
+                if ( loopValue != null && loopValue.length() > 0 )
+                {
+                    final Matcher matcher = pattern.matcher( loopValue );
+                    if ( !matcher.matches() )
+                    {
+                        return Collections.singletonList( "incorrect value format for value '" + loopValue + "'" );
                     }
                 }
             }
@@ -125,17 +147,22 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
     }
 
     @Override
-    public String toDebugString(final Locale locale) {
-        if (values == null) {
+    public String toDebugString( final Locale locale )
+    {
+        if ( values == null )
+        {
             return "";
         }
         final StringBuilder sb = new StringBuilder();
-        for (final Map.Entry<String,List<String>> entry : values.entrySet()) {
+        for ( final Map.Entry<String, List<String>> entry : values.entrySet() )
+        {
             final String localeKey = entry.getKey();
-            if (!values.get(localeKey).isEmpty()) {
-                sb.append("Locale: ").append(LocaleHelper.debugLabel(LocaleHelper.parseLocaleString(localeKey))).append("\n");
-                for (final String value : entry.getValue()) {
-                    sb.append("  ").append(value).append("\n");
+            if ( !values.get( localeKey ).isEmpty() )
+            {
+                sb.append( "Locale: " ).append( LocaleHelper.debugLabel( LocaleHelper.parseLocaleString( localeKey ) ) ).append( "\n" );
+                for ( final String value : entry.getValue() )
+                {
+                    sb.append( "  " ).append( value ).append( "\n" );
                 }
             }
         }

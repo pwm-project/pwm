@@ -34,33 +34,35 @@ import java.io.File;
 public class ConfigResetHttpsCommand
         extends AbstractCliCommand
 {
-    public void doCommand()
+    public void doCommand( )
             throws Exception
     {
         final File configurationFile = cliEnvironment.getConfigurationFile();
-        if (configurationFile == null || !configurationFile.exists()) {
-            out("configuration file is not present");
+        if ( configurationFile == null || !configurationFile.exists() )
+        {
+            out( "configuration file is not present" );
             return;
         }
 
-        if (!promptForContinue("Proceeding will reset all https server settings to their default")) {
+        if ( !promptForContinue( "Proceeding will reset all https server settings to their default" ) )
+        {
             return;
         }
 
-        final ConfigurationReader configurationReader = new ConfigurationReader(cliEnvironment.getConfigurationFile());
+        final ConfigurationReader configurationReader = new ConfigurationReader( cliEnvironment.getConfigurationFile() );
         final StoredConfigurationImpl storedConfiguration = configurationReader.getStoredConfiguration();
 
-        for (final PwmSetting setting : PwmSettingCategory.HTTPS_SERVER.getSettings()) {
-            storedConfiguration.resetSetting(setting,null,null);
+        for ( final PwmSetting setting : PwmSettingCategory.HTTPS_SERVER.getSettings() )
+        {
+            storedConfiguration.resetSetting( setting, null, null );
         }
-        configurationReader.saveConfiguration(storedConfiguration, cliEnvironment.getPwmApplication(), SessionLabel.CLI_SESSION_LABEL);
-        out("success");
+        configurationReader.saveConfiguration( storedConfiguration, cliEnvironment.getPwmApplication(), SessionLabel.CLI_SESSION_LABEL );
+        out( "success" );
     }
 
 
-
     @Override
-    public CliParameters getCliParameters()
+    public CliParameters getCliParameters( )
     {
         final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "ConfigResetHttps";

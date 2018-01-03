@@ -14,49 +14,53 @@ import java.util.List;
 
 @Getter
 @AllArgsConstructor
-public class TokenDestinationItem {
+public class TokenDestinationItem
+{
     private String id;
     private String display;
     private String value;
     private Type type;
 
-    public enum Type {
+    public enum Type
+    {
         sms,
         email,
     }
 
-    public static List<TokenDestinationItem> allFromConfig(final Configuration configuration, final UserInfo userInfo)
+    public static List<TokenDestinationItem> allFromConfig( final Configuration configuration, final UserInfo userInfo )
             throws PwmUnrecoverableException
     {
-        final ValueObfuscator valueObfuscator = new ValueObfuscator(configuration);
+        final ValueObfuscator valueObfuscator = new ValueObfuscator( configuration );
         int counter = 0;
 
         final List<TokenDestinationItem> results = new ArrayList<>();
 
         {
             final String smsValue = userInfo.getUserSmsNumber();
-            if (!StringUtil.isEmpty(smsValue)) {
-                results.add(new TokenDestinationItem(
-                        String.valueOf(++counter),
-                        valueObfuscator.maskPhone(smsValue),
+            if ( !StringUtil.isEmpty( smsValue ) )
+            {
+                results.add( new TokenDestinationItem(
+                        String.valueOf( ++counter ),
+                        valueObfuscator.maskPhone( smsValue ),
                         smsValue,
                         Type.sms
-                ));
+                ) );
             }
         }
 
         {
             final String emailValue = userInfo.getUserEmailAddress();
-            if (!StringUtil.isEmpty(emailValue)) {
-                results.add(new TokenDestinationItem(
-                        String.valueOf(++counter),
-                        valueObfuscator.maskEmail(emailValue),
+            if ( !StringUtil.isEmpty( emailValue ) )
+            {
+                results.add( new TokenDestinationItem(
+                        String.valueOf( ++counter ),
+                        valueObfuscator.maskEmail( emailValue ),
                         emailValue,
                         Type.email
-                ));
+                ) );
             }
         }
 
-        return Collections.unmodifiableList(results);
+        return Collections.unmodifiableList( results );
     }
 }

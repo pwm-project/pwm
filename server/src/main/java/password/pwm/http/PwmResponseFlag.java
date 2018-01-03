@@ -22,6 +22,7 @@
 
 package password.pwm.http;
 
-public enum PwmResponseFlag {
+public enum PwmResponseFlag
+{
     ERROR_RESPONSE_SENT,
 }

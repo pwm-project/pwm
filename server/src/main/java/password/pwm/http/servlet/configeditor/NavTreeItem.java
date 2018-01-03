@@ -25,7 +25,8 @@ package password.pwm.http.servlet.configeditor;
 import java.io.Serializable;
 import java.util.Set;
 
-class NavTreeItem implements Serializable {
+class NavTreeItem implements Serializable
+{
     private String id;
     private String name;
     private String parent;
@@ -36,75 +37,93 @@ class NavTreeItem implements Serializable {
     private Set<String> keys;
     private String profile;
 
-    public String getId() {
+    public String getId( )
+    {
         return id;
     }
 
-    public void setId(final String id) {
+    public void setId( final String id )
+    {
         this.id = id;
     }
 
-    public String getName() {
+    public String getName( )
+    {
         return name;
     }
 
-    public void setName(final String name) {
+    public void setName( final String name )
+    {
         this.name = name;
     }
 
-    public String getParent() {
+    public String getParent( )
+    {
         return parent;
     }
 
-    public void setParent(final String parent) {
+    public void setParent( final String parent )
+    {
         this.parent = parent;
     }
 
-    public String getCategory() {
+    public String getCategory( )
+    {
         return category;
     }
 
-    public void setCategory(final String category) {
+    public void setCategory( final String category )
+    {
         this.category = category;
     }
 
-    public NavTreeHelper.NavItemType getType() {
+    public NavTreeHelper.NavItemType getType( )
+    {
         return type;
     }
 
-    public void setType(final NavTreeHelper.NavItemType type) {
+    public void setType( final NavTreeHelper.NavItemType type )
+    {
         this.type = type;
     }
 
-    public String getProfileSetting() {
+    public String getProfileSetting( )
+    {
         return profileSetting;
     }
 
-    public void setProfileSetting(final String profileSetting) {
+    public void setProfileSetting( final String profileSetting )
+    {
         this.profileSetting = profileSetting;
     }
 
-    public String getMenuLocation() {
+    public String getMenuLocation( )
+    {
         return menuLocation;
     }
 
-    public void setMenuLocation(final String menuLocation) {
+    public void setMenuLocation( final String menuLocation )
+    {
         this.menuLocation = menuLocation;
     }
 
-    public Set<String> getKeys() {
+    public Set<String> getKeys( )
+    {
         return keys;
     }
 
-    public void setKeys(final Set<String> keys) {
+    public void setKeys( final Set<String> keys )
+    {
         this.keys = keys;
     }
 
-    public String getProfile() {
+    public String getProfile( )
+    {
         return profile;
     }
 
-    public void setProfile(final String profile) {
+    public void setProfile( final String profile )
+    {
         this.profile = profile;
     }
 }

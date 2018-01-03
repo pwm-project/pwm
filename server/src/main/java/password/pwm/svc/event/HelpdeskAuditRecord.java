@@ -24,7 +24,8 @@ package password.pwm.svc.event;
 
 import java.time.Instant;
 
-public class HelpdeskAuditRecord extends UserAuditRecord {
+public class HelpdeskAuditRecord extends UserAuditRecord
+{
     protected String targetID;
     protected String targetDN;
     protected String targetLdapProfile;
@@ -41,8 +42,9 @@ public class HelpdeskAuditRecord extends UserAuditRecord {
             final String targetLdapProfile,
             final String sourceAddress,
             final String sourceHost
-    ) {
-        super(timestamp, eventCode, perpetratorID, perpetratorDN, perpetratorLdapProfile, message, sourceHost, sourceAddress);
+    )
+    {
+        super( timestamp, eventCode, perpetratorID, perpetratorDN, perpetratorLdapProfile, message, sourceHost, sourceAddress );
         this.perpetratorID = perpetratorID;
         this.perpetratorDN = perpetratorDN;
         this.perpetratorLdapProfile = perpetratorLdapProfile;
@@ -54,15 +56,17 @@ public class HelpdeskAuditRecord extends UserAuditRecord {
     }
 
 
-    public String getTargetID() {
+    public String getTargetID( )
+    {
         return targetID;
     }
 
-    public String getTargetDN() {
+    public String getTargetDN( )
+    {
         return targetDN;
     }
 
-    public String getTargetLdapProfile()
+    public String getTargetLdapProfile( )
     {
         return targetLdapProfile;
     }

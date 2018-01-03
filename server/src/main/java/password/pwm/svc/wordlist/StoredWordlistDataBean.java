@@ -30,27 +30,29 @@ import java.time.Instant;
 
 @Getter
 @Builder
-public class StoredWordlistDataBean implements Serializable {
+public class StoredWordlistDataBean implements Serializable
+{
     private boolean completed;
     private Source source;
     private Instant storeDate;
     private String sha1hash;
     private int size;
 
-    public enum Source {
-        BuiltIn("Built-In"),
-        AutoImport("Import from configured URL"),
-        User("Uploaded"),
-
-        ;
+    public enum Source
+    {
+        BuiltIn( "Built-In" ),
+        AutoImport( "Import from configured URL" ),
+        User( "Uploaded" ),;
 
         private final String label;
 
-        Source(final String label) {
+        Source( final String label )
+        {
             this.label = label;
         }
 
-        public String getLabel() {
+        public String getLabel( )
+        {
             return label;
         }
     }

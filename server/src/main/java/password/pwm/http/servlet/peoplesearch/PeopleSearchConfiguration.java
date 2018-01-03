@@ -28,7 +28,8 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 
 @Getter
-public class PeopleSearchConfiguration {
+public class PeopleSearchConfiguration
+{
     private String photoAttribute;
     private String photoUrlOverride;
     private boolean photosEnabled;
@@ -39,23 +40,24 @@ public class PeopleSearchConfiguration {
     private boolean orgChartShowChildCount;
     private int orgChartMaxParents;
 
-    public static PeopleSearchConfiguration fromConfiguration(final Configuration configuration) {
+    public static PeopleSearchConfiguration fromConfiguration( final Configuration configuration )
+    {
         final PeopleSearchConfiguration config = new PeopleSearchConfiguration();
-        config.photoAttribute = configuration.readSettingAsString(PwmSetting.PEOPLE_SEARCH_PHOTO_ATTRIBUTE);
-        config.photoUrlOverride = configuration.readSettingAsString(PwmSetting.PEOPLE_SEARCH_PHOTO_URL_OVERRIDE);
-        config.photosEnabled = (config.photoAttribute != null && !config.photoAttribute.isEmpty())
-                || (config.photoUrlOverride != null && !config.photoUrlOverride.isEmpty());
+        config.photoAttribute = configuration.readSettingAsString( PwmSetting.PEOPLE_SEARCH_PHOTO_ATTRIBUTE );
+        config.photoUrlOverride = configuration.readSettingAsString( PwmSetting.PEOPLE_SEARCH_PHOTO_URL_OVERRIDE );
+        config.photosEnabled = ( config.photoAttribute != null && !config.photoAttribute.isEmpty() )
+                || ( config.photoUrlOverride != null && !config.photoUrlOverride.isEmpty() );
 
-        config.orgChartAssistantAttr = configuration.readSettingAsString(PwmSetting.PEOPLE_SEARCH_ORGCHART_ASSISTANT_ATTRIBUTE);
-        config.orgChartParentAttr = configuration.readSettingAsString(PwmSetting.PEOPLE_SEARCH_ORGCHART_PARENT_ATTRIBUTE);
-        config.orgChartChildAttr = configuration.readSettingAsString(PwmSetting.PEOPLE_SEARCH_ORGCHART_CHILD_ATTRIBUTE);
+        config.orgChartAssistantAttr = configuration.readSettingAsString( PwmSetting.PEOPLE_SEARCH_ORGCHART_ASSISTANT_ATTRIBUTE );
+        config.orgChartParentAttr = configuration.readSettingAsString( PwmSetting.PEOPLE_SEARCH_ORGCHART_PARENT_ATTRIBUTE );
+        config.orgChartChildAttr = configuration.readSettingAsString( PwmSetting.PEOPLE_SEARCH_ORGCHART_CHILD_ATTRIBUTE );
         config.orgChartEnabled = config.orgChartParentAttr != null
                 && !config.orgChartParentAttr.isEmpty()
                 && config.orgChartChildAttr != null
                 && !config.orgChartChildAttr.isEmpty();
 
-        config.orgChartShowChildCount = Boolean.parseBoolean(configuration.readAppProperty(AppProperty.PEOPLESEARCH_ORGCHART_ENABLE_CHILD_COUNT));
-        config.orgChartMaxParents = Integer.parseInt(configuration.readAppProperty(AppProperty.PEOPLESEARCH_ORGCHART_MAX_PARENTS));
+        config.orgChartShowChildCount = Boolean.parseBoolean( configuration.readAppProperty( AppProperty.PEOPLESEARCH_ORGCHART_ENABLE_CHILD_COUNT ) );
+        config.orgChartMaxParents = Integer.parseInt( configuration.readAppProperty( AppProperty.PEOPLESEARCH_ORGCHART_MAX_PARENTS ) );
 
         return config;
     }

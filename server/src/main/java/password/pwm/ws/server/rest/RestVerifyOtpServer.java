@@ -35,9 +35,9 @@ import password.pwm.http.HttpMethod;
 import password.pwm.i18n.Message;
 import password.pwm.util.operations.OtpService;
 import password.pwm.util.operations.otp.OTPUserRecord;
-import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestMethodHandler;
 import password.pwm.ws.server.RestRequest;
+import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServlet;
 import password.pwm.ws.server.RestWebServer;
 
@@ -46,36 +46,40 @@ import java.io.IOException;
 import java.io.Serializable;
 
 @WebServlet(
-        urlPatterns={
+        urlPatterns = {
                 PwmConstants.URL_PREFIX_PUBLIC + PwmConstants.URL_PREFIX_REST + "/verifyotp",
         }
 )
-@RestWebServer(webService = WebServiceUsage.VerifyOtp, requireAuthentication = true)
-public class RestVerifyOtpServer extends RestServlet {
+@RestWebServer( webService = WebServiceUsage.VerifyOtp, requireAuthentication = true )
+public class RestVerifyOtpServer extends RestServlet
+{
 
     @Data
-    public static class JsonPutOtpInput implements Serializable {
+    public static class JsonPutOtpInput implements Serializable
+    {
         public String token;
         public String username;
     }
 
     @Override
-    public void preCheckRequest(final RestRequest request) throws PwmUnrecoverableException {
+    public void preCheckRequest( final RestRequest request ) throws PwmUnrecoverableException
+    {
     }
 
-    @RestMethodHandler(method = HttpMethod.POST, consumes = HttpContentType.json, produces = HttpContentType.json)
-    public RestResultBean doSetOtpDataJson(final RestRequest restRequest)
+    @RestMethodHandler( method = HttpMethod.POST, consumes = HttpContentType.json, produces = HttpContentType.json )
+    public RestResultBean doSetOtpDataJson( final RestRequest restRequest )
             throws IOException, PwmUnrecoverableException
     {
-        final RestVerifyOtpServer.JsonPutOtpInput jsonInput = deserializeJsonBody(restRequest, JsonPutOtpInput.class);
+        final RestVerifyOtpServer.JsonPutOtpInput jsonInput = deserializeJsonBody( restRequest, JsonPutOtpInput.class );
 
-        final TargetUserIdentity targetUserIdentity = resolveRequestedUsername(restRequest, jsonInput.getUsername());
+        final TargetUserIdentity targetUserIdentity = resolveRequestedUsername( restRequest, jsonInput.getUsername() );
 
-        try {
+        try
+        {
             final OtpService otpService = restRequest.getPwmApplication().getOtpService();
-            final OTPUserRecord otpUserRecord = otpService.readOTPUserConfiguration(restRequest.getSessionLabel(), targetUserIdentity.getUserIdentity());
+            final OTPUserRecord otpUserRecord = otpService.readOTPUserConfiguration( restRequest.getSessionLabel(), targetUserIdentity.getUserIdentity() );
 
-            final boolean verified = otpUserRecord !=null && otpService.validateToken(
+            final boolean verified = otpUserRecord != null && otpService.validateToken(
                     restRequest.getSessionLabel(),
                     targetUserIdentity.getUserIdentity(),
                     otpUserRecord,
@@ -83,13 +87,17 @@ public class RestVerifyOtpServer extends RestServlet {
                     false
             );
 
-            return RestResultBean.forSuccessMessage(verified, restRequest, Message.Success_Unknown);
-        } catch (ChaiUnavailableException e) {
-            throw PwmUnrecoverableException.fromChaiException(e);
-        } catch (PwmOperationalException e) {
+            return RestResultBean.forSuccessMessage( verified, restRequest, Message.Success_Unknown );
+        }
+        catch ( ChaiUnavailableException e )
+        {
+            throw PwmUnrecoverableException.fromChaiException( e );
+        }
+        catch ( PwmOperationalException e )
+        {
             final String errorMsg = "unexpected error reading json input: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-            return RestResultBean.fromError(restRequest, errorInformation);
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            return RestResultBean.fromError( restRequest, errorInformation );
         }
 
     }

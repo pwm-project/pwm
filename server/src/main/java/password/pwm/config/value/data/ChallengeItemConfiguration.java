@@ -27,7 +27,8 @@ import lombok.Getter;
 import java.io.Serializable;
 
 @Getter
-public class ChallengeItemConfiguration implements Serializable {
+public class ChallengeItemConfiguration implements Serializable
+{
     private String text;
     private int minLength;
     private int maxLength;

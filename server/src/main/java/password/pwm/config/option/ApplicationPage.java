@@ -22,7 +22,8 @@
 
 package password.pwm.config.option;
 
-public enum ApplicationPage implements ConfigurationOption {
+public enum ApplicationPage implements ConfigurationOption
+{
     LOGIN,
     FORGOTTEN_PASSWORD,
     FORGOTTEN_USERNAME,

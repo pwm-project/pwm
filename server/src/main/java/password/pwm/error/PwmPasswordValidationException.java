@@ -22,13 +22,16 @@
 
 package password.pwm.error;
 
-public class PwmPasswordValidationException extends PwmOperationalException {
+public class PwmPasswordValidationException extends PwmOperationalException
+{
 
-    public PwmPasswordValidationException(final ErrorInformation error) {
-        super(error);
+    public PwmPasswordValidationException( final ErrorInformation error )
+    {
+        super( error );
     }
 
-    public PwmPasswordValidationException(final PwmError error) {
-        super(error);
+    public PwmPasswordValidationException( final PwmError error )
+    {
+        super( error );
     }
 }

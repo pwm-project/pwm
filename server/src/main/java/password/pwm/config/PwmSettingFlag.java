@@ -25,7 +25,8 @@ package password.pwm.config;
 /**
  * Flags defined for {@link PwmSetting} values.  Flags typically correspond to one or more {@link PwmSettingSyntax} types.
  */
-public enum PwmSettingFlag {
+public enum PwmSettingFlag
+{
     /* Marker to indicate in setting UI and generated docs that setting supports macros */
     MacroSupport,
 

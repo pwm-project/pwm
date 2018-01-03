@@ -22,9 +22,11 @@
 
 package password.pwm.i18n;
 
-public abstract class Health implements PwmDisplayBundle {
+public abstract class Health implements PwmDisplayBundle
+{
     @Override
-    public String getKey() {
+    public String getKey( )
+    {
         return this.toString();
 
     }

@@ -28,17 +28,18 @@ import password.pwm.util.cli.CliParameters;
 
 import java.util.Collections;
 
-public class PasswordExpireNotificationCommand extends AbstractCliCommand {
-    public void doCommand()
+public class PasswordExpireNotificationCommand extends AbstractCliCommand
+{
+    public void doCommand( )
             throws Exception
     {
         final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
-        final PasswordExpireNotificationEngine engine = new PasswordExpireNotificationEngine(pwmApplication);
+        final PasswordExpireNotificationEngine engine = new PasswordExpireNotificationEngine( pwmApplication );
         engine.executeJob();
     }
 
     @Override
-    public CliParameters getCliParameters()
+    public CliParameters getCliParameters( )
     {
         final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "PasswordExpirationNotification";

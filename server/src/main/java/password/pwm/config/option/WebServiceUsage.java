@@ -22,7 +22,8 @@
 
 package password.pwm.config.option;
 
-public enum WebServiceUsage {
+public enum WebServiceUsage
+{
     Challenges,
     CheckPassword,
     Health,

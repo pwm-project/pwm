@@ -22,7 +22,8 @@
 
 package password.pwm.svc.report;
 
-public class ReportColumnFilter {
+public class ReportColumnFilter
+{
     boolean userDnVisible;
     boolean ldapProfileVisible;
     boolean usernameVisible;
@@ -46,179 +47,223 @@ public class ReportColumnFilter {
     boolean requiresProfileUpdateVisible;
     boolean cacheTimestampVisible;
 
-    public boolean isUserDnVisible() {
+    public boolean isUserDnVisible( )
+    {
         return userDnVisible;
     }
 
-    public void setUserDnVisible(final boolean userDnVisible) {
+    public void setUserDnVisible( final boolean userDnVisible )
+    {
         this.userDnVisible = userDnVisible;
     }
 
-    public boolean isLdapProfileVisible() {
+    public boolean isLdapProfileVisible( )
+    {
         return ldapProfileVisible;
     }
 
-    public void setLdapProfileVisible(final boolean ldapProfileVisible) {
+    public void setLdapProfileVisible( final boolean ldapProfileVisible )
+    {
         this.ldapProfileVisible = ldapProfileVisible;
     }
 
-    public boolean isUsernameVisible() {
+    public boolean isUsernameVisible( )
+    {
         return usernameVisible;
     }
 
-    public void setUsernameVisible(final boolean usernameVisible) {
+    public void setUsernameVisible( final boolean usernameVisible )
+    {
         this.usernameVisible = usernameVisible;
     }
 
-    public boolean isEmailVisible() {
+    public boolean isEmailVisible( )
+    {
         return emailVisible;
     }
 
-    public void setEmailVisible(final boolean emailVisible) {
+    public void setEmailVisible( final boolean emailVisible )
+    {
         this.emailVisible = emailVisible;
     }
 
-    public boolean isUserGuidVisible() {
+    public boolean isUserGuidVisible( )
+    {
         return userGuidVisible;
     }
 
-    public void setUserGuidVisible(final boolean userGuidVisible) {
+    public void setUserGuidVisible( final boolean userGuidVisible )
+    {
         this.userGuidVisible = userGuidVisible;
     }
 
-    public boolean isAccountExpirationTimeVisible() {
+    public boolean isAccountExpirationTimeVisible( )
+    {
         return accountExpirationTimeVisible;
     }
 
-    public void setAccountExpirationTimeVisible(final boolean accountExpirationTimeVisible) {
+    public void setAccountExpirationTimeVisible( final boolean accountExpirationTimeVisible )
+    {
         this.accountExpirationTimeVisible = accountExpirationTimeVisible;
     }
 
-    public boolean isLastLoginTimeVisible() {
+    public boolean isLastLoginTimeVisible( )
+    {
         return lastLoginTimeVisible;
     }
 
-    public void setLastLoginTimeVisible(final boolean lastLoginTimeVisible) {
+    public void setLastLoginTimeVisible( final boolean lastLoginTimeVisible )
+    {
         this.lastLoginTimeVisible = lastLoginTimeVisible;
     }
 
-    public boolean isPasswordExpirationTimeVisible() {
+    public boolean isPasswordExpirationTimeVisible( )
+    {
         return passwordExpirationTimeVisible;
     }
 
-    public void setPasswordExpirationTimeVisible(final boolean passwordExpirationTimeVisible) {
+    public void setPasswordExpirationTimeVisible( final boolean passwordExpirationTimeVisible )
+    {
         this.passwordExpirationTimeVisible = passwordExpirationTimeVisible;
     }
 
-    public boolean isPasswordChangeTimeVisible() {
+    public boolean isPasswordChangeTimeVisible( )
+    {
         return passwordChangeTimeVisible;
     }
 
-    public void setPasswordChangeTimeVisible(final boolean passwordChangeTimeVisible) {
+    public void setPasswordChangeTimeVisible( final boolean passwordChangeTimeVisible )
+    {
         this.passwordChangeTimeVisible = passwordChangeTimeVisible;
     }
 
-    public boolean isResponseSetTimeVisible() {
+    public boolean isResponseSetTimeVisible( )
+    {
         return responseSetTimeVisible;
     }
 
-    public void setResponseSetTimeVisible(final boolean responseSetTimeVisible) {
+    public void setResponseSetTimeVisible( final boolean responseSetTimeVisible )
+    {
         this.responseSetTimeVisible = responseSetTimeVisible;
     }
 
-    public boolean isHasResponsesVisible() {
+    public boolean isHasResponsesVisible( )
+    {
         return hasResponsesVisible;
     }
 
-    public void setHasResponsesVisible(final boolean hasResponsesVisible) {
+    public void setHasResponsesVisible( final boolean hasResponsesVisible )
+    {
         this.hasResponsesVisible = hasResponsesVisible;
     }
 
-    public boolean isHasHelpdeskResponsesVisible() {
+    public boolean isHasHelpdeskResponsesVisible( )
+    {
         return hasHelpdeskResponsesVisible;
     }
 
-    public void setHasHelpdeskResponsesVisible(final boolean hasHelpdeskResponsesVisible) {
+    public void setHasHelpdeskResponsesVisible( final boolean hasHelpdeskResponsesVisible )
+    {
         this.hasHelpdeskResponsesVisible = hasHelpdeskResponsesVisible;
     }
 
-    public boolean isResponseStorageMethodVisible() {
+    public boolean isResponseStorageMethodVisible( )
+    {
         return responseStorageMethodVisible;
     }
 
-    public void setResponseStorageMethodVisible(final boolean responseStorageMethodVisible) {
+    public void setResponseStorageMethodVisible( final boolean responseStorageMethodVisible )
+    {
         this.responseStorageMethodVisible = responseStorageMethodVisible;
     }
 
-    public boolean isResponseFormatTypeVisible() {
+    public boolean isResponseFormatTypeVisible( )
+    {
         return responseFormatTypeVisible;
     }
 
-    public void setResponseFormatTypeVisible(final boolean responseFormatTypeVisible) {
+    public void setResponseFormatTypeVisible( final boolean responseFormatTypeVisible )
+    {
         this.responseFormatTypeVisible = responseFormatTypeVisible;
     }
 
-    public boolean isPasswordStatusExpiredVisible() {
+    public boolean isPasswordStatusExpiredVisible( )
+    {
         return passwordStatusExpiredVisible;
     }
 
-    public void setPasswordStatusExpiredVisible(final boolean passwordStatusExpiredVisible) {
+    public void setPasswordStatusExpiredVisible( final boolean passwordStatusExpiredVisible )
+    {
         this.passwordStatusExpiredVisible = passwordStatusExpiredVisible;
     }
 
-    public boolean isPasswordStatusPreExpiredVisible() {
+    public boolean isPasswordStatusPreExpiredVisible( )
+    {
         return passwordStatusPreExpiredVisible;
     }
 
-    public void setPasswordStatusPreExpiredVisible(final boolean passwordStatusPreExpiredVisible) {
+    public void setPasswordStatusPreExpiredVisible( final boolean passwordStatusPreExpiredVisible )
+    {
         this.passwordStatusPreExpiredVisible = passwordStatusPreExpiredVisible;
     }
 
-    public boolean isPasswordStatusViolatesPolicyVisible() {
+    public boolean isPasswordStatusViolatesPolicyVisible( )
+    {
         return passwordStatusViolatesPolicyVisible;
     }
 
-    public void setPasswordStatusViolatesPolicyVisible(final boolean passwordStatusViolatesPolicyVisible) {
+    public void setPasswordStatusViolatesPolicyVisible( final boolean passwordStatusViolatesPolicyVisible )
+    {
         this.passwordStatusViolatesPolicyVisible = passwordStatusViolatesPolicyVisible;
     }
 
-    public boolean isPasswordStatusWarnPeriodVisible() {
+    public boolean isPasswordStatusWarnPeriodVisible( )
+    {
         return passwordStatusWarnPeriodVisible;
     }
 
-    public void setPasswordStatusWarnPeriodVisible(final boolean passwordStatusWarnPeriodVisible) {
+    public void setPasswordStatusWarnPeriodVisible( final boolean passwordStatusWarnPeriodVisible )
+    {
         this.passwordStatusWarnPeriodVisible = passwordStatusWarnPeriodVisible;
     }
 
-    public boolean isRequiresPasswordUpdateVisible() {
+    public boolean isRequiresPasswordUpdateVisible( )
+    {
         return requiresPasswordUpdateVisible;
     }
 
-    public void setRequiresPasswordUpdateVisible(final boolean requiresPasswordUpdateVisible) {
+    public void setRequiresPasswordUpdateVisible( final boolean requiresPasswordUpdateVisible )
+    {
         this.requiresPasswordUpdateVisible = requiresPasswordUpdateVisible;
     }
 
-    public boolean isRequiresResponseUpdateVisible() {
+    public boolean isRequiresResponseUpdateVisible( )
+    {
         return requiresResponseUpdateVisible;
     }
 
-    public void setRequiresResponseUpdateVisible(final boolean requiresResponseUpdateVisible) {
+    public void setRequiresResponseUpdateVisible( final boolean requiresResponseUpdateVisible )
+    {
         this.requiresResponseUpdateVisible = requiresResponseUpdateVisible;
     }
 
-    public boolean isRequiresProfileUpdateVisible() {
+    public boolean isRequiresProfileUpdateVisible( )
+    {
         return requiresProfileUpdateVisible;
     }
 
-    public void setRequiresProfileUpdateVisible(final boolean requiresProfileUpdateVisible) {
+    public void setRequiresProfileUpdateVisible( final boolean requiresProfileUpdateVisible )
+    {
         this.requiresProfileUpdateVisible = requiresProfileUpdateVisible;
     }
 
-    public boolean isCacheTimestampVisible() {
+    public boolean isCacheTimestampVisible( )
+    {
         return cacheTimestampVisible;
     }
 
-    public void setCacheTimestampVisible(final boolean cacheTimestampVisible) {
+    public void setCacheTimestampVisible( final boolean cacheTimestampVisible )
+    {
         this.cacheTimestampVisible = cacheTimestampVisible;
     }
 }

@@ -26,8 +26,9 @@ import password.pwm.PwmApplication;
 import password.pwm.bean.TelemetryPublishBean;
 import password.pwm.error.PwmUnrecoverableException;
 
-public interface TelemetrySender {
-    void init(PwmApplication pwmApplication, String initString);
+public interface TelemetrySender
+{
+    void init( PwmApplication pwmApplication, String initString );
 
-    void publish(TelemetryPublishBean statsPublishBean) throws PwmUnrecoverableException;
+    void publish( TelemetryPublishBean statsPublishBean ) throws PwmUnrecoverableException;
 }

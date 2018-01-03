@@ -22,25 +22,24 @@
 
 package password.pwm.config.stored;
 
-public enum ConfigurationProperty {
-    CONFIG_IS_EDITABLE("configIsEditable"),
-    CONFIG_EPOCH("configEpoch"),
-    LDAP_TEMPLATE("configTemplate"),
-    NOTES("notes"),
-    PASSWORD_HASH("configPasswordHash"),
-    CONFIG_ON_START("saveConfigOnStart"),
-    MODIFIFICATION_TIMESTAMP("modificationTimestamp"),
-
-    ;
+public enum ConfigurationProperty
+{
+    CONFIG_IS_EDITABLE( "configIsEditable" ),
+    CONFIG_EPOCH( "configEpoch" ),
+    LDAP_TEMPLATE( "configTemplate" ),
+    NOTES( "notes" ),
+    PASSWORD_HASH( "configPasswordHash" ),
+    CONFIG_ON_START( "saveConfigOnStart" ),
+    MODIFIFICATION_TIMESTAMP( "modificationTimestamp" ),;
 
     private final String key;
 
-    ConfigurationProperty(final String key)
+    ConfigurationProperty( final String key )
     {
         this.key = key;
     }
 
-    public String getKey()
+    public String getKey( )
     {
         return key;
     }

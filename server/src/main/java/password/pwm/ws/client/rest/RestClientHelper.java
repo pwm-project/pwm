@@ -39,8 +39,9 @@ import password.pwm.util.logging.PwmLogger;
 import java.io.IOException;
 import java.util.Locale;
 
-public class RestClientHelper {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(RestClientHelper.class);
+public class RestClientHelper
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( RestClientHelper.class );
 
     public static String makeOutboundRestWSCall(
             final PwmApplication pwmApplication,
@@ -48,32 +49,38 @@ public class RestClientHelper {
             final String url,
             final String jsonRequestBody
     )
-            throws PwmOperationalException, PwmUnrecoverableException {
-        final HttpPost httpPost = new HttpPost(url);
-        httpPost.setHeader("Accept", PwmConstants.AcceptValue.json.getHeaderValue());
-        if (locale != null) {
-            httpPost.setHeader("Accept-Locale", locale.toString());
+            throws PwmOperationalException, PwmUnrecoverableException
+    {
+        final HttpPost httpPost = new HttpPost( url );
+        httpPost.setHeader( "Accept", PwmConstants.AcceptValue.json.getHeaderValue() );
+        if ( locale != null )
+        {
+            httpPost.setHeader( "Accept-Locale", locale.toString() );
         }
-        httpPost.setHeader("Content-Type", HttpContentType.json.getHeaderValue());
+        httpPost.setHeader( "Content-Type", HttpContentType.json.getHeaderValue() );
         final HttpResponse httpResponse;
-        try {
-            final StringEntity stringEntity = new StringEntity(jsonRequestBody);
-            stringEntity.setContentType(PwmConstants.AcceptValue.json.getHeaderValue());
-            httpPost.setEntity(stringEntity);
-            LOGGER.debug("beginning external rest call to: " + httpPost.toString() + ", body: " + jsonRequestBody);
-            httpResponse = PwmHttpClient.getHttpClient(pwmApplication.getConfig()).execute(httpPost);
-            final String responseBody = EntityUtils.toString(httpResponse.getEntity());
-            LOGGER.trace("external rest call returned: " + httpResponse.getStatusLine().toString() + ", body: " + responseBody);
-            if (httpResponse.getStatusLine().getStatusCode() != 200) {
+        try
+        {
+            final StringEntity stringEntity = new StringEntity( jsonRequestBody );
+            stringEntity.setContentType( PwmConstants.AcceptValue.json.getHeaderValue() );
+            httpPost.setEntity( stringEntity );
+            LOGGER.debug( "beginning external rest call to: " + httpPost.toString() + ", body: " + jsonRequestBody );
+            httpResponse = PwmHttpClient.getHttpClient( pwmApplication.getConfig() ).execute( httpPost );
+            final String responseBody = EntityUtils.toString( httpResponse.getEntity() );
+            LOGGER.trace( "external rest call returned: " + httpResponse.getStatusLine().toString() + ", body: " + responseBody );
+            if ( httpResponse.getStatusLine().getStatusCode() != 200 )
+            {
                 final String errorMsg = "received non-200 response code (" + httpResponse.getStatusLine().getStatusCode() + ") when executing web-service";
-                LOGGER.error(errorMsg);
-                throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg));
+                LOGGER.error( errorMsg );
+                throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg ) );
             }
             return responseBody;
-        } catch (IOException e) {
+        }
+        catch ( IOException e )
+        {
             final String errorMsg = "http response error while executing external rest call, error: " + e.getMessage();
-            LOGGER.error(errorMsg);
-            throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg),e);
+            LOGGER.error( errorMsg );
+            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg ), e );
         }
     }
 }

@@ -22,7 +22,8 @@
 
 package password.pwm.util.db;
 
-public enum DatabaseTable {
+public enum DatabaseTable
+{
     PWM_META,
     PWM_RESPONSES,
     USER_AUDIT,

@@ -35,14 +35,15 @@ import java.util.Map;
 
 @Getter
 @Builder
-public class UserDebugDataBean implements Serializable {
+public class UserDebugDataBean implements Serializable
+{
     private transient UserInfo userInfo;
 
     private final PublicUserInfoBean publicUserInfoBean;
     private final boolean passwordReadable;
-    private final Map<Permission,String> permissions;
+    private final Map<Permission, String> permissions;
 
     private final PwmPasswordPolicy ldapPasswordPolicy;
     private final PwmPasswordPolicy configuredPasswordPolicy;
-    private final Map<ProfileType,String> profiles;
+    private final Map<ProfileType, String> profiles;
 }

@@ -45,113 +45,148 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-public class X509CertificateValue extends AbstractValue implements StoredValue {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(X509CertificateValue.class);
+public class X509CertificateValue extends AbstractValue implements StoredValue
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( X509CertificateValue.class );
     private X509Certificate[] certificates;
 
-    public static StoredValueFactory factory() {
-        return new StoredValueFactory() {
-            public X509CertificateValue fromXmlElement(final Element settingElement, final PwmSecurityKey key) {
+    public static StoredValueFactory factory( )
+    {
+        return new StoredValueFactory()
+        {
+            public X509CertificateValue fromXmlElement( final Element settingElement, final PwmSecurityKey key )
+            {
                 final List<X509Certificate> certificates = new ArrayList<>();
-                final List<Element> valueElements = settingElement.getChildren("value");
-                for (final Element loopValueElement : valueElements) {
+                final List<Element> valueElements = settingElement.getChildren( "value" );
+                for ( final Element loopValueElement : valueElements )
+                {
                     final String b64encodedStr = loopValueElement.getText();
-                    try {
-                        certificates.add(X509Utils.certificateFromBase64(b64encodedStr));
-                    } catch (Exception e) {
-                        LOGGER.error("error decoding certificate: " + e.getMessage());
+                    try
+                    {
+                        certificates.add( X509Utils.certificateFromBase64( b64encodedStr ) );
+                    }
+                    catch ( Exception e )
+                    {
+                        LOGGER.error( "error decoding certificate: " + e.getMessage() );
                     }
                 }
-                return new X509CertificateValue(certificates.toArray(new X509Certificate[certificates.size()]));
+                return new X509CertificateValue( certificates.toArray( new X509Certificate[ certificates.size() ] ) );
             }
 
-            public X509CertificateValue fromJson(final String input) {
-                return new X509CertificateValue(new X509Certificate[0]);
+            public X509CertificateValue fromJson( final String input )
+            {
+                return new X509CertificateValue( new X509Certificate[ 0 ] );
             }
         };
     }
 
-    public X509CertificateValue(final X509Certificate[] certificates) {
-        if (certificates == null) {
-            throw new NullPointerException("certificates cannot be null");
+    public X509CertificateValue( final X509Certificate[] certificates )
+    {
+        if ( certificates == null )
+        {
+            throw new NullPointerException( "certificates cannot be null" );
         }
-        this.certificates = Arrays.copyOf(certificates, certificates.length);
+        this.certificates = Arrays.copyOf( certificates, certificates.length );
     }
 
-    public boolean hasCertificates() {
+    public boolean hasCertificates( )
+    {
         return certificates != null && certificates.length > 0;
     }
 
-    public X509CertificateValue(final Collection<X509Certificate> certificates) {
-        if (certificates == null) {
-            throw new NullPointerException("certificates cannot be null");
+    public X509CertificateValue( final Collection<X509Certificate> certificates )
+    {
+        if ( certificates == null )
+        {
+            throw new NullPointerException( "certificates cannot be null" );
         }
-        this.certificates = certificates.toArray(new X509Certificate[certificates.size()]);
+        this.certificates = certificates.toArray( new X509Certificate[ certificates.size() ] );
     }
 
 
     @Override
-    public List<Element> toXmlValues(final String valueElementName) {
+    public List<Element> toXmlValues( final String valueElementName )
+    {
         final List<Element> returnList = new ArrayList<>();
-        for (final X509Certificate value : certificates) {
-            final Element valueElement = new Element(valueElementName);
-            try {
-                valueElement.addContent(X509Utils.certificateToBase64(value));
-            } catch (CertificateEncodingException e) {
-                LOGGER.error("error encoding certificate: " + e.getMessage());
+        for ( final X509Certificate value : certificates )
+        {
+            final Element valueElement = new Element( valueElementName );
+            try
+            {
+                valueElement.addContent( X509Utils.certificateToBase64( value ) );
             }
-            returnList.add(valueElement);
+            catch ( CertificateEncodingException e )
+            {
+                LOGGER.error( "error encoding certificate: " + e.getMessage() );
+            }
+            returnList.add( valueElement );
         }
         return returnList;
     }
 
     @Override
-    public Object toNativeObject() {
-        return certificates == null ? null : Arrays.copyOf(certificates, certificates.length);
+    public Object toNativeObject( )
+    {
+        return certificates == null ? null : Arrays.copyOf( certificates, certificates.length );
     }
 
     @Override
-    public List<String> validateValue(final PwmSetting pwm) {
+    public List<String> validateValue( final PwmSetting pwm )
+    {
         return Collections.emptyList();
     }
 
-    public String toDebugString(final Locale locale) {
-            final StringBuilder sb = new StringBuilder();
-            final int counter = 0;
-            for (final X509Certificate cert : certificates) {
-                sb.append("Certificate ").append(counter).append("\n");
-                sb.append(" Subject: ").append(cert.getSubjectDN().toString()).append("\n");
-                sb.append(" Serial: ").append(X509Utils.hexSerial(cert)).append("\n");
-                sb.append(" Issuer: ").append(cert.getIssuerDN().toString()).append("\n");
-                sb.append(" IssueDate: ").append(JavaHelper.toIsoDate(cert.getNotBefore())).append("\n");
-                sb.append(" ExpireDate: ").append(JavaHelper.toIsoDate(cert.getNotAfter())).append("\n");
-                try {
-                    sb.append(" MD5 Hash: ").append(SecureEngine.hash(new ByteArrayInputStream(cert.getEncoded()),
-                            PwmHashAlgorithm.MD5)).append("\n");
-                    sb.append(" SHA1 Hash: ").append(SecureEngine.hash(new ByteArrayInputStream(cert.getEncoded()),
-                            PwmHashAlgorithm.SHA1)).append("\n");
-                } catch (PwmUnrecoverableException | CertificateEncodingException e) {
-                    LOGGER.warn("error generating hash for certificate: " + e.getMessage());
-                }
+    public String toDebugString( final Locale locale )
+    {
+        final StringBuilder sb = new StringBuilder();
+        final int counter = 0;
+        for ( final X509Certificate cert : certificates )
+        {
+            sb.append( "Certificate " ).append( counter ).append( "\n" );
+            sb.append( " Subject: " ).append( cert.getSubjectDN().toString() ).append( "\n" );
+            sb.append( " Serial: " ).append( X509Utils.hexSerial( cert ) ).append( "\n" );
+            sb.append( " Issuer: " ).append( cert.getIssuerDN().toString() ).append( "\n" );
+            sb.append( " IssueDate: " ).append( JavaHelper.toIsoDate( cert.getNotBefore() ) ).append( "\n" );
+            sb.append( " ExpireDate: " ).append( JavaHelper.toIsoDate( cert.getNotAfter() ) ).append( "\n" );
+            try
+            {
+                sb.append( " MD5 Hash: " ).append( SecureEngine.hash( new ByteArrayInputStream( cert.getEncoded() ),
+                        PwmHashAlgorithm.MD5 ) ).append( "\n" );
+                sb.append( " SHA1 Hash: " ).append( SecureEngine.hash( new ByteArrayInputStream( cert.getEncoded() ),
+                        PwmHashAlgorithm.SHA1 ) ).append( "\n" );
             }
-            return sb.toString();
+            catch ( PwmUnrecoverableException | CertificateEncodingException e )
+            {
+                LOGGER.warn( "error generating hash for certificate: " + e.getMessage() );
+            }
+        }
+        return sb.toString();
     }
 
     @Override
-    public Serializable toDebugJsonObject(final Locale locale) {
-        return (Serializable)toInfoMap(false);
+    public Serializable toDebugJsonObject( final Locale locale )
+    {
+        return ( Serializable ) toInfoMap( false );
     }
 
-    public List<Map<String,String>> toInfoMap(final boolean includeDetail) {
-        if (this.certificates == null) {
+    public List<Map<String, String>> toInfoMap( final boolean includeDetail )
+    {
+        if ( this.certificates == null )
+        {
             return Collections.emptyList();
         }
 
-        final List<Map<String,String>> list = new ArrayList<>();
-        for (final X509Certificate cert : this.certificates) {
-            final X509Utils.DebugInfoFlag[] flags = includeDetail ? new X509Utils.DebugInfoFlag[]{X509Utils.DebugInfoFlag.IncludeCertificateDetail} : null;
-            list.add(X509Utils.makeDebugInfoMap(cert, flags));
+        final List<Map<String, String>> list = new ArrayList<>();
+        for ( final X509Certificate cert : this.certificates )
+        {
+            final X509Utils.DebugInfoFlag[] flags = includeDetail
+                    ? new X509Utils.DebugInfoFlag[]
+                    {
+                            X509Utils.DebugInfoFlag.IncludeCertificateDetail,
+                    }
+                    : null;
+            list.add( X509Utils.makeDebugInfoMap( cert, flags ) );
         }
-        return Collections.unmodifiableList(list);
+        return Collections.unmodifiableList( list );
     }
 }

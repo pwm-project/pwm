@@ -51,11 +51,13 @@ import static password.pwm.util.localdb.LocalDB.DB;
  *
  * @author Jason D. Rivard
  */
-public class Berkeley_LocalDB {}
+public class BerkeleyLocalDB
+{
+}
 
 
 /*implements LocalDBProvider {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(Berkeley_LocalDB.class, true);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(BerkeleyLocalDB.class, true);
 
     private final static boolean IS_TRANSACTIONAL = true;
     private final static int OPEN_RETRY_SECONDS = 60;
@@ -144,7 +146,7 @@ public class Berkeley_LocalDB {}
         return environment;
     }
 
-    Berkeley_LocalDB()
+    BerkeleyLocalDB()
             throws Exception {
     }
 

@@ -27,41 +27,50 @@ import password.pwm.VerificationMethodSystem;
 import java.io.Serializable;
 import java.util.List;
 
-public class RemoteVerificationResponseBean implements Serializable {
+public class RemoteVerificationResponseBean implements Serializable
+{
     private String displayInstructions;
     private VerificationMethodSystem.VerificationState verificationState;
     private List<VerificationMethodSystem.UserPromptBean> userPrompts;
     private String errorMessage;
 
-    public String getDisplayInstructions() {
+    public String getDisplayInstructions( )
+    {
         return displayInstructions;
     }
 
-    public void setDisplayInstructions(final String displayInstructions) {
+    public void setDisplayInstructions( final String displayInstructions )
+    {
         this.displayInstructions = displayInstructions;
     }
 
-    public VerificationMethodSystem.VerificationState getVerificationState() {
+    public VerificationMethodSystem.VerificationState getVerificationState( )
+    {
         return verificationState;
     }
 
-    public void setVerificationState(final VerificationMethodSystem.VerificationState verificationState) {
+    public void setVerificationState( final VerificationMethodSystem.VerificationState verificationState )
+    {
         this.verificationState = verificationState;
     }
 
-    public List<VerificationMethodSystem.UserPromptBean> getUserPrompts() {
+    public List<VerificationMethodSystem.UserPromptBean> getUserPrompts( )
+    {
         return userPrompts;
     }
 
-    public void setUserPrompts(final List<VerificationMethodSystem.UserPromptBean> userPrompts) {
+    public void setUserPrompts( final List<VerificationMethodSystem.UserPromptBean> userPrompts )
+    {
         this.userPrompts = userPrompts;
     }
 
-    public String getErrorMessage() {
+    public String getErrorMessage( )
+    {
         return errorMessage;
     }
 
-    public void setErrorMessage(final String errorMessage) {
+    public void setErrorMessage( final String errorMessage )
+    {
         this.errorMessage = errorMessage;
     }
 }

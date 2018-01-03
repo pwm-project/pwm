@@ -26,19 +26,24 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.tagext.TagSupport;
 
-public class PwmAutofocusTag extends TagSupport {
+public class PwmAutofocusTag extends TagSupport
+{
 
-    public int doEndTag()
+    public int doEndTag( )
             throws javax.servlet.jsp.JspTagException
     {
-        try {
-            final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
-            if (req.getAttribute("autoFocusHasBeenSet") == null) {
-                pageContext.getOut().write( "autofocus=\"autofocus\" ");
-                req.setAttribute("autoFocusHasBeenSet",true);
+        try
+        {
+            final HttpServletRequest req = ( HttpServletRequest ) pageContext.getRequest();
+            if ( req.getAttribute( "autoFocusHasBeenSet" ) == null )
+            {
+                pageContext.getOut().write( "autofocus=\"autofocus\" " );
+                req.setAttribute( "autoFocusHasBeenSet", true );
             }
-        } catch (Exception e) {
-            throw new JspTagException(e.getMessage());
+        }
+        catch ( Exception e )
+        {
+            throw new JspTagException( e.getMessage() );
         }
         return EVAL_PAGE;
     }

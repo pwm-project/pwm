@@ -27,13 +27,13 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.ldap.UserInfo;
 import password.pwm.bean.pub.PublicUserInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -44,11 +44,13 @@ import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 
-public class RestTokenDataClient implements RestClient {
+public class RestTokenDataClient implements RestClient
+{
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass(RestTokenDataClient.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass( RestTokenDataClient.class );
 
-    public static class TokenDestinationData implements Serializable {
+    public static class TokenDestinationData implements Serializable
+    {
         private String email;
         private String sms;
         private String displayValue;
@@ -64,17 +66,17 @@ public class RestTokenDataClient implements RestClient {
             this.displayValue = displayValue;
         }
 
-        public String getEmail()
+        public String getEmail( )
         {
             return email;
         }
 
-        public String getSms()
+        public String getSms( )
         {
             return sms;
         }
 
-        public String getDisplayValue()
+        public String getDisplayValue( )
         {
             return displayValue;
         }
@@ -82,7 +84,7 @@ public class RestTokenDataClient implements RestClient {
 
     private final PwmApplication pwmApplication;
 
-    public RestTokenDataClient(final PwmApplication pwmApplication)
+    public RestTokenDataClient( final PwmApplication pwmApplication )
     {
         this.pwmApplication = pwmApplication;
     }
@@ -96,28 +98,30 @@ public class RestTokenDataClient implements RestClient {
     )
             throws PwmOperationalException, ChaiUnavailableException, PwmUnrecoverableException
     {
-        if (tokenDestinationData == null) {
-            throw new NullPointerException("tokenDestinationData can not be null");
+        if ( tokenDestinationData == null )
+        {
+            throw new NullPointerException( "tokenDestinationData can not be null" );
         }
 
-        final Map<String,Object> sendData = new LinkedHashMap<>();
-        sendData.put(DATA_KEY_TOKENDATA, tokenDestinationData);
-        if (userIdentity != null) {
+        final Map<String, Object> sendData = new LinkedHashMap<>();
+        sendData.put( DATA_KEY_TOKENDATA, tokenDestinationData );
+        if ( userIdentity != null )
+        {
             final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy(
                     pwmApplication,
                     sessionLabel,
                     userIdentity, locale
             );
 
-            final MacroMachine macroMachine = MacroMachine.forUser(pwmApplication, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, userInfo.getUserIdentity());
-            final PublicUserInfoBean publicUserInfoBean = PublicUserInfoBean.fromUserInfoBean(userInfo, pwmApplication.getConfig(), PwmConstants.DEFAULT_LOCALE, macroMachine);
-            sendData.put(RestClient.DATA_KEY_USERINFO, publicUserInfoBean);
+            final MacroMachine macroMachine = MacroMachine.forUser( pwmApplication, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, userInfo.getUserIdentity() );
+            final PublicUserInfoBean publicUserInfoBean = PublicUserInfoBean.fromUserInfoBean( userInfo, pwmApplication.getConfig(), PwmConstants.DEFAULT_LOCALE, macroMachine );
+            sendData.put( RestClient.DATA_KEY_USERINFO, publicUserInfoBean );
         }
 
 
-        final String jsonRequestData = JsonUtil.serializeMap(sendData);
-        final String responseBody = RestClientHelper.makeOutboundRestWSCall(pwmApplication, locale, url, jsonRequestData);
-        return JsonUtil.deserialize(responseBody,TokenDestinationData.class);
+        final String jsonRequestData = JsonUtil.serializeMap( sendData );
+        final String responseBody = RestClientHelper.makeOutboundRestWSCall( pwmApplication, locale, url, jsonRequestData );
+        return JsonUtil.deserialize( responseBody, TokenDestinationData.class );
     }
 
     public TokenDestinationData figureDestTokenDisplayString(
@@ -128,33 +132,41 @@ public class RestTokenDataClient implements RestClient {
     )
             throws PwmUnrecoverableException
     {
-        final String configuredUrl = pwmApplication.getConfig().readSettingAsString(PwmSetting.EXTERNAL_MACROS_DEST_TOKEN_URLS);
-        if (configuredUrl != null && !configuredUrl.isEmpty()) {
-            try {
-                LOGGER.trace(sessionLabel, "beginning token destination rest client call to " + configuredUrl);
-                return invoke(sessionLabel, tokenDestinationData, userIdentity, configuredUrl, locale);
-            } catch (Exception e) {
+        final String configuredUrl = pwmApplication.getConfig().readSettingAsString( PwmSetting.EXTERNAL_MACROS_DEST_TOKEN_URLS );
+        if ( configuredUrl != null && !configuredUrl.isEmpty() )
+        {
+            try
+            {
+                LOGGER.trace( sessionLabel, "beginning token destination rest client call to " + configuredUrl );
+                return invoke( sessionLabel, tokenDestinationData, userIdentity, configuredUrl, locale );
+            }
+            catch ( Exception e )
+            {
                 final String errorMsg = "error making token destination rest client call; error: " + e.getMessage();
-                LOGGER.error(sessionLabel, errorMsg);
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,errorMsg));
+                LOGGER.error( sessionLabel, errorMsg );
+                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, errorMsg ) );
             }
         }
-        return builtInService(tokenDestinationData);
+        return builtInService( tokenDestinationData );
     }
 
-    private TokenDestinationData builtInService(final TokenDestinationData tokenDestinationData) {
+    private TokenDestinationData builtInService( final TokenDestinationData tokenDestinationData )
+    {
         final StringBuilder tokenSendDisplay = new StringBuilder();
 
-        if (tokenDestinationData.getEmail() != null) {
-            tokenSendDisplay.append(tokenDestinationData.getEmail());
+        if ( tokenDestinationData.getEmail() != null )
+        {
+            tokenSendDisplay.append( tokenDestinationData.getEmail() );
         }
 
-        if (tokenDestinationData.getSms() != null) {
-            if (tokenSendDisplay.length() > 0) {
-                tokenSendDisplay.append(" / ");
+        if ( tokenDestinationData.getSms() != null )
+        {
+            if ( tokenSendDisplay.length() > 0 )
+            {
+                tokenSendDisplay.append( " / " );
             }
 
-            tokenSendDisplay.append(tokenDestinationData.getSms());
+            tokenSendDisplay.append( tokenDestinationData.getSms() );
         }
 
         return new TokenDestinationData(

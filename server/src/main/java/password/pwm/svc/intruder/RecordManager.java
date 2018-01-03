@@ -25,18 +25,19 @@ package password.pwm.svc.intruder;
 import password.pwm.error.PwmException;
 import password.pwm.util.java.ClosableIterator;
 
-public interface RecordManager {
-    boolean checkSubject( String subject);
+public interface RecordManager
+{
+    boolean checkSubject( String subject );
 
-    void markSubject( String subject);
+    void markSubject( String subject );
 
-    void clearSubject( String subject);
+    void clearSubject( String subject );
 
-    boolean isAlerted( String subject);
+    boolean isAlerted( String subject );
 
-    void markAlerted( String subject);
+    void markAlerted( String subject );
 
-    IntruderRecord readIntruderRecord( String subject);
+    IntruderRecord readIntruderRecord( String subject );
 
-    ClosableIterator<IntruderRecord> iterator() throws PwmException;
+    ClosableIterator<IntruderRecord> iterator( ) throws PwmException;
 }

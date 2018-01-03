@@ -28,7 +28,8 @@ import java.time.Instant;
 import java.util.Locale;
 
 @Data
-public class SessionStateInfoBean implements PublishedBean {
+public class SessionStateInfoBean implements PublishedBean
+{
     private String label;
     private Instant createTime;
     private Instant lastTime;

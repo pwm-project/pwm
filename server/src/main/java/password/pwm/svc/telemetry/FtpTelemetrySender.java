@@ -48,26 +48,29 @@ import java.time.Instant;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-public class FtpTelemetrySender implements TelemetrySender {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(FtpTelemetrySender.class);
+public class FtpTelemetrySender implements TelemetrySender
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( FtpTelemetrySender.class );
 
     private Settings settings;
 
     @Override
-    public void init(final PwmApplication pwmApplication,final  String initString) {
-        settings = JsonUtil.deserialize(initString, Settings.class);
+    public void init( final PwmApplication pwmApplication, final String initString )
+    {
+        settings = JsonUtil.deserialize( initString, Settings.class );
     }
 
     @Override
-    public void publish(final TelemetryPublishBean telemetryPublishBean) throws PwmUnrecoverableException
+    public void publish( final TelemetryPublishBean telemetryPublishBean ) throws PwmUnrecoverableException
     {
-        ftpPut(telemetryPublishBean);
+        ftpPut( telemetryPublishBean );
     }
 
-    private void ftpPut(final TelemetryPublishBean telemetryPublishBean) throws PwmUnrecoverableException
+    private void ftpPut( final TelemetryPublishBean telemetryPublishBean ) throws PwmUnrecoverableException
     {
         final FTPClient ftpClient;
-        switch (settings.getFtpMode()) {
+        switch ( settings.getFtpMode() )
+        {
             case ftp:
                 ftpClient = new FTPClient();
                 break;
@@ -77,128 +80,151 @@ public class FtpTelemetrySender implements TelemetrySender {
                 break;
 
             default:
-                JavaHelper.unhandledSwitchStatement(settings.getFtpMode());
+                JavaHelper.unhandledSwitchStatement( settings.getFtpMode() );
                 throw new UnsupportedOperationException();
         }
 
 
         // connect
-        try {
-            LOGGER.trace(SessionLabel.TELEMETRY_SESSION_LABEL, "establishing " + settings.getFtpMode() + " connection to " + settings.getHost());
-            ftpClient.connect(settings.getHost());
+        try
+        {
+            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "establishing " + settings.getFtpMode() + " connection to " + settings.getHost() );
+            ftpClient.connect( settings.getHost() );
 
             final int reply = ftpClient.getReplyCode();
-            if (!FTPReply.isPositiveCompletion(reply)) {
-                disconnectFtpClient(ftpClient);
+            if ( !FTPReply.isPositiveCompletion( reply ) )
+            {
+                disconnectFtpClient( ftpClient );
                 final String msg = "error " + reply + " connecting to " + settings.getHost();
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_TELEMETRY_SEND_ERROR, msg));
+                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_TELEMETRY_SEND_ERROR, msg ) );
             }
 
-            LOGGER.trace(SessionLabel.TELEMETRY_SESSION_LABEL, "connected to " + settings.getHost());
-        } catch (IOException e) {
-            disconnectFtpClient(ftpClient);
+            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "connected to " + settings.getHost() );
+        }
+        catch ( IOException e )
+        {
+            disconnectFtpClient( ftpClient );
             final String msg = "unable to connect to " + settings.getHost() + ", error: " + e.getMessage();
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_TELEMETRY_SEND_ERROR, msg));
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_TELEMETRY_SEND_ERROR, msg ) );
         }
 
         // set modes
-        try {
+        try
+        {
             ftpClient.enterLocalPassiveMode();
-            ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
+            ftpClient.setFileType( FTP.BINARY_FILE_TYPE );
 
             final int reply = ftpClient.getReplyCode();
-            if (!FTPReply.isPositiveCompletion(reply)) {
-                disconnectFtpClient(ftpClient);
+            if ( !FTPReply.isPositiveCompletion( reply ) )
+            {
+                disconnectFtpClient( ftpClient );
                 final String msg = "error setting file type mode to binary, error=" + reply;
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_TELEMETRY_SEND_ERROR, msg));
+                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_TELEMETRY_SEND_ERROR, msg ) );
             }
-        } catch (IOException e) {
-            disconnectFtpClient(ftpClient);
+        }
+        catch ( IOException e )
+        {
+            disconnectFtpClient( ftpClient );
             final String msg = "unable to connect to " + settings.getHost() + ", error: " + e.getMessage();
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_TELEMETRY_SEND_ERROR, msg));
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_TELEMETRY_SEND_ERROR, msg ) );
         }
 
         // authenticate
-        try {
-            ftpClient.login(settings.getUsername(), settings.getPassword());
+        try
+        {
+            ftpClient.login( settings.getUsername(), settings.getPassword() );
 
             final int reply = ftpClient.getReplyCode();
-            if (!FTPReply.isPositiveCompletion(reply)) {
-                disconnectFtpClient(ftpClient);
+            if ( !FTPReply.isPositiveCompletion( reply ) )
+            {
+                disconnectFtpClient( ftpClient );
                 final String msg = "error authenticating as " + settings.getUsername() + " to " + settings.getHost() + ", error=" + reply;
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_TELEMETRY_SEND_ERROR, msg));
+                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_TELEMETRY_SEND_ERROR, msg ) );
             }
 
-            LOGGER.trace(SessionLabel.TELEMETRY_SESSION_LABEL, "authenticated to " + settings.getHost() + " as " + settings.getUsername());
-        } catch (IOException e) {
-            disconnectFtpClient(ftpClient);
+            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "authenticated to " + settings.getHost() + " as " + settings.getUsername() );
+        }
+        catch ( IOException e )
+        {
+            disconnectFtpClient( ftpClient );
             final String msg = "error authenticating as " + settings.getUsername() + " to " + settings.getHost() + ", error: " + e.getMessage();
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_TELEMETRY_SEND_ERROR, msg));
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_TELEMETRY_SEND_ERROR, msg ) );
         }
 
 
         // upload
-        try {
+        try
+        {
             final String filePath = settings.getPath() + "/" + telemetryPublishBean.getId() + ".zip";
-            final byte[] fileBytes = dataToJsonZipFile(telemetryPublishBean);
-            final ByteArrayInputStream fileStream = new ByteArrayInputStream(fileBytes);
+            final byte[] fileBytes = dataToJsonZipFile( telemetryPublishBean );
+            final ByteArrayInputStream fileStream = new ByteArrayInputStream( fileBytes );
 
-            LOGGER.trace(SessionLabel.TELEMETRY_SESSION_LABEL, "preparing to transfer " + fileBytes.length + " bytes to file path " + filePath);
+            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "preparing to transfer " + fileBytes.length + " bytes to file path " + filePath );
 
             final Instant startTime = Instant.now();
-            ftpClient.storeFile(filePath, fileStream);
+            ftpClient.storeFile( filePath, fileStream );
 
             final int reply = ftpClient.getReplyCode();
-            if (!FTPReply.isPositiveCompletion(reply)) {
-                disconnectFtpClient(ftpClient);
+            if ( !FTPReply.isPositiveCompletion( reply ) )
+            {
+                disconnectFtpClient( ftpClient );
                 final String msg = "error uploading file  to " + settings.getHost() + ", error=" + reply;
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_TELEMETRY_SEND_ERROR, msg));
+                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_TELEMETRY_SEND_ERROR, msg ) );
             }
 
-            LOGGER.trace(SessionLabel.TELEMETRY_SESSION_LABEL, "completed transfer of " + fileBytes.length + " in " + TimeDuration.compactFromCurrent(startTime));
-        } catch (IOException e) {
-            disconnectFtpClient(ftpClient);
-            final String msg = "error uploading file  to " + settings.getHost() + ", error: " +e.getMessage();
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_TELEMETRY_SEND_ERROR, msg));
+            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "completed transfer of " + fileBytes.length + " in " + TimeDuration.compactFromCurrent( startTime ) );
+        }
+        catch ( IOException e )
+        {
+            disconnectFtpClient( ftpClient );
+            final String msg = "error uploading file  to " + settings.getHost() + ", error: " + e.getMessage();
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_TELEMETRY_SEND_ERROR, msg ) );
         }
     }
 
-    private void disconnectFtpClient(final FTPClient ftpClient) {
-        if (ftpClient.isConnected()) {
-            try {
+    private void disconnectFtpClient( final FTPClient ftpClient )
+    {
+        if ( ftpClient.isConnected() )
+        {
+            try
+            {
                 ftpClient.disconnect();
-                LOGGER.trace(SessionLabel.TELEMETRY_SESSION_LABEL, "disconnected");
-            } catch (IOException e) {
-                LOGGER.trace(SessionLabel.TELEMETRY_SESSION_LABEL, "error while disconnecting ftp client: " + e.getMessage());
+                LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "disconnected" );
+            }
+            catch ( IOException e )
+            {
+                LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "error while disconnecting ftp client: " + e.getMessage() );
             }
         }
     }
 
     @Getter
     @AllArgsConstructor
-    private static class Settings implements Serializable {
-        private FTP_MODE ftpMode;
+    private static class Settings implements Serializable
+    {
+        private FtpMode ftpMode;
         private String host;
         private String username;
         private String password;
         private String path;
 
-        enum FTP_MODE {
+        enum FtpMode
+        {
             ftp,
             ftps,
         }
     }
 
-    private static byte[] dataToJsonZipFile(final TelemetryPublishBean telemetryPublishBean) throws IOException
+    private static byte[] dataToJsonZipFile( final TelemetryPublishBean telemetryPublishBean ) throws IOException
     {
-        final String jsonData = JsonUtil.serialize(telemetryPublishBean, JsonUtil.Flag.PrettyPrint);
+        final String jsonData = JsonUtil.serialize( telemetryPublishBean, JsonUtil.Flag.PrettyPrint );
         final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        final ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream);
-        final ZipEntry e = new ZipEntry(telemetryPublishBean.getId() + ".json");
-        zipOutputStream.putNextEntry(e);
+        final ZipOutputStream zipOutputStream = new ZipOutputStream( byteArrayOutputStream );
+        final ZipEntry e = new ZipEntry( telemetryPublishBean.getId() + ".json" );
+        zipOutputStream.putNextEntry( e );
 
-        final byte[] data = jsonData.getBytes(PwmConstants.DEFAULT_CHARSET);
-        zipOutputStream.write(data, 0, data.length);
+        final byte[] data = jsonData.getBytes( PwmConstants.DEFAULT_CHARSET );
+        zipOutputStream.write( data, 0, data.length );
         zipOutputStream.closeEntry();
         zipOutputStream.close();
         return byteArrayOutputStream.toByteArray();

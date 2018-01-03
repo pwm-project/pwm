@@ -31,7 +31,8 @@ import java.util.List;
 
 @Getter
 @Setter
-class OrgChartReferenceBean implements Serializable {
+class OrgChartReferenceBean implements Serializable
+{
     public String userKey;
     public List<String> displayNames = new ArrayList<>();
     public String photoURL;

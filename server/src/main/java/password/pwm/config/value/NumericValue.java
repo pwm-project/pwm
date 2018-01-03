@@ -31,44 +31,50 @@ import password.pwm.util.secure.PwmSecurityKey;
 import java.util.Collections;
 import java.util.List;
 
-public class NumericValue extends AbstractValue implements StoredValue {
+public class NumericValue extends AbstractValue implements StoredValue
+{
     long value;
 
-    public NumericValue(final long value) {
+    public NumericValue( final long value )
+    {
         this.value = value;
     }
 
-    public static StoredValueFactory factory()
+    public static StoredValueFactory factory( )
     {
-        return new StoredValueFactory() {
-            public NumericValue fromJson(final String value)
+        return new StoredValueFactory()
+        {
+            public NumericValue fromJson( final String value )
             {
-                return new NumericValue(JsonUtil.deserialize(value, Long.class));
+                return new NumericValue( JsonUtil.deserialize( value, Long.class ) );
             }
 
-            public NumericValue fromXmlElement(final Element settingElement, final PwmSecurityKey input)
+            public NumericValue fromXmlElement( final Element settingElement, final PwmSecurityKey input )
             {
-                final Element valueElement = settingElement.getChild("value");
+                final Element valueElement = settingElement.getChild( "value" );
                 final String value = valueElement.getText();
-                return new NumericValue(Long.parseLong(value));
+                return new NumericValue( Long.parseLong( value ) );
             }
         };
     }
 
     @Override
-    public List<Element> toXmlValues(final String valueElementName) {
-        final Element valueElement = new Element(valueElementName);
-        valueElement.addContent(Long.toString(value));
-        return Collections.singletonList(valueElement);
+    public List<Element> toXmlValues( final String valueElementName )
+    {
+        final Element valueElement = new Element( valueElementName );
+        valueElement.addContent( Long.toString( value ) );
+        return Collections.singletonList( valueElement );
     }
 
     @Override
-    public Object toNativeObject() {
+    public Object toNativeObject( )
+    {
         return value;
     }
 
     @Override
-    public List<String> validateValue(final PwmSetting pwmSetting) {
+    public List<String> validateValue( final PwmSetting pwmSetting )
+    {
         return Collections.emptyList();
     }
 }

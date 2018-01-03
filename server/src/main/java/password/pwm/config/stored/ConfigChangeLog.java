@@ -27,14 +27,15 @@ import password.pwm.config.StoredValue;
 import java.util.Collection;
 import java.util.Locale;
 
-public interface ConfigChangeLog {
-    boolean isModified();
+public interface ConfigChangeLog
+{
+    boolean isModified( );
 
-    String changeLogAsDebugString(Locale locale, boolean asHtml);
+    String changeLogAsDebugString( Locale locale, boolean asHtml );
 
-    void updateChangeLog(StoredConfigReference reference, StoredValue newValue);
+    void updateChangeLog( StoredConfigReference reference, StoredValue newValue );
 
-    void updateChangeLog( StoredConfigReference reference,  StoredValue currentValue,  StoredValue newValue);
+    void updateChangeLog( StoredConfigReference reference, StoredValue currentValue, StoredValue newValue );
 
-    Collection<StoredConfigReference> changedValues();
+    Collection<StoredConfigReference> changedValues( );
 }

@@ -30,7 +30,8 @@ import password.pwm.http.PwmRequestFlag;
 
 @Getter
 @AllArgsConstructor
-class PwmIfOptions {
+class PwmIfOptions
+{
     private final boolean negate;
     private final Permission permission;
     private final PwmSetting pwmSetting;

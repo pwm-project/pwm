@@ -39,8 +39,9 @@ import java.util.List;
 import java.util.Map;
 
 @Getter
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class DBConfiguration implements Serializable {
+@AllArgsConstructor( access = AccessLevel.PRIVATE )
+public class DBConfiguration implements Serializable
+{
     private final String driverClassname;
     private final String connectionString;
     private final String username;
@@ -53,52 +54,58 @@ public class DBConfiguration implements Serializable {
     private final int connectionTimeout;
     private final int keyColumnLength;
 
-    public byte[] getJdbcDriver() {
-        return jdbcDriver == null ? null : Arrays.copyOf(jdbcDriver, jdbcDriver.length);
+    public byte[] getJdbcDriver( )
+    {
+        return jdbcDriver == null ? null : Arrays.copyOf( jdbcDriver, jdbcDriver.length );
     }
 
-    public boolean isEnabled() {
+    public boolean isEnabled( )
+    {
         return
-                !StringUtil.isEmpty(driverClassname)
-                && !StringUtil.isEmpty(connectionString)
-                && !StringUtil.isEmpty(username)
-                && !(password == null);
+                !StringUtil.isEmpty( driverClassname )
+                        && !StringUtil.isEmpty( connectionString )
+                        && !StringUtil.isEmpty( username )
+                        && !( password == null );
     }
 
-     static DBConfiguration fromConfiguration(final Configuration config) {
-         final Map<FileValue.FileInformation, FileValue.FileContent> fileValue = config.readSettingAsFile(
-                 PwmSetting.DATABASE_JDBC_DRIVER);
-         final byte[] jdbcDriverBytes;
-         if (fileValue != null && !fileValue.isEmpty()) {
-             final FileValue.FileContent fileContent = fileValue.values().iterator().next();
-             jdbcDriverBytes = fileContent.getContents().getBytes();
-         } else {
-             jdbcDriverBytes = null;
-         }
+    static DBConfiguration fromConfiguration( final Configuration config )
+    {
+        final Map<FileValue.FileInformation, FileValue.FileContent> fileValue = config.readSettingAsFile(
+                PwmSetting.DATABASE_JDBC_DRIVER );
+        final byte[] jdbcDriverBytes;
+        if ( fileValue != null && !fileValue.isEmpty() )
+        {
+            final FileValue.FileContent fileContent = fileValue.values().iterator().next();
+            jdbcDriverBytes = fileContent.getContents().getBytes();
+        }
+        else
+        {
+            jdbcDriverBytes = null;
+        }
 
-         final String strategyList = config.readAppProperty(AppProperty.DB_JDBC_LOAD_STRATEGY);
-         final List<JDBCDriverLoader.ClassLoaderStrategy> strategies = JavaHelper.readEnumListFromStringCollection(
-                 JDBCDriverLoader.ClassLoaderStrategy.class,
-                 Arrays.asList(strategyList.split(","))
-         );
+        final String strategyList = config.readAppProperty( AppProperty.DB_JDBC_LOAD_STRATEGY );
+        final List<JDBCDriverLoader.ClassLoaderStrategy> strategies = JavaHelper.readEnumListFromStringCollection(
+                JDBCDriverLoader.ClassLoaderStrategy.class,
+                Arrays.asList( strategyList.split( "," ) )
+        );
 
-         final int maxConnections = Integer.parseInt(config.readAppProperty(AppProperty.DB_CONNECTIONS_MAX));
-         final int connectionTimeout = Integer.parseInt(config.readAppProperty(AppProperty.DB_CONNECTIONS_TIMEOUT_MS));
+        final int maxConnections = Integer.parseInt( config.readAppProperty( AppProperty.DB_CONNECTIONS_MAX ) );
+        final int connectionTimeout = Integer.parseInt( config.readAppProperty( AppProperty.DB_CONNECTIONS_TIMEOUT_MS ) );
 
-         final int keyColumnLength = Integer.parseInt(config.readAppProperty(AppProperty.DB_SCHEMA_KEY_LENGTH));
+        final int keyColumnLength = Integer.parseInt( config.readAppProperty( AppProperty.DB_SCHEMA_KEY_LENGTH ) );
 
-         return new DBConfiguration(
-                 config.readSettingAsString(PwmSetting.DATABASE_CLASS),
-                 config.readSettingAsString(PwmSetting.DATABASE_URL),
-                 config.readSettingAsString(PwmSetting.DATABASE_USERNAME),
-                 config.readSettingAsPassword(PwmSetting.DATABASE_PASSWORD),
-                 config.readSettingAsString(PwmSetting.DATABASE_COLUMN_TYPE_KEY),
-                 config.readSettingAsString(PwmSetting.DATABASE_COLUMN_TYPE_VALUE),
-                 jdbcDriverBytes,
-                 strategies,
-                 maxConnections,
-                 connectionTimeout,
-                 keyColumnLength
-         );
-     }
+        return new DBConfiguration(
+                config.readSettingAsString( PwmSetting.DATABASE_CLASS ),
+                config.readSettingAsString( PwmSetting.DATABASE_URL ),
+                config.readSettingAsString( PwmSetting.DATABASE_USERNAME ),
+                config.readSettingAsPassword( PwmSetting.DATABASE_PASSWORD ),
+                config.readSettingAsString( PwmSetting.DATABASE_COLUMN_TYPE_KEY ),
+                config.readSettingAsString( PwmSetting.DATABASE_COLUMN_TYPE_VALUE ),
+                jdbcDriverBytes,
+                strategies,
+                maxConnections,
+                connectionTimeout,
+                keyColumnLength
+        );
+    }
 }

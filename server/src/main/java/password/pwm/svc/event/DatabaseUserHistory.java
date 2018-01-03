@@ -40,84 +40,105 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-class DatabaseUserHistory implements UserHistoryStore {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(DatabaseUserHistory.class);
+class DatabaseUserHistory implements UserHistoryStore
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( DatabaseUserHistory.class );
 
     private static final DatabaseTable TABLE = DatabaseTable.USER_AUDIT;
 
     final PwmApplication pwmApplication;
     final DatabaseService databaseService;
 
-    DatabaseUserHistory(final PwmApplication pwmApplication) {
+    DatabaseUserHistory( final PwmApplication pwmApplication )
+    {
         this.pwmApplication = pwmApplication;
         this.databaseService = pwmApplication.getDatabaseService();
     }
 
     @Override
-    public void updateUserHistory(final UserAuditRecord auditRecord) throws PwmUnrecoverableException {
+    public void updateUserHistory( final UserAuditRecord auditRecord ) throws PwmUnrecoverableException
+    {
         // user info
         final UserIdentity userIdentity;
-        if (auditRecord instanceof HelpdeskAuditRecord && auditRecord.getType() == AuditEvent.Type.HELPDESK) {
-            final HelpdeskAuditRecord helpdeskAuditRecord = (HelpdeskAuditRecord)auditRecord;
-            userIdentity = new UserIdentity(helpdeskAuditRecord.getTargetDN(),helpdeskAuditRecord.getTargetLdapProfile());
-        } else {
-            userIdentity = new UserIdentity(auditRecord.getPerpetratorDN(),auditRecord.getPerpetratorLdapProfile());
+        if ( auditRecord instanceof HelpdeskAuditRecord && auditRecord.getType() == AuditEvent.Type.HELPDESK )
+        {
+            final HelpdeskAuditRecord helpdeskAuditRecord = ( HelpdeskAuditRecord ) auditRecord;
+            userIdentity = new UserIdentity( helpdeskAuditRecord.getTargetDN(), helpdeskAuditRecord.getTargetLdapProfile() );
+        }
+        else
+        {
+            userIdentity = new UserIdentity( auditRecord.getPerpetratorDN(), auditRecord.getPerpetratorLdapProfile() );
         }
 
         final String guid;
-        try {
-            guid = LdapOperationsHelper.readLdapGuidValue(pwmApplication, null, userIdentity, false);
-        } catch (ChaiUnavailableException e) {
-            LOGGER.error("unable to read guid for user '" + userIdentity + "', cannot update user history, error: " + e.getMessage());
+        try
+        {
+            guid = LdapOperationsHelper.readLdapGuidValue( pwmApplication, null, userIdentity, false );
+        }
+        catch ( ChaiUnavailableException e )
+        {
+            LOGGER.error( "unable to read guid for user '" + userIdentity + "', cannot update user history, error: " + e.getMessage() );
             return;
         }
 
-        try {
+        try
+        {
             final StoredHistory storedHistory;
-            storedHistory = readStoredHistory(guid);
-            storedHistory.getRecords().add(auditRecord);
-            writeStoredHistory(guid,storedHistory);
-        } catch (DatabaseException e) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,e.getMessage()));
+            storedHistory = readStoredHistory( guid );
+            storedHistory.getRecords().add( auditRecord );
+            writeStoredHistory( guid, storedHistory );
+        }
+        catch ( DatabaseException e )
+        {
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, e.getMessage() ) );
         }
     }
 
     @Override
-    public List<UserAuditRecord> readUserHistory(final UserInfo userInfo) throws PwmUnrecoverableException {
+    public List<UserAuditRecord> readUserHistory( final UserInfo userInfo ) throws PwmUnrecoverableException
+    {
         final String userGuid = userInfo.getUserGuid();
-        try {
-            return readStoredHistory(userGuid).getRecords();
-        } catch (DatabaseException e) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,e.getMessage()));
+        try
+        {
+            return readStoredHistory( userGuid ).getRecords();
+        }
+        catch ( DatabaseException e )
+        {
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, e.getMessage() ) );
         }
     }
 
-    private StoredHistory readStoredHistory(final String guid) throws DatabaseException, PwmUnrecoverableException
+    private StoredHistory readStoredHistory( final String guid ) throws DatabaseException, PwmUnrecoverableException
     {
-        final String str = this.databaseService.getAccessor().get(TABLE, guid);
-        if (str == null || str.length() < 1) {
+        final String str = this.databaseService.getAccessor().get( TABLE, guid );
+        if ( str == null || str.length() < 1 )
+        {
             return new StoredHistory();
         }
-        return JsonUtil.deserialize(str,StoredHistory.class);
+        return JsonUtil.deserialize( str, StoredHistory.class );
     }
 
-    private void writeStoredHistory(final String guid, final StoredHistory storedHistory) throws DatabaseException, PwmUnrecoverableException
+    private void writeStoredHistory( final String guid, final StoredHistory storedHistory ) throws DatabaseException, PwmUnrecoverableException
     {
-        if (storedHistory == null) {
+        if ( storedHistory == null )
+        {
             return;
         }
-        final String str = JsonUtil.serialize(storedHistory);
-        databaseService.getAccessor().put(TABLE,guid,str);
+        final String str = JsonUtil.serialize( storedHistory );
+        databaseService.getAccessor().put( TABLE, guid, str );
     }
 
-    static class StoredHistory implements Serializable {
+    static class StoredHistory implements Serializable
+    {
         private List<UserAuditRecord> records = new ArrayList<>();
 
-        List<UserAuditRecord> getRecords() {
+        List<UserAuditRecord> getRecords( )
+        {
             return records;
         }
 
-        void setRecords(final List<UserAuditRecord> records) {
+        void setRecords( final List<UserAuditRecord> records )
+        {
             this.records = records;
         }
     }

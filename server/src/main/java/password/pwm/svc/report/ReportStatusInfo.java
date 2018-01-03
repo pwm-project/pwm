@@ -28,7 +28,8 @@ import password.pwm.util.java.TimeDuration;
 import java.io.Serializable;
 import java.time.Instant;
 
-public class ReportStatusInfo implements Serializable {
+public class ReportStatusInfo implements Serializable
+{
     private TimeDuration jobDuration = TimeDuration.ZERO;
     private Instant finishDate;
     private int count;
@@ -37,81 +38,96 @@ public class ReportStatusInfo implements Serializable {
     private String settingsHash;
     private ReportEngineProcess currentProcess = ReportEngineProcess.None;
 
-    public enum ReportEngineProcess {
-        RollOver("Initializing"),
-        ReadData("Process LDAP Records"),
-        None("Idle"),
-        SearchLDAP("Searching LDAP"),
-        Clear("Clearing Records"),
-
-        ;
+    public enum ReportEngineProcess
+    {
+        RollOver( "Initializing" ),
+        ReadData( "Process LDAP Records" ),
+        None( "Idle" ),
+        SearchLDAP( "Searching LDAP" ),
+        Clear( "Clearing Records" ),;
 
         private final String label;
 
-        ReportEngineProcess(final String label) {
+        ReportEngineProcess( final String label )
+        {
             this.label = label;
         }
 
-        public String getLabel() {
+        public String getLabel( )
+        {
             return label;
         }
     }
 
 
-    public ReportStatusInfo(final String settingsHash) {
+    public ReportStatusInfo( final String settingsHash )
+    {
         this.settingsHash = settingsHash;
     }
 
-    public String getSettingsHash() {
+    public String getSettingsHash( )
+    {
         return settingsHash;
     }
 
-    public TimeDuration getJobDuration() {
+    public TimeDuration getJobDuration( )
+    {
         return jobDuration;
     }
 
-    public void setJobDuration(final TimeDuration jobDuration) {
+    public void setJobDuration( final TimeDuration jobDuration )
+    {
         this.jobDuration = jobDuration;
     }
 
-    public Instant getFinishDate() {
+    public Instant getFinishDate( )
+    {
         return finishDate;
     }
 
-    public void setFinishDate(final Instant finishDate) {
+    public void setFinishDate( final Instant finishDate )
+    {
         this.finishDate = finishDate;
     }
 
-    public int getCount() {
+    public int getCount( )
+    {
         return count;
     }
 
-    public void setCount(final int count) {
+    public void setCount( final int count )
+    {
         this.count = count;
     }
 
 
-    public int getErrors() {
+    public int getErrors( )
+    {
         return errors;
     }
 
-    public void setErrors(final int errors) {
+    public void setErrors( final int errors )
+    {
         this.errors = errors;
     }
 
-    public ErrorInformation getLastError() {
+    public ErrorInformation getLastError( )
+    {
         return lastError;
     }
 
-    public void setLastError(final ErrorInformation lastError) {
+    public void setLastError( final ErrorInformation lastError )
+    {
         this.lastError = lastError;
     }
 
-    public ReportEngineProcess getCurrentProcess() {
+    public ReportEngineProcess getCurrentProcess( )
+    {
         return currentProcess;
     }
 
-    public void setCurrentProcess(final ReportEngineProcess currentProcess) {
+    public void setCurrentProcess( final ReportEngineProcess currentProcess )
+    {
         this.currentProcess = currentProcess;
     }
 }

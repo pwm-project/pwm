@@ -27,10 +27,11 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
 
-public interface AuthenticationRequest {
-    AuthenticationResult authUsingUnknownPw()
+public interface AuthenticationRequest
+{
+    AuthenticationResult authUsingUnknownPw( )
             throws ChaiUnavailableException, PwmUnrecoverableException;
 
-    AuthenticationResult authenticateUser(PasswordData password)
-                    throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException;
+    AuthenticationResult authenticateUser( PasswordData password )
+            throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException;
 }

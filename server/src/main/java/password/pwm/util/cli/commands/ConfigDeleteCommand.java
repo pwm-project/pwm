@@ -26,30 +26,36 @@ import password.pwm.util.cli.CliParameters;
 
 import java.io.File;
 
-public class ConfigDeleteCommand extends AbstractCliCommand {
-    public void doCommand()
+public class ConfigDeleteCommand extends AbstractCliCommand
+{
+    public void doCommand( )
             throws Exception
     {
         final File configurationFile = cliEnvironment.getConfigurationFile();
-        if (configurationFile == null || !configurationFile.exists()) {
-            out("configuration file is not present");
+        if ( configurationFile == null || !configurationFile.exists() )
+        {
+            out( "configuration file is not present" );
             return;
         }
 
 
-        if (!promptForContinue("Proceeding will delete the existing configuration")) {
+        if ( !promptForContinue( "Proceeding will delete the existing configuration" ) )
+        {
             return;
         }
 
-        if (configurationFile.delete()) {
-            out("success");
-        } else {
-            out("unable to delete file");
+        if ( configurationFile.delete() )
+        {
+            out( "success" );
+        }
+        else
+        {
+            out( "unable to delete file" );
         }
     }
 
     @Override
-    public CliParameters getCliParameters()
+    public CliParameters getCliParameters( )
     {
         final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "ConfigDelete";

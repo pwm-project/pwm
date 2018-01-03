@@ -41,43 +41,47 @@ import java.util.Set;
 @Getter
 @Setter
 @NoArgsConstructor
-public class NewUserBean extends PwmSessionBean {
-    @SerializedName("p")
+public class NewUserBean extends PwmSessionBean
+{
+    @SerializedName( "p" )
     private String profileID;
 
-    @SerializedName("f")
-    private NewUserForm newUserForm = new NewUserForm(new HashMap<>(),null,null);
+    @SerializedName( "f" )
+    private NewUserForm newUserForm = new NewUserForm( new HashMap<>(), null, null );
 
-    @SerializedName("r")
-    private Map<String,String> remoteInputData;
+    @SerializedName( "r" )
+    private Map<String, String> remoteInputData;
 
-    @SerializedName("ap")
+    @SerializedName( "ap" )
     private boolean agreementPassed;
 
-    @SerializedName("fp")
+    @SerializedName( "fp" )
     private boolean formPassed;
 
-    @SerializedName("t")
+    @SerializedName( "t" )
     private Instant createStartTime;
 
-    @SerializedName("u")
+    @SerializedName( "u" )
     private boolean urlSpecifiedProfile;
 
-    @SerializedName("v")
+    @SerializedName( "v" )
     private final TokenVerificationProgress tokenVerificationProgress = new TokenVerificationProgress();
 
     @Override
-    public Type getType() {
+    public Type getType( )
+    {
         return Type.PUBLIC;
     }
 
     @Override
-    public Set<SessionBeanMode> supportedModes() {
-        return Collections.unmodifiableSet(new HashSet<>(Arrays.asList(SessionBeanMode.LOCAL, SessionBeanMode.CRYPTCOOKIE)));
+    public Set<SessionBeanMode> supportedModes( )
+    {
+        return Collections.unmodifiableSet( new HashSet<>( Arrays.asList( SessionBeanMode.LOCAL, SessionBeanMode.CRYPTCOOKIE ) ) );
     }
 
 
-    public TokenVerificationProgress getTokenVerificationProgress() {
+    public TokenVerificationProgress getTokenVerificationProgress( )
+    {
         return tokenVerificationProgress;
     }
 }

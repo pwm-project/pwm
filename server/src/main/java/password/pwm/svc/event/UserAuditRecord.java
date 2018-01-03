@@ -26,9 +26,10 @@ import java.io.Serializable;
 import java.time.Instant;
 
 /**
- * UserAuditRecord data
+ * UserAuditRecord data.
  */
-public class UserAuditRecord extends AuditRecord implements Serializable {
+public class UserAuditRecord extends AuditRecord implements Serializable
+{
     protected String perpetratorID;
     protected String perpetratorDN;
     protected String perpetratorLdapProfile;
@@ -44,8 +45,9 @@ public class UserAuditRecord extends AuditRecord implements Serializable {
             final String message,
             final String sourceAddress,
             final String sourceHost
-    ) {
-        super(timestamp, eventCode, message);
+    )
+    {
+        super( timestamp, eventCode, message );
         this.perpetratorID = perpetratorID;
         this.perpetratorDN = perpetratorDN;
         this.perpetratorLdapProfile = perpetratorLdapProfile;
@@ -54,23 +56,27 @@ public class UserAuditRecord extends AuditRecord implements Serializable {
     }
 
 
-    public String getPerpetratorID() {
+    public String getPerpetratorID( )
+    {
         return perpetratorID;
     }
 
-    public String getPerpetratorDN() {
+    public String getPerpetratorDN( )
+    {
         return perpetratorDN;
     }
 
-    public String getSourceAddress() {
+    public String getSourceAddress( )
+    {
         return sourceAddress;
     }
 
-    public String getSourceHost() {
+    public String getSourceHost( )
+    {
         return sourceHost;
     }
 
-    public String getPerpetratorLdapProfile()
+    public String getPerpetratorLdapProfile( )
     {
         return perpetratorLdapProfile;
     }

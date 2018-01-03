@@ -8,10 +8,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-public @interface RestMethodHandler {
-    HttpContentType[] produces() default {};
-    HttpContentType[] consumes() default {};
-    HttpMethod[] method() default {};
+@Retention( RetentionPolicy.RUNTIME )
+@Target( ElementType.METHOD )
+public @interface RestMethodHandler
+{
+    HttpContentType[] produces( ) default { };
+
+    HttpContentType[] consumes( ) default { };
+
+    HttpMethod[] method( ) default { };
 }

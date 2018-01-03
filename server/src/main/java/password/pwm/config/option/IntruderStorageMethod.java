@@ -22,7 +22,8 @@
 
 package password.pwm.config.option;
 
-public enum IntruderStorageMethod implements ConfigurationOption {
+public enum IntruderStorageMethod implements ConfigurationOption
+{
     AUTO,
     DATABASE,
     LOCALDB,

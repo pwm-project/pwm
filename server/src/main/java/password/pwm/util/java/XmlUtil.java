@@ -44,57 +44,71 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class XmlUtil {
+public class XmlUtil
+{
 
-    public static final Charset STORAGE_CHARSET = Charset.forName("UTF8");
+    public static final Charset STORAGE_CHARSET = Charset.forName( "UTF8" );
 
-    public static Document parseXml(final InputStream inputStream)
+    public static Document parseXml( final InputStream inputStream )
             throws PwmUnrecoverableException
     {
-        return parseXml(new InputStreamReader(inputStream, STORAGE_CHARSET));
+        return parseXml( new InputStreamReader( inputStream, STORAGE_CHARSET ) );
     }
 
-    public static Document parseXml(final Reader inputStream)
+    public static Document parseXml( final Reader inputStream )
             throws PwmUnrecoverableException
     {
         final SAXBuilder builder = getBuilder();
         final Document inputDocument;
-        try {
-            inputDocument = builder.build(inputStream);
-        } catch (Exception e) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,null,new String[]{"error parsing xml data: " + e.getMessage()}));
+        try
+        {
+            inputDocument = builder.build( inputStream );
+        }
+        catch ( Exception e )
+        {
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
+                    {
+                            "error parsing xml data: " + e.getMessage(),
+                    }
+            ) );
         }
         return inputDocument;
     }
 
-    public static void outputDocument(final Document document, final OutputStream outputStream)
+    public static void outputDocument( final Document document, final OutputStream outputStream )
             throws IOException
     {
         final Format format = Format.getPrettyFormat();
-        format.setEncoding(STORAGE_CHARSET.toString());
+        format.setEncoding( STORAGE_CHARSET.toString() );
         final XMLOutputter outputter = new XMLOutputter();
-        outputter.setFormat(format);
+        outputter.setFormat( format );
         Writer writer = null;
-        try {
-            writer = new OutputStreamWriter(outputStream, STORAGE_CHARSET);
-            outputter.output(document, writer);
-        } finally {
-            if (writer != null) {
+        try
+        {
+            writer = new OutputStreamWriter( outputStream, STORAGE_CHARSET );
+            outputter.output( document, writer );
+        }
+        finally
+        {
+            if ( writer != null )
+            {
                 writer.close();
             }
         }
     }
 
-    private static SAXBuilder getBuilder() {
+    private static SAXBuilder getBuilder( )
+    {
         final SAXBuilder builder = new SAXBuilder();
-        builder.setExpandEntities(false);
-        builder.setValidation(false);
-        builder.setFeature("http://xml.org/sax/features/resolve-dtd-uris", false);
+        builder.setExpandEntities( false );
+        builder.setValidation( false );
+        builder.setFeature( "http://xml.org/sax/features/resolve-dtd-uris", false );
         return builder;
     }
 
     @Value
-    public static class DependencyInfo {
+    public static class DependencyInfo
+    {
         private String projectUrl;
         private String name;
         private String artifactId;
@@ -104,45 +118,50 @@ public class XmlUtil {
     }
 
     @Value
-    public static class LicenseInfo {
+    public static class LicenseInfo
+    {
         private String licenseUrl;
         private String licenseName;
     }
 
-    public static List<DependencyInfo> getLicenseInfos() throws PwmUnrecoverableException {
+    public static List<DependencyInfo> getLicenseInfos( ) throws PwmUnrecoverableException
+    {
         final List<DependencyInfo> returnList = new ArrayList<>();
 
-        final InputStream attributionInputStream = XmlUtil.class.getResourceAsStream("/attribution.xml");
+        final InputStream attributionInputStream = XmlUtil.class.getResourceAsStream( "/attribution.xml" );
 
-        if (attributionInputStream != null) {
-            final Document document = XmlUtil.parseXml(attributionInputStream);
-            final Element dependencies = document.getRootElement().getChild("dependencies");
+        if ( attributionInputStream != null )
+        {
+            final Document document = XmlUtil.parseXml( attributionInputStream );
+            final Element dependencies = document.getRootElement().getChild( "dependencies" );
 
-            for (final Element dependency : dependencies.getChildren("dependency")) {
-                final String projectUrl = dependency.getChildText("projectUrl");
-                final String name = dependency.getChildText("name");
-                final String artifactId = dependency.getChildText("artifactId");
-                final String version = dependency.getChildText("version");
-                final String type = dependency.getChildText("type");
+            for ( final Element dependency : dependencies.getChildren( "dependency" ) )
+            {
+                final String projectUrl = dependency.getChildText( "projectUrl" );
+                final String name = dependency.getChildText( "name" );
+                final String artifactId = dependency.getChildText( "artifactId" );
+                final String version = dependency.getChildText( "version" );
+                final String type = dependency.getChildText( "type" );
 
                 final List<LicenseInfo> licenseInfos = new ArrayList<>();
                 {
-                    final Element licenses = dependency.getChild("licenses");
-                    final List<Element> licenseList = licenses.getChildren("license");
-                    for (final Element license : licenseList) {
-                        final String licenseUrl = license.getChildText("url");
-                        final String licenseName = license.getChildText("name");
-                        final LicenseInfo licenseInfo = new LicenseInfo(licenseUrl, licenseName);
-                        licenseInfos.add(licenseInfo);
+                    final Element licenses = dependency.getChild( "licenses" );
+                    final List<Element> licenseList = licenses.getChildren( "license" );
+                    for ( final Element license : licenseList )
+                    {
+                        final String licenseUrl = license.getChildText( "url" );
+                        final String licenseName = license.getChildText( "name" );
+                        final LicenseInfo licenseInfo = new LicenseInfo( licenseUrl, licenseName );
+                        licenseInfos.add( licenseInfo );
                     }
                 }
 
-                final DependencyInfo dependencyInfo = new DependencyInfo(projectUrl, name, artifactId, version, type,
-                        Collections.unmodifiableList(licenseInfos));
+                final DependencyInfo dependencyInfo = new DependencyInfo( projectUrl, name, artifactId, version, type,
+                        Collections.unmodifiableList( licenseInfos ) );
 
-                returnList.add(dependencyInfo);
+                returnList.add( dependencyInfo );
             }
         }
-        return Collections.unmodifiableList(returnList);
+        return Collections.unmodifiableList( returnList );
     }
 }

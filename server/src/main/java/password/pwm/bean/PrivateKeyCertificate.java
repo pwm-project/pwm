@@ -28,20 +28,24 @@ import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.List;
 
-public class PrivateKeyCertificate implements Serializable {
+public class PrivateKeyCertificate implements Serializable
+{
     private final List<X509Certificate> certificates;
     private final PrivateKey key;
 
-    public PrivateKeyCertificate(final List<X509Certificate> certificates, final PrivateKey key) {
-        this.certificates = Collections.unmodifiableList(certificates);
+    public PrivateKeyCertificate( final List<X509Certificate> certificates, final PrivateKey key )
+    {
+        this.certificates = Collections.unmodifiableList( certificates );
         this.key = key;
     }
 
-    public List<X509Certificate> getCertificates() {
-        return Collections.unmodifiableList(certificates);
+    public List<X509Certificate> getCertificates( )
+    {
+        return Collections.unmodifiableList( certificates );
     }
 
-    public PrivateKey getKey() {
+    public PrivateKey getKey( )
+    {
         return key;
     }
 }

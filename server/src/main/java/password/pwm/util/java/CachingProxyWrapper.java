@@ -33,42 +33,56 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class CachingProxyWrapper {
+public class CachingProxyWrapper
+{
 
     @Getter
     @AllArgsConstructor
     @EqualsAndHashCode
-    private static final class MethodSignature {
+    private static final class MethodSignature
+    {
         private Method method;
         private Object[] arguments;
     }
 
-    public static <T> T create(final Class<T> proxiedClass, final T innerInstance) {
+    public static <T> T create( final Class<T> proxiedClass, final T innerInstance )
+    {
         // create the cache
         final Map<MethodSignature, Optional<T>> cache = new ConcurrentHashMap<>();
 
+        final Class<?>[] classList = new Class[]
+                {
+                        proxiedClass,
+                };
+
         // proxy for the interface T
-        return (T) Proxy.newProxyInstance(proxiedClass.getClassLoader(), new Class<?>[] { proxiedClass }, (proxy, method, args) -> {
-            final MethodSignature methodSignature = new MethodSignature(method, args);
+        return ( T ) Proxy.newProxyInstance( proxiedClass.getClassLoader(), classList, ( proxy, method, args ) ->
+        {
+            final MethodSignature methodSignature = new MethodSignature( method, args );
 
-            final Optional<T> cachedResult = cache.get(methodSignature);
+            final Optional<T> cachedResult = cache.get( methodSignature );
 
-            if (cachedResult != null) {
-                if (cachedResult.isPresent()) {
+            if ( cachedResult != null )
+            {
+                if ( cachedResult.isPresent() )
+                {
                     return cachedResult.get();
                 }
                 return null;
             }
 
             // make sure exceptions are handled transparently
-            try {
-                final T result = (T)method.invoke(innerInstance, args);
-                cache.put(methodSignature, Optional.ofNullable(result));
+            try
+            {
+                final T result = ( T ) method.invoke( innerInstance, args );
+                cache.put( methodSignature, Optional.ofNullable( result ) );
                 return result;
-            } catch (InvocationTargetException e) {
+            }
+            catch ( InvocationTargetException e )
+            {
                 throw e.getTargetException();
             }
-        });
+        } );
     }
 }
 

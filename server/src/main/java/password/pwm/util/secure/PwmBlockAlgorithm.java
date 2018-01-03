@@ -28,14 +28,16 @@ import java.util.Arrays;
 
 /**
  * A set of predefined arrangements of block cryptography.  Each item has several associated parameters that define the overall implementation.
- * This approach precludes the operator from having to select encrypton combinations that are compatible and effective.
+ * This approach precludes the operator from having to select encryption combinations that are compatible and effective.
  */
-public enum PwmBlockAlgorithm {
+public enum PwmBlockAlgorithm
+{
+    // legacy format predates prefixing
     AES(
             "AES",
             PwmSecurityKey.Type.AES,
             null,
-            new byte[0], // legacy format predates prefixing
+            new byte[ 0 ],
             "AES128"
     ),
 
@@ -43,7 +45,7 @@ public enum PwmBlockAlgorithm {
             "AES",
             PwmSecurityKey.Type.AES,
             HmacAlgorithm.HMAC_SHA_256,
-            "PWM.AES128_HMAC256".getBytes(PwmConstants.DEFAULT_CHARSET),
+            "PWM.AES128_HMAC256".getBytes( PwmConstants.DEFAULT_CHARSET ),
             "AES128+Hmac256"
     ),
 
@@ -51,40 +53,46 @@ public enum PwmBlockAlgorithm {
             "AES",
             PwmSecurityKey.Type.AES_256,
             HmacAlgorithm.HMAC_SHA_512,
-            "PWM.AES256_HMAC512".getBytes(PwmConstants.DEFAULT_CHARSET),
+            "PWM.AES256_HMAC512".getBytes( PwmConstants.DEFAULT_CHARSET ),
             "AES256+Hmac512"
     ),
 
-    CONFIG              (
+    // legacy format predates prefixing
+    CONFIG(
             "AES",
             PwmSecurityKey.Type.AES,
             null,
-            new byte[0], // legacy format predates prefixing
+            new byte[ 0 ],
             "PWM.Config.AES"
     ),
 
-    AES128_GCM          (
+    AES128_GCM(
             "AES/GCM/NoPadding",
             PwmSecurityKey.Type.AES,
             null,
-            "PWM.GCM1".getBytes(PwmConstants.DEFAULT_CHARSET),
+            "PWM.GCM1".getBytes( PwmConstants.DEFAULT_CHARSET ),
             "AES128+GCM"
-    ),
+    ),;
 
-    ;
-
-    /** Java block crypto algorithm */
+    /**
+     * Java block crypto algorithm.
+     */
     private final String algName;
 
-    /** SecretKey type needed for this item */
+    /**
+     * SecretKey type needed for this item.
+     */
     private final PwmSecurityKey.Type blockKey;
 
-    /** HMAC algorithm needed for this item, if any. */
+    /**
+     * HMAC algorithm needed for this item, if any.
+     */
     private final HmacAlgorithm hmacAlgorithm;
 
     /**
      * Prefix that is prepended to encryption output methods and expected to be prepended to input methods.  The prefix is not itself secured and must be treated
-     * appropriately. */
+     * appropriately.
+     */
     private final byte[] prefix;
 
     /**
@@ -92,7 +100,8 @@ public enum PwmBlockAlgorithm {
      */
     private final String label;
 
-    PwmBlockAlgorithm(final String algName, final PwmSecurityKey.Type blockKey, final HmacAlgorithm hmacAlgorithm, final byte[] prefix, final String label) {
+    PwmBlockAlgorithm( final String algName, final PwmSecurityKey.Type blockKey, final HmacAlgorithm hmacAlgorithm, final byte[] prefix, final String label )
+    {
         this.algName = algName;
         this.blockKey = blockKey;
         this.hmacAlgorithm = hmacAlgorithm;
@@ -100,23 +109,28 @@ public enum PwmBlockAlgorithm {
         this.label = label;
     }
 
-    public String getAlgName() {
+    public String getAlgName( )
+    {
         return algName;
     }
 
-    PwmSecurityKey.Type getBlockKey() {
+    PwmSecurityKey.Type getBlockKey( )
+    {
         return blockKey;
     }
 
-    HmacAlgorithm getHmacAlgorithm() {
+    HmacAlgorithm getHmacAlgorithm( )
+    {
         return hmacAlgorithm;
     }
 
-    public byte[] getPrefix() {
-        return Arrays.copyOf(prefix, prefix.length);
+    public byte[] getPrefix( )
+    {
+        return Arrays.copyOf( prefix, prefix.length );
     }
 
-    public String getLabel() {
+    public String getLabel( )
+    {
         return label;
     }
 

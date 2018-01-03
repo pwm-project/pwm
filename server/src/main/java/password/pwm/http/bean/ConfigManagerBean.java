@@ -28,58 +28,68 @@ import password.pwm.config.stored.StoredConfigurationImpl;
 import java.util.Collections;
 import java.util.Set;
 
-public class ConfigManagerBean extends PwmSessionBean {
+public class ConfigManagerBean extends PwmSessionBean
+{
     private transient StoredConfigurationImpl storedConfiguration;
     private boolean passwordVerified;
     private boolean configUnlockedWarningShown;
 
     private String prePasswordEntryUrl;
 
-    public ConfigManagerBean() {
+    public ConfigManagerBean( )
+    {
     }
 
-    public Type getType() {
+    public Type getType( )
+    {
         return Type.AUTHENTICATED;
     }
 
 
-    public StoredConfigurationImpl getStoredConfiguration() {
+    public StoredConfigurationImpl getStoredConfiguration( )
+    {
         return storedConfiguration;
     }
 
-    public void setConfiguration(final StoredConfigurationImpl storedConfiguration) {
+    public void setConfiguration( final StoredConfigurationImpl storedConfiguration )
+    {
         this.storedConfiguration = storedConfiguration;
     }
 
-    public boolean isPasswordVerified() {
+    public boolean isPasswordVerified( )
+    {
         return passwordVerified;
     }
 
-    public void setPasswordVerified(final boolean passwordVerified) {
+    public void setPasswordVerified( final boolean passwordVerified )
+    {
         this.passwordVerified = passwordVerified;
     }
 
-    public String getPrePasswordEntryUrl()
+    public String getPrePasswordEntryUrl( )
     {
         return prePasswordEntryUrl;
     }
 
-    public void setPrePasswordEntryUrl(final String prePasswordEntryUrl)
+    public void setPrePasswordEntryUrl( final String prePasswordEntryUrl )
     {
         this.prePasswordEntryUrl = prePasswordEntryUrl;
     }
 
-    public boolean isConfigUnlockedWarningShown() {
+    public boolean isConfigUnlockedWarningShown( )
+    {
         return configUnlockedWarningShown;
     }
 
-    public void setConfigUnlockedWarningShown(final boolean configUnlockedWarningShown) {
+    public void setConfigUnlockedWarningShown( final boolean configUnlockedWarningShown )
+    {
         this.configUnlockedWarningShown = configUnlockedWarningShown;
     }
 
     @Override
-    public Set<SessionBeanMode> supportedModes() {
-        return Collections.singleton(SessionBeanMode.LOCAL);
+    public Set<SessionBeanMode> supportedModes( )
+    {
+        return Collections.singleton( SessionBeanMode.LOCAL );
     }
 
 }

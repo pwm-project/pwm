@@ -22,7 +22,8 @@
 
 package password.pwm.config;
 
-public enum PwmSettingProperty {
+public enum PwmSettingProperty
+{
 
     ModificationWarning,
 

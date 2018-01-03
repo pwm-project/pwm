@@ -22,5 +22,6 @@
 
 package password.pwm.http.servlet;
 
-public interface PwmServlet {
+public interface PwmServlet
+{
 }

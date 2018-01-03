@@ -28,39 +28,44 @@ import password.pwm.ldap.UserInfo;
 
 import java.util.regex.Pattern;
 
-public interface MacroImplementation {
-    enum Scope {
+public interface MacroImplementation
+{
+    enum Scope
+    {
         Static,
         System,
         User,
     }
 
-    enum Sequence {
+    enum Sequence
+    {
         normal,
         post,
     }
 
-    Pattern getRegExPattern();
+    Pattern getRegExPattern( );
 
-    String replaceValue( String matchValue,  MacroRequestInfo macroRequestInfo)
+    String replaceValue( String matchValue, MacroRequestInfo macroRequestInfo )
             throws MacroParseException;
 
-    interface MacroRequestInfo {
-        PwmApplication getPwmApplication();
+    interface MacroRequestInfo
+    {
+        PwmApplication getPwmApplication( );
 
-        UserInfo getUserInfo();
+        UserInfo getUserInfo( );
 
-        LoginInfoBean getLoginInfoBean();
+        LoginInfoBean getLoginInfoBean( );
     }
 
-    MacroDefinitionFlag[] flags();
+    MacroDefinitionFlag[] flags( );
 
-    default Sequence getSequence()
+    default Sequence getSequence( )
     {
         return Sequence.normal;
     }
 
-    enum MacroDefinitionFlag {
+    enum MacroDefinitionFlag
+    {
         SensitiveValue,
         OnlyDebugLogging,
     }

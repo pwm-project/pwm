@@ -47,62 +47,65 @@ import java.util.Map;
 import java.util.Optional;
 
 @WebServlet(
-        name="LogoutServlet",
+        name = "LogoutServlet",
         urlPatterns = {
                 PwmConstants.URL_PREFIX_PUBLIC + "/logout",
-                PwmConstants.URL_PREFIX_PRIVATE+ "/logout",
+                PwmConstants.URL_PREFIX_PRIVATE + "/logout",
                 PwmConstants.URL_PREFIX_PUBLIC + "/Logout",
-                PwmConstants.URL_PREFIX_PRIVATE+ "/Logout",
+                PwmConstants.URL_PREFIX_PRIVATE + "/Logout",
         }
 )
-public class LogoutServlet extends ControlledPwmServlet {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(LogoutServlet.class);
+public class LogoutServlet extends ControlledPwmServlet
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( LogoutServlet.class );
 
     private static final String PARAM_URL = "url";
     private static final String PARAM_IDLE = "idle";
     private static final String PARAM_PASSWORD_MODIFIED = "passwordModified";
     private static final String PARAM_PUBLIC_ONLY = "publicOnly";
 
-    private enum LogoutAction implements ControlledPwmServlet.ProcessAction {
+    private enum LogoutAction implements ControlledPwmServlet.ProcessAction
+    {
         showLogout,
-        showTimeout,
-
-        ;
+        showTimeout,;
 
 
         @Override
-        public Collection<HttpMethod> permittedMethods() {
-            return Collections.singletonList(HttpMethod.GET);
+        public Collection<HttpMethod> permittedMethods( )
+        {
+            return Collections.singletonList( HttpMethod.GET );
         }
     }
 
     @Override
-    public Class<? extends ProcessAction> getProcessActionsClass() {
+    public Class<? extends ProcessAction> getProcessActionsClass( )
+    {
         return LogoutAction.class;
     }
 
-    @ActionHandler(action = "showLogout")
+    @ActionHandler( action = "showLogout" )
     public ProcessStatus processShowLogout(
             final PwmRequest pwmRequest
     )
             throws ServletException, PwmUnrecoverableException, IOException
     {
-        final Optional<String> nextUrl = readAndValidateNextUrlParameter(pwmRequest);
-        if (nextUrl.isPresent()) {
-            pwmRequest.setAttribute(PwmRequestAttribute.NextUrl, nextUrl.get());
+        final Optional<String> nextUrl = readAndValidateNextUrlParameter( pwmRequest );
+        if ( nextUrl.isPresent() )
+        {
+            pwmRequest.setAttribute( PwmRequestAttribute.NextUrl, nextUrl.get() );
         }
-        pwmRequest.forwardToJsp(JspUrl.LOGOUT);
+        pwmRequest.forwardToJsp( JspUrl.LOGOUT );
         return ProcessStatus.Halt;
     }
 
 
-    @ActionHandler(action = "showTimeout")
+    @ActionHandler( action = "showTimeout" )
     public ProcessStatus processShowTimeout(
             final PwmRequest pwmRequest
     )
             throws ServletException, PwmUnrecoverableException, IOException
     {
-        pwmRequest.forwardToJsp(JspUrl.LOGOUT_PUBLIC);
+        pwmRequest.forwardToJsp( JspUrl.LOGOUT_PUBLIC );
         return ProcessStatus.Halt;
     }
 
@@ -112,61 +115,70 @@ public class LogoutServlet extends ControlledPwmServlet {
             throws PwmUnrecoverableException, IOException
     {
         final String nextUrl;
-        if (!pwmRequest.getPwmSession().getSessionStateBean().isPasswordModified()) {
-            nextUrl = readAndValidateNextUrlParameter(pwmRequest).orElse(null);
-        } else {
+        if ( !pwmRequest.getPwmSession().getSessionStateBean().isPasswordModified() )
+        {
+            nextUrl = readAndValidateNextUrlParameter( pwmRequest ).orElse( null );
+        }
+        else
+        {
             nextUrl = null;
         }
 
         // no process action so this is the first time through this method;
         final boolean authenticated = pwmRequest.isAuthenticated();
-        final boolean logoutDueToIdle = Boolean.parseBoolean(pwmRequest.readParameterAsString(PARAM_IDLE));
+        final boolean logoutDueToIdle = Boolean.parseBoolean( pwmRequest.readParameterAsString( PARAM_IDLE ) );
 
-        String debugMsg = "processing " + (authenticated ? "authenticated": "unauthenticated") + " logout request";
-        if (logoutDueToIdle) {
+        String debugMsg = "processing " + ( authenticated ? "authenticated" : "unauthenticated" ) + " logout request";
+        if ( logoutDueToIdle )
+        {
             debugMsg += " due to client idle timeout";
         }
-        LOGGER.debug(pwmRequest, debugMsg);
+        LOGGER.debug( pwmRequest, debugMsg );
 
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
 
-        pwmSession.unauthenticateUser(pwmRequest);
+        pwmSession.unauthenticateUser( pwmRequest );
 
-        { //if there is a session url, then use that to do a redirect.
+        {
+            //if there is a session url, then use that to do a redirect.
             final String sessionLogoutURL = pwmSession.getSessionStateBean().getLogoutURL();
-            if (sessionLogoutURL != null && sessionLogoutURL.length() > 0) {
-                LOGGER.trace(pwmSession, "redirecting user to session parameter set logout url: " + sessionLogoutURL );
-                pwmRequest.sendRedirect(sessionLogoutURL);
+            if ( sessionLogoutURL != null && sessionLogoutURL.length() > 0 )
+            {
+                LOGGER.trace( pwmSession, "redirecting user to session parameter set logout url: " + sessionLogoutURL );
+                pwmRequest.sendRedirect( sessionLogoutURL );
                 pwmRequest.invalidateSession();
                 return;
             }
         }
 
-        { // if the logout url hasn't been set then try seeing if one has been configured.
-            final String configuredLogoutURL = pwmApplication.getConfig().readSettingAsString(PwmSetting.URL_LOGOUT);
-            if (configuredLogoutURL != null && configuredLogoutURL.length() > 0) {
+        {
+            // if the logout url hasn't been set then try seeing if one has been configured.
+            final String configuredLogoutURL = pwmApplication.getConfig().readSettingAsString( PwmSetting.URL_LOGOUT );
+            if ( configuredLogoutURL != null && configuredLogoutURL.length() > 0 )
+            {
 
                 // construct params
-                final Map<String,String> logoutUrlParameters = new LinkedHashMap<>();
-                logoutUrlParameters.put(PARAM_IDLE, String.valueOf(logoutDueToIdle));
-                logoutUrlParameters.put(PARAM_PASSWORD_MODIFIED, String.valueOf(pwmSession.getSessionStateBean().isPasswordModified()));
-                logoutUrlParameters.put(PARAM_PUBLIC_ONLY, String.valueOf(!pwmSession.getSessionStateBean().isPrivateUrlAccessed()));
+                final Map<String, String> logoutUrlParameters = new LinkedHashMap<>();
+                logoutUrlParameters.put( PARAM_IDLE, String.valueOf( logoutDueToIdle ) );
+                logoutUrlParameters.put( PARAM_PASSWORD_MODIFIED, String.valueOf( pwmSession.getSessionStateBean().isPasswordModified() ) );
+                logoutUrlParameters.put( PARAM_PUBLIC_ONLY, String.valueOf( !pwmSession.getSessionStateBean().isPrivateUrlAccessed() ) );
 
                 {
                     final String sessionForwardURL = pwmSession.getSessionStateBean().getForwardURL();
-                    if (sessionForwardURL != null && sessionForwardURL.length() > 0) {
+                    if ( sessionForwardURL != null && sessionForwardURL.length() > 0 )
+                    {
                         logoutUrlParameters.put(
-                                pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_PARAM_NAME_FORWARD_URL),
+                                pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_PARAM_NAME_FORWARD_URL ),
                                 sessionForwardURL
                         );
                     }
                 }
 
-                final String logoutURL = PwmURL.appendAndEncodeUrlParameters(configuredLogoutURL, logoutUrlParameters);
+                final String logoutURL = PwmURL.appendAndEncodeUrlParameters( configuredLogoutURL, logoutUrlParameters );
 
-                LOGGER.trace(pwmSession, "redirecting user to configured logout url:" + logoutURL);
-                pwmRequest.sendRedirect(logoutURL);
+                LOGGER.trace( pwmSession, "redirecting user to configured logout url:" + logoutURL );
+                pwmRequest.sendRedirect( logoutURL );
                 pwmRequest.invalidateSession();
                 return;
             }
@@ -175,72 +187,88 @@ public class LogoutServlet extends ControlledPwmServlet {
         // if we didn't go anywhere yet, then show the pwm logout jsp
         final LogoutAction nextAction = authenticated ? LogoutAction.showLogout : LogoutAction.showTimeout;
 
-        final Map<String,String> logoutUrlParameters = new LinkedHashMap<>();
-        logoutUrlParameters.put(PwmConstants.PARAM_ACTION_REQUEST, nextAction.toString());
-        if (nextUrl != null) {
-            logoutUrlParameters.put(PARAM_URL, nextUrl);
+        final Map<String, String> logoutUrlParameters = new LinkedHashMap<>();
+        logoutUrlParameters.put( PwmConstants.PARAM_ACTION_REQUEST, nextAction.toString() );
+        if ( nextUrl != null )
+        {
+            logoutUrlParameters.put( PARAM_URL, nextUrl );
         }
         final String logoutURL = PwmURL.appendAndEncodeUrlParameters(
                 pwmRequest.getContextPath() + PwmServletDefinition.Logout.servletUrl(),
                 logoutUrlParameters
         );
         pwmRequest.invalidateSession();
-        pwmRequest.sendRedirect(logoutURL);
+        pwmRequest.sendRedirect( logoutURL );
     }
 
 
     private static Optional<String> readAndValidateNextUrlParameter(
             final PwmRequest pwmRequest
-    ) {
-        try {
-            if (!pwmRequest.hasParameter(PARAM_URL)) {
+    )
+    {
+        try
+        {
+            if ( !pwmRequest.hasParameter( PARAM_URL ) )
+            {
                 return Optional.empty();
             }
 
-            if (pwmRequest.getPwmSession().getSessionStateBean().isPasswordModified()) {
+            if ( pwmRequest.getPwmSession().getSessionStateBean().isPasswordModified() )
+            {
                 return Optional.empty();
             }
 
 
-            final String urlParameter = pwmRequest.readParameterAsString(PARAM_URL);
-            final URI uri = URI.create(urlParameter);
+            final String urlParameter = pwmRequest.readParameterAsString( PARAM_URL );
+            final URI uri = URI.create( urlParameter );
             String path = uri.getPath();
-            if (path != null && path.startsWith(pwmRequest.getContextPath())) {
-                path = path.substring(pwmRequest.getContextPath().length(), path.length());
+            if ( path != null && path.startsWith( pwmRequest.getContextPath() ) )
+            {
+                path = path.substring( pwmRequest.getContextPath().length(), path.length() );
 
             }
             PwmServletDefinition matchedServlet = null;
 
             outerLoop:
-            for (final PwmServletDefinition pwmServletDefinition : PwmServletDefinition.values()) {
-                for (final String urlPattern : pwmServletDefinition.urlPatterns()) {
-                    if (urlPattern.equals(path)) {
+            for ( final PwmServletDefinition pwmServletDefinition : PwmServletDefinition.values() )
+            {
+                for ( final String urlPattern : pwmServletDefinition.urlPatterns() )
+                {
+                    if ( urlPattern.equals( path ) )
+                    {
                         matchedServlet = pwmServletDefinition;
                         break outerLoop;
                     }
                 }
             }
 
-            if (matchedServlet == PwmServletDefinition.Logout) {
+            if ( matchedServlet == PwmServletDefinition.Logout )
+            {
                 matchedServlet = null;
             }
 
-            if (matchedServlet != null) {
-                LOGGER.trace(pwmRequest, "matched next url to servlet definition " + matchedServlet.toString());
-                return Optional.of(pwmRequest.getContextPath() + matchedServlet.servletUrl());
-            } else {
-                LOGGER.trace(pwmRequest, "unable to match next url parameter to servlet definition");
+            if ( matchedServlet != null )
+            {
+                LOGGER.trace( pwmRequest, "matched next url to servlet definition " + matchedServlet.toString() );
+                return Optional.of( pwmRequest.getContextPath() + matchedServlet.servletUrl() );
+            }
+            else
+            {
+                LOGGER.trace( pwmRequest, "unable to match next url parameter to servlet definition" );
             }
 
 
-        } catch(Exception e) {
-            LOGGER.debug("error parsing client specified url parameter: " + e.getMessage());
+        }
+        catch ( Exception e )
+        {
+            LOGGER.debug( "error parsing client specified url parameter: " + e.getMessage() );
         }
         return Optional.empty();
     }
 
     @Override
-    public ProcessStatus preProcessCheck(final PwmRequest pwmRequest) {
+    public ProcessStatus preProcessCheck( final PwmRequest pwmRequest )
+    {
         // no checks required, this is a public module.
         return ProcessStatus.Continue;
     }

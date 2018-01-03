@@ -24,20 +24,24 @@ package password.pwm.http.servlet.helpdesk;
 
 import java.io.Serializable;
 
-public class HelpdeskVerificationResponseBean implements Serializable {
+public class HelpdeskVerificationResponseBean implements Serializable
+{
     private boolean passed;
     private String verificationState;
 
-    public HelpdeskVerificationResponseBean(final boolean passed, final String verificationState) {
+    public HelpdeskVerificationResponseBean( final boolean passed, final String verificationState )
+    {
         this.passed = passed;
         this.verificationState = verificationState;
     }
 
-    public boolean isPassed() {
+    public boolean isPassed( )
+    {
         return passed;
     }
 
-    public String getVerificationState() {
+    public String getVerificationState( )
+    {
         return verificationState;
     }
 }

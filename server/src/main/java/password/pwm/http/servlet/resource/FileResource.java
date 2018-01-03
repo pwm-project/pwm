@@ -25,14 +25,15 @@ package password.pwm.http.servlet.resource;
 import java.io.IOException;
 import java.io.InputStream;
 
-interface FileResource {
-    InputStream getInputStream() throws IOException;
+interface FileResource
+{
+    InputStream getInputStream( ) throws IOException;
 
-    long length();
+    long length( );
 
-    long lastModified();
+    long lastModified( );
 
-    boolean exists();
+    boolean exists( );
 
-    String getName();
+    String getName( );
 }

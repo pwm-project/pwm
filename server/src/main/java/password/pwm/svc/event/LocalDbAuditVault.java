@@ -43,8 +43,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class LocalDbAuditVault implements AuditVault {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(LocalDbAuditVault.class);
+public class LocalDbAuditVault implements AuditVault
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( LocalDbAuditVault.class );
 
     private LocalDBStoredQueue auditDB;
     private Settings settings;
@@ -70,174 +71,210 @@ public class LocalDbAuditVault implements AuditVault {
             throws PwmException
     {
         this.settings = settings;
-        this.auditDB = LocalDBStoredQueue.createLocalDBStoredQueue(pwmApplication, localDB, LocalDB.DB.AUDIT_EVENTS);
-        this.maxBulkRemovals = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.AUDIT_EVENTS_LOCALDB_MAX_BULK_REMOVALS));
+        this.auditDB = LocalDBStoredQueue.createLocalDBStoredQueue( pwmApplication, localDB, LocalDB.DB.AUDIT_EVENTS );
+        this.maxBulkRemovals = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.AUDIT_EVENTS_LOCALDB_MAX_BULK_REMOVALS ) );
 
         readOldestRecord();
 
         executorService = Executors.newSingleThreadScheduledExecutor(
                 JavaHelper.makePwmThreadFactory(
-                        JavaHelper.makeThreadName(pwmApplication,this.getClass()) + "-",
+                        JavaHelper.makeThreadName( pwmApplication, this.getClass() ) + "-",
                         true
-                ));
+                ) );
 
         status = PwmService.STATUS.OPEN;
-        executorService.scheduleWithFixedDelay(new TrimmerThread(), 0, 10, TimeUnit.MINUTES);
+        executorService.scheduleWithFixedDelay( new TrimmerThread(), 0, 10, TimeUnit.MINUTES );
     }
 
-    public void close() {
+    public void close( )
+    {
         executorService.shutdown();
         status = PwmService.STATUS.CLOSED;
     }
 
-    public PwmService.STATUS getStatus() {
+    public PwmService.STATUS getStatus( )
+    {
         return status;
     }
 
     @Override
-    public Instant oldestRecord() {
+    public Instant oldestRecord( )
+    {
         return oldestRecord;
     }
 
     @Override
-    public int size() {
+    public int size( )
+    {
         return auditDB.size();
     }
 
-    public Iterator<AuditRecord> readVault() {
-        return new IteratorWrapper(auditDB.descendingIterator());
+    public Iterator<AuditRecord> readVault( )
+    {
+        return new IteratorWrapper( auditDB.descendingIterator() );
     }
 
-    private static class IteratorWrapper implements Iterator<AuditRecord> {
+    private static class IteratorWrapper implements Iterator<AuditRecord>
+    {
         private Iterator<String> innerIter;
 
-        private IteratorWrapper(final Iterator<String> innerIter) {
+        private IteratorWrapper( final Iterator<String> innerIter )
+        {
             this.innerIter = innerIter;
         }
 
         @Override
-        public boolean hasNext() {
+        public boolean hasNext( )
+        {
             return innerIter.hasNext();
         }
 
         @Override
-        public AuditRecord next() {
+        public AuditRecord next( )
+        {
             final String value = innerIter.next();
-            return deSerializeRecord(value);
+            return deSerializeRecord( value );
         }
 
         @Override
-        public void remove() {
+        public void remove( )
+        {
             throw new UnsupportedOperationException();
         }
     }
 
     @Override
-    public String sizeToDebugString() {
+    public String sizeToDebugString( )
+    {
         final long storedEvents = this.size();
         final long maxEvents = settings.getMaxRecordCount();
-        final Percent percent = new Percent(storedEvents, maxEvents);
+        final Percent percent = new Percent( storedEvents, maxEvents );
 
-        return storedEvents + " / " + maxEvents + " (" + percent.pretty(2) + ")";
+        return storedEvents + " / " + maxEvents + " (" + percent.pretty( 2 ) + ")";
     }
 
-    private static AuditRecord deSerializeRecord(final String input) {
-        final Map<String,String> tempMap = JsonUtil.deserializeStringMap(input);
+    private static AuditRecord deSerializeRecord( final String input )
+    {
+        final Map<String, String> tempMap = JsonUtil.deserializeStringMap( input );
         String errorMsg = "";
-        try {
-            if (tempMap != null) {
-                final String eventCode = tempMap.get("eventCode");
-                if (eventCode != null && eventCode.length() > 0) {
+        try
+        {
+            if ( tempMap != null )
+            {
+                final String eventCode = tempMap.get( "eventCode" );
+                if ( eventCode != null && eventCode.length() > 0 )
+                {
                     final AuditEvent event;
-                    try {
-                        event = AuditEvent.valueOf(eventCode);
-                    } catch (IllegalArgumentException e) {
+                    try
+                    {
+                        event = AuditEvent.valueOf( eventCode );
+                    }
+                    catch ( IllegalArgumentException e )
+                    {
                         errorMsg = "error de-serializing audit record: " + e.getMessage();
-                        LOGGER.error(errorMsg);
+                        LOGGER.error( errorMsg );
                         return null;
                     }
                     final Class clazz = event.getType().getDataClass();
-                    final com.google.gson.reflect.TypeToken typeToken = com.google.gson.reflect.TypeToken.get(clazz);
-                    return JsonUtil.deserialize(input, typeToken);
+                    final com.google.gson.reflect.TypeToken typeToken = com.google.gson.reflect.TypeToken.get( clazz );
+                    return JsonUtil.deserialize( input, typeToken );
                 }
             }
-        } catch (Exception e) {
+        }
+        catch ( Exception e )
+        {
             errorMsg = e.getMessage();
         }
-        LOGGER.debug("unable to deserialize stored record '" + input + "', error: " + errorMsg);
+        LOGGER.debug( "unable to deserialize stored record '" + input + "', error: " + errorMsg );
         return null;
     }
 
-    public void add(final AuditRecord record) {
-        if (record == null) {
+    public void add( final AuditRecord record )
+    {
+        if ( record == null )
+        {
             return;
         }
 
-        final String jsonRecord = JsonUtil.serialize(record);
-        auditDB.addLast(jsonRecord);
+        final String jsonRecord = JsonUtil.serialize( record );
+        auditDB.addLast( jsonRecord );
 
-        if (auditDB.size() > settings.getMaxRecordCount()) {
-            removeRecords(1);
+        if ( auditDB.size() > settings.getMaxRecordCount() )
+        {
+            removeRecords( 1 );
         }
     }
 
-    private void readOldestRecord() {
-        if (auditDB != null && !auditDB.isEmpty()) {
+    private void readOldestRecord( )
+    {
+        if ( auditDB != null && !auditDB.isEmpty() )
+        {
             final String stringFirstRecord = auditDB.getFirst();
-            final UserAuditRecord firstRecord = JsonUtil.deserialize(stringFirstRecord, UserAuditRecord.class);
+            final UserAuditRecord firstRecord = JsonUtil.deserialize( stringFirstRecord, UserAuditRecord.class );
             oldestRecord = firstRecord.getTimestamp();
         }
     }
 
-    private void removeRecords(final int count) {
-        auditDB.removeFirst(count);
+    private void removeRecords( final int count )
+    {
+        auditDB.removeFirst( count );
         readOldestRecord();
     }
 
-    private class TrimmerThread implements Runnable {
+    private class TrimmerThread implements Runnable
+    {
 
         // keep transaction duration around 100ms if possible.
         final TransactionSizeCalculator transactionSizeCalculator = new TransactionSizeCalculator(
                 new TransactionSizeCalculator.SettingsBuilder()
-                        .setDurationGoal(new TimeDuration(101, TimeUnit.MILLISECONDS))
-                        .setMaxTransactions(5003)
-                        .setMinTransactions(3)
+                        .setDurationGoal( new TimeDuration( 101, TimeUnit.MILLISECONDS ) )
+                        .setMaxTransactions( 5003 )
+                        .setMinTransactions( 3 )
                         .createSettings()
         );
 
         @Override
-        public void run() {
+        public void run( )
+        {
             long startTime = System.currentTimeMillis();
-            while (trim(transactionSizeCalculator.getTransactionSize())
+            while ( trim( transactionSizeCalculator.getTransactionSize() )
                     && status == PwmService.STATUS.OPEN
-                    ) {
+                    )
+            {
                 final long executeTime = System.currentTimeMillis() - startTime;
-                transactionSizeCalculator.recordLastTransactionDuration(executeTime);
+                transactionSizeCalculator.recordLastTransactionDuration( executeTime );
                 transactionSizeCalculator.pause();
                 startTime = System.currentTimeMillis();
             }
         }
 
-        private boolean trim(final int maxRemovals) {
-            if (auditDB.isEmpty()) {
+        private boolean trim( final int maxRemovals )
+        {
+            if ( auditDB.isEmpty() )
+            {
                 return false;
             }
 
-            if (auditDB.size() > settings.getMaxRecordCount() + maxRemovals) {
-                removeRecords(maxRemovals);
+            if ( auditDB.size() > settings.getMaxRecordCount() + maxRemovals )
+            {
+                removeRecords( maxRemovals );
                 return true;
             }
 
             int workActions = 0;
-            while (oldestRecord != null
+            while ( oldestRecord != null
                     && workActions < maxRemovals
                     && !auditDB.isEmpty()
                     && status == PwmService.STATUS.OPEN
-                    ) {
-                if (TimeDuration.fromCurrent(oldestRecord).isLongerThan(settings.getMaxRecordAge())) {
-                    removeRecords(1);
+                    )
+            {
+                if ( TimeDuration.fromCurrent( oldestRecord ).isLongerThan( settings.getMaxRecordAge() ) )
+                {
+                    removeRecords( 1 );
                     workActions++;
-                } else {
+                }
+                else
+                {
                     break;
                 }
             }

@@ -26,6 +26,7 @@ import password.pwm.PwmApplication;
 
 import java.util.List;
 
-public interface HealthChecker {
-    List<HealthRecord> doHealthCheck(PwmApplication pwmApplication);
+public interface HealthChecker
+{
+    List<HealthRecord> doHealthCheck( PwmApplication pwmApplication );
 }

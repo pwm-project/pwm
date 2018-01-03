@@ -37,8 +37,9 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Locale;
 
-public class RestRequest extends PwmHttpRequestWrapper {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(RestRequest.class);
+public class RestRequest extends PwmHttpRequestWrapper
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( RestRequest.class );
 
     private final PwmApplication pwmApplication;
     private final RestAuthentication restAuthentication;
@@ -52,7 +53,7 @@ public class RestRequest extends PwmHttpRequestWrapper {
     )
             throws PwmUnrecoverableException
     {
-        return new RestRequest(pwmApplication, restAuthentication, sessionLabel, httpServletRequest);
+        return new RestRequest( pwmApplication, restAuthentication, sessionLabel, httpServletRequest );
     }
 
     private RestRequest(
@@ -60,61 +61,70 @@ public class RestRequest extends PwmHttpRequestWrapper {
             final RestAuthentication restAuthentication,
             final SessionLabel sessionLabel,
             final HttpServletRequest httpServletRequest
-            )
+    )
     {
-        super(httpServletRequest, pwmApplication.getConfig());
+        super( httpServletRequest, pwmApplication.getConfig() );
         this.pwmApplication = pwmApplication;
         this.restAuthentication = restAuthentication;
         this.sessionLabel = sessionLabel;
     }
 
-    public RestAuthentication getRestAuthentication() {
+    public RestAuthentication getRestAuthentication( )
+    {
         return restAuthentication;
     }
 
-    public PwmApplication getPwmApplication() {
+    public PwmApplication getPwmApplication( )
+    {
         return pwmApplication;
     }
 
-    public HttpContentType readContentType() {
-        return HttpContentType.fromContentTypeHeader(readHeaderValueAsString(HttpHeader.Content_Type));
+    public HttpContentType readContentType( )
+    {
+        return HttpContentType.fromContentTypeHeader( readHeaderValueAsString( HttpHeader.Content_Type ) );
     }
 
-    public HttpContentType readAcceptType() {
+    public HttpContentType readAcceptType( )
+    {
 
-        return readAcceptType(getHttpServletRequest());
+        return readAcceptType( getHttpServletRequest() );
     }
 
-    static HttpContentType readAcceptType(final HttpServletRequest request) {
-        final String acceptHeaderValue = request.getHeader(HttpHeader.Accept.getHttpName());
-        final boolean anyValue = "*".equals(acceptHeaderValue)
-                || "*/*".equals(acceptHeaderValue);
+    static HttpContentType readAcceptType( final HttpServletRequest request )
+    {
+        final String acceptHeaderValue = request.getHeader( HttpHeader.Accept.getHttpName() );
+        final boolean anyValue = "*".equals( acceptHeaderValue )
+                || "*/*".equals( acceptHeaderValue );
         return anyValue
                 ? HttpContentType.json
-                : HttpContentType.fromContentTypeHeader(acceptHeaderValue);
+                : HttpContentType.fromContentTypeHeader( acceptHeaderValue );
 
     }
 
-    public Locale getLocale() {
+    public Locale getLocale( )
+    {
         final List<Locale> knownLocales = getConfig().getKnownLocales();
-        return LocaleHelper.localeResolver(getHttpServletRequest().getLocale(), knownLocales);
+        return LocaleHelper.localeResolver( getHttpServletRequest().getLocale(), knownLocales );
     }
 
-    public SessionLabel getSessionLabel() {
+    public SessionLabel getSessionLabel( )
+    {
         return sessionLabel;
     }
 
-    public ChaiProvider getChaiProvider(final String ldapProfileID)
+    public ChaiProvider getChaiProvider( final String ldapProfileID )
             throws PwmUnrecoverableException
     {
-        if (getRestAuthentication().getType() == RestAuthenticationType.LDAP) {
-            if (!getRestAuthentication().getLdapIdentity().getLdapProfileID().equals(ldapProfileID)) {
+        if ( getRestAuthentication().getType() == RestAuthenticationType.LDAP )
+        {
+            if ( !getRestAuthentication().getLdapIdentity().getLdapProfileID().equals( ldapProfileID ) )
+            {
                 final String errorMsg = "target user ldap profileID does not match authenticated user ldap profileID";
-                throw PwmUnrecoverableException.newException(PwmError.ERROR_REST_INVOCATION_ERROR, errorMsg);
+                throw PwmUnrecoverableException.newException( PwmError.ERROR_REST_INVOCATION_ERROR, errorMsg );
             }
             return getRestAuthentication().getChaiProvider();
         }
-        return getPwmApplication().getProxyChaiProvider(ldapProfileID);
+        return getPwmApplication().getProxyChaiProvider( ldapProfileID );
     }
 }
 

@@ -22,6 +22,7 @@
 
 package password.pwm.svc.token;
 
-interface TokenKey {
-    String getStoredHash();
+interface TokenKey
+{
+    String getStoredHash( );
 }

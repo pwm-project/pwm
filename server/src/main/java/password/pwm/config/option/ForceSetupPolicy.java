@@ -22,7 +22,8 @@
 
 package password.pwm.config.option;
 
-public enum ForceSetupPolicy  {
+public enum ForceSetupPolicy
+{
     FORCE,
     FORCE_ALLOW_SKIP,
     SKIP

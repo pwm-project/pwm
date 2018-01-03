@@ -35,122 +35,135 @@ import java.util.Set;
 /**
  * @author Jason D. Rivard
  */
-public class ChangePasswordBean extends PwmSessionBean {
+public class ChangePasswordBean extends PwmSessionBean
+{
 
-    @SerializedName("ap")
+    @SerializedName( "ap" )
     private boolean agreementPassed;
 
-    @SerializedName("cpr")
+    @SerializedName( "cpr" )
     private boolean currentPasswordRequired;
 
-    @SerializedName("cpp")
+    @SerializedName( "cpp" )
     private boolean currentPasswordPassed;
 
-    @SerializedName("fp")
+    @SerializedName( "fp" )
     private boolean formPassed;
 
-    @SerializedName("acp")
+    @SerializedName( "acp" )
     private boolean allChecksPassed;
 
-    @SerializedName("n")
+    @SerializedName( "n" )
     private boolean nextAllowedTimePassed;
 
-    @SerializedName("wp")
+    @SerializedName( "wp" )
     private boolean warnPassed;
 
-    @SerializedName("pt")
+    @SerializedName( "pt" )
     private PasswordChangeProgressChecker.ProgressTracker changeProgressTracker;
 
-    @SerializedName("mc")
+    @SerializedName( "mc" )
     private Instant changePasswordMaxCompletion;
 
-    public boolean isAgreementPassed() {
+    public boolean isAgreementPassed( )
+    {
         return agreementPassed;
     }
 
-    public void setAgreementPassed(final boolean agreementPassed) {
+    public void setAgreementPassed( final boolean agreementPassed )
+    {
         this.agreementPassed = agreementPassed;
     }
 
-    public boolean isCurrentPasswordRequired() {
+    public boolean isCurrentPasswordRequired( )
+    {
         return currentPasswordRequired;
     }
 
-    public void setCurrentPasswordRequired(final boolean currentPasswordRequired) {
+    public void setCurrentPasswordRequired( final boolean currentPasswordRequired )
+    {
         this.currentPasswordRequired = currentPasswordRequired;
     }
 
-    public boolean isCurrentPasswordPassed() {
+    public boolean isCurrentPasswordPassed( )
+    {
         return currentPasswordPassed;
     }
 
-    public void setCurrentPasswordPassed(final boolean currentPasswordPassed) {
+    public void setCurrentPasswordPassed( final boolean currentPasswordPassed )
+    {
         this.currentPasswordPassed = currentPasswordPassed;
     }
 
-    public boolean isFormPassed() {
+    public boolean isFormPassed( )
+    {
         return formPassed;
     }
 
-    public void setFormPassed(final boolean formPassed) {
+    public void setFormPassed( final boolean formPassed )
+    {
         this.formPassed = formPassed;
     }
 
-    public boolean isAllChecksPassed() {
+    public boolean isAllChecksPassed( )
+    {
         return allChecksPassed;
     }
 
-    public void setAllChecksPassed(final boolean allChecksPassed) {
+    public void setAllChecksPassed( final boolean allChecksPassed )
+    {
         this.allChecksPassed = allChecksPassed;
     }
 
-    public PasswordChangeProgressChecker.ProgressTracker getChangeProgressTracker()
+    public PasswordChangeProgressChecker.ProgressTracker getChangeProgressTracker( )
     {
         return changeProgressTracker;
     }
 
-    public void setChangeProgressTracker(final PasswordChangeProgressChecker.ProgressTracker changeProgressTracker)
+    public void setChangeProgressTracker( final PasswordChangeProgressChecker.ProgressTracker changeProgressTracker )
     {
         this.changeProgressTracker = changeProgressTracker;
     }
 
-    public Instant getChangePasswordMaxCompletion()
+    public Instant getChangePasswordMaxCompletion( )
     {
         return changePasswordMaxCompletion;
     }
 
-    public void setChangePasswordMaxCompletion(final Instant changePasswordMaxCompletion)
+    public void setChangePasswordMaxCompletion( final Instant changePasswordMaxCompletion )
     {
         this.changePasswordMaxCompletion = changePasswordMaxCompletion;
     }
 
-    public boolean isNextAllowedTimePassed()
+    public boolean isNextAllowedTimePassed( )
     {
         return nextAllowedTimePassed;
     }
 
-    public void setNextAllowedTimePassed(final boolean nextAllowedTimePassed)
+    public void setNextAllowedTimePassed( final boolean nextAllowedTimePassed )
     {
         this.nextAllowedTimePassed = nextAllowedTimePassed;
     }
 
-    public boolean isWarnPassed()
+    public boolean isWarnPassed( )
     {
         return warnPassed;
     }
 
-    public void setWarnPassed(final boolean warnPassed)
+    public void setWarnPassed( final boolean warnPassed )
     {
         this.warnPassed = warnPassed;
     }
 
-    public Type getType() {
+    public Type getType( )
+    {
         return Type.AUTHENTICATED;
     }
 
     @Override
-    public Set<SessionBeanMode> supportedModes() {
-        return Collections.unmodifiableSet(new HashSet<>(Arrays.asList(SessionBeanMode.LOCAL, SessionBeanMode.CRYPTCOOKIE, SessionBeanMode.CRYPTREQUEST)));
+    public Set<SessionBeanMode> supportedModes( )
+    {
+        return Collections.unmodifiableSet( new HashSet<>( Arrays.asList( SessionBeanMode.LOCAL, SessionBeanMode.CRYPTCOOKIE, SessionBeanMode.CRYPTREQUEST ) ) );
     }
 }
 

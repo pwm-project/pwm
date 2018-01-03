@@ -22,7 +22,8 @@
 
 package password.pwm.config.option;
 
-public enum ADPolicyComplexity implements ConfigurationOption {
+public enum ADPolicyComplexity implements ConfigurationOption
+{
     NONE,
     AD2003,
     AD2008,

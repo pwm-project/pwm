@@ -22,36 +22,44 @@
 
 package password.pwm.error;
 
-public abstract class PwmException extends Exception {
+public abstract class PwmException extends Exception
+{
     protected final ErrorInformation errorInformation;
 
-    public PwmException(final ErrorInformation error) {
-        this.errorInformation = error == null ? new ErrorInformation(PwmError.ERROR_UNKNOWN) : error;
+    public PwmException( final ErrorInformation error )
+    {
+        this.errorInformation = error == null ? new ErrorInformation( PwmError.ERROR_UNKNOWN ) : error;
     }
 
-    public PwmException(final ErrorInformation error, final Throwable initialCause) {
-        this.errorInformation = error == null ? new ErrorInformation(PwmError.ERROR_UNKNOWN) : error;
-        this.initCause(initialCause);
+    public PwmException( final ErrorInformation error, final Throwable initialCause )
+    {
+        this.errorInformation = error == null ? new ErrorInformation( PwmError.ERROR_UNKNOWN ) : error;
+        this.initCause( initialCause );
     }
 
-    public PwmException(final PwmError error) {
-        this.errorInformation = new ErrorInformation(error);
+    public PwmException( final PwmError error )
+    {
+        this.errorInformation = new ErrorInformation( error );
     }
 
-    public PwmException(final PwmError error, final String detailedErrorMsg) {
-        this.errorInformation = new ErrorInformation(error, detailedErrorMsg);
+    public PwmException( final PwmError error, final String detailedErrorMsg )
+    {
+        this.errorInformation = new ErrorInformation( error, detailedErrorMsg );
     }
 
-    public ErrorInformation getErrorInformation() {
+    public ErrorInformation getErrorInformation( )
+    {
         return errorInformation;
     }
 
-    public PwmError getError() {
+    public PwmError getError( )
+    {
         return errorInformation.getError();
     }
 
     @Override
-    public String getMessage() {
+    public String getMessage( )
+    {
         return errorInformation.toDebugStr();
     }
 }

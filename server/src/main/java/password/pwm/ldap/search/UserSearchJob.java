@@ -31,7 +31,8 @@ import java.util.Collection;
 
 @Value
 @Builder
-public class UserSearchJob {
+public class UserSearchJob
+{
     private final LdapProfile ldapProfile;
     private final String searchFilter;
     private final String context;

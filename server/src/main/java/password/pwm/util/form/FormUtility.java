@@ -61,60 +61,80 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-public class FormUtility {
+public class FormUtility
+{
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass(FormUtility.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass( FormUtility.class );
 
-    public enum Flag {
+    public enum Flag
+    {
         ReturnEmptyValues
     }
 
     private static final String NEGATIVE_CACHE_HIT = "NEGATIVE_CACHE_HIT";
 
     public static Map<FormConfiguration, String> readFormValuesFromMap(
-            final Map<String,String> inputMap,
+            final Map<String, String> inputMap,
             final Collection<FormConfiguration> formItems,
             final Locale locale
     )
             throws PwmDataValidationException, PwmUnrecoverableException
     {
-        if (formItems == null || formItems.isEmpty()) {
+        if ( formItems == null || formItems.isEmpty() )
+        {
             return Collections.emptyMap();
         }
 
         final Map<FormConfiguration, String> returnMap = new LinkedHashMap<>();
 
-        if (inputMap == null) {
+        if ( inputMap == null )
+        {
             return returnMap;
         }
 
-        for (final FormConfiguration formItem : formItems) {
+        for ( final FormConfiguration formItem : formItems )
+        {
             final String keyName = formItem.getName();
-            final String value = inputMap.get(keyName);
+            final String value = inputMap.get( keyName );
 
-            if (formItem.isRequired() && !formItem.isReadonly()) {
-                if (StringUtil.isEmpty(value)) {
+            if ( formItem.isRequired() && !formItem.isReadonly() )
+            {
+                if ( StringUtil.isEmpty( value ) )
+                {
                     final String errorMsg = "missing required value for field '" + formItem.getName() + "'";
-                    final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_REQUIRED, errorMsg, new String[]{formItem.getLabel(locale)});
-                    throw new PwmDataValidationException(error);
+                    final ErrorInformation error = new ErrorInformation( PwmError.ERROR_FIELD_REQUIRED, errorMsg, new String[]
+                            {
+                                    formItem.getLabel( locale ),
+                            }
+                    );
+                    throw new PwmDataValidationException( error );
                 }
             }
 
-            if (formItem.isConfirmationRequired()) {
-                final String confirmValue = inputMap.get(keyName + Validator.PARAM_CONFIRM_SUFFIX);
-                if (confirmValue == null || !confirmValue.equals(value)) {
+            if ( formItem.isConfirmationRequired() )
+            {
+                final String confirmValue = inputMap.get( keyName + Validator.PARAM_CONFIRM_SUFFIX );
+                if ( confirmValue == null || !confirmValue.equals( value ) )
+                {
                     final String errorMsg = "incorrect confirmation value for field '" + formItem.getName() + "'";
-                    final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_BAD_CONFIRM, errorMsg, new String[]{formItem.getLabel(locale)});
-                    throw new PwmDataValidationException(error);
+                    final ErrorInformation error = new ErrorInformation( PwmError.ERROR_FIELD_BAD_CONFIRM, errorMsg, new String[]
+                            {
+                                    formItem.getLabel( locale ),
+                            }
+                    );
+                    throw new PwmDataValidationException( error );
                 }
             }
 
-            if (formItem.getType() == FormConfiguration.Type.checkbox) {
-                final String parsedValue = parseInputValueToFormValue(formItem, value);
-                returnMap.put(formItem, parsedValue);
-            } else if (value != null && !formItem.isReadonly()) {
-                final String parsedValue = parseInputValueToFormValue(formItem, value);
-                returnMap.put(formItem, parsedValue);
+            if ( formItem.getType() == FormConfiguration.Type.checkbox )
+            {
+                final String parsedValue = parseInputValueToFormValue( formItem, value );
+                returnMap.put( formItem, parsedValue );
+            }
+            else if ( value != null && !formItem.isReadonly() )
+            {
+                final String parsedValue = parseInputValueToFormValue( formItem, value );
+                returnMap.put( formItem, parsedValue );
             }
 
         }
@@ -122,49 +142,63 @@ public class FormUtility {
         return returnMap;
     }
 
-    private static String parseInputValueToFormValue(final FormConfiguration formConfiguration, final String input) {
-        if (formConfiguration.getType() == FormConfiguration.Type.checkbox) {
-            final boolean bValue = checkboxValueIsChecked(input);
+    private static String parseInputValueToFormValue( final FormConfiguration formConfiguration, final String input )
+    {
+        if ( formConfiguration.getType() == FormConfiguration.Type.checkbox )
+        {
+            final boolean bValue = checkboxValueIsChecked( input );
             return bValue ? "TRUE" : "FALSE";
         }
 
         return input;
     }
 
-    public static boolean checkboxValueIsChecked(final String value) {
+    public static boolean checkboxValueIsChecked( final String value )
+    {
         boolean booleanValue = false;
-        if (value != null) {
-            if (Boolean.parseBoolean(value)) {
+        if ( value != null )
+        {
+            if ( Boolean.parseBoolean( value ) )
+            {
                 booleanValue = true;
-            } else if ("on".equalsIgnoreCase(value)) {
+            }
+            else if ( "on".equalsIgnoreCase( value ) )
+            {
                 booleanValue = true;
-            } else if ("checked".equalsIgnoreCase(value)) {
+            }
+            else if ( "checked".equalsIgnoreCase( value ) )
+            {
                 booleanValue = true;
             }
         }
         return booleanValue;
     }
 
-    public static Map<String,String> asStringMap(final Map<FormConfiguration, String> input) {
-        final Map<String,String> returnObj = new LinkedHashMap<>();
-        for (final Map.Entry<FormConfiguration, String> entry : input.entrySet()) {
+    public static Map<String, String> asStringMap( final Map<FormConfiguration, String> input )
+    {
+        final Map<String, String> returnObj = new LinkedHashMap<>();
+        for ( final Map.Entry<FormConfiguration, String> entry : input.entrySet() )
+        {
             final FormConfiguration formConfiguration = entry.getKey();
-            returnObj.put(formConfiguration.getName(), entry.getValue());
-            if (formConfiguration.isConfirmationRequired()) {
+            returnObj.put( formConfiguration.getName(), entry.getValue() );
+            if ( formConfiguration.isConfirmationRequired() )
+            {
                 final String confirmFieldName = formConfiguration.getName() + Validator.PARAM_CONFIRM_SUFFIX;
-                returnObj.put(confirmFieldName, input.get(formConfiguration));
+                returnObj.put( confirmFieldName, input.get( formConfiguration ) );
             }
 
         }
         return returnObj;
     }
 
-    public static Map<FormConfiguration,String> asFormConfigurationMap(final List<FormConfiguration> formConfigurations, final Map<String, String> values) {
+    public static Map<FormConfiguration, String> asFormConfigurationMap( final List<FormConfiguration> formConfigurations, final Map<String, String> values )
+    {
         final Map<FormConfiguration, String> returnMap = new LinkedHashMap<>();
-        for (final FormConfiguration formConfiguration : formConfigurations) {
+        for ( final FormConfiguration formConfiguration : formConfigurations )
+        {
             final String name = formConfiguration.getName();
-            final String value = values.get(name);
-            returnMap.put(formConfiguration, value);
+            final String value = values.get( name );
+            returnMap.put( formConfiguration, value );
         }
         return returnMap;
     }
@@ -177,11 +211,12 @@ public class FormUtility {
     )
             throws PwmDataValidationException, PwmUnrecoverableException
     {
-        final Map<String,String> tempMap = pwmRequest.readParametersAsMap();
-        return readFormValuesFromMap(tempMap, formItems, locale);
+        final Map<String, String> tempMap = pwmRequest.readParametersAsMap();
+        return readFormValuesFromMap( tempMap, formItems, locale );
     }
 
-    public enum ValidationFlag {
+    public enum ValidationFlag
+    {
         allowResultCaching,
         checkReadOnlyAndHidden,
     }
@@ -195,138 +230,176 @@ public class FormUtility {
     )
             throws PwmDataValidationException, PwmUnrecoverableException
     {
-        final boolean allowResultCaching = JavaHelper.enumArrayContainsValue(validationFlags, ValidationFlag.allowResultCaching);
-        final boolean checkReadOnlyAndHidden = JavaHelper.enumArrayContainsValue(validationFlags, ValidationFlag.checkReadOnlyAndHidden);
+        final boolean allowResultCaching = JavaHelper.enumArrayContainsValue( validationFlags, ValidationFlag.allowResultCaching );
+        final boolean checkReadOnlyAndHidden = JavaHelper.enumArrayContainsValue( validationFlags, ValidationFlag.checkReadOnlyAndHidden );
 
         final Map<String, String> filterClauses = new HashMap<>();
-        final Map<String,String> labelMap = new HashMap<>();
-        for (final Map.Entry<FormConfiguration,String> entry : formValues.entrySet()) {
+        final Map<String, String> labelMap = new HashMap<>();
+        for ( final Map.Entry<FormConfiguration, String> entry : formValues.entrySet() )
+        {
             final FormConfiguration formItem = entry.getKey();
-            if (formItem.isUnique()) {
-                if (checkReadOnlyAndHidden || formItem.isReadonly()) {
-                    if (checkReadOnlyAndHidden || (formItem.getType() != FormConfiguration.Type.hidden)) {
+            if ( formItem.isUnique() )
+            {
+                if ( checkReadOnlyAndHidden || formItem.isReadonly() )
+                {
+                    if ( checkReadOnlyAndHidden || ( formItem.getType() != FormConfiguration.Type.hidden ) )
+                    {
                         final String value = entry.getValue();
-                        if (value != null && value.length() > 0) {
-                            filterClauses.put(formItem.getName(), value);
-                            labelMap.put(formItem.getName(), formItem.getLabel(locale));
+                        if ( value != null && value.length() > 0 )
+                        {
+                            filterClauses.put( formItem.getName(), value );
+                            labelMap.put( formItem.getName(), formItem.getLabel( locale ) );
                         }
                     }
                 }
             }
         }
 
-        if (filterClauses.isEmpty()) { // nothing to search
+        if ( filterClauses.isEmpty() )
+        {
+            // nothing to search
             return;
         }
 
         final StringBuilder filter = new StringBuilder();
         {
-            filter.append("(&"); // outer;
+            // outer;
+            filter.append( "(&" );
 
             // object classes;
-            filter.append("(|");
-            for (final String objectClass : pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.DEFAULT_OBJECT_CLASSES)) {
-                filter.append("(objectClass=").append(objectClass).append(")");
+            filter.append( "(|" );
+            for ( final String objectClass : pwmApplication.getConfig().readSettingAsStringArray( PwmSetting.DEFAULT_OBJECT_CLASSES ) )
+            {
+                filter.append( "(objectClass=" ).append( objectClass ).append( ")" );
             }
-            filter.append(")");
+            filter.append( ")" );
 
             // attributes
-            filter.append("(|");
-            for (final Map.Entry<String,String> entry : filterClauses.entrySet()) {
+            filter.append( "(|" );
+            for ( final Map.Entry<String, String> entry : filterClauses.entrySet() )
+            {
                 final String name = entry.getKey();
                 final String value = entry.getValue();
-                filter.append("(").append(name).append("=").append(StringUtil.escapeLdapFilter(value)).append(")");
+                filter.append( "(" ).append( name ).append( "=" ).append( StringUtil.escapeLdapFilter( value ) ).append( ")" );
             }
-            filter.append(")");
+            filter.append( ")" );
 
-            filter.append(")");
+            filter.append( ")" );
         }
 
         final CacheService cacheService = pwmApplication.getCacheService();
         final CacheKey cacheKey = CacheKey.makeCacheKey(
                 Validator.class, null, "attr_unique_check_" + filter.toString()
         );
-        if (allowResultCaching && cacheService != null) {
-            final String cacheValue = cacheService.get(cacheKey);
-            if (cacheValue != null) {
-                if (NEGATIVE_CACHE_HIT.equals(cacheValue)) {
+        if ( allowResultCaching && cacheService != null )
+        {
+            final String cacheValue = cacheService.get( cacheKey );
+            if ( cacheValue != null )
+            {
+                if ( NEGATIVE_CACHE_HIT.equals( cacheValue ) )
+                {
                     return;
-                } else {
-                    final ErrorInformation errorInformation = JsonUtil.deserialize(cacheValue,ErrorInformation.class);
-                    throw new PwmDataValidationException(errorInformation);
+                }
+                else
+                {
+                    final ErrorInformation errorInformation = JsonUtil.deserialize( cacheValue, ErrorInformation.class );
+                    throw new PwmDataValidationException( errorInformation );
                 }
             }
         }
 
         final SearchHelper searchHelper = new SearchHelper();
-        searchHelper.setFilterAnd(filterClauses);
+        searchHelper.setFilterAnd( filterClauses );
 
         final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
-                .filter(filter.toString())
+                .filter( filter.toString() )
                 .build();
 
-        final int resultSearchSizeLimit = 1 + (excludeDN == null ? 0 : excludeDN.size());
-        final long cacheLifetimeMS = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.CACHE_FORM_UNIQUE_VALUE_LIFETIME_MS));
-        final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpirationMS(cacheLifetimeMS);
+        final int resultSearchSizeLimit = 1 + ( excludeDN == null ? 0 : excludeDN.size() );
+        final long cacheLifetimeMS = Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.CACHE_FORM_UNIQUE_VALUE_LIFETIME_MS ) );
+        final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpirationMS( cacheLifetimeMS );
 
-        try {
+        try
+        {
             final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
-            final Map<UserIdentity,Map<String,String>> results = new LinkedHashMap<>(userSearchEngine.performMultiUserSearch(
+            final Map<UserIdentity, Map<String, String>> results = new LinkedHashMap<>( userSearchEngine.performMultiUserSearch(
                     searchConfiguration,
                     resultSearchSizeLimit,
                     Collections.emptyList(),
                     SessionLabel.SYSTEM_LABEL
-            ));
+            ) );
 
-            if (excludeDN != null && !excludeDN.isEmpty()) {
-                for (final UserIdentity loopIgnoreIdentity : excludeDN) {
-                    results.keySet().removeIf(loopIgnoreIdentity::equals);
+            if ( excludeDN != null && !excludeDN.isEmpty() )
+            {
+                for ( final UserIdentity loopIgnoreIdentity : excludeDN )
+                {
+                    results.keySet().removeIf( loopIgnoreIdentity::equals );
                 }
             }
 
-            if (!results.isEmpty()) {
+            if ( !results.isEmpty() )
+            {
                 final UserIdentity userIdentity = results.keySet().iterator().next();
-                if (labelMap.size() == 1) { // since only one value searched, it must be that one value
+                if ( labelMap.size() == 1 )
+                {
+                    // since only one value searched, it must be that one value
                     final String attributeName = labelMap.values().iterator().next();
-                    LOGGER.trace("found duplicate value for attribute '" + attributeName + "' on entry " + userIdentity);
-                    final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_DUPLICATE, null, new String[]{attributeName});
-                    throw new PwmDataValidationException(error);
+                    LOGGER.trace( "found duplicate value for attribute '" + attributeName + "' on entry " + userIdentity );
+                    final ErrorInformation error = new ErrorInformation( PwmError.ERROR_FIELD_DUPLICATE, null, new String[]
+                            {
+                                    attributeName,
+                            }
+                    );
+                    throw new PwmDataValidationException( error );
                 }
 
                 // do a compare on a user values to find one that matches.
-                for (final Map.Entry<String,String> entry : filterClauses.entrySet()) {
+                for ( final Map.Entry<String, String> entry : filterClauses.entrySet() )
+                {
                     final String name = entry.getKey();
                     final String value = entry.getValue();
                     final boolean compareResult;
-                    try {
-                        final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userIdentity);
-                        compareResult = theUser.compareStringAttribute(name, value);
-                    } catch (ChaiOperationException | ChaiUnavailableException e) {
-                        final PwmError error = PwmError.forChaiError(e.getErrorCode());
-                        throw new PwmUnrecoverableException(error.toInfo());
+                    try
+                    {
+                        final ChaiUser theUser = pwmApplication.getProxiedChaiUser( userIdentity );
+                        compareResult = theUser.compareStringAttribute( name, value );
+                    }
+                    catch ( ChaiOperationException | ChaiUnavailableException e )
+                    {
+                        final PwmError error = PwmError.forChaiError( e.getErrorCode() );
+                        throw new PwmUnrecoverableException( error.toInfo() );
                     }
 
-                    if (compareResult) {
-                        final String label = labelMap.get(name);
-                        LOGGER.trace("found duplicate value for attribute '" + label + "' on entry " + userIdentity);
-                        final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_DUPLICATE, null, new String[]{label});
-                        throw new PwmDataValidationException(error);
+                    if ( compareResult )
+                    {
+                        final String label = labelMap.get( name );
+                        LOGGER.trace( "found duplicate value for attribute '" + label + "' on entry " + userIdentity );
+                        final ErrorInformation error = new ErrorInformation( PwmError.ERROR_FIELD_DUPLICATE, null, new String[]
+                                {
+                                        label,
+                                }
+                                );
+                        throw new PwmDataValidationException( error );
                     }
                 }
 
                 // user didn't match on the compare.. shouldn't read here but just in case
-                final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_DUPLICATE, null);
-                throw new PwmDataValidationException(error);
+                final ErrorInformation error = new ErrorInformation( PwmError.ERROR_FIELD_DUPLICATE, null );
+                throw new PwmDataValidationException( error );
             }
-        } catch (PwmOperationalException e) {
-            if (cacheService != null) {
-                final String jsonPayload = JsonUtil.serialize(e.getErrorInformation());
-                cacheService.put(cacheKey, cachePolicy, jsonPayload);
-            }
-            throw new PwmDataValidationException(e.getErrorInformation());
         }
-        if (allowResultCaching && cacheService != null) {
-            cacheService.put(cacheKey, cachePolicy, NEGATIVE_CACHE_HIT);
+        catch ( PwmOperationalException e )
+        {
+            if ( cacheService != null )
+            {
+                final String jsonPayload = JsonUtil.serialize( e.getErrorInformation() );
+                cacheService.put( cacheKey, cachePolicy, jsonPayload );
+            }
+            throw new PwmDataValidationException( e.getErrorInformation() );
+        }
+        if ( allowResultCaching && cacheService != null )
+        {
+            cacheService.put( cacheKey, cachePolicy, NEGATIVE_CACHE_HIT );
         }
     }
 
@@ -334,11 +407,9 @@ public class FormUtility {
      * Validates each of the parameters in the supplied map against the vales in the embedded config
      * and checks to make sure the ParamConfig value meets the requirements of the ParamConfig itself.
      *
-     *
      * @param formValues - a Map containing String keys of parameter names and ParamConfigs as values
      * @throws password.pwm.error.PwmDataValidationException - If there is a problem with any of the fields
-     * @throws password.pwm.error.PwmUnrecoverableException
-     *                             if an unexpected error occurs
+     * @throws password.pwm.error.PwmUnrecoverableException  if an unexpected error occurs
      */
     public static void validateFormValues(
             final Configuration configuration,
@@ -347,54 +418,65 @@ public class FormUtility {
     )
             throws PwmUnrecoverableException, PwmDataValidationException
     {
-        for (final Map.Entry<FormConfiguration, String> entry : formValues.entrySet()) {
+        for ( final Map.Entry<FormConfiguration, String> entry : formValues.entrySet() )
+        {
             final FormConfiguration formItem = entry.getKey();
             final String value = entry.getValue();
-            formItem.checkValue(configuration,value,locale);
+            formItem.checkValue( configuration, value, locale );
         }
     }
 
-    public static String ldapSearchFilterForForm(final PwmApplication pwmApplication, final Collection<FormConfiguration> formElements)
+    public static String ldapSearchFilterForForm( final PwmApplication pwmApplication, final Collection<FormConfiguration> formElements )
             throws PwmUnrecoverableException
     {
-        if (formElements == null || formElements.isEmpty()) {
+        if ( formElements == null || formElements.isEmpty() )
+        {
             final String errorMsg = "can not auto-generate ldap search filter for form with no required form items";
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,null,new String[]{errorMsg});
-            throw new PwmUnrecoverableException(errorInformation);
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
+                    {
+                            errorMsg,
+                    }
+                    );
+            throw new PwmUnrecoverableException( errorInformation );
         }
-
 
 
         final StringBuilder sb = new StringBuilder();
-        sb.append("(&");
+        sb.append( "(&" );
 
-        final List<String> objectClasses = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.DEFAULT_OBJECT_CLASSES);
-        if (objectClasses != null && !objectClasses.isEmpty()) {
-            if (objectClasses.size() == 1) {
-                sb.append("(objectclass=");
-                sb.append(objectClasses.iterator().next());
-                sb.append(")");
-            } else {
-                sb.append("(|");
-                for (final String objectClassValue : objectClasses) {
-                    sb.append("(objectclass=");
-                    sb.append(objectClassValue);
-                    sb.append(")");
+        final List<String> objectClasses = pwmApplication.getConfig().readSettingAsStringArray( PwmSetting.DEFAULT_OBJECT_CLASSES );
+        if ( objectClasses != null && !objectClasses.isEmpty() )
+        {
+            if ( objectClasses.size() == 1 )
+            {
+                sb.append( "(objectclass=" );
+                sb.append( objectClasses.iterator().next() );
+                sb.append( ")" );
+            }
+            else
+            {
+                sb.append( "(|" );
+                for ( final String objectClassValue : objectClasses )
+                {
+                    sb.append( "(objectclass=" );
+                    sb.append( objectClassValue );
+                    sb.append( ")" );
                 }
-                sb.append(")");
+                sb.append( ")" );
             }
         }
 
-        for (final FormConfiguration formConfiguration : formElements) {
+        for ( final FormConfiguration formConfiguration : formElements )
+        {
             final String formElementName = formConfiguration.getName();
-            sb.append("(");
-            sb.append(formElementName);
-            sb.append("=");
-            sb.append("%").append(formElementName).append("%");
-            sb.append(")");
+            sb.append( "(" );
+            sb.append( formElementName );
+            sb.append( "=" );
+            sb.append( "%" ).append( formElementName ).append( "%" );
+            sb.append( ")" );
         }
 
-        sb.append(")");
+        sb.append( ")" );
         return sb.toString();
     }
 
@@ -406,13 +488,16 @@ public class FormUtility {
     )
             throws PwmUnrecoverableException
     {
-        final Map<FormConfiguration, List<String>> valueMap = populateFormMapFromLdap(formFields, sessionLabel, userInfo);
-        for (final FormConfiguration formConfiguration : formFields) {
-            if (valueMap.containsKey(formConfiguration)) {
-                final List<String> values = valueMap.get(formConfiguration);
-                if (values != null && !values.isEmpty()) {
+        final Map<FormConfiguration, List<String>> valueMap = populateFormMapFromLdap( formFields, sessionLabel, userInfo );
+        for ( final FormConfiguration formConfiguration : formFields )
+        {
+            if ( valueMap.containsKey( formConfiguration ) )
+            {
+                final List<String> values = valueMap.get( formConfiguration );
+                if ( values != null && !values.isEmpty() )
+                {
                     final String value = values.iterator().next();
-                    formMap.put(formConfiguration, value);
+                    formMap.put( formConfiguration, value );
                 }
             }
         }
@@ -426,67 +511,84 @@ public class FormUtility {
     )
             throws PwmUnrecoverableException
     {
-        final boolean includeNulls = JavaHelper.enumArrayContainsValue(flags, Flag.ReturnEmptyValues);
-        final List<String> formFieldNames = FormConfiguration.convertToListOfNames(formFields);
-        LOGGER.trace(sessionLabel, "preparing to load form data from ldap for fields " + JsonUtil.serializeCollection(formFieldNames));
-        final Map<String,List<String>> dataFromLdap = new LinkedHashMap<>();
-        try {
-            for (final FormConfiguration formConfiguration : formFields) {
-                if (formConfiguration.getSource() == FormConfiguration.Source.ldap) {
+        final boolean includeNulls = JavaHelper.enumArrayContainsValue( flags, Flag.ReturnEmptyValues );
+        final List<String> formFieldNames = FormConfiguration.convertToListOfNames( formFields );
+        LOGGER.trace( sessionLabel, "preparing to load form data from ldap for fields " + JsonUtil.serializeCollection( formFieldNames ) );
+        final Map<String, List<String>> dataFromLdap = new LinkedHashMap<>();
+        try
+        {
+            for ( final FormConfiguration formConfiguration : formFields )
+            {
+                if ( formConfiguration.getSource() == FormConfiguration.Source.ldap )
+                {
                     final String attribute = formConfiguration.getName();
-                    if (formConfiguration.isMultivalue()) {
-                        final List<String> values = userInfo.readMultiStringAttribute(attribute);
-                        if (includeNulls || (values != null && !values.isEmpty())) {
-                            dataFromLdap.put(attribute, values);
+                    if ( formConfiguration.isMultivalue() )
+                    {
+                        final List<String> values = userInfo.readMultiStringAttribute( attribute );
+                        if ( includeNulls || ( values != null && !values.isEmpty() ) )
+                        {
+                            dataFromLdap.put( attribute, values );
                         }
-                    } else {
-                        final String value = userInfo.readStringAttribute(attribute);
-                        if (includeNulls || (value != null)) {
-                            dataFromLdap.put(attribute, Collections.singletonList(value));
+                    }
+                    else
+                    {
+                        final String value = userInfo.readStringAttribute( attribute );
+                        if ( includeNulls || ( value != null ) )
+                        {
+                            dataFromLdap.put( attribute, Collections.singletonList( value ) );
                         }
                     }
                 }
             }
-        } catch (Exception e) {
+        }
+        catch ( Exception e )
+        {
             PwmError error = null;
-            if (e instanceof ChaiException) {
-                error = PwmError.forChaiError(((ChaiException) e).getErrorCode());
+            if ( e instanceof ChaiException )
+            {
+                error = PwmError.forChaiError( ( ( ChaiException ) e ).getErrorCode() );
             }
-            if (error == null || error == PwmError.ERROR_UNKNOWN) {
+            if ( error == null || error == PwmError.ERROR_UNKNOWN )
+            {
                 error = PwmError.ERROR_LDAP_DATA_ERROR;
             }
 
-            final ErrorInformation errorInformation = new ErrorInformation(error,"error reading current profile values: " + e.getMessage());
-            LOGGER.error(sessionLabel,errorInformation.getDetailedErrorMsg());
-            throw new PwmUnrecoverableException(errorInformation);
+            final ErrorInformation errorInformation = new ErrorInformation( error, "error reading current profile values: " + e.getMessage() );
+            LOGGER.error( sessionLabel, errorInformation.getDetailedErrorMsg() );
+            throw new PwmUnrecoverableException( errorInformation );
         }
 
         final Map<FormConfiguration, List<String>> returnMap = new LinkedHashMap<>();
-        for (final FormConfiguration formItem : formFields) {
+        for ( final FormConfiguration formItem : formFields )
+        {
             final String attrName = formItem.getName();
-            if (dataFromLdap.containsKey(attrName)) {
+            if ( dataFromLdap.containsKey( attrName ) )
+            {
                 final List<String> values = new ArrayList<>();
-                for (final String value : dataFromLdap.get(attrName)) {
-                    final String parsedValue = parseInputValueToFormValue(formItem, value);
-                    values.add(parsedValue);
-                    LOGGER.trace(sessionLabel, "loaded value for form item '" + attrName + "' with value=" + value);
+                for ( final String value : dataFromLdap.get( attrName ) )
+                {
+                    final String parsedValue = parseInputValueToFormValue( formItem, value );
+                    values.add( parsedValue );
+                    LOGGER.trace( sessionLabel, "loaded value for form item '" + attrName + "' with value=" + value );
                 }
 
-                returnMap.put(formItem, values);
+                returnMap.put( formItem, values );
             }
         }
         return returnMap;
     }
 
-    public static Map<FormConfiguration, String> multiValueMapToSingleValue(final Map<FormConfiguration, List<String>> input) {
+    public static Map<FormConfiguration, String> multiValueMapToSingleValue( final Map<FormConfiguration, List<String>> input )
+    {
         final Map<FormConfiguration, String> returnMap = new LinkedHashMap<>();
-        for (final Map.Entry<FormConfiguration, List<String>> entry : input.entrySet()) {
+        for ( final Map.Entry<FormConfiguration, List<String>> entry : input.entrySet() )
+        {
             final FormConfiguration formConfiguration = entry.getKey();
             final List<String> listValue = entry.getValue();
             final String value = listValue != null && !listValue.isEmpty()
                     ? listValue.iterator().next()
                     : null;
-            returnMap.put(formConfiguration, value);
+            returnMap.put( formConfiguration, value );
         }
         return returnMap;
     }

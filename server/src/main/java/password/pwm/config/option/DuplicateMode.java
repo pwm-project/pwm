@@ -22,7 +22,8 @@
 
 package password.pwm.config.option;
 
-public enum DuplicateMode implements ConfigurationOption {
+public enum DuplicateMode implements ConfigurationOption
+{
     FIRST_ALL,
     FIRST_PROFILE,
     NONE

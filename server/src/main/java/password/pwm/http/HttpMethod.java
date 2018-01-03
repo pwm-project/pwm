@@ -22,37 +22,42 @@
 
 package password.pwm.http;
 
-public enum HttpMethod {
-    POST(   false,  true),
-    GET(    true,   false),
-    DELETE( false,  true),
-    PUT(    false,  true),
-    PATCH(  false,  true),
-
-    ;
+public enum HttpMethod
+{
+    POST( false, true ),
+    GET( true, false ),
+    DELETE( false, true ),
+    PUT( false, true ),
+    PATCH( false, true ),;
 
     private final boolean idempotent;
     private final boolean hasBody;
 
-    HttpMethod(final boolean idempotent, final boolean hasBody) {
+    HttpMethod( final boolean idempotent, final boolean hasBody )
+    {
         this.hasBody = hasBody;
         this.idempotent = idempotent;
     }
 
-    public static HttpMethod fromString(final String input) {
-        for (final HttpMethod method : HttpMethod.values()) {
-            if (method.toString().equalsIgnoreCase(input)) {
+    public static HttpMethod fromString( final String input )
+    {
+        for ( final HttpMethod method : HttpMethod.values() )
+        {
+            if ( method.toString().equalsIgnoreCase( input ) )
+            {
                 return method;
             }
         }
         return null;
     }
 
-    public boolean isIdempotent() {
+    public boolean isIdempotent( )
+    {
         return idempotent;
     }
 
-    public boolean isHasBody() {
+    public boolean isHasBody( )
+    {
         return hasBody;
     }
 }

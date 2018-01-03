@@ -37,21 +37,24 @@ import java.util.Map;
 import java.util.Set;
 
 @Data
-public class ConfigGuideBean extends PwmSessionBean {
+public class ConfigGuideBean extends PwmSessionBean
+{
 
     private GuideStep step = GuideStep.START;
-    private final Map<ConfigGuideFormField,String> formData = new HashMap<>(ConfigGuideForm.defaultForm());
+    private final Map<ConfigGuideFormField, String> formData = new HashMap<>( ConfigGuideForm.defaultForm() );
     private List<X509Certificate> ldapCertificates;
     private boolean certsTrustedbyKeystore = false;
     private boolean useConfiguredCerts = false;
     private FileValue databaseDriver = null;
 
-    public Type getType() {
+    public Type getType( )
+    {
         return Type.PUBLIC;
     }
 
     @Override
-    public Set<SessionBeanMode> supportedModes() {
-        return Collections.singleton(SessionBeanMode.LOCAL);
+    public Set<SessionBeanMode> supportedModes( )
+    {
+        return Collections.singleton( SessionBeanMode.LOCAL );
     }
 }

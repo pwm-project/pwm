@@ -28,7 +28,8 @@ import password.pwm.http.PwmRequest;
 
 import javax.servlet.jsp.PageContext;
 
-public interface ValueOutput {
+public interface ValueOutput
+{
     String valueOutput(
             PwmRequest pwmRequest,
             PageContext pageContext

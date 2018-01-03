@@ -28,11 +28,11 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
-import password.pwm.util.secure.X509Utils;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmBlockAlgorithm;
 import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.util.secure.SecureEngine;
+import password.pwm.util.secure.X509Utils;
 
 import java.io.Serializable;
 import java.security.KeyFactory;
@@ -46,137 +46,170 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-public class PrivateKeyValue extends AbstractValue {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(PrivateKeyValue.class);
+public class PrivateKeyValue extends AbstractValue
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( PrivateKeyValue.class );
 
     private static final String ELEMENT_NAME_CERTIFICATE = "certificate";
     private static final String ELEMENT_NAME_KEY = "key";
 
     private PrivateKeyCertificate privateKeyCertificate;
 
-    public static StoredValue.StoredValueFactory factory() {
-        return new StoredValue.StoredValueFactory() {
-            public PrivateKeyValue fromXmlElement(final Element settingElement, final PwmSecurityKey key) {
-                if (settingElement != null && settingElement.getChild("value") != null) {
+    public static StoredValue.StoredValueFactory factory( )
+    {
+        return new StoredValue.StoredValueFactory()
+        {
+            public PrivateKeyValue fromXmlElement( final Element settingElement, final PwmSecurityKey key )
+            {
+                if ( settingElement != null && settingElement.getChild( "value" ) != null )
+                {
 
-                    final Element valueElement = settingElement.getChild("value");
-                    if (valueElement != null) {
+                    final Element valueElement = settingElement.getChild( "value" );
+                    if ( valueElement != null )
+                    {
                         final List<X509Certificate> certificates = new ArrayList<>();
-                        for (final Element certificateElement : valueElement.getChildren(ELEMENT_NAME_CERTIFICATE)) {
-                            try {
+                        for ( final Element certificateElement : valueElement.getChildren( ELEMENT_NAME_CERTIFICATE ) )
+                        {
+                            try
+                            {
                                 final String b64Text = certificateElement.getText();
-                                final X509Certificate cert = X509Utils.certificateFromBase64(b64Text);
-                                certificates.add(cert);
-                            } catch (Exception e) {
-                                LOGGER.error("error reading certificate: " + e.getMessage(),e);
+                                final X509Certificate cert = X509Utils.certificateFromBase64( b64Text );
+                                certificates.add( cert );
+                            }
+                            catch ( Exception e )
+                            {
+                                LOGGER.error( "error reading certificate: " + e.getMessage(), e );
                             }
 
                         }
 
 
                         PrivateKey privateKey = null;
-                        try {
-                            final Element keyElement = valueElement.getChild(ELEMENT_NAME_KEY);
+                        try
+                        {
+                            final Element keyElement = valueElement.getChild( ELEMENT_NAME_KEY );
                             final String encryptedText = keyElement.getText();
-                            final String decryptedText = SecureEngine.decryptStringValue(encryptedText, key, PwmBlockAlgorithm.CONFIG);
-                            final byte[] privateKeyBytes = StringUtil.base64Decode(decryptedText);
-                            privateKey =  KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(privateKeyBytes));
-                        } catch (Exception e) {
-                            LOGGER.error("error reading privateKey: " + e.getMessage(),e);
+                            final String decryptedText = SecureEngine.decryptStringValue( encryptedText, key, PwmBlockAlgorithm.CONFIG );
+                            final byte[] privateKeyBytes = StringUtil.base64Decode( decryptedText );
+                            privateKey = KeyFactory.getInstance( "RSA" ).generatePrivate( new PKCS8EncodedKeySpec( privateKeyBytes ) );
+                        }
+                        catch ( Exception e )
+                        {
+                            LOGGER.error( "error reading privateKey: " + e.getMessage(), e );
                         }
 
-                        if (!certificates.isEmpty() && privateKey != null) {
-                            final PrivateKeyCertificate privateKeyCertificate = new PrivateKeyCertificate(certificates, privateKey);
-                            return new PrivateKeyValue(privateKeyCertificate);
+                        if ( !certificates.isEmpty() && privateKey != null )
+                        {
+                            final PrivateKeyCertificate privateKeyCertificate = new PrivateKeyCertificate( certificates, privateKey );
+                            return new PrivateKeyValue( privateKeyCertificate );
                         }
                     }
                 }
-                return new PrivateKeyValue(null);
+                return new PrivateKeyValue( null );
             }
 
-            public X509CertificateValue fromJson(final String input) {
-                return new X509CertificateValue(new X509Certificate[0]);
+            public X509CertificateValue fromJson( final String input )
+            {
+                return new X509CertificateValue( new X509Certificate[ 0 ] );
             }
         };
     }
 
-    public PrivateKeyValue(final PrivateKeyCertificate privateKeyCertificate) {
+    public PrivateKeyValue( final PrivateKeyCertificate privateKeyCertificate )
+    {
         this.privateKeyCertificate = privateKeyCertificate;
     }
 
 
-    public List<Element> toXmlValues(final String valueElementName) {
-        throw new IllegalStateException("password xml output requires hash key");
+    public List<Element> toXmlValues( final String valueElementName )
+    {
+        throw new IllegalStateException( "password xml output requires hash key" );
     }
 
     @Override
-    public Object toNativeObject()
+    public Object toNativeObject( )
     {
         return privateKeyCertificate;
     }
 
     @Override
-    public List<String> validateValue(final PwmSetting pwm)
+    public List<String> validateValue( final PwmSetting pwm )
     {
         return Collections.emptyList();
     }
 
     @Override
-    public int currentSyntaxVersion()
+    public int currentSyntaxVersion( )
     {
         return 0;
     }
 
-    public List<Element> toXmlValues(final String valueElementName, final PwmSecurityKey key) {
-        final Element valueElement = new Element("value");
-        if (privateKeyCertificate != null) {
-            try {
+    public List<Element> toXmlValues( final String valueElementName, final PwmSecurityKey key )
+    {
+        final Element valueElement = new Element( "value" );
+        if ( privateKeyCertificate != null )
+        {
+            try
+            {
                 {
-                    for (final X509Certificate certificate : privateKeyCertificate.getCertificates()) {
-                        final Element certificateElement = new Element(ELEMENT_NAME_CERTIFICATE);
-                        certificateElement.setText(X509Utils.certificateToBase64(certificate));
-                        valueElement.addContent(certificateElement);
+                    for ( final X509Certificate certificate : privateKeyCertificate.getCertificates() )
+                    {
+                        final Element certificateElement = new Element( ELEMENT_NAME_CERTIFICATE );
+                        certificateElement.setText( X509Utils.certificateToBase64( certificate ) );
+                        valueElement.addContent( certificateElement );
                     }
                 }
                 {
-                    final Element keyElement = new Element(ELEMENT_NAME_KEY);
-                    final String b64EncodedKey = StringUtil.base64Encode(privateKeyCertificate.getKey().getEncoded());
-                    final String encryptedKey = SecureEngine.encryptToString(b64EncodedKey, key, PwmBlockAlgorithm.CONFIG);
-                    keyElement.setText(encryptedKey);
-                    valueElement.addContent(keyElement);
+                    final Element keyElement = new Element( ELEMENT_NAME_KEY );
+                    final String b64EncodedKey = StringUtil.base64Encode( privateKeyCertificate.getKey().getEncoded() );
+                    final String encryptedKey = SecureEngine.encryptToString( b64EncodedKey, key, PwmBlockAlgorithm.CONFIG );
+                    keyElement.setText( encryptedKey );
+                    valueElement.addContent( keyElement );
                 }
-            } catch (Exception e) {
-                valueElement.addContent("");
-                throw new RuntimeException("missing required AES and SHA1 libraries, or other crypto fault: " + e.getMessage());
+            }
+            catch ( Exception e )
+            {
+                valueElement.addContent( "" );
+                throw new RuntimeException( "missing required AES and SHA1 libraries, or other crypto fault: " + e.getMessage() );
             }
         }
-        return Collections.singletonList(valueElement);
+        return Collections.singletonList( valueElement );
     }
 
-    public String toDebugString(final Locale locale) {
-        if (privateKeyCertificate != null) {
-            return "PrivateKeyCertificate: key=" + JsonUtil.serializeMap(X509Utils.makeDebugInfoMap(privateKeyCertificate.getKey()))
-                    + ", certificates=" + JsonUtil.serializeCollection(X509Utils.makeDebugInfoMap(privateKeyCertificate.getCertificates()));
+    public String toDebugString( final Locale locale )
+    {
+        if ( privateKeyCertificate != null )
+        {
+            return "PrivateKeyCertificate: key=" + JsonUtil.serializeMap( X509Utils.makeDebugInfoMap( privateKeyCertificate.getKey() ) )
+                    + ", certificates=" + JsonUtil.serializeCollection( X509Utils.makeDebugInfoMap( privateKeyCertificate.getCertificates() ) );
         }
         return "";
     }
 
-    public Map<String,Object> toInfoMap(final boolean includeDetail) {
-        if (privateKeyCertificate == null) {
+    public Map<String, Object> toInfoMap( final boolean includeDetail )
+    {
+        if ( privateKeyCertificate == null )
+        {
             return null;
         }
-        final X509Utils.DebugInfoFlag[] flags = includeDetail ? new X509Utils.DebugInfoFlag[]{X509Utils.DebugInfoFlag.IncludeCertificateDetail} : null;
-        final Map<String,Object> returnMap = new LinkedHashMap<>();
-        returnMap.put("certificates", X509Utils.makeDebugInfoMap(privateKeyCertificate.getCertificates(), flags));
-        final Map<String,Object> privateKeyInfo = new LinkedHashMap<>();
-        privateKeyInfo.put("algorithm", privateKeyCertificate.getKey().getAlgorithm());
-        privateKeyInfo.put("format", privateKeyCertificate.getKey().getFormat());
-        returnMap.put("key", privateKeyInfo);
+        final X509Utils.DebugInfoFlag[] flags = includeDetail
+                ? new X509Utils.DebugInfoFlag[]
+                {
+                        X509Utils.DebugInfoFlag.IncludeCertificateDetail,
+                }
+                : null;
+        final Map<String, Object> returnMap = new LinkedHashMap<>();
+        returnMap.put( "certificates", X509Utils.makeDebugInfoMap( privateKeyCertificate.getCertificates(), flags ) );
+        final Map<String, Object> privateKeyInfo = new LinkedHashMap<>();
+        privateKeyInfo.put( "algorithm", privateKeyCertificate.getKey().getAlgorithm() );
+        privateKeyInfo.put( "format", privateKeyCertificate.getKey().getFormat() );
+        returnMap.put( "key", privateKeyInfo );
         return returnMap;
     }
 
     @Override
-    public Serializable toDebugJsonObject(final Locale locale) {
-        return (Serializable)toInfoMap(false);
+    public Serializable toDebugJsonObject( final Locale locale )
+    {
+        return ( Serializable ) toInfoMap( false );
     }
 }

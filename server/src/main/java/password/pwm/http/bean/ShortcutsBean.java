@@ -22,8 +22,8 @@
 
 package password.pwm.http.bean;
 
-import password.pwm.config.value.data.ShortcutItem;
 import password.pwm.config.option.SessionBeanMode;
+import password.pwm.config.value.data.ShortcutItem;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -31,24 +31,29 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class ShortcutsBean extends PwmSessionBean {
+public class ShortcutsBean extends PwmSessionBean
+{
 
-    private Map<String,ShortcutItem> visibleItems;
+    private Map<String, ShortcutItem> visibleItems;
 
-    public Map<String, ShortcutItem> getVisibleItems() {
+    public Map<String, ShortcutItem> getVisibleItems( )
+    {
         return visibleItems;
     }
 
-    public void setVisibleItems(final Map<String, ShortcutItem> visibleItems) {
+    public void setVisibleItems( final Map<String, ShortcutItem> visibleItems )
+    {
         this.visibleItems = visibleItems;
     }
 
-    public Type getType() {
+    public Type getType( )
+    {
         return Type.AUTHENTICATED;
     }
 
     @Override
-    public Set<SessionBeanMode> supportedModes() {
-        return Collections.unmodifiableSet(new HashSet<>(Arrays.asList(SessionBeanMode.LOCAL, SessionBeanMode.CRYPTCOOKIE)));
+    public Set<SessionBeanMode> supportedModes( )
+    {
+        return Collections.unmodifiableSet( new HashSet<>( Arrays.asList( SessionBeanMode.LOCAL, SessionBeanMode.CRYPTCOOKIE ) ) );
     }
 }

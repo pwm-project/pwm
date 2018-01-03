@@ -30,7 +30,8 @@ import java.io.Serializable;
 import java.util.Locale;
 
 @Data
-public class CategoryInfo implements Serializable {
+public class CategoryInfo implements Serializable
+{
     private int level;
     private String key;
     private String description;
@@ -44,19 +45,20 @@ public class CategoryInfo implements Serializable {
     public static CategoryInfo forCategory(
             final PwmSettingCategory category,
             final MacroMachine macroMachine,
-            final Locale locale)
+            final Locale locale )
     {
         final CategoryInfo categoryInfo = new CategoryInfo();
         categoryInfo.key = category.getKey();
         categoryInfo.level = category.getLevel();
-        categoryInfo.description = macroMachine.expandMacros(category.getDescription(locale));
-        categoryInfo.label = category.getLabel(locale);
+        categoryInfo.description = macroMachine.expandMacros( category.getDescription( locale ) );
+        categoryInfo.label = category.getLabel( locale );
         categoryInfo.hidden = category.isHidden();
-        if (category.getParent() != null) {
+        if ( category.getParent() != null )
+        {
             categoryInfo.parent = category.getParent().getKey();
         }
         categoryInfo.profiles = category.hasProfiles();
-        categoryInfo.menuLocation = category.toMenuLocationDebug("PROFILE",locale);
+        categoryInfo.menuLocation = category.toMenuLocationDebug( "PROFILE", locale );
         return categoryInfo;
     }
 }

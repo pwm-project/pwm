@@ -20,8 +20,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-public final class ViewableUserInfoDisplayReader {
-    private ViewableUserInfoDisplayReader() {
+public final class ViewableUserInfoDisplayReader
+{
+    private ViewableUserInfoDisplayReader( )
+    {
     }
 
     public static List<DisplayElement> makeDisplayData(
@@ -31,9 +33,10 @@ public final class ViewableUserInfoDisplayReader {
             final LocalSessionStateBean localSessionStateBean,
             final Locale locale
     )
-            throws PwmUnrecoverableException {
+            throws PwmUnrecoverableException
+    {
         final List<DisplayElement> accountInfo = new ArrayList<>();
-        final DataElementMaker maker = new DataElementMaker(viewStatusFields, config, locale, accountInfo);
+        final DataElementMaker maker = new DataElementMaker( viewStatusFields, config, locale, accountInfo );
 
         maker.add(
                 ViewStatusFields.Username,
@@ -47,9 +50,10 @@ public final class ViewableUserInfoDisplayReader {
                 userInfo.getUserIdentity().getUserDN()
         );
 
-        if (config.getLdapProfiles().size() > 1) {
+        if ( config.getLdapProfiles().size() > 1 )
+        {
             final String ldapProfileID = userInfo.getUserIdentity().getLdapProfileID();
-            final String value = config.getLdapProfiles().get(ldapProfileID).getDisplayName(locale);
+            final String value = config.getLdapProfiles().get( ldapProfileID ).getDisplayName( locale );
             maker.add(
                     ViewStatusFields.UserDN,
                     Display.Field_LdapProfile,
@@ -101,11 +105,12 @@ public final class ViewableUserInfoDisplayReader {
                     lastLoginTime
             );
 
-            if (lastLoginTime != null) {
+            if ( lastLoginTime != null )
+            {
                 maker.add(
                         ViewStatusFields.LastLoginTimeDelta,
                         Display.Field_LastLoginTimeDelta,
-                        TimeDuration.fromCurrent(lastLoginTime).asLongString(locale)
+                        TimeDuration.fromCurrent( lastLoginTime ).asLongString( locale )
                 );
             }
         }
@@ -142,8 +147,8 @@ public final class ViewableUserInfoDisplayReader {
 
         {
             final String value = userInfo.getPasswordLastModifiedTime() != null
-                    ? TimeDuration.fromCurrent(userInfo.getPasswordLastModifiedTime()).asLongString(locale)
-                    : LocaleHelper.getLocalizedMessage(locale, Display.Value_NotApplicable, config);
+                    ? TimeDuration.fromCurrent( userInfo.getPasswordLastModifiedTime() ).asLongString( locale )
+                    : LocaleHelper.getLocalizedMessage( locale, Display.Value_NotApplicable, config );
             maker.add(
                     ViewStatusFields.PasswordSetTimeDelta,
                     Display.Field_PasswordSetTimeDelta,
@@ -178,7 +183,8 @@ public final class ViewableUserInfoDisplayReader {
             );
 
 
-            if (responseInfoBean != null) {
+            if ( responseInfoBean != null )
+            {
                 maker.add(
                         ViewStatusFields.ResponsesTimestamp,
                         Display.Field_ResponsesTimestamp,
@@ -187,7 +193,8 @@ public final class ViewableUserInfoDisplayReader {
             }
         }
 
-        if (userInfo.getResponseInfoBean() != null) {
+        if ( userInfo.getResponseInfoBean() != null )
+        {
             maker.add(
                     ViewStatusFields.ResponsesTimestamp,
                     Display.Field_ResponsesTimestamp,
@@ -195,14 +202,16 @@ public final class ViewableUserInfoDisplayReader {
             );
         }
 
-        if (config.readSettingAsBoolean(PwmSetting.OTP_ENABLED)) {
+        if ( config.readSettingAsBoolean( PwmSetting.OTP_ENABLED ) )
+        {
             maker.add(
                     ViewStatusFields.OTPStored,
                     Display.Field_OTP_Stored,
                     userInfo.getOtpUserRecord() != null
             );
 
-            if (userInfo.getOtpUserRecord() != null) {
+            if ( userInfo.getOtpUserRecord() != null )
+            {
                 maker.add(
                         ViewStatusFields.OTPTimestamp,
                         Display.Field_OTP_Timestamp,
@@ -211,7 +220,8 @@ public final class ViewableUserInfoDisplayReader {
             }
         }
 
-        if (localSessionStateBean != null) {
+        if ( localSessionStateBean != null )
+        {
             maker.add(
                     ViewStatusFields.NetworkAddress,
                     Display.Field_NetworkAddress,
@@ -226,7 +236,7 @@ public final class ViewableUserInfoDisplayReader {
 
             {
                 final String value = localSessionStateBean.getLogoutURL() == null
-                        ? config.readSettingAsString(PwmSetting.URL_LOGOUT)
+                        ? config.readSettingAsString( PwmSetting.URL_LOGOUT )
                         : localSessionStateBean.getLogoutURL();
 
                 maker.add(
@@ -238,7 +248,7 @@ public final class ViewableUserInfoDisplayReader {
 
             {
                 final String value = localSessionStateBean.getForwardURL() == null
-                        ? config.readSettingAsString(PwmSetting.URL_FORWARD)
+                        ? config.readSettingAsString( PwmSetting.URL_FORWARD )
                         : localSessionStateBean.getForwardURL();
 
                 maker.add(
@@ -250,64 +260,71 @@ public final class ViewableUserInfoDisplayReader {
         }
 
 
-        return Collections.unmodifiableList(accountInfo);
+        return Collections.unmodifiableList( accountInfo );
     }
 
-    private static class DataElementMaker {
+    private static class DataElementMaker
+    {
         private final Configuration config;
         private final Set<ViewStatusFields> viewStatusFields;
         private final Locale locale;
         private final List<DisplayElement> list;
 
-        DataElementMaker(final Set<ViewStatusFields> viewStatusFields, final Configuration config, final Locale locale, final List<DisplayElement> list) {
+        DataElementMaker( final Set<ViewStatusFields> viewStatusFields, final Configuration config, final Locale locale, final List<DisplayElement> list )
+        {
             this.config = config;
             this.viewStatusFields = viewStatusFields;
             this.locale = locale;
             this.list = list;
         }
 
-        void add(final ViewStatusFields viewStatusField, final Display display, final Instant instant) {
+        void add( final ViewStatusFields viewStatusField, final Display display, final Instant instant )
+        {
 
-            if (!viewStatusFields.contains(viewStatusField)) {
+            if ( !viewStatusFields.contains( viewStatusField ) )
+            {
                 return;
             }
 
             final String strValue = instant == null
-                    ? LocaleHelper.getLocalizedMessage(locale, Display.Value_NotApplicable, config)
-                    : JavaHelper.toIsoDate(instant);
+                    ? LocaleHelper.getLocalizedMessage( locale, Display.Value_NotApplicable, config )
+                    : JavaHelper.toIsoDate( instant );
 
-            list.add(new DisplayElement(
+            list.add( new DisplayElement(
                     display.name(),
                     DisplayElement.Type.timestamp,
-                    LocaleHelper.getLocalizedMessage(locale, display, config),
+                    LocaleHelper.getLocalizedMessage( locale, display, config ),
                     strValue
-            ));
+            ) );
         }
 
-        void add(final ViewStatusFields viewStatusField, final Display display, final boolean value) {
-            add(viewStatusField, display, LocaleHelper.booleanString(
+        void add( final ViewStatusFields viewStatusField, final Display display, final boolean value )
+        {
+            add( viewStatusField, display, LocaleHelper.booleanString(
                     value,
                     locale,
                     config
-            ));
+            ) );
         }
 
-        void add(final ViewStatusFields viewStatusField, final Display display, final String value) {
+        void add( final ViewStatusFields viewStatusField, final Display display, final String value )
+        {
 
-            if (!viewStatusFields.contains(viewStatusField)) {
+            if ( !viewStatusFields.contains( viewStatusField ) )
+            {
                 return;
             }
 
-            final String strValue = StringUtil.isEmpty(value)
-                    ? LocaleHelper.getLocalizedMessage(locale, Display.Value_NotApplicable, config)
+            final String strValue = StringUtil.isEmpty( value )
+                    ? LocaleHelper.getLocalizedMessage( locale, Display.Value_NotApplicable, config )
                     : value;
 
-            list.add(new DisplayElement(
+            list.add( new DisplayElement(
                     display.name(),
                     DisplayElement.Type.string,
-                    LocaleHelper.getLocalizedMessage(locale, display, config),
+                    LocaleHelper.getLocalizedMessage( locale, display, config ),
                     strValue
-            ));
+            ) );
         }
     }
 }

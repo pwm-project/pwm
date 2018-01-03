@@ -8,10 +8,11 @@ import java.util.Map;
 
 @Getter
 @Builder
-public class FormDataResponseBean implements Serializable {
+public class FormDataResponseBean implements Serializable
+{
     private boolean error;
     private String errorMessage;
     private String errorDetail;
-    private Map<String,String> formValues;
+    private Map<String, String> formValues;
 
 }

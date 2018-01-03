@@ -22,20 +22,24 @@
 
 package password.pwm.ldap.schema;
 
-public class SchemaOperationResult {
+public class SchemaOperationResult
+{
     private boolean success;
     private String operationLog;
 
-    public SchemaOperationResult(final boolean success, final String operationLog) {
+    public SchemaOperationResult( final boolean success, final String operationLog )
+    {
         this.success = success;
         this.operationLog = operationLog;
     }
 
-    public boolean isSuccess() {
+    public boolean isSuccess( )
+    {
         return success;
     }
 
-    public String getOperationLog() {
+    public String getOperationLog( )
+    {
         return operationLog;
     }
 }

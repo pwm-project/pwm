@@ -22,7 +22,8 @@
 
 package password.pwm.i18n;
 
-public enum PwmSetting implements PwmDisplayBundle {
+public enum PwmSetting implements PwmDisplayBundle
+{
 
     ;
 
@@ -33,7 +34,8 @@ public enum PwmSetting implements PwmDisplayBundle {
     public static final String CATEGORY_DESCRIPTION_PREFIX = "Category_Description_";
 
     @Override
-    public String getKey() {
+    public String getKey( )
+    {
         return this.toString();
     }
 }

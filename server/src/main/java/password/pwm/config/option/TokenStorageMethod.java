@@ -22,7 +22,8 @@
 
 package password.pwm.config.option;
 
-public enum TokenStorageMethod implements ConfigurationOption {
+public enum TokenStorageMethod implements ConfigurationOption
+{
     STORE_LOCALDB,
     STORE_DB,
     STORE_CRYPTO,

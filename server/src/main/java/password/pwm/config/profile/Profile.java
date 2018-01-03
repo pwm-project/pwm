@@ -28,12 +28,13 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Locale;
 
-public interface Profile extends Serializable {
-    ProfileType profileType();
+public interface Profile extends Serializable
+{
+    ProfileType profileType( );
 
-    String getIdentifier();
+    String getIdentifier( );
 
-    String getDisplayName(Locale locale);
+    String getDisplayName( Locale locale );
 
-    List<UserPermission> getPermissionMatches();
+    List<UserPermission> getPermissionMatches( );
 }

@@ -27,7 +27,8 @@ import password.pwm.util.secure.PwmRandom;
 import java.io.Serializable;
 import java.time.Instant;
 
-public abstract class AuditRecord implements Serializable {
+public abstract class AuditRecord implements Serializable
+{
     protected AuditEvent.Type type;
     protected AuditEvent eventCode;
     protected String guid;
@@ -42,7 +43,8 @@ public abstract class AuditRecord implements Serializable {
             final Instant timestamp,
             final AuditEvent eventCode,
             final String message
-    ) {
+    )
+    {
         this.type = eventCode.getType();
         this.eventCode = eventCode;
         this.message = message;
@@ -54,39 +56,48 @@ public abstract class AuditRecord implements Serializable {
     }
 
 
-    protected AuditRecord(final AuditEvent eventCode, final String message) {
-        this(Instant.now(), eventCode, message);
+    protected AuditRecord( final AuditEvent eventCode, final String message )
+    {
+        this( Instant.now(), eventCode, message );
     }
 
-    public AuditEvent.Type getType() {
+    public AuditEvent.Type getType( )
+    {
         return type;
     }
 
-    public AuditEvent getEventCode() {
+    public AuditEvent getEventCode( )
+    {
         return eventCode;
     }
 
-    public Instant getTimestamp() {
+    public Instant getTimestamp( )
+    {
         return timestamp;
     }
 
-    public String getMessage() {
+    public String getMessage( )
+    {
         return message;
     }
 
-    public String getGuid() {
+    public String getGuid( )
+    {
         return guid;
     }
 
-    public String getNarrative() {
+    public String getNarrative( )
+    {
         return narrative;
     }
 
-    public String getXdasTaxonomy() {
+    public String getXdasTaxonomy( )
+    {
         return xdasTaxonomy;
     }
 
-    public String getXdasOutcome() {
+    public String getXdasOutcome( )
+    {
         return xdasOutcome;
     }
 }

@@ -24,23 +24,28 @@ package password.pwm.http.servlet.peoplesearch;
 
 import java.io.Serializable;
 
-class LinkReferenceBean implements Serializable {
+class LinkReferenceBean implements Serializable
+{
     private String name;
     private String link;
 
-    public String getName() {
+    public String getName( )
+    {
         return name;
     }
 
-    public void setName(final String name) {
+    public void setName( final String name )
+    {
         this.name = name;
     }
 
-    public String getLink() {
+    public String getLink( )
+    {
         return link;
     }
 
-    public void setLink(final String link) {
+    public void setLink( final String link )
+    {
         this.link = link;
     }
 }

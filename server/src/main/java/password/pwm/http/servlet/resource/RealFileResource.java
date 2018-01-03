@@ -27,30 +27,37 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-class RealFileResource implements FileResource {
+class RealFileResource implements FileResource
+{
     private final File realFile;
 
-    RealFileResource(final File realFile) {
+    RealFileResource( final File realFile )
+    {
         this.realFile = realFile;
     }
 
-    public InputStream getInputStream() throws IOException {
-        return new FileInputStream(realFile);
+    public InputStream getInputStream( ) throws IOException
+    {
+        return new FileInputStream( realFile );
     }
 
-    public long length() {
+    public long length( )
+    {
         return realFile.length();
     }
 
-    public long lastModified() {
+    public long lastModified( )
+    {
         return realFile.lastModified();
     }
 
-    public boolean exists() {
+    public boolean exists( )
+    {
         return realFile.exists();
     }
 
-    public String getName() {
+    public String getName( )
+    {
         return realFile.getAbsolutePath();
     }
 }

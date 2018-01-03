@@ -31,49 +31,56 @@ import java.io.FileOutputStream;
 import java.security.KeyStore;
 import java.util.Arrays;
 
-public class ExportHttpsKeyStoreCommand extends AbstractCliCommand {
+public class ExportHttpsKeyStoreCommand extends AbstractCliCommand
+{
 
     static final String ALIAS_OPTIONNAME = "alias";
 
     @Override
-    void doCommand()
+    void doCommand( )
             throws Exception
     {
-        final File outputFile = (File)cliEnvironment.getOptions().get(CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName());
-        if (outputFile.exists()) {
-            out("outputFile for ExportHttpsKeyStore cannot already exist");
+        final File outputFile = ( File ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName() );
+        if ( outputFile.exists() )
+        {
+            out( "outputFile for ExportHttpsKeyStore cannot already exist" );
             return;
         }
 
         final String password = getOptionalPassword();
-        final String alias = (String)cliEnvironment.getOptions().get(ALIAS_OPTIONNAME);
+        final String alias = ( String ) cliEnvironment.getOptions().get( ALIAS_OPTIONNAME );
 
-        final KeyStore keyStore = HttpsServerCertificateManager.keyStoreForApplication(cliEnvironment.getPwmApplication(), new PasswordData(password), alias);
+        final KeyStore keyStore = HttpsServerCertificateManager.keyStoreForApplication( cliEnvironment.getPwmApplication(), new PasswordData( password ), alias );
 
-        try (FileOutputStream fos = new FileOutputStream(outputFile)) {
-            keyStore.store(fos,password.toCharArray());
+        try ( FileOutputStream fos = new FileOutputStream( outputFile ) )
+        {
+            keyStore.store( fos, password.toCharArray() );
             fos.close();
         }
 
-        out("successfully exported java keystore to " + outputFile.getAbsolutePath());
+        out( "successfully exported java keystore to " + outputFile.getAbsolutePath() );
     }
 
     @Override
-    public CliParameters getCliParameters()
+    public CliParameters getCliParameters( )
     {
-        final CliParameters.Option aliasValueOption = new CliParameters.Option() {
+        final CliParameters.Option aliasValueOption = new CliParameters.Option()
+        {
             @Override
-            public boolean isOptional() {
+            public boolean isOptional( )
+            {
                 return false;
             }
 
             @Override
-            public Type getType() {
+            public Type getType( )
+            {
                 return Type.STRING;
             }
 
             @Override
-            public String getName() {
+            public String getName( )
+            {
                 return ALIAS_OPTIONNAME;
             }
         };

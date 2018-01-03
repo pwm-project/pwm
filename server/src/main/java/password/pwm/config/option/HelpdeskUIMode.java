@@ -22,7 +22,8 @@
 
 package password.pwm.config.option;
 
-public enum HelpdeskUIMode implements ConfigurationOption {
+public enum HelpdeskUIMode implements ConfigurationOption
+{
     none,
     type,
     autogen,

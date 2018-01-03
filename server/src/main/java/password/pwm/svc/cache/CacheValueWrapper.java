@@ -30,7 +30,8 @@ import java.time.Instant;
 
 @Getter
 @AllArgsConstructor
-class CacheValueWrapper implements Serializable {
+class CacheValueWrapper implements Serializable
+{
     private final CacheKey cacheKey;
     private final Instant expirationDate;
     private final String payload;

@@ -24,6 +24,7 @@ package password.pwm.util.java;
 
 import java.util.Iterator;
 
-public interface ClosableIterator<K> extends Iterator<K>, AutoCloseable {
-    void close();
+public interface ClosableIterator<K> extends Iterator<K>, AutoCloseable
+{
+    void close( );
 }

@@ -32,15 +32,16 @@ import java.io.Serializable;
 import java.time.Instant;
 
 @Getter
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-class DatabaseStoredNodeData implements Serializable {
+@AllArgsConstructor( access = AccessLevel.PRIVATE )
+class DatabaseStoredNodeData implements Serializable
+{
     private Instant timestamp;
     private Instant startupTimestamp;
     private String instanceID;
     private String guid;
     private String configHash;
 
-    static DatabaseStoredNodeData makeNew(final PwmApplication pwmApplication)
+    static DatabaseStoredNodeData makeNew( final PwmApplication pwmApplication )
             throws PwmUnrecoverableException
     {
         return new DatabaseStoredNodeData(

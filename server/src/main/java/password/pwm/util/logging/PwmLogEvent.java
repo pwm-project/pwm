@@ -37,37 +37,41 @@ import java.time.Instant;
 
 @Getter
 @EqualsAndHashCode
-public class PwmLogEvent implements Serializable, Comparable {
+public class PwmLogEvent implements Serializable, Comparable
+{
 
     private static final int MAX_MESSAGE_LENGTH = 50_000;
 
     private final PwmLogLevel level;
 
-    @SerializedName("t")
+    @SerializedName( "t" )
     private final String topic;
 
-    @SerializedName("m")
+    @SerializedName( "m" )
     private final String message;
 
-    @SerializedName("s")
-    private final String source; //aka network address/host
+    //aka network address/host
+    @SerializedName( "s" )
+    private final String source;
 
-    @SerializedName("a")
-    private final String actor; //aka principal
+    //aka principal
+    @SerializedName( "a" )
+    private final String actor;
 
-    @SerializedName("b")
-    private final String label; //aka session id
+    //aka session id
+    @SerializedName( "b" )
+    private final String label;
 
-    @SerializedName("e")
+    @SerializedName( "e" )
     private final Throwable throwable;
 
-    @SerializedName("d")
+    @SerializedName( "d" )
     private final Instant date;
 
-    public static PwmLogEvent fromEncodedString(final String encodedString)
+    public static PwmLogEvent fromEncodedString( final String encodedString )
             throws ClassNotFoundException, IOException
     {
-        return JsonUtil.deserialize(encodedString, PwmLogEvent.class);
+        return JsonUtil.deserialize( encodedString, PwmLogEvent.class );
     }
 
     private PwmLogEvent(
@@ -81,16 +85,18 @@ public class PwmLogEvent implements Serializable, Comparable {
             final PwmLogLevel level
     )
     {
-        if (date == null) {
-            throw new IllegalArgumentException("date may not be null");
+        if ( date == null )
+        {
+            throw new IllegalArgumentException( "date may not be null" );
         }
 
-        if (level == null) {
-            throw new IllegalArgumentException("level may not be null");
+        if ( level == null )
+        {
+            throw new IllegalArgumentException( "level may not be null" );
         }
 
         final String retainedMessage = message != null && message.length() > MAX_MESSAGE_LENGTH
-                ? message.substring(0, MAX_MESSAGE_LENGTH) + " [truncated message]"
+                ? message.substring( 0, MAX_MESSAGE_LENGTH ) + " [truncated message]"
                 : message;
 
         this.date = date;
@@ -103,36 +109,45 @@ public class PwmLogEvent implements Serializable, Comparable {
         this.level = level;
     }
 
-    private static String makeSrcString(final SessionLabel sessionLabel)
+    private static String makeSrcString( final SessionLabel sessionLabel )
     {
-        try {
+        try
+        {
             final StringBuilder from = new StringBuilder();
             {
                 final String srcAddress = sessionLabel.getSrcAddress();
                 final String srcHostname = sessionLabel.getSrcHostname();
 
-                if (srcAddress != null) {
-                    from.append(srcAddress);
-                    if (!srcAddress.equals(srcHostname)) {
-                        from.append("/");
-                        from.append(srcHostname);
+                if ( srcAddress != null )
+                {
+                    from.append( srcAddress );
+                    if ( !srcAddress.equals( srcHostname ) )
+                    {
+                        from.append( "/" );
+                        from.append( srcHostname );
                     }
                 }
             }
             return from.toString();
-        } catch (NullPointerException e) {
+        }
+        catch ( NullPointerException e )
+        {
             return "";
         }
     }
 
-    private static String makeActorString(final SessionLabel sessionLabel)
+    private static String makeActorString( final SessionLabel sessionLabel )
     {
         final StringBuilder sb = new StringBuilder();
-        if (sessionLabel != null) {
-            if (sessionLabel.getUsername() != null) {
-                sb.append(sessionLabel.getUsername());
-            } else if (sessionLabel.getUserIdentity() != null) {
-                sb.append(sessionLabel.getUserIdentity().toDelimitedKey());
+        if ( sessionLabel != null )
+        {
+            if ( sessionLabel.getUsername() != null )
+            {
+                sb.append( sessionLabel.getUsername() );
+            }
+            else if ( sessionLabel.getUserIdentity() != null )
+            {
+                sb.append( sessionLabel.getUserIdentity().toDelimitedKey() );
             }
         }
         return sb.toString();
@@ -149,7 +164,7 @@ public class PwmLogEvent implements Serializable, Comparable {
             final PwmLogLevel level
     )
     {
-        return new PwmLogEvent(date, topic, message, source, actor, label, throwable, level);
+        return new PwmLogEvent( date, topic, message, source, actor, label, throwable, level );
     }
 
     public static PwmLogEvent createPwmLogEvent(
@@ -161,129 +176,144 @@ public class PwmLogEvent implements Serializable, Comparable {
             final PwmLogLevel level
     )
     {
-        final String source = makeSrcString(sessionLabel);
-        final String actor = makeActorString(sessionLabel);
+        final String source = makeSrcString( sessionLabel );
+        final String actor = makeActorString( sessionLabel );
         final String label = sessionLabel != null ? sessionLabel.getSessionID() : null;
-        return new PwmLogEvent(date, topic, message, source, actor, label, throwable, level);
+        return new PwmLogEvent( date, topic, message, source, actor, label, throwable, level );
     }
 
 
-    public String getTopTopic()
+    public String getTopTopic( )
     {
-        if (topic == null) {
+        if ( topic == null )
+        {
             return null;
         }
 
-        final int lastDot = topic.lastIndexOf(".");
-        return lastDot != -1 ? topic.substring(lastDot + 1, topic.length()) : topic;
+        final int lastDot = topic.lastIndexOf( "." );
+        return lastDot != -1 ? topic.substring( lastDot + 1, topic.length() ) : topic;
     }
 
-    String getEnhancedMessage()
+    String getEnhancedMessage( )
     {
         final StringBuilder output = new StringBuilder();
-        output.append(getDebugLabel());
-        output.append(message);
+        output.append( getDebugLabel() );
+        output.append( message );
 
         final String srcAddrString = this.getSource();
-        if (srcAddrString != null && !srcAddrString.isEmpty()) {
+        if ( srcAddrString != null && !srcAddrString.isEmpty() )
+        {
             final String srcStr = " [" + srcAddrString + "]";
 
-            final int firstCR = output.indexOf("\n");
-            if (firstCR == -1) {
-                output.append(srcStr);
-            } else {
-                output.insert(firstCR, srcStr);
+            final int firstCR = output.indexOf( "\n" );
+            if ( firstCR == -1 )
+            {
+                output.append( srcStr );
+            }
+            else
+            {
+                output.insert( firstCR, srcStr );
             }
         }
 
-        if (this.getThrowable() != null) {
-            output.append(" (stacktrace follows)\n");
+        if ( this.getThrowable() != null )
+        {
+            output.append( " (stacktrace follows)\n" );
             final StringWriter sw = new StringWriter();
-            final PrintWriter pw = new PrintWriter(sw);
-            this.getThrowable().printStackTrace(pw);
+            final PrintWriter pw = new PrintWriter( sw );
+            this.getThrowable().printStackTrace( pw );
             pw.flush();
-            output.append(sw.toString());
+            output.append( sw.toString() );
         }
 
         return output.toString();
     }
 
-    public int compareTo(final Object o)
+    public int compareTo( final Object o )
     {
-        if (!(o instanceof PwmLogEvent)) {
-            throw new IllegalArgumentException("cannot compare with non PwmLogEvent");
+        if ( !( o instanceof PwmLogEvent ) )
+        {
+            throw new IllegalArgumentException( "cannot compare with non PwmLogEvent" );
         }
-        return this.getDate().compareTo(((PwmLogEvent) o).getDate());
+        return this.getDate().compareTo( ( ( PwmLogEvent ) o ).getDate() );
     }
 
-    String toEncodedString()
+    String toEncodedString( )
             throws IOException
     {
-        return JsonUtil.serialize(this);
+        return JsonUtil.serialize( this );
     }
 
-    private String getDebugLabel()
+    private String getDebugLabel( )
     {
         final StringBuilder sb = new StringBuilder();
-        if ((getActor() != null && !getActor().isEmpty()) || ((getLabel() != null && !getLabel().isEmpty()))) {
-            sb.append("{");
-            if (getLabel() != null && !getLabel().isEmpty()) {
-                sb.append(this.getLabel());
+        if ( ( getActor() != null && !getActor().isEmpty() ) || ( ( getLabel() != null && !getLabel().isEmpty() ) ) )
+        {
+            sb.append( "{" );
+            if ( getLabel() != null && !getLabel().isEmpty() )
+            {
+                sb.append( this.getLabel() );
             }
-            if (getActor() != null && !getActor().isEmpty()) {
-                if (sb.length() > 0) {
-                    sb.append(",");
+            if ( getActor() != null && !getActor().isEmpty() )
+            {
+                if ( sb.length() > 0 )
+                {
+                    sb.append( "," );
                 }
-                sb.append(this.getActor());
+                sb.append( this.getActor() );
             }
-            sb.append("} ");
+            sb.append( "} " );
         }
         return sb.toString();
     }
 
-    public String toLogString()
+    public String toLogString( )
     {
-        return toLogString(true);
+        return toLogString( true );
     }
 
-    public String toLogString(final boolean includeTimeStamp)
+    public String toLogString( final boolean includeTimeStamp )
     {
         final StringBuilder sb = new StringBuilder();
-        if (includeTimeStamp) {
-            sb.append(this.getDate().toString());
-            sb.append(", ");
+        if ( includeTimeStamp )
+        {
+            sb.append( this.getDate().toString() );
+            sb.append( ", " );
         }
-        sb.append(StringUtil.padEndToLength(getLevel().toString(),5,' '));
-        sb.append(", ");
-        sb.append(shortenTopic(this.topic));
-        sb.append(", ");
+        sb.append( StringUtil.padEndToLength( getLevel().toString(), 5, ' ' ) );
+        sb.append( ", " );
+        sb.append( shortenTopic( this.topic ) );
+        sb.append( ", " );
 
-        sb.append(this.getEnhancedMessage());
+        sb.append( this.getEnhancedMessage() );
 
         return sb.toString();
     }
 
     @Override
-    public String toString()
+    public String toString( )
     {
-        return "PwmLogEvent=" + JsonUtil.serialize(this);
+        return "PwmLogEvent=" + JsonUtil.serialize( this );
     }
 
-    private static String shortenTopic(final String input)
+    private static String shortenTopic( final String input )
     {
-        if (input == null || input.isEmpty()) {
+        if ( input == null || input.isEmpty() )
+        {
             return input;
         }
 
         final int keepParts = 2;
-        final String[] parts = input.split("\\.");
+        final String[] parts = input.split( "\\." );
         final StringBuilder output = new StringBuilder();
         int partsAdded = 0;
-        for (int i = parts.length; i > 0 && partsAdded < keepParts; i--) {
-            output.insert(0, parts[i - 1]);
+        for ( int i = parts.length; i > 0 && partsAdded < keepParts; i-- )
+        {
+            output.insert( 0, parts[ i - 1 ] );
             partsAdded++;
-            if (i > 0 && partsAdded < keepParts) {
-                output.insert(0, ".");
+            if ( i > 0 && partsAdded < keepParts )
+            {
+                output.insert( 0, "." );
             }
         }
         return output.toString();

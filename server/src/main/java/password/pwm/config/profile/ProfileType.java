@@ -25,33 +25,37 @@ package password.pwm.config.profile;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 
-public enum ProfileType {
-    Helpdesk            (true,  PwmSettingCategory.HELPDESK_PROFILE,    PwmSetting.HELPDESK_PROFILE_QUERY_MATCH),
-    ForgottenPassword   (false, PwmSettingCategory.RECOVERY_PROFILE,    PwmSetting.RECOVERY_PROFILE_QUERY_MATCH),
-    NewUser             (false, PwmSettingCategory.NEWUSER_PROFILE,     null),
-    UpdateAttributes    (true,  PwmSettingCategory.UPDATE_PROFILE,      PwmSetting.UPDATE_PROFILE_QUERY_MATCH),
-    DeleteAccount(true,  PwmSettingCategory.DELETE_ACCOUNT_PROFILE, PwmSetting.DELETE_ACCOUNT_PERMISSION),
-    ;
-    
+public enum ProfileType
+{
+    Helpdesk( true, PwmSettingCategory.HELPDESK_PROFILE, PwmSetting.HELPDESK_PROFILE_QUERY_MATCH ),
+    ForgottenPassword( false, PwmSettingCategory.RECOVERY_PROFILE, PwmSetting.RECOVERY_PROFILE_QUERY_MATCH ),
+    NewUser( false, PwmSettingCategory.NEWUSER_PROFILE, null ),
+    UpdateAttributes( true, PwmSettingCategory.UPDATE_PROFILE, PwmSetting.UPDATE_PROFILE_QUERY_MATCH ),
+    DeleteAccount( true, PwmSettingCategory.DELETE_ACCOUNT_PROFILE, PwmSetting.DELETE_ACCOUNT_PERMISSION ),;
+
     private final boolean authenticated;
     private final PwmSettingCategory category;
     private final PwmSetting queryMatch;
 
-    ProfileType(final boolean authenticated, final PwmSettingCategory category, final PwmSetting queryMatch) {
+    ProfileType( final boolean authenticated, final PwmSettingCategory category, final PwmSetting queryMatch )
+    {
         this.authenticated = authenticated;
         this.category = category;
         this.queryMatch = queryMatch;
     }
 
-    public boolean isAuthenticated() {
+    public boolean isAuthenticated( )
+    {
         return authenticated;
     }
 
-    public PwmSettingCategory getCategory() {
+    public PwmSettingCategory getCategory( )
+    {
         return category;
     }
 
-    public PwmSetting getQueryMatch() {
+    public PwmSetting getQueryMatch( )
+    {
         return queryMatch;
     }
 }

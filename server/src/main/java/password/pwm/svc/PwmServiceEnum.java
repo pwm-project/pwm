@@ -28,60 +28,65 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public enum PwmServiceEnum {
-    LocalDBService(         password.pwm.util.localdb.LocalDBService.class,         Flag.StartDuringRuntimeInstance),
-    SecureService(          password.pwm.util.secure.SecureService.class,           Flag.StartDuringRuntimeInstance),
-    LdapConnectionService(  password.pwm.ldap.LdapConnectionService.class,          Flag.StartDuringRuntimeInstance),
-    DatabaseService(        password.pwm.util.db.DatabaseService.class,             Flag.StartDuringRuntimeInstance),
-    SharedHistoryManager(   password.pwm.svc.wordlist.SharedHistoryManager.class),
-    AuditService(           password.pwm.svc.event.AuditService.class),
-    StatisticsManager(      password.pwm.svc.stats.StatisticsManager.class,         Flag.StartDuringRuntimeInstance),
-    WordlistManager(        password.pwm.svc.wordlist.WordlistManager.class),
-    SeedlistManager(        password.pwm.svc.wordlist.SeedlistManager.class),
-    EmailQueueManager(      password.pwm.util.queue.EmailQueueManager.class),
-    SmsQueueManager(        password.pwm.util.queue.SmsQueueManager.class),
-    UrlShortenerService(    password.pwm.svc.shorturl.UrlShortenerService.class),
-    TokenService(           password.pwm.svc.token.TokenService.class,              Flag.StartDuringRuntimeInstance),
-    IntruderManager(        password.pwm.svc.intruder.IntruderManager.class),
-    CrService(              password.pwm.util.operations.CrService.class,           Flag.StartDuringRuntimeInstance),
-    OtpService(             password.pwm.util.operations.OtpService.class),
-    CacheService(           password.pwm.svc.cache.CacheService.class,              Flag.StartDuringRuntimeInstance),
-    HealthMonitor(          password.pwm.health.HealthMonitor.class),
-    ReportService(          password.pwm.svc.report.ReportService.class,            Flag.StartDuringRuntimeInstance),
-    ResourceServletService( password.pwm.http.servlet.resource.ResourceServletService.class),
-    SessionTrackService(    password.pwm.svc.sessiontrack.SessionTrackService.class),
-    SessionStateSvc(        password.pwm.http.state.SessionStateService.class),
-    UserSearchEngine(       password.pwm.ldap.search.UserSearchEngine.class,        Flag.StartDuringRuntimeInstance),
-    TelemetryService(       password.pwm.svc.telemetry.TelemetryService.class),
-    ClusterService(         password.pwm.svc.cluster.ClusterService.class),
-
-    ;
+public enum PwmServiceEnum
+{
+    LocalDBService( password.pwm.util.localdb.LocalDBService.class, Flag.StartDuringRuntimeInstance ),
+    SecureService( password.pwm.util.secure.SecureService.class, Flag.StartDuringRuntimeInstance ),
+    LdapConnectionService( password.pwm.ldap.LdapConnectionService.class, Flag.StartDuringRuntimeInstance ),
+    DatabaseService( password.pwm.util.db.DatabaseService.class, Flag.StartDuringRuntimeInstance ),
+    SharedHistoryManager( password.pwm.svc.wordlist.SharedHistoryManager.class ),
+    AuditService( password.pwm.svc.event.AuditService.class ),
+    StatisticsManager( password.pwm.svc.stats.StatisticsManager.class, Flag.StartDuringRuntimeInstance ),
+    WordlistManager( password.pwm.svc.wordlist.WordlistManager.class ),
+    SeedlistManager( password.pwm.svc.wordlist.SeedlistManager.class ),
+    EmailQueueManager( password.pwm.util.queue.EmailQueueManager.class ),
+    SmsQueueManager( password.pwm.util.queue.SmsQueueManager.class ),
+    UrlShortenerService( password.pwm.svc.shorturl.UrlShortenerService.class ),
+    TokenService( password.pwm.svc.token.TokenService.class, Flag.StartDuringRuntimeInstance ),
+    IntruderManager( password.pwm.svc.intruder.IntruderManager.class ),
+    CrService( password.pwm.util.operations.CrService.class, Flag.StartDuringRuntimeInstance ),
+    OtpService( password.pwm.util.operations.OtpService.class ),
+    CacheService( password.pwm.svc.cache.CacheService.class, Flag.StartDuringRuntimeInstance ),
+    HealthMonitor( password.pwm.health.HealthMonitor.class ),
+    ReportService( password.pwm.svc.report.ReportService.class, Flag.StartDuringRuntimeInstance ),
+    ResourceServletService( password.pwm.http.servlet.resource.ResourceServletService.class ),
+    SessionTrackService( password.pwm.svc.sessiontrack.SessionTrackService.class ),
+    SessionStateSvc( password.pwm.http.state.SessionStateService.class ),
+    UserSearchEngine( password.pwm.ldap.search.UserSearchEngine.class, Flag.StartDuringRuntimeInstance ),
+    TelemetryService( password.pwm.svc.telemetry.TelemetryService.class ),
+    ClusterService( password.pwm.svc.cluster.ClusterService.class ),;
 
     private final Class<? extends PwmService> clazz;
     private final Flag[] flags;
 
-    private enum Flag {
+    private enum Flag
+    {
         StartDuringRuntimeInstance,
     }
 
-    PwmServiceEnum(final Class<? extends PwmService> clazz, final Flag... flags) {
+    PwmServiceEnum( final Class<? extends PwmService> clazz, final Flag... flags )
+    {
         this.clazz = clazz;
         this.flags = flags;
     }
 
-    public boolean isInternalRuntime() {
-        return JavaHelper.enumArrayContainsValue(flags, Flag.StartDuringRuntimeInstance);
+    public boolean isInternalRuntime( )
+    {
+        return JavaHelper.enumArrayContainsValue( flags, Flag.StartDuringRuntimeInstance );
     }
 
-    static List<Class<? extends PwmService>> allClasses() {
+    static List<Class<? extends PwmService>> allClasses( )
+    {
         final List<Class<? extends PwmService>> pwmServiceClasses = new ArrayList<>();
-        for (final PwmServiceEnum enumClass : values()) {
-            pwmServiceClasses.add(enumClass.getPwmServiceClass());
+        for ( final PwmServiceEnum enumClass : values() )
+        {
+            pwmServiceClasses.add( enumClass.getPwmServiceClass() );
         }
-        return Collections.unmodifiableList(pwmServiceClasses);
+        return Collections.unmodifiableList( pwmServiceClasses );
     }
 
-    public Class<? extends PwmService> getPwmServiceClass() {
+    public Class<? extends PwmService> getPwmServiceClass( )
+    {
         return clazz;
     }
 }

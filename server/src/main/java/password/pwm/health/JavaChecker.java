@@ -28,22 +28,27 @@ import password.pwm.PwmApplication;
 import java.util.ArrayList;
 import java.util.List;
 
-public class JavaChecker implements HealthChecker {
-    public List<HealthRecord> doHealthCheck(final PwmApplication pwmApplication) {
+public class JavaChecker implements HealthChecker
+{
+    public List<HealthRecord> doHealthCheck( final PwmApplication pwmApplication )
+    {
         final List<HealthRecord> records = new ArrayList<>();
 
-        final int maxActiveThreads = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.HEALTH_JAVA_MAX_THREADS));
-        if (Thread.activeCount() > maxActiveThreads) {
-            records.add(HealthRecord.forMessage(HealthMessage.Java_HighThreads));
+        final int maxActiveThreads = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.HEALTH_JAVA_MAX_THREADS ) );
+        if ( Thread.activeCount() > maxActiveThreads )
+        {
+            records.add( HealthRecord.forMessage( HealthMessage.Java_HighThreads ) );
         }
 
-        final long minMemory = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.HEALTH_JAVA_MIN_HEAP_BYTES));
-        if (Runtime.getRuntime().maxMemory() <= minMemory) {
-            records.add(HealthRecord.forMessage(HealthMessage.Java_SmallHeap));
+        final long minMemory = Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.HEALTH_JAVA_MIN_HEAP_BYTES ) );
+        if ( Runtime.getRuntime().maxMemory() <= minMemory )
+        {
+            records.add( HealthRecord.forMessage( HealthMessage.Java_SmallHeap ) );
         }
 
-        if (records.isEmpty()) {
-            records.add(HealthRecord.forMessage(HealthMessage.Java_OK));
+        if ( records.isEmpty() )
+        {
+            records.add( HealthRecord.forMessage( HealthMessage.Java_OK ) );
         }
 
         return records;

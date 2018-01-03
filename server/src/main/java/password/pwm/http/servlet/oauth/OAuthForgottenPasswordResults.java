@@ -28,26 +28,31 @@ import java.time.Instant;
 /**
  * This Json object gets sent as a redirect from the oauth consumer servlet to the ForgttenPasswordServlet.
  */
-public class OAuthForgottenPasswordResults implements Serializable {
+public class OAuthForgottenPasswordResults implements Serializable
+{
     private final boolean authenticated;
     private final String username;
     private final Instant timestamp;
 
-    public OAuthForgottenPasswordResults(final boolean authenticated, final String username) {
+    public OAuthForgottenPasswordResults( final boolean authenticated, final String username )
+    {
         this.authenticated = authenticated;
         this.username = username;
         this.timestamp = Instant.now();
     }
 
-    public boolean isAuthenticated() {
+    public boolean isAuthenticated( )
+    {
         return authenticated;
     }
 
-    public String getUsername() {
+    public String getUsername( )
+    {
         return username;
     }
 
-    public Instant getTimestamp() {
+    public Instant getTimestamp( )
+    {
         return timestamp;
     }
 }

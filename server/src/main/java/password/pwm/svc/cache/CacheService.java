@@ -38,8 +38,9 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 
-public class CacheService implements PwmService {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(CacheService.class);
+public class CacheService implements PwmService
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( CacheService.class );
 
     private MemoryCacheStore memoryCacheStore;
     private LocalDBCacheStore localDBCacheStore;
@@ -49,97 +50,116 @@ public class CacheService implements PwmService {
     private Instant lastTraceOutput;
 
     @Override
-    public STATUS status() {
+    public STATUS status( )
+    {
         return status;
     }
 
     @Override
-    public void init(final PwmApplication pwmApplication)
+    public void init( final PwmApplication pwmApplication )
             throws PwmException
     {
-        final boolean enabled = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.CACHE_ENABLE));
-        if (!enabled) {
-            LOGGER.debug("skipping cache service init due to app property setting");
+        final boolean enabled = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.CACHE_ENABLE ) );
+        if ( !enabled )
+        {
+            LOGGER.debug( "skipping cache service init due to app property setting" );
             status = STATUS.CLOSED;
             return;
         }
 
-        if (pwmApplication.getLocalDB() == null) {
-            LOGGER.debug("skipping cache service init due to localDB not being available");
+        if ( pwmApplication.getLocalDB() == null )
+        {
+            LOGGER.debug( "skipping cache service init due to localDB not being available" );
             status = STATUS.CLOSED;
             return;
         }
 
-        if (pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY) {
-            LOGGER.debug("skipping cache service init due to read-only application mode");
+        if ( pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY )
+        {
+            LOGGER.debug( "skipping cache service init due to read-only application mode" );
             status = STATUS.CLOSED;
             return;
         }
 
         status = STATUS.OPENING;
-        final int maxMemItems = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.CACHE_MEMORY_MAX_ITEMS));
-        if (pwmApplication.getLocalDB() != null && pwmApplication.getLocalDB().status() == LocalDB.Status.OPEN) {
-            localDBCacheStore = new LocalDBCacheStore(pwmApplication);
+        final int maxMemItems = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.CACHE_MEMORY_MAX_ITEMS ) );
+        if ( pwmApplication.getLocalDB() != null && pwmApplication.getLocalDB().status() == LocalDB.Status.OPEN )
+        {
+            localDBCacheStore = new LocalDBCacheStore( pwmApplication );
         }
-        memoryCacheStore = new MemoryCacheStore(maxMemItems);
+        memoryCacheStore = new MemoryCacheStore( maxMemItems );
         status = STATUS.OPEN;
     }
 
     @Override
-    public void close() {
+    public void close( )
+    {
         status = STATUS.CLOSED;
         localDBCacheStore = null;
     }
 
     @Override
-    public List<HealthRecord> healthCheck() {
+    public List<HealthRecord> healthCheck( )
+    {
         return Collections.emptyList();
     }
 
     @Override
-    public ServiceInfoBean serviceInfo() {
-        return new ServiceInfoBean(Collections.emptyList());
+    public ServiceInfoBean serviceInfo( )
+    {
+        return new ServiceInfoBean( Collections.emptyList() );
     }
 
-    public void put(final CacheKey cacheKey, final CachePolicy cachePolicy, final String payload)
-            throws PwmUnrecoverableException {
-        if (status != STATUS.OPEN) {
+    public void put( final CacheKey cacheKey, final CachePolicy cachePolicy, final String payload )
+            throws PwmUnrecoverableException
+    {
+        if ( status != STATUS.OPEN )
+        {
             return;
         }
-        if (cacheKey == null) {
-            throw new NullPointerException("cacheKey can not be null");
+        if ( cacheKey == null )
+        {
+            throw new NullPointerException( "cacheKey can not be null" );
         }
-        if (cachePolicy == null) {
-            throw new NullPointerException("cachePolicy can not be null");
+        if ( cachePolicy == null )
+        {
+            throw new NullPointerException( "cachePolicy can not be null" );
         }
-        if (payload == null) {
-            throw new NullPointerException("payload can not be null");
+        if ( payload == null )
+        {
+            throw new NullPointerException( "payload can not be null" );
         }
         final Instant expirationDate = cachePolicy.getExpiration();
-        memoryCacheStore.store(cacheKey, expirationDate, payload);
-        if (localDBCacheStore != null) {
-            localDBCacheStore.store(cacheKey, expirationDate, payload);
+        memoryCacheStore.store( cacheKey, expirationDate, payload );
+        if ( localDBCacheStore != null )
+        {
+            localDBCacheStore.store( cacheKey, expirationDate, payload );
         }
         outputTraceInfo();
     }
 
-    public String get(final CacheKey cacheKey)
-            throws PwmUnrecoverableException {
-        if (cacheKey == null) {
+    public String get( final CacheKey cacheKey )
+            throws PwmUnrecoverableException
+    {
+        if ( cacheKey == null )
+        {
             return null;
         }
 
-        if (status != STATUS.OPEN) {
+        if ( status != STATUS.OPEN )
+        {
             return null;
         }
 
         String payload = null;
-        if (memoryCacheStore != null) {
-            payload = memoryCacheStore.read(cacheKey);
+        if ( memoryCacheStore != null )
+        {
+            payload = memoryCacheStore.read( cacheKey );
         }
 
-        if (payload == null && localDBCacheStore != null) {
-            payload = localDBCacheStore.read(cacheKey);
+        if ( payload == null && localDBCacheStore != null )
+        {
+            payload = localDBCacheStore.read( cacheKey );
         }
 
         outputTraceInfo();
@@ -147,24 +167,30 @@ public class CacheService implements PwmService {
         return payload;
     }
 
-    private void outputTraceInfo() {
-        if (lastTraceOutput == null || TimeDuration.fromCurrent(lastTraceOutput).isLongerThan(30 * 1000)) {
+    private void outputTraceInfo( )
+    {
+        if ( lastTraceOutput == null || TimeDuration.fromCurrent( lastTraceOutput ).isLongerThan( 30 * 1000 ) )
+        {
             lastTraceOutput = Instant.now();
-        } else {
+        }
+        else
+        {
             return;
         }
 
         final StringBuilder traceOutput = new StringBuilder();
-        if (memoryCacheStore != null) {
+        if ( memoryCacheStore != null )
+        {
             final CacheStoreInfo info = memoryCacheStore.getCacheStoreInfo();
-            traceOutput.append(", memCache=");
-            traceOutput.append(JsonUtil.serialize(info));
+            traceOutput.append( ", memCache=" );
+            traceOutput.append( JsonUtil.serialize( info ) );
         }
-        if (localDBCacheStore != null) {
+        if ( localDBCacheStore != null )
+        {
             final CacheStoreInfo info = localDBCacheStore.getCacheStoreInfo();
-            traceOutput.append(", localDbCache=");
-            traceOutput.append(JsonUtil.serialize(info));
+            traceOutput.append( ", localDbCache=" );
+            traceOutput.append( JsonUtil.serialize( info ) );
         }
-        LOGGER.trace(traceOutput);
+        LOGGER.trace( traceOutput );
     }
 }

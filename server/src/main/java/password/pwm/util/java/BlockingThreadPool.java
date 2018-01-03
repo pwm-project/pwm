@@ -28,23 +28,27 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public class BlockingThreadPool extends ThreadPoolExecutor {
+public class BlockingThreadPool extends ThreadPoolExecutor
+{
 
     private final Semaphore semaphore;
 
-    public BlockingThreadPool(final int bound, final String name) {
-        super(bound, bound, 0, TimeUnit.MILLISECONDS, new LinkedBlockingDeque<>(), JavaHelper.makePwmThreadFactory(name, true));
-        semaphore = new Semaphore(bound);
+    public BlockingThreadPool( final int bound, final String name )
+    {
+        super( bound, bound, 0, TimeUnit.MILLISECONDS, new LinkedBlockingDeque<>(), JavaHelper.makePwmThreadFactory( name, true ) );
+        semaphore = new Semaphore( bound );
     }
 
-    public Future<?> blockingSubmit(final Runnable task) {
+    public Future<?> blockingSubmit( final Runnable task )
+    {
         semaphore.acquireUninterruptibly();
-        return super.submit(task);
+        return super.submit( task );
     }
 
     @Override
-    protected void afterExecute(final Runnable r, final Throwable t) {
-        super.afterExecute(r, t);
+    protected void afterExecute( final Runnable r, final Throwable t )
+    {
+        super.afterExecute( r, t );
         semaphore.release();
     }
 }

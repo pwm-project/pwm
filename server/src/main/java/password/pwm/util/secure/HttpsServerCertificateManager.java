@@ -47,8 +47,8 @@ import password.pwm.config.value.PrivateKeyValue;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.PasswordData;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
@@ -79,26 +79,28 @@ import java.util.concurrent.TimeUnit;
 
 public class HttpsServerCertificateManager
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(HttpsServerCertificateManager.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass( HttpsServerCertificateManager.class );
 
     private static boolean bouncyCastleInitialized;
 
-    private static void initBouncyCastleProvider()
+    private static void initBouncyCastleProvider( )
     {
-        if (!bouncyCastleInitialized)
+        if ( !bouncyCastleInitialized )
         {
-            Security.addProvider(new BouncyCastleProvider());
+            Security.addProvider( new BouncyCastleProvider() );
             bouncyCastleInitialized = true;
         }
     }
 
 
-    public static KeyStore keyStoreForApplication(final PwmApplication pwmApplication, final PasswordData passwordData, final String alias) throws PwmUnrecoverableException {
+    public static KeyStore keyStoreForApplication( final PwmApplication pwmApplication, final PasswordData passwordData, final String alias ) throws PwmUnrecoverableException
+    {
         KeyStore keyStore = null;
-        keyStore = exportKey(pwmApplication.getConfig(), KeyStoreFormat.JKS, passwordData, alias);
+        keyStore = exportKey( pwmApplication.getConfig(), KeyStoreFormat.JKS, passwordData, alias );
 
-        if (keyStore == null) {
-            keyStore = makeSelfSignedCert(pwmApplication, passwordData, alias);
+        if ( keyStore == null )
+        {
+            keyStore = makeSelfSignedCert( pwmApplication, passwordData, alias );
         }
 
         return keyStore;
@@ -112,42 +114,49 @@ public class HttpsServerCertificateManager
     )
             throws PwmUnrecoverableException
     {
-        final PrivateKeyCertificate privateKeyCertificate = configuration.readSettingAsPrivateKey(PwmSetting.HTTPS_CERT);
-        if (privateKeyCertificate == null) {
+        final PrivateKeyCertificate privateKeyCertificate = configuration.readSettingAsPrivateKey( PwmSetting.HTTPS_CERT );
+        if ( privateKeyCertificate == null )
+        {
             return null;
         }
 
-        final KeyStore.PasswordProtection passwordProtection = new KeyStore.PasswordProtection(passwordData.getStringValue().toCharArray());
-        try {
-            final KeyStore keyStore = KeyStore.getInstance(format.toString());
-            keyStore.load(null, passwordData.getStringValue().toCharArray()); //load of null is required to init keystore.
+        final KeyStore.PasswordProtection passwordProtection = new KeyStore.PasswordProtection( passwordData.getStringValue().toCharArray() );
+        try
+        {
+            final KeyStore keyStore = KeyStore.getInstance( format.toString() );
+
+            //load of null is required to init keystore.
+            keyStore.load( null, passwordData.getStringValue().toCharArray() );
+
             keyStore.setEntry(
                     alias,
                     new KeyStore.PrivateKeyEntry(
                             privateKeyCertificate.getKey(),
-                            privateKeyCertificate.getCertificates().toArray(new X509Certificate[privateKeyCertificate.getCertificates().size()])
+                            privateKeyCertificate.getCertificates().toArray( new X509Certificate[ privateKeyCertificate.getCertificates().size() ] )
                     ),
                     passwordProtection
             );
             return keyStore;
-        } catch (Exception e)
+        }
+        catch ( Exception e )
         {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR, "error generating keystore file;: " + e.getMessage()));
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, "error generating keystore file;: " + e.getMessage() ) );
         }
     }
 
-    private static KeyStore makeSelfSignedCert(final PwmApplication pwmApplication, final PasswordData password, final String alias)
+    private static KeyStore makeSelfSignedCert( final PwmApplication pwmApplication, final PasswordData password, final String alias )
             throws PwmUnrecoverableException
     {
         final Configuration configuration = pwmApplication.getConfig();
 
         try
         {
-            final SelfCertGenerator selfCertGenerator = new SelfCertGenerator(configuration);
-            return selfCertGenerator.makeSelfSignedCert(pwmApplication, password, alias);
-        } catch (Exception e)
+            final SelfCertGenerator selfCertGenerator = new SelfCertGenerator( configuration );
+            return selfCertGenerator.makeSelfSignedCert( pwmApplication, password, alias );
+        }
+        catch ( Exception e )
         {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_CERTIFICATE_ERROR, "unable to generate self signed certificate: " + e.getMessage()));
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_CERTIFICATE_ERROR, "unable to generate self signed certificate: " + e.getMessage() ) );
         }
     }
 
@@ -156,29 +165,29 @@ public class HttpsServerCertificateManager
         private final X509Certificate x509Certificate;
         private String keypairb64;
 
-        public StoredCertData(final X509Certificate x509Certificate, final KeyPair keypair)
+        public StoredCertData( final X509Certificate x509Certificate, final KeyPair keypair )
                 throws IOException
         {
             this.x509Certificate = x509Certificate;
             final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            final ObjectOutputStream oos = new ObjectOutputStream(baos);
-            oos.writeObject(keypair);
+            final ObjectOutputStream oos = new ObjectOutputStream( baos );
+            oos.writeObject( keypair );
             final byte[] ba = baos.toByteArray();
-            keypairb64 = StringUtil.base64Encode(ba);
+            keypairb64 = StringUtil.base64Encode( ba );
         }
 
-        public X509Certificate getX509Certificate()
+        public X509Certificate getX509Certificate( )
         {
             return x509Certificate;
         }
 
-        public KeyPair getKeypair()
+        public KeyPair getKeypair( )
                 throws IOException, ClassNotFoundException
         {
-            final byte[] ba = StringUtil.base64Decode(keypairb64);
-            final ByteArrayInputStream bais = new ByteArrayInputStream(ba);
-            final ObjectInputStream ois = new ObjectInputStream(bais);
-            return (KeyPair) ois.readObject();
+            final byte[] ba = StringUtil.base64Decode( keypairb64 );
+            final ByteArrayInputStream bais = new ByteArrayInputStream( ba );
+            final ObjectInputStream ois = new ObjectInputStream( bais );
+            return ( KeyPair ) ois.readObject();
         }
     }
 
@@ -187,66 +196,72 @@ public class HttpsServerCertificateManager
     {
         private final Configuration config;
 
-        public SelfCertGenerator(final Configuration config)
+        public SelfCertGenerator( final Configuration config )
         {
             this.config = config;
         }
 
-        public KeyStore makeSelfSignedCert(final PwmApplication pwmApplication, final PasswordData password, final String alias)
+        public KeyStore makeSelfSignedCert( final PwmApplication pwmApplication, final PasswordData password, final String alias )
                 throws Exception
         {
             final String cnName = makeSubjectName();
-            final KeyStore keyStore = KeyStore.getInstance("jks");
-            keyStore.load(null, password.getStringValue().toCharArray());
-            StoredCertData storedCertData = pwmApplication.readAppAttribute(PwmApplication.AppAttribute.HTTPS_SELF_CERT, StoredCertData.class);
-            if (storedCertData != null)
+            final KeyStore keyStore = KeyStore.getInstance( "jks" );
+            keyStore.load( null, password.getStringValue().toCharArray() );
+            StoredCertData storedCertData = pwmApplication.readAppAttribute( PwmApplication.AppAttribute.HTTPS_SELF_CERT, StoredCertData.class );
+            if ( storedCertData != null )
             {
-                if (!cnName.equals(storedCertData.getX509Certificate().getSubjectDN().getName()))
+                if ( !cnName.equals( storedCertData.getX509Certificate().getSubjectDN().getName() ) )
                 {
-                    LOGGER.info("replacing stored self cert, subject name does not match configured site url");
+                    LOGGER.info( "replacing stored self cert, subject name does not match configured site url" );
                     storedCertData = null;
-                } else if (storedCertData.getX509Certificate().getNotBefore().after(new Date()))
+                }
+                else if ( storedCertData.getX509Certificate().getNotBefore().after( new Date() ) )
                 {
-                    LOGGER.info("replacing stored self cert, not-before date is in the future");
+                    LOGGER.info( "replacing stored self cert, not-before date is in the future" );
                     storedCertData = null;
-                } else if (storedCertData.getX509Certificate().getNotAfter().before(new Date()))
+                }
+                else if ( storedCertData.getX509Certificate().getNotAfter().before( new Date() ) )
                 {
-                    LOGGER.info("replacing stored self cert, not-after date is in the past");
+                    LOGGER.info( "replacing stored self cert, not-after date is in the past" );
                     storedCertData = null;
                 }
             }
 
-            if (storedCertData == null)
+            if ( storedCertData == null )
             {
-                storedCertData = makeSelfSignedCert(cnName);
-                pwmApplication.writeAppAttribute(PwmApplication.AppAttribute.HTTPS_SELF_CERT, storedCertData);
+                storedCertData = makeSelfSignedCert( cnName );
+                pwmApplication.writeAppAttribute( PwmApplication.AppAttribute.HTTPS_SELF_CERT, storedCertData );
             }
 
             keyStore.setKeyEntry(
                     alias,
                     storedCertData.getKeypair().getPrivate(),
                     password.getStringValue().toCharArray(),
-                    new X509Certificate[]{storedCertData.getX509Certificate()}
+                    new X509Certificate[]
+                            {
+                                    storedCertData.getX509Certificate(),
+                            }
             );
             return keyStore;
         }
 
-        public String makeSubjectName()
+        public String makeSubjectName( )
                 throws Exception
         {
             String cnName = PwmConstants.PWM_APP_NAME.toLowerCase() + ".example.com";
             {
-                final String siteURL = config.readSettingAsString(PwmSetting.PWM_SITE_URL);
-                if (siteURL != null && !siteURL.isEmpty())
+                final String siteURL = config.readSettingAsString( PwmSetting.PWM_SITE_URL );
+                if ( siteURL != null && !siteURL.isEmpty() )
                 {
                     try
                     {
-                        final URI uri = new URI(siteURL);
-                        if (uri.getHost() != null && !uri.getHost().isEmpty())
+                        final URI uri = new URI( siteURL );
+                        if ( uri.getHost() != null && !uri.getHost().isEmpty() )
                         {
                             cnName = uri.getHost();
                         }
-                    } catch (URISyntaxException e)
+                    }
+                    catch ( URISyntaxException e )
                     {
                         // disregard
                     }
@@ -256,61 +271,80 @@ public class HttpsServerCertificateManager
         }
 
 
-        public StoredCertData makeSelfSignedCert(final String cnName)
+        public StoredCertData makeSelfSignedCert( final String cnName )
                 throws Exception
         {
             initBouncyCastleProvider();
 
-            LOGGER.debug("creating self-signed certificate with cn of " + cnName);
-            final KeyPair keyPair = generateRSAKeyPair(config);
-            final long futureSeconds = Long.parseLong(config.readAppProperty(AppProperty.SECURITY_HTTPSSERVER_SELF_FUTURESECONDS));
-            final X509Certificate certificate = generateV3Certificate(keyPair, cnName, futureSeconds);
-            return new StoredCertData(certificate, keyPair);
+            LOGGER.debug( "creating self-signed certificate with cn of " + cnName );
+            final KeyPair keyPair = generateRSAKeyPair( config );
+            final long futureSeconds = Long.parseLong( config.readAppProperty( AppProperty.SECURITY_HTTPSSERVER_SELF_FUTURESECONDS ) );
+            final X509Certificate certificate = generateV3Certificate( keyPair, cnName, futureSeconds );
+            return new StoredCertData( certificate, keyPair );
         }
 
 
-        public static X509Certificate generateV3Certificate(final KeyPair pair, final String cnValue, final long futureSeconds)
+        public static X509Certificate generateV3Certificate( final KeyPair pair, final String cnValue, final long futureSeconds )
                 throws Exception
         {
-            final X500NameBuilder subjectName = new X500NameBuilder(BCStyle.INSTANCE);
-            subjectName.addRDN(BCStyle.CN, cnValue);
+            final X500NameBuilder subjectName = new X500NameBuilder( BCStyle.INSTANCE );
+            subjectName.addRDN( BCStyle.CN, cnValue );
 
-            final SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddhhmmss");
-            final String serNumStr = formatter.format(new Date(System.currentTimeMillis()));
-            final BigInteger serialNumber = new BigInteger(serNumStr);
+            final SimpleDateFormat formatter = new SimpleDateFormat( "yyyyMMddhhmmss" );
+            final String serNumStr = formatter.format( new Date( System.currentTimeMillis() ) );
+            final BigInteger serialNumber = new BigInteger( serNumStr );
 
-            final Date notBefore = new Date(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(2)); // 2 days in the past
-            final Date notAfter = new Date(System.currentTimeMillis() + (futureSeconds * 1000));
+            // 2 days in the past
+            final Date notBefore = new Date( System.currentTimeMillis() - TimeUnit.DAYS.toMillis( 2 ) );
 
-            final X509v3CertificateBuilder certGen = new JcaX509v3CertificateBuilder(subjectName.build(), serialNumber, notBefore, notAfter, subjectName.build(), pair.getPublic());
+            final Date notAfter = new Date( System.currentTimeMillis() + ( futureSeconds * 1000 ) );
 
-            final BasicConstraints basic = new BasicConstraints(false); // not a CA
-            certGen.addExtension(Extension.basicConstraints, true, basic.getEncoded()); // OID, critical, ASN.1 encoded value
+            final X509v3CertificateBuilder certGen = new JcaX509v3CertificateBuilder(
+                    subjectName.build(),
+                    serialNumber,
+                    notBefore,
+                    notAfter,
+                    subjectName.build(),
+                    pair.getPublic()
+            );
 
-            final KeyUsage keyUsage = new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyEncipherment); // sign and key encipher
-            certGen.addExtension(Extension.keyUsage, true, keyUsage.getEncoded()); // OID, critical, ASN.1 encoded value
+            // false == not a CA
+            final BasicConstraints basic = new BasicConstraints( false );
 
-            final ExtendedKeyUsage extKeyUsage = new ExtendedKeyUsage(KeyPurposeId.id_kp_serverAuth); // server authentication
-            certGen.addExtension(Extension.extendedKeyUsage, true, extKeyUsage.getEncoded()); // OID, critical, ASN.1 encoded value
+            // OID, critical, ASN.1 encoded value
+            certGen.addExtension( Extension.basicConstraints, true, basic.getEncoded() );
 
-            final ContentSigner sigGen = new JcaContentSignerBuilder("SHA256WithRSAEncryption").setProvider("BC").build(pair.getPrivate());
+            // sign and key encipher
+            final KeyUsage keyUsage = new KeyUsage( KeyUsage.digitalSignature | KeyUsage.keyEncipherment );
 
-            return new JcaX509CertificateConverter().setProvider("BC").getCertificate(certGen.build(sigGen));
+            // OID, critical, ASN.1 encoded value
+            certGen.addExtension( Extension.keyUsage, true, keyUsage.getEncoded() );
+
+            // server authentication
+            final ExtendedKeyUsage extKeyUsage = new ExtendedKeyUsage( KeyPurposeId.id_kp_serverAuth );
+
+            // OID, critical, ASN.1 encoded value
+            certGen.addExtension( Extension.extendedKeyUsage, true, extKeyUsage.getEncoded() );
+
+            final ContentSigner sigGen = new JcaContentSignerBuilder( "SHA256WithRSAEncryption" ).setProvider( "BC" ).build( pair.getPrivate() );
+
+            return new JcaX509CertificateConverter().setProvider( "BC" ).getCertificate( certGen.build( sigGen ) );
         }
 
-        static KeyPair generateRSAKeyPair(final Configuration config)
+        static KeyPair generateRSAKeyPair( final Configuration config )
                 throws Exception
         {
-            final int keySize = Integer.parseInt(config.readAppProperty(AppProperty.SECURITY_HTTPSSERVER_SELF_KEY_SIZE));
-            final String keyAlg = config.readAppProperty(AppProperty.SECURITY_HTTPSSERVER_SELF_ALG);
-            final KeyPairGenerator kpGen = KeyPairGenerator.getInstance(keyAlg, "BC");
-            kpGen.initialize(keySize, new SecureRandom());
+            final int keySize = Integer.parseInt( config.readAppProperty( AppProperty.SECURITY_HTTPSSERVER_SELF_KEY_SIZE ) );
+            final String keyAlg = config.readAppProperty( AppProperty.SECURITY_HTTPSSERVER_SELF_ALG );
+            final KeyPairGenerator kpGen = KeyPairGenerator.getInstance( keyAlg, "BC" );
+            kpGen.initialize( keySize, new SecureRandom() );
             return kpGen.generateKeyPair();
         }
     }
 
 
-    public enum KeyStoreFormat {
+    public enum KeyStoreFormat
+    {
         PKCS12,
         JKS,
     }
@@ -321,42 +355,59 @@ public class HttpsServerCertificateManager
             final InputStream inputStream,
             final PasswordData password,
             final String alias
-    ) throws PwmUnrecoverableException {
-        final char[] charPassword = password == null ? new char[0] : password.getStringValue().toCharArray();
+    ) throws PwmUnrecoverableException
+    {
+        final char[] charPassword = password == null ? new char[ 0 ] : password.getStringValue().toCharArray();
         final PrivateKeyCertificate privateKeyCertificate;
-        try {
-            final KeyStore keyStore = KeyStore.getInstance(keyStoreFormat.toString());
-            keyStore.load(inputStream, charPassword);
+        try
+        {
+            final KeyStore keyStore = KeyStore.getInstance( keyStoreFormat.toString() );
+            keyStore.load( inputStream, charPassword );
 
             final String effectiveAlias;
             {
                 final List<String> allAliases = new ArrayList<>();
-                for (final Enumeration enu = keyStore.aliases(); enu.hasMoreElements(); ) {
-                    final String value = (String) enu.nextElement();
-                    allAliases.add(value);
+                for ( final Enumeration enu = keyStore.aliases(); enu.hasMoreElements(); )
+                {
+                    final String value = ( String ) enu.nextElement();
+                    allAliases.add( value );
                 }
                 effectiveAlias = allAliases.size() == 1 ? allAliases.iterator().next() : alias;
             }
 
-            final KeyStore.PasswordProtection passwordProtection = new KeyStore.PasswordProtection(charPassword);
-            final KeyStore.PrivateKeyEntry entry = (KeyStore.PrivateKeyEntry)keyStore.getEntry(effectiveAlias, passwordProtection);
-            if (entry == null) {
+            final KeyStore.PasswordProtection passwordProtection = new KeyStore.PasswordProtection( charPassword );
+            final KeyStore.PrivateKeyEntry entry = ( KeyStore.PrivateKeyEntry ) keyStore.getEntry( effectiveAlias, passwordProtection );
+            if ( entry == null )
+            {
                 final String errorMsg = "unable to import https key entry with alias '" + alias + "'";
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_CERTIFICATE_ERROR, errorMsg, new String[]{"no key entry alias '" + alias + "' in keystore"}));
+                throw new PwmUnrecoverableException( new ErrorInformation(
+                        PwmError.ERROR_CERTIFICATE_ERROR,
+                        errorMsg,
+                        new String[]
+                                {
+                                        "no key entry alias '" + alias + "' in keystore",
+                                }
+                ) );
             }
 
             final PrivateKey key = entry.getPrivateKey();
-            final List<X509Certificate> certificates = Arrays.asList((X509Certificate[]) entry.getCertificateChain());
+            final List<X509Certificate> certificates = Arrays.asList( ( X509Certificate[] ) entry.getCertificateChain() );
 
-            LOGGER.debug("importing certificate chain: " + JsonUtil.serializeCollection(X509Utils.makeDebugInfoMap(certificates)));
-            privateKeyCertificate = new PrivateKeyCertificate(certificates, key);
-        } catch (Exception e) {
+            LOGGER.debug( "importing certificate chain: " + JsonUtil.serializeCollection( X509Utils.makeDebugInfoMap( certificates ) ) );
+            privateKeyCertificate = new PrivateKeyCertificate( certificates, key );
+        }
+        catch ( Exception e )
+        {
             final String errorMsg = "unable to load configured https certificate: " + e.getMessage();
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_CERTIFICATE_ERROR, errorMsg, new String[]{e.getMessage()}));
+            final String[] errorDetail = new String[]
+                    {
+                            e.getMessage(),
+                    };
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_CERTIFICATE_ERROR, errorMsg, errorDetail ) );
         }
 
-        final StoredValue storedValue = new PrivateKeyValue(privateKeyCertificate);
-        storedConfiguration.writeSetting(PwmSetting.HTTPS_CERT,storedValue,null);
+        final StoredValue storedValue = new PrivateKeyValue( privateKeyCertificate );
+        storedConfiguration.writeSetting( PwmSetting.HTTPS_CERT, storedValue, null );
     }
 
 }

@@ -31,46 +31,55 @@ import java.util.List;
 import java.util.ResourceBundle;
 import java.util.TreeMap;
 
-public class SchemaDefinition implements Serializable {
+public class SchemaDefinition implements Serializable
+{
     private SchemaType schemaType;
     private String name;
     private String definition;
 
-    public SchemaDefinition(final SchemaType schemaType, final String name, final String definition) {
+    public SchemaDefinition( final SchemaType schemaType, final String name, final String definition )
+    {
         this.schemaType = schemaType;
         this.name = name;
         this.definition = definition;
     }
 
-    public static List<SchemaDefinition> getPwmSchemaDefinitions() {
-        final ResourceBundle resourceBundle = ResourceBundle.getBundle(SchemaDefinition.class.getName());
-        final TreeMap<String,SchemaDefinition> returnObj = new TreeMap<>();
-        for (final String key : Collections.list(resourceBundle.getKeys())) {
-            final String value = resourceBundle.getString(key);
-            final SchemaDefinition schemaDefinition = JsonUtil.deserialize(value, SchemaDefinition.class);
-            returnObj.put(key, schemaDefinition);
+    public static List<SchemaDefinition> getPwmSchemaDefinitions( )
+    {
+        final ResourceBundle resourceBundle = ResourceBundle.getBundle( SchemaDefinition.class.getName() );
+        final TreeMap<String, SchemaDefinition> returnObj = new TreeMap<>();
+        for ( final String key : Collections.list( resourceBundle.getKeys() ) )
+        {
+            final String value = resourceBundle.getString( key );
+            final SchemaDefinition schemaDefinition = JsonUtil.deserialize( value, SchemaDefinition.class );
+            returnObj.put( key, schemaDefinition );
         }
-        return new ArrayList<>(returnObj.values());
+        return new ArrayList<>( returnObj.values() );
     }
 
-    public SchemaType getSchemaType() {
+    public SchemaType getSchemaType( )
+    {
         return schemaType;
     }
 
-    public String getName() {
+    public String getName( )
+    {
         return name;
     }
 
-    public String getDefinition() {
+    public String getDefinition( )
+    {
         return definition;
     }
 
-    enum SchemaType {
+    enum SchemaType
+    {
         attribute,
         objectclass,
     }
 
-    enum State {
+    enum State
+    {
         missing,
         incorrect,
         correct,

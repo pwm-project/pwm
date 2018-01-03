@@ -43,11 +43,14 @@ import java.util.Arrays;
  * a per-jvm instance key.
  *
  */
-public class PasswordData implements Serializable {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(PasswordData.class);
+public class PasswordData implements Serializable
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( PasswordData.class );
 
     private final byte[] passwordData;
-    private final String keyHash; // not a secure value, used to detect if key is same over time.
+
+    // not a secure value, used to detect if key is same over time.
+    private final String keyHash;
 
     private static final transient PwmSecurityKey STATIC_KEY;
     private static final transient String STATIC_KEY_HASH;
@@ -57,22 +60,29 @@ public class PasswordData implements Serializable {
 
     private String passwordHashCache;
 
-    static {
+    static
+    {
         PwmSecurityKey newKey = null;
         String newKeyHash = null;
         ErrorInformation newInitializationError = null;
-        try {
-            final byte[] randomBytes = new byte[1024 * 10];
-            PwmRandom.getInstance().nextBytes(randomBytes);
-            newKey = new PwmSecurityKey(randomBytes);
-            newKeyHash = SecureEngine.hash(randomBytes, PwmHashAlgorithm.SHA512);
-        } catch (Exception e) {
-            LOGGER.fatal("can't initialize PasswordData handler: " + e.getMessage(),e);
+        try
+        {
+            final byte[] randomBytes = new byte[ 1024 * 10 ];
+            PwmRandom.getInstance().nextBytes( randomBytes );
+            newKey = new PwmSecurityKey( randomBytes );
+            newKeyHash = SecureEngine.hash( randomBytes, PwmHashAlgorithm.SHA512 );
+        }
+        catch ( Exception e )
+        {
+            LOGGER.fatal( "can't initialize PasswordData handler: " + e.getMessage(), e );
             e.printStackTrace();
-            if (e instanceof PwmException) {
-                newInitializationError = ((PwmException) e).getErrorInformation();
-            } else {
-                newInitializationError = new ErrorInformation(PwmError.ERROR_UNKNOWN,"error initializing password data class: " + e.getMessage());
+            if ( e instanceof PwmException )
+            {
+                newInitializationError = ( ( PwmException ) e ).getErrorInformation();
+            }
+            else
+            {
+                newInitializationError = new ErrorInformation( PwmError.ERROR_UNKNOWN, "error initializing password data class: " + e.getMessage() );
             }
         }
         STATIC_KEY = newKey;
@@ -80,97 +90,110 @@ public class PasswordData implements Serializable {
         INITIALIZATION_ERROR = newInitializationError;
     }
 
-    public PasswordData(final String passwordData)
+    public PasswordData( final String passwordData )
             throws PwmUnrecoverableException
     {
         checkInitStatus();
-        if (passwordData == null) {
-            throw new NullPointerException("password data can not be null");
+        if ( passwordData == null )
+        {
+            throw new NullPointerException( "password data can not be null" );
         }
-        if (passwordData.isEmpty()) {
-            throw new NullPointerException("password data can not be empty");
+        if ( passwordData.isEmpty() )
+        {
+            throw new NullPointerException( "password data can not be empty" );
         }
-        this.passwordData = SecureEngine.encryptToBytes(passwordData, STATIC_KEY, IN_MEMORY_PASSWORD_ENCRYPT_METHOD);
+        this.passwordData = SecureEngine.encryptToBytes( passwordData, STATIC_KEY, IN_MEMORY_PASSWORD_ENCRYPT_METHOD );
         this.keyHash = STATIC_KEY_HASH;
     }
 
-    private void checkInitStatus()
+    private void checkInitStatus( )
             throws PwmUnrecoverableException
     {
-        if (STATIC_KEY == null || STATIC_KEY_HASH == null || INITIALIZATION_ERROR != null) {
-            throw new PwmUnrecoverableException(INITIALIZATION_ERROR);
+        if ( STATIC_KEY == null || STATIC_KEY_HASH == null || INITIALIZATION_ERROR != null )
+        {
+            throw new PwmUnrecoverableException( INITIALIZATION_ERROR );
         }
     }
 
-    private void checkCurrentStatus()
+    private void checkCurrentStatus( )
             throws PwmUnrecoverableException
     {
-        if (!keyHash.equals(STATIC_KEY_HASH)) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_CRYPT_ERROR,"in-memory password is no longer valid"));
+        if ( !keyHash.equals( STATIC_KEY_HASH ) )
+        {
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, "in-memory password is no longer valid" ) );
         }
     }
 
-    public String getStringValue()
+    public String getStringValue( )
             throws PwmUnrecoverableException
     {
         checkCurrentStatus();
-        return SecureEngine.decryptBytes(passwordData, STATIC_KEY, IN_MEMORY_PASSWORD_ENCRYPT_METHOD);
+        return SecureEngine.decryptBytes( passwordData, STATIC_KEY, IN_MEMORY_PASSWORD_ENCRYPT_METHOD );
     }
 
     @Override
-    public String toString()
+    public String toString( )
     {
         return PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT;
     }
 
     @Override
-    @SuppressFBWarnings("EQ_UNUSUAL")
-    public boolean equals(final Object obj)
+    @SuppressFBWarnings( "EQ_UNUSUAL" )
+    public boolean equals( final Object obj )
     {
-        return equals(obj, false);
+        return equals( obj, false );
     }
 
     @Override
-    public int hashCode() {
-        int result = Arrays.hashCode(passwordData);
+    public int hashCode( )
+    {
+        int result = Arrays.hashCode( passwordData );
         result = 31 * result + keyHash.hashCode();
         return result;
     }
 
-    public boolean equalsIgnoreCase(final PasswordData obj) {
-        return equals(obj, true);
+    public boolean equalsIgnoreCase( final PasswordData obj )
+    {
+        return equals( obj, true );
     }
 
-    private boolean equals(final Object obj, final boolean ignoreCase)
+    private boolean equals( final Object obj, final boolean ignoreCase )
     {
-        if (obj == null) {
+        if ( obj == null )
+        {
             return false;
         }
-        if (!(obj instanceof PasswordData)) {
+        if ( !( obj instanceof PasswordData ) )
+        {
             return false;
         }
 
-        try {
+        try
+        {
             final String strValue = this.getStringValue();
-            final String objValue = ((PasswordData)obj).getStringValue();
-            return ignoreCase ? strValue.equalsIgnoreCase(objValue) : strValue.equals(objValue);
-        } catch (PwmUnrecoverableException e) {
+            final String objValue = ( ( PasswordData ) obj ).getStringValue();
+            return ignoreCase ? strValue.equalsIgnoreCase( objValue ) : strValue.equals( objValue );
+        }
+        catch ( PwmUnrecoverableException e )
+        {
             e.printStackTrace();
         }
-        return super.equals(obj);
+        return super.equals( obj );
     }
 
-    public static PasswordData forStringValue(final String input)
+    public static PasswordData forStringValue( final String input )
             throws PwmUnrecoverableException
     {
         return input == null || input.isEmpty()
                 ? null
-                : new PasswordData(input);
+                : new PasswordData( input );
     }
 
-    public String hash() throws PwmUnrecoverableException {
-        if (passwordHashCache == null) {
-            passwordHashCache = SecureEngine.hash(this.getStringValue(), PwmHashAlgorithm.SHA1);
+    public String hash( ) throws PwmUnrecoverableException
+    {
+        if ( passwordHashCache == null )
+        {
+            passwordHashCache = SecureEngine.hash( this.getStringValue(), PwmHashAlgorithm.SHA1 );
         }
         return passwordHashCache;
     }

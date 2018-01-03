@@ -46,15 +46,16 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class MacroMachine {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(MacroMachine.class);
+public class MacroMachine
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( MacroMachine.class );
 
     private final PwmApplication pwmApplication;
     private final SessionLabel sessionLabel;
     private final UserInfo userInfo;
     private final LoginInfoBean loginInfoBean;
 
-    private static final Map<MacroImplementation.Scope,Map<Pattern,MacroImplementation>> BUILTIN_MACROS = makeImplementations();
+    private static final Map<MacroImplementation.Scope, Map<Pattern, MacroImplementation>> BUILTIN_MACROS = makeImplementations();
 
     public MacroMachine(
             final PwmApplication pwmApplication,
@@ -69,53 +70,60 @@ public class MacroMachine {
         this.loginInfoBean = loginInfoBean;
     }
 
-    private static  Map<MacroImplementation.Scope,Map<Pattern,MacroImplementation>> makeImplementations() {
+    private static Map<MacroImplementation.Scope, Map<Pattern, MacroImplementation>> makeImplementations( )
+    {
         final Map<Class<? extends MacroImplementation>, MacroImplementation.Scope> implementations = new LinkedHashMap<>();
-        implementations.putAll(StandardMacros.STANDARD_MACROS);
-        implementations.putAll(InternalMacros.INTERNAL_MACROS);
-        final LinkedHashMap<MacroImplementation.Scope,Map<Pattern,MacroImplementation>> map = new LinkedHashMap<>();
+        implementations.putAll( StandardMacros.STANDARD_MACROS );
+        implementations.putAll( InternalMacros.INTERNAL_MACROS );
+        final LinkedHashMap<MacroImplementation.Scope, Map<Pattern, MacroImplementation>> map = new LinkedHashMap<>();
 
-        for (final Map.Entry<Class<? extends MacroImplementation>,MacroImplementation.Scope> entry : implementations.entrySet()) {
+        for ( final Map.Entry<Class<? extends MacroImplementation>, MacroImplementation.Scope> entry : implementations.entrySet() )
+        {
             final Class macroClass = entry.getKey();
             final MacroImplementation.Scope scope = entry.getValue();
-            try {
-                final MacroImplementation macroImplementation = (MacroImplementation)macroClass.newInstance();
+            try
+            {
+                final MacroImplementation macroImplementation = ( MacroImplementation ) macroClass.newInstance();
                 final Pattern pattern = macroImplementation.getRegExPattern();
-                if (!map.containsKey(scope)) {
-                    map.put(scope, new LinkedHashMap<>());
+                if ( !map.containsKey( scope ) )
+                {
+                    map.put( scope, new LinkedHashMap<>() );
                 }
-                map.get(scope).put(pattern,macroImplementation);
-            } catch (Exception e) {
-                LOGGER.error("unable to load macro class " + macroClass.getName() + ", error: " + e.getMessage());
+                map.get( scope ).put( pattern, macroImplementation );
+            }
+            catch ( Exception e )
+            {
+                LOGGER.error( "unable to load macro class " + macroClass.getName() + ", error: " + e.getMessage() );
             }
         }
 
         return map;
     }
 
-    private Map<Pattern,MacroImplementation> makeExternalImplementations(final PwmApplication pwmApplication) {
-        final LinkedHashMap<Pattern,MacroImplementation> map = new LinkedHashMap<>();
-        final List<String> externalMethods = (pwmApplication == null)
+    private Map<Pattern, MacroImplementation> makeExternalImplementations( final PwmApplication pwmApplication )
+    {
+        final LinkedHashMap<Pattern, MacroImplementation> map = new LinkedHashMap<>();
+        final List<String> externalMethods = ( pwmApplication == null )
                 ? Collections.emptyList()
-                : pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.EXTERNAL_MACROS_REST_URLS);
+                : pwmApplication.getConfig().readSettingAsStringArray( PwmSetting.EXTERNAL_MACROS_REST_URLS );
 
         int iteration = 0;
-        for (final String url : externalMethods) {
+        for ( final String url : externalMethods )
+        {
             iteration++;
-            final MacroImplementation macroImplementation = new ExternalRestMacro(iteration,url);
+            final MacroImplementation macroImplementation = new ExternalRestMacro( iteration, url );
             final Pattern pattern = macroImplementation.getRegExPattern();
-            map.put(pattern,macroImplementation);
+            map.put( pattern, macroImplementation );
         }
         return map;
     }
 
 
-
-
     public String expandMacros(
             final String input
-    ) {
-        return expandMacros(input, null);
+    )
+    {
+        return expandMacros( input, null );
     }
 
     public String expandMacros(
@@ -123,65 +131,78 @@ public class MacroMachine {
             final StringReplacer stringReplacer
     )
     {
-        if (input == null) {
+        if ( input == null )
+        {
             return null;
         }
 
-        if (input.length() < 1) {
+        if ( input.length() < 1 )
+        {
             return input;
         }
 
-        final MacroImplementation.MacroRequestInfo macroRequestInfo = new MacroImplementation.MacroRequestInfo() {
+        final MacroImplementation.MacroRequestInfo macroRequestInfo = new MacroImplementation.MacroRequestInfo()
+        {
             @Override
-            public PwmApplication getPwmApplication()
+            public PwmApplication getPwmApplication( )
             {
                 return pwmApplication;
             }
 
             @Override
-            public UserInfo getUserInfo()
+            public UserInfo getUserInfo( )
             {
                 return userInfo;
             }
 
             @Override
-            public LoginInfoBean getLoginInfoBean()
+            public LoginInfoBean getLoginInfoBean( )
             {
                 return loginInfoBean;
             }
         };
 
-        final Set<MacroImplementation.Scope> scopes = effectiveScopes(macroRequestInfo);
-        final Map<Pattern,MacroImplementation> macroImplementations = new LinkedHashMap<>();
+        final Set<MacroImplementation.Scope> scopes = effectiveScopes( macroRequestInfo );
+        final Map<Pattern, MacroImplementation> macroImplementations = new LinkedHashMap<>();
         //First the User macros
-        if (scopes.contains(MacroImplementation.Scope.User)) {
-            macroImplementations.putAll(makeExternalImplementations(pwmApplication));
+        if ( scopes.contains( MacroImplementation.Scope.User ) )
+        {
+            macroImplementations.putAll( makeExternalImplementations( pwmApplication ) );
         }
         //last the buitin macros for Encrypt/Encode to work properly
-        for (final MacroImplementation.Scope scope : scopes) {
-            macroImplementations.putAll(BUILTIN_MACROS.get(scope));
+        for ( final MacroImplementation.Scope scope : scopes )
+        {
+            macroImplementations.putAll( BUILTIN_MACROS.get( scope ) );
         }
 
 
         String workingString = input;
         final String previousString = workingString;
 
-        for (final MacroImplementation.Sequence sequence : MacroImplementation.Sequence.values()) {
-            for (final Map.Entry<Pattern,MacroImplementation> entry : macroImplementations.entrySet()) {
+        for ( final MacroImplementation.Sequence sequence : MacroImplementation.Sequence.values() )
+        {
+            for ( final Map.Entry<Pattern, MacroImplementation> entry : macroImplementations.entrySet() )
+            {
                 final Pattern pattern = entry.getKey();
                 final MacroImplementation pwmMacro = entry.getValue();
-                if (pwmMacro.getSequence() == sequence) {
+                if ( pwmMacro.getSequence() == sequence )
+                {
                     boolean matched = true;
-                    while (matched) {
-                        final Matcher matcher = pattern.matcher(workingString);
-                        if (matcher.find()) {
-                            workingString = doReplace(workingString, pwmMacro, matcher, stringReplacer, macroRequestInfo);
-                            if (workingString.equals(previousString)) {
-                                LOGGER.warn(sessionLabel, "macro replace was called but input string was not modified.  "
-                                        + " macro=" + pwmMacro.getClass().getName() + ", pattern=" + pwmMacro.getRegExPattern().toString());
+                    while ( matched )
+                    {
+                        final Matcher matcher = pattern.matcher( workingString );
+                        if ( matcher.find() )
+                        {
+                            workingString = doReplace( workingString, pwmMacro, matcher, stringReplacer, macroRequestInfo );
+                            if ( workingString.equals( previousString ) )
+                            {
+                                LOGGER.warn( sessionLabel, "macro replace was called but input string was not modified.  "
+                                        + " macro=" + pwmMacro.getClass().getName() + ", pattern=" + pwmMacro.getRegExPattern().toString() );
                                 break;
                             }
-                        } else {
+                        }
+                        else
+                        {
                             matched = false;
                         }
                     }
@@ -192,21 +213,24 @@ public class MacroMachine {
         return workingString;
     }
 
-    private static Set<MacroImplementation.Scope> effectiveScopes(final MacroImplementation.MacroRequestInfo macroRequestInfo) {
+    private static Set<MacroImplementation.Scope> effectiveScopes( final MacroImplementation.MacroRequestInfo macroRequestInfo )
+    {
         final Set<MacroImplementation.Scope> scopes = new HashSet<>();
-        scopes.add(MacroImplementation.Scope.Static);
+        scopes.add( MacroImplementation.Scope.Static );
 
         final PwmApplication pwmApplication = macroRequestInfo.getPwmApplication();
         final PwmApplicationMode mode = pwmApplication != null ? pwmApplication.getApplicationMode() : PwmApplicationMode.ERROR;
         final boolean appModeOk = mode == PwmApplicationMode.RUNNING || mode == PwmApplicationMode.CONFIGURATION;
-        if (appModeOk) {
-            scopes.add(MacroImplementation.Scope.System);
+        if ( appModeOk )
+        {
+            scopes.add( MacroImplementation.Scope.System );
 
-            if (macroRequestInfo.getUserInfo() != null) {
-                scopes.add(MacroImplementation.Scope.User);
+            if ( macroRequestInfo.getUserInfo() != null )
+            {
+                scopes.add( MacroImplementation.Scope.User );
             }
         }
-        return Collections.unmodifiableSet(scopes);
+        return Collections.unmodifiableSet( scopes );
     }
 
 
@@ -216,53 +240,71 @@ public class MacroMachine {
             final Matcher matcher,
             final StringReplacer stringReplacer,
             final MacroImplementation.MacroRequestInfo macroRequestInfo
-    ) {
+    )
+    {
         final String matchedStr = matcher.group();
         final int startPos = matcher.start();
         final int endPos = matcher.end();
         String replaceStr = "";
-        try {
-            replaceStr = macroImplementation.replaceValue(matchedStr, macroRequestInfo);
-        } catch (MacroParseException e) {
-            LOGGER.debug(sessionLabel, "macro parse error replacing macro '" + matchedStr + "', error: " + e.getMessage());
-            if (pwmApplication != null) {
-                replaceStr = "[" + e.getErrorInformation().toUserStr(PwmConstants.DEFAULT_LOCALE, macroRequestInfo.getPwmApplication().getConfig()) + "]";
-            } else {
-                replaceStr = "[" + e.getErrorInformation().toUserStr(PwmConstants.DEFAULT_LOCALE, null) + "]";
+        try
+        {
+            replaceStr = macroImplementation.replaceValue( matchedStr, macroRequestInfo );
+        }
+        catch ( MacroParseException e )
+        {
+            LOGGER.debug( sessionLabel, "macro parse error replacing macro '" + matchedStr + "', error: " + e.getMessage() );
+            if ( pwmApplication != null )
+            {
+                replaceStr = "[" + e.getErrorInformation().toUserStr( PwmConstants.DEFAULT_LOCALE, macroRequestInfo.getPwmApplication().getConfig() ) + "]";
             }
-        }  catch (Exception e) {
-            LOGGER.error(sessionLabel, "error while replacing macro '" + matchedStr + "', error: " + e.getMessage());
+            else
+            {
+                replaceStr = "[" + e.getErrorInformation().toUserStr( PwmConstants.DEFAULT_LOCALE, null ) + "]";
+            }
+        }
+        catch ( Exception e )
+        {
+            LOGGER.error( sessionLabel, "error while replacing macro '" + matchedStr + "', error: " + e.getMessage() );
         }
 
-        if (replaceStr == null) {
+        if ( replaceStr == null )
+        {
             return input;
         }
 
-        if (stringReplacer != null) {
-            try {
-                replaceStr = stringReplacer.replace(matchedStr, replaceStr);
-            }  catch (Exception e) {
-                LOGGER.error(sessionLabel,"unexpected error while executing '" + matchedStr + "' during StringReplacer.replace(), error: " + e.getMessage());
+        if ( stringReplacer != null )
+        {
+            try
+            {
+                replaceStr = stringReplacer.replace( matchedStr, replaceStr );
+            }
+            catch ( Exception e )
+            {
+                LOGGER.error( sessionLabel, "unexpected error while executing '" + matchedStr + "' during StringReplacer.replace(), error: " + e.getMessage() );
             }
         }
 
-        if (replaceStr != null && replaceStr.length() > 0) {
-            final boolean sensitive = JavaHelper.enumArrayContainsValue(macroImplementation.flags(), MacroImplementation.MacroDefinitionFlag.SensitiveValue);
-            final boolean debugOnlyLogging = JavaHelper.enumArrayContainsValue(macroImplementation.flags(), MacroImplementation.MacroDefinitionFlag.OnlyDebugLogging);
-            if (!debugOnlyLogging || (pwmApplication != null && pwmApplication.getConfig().isDevDebugMode())) {
-                LOGGER.trace(sessionLabel, "replaced macro " + matchedStr + " with value: "
-                        + (sensitive ? PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT : replaceStr));
+        if ( replaceStr != null && replaceStr.length() > 0 )
+        {
+            final boolean sensitive = JavaHelper.enumArrayContainsValue( macroImplementation.flags(), MacroImplementation.MacroDefinitionFlag.SensitiveValue );
+            final boolean debugOnlyLogging = JavaHelper.enumArrayContainsValue( macroImplementation.flags(), MacroImplementation.MacroDefinitionFlag.OnlyDebugLogging );
+            if ( !debugOnlyLogging || ( pwmApplication != null && pwmApplication.getConfig().isDevDebugMode() ) )
+            {
+                LOGGER.trace( sessionLabel, "replaced macro " + matchedStr + " with value: "
+                        + ( sensitive ? PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT : replaceStr ) );
             }
         }
-        return new StringBuilder(input).replace(startPos, endPos, replaceStr).toString();
+        return new StringBuilder( input ).replace( startPos, endPos, replaceStr ).toString();
     }
 
-    public static MacroMachine forStatic() {
-        return new MacroMachine(null,null,null,null);
+    public static MacroMachine forStatic( )
+    {
+        return new MacroMachine( null, null, null, null );
     }
 
-    public interface StringReplacer {
-        String replace( String matchedMacro,  String newValue);
+    public interface StringReplacer
+    {
+        String replace( String matchedMacro, String newValue );
     }
 
     public static MacroMachine forUser(
@@ -271,7 +313,7 @@ public class MacroMachine {
     )
             throws PwmUnrecoverableException
     {
-        return forUser(pwmRequest.getPwmApplication(), pwmRequest.getLocale(), pwmRequest.getSessionLabel(),userIdentity);
+        return forUser( pwmRequest.getPwmApplication(), pwmRequest.getLocale(), pwmRequest.getSessionLabel(), userIdentity );
     }
 
     public static MacroMachine forUser(
@@ -280,8 +322,9 @@ public class MacroMachine {
             final UserInfo userInfo,
             final LoginInfoBean loginInfoBean
 
-    ) {
-        return new MacroMachine(pwmApplication, sessionLabel, userInfo, loginInfoBean);
+    )
+    {
+        return new MacroMachine( pwmApplication, sessionLabel, userInfo, loginInfoBean );
     }
 
     public static MacroMachine forUser(
@@ -292,8 +335,8 @@ public class MacroMachine {
     )
             throws PwmUnrecoverableException
     {
-        final UserInfo userInfoBean = UserInfoFactory.newUserInfoUsingProxy(pwmApplication, sessionLabel, userIdentity, userLocale);
-        return new MacroMachine(pwmApplication, sessionLabel, userInfoBean, null);
+        final UserInfo userInfoBean = UserInfoFactory.newUserInfoUsingProxy( pwmApplication, sessionLabel, userIdentity, userLocale );
+        return new MacroMachine( pwmApplication, sessionLabel, userInfoBean, null );
     }
 
     public static MacroMachine forNonUserSpecific(
@@ -302,6 +345,6 @@ public class MacroMachine {
     )
             throws PwmUnrecoverableException
     {
-        return new MacroMachine(pwmApplication, sessionLabel, null, null);
+        return new MacroMachine( pwmApplication, sessionLabel, null, null );
     }
 }

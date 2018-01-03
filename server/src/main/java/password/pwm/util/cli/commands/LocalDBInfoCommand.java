@@ -34,24 +34,27 @@ import password.pwm.util.localdb.LocalDBUtility;
 import java.time.Instant;
 import java.util.Map;
 
-public class LocalDBInfoCommand extends AbstractCliCommand {
-    public void doCommand() throws Exception {
+public class LocalDBInfoCommand extends AbstractCliCommand
+{
+    public void doCommand( ) throws Exception
+    {
         final Instant startTime = Instant.now();
         final LocalDB localDB = cliEnvironment.getLocalDB();
-        final long localDBdiskSpace = FileSystemUtility.getFileDirectorySize(localDB.getFileLocation());
-        out("beginning LocalDBInfo");
-        out("LocalDB total disk space = " + PwmNumberFormat.forDefaultLocale().format(localDBdiskSpace) + " (" + StringUtil.formatDiskSize(localDBdiskSpace) + ")");
-        out("examining LocalDB, this may take a while.... ");
-        for (final LocalDB.DB db : LocalDB.DB.values()) {
-            out("---" + db.toString() + "---");
-            final Map<LocalDBUtility.StatsKey,Object> stats = LocalDBUtility.dbStats(localDB, db);
-            out(JsonUtil.serializeMap(stats, JsonUtil.Flag.PrettyPrint));
+        final long localDBdiskSpace = FileSystemUtility.getFileDirectorySize( localDB.getFileLocation() );
+        out( "beginning LocalDBInfo" );
+        out( "LocalDB total disk space = " + PwmNumberFormat.forDefaultLocale().format( localDBdiskSpace ) + " (" + StringUtil.formatDiskSize( localDBdiskSpace ) + ")" );
+        out( "examining LocalDB, this may take a while.... " );
+        for ( final LocalDB.DB db : LocalDB.DB.values() )
+        {
+            out( "---" + db.toString() + "---" );
+            final Map<LocalDBUtility.StatsKey, Object> stats = LocalDBUtility.dbStats( localDB, db );
+            out( JsonUtil.serializeMap( stats, JsonUtil.Flag.PrettyPrint ) );
         }
-        out("completed LocalDBInfo in " + TimeDuration.fromCurrent(startTime).asCompactString());
+        out( "completed LocalDBInfo in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
     }
 
     @Override
-    public CliParameters getCliParameters()
+    public CliParameters getCliParameters( )
     {
         final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "LocalDBInfo";

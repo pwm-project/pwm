@@ -31,7 +31,8 @@ import java.util.List;
 
 @Getter
 @Setter
-class OrgChartDataBean implements Serializable {
+class OrgChartDataBean implements Serializable
+{
     private OrgChartReferenceBean parent;
     private OrgChartReferenceBean self;
     private OrgChartReferenceBean assistant;

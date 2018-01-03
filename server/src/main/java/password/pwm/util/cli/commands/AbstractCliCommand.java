@@ -31,20 +31,26 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Scanner;
 
-public abstract class AbstractCliCommand implements CliCommand {
+public abstract class AbstractCliCommand implements CliCommand
+{
     protected CliEnvironment cliEnvironment;
 
-    protected AbstractCliCommand()
+    protected AbstractCliCommand( )
     {
     }
 
-    void out(final CharSequence out) {
-        if (cliEnvironment != null && cliEnvironment.getDebugWriter() != null) {
-            try {
-                cliEnvironment.getDebugWriter().append(out);
-                cliEnvironment.getDebugWriter().append("\n");
+    void out( final CharSequence out )
+    {
+        if ( cliEnvironment != null && cliEnvironment.getDebugWriter() != null )
+        {
+            try
+            {
+                cliEnvironment.getDebugWriter().append( out );
+                cliEnvironment.getDebugWriter().append( "\n" );
                 cliEnvironment.getDebugWriter().flush();
-            } catch (IOException e) {
+            }
+            catch ( IOException e )
+            {
                 e.printStackTrace();
             }
         }
@@ -58,53 +64,65 @@ public abstract class AbstractCliCommand implements CliCommand {
     {
         this.cliEnvironment = cliEnvironment;
 
-        try {
+        try
+        {
             doCommand();
-        } catch (Exception e) {
+        }
+        catch ( Exception e )
+        {
             e.printStackTrace();
         }
     }
 
-    boolean promptForContinue(final String msg) {
-        if (cliEnvironment.getMainOptions().isForceFlag()) {
+    boolean promptForContinue( final String msg )
+    {
+        if ( cliEnvironment.getMainOptions().isForceFlag() )
+        {
             return true;
         }
-        out(msg);
-        out("");
-        out("To proceed, type 'continue'");
-        final Scanner scanner = new Scanner(System.in, Charset.defaultCharset().name());
+        out( msg );
+        out( "" );
+        out( "To proceed, type 'continue'" );
+        final Scanner scanner = new Scanner( System.in, Charset.defaultCharset().name() );
         final String input = scanner.nextLine();
 
-        if (!"continue".equalsIgnoreCase(input)) {
-            out("exiting...");
+        if ( !"continue".equalsIgnoreCase( input ) )
+        {
+            out( "exiting..." );
             return false;
         }
         return true;
     }
 
-    abstract void doCommand() throws Exception;
+    abstract void doCommand( ) throws Exception;
 
-    @SuppressFBWarnings("DM_EXIT")
-    String promptForPassword() {
+    @SuppressFBWarnings( "DM_EXIT" )
+    String promptForPassword( )
+    {
         final Console console = System.console();
-        console.writer().write("enter password:");
+        console.writer().write( "enter password:" );
         console.writer().flush();
-        final String password = new String(console.readPassword());
-        console.writer().write("verify password:");
+        final String password = new String( console.readPassword() );
+        console.writer().write( "verify password:" );
         console.writer().flush();
-        final String verify  = new String(console.readPassword());
-        if (!password.equals(verify)) {
-            out("verify password incorrect, exiting...");
-            System.exit(-1);
+        final String verify = new String( console.readPassword() );
+        if ( !password.equals( verify ) )
+        {
+            out( "verify password incorrect, exiting..." );
+            System.exit( -1 );
         }
         return password;
     }
 
-    String getOptionalPassword() {
+    String getOptionalPassword( )
+    {
         final String optionName = CliParameters.OPTIONAL_PASSWORD.getName();
-        if (cliEnvironment.getOptions().containsKey(optionName)) {
-            return (String)cliEnvironment.getOptions().get(optionName);
-        } else {
+        if ( cliEnvironment.getOptions().containsKey( optionName ) )
+        {
+            return ( String ) cliEnvironment.getOptions().get( optionName );
+        }
+        else
+        {
             return promptForPassword();
         }
     }

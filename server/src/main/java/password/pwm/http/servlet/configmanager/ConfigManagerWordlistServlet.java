@@ -60,198 +60,226 @@ import java.util.Map;
                 PwmConstants.URL_PREFIX_PRIVATE + "/config/manager/wordlists",
         }
 )
-public class ConfigManagerWordlistServlet extends AbstractPwmServlet {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(ConfigManagerWordlistServlet.class);
+public class ConfigManagerWordlistServlet extends AbstractPwmServlet
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( ConfigManagerWordlistServlet.class );
 
-    public enum ConfigManagerAction implements ProcessAction {
-        clearWordlist(HttpMethod.POST),
-        uploadWordlist(HttpMethod.POST),
-        readWordlistData(HttpMethod.POST),
-
-        ;
+    public enum ConfigManagerAction implements ProcessAction
+    {
+        clearWordlist( HttpMethod.POST ),
+        uploadWordlist( HttpMethod.POST ),
+        readWordlistData( HttpMethod.POST ),;
 
         private final HttpMethod method;
 
-        ConfigManagerAction(final HttpMethod method)
+        ConfigManagerAction( final HttpMethod method )
         {
             this.method = method;
         }
 
-        public Collection<HttpMethod> permittedMethods()
+        public Collection<HttpMethod> permittedMethods( )
         {
-            return Collections.singletonList(method);
+            return Collections.singletonList( method );
         }
     }
 
-    protected ConfigManagerAction readProcessAction(final PwmRequest request)
+    protected ConfigManagerAction readProcessAction( final PwmRequest request )
             throws PwmUnrecoverableException
     {
-        try {
-            return ConfigManagerAction.valueOf(request.readParameterAsString(PwmConstants.PARAM_ACTION_REQUEST));
-        } catch (IllegalArgumentException e) {
+        try
+        {
+            return ConfigManagerAction.valueOf( request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
+        }
+        catch ( IllegalArgumentException e )
+        {
             return null;
         }
     }
 
-    protected void processAction(final PwmRequest pwmRequest)
+    protected void processAction( final PwmRequest pwmRequest )
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {
 
-        final ConfigManagerAction processAction = readProcessAction(pwmRequest);
-        if (processAction != null) {
-            switch (processAction) {
+        final ConfigManagerAction processAction = readProcessAction( pwmRequest );
+        if ( processAction != null )
+        {
+            switch ( processAction )
+            {
                 case uploadWordlist:
-                    restUploadWordlist(pwmRequest);
+                    restUploadWordlist( pwmRequest );
                     return;
 
                 case clearWordlist:
-                    restClearWordlist(pwmRequest);
+                    restClearWordlist( pwmRequest );
                     return;
 
                 case readWordlistData:
-                    restReadWordlistData(pwmRequest);
+                    restReadWordlistData( pwmRequest );
                     return;
 
                 default:
-                    JavaHelper.unhandledSwitchStatement(processAction);
+                    JavaHelper.unhandledSwitchStatement( processAction );
             }
             return;
         }
 
-        pwmRequest.forwardToJsp(JspUrl.CONFIG_MANAGER_WORDLISTS);
+        pwmRequest.forwardToJsp( JspUrl.CONFIG_MANAGER_WORDLISTS );
     }
 
-    void restUploadWordlist(final PwmRequest pwmRequest)
+    void restUploadWordlist( final PwmRequest pwmRequest )
             throws IOException, ServletException, PwmUnrecoverableException
 
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();
-        final String wordlistTypeParam = pwmRequest.readParameterAsString("wordlist");
-        final WordlistType wordlistType = WordlistType.valueOf(wordlistTypeParam);
+        final String wordlistTypeParam = pwmRequest.readParameterAsString( "wordlist" );
+        final WordlistType wordlistType = WordlistType.valueOf( wordlistTypeParam );
 
-        if (wordlistType == null) {
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"unknown wordlist type: " + wordlistTypeParam);
-            pwmRequest.outputJsonResult(RestResultBean.fromError(errorInformation, pwmRequest));
-            LOGGER.error(pwmRequest, "error during import: " + errorInformation.toDebugStr());
+        if ( wordlistType == null )
+        {
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, "unknown wordlist type: " + wordlistTypeParam );
+            pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
+            LOGGER.error( pwmRequest, "error during import: " + errorInformation.toDebugStr() );
             return;
         }
 
-        if (!ServletFileUpload.isMultipartContent(req)) {
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"no file found in upload");
-            pwmRequest.outputJsonResult(RestResultBean.fromError(errorInformation, pwmRequest));
-            LOGGER.error(pwmRequest, "error during import: " + errorInformation.toDebugStr());
+        if ( !ServletFileUpload.isMultipartContent( req ) )
+        {
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, "no file found in upload" );
+            pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
+            LOGGER.error( pwmRequest, "error during import: " + errorInformation.toDebugStr() );
             return;
         }
 
-        final InputStream inputStream = pwmRequest.readFileUploadStream(PwmConstants.PARAM_FILE_UPLOAD);
+        final InputStream inputStream = pwmRequest.readFileUploadStream( PwmConstants.PARAM_FILE_UPLOAD );
 
-        try {
-            wordlistType.forType(pwmApplication).populate(inputStream);
-        } catch (PwmUnrecoverableException e) {
-            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_UNKNOWN, e.getMessage());
-            final RestResultBean restResultBean = RestResultBean.fromError(errorInfo, pwmRequest);
-            LOGGER.debug(pwmRequest, errorInfo.toDebugStr());
-            pwmRequest.outputJsonResult(restResultBean);
+        try
+        {
+            wordlistType.forType( pwmApplication ).populate( inputStream );
+        }
+        catch ( PwmUnrecoverableException e )
+        {
+            final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_UNKNOWN, e.getMessage() );
+            final RestResultBean restResultBean = RestResultBean.fromError( errorInfo, pwmRequest );
+            LOGGER.debug( pwmRequest, errorInfo.toDebugStr() );
+            pwmRequest.outputJsonResult( restResultBean );
             return;
         }
 
-        pwmRequest.outputJsonResult(RestResultBean.forSuccessMessage(pwmRequest, Message.Success_Unknown));
+        pwmRequest.outputJsonResult( RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown ) );
     }
 
-    void restClearWordlist(final PwmRequest pwmRequest)
+    void restClearWordlist( final PwmRequest pwmRequest )
             throws IOException, PwmUnrecoverableException
     {
-        final String wordlistTypeParam = pwmRequest.readParameterAsString("wordlist");
-        final WordlistType wordlistType = WordlistType.valueOf(wordlistTypeParam);
+        final String wordlistTypeParam = pwmRequest.readParameterAsString( "wordlist" );
+        final WordlistType wordlistType = WordlistType.valueOf( wordlistTypeParam );
 
-        if (wordlistType == null) {
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"unknown wordlist type: " + wordlistTypeParam);
-            pwmRequest.outputJsonResult(RestResultBean.fromError(errorInformation, pwmRequest));
-            LOGGER.error(pwmRequest, "error during clear: " + errorInformation.toDebugStr());
+        if ( wordlistType == null )
+        {
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, "unknown wordlist type: " + wordlistTypeParam );
+            pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
+            LOGGER.error( pwmRequest, "error during clear: " + errorInformation.toDebugStr() );
             return;
         }
 
-        try {
-            wordlistType.forType(pwmRequest.getPwmApplication()).clear();
-        } catch (Exception e) {
-            LOGGER.error("error clearing wordlist " + wordlistType + ", error: " + e.getMessage());
+        try
+        {
+            wordlistType.forType( pwmRequest.getPwmApplication() ).clear();
+        }
+        catch ( Exception e )
+        {
+            LOGGER.error( "error clearing wordlist " + wordlistType + ", error: " + e.getMessage() );
         }
 
-        pwmRequest.outputJsonResult(RestResultBean.forSuccessMessage(pwmRequest, Message.Success_Unknown));
+        pwmRequest.outputJsonResult( RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown ) );
     }
 
-    void restReadWordlistData(final PwmRequest pwmRequest)
+    void restReadWordlistData( final PwmRequest pwmRequest )
             throws IOException
     {
-        final LinkedHashMap<WordlistType,WordlistDataBean> outputData = new LinkedHashMap<>();
-        final NumberFormat numberFormat = NumberFormat.getInstance(pwmRequest.getLocale());
+        final LinkedHashMap<WordlistType, WordlistDataBean> outputData = new LinkedHashMap<>();
+        final NumberFormat numberFormat = NumberFormat.getInstance( pwmRequest.getLocale() );
 
-        for (final WordlistType wordlistType : WordlistType.values()) {
-            final Wordlist wordlist = wordlistType.forType(pwmRequest.getPwmApplication());
+        for ( final WordlistType wordlistType : WordlistType.values() )
+        {
+            final Wordlist wordlist = wordlistType.forType( pwmRequest.getPwmApplication() );
             final StoredWordlistDataBean storedWordlistDataBean = wordlist.readMetadata();
-            final WordlistConfiguration wordlistConfiguration = wordlistType.forType(pwmRequest.getPwmApplication()).getConfiguration();
+            final WordlistConfiguration wordlistConfiguration = wordlistType.forType( pwmRequest.getPwmApplication() ).getConfiguration();
 
             final WordlistDataBean wordlistDataBean = new WordlistDataBean();
             {
                 final Map<String, String> presentableValues = new LinkedHashMap<>();
-                presentableValues.put("Population Status", storedWordlistDataBean.isCompleted() ? "Completed" : "In-Progress");
-                presentableValues.put("List Source", storedWordlistDataBean.getSource() == null
+                presentableValues.put( "Population Status", storedWordlistDataBean.isCompleted() ? "Completed" : "In-Progress" );
+                presentableValues.put( "List Source", storedWordlistDataBean.getSource() == null
                         ? StoredWordlistDataBean.Source.BuiltIn.getLabel()
-                        : storedWordlistDataBean.getSource().getLabel());
-                if (wordlistConfiguration.getAutoImportUrl() != null) {
-                    presentableValues.put("Configured Source URL", wordlistConfiguration.getAutoImportUrl());
+                        : storedWordlistDataBean.getSource().getLabel() );
+                if ( wordlistConfiguration.getAutoImportUrl() != null )
+                {
+                    presentableValues.put( "Configured Source URL", wordlistConfiguration.getAutoImportUrl() );
                 }
 
-                if (storedWordlistDataBean.isCompleted()) {
-                    presentableValues.put("Word Count", numberFormat.format(storedWordlistDataBean.getSize()));
-                    if (StoredWordlistDataBean.Source.BuiltIn != storedWordlistDataBean.getSource()) {
-                        presentableValues.put("Population Timestamp", JavaHelper.toIsoDate(storedWordlistDataBean.getStoreDate()));
+                if ( storedWordlistDataBean.isCompleted() )
+                {
+                    presentableValues.put( "Word Count", numberFormat.format( storedWordlistDataBean.getSize() ) );
+                    if ( StoredWordlistDataBean.Source.BuiltIn != storedWordlistDataBean.getSource() )
+                    {
+                        presentableValues.put( "Population Timestamp", JavaHelper.toIsoDate( storedWordlistDataBean.getStoreDate() ) );
                     }
-                    presentableValues.put("SHA1 Checksum Hash", storedWordlistDataBean.getSha1hash());
+                    presentableValues.put( "SHA1 Checksum Hash", storedWordlistDataBean.getSha1hash() );
                 }
-                if (wordlist.getAutoImportError() != null) {
-                    presentableValues.put("Error During Import", wordlist.getAutoImportError().getDetailedErrorMsg());
-                    presentableValues.put("Last Import Attempt", JavaHelper.toIsoDate(wordlist.getAutoImportError().getDate()));
+                if ( wordlist.getAutoImportError() != null )
+                {
+                    presentableValues.put( "Error During Import", wordlist.getAutoImportError().getDetailedErrorMsg() );
+                    presentableValues.put( "Last Import Attempt", JavaHelper.toIsoDate( wordlist.getAutoImportError().getDate() ) );
                 }
-                wordlistDataBean.getPresentableData().putAll(presentableValues);
+                wordlistDataBean.getPresentableData().putAll( presentableValues );
             }
 
-            if (storedWordlistDataBean.isCompleted()) {
-                if (wordlistConfiguration.getAutoImportUrl() == null) {
-                    wordlistDataBean.setAllowUpload(true);
+            if ( storedWordlistDataBean.isCompleted() )
+            {
+                if ( wordlistConfiguration.getAutoImportUrl() == null )
+                {
+                    wordlistDataBean.setAllowUpload( true );
                 }
-                if (wordlistConfiguration.getAutoImportUrl() != null || storedWordlistDataBean.getSource() != StoredWordlistDataBean.Source.BuiltIn) {
-                    wordlistDataBean.setAllowClear(true);
+                if ( wordlistConfiguration.getAutoImportUrl() != null || storedWordlistDataBean.getSource() != StoredWordlistDataBean.Source.BuiltIn )
+                {
+                    wordlistDataBean.setAllowClear( true );
                 }
             }
-            outputData.put(wordlistType,wordlistDataBean);
+            outputData.put( wordlistType, wordlistDataBean );
         }
-        pwmRequest.outputJsonResult(RestResultBean.withData(outputData));
+        pwmRequest.outputJsonResult( RestResultBean.withData( outputData ) );
     }
 
-    public static class WordlistDataBean implements Serializable {
-        private Map<String,String> presentableData = new LinkedHashMap<>();
+    public static class WordlistDataBean implements Serializable
+    {
+        private Map<String, String> presentableData = new LinkedHashMap<>();
         private boolean allowUpload;
         private boolean allowClear;
 
-        public Map<String, String> getPresentableData() {
+        public Map<String, String> getPresentableData( )
+        {
             return presentableData;
         }
 
-        public boolean isAllowUpload() {
+        public boolean isAllowUpload( )
+        {
             return allowUpload;
         }
 
-        public void setAllowUpload(final boolean allowUpload) {
+        public void setAllowUpload( final boolean allowUpload )
+        {
             this.allowUpload = allowUpload;
         }
 
-        public boolean isAllowClear() {
+        public boolean isAllowClear( )
+        {
             return allowClear;
         }
 
-        public void setAllowClear(final boolean allowClear) {
+        public void setAllowClear( final boolean allowClear )
+        {
             this.allowClear = allowClear;
         }
     }

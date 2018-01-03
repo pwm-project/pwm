@@ -27,11 +27,12 @@ import password.pwm.PwmConstants;
 import javax.servlet.annotation.WebServlet;
 
 @WebServlet(
-        name="PrivateChangePasswordServlet",
-        urlPatterns={
+        name = "PrivateChangePasswordServlet",
+        urlPatterns = {
                 PwmConstants.URL_PREFIX_PRIVATE + "/changepassword",
                 PwmConstants.URL_PREFIX_PRIVATE + "/ChangePassword",
         }
 )
-public class PrivateChangePasswordServlet extends ChangePasswordServlet {
+public class PrivateChangePasswordServlet extends ChangePasswordServlet
+{
 }

@@ -22,10 +22,12 @@
 
 package password.pwm.i18n;
 
-public abstract class Error implements PwmDisplayBundle {
+public abstract class Error implements PwmDisplayBundle
+{
 
     @Override
-    public String getKey() {
+    public String getKey( )
+    {
         return this.toString();
 
     }

@@ -24,7 +24,8 @@ package password.pwm.http.servlet.configeditor;
 
 import java.io.Serializable;
 
-public class LocaleInfo implements Serializable {
+public class LocaleInfo implements Serializable
+{
     public String description;
     public String key;
     public boolean adminOnly;

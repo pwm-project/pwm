@@ -24,43 +24,45 @@ package password.pwm.util.cli.commands;
 
 import password.pwm.PwmApplication;
 import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.java.TimeDuration;
 import password.pwm.util.cli.CliParameters;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.TimeDuration;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Collections;
 import java.util.Locale;
 
-public class ExportStatsCommand extends AbstractCliCommand {
+public class ExportStatsCommand extends AbstractCliCommand
+{
 
     @Override
-    void doCommand()
+    void doCommand( )
             throws Exception
     {
         final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
         final StatisticsManager statsManger = pwmApplication.getStatisticsManager();
-        JavaHelper.pause(1000);
+        JavaHelper.pause( 1000 );
 
-        final File outputFile = (File)cliEnvironment.getOptions().get(CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName());
+        final File outputFile = ( File ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName() );
         final long startTime = System.currentTimeMillis();
-        out("beginning output to " + outputFile.getAbsolutePath());
+        out( "beginning output to " + outputFile.getAbsolutePath() );
         final int counter;
-        try (FileOutputStream fileOutputStream = new FileOutputStream(outputFile, true)) {
-            counter = statsManger.outputStatsToCsv(fileOutputStream, Locale.getDefault(), true);
+        try ( FileOutputStream fileOutputStream = new FileOutputStream( outputFile, true ) )
+        {
+            counter = statsManger.outputStatsToCsv( fileOutputStream, Locale.getDefault(), true );
             fileOutputStream.close();
         }
-        out("completed writing " + counter + " rows of stats output in " + TimeDuration.fromCurrent(startTime).asLongString());
+        out( "completed writing " + counter + " rows of stats output in " + TimeDuration.fromCurrent( startTime ).asLongString() );
     }
 
     @Override
-    public CliParameters getCliParameters()
+    public CliParameters getCliParameters( )
     {
         final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "ExportStats";
         cliParameters.description = "Dump all statistics in the LocalDB to a csv file";
-        cliParameters.options = Collections.singletonList(CliParameters.REQUIRED_NEW_OUTPUT_FILE);
+        cliParameters.options = Collections.singletonList( CliParameters.REQUIRED_NEW_OUTPUT_FILE );
 
         cliParameters.needsPwmApplication = true;
         cliParameters.readOnly = true;

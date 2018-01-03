@@ -35,46 +35,51 @@ import java.io.Writer;
 import java.util.Collections;
 import java.util.Iterator;
 
-public class ExportLogsCommand extends AbstractCliCommand {
+public class ExportLogsCommand extends AbstractCliCommand
+{
 
     @Override
-    void doCommand()
+    void doCommand( )
             throws Exception
     {
         final LocalDB localDB = this.cliEnvironment.getLocalDB();
-        final LocalDBStoredQueue logQueue = LocalDBStoredQueue.createLocalDBStoredQueue(null, localDB,
-                LocalDB.DB.EVENTLOG_EVENTS);
+        final LocalDBStoredQueue logQueue = LocalDBStoredQueue.createLocalDBStoredQueue( null, localDB,
+                LocalDB.DB.EVENTLOG_EVENTS );
 
-        if (logQueue.isEmpty()) {
-            out("no logs present");
+        if ( logQueue.isEmpty() )
+        {
+            out( "no logs present" );
             return;
         }
 
-        final File outputFile = (File)cliEnvironment.getOptions().get(CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName());
-        out("outputting " + logQueue.size() + " log events to " + outputFile.getAbsolutePath() + "....");
+        final File outputFile = ( File ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName() );
+        out( "outputting " + logQueue.size() + " log events to " + outputFile.getAbsolutePath() + "...." );
 
-        try (Writer outputWriter = new OutputStreamWriter(new FileOutputStream(outputFile), PwmConstants.DEFAULT_CHARSET)) {
-            for (final Iterator<String> iter = logQueue.descendingIterator(); iter.hasNext(); ) {
+        try ( Writer outputWriter = new OutputStreamWriter( new FileOutputStream( outputFile ), PwmConstants.DEFAULT_CHARSET ) )
+        {
+            for ( final Iterator<String> iter = logQueue.descendingIterator(); iter.hasNext(); )
+            {
                 final String loopString = iter.next();
-                final PwmLogEvent logEvent = PwmLogEvent.fromEncodedString(loopString);
-                if (logEvent != null) {
-                    outputWriter.write(logEvent.toLogString());
-                    outputWriter.write("\n");
+                final PwmLogEvent logEvent = PwmLogEvent.fromEncodedString( loopString );
+                if ( logEvent != null )
+                {
+                    outputWriter.write( logEvent.toLogString() );
+                    outputWriter.write( "\n" );
                 }
             }
         }
 
-        out("output complete");
+        out( "output complete" );
 
     }
 
     @Override
-    public CliParameters getCliParameters()
+    public CliParameters getCliParameters( )
     {
         final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "ExportLogs";
         cliParameters.description = "Export all logs in the LocalDB";
-        cliParameters.options = Collections.singletonList(CliParameters.REQUIRED_NEW_OUTPUT_FILE);
+        cliParameters.options = Collections.singletonList( CliParameters.REQUIRED_NEW_OUTPUT_FILE );
 
         cliParameters.needsLocalDB = true;
         cliParameters.readOnly = true;

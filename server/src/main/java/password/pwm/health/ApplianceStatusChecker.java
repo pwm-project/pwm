@@ -47,113 +47,134 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class ApplianceStatusChecker implements HealthChecker {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(ApplianceStatusChecker.class);
+public class ApplianceStatusChecker implements HealthChecker
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( ApplianceStatusChecker.class );
 
-    private static class UpdateStatus implements Serializable {
+    private static class UpdateStatus implements Serializable
+    {
         boolean pendingInstallation;
         boolean autoUpdatesEnabled;
         boolean updateServiceConfigured;
     }
 
     @Override
-    public List<HealthRecord> doHealthCheck(final PwmApplication pwmApplication) {
-        final boolean isApplianceAvailable = pwmApplication.getPwmEnvironment().getFlags().contains(PwmEnvironment.ApplicationFlag.Appliance);
+    public List<HealthRecord> doHealthCheck( final PwmApplication pwmApplication )
+    {
+        final boolean isApplianceAvailable = pwmApplication.getPwmEnvironment().getFlags().contains( PwmEnvironment.ApplicationFlag.Appliance );
 
-        if (!isApplianceAvailable) {
+        if ( !isApplianceAvailable )
+        {
             return Collections.emptyList();
         }
 
         final List<HealthRecord> healthRecords = new ArrayList<>();
 
-        try {
-            healthRecords.addAll(readApplianceHealthStatus(pwmApplication));
-        } catch (Exception e) {
-            LOGGER.error(SessionLabel.HEALTH_SESSION_LABEL, "error communicating with client " + e.getMessage());
+        try
+        {
+            healthRecords.addAll( readApplianceHealthStatus( pwmApplication ) );
+        }
+        catch ( Exception e )
+        {
+            LOGGER.error( SessionLabel.HEALTH_SESSION_LABEL, "error communicating with client " + e.getMessage() );
         }
 
         return healthRecords;
     }
 
-    private List<HealthRecord> readApplianceHealthStatus(final PwmApplication pwmApplication) throws IOException, PwmUnrecoverableException, PwmOperationalException {
+    private List<HealthRecord> readApplianceHealthStatus( final PwmApplication pwmApplication ) throws IOException, PwmUnrecoverableException, PwmOperationalException
+    {
         final List<HealthRecord> healthRecords = new ArrayList<>();
 
-        final String url = figureUrl(pwmApplication);
-        final Map<String,String> requestHeaders = Collections.singletonMap("sspr-authorization-token", getApplianceAccessToken(pwmApplication));
+        final String url = figureUrl( pwmApplication );
+        final Map<String, String> requestHeaders = Collections.singletonMap( "sspr-authorization-token", getApplianceAccessToken( pwmApplication ) );
 
         final PwmHttpClientConfiguration pwmHttpClientConfiguration = PwmHttpClientConfiguration.builder()
-                .promiscuous(true)
+                .promiscuous( true )
                 .build();
 
-        final PwmHttpClient pwmHttpClient = new PwmHttpClient(pwmApplication, SessionLabel.HEALTH_SESSION_LABEL, pwmHttpClientConfiguration);
-        final PwmHttpClientRequest pwmHttpClientRequest = new PwmHttpClientRequest(HttpMethod.GET, url, null, requestHeaders);
-        final PwmHttpClientResponse response = pwmHttpClient.makeRequest(pwmHttpClientRequest);
+        final PwmHttpClient pwmHttpClient = new PwmHttpClient( pwmApplication, SessionLabel.HEALTH_SESSION_LABEL, pwmHttpClientConfiguration );
+        final PwmHttpClientRequest pwmHttpClientRequest = new PwmHttpClientRequest( HttpMethod.GET, url, null, requestHeaders );
+        final PwmHttpClientResponse response = pwmHttpClient.makeRequest( pwmHttpClientRequest );
 
-        LOGGER.trace(SessionLabel.HEALTH_SESSION_LABEL, "https response from appliance server request: " + response.getBody());
+        LOGGER.trace( SessionLabel.HEALTH_SESSION_LABEL, "https response from appliance server request: " + response.getBody() );
 
         final String jsonString = response.getBody();
 
-        LOGGER.debug("response from /sspr/appliance-update-status: " + jsonString);
+        LOGGER.debug( "response from /sspr/appliance-update-status: " + jsonString );
 
-        final UpdateStatus updateStatus = JsonUtil.deserialize(jsonString, UpdateStatus.class);
+        final UpdateStatus updateStatus = JsonUtil.deserialize( jsonString, UpdateStatus.class );
 
-        if (updateStatus.pendingInstallation) {
-            healthRecords.add(HealthRecord.forMessage(HealthMessage.Appliance_PendingUpdates));
+        if ( updateStatus.pendingInstallation )
+        {
+            healthRecords.add( HealthRecord.forMessage( HealthMessage.Appliance_PendingUpdates ) );
         }
 
-        if (!updateStatus.autoUpdatesEnabled) {
-            healthRecords.add(HealthRecord.forMessage(HealthMessage.Appliance_UpdatesNotEnabled));
+        if ( !updateStatus.autoUpdatesEnabled )
+        {
+            healthRecords.add( HealthRecord.forMessage( HealthMessage.Appliance_UpdatesNotEnabled ) );
         }
 
-        if (!updateStatus.updateServiceConfigured) {
-            healthRecords.add(HealthRecord.forMessage(HealthMessage.Appliance_UpdateServiceNotConfigured));
+        if ( !updateStatus.updateServiceConfigured )
+        {
+            healthRecords.add( HealthRecord.forMessage( HealthMessage.Appliance_UpdateServiceNotConfigured ) );
         }
 
         return healthRecords;
 
     }
 
-    private String getApplianceAccessToken(final PwmApplication pwmApplication) throws IOException, PwmOperationalException {
-        final String tokenFile = pwmApplication.getPwmEnvironment().getParameters().get(PwmEnvironment.ApplicationParameter.ApplianceTokenFile);
-        if (StringUtil.isEmpty(tokenFile)) {
+    private String getApplianceAccessToken( final PwmApplication pwmApplication ) throws IOException, PwmOperationalException
+    {
+        final String tokenFile = pwmApplication.getPwmEnvironment().getParameters().get( PwmEnvironment.ApplicationParameter.ApplianceTokenFile );
+        if ( StringUtil.isEmpty( tokenFile ) )
+        {
             final String msg = "unable to determine appliance token, token file environment param "
                     + PwmEnvironment.ApplicationParameter.ApplianceTokenFile.toString() + " is not set";
-            throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_UNKNOWN, msg));
+            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_UNKNOWN, msg ) );
         }
-        final String fileInput = readFileContents(tokenFile);
-        if (fileInput != null) {
+        final String fileInput = readFileContents( tokenFile );
+        if ( fileInput != null )
+        {
             return fileInput.trim();
         }
         return "";
     }
 
-    private String figureUrl(final PwmApplication pwmApplication) throws IOException, PwmOperationalException {
-        final String hostnameFile = pwmApplication.getPwmEnvironment().getParameters().get(PwmEnvironment.ApplicationParameter.ApplianceHostnameFile);
-        if (StringUtil.isEmpty(hostnameFile)) {
+    private String figureUrl( final PwmApplication pwmApplication ) throws IOException, PwmOperationalException
+    {
+        final String hostnameFile = pwmApplication.getPwmEnvironment().getParameters().get( PwmEnvironment.ApplicationParameter.ApplianceHostnameFile );
+        if ( StringUtil.isEmpty( hostnameFile ) )
+        {
             final String msg = "unable to determine appliance hostname, hostname file environment param "
                     + PwmEnvironment.ApplicationParameter.ApplianceHostnameFile.toString() + " is not set";
-            throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_UNKNOWN, msg));
+            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_UNKNOWN, msg ) );
         }
 
-        final String hostname = readFileContents(hostnameFile);
-        final String port = pwmApplication.getPwmEnvironment().getParameters().get(PwmEnvironment.ApplicationParameter.AppliancePort);
+        final String hostname = readFileContents( hostnameFile );
+        final String port = pwmApplication.getPwmEnvironment().getParameters().get( PwmEnvironment.ApplicationParameter.AppliancePort );
 
         final String url = "https://" + hostname + ":" + port + "/sspr/appliance-update-status";
-        LOGGER.trace(SessionLabel.HEALTH_SESSION_LABEL, "calculated appliance host url as: " + url);
+        LOGGER.trace( SessionLabel.HEALTH_SESSION_LABEL, "calculated appliance host url as: " + url );
         return url;
     }
 
-    private String readFileContents(final String filename) throws PwmOperationalException {
-        try {
-            final String fileInput = FileUtils.readFileToString(new File(filename));
-            if (fileInput != null) {
+    private String readFileContents( final String filename ) throws PwmOperationalException
+    {
+        try
+        {
+            final String fileInput = FileUtils.readFileToString( new File( filename ) );
+            if ( fileInput != null )
+            {
                 final String trimmedStr = fileInput.trim();
-                return trimmedStr.replace("\n", "");
+                return trimmedStr.replace( "\n", "" );
             }
             return "";
-        } catch (IOException e) {
+        }
+        catch ( IOException e )
+        {
             final String msg = "unable to read contents of file '" + filename + "', error: " + e.getMessage();
-            throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_UNKNOWN, msg), e);
+            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_UNKNOWN, msg ), e );
         }
     }
 }

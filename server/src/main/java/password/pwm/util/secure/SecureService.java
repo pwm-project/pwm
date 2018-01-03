@@ -38,78 +38,88 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.List;
 
-public class SecureService implements PwmService {
+public class SecureService implements PwmService
+{
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass(SecureService.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass( SecureService.class );
 
     private PwmSecurityKey pwmSecurityKey;
     private PwmBlockAlgorithm defaultBlockAlgorithm;
     private PwmHashAlgorithm defaultHashAlgorithm;
 
     @Override
-    public STATUS status() {
+    public STATUS status( )
+    {
         return STATUS.OPEN;
     }
 
     @Override
-    public void init(final PwmApplication pwmApplication) throws PwmException {
+    public void init( final PwmApplication pwmApplication ) throws PwmException
+    {
         final Configuration config = pwmApplication.getConfig();
         pwmSecurityKey = config.getSecurityKey();
         {
-            final String defaultBlockAlgString = config.readAppProperty(AppProperty.SECURITY_DEFAULT_EPHEMERAL_BLOCK_ALG);
-            defaultBlockAlgorithm = JavaHelper.readEnumFromString(PwmBlockAlgorithm.class, PwmBlockAlgorithm.AES, defaultBlockAlgString);
-            LOGGER.debug("using default ephemeral block algorithm: "+ defaultBlockAlgorithm.getLabel());
+            final String defaultBlockAlgString = config.readAppProperty( AppProperty.SECURITY_DEFAULT_EPHEMERAL_BLOCK_ALG );
+            defaultBlockAlgorithm = JavaHelper.readEnumFromString( PwmBlockAlgorithm.class, PwmBlockAlgorithm.AES, defaultBlockAlgString );
+            LOGGER.debug( "using default ephemeral block algorithm: " + defaultBlockAlgorithm.getLabel() );
         }
         {
-            final String defaultHashAlgString = config.readAppProperty(AppProperty.SECURITY_DEFAULT_EPHEMERAL_HASH_ALG);
-            defaultHashAlgorithm = JavaHelper.readEnumFromString(PwmHashAlgorithm.class, PwmHashAlgorithm.SHA512, defaultHashAlgString);
-            LOGGER.debug("using default ephemeral hash algorithm: "+ defaultHashAlgString.toString());
+            final String defaultHashAlgString = config.readAppProperty( AppProperty.SECURITY_DEFAULT_EPHEMERAL_HASH_ALG );
+            defaultHashAlgorithm = JavaHelper.readEnumFromString( PwmHashAlgorithm.class, PwmHashAlgorithm.SHA512, defaultHashAlgString );
+            LOGGER.debug( "using default ephemeral hash algorithm: " + defaultHashAlgString.toString() );
         }
     }
 
     @Override
-    public void close() {
+    public void close( )
+    {
 
     }
 
     @Override
-    public List<HealthRecord> healthCheck() {
+    public List<HealthRecord> healthCheck( )
+    {
         return null;
     }
 
     @Override
-    public ServiceInfoBean serviceInfo() {
+    public ServiceInfoBean serviceInfo( )
+    {
         return null;
     }
 
-    public PwmBlockAlgorithm getDefaultBlockAlgorithm() {
+    public PwmBlockAlgorithm getDefaultBlockAlgorithm( )
+    {
         return defaultBlockAlgorithm;
     }
 
-    public PwmHashAlgorithm getDefaultHashAlgorithm() {
+    public PwmHashAlgorithm getDefaultHashAlgorithm( )
+    {
         return defaultHashAlgorithm;
     }
 
-    public String encryptToString(final String value)
+    public String encryptToString( final String value )
             throws PwmUnrecoverableException
     {
-        return SecureEngine.encryptToString(value, pwmSecurityKey, defaultBlockAlgorithm, SecureEngine.Flag.URL_SAFE);
+        return SecureEngine.encryptToString( value, pwmSecurityKey, defaultBlockAlgorithm, SecureEngine.Flag.URL_SAFE );
     }
 
-    public String encryptToString(final String value, final PwmSecurityKey securityKey)
+    public String encryptToString( final String value, final PwmSecurityKey securityKey )
             throws PwmUnrecoverableException
     {
-        return SecureEngine.encryptToString(value, securityKey, defaultBlockAlgorithm, SecureEngine.Flag.URL_SAFE);
+        return SecureEngine.encryptToString( value, securityKey, defaultBlockAlgorithm, SecureEngine.Flag.URL_SAFE );
     }
 
-    public String encryptObjectToString(final Serializable serializableObject) throws PwmUnrecoverableException {
-        final String jsonValue = JsonUtil.serialize(serializableObject);
-        return encryptToString(jsonValue);
+    public String encryptObjectToString( final Serializable serializableObject ) throws PwmUnrecoverableException
+    {
+        final String jsonValue = JsonUtil.serialize( serializableObject );
+        return encryptToString( jsonValue );
     }
 
-    public String encryptObjectToString(final Serializable serializableObject, final PwmSecurityKey securityKey) throws PwmUnrecoverableException {
-        final String jsonValue = JsonUtil.serialize(serializableObject);
-        return encryptToString(jsonValue, securityKey);
+    public String encryptObjectToString( final Serializable serializableObject, final PwmSecurityKey securityKey ) throws PwmUnrecoverableException
+    {
+        final String jsonValue = JsonUtil.serialize( serializableObject );
+        return encryptToString( jsonValue, securityKey );
     }
 
     public String decryptStringValue(
@@ -117,7 +127,7 @@ public class SecureService implements PwmService {
     )
             throws PwmUnrecoverableException
     {
-        return SecureEngine.decryptStringValue(value, pwmSecurityKey, defaultBlockAlgorithm, SecureEngine.Flag.URL_SAFE);
+        return SecureEngine.decryptStringValue( value, pwmSecurityKey, defaultBlockAlgorithm, SecureEngine.Flag.URL_SAFE );
     }
 
     public String decryptStringValue(
@@ -126,17 +136,19 @@ public class SecureService implements PwmService {
     )
             throws PwmUnrecoverableException
     {
-        return SecureEngine.decryptStringValue(value, securityKey, defaultBlockAlgorithm, SecureEngine.Flag.URL_SAFE);
+        return SecureEngine.decryptStringValue( value, securityKey, defaultBlockAlgorithm, SecureEngine.Flag.URL_SAFE );
     }
 
-    public <T extends Serializable> T decryptObject(final String value, final Class<T> returnClass) throws PwmUnrecoverableException {
-        final String decryptedValue = decryptStringValue(value);
-        return JsonUtil.deserialize(decryptedValue, returnClass);
+    public <T extends Serializable> T decryptObject( final String value, final Class<T> returnClass ) throws PwmUnrecoverableException
+    {
+        final String decryptedValue = decryptStringValue( value );
+        return JsonUtil.deserialize( decryptedValue, returnClass );
     }
 
-    public <T extends Serializable> T decryptObject(final String value, final PwmSecurityKey securityKey, final Class<T> returnClass) throws PwmUnrecoverableException {
-        final String decryptedValue = decryptStringValue(value, securityKey);
-        return JsonUtil.deserialize(decryptedValue, returnClass);
+    public <T extends Serializable> T decryptObject( final String value, final PwmSecurityKey securityKey, final Class<T> returnClass ) throws PwmUnrecoverableException
+    {
+        final String decryptedValue = decryptStringValue( value, securityKey );
+        return JsonUtil.deserialize( decryptedValue, returnClass );
     }
 
     public String hash(
@@ -144,7 +156,7 @@ public class SecureService implements PwmService {
     )
             throws PwmUnrecoverableException
     {
-        return SecureEngine.hash(input, defaultHashAlgorithm);
+        return SecureEngine.hash( input, defaultHashAlgorithm );
     }
 
     public String hash(
@@ -152,7 +164,7 @@ public class SecureService implements PwmService {
     )
             throws PwmUnrecoverableException
     {
-        return SecureEngine.hash(input, defaultHashAlgorithm);
+        return SecureEngine.hash( input, defaultHashAlgorithm );
     }
 
     public String hash(
@@ -160,6 +172,6 @@ public class SecureService implements PwmService {
     )
             throws IOException, PwmUnrecoverableException
     {
-        return SecureEngine.hash(file, defaultHashAlgorithm);
+        return SecureEngine.hash( file, defaultHashAlgorithm );
     }
 }

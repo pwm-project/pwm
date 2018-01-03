@@ -36,49 +36,60 @@ import javax.servlet.jsp.tagext.TagSupport;
 import java.io.IOException;
 import java.time.Instant;
 
-public class PwmFormIDTag extends TagSupport {
+public class PwmFormIDTag extends TagSupport
+{
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass(PwmFormIDTag.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass( PwmFormIDTag.class );
 
-    private static String buildPwmFormID(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
-        if (pwmRequest == null || pwmRequest.getPwmApplication() == null) {
+    private static String buildPwmFormID( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
+    {
+        if ( pwmRequest == null || pwmRequest.getPwmApplication() == null )
+        {
             return "";
         }
 
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        if (pwmApplication == null) {
+        if ( pwmApplication == null )
+        {
             return "";
         }
         final SessionStateService sessionStateService = pwmApplication.getSessionStateService();
-        final String value = sessionStateService.getSessionStateInfo(pwmRequest);
+        final String value = sessionStateService.getSessionStateInfo( pwmRequest );
         final FormNonce formID = new FormNonce(
                 pwmRequest.getPwmSession().getLoginInfoBean().getGuid(),
                 Instant.now(),
                 pwmRequest.getPwmSession().getLoginInfoBean().getReqCounter(),
                 value
         );
-        return pwmRequest.getPwmApplication().getSecureService().encryptObjectToString(formID);
+        return pwmRequest.getPwmApplication().getSecureService().encryptObjectToString( formID );
     }
 
-    public int doEndTag()
+    public int doEndTag( )
             throws javax.servlet.jsp.JspTagException
     {
-        if (PwmApplicationMode.determineMode((HttpServletRequest) pageContext.getRequest()) == PwmApplicationMode.ERROR) {
+        if ( PwmApplicationMode.determineMode( ( HttpServletRequest ) pageContext.getRequest() ) == PwmApplicationMode.ERROR )
+        {
             return EVAL_PAGE;
         }
 
-        try {
-            final PwmRequest pwmRequest = JspUtility.getPwmRequest(pageContext);
-            final String pwmFormID = buildPwmFormID(pwmRequest);
+        try
+        {
+            final PwmRequest pwmRequest = JspUtility.getPwmRequest( pageContext );
+            final String pwmFormID = buildPwmFormID( pwmRequest );
 
-            pageContext.getOut().write(pwmFormID);
-        } catch (Exception e) {
-            try {
-                pageContext.getOut().write("errorGeneratingPwmFormID");
-            } catch (IOException e1) {
+            pageContext.getOut().write( pwmFormID );
+        }
+        catch ( Exception e )
+        {
+            try
+            {
+                pageContext.getOut().write( "errorGeneratingPwmFormID" );
+            }
+            catch ( IOException e1 )
+            {
                 /* ignore */
             }
-            LOGGER.error("error during pwmFormIDTag output of pwmFormID: " + e.getMessage(), e);
+            LOGGER.error( "error during pwmFormIDTag output of pwmFormID: " + e.getMessage(), e );
         }
         return EVAL_PAGE;
     }

@@ -35,24 +35,29 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeMap;
 
-public abstract class StoredConfigurationUtil {
+public abstract class StoredConfigurationUtil
+{
     public static List<String> profilesForSetting
-            (final PwmSetting pwmSetting,
-             final StoredConfiguration storedConfiguration
+            ( final PwmSetting pwmSetting,
+              final StoredConfiguration storedConfiguration
             )
     {
-        if (!pwmSetting.getCategory().hasProfiles() && pwmSetting.getSyntax() != PwmSettingSyntax.PROFILE) {
-            throw new IllegalArgumentException("cannot build profile list for non-profile setting " + pwmSetting.toString());
+        if ( !pwmSetting.getCategory().hasProfiles() && pwmSetting.getSyntax() != PwmSettingSyntax.PROFILE )
+        {
+            throw new IllegalArgumentException( "cannot build profile list for non-profile setting " + pwmSetting.toString() );
         }
 
         final PwmSetting profileSetting;
-        if (pwmSetting.getSyntax() == PwmSettingSyntax.PROFILE) {
+        if ( pwmSetting.getSyntax() == PwmSettingSyntax.PROFILE )
+        {
             profileSetting = pwmSetting;
-        } else {
+        }
+        else
+        {
             profileSetting = pwmSetting.getCategory().getProfileSetting();
         }
 
-        return profilesForProfileSetting(profileSetting, storedConfiguration);
+        return profilesForProfileSetting( profileSetting, storedConfiguration );
     }
 
     public static List<String> profilesForCategory(
@@ -62,7 +67,7 @@ public abstract class StoredConfigurationUtil {
     {
         final PwmSetting profileSetting = category.getProfileSetting();
 
-        return profilesForProfileSetting(profileSetting, storedConfiguration);
+        return profilesForProfileSetting( profileSetting, storedConfiguration );
     }
 
     private static List<String> profilesForProfileSetting(
@@ -70,62 +75,74 @@ public abstract class StoredConfigurationUtil {
             final StoredConfiguration storedConfiguration
     )
     {
-        if (!pwmSetting.getCategory().hasProfiles() && pwmSetting.getSyntax() != PwmSettingSyntax.PROFILE) {
-            throw new IllegalArgumentException("cannot build profile list for non-profile setting " + pwmSetting.toString());
+        if ( !pwmSetting.getCategory().hasProfiles() && pwmSetting.getSyntax() != PwmSettingSyntax.PROFILE )
+        {
+            throw new IllegalArgumentException( "cannot build profile list for non-profile setting " + pwmSetting.toString() );
         }
 
         final PwmSetting profileSetting;
-        if (pwmSetting.getSyntax() == PwmSettingSyntax.PROFILE) {
+        if ( pwmSetting.getSyntax() == PwmSettingSyntax.PROFILE )
+        {
             profileSetting = pwmSetting;
-        } else {
+        }
+        else
+        {
             profileSetting = pwmSetting.getCategory().getProfileSetting();
         }
 
-        final Object nativeObject = storedConfiguration.readSetting(profileSetting).toNativeObject();
-        final List<String> settingValues = (List<String>)nativeObject;
+        final Object nativeObject = storedConfiguration.readSetting( profileSetting ).toNativeObject();
+        final List<String> settingValues = ( List<String> ) nativeObject;
         final LinkedList<String> profiles = new LinkedList<>();
-        profiles.addAll(settingValues);
-        for (final Iterator<String> iterator = profiles.iterator(); iterator.hasNext(); ) {
+        profiles.addAll( settingValues );
+        for ( final Iterator<String> iterator = profiles.iterator(); iterator.hasNext(); )
+        {
             final String profile = iterator.next();
-            if (profile == null || profile.length() < 1) {
+            if ( profile == null || profile.length() < 1 )
+            {
                 iterator.remove();
             }
         }
-        return Collections.unmodifiableList(profiles);
+        return Collections.unmodifiableList( profiles );
 
     }
 
 
-
-
-
-    public static List<StoredConfigReference> modifiedSettings(final StoredConfiguration storedConfiguration) {
+    public static List<StoredConfigReference> modifiedSettings( final StoredConfiguration storedConfiguration )
+    {
         final List<StoredConfigReference> returnObj = new ArrayList<>();
 
-        for (final PwmSetting setting : PwmSetting.values()) {
-            if (setting.getSyntax() != PwmSettingSyntax.PROFILE && !setting.getCategory().hasProfiles()) {
-                if (!storedConfiguration.isDefaultValue(setting, null)) {
+        for ( final PwmSetting setting : PwmSetting.values() )
+        {
+            if ( setting.getSyntax() != PwmSettingSyntax.PROFILE && !setting.getCategory().hasProfiles() )
+            {
+                if ( !storedConfiguration.isDefaultValue( setting, null ) )
+                {
                     final StoredConfigReference storedConfigReference = new StoredConfigReferenceBean(
                             StoredConfigReference.RecordType.SETTING,
                             setting.getKey(),
                             null
                     );
-                    returnObj.add(storedConfigReference);
+                    returnObj.add( storedConfigReference );
                 }
             }
         }
 
-        for (final PwmSettingCategory category : PwmSettingCategory.values()) {
-            if (category.hasProfiles()) {
-                for (final String profileID : profilesForSetting(category.getProfileSetting(), storedConfiguration)) {
-                    for (final PwmSetting setting : category.getSettings()) {
-                        if (!storedConfiguration.isDefaultValue(setting, profileID)) {
+        for ( final PwmSettingCategory category : PwmSettingCategory.values() )
+        {
+            if ( category.hasProfiles() )
+            {
+                for ( final String profileID : profilesForSetting( category.getProfileSetting(), storedConfiguration ) )
+                {
+                    for ( final PwmSetting setting : category.getSettings() )
+                    {
+                        if ( !storedConfiguration.isDefaultValue( setting, profileID ) )
+                        {
                             final StoredConfigReference storedConfigReference = new StoredConfigReferenceBean(
                                     StoredConfigReference.RecordType.SETTING,
                                     setting.getKey(),
                                     profileID
                             );
-                            returnObj.add(storedConfigReference);
+                            returnObj.add( storedConfigReference );
                         }
                     }
                 }
@@ -135,15 +152,17 @@ public abstract class StoredConfigurationUtil {
         return returnObj;
     }
 
-    public static Serializable toJsonDebugObject(final StoredConfiguration storedConfiguration)
+    public static Serializable toJsonDebugObject( final StoredConfiguration storedConfiguration )
     {
-        final TreeMap<String,Object> outputObject = new TreeMap<>();
+        final TreeMap<String, Object> outputObject = new TreeMap<>();
 
-        for (final StoredConfigReference storedConfigReference : modifiedSettings(storedConfiguration)) {
-            final PwmSetting setting = PwmSetting.forKey(storedConfigReference.getRecordID());
-            if (setting != null) {
-                final StoredValue value = storedConfiguration.readSetting(setting, storedConfigReference.getProfileID());
-                outputObject.put(setting.getKey(), value.toDebugJsonObject(null));
+        for ( final StoredConfigReference storedConfigReference : modifiedSettings( storedConfiguration ) )
+        {
+            final PwmSetting setting = PwmSetting.forKey( storedConfigReference.getRecordID() );
+            if ( setting != null )
+            {
+                final StoredValue value = storedConfiguration.readSetting( setting, storedConfigReference.getProfileID() );
+                outputObject.put( setting.getKey(), value.toDebugJsonObject( null ) );
             }
         }
         return outputObject;

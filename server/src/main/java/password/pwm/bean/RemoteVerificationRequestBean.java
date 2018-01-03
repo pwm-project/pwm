@@ -27,32 +27,39 @@ import password.pwm.bean.pub.PublicUserInfoBean;
 import java.io.Serializable;
 import java.util.Map;
 
-public class RemoteVerificationRequestBean implements Serializable {
+public class RemoteVerificationRequestBean implements Serializable
+{
     private String responseSessionID;
     private PublicUserInfoBean userInfo;
     private Map<String, String> userResponses;
 
-    public String getResponseSessionID() {
+    public String getResponseSessionID( )
+    {
         return responseSessionID;
     }
 
-    public void setResponseSessionID(final String responseSessionID) {
+    public void setResponseSessionID( final String responseSessionID )
+    {
         this.responseSessionID = responseSessionID;
     }
 
-    public PublicUserInfoBean getUserInfo() {
+    public PublicUserInfoBean getUserInfo( )
+    {
         return userInfo;
     }
 
-    public void setUserInfo(final PublicUserInfoBean userInfo) {
+    public void setUserInfo( final PublicUserInfoBean userInfo )
+    {
         this.userInfo = userInfo;
     }
 
-    public Map<String, String> getUserResponses() {
+    public Map<String, String> getUserResponses( )
+    {
         return userResponses;
     }
 
-    public void setUserResponses(final Map<String, String> userResponses) {
+    public void setUserResponses( final Map<String, String> userResponses )
+    {
         this.userResponses = userResponses;
     }
 }

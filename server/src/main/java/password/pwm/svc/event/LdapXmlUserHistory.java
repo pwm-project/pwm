@@ -35,12 +35,12 @@ import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 import password.pwm.PwmApplication;
 import password.pwm.bean.UserIdentity;
-import password.pwm.ldap.UserInfo;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.ldap.UserInfo;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.IOException;
@@ -56,9 +56,10 @@ import java.util.List;
  *
  * @author Jason D. Rivard
  */
-class LdapXmlUserHistory implements UserHistoryStore {
+class LdapXmlUserHistory implements UserHistoryStore
+{
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass(LdapXmlUserHistory.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass( LdapXmlUserHistory.class );
 
     private static final String XML_ATTR_TIMESTAMP = "timestamp";
     private static final String XML_ATTR_TRANSACTION = "eventCode";
@@ -71,41 +72,49 @@ class LdapXmlUserHistory implements UserHistoryStore {
 
     private final PwmApplication pwmApplication;
 
-    LdapXmlUserHistory(final PwmApplication pwmApplication) {
+    LdapXmlUserHistory( final PwmApplication pwmApplication )
+    {
         this.pwmApplication = pwmApplication;
     }
 
-    public void updateUserHistory(final UserAuditRecord auditRecord)
+    public void updateUserHistory( final UserAuditRecord auditRecord )
             throws PwmUnrecoverableException
     {
-        try {
-            updateUserHistoryImpl(auditRecord);
-        } catch (ChaiUnavailableException e) {
-            throw new PwmUnrecoverableException(PwmError.forChaiError(e.getErrorCode()));
+        try
+        {
+            updateUserHistoryImpl( auditRecord );
+        }
+        catch ( ChaiUnavailableException e )
+        {
+            throw new PwmUnrecoverableException( PwmError.forChaiError( e.getErrorCode() ) );
         }
     }
 
-    private void updateUserHistoryImpl(final UserAuditRecord auditRecord)
+    private void updateUserHistoryImpl( final UserAuditRecord auditRecord )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
         // user info
         final UserIdentity userIdentity;
-        if (auditRecord instanceof HelpdeskAuditRecord && auditRecord.getType() == AuditEvent.Type.HELPDESK) {
-            final HelpdeskAuditRecord helpdeskAuditRecord = (HelpdeskAuditRecord)auditRecord;
-            userIdentity = new UserIdentity(helpdeskAuditRecord.getTargetDN(),helpdeskAuditRecord.getTargetLdapProfile());
-        } else {
-            userIdentity = new UserIdentity(auditRecord.getPerpetratorDN(),auditRecord.getPerpetratorLdapProfile());
+        if ( auditRecord instanceof HelpdeskAuditRecord && auditRecord.getType() == AuditEvent.Type.HELPDESK )
+        {
+            final HelpdeskAuditRecord helpdeskAuditRecord = ( HelpdeskAuditRecord ) auditRecord;
+            userIdentity = new UserIdentity( helpdeskAuditRecord.getTargetDN(), helpdeskAuditRecord.getTargetLdapProfile() );
         }
-        final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userIdentity);
+        else
+        {
+            userIdentity = new UserIdentity( auditRecord.getPerpetratorDN(), auditRecord.getPerpetratorLdapProfile() );
+        }
+        final ChaiUser theUser = pwmApplication.getProxiedChaiUser( userIdentity );
 
         // settings
         final String corRecordIdentifer = COR_RECORD_ID;
-        final LdapProfile ldapProfile = userIdentity.getLdapProfile(pwmApplication.getConfig());
-        final String corAttribute = ldapProfile.readSettingAsString(PwmSetting.EVENTS_LDAP_ATTRIBUTE);
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmApplication.getConfig() );
+        final String corAttribute = ldapProfile.readSettingAsString( PwmSetting.EVENTS_LDAP_ATTRIBUTE );
 
         // quit if settings no good;
-        if (corAttribute == null || corAttribute.length() < 1) {
-            LOGGER.debug("no user event log attribute configured, skipping write of log data");
+        if ( corAttribute == null || corAttribute.length() < 1 )
+        {
+            LOGGER.debug( "no user event log attribute configured, skipping write of log data" );
             return;
         }
 
@@ -113,53 +122,68 @@ class LdapXmlUserHistory implements UserHistoryStore {
         final StoredHistory storedHistory;
         final ConfigObjectRecord theCor;
         final List corList;
-        try {
-            corList = ConfigObjectRecord.readRecordFromLDAP(theUser, corAttribute, corRecordIdentifer, null, null);
-        } catch (Exception e) {
+        try
+        {
+            corList = ConfigObjectRecord.readRecordFromLDAP( theUser, corAttribute, corRecordIdentifer, null, null );
+        }
+        catch ( Exception e )
+        {
             final String errorMsg = "error reading LDAP user event history for user " + userIdentity.toDisplayString() + ", error: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-            LOGGER.error(errorInformation.toDebugStr(),e);
-            throw new PwmUnrecoverableException(errorInformation, e);
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            LOGGER.error( errorInformation.toDebugStr(), e );
+            throw new PwmUnrecoverableException( errorInformation, e );
         }
 
-        try {
-            if (!corList.isEmpty()) {
-                theCor = (ConfigObjectRecord) corList.get(0);
-            } else {
-                theCor = ConfigObjectRecord.createNew(theUser, corAttribute, corRecordIdentifer, null, null);
+        try
+        {
+            if ( !corList.isEmpty() )
+            {
+                theCor = ( ConfigObjectRecord ) corList.get( 0 );
+            }
+            else
+            {
+                theCor = ConfigObjectRecord.createNew( theUser, corAttribute, corRecordIdentifer, null, null );
             }
 
-            storedHistory = StoredHistory.fromXml(theCor.getPayload());
-        } catch (Exception e) {
-            LOGGER.error("ldap error writing user event log: " + e.getMessage());
+            storedHistory = StoredHistory.fromXml( theCor.getPayload() );
+        }
+        catch ( Exception e )
+        {
+            LOGGER.error( "ldap error writing user event log: " + e.getMessage() );
             return;
         }
 
         // add next record to blob
-        final StoredEvent storedEvent = StoredEvent.fromAuditRecord(auditRecord);
-        storedHistory.addEvent(storedEvent);
+        final StoredEvent storedEvent = StoredEvent.fromAuditRecord( auditRecord );
+        storedHistory.addEvent( storedEvent );
 
         // trim the blob.
-        final int maxUserEvents = (int) pwmApplication.getConfig().readSettingAsLong(PwmSetting.EVENTS_LDAP_MAX_EVENTS);
-        storedHistory.trim(maxUserEvents);
+        final int maxUserEvents = ( int ) pwmApplication.getConfig().readSettingAsLong( PwmSetting.EVENTS_LDAP_MAX_EVENTS );
+        storedHistory.trim( maxUserEvents );
 
         // write the blob.
-        try {
-            theCor.updatePayload(storedHistory.toXml());
-        } catch (ChaiOperationException e) {
-            LOGGER.error("ldap error writing user event log: " + e.getMessage());
+        try
+        {
+            theCor.updatePayload( storedHistory.toXml() );
+        }
+        catch ( ChaiOperationException e )
+        {
+            LOGGER.error( "ldap error writing user event log: " + e.getMessage() );
         }
     }
 
-    public List<UserAuditRecord> readUserHistory(final UserInfo userInfo)
+    public List<UserAuditRecord> readUserHistory( final UserInfo userInfo )
             throws PwmUnrecoverableException
     {
-        try {
-            final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userInfo.getUserIdentity());
-            final StoredHistory storedHistory = readUserHistory(pwmApplication, userInfo.getUserIdentity(), theUser);
-            return storedHistory.asAuditRecords(userInfo);
-        } catch (ChaiUnavailableException e) {
-            throw new PwmUnrecoverableException(PwmError.forChaiError(e.getErrorCode()));
+        try
+        {
+            final ChaiUser theUser = pwmApplication.getProxiedChaiUser( userInfo.getUserIdentity() );
+            final StoredHistory storedHistory = readUserHistory( pwmApplication, userInfo.getUserIdentity(), theUser );
+            return storedHistory.asAuditRecords( userInfo );
+        }
+        catch ( ChaiUnavailableException e )
+        {
+            throw new PwmUnrecoverableException( PwmError.forChaiError( e.getErrorCode() ) );
         }
     }
 
@@ -170,105 +194,129 @@ class LdapXmlUserHistory implements UserHistoryStore {
     )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
-        final LdapProfile ldapProfile = userIdentity.getLdapProfile(pwmApplication.getConfig());
-        final String corAttribute = ldapProfile.readSettingAsString(PwmSetting.EVENTS_LDAP_ATTRIBUTE);
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmApplication.getConfig() );
+        final String corAttribute = ldapProfile.readSettingAsString( PwmSetting.EVENTS_LDAP_ATTRIBUTE );
 
-        if (corAttribute == null || corAttribute.length() < 1) {
-            LOGGER.trace("no user event log attribute configured, skipping read of log data");
+        if ( corAttribute == null || corAttribute.length() < 1 )
+        {
+            LOGGER.trace( "no user event log attribute configured, skipping read of log data" );
             return new StoredHistory();
         }
 
-        try {
-            final List corList = ConfigObjectRecord.readRecordFromLDAP(chaiUser, corAttribute, COR_RECORD_ID, null, null);
+        try
+        {
+            final List corList = ConfigObjectRecord.readRecordFromLDAP( chaiUser, corAttribute, COR_RECORD_ID, null, null );
 
-            if (!corList.isEmpty()) {
-                final ConfigObjectRecord theCor = (ConfigObjectRecord) corList.get(0);
-                return StoredHistory.fromXml(theCor.getPayload());
+            if ( !corList.isEmpty() )
+            {
+                final ConfigObjectRecord theCor = ( ConfigObjectRecord ) corList.get( 0 );
+                return StoredHistory.fromXml( theCor.getPayload() );
             }
-        } catch (ChaiOperationException e) {
-            LOGGER.error("ldap error reading user event log: " + e.getMessage());
+        }
+        catch ( ChaiOperationException e )
+        {
+            LOGGER.error( "ldap error reading user event log: " + e.getMessage() );
         }
         return new StoredHistory();
     }
 
-    private static class StoredHistory {
+    private static class StoredHistory
+    {
         private final LinkedList<StoredEvent> records = new LinkedList<>();
 
-        void addEvent(final StoredEvent storedEvent) {
-            records.add(storedEvent);
+        void addEvent( final StoredEvent storedEvent )
+        {
+            records.add( storedEvent );
         }
 
-        public void trim(final int size) {
-            while (records.size() > size) {
+        public void trim( final int size )
+        {
+            while ( records.size() > size )
+            {
                 records.removeFirst();
             }
         }
 
-        List<UserAuditRecord> asAuditRecords(final UserInfo userInfoBean) {
+        List<UserAuditRecord> asAuditRecords( final UserInfo userInfoBean )
+        {
             final List<UserAuditRecord> returnList = new LinkedList<>();
-            for (final StoredEvent loopEvent : records) {
-                returnList.add(loopEvent.asAuditRecord(userInfoBean));
+            for ( final StoredEvent loopEvent : records )
+            {
+                returnList.add( loopEvent.asAuditRecord( userInfoBean ) );
             }
-            return Collections.unmodifiableList(returnList);
+            return Collections.unmodifiableList( returnList );
         }
 
-        String toXml() {
-            final Element rootElement = new Element(XML_NODE_ROOT);
+        String toXml( )
+        {
+            final Element rootElement = new Element( XML_NODE_ROOT );
 
-            for (final StoredEvent loopEvent : records) {
-                if (loopEvent.getAuditEvent() != null) {
-                    final Element hrElement = new Element(XML_NODE_RECORD);
-                    hrElement.setAttribute(XML_ATTR_TIMESTAMP, String.valueOf(loopEvent.getTimestamp()));
-                    hrElement.setAttribute(XML_ATTR_TRANSACTION, loopEvent.getAuditEvent().getMessage().getKey());
-                    if (loopEvent.getSourceAddress() != null && loopEvent.getSourceAddress().length() > 0) {
-                        hrElement.setAttribute(XML_ATTR_SRC_IP,loopEvent.getSourceAddress());
+            for ( final StoredEvent loopEvent : records )
+            {
+                if ( loopEvent.getAuditEvent() != null )
+                {
+                    final Element hrElement = new Element( XML_NODE_RECORD );
+                    hrElement.setAttribute( XML_ATTR_TIMESTAMP, String.valueOf( loopEvent.getTimestamp() ) );
+                    hrElement.setAttribute( XML_ATTR_TRANSACTION, loopEvent.getAuditEvent().getMessage().getKey() );
+                    if ( loopEvent.getSourceAddress() != null && loopEvent.getSourceAddress().length() > 0 )
+                    {
+                        hrElement.setAttribute( XML_ATTR_SRC_IP, loopEvent.getSourceAddress() );
                     }
-                    if (loopEvent.getSourceHost() != null && loopEvent.getSourceHost().length() > 0) {
-                        hrElement.setAttribute(XML_ATTR_SRC_HOST,loopEvent.getSourceHost());
+                    if ( loopEvent.getSourceHost() != null && loopEvent.getSourceHost().length() > 0 )
+                    {
+                        hrElement.setAttribute( XML_ATTR_SRC_HOST, loopEvent.getSourceHost() );
                     }
-                    if (loopEvent.getMessage() != null) {
-                        hrElement.setContent(new CDATA(loopEvent.getMessage()));
+                    if ( loopEvent.getMessage() != null )
+                    {
+                        hrElement.setContent( new CDATA( loopEvent.getMessage() ) );
                     }
-                    rootElement.addContent(hrElement);
+                    rootElement.addContent( hrElement );
                 }
             }
 
-            final Document doc = new Document(rootElement);
+            final Document doc = new Document( rootElement );
             final XMLOutputter outputter = new XMLOutputter();
-            outputter.setFormat(Format.getCompactFormat());
-            return outputter.outputString(doc);
+            outputter.setFormat( Format.getCompactFormat() );
+            return outputter.outputString( doc );
         }
 
-        static StoredHistory fromXml(final String input) {
+        static StoredHistory fromXml( final String input )
+        {
             final StoredHistory returnHistory = new StoredHistory();
 
-            if (input == null || input.length() < 1) {
+            if ( input == null || input.length() < 1 )
+            {
                 return returnHistory;
             }
 
-            try {
+            try
+            {
                 final SAXBuilder builder = new SAXBuilder();
-                final Document doc = builder.build(new StringReader(input));
+                final Document doc = builder.build( new StringReader( input ) );
                 final Element rootElement = doc.getRootElement();
 
-                for (final Element hrElement : rootElement.getChildren(XML_NODE_RECORD)) {
-                    final long timeStamp = hrElement.getAttribute(XML_ATTR_TIMESTAMP).getLongValue();
-                    final String transactionCode = hrElement.getAttribute(XML_ATTR_TRANSACTION).getValue();
-                    final AuditEvent eventCode = AuditEvent.forKey(transactionCode);
-                    final String srcAddr = hrElement.getAttribute(XML_ATTR_SRC_IP) != null ? hrElement.getAttribute(XML_ATTR_SRC_IP).getValue() : "";
-                    final String srcHost = hrElement.getAttribute(XML_ATTR_SRC_HOST) != null ? hrElement.getAttribute(XML_ATTR_SRC_HOST).getValue() : "";
+                for ( final Element hrElement : rootElement.getChildren( XML_NODE_RECORD ) )
+                {
+                    final long timeStamp = hrElement.getAttribute( XML_ATTR_TIMESTAMP ).getLongValue();
+                    final String transactionCode = hrElement.getAttribute( XML_ATTR_TRANSACTION ).getValue();
+                    final AuditEvent eventCode = AuditEvent.forKey( transactionCode );
+                    final String srcAddr = hrElement.getAttribute( XML_ATTR_SRC_IP ) != null ? hrElement.getAttribute( XML_ATTR_SRC_IP ).getValue() : "";
+                    final String srcHost = hrElement.getAttribute( XML_ATTR_SRC_HOST ) != null ? hrElement.getAttribute( XML_ATTR_SRC_HOST ).getValue() : "";
                     final String message = hrElement.getText();
-                    final StoredEvent storedEvent = new StoredEvent(eventCode,timeStamp,message,srcAddr,srcHost);
-                    returnHistory.addEvent(storedEvent);
+                    final StoredEvent storedEvent = new StoredEvent( eventCode, timeStamp, message, srcAddr, srcHost );
+                    returnHistory.addEvent( storedEvent );
                 }
-            } catch (JDOMException | IOException e) {
-                LOGGER.error("error parsing user event history record: " + e.getMessage());
+            }
+            catch ( JDOMException | IOException e )
+            {
+                LOGGER.error( "error parsing user event history record: " + e.getMessage() );
             }
             return returnHistory;
         }
     }
 
-    private static class StoredEvent implements Serializable {
+    private static class StoredEvent implements Serializable
+    {
         private AuditEvent auditEvent;
         private long timestamp;
         private String message;
@@ -276,7 +324,8 @@ class LdapXmlUserHistory implements UserHistoryStore {
         private String sourceHost;
 
 
-        private StoredEvent(final AuditEvent auditEvent, final long timestamp, final String message, final String sourceAddress, final String sourceHost) {
+        private StoredEvent( final AuditEvent auditEvent, final long timestamp, final String message, final String sourceAddress, final String sourceHost )
+        {
             this.auditEvent = auditEvent;
             this.timestamp = timestamp;
             this.message = message;
@@ -284,27 +333,33 @@ class LdapXmlUserHistory implements UserHistoryStore {
             this.sourceHost = sourceHost;
         }
 
-        AuditEvent getAuditEvent() {
+        AuditEvent getAuditEvent( )
+        {
             return auditEvent;
         }
 
-        public long getTimestamp() {
+        public long getTimestamp( )
+        {
             return timestamp;
         }
 
-        public String getMessage() {
+        public String getMessage( )
+        {
             return message;
         }
 
-        String getSourceAddress() {
+        String getSourceAddress( )
+        {
             return sourceAddress;
         }
 
-        String getSourceHost() {
+        String getSourceHost( )
+        {
             return sourceHost;
         }
 
-        static StoredEvent fromAuditRecord(final UserAuditRecord auditRecord) {
+        static StoredEvent fromAuditRecord( final UserAuditRecord auditRecord )
+        {
             return new StoredEvent(
                     auditRecord.getEventCode(),
                     auditRecord.getTimestamp().toEpochMilli(),
@@ -314,9 +369,10 @@ class LdapXmlUserHistory implements UserHistoryStore {
             );
         }
 
-        UserAuditRecord asAuditRecord(final UserInfo userInfoBean) {
+        UserAuditRecord asAuditRecord( final UserInfo userInfoBean )
+        {
             return new UserAuditRecord(
-                    Instant.ofEpochMilli(this.getTimestamp()),
+                    Instant.ofEpochMilli( this.getTimestamp() ),
                     this.getAuditEvent(),
                     null,
                     null,

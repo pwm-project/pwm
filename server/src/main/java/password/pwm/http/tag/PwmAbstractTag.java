@@ -27,6 +27,7 @@ import javax.servlet.jsp.tagext.TagSupport;
 /**
  * @author Jason D. Rivard
  */
-public abstract class PwmAbstractTag extends TagSupport {
+public abstract class PwmAbstractTag extends TagSupport
+{
 }
 

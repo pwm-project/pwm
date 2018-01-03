@@ -39,11 +39,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-public abstract class AbstractPwmFilter implements Filter {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(AbstractPwmFilter.class);
+public abstract class AbstractPwmFilter implements Filter
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( AbstractPwmFilter.class );
 
     @Override
-    public void init(final FilterConfig filterConfig)
+    public void init( final FilterConfig filterConfig )
             throws ServletException
     {
     }
@@ -56,67 +57,83 @@ public abstract class AbstractPwmFilter implements Filter {
     )
             throws IOException, ServletException
     {
-        final HttpServletRequest req = (HttpServletRequest)servletRequest;
-        final HttpServletResponse resp = (HttpServletResponse)servletResponse;
-        final PwmApplicationMode mode = PwmApplicationMode.determineMode(req);
+        final HttpServletRequest req = ( HttpServletRequest ) servletRequest;
+        final HttpServletResponse resp = ( HttpServletResponse ) servletResponse;
+        final PwmApplicationMode mode = PwmApplicationMode.determineMode( req );
 
         final boolean interested;
-        try {
-            final PwmURL pwmURL = new PwmURL(req);
-            interested = isInterested(mode, pwmURL);
-        } catch (Exception e) {
-            LOGGER.error("unexpected error processing filter chain during isInterested(): " + e.getMessage(), e);
-            resp.sendError(500,"unexpected error processing filter chain during isInterested");
+        try
+        {
+            final PwmURL pwmURL = new PwmURL( req );
+            interested = isInterested( mode, pwmURL );
+        }
+        catch ( Exception e )
+        {
+            LOGGER.error( "unexpected error processing filter chain during isInterested(): " + e.getMessage(), e );
+            resp.sendError( 500, "unexpected error processing filter chain during isInterested" );
             return;
         }
 
-        if (interested) {
+        if ( interested )
+        {
             PwmRequest pwmRequest = null;
-            try {
-                pwmRequest = PwmRequest.forRequest(req, resp);
-            } catch (PwmException e) {
-                final PwmURL pwmURL = new PwmURL(req);
-                if (pwmURL.isResourceURL()) {
-                    filterChain.doFilter(req,resp);
+            try
+            {
+                pwmRequest = PwmRequest.forRequest( req, resp );
+            }
+            catch ( PwmException e )
+            {
+                final PwmURL pwmURL = new PwmURL( req );
+                if ( pwmURL.isResourceURL() )
+                {
+                    filterChain.doFilter( req, resp );
                     return;
                 }
 
-                LOGGER.error(pwmRequest, "unexpected error processing filter chain: " + e.getMessage(), e);
+                LOGGER.error( pwmRequest, "unexpected error processing filter chain: " + e.getMessage(), e );
             }
 
-            try {
-                final PwmFilterChain pwmFilterChain = new PwmFilterChain(servletRequest, servletResponse, filterChain);
-                processFilter(mode, pwmRequest, pwmFilterChain);
-            } catch (PwmException e) {
-                LOGGER.error(pwmRequest, "unexpected error processing filter chain: " + e.getMessage(), e);
-            } catch (IOException e) {
-                LOGGER.debug(pwmRequest, "i/o error processing request: " + e.getMessage());
+            try
+            {
+                final PwmFilterChain pwmFilterChain = new PwmFilterChain( servletRequest, servletResponse, filterChain );
+                processFilter( mode, pwmRequest, pwmFilterChain );
+            }
+            catch ( PwmException e )
+            {
+                LOGGER.error( pwmRequest, "unexpected error processing filter chain: " + e.getMessage(), e );
+            }
+            catch ( IOException e )
+            {
+                LOGGER.debug( pwmRequest, "i/o error processing request: " + e.getMessage() );
             }
 
-        } else {
-            filterChain.doFilter(req, resp);
+        }
+        else
+        {
+            filterChain.doFilter( req, resp );
         }
 
     }
 
     abstract void processFilter(
-             PwmApplicationMode mode,
-             PwmRequest pwmRequest,
-             PwmFilterChain filterChain
+            PwmApplicationMode mode,
+            PwmRequest pwmRequest,
+            PwmFilterChain filterChain
     )
             throws PwmException, IOException, ServletException;
 
     abstract boolean isInterested(
-             PwmApplicationMode mode,
-             PwmURL pwmURL
+            PwmApplicationMode mode,
+            PwmURL pwmURL
     );
 
     @Override
-    public void destroy()
+    public void destroy( )
     {
     }
 
-    public static class PwmFilterChain {
+    public static class PwmFilterChain
+    {
         private final ServletRequest servletRequest;
         private final ServletResponse servletResponse;
         private final FilterChain filterChain;
@@ -132,19 +149,19 @@ public abstract class AbstractPwmFilter implements Filter {
             this.filterChain = filterChain;
         }
 
-        void doFilter()
+        void doFilter( )
                 throws IOException, ServletException
         {
-            filterChain.doFilter(servletRequest,servletResponse);
+            filterChain.doFilter( servletRequest, servletResponse );
         }
 
-        void doFilter(final HttpServletResponse newResponse)
+        void doFilter( final HttpServletResponse newResponse )
                 throws IOException, ServletException
         {
-            filterChain.doFilter(servletRequest,servletResponse);
+            filterChain.doFilter( servletRequest, servletResponse );
         }
 
-        ServletResponse getServletResponse()
+        ServletResponse getServletResponse( )
         {
             return servletResponse;
         }

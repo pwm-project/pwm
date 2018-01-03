@@ -27,17 +27,18 @@ import password.pwm.util.cli.MainClass;
 
 import java.util.Collections;
 
-public class HelpCommand extends AbstractCliCommand {
+public class HelpCommand extends AbstractCliCommand
+{
 
-    void doCommand()
+    void doCommand( )
             throws Exception
     {
-        out(MainClass.helpTextFromCommands(MainClass.COMMANDS.values()));
+        out( MainClass.helpTextFromCommands( MainClass.COMMANDS.values() ) );
     }
 
 
     @Override
-    public CliParameters getCliParameters()
+    public CliParameters getCliParameters( )
     {
         final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "Help";

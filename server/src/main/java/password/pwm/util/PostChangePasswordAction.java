@@ -27,8 +27,9 @@ import password.pwm.http.PwmSession;
 
 import java.io.Serializable;
 
-public interface PostChangePasswordAction extends Serializable {
-    String getLabel();
+public interface PostChangePasswordAction extends Serializable
+{
+    String getLabel( );
 
-    boolean doAction(PwmSession pwmSession, String newPassword) throws PwmUnrecoverableException;
+    boolean doAction( PwmSession pwmSession, String newPassword ) throws PwmUnrecoverableException;
 }

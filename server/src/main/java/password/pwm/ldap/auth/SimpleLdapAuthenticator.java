@@ -8,7 +8,8 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
 
-public class SimpleLdapAuthenticator {
+public class SimpleLdapAuthenticator
+{
     public static AuthenticationResult authenticateUser(
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
@@ -25,15 +26,21 @@ public class SimpleLdapAuthenticator {
         );
 
         final AuthenticationResult authResult;
-        try {
-            authResult = authEngine.authenticateUser(password);
-        } catch (ChaiUnavailableException e) {
-            throw PwmUnrecoverableException.fromChaiException(e);
-        } catch (PwmOperationalException e) {
-            throw new PwmUnrecoverableException(e.getErrorInformation());
+        try
+        {
+            authResult = authEngine.authenticateUser( password );
+        }
+        catch ( ChaiUnavailableException e )
+        {
+            throw PwmUnrecoverableException.fromChaiException( e );
+        }
+        catch ( PwmOperationalException e )
+        {
+            throw new PwmUnrecoverableException( e.getErrorInformation() );
         }
 
-        if (authResult.getAuthenticationType() == AuthenticationType.AUTHENTICATED) {
+        if ( authResult.getAuthenticationType() == AuthenticationType.AUTHENTICATED )
+        {
             return authResult;
         }
 

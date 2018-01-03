@@ -22,7 +22,8 @@
 
 package password.pwm.config.option;
 
-public enum DataStorageMethod implements ConfigurationOption {
+public enum DataStorageMethod implements ConfigurationOption
+{
     AUTO,
     DB,
     LDAP,

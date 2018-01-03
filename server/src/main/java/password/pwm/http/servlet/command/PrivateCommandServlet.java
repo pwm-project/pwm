@@ -27,7 +27,7 @@ import password.pwm.PwmConstants;
 import javax.servlet.annotation.WebServlet;
 
 @WebServlet(
-        name="PrivateCommandServlet",
+        name = "PrivateCommandServlet",
         urlPatterns = {
                 PwmConstants.URL_PREFIX_PRIVATE + "/command",
                 PwmConstants.URL_PREFIX_PRIVATE + "/command/*",
@@ -35,5 +35,6 @@ import javax.servlet.annotation.WebServlet;
                 PwmConstants.URL_PREFIX_PRIVATE + "/CommandServlet/*",
         }
 )
-public class PrivateCommandServlet extends CommandServlet {
+public class PrivateCommandServlet extends CommandServlet
+{
 }

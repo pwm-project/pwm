@@ -26,12 +26,12 @@ import com.google.gson.JsonSyntaxException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmApplication;
 import password.pwm.bean.UserIdentity;
-import password.pwm.ldap.UserInfo;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.ldap.LdapOperationsHelper;
+import password.pwm.ldap.UserInfo;
 import password.pwm.svc.PwmService;
 import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.JsonUtil;
@@ -43,9 +43,10 @@ import password.pwm.util.secure.SecureService;
 import java.util.Collections;
 import java.util.List;
 
-public class UserCacheService implements PwmService {
+public class UserCacheService implements PwmService
+{
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass(UserCacheService.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass( UserCacheService.class );
 
     private CacheStoreWrapper cacheStore;
     private STATUS status;
@@ -53,203 +54,235 @@ public class UserCacheService implements PwmService {
     private PwmApplication pwmApplication;
 
 
-    public STATUS status() {
+    public STATUS status( )
+    {
         return status;
     }
 
-    public UserCacheRecord updateUserCache(final UserInfo userInfo)
+    public UserCacheRecord updateUserCache( final UserInfo userInfo )
             throws PwmUnrecoverableException
     {
-        final StorageKey storageKey = StorageKey.fromUserInfo(userInfo, pwmApplication);
+        final StorageKey storageKey = StorageKey.fromUserInfo( userInfo, pwmApplication );
 
         boolean preExisting = false;
-        try {
-            UserCacheRecord userCacheRecord = readStorageKey(storageKey);
-            if (userCacheRecord == null) {
+        try
+        {
+            UserCacheRecord userCacheRecord = readStorageKey( storageKey );
+            if ( userCacheRecord == null )
+            {
                 userCacheRecord = new UserCacheRecord();
-            } else {
+            }
+            else
+            {
                 preExisting = true;
             }
-            userCacheRecord.addUiBeanData(userInfo);
-            store(userCacheRecord);
+            userCacheRecord.addUiBeanData( userInfo );
+            store( userCacheRecord );
             return userCacheRecord;
-        } catch (LocalDBException e) {
-            LOGGER.error("unable to store user status cache to localdb: " + e.getMessage());
         }
-        LOGGER.trace("updateCache: " + (preExisting?"updated existing":"created new") + " user cache for " + userInfo.getUserIdentity() + " user key " + storageKey.getKey());
+        catch ( LocalDBException e )
+        {
+            LOGGER.error( "unable to store user status cache to localdb: " + e.getMessage() );
+        }
+        LOGGER.trace( "updateCache: " + ( preExisting ? "updated existing" : "created new" ) + " user cache for "
+                + userInfo.getUserIdentity() + " user key " + storageKey.getKey() );
         return null;
     }
 
-    public UserCacheRecord readStorageKey(final StorageKey storageKey) throws LocalDBException {
-        return cacheStore.read(storageKey);
+    public UserCacheRecord readStorageKey( final StorageKey storageKey ) throws LocalDBException
+    {
+        return cacheStore.read( storageKey );
     }
 
-    public boolean removeStorageKey(final StorageKey storageKey)
+    public boolean removeStorageKey( final StorageKey storageKey )
             throws LocalDBException
     {
-        return cacheStore.remove(storageKey);
+        return cacheStore.remove( storageKey );
     }
 
-    public void store(final UserCacheRecord userCacheRecord)
+    public void store( final UserCacheRecord userCacheRecord )
             throws LocalDBException, PwmUnrecoverableException
     {
-        final StorageKey storageKey = StorageKey.fromUserGUID(userCacheRecord.getUserGUID(), pwmApplication);
-        cacheStore.write(storageKey, userCacheRecord);
+        final StorageKey storageKey = StorageKey.fromUserGUID( userCacheRecord.getUserGUID(), pwmApplication );
+        cacheStore.write( storageKey, userCacheRecord );
     }
 
-    public void clear()
+    public void clear( )
             throws LocalDBException
     {
         cacheStore.clear();
     }
 
-    public UserStatusCacheBeanIterator<StorageKey> iterator() {
-        try {
+    public UserStatusCacheBeanIterator<StorageKey> iterator( )
+    {
+        try
+        {
             return new UserStatusCacheBeanIterator<>();
-        } catch (LocalDBException e) {
-            LOGGER.error("unexpected error generating user status iterator: " + e.getMessage());
+        }
+        catch ( LocalDBException e )
+        {
+            LOGGER.error( "unexpected error generating user status iterator: " + e.getMessage() );
             return null;
         }
     }
 
-    public class UserStatusCacheBeanIterator<K extends StorageKey> implements ClosableIterator {
+    public class UserStatusCacheBeanIterator<K extends StorageKey> implements ClosableIterator
+    {
 
         private LocalDB.LocalDBIterator<String> innerIterator;
 
-        private UserStatusCacheBeanIterator() throws LocalDBException {
-            innerIterator = cacheStore.localDB.iterator(CacheStoreWrapper.DB);
+        private UserStatusCacheBeanIterator( ) throws LocalDBException
+        {
+            innerIterator = cacheStore.localDB.iterator( CacheStoreWrapper.DB );
         }
 
-        public boolean hasNext() {
+        public boolean hasNext( )
+        {
             return innerIterator.hasNext();
         }
 
-        public StorageKey next() {
+        public StorageKey next( )
+        {
             final String nextKey = innerIterator.next();
-            return new StorageKey(nextKey);
+            return new StorageKey( nextKey );
         }
 
-        public void remove() {
+        public void remove( )
+        {
             throw new UnsupportedOperationException();
         }
 
-        public void close() {
+        public void close( )
+        {
             innerIterator.close();
         }
     }
 
-    public void init(final PwmApplication pwmApplication) throws PwmException {
+    public void init( final PwmApplication pwmApplication ) throws PwmException
+    {
         status = STATUS.OPENING;
         this.pwmApplication = pwmApplication;
-        this.cacheStore = new CacheStoreWrapper(pwmApplication.getLocalDB());
+        this.cacheStore = new CacheStoreWrapper( pwmApplication.getLocalDB() );
         status = STATUS.OPEN;
     }
 
-    public void close() {
+    public void close( )
+    {
         status = STATUS.CLOSED;
     }
 
-    public List<HealthRecord> healthCheck() {
+    public List<HealthRecord> healthCheck( )
+    {
         return Collections.emptyList();
     }
 
-    public ServiceInfoBean serviceInfo()
+    public ServiceInfoBean serviceInfo( )
     {
-        return new ServiceInfoBean(Collections.singletonList(DataStorageMethod.LOCALDB));
+        return new ServiceInfoBean( Collections.singletonList( DataStorageMethod.LOCALDB ) );
     }
 
-    public int size()
+    public int size( )
     {
         return cacheStore.size();
     }
 
-    public static class StorageKey {
+    public static class StorageKey
+    {
         private String key;
 
-        private StorageKey(final String key)
+        private StorageKey( final String key )
         {
-            if (key == null || key.isEmpty()) {
-                throw new IllegalArgumentException("storage key must have a value");
+            if ( key == null || key.isEmpty() )
+            {
+                throw new IllegalArgumentException( "storage key must have a value" );
             }
             this.key = key;
         }
 
-        public String getKey()
+        public String getKey( )
         {
             return key;
         }
 
-        public static StorageKey fromUserInfo(final UserInfo userInfo, final PwmApplication pwmApplication)
+        public static StorageKey fromUserInfo( final UserInfo userInfo, final PwmApplication pwmApplication )
                 throws PwmUnrecoverableException
         {
             final String userGUID = userInfo.getUserGuid();
-            return fromUserGUID(userGUID, pwmApplication);
+            return fromUserGUID( userGUID, pwmApplication );
         }
 
-        public static StorageKey fromUserIdentity(final PwmApplication pwmApplication, final UserIdentity userIdentity)
+        public static StorageKey fromUserIdentity( final PwmApplication pwmApplication, final UserIdentity userIdentity )
                 throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            final String userGUID = LdapOperationsHelper.readLdapGuidValue(pwmApplication, null, userIdentity, true);
-            return fromUserGUID(userGUID, pwmApplication);
+            final String userGUID = LdapOperationsHelper.readLdapGuidValue( pwmApplication, null, userIdentity, true );
+            return fromUserGUID( userGUID, pwmApplication );
         }
 
-        private static StorageKey fromUserGUID(final String userGUID, final PwmApplication pwmApplication)
+        private static StorageKey fromUserGUID( final String userGUID, final PwmApplication pwmApplication )
                 throws PwmUnrecoverableException
         {
             final SecureService secureService = pwmApplication.getSecureService();
-            return new StorageKey(secureService.hash(userGUID));
+            return new StorageKey( secureService.hash( userGUID ) );
         }
     }
 
-    private static class CacheStoreWrapper {
+    private static class CacheStoreWrapper
+    {
         private static final LocalDB.DB DB = LocalDB.DB.USER_CACHE;
 
         private final LocalDB localDB;
 
-        private CacheStoreWrapper(final LocalDB localDB)
+        private CacheStoreWrapper( final LocalDB localDB )
         {
             this.localDB = localDB;
         }
 
-        private void write(final StorageKey key, final UserCacheRecord cacheBean)
+        private void write( final StorageKey key, final UserCacheRecord cacheBean )
                 throws LocalDBException
         {
-            final String jsonValue = JsonUtil.serialize(cacheBean);
-            localDB.put(DB,key.getKey(),jsonValue);
+            final String jsonValue = JsonUtil.serialize( cacheBean );
+            localDB.put( DB, key.getKey(), jsonValue );
         }
 
-        private UserCacheRecord read(final StorageKey key)
+        private UserCacheRecord read( final StorageKey key )
                 throws LocalDBException
         {
-            final String jsonValue = localDB.get(DB,key.getKey());
-            if (jsonValue != null && !jsonValue.isEmpty()) {
-                try {
-                    return JsonUtil.deserialize(jsonValue,UserCacheRecord.class);
-                } catch (JsonSyntaxException e) {
-                    LOGGER.error("error reading record from cache store for key=" + key.getKey() + ", error: " + e.getMessage());
-                    localDB.remove(DB,key.getKey());
+            final String jsonValue = localDB.get( DB, key.getKey() );
+            if ( jsonValue != null && !jsonValue.isEmpty() )
+            {
+                try
+                {
+                    return JsonUtil.deserialize( jsonValue, UserCacheRecord.class );
+                }
+                catch ( JsonSyntaxException e )
+                {
+                    LOGGER.error( "error reading record from cache store for key=" + key.getKey() + ", error: " + e.getMessage() );
+                    localDB.remove( DB, key.getKey() );
                 }
             }
             return null;
         }
 
-        private boolean remove(final StorageKey key)
+        private boolean remove( final StorageKey key )
                 throws LocalDBException
         {
-            return localDB.remove(DB,key.getKey());
+            return localDB.remove( DB, key.getKey() );
         }
 
-        private void    clear()
+        private void clear( )
                 throws LocalDBException
         {
-            localDB.truncate(DB);
+            localDB.truncate( DB );
         }
 
-        private int size()
+        private int size( )
         {
-            try {
-                return localDB.size(DB);
-            } catch (Exception e) {
+            try
+            {
+                return localDB.size( DB );
+            }
+            catch ( Exception e )
+            {
                 return 0;
             }
         }

@@ -36,41 +36,49 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-public class UserSearchResults implements Serializable {
-    private final Map<String,String> headerAttributeMap;
-    private final Map<UserIdentity,Map<String,String>> results;
+public class UserSearchResults implements Serializable
+{
+    private final Map<String, String> headerAttributeMap;
+    private final Map<UserIdentity, Map<String, String>> results;
     private boolean sizeExceeded;
 
-    public UserSearchResults(final Map<String, String> headerAttributeMap, final Map<UserIdentity, Map<String, String>> results, final boolean sizeExceeded) {
+    public UserSearchResults( final Map<String, String> headerAttributeMap, final Map<UserIdentity, Map<String, String>> results, final boolean sizeExceeded )
+    {
         this.headerAttributeMap = headerAttributeMap;
-        this.results = Collections.unmodifiableMap(defaultSort(results, headerAttributeMap));
+        this.results = Collections.unmodifiableMap( defaultSort( results, headerAttributeMap ) );
         this.sizeExceeded = sizeExceeded;
 
     }
 
     private static Map<UserIdentity, Map<String, String>> defaultSort(
             final Map<UserIdentity, Map<String, String>> results,
-            final Map<String,String> headerAttributeMap
+            final Map<String, String> headerAttributeMap
     )
     {
-        if (headerAttributeMap == null || headerAttributeMap.isEmpty() || results == null) {
+        if ( headerAttributeMap == null || headerAttributeMap.isEmpty() || results == null )
+        {
             return results;
         }
 
         final String sortAttribute = headerAttributeMap.keySet().iterator().next();
-        final Comparator<UserIdentity> comparator = new Comparator<UserIdentity>() {
+        final Comparator<UserIdentity> comparator = new Comparator<UserIdentity>()
+        {
             @Override
-            public int compare(final UserIdentity o1, final UserIdentity o2) {
-                final String s1 = getSortValueByIdentity(o1);
-                final String s2 = getSortValueByIdentity(o2);
-                return s1.compareTo(s2);
+            public int compare( final UserIdentity o1, final UserIdentity o2 )
+            {
+                final String s1 = getSortValueByIdentity( o1 );
+                final String s2 = getSortValueByIdentity( o2 );
+                return s1.compareTo( s2 );
             }
 
-            private String getSortValueByIdentity(final UserIdentity userIdentity) {
-                final Map<String,String> valueMap = results.get(userIdentity);
-                if (valueMap != null) {
-                    final String sortValue = valueMap.get(sortAttribute);
-                    if (sortValue != null) {
+            private String getSortValueByIdentity( final UserIdentity userIdentity )
+            {
+                final Map<String, String> valueMap = results.get( userIdentity );
+                if ( valueMap != null )
+                {
+                    final String sortValue = valueMap.get( sortAttribute );
+                    if ( sortValue != null )
+                    {
                         return sortValue;
                     }
                 }
@@ -79,52 +87,61 @@ public class UserSearchResults implements Serializable {
         };
 
         final List<UserIdentity> identitySortMap = new ArrayList<>();
-        identitySortMap.addAll(results.keySet());
-        identitySortMap.sort(comparator);
+        identitySortMap.addAll( results.keySet() );
+        identitySortMap.sort( comparator );
 
         final Map<UserIdentity, Map<String, String>> sortedResults = new LinkedHashMap<>();
-        for (final UserIdentity userIdentity : identitySortMap) {
-            sortedResults.put(userIdentity, results.get(userIdentity));
+        for ( final UserIdentity userIdentity : identitySortMap )
+        {
+            sortedResults.put( userIdentity, results.get( userIdentity ) );
         }
         return sortedResults;
     }
 
-    public Map<String, String> getHeaderAttributeMap() {
+    public Map<String, String> getHeaderAttributeMap( )
+    {
         return headerAttributeMap;
     }
 
-    public Map<UserIdentity, Map<String, String>> getResults() {
+    public Map<UserIdentity, Map<String, String>> getResults( )
+    {
         return results;
     }
 
-    public boolean isSizeExceeded() {
+    public boolean isSizeExceeded( )
+    {
         return sizeExceeded;
     }
 
-    public List<Map<String,Object>> resultsAsJsonOutput(final PwmApplication pwmApplication, final UserIdentity ignoreUser)
+    public List<Map<String, Object>> resultsAsJsonOutput( final PwmApplication pwmApplication, final UserIdentity ignoreUser )
             throws PwmUnrecoverableException
     {
-        final List<Map<String,Object>> outputList = new ArrayList<>();
+        final List<Map<String, Object>> outputList = new ArrayList<>();
         int idCounter = 0;
-        for (final UserIdentity userIdentity : this.getResults().keySet()) {
-            if (ignoreUser == null || !ignoreUser.equals(userIdentity)) {
+        for ( final UserIdentity userIdentity : this.getResults().keySet() )
+        {
+            if ( ignoreUser == null || !ignoreUser.equals( userIdentity ) )
+            {
                 final Map<String, Object> rowMap = new LinkedHashMap<>();
-                for (final String attribute : this.getHeaderAttributeMap().keySet()) {
-                    rowMap.put(attribute, this.getResults().get(userIdentity).get(attribute));
+                for ( final String attribute : this.getHeaderAttributeMap().keySet() )
+                {
+                    rowMap.put( attribute, this.getResults().get( userIdentity ).get( attribute ) );
                 }
-                rowMap.put("userKey", userIdentity.toObfuscatedKey(pwmApplication));
-                rowMap.put("id", idCounter);
-                outputList.add(rowMap);
+                rowMap.put( "userKey", userIdentity.toObfuscatedKey( pwmApplication ) );
+                rowMap.put( "id", idCounter );
+                outputList.add( rowMap );
                 idCounter++;
             }
         }
         return outputList;
     }
 
-    public static Map<String,String> fromFormConfiguration(final List<FormConfiguration> formItems, final Locale locale) {
-        final Map<String,String> results = new LinkedHashMap<>();
-        for (final FormConfiguration formItem : formItems) {
-            results.put(formItem.getName(), formItem.getLabel(locale));
+    public static Map<String, String> fromFormConfiguration( final List<FormConfiguration> formItems, final Locale locale )
+    {
+        final Map<String, String> results = new LinkedHashMap<>();
+        for ( final FormConfiguration formItem : formItems )
+        {
+            results.put( formItem.getName(), formItem.getLabel( locale ) );
         }
         return results;
     }

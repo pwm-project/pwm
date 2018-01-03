@@ -15,9 +15,10 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class ConfigEditorServletUtils {
+public class ConfigEditorServletUtils
+{
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass(ConfigEditorServletUtils.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass( ConfigEditorServletUtils.class );
 
 
     public static FileValue readFileUploadToSettingValue(
@@ -28,31 +29,37 @@ public class ConfigEditorServletUtils {
     {
 
         final Map<String, PwmRequest.FileUploadItem> fileUploads;
-        try {
-            fileUploads = pwmRequest.readFileUploads(maxFileSize, 1);
-        } catch (PwmException e) {
-            pwmRequest.outputJsonResult(RestResultBean.fromError(e.getErrorInformation(), pwmRequest));
-            LOGGER.error(pwmRequest, "error during file upload: " + e.getErrorInformation().toDebugStr());
+        try
+        {
+            fileUploads = pwmRequest.readFileUploads( maxFileSize, 1 );
+        }
+        catch ( PwmException e )
+        {
+            pwmRequest.outputJsonResult( RestResultBean.fromError( e.getErrorInformation(), pwmRequest ) );
+            LOGGER.error( pwmRequest, "error during file upload: " + e.getErrorInformation().toDebugStr() );
             return null;
-        } catch (Throwable e) {
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, "error during file upload: " + e.getMessage());
-            pwmRequest.outputJsonResult(RestResultBean.fromError(errorInformation, pwmRequest));
-            LOGGER.error(pwmRequest, errorInformation);
+        }
+        catch ( Throwable e )
+        {
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, "error during file upload: " + e.getMessage() );
+            pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
+            LOGGER.error( pwmRequest, errorInformation );
             return null;
         }
 
-        if (fileUploads.containsKey(PwmConstants.PARAM_FILE_UPLOAD)) {
-            final PwmRequest.FileUploadItem uploadItem = fileUploads.get(PwmConstants.PARAM_FILE_UPLOAD);
+        if ( fileUploads.containsKey( PwmConstants.PARAM_FILE_UPLOAD ) )
+        {
+            final PwmRequest.FileUploadItem uploadItem = fileUploads.get( PwmConstants.PARAM_FILE_UPLOAD );
 
             final Map<FileValue.FileInformation, FileValue.FileContent> newFileValueMap = new LinkedHashMap<>();
-            newFileValueMap.put(new FileValue.FileInformation(uploadItem.getName(), uploadItem.getType()), new FileValue.FileContent(uploadItem.getContent()));
+            newFileValueMap.put( new FileValue.FileInformation( uploadItem.getName(), uploadItem.getType() ), new FileValue.FileContent( uploadItem.getContent() ) );
 
-            return new FileValue(newFileValueMap);
+            return new FileValue( newFileValueMap );
         }
 
-        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, "no file found in upload");
-        pwmRequest.outputJsonResult(RestResultBean.fromError(errorInformation, pwmRequest));
-        LOGGER.error(pwmRequest, "error during file upload: " + errorInformation.toDebugStr());
+        final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, "no file found in upload" );
+        pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
+        LOGGER.error( pwmRequest, "error during file upload: " + errorInformation.toDebugStr() );
         return null;
     }
 

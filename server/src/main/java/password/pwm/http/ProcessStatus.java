@@ -22,7 +22,8 @@
 
 package password.pwm.http;
 
-public enum ProcessStatus {
+public enum ProcessStatus
+{
     Continue,
     Halt,
 }

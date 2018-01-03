@@ -22,6 +22,7 @@
 
 package password.pwm.i18n;
 
-public interface PwmDisplayBundle {
-    String getKey();
+public interface PwmDisplayBundle
+{
+    String getKey( );
 }

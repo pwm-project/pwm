@@ -33,7 +33,8 @@ import java.util.Map;
 
 @Builder
 @Getter
-public class SearchConfiguration implements Serializable {
+public class SearchConfiguration implements Serializable
+{
 
     private String filter;
     private String ldapProfile;
@@ -53,9 +54,11 @@ public class SearchConfiguration implements Serializable {
     @Builder.Default
     private boolean enableSplitWhitespace = false;
 
-    void validate() {
-        if (this.username != null && this.formValues != null) {
-            throw new IllegalArgumentException("username OR formValues cannot both be supplied");
+    void validate( )
+    {
+        if ( this.username != null && this.formValues != null )
+        {
+            throw new IllegalArgumentException( "username OR formValues cannot both be supplied" );
         }
     }
 

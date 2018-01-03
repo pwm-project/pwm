@@ -37,46 +37,56 @@ import javax.servlet.jsp.tagext.TagSupport;
 /**
  * @author Jason D. Rivard
  */
-public class PwmValueTag extends TagSupport {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(PwmValueTag.class);
+public class PwmValueTag extends TagSupport
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( PwmValueTag.class );
 
     private PwmValue name;
 
-    public PwmValue getName()
+    public PwmValue getName( )
     {
         return name;
     }
 
-    public void setName(final PwmValue name)
+    public void setName( final PwmValue name )
     {
         this.name = name;
     }
 
-    public int doEndTag()
+    public int doEndTag( )
             throws JspTagException
     {
-        if (PwmApplicationMode.determineMode((HttpServletRequest) pageContext.getRequest()) == PwmApplicationMode.ERROR) {
+        if ( PwmApplicationMode.determineMode( ( HttpServletRequest ) pageContext.getRequest() ) == PwmApplicationMode.ERROR )
+        {
             return EVAL_PAGE;
         }
 
-        try {
-            final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
-            final PwmRequest pwmRequest = PwmRequest.forRequest(req, (HttpServletResponse) pageContext.getResponse());
-            try {
+        try
+        {
+            final HttpServletRequest req = ( HttpServletRequest ) pageContext.getRequest();
+            final PwmRequest pwmRequest = PwmRequest.forRequest( req, ( HttpServletResponse ) pageContext.getResponse() );
+            try
+            {
                 final PwmValue value = getName();
-                final String output = calcValue(pwmRequest, pageContext, value);
-                final String escapedOutput = value.getFlags().contains(PwmValue.Flag.DoNotEscape)
+                final String output = calcValue( pwmRequest, pageContext, value );
+                final String escapedOutput = value.getFlags().contains( PwmValue.Flag.DoNotEscape )
                         ? output
-                        : StringUtil.escapeHtml(output);
-                pageContext.getOut().write(escapedOutput);
+                        : StringUtil.escapeHtml( output );
+                pageContext.getOut().write( escapedOutput );
 
-            } catch (IllegalArgumentException e) {
-                LOGGER.error("can't output requested value name '" + getName() + "'");
             }
-        } catch (PwmUnrecoverableException e) {
-            LOGGER.error("error while processing PwmValueTag: " + e.getMessage());
-        } catch (Exception e) {
-            throw new JspTagException(e.getMessage(),e);
+            catch ( IllegalArgumentException e )
+            {
+                LOGGER.error( "can't output requested value name '" + getName() + "'" );
+            }
+        }
+        catch ( PwmUnrecoverableException e )
+        {
+            LOGGER.error( "error while processing PwmValueTag: " + e.getMessage() );
+        }
+        catch ( Exception e )
+        {
+            throw new JspTagException( e.getMessage(), e );
         }
         return EVAL_PAGE;
     }
@@ -85,13 +95,18 @@ public class PwmValueTag extends TagSupport {
             final PwmRequest pwmRequest,
             final PageContext pageContext,
             final PwmValue value
-    ) {
+    )
+    {
 
-        if (value != null) {
-            try {
-                return value.getValueOutput().valueOutput(pwmRequest, pageContext);
-            } catch (Exception e) {
-                LOGGER.error("error executing value tag option '" + value.toString() + "', error: " + e.getMessage());
+        if ( value != null )
+        {
+            try
+            {
+                return value.getValueOutput().valueOutput( pwmRequest, pageContext );
+            }
+            catch ( Exception e )
+            {
+                LOGGER.error( "error executing value tag option '" + value.toString() + "', error: " + e.getMessage() );
             }
         }
 

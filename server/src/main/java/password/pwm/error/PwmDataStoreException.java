@@ -22,16 +22,20 @@
 
 package password.pwm.error;
 
-public class PwmDataStoreException extends PwmOperationalException {
-    public PwmDataStoreException(final ErrorInformation error) {
-        super(error);
+public class PwmDataStoreException extends PwmOperationalException
+{
+    public PwmDataStoreException( final ErrorInformation error )
+    {
+        super( error );
     }
 
-    public PwmDataStoreException(final PwmError error) {
-        super(error);
+    public PwmDataStoreException( final PwmError error )
+    {
+        super( error );
     }
 
-    public PwmDataStoreException(final PwmError error, final String detailedErrorMsg) {
-        super(new ErrorInformation(error, detailedErrorMsg));
+    public PwmDataStoreException( final PwmError error, final String detailedErrorMsg )
+    {
+        super( new ErrorInformation( error, detailedErrorMsg ) );
     }
 }

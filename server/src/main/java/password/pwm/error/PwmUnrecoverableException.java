@@ -29,36 +29,46 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 /**
  * A general exception thrown by PWM.
  */
-public class PwmUnrecoverableException extends PwmException {
+public class PwmUnrecoverableException extends PwmException
+{
 
-    public PwmUnrecoverableException(final ErrorInformation error) {
-        super(error);
+    public PwmUnrecoverableException( final ErrorInformation error )
+    {
+        super( error );
     }
 
-    public PwmUnrecoverableException(final ErrorInformation error, final Throwable initialCause) {
-        super(error, initialCause);
+    public PwmUnrecoverableException( final ErrorInformation error, final Throwable initialCause )
+    {
+        super( error, initialCause );
     }
 
-    public PwmUnrecoverableException(final PwmError error) {
-        super(error);
+    public PwmUnrecoverableException( final PwmError error )
+    {
+        super( error );
     }
 
-    public PwmUnrecoverableException(final PwmError error, final String detailedErrorMsg) {
-        super(error, detailedErrorMsg);
+    public PwmUnrecoverableException( final PwmError error, final String detailedErrorMsg )
+    {
+        super( error, detailedErrorMsg );
     }
 
-    public static PwmUnrecoverableException fromChaiException(final ChaiException e) {
+    public static PwmUnrecoverableException fromChaiException( final ChaiException e )
+    {
         final ErrorInformation errorInformation;
-        if (e instanceof ChaiUnavailableException) {
-            errorInformation = new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE, e.getMessage());
-        } else {
-            errorInformation = new ErrorInformation(PwmError.forChaiError(e.getErrorCode()), e.getMessage());
+        if ( e instanceof ChaiUnavailableException )
+        {
+            errorInformation = new ErrorInformation( PwmError.ERROR_DIRECTORY_UNAVAILABLE, e.getMessage() );
         }
-        return new PwmUnrecoverableException(errorInformation);
+        else
+        {
+            errorInformation = new ErrorInformation( PwmError.forChaiError( e.getErrorCode() ), e.getMessage() );
+        }
+        return new PwmUnrecoverableException( errorInformation );
     }
 
-    public static PwmUnrecoverableException newException(final PwmError error, final String message) {
-        return new PwmUnrecoverableException(new ErrorInformation(error, message));
+    public static PwmUnrecoverableException newException( final PwmError error, final String message )
+    {
+        return new PwmUnrecoverableException( new ErrorInformation( error, message ) );
     }
 }
 

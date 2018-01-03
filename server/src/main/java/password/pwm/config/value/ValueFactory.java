@@ -31,40 +31,49 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
 
-public class ValueFactory {
+public class ValueFactory
+{
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass(ValueFactory.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass( ValueFactory.class );
 
-    public static StoredValue fromJson(final PwmSetting setting, final String input)
+    public static StoredValue fromJson( final PwmSetting setting, final String input )
             throws PwmOperationalException
     {
-        try {
+        try
+        {
             final StoredValue.StoredValueFactory factory = setting.getSyntax().getStoredValueImpl();
-            return factory.fromJson(input);
-        } catch (Exception e) {
+            return factory.fromJson( input );
+        }
+        catch ( Exception e )
+        {
             final StringBuilder errorMsg = new StringBuilder();
-            errorMsg.append("error parsing value stored configuration value: ").append(e.getMessage());
-            if (e.getCause() != null) {
-                errorMsg.append(", cause: ").append(e.getCause().getMessage());
+            errorMsg.append( "error parsing value stored configuration value: " ).append( e.getMessage() );
+            if ( e.getCause() != null )
+            {
+                errorMsg.append( ", cause: " ).append( e.getCause().getMessage() );
             }
-            LOGGER.error(errorMsg,e);
-            throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorMsg.toString()));
+            LOGGER.error( errorMsg, e );
+            throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, errorMsg.toString() ) );
         }
     }
 
-    public static StoredValue fromXmlValues(final PwmSetting setting, final Element settingElement, final PwmSecurityKey key)
+    public static StoredValue fromXmlValues( final PwmSetting setting, final Element settingElement, final PwmSecurityKey key )
     {
-        try {
+        try
+        {
             final StoredValue.StoredValueFactory factory = setting.getSyntax().getStoredValueImpl();
-            return factory.fromXmlElement(settingElement, key);
-        } catch (Exception e) {
+            return factory.fromXmlElement( settingElement, key );
+        }
+        catch ( Exception e )
+        {
             final StringBuilder errorMsg = new StringBuilder();
-            errorMsg.append("error parsing stored configuration value: ").append(e.getMessage());
-            if (e.getCause() != null) {
-                errorMsg.append(", cause: ").append(e.getCause().getMessage());
+            errorMsg.append( "error parsing stored configuration value: " ).append( e.getMessage() );
+            if ( e.getCause() != null )
+            {
+                errorMsg.append( ", cause: " ).append( e.getCause().getMessage() );
             }
-            LOGGER.error(errorMsg,e);
-            throw new IllegalStateException("unable to read xml element '" + settingElement.getName() + "' from setting '" + setting.getKey() + "' error: " + e.getMessage());
+            LOGGER.error( errorMsg, e );
+            throw new IllegalStateException( "unable to read xml element '" + settingElement.getName() + "' from setting '" + setting.getKey() + "' error: " + e.getMessage() );
         }
     }
 }

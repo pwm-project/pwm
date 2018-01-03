@@ -10,7 +10,8 @@ import java.io.Serializable;
 import java.util.Set;
 
 @Value
-public class RestAuthentication implements Serializable {
+public class RestAuthentication implements Serializable
+{
     private RestAuthenticationType type;
     private String namedSecretName;
     private UserIdentity ldapIdentity;
@@ -18,7 +19,8 @@ public class RestAuthentication implements Serializable {
     private boolean thirdPartyEnabled;
     private transient ChaiProvider chaiProvider;
 
-    public final Object readObject() throws IOException, ClassNotFoundException {
-        throw new IOException("class can not be de-serialized");
+    public final Object readObject( ) throws IOException, ClassNotFoundException
+    {
+        throw new IOException( "class can not be de-serialized" );
     }
 }

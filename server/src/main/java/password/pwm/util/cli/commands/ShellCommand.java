@@ -37,71 +37,89 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.TreeMap;
 
-public class ShellCommand extends AbstractCliCommand {
-    public static final Map<String,CliCommand> SHELL_COMMANDS;
+public class ShellCommand extends AbstractCliCommand
+{
+    public static final Map<String, CliCommand> SHELL_COMMANDS;
 
-    static {
+    static
+    {
         final List<CliCommand> commandList = new ArrayList<>();
-        commandList.add(new ConfigUnlockCommand());
-        commandList.add(new ConfigLockCommand());
-        commandList.add(new ConfigSetPasswordCommand());
-        commandList.add(new VersionCommand());
-        commandList.add(new ConfigDeleteCommand());
-        commandList.add(new ConfigResetHttpsCommand());
+        commandList.add( new ConfigUnlockCommand() );
+        commandList.add( new ConfigLockCommand() );
+        commandList.add( new ConfigSetPasswordCommand() );
+        commandList.add( new VersionCommand() );
+        commandList.add( new ConfigDeleteCommand() );
+        commandList.add( new ConfigResetHttpsCommand() );
 
-        final Map<String,CliCommand> sortedMap = new TreeMap<>();
-        for (final CliCommand command : commandList) {
-            sortedMap.put(command.getCliParameters().commandName,command);
+        final Map<String, CliCommand> sortedMap = new TreeMap<>();
+        for ( final CliCommand command : commandList )
+        {
+            sortedMap.put( command.getCliParameters().commandName, command );
         }
-        SHELL_COMMANDS = Collections.unmodifiableMap(sortedMap);
+        SHELL_COMMANDS = Collections.unmodifiableMap( sortedMap );
     }
 
-    void doCommand()
+    void doCommand( )
             throws Exception
     {
         boolean exitFlag = false;
 
-        final Scanner scanner = new Scanner(new InputStreamReader(System.in, PwmConstants.DEFAULT_CHARSET));
-        while (!exitFlag) {
-            System.out.print(PwmConstants.PWM_APP_NAME+">");
+        final Scanner scanner = new Scanner( new InputStreamReader( System.in, PwmConstants.DEFAULT_CHARSET ) );
+        while ( !exitFlag )
+        {
+            System.out.print( PwmConstants.PWM_APP_NAME + ">" );
             final String command = scanner.nextLine();
-            if ("exit".equalsIgnoreCase(command)) {
+            if ( "exit".equalsIgnoreCase( command ) )
+            {
                 exitFlag = true;
-            } else if ("help".equalsIgnoreCase(command)) {
-                out(makeHelpTextOutput());
-            } else if (command != null && !command.isEmpty() ){
-                processCommand(command);
+            }
+            else if ( "help".equalsIgnoreCase( command ) )
+            {
+                out( makeHelpTextOutput() );
+            }
+            else if ( command != null && !command.isEmpty() )
+            {
+                processCommand( command );
             }
         }
     }
 
-    final void processCommand(final String commandLine) {
-        if (commandLine == null) {
+    final void processCommand( final String commandLine )
+    {
+        if ( commandLine == null )
+        {
             return;
         }
 
-        final List<String> splitCommandLine = splitString(commandLine);
-        if (splitCommandLine.isEmpty()) {
+        final List<String> splitCommandLine = splitString( commandLine );
+        if ( splitCommandLine.isEmpty() )
+        {
             return;
         }
 
-        final String command = splitCommandLine.get(0);
+        final String command = splitCommandLine.get( 0 );
 
         boolean commandExecuted = false;
-        for (final CliCommand cliCommand : SHELL_COMMANDS.values()) {
-            if (command.equalsIgnoreCase(cliCommand.getCliParameters().commandName)) {
-                try {
-                    executeCommand(cliEnvironment, cliCommand, commandLine);
-                } catch (CliException e) {
-                    out("error executing command: " + e.getMessage());
+        for ( final CliCommand cliCommand : SHELL_COMMANDS.values() )
+        {
+            if ( command.equalsIgnoreCase( cliCommand.getCliParameters().commandName ) )
+            {
+                try
+                {
+                    executeCommand( cliEnvironment, cliCommand, commandLine );
+                }
+                catch ( CliException e )
+                {
+                    out( "error executing command: " + e.getMessage() );
                 }
                 commandExecuted = true;
                 break;
             }
         }
 
-        if (!commandExecuted) {
-            out("unknown command.  type 'help' for help.");
+        if ( !commandExecuted )
+        {
+            out( "unknown command.  type 'help' for help." );
         }
     }
 
@@ -114,9 +132,9 @@ public class ShellCommand extends AbstractCliCommand {
     {
         final Map<String, Object> cliOptions;
         {
-            final List<String> tokens = new ArrayList<>(splitString(commandLine));
-            tokens.remove(0);
-            cliOptions = MainClass.parseCommandOptions(command.getCliParameters(), tokens);
+            final List<String> tokens = new ArrayList<>( splitString( commandLine ) );
+            tokens.remove( 0 );
+            cliOptions = MainClass.parseCommandOptions( command.getCliParameters(), tokens );
         }
         final CliEnvironment newEnvironment = new CliEnvironment(
                 cliEnvironment.getConfigurationReader(),
@@ -129,12 +147,13 @@ public class ShellCommand extends AbstractCliCommand {
                 cliOptions,
                 cliEnvironment.getMainOptions()
         );
-        command.execute(commandLine,newEnvironment);
+        command.execute( commandLine, newEnvironment );
     }
 
-    public static String makeHelpTextOutput() {
+    public static String makeHelpTextOutput( )
+    {
         return MainClass.helpTextFromCommands(
-                SHELL_COMMANDS.values())
+                SHELL_COMMANDS.values() )
                 + "Exit" + "\n"
                 + "       " + "Exit this shell"
                 + "\n\n"
@@ -144,7 +163,7 @@ public class ShellCommand extends AbstractCliCommand {
 
 
     @Override
-    public CliParameters getCliParameters()
+    public CliParameters getCliParameters( )
     {
         final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "Shell";
@@ -157,11 +176,13 @@ public class ShellCommand extends AbstractCliCommand {
         return cliParameters;
     }
 
-    private static List<String> splitString(final String input) {
-        if (input == null) {
+    private static List<String> splitString( final String input )
+    {
+        if ( input == null )
+        {
             return Collections.emptyList();
         }
-        return Collections.unmodifiableList(Arrays.asList(input.trim().split("\\s+")));
+        return Collections.unmodifiableList( Arrays.asList( input.trim().split( "\\s+" ) ) );
     }
 
 }

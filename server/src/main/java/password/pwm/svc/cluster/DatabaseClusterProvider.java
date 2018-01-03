@@ -45,9 +45,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-class DatabaseClusterProvider implements ClusterProvider {
+class DatabaseClusterProvider implements ClusterProvider
+{
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass(DatabaseClusterProvider.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass( DatabaseClusterProvider.class );
 
     private static final DatabaseTable TABLE = DatabaseTable.CLUSTER_STATE;
 
@@ -60,21 +61,22 @@ class DatabaseClusterProvider implements ClusterProvider {
 
     private ErrorInformation lastError;
 
-    private final Map<String,DatabaseStoredNodeData> nodeDatas = new ConcurrentHashMap<>();
+    private final Map<String, DatabaseStoredNodeData> nodeDatas = new ConcurrentHashMap<>();
 
     private final DatabaseClusterSettings settings;
 
-    DatabaseClusterProvider(final PwmApplication pwmApplication) throws PwmUnrecoverableException
+    DatabaseClusterProvider( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
     {
         this.pwmApplication = pwmApplication;
-        this.settings = DatabaseClusterSettings.fromConfig(pwmApplication.getConfig());
+        this.settings = DatabaseClusterSettings.fromConfig( pwmApplication.getConfig() );
 
-        if (!settings.isEnable()) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"database clustering is not enabled via app property"));
+        if ( !settings.isEnable() )
+        {
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, "database clustering is not enabled via app property" ) );
         }
 
         this.databaseService = pwmApplication.getDatabaseService();
-        this.executorService = JavaHelper.makeSingleThreadExecutorService(pwmApplication, DatabaseClusterProvider.class);
+        this.executorService = JavaHelper.makeSingleThreadExecutorService( pwmApplication, DatabaseClusterProvider.class );
 
         final long intervalSeconds = settings.getHeartbeatInterval().getTotalSeconds();
 
@@ -87,21 +89,23 @@ class DatabaseClusterProvider implements ClusterProvider {
     }
 
     @Override
-    public void close() {
-        JavaHelper.closeAndWaitExecutor(executorService, new TimeDuration(1, TimeUnit.SECONDS));
+    public void close( )
+    {
+        JavaHelper.closeAndWaitExecutor( executorService, new TimeDuration( 1, TimeUnit.SECONDS ) );
     }
 
 
     @Override
-    public List<NodeInfo> nodes() throws PwmUnrecoverableException
+    public List<NodeInfo> nodes( ) throws PwmUnrecoverableException
     {
-        final Map<String,NodeInfo> returnObj = new TreeMap<>();
+        final Map<String, NodeInfo> returnObj = new TreeMap<>();
         final String configHash = pwmApplication.getConfig().configurationHash();
-        for (final DatabaseStoredNodeData storedNodeData : nodeDatas.values()) {
-            final boolean configMatch = configHash.equals(storedNodeData.getConfigHash());
-            final boolean timedOut = isTimedOut(storedNodeData);
+        for ( final DatabaseStoredNodeData storedNodeData : nodeDatas.values() )
+        {
+            final boolean configMatch = configHash.equals( storedNodeData.getConfigHash() );
+            final boolean timedOut = isTimedOut( storedNodeData );
 
-            final NodeInfo.NodeState nodeState = isMaster(storedNodeData)
+            final NodeInfo.NodeState nodeState = isMaster( storedNodeData )
                     ? NodeInfo.NodeState.master
                     : timedOut
                     ? NodeInfo.NodeState.offline
@@ -119,25 +123,30 @@ class DatabaseClusterProvider implements ClusterProvider {
                     nodeState,
                     configMatch
             );
-            returnObj.put(nodeInfo.getInstanceID(), nodeInfo);
+            returnObj.put( nodeInfo.getInstanceID(), nodeInfo );
         }
 
-        return Collections.unmodifiableList(new ArrayList<>(returnObj.values()));
+        return Collections.unmodifiableList( new ArrayList<>( returnObj.values() ) );
     }
 
 
-    private String masterInstanceId() {
-        final List<DatabaseStoredNodeData> copiedDatas = new ArrayList<>(nodeDatas.values());
-        if (copiedDatas.isEmpty()) {
+    private String masterInstanceId( )
+    {
+        final List<DatabaseStoredNodeData> copiedDatas = new ArrayList<>( nodeDatas.values() );
+        if ( copiedDatas.isEmpty() )
+        {
             return null;
         }
 
         String masterID = null;
         Instant eldestRecord = Instant.now();
 
-        for (final DatabaseStoredNodeData nodeData : copiedDatas) {
-            if (!isTimedOut(nodeData)) {
-                if (nodeData.getStartupTimestamp().isBefore(eldestRecord)) {
+        for ( final DatabaseStoredNodeData nodeData : copiedDatas )
+        {
+            if ( !isTimedOut( nodeData ) )
+            {
+                if ( nodeData.getStartupTimestamp().isBefore( eldestRecord ) )
+                {
                     eldestRecord = nodeData.getStartupTimestamp();
                     masterID = nodeData.getInstanceID();
                 }
@@ -147,92 +156,111 @@ class DatabaseClusterProvider implements ClusterProvider {
     }
 
     @Override
-    public boolean isMaster() {
+    public boolean isMaster( )
+    {
         final String myID = pwmApplication.getInstanceID();
         final String masterID = masterInstanceId();
-        return myID.equals(masterID);
+        return myID.equals( masterID );
     }
 
-    private boolean isMaster(final DatabaseStoredNodeData databaseStoredNodeData) {
+    private boolean isMaster( final DatabaseStoredNodeData databaseStoredNodeData )
+    {
         final String masterID = masterInstanceId();
-        return databaseStoredNodeData.getInstanceID().equals(masterID);
+        return databaseStoredNodeData.getInstanceID().equals( masterID );
     }
 
-    private String dbKeyForStoredNode(final DatabaseStoredNodeData storedNodeData) throws PwmUnrecoverableException
+    private String dbKeyForStoredNode( final DatabaseStoredNodeData storedNodeData ) throws PwmUnrecoverableException
     {
         final String instanceID = storedNodeData.getInstanceID();
-        final String hash = pwmApplication.getSecureService().hash(instanceID);
+        final String hash = pwmApplication.getSecureService().hash( instanceID );
         final String truncatedHash = hash.length() > 64
-                ? hash.substring(0, 64)
+                ? hash.substring( 0, 64 )
                 : hash;
 
         return KEY_PREFIX_NODE + truncatedHash;
     }
 
-    private boolean isTimedOut(final DatabaseStoredNodeData storedNodeData) {
-        final TimeDuration age = TimeDuration.fromCurrent(storedNodeData.getTimestamp());
-        return age.isLongerThan(settings.getNodeTimeout());
+    private boolean isTimedOut( final DatabaseStoredNodeData storedNodeData )
+    {
+        final TimeDuration age = TimeDuration.fromCurrent( storedNodeData.getTimestamp() );
+        return age.isLongerThan( settings.getNodeTimeout() );
     }
 
-    private class HeartbeatProcess implements Runnable {
-        public void run() {
+    private class HeartbeatProcess implements Runnable
+    {
+        public void run( )
+        {
             writeNodeStatus();
             readNodeStatuses();
             purgeOutdatedNodes();
         }
 
-        void writeNodeStatus()
+        void writeNodeStatus( )
         {
-            try {
-                final DatabaseStoredNodeData storedNodeData = DatabaseStoredNodeData.makeNew(pwmApplication);
-                final String key = dbKeyForStoredNode(storedNodeData);
-                final String value = JsonUtil.serialize(storedNodeData);
-                databaseService.getAccessor().put(TABLE, key, value);
-            } catch (PwmException e) {
+            try
+            {
+                final DatabaseStoredNodeData storedNodeData = DatabaseStoredNodeData.makeNew( pwmApplication );
+                final String key = dbKeyForStoredNode( storedNodeData );
+                final String value = JsonUtil.serialize( storedNodeData );
+                databaseService.getAccessor().put( TABLE, key, value );
+            }
+            catch ( PwmException e )
+            {
                 final String errorMsg = "error writing database cluster heartbeat: " + e.getMessage();
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE, errorMsg);
+                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, errorMsg );
                 lastError = errorInformation;
-                LOGGER.error(lastError);
+                LOGGER.error( lastError );
             }
         }
 
-        void readNodeStatuses()
+        void readNodeStatuses( )
         {
-            try (ClosableIterator<String> tableIterator = databaseService.getAccessor().iterator(TABLE)) {
-                while (tableIterator.hasNext()) {
+            try ( ClosableIterator<String> tableIterator = databaseService.getAccessor().iterator( TABLE ) )
+            {
+                while ( tableIterator.hasNext() )
+                {
                     final String dbKey = tableIterator.next();
-                    if (dbKey.startsWith(KEY_PREFIX_NODE)) {
-                        final String rawValueInDb = databaseService.getAccessor().get(TABLE, dbKey);
-                        final DatabaseStoredNodeData nodeDataInDb = JsonUtil.deserialize(rawValueInDb, DatabaseStoredNodeData.class);
-                        nodeDatas.put(nodeDataInDb.getInstanceID(), nodeDataInDb);
+                    if ( dbKey.startsWith( KEY_PREFIX_NODE ) )
+                    {
+                        final String rawValueInDb = databaseService.getAccessor().get( TABLE, dbKey );
+                        final DatabaseStoredNodeData nodeDataInDb = JsonUtil.deserialize( rawValueInDb, DatabaseStoredNodeData.class );
+                        nodeDatas.put( nodeDataInDb.getInstanceID(), nodeDataInDb );
                     }
                 }
-            } catch (PwmException e) {
+            }
+            catch ( PwmException e )
+            {
                 final String errorMsg = "error reading database node statuses: " + e.getMessage();
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE, errorMsg);
+                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, errorMsg );
                 lastError = errorInformation;
-                LOGGER.error(lastError);
+                LOGGER.error( lastError );
             }
         }
 
-        void purgeOutdatedNodes() {
-            for (final DatabaseStoredNodeData storedNodeData : nodeDatas.values()) {
-                final TimeDuration recordAge = TimeDuration.fromCurrent(storedNodeData.getTimestamp());
+        void purgeOutdatedNodes( )
+        {
+            for ( final DatabaseStoredNodeData storedNodeData : nodeDatas.values() )
+            {
+                final TimeDuration recordAge = TimeDuration.fromCurrent( storedNodeData.getTimestamp() );
                 final String instanceID = storedNodeData.getInstanceID();
 
-                if (recordAge.isLongerThan(settings.getNodePurgeInterval())) {
+                if ( recordAge.isLongerThan( settings.getNodePurgeInterval() ) )
+                {
                     // purge outdated records
-                    LOGGER.debug("purging outdated node reference to instanceID '" + instanceID + "'");
+                    LOGGER.debug( "purging outdated node reference to instanceID '" + instanceID + "'" );
 
-                    try {
-                        databaseService.getAccessor().remove(TABLE, dbKeyForStoredNode(storedNodeData));
-                    } catch (PwmException e) {
-                        final String errorMsg = "error purging outdated node reference: " + e.getMessage();
-                        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE, errorMsg);
-                        lastError = errorInformation;
-                        LOGGER.error(lastError);
+                    try
+                    {
+                        databaseService.getAccessor().remove( TABLE, dbKeyForStoredNode( storedNodeData ) );
                     }
-                    nodeDatas.remove(instanceID);
+                    catch ( PwmException e )
+                    {
+                        final String errorMsg = "error purging outdated node reference: " + e.getMessage();
+                        final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, errorMsg );
+                        lastError = errorInformation;
+                        LOGGER.error( lastError );
+                    }
+                    nodeDatas.remove( instanceID );
                 }
             }
         }

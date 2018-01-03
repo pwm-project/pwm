@@ -41,34 +41,36 @@ import java.util.Map;
  *
  * @author Jason D. Rivard
  */
-public interface LocalDB {
+public interface LocalDB
+{
     int MAX_KEY_LENGTH = 256;
     int MAX_VALUE_LENGTH = 1024 * 100;
 
-    enum Status {
+    enum Status
+    {
         NEW, OPEN, CLOSED
     }
 
     @WriteOperation
-    void close()
+    void close( )
             throws LocalDBException;
 
     @ReadOperation
-    boolean contains(DB db, String key)
+    boolean contains( DB db, String key )
             throws LocalDBException;
 
     @ReadOperation
-    String get(DB db, String key)
+    String get( DB db, String key )
             throws LocalDBException;
 
-    LocalDBIterator<String> iterator(DB db)
+    LocalDBIterator<String> iterator( DB db )
             throws LocalDBException;
 
     @WriteOperation
-    void putAll(DB db, Map<String, String> keyValueMap)
+    void putAll( DB db, Map<String, String> keyValueMap )
             throws LocalDBException;
 
-    Status status();
+    Status status( );
 
     /**
      * Put a key/value into a database.  This operation inserts a new key/value pair
@@ -79,91 +81,95 @@ public interface LocalDB {
      * @param key   key value
      * @param value string value
      * @return true if the key previously existed
-     * @throws LocalDBException           if there is an error writing to the store
+     * @throws LocalDBException         if there is an error writing to the store
      * @throws NullPointerException     if the db, key or value is null
      * @throws IllegalArgumentException if the key is zero length, the key is larger than {@link #MAX_KEY_LENGTH} or the value is larger than {@link #MAX_VALUE_LENGTH}
      */
     @WriteOperation
-    boolean put(DB db, String key, String value)
+    boolean put( DB db, String key, String value )
             throws LocalDBException;
 
     @WriteOperation
-    boolean putIfAbsent(DB db, String key, String value)
+    boolean putIfAbsent( DB db, String key, String value )
             throws LocalDBException;
 
     @WriteOperation
-    boolean remove(DB db, String key)
+    boolean remove( DB db, String key )
             throws LocalDBException;
 
     @WriteOperation
-    void removeAll(DB db, Collection<String> key)
+    void removeAll( DB db, Collection<String> key )
             throws LocalDBException;
 
     @ReadOperation
-    int size(DB db)
+    int size( DB db )
             throws LocalDBException;
 
     @WriteOperation
-    void truncate(DB db)
+    void truncate( DB db )
             throws LocalDBException;
 
-    File getFileLocation();
+    File getFileLocation( );
 
-    Map<String,Serializable> debugInfo();
+    Map<String, Serializable> debugInfo( );
 
-    enum DB {
+    enum DB
+    {
         /**
-         * Used for various pwm operational data
+         * Used for various pwm operational data.
          */
-        PWM_META(true),
-        SHAREDHISTORY_META(true),
-        SHAREDHISTORY_WORDS(true),
+        PWM_META( true ),
+        SHAREDHISTORY_META( true ),
+        SHAREDHISTORY_WORDS( true ),
         // WORDLIST_META(true), // @deprecated
-        WORDLIST_WORDS(true),
+        WORDLIST_WORDS( true ),
         // SEEDLIST_META(true), // @deprecated
-        SEEDLIST_WORDS(true),
-        PWM_STATS(true),
-        EVENTLOG_EVENTS(true),
-        EMAIL_QUEUE(true),
-        SMS_QUEUE(true),
-        RESPONSE_STORAGE(true),
-        OTP_SECRET(true),
-        TOKENS(true),
-        INTRUDER(true),
-        AUDIT_QUEUE(true),
-        AUDIT_EVENTS(true),
-        USER_CACHE(true),
-        TEMP(false),
-        SYSLOG_QUEUE(true),
-        CACHE(false),
+        SEEDLIST_WORDS( true ),
+        PWM_STATS( true ),
+        EVENTLOG_EVENTS( true ),
+        EMAIL_QUEUE( true ),
+        SMS_QUEUE( true ),
+        RESPONSE_STORAGE( true ),
+        OTP_SECRET( true ),
+        TOKENS( true ),
+        INTRUDER( true ),
+        AUDIT_QUEUE( true ),
+        AUDIT_EVENTS( true ),
+        USER_CACHE( true ),
+        TEMP( false ),
+        SYSLOG_QUEUE( true ),
+        CACHE( false ),
 
-        REPORT_QUEUE(false),
-
-        ;
+        REPORT_QUEUE( false ),;
 
         private final boolean backup;
 
-        DB(final boolean backup) {
+        DB( final boolean backup )
+        {
             this.backup = backup;
         }
 
-        public boolean isBackup() {
+        public boolean isBackup( )
+        {
             return backup;
         }
     }
 
 
-    @Retention(RetentionPolicy.RUNTIME)
+    @Retention( RetentionPolicy.RUNTIME )
     @interface
-    ReadOperation {
+    ReadOperation
+    {
     }
 
-    @Retention(RetentionPolicy.RUNTIME)
+    @Retention( RetentionPolicy.RUNTIME )
     @interface
-    WriteOperation {
+    WriteOperation
+    {
     }
 
 
-    interface LocalDBIterator<K> extends ClosableIterator<String> {
+    interface LocalDBIterator<K> extends ClosableIterator<String>
+    {
     }
 }

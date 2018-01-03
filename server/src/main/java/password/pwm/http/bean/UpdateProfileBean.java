@@ -34,76 +34,90 @@ import java.util.Map;
 import java.util.Set;
 
 
-public class UpdateProfileBean extends PwmSessionBean {
+public class UpdateProfileBean extends PwmSessionBean
+{
 
-    @SerializedName("a")
+    @SerializedName( "a" )
     private boolean agreementPassed;
 
-    @SerializedName("p")
+    @SerializedName( "p" )
     private boolean confirmationPassed;
 
-    @SerializedName("s")
+    @SerializedName( "s" )
     private boolean formSubmitted;
 
-    @SerializedName("l")
+    @SerializedName( "l" )
     private boolean formLdapLoaded;
 
-    @SerializedName("f")
-    private Map<String,String> formData = new LinkedHashMap<>();
+    @SerializedName( "f" )
+    private Map<String, String> formData = new LinkedHashMap<>();
 
-    @SerializedName("vp")
+    @SerializedName( "vp" )
     private TokenVerificationProgress tokenVerificationProgress = new TokenVerificationProgress();
 
-    public Type getType() {
+    public Type getType( )
+    {
         return Type.AUTHENTICATED;
     }
 
-    public boolean isAgreementPassed() {
+    public boolean isAgreementPassed( )
+    {
         return agreementPassed;
     }
 
-    public void setAgreementPassed(final boolean agreementPassed) {
+    public void setAgreementPassed( final boolean agreementPassed )
+    {
         this.agreementPassed = agreementPassed;
     }
 
-    public boolean isFormLdapLoaded() {
+    public boolean isFormLdapLoaded( )
+    {
         return formLdapLoaded;
     }
 
-    public void setFormLdapLoaded(final boolean formLdapLoaded) {
+    public void setFormLdapLoaded( final boolean formLdapLoaded )
+    {
         this.formLdapLoaded = formLdapLoaded;
     }
 
-    public Map<String, String> getFormData() {
+    public Map<String, String> getFormData( )
+    {
         return formData;
     }
 
-    public boolean isConfirmationPassed() {
+    public boolean isConfirmationPassed( )
+    {
         return confirmationPassed;
     }
 
-    public void setConfirmationPassed(final boolean confirmationPassed) {
+    public void setConfirmationPassed( final boolean confirmationPassed )
+    {
         this.confirmationPassed = confirmationPassed;
     }
 
-    public boolean isFormSubmitted() {
+    public boolean isFormSubmitted( )
+    {
         return formSubmitted;
     }
 
-    public void setFormSubmitted(final boolean formSubmitted) {
+    public void setFormSubmitted( final boolean formSubmitted )
+    {
         this.formSubmitted = formSubmitted;
     }
 
     @Override
-    public Set<SessionBeanMode> supportedModes() {
-        return Collections.unmodifiableSet(new HashSet<>(Arrays.asList(SessionBeanMode.LOCAL, SessionBeanMode.CRYPTCOOKIE)));
+    public Set<SessionBeanMode> supportedModes( )
+    {
+        return Collections.unmodifiableSet( new HashSet<>( Arrays.asList( SessionBeanMode.LOCAL, SessionBeanMode.CRYPTCOOKIE ) ) );
     }
 
-    public TokenVerificationProgress getTokenVerificationProgress() {
+    public TokenVerificationProgress getTokenVerificationProgress( )
+    {
         return tokenVerificationProgress;
     }
 
-    public void clearTokenVerificationProgress() {
+    public void clearTokenVerificationProgress( )
+    {
         tokenVerificationProgress = new TokenVerificationProgress();
     }
 }

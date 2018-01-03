@@ -22,31 +22,35 @@
 
 package password.pwm.config.option;
 
-public enum MessageSendMethod implements ConfigurationOption {
-    NONE(false),
+public enum MessageSendMethod implements ConfigurationOption
+{
+    NONE( false ),
 
-    EMAILONLY(false),
-    SMSONLY(false),
-    CHOICE_SMS_EMAIL(false),
+    EMAILONLY( false ),
+    SMSONLY( false ),
+    CHOICE_SMS_EMAIL( false ),
 
+    //deprecated oct 2017
     @Deprecated
-    BOTH(true),         //deprecated oct 2017
+    BOTH( true ),
 
+    //deprecated oct 2017
     @Deprecated
-    EMAILFIRST(true),   //deprecated oct 2017
+    EMAILFIRST( true ),
 
+    //deprecated oct 2017
     @Deprecated
-    SMSFIRST(true),     //deprecated oct 2017
-
-    ;
+    SMSFIRST( true ),;
 
     private final boolean deprecated;
 
-    MessageSendMethod(final boolean deprecated) {
+    MessageSendMethod( final boolean deprecated )
+    {
         this.deprecated = deprecated;
     }
 
-    public boolean isDeprecated() {
+    public boolean isDeprecated( )
+    {
         return deprecated;
     }
 }

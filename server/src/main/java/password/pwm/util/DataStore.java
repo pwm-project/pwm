@@ -26,34 +26,36 @@ import password.pwm.error.PwmDataStoreException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.ClosableIterator;
 
-public interface DataStore {
-    enum Status {
+public interface DataStore
+{
+    enum Status
+    {
         NEW, OPEN, CLOSED
     }
 
-    void close()
+    void close( )
             throws PwmDataStoreException;
 
-    boolean contains(String key)
+    boolean contains( String key )
             throws PwmDataStoreException, PwmUnrecoverableException;
 
-    String get(String key)
+    String get( String key )
             throws PwmDataStoreException, PwmUnrecoverableException;
 
-    ClosableIterator<String> iterator()
+    ClosableIterator<String> iterator( )
             throws PwmDataStoreException, PwmUnrecoverableException;
 
-    Status status();
+    Status status( );
 
-    boolean put(String key, String value)
+    boolean put( String key, String value )
             throws PwmDataStoreException, PwmUnrecoverableException;
 
-    boolean putIfAbsent(String key, String value)
+    boolean putIfAbsent( String key, String value )
             throws PwmDataStoreException, PwmUnrecoverableException;
 
-    void remove(String key)
+    void remove( String key )
             throws PwmDataStoreException, PwmUnrecoverableException;
 
-    int size()
+    int size( )
             throws PwmDataStoreException, PwmUnrecoverableException;
 }

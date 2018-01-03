@@ -26,10 +26,11 @@ import password.pwm.error.PwmUnrecoverableException;
 
 import java.util.List;
 
-public interface ClusterProvider {
-    void close();
+public interface ClusterProvider
+{
+    void close( );
 
-    boolean isMaster();
+    boolean isMaster( );
 
-    List<NodeInfo> nodes() throws PwmUnrecoverableException;
+    List<NodeInfo> nodes( ) throws PwmUnrecoverableException;
 }

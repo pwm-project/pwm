@@ -37,23 +37,25 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.Arrays;
 
-public class PwmHttpResponseWrapper {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(PwmHttpResponseWrapper.class);
+public class PwmHttpResponseWrapper
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( PwmHttpResponseWrapper.class );
 
     private final HttpServletRequest httpServletRequest;
     private final HttpServletResponse httpServletResponse;
     private final Configuration configuration;
 
-    public enum CookiePath {
+    public enum CookiePath
+    {
         Application,
         Private,
         CurrentURL,
-        PwmServlet,
+        PwmServlet,;
 
-        ;
-
-        String toStringPath(final HttpServletRequest httpServletRequest) {
-            switch (this) {
+        String toStringPath( final HttpServletRequest httpServletRequest )
+        {
+            switch ( this )
+            {
                 case Application:
                     return httpServletRequest.getServletContext().getContextPath() + "/";
 
@@ -64,16 +66,17 @@ public class PwmHttpResponseWrapper {
                     return httpServletRequest.getRequestURI();
 
                 case PwmServlet:
-                    return new PwmURL(httpServletRequest).determinePwmServletPath();
+                    return new PwmURL( httpServletRequest ).determinePwmServletPath();
 
                 default:
-                    throw new IllegalStateException("undefined CookiePath type: " + this);
+                    throw new IllegalStateException( "undefined CookiePath type: " + this );
             }
 
         }
     }
 
-    public enum Flag {
+    public enum Flag
+    {
         NonHttpOnly,
         BypassSanitation,
     }
@@ -89,43 +92,47 @@ public class PwmHttpResponseWrapper {
         this.configuration = configuration;
     }
 
-    public HttpServletResponse getHttpServletResponse()
+    public HttpServletResponse getHttpServletResponse( )
     {
         return this.httpServletResponse;
     }
 
-    public void sendRedirect(final String url)
+    public void sendRedirect( final String url )
             throws IOException
     {
-        this.httpServletResponse.sendRedirect(Validator.sanitizeHeaderValue(configuration, url));
+        this.httpServletResponse.sendRedirect( Validator.sanitizeHeaderValue( configuration, url ) );
     }
 
-    public boolean isCommitted() {
+    public boolean isCommitted( )
+    {
         return this.httpServletResponse.isCommitted();
     }
 
-    public void setHeader(final HttpHeader headerName, final String value) {
+    public void setHeader( final HttpHeader headerName, final String value )
+    {
         this.httpServletResponse.setHeader(
-                Validator.sanitizeHeaderValue(configuration, headerName.getHttpName()),
-                Validator.sanitizeHeaderValue(configuration, value)
+                Validator.sanitizeHeaderValue( configuration, headerName.getHttpName() ),
+                Validator.sanitizeHeaderValue( configuration, value )
         );
     }
 
-    public void setStatus(final int status) {
-        httpServletResponse.setStatus(status);
+    public void setStatus( final int status )
+    {
+        httpServletResponse.setStatus( status );
     }
 
-    public void setContentType(final HttpContentType contentType) {
-        this.getHttpServletResponse().setContentType(contentType.getHeaderValue());
+    public void setContentType( final HttpContentType contentType )
+    {
+        this.getHttpServletResponse().setContentType( contentType.getHeaderValue() );
     }
 
-    public PrintWriter getWriter()
+    public PrintWriter getWriter( )
             throws IOException
     {
         return this.getHttpServletResponse().getWriter();
     }
 
-    public OutputStream getOutputStream()
+    public OutputStream getOutputStream( )
             throws IOException
     {
         return this.getHttpServletResponse().getOutputStream();
@@ -136,8 +143,9 @@ public class PwmHttpResponseWrapper {
             final String cookieValue,
             final int seconds,
             final Flag... flags
-    ) {
-        writeCookie(cookieName, cookieValue, seconds, null, flags);
+    )
+    {
+        writeCookie( cookieName, cookieValue, seconds, null, flags );
     }
 
     public void writeCookie(
@@ -146,51 +154,64 @@ public class PwmHttpResponseWrapper {
             final int seconds,
             final CookiePath path,
             final Flag... flags
-    ) {
-        if (this.getHttpServletResponse().isCommitted()) {
-            LOGGER.warn("attempt to write cookie '" + cookieName + "' after response is committed");
+    )
+    {
+        if ( this.getHttpServletResponse().isCommitted() )
+        {
+            LOGGER.warn( "attempt to write cookie '" + cookieName + "' after response is committed" );
         }
 
         final boolean secureFlag;
         {
-            final String configValue = configuration.readAppProperty(AppProperty.HTTP_COOKIE_DEFAULT_SECURE_FLAG);
-            if (configValue == null || "auto".equalsIgnoreCase(configValue)) {
+            final String configValue = configuration.readAppProperty( AppProperty.HTTP_COOKIE_DEFAULT_SECURE_FLAG );
+            if ( configValue == null || "auto".equalsIgnoreCase( configValue ) )
+            {
                 secureFlag = this.httpServletRequest.isSecure();
-            } else {
-                secureFlag = Boolean.parseBoolean(configValue);
+            }
+            else
+            {
+                secureFlag = Boolean.parseBoolean( configValue );
             }
         }
 
-        final boolean httpOnly = flags == null || !Arrays.asList(flags).contains(Flag.NonHttpOnly);
+        final boolean httpOnly = flags == null || !Arrays.asList( flags ).contains( Flag.NonHttpOnly );
 
         final String value;
         {
-            if (cookieValue == null) {
+            if ( cookieValue == null )
+            {
                 value = null;
-            } else {
-                if (flags != null && Arrays.asList(flags).contains(Flag.BypassSanitation)) {
-                    value = StringUtil.urlEncode(cookieValue);
-                } else {
+            }
+            else
+            {
+                if ( flags != null && Arrays.asList( flags ).contains( Flag.BypassSanitation ) )
+                {
+                    value = StringUtil.urlEncode( cookieValue );
+                }
+                else
+                {
                     value = StringUtil.urlEncode(
-                            Validator.sanitizeHeaderValue(configuration, cookieValue)
+                            Validator.sanitizeHeaderValue( configuration, cookieValue )
                     );
                 }
             }
         }
 
-        final Cookie theCookie = new Cookie(cookieName, value);
-        theCookie.setMaxAge(seconds >= -1 ? seconds : -1);
-        theCookie.setHttpOnly(httpOnly);
-        theCookie.setSecure(secureFlag);
+        final Cookie theCookie = new Cookie( cookieName, value );
+        theCookie.setMaxAge( seconds >= -1 ? seconds : -1 );
+        theCookie.setHttpOnly( httpOnly );
+        theCookie.setSecure( secureFlag );
 
-        theCookie.setPath(path == null ? CookiePath.CurrentURL.toStringPath(httpServletRequest) : path.toStringPath(httpServletRequest));
-        if (value != null && value.length() > 2000) {
-            LOGGER.warn("writing large cookie to response: cookieName=" + cookieName + ", length=" + value.length());
+        theCookie.setPath( path == null ? CookiePath.CurrentURL.toStringPath( httpServletRequest ) : path.toStringPath( httpServletRequest ) );
+        if ( value != null && value.length() > 2000 )
+        {
+            LOGGER.warn( "writing large cookie to response: cookieName=" + cookieName + ", length=" + value.length() );
         }
-        this.getHttpServletResponse().addCookie(theCookie);
+        this.getHttpServletResponse().addCookie( theCookie );
     }
 
-    public void removeCookie(final String cookieName, final CookiePath path) {
-        writeCookie(cookieName, null, 0, path);
+    public void removeCookie( final String cookieName, final CookiePath path )
+    {
+        writeCookie( cookieName, null, 0, path );
     }
 }

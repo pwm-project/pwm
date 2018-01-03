@@ -35,91 +35,102 @@ import password.pwm.util.secure.PwmSecurityKey;
 import java.time.Instant;
 import java.util.Map;
 
-class NGStoredConfiguration implements StoredConfiguration {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(NGStoredConfiguration.class);
+class NGStoredConfiguration implements StoredConfiguration
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( NGStoredConfiguration.class );
     private final PwmSecurityKey configurationSecurityKey;
     private final StorageEngine engine;
 
     NGStoredConfiguration(
             final Map<StoredConfigReference, StoredValue> values,
             final Map<StoredConfigReference, ValueMetaData> metaValues,
-            final PwmSecurityKey pwmSecurityKey)
+            final PwmSecurityKey pwmSecurityKey )
     {
-        engine = new NGStorageEngineImpl(values, metaValues);
+        engine = new NGStorageEngineImpl( values, metaValues );
         configurationSecurityKey = pwmSecurityKey;
     }
 
-    public String readConfigProperty(final ConfigurationProperty configurationProperty) {
-        final StoredConfigReference storedConfigReference = new StoredConfigReferenceBean(
-                StoredConfigReference.RecordType.PROPERTY,
-                configurationProperty.getKey(),
-                null
-        );
-        final StoredValue storedValue = engine.read(storedConfigReference);
-        if (storedValue == null | !(storedValue instanceof StringValue)) {
-            return null;
-        }
-        return (String) storedValue.toNativeObject();
-    }
-
-    public void writeConfigProperty(final ConfigurationProperty configurationProperty, final String value)
+    public String readConfigProperty( final ConfigurationProperty configurationProperty )
     {
         final StoredConfigReference storedConfigReference = new StoredConfigReferenceBean(
                 StoredConfigReference.RecordType.PROPERTY,
                 configurationProperty.getKey(),
                 null
         );
-        final StoredValue storedValue = new StringValue(value);
-        engine.write(storedConfigReference, storedValue, null);
+        final StoredValue storedValue = engine.read( storedConfigReference );
+        if ( storedValue == null | !( storedValue instanceof StringValue ) )
+        {
+            return null;
+        }
+        return ( String ) storedValue.toNativeObject();
     }
 
-    public void resetSetting(final PwmSetting setting, final String profileID, final UserIdentity userIdentity) {
+    public void writeConfigProperty( final ConfigurationProperty configurationProperty, final String value )
+    {
+        final StoredConfigReference storedConfigReference = new StoredConfigReferenceBean(
+                StoredConfigReference.RecordType.PROPERTY,
+                configurationProperty.getKey(),
+                null
+        );
+        final StoredValue storedValue = new StringValue( value );
+        engine.write( storedConfigReference, storedValue, null );
+    }
+
+    public void resetSetting( final PwmSetting setting, final String profileID, final UserIdentity userIdentity )
+    {
         final StoredConfigReference storedConfigReference = new StoredConfigReferenceBean(
                 StoredConfigReference.RecordType.SETTING,
                 setting.getKey(),
                 profileID
         );
-        engine.reset(storedConfigReference, userIdentity);
+        engine.reset( storedConfigReference, userIdentity );
     }
 
-    public boolean isDefaultValue(final PwmSetting setting) {
-        return isDefaultValue(setting, null);
+    public boolean isDefaultValue( final PwmSetting setting )
+    {
+        return isDefaultValue( setting, null );
     }
 
-    public boolean isDefaultValue(final PwmSetting setting, final String profileID) {
+    public boolean isDefaultValue( final PwmSetting setting, final String profileID )
+    {
         final StoredConfigReference storedConfigReference = new StoredConfigReferenceBean(
                 StoredConfigReference.RecordType.SETTING,
                 setting.getKey(),
                 profileID
         );
-        final StoredValue value = engine.read(storedConfigReference);
+        final StoredValue value = engine.read( storedConfigReference );
         return value == null;
     }
 
-    public StoredValue readSetting(final PwmSetting setting) {
-        return readSetting(setting, null);
+    public StoredValue readSetting( final PwmSetting setting )
+    {
+        return readSetting( setting, null );
     }
 
-    public StoredValue readSetting(final PwmSetting setting, final String profileID) {
+    public StoredValue readSetting( final PwmSetting setting, final String profileID )
+    {
         final StoredConfigReference storedConfigReference = new StoredConfigReferenceBean(
                 StoredConfigReference.RecordType.SETTING,
                 setting.getKey(),
                 profileID
         );
-        return engine.read(storedConfigReference);
+        return engine.read( storedConfigReference );
     }
 
-    public void copyProfileID(final PwmSettingCategory category, final String sourceID, final String destinationID, final UserIdentity userIdentity)
-            throws PwmUnrecoverableException {
-        throw new IllegalStateException("not implemented"); //@todo
+    public void copyProfileID( final PwmSettingCategory category, final String sourceID, final String destinationID, final UserIdentity userIdentity )
+            throws PwmUnrecoverableException
+    {
+        //@todo
+        throw new IllegalStateException( "not implemented" );
     }
 
     public void writeSetting(
             final PwmSetting setting,
             final StoredValue value,
             final UserIdentity userIdentity
-    ) throws PwmUnrecoverableException {
-        writeSetting(setting, null, value, userIdentity);
+    ) throws PwmUnrecoverableException
+    {
+        writeSetting( setting, null, value, userIdentity );
     }
 
     public void writeSetting(
@@ -135,41 +146,50 @@ class NGStoredConfiguration implements StoredConfiguration {
                 setting.getKey(),
                 profileID
         );
-        engine.write(storedConfigReference, value, userIdentity);
+        engine.write( storedConfigReference, value, userIdentity );
     }
 
     @Override
-    public PwmSecurityKey getKey() throws PwmUnrecoverableException {
+    public PwmSecurityKey getKey( ) throws PwmUnrecoverableException
+    {
         return configurationSecurityKey;
     }
 
     @Override
-    public boolean isLocked() {
+    public boolean isLocked( )
+    {
         return engine.isWriteLocked();
     }
 
     @Override
-    public void lock() {
+    public void lock( )
+    {
         engine.writeLock();
     }
 
     @Override
-    public ValueMetaData readSettingMetadata(final PwmSetting setting, final String profileID) {
+    public ValueMetaData readSettingMetadata( final PwmSetting setting, final String profileID )
+    {
         final StoredConfigReference storedConfigReference = new StoredConfigReferenceBean(
                 StoredConfigReference.RecordType.SETTING,
                 setting.getKey(),
                 profileID
         );
-        return engine.readMetaData(storedConfigReference);
+        return engine.readMetaData( storedConfigReference );
     }
 
-    public Instant modifyTime() {
-        final String modifyTimeString = readConfigProperty(ConfigurationProperty.MODIFIFICATION_TIMESTAMP);
-        if (modifyTimeString != null) {
-            try {
-                return JavaHelper.parseIsoToInstant((modifyTimeString));
-            } catch (Exception e) {
-                LOGGER.error("error parsing last modified timestamp property: " + e.getMessage());
+    public Instant modifyTime( )
+    {
+        final String modifyTimeString = readConfigProperty( ConfigurationProperty.MODIFIFICATION_TIMESTAMP );
+        if ( modifyTimeString != null )
+        {
+            try
+            {
+                return JavaHelper.parseIsoToInstant( ( modifyTimeString ) );
+            }
+            catch ( Exception e )
+            {
+                LOGGER.error( "error parsing last modified timestamp property: " + e.getMessage() );
             }
         }
         return null;

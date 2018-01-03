@@ -34,52 +34,61 @@ import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Set;
 
-public enum PwmLocaleBundle {
-    DISPLAY(Display.class, false),
-    ERRORS(Error.class, false),
-    MESSAGE(Message.class, false),
+public enum PwmLocaleBundle
+{
+    DISPLAY( Display.class, false ),
+    ERRORS( Error.class, false ),
+    MESSAGE( Message.class, false ),
 
-    CONFIG(Config.class, true),
-    ADMIN(Admin.class, true),
-    HEALTH(Health.class, true),
-    ;
+    CONFIG( Config.class, true ),
+    ADMIN( Admin.class, true ),
+    HEALTH( Health.class, true ),;
 
     private final Class<? extends PwmDisplayBundle> theClass;
     private final boolean adminOnly;
     private Set<String> keys;
 
-    PwmLocaleBundle(final Class<? extends PwmDisplayBundle> theClass, final boolean adminOnly) {
+    PwmLocaleBundle( final Class<? extends PwmDisplayBundle> theClass, final boolean adminOnly )
+    {
         this.theClass = theClass;
         this.adminOnly = adminOnly;
     }
 
-    public Class<? extends PwmDisplayBundle> getTheClass() {
+    public Class<? extends PwmDisplayBundle> getTheClass( )
+    {
         return theClass;
     }
 
-    public boolean isAdminOnly() {
+    public boolean isAdminOnly( )
+    {
         return adminOnly;
     }
 
-    public Set<String> getKeys() {
-        if (keys == null) {
-            final ResourceBundle defaultBundle = ResourceBundle.getBundle(this.getTheClass().getName(), PwmConstants.DEFAULT_LOCALE);
-            keys = Collections.unmodifiableSet(new HashSet<>(defaultBundle.keySet()));
+    public Set<String> getKeys( )
+    {
+        if ( keys == null )
+        {
+            final ResourceBundle defaultBundle = ResourceBundle.getBundle( this.getTheClass().getName(), PwmConstants.DEFAULT_LOCALE );
+            keys = Collections.unmodifiableSet( new HashSet<>( defaultBundle.keySet() ) );
         }
         return keys;
     }
 
-    public static Collection<PwmLocaleBundle> allValues() {
-        return Collections.unmodifiableList(Arrays.asList(PwmLocaleBundle.values()));
+    public static Collection<PwmLocaleBundle> allValues( )
+    {
+        return Collections.unmodifiableList( Arrays.asList( PwmLocaleBundle.values() ) );
     }
 
-    public static Collection<PwmLocaleBundle> userFacingValues() {
-        final List<PwmLocaleBundle> returnValue = new ArrayList<>(allValues());
-        for (final Iterator<PwmLocaleBundle> iter = returnValue.iterator(); iter.hasNext(); ) {
-            if (iter.next().isAdminOnly()) {
+    public static Collection<PwmLocaleBundle> userFacingValues( )
+    {
+        final List<PwmLocaleBundle> returnValue = new ArrayList<>( allValues() );
+        for ( final Iterator<PwmLocaleBundle> iter = returnValue.iterator(); iter.hasNext(); )
+        {
+            if ( iter.next().isAdminOnly() )
+            {
                 iter.remove();
             }
         }
-        return Collections.unmodifiableList(returnValue);
+        return Collections.unmodifiableList( returnValue );
     }
 }

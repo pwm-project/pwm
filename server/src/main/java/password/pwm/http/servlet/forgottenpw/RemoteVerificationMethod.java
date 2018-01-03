@@ -52,9 +52,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-public class RemoteVerificationMethod implements VerificationMethodSystem {
+public class RemoteVerificationMethod implements VerificationMethodSystem
+{
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass(RemoteVerificationMethod.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass( RemoteVerificationMethod.class );
 
 
     private String remoteSessionID = PwmRandom.getInstance().randomUUID().toString();
@@ -69,96 +70,112 @@ public class RemoteVerificationMethod implements VerificationMethodSystem {
     private String url;
 
     @Override
-    public List<UserPrompt> getCurrentPrompts() throws PwmUnrecoverableException {
-        if (lastResponse == null || lastResponse.getUserPrompts() == null) {
+    public List<UserPrompt> getCurrentPrompts( ) throws PwmUnrecoverableException
+    {
+        if ( lastResponse == null || lastResponse.getUserPrompts() == null )
+        {
             return null;
         }
 
         final List<UserPrompt> returnObj = new ArrayList<>();
-        for (final UserPromptBean userPromptBean : lastResponse.getUserPrompts()) {
-            returnObj.add(userPromptBean);
+        for ( final UserPromptBean userPromptBean : lastResponse.getUserPrompts() )
+        {
+            returnObj.add( userPromptBean );
         }
         return returnObj;
     }
 
     @Override
-    public String getCurrentDisplayInstructions() {
+    public String getCurrentDisplayInstructions( )
+    {
         return lastResponse == null
                 ? ""
                 : lastResponse.getDisplayInstructions();
     }
 
     @Override
-    public ErrorInformation respondToPrompts(final Map<String, String> answers) throws PwmUnrecoverableException {
-        sendRemoteRequest(answers);
-        if (lastResponse != null) {
+    public ErrorInformation respondToPrompts( final Map<String, String> answers ) throws PwmUnrecoverableException
+    {
+        sendRemoteRequest( answers );
+        if ( lastResponse != null )
+        {
             final String errorMsg = lastResponse.getErrorMessage();
-            if (errorMsg != null && !errorMsg.isEmpty()) {
-                return new ErrorInformation(PwmError.ERROR_REMOTE_ERROR_VALUE, errorMsg);
+            if ( errorMsg != null && !errorMsg.isEmpty() )
+            {
+                return new ErrorInformation( PwmError.ERROR_REMOTE_ERROR_VALUE, errorMsg );
             }
         }
         return null;
     }
 
     @Override
-    public VerificationState getVerificationState() {
+    public VerificationState getVerificationState( )
+    {
         return lastResponse == null
                 ? VerificationState.INPROGRESS
                 : lastResponse.getVerificationState();
     }
 
     @Override
-    public void init(final PwmApplication pwmApplication, final UserInfo userInfo, final SessionLabel sessionLabel, final Locale locale) throws PwmUnrecoverableException {
-        pwmHttpClient = new PwmHttpClient(pwmApplication, sessionLabel);
+    public void init( final PwmApplication pwmApplication, final UserInfo userInfo, final SessionLabel sessionLabel, final Locale locale ) throws PwmUnrecoverableException
+    {
+        pwmHttpClient = new PwmHttpClient( pwmApplication, sessionLabel );
         this.userInfo = userInfo;
         this.sessionLabel = sessionLabel;
         this.locale = locale;
         this.pwmApplication = pwmApplication;
-        this.url = pwmApplication.getConfig().readSettingAsString(PwmSetting.EXTERNAL_MACROS_REMOTE_RESPONSES_URL);
+        this.url = pwmApplication.getConfig().readSettingAsString( PwmSetting.EXTERNAL_MACROS_REMOTE_RESPONSES_URL );
 
-        if (url == null || url.isEmpty()) {
-            final String errorMsg = PwmSetting.EXTERNAL_MACROS_REMOTE_RESPONSES_URL.toMenuLocationDebug(null, PwmConstants.DEFAULT_LOCALE)
+        if ( url == null || url.isEmpty() )
+        {
+            final String errorMsg = PwmSetting.EXTERNAL_MACROS_REMOTE_RESPONSES_URL.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE )
                     + " must be configured for remote responses";
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG, errorMsg);
-            LOGGER.error(sessionLabel, errorInformation);
-            throw new PwmUnrecoverableException(errorInformation);
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INVALID_CONFIG, errorMsg );
+            LOGGER.error( sessionLabel, errorInformation );
+            throw new PwmUnrecoverableException( errorInformation );
         }
 
-        sendRemoteRequest(null);
+        sendRemoteRequest( null );
     }
 
-    private void sendRemoteRequest(final Map<String, String> userResponses) throws PwmUnrecoverableException {
+    private void sendRemoteRequest( final Map<String, String> userResponses ) throws PwmUnrecoverableException
+    {
         lastResponse = null;
 
         final Map<String, String> headers = new LinkedHashMap<>();
-        headers.put(HttpHeader.Content_Type.getHttpName(), HttpContentType.json.getHeaderValue());
-        headers.put(HttpHeader.Accept_Language.getHttpName(), locale.toLanguageTag());
+        headers.put( HttpHeader.Content_Type.getHttpName(), HttpContentType.json.getHeaderValue() );
+        headers.put( HttpHeader.Accept_Language.getHttpName(), locale.toLanguageTag() );
 
         final RemoteVerificationRequestBean remoteVerificationRequestBean = new RemoteVerificationRequestBean();
-        remoteVerificationRequestBean.setResponseSessionID(this.remoteSessionID);
-        final MacroMachine macroMachine = MacroMachine.forUser(pwmApplication, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, userInfo.getUserIdentity());
-        remoteVerificationRequestBean.setUserInfo(PublicUserInfoBean.fromUserInfoBean(userInfo, pwmApplication.getConfig(), locale, macroMachine));
-        remoteVerificationRequestBean.setUserResponses(userResponses);
+        remoteVerificationRequestBean.setResponseSessionID( this.remoteSessionID );
+        final MacroMachine macroMachine = MacroMachine.forUser( pwmApplication, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, userInfo.getUserIdentity() );
+        remoteVerificationRequestBean.setUserInfo( PublicUserInfoBean.fromUserInfoBean( userInfo, pwmApplication.getConfig(), locale, macroMachine ) );
+        remoteVerificationRequestBean.setUserResponses( userResponses );
 
         final PwmHttpClientRequest pwmHttpClientRequest = new PwmHttpClientRequest(
                 HttpMethod.POST,
                 url,
-                JsonUtil.serialize(remoteVerificationRequestBean),
+                JsonUtil.serialize( remoteVerificationRequestBean ),
                 headers
         );
 
-        try {
-            final PwmHttpClientResponse response = pwmHttpClient.makeRequest(pwmHttpClientRequest);
+        try
+        {
+            final PwmHttpClientResponse response = pwmHttpClient.makeRequest( pwmHttpClientRequest );
             final String responseBodyStr = response.getBody();
-            this.lastResponse = JsonUtil.deserialize(responseBodyStr, RemoteVerificationResponseBean.class);
-        } catch (PwmException e) {
-            LOGGER.error(sessionLabel, e.getErrorInformation());
-            throw new PwmUnrecoverableException(e.getErrorInformation());
-        } catch (Exception e) {
+            this.lastResponse = JsonUtil.deserialize( responseBodyStr, RemoteVerificationResponseBean.class );
+        }
+        catch ( PwmException e )
+        {
+            LOGGER.error( sessionLabel, e.getErrorInformation() );
+            throw new PwmUnrecoverableException( e.getErrorInformation() );
+        }
+        catch ( Exception e )
+        {
             final String errorMsg = "error reading remote responses web service response: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE, errorMsg);
-            LOGGER.error(sessionLabel, errorInformation);
-            throw new PwmUnrecoverableException(errorInformation);
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, errorMsg );
+            LOGGER.error( sessionLabel, errorInformation );
+            throw new PwmUnrecoverableException( errorInformation );
         }
     }
 }

@@ -23,7 +23,6 @@
 package password.pwm.config.profile;
 
 import com.novell.ldapchai.ChaiEntry;
-
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
@@ -32,8 +31,8 @@ import password.pwm.PwmApplication;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.StoredValue;
-import password.pwm.config.value.data.UserPermission;
 import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.svc.cache.CacheKey;
@@ -50,16 +49,19 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-public class LdapProfile extends AbstractProfile implements Profile {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(LdapProfile.class);
+public class LdapProfile extends AbstractProfile implements Profile
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( LdapProfile.class );
 
-    protected LdapProfile(final String identifier, final Map<PwmSetting, StoredValue> storedValueMap) {
-        super(identifier, storedValueMap);
+    protected LdapProfile( final String identifier, final Map<PwmSetting, StoredValue> storedValueMap )
+    {
+        super( identifier, storedValueMap );
     }
 
-    public static LdapProfile makeFromStoredConfiguration(final StoredConfigurationImpl storedConfiguration, final String profileID) {
-        final Map<PwmSetting,StoredValue> valueMap = AbstractProfile.makeValueMap(storedConfiguration, profileID, PwmSettingCategory.LDAP_PROFILE);
-        return new LdapProfile(profileID, valueMap);
+    public static LdapProfile makeFromStoredConfiguration( final StoredConfigurationImpl storedConfiguration, final String profileID )
+    {
+        final Map<PwmSetting, StoredValue> valueMap = AbstractProfile.makeValueMap( storedConfiguration, profileID, PwmSettingCategory.LDAP_PROFILE );
+        return new LdapProfile( profileID, valueMap );
     }
 
     public Map<String, String> getSelectableContexts(
@@ -67,16 +69,17 @@ public class LdapProfile extends AbstractProfile implements Profile {
     )
             throws PwmUnrecoverableException
     {
-        final List<String> rawValues = readSettingAsStringArray(PwmSetting.LDAP_LOGIN_CONTEXTS);
-        final Map<String, String> configuredValues = StringUtil.convertStringListToNameValuePair(rawValues, ":::");
+        final List<String> rawValues = readSettingAsStringArray( PwmSetting.LDAP_LOGIN_CONTEXTS );
+        final Map<String, String> configuredValues = StringUtil.convertStringListToNameValuePair( rawValues, ":::" );
         final Map<String, String> canonicalValues = new LinkedHashMap<>();
-        for (final Map.Entry<String,String> entry : configuredValues.entrySet()) {
+        for ( final Map.Entry<String, String> entry : configuredValues.entrySet() )
+        {
             final String dn = entry.getKey();
             final String label = entry.getValue();
-            final String canonicalDN = readCanonicalDN(pwmApplication, dn);
-            canonicalValues.put(canonicalDN, label);
+            final String canonicalDN = readCanonicalDN( pwmApplication, dn );
+            canonicalValues.put( canonicalDN, label );
         }
-        return Collections.unmodifiableMap(canonicalValues);
+        return Collections.unmodifiableMap( canonicalValues );
     }
 
     public List<String> getRootContexts(
@@ -84,38 +87,44 @@ public class LdapProfile extends AbstractProfile implements Profile {
     )
             throws PwmUnrecoverableException
     {
-        final List<String> rawValues = readSettingAsStringArray(PwmSetting.LDAP_CONTEXTLESS_ROOT);
+        final List<String> rawValues = readSettingAsStringArray( PwmSetting.LDAP_CONTEXTLESS_ROOT );
         final List<String> canonicalValues = new ArrayList<>();
-        for (final String dn : rawValues ) {
-            final String canonicalDN = readCanonicalDN(pwmApplication, dn);
-            canonicalValues.add(canonicalDN);
+        for ( final String dn : rawValues )
+        {
+            final String canonicalDN = readCanonicalDN( pwmApplication, dn );
+            canonicalValues.add( canonicalDN );
         }
-        return Collections.unmodifiableList(canonicalValues);
+        return Collections.unmodifiableList( canonicalValues );
     }
 
     @Override
-    public String getDisplayName(final Locale locale) {
-        final String displayName = readSettingAsLocalizedString(PwmSetting.LDAP_PROFILE_DISPLAY_NAME,locale);
+    public String getDisplayName( final Locale locale )
+    {
+        final String displayName = readSettingAsLocalizedString( PwmSetting.LDAP_PROFILE_DISPLAY_NAME, locale );
         return displayName == null || displayName.length() < 1 ? getIdentifier() : displayName;
     }
 
-    public String getUsernameAttribute() {
-        final String configUsernameAttr = this.readSettingAsString(PwmSetting.LDAP_USERNAME_ATTRIBUTE);
-        final String ldapNamingAttribute = this.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
+    public String getUsernameAttribute( )
+    {
+        final String configUsernameAttr = this.readSettingAsString( PwmSetting.LDAP_USERNAME_ATTRIBUTE );
+        final String ldapNamingAttribute = this.readSettingAsString( PwmSetting.LDAP_NAMING_ATTRIBUTE );
         return configUsernameAttr != null && configUsernameAttr.length() > 0 ? configUsernameAttr : ldapNamingAttribute;
     }
 
-    public ChaiProvider getProxyChaiProvider(final PwmApplication pwmApplication) throws PwmUnrecoverableException {
-        return pwmApplication.getProxyChaiProvider(this.getIdentifier());
+    public ChaiProvider getProxyChaiProvider( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
+    {
+        return pwmApplication.getProxyChaiProvider( this.getIdentifier() );
     }
 
     @Override
-    public ProfileType profileType() {
+    public ProfileType profileType( )
+    {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public List<UserPermission> getPermissionMatches() {
+    public List<UserPermission> getPermissionMatches( )
+    {
         throw new UnsupportedOperationException();
     }
 
@@ -126,38 +135,46 @@ public class LdapProfile extends AbstractProfile implements Profile {
             throws PwmUnrecoverableException
     {
         {
-            final boolean doCanonicalDnResolve = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.LDAP_RESOLVE_CANONICAL_DN));
-            if (!doCanonicalDnResolve) {
+            final boolean doCanonicalDnResolve = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.LDAP_RESOLVE_CANONICAL_DN ) );
+            if ( !doCanonicalDnResolve )
+            {
                 return dnValue;
             }
         }
 
-        final boolean enableCanonicalCache = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.LDAP_CACHE_CANONICAL_ENABLE));
+        final boolean enableCanonicalCache = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.LDAP_CACHE_CANONICAL_ENABLE ) );
 
         String canonicalValue = null;
-        final CacheKey cacheKey = CacheKey.makeCacheKey(LdapPermissionTester.class, null, "canonicalDN-" + this.getIdentifier() + "-" + dnValue);
-        if (enableCanonicalCache) {
-            final String cachedDN = pwmApplication.getCacheService().get(cacheKey);
-            if (cachedDN != null) {
+        final CacheKey cacheKey = CacheKey.makeCacheKey( LdapPermissionTester.class, null, "canonicalDN-" + this.getIdentifier() + "-" + dnValue );
+        if ( enableCanonicalCache )
+        {
+            final String cachedDN = pwmApplication.getCacheService().get( cacheKey );
+            if ( cachedDN != null )
+            {
                 canonicalValue = cachedDN;
             }
         }
 
-        if (canonicalValue == null) {
-            try {
-                final ChaiProvider chaiProvider = this.getProxyChaiProvider(pwmApplication);
-                final ChaiEntry chaiEntry = chaiProvider.getEntryFactory().newChaiEntry(dnValue);
+        if ( canonicalValue == null )
+        {
+            try
+            {
+                final ChaiProvider chaiProvider = this.getProxyChaiProvider( pwmApplication );
+                final ChaiEntry chaiEntry = chaiProvider.getEntryFactory().newChaiEntry( dnValue );
                 canonicalValue = chaiEntry.readCanonicalDN();
 
-                if (enableCanonicalCache) {
-                    final long cacheSeconds = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.LDAP_CACHE_CANONICAL_SECONDS));
-                    final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpiration(new TimeDuration(cacheSeconds, TimeUnit.SECONDS));
-                    pwmApplication.getCacheService().put(cacheKey, cachePolicy, canonicalValue);
+                if ( enableCanonicalCache )
+                {
+                    final long cacheSeconds = Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.LDAP_CACHE_CANONICAL_SECONDS ) );
+                    final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpiration( new TimeDuration( cacheSeconds, TimeUnit.SECONDS ) );
+                    pwmApplication.getCacheService().put( cacheKey, cachePolicy, canonicalValue );
                 }
 
-                LOGGER.trace("read and cached canonical ldap DN value for input '" + dnValue + "' as '" + canonicalValue + "'");
-            } catch (ChaiUnavailableException | ChaiOperationException e) {
-                LOGGER.error("error while reading canonicalDN for dn value '" + dnValue + "', error: " + e.getMessage());
+                LOGGER.trace( "read and cached canonical ldap DN value for input '" + dnValue + "' as '" + canonicalValue + "'" );
+            }
+            catch ( ChaiUnavailableException | ChaiOperationException e )
+            {
+                LOGGER.error( "error while reading canonicalDN for dn value '" + dnValue + "', error: " + e.getMessage() );
                 return dnValue;
             }
         }

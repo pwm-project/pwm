@@ -26,10 +26,11 @@ import com.google.gson.annotations.SerializedName;
 
 import java.io.Serializable;
 
-enum OAuthUseCase implements Serializable {
-    @SerializedName("F")
+enum OAuthUseCase implements Serializable
+{
+    @SerializedName( "F" )
     ForgottenPassword,
 
-    @SerializedName("A")
+    @SerializedName( "A" )
     Authentication,
 }

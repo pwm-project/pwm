@@ -42,26 +42,28 @@ import java.util.TimeZone;
  *
  * @author Jason D. Rivard
  */
-public abstract class PwmConstants {
+public abstract class PwmConstants
+{
 
-    public static final String BUILD_TIME           = readBuildInfoBundle("build.time", Instant.now().toString());
-    public static final String BUILD_NUMBER         = readBuildInfoBundle("build.number","0");
-    public static final String BUILD_TYPE           = readBuildInfoBundle("build.type","");
-    public static final String BUILD_USER           = readBuildInfoBundle("build.user",System.getProperty("user.name"));
-    public static final String BUILD_REVISION       = readBuildInfoBundle("build.revision","0");
-    public static final String BUILD_JAVA_VENDOR    = readBuildInfoBundle("build.java.vendor");
-    public static final String BUILD_JAVA_VERSION   = readBuildInfoBundle("build.java.version");
-    public static final String BUILD_VERSION        = readBuildInfoBundle("build.version","");
+    public static final String BUILD_TIME = readBuildInfoBundle( "build.time", Instant.now().toString() );
+    public static final String BUILD_NUMBER = readBuildInfoBundle( "build.number", "0" );
+    public static final String BUILD_TYPE = readBuildInfoBundle( "build.type", "" );
+    public static final String BUILD_USER = readBuildInfoBundle( "build.user", System.getProperty( "user.name" ) );
+    public static final String BUILD_REVISION = readBuildInfoBundle( "build.revision", "0" );
+    public static final String BUILD_JAVA_VENDOR = readBuildInfoBundle( "build.java.vendor" );
+    public static final String BUILD_JAVA_VERSION = readBuildInfoBundle( "build.java.version" );
+    public static final String BUILD_VERSION = readBuildInfoBundle( "build.version", "" );
 
-    private static final String MISSING_VERSION_STRING = readPwmConstantsBundle("missingVersionString");
+    private static final String MISSING_VERSION_STRING = readPwmConstantsBundle( "missingVersionString" );
     public static final String SERVLET_VERSION;
 
-    static {
+    static
+    {
         final String servletVersion =
-                (BUILD_VERSION.length() > 0 ? "v" + BUILD_VERSION : "") +
-                        (BUILD_NUMBER.length() > 0 ? " b" + BUILD_NUMBER : "") +
-                        (BUILD_REVISION.length() > 0 ? " r" + BUILD_REVISION : "") +
-                        (BUILD_TYPE.length() > 0 ? " (" + BUILD_TYPE + ")" : "").trim();
+                ( BUILD_VERSION.length() > 0 ? "v" + BUILD_VERSION : "" )
+                        + ( BUILD_NUMBER.length() > 0 ? " b" + BUILD_NUMBER : "" )
+                        + ( BUILD_REVISION.length() > 0 ? " r" + BUILD_REVISION : "" )
+                        + ( BUILD_TYPE.length() > 0 ? " (" + BUILD_TYPE + ")" : "" ).trim();
 
         SERVLET_VERSION = servletVersion.isEmpty()
                 ? MISSING_VERSION_STRING
@@ -70,28 +72,28 @@ public abstract class PwmConstants {
 
     public static final String CHAI_API_VERSION = com.novell.ldapchai.ChaiConstant.CHAI_API_VERSION;
 
-    public static final String DEFAULT_CONFIG_FILE_FILENAME = readPwmConstantsBundle("defaultConfigFilename");
+    public static final String DEFAULT_CONFIG_FILE_FILENAME = readPwmConstantsBundle( "defaultConfigFilename" );
 
-    public static final String PWM_APP_NAME = readPwmConstantsBundle("pwm.appName");
-    public static final String PWM_URL_HOME = readPwmConstantsBundle("url.pwm-home");
-    public static final String PWM_URL_CLOUD = readPwmConstantsBundle("url.pwm-cloud");
+    public static final String PWM_APP_NAME = readPwmConstantsBundle( "pwm.appName" );
+    public static final String PWM_URL_HOME = readPwmConstantsBundle( "url.pwm-home" );
+    public static final String PWM_URL_CLOUD = readPwmConstantsBundle( "url.pwm-cloud" );
 
     public static final String PWM_APP_NAME_VERSION = PWM_APP_NAME + " " + SERVLET_VERSION;
 
     public static final String CONFIGMANAGER_INTRUDER_USERNAME = "ConfigurationManagerLogin";
 
-    public static final Locale DEFAULT_LOCALE = new Locale(readPwmConstantsBundle("locale.defaultLocale"));
-    public static final Charset DEFAULT_CHARSET = Charset.forName("UTF8");
+    public static final Locale DEFAULT_LOCALE = new Locale( readPwmConstantsBundle( "locale.defaultLocale" ) );
+    public static final Charset DEFAULT_CHARSET = Charset.forName( "UTF8" );
 
     public static final CSVFormat DEFAULT_CSV_FORMAT = CSVFormat.DEFAULT;
 
-    public static final String DEFAULT_DATETIME_FORMAT_STR = readPwmConstantsBundle("locale.defaultDateTimeFormat");
-    public static final TimeZone DEFAULT_TIMEZONE = TimeZone.getTimeZone(readPwmConstantsBundle("locale.defaultTimeZone"));
+    public static final String DEFAULT_DATETIME_FORMAT_STR = readPwmConstantsBundle( "locale.defaultDateTimeFormat" );
+    public static final TimeZone DEFAULT_TIMEZONE = TimeZone.getTimeZone( readPwmConstantsBundle( "locale.defaultTimeZone" ) );
 
-    public static final String APPLICATION_PATH_INFO_FILE = readPwmConstantsBundle("applicationPathInfoFile");
+    public static final String APPLICATION_PATH_INFO_FILE = readPwmConstantsBundle( "applicationPathInfoFile" );
 
-    public static final boolean ENABLE_EULA_DISPLAY = Boolean.parseBoolean(readPwmConstantsBundle("enableEulaDisplay"));
-    public static final boolean TRIAL_MODE = Boolean.parseBoolean(readPwmConstantsBundle("trial"));
+    public static final boolean ENABLE_EULA_DISPLAY = Boolean.parseBoolean( readPwmConstantsBundle( "enableEulaDisplay" ) );
+    public static final boolean TRIAL_MODE = Boolean.parseBoolean( readPwmConstantsBundle( "trial" ) );
     public static final int TRIAL_MAX_AUTHENTICATIONS = 100;
     public static final int TRIAL_MAX_TOTAL_AUTH = 10000;
 
@@ -101,9 +103,9 @@ public abstract class PwmConstants {
 
     public static final String TOKEN_KEY_PWD_CHG_DATE = "_lastPwdChange";
 
-    public static final String HTTP_BASIC_AUTH_PREFIX = readPwmConstantsBundle("httpHeaderAuthorizationBasic");
+    public static final String HTTP_BASIC_AUTH_PREFIX = readPwmConstantsBundle( "httpHeaderAuthorizationBasic" );
 
-    public static final String DEFAULT_BAD_PASSWORD_ATTEMPT = readPwmConstantsBundle("defaultBadPasswordAttempt");
+    public static final String DEFAULT_BAD_PASSWORD_ATTEMPT = readPwmConstantsBundle( "defaultBadPasswordAttempt" );
 
     public static final String CONTEXT_ATTR_CONTEXT_MANAGER = "ContextManager";
 
@@ -115,18 +117,20 @@ public abstract class PwmConstants {
     public static final PwmHashAlgorithm SETTING_CHECKSUM_HASH_METHOD = PwmHashAlgorithm.SHA256;
 
 
-    public static final String LOG_REMOVED_VALUE_REPLACEMENT = readPwmConstantsBundle("log.removedValue");
+    public static final String LOG_REMOVED_VALUE_REPLACEMENT = readPwmConstantsBundle( "log.removedValue" );
 
     public static final Collection<Locale> INCLUDED_LOCALES;
 
-    static {
+    static
+    {
         final List<Locale> localeList = new ArrayList<>();
-        final String inputString = readPwmConstantsBundle("includedLocales");
-        final List<String> inputList = JsonUtil.deserializeStringList(inputString);
-        for (final String localeKey : inputList) {
-            localeList.add(new Locale(localeKey));
+        final String inputString = readPwmConstantsBundle( "includedLocales" );
+        final List<String> inputList = JsonUtil.deserializeStringList( inputString );
+        for ( final String localeKey : inputList )
+        {
+            localeList.add( new Locale( localeKey ) );
         }
-        INCLUDED_LOCALES = Collections.unmodifiableCollection(localeList);
+        INCLUDED_LOCALES = Collections.unmodifiableCollection( localeList );
     }
 
     public static final String URL_JSP_CONFIG_GUIDE = "WEB-INF/jsp/configguide-%1%.jsp";
@@ -144,7 +148,7 @@ public abstract class PwmConstants {
     public static final String PARAM_SESSION_STATE_INFO = "ssi";
 
     public static final String PARAM_OTP_TOKEN = "otpToken";
-    public static final String PARAM_TOKEN = readPwmConstantsBundle("paramName.token");
+    public static final String PARAM_TOKEN = readPwmConstantsBundle( "paramName.token" );
     public static final String PARAM_USERNAME = "username";
     public static final String PARAM_PASSWORD = "password";
     public static final String PARAM_CONTEXT = "context";
@@ -164,7 +168,7 @@ public abstract class PwmConstants {
     public static final String RESOURCE_FILE_WELCOME_TXT = "welcome.txt";
 
     // don't worry.  look over there.
-    public static final List<String> X_AMB_HEADER = Collections.unmodifiableList(Arrays.asList(
+    public static final List<String> X_AMB_HEADER = Collections.unmodifiableList( Arrays.asList(
             "bonjour!",
             "something witty!",
             "just like X-Fry, only ambier",
@@ -186,11 +190,14 @@ public abstract class PwmConstants {
             "are passwords really necessary?  can't we all just get along?",
             "That's amazing! I've got the same combination on my luggage!",
             "just because it looks plaintext doesn't mean there isn't a steganographic 1024bit AES key",
-            "whatever happened to speech wreck a nation technology?",     // thx wk
+
+            // thx wk
+            "whatever happened to speech wreck a nation technology?",
+            "The Mummy's password is in crypted",
+            "The zombie's password is expired",
+            "Chuck Yeager's password is in plane text",
+
             "Password schmassword, I can't even remember my user name...",
-            "The Mummy's password is in crypted",   // thx wk
-            "The zombie's password is expired", // wk
-            "Chuck Yeager's password is in plane text", // thx wk
             "Fruit flies have one time use passwords",
             "As Gregor Samsa awoke one morning from uneasy dreams he found himself transformed in his bed into a gigantic password.",
             "NOTICE: This header is protected by the Digital Millennium Copyright Act of 1996.  Reading this header is strictly forbidden.",
@@ -202,45 +209,58 @@ public abstract class PwmConstants {
             "Your password must be scanned by the TSA to ensure the safety of your fellow travelers.  Please take off your password's shoes to continue.",
             "That password really tied the room together dude.",
             "Bite my shiny metal password!",
-            "I needed a password eight characters long so I picked Snow White and the Seven Dwarves.", //nick helm
+
+            //nick helm
+            "I needed a password eight characters long so I picked Snow White and the Seven Dwarves.",
             "Roses are #FF0000 , Violets are #0000FF, All your password are belongs to us.",
             "I changed my password to \"incorrect\", so whenever i forget, it will tell me \"your password is incorrect\".",
-            "passwords are like underwear, changing underwear regularly is a good thing.", //menno
+
+            //menno
+            "passwords are like underwear, changing underwear regularly is a good thing.",
             "daisy, daisy, give me your password do...",
-            "it's a wholesome can of software goodness", // thx krowten
+
+            // thx krowten
+            "it's a wholesome can of software goodness",
+
             "this password is an memorial of the richard d. kiel memorial abend"
-    ));
+    ) );
 
 
-    private static String readPwmConstantsBundle(final String key) {
-        return  ResourceBundle.getBundle(PwmConstants.class.getName()).getString(key);
+    private static String readPwmConstantsBundle( final String key )
+    {
+        return ResourceBundle.getBundle( PwmConstants.class.getName() ).getString( key );
     }
 
-    private static String readBuildInfoBundle(final String key) {
-        return readBuildInfoBundle(key, null);
+    private static String readBuildInfoBundle( final String key )
+    {
+        return readBuildInfoBundle( key, null );
     }
 
-    private static String readBuildInfoBundle(final String key, final String defaultValue) {
-        final ResourceBundle resourceBundle = ResourceBundle.getBundle("password.pwm.BuildInformation");
-        if (resourceBundle.containsKey(key)) {
-            return resourceBundle.getString(key);
+    private static String readBuildInfoBundle( final String key, final String defaultValue )
+    {
+        final ResourceBundle resourceBundle = ResourceBundle.getBundle( "password.pwm.BuildInformation" );
+        if ( resourceBundle.containsKey( key ) )
+        {
+            return resourceBundle.getString( key );
         }
 
         return defaultValue;
     }
 
-    public enum AcceptValue {
-        json("application/json"),
-        html("text/html"),
-        ;
+    public enum AcceptValue
+    {
+        json( "application/json" ),
+        html( "text/html" ),;
 
         private String headerValue;
 
-        AcceptValue(final String headerValue) {
+        AcceptValue( final String headerValue )
+        {
             this.headerValue = headerValue;
         }
 
-        public String getHeaderValue() {
+        public String getHeaderValue( )
+        {
             return headerValue;
         }
     }

@@ -45,47 +45,58 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class ControlledPwmServlet extends AbstractPwmServlet implements PwmServlet {
+public abstract class ControlledPwmServlet extends AbstractPwmServlet implements PwmServlet
+{
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass(AbstractPwmServlet.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass( AbstractPwmServlet.class );
 
-    private Map<String,Method> actionMethodCache;
+    private Map<String, Method> actionMethodCache;
 
-    public String servletUriRemainder(final PwmRequest pwmRequest, final String command) throws PwmUnrecoverableException {
+    public String servletUriRemainder( final PwmRequest pwmRequest, final String command ) throws PwmUnrecoverableException
+    {
         String uri = pwmRequest.getURLwithoutQueryString();
-        if (uri.startsWith(pwmRequest.getContextPath())) {
-            uri = uri.substring(pwmRequest.getContextPath().length(), uri.length());
+        if ( uri.startsWith( pwmRequest.getContextPath() ) )
+        {
+            uri = uri.substring( pwmRequest.getContextPath().length(), uri.length() );
         }
-        for (final String servletUri : getServletDefinition().urlPatterns()) {
-            if (uri.startsWith(servletUri)) {
-                uri = uri.substring(servletUri.length(), uri.length());
+        for ( final String servletUri : getServletDefinition().urlPatterns() )
+        {
+            if ( uri.startsWith( servletUri ) )
+            {
+                uri = uri.substring( servletUri.length(), uri.length() );
             }
         }
         return uri;
     }
 
-    protected PwmServletDefinition getServletDefinition() {
-        for (final PwmServletDefinition pwmServletDefinition : PwmServletDefinition.values()) {
+    protected PwmServletDefinition getServletDefinition( )
+    {
+        for ( final PwmServletDefinition pwmServletDefinition : PwmServletDefinition.values() )
+        {
             final Class pwmServletClass = pwmServletDefinition.getPwmServletClass();
-            if (pwmServletClass.isInstance(this) ) {
+            if ( pwmServletClass.isInstance( this ) )
+            {
                 return pwmServletDefinition;
             }
         }
-        throw new IllegalStateException("unable to determine PwmServletDefinition for class " + this.getClass().getName());
+        throw new IllegalStateException( "unable to determine PwmServletDefinition for class " + this.getClass().getName() );
     }
 
-    public abstract Class<? extends ProcessAction> getProcessActionsClass();
+    public abstract Class<? extends ProcessAction> getProcessActionsClass( );
 
-    protected ProcessAction readProcessAction(final PwmRequest request)
+    protected ProcessAction readProcessAction( final PwmRequest request )
             throws PwmUnrecoverableException
     {
-        try {
-            final String inputParameter = request.readParameterAsString(PwmConstants.PARAM_ACTION_REQUEST);
+        try
+        {
+            final String inputParameter = request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST );
             final Class processStatusClass = getProcessActionsClass();
-            final Enum answer = JavaHelper.readEnumFromString(processStatusClass, null, inputParameter);
-            return (ProcessAction)answer;
-        } catch (Exception e) {
-            LOGGER.error("error",e);
+            final Enum answer = JavaHelper.readEnumFromString( processStatusClass, null, inputParameter );
+            return ( ProcessAction ) answer;
+        }
+        catch ( Exception e )
+        {
+            LOGGER.error( "error", e );
         }
         return null;
     }
@@ -96,107 +107,131 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
             throws PwmUnrecoverableException
     {
 
-        final ProcessAction action = readProcessAction(pwmRequest);
-        if (action == null) {
+        final ProcessAction action = readProcessAction( pwmRequest );
+        if ( action == null )
+        {
             return ProcessStatus.Continue;
         }
-        try {
-            final Method interestedMethod = discoverMethodForAction(this.getClass(), action);
-            if (interestedMethod != null) {
-                interestedMethod.setAccessible(true);
-                return (ProcessStatus) interestedMethod.invoke(this, pwmRequest);
+        try
+        {
+            final Method interestedMethod = discoverMethodForAction( this.getClass(), action );
+            if ( interestedMethod != null )
+            {
+                interestedMethod.setAccessible( true );
+                return ( ProcessStatus ) interestedMethod.invoke( this, pwmRequest );
             }
-        } catch (InvocationTargetException e) {
+        }
+        catch ( InvocationTargetException e )
+        {
             final Throwable cause = e.getCause();
-            if (cause != null) {
-                if (cause instanceof PwmUnrecoverableException) {
-                    throw (PwmUnrecoverableException) cause;
+            if ( cause != null )
+            {
+                if ( cause instanceof PwmUnrecoverableException )
+                {
+                    throw ( PwmUnrecoverableException ) cause;
                 }
                 final String msg = "unexpected error during action handler for '"
                         + this.getClass().getName()
                         + ":" + action + "', error: " + cause.getMessage();
-                LOGGER.error(pwmRequest, msg);
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, msg));
+                LOGGER.error( pwmRequest, msg );
+                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, msg ) );
             }
-            LOGGER.error("uncaused invocation error: " + e.getMessage(),e);
-        } catch (Throwable e) {
+            LOGGER.error( "uncaused invocation error: " + e.getMessage(), e );
+        }
+        catch ( Throwable e )
+        {
             final String msg = "unexpected error invoking action handler for '" + action + "', error: " + e.getMessage();
-            LOGGER.error(msg,e);
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, msg));
+            LOGGER.error( msg, e );
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, msg ) );
         }
 
         final String msg = "missing action handler for '" + action + "'";
-        LOGGER.error(msg);
-        throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, msg));
+        LOGGER.error( msg );
+        throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, msg ) );
     }
 
-    protected void processAction(final PwmRequest pwmRequest)
+    protected void processAction( final PwmRequest pwmRequest )
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {
-        preProcessCheck(pwmRequest);
+        preProcessCheck( pwmRequest );
 
-        final ProcessAction action = readProcessAction(pwmRequest);
-        if (action != null) {
-            final ProcessStatus status = dispatchMethod(pwmRequest);
-            if (status == ProcessStatus.Halt) {
-                if (!pwmRequest.getPwmResponse().isCommitted()) {
-                    if (pwmRequest.getConfig().isDevDebugMode()) {
+        final ProcessAction action = readProcessAction( pwmRequest );
+        if ( action != null )
+        {
+            final ProcessStatus status = dispatchMethod( pwmRequest );
+            if ( status == ProcessStatus.Halt )
+            {
+                if ( !pwmRequest.getPwmResponse().isCommitted() )
+                {
+                    if ( pwmRequest.getConfig().isDevDebugMode() )
+                    {
                         final String msg = "processing complete, handler returned halt but response is not committed";
-                        LOGGER.error(pwmRequest, msg, new IllegalStateException(msg));
+                        LOGGER.error( pwmRequest, msg, new IllegalStateException( msg ) );
                     }
                 }
                 return;
             }
 
-            final boolean enablePostRedirectGet = Boolean.parseBoolean(pwmRequest.getConfig().readAppProperty(AppProperty.HTTP_SERVLET_ENABLE_POST_REDIRECT_GET));
-            if (enablePostRedirectGet) {
+            final boolean enablePostRedirectGet = Boolean.parseBoolean( pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_SERVLET_ENABLE_POST_REDIRECT_GET ) );
+            if ( enablePostRedirectGet )
+            {
                 final String servletUrl = pwmRequest.getURL().determinePwmServletPath();
-                LOGGER.debug(pwmRequest, "this request is not idempotent, redirecting to self with no action");
-                sendOtherRedirect(pwmRequest, servletUrl);
+                LOGGER.debug( pwmRequest, "this request is not idempotent, redirecting to self with no action" );
+                sendOtherRedirect( pwmRequest, servletUrl );
                 return;
             }
         }
 
-        examineLastError(pwmRequest);
+        examineLastError( pwmRequest );
 
-        if (!pwmRequest.getPwmResponse().isCommitted()) {
-            nextStep(pwmRequest);
+        if ( !pwmRequest.getPwmResponse().isCommitted() )
+        {
+            nextStep( pwmRequest );
         }
     }
 
-    protected abstract void nextStep(PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException;
+    protected abstract void nextStep( PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException;
 
-    public abstract ProcessStatus preProcessCheck(PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException, ServletException;
+    public abstract ProcessStatus preProcessCheck( PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException, ServletException;
 
-    private void sendOtherRedirect(final PwmRequest pwmRequest, final String location) throws IOException, PwmUnrecoverableException {
+    private void sendOtherRedirect( final PwmRequest pwmRequest, final String location ) throws IOException, PwmUnrecoverableException
+    {
         final String protocol = pwmRequest.getHttpServletRequest().getProtocol();
-        if (protocol != null && protocol.startsWith("HTTP/1.0")) {
-            pwmRequest.sendRedirect(location);
-        } else {
-            pwmRequest.getPwmResponse().sendRedirect(location, PwmResponse.RedirectType.Other_303);
+        if ( protocol != null && protocol.startsWith( "HTTP/1.0" ) )
+        {
+            pwmRequest.sendRedirect( location );
+        }
+        else
+        {
+            pwmRequest.getPwmResponse().sendRedirect( location, PwmResponse.RedirectType.Other_303 );
         }
     }
 
-    @Retention(RetentionPolicy.RUNTIME)
-    public @interface ActionHandler {
-        String action();
+    @Retention( RetentionPolicy.RUNTIME )
+    public @interface ActionHandler
+    {
+        String action( );
     }
 
-    private Method discoverMethodForAction(final Class clazz, final ProcessAction action) {
-        if (actionMethodCache == null) {
-            final Map<String,Method> map = new HashMap<>();
-            final Collection<Method> methods = JavaHelper.getAllMethodsForClass(clazz);
-            for (Method method : methods) {
-                if (method.getAnnotation(ActionHandler.class) != null) {
-                    final String actionName = method.getAnnotation(ActionHandler.class).action();
-                        map.put(actionName, method);
+    private Method discoverMethodForAction( final Class clazz, final ProcessAction action )
+    {
+        if ( actionMethodCache == null )
+        {
+            final Map<String, Method> map = new HashMap<>();
+            final Collection<Method> methods = JavaHelper.getAllMethodsForClass( clazz );
+            for ( Method method : methods )
+            {
+                if ( method.getAnnotation( ActionHandler.class ) != null )
+                {
+                    final String actionName = method.getAnnotation( ActionHandler.class ).action();
+                    map.put( actionName, method );
 
                 }
             }
-            actionMethodCache = Collections.unmodifiableMap(map);
+            actionMethodCache = Collections.unmodifiableMap( map );
         }
 
-        return actionMethodCache.get(action.toString());
+        return actionMethodCache.get( action.toString() );
     }
 }
 

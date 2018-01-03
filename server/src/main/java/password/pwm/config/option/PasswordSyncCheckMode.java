@@ -22,7 +22,8 @@
 
 package password.pwm.config.option;
 
-public enum PasswordSyncCheckMode implements ConfigurationOption {
+public enum PasswordSyncCheckMode implements ConfigurationOption
+{
     DISABLED,
     ENABLED,
     ENABLED_SHOW

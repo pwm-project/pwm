@@ -22,5 +22,6 @@
 
 package password.pwm.http;
 
-public class AppServerManager {
+public class AppServerManager
+{
 }

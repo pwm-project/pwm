@@ -31,26 +31,27 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-public interface SettingReader {
-    List<String> readSettingAsStringArray(PwmSetting setting);
+public interface SettingReader
+{
+    List<String> readSettingAsStringArray( PwmSetting setting );
 
-    List<FormConfiguration> readSettingAsForm(PwmSetting pwmSetting);
+    List<FormConfiguration> readSettingAsForm( PwmSetting pwmSetting );
 
-    <E extends Enum<E>> Set<E> readSettingAsOptionList(PwmSetting setting, Class<E> enumClass);
+    <E extends Enum<E>> Set<E> readSettingAsOptionList( PwmSetting setting, Class<E> enumClass );
 
-    <E extends Enum<E>> E readSettingAsEnum(PwmSetting setting, Class<E> enumClass);
+    <E extends Enum<E>> E readSettingAsEnum( PwmSetting setting, Class<E> enumClass );
 
-    List<X509Certificate> readSettingAsCertificate(PwmSetting setting);
+    List<X509Certificate> readSettingAsCertificate( PwmSetting setting );
 
-    boolean readSettingAsBoolean(PwmSetting setting);
+    boolean readSettingAsBoolean( PwmSetting setting );
 
-    long readSettingAsLong(PwmSetting setting);
+    long readSettingAsLong( PwmSetting setting );
 
-    String readSettingAsLocalizedString(PwmSetting setting, Locale locale);
+    String readSettingAsLocalizedString( PwmSetting setting, Locale locale );
 
-    List<ActionConfiguration> readSettingAsAction(PwmSetting setting);
+    List<ActionConfiguration> readSettingAsAction( PwmSetting setting );
 
-    PasswordData readSettingAsPassword(PwmSetting setting);
+    PasswordData readSettingAsPassword( PwmSetting setting );
 
-    String readSettingAsString(PwmSetting oauthIdLoginUrl);
+    String readSettingAsString( PwmSetting oauthIdLoginUrl );
 }

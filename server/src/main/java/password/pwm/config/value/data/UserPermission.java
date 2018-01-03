@@ -26,8 +26,10 @@ import password.pwm.PwmConstants;
 
 import java.io.Serializable;
 
-public class UserPermission implements Serializable {
-    public enum Type {
+public class UserPermission implements Serializable
+{
+    public enum Type
+    {
         ldapQuery,
         ldapGroup,
     }
@@ -50,22 +52,22 @@ public class UserPermission implements Serializable {
         this.ldapBase = ldapBase;
     }
 
-    public String getLdapProfileID()
+    public String getLdapProfileID( )
     {
         return ldapProfileID == null ? null : ldapProfileID.trim();
     }
 
-    public String getLdapQuery()
+    public String getLdapQuery( )
     {
         return ldapQuery;
     }
 
-    public String getLdapBase()
+    public String getLdapBase( )
     {
         return ldapBase;
     }
 
-    public Type getType()
+    public Type getType( )
     {
         return type == null ? Type.ldapQuery : type;
     }

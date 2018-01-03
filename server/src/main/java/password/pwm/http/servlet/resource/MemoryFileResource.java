@@ -28,34 +28,41 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-class MemoryFileResource implements FileResource {
+class MemoryFileResource implements FileResource
+{
     private final String name;
     private final ImmutableByteArray contents;
     private final long lastModified;
 
-    MemoryFileResource(final String name, final ImmutableByteArray contents, final long lastModified) {
+    MemoryFileResource( final String name, final ImmutableByteArray contents, final long lastModified )
+    {
         this.name = name;
         this.contents = contents;
         this.lastModified = lastModified;
     }
 
-    public InputStream getInputStream() throws IOException {
-        return new ByteArrayInputStream(contents.getBytes());
+    public InputStream getInputStream( ) throws IOException
+    {
+        return new ByteArrayInputStream( contents.getBytes() );
     }
 
-    public long length() {
+    public long length( )
+    {
         return contents.getBytes().length;
     }
 
-    public long lastModified() {
+    public long lastModified( )
+    {
         return lastModified;
     }
 
-    public boolean exists() {
+    public boolean exists( )
+    {
         return true;
     }
 
-    public String getName() {
+    public String getName( )
+    {
         return name;
     }
 }

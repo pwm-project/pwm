@@ -37,9 +37,9 @@ import password.pwm.i18n.Message;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestMethodHandler;
 import password.pwm.ws.server.RestRequest;
+import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServlet;
 import password.pwm.ws.server.RestWebServer;
 
@@ -52,32 +52,39 @@ import java.util.List;
 import java.util.Map;
 
 @WebServlet(
-        urlPatterns={
+        urlPatterns = {
                 PwmConstants.URL_PREFIX_PUBLIC + PwmConstants.URL_PREFIX_REST + "/verifyresponses",
         }
 )
-@RestWebServer(webService = WebServiceUsage.VerifyResponses, requireAuthentication = true)
-public class RestVerifyResponsesServer extends RestServlet {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(RestVerifyResponsesServer.class);
+@RestWebServer( webService = WebServiceUsage.VerifyResponses, requireAuthentication = true )
+public class RestVerifyResponsesServer extends RestServlet
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( RestVerifyResponsesServer.class );
 
     @Data
-    public static class JsonPutChallengesInput implements Serializable {
+    public static class JsonPutChallengesInput implements Serializable
+    {
         public List<ChallengeBean> challenges;
         public String username;
 
-        public Map<Challenge, String> toCrMap() {
+        public Map<Challenge, String> toCrMap( )
+        {
             final Map<Challenge, String> crMap = new LinkedHashMap<>();
-            if (challenges != null) {
-                for (final ChallengeBean challengeBean : challenges) {
-                    if (challengeBean.getAnswer() == null) {
-                        throw new IllegalArgumentException("json challenge object must include an answer object");
+            if ( challenges != null )
+            {
+                for ( final ChallengeBean challengeBean : challenges )
+                {
+                    if ( challengeBean.getAnswer() == null )
+                    {
+                        throw new IllegalArgumentException( "json challenge object must include an answer object" );
                     }
-                    if (challengeBean.getAnswer().getAnswerText() == null) {
-                        throw new IllegalArgumentException("json answer object must include answerText property");
+                    if ( challengeBean.getAnswer().getAnswerText() == null )
+                    {
+                        throw new IllegalArgumentException( "json answer object must include answerText property" );
                     }
                     final String answerText = challengeBean.getAnswer().getAnswerText();
-                    final Challenge challenge = ChaiChallenge.fromChallengeBean(challengeBean);
-                    crMap.put(challenge, answerText);
+                    final Challenge challenge = ChaiChallenge.fromChallengeBean( challengeBean );
+                    crMap.put( challenge, answerText );
                 }
             }
 
@@ -86,39 +93,44 @@ public class RestVerifyResponsesServer extends RestServlet {
     }
 
     @Override
-    public void preCheckRequest(final RestRequest request) throws PwmUnrecoverableException {
+    public void preCheckRequest( final RestRequest request ) throws PwmUnrecoverableException
+    {
     }
 
-    @RestMethodHandler(method = HttpMethod.POST, consumes = HttpContentType.json, produces = HttpContentType.json)
-    public RestResultBean doSetChallengeDataJson(final RestRequest restRequest) throws IOException, PwmUnrecoverableException {
+    @RestMethodHandler( method = HttpMethod.POST, consumes = HttpContentType.json, produces = HttpContentType.json )
+    public RestResultBean doSetChallengeDataJson( final RestRequest restRequest ) throws IOException, PwmUnrecoverableException
+    {
         final Instant startTime = Instant.now();
 
-        final JsonPutChallengesInput jsonInput = deserializeJsonBody(restRequest, JsonPutChallengesInput.class);
+        final JsonPutChallengesInput jsonInput = deserializeJsonBody( restRequest, JsonPutChallengesInput.class );
 
-        final TargetUserIdentity targetUserIdentity = resolveRequestedUsername(restRequest, jsonInput.getUsername());
+        final TargetUserIdentity targetUserIdentity = resolveRequestedUsername( restRequest, jsonInput.getUsername() );
 
-        LOGGER.debug(restRequest.getSessionLabel(), "beginning /verifyresponses REST service against "
-                + (targetUserIdentity.isSelf() ? "self" : targetUserIdentity.getUserIdentity().toDisplayString()));
+        LOGGER.debug( restRequest.getSessionLabel(), "beginning /verifyresponses REST service against "
+                + ( targetUserIdentity.isSelf() ? "self" : targetUserIdentity.getUserIdentity().toDisplayString() ) );
 
-        try {
+        try
+        {
             final ResponseSet responseSet = restRequest.getPwmApplication().getCrService().readUserResponseSet(
                     restRequest.getSessionLabel(),
                     targetUserIdentity.getUserIdentity(),
                     targetUserIdentity.getChaiUser()
             );
 
-            final boolean verified = responseSet.test(jsonInput.toCrMap());
+            final boolean verified = responseSet.test( jsonInput.toCrMap() );
 
-            final RestResultBean restResultBean = RestResultBean.forSuccessMessage(verified, restRequest, Message.Success_Unknown);
+            final RestResultBean restResultBean = RestResultBean.forSuccessMessage( verified, restRequest, Message.Success_Unknown );
 
-            LOGGER.debug(restRequest.getSessionLabel(), "completed /verifyresponses REST service in "
-                    + TimeDuration.fromCurrent(startTime).asCompactString()
-                    + ", response: " + JsonUtil.serialize(restResultBean));
+            LOGGER.debug( restRequest.getSessionLabel(), "completed /verifyresponses REST service in "
+                    + TimeDuration.fromCurrent( startTime ).asCompactString()
+                    + ", response: " + JsonUtil.serialize( restResultBean ) );
 
             return restResultBean;
 
-        } catch (ChaiUnavailableException e) {
-            throw PwmUnrecoverableException.fromChaiException(e);
+        }
+        catch ( ChaiUnavailableException e )
+        {
+            throw PwmUnrecoverableException.fromChaiException( e );
         }
     }
 }

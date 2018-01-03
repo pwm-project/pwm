@@ -31,12 +31,14 @@ import java.io.Serializable;
 
 @Getter
 @AllArgsConstructor
-public class SmsItemBean implements Serializable {
+public class SmsItemBean implements Serializable
+{
     private final String to;
     private final String message;
     private final SessionLabel sessionLabel;
 
-    public String toString() {
-        return "SMS Item: " + JsonUtil.serialize(this);
+    public String toString( )
+    {
+        return "SMS Item: " + JsonUtil.serialize( this );
     }
 }

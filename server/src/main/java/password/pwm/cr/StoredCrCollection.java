@@ -24,9 +24,10 @@ package password.pwm.cr;
 
 import java.util.List;
 
-public interface StoredCrCollection {
+public interface StoredCrCollection
+{
 
-    List<StoredCrItem> storedChallengeResponseItems();
+    List<StoredCrItem> storedChallengeResponseItems( );
 
-    int getMinimumRandomRequired();
+    int getMinimumRandomRequired( );
 }

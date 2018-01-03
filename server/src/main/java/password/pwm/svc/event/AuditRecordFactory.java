@@ -40,30 +40,35 @@ import password.pwm.util.macro.MacroMachine;
 import java.time.Instant;
 import java.util.Map;
 
-public class AuditRecordFactory {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(AuditRecordFactory.class);
+public class AuditRecordFactory
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( AuditRecordFactory.class );
 
     private final PwmApplication pwmApplication;
     private final MacroMachine macroMachine;
 
-    public AuditRecordFactory(final PwmApplication pwmApplication) throws PwmUnrecoverableException {
+    public AuditRecordFactory( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
+    {
         this.pwmApplication = pwmApplication;
-        this.macroMachine = MacroMachine.forNonUserSpecific(pwmApplication, null);
+        this.macroMachine = MacroMachine.forNonUserSpecific( pwmApplication, null );
     }
 
-    public AuditRecordFactory(final PwmApplication pwmApplication, final MacroMachine macroMachine) {
+    public AuditRecordFactory( final PwmApplication pwmApplication, final MacroMachine macroMachine )
+    {
         this.pwmApplication = pwmApplication;
         this.macroMachine = macroMachine;
     }
 
-    public AuditRecordFactory(final PwmApplication pwmApplication, final PwmSession pwmSession) throws PwmUnrecoverableException {
+    public AuditRecordFactory( final PwmApplication pwmApplication, final PwmSession pwmSession ) throws PwmUnrecoverableException
+    {
         this.pwmApplication = pwmApplication;
-        this.macroMachine = pwmSession.getSessionManager().getMacroMachine(pwmApplication);
+        this.macroMachine = pwmSession.getSessionManager().getMacroMachine( pwmApplication );
     }
 
-    public AuditRecordFactory(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
+    public AuditRecordFactory( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
+    {
         this.pwmApplication = pwmRequest.getPwmApplication();
-        this.macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine(pwmApplication);
+        this.macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( pwmApplication );
     }
 
     public HelpdeskAuditRecord createHelpdeskAuditRecord(
@@ -76,7 +81,7 @@ public class AuditRecordFactory {
     )
     {
 
-        final AuditUserDefinition targetAuditUserDefintition = userIdentityToUserDefinition(target);
+        final AuditUserDefinition targetAuditUserDefintition = userIdentityToUserDefinition( target );
         return createHelpdeskAuditRecord(
                 eventCode,
                 perpetrator,
@@ -96,7 +101,7 @@ public class AuditRecordFactory {
             final String sourceHost
     )
     {
-        final AuditUserDefinition perpAuditUserDefintition = userIdentityToUserDefinition(perpetrator);
+        final AuditUserDefinition perpAuditUserDefintition = userIdentityToUserDefinition( perpetrator );
 
         final HelpdeskAuditRecord record = new HelpdeskAuditRecord(
                 Instant.now(),
@@ -111,7 +116,7 @@ public class AuditRecordFactory {
                 sourceAddress,
                 sourceHost
         );
-        record.narrative = makeNarrativeString(record);
+        record.narrative = makeNarrativeString( record );
         return record;
     }
 
@@ -123,7 +128,7 @@ public class AuditRecordFactory {
             final String sourceHost
     )
     {
-        final AuditUserDefinition perpAuditUserDefintition = userIdentityToUserDefinition(perpetrator);
+        final AuditUserDefinition perpAuditUserDefintition = userIdentityToUserDefinition( perpetrator );
 
         final UserAuditRecord record = new UserAuditRecord(
                 Instant.now(),
@@ -135,7 +140,7 @@ public class AuditRecordFactory {
                 sourceAddress,
                 sourceHost
         );
-        record.narrative = this.makeNarrativeString(record);
+        record.narrative = this.makeNarrativeString( record );
         return record;
     }
 
@@ -144,8 +149,8 @@ public class AuditRecordFactory {
             final String message
     )
     {
-        final SystemAuditRecord record = new SystemAuditRecord(eventCode, message, pwmApplication.getInstanceID());
-        record.narrative = this.makeNarrativeString(record);
+        final SystemAuditRecord record = new SystemAuditRecord( eventCode, message, pwmApplication.getInstanceID() );
+        record.narrative = this.makeNarrativeString( record );
         return record;
     }
 
@@ -195,69 +200,82 @@ public class AuditRecordFactory {
     }
 
 
-    private String makeNarrativeString(final AuditRecord auditRecord) {
+    private String makeNarrativeString( final AuditRecord auditRecord )
+    {
         final PwmDisplayBundle pwmDisplayBundle = auditRecord.getEventCode().getNarrative();
 
-        String outputString = LocaleHelper.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE, pwmDisplayBundle, pwmApplication.getConfig());
+        String outputString = LocaleHelper.getLocalizedMessage( PwmConstants.DEFAULT_LOCALE, pwmDisplayBundle, pwmApplication.getConfig() );
 
-        if (macroMachine != null) {
-            outputString = macroMachine.expandMacros(outputString);
+        if ( macroMachine != null )
+        {
+            outputString = macroMachine.expandMacros( outputString );
         }
 
-        final Map<String,String> recordFields = JsonUtil.deserializeStringMap(JsonUtil.serialize(auditRecord));
-        for (final Map.Entry<String, String> entry : recordFields.entrySet()) {
+        final Map<String, String> recordFields = JsonUtil.deserializeStringMap( JsonUtil.serialize( auditRecord ) );
+        for ( final Map.Entry<String, String> entry : recordFields.entrySet() )
+        {
             final String key = entry.getKey();
             final String value = entry.getValue();
             final String parametrizedKey = "%" + key + "%";
-            outputString = outputString.replace(parametrizedKey, value);
+            outputString = outputString.replace( parametrizedKey, value );
         }
 
         return outputString;
     }
 
-    private AuditUserDefinition userIdentityToUserDefinition(final UserIdentity userIdentity) {
+    private AuditUserDefinition userIdentityToUserDefinition( final UserIdentity userIdentity )
+    {
         String userDN = null;
         String userID = null;
         String ldapProfile = null;
 
-        if (userIdentity != null) {
+        if ( userIdentity != null )
+        {
             userDN = userIdentity.getUserDN();
             ldapProfile = userIdentity.getLdapProfileID();
-            try {
+            try
+            {
                 final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy(
                         pwmApplication,
                         SessionLabel.SYSTEM_LABEL,
                         userIdentity, PwmConstants.DEFAULT_LOCALE
                 );
                 userID = userInfo.getUsername();
-            } catch (Exception e) {
-                LOGGER.warn("unable to read userID for " + userIdentity + ", error: " + e.getMessage() );
+            }
+            catch ( Exception e )
+            {
+                LOGGER.warn( "unable to read userID for " + userIdentity + ", error: " + e.getMessage() );
             }
         }
 
-        return new AuditUserDefinition(userID, userDN, ldapProfile);
+        return new AuditUserDefinition( userID, userDN, ldapProfile );
     }
 
-    public static class AuditUserDefinition {
+    public static class AuditUserDefinition
+    {
         private final String userID;
         private final String userDN;
         private final String ldapProfile;
 
-        public AuditUserDefinition(final String userID, final String userDN, final String ldapProfile) {
+        public AuditUserDefinition( final String userID, final String userDN, final String ldapProfile )
+        {
             this.userID = userID;
             this.userDN = userDN;
             this.ldapProfile = ldapProfile;
         }
 
-        public String getUserID() {
+        public String getUserID( )
+        {
             return userID;
         }
 
-        public String getUserDN() {
+        public String getUserDN( )
+        {
             return userDN;
         }
 
-        public String getLdapProfile() {
+        public String getLdapProfile( )
+        {
             return ldapProfile;
         }
     }

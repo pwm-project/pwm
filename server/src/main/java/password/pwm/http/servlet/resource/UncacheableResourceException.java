@@ -22,8 +22,10 @@
 
 package password.pwm.http.servlet.resource;
 
-final class UncacheableResourceException extends Exception {
-    UncacheableResourceException(final String message) {
-        super(message);
+final class UncacheableResourceException extends Exception
+{
+    UncacheableResourceException( final String message )
+    {
+        super( message );
     }
 }

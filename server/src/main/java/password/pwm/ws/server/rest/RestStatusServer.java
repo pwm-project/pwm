@@ -40,9 +40,9 @@ import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
-import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestMethodHandler;
 import password.pwm.ws.server.RestRequest;
+import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServlet;
 import password.pwm.ws.server.RestWebServer;
 
@@ -51,28 +51,31 @@ import java.time.Instant;
 
 
 @WebServlet(
-        urlPatterns={
+        urlPatterns = {
                 PwmConstants.URL_PREFIX_PUBLIC + PwmConstants.URL_PREFIX_REST + "/status",
         }
 )
-@RestWebServer(webService = WebServiceUsage.Status, requireAuthentication = true)
-public class RestStatusServer extends RestServlet {
-    public static final PwmLogger LOGGER = PwmLogger.forClass(RestStatusServer.class);
+@RestWebServer( webService = WebServiceUsage.Status, requireAuthentication = true )
+public class RestStatusServer extends RestServlet
+{
+    public static final PwmLogger LOGGER = PwmLogger.forClass( RestStatusServer.class );
 
     @Override
-    public void preCheckRequest(final RestRequest restRequest) throws PwmUnrecoverableException {
+    public void preCheckRequest( final RestRequest restRequest ) throws PwmUnrecoverableException
+    {
     }
 
-    @RestMethodHandler(method = HttpMethod.GET, produces = HttpContentType.json, consumes = HttpContentType.json)
-    public RestResultBean doGetStatusData(final RestRequest restRequest)
+    @RestMethodHandler( method = HttpMethod.GET, produces = HttpContentType.json, consumes = HttpContentType.json )
+    public RestResultBean doGetStatusData( final RestRequest restRequest )
             throws PwmUnrecoverableException
     {
         final Instant startTime = Instant.now();
 
-        final String username = restRequest.readParameterAsString("username");
-        final TargetUserIdentity targetUserIdentity = RestServlet.resolveRequestedUsername(restRequest, username);
+        final String username = restRequest.readParameterAsString( "username" );
+        final TargetUserIdentity targetUserIdentity = RestServlet.resolveRequestedUsername( restRequest, username );
 
-        try {
+        try
+        {
             final ChaiProvider chaiProvider = targetUserIdentity.getChaiProvider();
             final UserInfo userInfo = UserInfoFactory.newUserInfo(
                     restRequest.getPwmApplication(),
@@ -95,18 +98,22 @@ public class RestStatusServer extends RestServlet {
                     macroMachine
             );
 
-            StatisticsManager.incrementStat(restRequest.getPwmApplication(), Statistic.REST_STATUS);
+            StatisticsManager.incrementStat( restRequest.getPwmApplication(), Statistic.REST_STATUS );
 
-            final RestResultBean restResultBean = RestResultBean.withData(publicUserInfoBean);
-            LOGGER.debug(restRequest.getSessionLabel(),"completed REST status request in "
-                    + TimeDuration.compactFromCurrent(startTime) + ", result=" + JsonUtil.serialize(restResultBean));
+            final RestResultBean restResultBean = RestResultBean.withData( publicUserInfoBean );
+            LOGGER.debug( restRequest.getSessionLabel(), "completed REST status request in "
+                    + TimeDuration.compactFromCurrent( startTime ) + ", result=" + JsonUtil.serialize( restResultBean ) );
             return restResultBean;
-        } catch (PwmException e) {
-            return RestResultBean.fromError(e.getErrorInformation());
-        } catch (Exception e) {
+        }
+        catch ( PwmException e )
+        {
+            return RestResultBean.fromError( e.getErrorInformation() );
+        }
+        catch ( Exception e )
+        {
             final String errorMsg = "unexpected error building json response: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-            return RestResultBean.fromError(restRequest, errorInformation);
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            return RestResultBean.fromError( restRequest, errorInformation );
         }
     }
 }

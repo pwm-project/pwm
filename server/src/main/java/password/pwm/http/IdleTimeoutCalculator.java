@@ -47,43 +47,50 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 
-public class IdleTimeoutCalculator {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(IdleTimeoutCalculator.class);
+public class IdleTimeoutCalculator
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( IdleTimeoutCalculator.class );
 
-    public static MaxIdleTimeoutResult figureMaxSessionTimeout(final PwmApplication pwmApplication, final PwmSession pwmSession)
+    public static MaxIdleTimeoutResult figureMaxSessionTimeout( final PwmApplication pwmApplication, final PwmSession pwmSession )
             throws PwmUnrecoverableException
     {
         final Configuration configuration = pwmApplication.getConfig();
         final SortedSet<MaxIdleTimeoutResult> results = new TreeSet<>();
         {
-            final long idleSetting = configuration.readSettingAsLong(PwmSetting.IDLE_TIMEOUT_SECONDS);
-            results.add(new MaxIdleTimeoutResult(
-                    MaxIdleTimeoutResult.reasonFor(PwmSetting.IDLE_TIMEOUT_SECONDS, null),
-                    new TimeDuration(idleSetting, TimeUnit.SECONDS)));
+            final long idleSetting = configuration.readSettingAsLong( PwmSetting.IDLE_TIMEOUT_SECONDS );
+            results.add( new MaxIdleTimeoutResult(
+                    MaxIdleTimeoutResult.reasonFor( PwmSetting.IDLE_TIMEOUT_SECONDS, null ),
+                    new TimeDuration( idleSetting, TimeUnit.SECONDS ) ) );
         }
 
-        if (!pwmSession.isAuthenticated()) {
-            if (pwmApplication.getApplicationMode() == PwmApplicationMode.NEW) {
-                final long configGuideIdleTimeout = Long.parseLong(configuration.readAppProperty(AppProperty.CONFIG_GUIDE_IDLE_TIMEOUT));
-                results.add(new MaxIdleTimeoutResult(
+        if ( !pwmSession.isAuthenticated() )
+        {
+            if ( pwmApplication.getApplicationMode() == PwmApplicationMode.NEW )
+            {
+                final long configGuideIdleTimeout = Long.parseLong( configuration.readAppProperty( AppProperty.CONFIG_GUIDE_IDLE_TIMEOUT ) );
+                results.add( new MaxIdleTimeoutResult(
                         "Configuration Guide Idle Timeout",
-                        new TimeDuration(configGuideIdleTimeout, TimeUnit.SECONDS)));
+                        new TimeDuration( configGuideIdleTimeout, TimeUnit.SECONDS ) ) );
             }
 
-            if (configuration.readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_ENABLE_PUBLIC)) {
-                final long peopleSearchIdleTimeout = configuration.readSettingAsLong(PwmSetting.PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS);
-                if (peopleSearchIdleTimeout > 0) {
-                    results.add(new MaxIdleTimeoutResult(
-                            MaxIdleTimeoutResult.reasonFor(PwmSetting.PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS, null),
-                            new TimeDuration(peopleSearchIdleTimeout, TimeUnit.SECONDS)));
+            if ( configuration.readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE_PUBLIC ) )
+            {
+                final long peopleSearchIdleTimeout = configuration.readSettingAsLong( PwmSetting.PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS );
+                if ( peopleSearchIdleTimeout > 0 )
+                {
+                    results.add( new MaxIdleTimeoutResult(
+                            MaxIdleTimeoutResult.reasonFor( PwmSetting.PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS, null ),
+                            new TimeDuration( peopleSearchIdleTimeout, TimeUnit.SECONDS ) ) );
                 }
             }
 
-        } else {
-            final UserInfo userInfo= pwmSession.getUserInfo();
-            final boolean userIsAdmin = pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.PWMADMIN);
-            final Set<MaxIdleTimeoutResult> loggedInResults = figureMaxAuthUserTimeout(configuration, userInfo, userIsAdmin);
-            results.addAll(loggedInResults);
+        }
+        else
+        {
+            final UserInfo userInfo = pwmSession.getUserInfo();
+            final boolean userIsAdmin = pwmSession.getSessionManager().checkPermission( pwmApplication, Permission.PWMADMIN );
+            final Set<MaxIdleTimeoutResult> loggedInResults = figureMaxAuthUserTimeout( configuration, userInfo, userIsAdmin );
+            results.addAll( loggedInResults );
         }
 
         return results.last();
@@ -98,75 +105,86 @@ public class IdleTimeoutCalculator {
     {
         final Set<MaxIdleTimeoutResult> results = new TreeSet<>();
         {
-            final long idleSetting = configuration.readSettingAsLong(PwmSetting.IDLE_TIMEOUT_SECONDS);
-            results.add(new MaxIdleTimeoutResult(
-                    MaxIdleTimeoutResult.reasonFor(PwmSetting.IDLE_TIMEOUT_SECONDS, null),
-                    new TimeDuration(idleSetting, TimeUnit.SECONDS)));
+            final long idleSetting = configuration.readSettingAsLong( PwmSetting.IDLE_TIMEOUT_SECONDS );
+            results.add( new MaxIdleTimeoutResult(
+                    MaxIdleTimeoutResult.reasonFor( PwmSetting.IDLE_TIMEOUT_SECONDS, null ),
+                    new TimeDuration( idleSetting, TimeUnit.SECONDS ) ) );
         }
 
-        if (configuration.readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE)) {
-            final String helpdeskProfileID = userInfo.getProfileIDs().get(ProfileType.Helpdesk);
-            if (!StringUtil.isEmpty(helpdeskProfileID)) {
-                final HelpdeskProfile helpdeskProfile = configuration.getHelpdeskProfiles().get(helpdeskProfileID);
-                final long helpdeskIdleTimeout = helpdeskProfile.readSettingAsLong(PwmSetting.HELPDESK_IDLE_TIMEOUT_SECONDS);
-                results.add(new MaxIdleTimeoutResult(
-                        MaxIdleTimeoutResult.reasonFor(PwmSetting.HELPDESK_IDLE_TIMEOUT_SECONDS, helpdeskProfileID),
-                        new TimeDuration(helpdeskIdleTimeout, TimeUnit.SECONDS)));
+        if ( configuration.readSettingAsBoolean( PwmSetting.HELPDESK_ENABLE ) )
+        {
+            final String helpdeskProfileID = userInfo.getProfileIDs().get( ProfileType.Helpdesk );
+            if ( !StringUtil.isEmpty( helpdeskProfileID ) )
+            {
+                final HelpdeskProfile helpdeskProfile = configuration.getHelpdeskProfiles().get( helpdeskProfileID );
+                final long helpdeskIdleTimeout = helpdeskProfile.readSettingAsLong( PwmSetting.HELPDESK_IDLE_TIMEOUT_SECONDS );
+                results.add( new MaxIdleTimeoutResult(
+                        MaxIdleTimeoutResult.reasonFor( PwmSetting.HELPDESK_IDLE_TIMEOUT_SECONDS, helpdeskProfileID ),
+                        new TimeDuration( helpdeskIdleTimeout, TimeUnit.SECONDS ) ) );
             }
         }
 
-        if (configuration.readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_ENABLE)) {
-            final long peopleSearchIdleTimeout = configuration.readSettingAsLong(PwmSetting.PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS);
-            if (peopleSearchIdleTimeout > 0) {
-                results.add(new MaxIdleTimeoutResult(
-                        MaxIdleTimeoutResult.reasonFor(PwmSetting.PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS, null),
-                        new TimeDuration(peopleSearchIdleTimeout, TimeUnit.SECONDS)));
+        if ( configuration.readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE ) )
+        {
+            final long peopleSearchIdleTimeout = configuration.readSettingAsLong( PwmSetting.PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS );
+            if ( peopleSearchIdleTimeout > 0 )
+            {
+                results.add( new MaxIdleTimeoutResult(
+                        MaxIdleTimeoutResult.reasonFor( PwmSetting.PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS, null ),
+                        new TimeDuration( peopleSearchIdleTimeout, TimeUnit.SECONDS ) ) );
             }
         }
 
-        if (userIsAdmin) {
-            final long configEditorIdleTimeout = Long.parseLong(configuration.readAppProperty(AppProperty.CONFIG_EDITOR_IDLE_TIMEOUT));
-            results.add(new MaxIdleTimeoutResult(
+        if ( userIsAdmin )
+        {
+            final long configEditorIdleTimeout = Long.parseLong( configuration.readAppProperty( AppProperty.CONFIG_EDITOR_IDLE_TIMEOUT ) );
+            results.add( new MaxIdleTimeoutResult(
                     "Config Editor Idle Timeout",
-                    new TimeDuration(configEditorIdleTimeout, TimeUnit.SECONDS)));
+                    new TimeDuration( configEditorIdleTimeout, TimeUnit.SECONDS ) ) );
         }
 
-        return Collections.unmodifiableSet(results);
+        return Collections.unmodifiableSet( results );
     }
 
     @Getter
     @AllArgsConstructor
     @EqualsAndHashCode
-    static class MaxIdleTimeoutResult implements Comparable<MaxIdleTimeoutResult> {
+    static class MaxIdleTimeoutResult implements Comparable<MaxIdleTimeoutResult>
+    {
         private final String reason;
         private final TimeDuration idleTimeout;
 
         @Override
-        public int compareTo(final MaxIdleTimeoutResult o)
+        public int compareTo( final MaxIdleTimeoutResult o )
         {
-            return this.idleTimeout.compareTo(o.getIdleTimeout());
+            return this.idleTimeout.compareTo( o.getIdleTimeout() );
         }
 
-        static String reasonFor(final PwmSetting pwmSetting, final String profileID) {
-            return "Setting " + pwmSetting.toMenuLocationDebug(profileID, PwmConstants.DEFAULT_LOCALE);
+        static String reasonFor( final PwmSetting pwmSetting, final String profileID )
+        {
+            return "Setting " + pwmSetting.toMenuLocationDebug( profileID, PwmConstants.DEFAULT_LOCALE );
         }
     }
 
-    public static TimeDuration idleTimeoutForRequest(final PwmRequest pwmRequest) throws PwmUnrecoverableException
+    public static TimeDuration idleTimeoutForRequest( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
-        return idleTimeoutForRequest(pwmRequest.getURL(),pwmRequest.getPwmApplication(),pwmRequest.getPwmSession());
+        return idleTimeoutForRequest( pwmRequest.getURL(), pwmRequest.getPwmApplication(), pwmRequest.getPwmSession() );
     }
 
-    public static TimeDuration idleTimeoutForRequest(final PwmURL pwmURL, final PwmApplication pwmApplication, final PwmSession pwmSession) throws PwmUnrecoverableException
+    public static TimeDuration idleTimeoutForRequest( final PwmURL pwmURL, final PwmApplication pwmApplication, final PwmSession pwmSession ) throws PwmUnrecoverableException
     {
         final Configuration config = pwmApplication.getConfig();
-        if (pwmURL.isPwmServletURL(PwmServletDefinition.Helpdesk)) {
-            if (config.readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE)) {
-                final HelpdeskProfile helpdeskProfile = pwmSession.getSessionManager().getHelpdeskProfile(pwmApplication);
-                if (helpdeskProfile != null) {
-                    final long helpdeskIdleTimeout = helpdeskProfile.readSettingAsLong(PwmSetting.HELPDESK_IDLE_TIMEOUT_SECONDS);
-                    if (helpdeskIdleTimeout > 0) {
-                        return new TimeDuration(helpdeskIdleTimeout, TimeUnit.SECONDS);
+        if ( pwmURL.isPwmServletURL( PwmServletDefinition.Helpdesk ) )
+        {
+            if ( config.readSettingAsBoolean( PwmSetting.HELPDESK_ENABLE ) )
+            {
+                final HelpdeskProfile helpdeskProfile = pwmSession.getSessionManager().getHelpdeskProfile( pwmApplication );
+                if ( helpdeskProfile != null )
+                {
+                    final long helpdeskIdleTimeout = helpdeskProfile.readSettingAsLong( PwmSetting.HELPDESK_IDLE_TIMEOUT_SECONDS );
+                    if ( helpdeskIdleTimeout > 0 )
+                    {
+                        return new TimeDuration( helpdeskIdleTimeout, TimeUnit.SECONDS );
                     }
                 }
             }
@@ -174,43 +192,54 @@ public class IdleTimeoutCalculator {
 
         if (
                 (
-                        pwmURL.isPwmServletURL(PwmServletDefinition.PrivatePeopleSearch)
-                                || pwmURL.isPwmServletURL(PwmServletDefinition.PublicPeopleSearch)
+                        pwmURL.isPwmServletURL( PwmServletDefinition.PrivatePeopleSearch )
+                                || pwmURL.isPwmServletURL( PwmServletDefinition.PublicPeopleSearch )
                 )
                         && pwmURL.isPrivateUrl()
                 )
         {
-            if (config.readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_ENABLE)) {
-                final long peopleSearchIdleTimeout = config.readSettingAsLong(PwmSetting.PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS);
-                if (peopleSearchIdleTimeout > 0) {
-                    return new TimeDuration(peopleSearchIdleTimeout, TimeUnit.SECONDS);
+            if ( config.readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE ) )
+            {
+                final long peopleSearchIdleTimeout = config.readSettingAsLong( PwmSetting.PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS );
+                if ( peopleSearchIdleTimeout > 0 )
+                {
+                    return new TimeDuration( peopleSearchIdleTimeout, TimeUnit.SECONDS );
                 }
             }
         }
 
-        if (pwmURL.isPwmServletURL(PwmServletDefinition.ConfigEditor)) {
-            try {
-                if (pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.PWMADMIN)) {
-                    final long configEditorIdleTimeout = Long.parseLong(config.readAppProperty(AppProperty.CONFIG_EDITOR_IDLE_TIMEOUT));
-                    if (configEditorIdleTimeout > 0) {
-                        return new TimeDuration(configEditorIdleTimeout, TimeUnit.SECONDS);
+        if ( pwmURL.isPwmServletURL( PwmServletDefinition.ConfigEditor ) )
+        {
+            try
+            {
+                if ( pwmSession.getSessionManager().checkPermission( pwmApplication, Permission.PWMADMIN ) )
+                {
+                    final long configEditorIdleTimeout = Long.parseLong( config.readAppProperty( AppProperty.CONFIG_EDITOR_IDLE_TIMEOUT ) );
+                    if ( configEditorIdleTimeout > 0 )
+                    {
+                        return new TimeDuration( configEditorIdleTimeout, TimeUnit.SECONDS );
                     }
                 }
-            } catch (PwmUnrecoverableException e) {
-                LOGGER.error(pwmSession,"error while figuring max idle timeout for session: " + e.getMessage());
+            }
+            catch ( PwmUnrecoverableException e )
+            {
+                LOGGER.error( pwmSession, "error while figuring max idle timeout for session: " + e.getMessage() );
             }
         }
 
-        if (pwmURL.isPwmServletURL(PwmServletDefinition.ConfigGuide)) {
-            if (pwmApplication.getApplicationMode() == PwmApplicationMode.NEW) {
-                final long configGuideIdleTimeout = Long.parseLong(config.readAppProperty(AppProperty.CONFIG_GUIDE_IDLE_TIMEOUT));
-                if (configGuideIdleTimeout > 0) {
-                    return new TimeDuration(configGuideIdleTimeout, TimeUnit.SECONDS);
+        if ( pwmURL.isPwmServletURL( PwmServletDefinition.ConfigGuide ) )
+        {
+            if ( pwmApplication.getApplicationMode() == PwmApplicationMode.NEW )
+            {
+                final long configGuideIdleTimeout = Long.parseLong( config.readAppProperty( AppProperty.CONFIG_GUIDE_IDLE_TIMEOUT ) );
+                if ( configGuideIdleTimeout > 0 )
+                {
+                    return new TimeDuration( configGuideIdleTimeout, TimeUnit.SECONDS );
                 }
             }
         }
 
-        final long idleTimeout = config.readSettingAsLong(PwmSetting.IDLE_TIMEOUT_SECONDS);
-        return new TimeDuration(idleTimeout, TimeUnit.SECONDS);
+        final long idleTimeout = config.readSettingAsLong( PwmSetting.IDLE_TIMEOUT_SECONDS );
+        return new TimeDuration( idleTimeout, TimeUnit.SECONDS );
     }
 }

@@ -38,75 +38,90 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.PageContext;
 
-public class PwmUrlTag extends PwmAbstractTag {
+public class PwmUrlTag extends PwmAbstractTag
+{
 
     private String url;
     private boolean addContext;
 
     private static final String RESOURCE_URL = "/resources";
 
-    public void setUrl(final String url)
+    public void setUrl( final String url )
     {
         this.url = url;
     }
 
-    public void setAddContext(final boolean addContext) {
+    public void setAddContext( final boolean addContext )
+    {
         this.addContext = addContext;
     }
 
-    public int doEndTag()
+    public int doEndTag( )
             throws javax.servlet.jsp.JspTagException
     {
         String outputURL = url;
         PwmRequest pwmRequest = null;
-        try {
-            pwmRequest = PwmRequest.forRequest((HttpServletRequest)pageContext.getRequest(), (HttpServletResponse)pageContext.getResponse());
-        } catch (PwmException e) { /* noop */ }
+        try
+        {
+            pwmRequest = PwmRequest.forRequest( ( HttpServletRequest ) pageContext.getRequest(), ( HttpServletResponse ) pageContext.getResponse() );
+        }
+        catch ( PwmException e )
+        { /* noop */ }
 
         String workingUrl = url;
 
-        for (final PwmThemeURL themeUrl : PwmThemeURL.values()) {
-            if (themeUrl.token().equals(url)) {
-                workingUrl = figureThemeURL(pwmRequest, themeUrl);
-                workingUrl = insertContext(pageContext, workingUrl);
+        for ( final PwmThemeURL themeUrl : PwmThemeURL.values() )
+        {
+            if ( themeUrl.token().equals( url ) )
+            {
+                workingUrl = figureThemeURL( pwmRequest, themeUrl );
+                workingUrl = insertContext( pageContext, workingUrl );
             }
         }
 
-        if (addContext) {
-            workingUrl = insertContext(pageContext, workingUrl);
+        if ( addContext )
+        {
+            workingUrl = insertContext( pageContext, workingUrl );
         }
-        if (pwmRequest != null) {
-            workingUrl = insertResourceNonce(pwmRequest.getPwmApplication(), workingUrl);
+        if ( pwmRequest != null )
+        {
+            workingUrl = insertResourceNonce( pwmRequest.getPwmApplication(), workingUrl );
         }
 
         outputURL = workingUrl;
 
-        try {
-            pageContext.getOut().write(outputURL);
-        } catch (Exception e) {
-            throw new JspTagException(e.getMessage());
+        try
+        {
+            pageContext.getOut().write( outputURL );
+        }
+        catch ( Exception e )
+        {
+            throw new JspTagException( e.getMessage() );
         }
 
         return EVAL_PAGE;
     }
 
 
-    public static String insertContext(final PageContext pageContext, final String urlString) {
+    public static String insertContext( final PageContext pageContext, final String urlString )
+    {
         final String contextPath = pageContext.getServletContext().getContextPath();
-        if (!urlString.startsWith("/")) {
+        if ( !urlString.startsWith( "/" ) )
+        {
             return urlString;
         }
 
         if (
-                urlString.toLowerCase().startsWith("http://")
-                        || urlString.toLowerCase().startsWith("https://")
-                        || urlString.startsWith("//")
+                urlString.toLowerCase().startsWith( "http://" )
+                        || urlString.toLowerCase().startsWith( "https://" )
+                        || urlString.startsWith( "//" )
                 )
         {
             return urlString;
         }
 
-        if (urlString.startsWith(contextPath)) {
+        if ( urlString.startsWith( contextPath ) )
+        {
             return urlString;
         }
 
@@ -114,11 +129,14 @@ public class PwmUrlTag extends PwmAbstractTag {
 
     }
 
-    public static String insertResourceNonce(final PwmApplication pwmApplication, final String urlString) {
-        if (pwmApplication != null && urlString.contains(RESOURCE_URL)) {
+    public static String insertResourceNonce( final PwmApplication pwmApplication, final String urlString )
+    {
+        if ( pwmApplication != null && urlString.contains( RESOURCE_URL ) )
+        {
             final String nonce = pwmApplication.getResourceServletService().getResourceNonce();
-            if (nonce != null && nonce.length() > 0) {
-                return urlString.replaceFirst(RESOURCE_URL, RESOURCE_URL + nonce);
+            if ( nonce != null && nonce.length() > 0 )
+            {
+                return urlString.replaceFirst( RESOURCE_URL, RESOURCE_URL + nonce );
             }
 
         }
@@ -129,47 +147,58 @@ public class PwmUrlTag extends PwmAbstractTag {
             final PwmRequest pwmRequest
     )
     {
-        if (pwmRequest.isFlag(PwmRequestFlag.INCLUDE_CONFIG_CSS)) {
-            return pwmRequest.getConfig().readAppProperty(AppProperty.CONFIG_THEME);
+        if ( pwmRequest.isFlag( PwmRequestFlag.INCLUDE_CONFIG_CSS ) )
+        {
+            return pwmRequest.getConfig().readAppProperty( AppProperty.CONFIG_THEME );
         }
 
         final LocalSessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean();
-        if (ssBean.getTheme() != null) {
+        if ( ssBean.getTheme() != null )
+        {
             return ssBean.getTheme();
         }
 
-        if (pwmRequest.getConfig() != null) {
-            return pwmRequest.getConfig().readSettingAsString(PwmSetting.INTERFACE_THEME);
-        } else {
+        if ( pwmRequest.getConfig() != null )
+        {
+            return pwmRequest.getConfig().readSettingAsString( PwmSetting.INTERFACE_THEME );
+        }
+        else
+        {
             return "default";
         }
     }
 
     private static String figureThemeURL(
             final PwmRequest pwmRequest,
-            final PwmThemeURL theme_url
+            final PwmThemeURL themeUrl
     )
     {
         String themeURL = null;
         String themeName = AppProperty.CONFIG_THEME.getDefaultValue();
 
-        if (pwmRequest != null) {
+        if ( pwmRequest != null )
+        {
             final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
 
-            themeName = figureThemeName(pwmRequest);
+            themeName = figureThemeName( pwmRequest );
 
-            if ("custom".equals(themeName)) {
-                if (theme_url == PwmThemeURL.MOBILE_THEME_URL) {
-                    themeURL = pwmApplication.getConfig().readSettingAsString(PwmSetting.DISPLAY_CSS_CUSTOM_MOBILE_STYLE);
-                } else {
-                    themeURL = pwmApplication.getConfig().readSettingAsString(PwmSetting.DISPLAY_CSS_CUSTOM_STYLE);
+            if ( "custom".equals( themeName ) )
+            {
+                if ( themeUrl == PwmThemeURL.MOBILE_THEME_URL )
+                {
+                    themeURL = pwmApplication.getConfig().readSettingAsString( PwmSetting.DISPLAY_CSS_CUSTOM_MOBILE_STYLE );
+                }
+                else
+                {
+                    themeURL = pwmApplication.getConfig().readSettingAsString( PwmSetting.DISPLAY_CSS_CUSTOM_STYLE );
                 }
             }
         }
 
-        if (themeURL == null || themeURL.length() < 1) {
-            themeURL = ResourceFileServlet.RESOURCE_PATH + theme_url.getCssName();
-            themeURL = themeURL.replace(ResourceFileServlet.TOKEN_THEME, StringUtil.escapeHtml(themeName));
+        if ( themeURL == null || themeURL.length() < 1 )
+        {
+            themeURL = ResourceFileServlet.RESOURCE_PATH + themeUrl.getCssName();
+            themeURL = themeURL.replace( ResourceFileServlet.TOKEN_THEME, StringUtil.escapeHtml( themeName ) );
         }
 
         return themeURL;

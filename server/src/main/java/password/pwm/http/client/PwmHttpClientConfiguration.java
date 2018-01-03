@@ -30,7 +30,8 @@ import java.util.List;
 
 @Value
 @Builder
-public class PwmHttpClientConfiguration {
+public class PwmHttpClientConfiguration
+{
     private List<X509Certificate> certificates;
     private boolean promiscuous;
 }

@@ -38,94 +38,116 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-public class CustomLinkValue extends AbstractValue implements StoredValue {
+public class CustomLinkValue extends AbstractValue implements StoredValue
+{
     final List<CustomLinkConfiguration> values;
 
-    public CustomLinkValue(final List<CustomLinkConfiguration> values) {
+    public CustomLinkValue( final List<CustomLinkConfiguration> values )
+    {
         this.values = values;
     }
 
-    public static StoredValueFactory factory()
+    public static StoredValueFactory factory( )
     {
-        return new StoredValueFactory() {
-            public CustomLinkValue fromJson(final String input)
+        return new StoredValueFactory()
+        {
+            public CustomLinkValue fromJson( final String input )
             {
-                if (input == null) {
-                    return new CustomLinkValue(Collections.emptyList());
-                } else {
-                    List<CustomLinkConfiguration> srcList = JsonUtil.deserialize(input, new TypeToken<List<CustomLinkConfiguration>>() {
-                    });
+                if ( input == null )
+                {
+                    return new CustomLinkValue( Collections.emptyList() );
+                }
+                else
+                {
+                    List<CustomLinkConfiguration> srcList = JsonUtil.deserialize( input, new TypeToken<List<CustomLinkConfiguration>>()
+                    {
+                    } );
                     srcList = srcList == null ? Collections.emptyList() : srcList;
-                    while (srcList.contains(null)) {
-                        srcList.remove(null);
+                    while ( srcList.contains( null ) )
+                    {
+                        srcList.remove( null );
                     }
-                    return new CustomLinkValue(Collections.unmodifiableList(srcList));
+                    return new CustomLinkValue( Collections.unmodifiableList( srcList ) );
                 }
             }
 
-            public CustomLinkValue fromXmlElement(final Element settingElement, final PwmSecurityKey key)
+            public CustomLinkValue fromXmlElement( final Element settingElement, final PwmSecurityKey key )
                     throws PwmOperationalException
             {
-                final List valueElements = settingElement.getChildren("value");
+                final List valueElements = settingElement.getChildren( "value" );
                 final List<CustomLinkConfiguration> values = new ArrayList<>();
-                for (final Object loopValue : valueElements) {
-                    final Element loopValueElement = (Element) loopValue;
+                for ( final Object loopValue : valueElements )
+                {
+                    final Element loopValueElement = ( Element ) loopValue;
                     final String value = loopValueElement.getText();
-                    if (value != null && value.length() > 0 && loopValueElement.getAttribute("locale") == null) {
-                        values.add(JsonUtil.deserialize(value, CustomLinkConfiguration.class));
+                    if ( value != null && value.length() > 0 && loopValueElement.getAttribute( "locale" ) == null )
+                    {
+                        values.add( JsonUtil.deserialize( value, CustomLinkConfiguration.class ) );
                     }
                 }
-                final CustomLinkValue CustomLinkValue = new CustomLinkValue(values);
-                return CustomLinkValue;
+                return new CustomLinkValue( values );
             }
         };
     }
 
-    public List<Element> toXmlValues(final String valueElementName) {
+    public List<Element> toXmlValues( final String valueElementName )
+    {
         final List<Element> returnList = new ArrayList<>();
-        for (final CustomLinkConfiguration value : values) {
-            final Element valueElement = new Element(valueElementName);
-            valueElement.addContent(JsonUtil.serialize(value));
-            returnList.add(valueElement);
+        for ( final CustomLinkConfiguration value : values )
+        {
+            final Element valueElement = new Element( valueElementName );
+            valueElement.addContent( JsonUtil.serialize( value ) );
+            returnList.add( valueElement );
         }
         return returnList;
     }
 
-    public List<CustomLinkConfiguration> toNativeObject() {
-        return Collections.unmodifiableList(values);
+    public List<CustomLinkConfiguration> toNativeObject( )
+    {
+        return Collections.unmodifiableList( values );
     }
 
-    public List<String> validateValue(final PwmSetting pwmSetting) {
-        if (pwmSetting.isRequired()) {
-            if (values == null || values.size() < 1 || values.get(0) == null) {
-                return Collections.singletonList("required value missing");
+    public List<String> validateValue( final PwmSetting pwmSetting )
+    {
+        if ( pwmSetting.isRequired() )
+        {
+            if ( values == null || values.size() < 1 || values.get( 0 ) == null )
+            {
+                return Collections.singletonList( "required value missing" );
             }
         }
 
         final Set<String> seenNames = new HashSet<>();
-        for (final CustomLinkConfiguration loopConfig : values) {
-            if (seenNames.contains(loopConfig.getName().toLowerCase())) {
-                return Collections.singletonList("each form name must be unique: " + loopConfig.getName());
+        for ( final CustomLinkConfiguration loopConfig : values )
+        {
+            if ( seenNames.contains( loopConfig.getName().toLowerCase() ) )
+            {
+                return Collections.singletonList( "each form name must be unique: " + loopConfig.getName() );
             }
-            seenNames.add(loopConfig.getName().toLowerCase());
+            seenNames.add( loopConfig.getName().toLowerCase() );
         }
 
         return Collections.emptyList();
     }
 
-    public String toDebugString(final Locale locale) {
-        if (values != null && !values.isEmpty()) {
+    public String toDebugString( final Locale locale )
+    {
+        if ( values != null && !values.isEmpty() )
+        {
             final StringBuilder sb = new StringBuilder();
-            for (final CustomLinkConfiguration formRow : values) {
-                sb.append("Link Name:").append(formRow.getName()).append("\n");
-                sb.append(" Type:").append(formRow.getType());
-                sb.append("\n");
-                sb.append(" Description:").append(JsonUtil.serializeMap(formRow.getLabels())).append("\n");
-                sb.append(" New Window:").append(formRow.isCustomLinkNewWindow()).append("\n");
-                sb.append(" Url:").append(formRow.getCustomLinkUrl()).append("\n");
+            for ( final CustomLinkConfiguration formRow : values )
+            {
+                sb.append( "Link Name:" ).append( formRow.getName() ).append( "\n" );
+                sb.append( " Type:" ).append( formRow.getType() );
+                sb.append( "\n" );
+                sb.append( " Description:" ).append( JsonUtil.serializeMap( formRow.getLabels() ) ).append( "\n" );
+                sb.append( " New Window:" ).append( formRow.isCustomLinkNewWindow() ).append( "\n" );
+                sb.append( " Url:" ).append( formRow.getCustomLinkUrl() ).append( "\n" );
             }
             return sb.toString();
-        } else {
+        }
+        else
+        {
             return "";
         }
     }

@@ -22,7 +22,9 @@
 
 package password.pwm.util.localdb;
 
-public class H2MV_LocalDB {}
+public class H2MVLocalDB
+{
+}
 
 
 // No longer used, commented in case it may be resurrected some day.
@@ -35,8 +37,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class H2MV_LocalDB {} implements LocalDBProvider {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(H2MV_LocalDB.class);
+public class H2MVLocalDB {} implements LocalDBProvider {
+    private static final PwmLogger LOGGER = PwmLogger.forClass(H2MVLocalDB.class);
 
     private MVStore mvStore;
     private Map<LocalDB.DB,Map<String,String>> dbMaps = new HashMap<>();

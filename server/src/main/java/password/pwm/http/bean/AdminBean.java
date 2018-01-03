@@ -34,22 +34,23 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-public class AdminBean extends PwmSessionBean {
+public class AdminBean extends PwmSessionBean
+{
 
     @Getter
     @Setter
-    @SerializedName("l")
+    @SerializedName( "l" )
     private UserIdentity lastUserDebug;
 
     @Override
-    public Type getType()
+    public Type getType( )
     {
         return Type.AUTHENTICATED;
     }
 
     @Override
-    public Set<SessionBeanMode> supportedModes()
+    public Set<SessionBeanMode> supportedModes( )
     {
-        return Collections.unmodifiableSet(new HashSet<>(Arrays.asList(SessionBeanMode.LOCAL, SessionBeanMode.CRYPTCOOKIE, SessionBeanMode.CRYPTREQUEST)));
+        return Collections.unmodifiableSet( new HashSet<>( Arrays.asList( SessionBeanMode.LOCAL, SessionBeanMode.CRYPTCOOKIE, SessionBeanMode.CRYPTREQUEST ) ) );
     }
 }

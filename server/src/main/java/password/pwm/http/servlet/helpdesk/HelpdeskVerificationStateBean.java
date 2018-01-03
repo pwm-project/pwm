@@ -49,8 +49,9 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
-class HelpdeskVerificationStateBean implements Serializable {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(HelpdeskVerificationStateBean.class);
+class HelpdeskVerificationStateBean implements Serializable
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( HelpdeskVerificationStateBean.class );
     private final UserIdentity actor;
     private final List<HelpdeskValidationRecord> records = new ArrayList<>();
 
@@ -58,36 +59,45 @@ class HelpdeskVerificationStateBean implements Serializable {
 
     private transient TimeDuration maximumAge;
 
-    private HelpdeskVerificationStateBean(final UserIdentity actor) {
+    private HelpdeskVerificationStateBean( final UserIdentity actor )
+    {
         this.actor = actor;
     }
 
-    public UserIdentity getActor() {
+    public UserIdentity getActor( )
+    {
         return actor;
     }
 
-    public List<HelpdeskValidationRecord> getRecords() {
+    public List<HelpdeskValidationRecord> getRecords( )
+    {
         return records;
     }
 
-    public void addRecord(final UserIdentity identity, final IdentityVerificationMethod method) {
+    public void addRecord( final UserIdentity identity, final IdentityVerificationMethod method )
+    {
         purgeOldRecords();
 
-        final HelpdeskValidationRecord record = getRecord(identity, method);
-        if (record != null) {
-            records.remove(record);
+        final HelpdeskValidationRecord record = getRecord( identity, method );
+        if ( record != null )
+        {
+            records.remove( record );
         }
-        records.add(new HelpdeskValidationRecord(new Date(), identity, method));
+        records.add( new HelpdeskValidationRecord( new Date(), identity, method ) );
     }
 
-    public boolean hasRecord(final UserIdentity identity, final IdentityVerificationMethod method) {
+    public boolean hasRecord( final UserIdentity identity, final IdentityVerificationMethod method )
+    {
         purgeOldRecords();
-        return getRecord(identity,method) != null;
+        return getRecord( identity, method ) != null;
     }
 
-    private HelpdeskValidationRecord getRecord(final UserIdentity identity, final IdentityVerificationMethod method) {
-        for (final HelpdeskValidationRecord record : records) {
-            if (record.getIdentity().equals(identity) && (method == null || record.getMethod() == method)) {
+    private HelpdeskValidationRecord getRecord( final UserIdentity identity, final IdentityVerificationMethod method )
+    {
+        for ( final HelpdeskValidationRecord record : records )
+        {
+            if ( record.getIdentity().equals( identity ) && ( method == null || record.getMethod() == method ) )
+            {
                 return record;
             }
         }
@@ -95,12 +105,15 @@ class HelpdeskVerificationStateBean implements Serializable {
     }
 
 
-    void purgeOldRecords() {
-        for (final Iterator<HelpdeskValidationRecord> iterator = records.iterator(); iterator.hasNext(); ) {
+    void purgeOldRecords( )
+    {
+        for ( final Iterator<HelpdeskValidationRecord> iterator = records.iterator(); iterator.hasNext(); )
+        {
             final HelpdeskValidationRecord record = iterator.next();
             final Date timestamp = record.getTimestamp();
-            final TimeDuration age = TimeDuration.fromCurrent(timestamp);
-            if (age.isLongerThan(maximumAge)) {
+            final TimeDuration age = TimeDuration.fromCurrent( timestamp );
+            if ( age.isLongerThan( maximumAge ) )
+            {
                 iterator.remove();
             }
         }
@@ -112,73 +125,86 @@ class HelpdeskVerificationStateBean implements Serializable {
     )
             throws ChaiOperationException, ChaiUnavailableException, PwmUnrecoverableException
     {
-        final Map<Date,ViewableValidationRecord> returnRecords = new TreeMap<>();
-        for (final HelpdeskValidationRecord record : records) {
-            final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy(pwmApplication, SessionLabel.SYSTEM_LABEL, record.getIdentity(), PwmConstants.DEFAULT_LOCALE);
+        final Map<Date, ViewableValidationRecord> returnRecords = new TreeMap<>();
+        for ( final HelpdeskValidationRecord record : records )
+        {
+            final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy( pwmApplication, SessionLabel.SYSTEM_LABEL, record.getIdentity(), PwmConstants.DEFAULT_LOCALE );
             final String username = userInfo.getUsername();
-            final String profile = pwmApplication.getConfig().getLdapProfiles().get(record.getIdentity().getLdapProfileID()).getDisplayName(locale);
-            final String method = record.getMethod().getLabel(pwmApplication.getConfig(), locale);
-            returnRecords.put(record.getTimestamp(), new ViewableValidationRecord(record.getTimestamp(), profile, username, method));
+            final String profile = pwmApplication.getConfig().getLdapProfiles().get( record.getIdentity().getLdapProfileID() ).getDisplayName( locale );
+            final String method = record.getMethod().getLabel( pwmApplication.getConfig(), locale );
+            returnRecords.put( record.getTimestamp(), new ViewableValidationRecord( record.getTimestamp(), profile, username, method ) );
         }
-        return Collections.unmodifiableList(new ArrayList<>(returnRecords.values()));
+        return Collections.unmodifiableList( new ArrayList<>( returnRecords.values() ) );
     }
 
-    static class ViewableValidationRecord implements Serializable {
+    static class ViewableValidationRecord implements Serializable
+    {
         private Date timestamp;
         private String profile;
         private String username;
         private String method;
 
-        ViewableValidationRecord(final Date timestamp, final String profile, final String username, final String method) {
+        ViewableValidationRecord( final Date timestamp, final String profile, final String username, final String method )
+        {
             this.timestamp = timestamp;
             this.profile = profile;
             this.username = username;
             this.method = method;
         }
 
-        public Date getTimestamp() {
+        public Date getTimestamp( )
+        {
             return timestamp;
         }
 
-        public String getProfile() {
+        public String getProfile( )
+        {
             return profile;
         }
 
-        public String getUsername() {
+        public String getUsername( )
+        {
             return username;
         }
 
-        public String getMethod() {
+        public String getMethod( )
+        {
             return method;
         }
     }
 
-    static class HelpdeskValidationRecord implements Serializable {
+    static class HelpdeskValidationRecord implements Serializable
+    {
         private Date timestamp;
         private UserIdentity identity;
         private IdentityVerificationMethod method;
 
-        HelpdeskValidationRecord(final Date timestamp, final UserIdentity identity, final IdentityVerificationMethod method) {
+        HelpdeskValidationRecord( final Date timestamp, final UserIdentity identity, final IdentityVerificationMethod method )
+        {
             this.timestamp = timestamp;
             this.identity = identity;
             this.method = method;
         }
 
-        public Date getTimestamp() {
+        public Date getTimestamp( )
+        {
             return timestamp;
         }
 
-        public UserIdentity getIdentity() {
+        public UserIdentity getIdentity( )
+        {
             return identity;
         }
 
-        public IdentityVerificationMethod getMethod() {
+        public IdentityVerificationMethod getMethod( )
+        {
             return method;
         }
     }
 
-    String toClientString(final PwmApplication pwmApplication) throws PwmUnrecoverableException {
-        return pwmApplication.getSecureService().encryptObjectToString(this);
+    String toClientString( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
+    {
+        return pwmApplication.getSecureService().encryptObjectToString( this );
     }
 
     static HelpdeskVerificationStateBean fromClientString(
@@ -187,23 +213,25 @@ class HelpdeskVerificationStateBean implements Serializable {
     )
             throws PwmUnrecoverableException
     {
-        final int maxAgeSeconds = Integer.parseInt(pwmRequest.getConfig().readAppProperty(AppProperty.HELPDESK_VERIFICATION_TIMEOUT_SECONDS));
-        final TimeDuration maxAge = new TimeDuration(maxAgeSeconds, TimeUnit.SECONDS);
+        final int maxAgeSeconds = Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.HELPDESK_VERIFICATION_TIMEOUT_SECONDS ) );
+        final TimeDuration maxAge = new TimeDuration( maxAgeSeconds, TimeUnit.SECONDS );
         final UserIdentity actor = pwmRequest.getUserInfoIfLoggedIn();
 
         HelpdeskVerificationStateBean state = null;
-        if (rawValue != null && !rawValue.isEmpty()) {
-            state = pwmRequest.getPwmApplication().getSecureService().decryptObject(rawValue, HelpdeskVerificationStateBean.class);
-            if (!state.getActor().equals(actor)) {
+        if ( rawValue != null && !rawValue.isEmpty() )
+        {
+            state = pwmRequest.getPwmApplication().getSecureService().decryptObject( rawValue, HelpdeskVerificationStateBean.class );
+            if ( !state.getActor().equals( actor ) )
+            {
                 state = null;
             }
         }
 
-        state = state != null ? state : new HelpdeskVerificationStateBean(actor);
+        state = state != null ? state : new HelpdeskVerificationStateBean( actor );
         state.maximumAge = maxAge;
         state.purgeOldRecords();
 
-        LOGGER.debug(pwmRequest, "read current state: " + JsonUtil.serialize(state));
+        LOGGER.debug( pwmRequest, "read current state: " + JsonUtil.serialize( state ) );
 
         return state;
     }

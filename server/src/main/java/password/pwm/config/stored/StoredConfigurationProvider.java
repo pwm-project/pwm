@@ -27,8 +27,9 @@ import password.pwm.error.PwmUnrecoverableException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-interface StoredConfigurationProvider {
-    StoredConfiguration fromXml( InputStream inputStream) throws PwmUnrecoverableException;
+interface StoredConfigurationProvider
+{
+    StoredConfiguration fromXml( InputStream inputStream ) throws PwmUnrecoverableException;
 
-    void toXml( OutputStream outputStream);
+    void toXml( OutputStream outputStream );
 }

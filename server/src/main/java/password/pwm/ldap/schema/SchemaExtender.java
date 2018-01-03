@@ -25,10 +25,11 @@ package password.pwm.ldap.schema;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.error.PwmUnrecoverableException;
 
-public interface SchemaExtender {
-    void init(ChaiProvider chaiProvider) throws PwmUnrecoverableException;
+public interface SchemaExtender
+{
+    void init( ChaiProvider chaiProvider ) throws PwmUnrecoverableException;
 
-    SchemaOperationResult extendSchema() throws PwmUnrecoverableException;
+    SchemaOperationResult extendSchema( ) throws PwmUnrecoverableException;
 
-    SchemaOperationResult checkExistingSchema() throws PwmUnrecoverableException;
+    SchemaOperationResult checkExistingSchema( ) throws PwmUnrecoverableException;
 }

@@ -34,38 +34,48 @@ import password.pwm.util.logging.PwmLogger;
 
 import java.util.Properties;
 
-public class TinyUrlShortener extends BasicUrlShortener {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(TinyUrlShortener.class);
+public class TinyUrlShortener extends BasicUrlShortener
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( TinyUrlShortener.class );
 
     private final String apiUrl = "http://tinyurl.com/api-create.php?url=";
 
     private Properties configuration = null;
 
-    public TinyUrlShortener() {
+    public TinyUrlShortener( )
+    {
     }
 
-    public TinyUrlShortener(final Properties configuration) {
+    public TinyUrlShortener( final Properties configuration )
+    {
         this.configuration = configuration;
     }
 
-    public String shorten(final String input, final PwmApplication context) throws PwmUnrecoverableException {
-        try {
-            LOGGER.debug("Trying to shorten url: "+input);
-            final String encodedUrl = StringUtil.urlEncode(input);
+    public String shorten( final String input, final PwmApplication context ) throws PwmUnrecoverableException
+    {
+        try
+        {
+            LOGGER.debug( "Trying to shorten url: " + input );
+            final String encodedUrl = StringUtil.urlEncode( input );
             final String callUrl = apiUrl + encodedUrl;
-            final HttpClient httpClient = PwmHttpClient.getHttpClient(context.getConfig());
-            final HttpGet httpRequest = new HttpGet(callUrl);
-            final HttpResponse httpResponse = httpClient.execute(httpRequest);
+            final HttpClient httpClient = PwmHttpClient.getHttpClient( context.getConfig() );
+            final HttpGet httpRequest = new HttpGet( callUrl );
+            final HttpResponse httpResponse = httpClient.execute( httpRequest );
             final int httpResponseCode = httpResponse.getStatusLine().getStatusCode();
-            if (httpResponseCode == 200) {
-                final String responseBody = EntityUtils.toString(httpResponse.getEntity());
-                LOGGER.debug("Result: "+responseBody);
+            if ( httpResponseCode == 200 )
+            {
+                final String responseBody = EntityUtils.toString( httpResponse.getEntity() );
+                LOGGER.debug( "Result: " + responseBody );
                 return responseBody;
-            } else {
-                LOGGER.error("Failed to get shorter URL: "+httpResponse.getStatusLine().getReasonPhrase());
             }
-        } catch (java.io.IOException e) {
-            LOGGER.error("IOException: " + e.getMessage());
+            else
+            {
+                LOGGER.error( "Failed to get shorter URL: " + httpResponse.getStatusLine().getReasonPhrase() );
+            }
+        }
+        catch ( java.io.IOException e )
+        {
+            LOGGER.error( "IOException: " + e.getMessage() );
         }
         return input;
     }

@@ -22,7 +22,8 @@
 
 package password.pwm.http;
 
-public enum PwmRequestAttribute {
+public enum PwmRequestAttribute
+{
     PwmErrorInfo,
     SuccessMessage,
     PwmRequest,

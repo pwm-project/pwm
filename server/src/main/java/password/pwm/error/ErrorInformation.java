@@ -36,7 +36,8 @@ import java.util.Locale;
  * (in the form of an {@link PwmError}), additional detailed error information for logging, and string substitutions
  * to use when presenting error messages to users.
  */
-public class ErrorInformation implements Serializable {
+public class ErrorInformation implements Serializable
+{
     private final PwmError error;
     private final String detailedErrorMsg;
     private final String userStrOverride;
@@ -44,113 +45,134 @@ public class ErrorInformation implements Serializable {
     private final Instant date = Instant.now();
 
     // private constructor used for gson de-serialization
-    private ErrorInformation() {
+    private ErrorInformation( )
+    {
         error = PwmError.ERROR_UNKNOWN;
         detailedErrorMsg = null;
         fieldValues = null;
         userStrOverride = null;
     }
 
-    public ErrorInformation(final PwmError error) {
+    public ErrorInformation( final PwmError error )
+    {
         this.error = error == null ? PwmError.ERROR_UNKNOWN : error;
         this.detailedErrorMsg = null;
         this.userStrOverride = null;
-        this.fieldValues = new String[0];
+        this.fieldValues = new String[ 0 ];
     }
 
-    public ErrorInformation(final PwmError error, final String detailedErrorMsg) {
+    public ErrorInformation( final PwmError error, final String detailedErrorMsg )
+    {
         this.error = error == null ? PwmError.ERROR_UNKNOWN : error;
         this.detailedErrorMsg = detailedErrorMsg;
         this.userStrOverride = null;
-        this.fieldValues = new String[0];
+        this.fieldValues = new String[ 0 ];
     }
 
-    public ErrorInformation(final PwmError error, final String detailedErrorMsg, final String[] fields) {
+    public ErrorInformation( final PwmError error, final String detailedErrorMsg, final String[] fields )
+    {
         this.error = error == null ? PwmError.ERROR_UNKNOWN : error;
         this.detailedErrorMsg = detailedErrorMsg;
         this.userStrOverride = null;
-        this.fieldValues = fields == null ? new String[0] : fields;
+        this.fieldValues = fields == null ? new String[ 0 ] : fields;
     }
 
-    public ErrorInformation(final PwmError error, final String detailedErrorMsg, final String userStrOverride, final String[] fields) {
+    public ErrorInformation( final PwmError error, final String detailedErrorMsg, final String userStrOverride, final String[] fields )
+    {
         this.error = error == null ? PwmError.ERROR_UNKNOWN : error;
         this.detailedErrorMsg = detailedErrorMsg;
         this.userStrOverride = userStrOverride;
-        this.fieldValues = fields == null ? new String[0] : fields;
+        this.fieldValues = fields == null ? new String[ 0 ] : fields;
     }
 
-    public String getDetailedErrorMsg() {
+    public String getDetailedErrorMsg( )
+    {
         return detailedErrorMsg;
     }
 
-    public PwmError getError() {
+    public PwmError getError( )
+    {
         return error;
     }
 
-    public String[] getFieldValues() {
-        return fieldValues == null ? null : Arrays.copyOf(fieldValues, fieldValues.length);
+    public String[] getFieldValues( )
+    {
+        return fieldValues == null ? null : Arrays.copyOf( fieldValues, fieldValues.length );
     }
 
-    public String toDebugStr() {
+    public String toDebugStr( )
+    {
         final StringBuilder sb = new StringBuilder();
-        sb.append(error.getErrorCode());
-        sb.append(" ");
-        sb.append(error.toString());
-        if (detailedErrorMsg != null && detailedErrorMsg.length() > 0) {
-            sb.append(" (");
-            sb.append(detailedErrorMsg);
-            sb.append((")"));
+        sb.append( error.getErrorCode() );
+        sb.append( " " );
+        sb.append( error.toString() );
+        if ( detailedErrorMsg != null && detailedErrorMsg.length() > 0 )
+        {
+            sb.append( " (" );
+            sb.append( detailedErrorMsg );
+            sb.append( ( ")" ) );
         }
 
-        if (fieldValues != null && fieldValues.length > 0) {
-            sb.append(" fields: ");
-            sb.append(Arrays.toString(fieldValues));
+        if ( fieldValues != null && fieldValues.length > 0 )
+        {
+            sb.append( " fields: " );
+            sb.append( Arrays.toString( fieldValues ) );
         }
 
         return sb.toString();
     }
 
-    public String toUserStr(final PwmSession pwmSession, final PwmApplication pwmApplication) {
+    public String toUserStr( final PwmSession pwmSession, final PwmApplication pwmApplication )
+    {
 
-        if (userStrOverride != null) {
+        if ( userStrOverride != null )
+        {
             return userStrOverride;
         }
 
         Configuration config = null;
         Locale userLocale = null;
 
-        if (pwmSession != null && pwmApplication.getConfig() != null) {
+        if ( pwmSession != null && pwmApplication.getConfig() != null )
+        {
             config = pwmApplication.getConfig();
         }
 
-        if (pwmSession != null) {
+        if ( pwmSession != null )
+        {
             userLocale = pwmSession.getSessionStateBean().getLocale();
         }
 
-        return toUserStr(userLocale, config);
+        return toUserStr( userLocale, config );
     }
 
-    public String toUserStr(final Locale userLocale, final Configuration config) {
-        if (userStrOverride != null) {
+    public String toUserStr( final Locale userLocale, final Configuration config )
+    {
+        if ( userStrOverride != null )
+        {
             return userStrOverride;
         }
 
-        if (this.getError().getErrorCode() == 6000) {
+        if ( this.getError().getErrorCode() == 6000 )
+        {
             return detailedErrorMsg;
         }
 
-        return this.getError().getLocalizedMessage(userLocale, config, fieldValues);
+        return this.getError().getLocalizedMessage( userLocale, config, fieldValues );
     }
 
-    public Instant getDate() {
+    public Instant getDate( )
+    {
         return date;
     }
 
-    public ErrorInformation wrapWithNewErrorCode(final PwmError pwmError) {
-        if (pwmError == this.getError()) {
+    public ErrorInformation wrapWithNewErrorCode( final PwmError pwmError )
+    {
+        if ( pwmError == this.getError() )
+        {
             return this;
         }
-        return new ErrorInformation(pwmError,this.getDetailedErrorMsg());
+        return new ErrorInformation( pwmError, this.getDetailedErrorMsg() );
 
     }
 }

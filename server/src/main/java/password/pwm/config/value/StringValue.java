@@ -24,10 +24,10 @@ package password.pwm.config.value;
 
 import org.jdom2.CDATA;
 import org.jdom2.Element;
-import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingFlag;
 import password.pwm.config.StoredValue;
+import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.secure.PwmSecurityKey;
 
@@ -37,62 +37,76 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class StringValue extends AbstractValue implements StoredValue {
+public class StringValue extends AbstractValue implements StoredValue
+{
     protected String value;
 
-    StringValue() {
+    StringValue( )
+    {
     }
 
-    public StringValue(final String value) {
+    public StringValue( final String value )
+    {
         this.value = value == null ? "" : value;
     }
 
-    public static StoredValueFactory factory()
+    public static StoredValueFactory factory( )
     {
-        return new StoredValueFactory() {
-            public StringValue fromJson(final String input)
+        return new StoredValueFactory()
+        {
+            public StringValue fromJson( final String input )
             {
-                final String newValue = JsonUtil.deserialize(input, String.class);
-                return new StringValue(newValue);
+                final String newValue = JsonUtil.deserialize( input, String.class );
+                return new StringValue( newValue );
             }
 
-            public StringValue fromXmlElement(final Element settingElement, final PwmSecurityKey key)
+            public StringValue fromXmlElement( final Element settingElement, final PwmSecurityKey key )
             {
-                final Element valueElement = settingElement.getChild("value");
-                return new StringValue(valueElement == null ? "" : valueElement.getText());
+                final Element valueElement = settingElement.getChild( "value" );
+                return new StringValue( valueElement == null ? "" : valueElement.getText() );
             }
         };
     }
 
-    public List<Element> toXmlValues(final String valueElementName) {
-        final Element valueElement = new Element(valueElementName);
-        valueElement.addContent(new CDATA(value));
-        return Collections.singletonList(valueElement);
+    public List<Element> toXmlValues( final String valueElementName )
+    {
+        final Element valueElement = new Element( valueElementName );
+        valueElement.addContent( new CDATA( value ) );
+        return Collections.singletonList( valueElement );
     }
 
-    public String toNativeObject() {
+    public String toNativeObject( )
+    {
         return value;
     }
 
-    public List<String> validateValue(final PwmSetting pwmSetting) {
-        if (pwmSetting.isRequired()) {
-            if (value == null || value.length() < 1) {
-                return Collections.singletonList("required value missing");
+    public List<String> validateValue( final PwmSetting pwmSetting )
+    {
+        if ( pwmSetting.isRequired() )
+        {
+            if ( value == null || value.length() < 1 )
+            {
+                return Collections.singletonList( "required value missing" );
             }
         }
 
         final Pattern pattern = pwmSetting.getRegExPattern();
-        if (pattern != null && value != null) {
-            final Matcher matcher = pattern.matcher(value);
-            if (value != null && value.length() > 0 && !matcher.matches()) {
-                return Collections.singletonList("incorrect value format for value '" + value + "'");
+        if ( pattern != null && value != null )
+        {
+            final Matcher matcher = pattern.matcher( value );
+            if ( value != null && value.length() > 0 && !matcher.matches() )
+            {
+                return Collections.singletonList( "incorrect value format for value '" + value + "'" );
             }
         }
 
-        if (pwmSetting.getFlags().contains(PwmSettingFlag.emailSyntax)) {
-            if (value != null) {
-                if (!FormConfiguration.testEmailAddress(null, value)) {
-                    return Collections.singletonList("Invalid email address format: '" + value + "'");
+        if ( pwmSetting.getFlags().contains( PwmSettingFlag.emailSyntax ) )
+        {
+            if ( value != null )
+            {
+                if ( !FormConfiguration.testEmailAddress( null, value ) )
+                {
+                    return Collections.singletonList( "Invalid email address format: '" + value + "'" );
                 }
             }
         }

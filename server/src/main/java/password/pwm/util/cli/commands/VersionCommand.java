@@ -25,16 +25,17 @@ package password.pwm.util.cli.commands;
 import password.pwm.PwmConstants;
 import password.pwm.util.cli.CliParameters;
 
-public class VersionCommand extends AbstractCliCommand {
+public class VersionCommand extends AbstractCliCommand
+{
     @Override
-    void doCommand()
+    void doCommand( )
             throws Exception
     {
-        out(PwmConstants.PWM_APP_NAME + " version " + PwmConstants.SERVLET_VERSION);
+        out( PwmConstants.PWM_APP_NAME + " version " + PwmConstants.SERVLET_VERSION );
     }
 
     @Override
-    public CliParameters getCliParameters()
+    public CliParameters getCliParameters( )
     {
         final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "Version";

@@ -36,9 +36,10 @@ import password.pwm.util.logging.PwmLogger;
 import java.util.List;
 import java.util.Map;
 
-public class ProfileUtility {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(ProfileUtility.class);
-    
+public class ProfileUtility
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( ProfileUtility.class );
+
     public static String discoverProfileIDforUser(
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
@@ -47,20 +48,23 @@ public class ProfileUtility {
     )
             throws PwmUnrecoverableException
     {
-        final Map<String,Profile> profileMap = pwmApplication.getConfig().profileMap(profileType);
-        for (final Profile profile : profileMap.values()) {
+        final Map<String, Profile> profileMap = pwmApplication.getConfig().profileMap( profileType );
+        for ( final Profile profile : profileMap.values() )
+        {
             final List<UserPermission> queryMatches = profile.getPermissionMatches();
-            final boolean match = LdapPermissionTester.testUserPermissions(pwmApplication, sessionLabel, userIdentity, queryMatches);
-            if (match) {
+            final boolean match = LdapPermissionTester.testUserPermissions( pwmApplication, sessionLabel, userIdentity, queryMatches );
+            if ( match )
+            {
                 return profile.getIdentifier();
             }
         }
         return null;
     }
 
-    public static List<String> profileIDsForCategory(final Configuration configuration, final PwmSettingCategory pwmSettingCategory) {
+    public static List<String> profileIDsForCategory( final Configuration configuration, final PwmSettingCategory pwmSettingCategory )
+    {
         final PwmSetting profileSetting = pwmSettingCategory.getProfileSetting();
-        return configuration.readSettingAsStringArray(profileSetting);
+        return configuration.readSettingAsStringArray( profileSetting );
     }
 
 

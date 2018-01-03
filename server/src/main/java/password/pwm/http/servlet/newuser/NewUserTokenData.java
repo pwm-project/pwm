@@ -31,22 +31,25 @@ import java.util.Map;
 
 @Getter
 @AllArgsConstructor
-class NewUserTokenData implements Serializable {
+class NewUserTokenData implements Serializable
+{
 
-    @SerializedName("id")
+    @SerializedName( "id" )
     private String profileID;
 
-    @SerializedName("f")
+    @SerializedName( "f" )
     private NewUserForm formData;
 
-    @SerializedName("i")
-    private Map<String,String> injectionData;
+    @SerializedName( "i" )
+    private Map<String, String> injectionData;
 
-    public String getProfileID() {
+    public String getProfileID( )
+    {
         return profileID;
     }
 
-    public NewUserForm getFormData() {
+    public NewUserForm getFormData( )
+    {
         return formData;
     }
 }

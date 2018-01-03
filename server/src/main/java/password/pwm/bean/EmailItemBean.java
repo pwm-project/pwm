@@ -29,16 +29,16 @@ import java.io.Serializable;
 
 @Getter
 @AllArgsConstructor
-public class EmailItemBean implements Serializable {
+public class EmailItemBean implements Serializable
+{
     private final String to;
     private final String from;
     private final String subject;
     private final String bodyPlain;
     private final String bodyHtml;
 
-    public String toDebugString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("from: ").append(from).append(", to: ").append(to).append(", subject: ").append(subject);
-        return sb.toString();
+    public String toDebugString( )
+    {
+        return "from: " + from + ", to: " + to + ", subject: " + subject;
     }
 }

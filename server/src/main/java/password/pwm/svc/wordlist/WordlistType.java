@@ -24,14 +24,15 @@ package password.pwm.svc.wordlist;
 
 import password.pwm.PwmApplication;
 
-public enum WordlistType {
+public enum WordlistType
+{
     WORDLIST,
-    SEEDLIST,
+    SEEDLIST,;
 
-    ;
-
-    public Wordlist forType(final PwmApplication pwmApplication) {
-        switch (this) {
+    public Wordlist forType( final PwmApplication pwmApplication )
+    {
+        switch ( this )
+        {
             case WORDLIST:
                 return pwmApplication.getWordlistManager();
 
@@ -39,7 +40,7 @@ public enum WordlistType {
                 return pwmApplication.getSeedlistManager();
 
             default:
-                throw new IllegalStateException("unhandled wordlistType");
+                throw new IllegalStateException( "unhandled wordlistType" );
         }
 
     }

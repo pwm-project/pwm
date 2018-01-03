@@ -41,7 +41,8 @@ import password.pwm.ldap.search.UserSearchEngine;
 import java.util.HashMap;
 import java.util.Map;
 
-class LdapTokenMachine  implements TokenMachine {
+class LdapTokenMachine implements TokenMachine
+{
 
     private static final String KEY_VALUE_DELIMITER = " ";
 
@@ -49,12 +50,12 @@ class LdapTokenMachine  implements TokenMachine {
     private String tokenAttribute;
     private TokenService tokenService;
 
-    LdapTokenMachine(final TokenService tokenService, final PwmApplication pwmApplication)
+    LdapTokenMachine( final TokenService tokenService, final PwmApplication pwmApplication )
             throws PwmOperationalException
     {
         this.tokenService = tokenService;
         this.pwmApplication = pwmApplication;
-        this.tokenAttribute = pwmApplication.getConfig().readSettingAsString(PwmSetting.TOKEN_LDAP_ATTRIBUTE);
+        this.tokenAttribute = pwmApplication.getConfig().readSettingAsString( PwmSetting.TOKEN_LDAP_ATTRIBUTE );
     }
 
     public String generateToken(
@@ -63,112 +64,134 @@ class LdapTokenMachine  implements TokenMachine {
     )
             throws PwmUnrecoverableException, PwmOperationalException
     {
-        return tokenService.makeUniqueTokenForMachine(sessionLabel, this);
+        return tokenService.makeUniqueTokenForMachine( sessionLabel, this );
     }
 
-    public TokenPayload retrieveToken(final TokenKey tokenKey)
+    public TokenPayload retrieveToken( final TokenKey tokenKey )
             throws PwmOperationalException, PwmUnrecoverableException
     {
         final String searchFilter;
         {
             final String storedHash = tokenKey.getStoredHash();
             final SearchHelper tempSearchHelper = new SearchHelper();
-            final Map<String,String> filterAttributes = new HashMap<>();
-            for (final String loopStr : pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.DEFAULT_OBJECT_CLASSES)) {
-                filterAttributes.put("objectClass", loopStr);
+            final Map<String, String> filterAttributes = new HashMap<>();
+            for ( final String loopStr : pwmApplication.getConfig().readSettingAsStringArray( PwmSetting.DEFAULT_OBJECT_CLASSES ) )
+            {
+                filterAttributes.put( "objectClass", loopStr );
             }
-            filterAttributes.put(tokenAttribute,storedHash + "*");
-            tempSearchHelper.setFilterAnd(filterAttributes);
+            filterAttributes.put( tokenAttribute, storedHash + "*" );
+            tempSearchHelper.setFilterAnd( filterAttributes );
             searchFilter = tempSearchHelper.getFilter();
         }
 
-        try {
+        try
+        {
             final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
             final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
-                    .filter(searchFilter)
+                    .filter( searchFilter )
                     .build();
-            final UserIdentity user = userSearchEngine.performSingleUserSearch(searchConfiguration, null);
-            if (user == null) {
+            final UserIdentity user = userSearchEngine.performSingleUserSearch( searchConfiguration, null );
+            if ( user == null )
+            {
                 return null;
             }
-            final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy(pwmApplication, null, user, null);
-            final String tokenAttributeValue = userInfo.readStringAttribute(tokenAttribute);
-            if (tokenAttribute != null && tokenAttributeValue.length() > 0) {
-                final String[] splitString = tokenAttributeValue.split(KEY_VALUE_DELIMITER);
-                if (splitString.length != 2) {
+            final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy( pwmApplication, null, user, null );
+            final String tokenAttributeValue = userInfo.readStringAttribute( tokenAttribute );
+            if ( tokenAttribute != null && tokenAttributeValue.length() > 0 )
+            {
+                final String[] splitString = tokenAttributeValue.split( KEY_VALUE_DELIMITER );
+                if ( splitString.length != 2 )
+                {
                     final String errorMsg = "error parsing ldap stored token, not enough delimited values";
-                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT,errorMsg);
-                    throw new PwmOperationalException(errorInformation);
+                    final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_TOKEN_INCORRECT, errorMsg );
+                    throw new PwmOperationalException( errorInformation );
                 }
-                return tokenService.fromEncryptedString(splitString[1]);
+                return tokenService.fromEncryptedString( splitString[ 1 ] );
             }
-        } catch (PwmOperationalException e) {
-            if (e.getError() == PwmError.ERROR_CANT_MATCH_USER) {
+        }
+        catch ( PwmOperationalException e )
+        {
+            if ( e.getError() == PwmError.ERROR_CANT_MATCH_USER )
+            {
                 return null;
             }
             throw e;
-        } catch (PwmUnrecoverableException e) {
+        }
+        catch ( PwmUnrecoverableException e )
+        {
             final String errorMsg = "unexpected ldap error searching for token: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT,errorMsg);
-            throw new PwmOperationalException(errorInformation);
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_TOKEN_INCORRECT, errorMsg );
+            throw new PwmOperationalException( errorInformation );
         }
         return null;
     }
 
-    public void storeToken(final TokenKey tokenKey, final TokenPayload tokenPayload)
+    public void storeToken( final TokenKey tokenKey, final TokenPayload tokenPayload )
             throws PwmOperationalException, PwmUnrecoverableException
     {
-        try {
+        try
+        {
             final String md5sumToken = tokenKey.getStoredHash();
-            final String encodedTokenPayload = tokenService.toEncryptedString(tokenPayload);
+            final String encodedTokenPayload = tokenService.toEncryptedString( tokenPayload );
 
             final UserIdentity userIdentity = tokenPayload.getUserIdentity();
-            final ChaiUser chaiUser = pwmApplication.getProxiedChaiUser(userIdentity);
-            chaiUser.writeStringAttribute(tokenAttribute, md5sumToken + KEY_VALUE_DELIMITER + encodedTokenPayload);
-        } catch (ChaiException e) {
+            final ChaiUser chaiUser = pwmApplication.getProxiedChaiUser( userIdentity );
+            chaiUser.writeStringAttribute( tokenAttribute, md5sumToken + KEY_VALUE_DELIMITER + encodedTokenPayload );
+        }
+        catch ( ChaiException e )
+        {
             final String errorMsg = "unexpected ldap error saving token: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg);
-            throw new PwmOperationalException(errorInformation);
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            throw new PwmOperationalException( errorInformation );
         }
     }
 
-    public void removeToken(final TokenKey tokenKey)
+    public void removeToken( final TokenKey tokenKey )
             throws PwmOperationalException, PwmUnrecoverableException
     {
-        final TokenPayload payload = retrieveToken(tokenKey);
-        if (payload != null) {
+        final TokenPayload payload = retrieveToken( tokenKey );
+        if ( payload != null )
+        {
             final UserIdentity userIdentity = payload.getUserIdentity();
-            try {
-                final ChaiUser chaiUser = pwmApplication.getProxiedChaiUser(userIdentity);
-                chaiUser.deleteAttribute(tokenAttribute, null);
-            } catch (ChaiException e) {
+            try
+            {
+                final ChaiUser chaiUser = pwmApplication.getProxiedChaiUser( userIdentity );
+                chaiUser.deleteAttribute( tokenAttribute, null );
+            }
+            catch ( ChaiException e )
+            {
                 final String errorMsg = "unexpected ldap error removing token: " + e.getMessage();
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg);
-                throw new PwmOperationalException(errorInformation);
+                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+                throw new PwmOperationalException( errorInformation );
             }
         }
     }
 
-    public int size() throws PwmOperationalException {
+    public int size( ) throws PwmOperationalException
+    {
         return -1;
     }
 
-    public void cleanup() throws PwmUnrecoverableException, PwmOperationalException {
+    public void cleanup( ) throws PwmUnrecoverableException, PwmOperationalException
+    {
     }
 
     @Override
-    public boolean supportsName() {
+    public boolean supportsName( )
+    {
         return false;
     }
 
     @Override
-    public TokenKey keyFromKey(final String key) throws PwmUnrecoverableException {
-        return StoredTokenKey.fromKeyValue(pwmApplication, key);
+    public TokenKey keyFromKey( final String key ) throws PwmUnrecoverableException
+    {
+        return StoredTokenKey.fromKeyValue( pwmApplication, key );
     }
 
     @Override
-    public TokenKey keyFromStoredHash(final String storedHash) {
-        return StoredTokenKey.fromStoredHash(storedHash);
+    public TokenKey keyFromStoredHash( final String storedHash )
+    {
+        return StoredTokenKey.fromStoredHash( storedHash );
     }
 
 }

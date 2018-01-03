@@ -22,7 +22,8 @@
 
 package password.pwm.config.option;
 
-public enum ViewStatusFields implements ConfigurationOption {
+public enum ViewStatusFields implements ConfigurationOption
+{
     AccountEnabled,
     AccountExpired,
     AccountExpirationTime,

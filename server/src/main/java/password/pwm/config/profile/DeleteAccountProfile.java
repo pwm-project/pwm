@@ -29,27 +29,31 @@ import password.pwm.config.stored.StoredConfiguration;
 import java.util.Locale;
 import java.util.Map;
 
-public class DeleteAccountProfile extends AbstractProfile implements Profile {
+public class DeleteAccountProfile extends AbstractProfile implements Profile
+{
     private static final ProfileType PROFILE_TYPE = ProfileType.DeleteAccount;
 
-    protected DeleteAccountProfile(final String identifier, final Map<PwmSetting, StoredValue> storedValueMap) {
-        super(identifier, storedValueMap);
+    protected DeleteAccountProfile( final String identifier, final Map<PwmSetting, StoredValue> storedValueMap )
+    {
+        super( identifier, storedValueMap );
     }
 
-    public static DeleteAccountProfile makeFromStoredConfiguration(final StoredConfiguration storedConfiguration, final String identifier) {
-        final Map<PwmSetting,StoredValue> valueMap = makeValueMap(storedConfiguration, identifier, PROFILE_TYPE.getCategory());
-        return new DeleteAccountProfile(identifier, valueMap);
+    public static DeleteAccountProfile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
+    {
+        final Map<PwmSetting, StoredValue> valueMap = makeValueMap( storedConfiguration, identifier, PROFILE_TYPE.getCategory() );
+        return new DeleteAccountProfile( identifier, valueMap );
 
     }
 
     @Override
-    public String getDisplayName(final Locale locale)
+    public String getDisplayName( final Locale locale )
     {
         return this.getIdentifier();
     }
 
     @Override
-    public ProfileType profileType() {
+    public ProfileType profileType( )
+    {
         return PROFILE_TYPE;
     }
 }

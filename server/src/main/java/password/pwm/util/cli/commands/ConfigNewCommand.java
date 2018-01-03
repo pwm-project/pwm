@@ -30,34 +30,36 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Collections;
 
-public class ConfigNewCommand extends AbstractCliCommand {
-    public void doCommand()
+public class ConfigNewCommand extends AbstractCliCommand
+{
+    public void doCommand( )
             throws Exception
     {
         final StoredConfigurationImpl storedConfiguration = StoredConfigurationImpl.newStoredConfiguration();
         storedConfiguration.initNewRandomSecurityKey();
         storedConfiguration.writeConfigProperty(
-                ConfigurationProperty.CONFIG_IS_EDITABLE, Boolean.toString(true));
+                ConfigurationProperty.CONFIG_IS_EDITABLE, Boolean.toString( true ) );
         storedConfiguration.writeConfigProperty(
-                ConfigurationProperty.CONFIG_EPOCH, String.valueOf(0));
+                ConfigurationProperty.CONFIG_EPOCH, String.valueOf( 0 ) );
 
-        final File outputFile = (File)cliEnvironment.getOptions().get(CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName());
+        final File outputFile = ( File ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName() );
 
-        try (FileOutputStream fileOutputStream = new FileOutputStream(outputFile, false)) {
-            storedConfiguration.toXml(fileOutputStream);
+        try ( FileOutputStream fileOutputStream = new FileOutputStream( outputFile, false ) )
+        {
+            storedConfiguration.toXml( fileOutputStream );
         }
-        out("success");
+        out( "success" );
     }
 
     @Override
-    public CliParameters getCliParameters()
+    public CliParameters getCliParameters( )
     {
         final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "ConfigNew";
         cliParameters.description = "Create a new configuration file";
         cliParameters.needsPwmApplication = false;
         cliParameters.needsLocalDB = false;
-        cliParameters.options = Collections.singletonList(CliParameters.REQUIRED_NEW_OUTPUT_FILE);
+        cliParameters.options = Collections.singletonList( CliParameters.REQUIRED_NEW_OUTPUT_FILE );
 
         cliParameters.readOnly = true;
         return cliParameters;

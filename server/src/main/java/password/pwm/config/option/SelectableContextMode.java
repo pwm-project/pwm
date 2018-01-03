@@ -22,7 +22,8 @@
 
 package password.pwm.config.option;
 
-public enum SelectableContextMode implements ConfigurationOption {
+public enum SelectableContextMode implements ConfigurationOption
+{
     SHOW_PROFILE,
     SHOW_CONTEXTS,
     NONE

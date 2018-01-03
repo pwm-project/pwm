@@ -22,22 +22,23 @@
 
 package password.pwm.config.option;
 
-public enum TLSVersion {
-    SSL_2_0("SSLv2"),
-    SSL_3_0("SSLv3"),
-    TLS_1_0("TLSv1"),
-    TLS_1_1("TLSv1.1"),
-    TLS_1_2("TLSv1.2"),
-
-    ;
+public enum TLSVersion
+{
+    SSL_2_0( "SSLv2" ),
+    SSL_3_0( "SSLv3" ),
+    TLS_1_0( "TLSv1" ),
+    TLS_1_1( "TLSv1.1" ),
+    TLS_1_2( "TLSv1.2" ),;
 
     private final String tomcatValueName;
 
-    TLSVersion(final String tomcatValueName) {
+    TLSVersion( final String tomcatValueName )
+    {
         this.tomcatValueName = tomcatValueName;
     }
 
-    public String getTomcatValueName() {
+    public String getTomcatValueName( )
+    {
         return tomcatValueName;
     }
 

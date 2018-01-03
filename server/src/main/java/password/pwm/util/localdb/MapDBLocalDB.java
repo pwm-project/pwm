@@ -25,7 +25,9 @@ package password.pwm.util.localdb;
 /**
  * @author Jason D. Rivard
  */
-public class MapDB_LocalDB {}
+public class MapDBLocalDB
+{
+}
 
 // No longer used, commented in case it may be resurrected some day.
 /*
@@ -45,9 +47,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static password.pwm.util.localdb.LocalDB.DB;
 
-public class MapDB_LocalDB implements LocalDBProvider {
+public class MapDBLocalDB implements LocalDBProvider {
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass(MapDB_LocalDB.class, true);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(MapDBLocalDB.class, true);
     private static final String FILE_NAME = "mapdb";
 
     private org.mapdb.DB recman;
@@ -59,7 +61,7 @@ public class MapDB_LocalDB implements LocalDBProvider {
 
     private LocalDB.Status status = LocalDB.Status.NEW;
 
-    MapDB_LocalDB() {
+    MapDBLocalDB() {
     }
 
     public void close()
@@ -233,7 +235,8 @@ public class MapDB_LocalDB implements LocalDBProvider {
             LOCK.writeLock().unlock();
         }
 
-        LOGGER.debug("truncate complete of " + db.toString() + ", " + startSize + " records in " + new TimeDuration(System.currentTimeMillis(), startTime).asCompactString() + ", " + size(db) + " records in database");
+        LOGGER.debug("truncate complete of " + db.toString() + ", " + startSize + " records in "
+        + new TimeDuration(System.currentTimeMillis(), startTime).asCompactString() + ", " + size(db) + " records in database");
     }
 
     public File getFileLocation() {

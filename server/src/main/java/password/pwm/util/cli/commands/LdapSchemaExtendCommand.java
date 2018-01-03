@@ -32,85 +32,95 @@ import password.pwm.util.cli.CliParameters;
 import java.io.Console;
 import java.util.Arrays;
 
-public class LdapSchemaExtendCommand extends AbstractCliCommand {
+public class LdapSchemaExtendCommand extends AbstractCliCommand
+{
     private static final String OPTION_LDAPURL = "ldapURL";
     private static final String OPTION_BIND_DN = "bindDN";
     private static final String OPTION_BIND_PW = "bindPassword";
 
-    public void doCommand()
+    public void doCommand( )
             throws Exception
     {
-        final String ldapUrl = (String)cliEnvironment.getOptions().get(OPTION_LDAPURL);
-        final String bindDN = (String)cliEnvironment.getOptions().get(OPTION_BIND_DN);
+        final String ldapUrl = ( String ) cliEnvironment.getOptions().get( OPTION_LDAPURL );
+        final String bindDN = ( String ) cliEnvironment.getOptions().get( OPTION_BIND_DN );
         final String bindPW;
-        if (cliEnvironment.getOptions().containsKey(OPTION_BIND_PW)) {
-            bindPW = (String)cliEnvironment.getOptions().get(OPTION_BIND_PW);
-        } else {
+        if ( cliEnvironment.getOptions().containsKey( OPTION_BIND_PW ) )
+        {
+            bindPW = ( String ) cliEnvironment.getOptions().get( OPTION_BIND_PW );
+        }
+        else
+        {
             final Console console = System.console();
-            console.writer().write("enter " +  OPTION_BIND_PW + ":");
+            console.writer().write( "enter " + OPTION_BIND_PW + ":" );
             console.writer().flush();
-            bindPW = new String(console.readPassword());
+            bindPW = new String( console.readPassword() );
         }
         final ChaiProviderFactory chaiProviderFactory = cliEnvironment.getPwmApplication().getLdapConnectionService().getChaiProviderFactory();
-        final ChaiProvider chaiProvider = chaiProviderFactory.newProvider(ldapUrl, bindDN, bindPW);
-        final SchemaOperationResult operationResult = SchemaManager.extendSchema(chaiProvider);
+        final ChaiProvider chaiProvider = chaiProviderFactory.newProvider( ldapUrl, bindDN, bindPW );
+        final SchemaOperationResult operationResult = SchemaManager.extendSchema( chaiProvider );
         final boolean checkOk = operationResult.isSuccess();
-        if (checkOk) {
-            out("schema extension complete.  all extensions in place = " + checkOk);
-        } else {
-            out("schema extension did not complete.\n" + operationResult.getOperationLog());
+        if ( checkOk )
+        {
+            out( "schema extension complete.  all extensions in place = " + checkOk );
+        }
+        else
+        {
+            out( "schema extension did not complete.\n" + operationResult.getOperationLog() );
         }
     }
 
 
-    public CliParameters getCliParameters()
+    public CliParameters getCliParameters( )
     {
-        final CliParameters.Option ldapUrlOption = new CliParameters.Option() {
-            public boolean isOptional()
+        final CliParameters.Option ldapUrlOption = new CliParameters.Option()
+        {
+            public boolean isOptional( )
             {
                 return false;
             }
 
-            public Type getType()
+            public Type getType( )
             {
                 return Type.STRING;
             }
 
-            public String getName()
+            public String getName( )
             {
                 return OPTION_LDAPURL;
             }
         };
 
-        final CliParameters.Option bindDN = new CliParameters.Option() {
-            public boolean isOptional()
+        final CliParameters.Option bindDN = new CliParameters.Option()
+        {
+            public boolean isOptional( )
             {
                 return false;
             }
 
-            public Type getType()
+            public Type getType( )
             {
                 return Type.STRING;
             }
 
-            public String getName()
+            public String getName( )
             {
                 return OPTION_BIND_DN;
             }
         };
 
-        final CliParameters.Option bindPassword = new CliParameters.Option() {
-            public boolean isOptional()
+        final CliParameters.Option bindPassword = new CliParameters.Option()
+        {
+            public boolean isOptional( )
             {
                 return true;
             }
 
-            public Type getType()
+            public Type getType( )
             {
                 return Type.STRING;
             }
 
-            public String getName()
+            public String getName( )
             {
                 return OPTION_BIND_PW;
             }
@@ -119,7 +129,7 @@ public class LdapSchemaExtendCommand extends AbstractCliCommand {
         final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "LdapSchemaExtend";
         cliParameters.description = "Extend an LDAP schema with standard extensions";
-        cliParameters.options = Arrays.asList(new CliParameters.Option[]{ldapUrlOption, bindDN, bindPassword});
+        cliParameters.options = Arrays.asList( ldapUrlOption, bindDN, bindPassword );
         cliParameters.needsPwmApplication = false;
         cliParameters.readOnly = true;
         return cliParameters;
