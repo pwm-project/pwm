@@ -24,6 +24,7 @@ package password.pwm.ldap.schema;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
+import com.novell.ldapchai.provider.DirectoryVendor;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -37,11 +38,11 @@ import java.util.Map;
 public class SchemaManager {
     private static final PwmLogger LOGGER = PwmLogger.forClass(SchemaManager.class);
 
-    private static final Map<ChaiProvider.DIRECTORY_VENDOR, Class<? extends SchemaExtender>> IMPLEMENTATIONS;
+    private static final Map<DirectoryVendor, Class<? extends SchemaExtender>> IMPLEMENTATIONS;
 
     static {
-        final Map<ChaiProvider.DIRECTORY_VENDOR, Class<? extends SchemaExtender>> implMap = new HashMap<>();
-        implMap.put(ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY, EdirSchemaExtender.class);
+        final Map<DirectoryVendor, Class<? extends SchemaExtender>> implMap = new HashMap<>();
+        implMap.put(DirectoryVendor.EDIRECTORY, EdirSchemaExtender.class);
         IMPLEMENTATIONS = Collections.unmodifiableMap(implMap);
     }
 
@@ -50,7 +51,7 @@ public class SchemaManager {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE, "provider is not connected"));
         }
         try {
-            if (chaiProvider.getDirectoryVendor() != ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY) {
+            if (chaiProvider.getDirectoryVendor() != DirectoryVendor.EDIRECTORY) {
                 throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE, "directory vendor is not supported"));
             }
             final List<String> urls = chaiProvider.getChaiConfiguration().bindURLsAsList();
@@ -58,7 +59,7 @@ public class SchemaManager {
                 throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE, "provider used for schema extension must have only a single ldap url defined"));
             }
 
-            final ChaiProvider.DIRECTORY_VENDOR vendor = chaiProvider.getDirectoryVendor();
+            final DirectoryVendor vendor = chaiProvider.getDirectoryVendor();
             final Class<? extends SchemaExtender> implClass = IMPLEMENTATIONS.get(vendor);
             final SchemaExtender schemaExtenderImpl = implClass.newInstance();
             schemaExtenderImpl.init(chaiProvider);

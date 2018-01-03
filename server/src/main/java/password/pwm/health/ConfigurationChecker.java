@@ -162,7 +162,7 @@ public class ConfigurationChecker implements HealthChecker {
                         if (!config.isDefaultValue(setting)) {
                             try {
                                 final PasswordData passwordValue = config.readSettingAsPassword(setting);
-                                final int strength = PasswordUtility.judgePasswordStrength(
+                                final int strength = PasswordUtility.judgePasswordStrength(config,
                                         passwordValue.getStringValue());
                                 if (strength < 50) {
                                     records.add(HealthRecord.forMessage(HealthMessage.Config_WeakPassword,
@@ -180,7 +180,7 @@ public class ConfigurationChecker implements HealthChecker {
                 final PwmSetting setting = PwmSetting.LDAP_PROXY_USER_PASSWORD;
                 try {
                     final PasswordData passwordValue = profile.readSettingAsPassword(setting);
-                    final int strength = PasswordUtility.judgePasswordStrength(passwordValue == null ? null : passwordValue.getStringValue());
+                    final int strength = PasswordUtility.judgePasswordStrength(config, passwordValue == null ? null : passwordValue.getStringValue());
                     if (strength < 50) {
                         records.add(HealthRecord.forMessage(HealthMessage.Config_WeakPassword,
                                 setting.toMenuLocationDebug(profile.getIdentifier(),locale),

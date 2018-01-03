@@ -130,28 +130,6 @@ public class SessionTrackService implements PwmService {
         return Collections.emptyMap();
     }
 
-    public int ldapConnectionCount() {
-        int counter = 0;
-        try {
-            for (final String identifer : pwmApplication.getConfig().getLdapProfiles().keySet()) {
-                if (pwmApplication.getProxyChaiProvider(identifer).isConnected()) {
-                    counter++;
-                }
-            }
-
-            for (final PwmSession loopSession : currentValidSessionSet()) {
-                if (loopSession != null) {
-                    if (loopSession.getSessionManager().hasActiveLdapConnection()) {
-                        counter++;
-                    }
-                }
-            }
-        } catch (Exception e) {
-            LOGGER.error("unexpected error counting ldap connections: " + e.getMessage());
-        }
-        return counter;
-    }
-
     private Set<PwmSession> currentValidSessionSet() {
         final Set<PwmSession> returnSet = new HashSet<>();
         for (final PwmSession pwmSession : copyOfSessionSet()) {

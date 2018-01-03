@@ -29,6 +29,7 @@ import java.util.Collections;
 import java.util.List;
 
 public enum PwmServiceEnum {
+    LocalDBService(         password.pwm.util.localdb.LocalDBService.class,         Flag.StartDuringRuntimeInstance),
     SecureService(          password.pwm.util.secure.SecureService.class,           Flag.StartDuringRuntimeInstance),
     LdapConnectionService(  password.pwm.ldap.LdapConnectionService.class,          Flag.StartDuringRuntimeInstance),
     DatabaseService(        password.pwm.util.db.DatabaseService.class,             Flag.StartDuringRuntimeInstance),

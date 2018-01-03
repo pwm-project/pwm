@@ -58,6 +58,7 @@ import password.pwm.svc.token.TokenPayload;
 import password.pwm.svc.token.TokenService;
 import password.pwm.svc.token.TokenType;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -279,12 +280,8 @@ class ForgottenPasswordUtil {
     {
         switch (recoveryVerificationMethods) {
             case TOKEN: {
-                final MessageSendMethod tokenSendMethod = forgottenPasswordBean.getRecoveryFlags().getTokenSendMethod();
-                if (tokenSendMethod == null || tokenSendMethod == MessageSendMethod.NONE) {
-                    final String errorMsg = "user is required to complete token validation, yet there is not a token send method configured";
-                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG, errorMsg);
-                    throw new PwmUnrecoverableException(errorInformation);
-                }
+                final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo(pwmRequest, forgottenPasswordBean);
+                figureIfTokenSendMethodIsAvailableForUser(forgottenPasswordBean, userInfo);
             }
             break;
 
@@ -337,6 +334,46 @@ class ForgottenPasswordUtil {
             default:
                 // continue, assume no data requirements for method.
                 break;
+        }
+    }
+
+    private static void figureIfTokenSendMethodIsAvailableForUser(
+            final ForgottenPasswordBean forgottenPasswordBean,
+            final UserInfo userInfoBean
+    )
+            throws PwmUnrecoverableException
+    {
+        final MessageSendMethod tokenSendMethod = forgottenPasswordBean.getRecoveryFlags().getTokenSendMethod();
+        if (tokenSendMethod == null || tokenSendMethod == MessageSendMethod.NONE) {
+            final String errorMsg = "user is required to complete token validation, yet there is not a token send method configured";
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG, errorMsg);
+            throw new PwmUnrecoverableException(errorInformation);
+        }
+
+        final boolean hasEmailAddr = !StringUtil.isEmpty(userInfoBean.getUserEmailAddress());
+        final boolean hasSmsAddr = !StringUtil.isEmpty(userInfoBean.getUserSmsNumber());
+
+        if (tokenSendMethod == MessageSendMethod.EMAILONLY && !hasEmailAddr) {
+            final String errorMsg = "token send method requires an email address, yet user does not have an email address value";
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_MISSING_CONTACT, errorMsg);
+            throw new PwmUnrecoverableException(errorInformation);
+        }
+
+        if (tokenSendMethod == MessageSendMethod.SMSONLY && !hasSmsAddr) {
+            final String errorMsg = "token send method requires an sms destination, yet user does not have an sms destination value";
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_MISSING_CONTACT, errorMsg);
+            throw new PwmUnrecoverableException(errorInformation);
+        }
+
+        if (tokenSendMethod == MessageSendMethod.CHOICE_SMS_EMAIL
+                || tokenSendMethod == MessageSendMethod.EMAILFIRST
+                || tokenSendMethod == MessageSendMethod.SMSFIRST)
+        {
+            if (!hasEmailAddr && !hasSmsAddr) {
+                final String errorMsg = "token send method requires an sms or email desitnation, yet user does not have an sms or email destination value";
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_MISSING_CONTACT, errorMsg);
+                throw new PwmUnrecoverableException(errorInformation);
+            }
         }
     }
 

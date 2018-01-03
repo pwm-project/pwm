@@ -22,7 +22,7 @@
 
 package password.pwm.svc.telemetry;
 
-import com.novell.ldapchai.provider.ChaiProvider;
+import com.novell.ldapchai.provider.DirectoryVendor;
 import lombok.Builder;
 import lombok.Getter;
 import password.pwm.AppProperty;
@@ -140,6 +140,8 @@ public class TelemetryService implements PwmService {
         executorService = JavaHelper.makeSingleThreadExecutorService(pwmApplication, TelemetryService.class);
 
         scheduleNextJob();
+
+        status = STATUS.OPEN;
     }
 
     private void initSender() throws PwmUnrecoverableException
@@ -256,7 +258,7 @@ public class TelemetryService implements PwmService {
             }
         }
 
-        final Set<ChaiProvider.DIRECTORY_VENDOR> ldapVendors = new LinkedHashSet<>();
+        final Set<DirectoryVendor> ldapVendors = new LinkedHashSet<>();
         for (final LdapProfile ldapProfile : config.getLdapProfiles().values()) {
             try {
                 ldapVendors.add(ldapProfile.getProxyChaiProvider(pwmApplication).getDirectoryVendor());

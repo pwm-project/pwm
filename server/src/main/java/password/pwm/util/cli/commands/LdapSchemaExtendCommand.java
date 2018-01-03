@@ -51,7 +51,8 @@ public class LdapSchemaExtendCommand extends AbstractCliCommand {
             console.writer().flush();
             bindPW = new String(console.readPassword());
         }
-        final ChaiProvider chaiProvider = ChaiProviderFactory.createProvider(ldapUrl, bindDN, bindPW);
+        final ChaiProviderFactory chaiProviderFactory = cliEnvironment.getPwmApplication().getLdapConnectionService().getChaiProviderFactory();
+        final ChaiProvider chaiProvider = chaiProviderFactory.newProvider(ldapUrl, bindDN, bindPW);
         final SchemaOperationResult operationResult = SchemaManager.extendSchema(chaiProvider);
         final boolean checkOk = operationResult.isSuccess();
         if (checkOk) {

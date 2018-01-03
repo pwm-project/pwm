@@ -24,7 +24,6 @@ package password.pwm.ldap;
 
 import com.novell.ldapchai.ChaiConstant;
 import com.novell.ldapchai.ChaiEntry;
-import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.Answer;
 import com.novell.ldapchai.exception.ChaiOperationException;
@@ -33,6 +32,7 @@ import com.novell.ldapchai.provider.ChaiConfiguration;
 import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.provider.ChaiProviderFactory;
 import com.novell.ldapchai.provider.ChaiSetting;
+import com.novell.ldapchai.provider.SearchScope;
 import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
@@ -65,7 +65,6 @@ import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -91,7 +90,7 @@ public class LdapOperationsHelper {
             return;
         }
         final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID());
-        final ChaiUser theUser = ChaiFactory.createChaiUser(userIdentity.getUserDN(), chaiProvider);
+        final ChaiUser theUser = chaiProvider.getEntryFactory().newChaiUser(userIdentity.getUserDN());
         addUserObjectClass(sessionLabel, theUser, newObjClasses);
     }
 
@@ -125,6 +124,25 @@ public class LdapOperationsHelper {
     }
 
     public static ChaiProvider openProxyChaiProvider(
+            final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
+            final LdapProfile ldapProfile,
+            final Configuration config,
+            final StatisticsManager statisticsManager
+    )
+            throws PwmUnrecoverableException
+    {
+        return openProxyChaiProvider(
+                pwmApplication.getLdapConnectionService().getChaiProviderFactory(),
+                sessionLabel,
+                ldapProfile,
+                config,
+                statisticsManager
+        );
+    }
+
+    static ChaiProvider openProxyChaiProvider(
+            final ChaiProviderFactory chaiProviderFactory,
             final SessionLabel sessionLabel,
             final LdapProfile ldapProfile,
             final Configuration config,
@@ -138,7 +156,7 @@ public class LdapOperationsHelper {
         final PasswordData proxyPW = ldapProfile.readSettingAsPassword(PwmSetting.LDAP_PROXY_USER_PASSWORD);
 
         try {
-            return createChaiProvider(sessionLabel, ldapProfile, config, proxyDN, proxyPW);
+            return createChaiProvider(chaiProviderFactory, sessionLabel, ldapProfile, config, proxyDN, proxyPW);
         } catch (ChaiUnavailableException e) {
             if (statisticsManager != null) {
                 statisticsManager.incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
@@ -218,7 +236,6 @@ public class LdapOperationsHelper {
      * <p/>
      * Any ldap operation exceptions are not reported (but logged).
      *
-     * @param pwmSession       for looking up session info
      * @param theUser          User to write to
      * @param formValues       A map with {@link FormConfiguration} keys and String values.
      * @throws ChaiUnavailableException if the directory is unavailable
@@ -449,8 +466,28 @@ public class LdapOperationsHelper {
         }
     }
 
+    public static ChaiProvider createChaiProvider(
+            final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
+            final LdapProfile ldapProfile,
+            final Configuration config,
+            final String userDN,
+            final PasswordData userPassword
+    )
+            throws ChaiUnavailableException, PwmUnrecoverableException
+    {
+        return createChaiProvider(
+                pwmApplication.getLdapConnectionService().getChaiProviderFactory(),
+                sessionLabel,
+                ldapProfile,
+                config,
+                userDN,
+                userPassword
+        );
+    }
 
     public static ChaiProvider createChaiProvider(
+            final ChaiProviderFactory chaiProviderFactory,
             final SessionLabel sessionLabel,
             final LdapProfile ldapProfile,
             final Configuration config,
@@ -462,10 +499,11 @@ public class LdapOperationsHelper {
         final List<String> ldapURLs = ldapProfile.readSettingAsStringArray(PwmSetting.LDAP_SERVER_URLS);
         final ChaiConfiguration chaiConfig = createChaiConfiguration(config, ldapProfile, ldapURLs, userDN, userPassword);
         LOGGER.trace(sessionLabel,"creating new ldap connection using config: " + chaiConfig.toString());
-        return ChaiProviderFactory.createProvider(chaiConfig);
+        return chaiProviderFactory.newProvider(chaiConfig);
     }
 
     public static ChaiProvider createChaiProvider(
+            final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
             final Configuration config,
             final LdapProfile ldapProfile,
@@ -477,7 +515,7 @@ public class LdapOperationsHelper {
     {
         final ChaiConfiguration chaiConfig = createChaiConfiguration( config, ldapProfile, ldapURLs, userDN, userPassword);
         LOGGER.trace(sessionLabel,"creating new ldap connection using config: " + chaiConfig.toString());
-        return ChaiProviderFactory.createProvider(chaiConfig);
+        return pwmApplication.getLdapConnectionService().getChaiProviderFactory().newProvider(chaiConfig);
     }
 
     public static ChaiConfiguration createChaiConfiguration(
@@ -501,32 +539,38 @@ public class LdapOperationsHelper {
     )
             throws PwmUnrecoverableException
     {
-        final ChaiConfiguration chaiConfig = new ChaiConfiguration(ldapURLs, userDN, userPassword == null ? null : userPassword.getStringValue());
+        final ChaiConfiguration.ChaiConfigurationBuilder configBuilder = ChaiConfiguration.builder(
+                ldapURLs,
+                userDN,
+                userPassword == null
+                        ? null
+                        : userPassword.getStringValue()
+        );
 
-        chaiConfig.setSetting(ChaiSetting.PROMISCUOUS_SSL, config.readAppProperty(AppProperty.LDAP_PROMISCUOUS_ENABLE));
+        configBuilder.setSetting(ChaiSetting.PROMISCUOUS_SSL, config.readAppProperty(AppProperty.LDAP_PROMISCUOUS_ENABLE));
         {
             final boolean enableNmasExtensions = Boolean.parseBoolean(config.readAppProperty(AppProperty.LDAP_EXTENSIONS_NMAS_ENABLE));
-            chaiConfig.setSetting(ChaiSetting.EDIRECTORY_ENABLE_NMAS, Boolean.toString(enableNmasExtensions));
+            configBuilder.setSetting(ChaiSetting.EDIRECTORY_ENABLE_NMAS, Boolean.toString(enableNmasExtensions));
         }
 
-        chaiConfig.setSetting(ChaiSetting.CR_CHAI_STORAGE_ATTRIBUTE, ldapProfile.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE));
-        chaiConfig.setSetting(ChaiSetting.CR_ALLOW_DUPLICATE_RESPONSES, Boolean.toString(config.readSettingAsBoolean(PwmSetting.CHALLENGE_ALLOW_DUPLICATE_RESPONSES)));
-        chaiConfig.setSetting(ChaiSetting.CR_CASE_INSENSITIVE, Boolean.toString(config.readSettingAsBoolean(PwmSetting.CHALLENGE_CASE_INSENSITIVE)));
+        configBuilder.setSetting(ChaiSetting.CR_CHAI_STORAGE_ATTRIBUTE, ldapProfile.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE));
+        configBuilder.setSetting(ChaiSetting.CR_ALLOW_DUPLICATE_RESPONSES, Boolean.toString(config.readSettingAsBoolean(PwmSetting.CHALLENGE_ALLOW_DUPLICATE_RESPONSES)));
+        configBuilder.setSetting(ChaiSetting.CR_CASE_INSENSITIVE, Boolean.toString(config.readSettingAsBoolean(PwmSetting.CHALLENGE_CASE_INSENSITIVE)));
         {
             final String setting = config.readAppProperty(AppProperty.SECURITY_RESPONSES_HASH_ITERATIONS);
             if (setting != null && setting.length() > 0) {
                 final int intValue = Integer.parseInt(setting);
-                chaiConfig.setSetting(ChaiSetting.CR_CHAI_SALT_COUNT, Integer.toString(intValue));
+                configBuilder.setSetting(ChaiSetting.CR_CHAI_SALT_COUNT, Integer.toString(intValue));
             }
         }
 
-        chaiConfig.setSetting(ChaiSetting.JNDI_ENABLE_POOL, "false"); // can cause issues with previous password authentication
+        configBuilder.setSetting(ChaiSetting.JNDI_ENABLE_POOL, "false"); // can cause issues with previous password authentication
 
-        chaiConfig.setSetting(ChaiSetting.CR_DEFAULT_FORMAT_TYPE, Answer.FormatType.SHA1_SALT.toString());
+        configBuilder.setSetting(ChaiSetting.CR_DEFAULT_FORMAT_TYPE, Answer.FormatType.SHA1_SALT.toString());
         final String storageMethodString = config.readSettingAsString(PwmSetting.CHALLENGE_STORAGE_HASHED);
         try {
             final Answer.FormatType formatType = Answer.FormatType.valueOf(storageMethodString);
-            chaiConfig.setSetting(ChaiSetting.CR_DEFAULT_FORMAT_TYPE, formatType.toString());
+            configBuilder.setSetting(ChaiSetting.CR_DEFAULT_FORMAT_TYPE, formatType.toString());
         } catch (Exception e) {
             LOGGER.warn("unknown CR storage format type '" + storageMethodString + "' ");
         }
@@ -534,27 +578,26 @@ public class LdapOperationsHelper {
         final List<X509Certificate> ldapServerCerts = ldapProfile.readSettingAsCertificate(PwmSetting.LDAP_SERVER_CERTS);
         if (ldapServerCerts != null && ldapServerCerts.size() > 0) {
             final X509TrustManager tm = new X509Utils.CertMatchingTrustManager(config, ldapServerCerts);
-            chaiConfig.setTrustManager(new X509TrustManager[]{tm});
+            configBuilder.setTrustManager(new X509TrustManager[]{tm});
         }
 
         final String idleTimeoutMsString = config.readAppProperty(AppProperty.LDAP_CONNECTION_TIMEOUT);
-        chaiConfig.setSetting(ChaiSetting.LDAP_CONNECT_TIMEOUT,idleTimeoutMsString);
+        configBuilder.setSetting(ChaiSetting.LDAP_CONNECT_TIMEOUT,idleTimeoutMsString);
 
         // set the watchdog idle timeout.
         final int idleTimeoutMs = (int)config.readSettingAsLong(PwmSetting.LDAP_IDLE_TIMEOUT) * 1000;
         if (idleTimeoutMs > 0) {
-            chaiConfig.setSetting(ChaiSetting.WATCHDOG_ENABLE, "true");
-            chaiConfig.setSetting(ChaiSetting.WATCHDOG_IDLE_TIMEOUT, idleTimeoutMsString);
-            chaiConfig.setSetting(ChaiSetting.WATCHDOG_CHECK_FREQUENCY, Long.toString(5 * 1000));
+            configBuilder.setSetting(ChaiSetting.WATCHDOG_ENABLE, "true");
+            configBuilder.setSetting(ChaiSetting.WATCHDOG_IDLE_TIMEOUT, idleTimeoutMsString);
         } else {
-            chaiConfig.setSetting(ChaiSetting.WATCHDOG_ENABLE, "false");
+            configBuilder.setSetting(ChaiSetting.WATCHDOG_ENABLE, "false");
         }
 
-        chaiConfig.setSetting(ChaiSetting.LDAP_SEARCH_PAGING_ENABLE, config.readAppProperty(AppProperty.LDAP_SEARCH_PAGING_ENABLE));
-        chaiConfig.setSetting(ChaiSetting.LDAP_SEARCH_PAGING_SIZE, config.readAppProperty(AppProperty.LDAP_SEARCH_PAGING_SIZE));
+        configBuilder.setSetting(ChaiSetting.LDAP_SEARCH_PAGING_ENABLE, config.readAppProperty(AppProperty.LDAP_SEARCH_PAGING_ENABLE));
+        configBuilder.setSetting(ChaiSetting.LDAP_SEARCH_PAGING_SIZE, config.readAppProperty(AppProperty.LDAP_SEARCH_PAGING_SIZE));
 
         if (config.readSettingAsBoolean(PwmSetting.AD_ENFORCE_PW_HISTORY_ON_SET)) {
-            chaiConfig.setSetting(ChaiSetting.AD_SET_POLICY_HINTS_ON_PW_SET,"true");
+            configBuilder.setSetting(ChaiSetting.AD_SET_POLICY_HINTS_ON_PW_SET,"true");
         }
 
         // write out any configured values;
@@ -568,20 +611,20 @@ public class LdapOperationsHelper {
                 if (theSetting == null) {
                     LOGGER.warn("ignoring unknown chai setting '" + key + "'");
                 } else {
-                    chaiConfig.setSetting(theSetting, entry.getValue());
+                    configBuilder.setSetting(theSetting, entry.getValue());
                 }
             }
         }
 
         // set ldap referrals
-        chaiConfig.setSetting(ChaiSetting.LDAP_FOLLOW_REFERRALS,String.valueOf(config.readSettingAsBoolean(PwmSetting.LDAP_FOLLOW_REFERRALS)));
+        configBuilder.setSetting(ChaiSetting.LDAP_FOLLOW_REFERRALS,String.valueOf(config.readSettingAsBoolean(PwmSetting.LDAP_FOLLOW_REFERRALS)));
 
         // enable wire trace;
         if (config.readSettingAsBoolean(PwmSetting.LDAP_ENABLE_WIRE_TRACE)) {
-            chaiConfig.setSetting(ChaiSetting.WIRETRACE_ENABLE, "true");
+            configBuilder.setSetting(ChaiSetting.WIRETRACE_ENABLE, "true");
         }
 
-        return chaiConfig;
+        return configBuilder.build();
     }
 
     /**
@@ -608,7 +651,7 @@ public class LdapOperationsHelper {
 
         if (updateAttribute != null && updateAttribute.length() > 0) {
             try {
-                theUser.writeDateAttribute(updateAttribute, new Date());
+                theUser.writeDateAttribute(updateAttribute, Instant.now());
                 LOGGER.debug(sessionLabel, "wrote pwdLastModified update attribute for " + theUser.getEntryDN());
                 success = true;
             } catch (ChaiOperationException e) {
@@ -623,7 +666,7 @@ public class LdapOperationsHelper {
             throws ChaiUnavailableException, ChaiOperationException
     {
         final SearchHelper searchHelper = new SearchHelper();
-        searchHelper.setSearchScope(ChaiProvider.SEARCH_SCOPE.BASE);
+        searchHelper.setSearchScope(SearchScope.BASE);
         searchHelper.setFilter("(objectClass=*)");
         final Map<String, Map<String, List<String>>> results = chaiEntry.getChaiProvider().searchMultiValues(chaiEntry.getEntryDN(), searchHelper);
         if (!results.isEmpty()) {
@@ -688,14 +731,12 @@ public class LdapOperationsHelper {
 
     public static Instant readPasswordExpirationTime(final ChaiUser theUser) {
         try {
-            Date ldapPasswordExpirationTime = theUser.readPasswordExpirationDate();
-            if (ldapPasswordExpirationTime != null && ldapPasswordExpirationTime.getTime() < 0) {
+            Instant ldapPasswordExpirationTime = theUser.readPasswordExpirationDate();
+            if (ldapPasswordExpirationTime != null && ldapPasswordExpirationTime.toEpochMilli() < 0) {
                 // If ldapPasswordExpirationTime is less than 0, this may indicate an extremely late date, past the epoch.
                 ldapPasswordExpirationTime = null;
             }
-            return ldapPasswordExpirationTime == null
-                    ? null
-                    : ldapPasswordExpirationTime.toInstant();
+            return ldapPasswordExpirationTime;
         } catch (Exception e) {
             LOGGER.warn("error reading password expiration time: " + e.getMessage());
         }
@@ -715,7 +756,7 @@ public class LdapOperationsHelper {
         }
 
         final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID());
-        final ChaiUser chaiUser = ChaiFactory.createChaiUser(userIdentity.getUserDN(), chaiProvider);
+        final ChaiUser chaiUser = chaiProvider.getEntryFactory().newChaiUser(userIdentity.getUserDN());
 
         // use chai (nmas) to retrieve user password
         if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.EDIRECTORY_READ_USER_PWD)) {

@@ -22,7 +22,6 @@
 
 package password.pwm.http.servlet;
 
-import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
@@ -231,7 +230,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
                     Collections.singletonList(guestRegistrationBean.getUpdateUserIdentity())
             );
 
-            final Date expirationDate = readExpirationFromRequest(pwmRequest);
+            final Instant expirationDate = readExpirationFromRequest(pwmRequest);
 
             // Update user attributes
             LdapOperationsHelper.writeFormValuesToLdap(pwmApplication, pwmSession.getSessionManager().getMacroMachine(pwmApplication), theGuest, formValues, false);
@@ -344,9 +343,9 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
                 }
                 final String expirationAttribute = config.readSettingAsString(PwmSetting.GUEST_EXPIRATION_ATTRIBUTE);
                 if (expirationAttribute != null && expirationAttribute.length() > 0) {
-                    final Date expiration = guestUserInfo.readDateAttribute(expirationAttribute);
+                    final Instant expiration = guestUserInfo.readDateAttribute(expirationAttribute);
                     if (expiration != null) {
-                        guBean.setUpdateUserExpirationDate(expiration.toInstant());
+                        guBean.setUpdateUserExpirationDate(expiration);
                     }
                 }
 
@@ -395,7 +394,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
                     pwmRequest, guestUserForm, locale);
 
             //read the expiration date from the request.
-            final Date expirationDate = readExpirationFromRequest(pwmRequest);
+            final Instant expirationDate = readExpirationFromRequest(pwmRequest);
 
             // see if the values meet form requirements.
             FormUtility.validateFormValues(config, formValues, locale);
@@ -428,7 +427,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
             provider.createEntry(guestUserDN, createObjectClasses, createAttributes);
             LOGGER.info(pwmSession, "created user object: " + guestUserDN);
 
-            final ChaiUser theUser = ChaiFactory.createChaiUser(guestUserDN, provider);
+            final ChaiUser theUser = provider.getEntryFactory().newChaiUser(guestUserDN);
             final UserIdentity userIdentity = new UserIdentity(guestUserDN, pwmSession.getUserInfo().getUserIdentity().getLdapProfileID());
 
             // write the expiration date:
@@ -440,17 +439,6 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
             final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(pwmApplication, pwmSession.getLabel(), userIdentity, theUser, locale);
             final PasswordData newPassword = RandomPasswordGenerator.createRandomPassword(pwmSession.getLabel(), passwordPolicy, pwmApplication);
             theUser.setPassword(newPassword.getStringValue());
-            /*
-            final UserInfoBean guestUserInfoBean = new UserInfoBean();
-            final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication);
-            userStatusReader.populateUserInfoBean(
-                    pwmSession.getLabel(),
-                    guestUserInfoBean,
-                    pwmSession.getSessionStateBean().getLocale(),
-                    userIdentity,
-                    theUser.getChaiProvider()
-            );
-            */
 
 
             {  // execute configured actions
@@ -487,7 +475,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
         }
     }
 
-    private static Date readExpirationFromRequest(
+    private static Instant readExpirationFromRequest(
             final PwmRequest pwmRequest
     )
             throws PwmOperationalException, ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException
@@ -518,15 +506,15 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
 
         final long durationValueMs = durationValueDays * 24 * 60 * 60 * 1000;
         final long futureDateMs = System.currentTimeMillis() + durationValueMs;
-        final Date futureDate = new Date(futureDateMs);
+        final Instant futureDate = Instant.ofEpochMilli(futureDateMs);
 
-        if (expirationDate.after(futureDate)) {
+        if (expirationDate.after(Date.from(futureDate))) {
             final String errorMsg = "expiration date must be sooner than " + futureDate.toString();
             throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_FIELD_REQUIRED,errorMsg));
         }
 
         LOGGER.trace(pwmRequest, "read expiration date as " + expirationDate.toString());
-        return expirationDate;
+        return expirationDate.toInstant();
     }
 
     private static String determineUserDN(final Map<FormConfiguration, String> formValues, final Configuration config)

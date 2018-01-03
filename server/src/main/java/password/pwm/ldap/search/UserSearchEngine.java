@@ -22,7 +22,6 @@
 
 package password.pwm.ldap.search;
 
-import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
@@ -149,7 +148,7 @@ public class UserSearchEngine implements PwmService {
             if (inputIdentity != null) {
                 try {
                     final ChaiUser theUser = pwmApplication.getProxiedChaiUser(inputIdentity);
-                    if (theUser.isValid()) {
+                    if (theUser.exists()) {
                         final String canonicalDN;
                         canonicalDN = theUser.readCanonicalDN();
                         return new UserIdentity(canonicalDN, inputIdentity.getLdapProfileID());
@@ -525,8 +524,8 @@ public class UserSearchEngine implements PwmService {
         final Collection<LdapProfile> ldapProfiles = pwmApplication.getConfig().getLdapProfiles().values();
         for (final LdapProfile ldapProfile : ldapProfiles) {
             final ChaiProvider provider = pwmApplication.getProxyChaiProvider(ldapProfile.getIdentifier());
-            final ChaiUser user = ChaiFactory.createChaiUser(userDN, provider);
-            if (user.isValid()) {
+            final ChaiUser user = provider.getEntryFactory().newChaiUser(userDN);
+            if (user.exists()) {
                 try {
                     return new UserIdentity(user.readCanonicalDN(), ldapProfile.getIdentifier());
                 } catch (ChaiOperationException e) {

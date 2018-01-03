@@ -143,6 +143,7 @@
             <value><![CDATA[ja::jp]]></value>
             <value><![CDATA[ko::kr]]></value>
             <value><![CDATA[nl::nl]]></value>
+            <value><![CDATA[nb::no]]></value>
             <value><![CDATA[no::no]]></value>
             <value><![CDATA[nn::no]]></value>
             <value><![CDATA[pl::pl]]></value>
@@ -189,6 +190,15 @@
     <setting hidden="false" key="password.showStrengthMeter" level="1" required="true">
         <default>
             <value>true</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="password.strengthMeter.type" level="1" required="true">
+        <options>
+            <option value="PWM">Traditional - built in algorithm</option>
+            <option value="ZXCVBN">zxcvbn - open source library</option>
+        </options>
+        <default>
+            <value>PWM</value>
         </default>
     </setting>
     <setting hidden="false" key="display.showHidePasswordFields" level="1" required="true">

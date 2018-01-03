@@ -24,14 +24,14 @@ package password.pwm.ldap;
 
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiException;
-import com.novell.ldapchai.provider.ChaiProvider;
+import com.novell.ldapchai.provider.SearchScope;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.value.data.UserPermission;
 import password.pwm.config.profile.LdapProfile;
+import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -137,7 +137,11 @@ public class LdapPermissionTester {
             try {
                 LOGGER.trace(pwmSession, "checking ldap to see if " + userIdentity + " matches group '" + groupDN + "' using filter '" + filterString + "'");
                 final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userIdentity);
-                final Map<String, Map<String, String>> results = theUser.getChaiProvider().search(theUser.getEntryDN(), filterString, Collections.<String>emptySet(), ChaiProvider.SEARCH_SCOPE.BASE);
+                final Map<String, Map<String, String>> results = theUser.getChaiProvider().search(
+                        theUser.getEntryDN(),
+                        filterString,
+                        Collections.<String>emptySet(), SearchScope.BASE
+                );
                 if (results.size() == 1 && results.keySet().contains(theUser.getEntryDN())) {
                     result = true;
                 }
@@ -182,7 +186,7 @@ public class LdapPermissionTester {
             try {
                 LOGGER.trace(pwmSession, "checking ldap to see if " + userIdentity + " matches '" + filterString + "'");
                 final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userIdentity);
-                final Map<String, Map<String, String>> results = theUser.getChaiProvider().search(theUser.getEntryDN(), filterString, Collections.<String>emptySet(), ChaiProvider.SEARCH_SCOPE.BASE);
+                final Map<String, Map<String, String>> results = theUser.getChaiProvider().search(theUser.getEntryDN(), filterString, Collections.emptySet(), SearchScope.BASE);
                 if (results.size() == 1 && results.keySet().contains(theUser.getEntryDN())) {
                     result = true;
                 }
