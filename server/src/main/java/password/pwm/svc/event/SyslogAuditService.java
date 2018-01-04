@@ -83,7 +83,7 @@ public class SyslogAuditService {
 
     private final Configuration configuration;
     private final PwmApplication pwmApplication;
-    private static boolean cefEnabled = true;
+    private boolean cefEnabled = true;
 
     public SyslogAuditService(final PwmApplication pwmApplication)
             throws LocalDBException
