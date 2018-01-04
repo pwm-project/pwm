@@ -515,28 +515,22 @@ class ForgottenPasswordUtil {
             userPasswordIsWithinMinimumLifetime = passwordWithinMinimumLifetime(pwmRequest, userInfo);
 
             if (userPasswordIsWithinMinimumLifetime) {
-                if (!forgottenPasswordProfile.readSettingAsBoolean(PwmSetting.RECOVERY_ALLOW_CHANGE_PW_WITHIN_MIN_LIFETIME)) {
+                if (forgottenPasswordProfile.readSettingAsBoolean(PwmSetting.RECOVERY_ALLOW_CHANGE_PW_WITHIN_MIN_LIFETIME)) {
                     showChangePasswordAction = false;
                 }
             }
         }
 
         boolean showPage= false;
-        if (showUnlockAction && showChangePasswordAction) {
+        if (showUnlockAction || showChangePasswordAction) {
             showPage = true;
-        }
-
-
-        if (userPasswordIsWithinMinimumLifetime) {
-            if (!forgottenPasswordProfile.readSettingAsBoolean(PwmSetting.RECOVERY_ALLOW_CHANGE_PW_WITHIN_MIN_LIFETIME)) {
-                showPage = true;
-            }
         }
 
         LOGGER.trace(pwmRequest, "showActionChoicePageToUser: showPage=" + showPage
                 + ", showUnlockAction:" + showUnlockAction
                 + ", showChangePasswordAction:" + showChangePasswordAction
         );
+
         pwmRequest.setAttribute(PwmRequestAttribute.ForgottenPasswordShowChangePasswordAction, showChangePasswordAction);
         return showPage;
     }

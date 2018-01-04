@@ -919,7 +919,10 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
                 );
             }
         } catch (PwmOperationalException e) {
-            throw new PwmUnrecoverableException(e.getErrorInformation());
+            //final boolean enforceFromForgotten = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_ENFORCE_MINIMUM_PASSWORD_LIFETIME);
+            //if (enforceFromForgotten) {
+                throw new PwmUnrecoverableException(e.getErrorInformation());
+            //}
         }
 
         LOGGER.trace(pwmRequest, "all recovery checks passed, proceeding to configured recovery action");
