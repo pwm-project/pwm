@@ -79,7 +79,6 @@
                     &nbsp;
                 </td>
             </tr>
-            <% } %>
             <tr>
                 <td>
                     <%@ include file="/WEB-INF/jsp/fragment/forgottenpassword-cancel.jsp" %>

@@ -1638,19 +1638,6 @@
             <value>true</value>
         </default>
     </setting>
-    <setting hidden="false" key="audit.CommonEventFormat.servers" level="1" required="false">
-        <default>
-            <value/>
-        </default>
-        <regex>^$|^(udp|tcp|sslTcp|tls)\,.+\,[0-9]*$</regex>
-    </setting>
-    <setting hidden="false" key="audit.CommonEventFormat.certificates" level="1" required="false">
-        <default/>
-        <properties>
-            <property key="Cert_ImportHandler">password.pwm.config.function.SyslogCertImportFunction</property>
-        </properties>
-    </setting>
-
     <setting hidden="false" key="token.storageMethod" level="1" required="true">
         <default>
             <value><![CDATA[STORE_CRYPTO]]></value>
