@@ -26,7 +26,6 @@
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
-<% boolean showForgottenPasswordAction = (Boolean)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ForgottenPasswordShowChangePasswordAction); %>
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
 <div id="wrapper">
@@ -36,12 +35,7 @@
     <div id="centerbody">
         <div id="page-content-title"><pwm:display key="Title_ForgottenPassword" displayIfMissing="true"/></div>
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-        <% if (!showForgottenPasswordAction) { %>
-            <p><pwm:display key="Display_RecoverPasswordChoices"/></p>
-        <% } else { %>
-            <p><pwm:display key="Display_RecoverMinLifetimeChoices"/></p>
-        <% } %>
-
+        <p><pwm:display key="Display_RecoverPasswordChoices"/></p>
         <table class="noborder">
             <tr>
                 <td>
@@ -64,7 +58,6 @@
                     &nbsp;
                 </td>
             </tr>
-            <% if (!showForgottenPasswordAction) { %>
             <tr>
                 <td>
                     <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="search">

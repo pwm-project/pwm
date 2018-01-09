@@ -34,6 +34,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.VerificationMethodSystem;
 import password.pwm.bean.LoginInfoBean;
+import password.pwm.bean.PasswordStatus;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.TokenDestinationItem;
 import password.pwm.bean.UserIdentity;
@@ -253,22 +254,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
                         break;
 
                     case resetPassword:
-                        if (forgottenPasswordProfile.readSettingAsBoolean(PwmSetting.RECOVERY_ALLOW_CHANGE_PW_WITHIN_MIN_LIFETIME)) {
-                            try {
-                                final boolean insideTime = ForgottenPasswordUtil.passwordWithinMinimumLifetime(pwmRequest, pwmRequest.getPwmSession().getUserInfo());
-                                if (!insideTime) {
-                                    this.executeResetPassword(pwmRequest);
-                                }
-
-                                throw new PwmUnrecoverableException(
-                                        PwmError.ERROR_SECURITY_VIOLATION,
-                                        "attempt to choose change password action, but not allowed due to minimum password lifetime"
-                                );
-                            } catch (PwmException e) {
-                                LOGGER.debug(pwmRequest, "exception while checking minimum lifetime: " + e.getMessage());
-                                return ProcessStatus.Halt;
-                            }
-                        }
+                        this.executeResetPassword(pwmRequest);
                         break;
 
                     default:
@@ -458,11 +444,10 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
     {
         final ForgottenPasswordBean forgottenPasswordBean = forgottenPasswordBean(pwmRequest);
         final String userEnteredCode = pwmRequest.readParameterAsString(PwmConstants.PARAM_TOKEN);
-        TokenPayload tokenPayload = null;
 
         ErrorInformation errorInformation = null;
         try {
-            tokenPayload = pwmRequest.getPwmApplication().getTokenService().processUserEnteredCode(
+            final TokenPayload tokenPayload = pwmRequest.getPwmApplication().getTokenService().processUserEnteredCode(
                     pwmRequest.getPwmSession(),
                     forgottenPasswordBean.getUserIdentity() == null ? null : forgottenPasswordBean.getUserIdentity(),
                     TokenType.FORGOTTEN_PW,
@@ -890,25 +875,10 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
             StatisticsManager.incrementStat(pwmRequest, Statistic.RECOVERY_SUCCESSES);
         }
 
-        final RecoveryAction recoveryAction = ForgottenPasswordUtil.getRecoveryAction(config, forgottenPasswordBean);
-        if (recoveryAction == RecoveryAction.SENDNEWPW || recoveryAction == RecoveryAction.SENDNEWPW_AND_EXPIRE) {
-            processSendNewPassword(pwmRequest);
-            return;
-        }
-
         final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo(pwmRequest, forgottenPasswordBean);
         try {
-            final boolean showPage = ForgottenPasswordUtil.showActionChoicePageToUser(
-                    pwmRequest,
-                    userInfo,
-                    forgottenPasswordProfile,
-                    forgottenPasswordBean
-            );
-
-            if (showPage) {
-                pwmRequest.forwardToJsp(JspUrl.RECOVER_PASSWORD_ACTION_CHOICE);
-                return;
-            } else {
+            final boolean enforceFromForgotten = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_ENFORCE_MINIMUM_PASSWORD_LIFETIME);
+            if (enforceFromForgotten) {
                 final ChaiUser theUser = pwmApplication.getProxiedChaiUser(forgottenPasswordBean.getUserIdentity());
                 PasswordUtility.checkIfPasswordWithinMinimumLifetime(
                         theUser,
@@ -923,6 +893,28 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
         }
 
         LOGGER.trace(pwmRequest, "all recovery checks passed, proceeding to configured recovery action");
+
+        final RecoveryAction recoveryAction = ForgottenPasswordUtil.getRecoveryAction(config, forgottenPasswordBean);
+        if (recoveryAction == RecoveryAction.SENDNEWPW || recoveryAction == RecoveryAction.SENDNEWPW_AND_EXPIRE) {
+            processSendNewPassword(pwmRequest);
+            return;
+        }
+
+        if (forgottenPasswordProfile.readSettingAsBoolean(PwmSetting.RECOVERY_ALLOW_UNLOCK)) {
+            final PasswordStatus passwordStatus = userInfo.getPasswordStatus();
+
+            if (!passwordStatus.isExpired() && !passwordStatus.isPreExpired()) {
+                try {
+                    final ChaiUser theUser = pwmApplication.getProxiedChaiUser(forgottenPasswordBean.getUserIdentity());
+                    if (theUser.isPasswordLocked()) {
+                        pwmRequest.forwardToJsp(JspUrl.RECOVER_PASSWORD_ACTION_CHOICE);
+                        return;
+                    }
+                } catch (ChaiOperationException e) {
+                    LOGGER.error(pwmRequest, "chai operation error checking user lock status: " + e.getMessage());
+                }
+            }
+        }
 
         this.executeResetPassword(pwmRequest);
     }
