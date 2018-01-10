@@ -77,7 +77,6 @@ public class AuditService implements PwmService {
     private ErrorInformation lastError;
     private UserHistoryStore userHistoryStore;
     private AuditVault auditVault;
-    private boolean cefEnabled = false;
 
     private PwmApplication pwmApplication;
 
@@ -91,7 +90,6 @@ public class AuditService implements PwmService {
     public void init(final PwmApplication pwmApplication) throws PwmException {
         this.status = STATUS.OPENING;
         this.pwmApplication = pwmApplication;
-        cefEnabled = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.AUDIT_COMMONEVENTFORMAT_ENABLE);
         settings = new AuditSettings(pwmApplication.getConfig());
 
         if (pwmApplication.getApplicationMode() == null || pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY) {

@@ -255,15 +255,22 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
                     case resetPassword:
                         if (forgottenPasswordProfile.readSettingAsBoolean(PwmSetting.RECOVERY_ALLOW_CHANGE_PW_WITHIN_MIN_LIFETIME)) {
                             try {
+                                this.executeResetPassword(pwmRequest);
+                            } catch (PwmException e) {
+                                LOGGER.debug(pwmRequest, "exception while checking minimum lifetime: " + e.getMessage());
+                                return ProcessStatus.Halt;
+                            }
+                        } else {
+                            try {
                                 final boolean insideTime = ForgottenPasswordUtil.passwordWithinMinimumLifetime(pwmRequest, pwmRequest.getPwmSession().getUserInfo());
                                 if (!insideTime) {
                                     this.executeResetPassword(pwmRequest);
+                                } else {
+                                    throw new PwmUnrecoverableException(
+                                            PwmError.ERROR_SECURITY_VIOLATION,
+                                            "attempt to choose change password action, but not allowed due to minimum password lifetime"
+                                    );
                                 }
-
-                                throw new PwmUnrecoverableException(
-                                        PwmError.ERROR_SECURITY_VIOLATION,
-                                        "attempt to choose change password action, but not allowed due to minimum password lifetime"
-                                );
                             } catch (PwmException e) {
                                 LOGGER.debug(pwmRequest, "exception while checking minimum lifetime: " + e.getMessage());
                                 return ProcessStatus.Halt;
@@ -919,10 +926,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
                 );
             }
         } catch (PwmOperationalException e) {
-            //final boolean enforceFromForgotten = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_ENFORCE_MINIMUM_PASSWORD_LIFETIME);
-            //if (enforceFromForgotten) {
-                throw new PwmUnrecoverableException(e.getErrorInformation());
-            //}
+            throw new PwmUnrecoverableException(e.getErrorInformation());
         }
 
         LOGGER.trace(pwmRequest, "all recovery checks passed, proceeding to configured recovery action");
