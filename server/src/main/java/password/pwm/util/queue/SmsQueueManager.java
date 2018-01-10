@@ -281,31 +281,34 @@ public class SmsQueueManager implements PwmService {
 
 
     protected static String smsDataEncode(final String data, final SmsDataEncoding encoding) {
-        final String returnData;
+        final String normalizedString = data == null ? "" : data;
+
         switch (encoding) {
             case NONE:
-                returnData = data;
-                break;
+                return normalizedString;
+
+            case URL:
+                return StringUtil.urlEncode(normalizedString);
+
             case CSV:
-                returnData = StringUtil.escapeCsv(data);
-                break;
+                return StringUtil.escapeCsv(normalizedString);
+
             case HTML:
-                returnData = StringUtil.escapeHtml(data);
-                break;
+                return StringUtil.escapeHtml(normalizedString);
+
             case JAVA:
-                returnData = StringUtil.escapeJava(data);
-                break;
+                return StringUtil.escapeJava(normalizedString);
+
             case JAVASCRIPT:
-                returnData = StringUtil.escapeJS(data);
-                break;
+                return StringUtil.escapeJS(normalizedString);
+
             case XML:
-                returnData = StringUtil.escapeXml(data);
-                break;
+                return StringUtil.escapeXml(normalizedString);
+
             default:
-                returnData = data == null ? "" : StringUtil.urlEncode(data);
-                break;
+                return normalizedString;
+
         }
-        return returnData;
     }
 
     private static void determineIfResultSuccessful(
