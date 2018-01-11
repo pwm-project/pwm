@@ -716,7 +716,17 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
                         pwmSession.getSessionStateBean().getLocale());
 
                 try {
-                    TokenService.TokenSender.sendSmsToken(pwmApplication, null, macroMachine, toNum, message, tokenKey);
+                    TokenService.TokenSender.sendSmsToken(
+                            TokenService.TokenSendInfo.builder()
+                            .pwmApplication( pwmApplication )
+                            .userInfo( null )
+                            .macroMachine( macroMachine )
+                            .smsNumber( toNum )
+                            .smsMessage( message )
+                            .tokenKey( tokenKey )
+                            .sessionLabel( pwmSession.getLabel() )
+                            .build()
+                    );
                 } catch (Exception e) {
                     throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN));
                 }
@@ -762,8 +772,17 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
                         configuredEmailSetting.getBodyHtml().replace("%TOKEN%", tokenKey));
 
                 try {
-                    TokenService.TokenSender.sendEmailToken(pwmApplication, null, macroMachine, emailItemBean,
-                            toAddress, tokenKey);
+                    TokenService.TokenSender.sendEmailToken(
+                            TokenService.TokenSendInfo.builder()
+                            .pwmApplication( pwmApplication )
+                            .userInfo( null )
+                            .macroMachine( macroMachine )
+                            .configuredEmailSetting( emailItemBean )
+                            .emailAddress( toAddress )
+                            .tokenKey( tokenKey )
+                            .sessionLabel( pwmRequest.getSessionLabel() )
+                                    .build()
+                    );
                 } catch (Exception e) {
                     throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN));
                 }

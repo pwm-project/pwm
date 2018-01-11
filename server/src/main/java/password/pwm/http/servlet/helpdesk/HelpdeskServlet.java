@@ -738,15 +738,18 @@ public class HelpdeskServlet extends ControlledPwmServlet {
 
         try {
             TokenService.TokenSender.sendToken(
-                    pwmRequest.getPwmApplication(),
-                    userInfo,
-                    macroMachine,
-                    emailItemBean,
-                    tokenSendMethod,
-                    destEmailAddress,
-                    userInfo.getUserSmsNumber(),
-                    smsMessage,
-                    tokenKey
+                    TokenService.TokenSendInfo.builder()
+                    .pwmApplication( pwmRequest.getPwmApplication() )
+                    .userInfo( userInfo )
+                    .macroMachine( macroMachine )
+                    .configuredEmailSetting( emailItemBean )
+                    .tokenSendMethod( tokenSendMethod )
+                    .emailAddress( destEmailAddress )
+                    .smsNumber( userInfo.getUserSmsNumber() )
+                    .smsMessage( smsMessage )
+                    .tokenKey( tokenKey )
+                    .sessionLabel( pwmRequest.getSessionLabel() )
+                    .build()
             );
         } catch (PwmException e) {
             LOGGER.error(pwmRequest, e.getErrorInformation());

@@ -639,9 +639,14 @@ public class ConfigEditorServlet extends ControlledPwmServlet {
             returnRecords.add(new HealthRecord(HealthStatus.INFO, HealthTopic.SMS, "SMS not configured"));
         } else {
             final Map<String, String> testParams = pwmRequest.readBodyAsJsonStringMap();
-            final SmsItemBean testSmsItem = new SmsItemBean(testParams.get("to"), testParams.get("message"));
+            final SmsItemBean testSmsItem = new SmsItemBean(testParams.get("to"), testParams.get("message"), pwmRequest.getSessionLabel());
             try {
-                final String responseBody = SmsQueueManager.sendDirectMessage(config, testSmsItem);
+                final String responseBody = SmsQueueManager.sendDirectMessage(
+                        pwmRequest.getPwmApplication(),
+                        config,
+                        pwmRequest.getSessionLabel(),
+                        testSmsItem
+                );
                 returnRecords.add(new HealthRecord(HealthStatus.INFO, HealthTopic.SMS, "message sent"));
                 returnRecords.add(new HealthRecord(HealthStatus.INFO, HealthTopic.SMS, "response body: \n" + StringUtil.escapeHtml(responseBody)));
             } catch (PwmException e) {

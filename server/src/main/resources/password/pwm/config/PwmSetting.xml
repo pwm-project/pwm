@@ -867,6 +867,12 @@
             <value />
         </default>
     </setting>
+    <setting hidden="false" key="sms.gatewayCertificates" level="1">
+        <default/>
+        <properties>
+            <property key="Cert_ImportHandler">password.pwm.config.function.SMSGatewayCertImportFunction</property>
+        </properties>
+    </setting>
     <setting hidden="false" key="sms.gatewayPassword" level="1">
     </setting>
     <setting hidden="false" key="sms.gatewayMethod" level="1" required="true">
@@ -1004,7 +1010,7 @@
             <value><![CDATA[Thank you for activating your account.]]></value>
         </default>
     </setting>
-    <setting hidden="false" key="sms.useUrlShortener" level="2">
+    <setting hidden="true" key="sms.useUrlShortener" level="2">
         <default>
             <value>false</value>
         </default>
@@ -3635,12 +3641,12 @@
             <value />
         </default>
     </setting>
-    <setting hidden="false" key="urlshortener.classname" level="2">
+    <setting hidden="true" key="urlshortener.classname" level="2">
         <default>
             <value />
         </default>
     </setting>
-    <setting hidden="false" key="urlshortener.parameters" level="2">
+    <setting hidden="true" key="urlshortener.parameters" level="2">
         <regex>^[a-zA-Z0-9.]+=.+$</regex>
         <default>
             <value />

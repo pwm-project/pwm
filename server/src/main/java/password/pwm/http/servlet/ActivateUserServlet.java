@@ -32,7 +32,6 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
-import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.TokenDestinationItem;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
@@ -581,8 +580,12 @@ public class ActivateUserServlet extends AbstractPwmServlet {
             return false;
         }
 
-        final SmsItemBean smsItem = new SmsItemBean(toSmsNumber, message);
-        pwmApplication.sendSmsUsingQueue(smsItem, pwmSession.getSessionManager().getMacroMachine(pwmApplication));
+        pwmApplication.sendSmsUsingQueue(
+                toSmsNumber,
+                message,
+                pwmRequest.getSessionLabel(),
+                pwmSession.getSessionManager().getMacroMachine(pwmApplication)
+        );
         return true;
     }
 
@@ -719,7 +722,7 @@ public class ActivateUserServlet extends AbstractPwmServlet {
             final String toSmsNumber,
             final String tokenKey
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException
+            throws PwmUnrecoverableException
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final Configuration config = pwmApplication.getConfig();
@@ -730,15 +733,18 @@ public class ActivateUserServlet extends AbstractPwmServlet {
         final MacroMachine macroMachine = MacroMachine.forUser(pwmRequest, userIdentity);
 
         final List<TokenDestinationItem.Type> sentTypes = TokenService.TokenSender.sendToken(
-                pwmApplication,
-                null,
-                macroMachine,
-                emailItemBean,
-                pref,
-                toAddress,
-                toSmsNumber,
-                smsMessage,
-                tokenKey
+                TokenService.TokenSendInfo.builder()
+                .pwmApplication( pwmApplication )
+                .userInfo( null )
+                .macroMachine( macroMachine )
+                .configuredEmailSetting( emailItemBean )
+                .tokenSendMethod( pref )
+                .emailAddress( toAddress )
+                .smsNumber( toSmsNumber )
+                .smsMessage( smsMessage )
+                .tokenKey( tokenKey )
+                .sessionLabel( pwmRequest.getSessionLabel() )
+                .build()
         );
 
         return TokenService.TokenSender.figureDisplayString(
