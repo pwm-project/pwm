@@ -2522,6 +2522,10 @@
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
+        <options>
+            <option value="text">text</option>
+            <option value="password">password</option>
+        </options>
     </setting>
     <setting hidden="false" key="forgottenUsername.searchFilter" level="2">
         <default/>
