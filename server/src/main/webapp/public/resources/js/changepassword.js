@@ -33,27 +33,25 @@ var PWM_CHANGEPW = PWM_CHANGEPW || {};
 
 // takes password values in the password fields, sends an http request to the servlet
 // and then parses (and displays) the response from the servlet.
-PWM_CHANGEPW.validatePasswords = function(userDN)
+PWM_CHANGEPW.validatePasswords = function(userDN, nextFunction)
 {
-    PWM_MAIN.getObject("password_button").disabled = true;
-    if (PWM_MAIN.getObject("password1").value.length <= 0 && PWM_MAIN.getObject("password2").value.length <= 0) {
-        PWM_CHANGEPW.updateDisplay(null);
-        return;
-    }
-
     if (PWM_GLOBAL['previousP1'] !== PWM_MAIN.getObject("password1").value) {  // if p1 is changing, then clear out p2.
         PWM_MAIN.getObject("password2").value = "";
         PWM_GLOBAL['previousP1'] = PWM_MAIN.getObject("password1").value;
     }
 
-    var validationProps = new Array();
+    var validationProps = {};
+
+    validationProps['completeFunction'] = nextFunction ? nextFunction : function () {};
     validationProps['messageWorking'] = PWM_MAIN.showString('Display_CheckingPassword');
     validationProps['serviceURL'] = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction','checkPassword');
     validationProps['readDataFunction'] = function(){
         var returnObj = {};
         returnObj['password1'] = PWM_MAIN.getObject("password1").value;
         returnObj['password2'] = PWM_MAIN.getObject("password2").value;
-        if (userDN) returnObj['username'] = userDN;
+        if (userDN) {
+            returnObj['username'] = userDN;
+        }
         return returnObj;
     };
     validationProps['processResultsFunction'] = function(data){
@@ -70,10 +68,6 @@ PWM_CHANGEPW.validatePasswords = function(userDN)
 
 PWM_CHANGEPW.updateDisplay = function(resultInfo) {
     if (!resultInfo) {
-        var passwordButton = PWM_MAIN.getObject("password_button");
-        if (passwordButton !== null) {
-            passwordButton.disabled = false;
-        }
         PWM_MAIN.showSuccess(PWM_MAIN.showString('Display_PasswordPrompt'));
         PWM_CHANGEPW.markStrength(0);
         PWM_CHANGEPW.markConfirmationCheck(null);
@@ -88,17 +82,12 @@ PWM_CHANGEPW.updateDisplay = function(resultInfo) {
     }
 
     if (resultInfo["passed"] === true) {
-        //PWM_MAIN.getObject('password2').disabled = false;
         if (resultInfo["match"] === "MATCH") {
-            PWM_MAIN.getObject("password_button").disabled = false;
             PWM_MAIN.showSuccess(message);
         } else {
-            PWM_MAIN.getObject("password_button").disabled = true;
             PWM_MAIN.showInfo(message);
         }
     } else {
-        //PWM_MAIN.getObject('password2').disabled = true;
-        PWM_MAIN.getObject("password_button").disabled = true;
         PWM_MAIN.showError(message);
     }
 
@@ -203,9 +192,36 @@ PWM_CHANGEPW.showPasswordGuide=function() {
     });
 };
 
-PWM_CHANGEPW.handleChangePasswordSubmit=function() {
-    PWM_MAIN.showInfo(PWM_MAIN.showString('Display_PleaseWait'));
-    PWM_VAR['dirtyPageLeaveFlag'] = false;
+PWM_CHANGEPW.handleChangePasswordSubmit=function(event) {
+    console.log('intercepted change password submit');
+    PWM_MAIN.cancelEvent(event);
+
+    var nextFunction = function(data) {
+        console.log('post change password submit handler');
+        if (!data || data['data']['passed'] && 'MATCH' === data['data']['match']) {
+            console.log('submitting password form');
+            PWM_VAR['dirtyPageLeaveFlag'] = false;
+            PWM_MAIN.getObject("changePasswordForm").submit();
+        } else {
+            var match = data['data']['match'];
+            if ('MATCH' === match || 'EMPTY' === match) {
+                PWM_MAIN.getObject("password1").focus();
+            } else {
+                PWM_MAIN.getObject("password2").focus();
+            }
+            PWM_MAIN.closeWaitDialog();
+            PWM_CHANGEPW.validatePasswords();
+        }
+    };
+
+    PWM_MAIN.showWaitDialog({
+        loadFunction:function(){
+            PWM_MAIN.showInfo('\xa0');
+            setTimeout(function(){
+                PWM_CHANGEPW.validatePasswords(null, nextFunction);
+            },500);
+        }}
+    );
 };
 
 PWM_CHANGEPW.doRandomGeneration=function(randomConfig) {
@@ -339,8 +355,8 @@ PWM_CHANGEPW.startupChangePasswordPage=function() {
         PWM_CHANGEPW.validatePasswords(null);
     });
     PWM_MAIN.addEventHandler(changePasswordForm,"submit",function(event){
-        PWM_CHANGEPW.handleChangePasswordSubmit();
-        PWM_MAIN.handleFormSubmit(changePasswordForm, event);
+        PWM_CHANGEPW.handleChangePasswordSubmit(event);
+        //PWM_MAIN.handleFormSubmit(changePasswordForm, event);
         return false;
     });
     PWM_MAIN.addEventHandler(changePasswordForm,"reset",function(){

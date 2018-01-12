@@ -1168,7 +1168,7 @@ PWM_MAIN.messageDivFloatHandler = function() {
 };
 
 PWM_MAIN.pwmFormValidator = function(validationProps, reentrant) {
-    var CONSOLE_DEBUG = false;
+    var CONSOLE_DEBUG = true;
 
     var serviceURL = validationProps['serviceURL'];
     var readDataFunction = validationProps['readDataFunction'];
@@ -1181,6 +1181,7 @@ PWM_MAIN.pwmFormValidator = function(validationProps, reentrant) {
 
 
     if (CONSOLE_DEBUG) console.log("pwmFormValidator: beginning...");
+
     //init vars;
     if (!PWM_VAR['validationCache']) {
         PWM_VAR['validationCache'] = {};
@@ -1196,7 +1197,7 @@ PWM_MAIN.pwmFormValidator = function(validationProps, reentrant) {
         if (cachedResult) {
             processResultsFunction(cachedResult);
             if (CONSOLE_DEBUG) console.log('pwmFormValidator: processed cached data, exiting');
-            completeFunction();
+            completeFunction(cachedResult);
             return;
         }
     }
@@ -1218,6 +1219,7 @@ PWM_MAIN.pwmFormValidator = function(validationProps, reentrant) {
 
     //check to see if a validation is already in progress, if it is then ignore keypress.
     if (PWM_VAR['validationInProgress'] === true) {
+        setTimeout(function(){PWM_MAIN.pwmFormValidator(validationProps, true)}, typeWaitTimeMs + 1);
         if (CONSOLE_DEBUG) console.log('pwmFormValidator: waiting for a previous validation to complete, exiting...');
         return;
     }
@@ -1232,30 +1234,29 @@ PWM_MAIN.pwmFormValidator = function(validationProps, reentrant) {
         }, 5);
     }
 
-    require(["dojo"],function(dojo){
-        var formDataString = dojo.toJson(formData);
-        if (CONSOLE_DEBUG) console.log('FormValidator: sending form data to server... ' + formDataString);
-        var loadFunction = function(data) {
-            PWM_VAR['validationInProgress'] = false;
-            delete PWM_VAR['validationLastType'];
-            PWM_VAR['validationCache'][formKey] = data;
-            if (CONSOLE_DEBUG) console.log('pwmFormValidator: successful read, data added to cache');
-            PWM_MAIN.pwmFormValidator(validationProps, true);
-        };
-        var options = {};
-        options['content'] = formData;
-        options['ajaxTimeout'] = ajaxTimeout;
-        options['errorFunction'] = function(error) {
-            PWM_VAR['validationInProgress'] = false;
-            if (showMessage) {
-                PWM_MAIN.showInfo(PWM_MAIN.showString('Display_CommunicationError'));
-            }
-            if (CONSOLE_DEBUG) console.log('pwmFormValidator: error connecting to service: ' + errorObj);
-            processResultsFunction(null);
-            completeFunction();
-        };
-        PWM_MAIN.ajaxRequest(serviceURL,loadFunction,options);
-    });
+    var formDataString = JSON.stringify(formData) ;
+
+    if (CONSOLE_DEBUG) console.log('FormValidator: sending form data to server... ' + formDataString);
+    var loadFunction = function(data) {
+        PWM_VAR['validationInProgress'] = false;
+        delete PWM_VAR['validationLastType'];
+        PWM_VAR['validationCache'][formKey] = data;
+        if (CONSOLE_DEBUG) console.log('pwmFormValidator: successful read, data added to cache');
+        PWM_MAIN.pwmFormValidator(validationProps, true);
+    };
+    var options = {};
+    options['content'] = formData;
+    options['ajaxTimeout'] = ajaxTimeout;
+    options['errorFunction'] = function(error) {
+        PWM_VAR['validationInProgress'] = false;
+        if (showMessage) {
+            PWM_MAIN.showInfo(PWM_MAIN.showString('Display_CommunicationError'));
+        }
+        if (CONSOLE_DEBUG) console.log('pwmFormValidator: error connecting to service: ' + error);
+        processResultsFunction(null);
+        completeFunction(null);
+    };
+    PWM_MAIN.ajaxRequest(serviceURL,loadFunction,options);
 };
 
 PWM_MAIN.preloadImages = function(imgArray){
