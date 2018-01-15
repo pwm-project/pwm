@@ -21,10 +21,12 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<!DOCTYPE html>
+<%@ page import="password.pwm.http.servlet.forgottenpw.ForgottenPasswordServlet" %>
+
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
+<% boolean showForgottenPasswordAction = (Boolean)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ForgottenPasswordShowChangePasswordAction); %>
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
 <div id="wrapper">
@@ -34,7 +36,12 @@
     <div id="centerbody">
         <div id="page-content-title"><pwm:display key="Title_ForgottenPassword" displayIfMissing="true"/></div>
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-        <p><pwm:display key="Display_RecoverPasswordChoices"/></p>
+        <% if (showForgottenPasswordAction) { %>
+            <p><pwm:display key="Display_RecoverPasswordChoices"/></p>
+        <% } else { %>
+            <p><pwm:display key="Display_RecoverMinLifetimeChoices"/></p>
+        <% } %>
+
         <table class="noborder">
             <tr>
                 <td>
@@ -57,6 +64,7 @@
                     &nbsp;
                 </td>
             </tr>
+            <% if (showForgottenPasswordAction) { %>
             <tr>
                 <td>
                     <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="search">
@@ -78,6 +86,7 @@
                     &nbsp;
                 </td>
             </tr>
+            <% } %>
             <tr>
                 <td>
                     <%@ include file="/WEB-INF/jsp/fragment/forgottenpassword-cancel.jsp" %>

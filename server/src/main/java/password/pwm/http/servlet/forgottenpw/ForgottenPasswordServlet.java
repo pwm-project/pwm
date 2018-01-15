@@ -254,7 +254,22 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
                         break;
 
                     case resetPassword:
-                        this.executeResetPassword(pwmRequest);
+                        if (forgottenPasswordProfile.readSettingAsBoolean(PwmSetting.RECOVERY_ALLOW_CHANGE_PW_WITHIN_MIN_LIFETIME)) {
+                            try {
+                                final boolean insideTime = ForgottenPasswordUtil.passwordWithinMinimumLifetime(pwmRequest, pwmRequest.getPwmSession().getUserInfo());
+                                if (!insideTime) {
+                                    this.executeResetPassword(pwmRequest);
+                                }
+
+                                throw new PwmUnrecoverableException(
+                                        PwmError.ERROR_SECURITY_VIOLATION,
+                                        "attempt to choose change password action, but not allowed due to minimum password lifetime"
+                                );
+                            } catch (PwmException e) {
+                                LOGGER.debug(pwmRequest, "exception while checking minimum lifetime: " + e.getMessage());
+                                return ProcessStatus.Halt;
+                            }
+                        }
                         break;
 
                     default:
@@ -444,10 +459,11 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
     {
         final ForgottenPasswordBean forgottenPasswordBean = forgottenPasswordBean(pwmRequest);
         final String userEnteredCode = pwmRequest.readParameterAsString(PwmConstants.PARAM_TOKEN);
+        TokenPayload tokenPayload = null;
 
         ErrorInformation errorInformation = null;
         try {
-            final TokenPayload tokenPayload = pwmRequest.getPwmApplication().getTokenService().processUserEnteredCode(
+            tokenPayload = pwmRequest.getPwmApplication().getTokenService().processUserEnteredCode(
                     pwmRequest.getPwmSession(),
                     forgottenPasswordBean.getUserIdentity() == null ? null : forgottenPasswordBean.getUserIdentity(),
                     TokenType.FORGOTTEN_PW,
@@ -1035,14 +1051,6 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
         }
 
         try {
-            /*
-            final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(
-                    pwmApplication,
-                    pwmSession,
-                    PwmAuthenticationSource.FORGOTTEN_PASSWORD
-            );
-            sessionAuthenticator.authUserWithUnknownPassword(userIdentity,AuthenticationType.AUTH_FROM_PUBLIC_MODULE);
-            */
             pwmSession.getLoginInfoBean().setAuthenticated(true);
             pwmSession.getLoginInfoBean().getAuthFlags().add(AuthenticationType.AUTH_FROM_PUBLIC_MODULE);
             pwmSession.getLoginInfoBean().setUserIdentity(userIdentity);

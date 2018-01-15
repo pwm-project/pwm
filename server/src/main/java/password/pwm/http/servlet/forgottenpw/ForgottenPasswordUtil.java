@@ -26,6 +26,7 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.Challenge;
 import com.novell.ldapchai.cr.ChallengeSet;
 import com.novell.ldapchai.cr.ResponseSet;
+import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import password.pwm.AppProperty;
@@ -46,6 +47,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.bean.ForgottenPasswordBean;
 import password.pwm.http.filter.AuthenticationFilter;
 import password.pwm.ldap.UserInfo;
@@ -486,6 +488,80 @@ class ForgottenPasswordUtil {
                 outputDestrestTokenDataClient.getSms()
         );
         return displayDestAddress;
+    }
+
+    static boolean showActionChoicePageToUser(
+            final PwmRequest pwmRequest,
+            final UserInfo userInfo,
+            final ForgottenPasswordProfile forgottenPasswordProfile,
+            final ForgottenPasswordBean forgottenPasswordBean
+    )
+            throws ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException, PwmOperationalException
+    {
+        boolean showUnlockAction = false;
+        {
+            if (forgottenPasswordProfile.readSettingAsBoolean(PwmSetting.RECOVERY_ALLOW_UNLOCK)) {
+                final ChaiUser theUser = pwmRequest.getPwmApplication().getProxiedChaiUser(forgottenPasswordBean.getUserIdentity());
+                if (theUser.isPasswordLocked()) {
+                    showUnlockAction = true;
+                }
+            }
+        }
+
+        boolean showChangePasswordAction = true;
+        boolean userPasswordIsWithinMinimumLifetime = false;
+        {
+            userPasswordIsWithinMinimumLifetime = passwordWithinMinimumLifetime(pwmRequest, userInfo);
+
+            if (userPasswordIsWithinMinimumLifetime) {
+                if (!forgottenPasswordProfile.readSettingAsBoolean(PwmSetting.RECOVERY_ALLOW_CHANGE_PW_WITHIN_MIN_LIFETIME)) {
+                    showChangePasswordAction = false;
+                }
+            }
+        }
+
+        boolean showPage= false;
+        if (showUnlockAction && showChangePasswordAction) {
+            showPage = true;
+        }
+
+
+        if (userPasswordIsWithinMinimumLifetime) {
+            if (!forgottenPasswordProfile.readSettingAsBoolean(PwmSetting.RECOVERY_ALLOW_CHANGE_PW_WITHIN_MIN_LIFETIME)) {
+                showPage = true;
+            }
+        }
+
+        LOGGER.trace(pwmRequest, "showActionChoicePageToUser: showPage=" + showPage
+                + ", showUnlockAction:" + showUnlockAction
+                + ", showChangePasswordAction:" + showChangePasswordAction
+        );
+        pwmRequest.setAttribute(PwmRequestAttribute.ForgottenPasswordShowChangePasswordAction, showChangePasswordAction);
+        return showPage;
+    }
+
+    static boolean passwordWithinMinimumLifetime(
+            final PwmRequest pwmRequest,
+            final UserInfo userInfo
+    )
+            throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
+    {
+        final ChaiUser chaiUser = pwmRequest.getPwmApplication().getProxiedChaiUser(userInfo.getUserIdentity());
+
+        try {
+            PasswordUtility.checkIfPasswordWithinMinimumLifetime(
+                    chaiUser,
+                    pwmRequest.getSessionLabel(),
+                    userInfo.getPasswordPolicy(),
+                    userInfo.getPasswordLastModifiedTime(),
+                    userInfo.getPasswordStatus()
+            );
+            return false;
+        } catch (PwmOperationalException e) {
+            LOGGER.debug(pwmRequest, "determined password to be within minimum lifetime: " + e.getMessage());
+        }
+
+        return true;
     }
 
 }

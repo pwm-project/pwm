@@ -2440,6 +2440,11 @@
             <value>true</value>
         </default>
     </setting>
+    <setting hidden="false" key="recovery.allowChangePwWithinMinLifetime" level="1" required="true">
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
     <setting hidden="false" key="response.hashMethod" level="2" required="true">
         <default>
             <value>PBKDF2_SHA512</value>
@@ -2523,6 +2528,8 @@
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
+        <option value="text">text</option>
+        <option value="password">password</option>
     </setting>
     <setting hidden="false" key="forgottenUsername.searchFilter" level="2">
         <default/>
@@ -3946,6 +3953,8 @@
         <profile setting="recovery.profile.list"/>
     </category>
     <category hidden="false" key="RECOVERY_DEF">
+    </category>
+    <category hidden="false" key="RECOVERY_ACTIONS">
     </category>
     <category hidden="false" key="RECOVERY_OAUTH">
     </category>
