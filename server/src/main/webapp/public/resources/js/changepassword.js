@@ -84,6 +84,7 @@ PWM_CHANGEPW.updateDisplay = function(resultInfo) {
     if (resultInfo["passed"] === true) {
         if (resultInfo["match"] === "MATCH") {
             PWM_MAIN.showSuccess(message);
+            PWM_MAIN.getObject("password_button").disabled = false;
         } else {
             PWM_MAIN.showInfo(message);
         }
@@ -203,14 +204,22 @@ PWM_CHANGEPW.handleChangePasswordSubmit=function(event) {
             PWM_VAR['dirtyPageLeaveFlag'] = false;
             PWM_MAIN.getObject("changePasswordForm").submit();
         } else {
-            var match = data['data']['match'];
-            if ('MATCH' === match || 'EMPTY' === match) {
-                PWM_MAIN.getObject("password1").focus();
-            } else {
-                PWM_MAIN.getObject("password2").focus();
-            }
             PWM_MAIN.closeWaitDialog();
-            PWM_CHANGEPW.validatePasswords();
+            var match = data['data']['match'];
+            if ('MATCH' !== match) {
+                PWM_MAIN.getObject("password2").value = '';
+            }
+            var okFunction = function() {
+                if ('MATCH' === match || 'EMPTY' === match) {
+                    PWM_MAIN.getObject("password1").focus();
+                } else {
+                    PWM_MAIN.getObject("password2").focus();
+                }
+                PWM_CHANGEPW.validatePasswords();
+            };
+            var title = PWM_MAIN.showString('Title_ChangePassword');
+            var message = '<div style="height:20px">' + data['data']['message'] + '.</div>';
+            PWM_MAIN.showDialog({text:message,title:title,okAction:okFunction});
         }
     };
 
