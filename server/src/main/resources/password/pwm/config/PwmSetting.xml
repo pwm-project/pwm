@@ -2440,6 +2440,11 @@
             <value>true</value>
         </default>
     </setting>
+    <setting hidden="false" key="recovery.allowChangePwWithinMinLifetime" level="1" required="true">
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
     <setting hidden="false" key="response.hashMethod" level="2" required="true">
         <default>
             <value>PBKDF2_SHA512</value>
@@ -3946,6 +3951,8 @@
         <profile setting="recovery.profile.list"/>
     </category>
     <category hidden="false" key="RECOVERY_DEF">
+    </category>
+    <category hidden="false" key="RECOVERY_ACTIONS">
     </category>
     <category hidden="false" key="RECOVERY_OAUTH">
     </category>

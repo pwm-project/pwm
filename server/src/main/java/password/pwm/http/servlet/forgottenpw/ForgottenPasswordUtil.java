@@ -26,6 +26,8 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.Challenge;
 import com.novell.ldapchai.cr.ChallengeSet;
 import com.novell.ldapchai.cr.ResponseSet;
+import com.novell.ldapchai.exception.ChaiException;
+import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import password.pwm.AppProperty;
@@ -46,6 +48,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.bean.ForgottenPasswordBean;
 import password.pwm.http.filter.AuthenticationFilter;
 import password.pwm.ldap.UserInfo;
@@ -488,4 +491,96 @@ class ForgottenPasswordUtil {
         return displayDestAddress;
     }
 
+    static boolean showActionChoicePageToUser(
+            final PwmRequest pwmRequest,
+            final UserInfo userInfo,
+            final ForgottenPasswordProfile forgottenPasswordProfile,
+            final ForgottenPasswordBean forgottenPasswordBean
+    )
+            throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
+    {
+        boolean showUnlockAction = false;
+        {
+            if (forgottenPasswordProfile.readSettingAsBoolean(PwmSetting.RECOVERY_ALLOW_UNLOCK)) {
+                final ChaiUser theUser = pwmRequest.getPwmApplication().getProxiedChaiUser(forgottenPasswordBean.getUserIdentity());
+                try {
+                    if (theUser.isPasswordLocked()) {
+                        showUnlockAction = true;
+                    }
+                } catch (ChaiException e) {
+                    LOGGER.debug(pwmRequest, "unexpected error checking if user's password is locked: " + e.getMessage());
+                }
+            }
+        }
+
+        boolean showChangePasswordAction = true;
+        boolean userPasswordIsWithinMinimumLifetime = false;
+        {
+            userPasswordIsWithinMinimumLifetime = passwordWithinMinimumLifetime(pwmRequest, userInfo);
+
+            if (userPasswordIsWithinMinimumLifetime) {
+                if (!forgottenPasswordProfile.readSettingAsBoolean(PwmSetting.RECOVERY_ALLOW_CHANGE_PW_WITHIN_MIN_LIFETIME)) {
+                    showChangePasswordAction = false;
+                }
+            } else {
+                showChangePasswordAction = true;
+            }
+        }
+
+        boolean showPage= false;
+        if (showUnlockAction || showChangePasswordAction) {
+            showPage = true;
+        }
+
+
+        if (userPasswordIsWithinMinimumLifetime) {
+            if (!forgottenPasswordProfile.readSettingAsBoolean(PwmSetting.RECOVERY_ALLOW_CHANGE_PW_WITHIN_MIN_LIFETIME)) {
+                showPage = true;
+            }
+        }
+
+        LOGGER.trace(pwmRequest, "showActionChoicePageToUser: showPage=" + showPage
+                + ", showUnlockAction:" + showUnlockAction
+                + ", showChangePasswordAction:" + showChangePasswordAction
+        );
+
+        boolean intruderDetected = false;
+        try {
+            final ChaiUser chaiUser = pwmRequest.getPwmApplication().getProxiedChaiUser(userInfo.getUserIdentity());
+            if (chaiUser.isPasswordLocked()) {
+                intruderDetected = true;
+            }
+        } catch (ChaiOperationException e) {
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_INTRUDER_LDAP));
+        } catch (ChaiUnavailableException e) {
+            throw new PwmUnrecoverableException(PwmError.forChaiError(e.getErrorCode()));
+        }
+        pwmRequest.setAttribute(PwmRequestAttribute.IntruderDetectionAction, intruderDetected);
+        pwmRequest.setAttribute(PwmRequestAttribute.ForgottenPasswordShowChangePasswordAction, showChangePasswordAction);
+        pwmRequest.setAttribute(PwmRequestAttribute.ForgottenPasswordShowUnlockAction, showUnlockAction);
+        return showPage;
+    }
+
+    static boolean passwordWithinMinimumLifetime(
+            final PwmRequest pwmRequest,
+            final UserInfo userInfo
+    )
+            throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
+    {
+        final ChaiUser chaiUser = pwmRequest.getPwmApplication().getProxiedChaiUser(userInfo.getUserIdentity());
+
+        try {
+            PasswordUtility.checkIfPasswordWithinMinimumLifetime(
+                    chaiUser,
+                    pwmRequest.getSessionLabel(),
+                    userInfo.getPasswordPolicy(),
+                    userInfo.getPasswordLastModifiedTime(),
+                    userInfo.getPasswordStatus()
+            );
+            return false;
+        } catch (PwmOperationalException e) {
+            LOGGER.debug(pwmRequest, "determined password to be within minimum lifetime: " + e.getMessage());
+            return true;
+        }
+    }
 }

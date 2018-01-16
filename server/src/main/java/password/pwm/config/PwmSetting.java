@@ -731,18 +731,24 @@ public enum PwmSetting {
             "recovery.verificationMethods", PwmSettingSyntax.VERIFICATION_METHOD, PwmSettingCategory.RECOVERY_DEF),
     RECOVERY_TOKEN_SEND_METHOD(
             "challenge.token.sendMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_DEF),
-    RECOVERY_ALLOW_UNLOCK(
-            "challenge.allowUnlock", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_DEF),
+    RECOVERY_ATTRIBUTE_FORM(
+            "challenge.requiredAttributes", PwmSettingSyntax.FORM, PwmSettingCategory.RECOVERY_DEF),
+    TOKEN_RESEND_ENABLE(
+            "recovery.token.resend.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_DEF),
+    RECOVERY_ALLOW_WHEN_LOCKED(
+            "recovery.allowWhenLocked", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_DEF),
+
+
+    // recovery action
     RECOVERY_ACTION(
             "recovery.action", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_DEF),
     RECOVERY_SENDNEWPW_METHOD(
             "recovery.sendNewPassword.sendMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_DEF),
-    RECOVERY_ATTRIBUTE_FORM(
-            "challenge.requiredAttributes", PwmSettingSyntax.FORM, PwmSettingCategory.RECOVERY_DEF),
-    RECOVERY_ALLOW_WHEN_LOCKED(
-            "recovery.allowWhenLocked", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_DEF),
-    TOKEN_RESEND_ENABLE(
-            "recovery.token.resend.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_DEF),
+    RECOVERY_ALLOW_UNLOCK(
+            "challenge.allowUnlock", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_DEF),
+    RECOVERY_ALLOW_CHANGE_PW_WITHIN_MIN_LIFETIME(
+            "recovery.allowChangePwWithinMinLifetime", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_ACTIONS),
+
 
     // recovery oauth
     RECOVERY_OAUTH_ID_LOGIN_URL(
