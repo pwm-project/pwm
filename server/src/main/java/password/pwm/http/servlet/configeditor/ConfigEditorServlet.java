@@ -36,6 +36,7 @@ import password.pwm.config.PwmSettingTemplate;
 import password.pwm.config.PwmSettingTemplateSet;
 import password.pwm.config.SettingUIFunction;
 import password.pwm.config.StoredValue;
+import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.config.stored.ValueMetaData;
@@ -71,6 +72,7 @@ import password.pwm.i18n.Message;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.ldap.LdapBrowser;
 import password.pwm.util.PasswordData;
+import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -79,6 +81,7 @@ import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.queue.SmsQueueManager;
 import password.pwm.util.secure.HttpsServerCertificateManager;
 import password.pwm.ws.server.RestResultBean;
+import password.pwm.ws.server.rest.RestRandomPasswordServer;
 import password.pwm.ws.server.rest.bean.HealthData;
 
 import javax.servlet.ServletException;
@@ -137,6 +140,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet {
         testMacro(HttpMethod.POST),
         browseLdap(HttpMethod.POST),
         copyProfile(HttpMethod.POST),
+        randomPassword(HttpMethod.POST),
 
         ;
 
@@ -639,9 +643,14 @@ public class ConfigEditorServlet extends ControlledPwmServlet {
             returnRecords.add(new HealthRecord(HealthStatus.INFO, HealthTopic.SMS, "SMS not configured"));
         } else {
             final Map<String, String> testParams = pwmRequest.readBodyAsJsonStringMap();
-            final SmsItemBean testSmsItem = new SmsItemBean(testParams.get("to"), testParams.get("message"));
+            final SmsItemBean testSmsItem = new SmsItemBean(testParams.get("to"), testParams.get("message"), pwmRequest.getSessionLabel());
             try {
-                final String responseBody = SmsQueueManager.sendDirectMessage(config, testSmsItem);
+                final String responseBody = SmsQueueManager.sendDirectMessage(
+                        pwmRequest.getPwmApplication(),
+                        config,
+                        pwmRequest.getSessionLabel(),
+                        testSmsItem
+                );
                 returnRecords.add(new HealthRecord(HealthStatus.INFO, HealthTopic.SMS, "message sent"));
                 returnRecords.add(new HealthRecord(HealthStatus.INFO, HealthTopic.SMS, "response body: \n" + StringUtil.escapeHtml(responseBody)));
             } catch (PwmException e) {
@@ -925,6 +934,21 @@ public class ConfigEditorServlet extends ControlledPwmServlet {
         } catch (PwmUnrecoverableException e) {
             pwmRequest.outputJsonResult(RestResultBean.fromError(e.getErrorInformation(), pwmRequest));
         }
+        return ProcessStatus.Halt;
+    }
+
+    @ActionHandler( action = "randomPassword")
+    private ProcessStatus restRandomPassword(final PwmRequest pwmRequest)
+            throws IOException, PwmUnrecoverableException
+    {
+        final RestRandomPasswordServer.JsonInput jsonInput = JsonUtil.deserialize( pwmRequest.readRequestBodyAsString(), RestRandomPasswordServer.JsonInput.class );
+        final RandomPasswordGenerator.RandomGeneratorConfig randomConfig = RestRandomPasswordServer.jsonInputToRandomConfig( jsonInput, PwmPasswordPolicy.defaultPolicy() );
+        final PasswordData randomPassword = RandomPasswordGenerator.createRandomPassword(pwmRequest.getSessionLabel(), randomConfig, pwmRequest.getPwmApplication());
+        final RestRandomPasswordServer.JsonOutput outputMap = new RestRandomPasswordServer.JsonOutput();
+        outputMap.setPassword( randomPassword.getStringValue() );
+
+        pwmRequest.outputJsonResult( RestResultBean.withData( outputMap ) );
+
         return ProcessStatus.Halt;
     }
 }

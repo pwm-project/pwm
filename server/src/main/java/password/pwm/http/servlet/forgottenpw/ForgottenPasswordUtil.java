@@ -463,15 +463,18 @@ class ForgottenPasswordUtil {
         final String smsMessage = config.readSettingAsLocalizedString(PwmSetting.SMS_CHALLENGE_TOKEN_TEXT, pwmRequest.getLocale());
 
         final List<TokenDestinationItem.Type> sentTypes = TokenService.TokenSender.sendToken(
-                pwmRequest.getPwmApplication(),
-                userInfo,
-                macroMachine,
-                emailItemBean,
-                tokenSendMethod,
-                outputDestrestTokenDataClient.getEmail(),
-                outputDestrestTokenDataClient.getSms(),
-                smsMessage,
-                tokenKey
+                TokenService.TokenSendInfo.builder()
+                .pwmApplication( pwmRequest.getPwmApplication() )
+                .userInfo( userInfo )
+                .macroMachine( macroMachine )
+                .configuredEmailSetting( emailItemBean )
+                .tokenSendMethod( tokenSendMethod )
+                .emailAddress( outputDestrestTokenDataClient.getEmail() )
+                .smsNumber( outputDestrestTokenDataClient.getSms() )
+                .smsMessage( smsMessage )
+                .tokenKey( tokenKey )
+                .sessionLabel( pwmRequest.getSessionLabel() )
+                .build()
         );
 
         StatisticsManager.incrementStat(pwmRequest, Statistic.RECOVERY_TOKENS_SENT);

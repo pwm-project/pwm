@@ -43,15 +43,12 @@ import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.PasswordStatus;
 import password.pwm.bean.SessionLabel;
-import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.option.StrengthMeterType;
-import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.value.data.UserPermission;
 import password.pwm.config.option.HelpdeskClearResponseMode;
 import password.pwm.config.option.MessageSendMethod;
+import password.pwm.config.option.StrengthMeterType;
 import password.pwm.config.profile.ForgottenPasswordProfile;
 import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.config.profile.LdapProfile;
@@ -59,6 +56,8 @@ import password.pwm.config.profile.ProfileType;
 import password.pwm.config.profile.ProfileUtility;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.PwmPasswordRule;
+import password.pwm.config.value.data.ActionConfiguration;
+import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
@@ -160,7 +159,7 @@ public class PasswordUtility {
 
         message = message.replace("%TOKEN%", newPassword.getStringValue());
 
-        pwmApplication.sendSmsUsingQueue(new SmsItemBean(toNumber, message), macroMachine);
+        pwmApplication.sendSmsUsingQueue(toNumber, message, null, macroMachine);
         LOGGER.debug(String.format("password SMS added to send queue for %s", toNumber));
         return null;
     }

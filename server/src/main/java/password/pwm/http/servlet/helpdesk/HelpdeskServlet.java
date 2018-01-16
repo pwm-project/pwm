@@ -738,15 +738,18 @@ public class HelpdeskServlet extends ControlledPwmServlet {
 
         try {
             TokenService.TokenSender.sendToken(
-                    pwmRequest.getPwmApplication(),
-                    userInfo,
-                    macroMachine,
-                    emailItemBean,
-                    tokenSendMethod,
-                    destEmailAddress,
-                    userInfo.getUserSmsNumber(),
-                    smsMessage,
-                    tokenKey
+                    TokenService.TokenSendInfo.builder()
+                    .pwmApplication( pwmRequest.getPwmApplication() )
+                    .userInfo( userInfo )
+                    .macroMachine( macroMachine )
+                    .configuredEmailSetting( emailItemBean )
+                    .tokenSendMethod( tokenSendMethod )
+                    .emailAddress( destEmailAddress )
+                    .smsNumber( userInfo.getUserSmsNumber() )
+                    .smsMessage( smsMessage )
+                    .tokenKey( tokenKey )
+                    .sessionLabel( pwmRequest.getSessionLabel() )
+                    .build()
             );
         } catch (PwmException e) {
             LOGGER.error(pwmRequest, e.getErrorInformation());
@@ -1107,7 +1110,10 @@ public class HelpdeskServlet extends ControlledPwmServlet {
         );
 
         final UserIdentity userIdentity = UserIdentity.fromKey(jsonInput.getUsername(), pwmRequest.getPwmApplication());
-        final HelpdeskProfile helpdeskProfile = pwmRequest.getPwmSession().getSessionManager().getHelpdeskProfile(pwmRequest.getPwmApplication());
+        final HelpdeskProfile helpdeskProfile = getHelpdeskProfile( pwmRequest );
+
+        HelpdeskServletUtil.checkIfUserIdentityViewable(pwmRequest, helpdeskProfile, userIdentity);
+
         final ChaiUser chaiUser = getChaiUser(pwmRequest, getHelpdeskProfile(pwmRequest), userIdentity);
         final UserInfo userInfo = UserInfoFactory.newUserInfo(
                 pwmRequest.getPwmApplication(),
@@ -1117,17 +1123,14 @@ public class HelpdeskServlet extends ControlledPwmServlet {
                 chaiUser.getChaiProvider()
         );
 
-        HelpdeskServletUtil.checkIfUserIdentityViewable(pwmRequest, helpdeskProfile, userIdentity);
-
         {
-            final HelpdeskUIMode mode = helpdeskProfile.readSettingAsEnum(PwmSetting.HELPDESK_CLEAR_RESPONSES, HelpdeskUIMode.class);
+            final HelpdeskUIMode mode = helpdeskProfile.readSettingAsEnum(PwmSetting.HELPDESK_SET_PASSWORD_MODE, HelpdeskUIMode.class);
             if (mode == HelpdeskUIMode.none) {
                 throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SECURITY_VIOLATION,"setting "
-                        + PwmSetting.HELPDESK_CLEAR_RESPONSES.toMenuLocationDebug(helpdeskProfile.getIdentifier(), pwmRequest.getLocale())
+                        + PwmSetting.HELPDESK_SET_PASSWORD_MODE.toMenuLocationDebug(helpdeskProfile.getIdentifier(), pwmRequest.getLocale())
                         + " must not be set to none"));
             }
         }
-
 
         final PasswordUtility.PasswordCheckInfo passwordCheckInfo = PasswordUtility.checkEnteredPassword(
                 pwmRequest.getPwmApplication(),
@@ -1140,6 +1143,7 @@ public class HelpdeskServlet extends ControlledPwmServlet {
         );
 
         final RestCheckPasswordServer.JsonOutput jsonResponse = RestCheckPasswordServer.JsonOutput.fromPasswordCheckInfo(passwordCheckInfo);
+
         final RestResultBean restResultBean = RestResultBean.withData(jsonResponse);
         pwmRequest.outputJsonResult(restResultBean);
 

@@ -23,12 +23,13 @@
 package password.pwm.svc.token;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import lombok.Builder;
+import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionLabel;
-import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.TokenDestinationItem;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
@@ -61,6 +62,7 @@ import password.pwm.util.db.DatabaseDataStore;
 import password.pwm.util.db.DatabaseTable;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBDataStore;
@@ -613,17 +615,24 @@ public class TokenService implements PwmService {
         return tokenPayload;
     }
 
+    @Value
+    @Builder
+    public static class TokenSendInfo {
+        private PwmApplication pwmApplication;
+        private UserInfo userInfo;
+        private MacroMachine macroMachine;
+        private EmailItemBean configuredEmailSetting;
+        private MessageSendMethod tokenSendMethod;
+        private String emailAddress;
+        private String smsNumber;
+        private String smsMessage;
+        private String tokenKey;
+        private SessionLabel sessionLabel;
+    }
+
     public static class TokenSender {
         public static List<TokenDestinationItem.Type> sendToken(
-                final PwmApplication pwmApplication,
-                final UserInfo userInfo,
-                final MacroMachine macroMachine,
-                final EmailItemBean configuredEmailSetting,
-                final MessageSendMethod tokenSendMethod,
-                final String emailAddress,
-                final String smsNumber,
-                final String smsMessage,
-                final String tokenKey
+                final TokenSendInfo tokenSendInfo
         )
                 throws PwmUnrecoverableException
         {
@@ -631,82 +640,76 @@ public class TokenService implements PwmService {
 
             final List<TokenDestinationItem.Type> sentTypes = new ArrayList<>();
 
-            try {
-                switch (tokenSendMethod) {
-                    case NONE:
-                        // should never read here
-                        LOGGER.error("attempt to send token to destination type 'NONE'");
-                        throw new PwmUnrecoverableException(PwmError.ERROR_UNKNOWN);
-                    case SMSONLY:
-                        // Only try SMS
-                        success = sendSmsToken(pwmApplication, userInfo, macroMachine, smsNumber, smsMessage, tokenKey);
-                        sentTypes.add(TokenDestinationItem.Type.sms);
-                        break;
-                    case EMAILONLY:
-                    default:
-                        // Only try email
-                        success = sendEmailToken(pwmApplication, userInfo, macroMachine, configuredEmailSetting, emailAddress, tokenKey);
-                        sentTypes.add(TokenDestinationItem.Type.email);
-                        break;
-                }
-            } catch (ChaiUnavailableException e) {
-                throw new PwmUnrecoverableException(PwmError.forChaiError(e.getErrorCode()));
+            switch (tokenSendInfo.getTokenSendMethod()) {
+                case NONE:
+                    // should never read here
+                    LOGGER.error("attempt to send token to destination type 'NONE'");
+                    throw new PwmUnrecoverableException(PwmError.ERROR_UNKNOWN);
+                case SMSONLY:
+                    // Only try SMS
+                    success = sendSmsToken(tokenSendInfo);
+                    sentTypes.add(TokenDestinationItem.Type.sms);
+                    break;
+                case EMAILONLY:
+                default:
+                    // Only try email
+                    success = sendEmailToken(tokenSendInfo);
+                    sentTypes.add(TokenDestinationItem.Type.email);
+                    break;
             }
 
             if (!success) {
                 throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_TOKEN_MISSING_CONTACT));
             }
+
+            final PwmApplication pwmApplication = tokenSendInfo.getPwmApplication();
             pwmApplication.getStatisticsManager().incrementValue(Statistic.TOKENS_SENT);
 
             return sentTypes;
         }
 
         public static boolean sendEmailToken(
-                final PwmApplication pwmApplication,
-                final UserInfo userInfo,
-                final MacroMachine macroMachine,
-                final EmailItemBean configuredEmailSetting,
-                final String toAddress,
-                final String tokenKey
+                final TokenSendInfo tokenSendInfo
         )
-                throws PwmUnrecoverableException, ChaiUnavailableException
+                throws PwmUnrecoverableException
         {
-            if (toAddress == null || toAddress.length() < 1) {
+            final String toAddress = tokenSendInfo.getEmailAddress();
+            if ( StringUtil.isEmpty( toAddress ) ) {
                 return false;
             }
 
+            final PwmApplication pwmApplication = tokenSendInfo.getPwmApplication();
             pwmApplication.getIntruderManager().mark(RecordType.TOKEN_DEST, toAddress, null);
 
+            final EmailItemBean configuredEmailSetting = tokenSendInfo.getConfiguredEmailSetting();
             pwmApplication.getEmailQueue().submitEmailImmediate(new EmailItemBean(
                     toAddress,
                     configuredEmailSetting.getFrom(),
                     configuredEmailSetting.getSubject(),
-                    configuredEmailSetting.getBodyPlain().replace("%TOKEN%", tokenKey),
-                    configuredEmailSetting.getBodyHtml().replace("%TOKEN%", tokenKey)
-            ), userInfo, macroMachine);
+                    configuredEmailSetting.getBodyPlain().replace("%TOKEN%", tokenSendInfo.getTokenKey()),
+                    configuredEmailSetting.getBodyHtml().replace("%TOKEN%", tokenSendInfo.getTokenKey())
+            ), tokenSendInfo.getUserInfo(), tokenSendInfo.getMacroMachine());
             LOGGER.debug("token email added to send queue for " + toAddress);
             return true;
         }
 
         public static boolean sendSmsToken(
-                final PwmApplication pwmApplication,
-                final UserInfo userInfo,
-                final MacroMachine macroMachine,
-                final String smsNumber,
-                final String smsMessage,
-                final String tokenKey
+                final TokenSendInfo tokenSendInfo
         )
-                throws PwmUnrecoverableException, ChaiUnavailableException
+                throws PwmUnrecoverableException
         {
-            if (smsNumber == null || smsNumber.length() < 1) {
+            final String smsNumber = tokenSendInfo.getSmsNumber();
+            if ( StringUtil.isEmpty( smsNumber) ) {
                 return false;
             }
 
-            final String modifiedMessage = smsMessage.replaceAll("%TOKEN%", tokenKey);
 
-            pwmApplication.getIntruderManager().mark(RecordType.TOKEN_DEST, smsNumber, null);
+            final String modifiedMessage = tokenSendInfo.getSmsMessage().replaceAll("%TOKEN%", tokenSendInfo.getTokenKey());
 
-            pwmApplication.sendSmsUsingQueue(new SmsItemBean(smsNumber, modifiedMessage), macroMachine);
+            final PwmApplication pwmApplication = tokenSendInfo.getPwmApplication();
+            pwmApplication.getIntruderManager().mark(RecordType.TOKEN_DEST, smsNumber, tokenSendInfo.getSessionLabel());
+
+            pwmApplication.sendSmsUsingQueue(smsNumber, modifiedMessage, tokenSendInfo.getSessionLabel(), tokenSendInfo.getMacroMachine());
             LOGGER.debug("token SMS added to send queue for " + smsNumber);
             return true;
         }

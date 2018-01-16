@@ -27,13 +27,11 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.SessionLabel;
-import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
-import password.pwm.config.value.data.FormConfiguration;
-import password.pwm.util.form.FormUtility;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.MessageSendMethod;
+import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -49,6 +47,7 @@ import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.CaptchaUtility;
+import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -307,8 +306,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet {
 
         final MacroMachine macroMachine = new MacroMachine(pwmApplication, sessionLabel, userInfo, null);
 
-        final SmsItemBean smsItem = new SmsItemBean(toNumber, smsMessage);
-        pwmApplication.sendSmsUsingQueue(smsItem, macroMachine);
+        pwmApplication.sendSmsUsingQueue(toNumber, smsMessage, sessionLabel, macroMachine);
         return null;
     }
 

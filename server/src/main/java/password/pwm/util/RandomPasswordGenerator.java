@@ -591,11 +591,11 @@ public class RandomPasswordGenerator {
         }
 
         public int getMinimumStrength() {
-            int policyMin = this.minimumLength;
+            int policyMin = this.minimumStrength;
             if (this.getPasswordPolicy() != null) {
-                policyMin = this.getPasswordPolicy().getRuleHelper().readIntValue(PwmPasswordRule.MinimumLength);
+                policyMin = this.getPasswordPolicy().getRuleHelper().readIntValue(PwmPasswordRule.MinimumStrength);
             }
-            return Math.max(this.minimumLength, policyMin);
+            return Math.max(this.minimumStrength, policyMin);
         }
 
         void validateSettings(final PwmApplication pwmApplication)

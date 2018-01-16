@@ -25,6 +25,7 @@ package password.pwm;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
@@ -620,22 +621,25 @@ public class PwmApplication {
     }
 
     public void sendSmsUsingQueue(
-            final SmsItemBean smsItem,
+            final String to,
+            final String message,
+            final SessionLabel sessionLabel,
             final MacroMachine macroMachine
     ) {
         final SmsQueueManager smsQueue = getSmsQueue();
         if (smsQueue == null) {
-            LOGGER.error("SMS queue is unavailable, unable to send SMS: " + smsItem.toString());
+            LOGGER.error(sessionLabel, "SMS queue is unavailable, unable to send SMS to: " + to);
             return;
         }
 
-        final SmsItemBean rewrittenSmsItem = new SmsItemBean(
-                macroMachine.expandMacros(smsItem.getTo()),
-                macroMachine.expandMacros(smsItem.getMessage())
+        final SmsItemBean smsItemBean = new SmsItemBean(
+                macroMachine.expandMacros(to),
+                macroMachine.expandMacros(message),
+                sessionLabel
         );
 
         try {
-            smsQueue.addSmsToQueue(rewrittenSmsItem);
+            smsQueue.addSmsToQueue(smsItemBean);
         } catch (PwmUnrecoverableException e) {
             LOGGER.warn("unable to add sms to queue: " + e.getMessage());
         }

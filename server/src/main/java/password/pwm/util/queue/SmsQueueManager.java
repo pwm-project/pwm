@@ -22,15 +22,9 @@
 
 package password.pwm.util.queue;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.util.EntityUtils;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -43,22 +37,25 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.HttpHeader;
+import password.pwm.http.HttpMethod;
 import password.pwm.http.client.PwmHttpClient;
+import password.pwm.http.client.PwmHttpClientConfiguration;
+import password.pwm.http.client.PwmHttpClientRequest;
+import password.pwm.http.client.PwmHttpClientResponse;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.PasswordData;
-import password.pwm.util.java.TimeDuration;
-import password.pwm.util.localdb.WorkQueueProcessor;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBStoredQueue;
+import password.pwm.util.localdb.WorkQueueProcessor;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 
-import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -132,7 +129,7 @@ public class SmsQueueManager implements PwmService {
 
         workQueueProcessor = new WorkQueueProcessor<>(pwmApplication, localDBStoredQueue, settings, new SmsItemProcessor(), this.getClass());
 
-        smsSendEngine = new SmsSendEngine(pwmApplication.getConfig());
+        smsSendEngine = new SmsSendEngine(pwmApplication, pwmApplication.getConfig());
 
         status = STATUS.OPEN;
     }
@@ -142,7 +139,7 @@ public class SmsQueueManager implements PwmService {
         public WorkQueueProcessor.ProcessResult process(final SmsItemBean workItem) {
             try {
                 for (final String msgPart : splitMessage(workItem.getMessage())) {
-                    smsSendEngine.sendSms(workItem.getTo(), msgPart);
+                    smsSendEngine.sendSms(workItem.getTo(), msgPart, workItem.getSessionLabel());
                 }
                 StatisticsManager.incrementStat(pwmApplication, Statistic.SMS_SEND_SUCCESSES);
                 lastError = null;
@@ -186,12 +183,16 @@ public class SmsQueueManager implements PwmService {
         }
     }
 
-    SmsItemBean shortenMessageIfNeeded(final SmsItemBean smsItem) throws PwmUnrecoverableException {
+    SmsItemBean shortenMessageIfNeeded(
+            final SmsItemBean smsItem
+    )
+            throws PwmUnrecoverableException
+    {
         final Boolean shorten = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.SMS_USE_URL_SHORTENER);
         if (shorten) {
             final String message = smsItem.getMessage();
             final String shortenedMessage = pwmApplication.getUrlShortener().shortenUrlInText(message);
-            return new SmsItemBean(smsItem.getTo(), shortenedMessage);
+            return new SmsItemBean(smsItem.getTo(), shortenedMessage, smsItem.getSessionLabel());
         }
         return smsItem;
     }
@@ -281,31 +282,34 @@ public class SmsQueueManager implements PwmService {
 
 
     protected static String smsDataEncode(final String data, final SmsDataEncoding encoding) {
-        final String returnData;
+        final String normalizedString = data == null ? "" : data;
+
         switch (encoding) {
             case NONE:
-                returnData = data;
-                break;
+                return normalizedString;
+
+            case URL:
+                return StringUtil.urlEncode(normalizedString);
+
             case CSV:
-                returnData = StringUtil.escapeCsv(data);
-                break;
+                return StringUtil.escapeCsv(normalizedString);
+
             case HTML:
-                returnData = StringUtil.escapeHtml(data);
-                break;
+                return StringUtil.escapeHtml(normalizedString);
+
             case JAVA:
-                returnData = StringUtil.escapeJava(data);
-                break;
+                return StringUtil.escapeJava(normalizedString);
+
             case JAVASCRIPT:
-                returnData = StringUtil.escapeJS(data);
-                break;
+                return StringUtil.escapeJS(normalizedString);
+
             case XML:
-                returnData = StringUtil.escapeXml(data);
-                break;
+                return StringUtil.escapeXml(normalizedString);
+
             default:
-                returnData = data == null ? "" : StringUtil.urlEncode(data);
-                break;
+                return normalizedString;
+
         }
-        return returnData;
     }
 
     private static void determineIfResultSuccessful(
@@ -409,38 +413,59 @@ public class SmsQueueManager implements PwmService {
         return returnValue;
     }
 
-
-
     private static class SmsSendEngine {
         private static final PwmLogger LOGGER = PwmLogger.forClass(SmsSendEngine.class);
+        private final PwmApplication pwmApplication;
         private final Configuration config;
         private String lastResponseBody;
 
-        private SmsSendEngine(final Configuration configuration)
+        private SmsSendEngine( final PwmApplication pwmApplication, final Configuration configuration)
         {
+            this.pwmApplication = pwmApplication;
             this.config = configuration;
         }
 
-
-        /**
-         *
-         * @param to
-         * @param message
-         * @throws PwmUnrecoverableException - If operation failed and a retry is unlikely to succeed
-         * @throws PwmOperationalException - If operation failed and should be retried.
-         */
-        protected void sendSms(final String to, final String message)
+        protected void sendSms(final String to, final String message, final SessionLabel sessionLabel)
                 throws PwmUnrecoverableException, PwmOperationalException
         {
             lastResponseBody = null;
 
+            final String requestData = makeRequestData( to, message );
+
+            LOGGER.trace("preparing to send SMS data: " + requestData);
+
+            final PwmHttpClientRequest pwmHttpClientRequest = makeRequest( requestData );
+
+            final PwmHttpClientConfiguration pwmHttpClientConfiguration = PwmHttpClientConfiguration.builder()
+                    .certificates( config.readSettingAsCertificate( PwmSetting.SMS_GATEWAY_CERTIFICATES ) )
+                    .build();
+
+            final PwmHttpClient pwmHttpClient = new PwmHttpClient( pwmApplication, sessionLabel, pwmHttpClientConfiguration );
+
+            try {
+                final PwmHttpClientResponse pwmHttpClientResponse = pwmHttpClient.makeRequest( pwmHttpClientRequest );
+                final int resultCode = pwmHttpClientResponse.getStatusCode();
+
+                final String responseBody = pwmHttpClientResponse.getBody();
+                lastResponseBody = responseBody;
+
+                determineIfResultSuccessful(config, resultCode, responseBody);
+                LOGGER.debug("SMS send successful, HTTP status: " + resultCode);
+            } catch (PwmUnrecoverableException e) {
+                final ErrorInformation errorInformation = new ErrorInformation(
+                        PwmError.ERROR_SMS_SEND_ERROR,
+                        "error while sending SMS, discarding message: " + e.getMessage());
+                throw new PwmUnrecoverableException(errorInformation);
+            }
+        }
+
+        private String makeRequestData(
+                final String to,
+                final String message
+        ) {
             final String gatewayUser = config.readSettingAsString(PwmSetting.SMS_GATEWAY_USER);
             final PasswordData gatewayPass = config.readSettingAsPassword(PwmSetting.SMS_GATEWAY_PASSWORD);
-
-            final String contentType = config.readSettingAsString(PwmSetting.SMS_REQUEST_CONTENT_TYPE);
-            final SmsDataEncoding encoding = SmsDataEncoding.valueOf(config.readSettingAsString(PwmSetting.SMS_REQUEST_CONTENT_ENCODING));
-
-            final List<String> extraHeaders = config.readSettingAsStringArray(PwmSetting.SMS_GATEWAY_REQUEST_HEADERS);
+            final SmsDataEncoding encoding = config.readSettingAsEnum(PwmSetting.SMS_REQUEST_CONTENT_ENCODING, SmsDataEncoding.class);
 
             String requestData = config.readSettingAsString(PwmSetting.SMS_REQUEST_DATA);
 
@@ -467,69 +492,64 @@ public class SmsQueueManager implements PwmService {
                 requestData = requestData.replaceAll(TOKEN_REQUESTID, smsDataEncode(requestId, encoding));
             }
 
+            return requestData;
+        }
+
+        private PwmHttpClientRequest makeRequest(
+                final String requestData
+        )
+                throws PwmUnrecoverableException
+        {
+            final String gatewayUser = config.readSettingAsString(PwmSetting.SMS_GATEWAY_USER);
+            final PasswordData gatewayPass = config.readSettingAsPassword(PwmSetting.SMS_GATEWAY_PASSWORD);
+            final String contentType = config.readSettingAsString(PwmSetting.SMS_REQUEST_CONTENT_TYPE);
+            final List<String> extraHeaders = config.readSettingAsStringArray(PwmSetting.SMS_GATEWAY_REQUEST_HEADERS);
             final String gatewayUrl = config.readSettingAsString(PwmSetting.SMS_GATEWAY_URL);
             final String gatewayMethod = config.readSettingAsString(PwmSetting.SMS_GATEWAY_METHOD);
             final String gatewayAuthMethod = config.readSettingAsString(PwmSetting.SMS_GATEWAY_AUTHMETHOD);
 
-            LOGGER.trace("preparing to send SMS data: " + requestData);
-            try {
-                final HttpRequestBase httpRequest;
-                if ("POST".equalsIgnoreCase(gatewayMethod)) {
-                    // POST request
-                    httpRequest = new HttpPost(gatewayUrl);
-                    if (contentType != null && contentType.length()>0) {
-                        httpRequest.setHeader("Content-Type", contentType);
-                    }
-                    ((HttpPost) httpRequest).setEntity(new StringEntity(requestData));
-                } else {
-                    // GET request
-                    final String fullUrl = gatewayUrl.endsWith("?") ? gatewayUrl + requestData : gatewayUrl + "?" + requestData;
-                    httpRequest = new HttpGet(fullUrl);
+            final HttpMethod httpMethod = "POST".equalsIgnoreCase(gatewayMethod)
+                    ? HttpMethod.POST
+                    : HttpMethod.GET;
+
+            final Map<String,String> headers = new LinkedHashMap<>(  );
+            {
+                if ( "HTTP".equalsIgnoreCase( gatewayAuthMethod ) && gatewayUser != null && gatewayPass != null ) {
+                    final BasicAuthInfo basicAuthInfo = new BasicAuthInfo( gatewayUser, gatewayPass );
+                    headers.put( HttpHeader.Authorization.getHttpName(), basicAuthInfo.toAuthHeader() );
                 }
 
-                if (extraHeaders != null) {
-                    final Pattern pattern = Pattern.compile("^([A-Za-z0-9_\\.-]+):[ \t]*([^ \t].*)");
-                    for (final String header : extraHeaders) {
-                        final Matcher matcher = pattern.matcher(header);
-                        if (matcher.matches()) {
-                            final String hname = matcher.group(1);
-                            final String hvalue = matcher.group(2);
-                            LOGGER.debug("Adding HTTP header \"" + hname + "\" with value \"" + hvalue + "\"");
-                            httpRequest.addHeader(hname, hvalue);
+
+                if ( !StringUtil.isEmpty( contentType ) && httpMethod == HttpMethod.POST ) {
+                    headers.put( HttpHeader.Content_Type.getHttpName(), contentType );
+                }
+
+                if ( extraHeaders != null ) {
+                    final Pattern pattern = Pattern.compile( "^([A-Za-z0-9_\\.-]+):[ \t]*([^ \t].*)" );
+                    for ( final String header : extraHeaders )
+                    {
+                        final Matcher matcher = pattern.matcher( header );
+                        if ( matcher.matches() ) {
+                            final String headerName = matcher.group( 1 );
+                            final String headerValue = matcher.group( 2 );
+                            headers.put( headerName, headerValue );
                         } else {
-                            LOGGER.warn("Cannot parse HTTP header: " + header);
+                            LOGGER.warn( "Cannot parse HTTP header: " + header );
                         }
                     }
                 }
 
-                if ("HTTP".equalsIgnoreCase(gatewayAuthMethod) && gatewayUser != null && gatewayPass != null) {
-                    LOGGER.debug("Using Basic Authentication");
-                    final BasicAuthInfo ba = new BasicAuthInfo(gatewayUser, gatewayPass);
-                    httpRequest.addHeader(HttpHeader.Authorization.getHttpName(), ba.toAuthHeader());
-                }
-
-                final HttpClient httpClient = PwmHttpClient.getHttpClient(config);
-                final HttpResponse httpResponse = httpClient.execute(httpRequest);
-                final String responseBody = EntityUtils.toString(httpResponse.getEntity());
-                final int resultCode = httpResponse.getStatusLine().getStatusCode();
-                lastResponseBody = httpResponse.getStatusLine() + "\n" + responseBody;
-                LOGGER.trace("sms send result body: " + httpResponse.getStatusLine().toString() + "\n" + responseBody);
-
-                determineIfResultSuccessful(config, resultCode, responseBody);
-                LOGGER.debug("SMS send successful, HTTP status: " + httpResponse.getStatusLine().getStatusCode());
-            } catch (IOException e) {
-                final ErrorInformation errorInformation = new ErrorInformation(
-                        PwmError.ERROR_SMS_SEND_ERROR,
-                        "IO error while sending SMS: " + e.getMessage());
-                throw new PwmOperationalException(errorInformation);
-            } catch (PwmOperationalException e) {
-                throw e;
-            } catch (Exception e) {
-                final ErrorInformation errorInformation = new ErrorInformation(
-                        PwmError.ERROR_SMS_SEND_ERROR,
-                        "unexpected error while sending SMS, discarding message: " + e.getMessage());
-                throw new PwmUnrecoverableException(errorInformation);
             }
+
+            final String fullUrl = httpMethod == HttpMethod.POST
+                    ? gatewayUrl
+                    : gatewayUrl.endsWith("?") ? gatewayUrl + requestData : gatewayUrl + "?" + requestData;
+
+            final String body = httpMethod == HttpMethod.POST
+                    ? requestData
+                    : null;
+
+            return new PwmHttpClientRequest( httpMethod, fullUrl, body, headers );
         }
 
         public String getLastResponseBody()
@@ -539,14 +559,16 @@ public class SmsQueueManager implements PwmService {
     }
 
     public static String sendDirectMessage(
+            final PwmApplication pwmApplication,
             final Configuration configuration,
+            final SessionLabel sessionLabel,
             final SmsItemBean smsItemBean
 
     )
             throws PwmUnrecoverableException, PwmOperationalException
     {
-        final SmsSendEngine smsSendEngine = new SmsSendEngine(configuration);
-        smsSendEngine.sendSms(smsItemBean.getTo(), smsItemBean.getMessage());
+        final SmsSendEngine smsSendEngine = new SmsSendEngine(pwmApplication, configuration);
+        smsSendEngine.sendSms(smsItemBean.getTo(), smsItemBean.getMessage(), sessionLabel);
         return smsSendEngine.getLastResponseBody();
     }
 

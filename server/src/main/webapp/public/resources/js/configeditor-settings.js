@@ -1275,7 +1275,7 @@ ChangePasswordHandler.generateRandom = function(settingKey) {
     postData.noUser = true;
     PWM_MAIN.getObject('button-storePassword').disabled = true;
 
-    var url = PWM_GLOBAL['url-restservice'] + "/randompassword";
+    var url = PWM_MAIN.addParamToUrl(window.location.href,'processAction','randomPassword');
     var loadFunction = function(data) {
         ChangePasswordHandler.changePasswordPopup(settingKey);
         PWM_MAIN.getObject('password1').value = data['data']['password'];

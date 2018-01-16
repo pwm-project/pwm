@@ -334,10 +334,10 @@ public enum PwmSetting {
 
 
     // sms settings
-    SMS_MAX_QUEUE_AGE(
-            "sms.queueMaxAge", PwmSettingSyntax.DURATION, PwmSettingCategory.SMS_GATEWAY),
     SMS_GATEWAY_URL(
             "sms.gatewayURL", PwmSettingSyntax.STRING, PwmSettingCategory.SMS_GATEWAY),
+    SMS_GATEWAY_CERTIFICATES(
+            "sms.gatewayCertificates", PwmSettingSyntax.X509CERT, PwmSettingCategory.SMS_GATEWAY),
     SMS_GATEWAY_USER(
             "sms.gatewayUser", PwmSettingSyntax.STRING, PwmSettingCategory.SMS_GATEWAY),
     SMS_GATEWAY_PASSWORD(
@@ -356,8 +356,6 @@ public enum PwmSetting {
             "sms.httpRequestHeaders", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.SMS_GATEWAY),
     SMS_MAX_TEXT_LENGTH(
             "sms.maxTextLength", PwmSettingSyntax.NUMERIC, PwmSettingCategory.SMS_GATEWAY),
-    SMS_RESPONSE_OK_REGEX(
-            "sms.responseOkRegex", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.SMS_GATEWAY),
     SMS_SENDER_ID(
             "sms.senderID", PwmSettingSyntax.STRING, PwmSettingCategory.SMS_GATEWAY),
     SMS_PHONE_NUMBER_FORMAT(
@@ -370,12 +368,16 @@ public enum PwmSetting {
             "sms.requestId.length", PwmSettingSyntax.NUMERIC, PwmSettingCategory.SMS_GATEWAY),
     SMS_USE_URL_SHORTENER(
             "sms.useUrlShortener", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.SMS_GATEWAY),
+    SMS_RESPONSE_OK_REGEX(
+            "sms.responseOkRegex", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.SMS_GATEWAY),
     SMS_SUCCESS_RESULT_CODE(
             "sms.successResultCodes", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.SMS_GATEWAY),
     URL_SHORTENER_CLASS(
             "urlshortener.classname", PwmSettingSyntax.STRING, PwmSettingCategory.SMS_GATEWAY),
     URL_SHORTENER_PARAMETERS(
             "urlshortener.parameters", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.SMS_GATEWAY),
+    SMS_MAX_QUEUE_AGE(
+            "sms.queueMaxAge", PwmSettingSyntax.DURATION, PwmSettingCategory.SMS_GATEWAY),
 
     SMS_CHALLENGE_TOKEN_TEXT(
             "sms.challenge.token.message", PwmSettingSyntax.LOCALIZED_STRING, PwmSettingCategory.SMS_MESSAGES),

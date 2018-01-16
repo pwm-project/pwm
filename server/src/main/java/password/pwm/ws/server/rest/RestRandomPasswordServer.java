@@ -22,7 +22,6 @@
 
 package password.pwm.ws.server.rest;
 
-import com.novell.ldapchai.exception.ChaiUnavailableException;
 import lombok.Data;
 import password.pwm.PwmConstants;
 import password.pwm.config.option.WebServiceUsage;
@@ -40,9 +39,9 @@ import password.pwm.util.PasswordData;
 import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
-import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestMethodHandler;
 import password.pwm.ws.server.RestRequest;
+import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServlet;
 import password.pwm.ws.server.RestWebServer;
 
@@ -76,6 +75,7 @@ public class RestRandomPasswordServer extends RestServlet {
         private int maxLength;
         private String chars;
         private boolean noUser;
+
     }
 
     @Override
@@ -156,42 +156,24 @@ public class RestRandomPasswordServer extends RestServlet {
             final RestRequest restRequest,
             final JsonInput jsonInput
     )
-            throws ChaiUnavailableException, PwmUnrecoverableException
+            throws PwmUnrecoverableException
     {
-        final RandomPasswordGenerator.RandomGeneratorConfig.RandomGeneratorConfigBuilder randomConfigBuilder
-                = RandomPasswordGenerator.RandomGeneratorConfig.builder();
-        if (jsonInput.strength > 0 && jsonInput.strength <= 100) {
-            randomConfigBuilder.minimumStrength(jsonInput.strength);
-        }
-        if (jsonInput.minLength > 0 && jsonInput.minLength <= 100 * 1024) {
-            randomConfigBuilder.minimumLength(jsonInput.minLength);
-        }
-        if (jsonInput.maxLength > 0 && jsonInput.maxLength <= 100 * 1024) {
-            randomConfigBuilder.maximumLength(jsonInput.maxLength);
-        }
-        if (jsonInput.chars != null) {
-            final List<String> charValues = new ArrayList<>();
-            for (int i = 0; i < jsonInput.chars.length(); i++) {
-                charValues.add(String.valueOf(jsonInput.chars.charAt(i)));
-            }
-            randomConfigBuilder.seedlistPhrases(charValues);
-        }
+        final PwmPasswordPolicy pwmPasswordPolicy;
 
         if (jsonInput.isNoUser()) {
-            randomConfigBuilder.passwordPolicy(PwmPasswordPolicy.defaultPolicy());
+            pwmPasswordPolicy = PwmPasswordPolicy.defaultPolicy();
         } else {
             final TargetUserIdentity targetUserIdentity = resolveRequestedUsername(restRequest, jsonInput.getUsername());
-            final PwmPasswordPolicy pwmPasswordPolicy = PasswordUtility.readPasswordPolicyForUser(
+            pwmPasswordPolicy = PasswordUtility.readPasswordPolicyForUser(
                     restRequest.getPwmApplication(),
                     restRequest.getSessionLabel(),
                     targetUserIdentity.getUserIdentity(),
                     targetUserIdentity.getChaiUser(),
                     restRequest.getLocale()
             );
-            randomConfigBuilder.passwordPolicy(pwmPasswordPolicy);
         }
 
-        final RandomPasswordGenerator.RandomGeneratorConfig randomConfig = randomConfigBuilder.build();
+        final RandomPasswordGenerator.RandomGeneratorConfig randomConfig = jsonInputToRandomConfig( jsonInput, pwmPasswordPolicy );
         final PasswordData randomPassword = RandomPasswordGenerator.createRandomPassword(restRequest.getSessionLabel(), randomConfig, restRequest.getPwmApplication());
         final JsonOutput outputMap = new JsonOutput();
         outputMap.password = randomPassword.getStringValue();
@@ -199,6 +181,36 @@ public class RestRandomPasswordServer extends RestServlet {
         StatisticsManager.incrementStat(restRequest.getPwmApplication(), Statistic.REST_SETPASSWORD);
 
         return outputMap;
+    }
+
+    public static RandomPasswordGenerator.RandomGeneratorConfig jsonInputToRandomConfig(
+            final JsonInput jsonInput,
+            final PwmPasswordPolicy pwmPasswordPolicy
+    )
+    {
+        final RandomPasswordGenerator.RandomGeneratorConfig.RandomGeneratorConfigBuilder randomConfigBuilder
+                = RandomPasswordGenerator.RandomGeneratorConfig.builder();
+
+        if (jsonInput.getStrength() > 0 && jsonInput.getStrength() <= 100) {
+            randomConfigBuilder.minimumStrength(jsonInput.getStrength());
+        }
+        if (jsonInput.getMinLength() > 0 && jsonInput.getMinLength() <= 100 * 1024) {
+            randomConfigBuilder.minimumLength(jsonInput.getMinLength());
+        }
+        if (jsonInput.getMaxLength() > 0 && jsonInput.getMaxLength() <= 100 * 1024) {
+            randomConfigBuilder.maximumLength(jsonInput.getMaxLength());
+        }
+        if (jsonInput.getChars() != null) {
+            final List<String> charValues = new ArrayList<>();
+            for (int i = 0; i < jsonInput.getChars().length(); i++) {
+                charValues.add(String.valueOf(jsonInput.getChars().charAt(i)));
+            }
+            randomConfigBuilder.seedlistPhrases(charValues);
+        }
+
+        randomConfigBuilder.passwordPolicy( pwmPasswordPolicy );
+
+        return randomConfigBuilder.build();
     }
 }
 
