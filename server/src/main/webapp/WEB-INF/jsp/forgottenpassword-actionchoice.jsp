@@ -21,10 +21,15 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<!DOCTYPE html>
+<%@ page import="password.pwm.http.servlet.forgottenpw.ForgottenPasswordServlet" %>
+
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
+<% boolean showChangePasswordAction = (Boolean)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ForgottenPasswordShowChangePasswordAction); %>
+<% boolean showUnlockPasswordAction = (Boolean)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ForgottenPasswordShowUnlockAction); %>
+<% boolean showIntruderDetectedAction = (Boolean)JspUtility.getAttribute(pageContext, PwmRequestAttribute.IntruderDetectionAction); %>
+
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
 <div id="wrapper">
@@ -34,8 +39,31 @@
     <div id="centerbody">
         <div id="page-content-title"><pwm:display key="Title_ForgottenPassword" displayIfMissing="true"/></div>
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-        <p><pwm:display key="Display_RecoverPasswordChoices"/></p>
+        <% if (showIntruderDetectedAction) { %>
+            <p><pwm:display key="Display_IntruderMessage"/></p>
+        <% } else { %>
+            <p><pwm:display key="Display_RecoverMinLifetimeChoices"/></p>
+        <% } %>
+
+        <% if (showChangePasswordAction && !showIntruderDetectedAction) { %>
+            <p><pwm:display key="Display_RecoverWithinMinLifetimeChoices"/></p>
+        <% } %>
+
+        <% if (showChangePasswordAction && showIntruderDetectedAction) { %>
+            <p><pwm:display key="Display_IntruderChangePassword"/></p>
+        <% } %>
+
+        <% if (showChangePasswordAction && showUnlockPasswordAction) { %>
+        <td>
+            <pwm:display key="Display_OrOption"/>
+        </td>
+        <% }  %>
+        <% if (showUnlockPasswordAction) { %>
+            <p><pwm:display key="Display_IntruderUnlock" /></p>
+        <% } %>
+
         <table class="noborder">
+            <% if (showUnlockPasswordAction || showIntruderDetectedAction) { %>
             <tr>
                 <td>
                     <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="search">
@@ -57,6 +85,8 @@
                     &nbsp;
                 </td>
             </tr>
+            <% } %>
+            <% if (showChangePasswordAction || !showIntruderDetectedAction) { %>
             <tr>
                 <td>
                     <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="search">
@@ -78,6 +108,7 @@
                     &nbsp;
                 </td>
             </tr>
+            <% } %>
             <tr>
                 <td>
                     <%@ include file="/WEB-INF/jsp/fragment/forgottenpassword-cancel.jsp" %>
