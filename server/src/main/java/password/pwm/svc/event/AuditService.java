@@ -77,8 +77,6 @@ public class AuditService implements PwmService {
     private ErrorInformation lastError;
     private UserHistoryStore userHistoryStore;
     private AuditVault auditVault;
-    private boolean cefEnabled = false;
-
     private PwmApplication pwmApplication;
 
     public AuditService() {
@@ -91,7 +89,7 @@ public class AuditService implements PwmService {
     public void init(final PwmApplication pwmApplication) throws PwmException {
         this.status = STATUS.OPENING;
         this.pwmApplication = pwmApplication;
-        cefEnabled = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.AUDIT_COMMONEVENTFORMAT_ENABLE);
+
         settings = new AuditSettings(pwmApplication.getConfig());
 
         if (pwmApplication.getApplicationMode() == null || pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY) {
@@ -107,7 +105,6 @@ public class AuditService implements PwmService {
         }
 
         final List<String> syslogConfigString = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.AUDIT_SYSLOG_SERVERS);
-
         if (syslogConfigString != null && !syslogConfigString.isEmpty()) {
             try {
                 syslogManager = new SyslogAuditService(pwmApplication);
@@ -179,7 +176,6 @@ public class AuditService implements PwmService {
 
     @Override
     public void close() {
-
         if (syslogManager != null) {
                 syslogManager.close();
             }
@@ -193,10 +189,10 @@ public class AuditService implements PwmService {
         }
 
         final List<HealthRecord> healthRecords = new ArrayList<>();
-
         if (syslogManager != null) {
             healthRecords.addAll(syslogManager.healthCheck());
         }
+
         if (lastError != null) {
             healthRecords.add(new HealthRecord(HealthStatus.WARN, HealthTopic.Audit, lastError.toDebugStr()));
         }
@@ -346,7 +342,6 @@ public class AuditService implements PwmService {
         }
 
         // send to syslog
-
         if (syslogManager != null) {
             try {
                 syslogManager.add(auditRecord);
