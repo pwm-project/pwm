@@ -75,10 +75,12 @@ public class SyslogAuditService {
     private static final String SYSLOG_INSTANCE_NAME = "syslog-audit";
     private static final int LENGTH_OVERSIZE = 1024;
 
+
     private SyslogIF syslogInstance = null;
     private ErrorInformation lastError = null;
     private List<X509Certificate> certificates = null;
     private WorkQueueProcessor<String> workQueueProcessor;
+
     private List<SyslogIF> syslogInstances = new ArrayList<>();
 
     private final Configuration configuration;
@@ -91,7 +93,6 @@ public class SyslogAuditService {
         cefEnabled = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.AUDIT_COMMONEVENTFORMAT_ENABLE);
         this.pwmApplication = pwmApplication;
         this.configuration = pwmApplication.getConfig();
-
         this.certificates = configuration.readSettingAsCertificate(PwmSetting.AUDIT_SYSLOG_CERTIFICATES);
 
         final List<String> syslogConfigStringArray = configuration.readSettingAsStringArray(PwmSetting.AUDIT_SYSLOG_SERVERS);

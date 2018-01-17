@@ -275,6 +275,7 @@ public enum PwmSetting {
     LDAP_ENABLE_WIRE_TRACE(
             "ldap.wireTrace.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.LDAP_GLOBAL),
 
+
     // email settings
     EMAIL_SERVER_ADDRESS(
             "email.smtp.address", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_SETTINGS),
