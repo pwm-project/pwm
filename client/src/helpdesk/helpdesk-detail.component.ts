@@ -30,8 +30,9 @@ import {IPeopleService} from '../services/people.service';
 import {IPerson} from '../models/person.model';
 import IasDialogComponent from '../ux/ias-dialog.component';
 
-let verificationsDialogTemplateUrl = require('./verifications-dialog.template.html');
 let helpdeskDetailDialogTemplateUrl = require('./helpdesk-detail-dialog.template.html');
+let passwordSuggestionsDialogTemplateUrl = require('./password-suggestions-dialog.html');
+let verificationsDialogTemplateUrl = require('./verifications-dialog.template.html');
 
 const STATUS_WAIT = 'wait';
 const STATUS_CONFIRM = 'confirm';
@@ -84,7 +85,14 @@ export default class HelpDeskDetailComponent {
     }
 
     changePassword(): void {
-        alert('Change password dialog');
+        this.IasDialogService
+            .open({
+                controller: 'PasswordSuggestionsDialogController as $ctrl',
+                templateUrl: passwordSuggestionsDialogTemplateUrl,
+                locals: {
+                    personUserKey: this.getUserKey(),
+                }
+            });
     }
 
     clearOtpSecret(): void {
@@ -174,7 +182,7 @@ export default class HelpDeskDetailComponent {
                         $scope.confirm = () => {
                             $scope.status = STATUS_WAIT;
                             helpDeskService.customAction(button.name, userKey).then((data: ISuccessResponse) => {
-                                // TODO - error dialog? (btw this error dialog is slightly different)
+                                // TODO - error dialog? (note that this error dialog is slightly different)
                                 $scope.status = STATUS_SUCCESS;
                                 $scope.title = translateFilter('Title_Success');
                                 $scope.secondaryText = null;

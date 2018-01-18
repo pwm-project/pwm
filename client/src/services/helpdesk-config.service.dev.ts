@@ -50,6 +50,10 @@ export default class HelpDeskConfigService extends ConfigBaseService implements 
         });
     }
 
+    getPasswordUiMode(): IPromise<string> {
+        return this.$q.resolve('both');
+    }
+
     getColumnConfig(): IPromise<any> {
         return this.$q.resolve({
             givenName: 'First Name',
@@ -77,6 +81,10 @@ export default class HelpDeskConfigService extends ConfigBaseService implements 
             { name: VERIFICATION_METHOD_NAMES.ATTRIBUTES, label: VERIFICATION_METHOD_LABELS.ATTRIBUTES },
             { name: VERIFICATION_METHOD_NAMES.SMS, label: VERIFICATION_METHOD_LABELS.SMS }
         ]);
+    }
+
+    maskPasswordsEnabled(): IPromise<boolean> {
+        return this.$q.resolve(true);
     }
 
     verificationsEnabled(): IPromise<boolean> {

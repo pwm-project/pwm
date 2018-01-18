@@ -33,6 +33,8 @@ const VERIFICATION_PROCESS_ACTIONS = {
     OTP: 'validateOtpCode'
 };
 
+const DEFAULT_SHOW_STRENGTH_METER = false;
+
 export interface IHelpDeskService {
     checkVerification(userKey: string): IPromise<IVerificationStatus>;
     clearOtpSecret(userKey: string): IPromise<ISuccessResponse>;
@@ -40,10 +42,12 @@ export interface IHelpDeskService {
     customAction(actionName: string, userKey: string): IPromise<ISuccessResponse>;
     deleteUser(userKey: string): IPromise<ISuccessResponse>;
     getPerson(userKey: string): IPromise<any>;
+    getRandomPassword(userKey: string): IPromise<IRandomPasswordResponse>;
     getRecentVerifications(): IPromise<IRecentVerifications>;
     sendVerificationToken(userKey: string, choice: string): IPromise<IVerificationTokenResponse>;
     unlockIntruder(userKey: string): IPromise<ISuccessResponse>;
     validateVerificationData(userKey: string, formData: any, tokenData: any): IPromise<IVerificationStatus>;
+    showStrengthMeter: boolean;
 }
 
 export interface IButtonInfo {
@@ -59,6 +63,10 @@ type IRecentVerification = {
     username: string,
     timestamp: string,
     method: string
+}
+
+export interface IRandomPasswordResponse {
+    password: string;
 }
 
 export interface ISuccessResponse {
@@ -167,6 +175,19 @@ export default class HelpDeskService implements IHelpDeskService {
             });
     }
 
+    getRandomPassword(userKey: string): IPromise<IRandomPasswordResponse> {
+        let url: string = this.pwmService.getServerUrl('randomPassword');
+        let data = {
+            username: userKey,
+            strength: 0
+        };
+        return this.pwmService
+            .httpRequest(url, { data: data })
+            .then((result: IRandomPasswordResponse) => {
+                return this.$q.resolve(result);
+            });
+    }
+
     getRecentVerifications(): IPromise<IRecentVerifications> {
         let url: string = this.pwmService.getServerUrl('showVerifications');
         let data = {
@@ -223,5 +244,13 @@ export default class HelpDeskService implements IHelpDeskService {
                 );
                 return this.$q.resolve(result);
             });
+    }
+
+    get showStrengthMeter(): boolean {
+        if (this.PWM_GLOBAL) {
+            return this.PWM_GLOBAL['setting-showStrengthMeter'] || DEFAULT_SHOW_STRENGTH_METER;
+        }
+
+        return DEFAULT_SHOW_STRENGTH_METER;
     }
 }

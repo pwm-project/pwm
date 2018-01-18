@@ -22,16 +22,17 @@
 
 
 import { module } from 'angular';
+import { DateFilter } from './date.filters';
+import HelpDeskDetailComponent from './helpdesk-detail.component';
 import HelpDeskSearchComponent from './helpdesk-search.component';
-import uxModule from '../ux/ux.module';
+import LocalStorageService from '../services/local-storage.service';
+import ObjectService from '../services/object.service';
+import PasswordSuggestionsDialogController from './password-suggestions.controller';
 import PersonCardComponent from '../peoplesearch/person-card.component';
 import PromiseService from '../services/promise.service';
-import HelpDeskDetailComponent from './helpdesk-detail.component';
-import LocalStorageService from '../services/local-storage.service';
-import VerificationsDialogController from './verifications-dialog.controller';
-import ObjectService from '../services/object.service';
 import RecentVerificationsDialogController from './recent-verifications-dialog.controller';
-import {DateFilter} from './date.filters';
+import uxModule from '../ux/ux.module';
+import VerificationsDialogController from './verifications-dialog.controller';
 
 require('../peoplesearch/peoplesearch.scss');
 
@@ -44,8 +45,9 @@ module(moduleName, [
     .component('helpDeskSearch', HelpDeskSearchComponent)
     .component('helpDeskDetail', HelpDeskDetailComponent)
     .component('personCard', PersonCardComponent)
-    .controller('VerificationsDialogController', VerificationsDialogController)
+    .controller('PasswordSuggestionsDialogController', PasswordSuggestionsDialogController)
     .controller('RecentVerificationsDialogController', RecentVerificationsDialogController)
+    .controller('VerificationsDialogController', VerificationsDialogController)
     .filter('dateFilter', DateFilter)
     .service('ObjectService', ObjectService)
     .service('PromiseService', PromiseService)

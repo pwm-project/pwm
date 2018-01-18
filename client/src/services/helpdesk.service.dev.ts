@@ -21,7 +21,7 @@
  */
 
 import {
-    IHelpDeskService, IRecentVerifications, ISuccessResponse, IVerificationStatus,
+    IHelpDeskService, IRandomPasswordResponse, IRecentVerifications, ISuccessResponse, IVerificationStatus,
     IVerificationTokenResponse
 } from './helpdesk.service';
 import {IPromise, IQService, ITimeoutService, IWindowService} from 'angular';
@@ -413,6 +413,12 @@ export default class HelpDeskService implements IHelpDeskService {
         });
     }
 
+    getRandomPassword(userKey: string): IPromise<IRandomPasswordResponse> {
+        let randomNumber = Math.floor(Math.random() * Math.floor(100));
+        let passwordSuggestion = 'suggestion' + randomNumber;
+        return this.simulateResponse({ password: passwordSuggestion });
+    }
+
     getRecentVerifications(): IPromise<IRecentVerifications> {
         return this.simulateResponse([
             {
@@ -466,5 +472,9 @@ export default class HelpDeskService implements IHelpDeskService {
 
     validateVerificationData(userKey: string, data: any, method: string): IPromise<IVerificationStatus> {
         return this.simulateResponse({ passed: true });
+    }
+
+    get showStrengthMeter(): boolean {
+        return false;
     }
 }

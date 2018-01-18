@@ -28,12 +28,14 @@ import {ConfigBaseService, IConfigService} from './base-config.service';
 
 const ACTION_BUTTONS_CONFIG = 'actions';
 const COLUMN_CONFIG = 'helpdesk_search_columns';
-const VERIFICATION_METHODS_CONFIG = 'verificationMethods';
+const MASK_PASSWORDS_CONFIG = 'helpdesk_setting_maskPasswords';
+const PASSWORD_UI_MODE_CONFIG = 'helpdesk_setting_PwUiMode';
 const TOKEN_SEND_METHOD_CONFIG = 'helpdesk_setting_tokenSendMethod';
 const TOKEN_VERIFICATION_METHOD = 'TOKEN';
 const TOKEN_SMS_ONLY = 'SMSONLY';
 const TOKEN_EMAIL_ONLY = 'EMAILONLY';
 const VERIFICATION_FORM_CONFIG = 'verificationForm';
+const VERIFICATION_METHODS_CONFIG = 'verificationMethods';
 export const TOKEN_CHOICE = 'CHOICE_SMS_EMAIL';
 
 export const VERIFICATION_METHOD_NAMES = {
@@ -63,9 +65,11 @@ export type IVerificationMap = {name: string, label: string}[];
 
 export interface IHelpDeskConfigService extends IConfigService {
     getActionButtons(): IPromise<IActionButtons>;
+    getPasswordUiMode(): IPromise<string>;
     getTokenSendMethod(): IPromise<string>;
     getVerificationAttributes(): IPromise<IVerificationMap>;
     getVerificationMethods(): IPromise<IVerificationMap>;
+    maskPasswordsEnabled(): IPromise<boolean>;
     verificationsEnabled(): IPromise<boolean>;
 }
 
@@ -82,6 +86,10 @@ export default class HelpDeskConfigService extends ConfigBaseService implements 
 
     getColumnConfig(): IPromise<any> {
         return this.getValue(COLUMN_CONFIG);
+    }
+
+    getPasswordUiMode(): IPromise<string> {
+        return this.getValue(PASSWORD_UI_MODE_CONFIG);
     }
 
     getTokenSendMethod(): IPromise<string> {
@@ -127,6 +135,10 @@ export default class HelpDeskConfigService extends ConfigBaseService implements 
 
             return verificationMethods;
         });
+    }
+
+    maskPasswordsEnabled(): IPromise<boolean> {
+        return this.getValue(MASK_PASSWORDS_CONFIG);
     }
 
     verificationsEnabled(): IPromise<boolean> {
