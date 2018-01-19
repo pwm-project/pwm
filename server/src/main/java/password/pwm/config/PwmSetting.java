@@ -278,6 +278,19 @@ public enum PwmSetting
     LDAP_ENABLE_WIRE_TRACE(
             "ldap.wireTrace.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.LDAP_GLOBAL ),
 
+    // New multiple email settings
+    EMAIL_PROFILES(
+            "email.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL),
+    EMAIL_SERVER_ADDRESSES(
+            "email.smtp.addresses", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_PROFILES),
+    EMAIL_SERVER_PORTs(
+            "email.smtp.ports", PwmSettingSyntax.NUMERIC, PwmSettingCategory.EMAIL_PROFILES),
+    EMAIL_DEFAULT_FROM_ADDRESSES(
+            "email.default.fromAddresses", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_PROFILES),
+    EMAIL_USERNAMES(
+            "email.smtp.usernames", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_PROFILES),
+    EMAIL_PASSWORDS(
+            "email.smtp.userpasswords", PwmSettingSyntax.PASSWORD, PwmSettingCategory.EMAIL_PROFILES),
 
     // email settings
     EMAIL_SERVER_ADDRESS(
