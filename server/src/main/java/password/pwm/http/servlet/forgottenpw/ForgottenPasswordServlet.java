@@ -1035,14 +1035,6 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
         }
 
         try {
-            /*
-            final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(
-                    pwmApplication,
-                    pwmSession,
-                    PwmAuthenticationSource.FORGOTTEN_PASSWORD
-            );
-            sessionAuthenticator.authUserWithUnknownPassword(userIdentity,AuthenticationType.AUTH_FROM_PUBLIC_MODULE);
-            */
             pwmSession.getLoginInfoBean().setAuthenticated(true);
             pwmSession.getLoginInfoBean().getAuthFlags().add(AuthenticationType.AUTH_FROM_PUBLIC_MODULE);
             pwmSession.getLoginInfoBean().setUserIdentity(userIdentity);
