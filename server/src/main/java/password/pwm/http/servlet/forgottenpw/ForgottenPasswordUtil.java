@@ -26,6 +26,8 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.Challenge;
 import com.novell.ldapchai.cr.ChallengeSet;
 import com.novell.ldapchai.cr.ResponseSet;
+import com.novell.ldapchai.exception.ChaiException;
+import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import password.pwm.AppProperty;
@@ -43,18 +45,25 @@ import password.pwm.config.profile.ForgottenPasswordProfile;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.bean.ForgottenPasswordBean;
 import password.pwm.http.filter.AuthenticationFilter;
+import password.pwm.i18n.Message;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
+import password.pwm.svc.event.AuditEvent;
+import password.pwm.svc.event.AuditRecord;
+import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.svc.token.TokenPayload;
 import password.pwm.svc.token.TokenService;
 import password.pwm.svc.token.TokenType;
+import password.pwm.util.PasswordData;
+import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -488,4 +497,109 @@ class ForgottenPasswordUtil {
         return displayDestAddress;
     }
 
+    static void doActionSendNewPassword( final PwmRequest pwmRequest)
+            throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException
+    {
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final ForgottenPasswordBean forgottenPasswordBean = ForgottenPasswordServlet.forgottenPasswordBean(pwmRequest);
+        final ForgottenPasswordProfile forgottenPasswordProfile = ForgottenPasswordServlet.forgottenPasswordProfile(pwmRequest);
+        final RecoveryAction recoveryAction = ForgottenPasswordUtil.getRecoveryAction(pwmApplication.getConfig(), forgottenPasswordBean);
+
+        LOGGER.trace(pwmRequest,"beginning process to send new password to user");
+
+        if (!forgottenPasswordBean.getProgress().isAllPassed()) {
+            return;
+        }
+
+        final UserIdentity userIdentity = forgottenPasswordBean.getUserIdentity();
+        final ChaiUser theUser = pwmRequest.getPwmApplication().getProxiedChaiUser(userIdentity);
+
+        try {
+            // try unlocking user
+            theUser.unlockPassword();
+            LOGGER.trace(pwmRequest, "unlock account succeeded");
+        } catch (ChaiOperationException e) {
+            final String errorMsg = "unable to unlock user " + theUser.getEntryDN() + " error: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNLOCK_FAILURE,errorMsg);
+            LOGGER.error(pwmRequest.getPwmSession(), errorInformation.toDebugStr());
+            pwmRequest.respondWithError(errorInformation);
+            return;
+        }
+
+        try {
+            final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy(
+                    pwmApplication,
+                    pwmRequest.getSessionLabel(),
+                    userIdentity,
+                    pwmRequest.getLocale()
+            );
+
+            LOGGER.info(pwmRequest, "user successfully supplied password recovery responses, emailing new password to: " + theUser.getEntryDN());
+
+            // add post change actions
+            ForgottenPasswordServlet.addPostChangeAction(pwmRequest, userIdentity);
+
+            // create new password
+            final PasswordData newPassword = RandomPasswordGenerator.createRandomPassword(
+                    pwmRequest.getSessionLabel(),
+                    userInfo.getPasswordPolicy(),
+                    pwmApplication
+            );
+            LOGGER.trace(pwmRequest, "generated random password value based on password policy for "
+                    + userIdentity.toDisplayString());
+
+
+            // set the password
+            try {
+                theUser.setPassword(newPassword.getStringValue());
+                LOGGER.trace(pwmRequest, "set user " + userIdentity.toDisplayString()
+                        + " password to system generated random value");
+            } catch (ChaiException e) {
+                throw PwmUnrecoverableException.fromChaiException(e);
+            }
+
+            if (recoveryAction == RecoveryAction.SENDNEWPW_AND_EXPIRE) {
+                LOGGER.debug(pwmRequest, "marking user " + userIdentity.toDisplayString() + " password as expired");
+                theUser.expirePassword();
+            }
+
+            // mark the event log
+            {
+                final AuditRecord auditRecord = new AuditRecordFactory(pwmApplication).createUserAuditRecord(
+                        AuditEvent.RECOVER_PASSWORD,
+                        userIdentity,
+                        pwmRequest.getSessionLabel()
+                );
+                pwmApplication.getAuditManager().submit(auditRecord);
+            }
+
+            final MessageSendMethod messageSendMethod = forgottenPasswordProfile.readSettingAsEnum(PwmSetting.RECOVERY_SENDNEWPW_METHOD,MessageSendMethod.class);
+
+            // send email or SMS
+            final String toAddress = PasswordUtility.sendNewPassword(
+                    userInfo,
+                    pwmApplication,
+                    newPassword,
+                    pwmRequest.getLocale(),
+                    messageSendMethod
+            );
+
+            pwmRequest.getPwmResponse().forwardToSuccessPage( Message.Success_PasswordSend, toAddress);
+        } catch (PwmException e) {
+            LOGGER.warn(pwmRequest, "unexpected error setting new password during recovery process for user: " + e.getMessage());
+            pwmRequest.respondWithError(e.getErrorInformation());
+        } catch (ChaiOperationException e) {
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"unexpected ldap error while processing recovery action " + recoveryAction + ", error: " + e.getMessage());
+            LOGGER.warn(pwmRequest, errorInformation.toDebugStr());
+            pwmRequest.respondWithError(errorInformation);
+        } finally {
+            ForgottenPasswordServlet.clearForgottenPasswordBean(pwmRequest);
+
+            // the user should not be authenticated, this is a safety method
+            pwmRequest.getPwmSession().unauthenticateUser(pwmRequest);
+
+            // the password set flag should not have been set, this is a safety method
+            pwmRequest.getPwmSession().getSessionStateBean().setPasswordModified(false);
+        }
+    }
 }

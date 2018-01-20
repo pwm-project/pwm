@@ -109,7 +109,6 @@ public class PasswordUtility {
     public static String sendNewPassword(
             final UserInfo userInfo,
             final PwmApplication pwmApplication,
-            final MacroMachine macroMachine,
             final PasswordData newPassword,
             final Locale userLocale,
             final MessageSendMethod messageSendMethod
@@ -119,6 +118,15 @@ public class PasswordUtility {
         final String emailAddress = userInfo.getUserEmailAddress();
         final String smsNumber = userInfo.getUserSmsNumber();
         String returnToAddress = emailAddress;
+
+        final MacroMachine macroMachine;
+        {
+            final LoginInfoBean loginInfoBean = new LoginInfoBean();
+            loginInfoBean.setUserCurrentPassword(newPassword);
+            loginInfoBean.setUserIdentity(userInfo.getUserIdentity());
+            macroMachine = MacroMachine.forUser(pwmApplication, null, userInfo, loginInfoBean);
+        }
+
 
         final ErrorInformation error;
         switch (messageSendMethod) {
@@ -532,13 +540,9 @@ public class PasswordUtility {
                 messageSendMethod = forgottenPasswordProfile.readSettingAsEnum(PwmSetting.RECOVERY_SENDNEWPW_METHOD, MessageSendMethod.class);
 
             }
-            final LoginInfoBean loginInfoBean = new LoginInfoBean();
-            loginInfoBean.setUserCurrentPassword(newPassword);
-            final MacroMachine macroMachine = new MacroMachine(pwmApplication, pwmSession.getLabel(), userInfo, loginInfoBean);
             PasswordUtility.sendNewPassword(
                     userInfo,
                     pwmApplication,
-                    macroMachine,
                     newPassword,
                     pwmSession.getSessionStateBean().getLocale(),
                     messageSendMethod

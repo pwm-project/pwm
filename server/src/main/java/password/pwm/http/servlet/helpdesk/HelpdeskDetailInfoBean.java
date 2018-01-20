@@ -35,7 +35,7 @@ import lombok.Setter;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.option.HelpdeskUIMode;
+import password.pwm.config.option.HelpDeskUIMode;
 import password.pwm.config.option.ViewStatusFields;
 import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.config.profile.PwmPasswordRule;
@@ -280,9 +280,9 @@ public class HelpdeskDetailInfoBean implements Serializable {
         buttons.add(StandardButton.back);
 
         {
-            final HelpdeskUIMode uiMode =
-                    helpdeskProfile.readSettingAsEnum(PwmSetting.HELPDESK_SET_PASSWORD_MODE, HelpdeskUIMode.class);
-            if (uiMode != HelpdeskUIMode.none) {
+            final HelpDeskUIMode uiMode =
+                    helpdeskProfile.readSettingAsEnum(PwmSetting.HELPDESK_SET_PASSWORD_MODE, HelpDeskUIMode.class);
+            if (uiMode != HelpDeskUIMode.none) {
                 buttons.add(StandardButton.changePassword);
             }
         }
