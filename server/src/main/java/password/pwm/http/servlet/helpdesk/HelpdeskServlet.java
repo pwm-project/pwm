@@ -37,7 +37,7 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.HelpdeskClearResponseMode;
-import password.pwm.config.option.HelpDeskUIMode;
+import password.pwm.config.option.HelpdeskUIMode;
 import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.profile.HelpdeskProfile;
@@ -212,7 +212,7 @@ public class HelpdeskServlet extends ControlledPwmServlet {
         { /// detail page
             returnValues.setHelpdesk_setting_maskPasswords(helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_PASSWORD_MASKVALUE));
             returnValues.setHelpdesk_setting_clearResponses(helpdeskProfile.readSettingAsEnum(PwmSetting.HELPDESK_CLEAR_RESPONSES, HelpdeskClearResponseMode.class));
-            returnValues.setHelpdesk_setting_PwUiMode(helpdeskProfile.readSettingAsEnum(PwmSetting.HELPDESK_SET_PASSWORD_MODE, HelpDeskUIMode.class));
+            returnValues.setHelpdesk_setting_PwUiMode(helpdeskProfile.readSettingAsEnum(PwmSetting.HELPDESK_SET_PASSWORD_MODE, HelpdeskUIMode.class));
             returnValues.setHelpdesk_setting_tokenSendMethod(helpdeskProfile.readSettingAsEnum(PwmSetting.HELPDESK_TOKEN_SEND_METHOD, MessageSendMethod.class));
         }
         { //actions
@@ -1125,8 +1125,8 @@ public class HelpdeskServlet extends ControlledPwmServlet {
         );
 
         {
-            final HelpDeskUIMode mode = helpdeskProfile.readSettingAsEnum(PwmSetting.HELPDESK_SET_PASSWORD_MODE, HelpDeskUIMode.class);
-            if (mode == HelpDeskUIMode.none) {
+            final HelpdeskUIMode mode = helpdeskProfile.readSettingAsEnum(PwmSetting.HELPDESK_SET_PASSWORD_MODE, HelpdeskUIMode.class);
+            if (mode == HelpdeskUIMode.none) {
                 throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SECURITY_VIOLATION,"setting "
                         + PwmSetting.HELPDESK_SET_PASSWORD_MODE.toMenuLocationDebug(helpdeskProfile.getIdentifier(), pwmRequest.getLocale())
                         + " must not be set to none"));
@@ -1172,9 +1172,9 @@ public class HelpdeskServlet extends ControlledPwmServlet {
         );
 
         HelpdeskServletUtil.checkIfUserIdentityViewable(pwmRequest, helpdeskProfile, userIdentity);
-        final HelpDeskUIMode mode = helpdeskProfile.readSettingAsEnum(PwmSetting.HELPDESK_SET_PASSWORD_MODE, HelpDeskUIMode.class);
+        final HelpdeskUIMode mode = helpdeskProfile.readSettingAsEnum(PwmSetting.HELPDESK_SET_PASSWORD_MODE, HelpdeskUIMode.class);
 
-        if (mode == HelpDeskUIMode.none) {
+        if (mode == HelpdeskUIMode.none) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SECURITY_VIOLATION,"setting "
                     + PwmSetting.HELPDESK_SET_PASSWORD_MODE.toMenuLocationDebug(helpdeskProfile.getIdentifier(), pwmRequest.getLocale())
                     + " must not be set to none"));
@@ -1183,7 +1183,7 @@ public class HelpdeskServlet extends ControlledPwmServlet {
 
         final PasswordData newPassword;
         if (jsonInput.getPassword() == null) {
-            if (mode != HelpDeskUIMode.random) {
+            if (mode != HelpdeskUIMode.random) {
                 throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SECURITY_VIOLATION,"setting "
                         + PwmSetting.HELPDESK_SET_PASSWORD_MODE.toMenuLocationDebug(helpdeskProfile.getIdentifier(), pwmRequest.getLocale())
                         + " is set to " + mode + " and no password is included in request"));
@@ -1201,7 +1201,7 @@ public class HelpdeskServlet extends ControlledPwmServlet {
                     pwmRequest.getPwmApplication()
             );
         } else {
-            if (mode == HelpDeskUIMode.random) {
+            if (mode == HelpdeskUIMode.random) {
                 throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SECURITY_VIOLATION,"setting "
                         + PwmSetting.HELPDESK_SET_PASSWORD_MODE.toMenuLocationDebug(helpdeskProfile.getIdentifier(), pwmRequest.getLocale())
                         + " is set to autogen yet a password is included in request"));
