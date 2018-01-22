@@ -34,15 +34,16 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.Configuration;
-import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.HelpdeskClearResponseMode;
 import password.pwm.config.option.HelpdeskUIMode;
 import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.profile.HelpdeskProfile;
+import password.pwm.config.profile.PwmPasswordPolicy;
+import password.pwm.config.value.data.ActionConfiguration;
+import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -739,17 +740,17 @@ public class HelpdeskServlet extends ControlledPwmServlet {
         try {
             TokenService.TokenSender.sendToken(
                     TokenService.TokenSendInfo.builder()
-                    .pwmApplication( pwmRequest.getPwmApplication() )
-                    .userInfo( userInfo )
-                    .macroMachine( macroMachine )
-                    .configuredEmailSetting( emailItemBean )
-                    .tokenSendMethod( tokenSendMethod )
-                    .emailAddress( destEmailAddress )
-                    .smsNumber( userInfo.getUserSmsNumber() )
-                    .smsMessage( smsMessage )
-                    .tokenKey( tokenKey )
-                    .sessionLabel( pwmRequest.getSessionLabel() )
-                    .build()
+                            .pwmApplication( pwmRequest.getPwmApplication() )
+                            .userInfo( userInfo )
+                            .macroMachine( macroMachine )
+                            .configuredEmailSetting( emailItemBean )
+                            .tokenSendMethod( tokenSendMethod )
+                            .emailAddress( destEmailAddress )
+                            .smsNumber( userInfo.getUserSmsNumber() )
+                            .smsMessage( smsMessage )
+                            .tokenKey( tokenKey )
+                            .sessionLabel( pwmRequest.getSessionLabel() )
+                            .build()
             );
         } catch (PwmException e) {
             LOGGER.error(pwmRequest, e.getErrorInformation());
@@ -1153,13 +1154,13 @@ public class HelpdeskServlet extends ControlledPwmServlet {
     @ActionHandler(action = "setPassword")
     private ProcessStatus processSetPasswordAction(final PwmRequest pwmRequest) throws IOException, PwmUnrecoverableException, ChaiUnavailableException
     {
+        final HelpdeskProfile helpdeskProfile = pwmRequest.getPwmSession().getSessionManager().getHelpdeskProfile(pwmRequest.getPwmApplication());
+
         final RestSetPasswordServer.JsonInputData jsonInput = JsonUtil.deserialize(
                 pwmRequest.readRequestBodyAsString(),
                 RestSetPasswordServer.JsonInputData.class
         );
 
-        final PasswordData newPassword = new PasswordData(jsonInput.getPassword());
-        final HelpdeskProfile helpdeskProfile = pwmRequest.getPwmSession().getSessionManager().getHelpdeskProfile(pwmRequest.getPwmApplication());
         final UserIdentity userIdentity = UserIdentity.fromKey(jsonInput.getUsername(),pwmRequest.getPwmApplication());
         final ChaiUser chaiUser = getChaiUser(pwmRequest, helpdeskProfile, userIdentity);
         final UserInfo userInfo = UserInfoFactory.newUserInfo(
@@ -1171,15 +1172,44 @@ public class HelpdeskServlet extends ControlledPwmServlet {
         );
 
         HelpdeskServletUtil.checkIfUserIdentityViewable(pwmRequest, helpdeskProfile, userIdentity);
+        final HelpdeskUIMode mode = helpdeskProfile.readSettingAsEnum(PwmSetting.HELPDESK_SET_PASSWORD_MODE, HelpdeskUIMode.class);
 
-        {
-            final HelpdeskUIMode mode = helpdeskProfile.readSettingAsEnum(PwmSetting.HELPDESK_CLEAR_RESPONSES, HelpdeskUIMode.class);
-            if (mode == HelpdeskUIMode.none) {
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SECURITY_VIOLATION,"setting "
-                        + PwmSetting.HELPDESK_CLEAR_RESPONSES.toMenuLocationDebug(helpdeskProfile.getIdentifier(), pwmRequest.getLocale())
-                        + " must not be set to none"));
-            }
+        if (mode == HelpdeskUIMode.none) {
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SECURITY_VIOLATION,"setting "
+                    + PwmSetting.HELPDESK_SET_PASSWORD_MODE.toMenuLocationDebug(helpdeskProfile.getIdentifier(), pwmRequest.getLocale())
+                    + " must not be set to none"));
         }
+
+
+        final PasswordData newPassword;
+        if (jsonInput.getPassword() == null) {
+            if (mode != HelpdeskUIMode.random) {
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SECURITY_VIOLATION,"setting "
+                        + PwmSetting.HELPDESK_SET_PASSWORD_MODE.toMenuLocationDebug(helpdeskProfile.getIdentifier(), pwmRequest.getLocale())
+                        + " is set to " + mode + " and no password is included in request"));
+            }
+            final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(
+                    pwmRequest.getPwmApplication(),
+                    pwmRequest.getSessionLabel(),
+                    userIdentity,
+                    chaiUser,
+                    pwmRequest.getLocale()
+            );
+            newPassword = RandomPasswordGenerator.createRandomPassword(
+                    pwmRequest.getSessionLabel(),
+                    passwordPolicy,
+                    pwmRequest.getPwmApplication()
+            );
+        } else {
+            if (mode == HelpdeskUIMode.random) {
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SECURITY_VIOLATION,"setting "
+                        + PwmSetting.HELPDESK_SET_PASSWORD_MODE.toMenuLocationDebug(helpdeskProfile.getIdentifier(), pwmRequest.getLocale())
+                        + " is set to autogen yet a password is included in request"));
+            }
+
+            newPassword = new PasswordData(jsonInput.getPassword());
+        }
+
 
         try {
             PasswordUtility.helpdeskSetUserPassword(
