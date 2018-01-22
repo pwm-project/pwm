@@ -327,32 +327,25 @@
                 </executions>
             </plugin>
             <plugin>
+                <!-- verifies jsp pages compile, but does not include the compiled versions in the WAR -->
                 <groupId>io.leonard.maven.plugins</groupId>
                 <artifactId>jspc-maven-plugin</artifactId>
                 <version>2.4.2</version>
-            </plugin>
-            <plugin>
-                <artifactId>maven-clean-plugin</artifactId>
-                <version>3.0.0</version>
                 <executions>
                     <execution>
-                        <id>remove-compiled-jsps</id>
-                        <phase>prepare-package</phase>
                         <goals>
-                            <goal>clean</goal>
+                            <goal>compile</goal>
                         </goals>
+                        <phase>compile</phase>
                         <configuration>
-                            <excludeDefaultDirectories>true</excludeDefaultDirectories>
-                            <filesets>
-                                <fileset>
-                                    <directory>target/classes/jsp</directory>
-                                </fileset>
-                            </filesets>
+                            <compilerVersion>${maven.compiler.source}</compilerVersion>
+                            <keepSources>false</keepSources>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
             <plugin>
+                <!-- builds xml file of dependencies and licenses for use in about page -->
                 <groupId>com.github.jinnovations</groupId>
                 <artifactId>attribution-maven-plugin</artifactId>
                 <version>0.9.5</version>
@@ -452,7 +445,7 @@
             <plugin> <!-- checks owsp vulnerability database during verify phase -->
                 <groupId>org.owasp</groupId>
                 <artifactId>dependency-check-maven</artifactId>
-                <version>3.0.1</version>
+                <version>3.1.0</version>
                 <configuration>
                     <nuspecAnalyzerEnabled>false</nuspecAnalyzerEnabled>
                     <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
