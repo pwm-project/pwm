@@ -1639,6 +1639,15 @@
             <property key="Cert_ImportHandler">password.pwm.config.function.SyslogCertImportFunction</property>
         </properties>
     </setting>
+    <setting hidden="false" key="audit.syslog.outputFormat" level="1">
+        <default>
+            <value>JSON</value>
+        </default>
+        <options>
+            <option value="JSON">JSON</option>
+            <option value="CEF">CEF</option>
+        </options>
+    </setting>
     <setting hidden="false" key="token.storageMethod" level="1" required="true">
         <default>
             <value><![CDATA[STORE_CRYPTO]]></value>
