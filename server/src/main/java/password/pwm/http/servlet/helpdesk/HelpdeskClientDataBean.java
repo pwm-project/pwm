@@ -23,7 +23,7 @@
 package password.pwm.http.servlet.helpdesk;
 
 import password.pwm.config.option.HelpdeskClearResponseMode;
-import password.pwm.config.option.HelpDeskUIMode;
+import password.pwm.config.option.HelpdeskUIMode;
 import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.option.MessageSendMethod;
 
@@ -37,7 +37,7 @@ public class HelpdeskClientDataBean implements Serializable {
     private Map<String,String> helpdesk_search_columns = new HashMap<>();
     private boolean helpdesk_setting_maskPasswords;
     private HelpdeskClearResponseMode helpdesk_setting_clearResponses;
-    private HelpDeskUIMode helpdesk_setting_PwUiMode;
+    private HelpdeskUIMode helpdesk_setting_PwUiMode;
     private MessageSendMethod helpdesk_setting_tokenSendMethod;
     private Map<String, ActionInformation> actions = new HashMap<>();
     private Map<String, Collection<IdentityVerificationMethod>> verificationMethods = new HashMap<>();
@@ -67,11 +67,11 @@ public class HelpdeskClientDataBean implements Serializable {
         this.helpdesk_setting_clearResponses = helpdesk_setting_clearResponses;
     }
 
-    public HelpDeskUIMode getHelpdesk_setting_PwUiMode() {
+    public HelpdeskUIMode getHelpdesk_setting_PwUiMode() {
         return helpdesk_setting_PwUiMode;
     }
 
-    public void setHelpdesk_setting_PwUiMode(final HelpDeskUIMode helpdesk_setting_PwUiMode) {
+    public void setHelpdesk_setting_PwUiMode(final HelpdeskUIMode helpdesk_setting_PwUiMode) {
         this.helpdesk_setting_PwUiMode = helpdesk_setting_PwUiMode;
     }
 
