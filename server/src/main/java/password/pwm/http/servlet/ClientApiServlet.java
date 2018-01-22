@@ -70,7 +70,7 @@ public class ClientApiServlet extends ControlledPwmServlet
     @Data
     public static class AppData implements Serializable
     {
-        @SuppressWarnings( "CheckStyle:MemberName" )
+        @SuppressWarnings( "checkstyle:MemberName" )
         public Map<String, Object> PWM_GLOBAL;
     }
 

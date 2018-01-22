@@ -74,6 +74,8 @@ public class PwmLogEvent implements Serializable, Comparable
         return JsonUtil.deserialize( encodedString, PwmLogEvent.class );
     }
 
+
+    @SuppressWarnings( "checkstyle:ParameterNumber" )
     private PwmLogEvent(
             final Instant date,
             final String topic,
@@ -153,6 +155,7 @@ public class PwmLogEvent implements Serializable, Comparable
         return sb.toString();
     }
 
+    @SuppressWarnings( "checkstyle:ParameterNumber" )
     public static PwmLogEvent createPwmLogEvent(
             final Instant date,
             final String topic,

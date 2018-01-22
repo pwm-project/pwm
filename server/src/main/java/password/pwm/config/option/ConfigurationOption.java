@@ -22,6 +22,9 @@
 
 package password.pwm.config.option;
 
+/**
+ * Marker interface.
+ */
 public interface ConfigurationOption
-{ /* marker interface */
+{
 }

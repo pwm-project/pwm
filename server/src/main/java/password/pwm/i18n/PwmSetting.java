@@ -24,8 +24,7 @@ package password.pwm.i18n;
 
 public enum PwmSetting implements PwmDisplayBundle
 {
-
-    ;
+    value,;
 
     public static final String SETTING_LABEL_PREFIX = "Setting_Label_";
     public static final String SETTING_DESCRIPTION_PREFIX = "Setting_Description_";

@@ -88,83 +88,94 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.TreeMap;
 
-public class MainClass {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(MainClass.class);
+public class MainClass
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( MainClass.class );
 
     private static final String LOGGING_PATTERN = "%d{yyyy-MM-dd'T'HH:mm:ssX}{GMT}, %-5p, %c{2}, %m%n";
 
-    private static MainOptions MAIN_OPTIONS;
+    private static MainOptions mainOptions;
 
-    public static final Map<String,CliCommand> COMMANDS;
+    public static final Map<String, CliCommand> COMMANDS;
 
-    static {
+    static
+    {
         final List<CliCommand> commandList = new ArrayList<>();
-        commandList.add(new LocalDBInfoCommand());
-        commandList.add(new ExportLogsCommand());
-        commandList.add(new UserReportCommand());
-        commandList.add(new ExportLocalDBCommand());
-        commandList.add(new ImportLocalDBCommand());
-        commandList.add(new ExportAuditCommand());
-        commandList.add(new ConfigUnlockCommand());
-        commandList.add(new ConfigLockCommand());
-        commandList.add(new ConfigSetPasswordCommand());
-        commandList.add(new ExportStatsCommand());
-        commandList.add(new ExportResponsesCommand());
-        commandList.add(new ClearResponsesCommand());
-        commandList.add(new ImportResponsesCommand());
-        commandList.add(new TokenInfoCommand());
-        commandList.add(new ConfigNewCommand());
-        commandList.add(new VersionCommand());
-        commandList.add(new LdapSchemaExtendCommand());
-        commandList.add(new ConfigDeleteCommand());
-        commandList.add(new ResponseStatsCommand());
-        commandList.add(new ImportHttpsKeyStoreCommand());
-        commandList.add(new ExportHttpsKeyStoreCommand());
-        commandList.add(new ExportHttpsTomcatConfigCommand());
-        commandList.add(new ShellCommand());
-        commandList.add(new ConfigResetHttpsCommand());
-        commandList.add(new HelpCommand());
+        commandList.add( new LocalDBInfoCommand() );
+        commandList.add( new ExportLogsCommand() );
+        commandList.add( new UserReportCommand() );
+        commandList.add( new ExportLocalDBCommand() );
+        commandList.add( new ImportLocalDBCommand() );
+        commandList.add( new ExportAuditCommand() );
+        commandList.add( new ConfigUnlockCommand() );
+        commandList.add( new ConfigLockCommand() );
+        commandList.add( new ConfigSetPasswordCommand() );
+        commandList.add( new ExportStatsCommand() );
+        commandList.add( new ExportResponsesCommand() );
+        commandList.add( new ClearResponsesCommand() );
+        commandList.add( new ImportResponsesCommand() );
+        commandList.add( new TokenInfoCommand() );
+        commandList.add( new ConfigNewCommand() );
+        commandList.add( new VersionCommand() );
+        commandList.add( new LdapSchemaExtendCommand() );
+        commandList.add( new ConfigDeleteCommand() );
+        commandList.add( new ResponseStatsCommand() );
+        commandList.add( new ImportHttpsKeyStoreCommand() );
+        commandList.add( new ExportHttpsKeyStoreCommand() );
+        commandList.add( new ExportHttpsTomcatConfigCommand() );
+        commandList.add( new ShellCommand() );
+        commandList.add( new ConfigResetHttpsCommand() );
+        commandList.add( new HelpCommand() );
         //commandList.add(new PasswordExpireNotificationCommand());
 
-        final Map<String,CliCommand> sortedMap = new TreeMap<>();
-        for (final CliCommand command : commandList) {
-            sortedMap.put(command.getCliParameters().commandName,command);
+        final Map<String, CliCommand> sortedMap = new TreeMap<>();
+        for ( final CliCommand command : commandList )
+        {
+            sortedMap.put( command.getCliParameters().commandName, command );
         }
-        COMMANDS = Collections.unmodifiableMap(sortedMap);
+        COMMANDS = Collections.unmodifiableMap( sortedMap );
     }
 
-    public static String helpTextFromCommands(final Collection<CliCommand> commands) {
+    public static String helpTextFromCommands( final Collection<CliCommand> commands )
+    {
         final StringBuilder output = new StringBuilder();
-        for (final CliCommand command : commands) {
-            output.append(command.getCliParameters().commandName);
-            if (command.getCliParameters().options != null) {
-                for (final CliParameters.Option option : command.getCliParameters().options) {
-                    output.append(" ");
-                    if (option.isOptional()) {
-                        output.append("<").append(option.getName()).append(">");
-                    } else {
-                        output.append("[").append(option.getName()).append("]");
+        for ( final CliCommand command : commands )
+        {
+            output.append( command.getCliParameters().commandName );
+            if ( command.getCliParameters().options != null )
+            {
+                for ( final CliParameters.Option option : command.getCliParameters().options )
+                {
+                    output.append( " " );
+                    if ( option.isOptional() )
+                    {
+                        output.append( "<" ).append( option.getName() ).append( ">" );
+                    }
+                    else
+                    {
+                        output.append( "[" ).append( option.getName() ).append( "]" );
                     }
                 }
             }
-            output.append("\n");
-            output.append("       ").append(command.getCliParameters().description);
-            output.append("\n");
+            output.append( "\n" );
+            output.append( "       " ).append( command.getCliParameters().description );
+            output.append( "\n" );
         }
         return output.toString();
     }
 
-    private static String makeHelpTextOutput() {
+    private static String makeHelpTextOutput( )
+    {
         final StringBuilder output = new StringBuilder();
-        output.append(helpTextFromCommands(COMMANDS.values()));
-        output.append("\n");
-        output.append("options:\n");
-        output.append(" -force                force operations skipping any confirmation\n");
-        output.append(" -debugLevel=x         set the debug level where x is TRACE, DEBUG, INFO, ERROR, WARN or FATAL\n");
-        output.append(" -applicationPath=x    set the application path, default is current path\n");
-        output.append("\n");
-        output.append("usage: \n");
-        output.append(" command[.bat/.sh] <options> CommandName <command options>");
+        output.append( helpTextFromCommands( COMMANDS.values() ) );
+        output.append( "\n" );
+        output.append( "options:\n" );
+        output.append( " -force                force operations skipping any confirmation\n" );
+        output.append( " -debugLevel=x         set the debug level where x is TRACE, DEBUG, INFO, ERROR, WARN or FATAL\n" );
+        output.append( " -applicationPath=x    set the application path, default is current path\n" );
+        output.append( "\n" );
+        output.append( "usage: \n" );
+        output.append( " command[.bat/.sh] <options> CommandName <command options>" );
 
         return output.toString();
     }
@@ -176,34 +187,39 @@ public class MainClass {
             throws Exception
     {
 
-        final Map<String,Object> options = parseCommandOptions(parameters, args);
-        final File applicationPath = figureApplicationPath(MAIN_OPTIONS);
-        out("applicationPath=" + applicationPath.getAbsolutePath());
-        PwmEnvironment.verifyApplicationPath(applicationPath);
+        final Map<String, Object> options = parseCommandOptions( parameters, args );
+        final File applicationPath = figureApplicationPath( mainOptions );
+        out( "applicationPath=" + applicationPath.getAbsolutePath() );
+        PwmEnvironment.verifyApplicationPath( applicationPath );
 
-        final File configurationFile = locateConfigurationFile(applicationPath);
+        final File configurationFile = locateConfigurationFile( applicationPath );
 
-        final ConfigurationReader configReader = loadConfiguration(configurationFile);
+        final ConfigurationReader configReader = loadConfiguration( configurationFile );
         final Configuration config = configReader.getConfiguration();
 
         final PwmApplication pwmApplication;
         final LocalDB localDB;
 
-        if (parameters.needsPwmApplication) {
-            pwmApplication = loadPwmApplication(applicationPath, MAIN_OPTIONS.getApplicationFlags(), config, configurationFile, parameters.readOnly);
+        if ( parameters.needsPwmApplication )
+        {
+            pwmApplication = loadPwmApplication( applicationPath, mainOptions.getApplicationFlags(), config, configurationFile, parameters.readOnly );
             localDB = pwmApplication.getLocalDB();
-        } else if (parameters.needsLocalDB) {
+        }
+        else if ( parameters.needsLocalDB )
+        {
             pwmApplication = null;
-            localDB = loadPwmDB(config, parameters.readOnly, applicationPath);
-        } else {
+            localDB = loadPwmDB( config, parameters.readOnly, applicationPath );
+        }
+        else
+        {
             pwmApplication = null;
             localDB = null;
         }
 
-        out("environment initialized");
-        out("");
+        out( "environment initialized" );
+        out( "" );
 
-        final Writer outputStream = new OutputStreamWriter(System.out, PwmConstants.DEFAULT_CHARSET);
+        final Writer outputStream = new OutputStreamWriter( System.out, PwmConstants.DEFAULT_CHARSET );
         return new CliEnvironment(
                 configReader,
                 configurationFile,
@@ -213,101 +229,123 @@ public class MainClass {
                 localDB,
                 outputStream,
                 options,
-                MAIN_OPTIONS
+                mainOptions
         );
     }
 
-    public static Map<String,Object> parseCommandOptions(
+    public static Map<String, Object> parseCommandOptions(
             final CliParameters cliParameters,
             final List<String> args
     )
             throws CliException
     {
-        final Queue<String> argQueue = new LinkedList<>(args);
-        final Map<String,Object> returnObj = new LinkedHashMap<>();
+        final Queue<String> argQueue = new LinkedList<>( args );
+        final Map<String, Object> returnObj = new LinkedHashMap<>();
 
-        if (cliParameters.options != null) {
-            for (final CliParameters.Option option : cliParameters.options) {
-                if (!option.isOptional() && argQueue.isEmpty()) {
-                    throw new CliException("missing required option '" + option.getName() + "'");
+        if ( cliParameters.options != null )
+        {
+            for ( final CliParameters.Option option : cliParameters.options )
+            {
+                if ( !option.isOptional() && argQueue.isEmpty() )
+                {
+                    throw new CliException( "missing required option '" + option.getName() + "'" );
                 }
 
-                if (!argQueue.isEmpty()) {
+                if ( !argQueue.isEmpty() )
+                {
                     final String argument = argQueue.poll();
-                    switch (option.getType()) {
+                    switch ( option.getType() )
+                    {
                         case NEW_FILE:
-                            try {
-                                final File theFile = new File(argument);
-                                if (theFile.exists()) {
-                                    throw new CliException("file for option '" + option.getName() + "' at '" + theFile.getAbsolutePath() + "' already exists");
+                            try
+                            {
+                                final File theFile = new File( argument );
+                                if ( theFile.exists() )
+                                {
+                                    throw new CliException( "file for option '" + option.getName() + "' at '" + theFile.getAbsolutePath() + "' already exists" );
                                 }
-                                returnObj.put(option.getName(),theFile);
-                            } catch (Exception e) {
-                                if (e instanceof CliException) {
-                                    throw (CliException)e;
+                                returnObj.put( option.getName(), theFile );
+                            }
+                            catch ( Exception e )
+                            {
+                                if ( e instanceof CliException )
+                                {
+                                    throw ( CliException ) e;
                                 }
-                                throw new CliException("cannot access file for option '" + option.getName() + "', " + e.getMessage());
+                                throw new CliException( "cannot access file for option '" + option.getName() + "', " + e.getMessage() );
 
                             }
                             break;
 
                         case EXISTING_FILE:
-                            try {
-                                final File theFile = new File(argument);
-                                if (!theFile.exists()) {
-                                    throw new CliException("file for option '" + option.getName() + "' at '" + theFile.getAbsolutePath() + "' does not exist");
+                            try
+                            {
+                                final File theFile = new File( argument );
+                                if ( !theFile.exists() )
+                                {
+                                    throw new CliException( "file for option '" + option.getName() + "' at '" + theFile.getAbsolutePath() + "' does not exist" );
                                 }
-                                returnObj.put(option.getName(),theFile);
-                            } catch (Exception e) {
-                                if (e instanceof CliException) {
-                                    throw (CliException)e;
+                                returnObj.put( option.getName(), theFile );
+                            }
+                            catch ( Exception e )
+                            {
+                                if ( e instanceof CliException )
+                                {
+                                    throw ( CliException ) e;
                                 }
-                                throw new CliException("cannot access file for option '" + option.getName() + "', " + e.getMessage());
+                                throw new CliException( "cannot access file for option '" + option.getName() + "', " + e.getMessage() );
                             }
                             break;
 
                         case STRING:
-                            returnObj.put(option.getName(), argument);
+                            returnObj.put( option.getName(), argument );
                             break;
 
                         default:
-                            JavaHelper.unhandledSwitchStatement(option.getType());
+                            JavaHelper.unhandledSwitchStatement( option.getType() );
                     }
                 }
             }
         }
 
-        if (!argQueue.isEmpty()) {
-            throw new CliException("unknown option '" + argQueue.poll() + "'");
+        if ( !argQueue.isEmpty() )
+        {
+            throw new CliException( "unknown option '" + argQueue.poll() + "'" );
         }
 
         return returnObj;
     }
 
-    public static void main(final String[] args)
+    public static void main( final String[] args )
             throws Exception
     {
-        out(PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " Command Line Utility");
-        MAIN_OPTIONS = MainOptions.parseMainCommandLineOptions(args, new OutputStreamWriter(System.out, PwmConstants.DEFAULT_CHARSET));
-        final List<String> workingArgs = MAIN_OPTIONS.getRemainingArguments();
+        out( PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " Command Line Utility" );
+        mainOptions = MainOptions.parseMainCommandLineOptions( args, new OutputStreamWriter( System.out, PwmConstants.DEFAULT_CHARSET ) );
+        final List<String> workingArgs = mainOptions.getRemainingArguments();
 
-        initLog4j(MAIN_OPTIONS.getPwmLogLevel());
+        initLog4j( mainOptions.getPwmLogLevel() );
 
         final String commandStr = workingArgs == null || workingArgs.size() < 1 ? null : workingArgs.iterator().next();
 
         boolean commandExceuted = false;
-        if (commandStr == null) {
-            out("\n");
-            out(makeHelpTextOutput());
-        } else {
-            for (final CliCommand command : COMMANDS.values()) {
-                if (commandStr.equalsIgnoreCase(command.getCliParameters().commandName)) {
+        if ( commandStr == null )
+        {
+            out( "\n" );
+            out( makeHelpTextOutput() );
+        }
+        else
+        {
+            for ( final CliCommand command : COMMANDS.values() )
+            {
+                if ( commandStr.equalsIgnoreCase( command.getCliParameters().commandName ) )
+                {
                     commandExceuted = true;
-                    executeCommand(command, commandStr, workingArgs.toArray(new String[workingArgs.size()]));
+                    executeCommand( command, commandStr, workingArgs.toArray( new String[ workingArgs.size() ] ) );
                     break;
                 }
             }
-            if (!commandExceuted) {
+            if ( !commandExceuted )
+            {
                 out( "unknown command '" + workingArgs.iterator().next() + "'" );
             }
         }
@@ -317,43 +355,58 @@ public class MainClass {
             final CliCommand command,
             final String commandStr,
             final String[] args
-    ) {
-        final List<String> argList = new LinkedList<>(Arrays.asList(args));
-        argList.remove(0);
+    )
+    {
+        final List<String> argList = new LinkedList<>( Arrays.asList( args ) );
+        argList.remove( 0 );
 
         final CliEnvironment cliEnvironment;
-        try {
-            cliEnvironment = createEnv(command.getCliParameters(), argList);
-        } catch (Exception e) {
+        try
+        {
+            cliEnvironment = createEnv( command.getCliParameters(), argList );
+        }
+        catch ( Exception e )
+        {
             final String errorMsg = "unable to establish operating environment: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ENVIRONMENT_ERROR, errorMsg);
-            LOGGER.error(errorInformation.toDebugStr(),e);
-            out("unable to establish operating environment: " + e.getMessage());
-            System.exit(-1);
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_ENVIRONMENT_ERROR, errorMsg );
+            LOGGER.error( errorInformation.toDebugStr(), e );
+            out( "unable to establish operating environment: " + e.getMessage() );
+            System.exit( -1 );
             return;
         }
 
-        try {
-            command.execute(commandStr, cliEnvironment);
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
+        try
+        {
+            command.execute( commandStr, cliEnvironment );
+        }
+        catch ( Exception e )
+        {
+            System.out.println( e.getMessage() );
             //System.exit(-1);
             return;
         }
 
-        if (cliEnvironment.getPwmApplication() != null) {
-            try {
+        if ( cliEnvironment.getPwmApplication() != null )
+        {
+            try
+            {
                 cliEnvironment.getPwmApplication().shutdown();
-            } catch (Exception e) {
-                out("error closing operating environment: " + e.getMessage());
+            }
+            catch ( Exception e )
+            {
+                out( "error closing operating environment: " + e.getMessage() );
                 e.printStackTrace();
             }
         }
-        if (cliEnvironment.getLocalDB() != null) {
-            try {
+        if ( cliEnvironment.getLocalDB() != null )
+        {
+            try
+            {
                 cliEnvironment.getLocalDB().close();
-            } catch (Exception e) {
-                out("error closing LocalDB environment: " + e.getMessage());
+            }
+            catch ( Exception e )
+            {
+                out( "error closing LocalDB environment: " + e.getMessage() );
             }
         }
 
@@ -362,21 +415,25 @@ public class MainClass {
 
     }
 
-    private static void initLog4j(final PwmLogLevel logLevel) {
-        if (logLevel == null) {
+    private static void initLog4j( final PwmLogLevel logLevel )
+    {
+        if ( logLevel == null )
+        {
             Logger.getRootLogger().removeAllAppenders();
-            Logger.getRootLogger().addAppender(new NullAppender());
+            Logger.getRootLogger().addAppender( new NullAppender() );
             PwmLogger.markInitialized();
             return;
         }
 
-        final Layout patternLayout = new EnhancedPatternLayout(LOGGING_PATTERN);
-        final ConsoleAppender consoleAppender = new ConsoleAppender(patternLayout);
-        for (final Package logPackage : PwmLogManager.LOGGING_PACKAGES) {
-            if (logPackage != null) {
-                final Logger logger = Logger.getLogger(logPackage.getName());
-                logger.addAppender(consoleAppender);
-                logger.setLevel(logLevel.getLog4jLevel());
+        final Layout patternLayout = new EnhancedPatternLayout( LOGGING_PATTERN );
+        final ConsoleAppender consoleAppender = new ConsoleAppender( patternLayout );
+        for ( final Package logPackage : PwmLogManager.LOGGING_PACKAGES )
+        {
+            if ( logPackage != null )
+            {
+                final Logger logger = Logger.getLogger( logPackage.getName() );
+                logger.addAppender( consoleAppender );
+                logger.setLevel( logLevel.getLog4jLevel() );
             }
         }
         PwmLogger.markInitialized();
@@ -390,18 +447,20 @@ public class MainClass {
             throws Exception
     {
         final File databaseDirectory;
-        final String pwmDBLocationSetting = config.readAppProperty(AppProperty.LOCALDB_LOCATION);
-        databaseDirectory = FileSystemUtility.figureFilepath(pwmDBLocationSetting, applicationPath);
-        return LocalDBFactory.getInstance(databaseDirectory, readonly, null, config);
+        final String pwmDBLocationSetting = config.readAppProperty( AppProperty.LOCALDB_LOCATION );
+        databaseDirectory = FileSystemUtility.figureFilepath( pwmDBLocationSetting, applicationPath );
+        return LocalDBFactory.getInstance( databaseDirectory, readonly, null, config );
     }
 
-    private static ConfigurationReader loadConfiguration(final File configurationFile) throws Exception {
-        final ConfigurationReader reader = new ConfigurationReader(configurationFile);
+    private static ConfigurationReader loadConfiguration( final File configurationFile ) throws Exception
+    {
+        final ConfigurationReader reader = new ConfigurationReader( configurationFile );
 
-        if (reader.getConfigMode() == PwmApplicationMode.ERROR) {
+        if ( reader.getConfigMode() == PwmApplicationMode.ERROR )
+        {
             final String errorMsg = reader.getConfigFileError() == null ? "error" : reader.getConfigFileError().toDebugStr();
-            out("unable to load configuration: " + errorMsg);
-            System.exit(-1);
+            out( "unable to load configuration: " + errorMsg );
+            System.exit( -1 );
         }
 
         return reader;
@@ -418,54 +477,67 @@ public class MainClass {
     {
         final PwmApplicationMode mode = readonly ? PwmApplicationMode.READ_ONLY : PwmApplicationMode.RUNNING;
         final Collection<PwmEnvironment.ApplicationFlag> applicationFlags = new HashSet<>();
-        if (flags == null) {
-            applicationFlags.addAll(PwmEnvironment.ParseHelper.readApplicationFlagsFromSystem(null));
-        } else {
-            applicationFlags.addAll(flags);
+        if ( flags == null )
+        {
+            applicationFlags.addAll( PwmEnvironment.ParseHelper.readApplicationFlagsFromSystem( null ) );
         }
-        applicationFlags.add(PwmEnvironment.ApplicationFlag.CommandLineInstance);
-        final PwmEnvironment pwmEnvironment = new PwmEnvironment.Builder(config, applicationPath)
-                .setApplicationMode(mode)
-                .setConfigurationFile(configurationFile)
-                .setFlags(applicationFlags)
+        else
+        {
+            applicationFlags.addAll( flags );
+        }
+        applicationFlags.add( PwmEnvironment.ApplicationFlag.CommandLineInstance );
+        final PwmEnvironment pwmEnvironment = new PwmEnvironment.Builder( config, applicationPath )
+                .setApplicationMode( mode )
+                .setConfigurationFile( configurationFile )
+                .setFlags( applicationFlags )
                 .createPwmEnvironment();
-        final PwmApplication pwmApplication = new PwmApplication(pwmEnvironment);
+        final PwmApplication pwmApplication = new PwmApplication( pwmEnvironment );
         final PwmApplicationMode runningMode = pwmApplication.getApplicationMode();
 
-        if (runningMode != mode) {
-            out("unable to start application in required state '" + mode + "', current state: " + runningMode);
-            System.exit(-1);
+        if ( runningMode != mode )
+        {
+            out( "unable to start application in required state '" + mode + "', current state: " + runningMode );
+            System.exit( -1 );
         }
 
         return pwmApplication;
     }
 
-    private static File locateConfigurationFile(final File applicationPath) {
-        return new File(applicationPath + File.separator + PwmConstants.DEFAULT_CONFIG_FILE_FILENAME);
+    private static File locateConfigurationFile( final File applicationPath )
+    {
+        return new File( applicationPath + File.separator + PwmConstants.DEFAULT_CONFIG_FILE_FILENAME );
     }
 
-    private static void out(final CharSequence txt) {
-        System.out.println(txt);
+    private static void out( final CharSequence txt )
+    {
+        System.out.println( txt );
     }
 
-    private static File figureApplicationPath(final MainOptions mainOptions) throws IOException, PwmUnrecoverableException {
+    private static File figureApplicationPath( final MainOptions mainOptions ) throws IOException, PwmUnrecoverableException
+    {
         final File applicationPath;
-        if (mainOptions != null && mainOptions.getApplicationPath() != null) {
+        if ( mainOptions != null && mainOptions.getApplicationPath() != null )
+        {
             applicationPath = mainOptions.getApplicationPath();
-        } else {
-            final String appPathStr = PwmEnvironment.ParseHelper.readValueFromSystem(PwmEnvironment.EnvironmentParameter.applicationPath,null);
-            if (appPathStr != null && !appPathStr.isEmpty()) {
-                applicationPath = new File(appPathStr);
-            } else {
+        }
+        else
+        {
+            final String appPathStr = PwmEnvironment.ParseHelper.readValueFromSystem( PwmEnvironment.EnvironmentParameter.applicationPath, null );
+            if ( appPathStr != null && !appPathStr.isEmpty() )
+            {
+                applicationPath = new File( appPathStr );
+            }
+            else
+            {
                 final String errorMsg = "unable to locate applicationPath.  Specify using -applicationPath option, java option "
                         + "\"" + PwmEnvironment.EnvironmentParameter.applicationPath.conicalJavaOptionSystemName() + "\""
                         + ", or system environment setting "
                         + "\"" + PwmEnvironment.EnvironmentParameter.applicationPath.conicalEnvironmentSystemName() + "\"";
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_STARTUP_ERROR,errorMsg));
+                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_STARTUP_ERROR, errorMsg ) );
             }
         }
 
-        LOGGER.debug("using applicationPath " + applicationPath.getAbsolutePath());
+        LOGGER.debug( "using applicationPath " + applicationPath.getAbsolutePath() );
         return applicationPath;
     }
 }

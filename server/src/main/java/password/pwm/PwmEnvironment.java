@@ -145,6 +145,7 @@ public class PwmEnvironment
         }
     }
 
+    @SuppressWarnings( "checkstyle:ParameterNumber" )
     private PwmEnvironment(
             final PwmApplicationMode applicationMode,
             final Configuration config,

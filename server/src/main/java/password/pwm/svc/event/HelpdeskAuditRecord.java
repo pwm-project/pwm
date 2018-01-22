@@ -30,6 +30,7 @@ public class HelpdeskAuditRecord extends UserAuditRecord
     protected String targetDN;
     protected String targetLdapProfile;
 
+    @SuppressWarnings( "checkstyle:ParameterNumber" )
     HelpdeskAuditRecord(
             final Instant timestamp,
             final AuditEvent eventCode,

@@ -64,6 +64,7 @@ public class RestStatisticsServer extends RestServlet
     @Data
     public static class JsonOutput implements Serializable
     {
+        @SuppressWarnings( "checkstyle:MemberName" )
         public Map<String, String> EPS;
         public Map<String, Object> nameData;
         public Map<String, Object> keyData;

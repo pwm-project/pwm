@@ -144,6 +144,7 @@ public class ReportSummaryData
         update( userCacheRecord, false );
     }
 
+    @SuppressWarnings( "checkstyle:MethodLength" )
     private void update( final UserCacheRecord userCacheRecord, final boolean adding )
     {
         final int modifier = adding ? 1 : -1;

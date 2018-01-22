@@ -33,16 +33,17 @@ import java.util.Map;
 
 @Getter
 @Builder
-public class TelemetryPublishBean implements Serializable {
+public class TelemetryPublishBean implements Serializable
+{
     private final Instant timestamp;
     private final String id;
     private final String instanceHash;
     private final String siteDescription;
     private final Instant installTime;
     private final List<PwmLdapVendor> ldapVendor;
-    private final Map<String,String> statistics;
+    private final Map<String, String> statistics;
     private final List<String> configuredSettings;
     private final String versionBuild;
     private final String versionVersion;
-    private final Map<String,String> about;
+    private final Map<String, String> about;
 }

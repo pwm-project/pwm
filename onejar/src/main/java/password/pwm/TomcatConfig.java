@@ -3,7 +3,8 @@ package password.pwm;
 import java.io.File;
 import java.io.InputStream;
 
-class TomcatConfig {
+class TomcatConfig
+{
     private int port;
     private File applicationPath;
     private File workingPath;
@@ -77,7 +78,7 @@ class TomcatConfig {
         return keystorePass;
     }
 
-    public void setKeystorePass( String keystorePass )
+    public void setKeystorePass( final String keystorePass )
     {
         this.keystorePass = keystorePass;
     }

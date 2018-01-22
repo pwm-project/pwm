@@ -43,7 +43,7 @@ public class WordlistManager extends AbstractWordlist implements Wordlist
 
     public WordlistManager( )
     {
-        LOGGER = PwmLogger.forClass( WordlistManager.class );
+        logger = PwmLogger.forClass( WordlistManager.class );
     }
 
 
@@ -69,7 +69,7 @@ public class WordlistManager extends AbstractWordlist implements Wordlist
         final int maxSize = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.WORDLIST_CHAR_LENGTH_MAX ) );
 
         this.wordlistConfiguration = new WordlistConfiguration( caseSensitive, checkSize, wordlistUrl, minSize, maxSize );
-        this.DEBUG_LABEL = PwmConstants.PWM_APP_NAME + "-Wordlist";
+        this.debugLabel = PwmConstants.PWM_APP_NAME + "-Wordlist";
         backgroundStartup();
     }
 

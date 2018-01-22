@@ -74,6 +74,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
     }
 
     @Override
+    @SuppressWarnings( "checkstyle:MethodLength" )
     protected void processAction( final PwmRequest pwmRequest )
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {

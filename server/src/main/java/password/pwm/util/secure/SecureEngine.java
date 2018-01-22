@@ -342,8 +342,8 @@ public class SecureEngine
         {
 
             final Mac mac = Mac.getInstance( hmacAlgorithm.getAlgorithmName() );
-            final SecretKey secret_key = pwmSecurityKey.getKey( hmacAlgorithm.getKeyType() );
-            mac.init( secret_key );
+            final SecretKey secretKey = pwmSecurityKey.getKey( hmacAlgorithm.getKeyType() );
+            mac.init( secretKey );
             return mac.doFinal( input );
         }
         catch ( GeneralSecurityException e )

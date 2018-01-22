@@ -193,6 +193,7 @@ public class PwmPasswordRuleValidator
         return internalPwmPolicyValidator( passwordString, oldPasswordString, userInfo, flags );
     }
 
+    @SuppressWarnings( "checkstyle:MethodLength" )
     public List<ErrorInformation> internalPwmPolicyValidator(
             final String passwordString,
             final String oldPasswordString,
@@ -786,6 +787,7 @@ public class PwmPasswordRuleValidator
         return returnedErrors;
     }
 
+    @SuppressWarnings( "checkstyle:MethodLength" )
     private static List<ErrorInformation> basicSyntaxRuleChecks(
             final String password,
             final PwmPasswordPolicy policy,

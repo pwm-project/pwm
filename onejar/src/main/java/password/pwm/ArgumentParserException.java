@@ -4,6 +4,6 @@ public class ArgumentParserException extends Exception
 {
     public ArgumentParserException( final String msg )
     {
-        super(msg);
+        super( msg );
     }
 }

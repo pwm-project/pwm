@@ -75,8 +75,8 @@ abstract class AbstractWordlist implements Wordlist, PwmService
     protected volatile STATUS wlStatus = STATUS.NEW;
     protected LocalDB localDB;
 
-    protected static PwmLogger LOGGER = PwmLogger.forClass( AbstractWordlist.class );
-    protected static String DEBUG_LABEL = "Generic Word List";
+    protected PwmLogger logger = PwmLogger.forClass( AbstractWordlist.class );
+    protected String debugLabel = "Generic Word List";
 
     protected int storedSize = 0;
     protected boolean debugTrace;
@@ -133,7 +133,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
             }
             catch ( Exception e )
             {
-                LOGGER.warn( "error during startup: " + e.getMessage() );
+                logger.warn( "error during startup: " + e.getMessage() );
             }
         }, 0, TimeUnit.MILLISECONDS );
     }
@@ -145,8 +145,8 @@ abstract class AbstractWordlist implements Wordlist, PwmService
 
         if ( localDB == null )
         {
-            final String errorMsg = "LocalDB is not available, " + DEBUG_LABEL + " will remain closed";
-            LOGGER.warn( errorMsg );
+            final String errorMsg = "LocalDB is not available, " + debugLabel + " will remain closed";
+            logger.warn( errorMsg );
             lastError = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, errorMsg );
             close();
             return;
@@ -161,11 +161,11 @@ abstract class AbstractWordlist implements Wordlist, PwmService
             final String errorMsg = "unexpected error while examining wordlist db: " + e.getMessage();
             if ( ( e instanceof PwmUnrecoverableException ) || ( e instanceof NullPointerException ) || ( e instanceof LocalDBException ) )
             {
-                LOGGER.warn( errorMsg );
+                logger.warn( errorMsg );
             }
             else
             {
-                LOGGER.warn( errorMsg, e );
+                logger.warn( errorMsg, e );
             }
             lastError = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, errorMsg );
             populator = null;
@@ -240,13 +240,13 @@ abstract class AbstractWordlist implements Wordlist, PwmService
             final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
             if ( timeDuration.isLongerThan( 100 ) )
             {
-                LOGGER.debug( "wordlist search time for " + testWords.size() + " wordlist permutations was greater then 100ms: " + timeDuration.asCompactString() );
+                logger.debug( "wordlist search time for " + testWords.size() + " wordlist permutations was greater then 100ms: " + timeDuration.asCompactString() );
             }
             return result;
         }
         catch ( Exception e )
         {
-            LOGGER.error( "database error checking for word: " + e.getMessage() );
+            logger.error( "database error checking for word: " + e.getMessage() );
         }
 
         return false;
@@ -273,7 +273,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
             }
             catch ( PwmUnrecoverableException e )
             {
-                LOGGER.error( "wordlist populator failed to exit" );
+                logger.error( "wordlist populator failed to exit" );
             }
         }
 
@@ -325,13 +325,13 @@ abstract class AbstractWordlist implements Wordlist, PwmService
 
         if ( wlStatus == STATUS.OPENING )
         {
-            final HealthRecord healthRecord = new HealthRecord( HealthStatus.CAUTION, HealthTopic.Application, this.DEBUG_LABEL + " is not yet open: " + this.getDebugStatus() );
+            final HealthRecord healthRecord = new HealthRecord( HealthStatus.CAUTION, HealthTopic.Application, this.debugLabel + " is not yet open: " + this.getDebugStatus() );
             returnList.add( healthRecord );
         }
 
         if ( lastError != null )
         {
-            final HealthRecord healthRecord = new HealthRecord( HealthStatus.WARN, HealthTopic.Application, this.DEBUG_LABEL + " error: " + lastError.toDebugStr() );
+            final HealthRecord healthRecord = new HealthRecord( HealthStatus.WARN, HealthTopic.Application, this.debugLabel + " error: " + lastError.toDebugStr() );
             returnList.add( healthRecord );
         }
         return Collections.unmodifiableList( returnList );
@@ -377,7 +377,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
 
         if ( !inputUrl.startsWith( "http:" ) && !inputUrl.startsWith( "https:" ) && !inputUrl.startsWith( "file:" ) )
         {
-            LOGGER.debug( "assuming configured auto-import url is a file url; derived url is " + inputUrl );
+            logger.debug( "assuming configured auto-import url is a file url; derived url is " + inputUrl );
             return "file:" + inputUrl;
         }
 
@@ -397,7 +397,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
     void writeMetadata( final StoredWordlistDataBean metadataBean )
     {
         pwmApplication.writeAppAttribute( getMetaDataAppAttribute(), metadataBean );
-        LOGGER.trace( "updated stored state: " + JsonUtil.serialize( metadataBean ) );
+        logger.trace( "updated stored state: " + JsonUtil.serialize( metadataBean ) );
     }
 
     @Override
@@ -412,7 +412,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         {
             if ( !readMetadata().isCompleted() )
             {
-                LOGGER.debug( "beginning population using builtin source in background thread" );
+                logger.debug( "beginning population using builtin source in background thread" );
                 final Thread t = new Thread( ( ) ->
                 {
                     try
@@ -421,7 +421,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
                     }
                     catch ( Exception e )
                     {
-                        LOGGER.warn( "unexpected error during builtin source population process: " + e.getMessage(), e );
+                        logger.warn( "unexpected error during builtin source population process: " + e.getMessage(), e );
                     }
                     populator = null;
                 }, JavaHelper.makeThreadName( pwmApplication, WordlistManager.class ) );
@@ -445,7 +445,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
                 }
                 catch ( Exception e )
                 {
-                    LOGGER.error( "error during clear operation: " + e.getMessage() );
+                    logger.error( "error during clear operation: " + e.getMessage() );
                 }
             }, 0, TimeUnit.MILLISECONDS );
         }
@@ -465,7 +465,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
                 {
                     if ( !remoteHash.equals( readMetadata().getSha1hash() ) )
                     {
-                        LOGGER.debug( "auto-import url remote hash does not equal currently stored hash, will start auto-import" );
+                        logger.debug( "auto-import url remote hash does not equal currently stored hash, will start auto-import" );
                         populateAutoImport();
                     }
                 }
@@ -473,17 +473,17 @@ abstract class AbstractWordlist implements Wordlist, PwmService
                 if ( autoImportError != null )
                 {
                     final int retrySeconds = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.APPLICATION_WORDLIST_RETRY_SECONDS ) );
-                    LOGGER.error( "auto-import of remote wordlist failed, will retry in " + ( new TimeDuration( retrySeconds, TimeUnit.SECONDS ).asCompactString() ) );
+                    logger.error( "auto-import of remote wordlist failed, will retry in " + ( new TimeDuration( retrySeconds, TimeUnit.SECONDS ).asCompactString() ) );
                     executorService.schedule( ( ) ->
                     {
                         try
                         {
-                            LOGGER.debug( "attempting wordlist remote import" );
+                            logger.debug( "attempting wordlist remote import" );
                             checkPopulation();
                         }
                         catch ( Exception e )
                         {
-                            LOGGER.error( "error during auto-import retry: " + e.getMessage() );
+                            logger.error( "error during auto-import retry: " + e.getMessage() );
                         }
 
                     }, retrySeconds, TimeUnit.SECONDS );
@@ -493,7 +493,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
             {
                 if ( readMetadata().getSource() == StoredWordlistDataBean.Source.AutoImport )
                 {
-                    LOGGER.trace( "source list is from auto-import, but not currently configured for auto-import; clearing stored data" );
+                    logger.trace( "source list is from auto-import, but not currently configured for auto-import; clearing stored data" );
 
                     // clear previous auto-import wl
                     writeMetadata( StoredWordlistDataBean.builder().build() );
@@ -504,14 +504,14 @@ abstract class AbstractWordlist implements Wordlist, PwmService
             if ( !readMetadata().isCompleted() )
             {
                 needsBuiltinPopulating = true;
-                LOGGER.debug( "wordlist stored in database does not have a completed load status, will load built-in wordlist" );
+                logger.debug( "wordlist stored in database does not have a completed load status, will load built-in wordlist" );
             }
             else if ( StoredWordlistDataBean.Source.BuiltIn == readMetadata().getSource() )
             {
                 final String builtInWordlistHash = getBuiltInWordlistHash();
                 if ( !builtInWordlistHash.equals( readMetadata().getSha1hash() ) )
                 {
-                    LOGGER.debug( "wordlist stored in database does not have match checksum with built-in wordlist file, will load built-in wordlist" );
+                    logger.debug( "wordlist stored in database does not have match checksum with built-in wordlist file, will load built-in wordlist" );
                     needsBuiltinPopulating = true;
                 }
             }
@@ -580,7 +580,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
                 populationError = e instanceof PwmException
                         ? ( ( PwmException ) e ).getErrorInformation()
                         : new ErrorInformation( PwmError.ERROR_UNKNOWN, e.getMessage() );
-                LOGGER.error( "error during wordlist population: " + populationError.toDebugStr() );
+                logger.error( "error during wordlist population: " + populationError.toDebugStr() );
                 throw new PwmUnrecoverableException( populationError );
             }
             finally
@@ -626,7 +626,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
             catch ( Exception e )
             {
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, "error during remote wordlist import: " + e.getMessage() );
-                LOGGER.error( errorInformation );
+                logger.error( errorInformation );
                 autoImportError = errorInformation;
             }
             finally
@@ -642,13 +642,13 @@ abstract class AbstractWordlist implements Wordlist, PwmService
             try
             {
                 final Instant startTime = Instant.now();
-                LOGGER.debug( "beginning read of auto-import wordlist url hash checksum from '" + wordlistConfiguration.getAutoImportUrl() + "'" );
+                logger.debug( "beginning read of auto-import wordlist url hash checksum from '" + wordlistConfiguration.getAutoImportUrl() + "'" );
                 inputStream = autoImportInputStream();
                 final ChecksumInputStream checksumInputStream = new ChecksumInputStream( CHECKSUM_HASH_ALG, inputStream );
                 JavaHelper.copyWhilePredicate( checksumInputStream, new NullOutputStream(), o -> wlStatus != STATUS.CLOSED );
                 IOUtils.copy( checksumInputStream, new NullOutputStream() );
                 final String hash = JavaHelper.binaryArrayToHex( checksumInputStream.closeAndFinalChecksum() );
-                LOGGER.debug( "completed read of auto-import wordlist url hash, value=" + hash + " (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
+                logger.debug( "completed read of auto-import wordlist url hash, value=" + hash + " (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
                 autoImportError = null;
                 return hash;
             }
@@ -658,7 +658,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
                         PwmError.ERROR_UNKNOWN,
                         "error reading from remote wordlist auto-import url: " + JavaHelper.readHostileExceptionMessage( e )
                 );
-                LOGGER.error( errorInformation );
+                logger.error( errorInformation );
                 autoImportError = errorInformation;
             }
             finally

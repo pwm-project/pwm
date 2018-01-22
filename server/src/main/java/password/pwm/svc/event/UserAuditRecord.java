@@ -36,6 +36,7 @@ public class UserAuditRecord extends AuditRecord implements Serializable
     protected String sourceAddress;
     protected String sourceHost;
 
+    @SuppressWarnings( "checkstyle:ParameterNumber" )
     protected UserAuditRecord(
             final Instant timestamp,
             final AuditEvent eventCode,

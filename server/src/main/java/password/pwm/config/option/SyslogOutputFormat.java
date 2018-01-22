@@ -1,6 +1,7 @@
 package password.pwm.config.option;
 
-public enum SyslogOutputFormat {
+public enum SyslogOutputFormat
+{
     JSON,
     CEF,
 }

@@ -228,6 +228,7 @@ public class LDAPPermissionCalculator implements Serializable
         return permissionRecords;
     }
 
+    @SuppressWarnings( "checkstyle:MethodLength" )
     private Collection<LDAPPermissionInfo> figurePermissionInfos( final PwmSetting pwmSetting, final String profile )
     {
 

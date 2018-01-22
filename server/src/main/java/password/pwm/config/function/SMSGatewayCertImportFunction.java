@@ -31,28 +31,34 @@ import password.pwm.error.PwmOperationalException;
 
 import java.net.URI;
 
-public class SMSGatewayCertImportFunction extends AbstractUriCertImportFunction {
+public class SMSGatewayCertImportFunction extends AbstractUriCertImportFunction
+{
 
 
     @Override
-    String getUri(final StoredConfigurationImpl storedConfiguration, final PwmSetting pwmSetting, final String profile, final String extraData) throws PwmOperationalException {
+    String getUri( final StoredConfigurationImpl storedConfiguration, final PwmSetting pwmSetting, final String profile, final String extraData ) throws PwmOperationalException
+    {
 
 
         final String uriString;
         final String menuDebugLocation;
 
-        uriString = (String)storedConfiguration.readSetting(PwmSetting.SMS_GATEWAY_URL).toNativeObject();
+        uriString = ( String ) storedConfiguration.readSetting( PwmSetting.SMS_GATEWAY_URL ).toNativeObject();
         menuDebugLocation = PwmSetting.SMS_GATEWAY_URL.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE );
 
-        if (uriString.isEmpty()) {
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"Setting " + menuDebugLocation + " must first be configured");
-            throw new PwmOperationalException(errorInformation);
+        if ( uriString.isEmpty() )
+        {
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, "Setting " + menuDebugLocation + " must first be configured" );
+            throw new PwmOperationalException( errorInformation );
         }
-        try {
-            URI.create(uriString);
-        } catch (IllegalArgumentException e) {
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"Setting " + menuDebugLocation + " has an invalid URL syntax");
-            throw new PwmOperationalException(errorInformation);
+        try
+        {
+            URI.create( uriString );
+        }
+        catch ( IllegalArgumentException e )
+        {
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, "Setting " + menuDebugLocation + " has an invalid URL syntax" );
+            throw new PwmOperationalException( errorInformation );
         }
         return uriString;
     }

@@ -26,6 +26,7 @@ import java.io.Serializable;
 
 public class OAuthRequestState implements Serializable
 {
+    @SuppressWarnings( "checkstyle:MemberName" )
     private OAuthState oAuthState;
     private boolean sessionMatch;
 

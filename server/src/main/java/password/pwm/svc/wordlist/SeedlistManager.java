@@ -42,7 +42,7 @@ public class SeedlistManager extends AbstractWordlist implements Wordlist
 
     public SeedlistManager( )
     {
-        LOGGER = PwmLogger.forClass( SeedlistManager.class );
+        logger = PwmLogger.forClass( SeedlistManager.class );
     }
 
     public String randomSeed( )
@@ -68,12 +68,12 @@ public class SeedlistManager extends AbstractWordlist implements Wordlist
         }
         catch ( Exception e )
         {
-            LOGGER.warn( "error while generating random word: " + e.getMessage() );
+            logger.warn( "error while generating random word: " + e.getMessage() );
         }
 
         if ( debugTrace )
         {
-            LOGGER.trace( "getRandomSeed fetch time: " + TimeDuration.fromCurrent( startTime ).asCompactString() );
+            logger.trace( "getRandomSeed fetch time: " + TimeDuration.fromCurrent( startTime ).asCompactString() );
         }
         return returnValue;
     }
@@ -94,7 +94,7 @@ public class SeedlistManager extends AbstractWordlist implements Wordlist
         final int maxSize = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.WORDLIST_CHAR_LENGTH_MAX ) );
 
         this.wordlistConfiguration = new WordlistConfiguration( true, 0, seedlistUrl, minSize, maxSize );
-        this.DEBUG_LABEL = PwmConstants.PWM_APP_NAME + "-Seedist";
+        this.debugLabel = PwmConstants.PWM_APP_NAME + "-Seedist";
         backgroundStartup();
     }
 

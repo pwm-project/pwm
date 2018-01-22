@@ -149,6 +149,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
         handleUncachedResponse( resp, file, false );
     }
 
+    @SuppressWarnings( "checkstyle:MethodLength" )
     protected void processAction( final PwmRequest pwmRequest )
             throws ServletException, IOException, PwmUnrecoverableException
     {

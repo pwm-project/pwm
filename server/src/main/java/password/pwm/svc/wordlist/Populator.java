@@ -137,11 +137,12 @@ class Populator
         final int lps = perReportStats.getElapsedSeconds() <= 0 ? 0 : perReportStats.getLines() / perReportStats.getElapsedSeconds();
 
         perReportStats = new PopulationStats();
-        return rootWordlist.DEBUG_LABEL + ", lines/second="
+        return rootWordlist.debugLabel + ", lines/second="
                 + lps + ", line=" + overallStats.getLines() + ""
                 + " current zipEntry=" + zipFileReader.currentZipName();
     }
 
+    @SuppressWarnings( "checkstyle:InnerAssignment" )
     void populate( ) throws IOException, LocalDBException, PwmUnrecoverableException
     {
         try
@@ -153,6 +154,7 @@ class Populator
             long lastReportTime = System.currentTimeMillis() - ( long ) ( DEBUG_OUTPUT_FREQUENCY.getTotalMilliseconds() * 0.33 );
 
             String line;
+
             while ( !abortFlag && ( line = zipFileReader.nextLine() ) != null )
             {
 
@@ -176,7 +178,7 @@ class Populator
 
             if ( abortFlag )
             {
-                LOGGER.warn( "pausing " + rootWordlist.DEBUG_LABEL + " population" );
+                LOGGER.warn( "pausing " + rootWordlist.debugLabel + " population" );
             }
             else
             {
@@ -230,7 +232,7 @@ class Populator
         if ( bufferedWords.size() > 0 )
         {
             final StringBuilder sb = new StringBuilder();
-            sb.append( rootWordlist.DEBUG_LABEL ).append( " " );
+            sb.append( rootWordlist.debugLabel ).append( " " );
             sb.append( "read " ).append( loopLines ).append( ", " );
             sb.append( "saved " );
             sb.append( bufferedWords.size() ).append( " words" );
@@ -253,11 +255,11 @@ class Populator
         final int wordlistSize = localDB.size( rootWordlist.getWordlistDB() );
         if ( wordlistSize < 1 )
         {
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, rootWordlist.DEBUG_LABEL + " population completed, but no words stored" ) );
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, rootWordlist.debugLabel + " population completed, but no words stored" ) );
         }
 
         final StringBuilder sb = new StringBuilder();
-        sb.append( rootWordlist.DEBUG_LABEL );
+        sb.append( rootWordlist.debugLabel );
         sb.append( " population complete, added " ).append( wordlistSize );
         sb.append( " total words in " ).append( new TimeDuration( overallStats.getElapsedSeconds() * 1000 ).asCompactString() );
         {

@@ -26,6 +26,7 @@ public final class ViewableUserInfoDisplayReader
     {
     }
 
+    @SuppressWarnings( "checkstyle:MethodLength" )
     public static List<DisplayElement> makeDisplayData(
             final Set<ViewStatusFields> viewStatusFields,
             final Configuration config,

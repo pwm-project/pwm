@@ -43,6 +43,7 @@ public class CliEnvironment
     final Map<String, Object> options;
     final MainOptions mainOptions;
 
+    @SuppressWarnings( "checkstyle:ParameterNumber" )
     public CliEnvironment(
             final ConfigurationReader configurationReader,
             final File configurationFile,

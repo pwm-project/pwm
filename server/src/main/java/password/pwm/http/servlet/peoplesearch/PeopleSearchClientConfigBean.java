@@ -38,10 +38,15 @@ import java.util.Map;
 @Setter
 public class PeopleSearchClientConfigBean implements Serializable
 {
-
+    @SuppressWarnings( "checkstyle:MemberName" )
     private Map<String, String> peoplesearch_search_columns;
+
+    @SuppressWarnings( "checkstyle:MemberName" )
     private boolean peoplesearch_enablePhoto;
+
+    @SuppressWarnings( "checkstyle:MemberName" )
     private boolean peoplesearch_orgChartEnabled;
+
     private boolean orgChartShowChildCount;
     private int orgChartMaxParents;
 

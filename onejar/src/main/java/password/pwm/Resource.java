@@ -8,16 +8,16 @@ enum Resource
     defaultWorkPathName,
     defaultPort,
     defaultLocalAddress,
-    defaultWarFileName,
+    defaultWarFileName,;
 
-    ;
-
-    String getValue() {
+    String getValue()
+    {
         return readResource( this );
     }
 
-    private static String readResource(final Resource resource) {
-        final ResourceBundle bundle = ResourceBundle.getBundle(Resource.class.getName());
+    private static String readResource( final Resource resource )
+    {
+        final ResourceBundle bundle = ResourceBundle.getBundle( Resource.class.getName() );
         return bundle.getString( resource.name() );
     }
 

@@ -154,6 +154,7 @@ public class LDAPStatusChecker implements HealthChecker
         return returnRecords;
     }
 
+    @SuppressWarnings( "checkstyle:MethodLength" )
     public List<HealthRecord> doLdapTestUserCheck(
             final Configuration config,
             final LdapProfile ldapProfile,
@@ -987,11 +988,11 @@ public class LDAPStatusChecker implements HealthChecker
         {
             return false;
         }
-        final String[] EXAMPLE_SUFFIXES = new String[] {
+        final String[] exampleSuffixes = new String[] {
                 "DC=site,DC=example,DC=net",
                 "ou=groups,o=example",
         };
-        for ( final String suffix : EXAMPLE_SUFFIXES )
+        for ( final String suffix : exampleSuffixes )
         {
             if ( dnValue.endsWith( suffix ) )
             {

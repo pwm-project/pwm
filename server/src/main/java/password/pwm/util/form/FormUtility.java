@@ -221,6 +221,7 @@ public class FormUtility
         checkReadOnlyAndHidden,
     }
 
+    @SuppressWarnings( "checkstyle:MethodLength" )
     public static void validateFormValueUniqueness(
             final PwmApplication pwmApplication,
             final Map<FormConfiguration, String> formValues,

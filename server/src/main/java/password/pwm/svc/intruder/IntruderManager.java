@@ -105,6 +105,7 @@ public class IntruderManager implements PwmService
     }
 
     @Override
+    @SuppressWarnings( "checkstyle:MethodLength" )
     public void init( final PwmApplication pwmApplication )
             throws PwmException
     {

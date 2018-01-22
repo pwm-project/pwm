@@ -59,6 +59,7 @@ public class PasswordRequirementsTag extends TagSupport
     private String prepend;
     private String form;
 
+    @SuppressWarnings( "checkstyle:MethodLength" )
     public static List<String> getPasswordRequirementsStrings(
             final PwmPasswordPolicy pwordPolicy,
             final Configuration config,
@@ -280,10 +281,10 @@ public class PasswordRequirementsTag extends TagSupport
             final int value = ruleHelper.readIntValue( PwmPasswordRule.MinimumLifetime );
             if ( value > 0 )
             {
-                final int SECONDS_PER_DAY = 60 * 60 * 24;
+                final int secondsPerDay = 60 * 60 * 24;
 
                 final String durationStr;
-                if ( value % SECONDS_PER_DAY == 0 )
+                if ( value % secondsPerDay == 0 )
                 {
                     final int valueAsDays = value / ( 60 * 60 * 24 );
                     final Display key = valueAsDays <= 1 ? Display.Display_Day : Display.Display_Days;
