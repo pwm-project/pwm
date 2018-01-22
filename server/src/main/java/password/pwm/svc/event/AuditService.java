@@ -77,6 +77,7 @@ public class AuditService implements PwmService {
     private ErrorInformation lastError;
     private UserHistoryStore userHistoryStore;
     private AuditVault auditVault;
+
     private PwmApplication pwmApplication;
 
     public AuditService() {
@@ -177,8 +178,8 @@ public class AuditService implements PwmService {
     @Override
     public void close() {
         if (syslogManager != null) {
-                syslogManager.close();
-            }
+            syslogManager.close();
+        }
         this.status = STATUS.CLOSED;
     }
 
