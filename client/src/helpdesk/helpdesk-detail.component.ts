@@ -32,7 +32,7 @@ import {IPerson} from '../models/person.model';
 import IasDialogComponent from '../ux/ias-dialog.component';
 
 let helpdeskDetailDialogTemplateUrl = require('./helpdesk-detail-dialog.template.html');
-let passwordSuggestionsDialogTemplateUrl = require('./password-suggestions-dialog.html');
+let passwordSuggestionsDialogTemplateUrl = require('./change-password-dialog.html');
 let verificationsDialogTemplateUrl = require('./verifications-dialog.template.html');
 
 const STATUS_WAIT = 'wait';

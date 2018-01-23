@@ -32,18 +32,21 @@ const STATUS_CONFIRM_RANDOM = 'confirm-random';
 const STATUS_FINISHED = 'finished';
 const STATUS_TYPE = 'type';
 
-require('helpdesk/password-suggestions-dialog.scss');
+require('helpdesk/change-password-dialog.scss');
 
 export default class PasswordSuggestionsDialogController {
     chosenPassword: string;
     clearResponsesSetting: string;
     fetchingRandoms: boolean;
     maskPasswords: boolean;
-    passwordMasked: boolean;
+    message: string;
+    password1: string;
+    password2: string;
+    password1Masked: boolean;
+    password2Masked: boolean;
     passwordSuggestions: string[];
     passwordUiMode: string;
     status: string;
-    successMessage: string;
     // this.HelpDeskService.showStrengthMeter;
 
     static $inject = [
@@ -73,7 +76,8 @@ export default class PasswordSuggestionsDialogController {
             this.clearResponsesSetting = result[0];
             this.passwordUiMode = result[1];
             this.maskPasswords = result[2];
-            this.passwordMasked = this.maskPasswords;   // Set now instead of when we set status to STATUS_FINISHED
+            this.password1Masked = this.maskPasswords;   // Set now instead of later
+            this.password2Masked = this.maskPasswords;
             if (this.passwordUiMode === PASSWORD_UI_MODES.AUTOGEN) {
                 this.status = STATUS_AUTOGEN;
                 this.populatePasswordSuggestions();
@@ -82,6 +86,7 @@ export default class PasswordSuggestionsDialogController {
                 this.status = STATUS_CONFIRM_RANDOM;
             }
             else if (this.passwordUiMode === PASSWORD_UI_MODES.BOTH || this.passwordUiMode === PASSWORD_UI_MODES.TYPE) {
+                this.message = translateFilter('Display_PasswordPrompt');
                 this.status = STATUS_TYPE;
             }
             else {
@@ -94,7 +99,7 @@ export default class PasswordSuggestionsDialogController {
         this.HelpDeskService.setPassword(this.personUserKey, false, this.chosenPassword)
             .then((result: ISuccessResponse) => {
                 this.status = STATUS_FINISHED;
-                this.successMessage = result.successMessage;
+                this.message = result.successMessage;
             });
     }
 
@@ -107,7 +112,7 @@ export default class PasswordSuggestionsDialogController {
             .then((result: ISuccessResponse) => {
                 this.chosenPassword = '[' + this.translateFilter('Display_Random') +  ']';
                 this.status = STATUS_FINISHED;
-                this.successMessage = result.successMessage;
+                this.message = result.successMessage;
             });
     }
 
@@ -127,7 +132,7 @@ export default class PasswordSuggestionsDialogController {
         this.HelpDeskService.setPassword(this.personUserKey, false, this.chosenPassword)
             .then((result: ISuccessResponse) => {
                 this.status = STATUS_FINISHED;
-                this.successMessage = result.successMessage;
+                this.message = result.successMessage;
             });
     }
 
@@ -153,7 +158,11 @@ export default class PasswordSuggestionsDialogController {
         });
     }
 
-    togglePasswordMasked() {
-        this.passwordMasked = !this.passwordMasked;
+    togglePassword1Masked() {
+        this.password1Masked = !this.password1Masked;
+    }
+
+    togglePassword2Masked() {
+        this.password2Masked = !this.password2Masked;
     }
 }

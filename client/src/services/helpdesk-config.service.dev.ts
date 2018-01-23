@@ -53,7 +53,7 @@ export default class HelpDeskConfigService extends ConfigBaseService implements 
     }
 
     getPasswordUiMode(): IPromise<string> {
-        return this.$q.resolve(PASSWORD_UI_MODES.RANDOM);
+        return this.$q.resolve(PASSWORD_UI_MODES.BOTH);
     }
 
     getTokenSendMethod(): IPromise<string> {
