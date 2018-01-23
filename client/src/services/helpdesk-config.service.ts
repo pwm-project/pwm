@@ -26,7 +26,7 @@ import IPwmService from './pwm.service';
 import PwmService from './pwm.service';
 import {ConfigBaseService, IConfigService} from './base-config.service';
 
-const ACTION_BUTTONS_CONFIG = 'actions';
+const CLEAR_RESPONSES_CONFIG = 'helpdesk_setting_clearResponses';
 const COLUMN_CONFIG = 'helpdesk_search_columns';
 const MASK_PASSWORDS_CONFIG = 'helpdesk_setting_maskPasswords';
 const PASSWORD_UI_MODE_CONFIG = 'helpdesk_setting_PwUiMode';
@@ -37,6 +37,14 @@ const TOKEN_EMAIL_ONLY = 'EMAILONLY';
 const VERIFICATION_FORM_CONFIG = 'verificationForm';
 const VERIFICATION_METHODS_CONFIG = 'verificationMethods';
 export const TOKEN_CHOICE = 'CHOICE_SMS_EMAIL';
+
+export const PASSWORD_UI_MODES = {
+    NONE: 'NONE',
+    AUTOGEN: 'AUTOGEN',
+    RANDOM: 'RANDOM',
+    TYPE: 'TYPE',
+    BOTH: 'BOTH'
+};
 
 export const VERIFICATION_METHOD_NAMES = {
     ATTRIBUTES: 'ATTRIBUTES',
@@ -64,7 +72,7 @@ interface IVerificationResponse {
 export type IVerificationMap = {name: string, label: string}[];
 
 export interface IHelpDeskConfigService extends IConfigService {
-    getActionButtons(): IPromise<IActionButtons>;
+    getClearResponsesSetting(): IPromise<string>;
     getPasswordUiMode(): IPromise<string>;
     getTokenSendMethod(): IPromise<string>;
     getVerificationAttributes(): IPromise<IVerificationMap>;
@@ -80,8 +88,8 @@ export default class HelpDeskConfigService extends ConfigBaseService implements 
         super($http, $log, $q, pwmService);
     }
 
-    getActionButtons(): IPromise<IActionButtons> {
-        return this.getValue(ACTION_BUTTONS_CONFIG);
+    getClearResponsesSetting(): IPromise<string> {
+        return this.getValue(CLEAR_RESPONSES_CONFIG);
     }
 
     getColumnConfig(): IPromise<any> {

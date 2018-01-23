@@ -26,7 +26,7 @@ import {ConfigBaseService} from './base-config.service.dev';
 import {IConfigService} from './base-config.service';
 import {
     IActionButtons,
-    IHelpDeskConfigService, IVerificationMap, TOKEN_CHOICE, VERIFICATION_METHOD_LABELS,
+    IHelpDeskConfigService, IVerificationMap, PASSWORD_UI_MODES, TOKEN_CHOICE, VERIFICATION_METHOD_LABELS,
     VERIFICATION_METHOD_NAMES
 } from './helpdesk-config.service';
 
@@ -37,21 +37,8 @@ export default class HelpDeskConfigService extends ConfigBaseService implements 
         super($q);
     }
 
-    getActionButtons(): IPromise<IActionButtons> {
-        return this.$q.resolve({
-            'Confirm New User Generation': {
-                name: 'Generate a New User',
-                description: 'Clones the current user'
-            },
-            'Confirm User Merge': {
-                name: 'Merge Two Users',
-                description: 'Merges the current user with another user'
-            }
-        });
-    }
-
-    getPasswordUiMode(): IPromise<string> {
-        return this.$q.resolve('both');
+    getClearResponsesSetting(): IPromise<string> {
+        return this.$q.resolve('ask');
     }
 
     getColumnConfig(): IPromise<any> {
@@ -63,6 +50,10 @@ export default class HelpDeskConfigService extends ConfigBaseService implements 
             telephoneNumber: 'Telephone',
             workforceId: 'Workforce ID'
         });
+    }
+
+    getPasswordUiMode(): IPromise<string> {
+        return this.$q.resolve(PASSWORD_UI_MODES.RANDOM);
     }
 
     getTokenSendMethod(): IPromise<string> {

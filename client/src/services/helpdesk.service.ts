@@ -45,6 +45,7 @@ export interface IHelpDeskService {
     getRandomPassword(userKey: string): IPromise<IRandomPasswordResponse>;
     getRecentVerifications(): IPromise<IRecentVerifications>;
     sendVerificationToken(userKey: string, choice: string): IPromise<IVerificationTokenResponse>;
+    setPassword(userKey: string, random: boolean, password?: string): IPromise<ISuccessResponse>;
     unlockIntruder(userKey: string): IPromise<ISuccessResponse>;
     validateVerificationData(userKey: string, formData: any, tokenData: any): IPromise<IVerificationStatus>;
     showStrengthMeter: boolean;
@@ -211,6 +212,23 @@ export default class HelpDeskService implements IHelpDeskService {
         return this.pwmService
             .httpRequest(url, { data: data })
             .then((result: IVerificationTokenResponse) => {
+                return this.$q.resolve(result);
+            });
+    }
+
+    setPassword(userKey: string, random: boolean, password?: string): IPromise<ISuccessResponse> {
+        let url: string = this.pwmService.getServerUrl('setPassword');
+        let data: any = { username: userKey };
+        if (random) {
+            data.random = true;
+        }
+        else {
+            data.password = password;
+        }
+
+        return this.pwmService
+            .httpRequest(url, { data: data })
+            .then((result: ISuccessResponse) => {
                 return this.$q.resolve(result);
             });
     }

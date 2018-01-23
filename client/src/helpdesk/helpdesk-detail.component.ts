@@ -24,6 +24,7 @@
 import {Component} from '../component';
 import {IButtonInfo, IHelpDeskService, ISuccessResponse} from '../services/helpdesk.service';
 import {IScope, ui} from '@types/angular';
+import {noop} from 'angular';
 import {IActionButtons, IHelpDeskConfigService} from '../services/helpdesk-config.service';
 import DialogService from '../ux/ias-dialog.service';
 import {IPeopleService} from '../services/people.service';
@@ -43,7 +44,6 @@ const STATUS_SUCCESS = 'success';
     templateUrl: require('helpdesk/helpdesk-detail.component.html')
 })
 export default class HelpDeskDetailComponent {
-    actionButtons: IActionButtons;
     person: any;
     personCard: IPerson;
     photosEnabled: boolean;
@@ -90,9 +90,34 @@ export default class HelpDeskDetailComponent {
                 controller: 'PasswordSuggestionsDialogController as $ctrl',
                 templateUrl: passwordSuggestionsDialogTemplateUrl,
                 locals: {
+                    personUsername: this.person.userDisplayName,
                     personUserKey: this.getUserKey(),
                 }
-            });
+            })
+            .then(() => {
+                let userKey = this.getUserKey();
+
+                this.IasDialogService
+                    .open({
+                        controller: [
+                            '$scope',
+                            'HelpDeskService',
+                            'translateFilter',
+                            function ($scope: IScope,
+                                      helpDeskService: IHelpDeskService,
+                                      translateFilter: (id: string) => string) {
+                                $scope.status = STATUS_WAIT;
+                                $scope.title = translateFilter('Button_ClearResponses');
+                                helpDeskService.clearResponses(userKey).then((data: ISuccessResponse) => {
+                                    // TODO - error dialog?
+                                    $scope.status = STATUS_SUCCESS;
+                                    $scope.text = data.successMessage;
+                                });
+                            }
+                        ],
+                        templateUrl: helpdeskDetailDialogTemplateUrl
+                    });
+            }, noop);
     }
 
     clearOtpSecret(): void {
@@ -264,12 +289,6 @@ export default class HelpDeskDetailComponent {
             }, (error) => {
                 // TODO: Handle error. NOOP for now will not assign person
             });
-
-        this.configService
-            .getActionButtons()
-            .then((actionButtons: IActionButtons) => {
-                this.actionButtons = actionButtons;
-            });     // TODO: remove this code
     }
 
     refresh(): void {

@@ -26,7 +26,7 @@ import {
 } from './helpdesk.service';
 import {IPromise, IQService, ITimeoutService, IWindowService} from 'angular';
 
-const SIMULATED_RESPONSE_TIME = 300;
+const SIMULATED_RESPONSE_TIME = 30;
 
 export default class HelpDeskService implements IHelpDeskService {
     PWM_GLOBAL: any;
@@ -444,6 +444,15 @@ export default class HelpDeskService implements IHelpDeskService {
 
     sendVerificationToken(userKey: string, choice: string): IPromise<IVerificationTokenResponse> {
         return this.simulateResponse({ destination: 'bcarrolj@paypal.com' });
+    }
+
+    setPassword(userKey: string, random: boolean, password?: string): IPromise<ISuccessResponse> {
+        if (random) {
+            return this.simulateResponse({ successMessage: 'Random password successfully set!' });
+        }
+        else {
+            return this.simulateResponse({ successMessage: 'Password successfully set!' });
+        }
     }
 
     private simulateResponse<T>(data: T): IPromise<T> {
