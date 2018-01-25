@@ -24,7 +24,7 @@ package password.pwm.tests;
 
 import junit.framework.Assert;
 import junit.framework.TestCase;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider;
 import password.pwm.util.secure.HttpsServerCertificateManager;
 
 import java.security.*;
@@ -33,13 +33,13 @@ import java.util.concurrent.TimeUnit;
 
 public class MakeSelfSignedCertTest extends TestCase
 {
-   private static final Provider BC_PROVIDER = new BouncyCastleProvider();
+   private static final Provider BC_PROVIDER = new BouncyCastleFipsProvider();
 
    public void testSelfSignedCert() throws Exception
    {
       Security.addProvider(BC_PROVIDER);
 
-      final KeyPairGenerator kpGen = KeyPairGenerator.getInstance("RSA", "BC");
+      final KeyPairGenerator kpGen = KeyPairGenerator.getInstance("RSA", "BCFIPS");
       kpGen.initialize(2048, new SecureRandom());
       final KeyPair keyPair = kpGen.generateKeyPair();
 

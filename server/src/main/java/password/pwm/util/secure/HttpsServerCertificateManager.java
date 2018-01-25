@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,9 @@
 
 package password.pwm.util.secure;
 
+import java.security.Security;
+import org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider;
+
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x509.BasicConstraints;
@@ -29,10 +32,10 @@ import org.bouncycastle.asn1.x509.ExtendedKeyUsage;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.KeyPurposeId;
 import org.bouncycastle.asn1.x509.KeyUsage;
+
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import password.pwm.AppProperty;
@@ -67,7 +70,6 @@ import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
-import java.security.Security;
 import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -87,7 +89,8 @@ public class HttpsServerCertificateManager
     {
         if (!bouncyCastleInitialized)
         {
-            Security.addProvider(new BouncyCastleProvider());
+            Security.addProvider(new BouncyCastleFipsProvider());
+//            Security.addProvider(new BouncyCastleProvider());
             bouncyCastleInitialized = true;
         }
     }
@@ -293,9 +296,9 @@ public class HttpsServerCertificateManager
             final ExtendedKeyUsage extKeyUsage = new ExtendedKeyUsage(KeyPurposeId.id_kp_serverAuth); // server authentication
             certGen.addExtension(Extension.extendedKeyUsage, true, extKeyUsage.getEncoded()); // OID, critical, ASN.1 encoded value
 
-            final ContentSigner sigGen = new JcaContentSignerBuilder("SHA256WithRSAEncryption").setProvider("BC").build(pair.getPrivate());
+            final ContentSigner sigGen = new JcaContentSignerBuilder("SHA256WithRSAEncryption").setProvider("BCFIPS").build(pair.getPrivate());
 
-            return new JcaX509CertificateConverter().setProvider("BC").getCertificate(certGen.build(sigGen));
+            return new JcaX509CertificateConverter().setProvider("BCFIPS").getCertificate(certGen.build(sigGen));
         }
 
         static KeyPair generateRSAKeyPair(final Configuration config)
@@ -303,7 +306,7 @@ public class HttpsServerCertificateManager
         {
             final int keySize = Integer.parseInt(config.readAppProperty(AppProperty.SECURITY_HTTPSSERVER_SELF_KEY_SIZE));
             final String keyAlg = config.readAppProperty(AppProperty.SECURITY_HTTPSSERVER_SELF_ALG);
-            final KeyPairGenerator kpGen = KeyPairGenerator.getInstance(keyAlg, "BC");
+            final KeyPairGenerator kpGen = KeyPairGenerator.getInstance(keyAlg, "BCFIPS");
             kpGen.initialize(keySize, new SecureRandom());
             return kpGen.generateKeyPair();
         }
@@ -358,5 +361,4 @@ public class HttpsServerCertificateManager
         final StoredValue storedValue = new PrivateKeyValue(privateKeyCertificate);
         storedConfiguration.writeSetting(PwmSetting.HTTPS_CERT,storedValue,null);
     }
-
 }

@@ -721,13 +721,18 @@
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
-            <artifactId>bcprov-jdk15on</artifactId>
-            <version>1.59</version>
+            <artifactId>bc-fips</artifactId>
+            <version>1.0.1</version>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
-            <artifactId>bcpkix-jdk15on</artifactId>
-            <version>1.59</version>
+            <artifactId>bcpkix-fips</artifactId>
+            <version>1.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpg-fips</artifactId>
+            <version>1.0.1</version>
         </dependency>
         <dependency>
             <groupId>javax.xml</groupId>
