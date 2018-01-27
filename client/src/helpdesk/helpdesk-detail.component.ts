@@ -25,11 +25,10 @@ import {Component} from '../component';
 import {IButtonInfo, IHelpDeskService, ISuccessResponse} from '../services/helpdesk.service';
 import {IScope, ui} from '@types/angular';
 import {IQService, noop} from 'angular';
-import {IActionButtons, IHelpDeskConfigService, PASSWORD_UI_MODES} from '../services/helpdesk-config.service';
+import {IHelpDeskConfigService, PASSWORD_UI_MODES} from '../services/helpdesk-config.service';
 import DialogService from '../ux/ias-dialog.service';
 import {IPeopleService} from '../services/people.service';
 import {IPerson} from '../models/person.model';
-import IasDialogComponent from '../ux/ias-dialog.component';
 import {IChangePasswordSuccess} from '../changepassword/success-change-password.controller';
 
 let autogenChangePasswordTemplateUrl = require('changepassword/autogen-change-password.component.html');

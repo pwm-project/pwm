@@ -484,6 +484,6 @@ export default class HelpDeskService implements IHelpDeskService {
     }
 
     get showStrengthMeter(): boolean {
-        return false;
+        return true;
     }
 }

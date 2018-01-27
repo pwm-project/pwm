@@ -28,6 +28,7 @@
   "Display_SearchResultsExceeded": "Search results exceeded maximum search size",
   "Display_SearchResultsNone": "No results",
   "Display_SetRandomPasswordPrompt": "Set a new random password for this user?",
+  "Display_StrengthMeter": "Password Strength",
   "Display_TokenDestination": "Token Destination",
   "Field_DateTime": "Date/Time",
   "Field_Display": "Display",

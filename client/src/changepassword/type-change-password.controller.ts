@@ -27,6 +27,8 @@ import {IHelpDeskConfigService} from '../services/helpdesk-config.service';
 import DialogService from '../ux/ias-dialog.service';
 import {IChangePasswordSuccess} from './success-change-password.controller';
 
+require('changepassword/type-change-password.component.scss');
+
 export default class TypeChangePasswordController {
     chosenPassword: string;
     maskPasswords: boolean;
@@ -36,7 +38,8 @@ export default class TypeChangePasswordController {
     password1Masked: boolean;
     password2Masked: boolean;
     passwordSuggestions: string[];
-    // this.HelpDeskService.showStrengthMeter;
+    showStrengthMeter: boolean;
+    strength: string = 'Very Strong';
 
     static $inject = [
         '$q',
@@ -56,6 +59,7 @@ export default class TypeChangePasswordController {
                 private translateFilter: (id: string) => string) {
         this.passwordSuggestions = Array(20).fill('');
         this.message = translateFilter('Display_PasswordPrompt');
+        this.showStrengthMeter = HelpDeskService.showStrengthMeter;
 
         this.configService.maskPasswordsEnabled()
             .then((maskPasswords: boolean) => {
