@@ -235,7 +235,7 @@ public class PwmResponse extends PwmHttpResponseWrapper {
         final HttpServletResponse resp = pwmRequest.getPwmResponse().getHttpServletResponse();
         resp.setStatus(redirectType.getCode()); // http "other" redirect
         resp.setHeader(HttpHeader.Location.getHttpName(), url);
-        LOGGER.trace("sending " + redirectType.getCode() + " redirect to " + url);
+        LOGGER.trace(pwmRequest, "sending " + redirectType.getCode() + " redirect to " + url);
     }
 
     private void preCommitActions() {

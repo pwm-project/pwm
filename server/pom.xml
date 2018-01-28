@@ -589,7 +589,7 @@
         <dependency>
             <groupId>com.github.tomakehurst</groupId>
             <artifactId>wiremock</artifactId>
-            <version>1.58</version>
+            <version>2.14.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -603,13 +603,13 @@
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
-            <version>3.0.1</version>
+            <version>4.0.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>javax.servlet.jsp</groupId>
             <artifactId>jsp-api</artifactId>
-            <version>2.2</version>
+            <version>2.2.1-b03</version>
             <scope>provided</scope>
         </dependency>
         <!-- / container dependencies -->
@@ -776,6 +776,11 @@
             <groupId>com.nulab-inc</groupId>
             <artifactId>zxcvbn</artifactId>
             <version>1.2.3</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.ziplet</groupId>
+            <artifactId>ziplet</artifactId>
+            <version>2.3.0</version>
         </dependency>
 
 

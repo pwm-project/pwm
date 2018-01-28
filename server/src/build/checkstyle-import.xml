@@ -133,5 +133,9 @@
         <allow pkg="org.apache.http"/>
     </subpackage>
 
+    <subpackage name="http.filter">
+        <allow pkg="com.github.ziplet.filter.compression"/>
+    </subpackage>
+
 
 </import-control>
