@@ -70,7 +70,6 @@
     <allow pkg="javax.annotation"/>
     <allow pkg="java.awt"/>
     <allow pkg="javax.security"/>
-    <allow pkg="eu.bitwalker.useragentutils"/>
     <allow pkg="javax.servlet"/>
     <allow pkg="javax.net"/>
     <allow pkg="javax.crypto"/>
@@ -137,5 +136,8 @@
         <allow pkg="com.github.ziplet.filter.compression"/>
     </subpackage>
 
+    <subpackage name="svc.sessiontrack">
+        <allow pkg="com.blueconic.browscap"/>
+    </subpackage>
 
 </import-control>
