@@ -40,6 +40,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
+import password.pwm.ldap.PwmLdapVendor;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsBundle;
@@ -258,10 +259,12 @@ public class TelemetryService implements PwmService {
             }
         }
 
-        final Set<DirectoryVendor> ldapVendors = new LinkedHashSet<>();
+        final Set<PwmLdapVendor> ldapVendors = new LinkedHashSet<>();
         for (final LdapProfile ldapProfile : config.getLdapProfiles().values()) {
             try {
-                ldapVendors.add(ldapProfile.getProxyChaiProvider(pwmApplication).getDirectoryVendor());
+                final DirectoryVendor directoryVendor = ldapProfile.getProxyChaiProvider(pwmApplication).getDirectoryVendor();
+                final PwmLdapVendor pwmLdapVendor = PwmLdapVendor.fromChaiVendor(directoryVendor);
+                ldapVendors.add(pwmLdapVendor);
             } catch (Exception e) {
                 LOGGER.trace(SessionLabel.TELEMETRY_SESSION_LABEL, "unable to read ldap vendor type for stats publication: " + e.getMessage());
             }

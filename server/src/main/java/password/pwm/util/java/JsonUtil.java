@@ -33,6 +33,7 @@ import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.google.gson.reflect.TypeToken;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.ldap.PwmLdapVendor;
 import password.pwm.util.PasswordData;
 import password.pwm.util.logging.PwmLogger;
 
@@ -257,6 +258,16 @@ public class JsonUtil {
             }
         }
 
+    }
+
+    private static class PwmLdapVendorTypeAdaptor implements JsonSerializer<PwmLdapVendor>, JsonDeserializer<PwmLdapVendor> {
+        public PwmLdapVendor deserialize(final JsonElement json, final Type typeOfT, final JsonDeserializationContext context) throws JsonParseException {
+                return PwmLdapVendor.fromString( json.getAsString() );
+        }
+
+        public JsonElement serialize(final PwmLdapVendor src, final Type typeOfSrc, final JsonSerializationContext context) {
+                return new JsonPrimitive(src.name());
+        }
     }
 
     private static GsonBuilder registerTypeAdapters(final GsonBuilder gsonBuilder) {
