@@ -22,6 +22,9 @@
 
 package password.pwm.svc.event;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.graylog2.syslog4j.SyslogIF;
 import org.graylog2.syslog4j.impl.AbstractSyslogConfigIF;
 import org.graylog2.syslog4j.impl.AbstractSyslogWriter;
@@ -39,6 +42,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.option.SyslogOutputFormat;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -47,6 +51,7 @@ import password.pwm.health.HealthStatus;
 import password.pwm.health.HealthTopic;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
@@ -79,23 +84,23 @@ public class SyslogAuditService {
     private SyslogIF syslogInstance = null;
     private ErrorInformation lastError = null;
     private List<X509Certificate> certificates = null;
-
     private WorkQueueProcessor<String> workQueueProcessor;
 
+    private List<SyslogIF> syslogInstances = new ArrayList<>();
 
     private final Configuration configuration;
     private final PwmApplication pwmApplication;
-    private List<SyslogIF> syslogInstances = new ArrayList<>();
+    private final SyslogOutputFormat syslogOutputFormat;
 
     public SyslogAuditService(final PwmApplication pwmApplication)
             throws LocalDBException
     {
+        syslogOutputFormat = pwmApplication.getConfig().readSettingAsEnum(PwmSetting.AUDIT_SYSLOG_OUTPUT_FORMAT, SyslogOutputFormat.class);
         this.pwmApplication = pwmApplication;
         this.configuration = pwmApplication.getConfig();
         this.certificates = configuration.readSettingAsCertificate(PwmSetting.AUDIT_SYSLOG_CERTIFICATES);
 
         final List<String> syslogConfigStringArray = configuration.readSettingAsStringArray(PwmSetting.AUDIT_SYSLOG_SERVERS);
-
         try {
             for(String entry : syslogConfigStringArray) {
                 final SyslogConfig syslogCfg = SyslogConfig.fromConfigString(entry);
@@ -129,6 +134,7 @@ public class SyslogAuditService {
             return JsonUtil.serialize(workItem);
         }
     }
+
 
     private SyslogIF makeSyslogInstance(final SyslogConfig syslogConfig)
     {
@@ -174,11 +180,27 @@ public class SyslogAuditService {
     }
 
     public void add(final AuditRecord event) throws PwmOperationalException {
+
+        final String syslogMsg;
+
+        switch ( syslogOutputFormat ) {
+            case JSON:
+                syslogMsg = convertAuditRecordToSyslogMessage( event, configuration );
+                break;
+
+            case CEF:
+                syslogMsg = convertAuditRecordToCEFMessage( event, configuration );
+                break;
+
+            default:
+                JavaHelper.unhandledSwitchStatement( syslogOutputFormat );
+                throw new IllegalStateException(  );
+        }
+
         try {
-            final String syslogMsg = convertAuditRecordToSyslogMessage(event, configuration);
             workQueueProcessor.submit(syslogMsg);
         } catch (PwmOperationalException e) {
-            LOGGER.warn("unable to add email to queue: " + e.getMessage());
+            LOGGER.warn("unable to add syslog message to queue: " + e.getMessage());
         }
     }
 
@@ -220,17 +242,20 @@ public class SyslogAuditService {
         syslogInstance = null;
     }
 
+
+
     private static String convertAuditRecordToSyslogMessage(
             final AuditRecord auditRecord,
             final Configuration configuration
     )
     {
         final int maxLength = Integer.parseInt(configuration.readAppProperty(AppProperty.AUDIT_SYSLOG_MAX_MESSAGE_LENGTH));
+        String jsonValue = "";
         final StringBuilder message = new StringBuilder();
         message.append(PwmConstants.PWM_APP_NAME);
         message.append(" ");
 
-        final String jsonValue = JsonUtil.serialize(auditRecord);
+        jsonValue = JsonUtil.serialize(auditRecord);
 
         if (message.length() + jsonValue.length() <= maxLength) {
             message.append(jsonValue);
@@ -273,30 +298,60 @@ public class SyslogAuditService {
         return message.toString();
     }
 
+    private static String convertAuditRecordToCEFMessage(final AuditRecord auditRecord, final Configuration configuration) {
+
+        final String recordType = auditRecord.getType().name();
+        String recordString = "";
+        String translatedString = "";
+        if ("USER".equalsIgnoreCase(recordType)) {
+            final UserAuditRecord cefRecord = new UserAuditRecord(auditRecord.timestamp, auditRecord.eventCode, null, null, null,
+                    auditRecord.message, null, null);
+            recordString = JsonUtil.serialize(cefRecord);
+        } else if ("SYSTEM".equalsIgnoreCase(recordType)) {
+            final SystemAuditRecord cefRecord = new SystemAuditRecord(auditRecord.eventCode, auditRecord.message, null);
+            recordString = JsonUtil.serialize(cefRecord);
+        } else if ("HELPDESK".equalsIgnoreCase(recordType)) {
+            final HelpdeskAuditRecord cefRecord = new HelpdeskAuditRecord(auditRecord.timestamp, auditRecord.eventCode, null, null, null,
+                    auditRecord.message, null, null, null, null, null);
+            recordString = JsonUtil.serialize(cefRecord);
+        } else {
+            recordString = JsonUtil.serialize(auditRecord);
+        }
+        recordString = recordString.replace("\"", "");
+        recordString = recordString.replace("\\", "");
+        recordString = recordString.replace("{", "");
+        recordString = recordString.replace("}", "");
+
+        recordString = recordString.replace("type:", " cat | ");
+        recordString = recordString.replace("eventCode:", " act | ");
+        recordString = recordString.replace("timestamp:", " rt | ");
+        recordString = recordString.replace("message:", " msg | ");
+        recordString = recordString.replace("narrative:", " reason | ");
+        recordString = recordString.replace("perpetratorID:", " suid | ");
+        recordString = recordString.replace("perpetratorDN:", " suser | ");
+        recordString = recordString.replace("sourceAddress:", " dvc | ");
+        recordString = recordString.replace("sourceHost:", " dvchost | ");
+        recordString = recordString.replace("targetID:", " duid | ");
+        recordString = recordString.replace("targetDN:", " duser | ");
+        recordString = recordString.replace("SSPR:", " sproc | ");
+        recordString = recordString.replace("PWM:", " sproc | ");
+
+        translatedString = auditRecord.getTimestamp().toString();
+        translatedString = translatedString.concat(" host CEF:0 | security | threatmanager | 1.0 | 100 ");
+        recordString = recordString.replace(",", " ");
+
+        translatedString = translatedString.concat(recordString);
+        return (translatedString);
+    }
+
+    @Getter
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static class SyslogConfig implements Serializable {
         public enum Protocol { sslTcp, tcp, udp, tls }
 
         private Protocol protocol;
         private String host;
         private int port;
-
-        public SyslogConfig(final Protocol protocol, final String host, final int port) {
-            this.protocol = protocol;
-            this.host = host;
-            this.port = port;
-        }
-
-        public Protocol getProtocol() {
-            return protocol;
-        }
-
-        public String getHost() {
-            return host;
-        }
-
-        public int getPort() {
-            return port;
-        }
 
         public static SyslogConfig fromConfigString(final String input) throws IllegalArgumentException {
             if (input == null) {

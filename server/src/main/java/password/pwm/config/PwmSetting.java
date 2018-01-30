@@ -665,7 +665,8 @@ public enum PwmSetting {
             "audit.syslog.servers", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.AUDIT_FORWARD),
     AUDIT_SYSLOG_CERTIFICATES(
             "audit.syslog.certificates", PwmSettingSyntax.X509CERT, PwmSettingCategory.AUDIT_FORWARD),
-
+    AUDIT_SYSLOG_OUTPUT_FORMAT(
+            "audit.syslog.outputFormat", PwmSettingSyntax.SELECT, PwmSettingCategory.AUDIT_FORWARD),
 
     // challenge settings
     CHALLENGE_ENABLE(
