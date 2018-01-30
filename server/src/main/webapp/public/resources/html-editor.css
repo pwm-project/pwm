@@ -1,0 +1,85 @@
+.html-editor {
+    height: 350px;
+}
+
+.html-editor .ta-editor {
+    border: 1px solid #EAEAEA;
+    height: 300px;
+    margin-top: 10px;
+    overflow: auto;
+    width: 790px;
+}
+
+.html-editor .btn-group {
+    display: inline-block;
+    margin-right: 5px;
+}
+
+.html-editor .btn-group .btn {
+    background: #eaeaea;
+    border-radius: 0;
+    border: 1px solid #ccc;
+    border-right: 0;
+    color: #434c50;
+    display: inline-block;
+    font-size: 14px;
+    margin: 0;
+    padding: 0px;
+    vertical-align: bottom;
+}
+
+.html-editor .btn-group .btn.active {
+    background-color: #a1a6a8;
+    color: #f6f9f8;
+}
+
+.html-editor .btn-group .btn:hover:not(.active) {
+    background-color: #f6f9f8;
+    border-color: #01a9e7;
+    color: #007cd0;
+}
+
+.html-editor .btn-group .btn:hover:not(.active) + .btn {
+    border-left-color: #01a9e7;
+}
+
+.html-editor .btn-group button {
+    height: 24px;
+    width: 24px;
+}
+
+.html-editor .btn-group .btn:first-of-type {
+    border-top-left-radius: 3px;
+    border-bottom-left-radius: 3px;
+}
+
+.html-editor .btn-group .btn:last-of-type {
+    border-right: 1px solid #ccc;
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+}
+
+.html-editor .btn-group .btn:hover:last-of-type {
+    border-right-color: #01a9e7;
+}
+
+.html-editor.focussed .ta-scroll-window.form-control {
+    border-color: #01a9e7;
+    box-shadow: none;
+}
+
+.html-editor .ta-scroll-window > .ta-bind {
+    min-height: 285px;
+}
+
+.html-editor.focussed .ta-scroll-window > .ta-bind {
+    outline: none;
+}
+
+.ta-editor p {
+    max-width: none;
+    position: static;
+    margin-left: 0;
+    margin-right: 0;
+    font-size: 14px;
+}
