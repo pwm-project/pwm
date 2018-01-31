@@ -69,8 +69,8 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.PrivateKey;
-import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
+import java.security.spec.RSAKeyGenParameterSpec;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -98,7 +98,7 @@ public class HttpsServerCertificateManager
 
     public static KeyStore keyStoreForApplication(final PwmApplication pwmApplication, final PasswordData passwordData, final String alias) throws PwmUnrecoverableException {
         KeyStore keyStore = null;
-        keyStore = exportKey(pwmApplication.getConfig(), KeyStoreFormat.JKS, passwordData, alias);
+        keyStore = exportKey(pwmApplication.getConfig(), KeyStoreFormat.BCJKS, passwordData, alias);
 
         if (keyStore == null) {
             keyStore = makeSelfSignedCert(pwmApplication, passwordData, alias);
@@ -199,7 +199,7 @@ public class HttpsServerCertificateManager
                 throws Exception
         {
             final String cnName = makeSubjectName();
-            final KeyStore keyStore = KeyStore.getInstance("jks");
+            final KeyStore keyStore = KeyStore.getInstance("BCJKS");
             keyStore.load(null, password.getStringValue().toCharArray());
             StoredCertData storedCertData = pwmApplication.readAppAttribute(PwmApplication.AppAttribute.HTTPS_SELF_CERT, StoredCertData.class);
             if (storedCertData != null)
@@ -287,14 +287,9 @@ public class HttpsServerCertificateManager
 
             final X509v3CertificateBuilder certGen = new JcaX509v3CertificateBuilder(subjectName.build(), serialNumber, notBefore, notAfter, subjectName.build(), pair.getPublic());
 
-            final BasicConstraints basic = new BasicConstraints(false); // not a CA
-            certGen.addExtension(Extension.basicConstraints, true, basic.getEncoded()); // OID, critical, ASN.1 encoded value
-
-            final KeyUsage keyUsage = new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyEncipherment); // sign and key encipher
-            certGen.addExtension(Extension.keyUsage, true, keyUsage.getEncoded()); // OID, critical, ASN.1 encoded value
-
-            final ExtendedKeyUsage extKeyUsage = new ExtendedKeyUsage(KeyPurposeId.id_kp_serverAuth); // server authentication
-            certGen.addExtension(Extension.extendedKeyUsage, true, extKeyUsage.getEncoded()); // OID, critical, ASN.1 encoded value
+            certGen.addExtension(Extension.basicConstraints, true, new BasicConstraints(false)); // OID, critical, not a CA
+            certGen.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyEncipherment)); // OID, critical, sign and key encipher
+            certGen.addExtension(Extension.extendedKeyUsage, true, new ExtendedKeyUsage(KeyPurposeId.id_kp_serverAuth)); // OID, critical, server authentication
 
             final ContentSigner sigGen = new JcaContentSignerBuilder("SHA256WithRSAEncryption").setProvider("BCFIPS").build(pair.getPrivate());
 
@@ -305,9 +300,8 @@ public class HttpsServerCertificateManager
                 throws Exception
         {
             final int keySize = Integer.parseInt(config.readAppProperty(AppProperty.SECURITY_HTTPSSERVER_SELF_KEY_SIZE));
-            final String keyAlg = config.readAppProperty(AppProperty.SECURITY_HTTPSSERVER_SELF_ALG);
-            final KeyPairGenerator kpGen = KeyPairGenerator.getInstance(keyAlg, "BCFIPS");
-            kpGen.initialize(keySize, new SecureRandom());
+            final KeyPairGenerator kpGen = KeyPairGenerator.getInstance("RSA", "BCFIPS");
+            kpGen.initialize(new RSAKeyGenParameterSpec(keySize, RSAKeyGenParameterSpec.F4));
             return kpGen.generateKeyPair();
         }
     }
@@ -316,6 +310,7 @@ public class HttpsServerCertificateManager
     public enum KeyStoreFormat {
         PKCS12,
         JKS,
+        BCJKS,
     }
 
     public static void importKey(
