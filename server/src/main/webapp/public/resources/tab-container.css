@@ -3,10 +3,8 @@
 }
 
 .tab-container {
-    box-shadow: 0 48px 80px -32px rgba(0,0,0,0.3);
     display: flex;
     flex-wrap: wrap;
-    max-width: 700px;
     position: relative;
 }
 
@@ -23,18 +21,11 @@
     color: #7f7f7f;
     cursor: pointer;
     font-size: 15px;
+    height: 31px;
     margin-left: 5px;
     padding: 6px 12px;
     transition: background 0.1s, color 0.1s;
     width: 100%;
-}
-
-.tab-container > .label:hover {
-    /*background: #d8d8d8;*/
-    color: #01a9e7;
-    border-top-color: #01a9e7;
-    border-left-color: #01a9e7;
-    border-right-color: #01a9e7;
 }
 
 .tab-container > .label:active {
@@ -42,7 +33,6 @@
 }
 
 .tab-container > .input:focus + .label {
-    /*box-shadow: inset 0px 0px 0px 3px #2aa1c0;*/
     z-index: 1;
 }
 
@@ -72,9 +62,10 @@
 }
 
 .tab-content-pane {
+    background: #fff;
     display: none;
     padding: 20px 30px 30px;
-    background: #fff;
+    width: 100%;
 }
 
 @media (min-width: 600px) {

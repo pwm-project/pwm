@@ -79,6 +79,9 @@
     white-space: normal;
 }
 
-
-
-
+.tab-container > .label:hover {
+    color: #000088;
+    border-top-color: #000088;
+    border-left-color: #000088;
+    border-right-color: #000088;
+}

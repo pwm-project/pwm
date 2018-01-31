@@ -129,3 +129,10 @@ a:hover {
 #header-menu-icon {
   display: inline-block;
 }
+
+.tab-container > .label:hover {
+    color: #ff0000;
+    border-top-color: #ff0000;
+    border-left-color: #ff0000;
+    border-right-color: #ff0000;
+}

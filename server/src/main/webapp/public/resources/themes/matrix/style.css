@@ -198,4 +198,9 @@ input, button {
     text-align: right;
 }
 
-
+.tab-container > .label:hover {
+    color: #00cc00;
+    border-top-color: #00cc00;
+    border-left-color: #00cc00;
+    border-right-color: #00cc00;
+}

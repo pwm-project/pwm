@@ -173,3 +173,9 @@ table td.key {
     text-align: right;
 }
 
+.tab-container > .label:hover {
+    color: #ffcccc;
+    border-top-color: #ffcccc;
+    border-left-color: #ffcccc;
+    border-right-color: #ffcccc;
+}
