@@ -89,8 +89,13 @@
 
 .tab-container > .tab-end {
     border-bottom: 1px solid #6a6f71;
-    /*position: absolute;*/
-    /*top: 30px;*/
     left: 0;
     width: 100%;
+}
+
+/*This targets only IE*/
+@media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
+    .tab-container > .tab-end {
+        height: 7px;
+    }
 }
