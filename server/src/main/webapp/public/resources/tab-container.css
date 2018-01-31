@@ -51,8 +51,18 @@
     border: 1px solid #6a6f71;
     border-bottom-color: transparent;
     color: #000;
-    margin-bottom: -1px;
+    position: relative;
     z-index: 100;
+}
+
+.tab-container > .input:checked + .label::after {
+    content: "";
+    background: #fff;
+    bottom: -3px;
+    height: 3px;
+    left: 0;
+    position: absolute;
+    right: 0;
 }
 
 @media (min-width: 600px) {
