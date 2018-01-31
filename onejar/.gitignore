@@ -1,0 +1,18 @@
+# PWM Project gitignore files
+#
+# Maven Output
+/target
+
+# Eclipse Project Files
+/.project
+/.settings
+/.classpath
+
+# IntelliJ Project Files
+.idea/
+/*.iml
+
+# OS folder info
+.directory
+.DS_Store
+.DS_Store?
