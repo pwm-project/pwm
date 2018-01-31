@@ -1923,39 +1923,33 @@ EmailTableHandler.instrumentRow = function(settingKey, localeName) {
 
 
 EmailTableHandler.htmlBodyEditor = function(keyName, localeName) {
-    require(["dijit/Editor","dijit/_editor/plugins/AlwaysShowToolbar","dijit/_editor/plugins/LinkDialog","dijit/_editor/plugins/ViewSource","dijit/_editor/plugins/FontChoice","dijit/_editor/plugins/TextColor"],
-        function(Editor,AlwaysShowToolbar){
-            var idValue = keyName + "_" + localeName + "_htmlEditor";
-            var bodyText = '';
-            bodyText += '<div id="' + idValue + '" style="border:2px solid #EAEAEA; height:300px"></div>';
-            PWM_MAIN.showDialog({
-                title: "HTML Editor",
-                text: bodyText,
-                showClose:true,
-                showCancel:true,
-                dialogClass: 'wide',
-                loadFunction:function(){
-                    PWM_MAIN.clearDijitWidget(idValue);
-                    new Editor({
-                        extraPlugins: [
-                            AlwaysShowToolbar,"viewsource",
-                            {name:"dijit/_editor/plugins/LinkDialog",command:"createLink",urlRegExp:".*"},
-                            "fontName","foreColor"
-                        ],
-                        height: '300px',
-                        value: PWM_VAR['clientSettingCache'][keyName][localeName]['bodyHtml'],
-                        style: '',
-                        onChange: function(){PWM_VAR['temp-dialogInputValue'] = this.get('value')},
-                        onKeyUp: function(){PWM_VAR['temp-dialogInputValue'] = this.get('value')}
-                    },idValue).startup();
-                },
-                okAction:function(){
-                    PWM_VAR['clientSettingCache'][keyName][localeName]['bodyHtml'] = PWM_VAR['temp-dialogInputValue'];
-                    EmailTableHandler.writeSetting(keyName,true);
-                }
-            });
+    // Grab the scope from the angular controller we created on the div element with ID: centerbody-config
+    var $scope = angular.element(document.getElementById("centerbody-config")).scope();
+    var idValue = keyName + "_" + localeName + "_htmlEditor";
+    var toolbarButtons =
+        "[" +
+        "['h1','h2','h3','h4','h5','h6','p','pre','quote']," +
+        "['bold','italics','underline','strikeThrough','ul','ol','undo','redo','clear']," +
+        "['justifyLeft','justifyCenter','justifyRight','justifyFull','indent','outdent']," +
+        "['html','insertImage','insertLink','insertVideo']" +
+        "]";
+
+    PWM_MAIN.showDialog({
+        title: "HTML Editor",
+        text: '<div id="' + idValue + '" text-angular ng-model="htmlText" ta-toolbar="' + toolbarButtons + '" class="html-editor"></div>',
+        showClose:true,
+        showCancel:true,
+        dialogClass: 'wide',
+        loadFunction: function(){
+            // Put the existing value into the scope, and tell the controller to process the element with ID: idValue
+            $scope.htmlText =  PWM_VAR['clientSettingCache'][keyName][localeName]['bodyHtml'];
+            $scope.$broadcast("content-added", idValue);
+        },
+        okAction:function(){
+            PWM_VAR['clientSettingCache'][keyName][localeName]['bodyHtml'] = $scope.htmlText;
+            EmailTableHandler.writeSetting(keyName,true);
         }
-    );
+    });
 };
 
 

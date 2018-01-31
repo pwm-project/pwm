@@ -13,7 +13,7 @@
     "test": "karma start --NODE_ENV=test",
     "test-single-run": "karma start --NODE_ENV=test --singleRun --no-auto-watch",
     "start": "webpack-dev-server --config=webpack.dev.js --NODE_ENV=dev --colors",
-    "sync": "webpack --config=webpack.build.js --NODE_ENV=production --output-path=../server/src/main/webapp/public/resources/webjars/pwm-client --watch --colors"
+    "sync": "webpack --config=webpack.build.js --NODE_ENV=production --output-path=../server/target/pwm-1.8.0-SNAPSHOT/public/resources/webjars/pwm-client --watch --colors"
   },
   "author": "",
   "license": "ISC",
