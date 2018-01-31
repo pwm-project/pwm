@@ -1048,13 +1048,11 @@ public class Configuration implements SettingReader
     /* generic profile stuff */
 
 
-    public Map<String, NewUserProfile> getNewUserProfiles( )
-    {
-        final Map<String, NewUserProfile> returnMap = new LinkedHashMap<>();
-        final Map<String, Profile> profileMap = profileMap( ProfileType.NewUser );
-        for ( final Map.Entry<String, Profile> entry : profileMap.entrySet() )
-        {
-            returnMap.put( entry.getKey(), ( NewUserProfile ) entry.getValue() );
+    public Map<String,NewUserProfile> getNewUserProfiles() {
+        final Map<String,NewUserProfile> returnMap = new LinkedHashMap<>();
+        final Map<String,Profile> profileMap = profileMap(ProfileType.NewUser);
+        for (final Map.Entry<String,Profile> entry : profileMap.entrySet()) {
+            returnMap.put(entry.getKey(), (NewUserProfile) entry.getValue());
         }
         return returnMap;
     }
@@ -1140,6 +1138,10 @@ public class Configuration implements SettingReader
 
             case DeleteAccount:
                 newProfile = DeleteAccountProfile.makeFromStoredConfiguration( storedConfiguration, profileID );
+                break;
+
+            case EmailServers:
+                newProfile = EmailServerProfile.makeFromStoredConfiguration(storedConfiguration, profileID);
                 break;
 
             case SetupOTPProfile:

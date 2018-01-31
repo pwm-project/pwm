@@ -283,7 +283,7 @@ public enum PwmSetting
             "email.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL),
     EMAIL_SERVER_ADDRESSES(
             "email.smtp.addresses", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_PROFILES),
-    EMAIL_SERVER_PORTs(
+    EMAIL_SERVER_PORTS(
             "email.smtp.ports", PwmSettingSyntax.NUMERIC, PwmSettingCategory.EMAIL_PROFILES),
     EMAIL_DEFAULT_FROM_ADDRESSES(
             "email.default.fromAddresses", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_PROFILES),
@@ -302,7 +302,8 @@ public enum PwmSetting
     EMAIL_USERNAME(
             "email.smtp.username", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_SETTINGS ),
     EMAIL_PASSWORD(
-            "email.smtp.userpassword", PwmSettingSyntax.PASSWORD, PwmSettingCategory.EMAIL_SETTINGS ),
+            "email.smtp.userpassword", PwmSettingSyntax.PASSWORD, PwmSettingCategory.EMAIL_SETTINGS),
+
     EMAIL_MAX_QUEUE_AGE(
             "email.queueMaxAge", PwmSettingSyntax.DURATION, PwmSettingCategory.EMAIL_SETTINGS ),
     EMAIL_ADVANCED_SETTINGS(
@@ -681,9 +682,8 @@ public enum PwmSetting
     AUDIT_SYSLOG_SERVERS(
             "audit.syslog.servers", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.AUDIT_FORWARD ),
     AUDIT_SYSLOG_CERTIFICATES(
-            "audit.syslog.certificates", PwmSettingSyntax.X509CERT, PwmSettingCategory.AUDIT_FORWARD ),
-    AUDIT_SYSLOG_OUTPUT_FORMAT(
-            "audit.syslog.outputFormat", PwmSettingSyntax.SELECT, PwmSettingCategory.AUDIT_FORWARD ),
+            "audit.syslog.certificates", PwmSettingSyntax.X509CERT, PwmSettingCategory.AUDIT_FORWARD),
+
 
     // challenge settings
     CHALLENGE_ENABLE(

@@ -27,9 +27,12 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
+import password.pwm.bean.pub.EmailServerBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.StoredValue;
 import password.pwm.config.option.DataStorageMethod;
+import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -83,6 +86,8 @@ public class EmailQueueManager implements PwmService
     private static final PwmLogger LOGGER = PwmLogger.forClass( EmailQueueManager.class );
 
     private PwmApplication pwmApplication;
+    private List<EmailServerBean> emailServers = new ArrayList<EmailServerBean>();
+    private static List<EmailServerBean> staticEmailServers = new ArrayList<EmailServerBean>();
     private Properties javaMailProps = new Properties();
     private WorkQueueProcessor<EmailItemBean> workQueueProcessor;
 
@@ -97,6 +102,61 @@ public class EmailQueueManager implements PwmService
         status = STATUS.OPENING;
         this.pwmApplication = pwmApplication;
         javaMailProps = makeJavaMailProps( pwmApplication.getConfig() );
+        String hostAddress = "";
+        String emailFromAddress = "";
+        String emailUsername = "";
+        PasswordData emailPassword = null;
+        int hostPort = 0;
+        boolean allAvailable = true;
+
+        final List<String> profiles = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.EMAIL_PROFILES);
+
+        try {
+            final StoredConfiguration storedConfiguration = pwmApplication.getConfig().getStoredConfiguration();
+
+            for (int i = 0; i < profiles.size(); i++) {
+                final String profileName = profiles.get(i);
+                final StoredValue address = storedConfiguration.readSetting(PwmSetting.EMAIL_SERVER_ADDRESSES, profileName);
+                if (null != address) {
+                    hostAddress = address.toString();
+                } else {
+                    allAvailable = false;
+                }
+                final StoredValue port = storedConfiguration.readSetting(PwmSetting.EMAIL_SERVER_PORTS, profileName);
+                if (null != port) {
+                    hostPort = Integer.parseInt(port.toString());
+                } else {
+                    allAvailable = false;
+                }
+                LOGGER.debug("Port value: " + port.toString());
+                final StoredValue fromAddress = storedConfiguration.readSetting(PwmSetting.EMAIL_DEFAULT_FROM_ADDRESSES, profileName);
+                if (null != fromAddress) {
+                    emailFromAddress = fromAddress.toString();
+                } else {
+                    allAvailable = false;
+                }
+                final StoredValue username = storedConfiguration.readSetting(PwmSetting.EMAIL_USERNAMES, profileName);
+                if (null != username) {
+                    emailUsername = username.toString();
+                } else {
+                    allAvailable = false;
+                }
+                final StoredValue mailPassword = storedConfiguration.readSetting(PwmSetting.EMAIL_PASSWORDS, profileName);
+                if (null != mailPassword) {
+                    emailPassword = Configuration.JavaTypeConverter.valueToPassword(mailPassword);
+                } else {
+                    allAvailable = false;
+                }
+                if (allAvailable) {
+                    final EmailServerBean emailServerBean = new EmailServerBean(hostAddress, hostPort, emailFromAddress, emailUsername, emailPassword, false);
+                    emailServers.add(emailServerBean);
+                }
+            }
+            staticEmailServers = emailServers;
+        } catch (PwmUnrecoverableException ure) {
+
+
+        }
 
         if ( pwmApplication.getLocalDB() == null || pwmApplication.getLocalDB().status() != LocalDB.Status.OPEN )
         {
@@ -198,14 +258,16 @@ public class EmailQueueManager implements PwmService
         }
     }
 
-    private boolean determineIfItemCanBeDelivered( final EmailItemBean emailItem )
-    {
-        final String serverAddress = pwmApplication.getConfig().readSettingAsString( PwmSetting.EMAIL_SERVER_ADDRESS );
+    private boolean determineIfItemCanBeDelivered(final EmailItemBean emailItem) {
 
-        if ( serverAddress == null || serverAddress.length() < 1 )
-        {
-            LOGGER.debug( "discarding email send event (no SMTP server address configured) " + emailItem.toDebugString() );
-            return false;
+        String serverAddress = "";
+
+        for (int i = 0; i < emailServers.size(); i++) {
+            serverAddress = emailServers.get(i).getServerAddress();if (serverAddress == null || serverAddress.length() < 1)
+        {    LOGGER.debug("discarding email send event (no SMTP server address configured) " + emailItem.toDebugString());
+            return false;} else {
+                break;
+            }
         }
 
         if ( emailItem.getFrom() == null || emailItem.getFrom().length() < 1 )
@@ -413,28 +475,40 @@ public class EmailQueueManager implements PwmService
     private Transport getSmtpTransport( )
             throws MessagingException, PwmUnrecoverableException
     {
-        final String mailUser = this.pwmApplication.getConfig().readSettingAsString( PwmSetting.EMAIL_USERNAME );
-        final PasswordData mailPassword = this.pwmApplication.getConfig().readSettingAsPassword( PwmSetting.EMAIL_PASSWORD );
-        final String mailhost = this.pwmApplication.getConfig().readSettingAsString( PwmSetting.EMAIL_SERVER_ADDRESS );
-        final int mailport = ( int ) this.pwmApplication.getConfig().readSettingAsLong( PwmSetting.EMAIL_SERVER_PORT );
+        Transport tr = null;
+        String mailHost;
+        int mailPort; String mailUser ;
+         PasswordData mailPassword ;
 
-        // Login to SMTP server first if both username and password is given
-        final javax.mail.Session session = javax.mail.Session.getInstance( javaMailProps, null );
-        final Transport tr = session.getTransport( "smtp" );
+        for ( int i = 0; i < emailServers.size(); i++) {
+            if (emailServers.get(i).isTried()) {
+                emailServers.get(i).setTried(false);
+                continue;
+            } else {
+                mailHost = emailServers.get(i).getServerAddress();
+                mailPort = emailServers.get(i).getPort();
+                mailUser = emailServers.get(i).getUsername();
+                mailPassword = emailServers.get(i).getPassword();
+                emailServers.get(i).setTried(true);
+            }
 
-        final boolean authenticated = !( mailUser == null || mailUser.length() < 1 || mailPassword == null );
+            // Login to SMTP server first if both username and password is given
+            final javax.mail.Session session = javax.mail.Session.getInstance( javaMailProps, null );
+            tr = session.getTransport( "smtp" );
 
-        if ( authenticated )
-        {
-            // create a new Session object for the message
-            tr.connect( mailhost, mailport, mailUser, mailPassword.getStringValue() );
-        }
-        else
-        {
+            final boolean authenticated = !( mailUser == null || mailUser.length() < 1 || mailPassword == null );
+
+        if (authenticated)
+        {    // create a new Session object for the message
+            tr.connect(mailHost, mailPort, mailUser, mailPassword.getStringValue());
+        } else {
             tr.connect();
         }
 
-        LOGGER.debug( "connected to " + mailhost + ":" + mailport + " " + ( authenticated ? "(secure)" : "(plaintext)" ) );
+            LOGGER.debug( "connected to " + mailHost + ":" + mailPort + " " + ( authenticated ? "(secure)" : "(plaintext)" ) );
+            emailServers.get(i).setTried(false);
+            break;
+        }
         return tr;
     }
 
@@ -502,11 +576,15 @@ public class EmailQueueManager implements PwmService
         //Create a properties item to start setting up the mail
         final Properties props = new Properties();
 
+        for (int i = 0; i < staticEmailServers.size(); i++) {
+            props.put("mail.smtp.host", staticEmailServers.get(i).getServerAddress());
+            props.put("mail.smtp.port",staticEmailServers.get(i).getPort());
+        }
         //Specify the desired SMTP server
-        props.put( "mail.smtp.host", config.readSettingAsString( PwmSetting.EMAIL_SERVER_ADDRESS ) );
+        //props.put( "mail.smtp.host", config.readSettingAsString( PwmSetting.EMAIL_SERVER_ADDRESS ) );
 
         //Specify SMTP server port
-        props.put( "mail.smtp.port", ( int ) config.readSettingAsLong( PwmSetting.EMAIL_SERVER_PORT ) );
+        //props.put( "mail.smtp.port", ( int ) config.readSettingAsLong( PwmSetting.EMAIL_SERVER_PORT ) );
 
         //Specify configured advanced settings.
         final Map<String, String> advancedSettingValues = StringUtil.convertStringListToNameValuePair( config.readSettingAsStringArray( PwmSetting.EMAIL_ADVANCED_SETTINGS ), "=" );
