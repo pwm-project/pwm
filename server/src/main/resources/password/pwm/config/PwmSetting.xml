@@ -1679,6 +1679,15 @@
             <property key="Cert_ImportHandler">password.pwm.config.function.SyslogCertImportFunction</property>
         </properties>
     </setting>
+    <setting hidden="false" key="audit.syslog.outputFormat" level="1">
+        <default>
+            <value>JSON</value>
+        </default>
+        <options>
+            <option value="JSON">JSON</option>
+            <option value="CEF">CEF</option>
+        </options>
+    </setting>
     <setting hidden="false" key="token.storageMethod" level="1" required="true">
         <default>
             <value><![CDATA[STORE_CRYPTO]]></value>
@@ -2563,6 +2572,8 @@
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
+        <option value="text">text</option>
+        <option value="password">password</option>
     </setting>
     <setting hidden="false" key="forgottenUsername.searchFilter" level="2">
         <default/>

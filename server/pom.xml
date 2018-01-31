@@ -43,12 +43,6 @@
             </properties>
         </profile>
         <profile>
-            <id>skip-jspc</id>
-            <properties>
-                <jspc.skip>true</jspc.skip>
-            </properties>
-        </profile>
-        <profile>
             <id>skip-spotbugs</id>
             <properties>
                 <skipSpotbugs>true</skipSpotbugs>
@@ -107,6 +101,7 @@
                     </dependency>
                 </dependencies>
                 <configuration>
+                    <fork>false</fork>
                     <excludeFilterFile>src/build/spotbugs-exclude.xml</excludeFilterFile>
                     <includeTests>false</includeTests>
                     <skip>${skipSpotbugs}</skip>
@@ -178,10 +173,28 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.3</version>
+                <version>3.7.0</version>
                 <configuration>
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
+
+                    <!-- following allows lombok processor to execute on jdk9+ -->
+                    <showDeprecation>true</showDeprecation>
+                    <showWarnings>true</showWarnings>
+                    <fork>true</fork>
+                    <compilerargs>
+                        <arg>-Werror</arg>
+                        <arg>-Xlint:all</arg>
+                        <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED</arg>
+                        <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED</arg>
+                        <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED</arg>
+                        <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED</arg>
+                        <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED</arg>
+                        <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED</arg>
+                        <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED</arg>
+                        <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED</arg>
+                        <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED</arg>
+                    </compilerargs>
                 </configuration>
             </plugin>
             <plugin>
@@ -247,7 +260,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>2.17</version>
+                <version>3.0.0</version>
                 <dependencies>
                     <dependency>
                         <groupId>com.puppycrawl.tools</groupId>
@@ -314,27 +327,9 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.jasig.mojo.jspc</groupId>
+                <groupId>io.leonard.maven.plugins</groupId>
                 <artifactId>jspc-maven-plugin</artifactId>
-                <version>2.0.2</version>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.jasig.mojo.jspc</groupId>
-                        <artifactId>jspc-compiler-tomcat7</artifactId>
-                        <version>2.0.2</version>
-                    </dependency>
-                </dependencies>
-                <configuration>
-                    <includeInProject>false</includeInProject>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                        <phase>compile</phase>
-                    </execution>
-                </executions>
+                <version>2.4.2</version>
             </plugin>
             <plugin>
                 <artifactId>maven-clean-plugin</artifactId>
@@ -569,7 +564,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.16.18</version>
+            <version>1.16.20</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

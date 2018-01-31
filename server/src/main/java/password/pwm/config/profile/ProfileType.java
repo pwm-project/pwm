@@ -31,6 +31,7 @@ public enum ProfileType {
     NewUser             (false, PwmSettingCategory.NEWUSER_PROFILE,     null),
     UpdateAttributes    (true,  PwmSettingCategory.UPDATE_PROFILE,      PwmSetting.UPDATE_PROFILE_QUERY_MATCH),
     DeleteAccount(true,  PwmSettingCategory.DELETE_ACCOUNT_PROFILE, PwmSetting.DELETE_ACCOUNT_PERMISSION),
+    EmailServers(true, PwmSettingCategory.EMAIL_PROFILES, null),
     ;
     
     private final boolean authenticated;

@@ -32,17 +32,18 @@ import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.TokenStorageMethod;
 import password.pwm.config.profile.ChallengeProfile;
-import password.pwm.config.profile.DeleteAccountProfile;
-import password.pwm.config.profile.ForgottenPasswordProfile;
-import password.pwm.config.profile.HelpdeskProfile;
-import password.pwm.config.profile.LdapProfile;
-import password.pwm.config.profile.NewUserProfile;
-import password.pwm.config.profile.Profile;
-import password.pwm.config.profile.ProfileType;
-import password.pwm.config.profile.ProfileUtility;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.PwmPasswordRule;
+import password.pwm.config.profile.LdapProfile;
+import password.pwm.config.profile.ProfileType;
+import password.pwm.config.profile.EmailServerProfile;
+import password.pwm.config.profile.ForgottenPasswordProfile;
+import password.pwm.config.profile.DeleteAccountProfile;
+import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.config.profile.UpdateAttributesProfile;
+import password.pwm.config.profile.NewUserProfile;
+import password.pwm.config.profile.Profile;
+import password.pwm.config.profile.ProfileUtility;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.config.stored.StoredConfigurationUtil;
@@ -865,7 +866,6 @@ public class Configuration implements SettingReader {
 
     /* generic profile stuff */
 
-
     public Map<String,NewUserProfile> getNewUserProfiles() {
         final Map<String,NewUserProfile> returnMap = new LinkedHashMap<>();
         final Map<String,Profile> profileMap = profileMap(ProfileType.NewUser);
@@ -934,6 +934,10 @@ public class Configuration implements SettingReader {
 
             case DeleteAccount:
                 newProfile = DeleteAccountProfile.makeFromStoredConfiguration(storedConfiguration, profileID);
+                break;
+
+            case EmailServers:
+                newProfile = EmailServerProfile.makeFromStoredConfiguration(storedConfiguration, profileID);
                 break;
 
             default: throw new IllegalArgumentException("unknown profile type: " + profileType.toString());
