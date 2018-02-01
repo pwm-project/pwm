@@ -3912,6 +3912,8 @@
     <category hidden="false" key="EMAIL_PROFILES">
         <profile setting="email.profile.list"/>
     </category>
+    <category hidden="false" key="EMAIL_PROFILE_SETTING">
+    </category>
     <category hidden="false" key="EMAIL">
     </category>
     <category hidden="false" key="EMAIL_SETTINGS">
