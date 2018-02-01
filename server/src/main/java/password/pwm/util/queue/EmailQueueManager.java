@@ -85,8 +85,8 @@ public class EmailQueueManager implements PwmService {
     private static final PwmLogger LOGGER = PwmLogger.forClass(EmailQueueManager.class);
 
     private PwmApplication pwmApplication;
-    private List<EmailServerBean> emailServers = new ArrayList<EmailServerBean>();
-    private static List<EmailServerBean> staticEmailServers = new ArrayList<EmailServerBean>();
+    private List<EmailServerBean> emailServers = new ArrayList<>();
+    private static List<EmailServerBean> staticEmailServers = new ArrayList<>();
     private Properties javaMailProps = new Properties();
     private WorkQueueProcessor<EmailItemBean> workQueueProcessor;
 
@@ -127,8 +127,7 @@ public class EmailQueueManager implements PwmService {
                 } else {
                     allAvailable = false;
                 }
-                LOGGER.debug("Port value: " + port.toString());
-                final StoredValue fromAddress = storedConfiguration.readSetting(PwmSetting.EMAIL_DEFAULT_FROM_ADDRESSES, profileName);
+                final StoredValue fromAddress = storedConfiguration.readSetting(PwmSetting.EMAIL_DEFAULT_FROM_ADDRESS);
                 if (null != fromAddress) {
                     emailFromAddress = fromAddress.toString();
                 } else {
@@ -149,12 +148,11 @@ public class EmailQueueManager implements PwmService {
                 if (allAvailable) {
                     final EmailServerBean emailServerBean = new EmailServerBean(hostAddress, hostPort, emailFromAddress, emailUsername, emailPassword, false);
                     emailServers.add(emailServerBean);
+                    staticEmailServers.add(emailServerBean);
                 }
             }
-            staticEmailServers = emailServers;
         } catch (PwmUnrecoverableException ure) {
-
-
+            return;
         }
 
 

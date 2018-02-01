@@ -255,8 +255,6 @@ public enum PwmSetting {
     AUTO_ADD_OBJECT_CLASSES(
             "ldap.addObjectClasses", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.LDAP_ATTRIBUTES),
 
-
-
     // ldap global settings
     LDAP_PROFILE_LIST(
             "ldap.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL),
@@ -282,30 +280,18 @@ public enum PwmSetting {
             "email.smtp.addresses", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_PROFILES),
     EMAIL_SERVER_PORTS(
             "email.smtp.ports", PwmSettingSyntax.NUMERIC, PwmSettingCategory.EMAIL_PROFILES),
-    EMAIL_DEFAULT_FROM_ADDRESSES(
-            "email.default.fromAddresses", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_PROFILES),
     EMAIL_USERNAMES(
             "email.smtp.usernames", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_PROFILES),
     EMAIL_PASSWORDS(
             "email.smtp.userpasswords", PwmSettingSyntax.PASSWORD, PwmSettingCategory.EMAIL_PROFILES),
 
-    // email settings
-    EMAIL_SERVER_ADDRESS(
-            "email.smtp.address", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_SETTINGS),
-    EMAIL_SERVER_PORT(
-            "email.smtp.port", PwmSettingSyntax.NUMERIC, PwmSettingCategory.EMAIL_SETTINGS),
+    // system wide email settings
     EMAIL_DEFAULT_FROM_ADDRESS(
             "email.default.fromAddress", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_SETTINGS),
-    EMAIL_USERNAME(
-            "email.smtp.username", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_SETTINGS),
-    EMAIL_PASSWORD(
-            "email.smtp.userpassword", PwmSettingSyntax.PASSWORD, PwmSettingCategory.EMAIL_SETTINGS),
-
     EMAIL_MAX_QUEUE_AGE(
             "email.queueMaxAge", PwmSettingSyntax.DURATION, PwmSettingCategory.EMAIL_SETTINGS),
     EMAIL_ADVANCED_SETTINGS(
             "email.smtp.advancedSettings", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.EMAIL_SETTINGS),
-
 
     // email template
     EMAIL_CHANGEPASSWORD(
