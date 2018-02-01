@@ -55,16 +55,24 @@
         <div id="page-content-title"><pwm:display key="Title_SetupOtpSecret" displayIfMissing="true"/></div>
         <p><pwm:display key="Display_SetupOtpSecret"/></p>
         <%@ include file="fragment/message.jsp" %>
-        <div data-dojo-type="dijit.layout.TabContainer" data-dojo-props="doLayout: false, persist: true">
-            <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Display_SetupOtp_Android_Title"/>">
+        <div class="tab-container" data-dojo-props="doLayout: false, persist: true">
+            <input name="tabs" type="radio" id="tab-1" checked="checked" class="input"/>
+            <label for="tab-1" class="label"><pwm:display key="Display_SetupOtp_Android_Title"/></label>
+            <div class="tab-content-pane" title="<pwm:display key="Display_SetupOtp_Android_Title"/>">
                 <pwm:display key="Display_SetupOtp_Android_Steps"/>
                 <img class="qrcodeimage" src="<%=JspUtility.getAttribute(pageContext,PwmRequestAttribute.SetupOtp_QrCodeValue)%>" alt="QR Code"/>
             </div>
-            <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Display_SetupOtp_iPhone_Title"/>">
+
+            <input name="tabs" type="radio" id="tab-2" class="input"/>
+            <label for="tab-2" class="label"><pwm:display key="Display_SetupOtp_iPhone_Title"/></label>
+            <div class="tab-content-pane" title="<pwm:display key="Display_SetupOtp_iPhone_Title"/>">
                 <pwm:display key="Display_SetupOtp_iPhone_Steps"/>
                 <img class="qrcodeimage" src="<%=JspUtility.getAttribute(pageContext,PwmRequestAttribute.SetupOtp_QrCodeValue)%>" alt="QR Code"/>
             </div>
-            <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Display_SetupOtp_Other_Title"/>">
+
+            <input name="tabs" type="radio" id="tab-3" class="input"/>
+            <label for="tab-3" class="label"><pwm:display key="Display_SetupOtp_Other_Title"/></label>
+            <div class="tab-content-pane" title="<pwm:display key="Display_SetupOtp_Other_Title"/>">
                 <pwm:display key="Display_SetupOtp_Other_Steps"/>
                 <img class="qrcodeimage" src="<%=JspUtility.getAttribute(pageContext,PwmRequestAttribute.SetupOtp_QrCodeValue)%>" alt="QR Code"/>
                 <table border="0" style="width: 300px; margin-right: auto; margin-left: auto">
@@ -82,6 +90,7 @@
                     </tr>
                 </table>
             </div>
+            <div class="tab-end"></div>
         </div>
         <div class="buttonbar">
             <form action="<pwm:current-url/>" method="post" name="setupOtpSecret" enctype="application/x-www-form-urlencoded" id="setupOtpSecret" class="pwm-form">
@@ -130,6 +139,7 @@
 </pwm:script>
 <pwm:script-ref url="/public/resources/js/responses.js"/>
 <pwm:script-ref url="/public/resources/js/otpsecret.js"/>
+<link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/tab-container.css' addContext="true"/>"/>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

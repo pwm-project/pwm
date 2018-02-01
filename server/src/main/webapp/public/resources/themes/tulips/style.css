@@ -184,3 +184,10 @@ table td.key {
     box-shadow: 0 0 0 0 white, 0 0 0 0 white, 9px 0 12px -4px #b9526c, -9px 0 12px -4px #b9526c;
     background-color: rgba(255, 255, 255, 1);
 }
+
+.tab-container > .label:hover {
+    color: #ffcccc;
+    border-top-color: #ffcccc;
+    border-left-color: #ffcccc;
+    border-right-color: #ffcccc;
+}

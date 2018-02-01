@@ -55,8 +55,10 @@
     <div id="centerbody">
         <div id="page-content-title"><pwm:display key="Title_Dashboard" bundle="Admin"/></div>
         <%@ include file="fragment/admin-nav.jsp" %>
-        <div id="DashboardTabContainer" data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
-            <div id="StatusTab" data-dojo-type="dijit.layout.ContentPane" title="Status" class="tabContent">
+        <div id="DashboardTabContainer" class="tab-container" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
+            <input name="tabs" type="radio" id="tab-1" checked="checked" class="input"/>
+            <label for="tab-1" class="label">Status</label>
+            <div id="StatusTab" class="tab-content-pane" title="Status" >
                 <table class="nomargin">
                     <tr>
                         <td class="key">
@@ -107,9 +109,11 @@
                     <% } %>
                     <% } %>
                 </table>
-                <div data-dojo-type="dijit.layout.TabContainer" style="margin-top: 15px; width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
-                    <div data-dojo-type="dijit.layout.ContentPane" title="Last Minute" class="tabContent">
-                        <table class="nomargin noborder">
+                <div class="tab-container" style="margin-top: 15px;" data-dojo-props="doLayout: false, persist: true">
+                    <input name="status_tabs" type="radio" id="tab-1.1" checked="checked" class="input"/>
+                    <label for="tab-1.1" class="label">Last Minute</label>
+                    <div class="tab-content-pane" title="Last Minute" class="tabContent">
+                        <table class="nomargin noborder" style="min-height: 164px;">
                             <tr>
                                 <td colspan="10" class="noborder nomargin nopadding">
                                     <div style="max-width: 600px; text-align: center">
@@ -121,8 +125,11 @@
                             </tr>
                         </table>
                     </div>
-                    <div data-dojo-type="dijit.layout.ContentPane" title="Last Hour" class="tabContent">
-                        <table class="nomargin noborder">
+
+                    <input name="status_tabs" type="radio" id="tab-1.2" class="input"/>
+                    <label for="tab-1.2" class="label">Last Hour</label>
+                    <div class="tab-content-pane" title="Last Hour" class="tabContent">
+                        <table class="nomargin noborder" style="min-height: 164px;">
                             <tr>
                                 <td colspan="10" class="noborder nomargin nopadding">
                                     <div style="max-width: 600px; text-align: center">
@@ -134,8 +141,11 @@
                             </tr>
                         </table>
                     </div>
-                    <div data-dojo-type="dijit.layout.ContentPane" title="Last Day" class="tabContent">
-                        <table class="nomargin noborder">
+
+                    <input name="status_tabs" type="radio" id="tab-1.3" class="input"/>
+                    <label for="tab-1.3" class="label">Last Day</label>
+                    <div class="tab-content-pane" title="Last Day" class="tabContent">
+                        <table class="nomargin noborder" style="min-height: 164px;">
                             <tr>
                                 <td colspan="10" class="noborder nomargin nopadding">
                                     <div style="max-width: 600px; text-align: center">
@@ -147,10 +157,14 @@
                             </tr>
                         </table>
                     </div>
+                    <div class="tab-end"></div>
                     <div class="noticebar">Events rates are per minute.  <pwm:display key="Notice_DynamicRefresh" bundle="Admin"/></div>
                 </div>
             </div>
-            <div id="HealthTab" data-dojo-type="dijit.layout.ContentPane" title="Health" class="tabContent">
+
+            <input name="tabs" type="radio" id="tab-2" class="input"/>
+            <label for="tab-2" class="label">Health</label>
+            <div id="HealthTab" class="tab-content-pane" title="Health">
                 <div id="healthBody">
                     <div class="WaitDialogBlank"></div>
                 </div>
@@ -160,7 +174,10 @@
                     <a href="<pwm:context/>/public/health.jsp"><pwm:context/>/public/health.jsp</a>
                 </div>
             </div>
-            <div id="AboutTab" data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_About" bundle="Admin"/>" class="tabContent">
+
+            <input name="tabs" type="radio" id="tab-3" class="input"/>
+            <label for="tab-3" class="label"><pwm:display key="Title_About" bundle="Admin"/></label>
+            <div id="AboutTab" class="tab-content-pane" title="<pwm:display key="Title_About" bundle="Admin"/>">
                 <div style="max-height: 400px; overflow: auto;">
                     <table class="nomargin">
                         <% for (final DisplayElement displayElement : appDashboardData.getAbout()) { %>
@@ -221,7 +238,10 @@
                     </table>
                 </div>
             </div>
-            <div id="ServicesTab" data-dojo-type="dijit.layout.ContentPane" title="Services" class="tabContent">
+
+            <input name="tabs" type="radio" id="tab-4" class="input"/>
+            <label for="tab-4" class="label">Services</label>
+            <div id="ServicesTab" class="tab-content-pane" title="Services">
                 <table class="nomargin">
                     <tr>
                         <th style="font-weight:bold;">
@@ -270,7 +290,10 @@
                     <% } %>
                 </table>
             </div>
-            <div id="LocalDBTab" data-dojo-type="dijit.layout.ContentPane" title="LocalDB" class="tabContent">
+
+            <input name="tabs" type="radio" id="tab-5" class="input"/>
+            <label for="tab-5" class="label">LocalDB</label>
+            <div id="LocalDBTab" class="tab-content-pane" title="LocalDB">
                 <div style="max-height: 400px; overflow: auto;">
                     <table class="nomargin">
                         <% for (final DisplayElement displayElement : appDashboardData.getLocalDbInfo()) { %>
@@ -309,7 +332,10 @@
                 <% } %>
                 </div>
             </div>
-            <div id="JavaTab" data-dojo-type="dijit.layout.ContentPane" title="Java" class="tabContent">
+
+            <input name="tabs" type="radio" id="tab-6" class="input"/>
+            <label for="tab-6" class="label">Java</label>
+            <div id="JavaTab" class="tab-content-pane" title="Java">
                 <table class="nomargin">
                     <% for (final DisplayElement displayElement : appDashboardData.getJavaAbout()) { %>
                     <% request.setAttribute("displayElement", displayElement); %>
@@ -361,8 +387,11 @@
                 </div>
                 <% } %>
             </div>
+
             <% if (!JavaHelper.isEmpty(appDashboardData.getNodeData())) { %>
-            <div id="Status" data-dojo-type="dijit.layout.ContentPane" title="Nodes" class="tabContent">
+            <input name="tabs" type="radio" id="tab-7" class="input"/>
+            <label for="tab-7" class="label">Nodes</label>
+            <div id="Status" class="tab-content-pane" title="Nodes">
                 <div style="max-height: 400px; overflow: auto;">
                     <table class="nomargin">
                         <tr>
@@ -411,6 +440,8 @@
                 </div>
             </div>
             <% } %>
+
+            <div class="tab-end"></div>
         </div>
     </div>
     <div class="push"></div>
@@ -450,6 +481,8 @@
         });
     </script>
 </pwm:script>
+
+<link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/tab-container.css' addContext="true"/>"/>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 <pwm:script-ref url="/public/resources/js/admin.js"/>
 </body>

@@ -189,6 +189,8 @@ html[dir="rtl"] table td.key {
     font-size: smaller;
     font-style: italic;
     text-align: center;
+    position: absolute;
+    bottom: 0;
 }
 
 .noborder {
@@ -1267,4 +1269,12 @@ html[dir="rtl"] .message.message-error .errorDetail {
 
 #strengthLabel {
     white-space: nowrap;
+}
+
+/*Change these values for the tab highlight color:*/
+.tab-container > .label:hover {
+    color: #2D2D2D;
+    border-top-color: #2D2D2D;
+    border-left-color: #2D2D2D;
+    border-right-color: #2D2D2D;
 }
