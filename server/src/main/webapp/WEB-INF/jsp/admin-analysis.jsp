@@ -62,172 +62,197 @@
     <div id="centerbody" class="wide">
         <div id="page-content-title"><pwm:display key="Title_DataAnalysis" bundle="Admin"/></div>
         <%@ include file="fragment/admin-nav.jsp" %>
-        <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;"  data-dojo-props="doLayout: false, persist: true" id="analysis-topLevelTab">
-            <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true" title="<pwm:display key="Title_DirectoryReporting" bundle="Admin"/>">
-                <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_ReportEngineStatus" bundle="Admin"/>" class="tabContent">
-                    <table style="width:450px" id="statusTable">
-                        <tr><td><pwm:display key="Display_PleaseWait"/></td></tr>
-                    </table>
-                    <table style="width:450px;">
-                        <tr><td style="text-align: center; cursor: pointer">
-                            <button id="reportStartButton" class="btn">
-                                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-play">&nbsp;</span></pwm:if>
-                                <pwm:display key="Button_Report_Start" bundle="Admin"/>
-                            </button>
-                            &nbsp;&nbsp;
-                            <button id="reportStopButton" class="btn">
-                                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-stop">&nbsp;</span></pwm:if>
-                                <pwm:display key="Button_Report_Stop" bundle="Admin"/>
-                            </button>
-                            &nbsp;&nbsp;
-                            <button id="reportClearButton" class="btn">
-                                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-trash-o">&nbsp;</span></pwm:if>
-                                <pwm:display key="Button_Report_Clear" bundle="Admin"/>
-                            </button>
-                        </td></tr>
-                    </table>
-                </div>
-                <div data-dojo-type="dijit.layout.ContentPane" title="Summary" class="tabContent">
-                    <div style="max-height: 500px; overflow-y: auto" id="summaryTableWrapper">
-                        <table id="summaryTable">
+        <div class="tab-container" style="width: 100%; height: 100%;"  data-dojo-props="doLayout: false, persist: true" id="analysis-topLevelTab">
+            <input name="tabs" type="radio" id="tab-1" checked="checked" class="input"/>
+            <label for="tab-1" class="label"><pwm:display key="Title_DirectoryReporting" bundle="Admin"/></label>
+            <div class="tab-content-pane" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true" title="<pwm:display key="Title_DirectoryReporting" bundle="Admin"/>">
+                <div class="tab-container" style="width: 100%; height: 100%;">
+                    <input name="dr_tabs" type="radio" id="tab-1.1" checked="checked" class="input"/>
+                    <label for="tab-1.1" class="label"><pwm:display key="Title_ReportEngineStatus" bundle="Admin"/></label>
+                    <div class="tab-content-pane" title="<pwm:display key="Title_ReportEngineStatus" bundle="Admin"/>" class="tabContent">
+                        <table style="width:450px" id="statusTable">
                             <tr><td><pwm:display key="Display_PleaseWait"/></td></tr>
                         </table>
-                    </div>
-                    <div class="noticebar">
-                        <pwm:display key="Notice_DynamicRefresh" bundle="Admin"/>
-                    </div>
-                    <div class="noticebar">
-                        <pwm:display key="Notice_ReportSummary" bundle="Admin"/>
-                    </div>
-                    <div style="text-align: center">
-                        <form class="submitToDownloadForm" action="<pwm:current-url/>" method="post">
-                            <button type="submit" class="btn" id="button-downloadUserSummaryCsv">
-                                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-download">&nbsp;</span></pwm:if>
-                                <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
-                            </button>
-                            <input type="hidden" name="processAction" value="downloadUserSummaryCsv"/>
-                            <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-                        </form>
-                    </div>
-                </div>
-                <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_DataViewer" bundle="Admin"/>" class="tabContent">
-                    <div id="grid">
-                    </div>
-                    <div style="text-align: center">
-                        <input name="maxResults" id="maxReportDataResults" value="1000" type="number" style="width: 70px"
-                               min="10" max="50000" step="100"/>
-                        Rows
-                        <button class="btn" type="button" id="button-refreshReportDataGrid">
-                            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-refresh">&nbsp;</span></pwm:if>
-                            <pwm:display key="Button_Refresh" bundle="Admin"/>
-                        </button>
-                        <form class="submitToDownloadForm" id="downloadUserReportCsvForm" action="<pwm:current-url/>" method="post">
-                            <button type="submit" class="btn" id="button-downloadUserReportCsv">
-                                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-download">&nbsp;</span></pwm:if>
-                                <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
-                            </button>
-                            <pwm:script>
-                                <script type="application/javascript">
-                                    PWM_GLOBAL['startupFunctions'].push(function(){
-                                        PWM_MAIN.showTooltip({
-                                            id: 'button-downloadUserReportCsv',
-                                            text: '<pwm:display key="Tooltip_DownloadReportRecords" bundle="Admin"/>',
-                                            width: 350
-                                        });
-
-                                        PWM_ADMIN.initDownloadUserReportCsvForm();
-                                    });
-                                </script>
-                            </pwm:script>
-                            <input type="hidden" name="processAction" value="downloadUserReportCsv"/>
-                            <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-                            <input type="hidden" name="selectedColumns" value="" />
-                        </form>
-                    </div>
-                    <pwm:script>
-                        <script type="application/javascript">
-                            PWM_GLOBAL['startupFunctions'].push(function(){
-                                PWM_ADMIN.initReportDataGrid();
-                            });
-                        </script>
-                    </pwm:script>
-                </div>
-            </div>
-            <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true" title="<pwm:display key="Title_EventStatistics" bundle="Admin"/>">
-                <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_RawStatistics" bundle="Admin"/>" class="tabContent">
-                    <div style="max-height: 500px; overflow-y: auto">
-                        <table>
-                            <tr>
-                                <td colspan="10" style="text-align: center">
-                                    <form action="<pwm:current-url/>" method="GET" enctype="application/x-www-form-urlencoded"
-                                          name="statsUpdateForm" id="statsUpdateForm">
-                                        <select name="statsPeriodSelect"
-                                                style="width: 350px;" data-dojo-props="maxHeight: -1">
-                                            <option value="<%=StatisticsManager.KEY_CUMULATIVE%>" <%= StatisticsManager.KEY_CUMULATIVE.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
-                                                since installation - <%= JavaHelper.toIsoDate(analysis_pwmRequest.getPwmApplication().getInstallTime()) %>
-                                            </option>
-                                            <option value="<%=StatisticsManager.KEY_CURRENT%>" <%= StatisticsManager.KEY_CURRENT.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
-                                                since startup - <%= JavaHelper.toIsoDate(analysis_pwmRequest.getPwmApplication().getStartupTime()) %>
-                                            </option>
-                                            <% final Map<StatisticsManager.DailyKey, String> availableKeys = statsManager.getAvailableKeys(locale); %>
-                                            <% for (final Map.Entry<StatisticsManager.DailyKey, String> entry : availableKeys.entrySet()) { %>
-                                            <% final StatisticsManager.DailyKey key = entry.getKey(); %>
-                                            <option value="<%=key%>" <%= key.toString().equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
-                                                <%= entry.getValue() %>
-                                            </option>
-                                            <% } %>
-                                        </select>
-                                        <button class="btn" type="submit">
-                                            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-refresh">&nbsp;</span></pwm:if>
-                                            <pwm:display key="Button_Refresh" bundle="Admin"/>
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                            <% for (final Statistic loopStat : Statistic.sortedValues(locale)) { %>
-                            <tr>
-                                <td >
-                                    <span id="Statistic_Key_<%=loopStat.getKey()%>"><%= loopStat.getLabel(locale) %><span/>
-                                </td>
-                                <td>
-                                    <%= stats.getStatistic(loopStat) %><%= loopStat.getType() == Statistic.Type.AVERAGE && loopStat != Statistic.AVG_PASSWORD_STRENGTH ? " ms" : "" %>
-                                </td>
-                            </tr>
-                            <% } %>
+                        <table style="width:450px;">
+                            <tr><td style="text-align: center; cursor: pointer">
+                                <button id="reportStartButton" class="btn">
+                                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-play">&nbsp;</span></pwm:if>
+                                    <pwm:display key="Button_Report_Start" bundle="Admin"/>
+                                </button>
+                                &nbsp;&nbsp;
+                                <button id="reportStopButton" class="btn">
+                                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-stop">&nbsp;</span></pwm:if>
+                                    <pwm:display key="Button_Report_Stop" bundle="Admin"/>
+                                </button>
+                                &nbsp;&nbsp;
+                                <button id="reportClearButton" class="btn">
+                                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-trash-o">&nbsp;</span></pwm:if>
+                                    <pwm:display key="Button_Report_Clear" bundle="Admin"/>
+                                </button>
+                            </td></tr>
                         </table>
                     </div>
-                    <div class="noticebar">
-                        <pwm:display key="Notice_EventStatistics" bundle="Admin"/>
-                    </div>
-                    <div style="text-align: center">
-                        <form class="submitToDownloadForm" action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded">
-                            <button type="submit" class="btn" id="button-downloadStatisticsLogCsv">
-                                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-download"></span></pwm:if>
-                                <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
-                            </button>
-                            <input type="hidden" name="processAction" value="downloadStatisticsLogCsv"/>
-                            <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-                        </form>
-                    </div>
-                </div>
-                <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_StatisticsCharts" bundle="Admin"/>" class="tabContent">
-                    <div style="height:100%; width: 100%">
-                        <div id="statsChartOptionsDiv" style="width:580px; text-align: center; margin:0 auto;">
-                            <label for="statsChartSelect">Statistic</label>
-                            <select name="statsChartSelect" id="statsChartSelect" style="width: 300px;">
-                                <% for (final Statistic loopStat : Statistic.sortedValues(locale)) { %>
-                                <option value="<%=loopStat %>"><%=loopStat.getLabel(locale)%></option>
-                                <% } %>
-                            </select>
-                            <label for="statsChartDays" style="padding-left: 10px">Days</label>
-                            <input id="statsChartDays" value="30" type="number" style="width: 60px" min="7" max="120"/>
+
+                    <input name="dr_tabs" type="radio" id="tab-1.2" class="input"/>
+                    <label for="tab-1.2" class="label">Summary</label>
+                    <div class="tab-content-pane" title="Summary" class="tabContent">
+                        <div style="max-height: 500px; overflow-y: auto" id="summaryTableWrapper">
+                            <table id="summaryTable">
+                                <tr><td><pwm:display key="Display_PleaseWait"/></td></tr>
+                            </table>
                         </div>
-                        <div id="statsChart">
+                        <div class="noticebar">
+                            <pwm:display key="Notice_DynamicRefresh" bundle="Admin"/>
+                            <pwm:display key="Notice_ReportSummary" bundle="Admin"/>
+                        </div>
+                        <div style="text-align: center">
+                            <form class="submitToDownloadForm" action="<pwm:current-url/>" method="post">
+                                <button type="submit" class="btn" id="button-downloadUserSummaryCsv">
+                                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-download">&nbsp;</span></pwm:if>
+                                    <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
+                                </button>
+                                <input type="hidden" name="processAction" value="downloadUserSummaryCsv"/>
+                                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+                            </form>
                         </div>
                     </div>
 
+                    <input name="dr_tabs" type="radio" id="tab-1.3" class="input"/>
+                    <label for="tab-1.3" class="label"><pwm:display key="Title_DataViewer" bundle="Admin"/></label>
+                    <div class="tab-content-pane" title="<pwm:display key="Title_DataViewer" bundle="Admin"/>" class="tabContent">
+                        <div id="grid">
+                        </div>
+                        <div style="text-align: center">
+                            <input name="maxResults" id="maxReportDataResults" value="1000" type="number" style="width: 70px"
+                                   min="10" max="50000" step="100"/>
+                            Rows
+                            <button class="btn" type="button" id="button-refreshReportDataGrid">
+                                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-refresh">&nbsp;</span></pwm:if>
+                                <pwm:display key="Button_Refresh" bundle="Admin"/>
+                            </button>
+                            <form class="submitToDownloadForm" id="downloadUserReportCsvForm" action="<pwm:current-url/>" method="post">
+                                <button type="submit" class="btn" id="button-downloadUserReportCsv">
+                                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-download">&nbsp;</span></pwm:if>
+                                    <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
+                                </button>
+                                <pwm:script>
+                                    <script type="application/javascript">
+                                        PWM_GLOBAL['startupFunctions'].push(function(){
+                                            PWM_MAIN.showTooltip({
+                                                id: 'button-downloadUserReportCsv',
+                                                text: '<pwm:display key="Tooltip_DownloadReportRecords" bundle="Admin"/>',
+                                                width: 350
+                                            });
+
+                                            PWM_ADMIN.initDownloadUserReportCsvForm();
+                                        });
+                                    </script>
+                                </pwm:script>
+                                <input type="hidden" name="processAction" value="downloadUserReportCsv"/>
+                                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+                                <input type="hidden" name="selectedColumns" value="" />
+                            </form>
+                        </div>
+                        <pwm:script>
+                            <script type="application/javascript">
+                                PWM_GLOBAL['startupFunctions'].push(function(){
+                                    PWM_ADMIN.initReportDataGrid();
+                                });
+                            </script>
+                        </pwm:script>
+                    </div>
+
+                    <div class="tab-end"></div>
                 </div>
             </div>
+
+            <input name="tabs" type="radio" id="tab-2" class="input"/>
+            <label for="tab-2" class="label"><pwm:display key="Title_EventStatistics" bundle="Admin"/></label>
+            <div class="tab-content-pane" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true" title="<pwm:display key="Title_EventStatistics" bundle="Admin"/>">
+                <div class="tab-container" style="width: 100%; height: 100%;">
+                    <input name="es_tabs" type="radio" id="tab-2.1" checked="checked" class="input"/>
+                    <label for="tab-2.1" class="label"><pwm:display key="Title_RawStatistics" bundle="Admin"/></label>
+                    <div class="tab-content-pane" title="<pwm:display key="Title_RawStatistics" bundle="Admin"/>" class="tabContent">
+                        <div style="max-height: 500px; overflow-y: auto">
+                            <table>
+                                <tr>
+                                    <td colspan="10" style="text-align: center">
+                                        <form action="<pwm:current-url/>" method="GET" enctype="application/x-www-form-urlencoded"
+                                              name="statsUpdateForm" id="statsUpdateForm">
+                                            <select name="statsPeriodSelect"
+                                                    style="width: 350px;" data-dojo-props="maxHeight: -1">
+                                                <option value="<%=StatisticsManager.KEY_CUMULATIVE%>" <%= StatisticsManager.KEY_CUMULATIVE.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
+                                                    since installation - <%= JavaHelper.toIsoDate(analysis_pwmRequest.getPwmApplication().getInstallTime()) %>
+                                                </option>
+                                                <option value="<%=StatisticsManager.KEY_CURRENT%>" <%= StatisticsManager.KEY_CURRENT.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
+                                                    since startup - <%= JavaHelper.toIsoDate(analysis_pwmRequest.getPwmApplication().getStartupTime()) %>
+                                                </option>
+                                                <% final Map<StatisticsManager.DailyKey, String> availableKeys = statsManager.getAvailableKeys(locale); %>
+                                                <% for (final Map.Entry<StatisticsManager.DailyKey, String> entry : availableKeys.entrySet()) { %>
+                                                <% final StatisticsManager.DailyKey key = entry.getKey(); %>
+                                                <option value="<%=key%>" <%= key.toString().equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
+                                                    <%= entry.getValue() %>
+                                                </option>
+                                                <% } %>
+                                            </select>
+                                            <button class="btn" type="submit">
+                                                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-refresh">&nbsp;</span></pwm:if>
+                                                <pwm:display key="Button_Refresh" bundle="Admin"/>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                <% for (final Statistic loopStat : Statistic.sortedValues(locale)) { %>
+                                <tr>
+                                    <td >
+                                        <span id="Statistic_Key_<%=loopStat.getKey()%>"><%= loopStat.getLabel(locale) %><span/>
+                                    </td>
+                                    <td>
+                                        <%= stats.getStatistic(loopStat) %><%= loopStat.getType() == Statistic.Type.AVERAGE && loopStat != Statistic.AVG_PASSWORD_STRENGTH ? " ms" : "" %>
+                                    </td>
+                                </tr>
+                                <% } %>
+                            </table>
+                        </div>
+                        <div class="noticebar">
+                            <pwm:display key="Notice_EventStatistics" bundle="Admin"/>
+                        </div>
+                        <div style="text-align: center">
+                            <form class="submitToDownloadForm" action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded">
+                                <button type="submit" class="btn" id="button-downloadStatisticsLogCsv">
+                                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-download"></span></pwm:if>
+                                    <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
+                                </button>
+                                <input type="hidden" name="processAction" value="downloadStatisticsLogCsv"/>
+                                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+                            </form>
+                        </div>
+                    </div>
+
+                    <input name="es_tabs" type="radio" id="tab-2.2" class="input"/>
+                    <label for="tab-2.2" class="label"><pwm:display key="Title_StatisticsCharts" bundle="Admin"/></label>
+                    <div class="tab-content-pane" title="<pwm:display key="Title_StatisticsCharts" bundle="Admin"/>" class="tabContent">
+                        <div style="height:100%; width: 100%">
+                            <div id="statsChartOptionsDiv" style="width:580px; text-align: center; margin:0 auto;">
+                                <label for="statsChartSelect">Statistic</label>
+                                <select name="statsChartSelect" id="statsChartSelect" style="width: 300px;">
+                                    <% for (final Statistic loopStat : Statistic.sortedValues(locale)) { %>
+                                    <option value="<%=loopStat %>"><%=loopStat.getLabel(locale)%></option>
+                                    <% } %>
+                                </select>
+                                <label for="statsChartDays" style="padding-left: 10px">Days</label>
+                                <input id="statsChartDays" value="30" type="number" style="width: 60px" min="7" max="120"/>
+                            </div>
+                            <div id="statsChart">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-end"></div>
+                </div>
+            </div>
+
+            <div class="tab-end"></div>
         </div>
     </div>
     <div class="push"></div>
@@ -282,6 +307,7 @@
     </script>
 </pwm:script>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_LOCALE); %>
+<link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/tab-container.css' addContext="true"/>"/>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>
