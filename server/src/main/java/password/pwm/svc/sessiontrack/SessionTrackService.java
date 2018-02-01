@@ -28,12 +28,12 @@ import password.pwm.PwmApplication;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.UserIdentity;
-import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.ldap.UserInfo;
 import password.pwm.bean.pub.SessionStateInfoBean;
 import password.pwm.error.PwmException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmSession;
+import password.pwm.ldap.UserInfo;
 import password.pwm.svc.PwmService;
 import password.pwm.util.logging.PwmLogger;
 
@@ -214,4 +214,6 @@ public class SessionTrackService implements PwmService {
     public List<UserIdentity> getRecentLogins() {
         return Collections.unmodifiableList(new ArrayList<>(recentLoginCache.asMap().keySet()));
     }
+
+
 }

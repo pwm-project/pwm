@@ -65,6 +65,7 @@ public enum AppProperty {
     CONFIG_NEWUSER_PASSWORD_POLICY_CACHE_MS         ("config.newuser.passwordPolicyCacheMS"),
     CONFIG_THEME                                    ("config.theme"),
     CONFIG_JBCRYPT_PWLIB_ENABLE                     ("config.enableJbCryptPwLibrary"),
+    CONFIG_EDITOR_BLOCK_OLD_IE                      ("configEditor.blockOldIE"),
     CONFIG_EDITOR_QUERY_FILTER_TEST_LIMIT           ("configEditor.queryFilter.testLimit"),
     CONFIG_EDITOR_IDLE_TIMEOUT                      ("configEditor.idleTimeoutSeconds"),
     CONFIG_GUIDE_IDLE_TIMEOUT                       ("configGuide.idleTimeoutSeconds"),

@@ -104,6 +104,8 @@ public abstract class RestServlet extends HttpServlet{
 
             final RestRequest restRequest = RestRequest.forRequest(pwmApplication, restAuthentication, sessionLabel, req);
 
+            RequestInitializationFilter.addStaticResponseHeaders( pwmApplication, resp );
+
             preCheck(restRequest);
 
             preCheckRequest(restRequest);
@@ -372,5 +374,4 @@ public abstract class RestServlet extends HttpServlet{
             throw new PwmUnrecoverableException(e.getErrorInformation());
         }
     }
-
 }

@@ -22,8 +22,6 @@
 
 package password.pwm.http.filter;
 
-import eu.bitwalker.useragentutils.Browser;
-import eu.bitwalker.useragentutils.UserAgent;
 import password.pwm.AppProperty;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
@@ -39,7 +37,6 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
-import password.pwm.http.HttpHeader;
 import password.pwm.http.JspUrl;
 import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
@@ -48,6 +45,7 @@ import password.pwm.http.PwmSession;
 import password.pwm.http.PwmURL;
 import password.pwm.http.bean.ConfigManagerBean;
 import password.pwm.svc.intruder.RecordType;
+import password.pwm.svc.sessiontrack.UserAgentUtils;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
@@ -76,11 +74,14 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
             return;
         }
 
-        try {
-            checkUserAgent(pwmRequest);
-        } catch (PwmException e) {
-            pwmRequest.respondWithError(e.getErrorInformation());
-            return;
+        final boolean blockOldIE = Boolean.parseBoolean( pwmRequest.getPwmApplication().getConfig().readAppProperty( AppProperty.CONFIG_EDITOR_BLOCK_OLD_IE ) );
+        if (blockOldIE) {
+            try {
+                UserAgentUtils.checkIfPreIE11( pwmRequest );
+            } catch ( PwmException e ) {
+                pwmRequest.respondWithError( e.getErrorInformation() );
+                return;
+            }
         }
 
         final ConfigManagerBean configManagerBean = pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest, ConfigManagerBean.class);
@@ -359,41 +360,6 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
         return Integer.parseInt(pwmRequest.getConfig().readAppProperty(AppProperty.CONFIG_MAX_PERSISTENT_LOGIN_SECONDS));
     }
 
-    private void checkUserAgent(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
-        final String userAgentString = pwmRequest.readHeaderValueAsString(HttpHeader.UserAgent);
-        if (userAgentString == null || userAgentString.isEmpty()) {
-            return;
-        }
-
-        boolean badBrowser = false;
-        try {
-            final UserAgent userAgent = new UserAgent(userAgentString);
-            final Browser browser = userAgent.getBrowser();
-            switch (browser) {
-                case IE5:
-                case IE5_5:
-                case IE6:
-                case IE7:
-                case IE8:
-                case IE9:
-                case IE10:
-                    badBrowser = true;
-                    break;
-
-                default:
-                    //other browsers okay
-                    break;
-
-            }
-        } catch (Exception e) {
-            LOGGER.error(pwmRequest, "error during browser user-agent detection: " + e.getMessage());
-        }
-
-        if (badBrowser) {
-            final String errorMsg = "Internet Explorer version is not supported for this function.  Please use Internet Explorer 11 or higher or another web browser.";
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED, errorMsg));
-        }
-    }
 
     private static ProcessStatus denyAndError(final PwmRequest pwmRequest, final ErrorInformation errorInformation)
             throws ServletException, PwmUnrecoverableException, IOException

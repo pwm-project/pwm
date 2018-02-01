@@ -155,7 +155,7 @@ public class RequestInitializationFilter implements Filter {
         } catch (Throwable e) {
             LOGGER.error("can't load application: " + e.getMessage(),e);
             if (!(new PwmURL(req).isResourceURL())) {
-                respondWithUnavalailbleError(req, resp);
+                respondWithUnavailableError(req, resp);
                 return;
             }
             return;
@@ -191,7 +191,7 @@ public class RequestInitializationFilter implements Filter {
                 LOGGER.error(logMsg,e);
             }
             if (!(new PwmURL(req).isResourceURL())) {
-                respondWithUnavalailbleError(req, resp);
+                respondWithUnavailableError(req, resp);
                 return;
             }
             return;
@@ -200,7 +200,7 @@ public class RequestInitializationFilter implements Filter {
         filterChain.doFilter(req, resp);
     }
 
-    private void respondWithUnavalailbleError(final HttpServletRequest req, final HttpServletResponse resp)
+    private void respondWithUnavailableError( final HttpServletRequest req, final HttpServletResponse resp)
             throws ServletException, IOException
     {
         ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_APP_UNAVAILABLE);
@@ -307,69 +307,18 @@ public class RequestInitializationFilter implements Filter {
             return;
         }
 
-        final String serverHeader = config.readAppProperty(AppProperty.HTTP_HEADER_SERVER);
-        final boolean includeXInstance = Boolean.parseBoolean(config.readAppProperty(AppProperty.HTTP_HEADER_SEND_XINSTANCE));
         final boolean includeXSessionID = Boolean.parseBoolean(config.readAppProperty(AppProperty.HTTP_HEADER_SEND_XSESSIONID));
-        final boolean includeXVersion = Boolean.parseBoolean(config.readAppProperty(AppProperty.HTTP_HEADER_SEND_XVERSION));
-        final boolean includeXContentTypeOptions = Boolean.parseBoolean(config.readAppProperty(AppProperty.HTTP_HEADER_SEND_XCONTENTTYPEOPTIONS));
-        final boolean includeXXSSProtection = Boolean.parseBoolean(config.readAppProperty(AppProperty.HTTP_HEADER_SEND_XXSSPROTECTION));
-
-        final boolean sendNoise = Boolean.parseBoolean(config.readAppProperty(AppProperty.HTTP_HEADER_SEND_XNOISE));
-
-        if (sendNoise) {
-            final int noiseLength = Integer.parseInt(config.readAppProperty(AppProperty.HTTP_HEADER_NOISE_LENGTH));
-            resp.setHeader(
-                    HttpHeader.XNoise,
-                    PwmRandom.getInstance().alphaNumericString(PwmRandom.getInstance().nextInt(noiseLength)+11)
-            );
-        }
-
-        if (includeXVersion) {
-            resp.setHeader(HttpHeader.XVersion, PwmConstants.SERVLET_VERSION);
-        }
-
-        if (includeXContentTypeOptions) {
-            resp.setHeader(HttpHeader.XContentTypeOptions, "nosniff");
-        }
-
-        if (includeXXSSProtection) {
-            resp.setHeader(HttpHeader.XXSSProtection, "1");
-        }
-
-        if (includeXInstance) {
-            resp.setHeader(HttpHeader.XInstance, String.valueOf(pwmApplication.getInstanceID()));
-        }
-
         if (includeXSessionID && pwmSession != null) {
             resp.setHeader(HttpHeader.XSessionID, pwmSession.getSessionStateBean().getSessionID());
         }
 
-        if (serverHeader != null && !serverHeader.isEmpty()) {
-            final String value = MacroMachine.forNonUserSpecific(pwmApplication, null).expandMacros(serverHeader);
-            resp.setHeader(HttpHeader.Server, value);
-        }
-
-        // ----- non-resource urls only for the following operations -----
-
-        final boolean includeXFrameDeny = config.readSettingAsBoolean(PwmSetting.SECURITY_PREVENT_FRAMING);
-        final boolean includeXAmb = Boolean.parseBoolean(config.readAppProperty(AppProperty.HTTP_HEADER_SEND_XAMB));
         final boolean includeContentLanguage = Boolean.parseBoolean(config.readAppProperty(AppProperty.HTTP_HEADER_SEND_CONTENT_LANGUAGE));
-
-        if (includeXFrameDeny) {
-            resp.setHeader(HttpHeader.XFrameOptions, "DENY");
-        }
-
-        if (includeXAmb) {
-            resp.setHeader(HttpHeader.XAmb, PwmConstants.X_AMB_HEADER.get(
-                    PwmRandom.getInstance().nextInt(PwmConstants.X_AMB_HEADER.size())
-            ));
-        }
-
         if (includeContentLanguage) {
             resp.setHeader(HttpHeader.Content_Language, pwmRequest.getLocale().toLanguageTag());
         }
 
-        resp.setHeader(HttpHeader.Cache_Control, "no-cache, no-store, must-revalidate, proxy-revalidate");
+        addStaticResponseHeaders( pwmApplication, resp.getHttpServletResponse() );
+
 
         if (pwmSession != null) {
             final String contentPolicy;
@@ -385,6 +334,59 @@ public class RequestInitializationFilter implements Filter {
                 resp.setHeader(HttpHeader.ContentSecurityPolicy, expandedPolicy);
             }
         }
+    }
+
+    public static void addStaticResponseHeaders(final PwmApplication pwmApplication, final HttpServletResponse resp) throws PwmUnrecoverableException
+    {
+        final Configuration config = pwmApplication.getConfig();
+
+        final String serverHeader = config.readAppProperty(AppProperty.HTTP_HEADER_SERVER);
+        final boolean includeXInstance = Boolean.parseBoolean(config.readAppProperty(AppProperty.HTTP_HEADER_SEND_XINSTANCE));
+        final boolean includeXVersion = Boolean.parseBoolean(config.readAppProperty(AppProperty.HTTP_HEADER_SEND_XVERSION));
+        final boolean includeXContentTypeOptions = Boolean.parseBoolean(config.readAppProperty(AppProperty.HTTP_HEADER_SEND_XCONTENTTYPEOPTIONS));
+        final boolean includeXXSSProtection = Boolean.parseBoolean(config.readAppProperty(AppProperty.HTTP_HEADER_SEND_XXSSPROTECTION));
+        final boolean includeXFrameDeny = config.readSettingAsBoolean(PwmSetting.SECURITY_PREVENT_FRAMING);
+        final boolean includeXAmb = Boolean.parseBoolean(config.readAppProperty(AppProperty.HTTP_HEADER_SEND_XAMB));
+
+        {
+            final String noiseHeader = makeNoiseHeader( config );
+            if (noiseHeader != null) {
+                resp.setHeader( HttpHeader.XNoise.getHttpName(), noiseHeader );
+            }
+        }
+
+        if (includeXVersion) {
+            resp.setHeader(HttpHeader.XVersion.getHttpName(), PwmConstants.SERVLET_VERSION);
+        }
+
+        if (includeXContentTypeOptions) {
+            resp.setHeader(HttpHeader.XContentTypeOptions.getHttpName(), "nosniff");
+        }
+
+        if (includeXXSSProtection) {
+            resp.setHeader(HttpHeader.XXSSProtection.getHttpName(), "1");
+        }
+
+        if (includeXInstance) {
+            resp.setHeader(HttpHeader.XInstance.getHttpName(), String.valueOf(pwmApplication.getInstanceID()));
+        }
+
+        if (serverHeader != null && !serverHeader.isEmpty()) {
+            final String value = MacroMachine.forNonUserSpecific(pwmApplication, null).expandMacros(serverHeader);
+            resp.setHeader(HttpHeader.Server.getHttpName(), value);
+        }
+
+        if (includeXFrameDeny) {
+            resp.setHeader(HttpHeader.XFrameOptions.getHttpName(), "DENY");
+        }
+
+        if (includeXAmb) {
+            resp.setHeader(HttpHeader.XAmb.getHttpName(), PwmConstants.X_AMB_HEADER.get(
+                    PwmRandom.getInstance().nextInt(PwmConstants.X_AMB_HEADER.size())
+            ));
+        }
+
+        resp.setHeader(HttpHeader.Cache_Control.getHttpName(), "no-cache, no-store, must-revalidate, proxy-revalidate");
     }
 
 
@@ -683,6 +685,17 @@ public class RequestInitializationFilter implements Filter {
         values.put("target", pwmRequest.getHttpServletRequest().getRequestURL().toString());
         values.put("siteUrl", pwmRequest.getPwmApplication().getConfig().readSettingAsString(PwmSetting.PWM_SITE_URL));
         return StringUtil.mapToString(values);
+    }
+
+    private static String makeNoiseHeader(final Configuration configuration) {
+        final boolean sendNoise = Boolean.parseBoolean(configuration.readAppProperty(AppProperty.HTTP_HEADER_SEND_XNOISE));
+
+        if (sendNoise) {
+            final int noiseLength = Integer.parseInt(configuration.readAppProperty(AppProperty.HTTP_HEADER_NOISE_LENGTH));
+            return PwmRandom.getInstance().alphaNumericString(PwmRandom.getInstance().nextInt(noiseLength)+11);
+        }
+
+        return null;
     }
 
 }

@@ -66,7 +66,7 @@
             </div>
         </div>
     </div>
-    <div id="centerbody-config" class="centerbody-config">
+    <div id="centerbody-config" class="centerbody-config" ng-app="configeditor.module" ng-controller="ConfigEditorController as $ctrl">
         <div id="settingSearchPanel">
             <table class="noborder settingSearchPanelTable">
                 <colgroup>
@@ -161,6 +161,25 @@
 <pwm:script-ref url="/public/resources/js/configeditor-settings-customlink.js"/>
 <pwm:script-ref url="/public/resources/js/configeditor-settings-remotewebservices.js"/>
 <pwm:script-ref url="/public/resources/js/admin.js"/>
+
+<%--Add support for angular--%>
+<pwm:script-ref url="/public/resources/webjars/angular/angular.min.js" />
+<pwm:script-ref url="/public/resources/webjars/angular-ui-router/release/angular-ui-router.min.js" />
+<pwm:script-ref url="/public/resources/webjars/angular-translate/dist/angular-translate.min.js" />
+<%--/ Add support for angular--%>
+
+<%--Add support for the "textAngular" library (a control for editing HTML)--%>
+<link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/webjars/textAngular/dist/textAngular.css' addContext="true"/>"/>
+<pwm:script-ref url="/public/resources/webjars/textAngular/dist/textAngular-rangy.min.js" />
+<pwm:script-ref url="/public/resources/webjars/textAngular/dist/textAngular-sanitize.min.js" />
+<pwm:script-ref url="/public/resources/webjars/textAngular/dist/textAngular.min.js" />
+<%--/ Add support for the "textAngular" library (a control for editing HTML)--%>
+
+<%--Provide the angular code we made specifically for this page:--%>
+<link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/html-editor.css' addContext="true"/>"/>
+<pwm:script-ref url="/public/resources/webjars/pwm-client/configeditor.ng.js" />
+<%--/ Provide the angular code we made specifically for this page:--%>
+
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

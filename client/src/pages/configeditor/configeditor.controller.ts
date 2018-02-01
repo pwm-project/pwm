@@ -20,29 +20,31 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.bean;
+import {element, ICompileService, IScope, ITemplateCacheService, module} from 'angular';
 
-import lombok.Builder;
-import lombok.Getter;
-import password.pwm.ldap.PwmLdapVendor;
+/**
+ * Angular controller for the configeditor.jsp page.  This class is used to transition the page from JSPs into
+ * eventually a single page angular application.
+ */
+export default class ConfigEditorController {
+    static $inject = ['$scope', '$compile'];
+    constructor(
+        private $scope: IScope,
+        private $compile: ICompileService
+    ) {
+        $scope.$on('content-added', (event, elementId) => {
+            this.digestNewContent(elementId);
+        });
+    }
 
-import java.io.Serializable;
-import java.time.Instant;
-import java.util.List;
-import java.util.Map;
+    digestNewContent(elementId: string) {
+        if (elementId) {
+            const element = document.getElementById(elementId);
 
-@Getter
-@Builder
-public class TelemetryPublishBean implements Serializable {
-    private final Instant timestamp;
-    private final String id;
-    private final String instanceHash;
-    private final String siteDescription;
-    private final Instant installTime;
-    private final List<PwmLdapVendor> ldapVendor;
-    private final Map<String,String> statistics;
-    private final List<String> configuredSettings;
-    private final String versionBuild;
-    private final String versionVersion;
-    private final Map<String,String> about;
+            if (element) {
+                this.$compile(element)(this.$scope);
+                this.$scope.$digest();
+            }
+        }
+    }
 }

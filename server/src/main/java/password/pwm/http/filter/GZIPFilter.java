@@ -22,11 +22,11 @@
 
 package password.pwm.http.filter;
 
+import com.github.ziplet.filter.compression.CompressingFilter;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
-import password.pwm.http.HttpHeader;
 import password.pwm.http.PwmURL;
 import password.pwm.util.logging.PwmLogger;
 
@@ -34,17 +34,10 @@ import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpServletResponseWrapper;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.zip.GZIPOutputStream;
 
 /**
  * GZip Filter Wrapper.  This filter must be invoked _before_ a PwmRequest object is instantiated, else
@@ -53,171 +46,51 @@ import java.util.zip.GZIPOutputStream;
 public class GZIPFilter implements Filter {
     private static final PwmLogger LOGGER = PwmLogger.forClass(GZIPFilter.class);
 
+    private final CompressingFilter compressingFilter = new CompressingFilter();
+    private boolean enabled = false;
+
     public void init(final FilterConfig filterConfig)
             throws ServletException
     {
+        final PwmApplication pwmApplication;
+        try {
+            pwmApplication = ContextManager.getPwmApplication( filterConfig.getServletContext() );
+            enabled = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_ENABLE_GZIP));
+        } catch (PwmUnrecoverableException e) {
+            LOGGER.warn( "unable to load application configuration, defaulting to disabled" );
+        }
+
+        compressingFilter.init( filterConfig );
     }
 
     public void destroy()
     {
+        compressingFilter.destroy();
     }
 
     @Override
     public void doFilter(final ServletRequest servletRequest, final ServletResponse servletResponse, final FilterChain filterChain)
             throws IOException, ServletException
     {
-        final String acceptEncoding = ((HttpServletRequest)servletRequest).getHeader(HttpHeader.Accept_Encoding.getHttpName());
-        if (acceptEncoding != null && acceptEncoding.contains("gzip") && isEnabled(servletRequest)) {
-            final GZIPHttpServletResponseWrapper gzipResponse = new GZIPHttpServletResponseWrapper((HttpServletResponse)servletResponse);
-            gzipResponse.addHeader(HttpHeader.Content_Encoding.getHttpName(), "gzip");
-            filterChain.doFilter(servletRequest, gzipResponse);
-            gzipResponse.finish();
-
+        if ( enabled && interestInRequest( servletRequest )) {
+            compressingFilter.doFilter( servletRequest, servletResponse, filterChain );
         } else {
             filterChain.doFilter(servletRequest, servletResponse);
         }
     }
 
-    private boolean isEnabled(final ServletRequest servletRequest) {
-
+    private boolean interestInRequest( final ServletRequest servletRequest) {
         try {
             final PwmURL pwmURL = new PwmURL((HttpServletRequest) servletRequest);
-            if (pwmURL.isResourceURL() || pwmURL.isRestService()) {
+
+            // resource servlet does its own gzip compression with fancy server-side caching
+            if (pwmURL.isResourceURL()) {
                 return false;
             }
         } catch (Exception e) {
             LOGGER.error("unable to parse request url, defaulting to non-gzip: " + e.getMessage());
         }
 
-        final PwmApplication pwmApplication;
-        try {
-            pwmApplication = ContextManager.getPwmApplication((HttpServletRequest) servletRequest);
-            return Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_ENABLE_GZIP));
-        } catch (PwmUnrecoverableException e) {
-            //LOGGER.trace("unable to read http-gzip app-property, defaulting to non-gzip: " + e.getMessage());
-        }
-        return false;
-    }
-
-
-    public static class GZIPHttpServletResponseWrapper extends HttpServletResponseWrapper {
-        private ServletResponseGZIPOutputStream gzipStream;
-        private ServletOutputStream outputStream;
-        private PrintWriter printWriter;
-
-        public GZIPHttpServletResponseWrapper(final HttpServletResponse response) throws IOException {
-            super(response);
-        }
-
-        public void finish() throws IOException {
-            if (printWriter != null) {
-                printWriter.close();
-            }
-            if (outputStream != null) {
-                outputStream.close();
-            }
-            if (gzipStream != null) {
-                gzipStream.close();
-            }
-        }
-
-        @Override
-        public void flushBuffer() throws IOException {
-            if (printWriter != null) {
-                printWriter.flush();
-            }
-            if (outputStream != null) {
-                outputStream.flush();
-            }
-            super.flushBuffer();
-        }
-
-        @Override
-        public ServletOutputStream getOutputStream() throws IOException {
-            if (printWriter != null) {
-                throw new IllegalStateException("getWriter() has previously been invoked, can not call getOutputStream()");
-            }
-            if (outputStream == null) {
-                initGzip();
-                outputStream = gzipStream;
-            }
-            return outputStream;
-        }
-
-        @Override
-        public PrintWriter getWriter() throws IOException {
-            if (outputStream != null) {
-                throw new IllegalStateException("getOutputStream() has previously been invoked, can not call getWriter()");
-            }
-            if (printWriter == null) {
-                initGzip();
-                printWriter = new PrintWriter(new OutputStreamWriter(gzipStream, getResponse().getCharacterEncoding()));
-            }
-            return printWriter;
-        }
-
-        @Override
-        public void setContentLength(final int len) {
-        }
-
-        private void initGzip() throws IOException {
-            gzipStream = new ServletResponseGZIPOutputStream(getResponse().getOutputStream());
-        }
-    }
-
-    public static class ServletResponseGZIPOutputStream extends ServletOutputStream {
-        private final AtomicBoolean open = new AtomicBoolean(true);
-        private GZIPOutputStream gzipStream;
-
-        public ServletResponseGZIPOutputStream(final ServletOutputStream output) throws IOException {
-            gzipStream = new GZIPOutputStream(output);
-        }
-
-        @Override
-        public void close() throws IOException {
-            if (open.compareAndSet(true, false)) {
-                gzipStream.close();
-            }
-        }
-
-        @Override
-        public void flush() throws IOException {
-            gzipStream.flush();
-        }
-
-        @Override
-        public void write(final byte[] b) throws IOException {
-            write(b, 0, b.length);
-        }
-
-        @Override
-        public void write(final byte[] b, final int off, final int len) throws IOException {
-            if (!open.get()) {
-                throw new IOException("Stream closed!");
-            }
-            gzipStream.write(b, off, len);
-        }
-
-        @Override
-        public void write(final int b) throws IOException {
-            if (!open.get()) {
-                throw new IOException("Stream closed!");
-            }
-            gzipStream.write(b);
-        }
-
-        /*
-        // servlet 3.1 method
-        public void setWriteListener(WriteListener writeListener)
-        {
-            servletOutputStream.setWriteListener(writeListener);
-        }
-
-        // servlet 3.1 method
-        public boolean isReady()
-        {
-            return servletOutputStream.isReady();
-        }
-        */
+        return true;
     }
 }
