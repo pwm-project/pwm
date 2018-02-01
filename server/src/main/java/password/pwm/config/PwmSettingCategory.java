@@ -89,9 +89,10 @@ public enum PwmSettingCategory
     UI_FEATURES( USER_INTERFACE ),
     UI_WEB( USER_INTERFACE ),
 
-    EMAIL( SETTINGS ),
-    EMAIL_SETTINGS( EMAIL ),
-    EMAIL_TEMPLATES( EMAIL ),
+    EMAIL                       (SETTINGS),
+    EMAIL_SETTINGS              (EMAIL),
+    EMAIL_TEMPLATES             (EMAIL),
+    EMAIL_PROFILES              (EMAIL),
 
     SMS( SETTINGS ),
     SMS_GATEWAY( SMS ),
