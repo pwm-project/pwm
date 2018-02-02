@@ -22,7 +22,7 @@
 
 
 import {IHelpDeskService, ISuccessResponse} from '../services/helpdesk.service';
-import {IQService} from 'angular';
+import {IQService, IScope} from 'angular';
 import {IHelpDeskConfigService} from '../services/helpdesk-config.service';
 import DialogService from '../ux/ias-dialog.service';
 import {IChangePasswordSuccess} from './success-change-password.controller';
@@ -30,19 +30,21 @@ import {IChangePasswordSuccess} from './success-change-password.controller';
 require('changepassword/type-change-password.component.scss');
 
 export default class TypeChangePasswordController {
-    chosenPassword: string;
+    passwordAcceptable: boolean;
     maskPasswords: boolean;
     message: string;
     password1: string;
     password2: string;
     password1Masked: boolean;
     password2Masked: boolean;
+    passwordUiMode: string;
     passwordSuggestions: string[];
     showStrengthMeter: boolean;
     strength: string = 'Very Strong';
 
     static $inject = [
         '$q',
+        '$scope',
         'ConfigService',
         'HelpDeskService',
         'IasDialogService',
@@ -51,26 +53,47 @@ export default class TypeChangePasswordController {
         'translateFilter'
     ];
     constructor(private $q: IQService,
+                private $scope: IScope,
                 private configService: IHelpDeskConfigService,
                 private HelpDeskService: IHelpDeskService,
                 private IasDialogService: DialogService,
                 private personUsername: string,
                 private personUserKey: string,
                 private translateFilter: (id: string) => string) {
+        this.passwordAcceptable = true;
         this.passwordSuggestions = Array(20).fill('');
         this.message = translateFilter('Display_PasswordPrompt');
         this.showStrengthMeter = HelpDeskService.showStrengthMeter;
 
-        this.configService.maskPasswordsEnabled()
-            .then((maskPasswords: boolean) => {
-                this.maskPasswords = maskPasswords;
-                this.password1Masked = this.maskPasswords;
-                this.password2Masked = this.maskPasswords;
-            });
+        let promise = this.$q.all([
+            this.configService.getPasswordUiMode(),
+            this.configService.maskPasswordsEnabled()
+        ]);
+        promise.then((result) => {
+            this.passwordUiMode = result[0];
+            this.maskPasswords = result[1];
+            this.password1Masked = this.maskPasswords;
+            this.password2Masked = this.maskPasswords;
+        });
+
+        // update display (TODO)
+        this.$scope.$watch('$ctrl.password1', (newValue, oldValue) => {
+            if (newValue !== oldValue) {
+                // update display (TODO; first or second?)
+
+                if (this.password2.length) {
+                    this.password2 = '';        // TODO: should we do this.$scope.applyAsync?
+                }
+            }
+        });
     }
 
-    chooseTypedPassword() {     // todo: should this be merged with onChoosePasswordSuggestion?
-        this.HelpDeskService.setPassword(this.personUserKey, false, this.chosenPassword)
+    chooseTypedPassword() {
+        if (!this.passwordAcceptable) {
+            return;
+        }
+
+        this.HelpDeskService.setPassword(this.personUserKey, false, this.password1)
             .then((result: ISuccessResponse) => {
                 // Send the password and success message to the parent element via the close() method.
                 let data: IChangePasswordSuccess = { password: this.password1, successMessage: result.successMessage };
