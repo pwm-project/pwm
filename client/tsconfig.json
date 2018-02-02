@@ -2,6 +2,7 @@
   "compilerOptions": {
     "baseUrl": "./",
     "experimentalDecorators": true,
+    "lib": ["es2015", "es2015.iterable", "dom"],
     "module": "commonjs",
     "removeComments": true,
     "sourceMap": true,

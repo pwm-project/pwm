@@ -21,7 +21,7 @@
  */
 
 
-import { isString, IHttpService, ILogService, IPromise, IQService, IWindowService } from 'angular';
+import { IHttpService, ILogService, IPromise, IQService, IWindowService } from 'angular';
 import { IPerson } from '../models/person.model';
 import IPwmService from './pwm.service';
 import IOrgChartData from '../models/orgchart-data.model';
@@ -149,7 +149,7 @@ export default class PeopleService implements IPeopleService {
         let httpTimeout = this.$q.defer();
 
         let request = this.$http
-            .get(this.pwmService.getServerUrl('detail'), {
+            .get(this.pwmService.getPeopleSearchServerUrl('detail'), {
                 cache: true,
                 params: { userKey: id },
                 timeout: httpTimeout.promise

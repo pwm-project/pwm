@@ -1,0 +1,127 @@
+/*!
+ * Password Management Servlets (PWM)
+ * http://www.pwm-project.org
+ *
+ * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2017 The PWM Project
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+help-desk-detail {
+  .page-content-title {
+    margin-right: 20px;
+  }
+
+  mf-icon-button {
+    margin-left: 5px;
+  }
+
+  person-card {
+    margin-top: 20px;
+  }
+
+  > .help-desk-content {
+    > .person-details-content,
+    > .help-desk-buttons {
+      display: inline-block;
+      vertical-align: top;
+    }
+
+    > .person-details-content {
+      min-width: 580px;
+      max-width: 700px;
+      padding: 10px;
+
+      .mf-tab-pane-container {
+        max-height: 500px;
+        overflow: auto;
+
+        table {
+          border: none;
+          border-collapse: collapse;
+          max-width: 560px;
+          max-height: 500px;
+          width: 100%;
+
+          tr {
+            height: 25px;
+
+            &.bottom-border {
+              border-bottom: 1px solid #949494;
+            }
+
+            td {
+              border: none;
+              font-size: 12px;
+              height: 19px;
+              text-align: left;
+
+              &:first-child {
+                color: #949494;
+                width: 200px;
+                text-align: right;
+                padding: 3px 0;
+              }
+
+              &:last-child {
+                padding: 3px 10px;
+
+                > .detail-container {
+                  > ul {
+                    > li {
+                      > mf-icon-button {
+                        display: inline-block;
+                        height: 16px;
+                        width: 16px;
+
+                        > button {
+                          > mf-icon {
+                            font-size: 16px;
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+
+              ul {
+                list-style: none;
+                margin: 0;
+                padding: 0;
+
+                > li {
+                  margin: 0;
+                  padding: 0;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    > .help-desk-buttons {
+      > mf-button {
+        display: block;
+
+        > button {
+          margin: 0 auto;
+        }
+      }
+    }
+  }
+}

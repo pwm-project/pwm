@@ -30,7 +30,8 @@ module.exports = webpackMerge(commonConfig, {
     entry: {
         'peoplesearch.ng': './src/main',
         'changepassword.ng': './src/pages/changepassword/changepassword.module',
-        'configeditor.ng': './src/pages/configeditor/configeditor.module'
+        'configeditor.ng': './src/pages/configeditor/configeditor.module',
+        'helpdesk.ng': './src/helpdesk/main'
     },
     module: {
         loaders: [

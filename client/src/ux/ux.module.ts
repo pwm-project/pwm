@@ -26,6 +26,7 @@ import AppBarComponent from './app-bar.component';
 import AutoCompleteComponent from './auto-complete.component';
 import ButtonComponent from './button.component';
 import DialogComponent from './dialog.component';
+import IasDialogComponent from './ias-dialog.component';
 // import { DialogService } from './dialog.service';
 import IconButtonComponent from './icon-button.component';
 import IconComponent from './icon.component';
@@ -33,10 +34,13 @@ import SearchBarComponent from './search-bar.component';
 import TableDirectiveFactory from './table.directive';
 import TableColumnDirectiveFactory from './table-column.directive';
 import ElementSizeService from './element-size.service';
+import TabsetDirective from './tabset.directive';
+import DialogService from './ias-dialog.service';
 
 var moduleName = 'peoplesearch.ux';
 
 module(moduleName, [ ])
+    .component('iasDialog', IasDialogComponent)
     .component('mfAppBar', AppBarComponent)
     .component('mfAutoComplete', AutoCompleteComponent)
     .component('mfButton', ButtonComponent)
@@ -46,6 +50,8 @@ module(moduleName, [ ])
     .component('mfSearchBar', SearchBarComponent)
     .directive('mfTable', TableDirectiveFactory)
     .directive('mfTableColumn', TableColumnDirectiveFactory)
+    .directive('mfTabset', TabsetDirective)
+    .service('IasDialogService', DialogService)
     .service('MfElementSizeService', ElementSizeService);
     // .service('MfDialogService', DialogService);
 

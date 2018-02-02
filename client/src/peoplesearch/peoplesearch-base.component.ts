@@ -22,7 +22,7 @@
 
 
 import { isArray, isString, IPromise, IQService, IScope } from 'angular';
-import { IConfigService } from '../services/config.service';
+import { IPeopleSearchConfigService } from '../services/peoplesearch-config.service';
 import { IPeopleService } from '../services/people.service';
 import IPwmService from '../services/pwm.service';
 import LocalStorageService from '../services/local-storage.service';
@@ -48,7 +48,7 @@ abstract class PeopleSearchBaseComponent {
                 protected $state: angular.ui.IStateService,
                 protected $stateParams: angular.ui.IStateParamsService,
                 protected $translate: angular.translate.ITranslateService,
-                protected configService: IConfigService,
+                protected configService: IPeopleSearchConfigService,
                 protected localStorageService: LocalStorageService,
                 protected peopleService: IPeopleService,
                 protected promiseService: PromiseService,

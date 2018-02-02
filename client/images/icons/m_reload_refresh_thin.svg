@@ -1,0 +1,23 @@
+<!--
+  ~ Password Management Servlets (PWM)
+  ~ http://www.pwm-project.org
+  ~
+  ~ Copyright (c) 2006-2009 Novell, Inc.
+  ~ Copyright (c) 2009-2017 The PWM Project
+  ~
+  ~ This program is free software; you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation; either version 2 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program; if not, write to the Free Software
+  ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  -->
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72"><title>m_014_reload_refresh_thin</title><path d="M52.91,20.76a1.5,1.5,0,0,0-2.21,2,22.24,22.24,0,1,1-11.36-6.65l-6.51,6.51A1.52,1.52,0,0,0,35,24.76l9.12-9.12a1.5,1.5,0,0,0,0-2.12l-9-9A1.5,1.5,0,0,0,33,6.64L39.36,13a25.26,25.26,0,1,0,13.55,7.74Z" fill="gray"/></svg>

@@ -21,7 +21,7 @@
  */
 
 
-import { IConfigService } from './services/config.service';
+import { IPeopleSearchConfigService } from './services/peoplesearch-config.service';
 import { IQService } from 'angular';
 import LocalStorageService from './services/local-storage.service';
 
@@ -70,7 +70,7 @@ export default [
                 enabled: [
                     '$q',
                     'ConfigService',
-                    ($q: IQService, configService: IConfigService) => {
+                    ($q: IQService, configService: IPeopleSearchConfigService) => {
                         let deferred = $q.defer();
 
                         configService

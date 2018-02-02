@@ -1,0 +1,199 @@
+/*!
+ * Password Management Servlets (PWM)
+ * http://www.pwm-project.org
+ *
+ * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2017 The PWM Project
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+help-desk-search {
+  display: flex;
+  flex-flow: column nowrap;
+  height: 100%;
+
+  // At medium size, cards are centered and no longer take up 100% width
+  &.medium {
+    > .people-search-component-content {
+      > .person-card-list {
+        > person-card {
+          margin: 0 auto;
+          display: block;
+          width: 272px;
+        }
+      }
+    }
+  }
+
+  // At large size, cards fit next to each other
+  &.large {
+    > .people-search-component-content {
+      > .person-card-list {
+        text-align: left;
+        margin: 0;
+
+        > person-card {
+          display: inline-block;
+          margin-right: 5px;
+        }
+      }
+    }
+  }
+
+  > .people-search-component-content {
+    flex: 1 1;
+    overflow: auto;
+    text-align: center;
+
+    > .person-card-list {
+      > person-card {
+        display: inline-block;
+        width: 100%;
+
+        &:not(:last-child) {
+          margin-bottom: 5px;
+        }
+      }
+    }
+  }
+}
+
+ias-dialog {
+  p,
+  .paragraph {
+    max-width: 400px;
+  }
+
+  .aligned-inputs {
+    margin-top: 8px;
+
+    input,
+    label,
+    .first-col,
+    .second-col {
+      display: inline-block;
+    }
+
+    input,
+    .second-col {
+      min-width: 200px;
+    }
+
+    input {
+      background-color: transparent;
+      border: 1px solid #dae1e1;
+      border-radius: 3px;
+      font-size: 15px;
+      padding: 8px;
+    }
+
+    label,
+    .first-col {
+      color: #808080;
+      font-size: 13px;
+      font-weight: normal;
+      line-height: 21px;
+      margin-right: 5px;
+      min-width: 150px;
+      text-align: right;
+      user-select: none;
+    }
+
+    mf-button {
+      margin: 0;
+
+      > button {
+        min-width: 90px;
+      }
+    }
+  }
+
+  .ias-actions {
+    mf-icon {
+      .icon_m_check_thick,
+      .icon_m_close_thick {
+        margin-left: 5px;
+      }
+
+      .icon_m_check_thick {
+        color: green;
+      }
+
+      .icon_m_close_thick {
+        color: red;
+      }
+    }
+
+    .loading-gif-25 {
+      background-image: url('../../images/icons/wait_25.gif');
+      display: inline-block;
+      height: 25px;
+      margin-left: 5px;
+      vertical-align: top;
+      width: 25px;
+    }
+  }
+
+  table {
+    border: 1px solid #dae1e1;
+    border-collapse: collapse;
+    width: 100%;
+
+    > tbody {
+      > tr {
+        height: 25px;
+      }
+    }
+
+    th, td {
+      font-weight: normal;
+      overflow: hidden;
+      padding: 5px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background-color: #eeeeee;
+      color: #697c87;
+      user-select: none;
+    }
+
+    tr {
+      > th,
+      > td {
+        border-bottom: 1px solid #dae1e1;
+      }
+    }
+  }
+}
+
+[dir="rtl"] {
+  people-search-cards {
+    &.large {
+      > .people-search-component-content {
+        .person-card-list {
+          text-align: right;
+
+          > person-card {
+            margin-right: auto;
+            margin-left: 5px;
+          }
+        }
+      }
+    }
+  }
+}

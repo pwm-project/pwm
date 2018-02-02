@@ -21,32 +21,10 @@
  */
 
 
-import { IConfigService } from './config.service';
-import { IPromise, IQService } from 'angular';
-
-export default class ConfigService implements IConfigService {
-    static $inject = [ '$q' ];
-    constructor(private $q: IQService) {}
-
-    getColumnConfig(): IPromise<any> {
-        return this.$q.resolve({
-            givenName: 'First Name',
-            sn: 'Last Name',
-            title: 'Title',
-            mail: 'Email',
-            telephoneNumber: 'Telephone'
-        });
-    }
-
-    photosEnabled(): IPromise<boolean> {
-        return this.$q.resolve(true);
-    }
-
-    orgChartEnabled(): IPromise<boolean> {
-        return this.$q.resolve(true);
+// Convert ISO8601 date to human-readable format
+export function DateFilter(): (isoDate: string) => string {
+    return (isoDate: string): string => {
+        let date = new Date(isoDate);
+        return date.toString();
     };
-
-    getValue(key: string): IPromise<any> {
-        return null;
-    }
 }

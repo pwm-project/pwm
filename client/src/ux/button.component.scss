@@ -51,4 +51,15 @@ mf-button {
       border-color: #dae1e1;
     }
   }
+
+  &[disabled] {
+    > button {
+      background-color: #f6f9f8;
+      border-color: #dae1e1;
+      color: #434c50;
+      cursor: default;
+      opacity: 0.4;
+      outline: none;
+    }
+  }
 }
