@@ -38,7 +38,7 @@
     </dependencySets>
     <files>
         <file>
-            <source>${project.basedir}${file.separator}..${file.separator}server${file.separator}target${file.separator}pwm-${project.version}.war</source>
+            <source>${project.basedir}${file.separator}..${file.separator}server${file.separator}target${file.separator}${warArtifactID}</source>
             <outputDirectory>/</outputDirectory>
             <destName>embed.war</destName>
         </file>
