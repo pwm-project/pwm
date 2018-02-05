@@ -27,12 +27,15 @@ import HelpDeskDetailComponent from './helpdesk-detail.component';
 import HelpDeskSearchComponent from './helpdesk-search.component';
 import LocalStorageService from '../services/local-storage.service';
 import ObjectService from '../services/object.service';
-import PasswordSuggestionsDialogController from './password-suggestions.controller';
 import PersonCardComponent from '../peoplesearch/person-card.component';
 import PromiseService from '../services/promise.service';
 import RecentVerificationsDialogController from './recent-verifications-dialog.controller';
 import uxModule from '../ux/ux.module';
 import VerificationsDialogController from './verifications-dialog.controller';
+import AutogenChangePasswordController from '../changepassword/autogen-change-password.controller';
+import RandomChangePasswordController from '../changepassword/random-change-password.controller';
+import SuccessChangePasswordController from '../changepassword/success-change-password.controller';
+import TypeChangePasswordController from '../changepassword/type-change-password.controller';
 
 require('../peoplesearch/peoplesearch.scss');
 
@@ -45,8 +48,11 @@ module(moduleName, [
     .component('helpDeskSearch', HelpDeskSearchComponent)
     .component('helpDeskDetail', HelpDeskDetailComponent)
     .component('personCard', PersonCardComponent)
-    .controller('PasswordSuggestionsDialogController', PasswordSuggestionsDialogController)
+    .controller('AutogenChangePasswordController', AutogenChangePasswordController)
+    .controller('RandomChangePasswordController', RandomChangePasswordController)
     .controller('RecentVerificationsDialogController', RecentVerificationsDialogController)
+    .controller('SuccessChangePasswordController', SuccessChangePasswordController)
+    .controller('TypeChangePasswordController', TypeChangePasswordController)
     .controller('VerificationsDialogController', VerificationsDialogController)
     .filter('dateFilter', DateFilter)
     .service('ObjectService', ObjectService)

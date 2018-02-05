@@ -24,14 +24,18 @@
 import {Component} from '../component';
 import {IButtonInfo, IHelpDeskService, ISuccessResponse} from '../services/helpdesk.service';
 import {IScope, ui} from '@types/angular';
-import {IActionButtons, IHelpDeskConfigService} from '../services/helpdesk-config.service';
+import {IQService, noop} from 'angular';
+import {IHelpDeskConfigService, PASSWORD_UI_MODES} from '../services/helpdesk-config.service';
 import DialogService from '../ux/ias-dialog.service';
 import {IPeopleService} from '../services/people.service';
 import {IPerson} from '../models/person.model';
-import IasDialogComponent from '../ux/ias-dialog.component';
+import {IChangePasswordSuccess} from '../changepassword/success-change-password.controller';
 
+let autogenChangePasswordTemplateUrl = require('changepassword/autogen-change-password.component.html');
 let helpdeskDetailDialogTemplateUrl = require('./helpdesk-detail-dialog.template.html');
-let passwordSuggestionsDialogTemplateUrl = require('./password-suggestions-dialog.html');
+let randomChangePasswordTemplateUrl = require('changepassword/random-change-password.component.html');
+let successChangePasswordTemplateUrl = require('changepassword/success-change-password.component.html');
+let typeChangePasswordTemplateUrl = require('changepassword/type-change-password.component.html');
 let verificationsDialogTemplateUrl = require('./verifications-dialog.template.html');
 
 const STATUS_WAIT = 'wait';
@@ -43,12 +47,12 @@ const STATUS_SUCCESS = 'success';
     templateUrl: require('helpdesk/helpdesk-detail.component.html')
 })
 export default class HelpDeskDetailComponent {
-    actionButtons: IActionButtons;
     person: any;
     personCard: IPerson;
     photosEnabled: boolean;
 
     static $inject = [
+        '$q',
         '$state',
         '$stateParams',
         'ConfigService',
@@ -56,7 +60,8 @@ export default class HelpDeskDetailComponent {
         'IasDialogService',
         'PeopleService'
     ];
-    constructor(private $state: ui.IStateService,
+    constructor(private $q: IQService,
+                private $state: ui.IStateService,
                 private $stateParams: ui.IStateParamsService,
                 private configService: IHelpDeskConfigService,
                 private helpDeskService: IHelpDeskService,
@@ -85,14 +90,109 @@ export default class HelpDeskDetailComponent {
     }
 
     changePassword(): void {
-        this.IasDialogService
-            .open({
-                controller: 'PasswordSuggestionsDialogController as $ctrl',
-                templateUrl: passwordSuggestionsDialogTemplateUrl,
-                locals: {
-                    personUserKey: this.getUserKey(),
+        this.configService.getPasswordUiMode()
+            .then((passwordUiMode) => {
+                if (passwordUiMode === PASSWORD_UI_MODES.AUTOGEN) {
+                    this.changePasswordAutogen();
+                }
+                else if (passwordUiMode === PASSWORD_UI_MODES.RANDOM) {
+                    this.changePasswordRandom();
+                }
+                else if (passwordUiMode === PASSWORD_UI_MODES.BOTH || passwordUiMode === PASSWORD_UI_MODES.TYPE) {
+                    this.changePasswordType();
+                }
+                else {
+                    throw new Error('Password type unsupported!');  // TODO: best way to do this?
                 }
             });
+    }
+
+    changePasswordAutogen() {
+        this.IasDialogService
+            .open({
+                controller: 'AutogenChangePasswordController as $ctrl',
+                templateUrl: autogenChangePasswordTemplateUrl,
+                locals: {
+                    personUserKey: this.getUserKey()
+                }
+            })
+            // If the password was changed, the promise resolves. IasDialogService passes the data intact.
+            .then(this.changePasswordSuccess.bind(this), noop);
+    }
+
+    changePasswordClearResponses() {
+        let userKey = this.getUserKey();
+
+        this.IasDialogService
+            .open({
+                controller: [
+                    '$scope',
+                    'HelpDeskService',
+                    'translateFilter',
+                    function ($scope: IScope,
+                              helpDeskService: IHelpDeskService,
+                              translateFilter: (id: string) => string) {
+                        $scope.status = STATUS_WAIT;
+                        $scope.title = translateFilter('Button_ClearResponses');
+                        helpDeskService.clearResponses(userKey).then((data: ISuccessResponse) => {
+                            // TODO - error dialog?
+                            $scope.status = STATUS_SUCCESS;
+                            $scope.text = data.successMessage;
+                        });
+                    }
+                ],
+                templateUrl: helpdeskDetailDialogTemplateUrl
+            });
+    }
+
+    changePasswordRandom() {
+        this.IasDialogService
+            .open({
+                controller: 'RandomChangePasswordController as $ctrl',
+                templateUrl: randomChangePasswordTemplateUrl,
+                locals: {
+                    personUsername: this.person.userDisplayName,
+                    personUserKey: this.getUserKey()
+                }
+            })
+            // If the password was changed, the promise resolves. IasDialogService passes the data intact.
+            .then(this.changePasswordSuccess.bind(this), noop);
+    }
+
+    changePasswordSuccess(data: IChangePasswordSuccess) {
+        this.IasDialogService
+            .open({
+                controller: 'SuccessChangePasswordController as $ctrl',
+                templateUrl: successChangePasswordTemplateUrl,
+                locals: {
+                    changePasswordSuccessData: data,
+                    personUsername: this.person.userDisplayName,
+                    personUserKey: this.getUserKey()
+                }
+            })
+            .then(this.changePasswordClearResponses.bind(this), noop);
+    }
+
+    changePasswordType() {
+        this.IasDialogService
+            .open({
+                controller: 'TypeChangePasswordController as $ctrl',
+                templateUrl: typeChangePasswordTemplateUrl,
+                locals: {
+                    personUsername: this.person.userDisplayName,
+                    personUserKey: this.getUserKey()
+                }
+            })          // TODO: right data type?
+            // If the operator clicked "Random Passwords" or the password was changed, the promise resolves.
+            .then((data: IChangePasswordSuccess & { autogenPasswords: boolean }) => {
+                // If the operator clicked "Random Passwords", data.autogenPasswords will be true
+                if (data.autogenPasswords) {
+                    this.changePasswordAutogen();
+                }
+                else {
+                    this.changePasswordSuccess(data);   // IasDialogService passes the data intact.
+                }
+            }, noop);
     }
 
     clearOtpSecret(): void {
@@ -264,12 +364,6 @@ export default class HelpDeskDetailComponent {
             }, (error) => {
                 // TODO: Handle error. NOOP for now will not assign person
             });
-
-        this.configService
-            .getActionButtons()
-            .then((actionButtons: IActionButtons) => {
-                this.actionButtons = actionButtons;
-            });     // TODO: remove this code
     }
 
     refresh(): void {
