@@ -203,19 +203,18 @@ public class MainClass {
         out("environment initialized");
         out("");
 
-        try (Writer outputStream = new OutputStreamWriter(System.out, PwmConstants.DEFAULT_CHARSET)) {
-            return new CliEnvironment(
-                    configReader,
-                    configurationFile,
-                    config,
-                    applicationPath,
-                    pwmApplication,
-                    localDB,
-                    outputStream,
-                    options,
-                    MAIN_OPTIONS
-            );
-        }
+        final Writer outputStream = new OutputStreamWriter(System.out, PwmConstants.DEFAULT_CHARSET);
+        return new CliEnvironment(
+                configReader,
+                configurationFile,
+                config,
+                applicationPath,
+                pwmApplication,
+                localDB,
+                outputStream,
+                options,
+                MAIN_OPTIONS
+        );
     }
 
     public static Map<String,Object> parseCommandOptions(
@@ -354,7 +353,7 @@ public class MainClass {
             }
         }
 
-        System.exit(0);
+        //System.exit(0);
         return;
 
     }

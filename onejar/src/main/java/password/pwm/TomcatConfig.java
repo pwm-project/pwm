@@ -9,6 +9,7 @@ class TomcatConfig {
     private File workingPath;
     private InputStream war;
     private String context;
+    private String localAddress;
 
     public int getPort( )
     {
@@ -58,5 +59,15 @@ class TomcatConfig {
     public void setContext( final String context )
     {
         this.context = context;
+    }
+
+    public String getLocalAddress( )
+    {
+        return localAddress;
+    }
+
+    public void setLocalAddress( final String localAddress )
+    {
+        this.localAddress = localAddress;
     }
 }
