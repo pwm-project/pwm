@@ -203,19 +203,18 @@ public class MainClass {
         out("environment initialized");
         out("");
 
-        try (Writer outputStream = new OutputStreamWriter(System.out, PwmConstants.DEFAULT_CHARSET)) {
-            return new CliEnvironment(
-                    configReader,
-                    configurationFile,
-                    config,
-                    applicationPath,
-                    pwmApplication,
-                    localDB,
-                    outputStream,
-                    options,
-                    MAIN_OPTIONS
-            );
-        }
+        final Writer outputStream = new OutputStreamWriter(System.out, PwmConstants.DEFAULT_CHARSET);
+        return new CliEnvironment(
+                configReader,
+                configurationFile,
+                config,
+                applicationPath,
+                pwmApplication,
+                localDB,
+                outputStream,
+                options,
+                MAIN_OPTIONS
+        );
     }
 
     public static Map<String,Object> parseCommandOptions(
@@ -296,17 +295,21 @@ public class MainClass {
 
         final String commandStr = workingArgs == null || workingArgs.size() < 1 ? null : workingArgs.iterator().next();
 
+        boolean commandExceuted = false;
         if (commandStr == null) {
             out("\n");
             out(makeHelpTextOutput());
         } else {
             for (final CliCommand command : COMMANDS.values()) {
                 if (commandStr.equalsIgnoreCase(command.getCliParameters().commandName)) {
+                    commandExceuted = true;
                     executeCommand(command, commandStr, workingArgs.toArray(new String[workingArgs.size()]));
                     break;
                 }
             }
-            out("unknown command '" + workingArgs.iterator().next() + "'");
+            if (!commandExceuted) {
+                out( "unknown command '" + workingArgs.iterator().next() + "'" );
+            }
         }
     }
 
@@ -354,7 +357,7 @@ public class MainClass {
             }
         }
 
-        System.exit(0);
+        //System.exit(0);
         return;
 
     }
