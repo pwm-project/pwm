@@ -279,6 +279,8 @@
                             <consoleOutput>true</consoleOutput>
                             <includeTestResources>false</includeTestResources>
                             <failsOnError>true</failsOnError>
+                            <includes>**/*.java,**/*.jsp,**/*.properties,**/*.xml,**/*.css,**/*.svg</includes>
+                            <sourceDirectories>src/main</sourceDirectories>
                         </configuration>
                         <goals>
                             <goal>check</goal>
