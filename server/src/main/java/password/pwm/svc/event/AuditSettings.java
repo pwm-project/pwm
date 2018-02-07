@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,51 +32,60 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-class AuditSettings {
+class AuditSettings
+{
     private List<String> systemEmailAddresses = new ArrayList<>();
     private List<String> userEmailAddresses = new ArrayList<>();
     private String alertFromAddress = "";
     private Set<AuditEvent> userStoredEvents = new HashSet<>();
     private Set<AuditEvent> permittedEvents = new HashSet<>();
 
-    AuditSettings(final Configuration configuration) {
-        systemEmailAddresses = configuration.readSettingAsStringArray(PwmSetting.AUDIT_EMAIL_SYSTEM_TO);
-        userEmailAddresses = configuration.readSettingAsStringArray(PwmSetting.AUDIT_EMAIL_USER_TO);
-        alertFromAddress = configuration.readAppProperty(AppProperty.AUDIT_EVENTS_EMAILFROM);
-        permittedEvents = figurePermittedEvents(configuration);
-        userStoredEvents = figureUserStoredEvents(configuration);
+    AuditSettings( final Configuration configuration )
+    {
+        systemEmailAddresses = configuration.readSettingAsStringArray( PwmSetting.AUDIT_EMAIL_SYSTEM_TO );
+        userEmailAddresses = configuration.readSettingAsStringArray( PwmSetting.AUDIT_EMAIL_USER_TO );
+        alertFromAddress = configuration.readAppProperty( AppProperty.AUDIT_EVENTS_EMAILFROM );
+        permittedEvents = figurePermittedEvents( configuration );
+        userStoredEvents = figureUserStoredEvents( configuration );
     }
 
-    List<String> getSystemEmailAddresses() {
+    List<String> getSystemEmailAddresses( )
+    {
         return systemEmailAddresses;
     }
 
-    List<String> getUserEmailAddresses() {
+    List<String> getUserEmailAddresses( )
+    {
         return userEmailAddresses;
     }
 
-    Set<AuditEvent> getUserStoredEvents() {
+    Set<AuditEvent> getUserStoredEvents( )
+    {
         return userStoredEvents;
     }
 
-    String getAlertFromAddress() {
+    String getAlertFromAddress( )
+    {
         return alertFromAddress;
     }
 
-    Set<AuditEvent> getPermittedEvents() {
+    Set<AuditEvent> getPermittedEvents( )
+    {
         return permittedEvents;
     }
 
-    private static Set<AuditEvent> figurePermittedEvents(final Configuration configuration) {
+    private static Set<AuditEvent> figurePermittedEvents( final Configuration configuration )
+    {
         final Set<AuditEvent> eventSet = new HashSet<>();
-        eventSet.addAll(configuration.readSettingAsOptionList(PwmSetting.AUDIT_SYSTEM_EVENTS,AuditEvent.class));
-        eventSet.addAll(configuration.readSettingAsOptionList(PwmSetting.AUDIT_USER_EVENTS,AuditEvent.class));
-        return Collections.unmodifiableSet(eventSet);
+        eventSet.addAll( configuration.readSettingAsOptionList( PwmSetting.AUDIT_SYSTEM_EVENTS, AuditEvent.class ) );
+        eventSet.addAll( configuration.readSettingAsOptionList( PwmSetting.AUDIT_USER_EVENTS, AuditEvent.class ) );
+        return Collections.unmodifiableSet( eventSet );
     }
 
-    private static Set<AuditEvent> figureUserStoredEvents(final Configuration configuration) {
+    private static Set<AuditEvent> figureUserStoredEvents( final Configuration configuration )
+    {
         final Set<AuditEvent> eventSet = new HashSet<>();
-        eventSet.addAll(configuration.readSettingAsOptionList(PwmSetting.EVENTS_USER_EVENT_TYPES,AuditEvent.class));
-        return Collections.unmodifiableSet(eventSet);
+        eventSet.addAll( configuration.readSettingAsOptionList( PwmSetting.EVENTS_USER_EVENT_TYPES, AuditEvent.class ) );
+        return Collections.unmodifiableSet( eventSet );
     }
 }

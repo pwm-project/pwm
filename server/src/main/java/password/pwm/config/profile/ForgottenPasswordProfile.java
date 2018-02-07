@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,56 +32,67 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-public class ForgottenPasswordProfile extends AbstractProfile {
+public class ForgottenPasswordProfile extends AbstractProfile
+{
 
     private static final ProfileType PROFILE_TYPE = ProfileType.ForgottenPassword;
 
     private Set<IdentityVerificationMethod> requiredRecoveryVerificationMethods;
     private Set<IdentityVerificationMethod> optionalRecoveryVerificationMethods;
 
-    public ForgottenPasswordProfile(final String identifier, final Map<PwmSetting, StoredValue> storedValueMap) {
-        super(identifier, storedValueMap);
+    public ForgottenPasswordProfile( final String identifier, final Map<PwmSetting, StoredValue> storedValueMap )
+    {
+        super( identifier, storedValueMap );
     }
 
 
     @Override
-    public String getDisplayName(final Locale locale) {
+    public String getDisplayName( final Locale locale )
+    {
         return null;
     }
 
-    public static ForgottenPasswordProfile makeFromStoredConfiguration(final StoredConfiguration storedConfiguration, final String identifier) {
-        final Map<PwmSetting,StoredValue> valueMap = makeValueMap(storedConfiguration, identifier, PROFILE_TYPE.getCategory());
+    public static ForgottenPasswordProfile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
+    {
+        final Map<PwmSetting, StoredValue> valueMap = makeValueMap( storedConfiguration, identifier, PROFILE_TYPE.getCategory() );
         return new
-                ForgottenPasswordProfile(identifier, valueMap);
+                ForgottenPasswordProfile( identifier, valueMap );
 
     }
 
     @Override
-    public ProfileType profileType() {
+    public ProfileType profileType( )
+    {
         return PROFILE_TYPE;
     }
-    
-    public Set<IdentityVerificationMethod> requiredRecoveryAuthenticationMethods() {
-        if (requiredRecoveryVerificationMethods == null) {
-            requiredRecoveryVerificationMethods = readRecoveryAuthMethods(VerificationMethodValue.EnabledState.required);
+
+    public Set<IdentityVerificationMethod> requiredRecoveryAuthenticationMethods( )
+    {
+        if ( requiredRecoveryVerificationMethods == null )
+        {
+            requiredRecoveryVerificationMethods = readRecoveryAuthMethods( VerificationMethodValue.EnabledState.required );
         }
         return requiredRecoveryVerificationMethods;
     }
 
-    public Set<IdentityVerificationMethod> optionalRecoveryAuthenticationMethods() {
-        if (optionalRecoveryVerificationMethods == null) {
-            optionalRecoveryVerificationMethods = readRecoveryAuthMethods(VerificationMethodValue.EnabledState.optional);
+    public Set<IdentityVerificationMethod> optionalRecoveryAuthenticationMethods( )
+    {
+        if ( optionalRecoveryVerificationMethods == null )
+        {
+            optionalRecoveryVerificationMethods = readRecoveryAuthMethods( VerificationMethodValue.EnabledState.optional );
         }
         return optionalRecoveryVerificationMethods;
     }
-    
-    private Set<IdentityVerificationMethod> readRecoveryAuthMethods(final VerificationMethodValue.EnabledState enabledState) {
-        return this.readVerificationMethods(PwmSetting.RECOVERY_VERIFICATION_METHODS, enabledState);
+
+    private Set<IdentityVerificationMethod> readRecoveryAuthMethods( final VerificationMethodValue.EnabledState enabledState )
+    {
+        return this.readVerificationMethods( PwmSetting.RECOVERY_VERIFICATION_METHODS, enabledState );
     }
 
-    public int getMinOptionalRequired() {
-        final StoredValue configValue = storedValueMap.get(PwmSetting.RECOVERY_VERIFICATION_METHODS);
-        final VerificationMethodValue.VerificationMethodSettings verificationMethodSettings = (VerificationMethodValue.VerificationMethodSettings)configValue.toNativeObject();
+    public int getMinOptionalRequired( )
+    {
+        final StoredValue configValue = storedValueMap.get( PwmSetting.RECOVERY_VERIFICATION_METHODS );
+        final VerificationMethodValue.VerificationMethodSettings verificationMethodSettings = ( VerificationMethodValue.VerificationMethodSettings ) configValue.toNativeObject();
         return verificationMethodSettings.getMinOptionalRequired();
     }
 }

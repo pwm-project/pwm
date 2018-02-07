@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,102 +43,128 @@ import java.util.regex.PatternSyntaxException;
 /**
  * @author Menno Pieters
  */
-public class UrlShortenerService implements PwmService {
+public class UrlShortenerService implements PwmService
+{
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass(UrlShortenerService.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass( UrlShortenerService.class );
 
     private PwmApplication pwmApplication;
     private BasicUrlShortener theShortener = null;
     private STATUS status = PwmService.STATUS.NEW;
 
-    public UrlShortenerService() {
+    public UrlShortenerService( )
+    {
     }
 
-    public void init(final PwmApplication pwmApplication) throws PwmUnrecoverableException {
+    public void init( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
+    {
         this.pwmApplication = pwmApplication;
         final Configuration config = this.pwmApplication.getConfig();
-        final String classNameString = config.readSettingAsString(PwmSetting.URL_SHORTENER_CLASS);
-        if (classNameString != null && classNameString.length() > 0) {
+        final String classNameString = config.readSettingAsString( PwmSetting.URL_SHORTENER_CLASS );
+        if ( classNameString != null && classNameString.length() > 0 )
+        {
             final Properties sConfig = new Properties();
-            final List<String> sConfigList = config.readSettingAsStringArray(PwmSetting.URL_SHORTENER_PARAMETERS);
+            final List<String> sConfigList = config.readSettingAsStringArray( PwmSetting.URL_SHORTENER_PARAMETERS );
             // Parse configuration
-            if (sConfigList != null) {
-                for (final String p : sConfigList) {
-                    final List<String> pl = Arrays.asList(p.split("=", 2));
-                    if (pl.size() == 2) {
-                        sConfig.put(pl.get(0), pl.get(1));
+            if ( sConfigList != null )
+            {
+                for ( final String p : sConfigList )
+                {
+                    final List<String> pl = Arrays.asList( p.split( "=", 2 ) );
+                    if ( pl.size() == 2 )
+                    {
+                        sConfig.put( pl.get( 0 ), pl.get( 1 ) );
                     }
                 }
             }
-            try {
-                final Class<?> theClass = Class.forName(classNameString);
-                theShortener = (BasicUrlShortener) theClass.newInstance();
-                theShortener.setConfiguration(sConfig);
-            } catch (java.lang.IllegalAccessException e) {
-                LOGGER.error("Illegal access to class "+classNameString+": "+e.toString());
-            } catch (java.lang.InstantiationException e) {
-                LOGGER.error("Cannot instantiate class "+classNameString+": "+e.toString());
-            } catch (java.lang.ClassNotFoundException e) {
-                LOGGER.error("Class "+classNameString+" not found: "+e.getMessage());
+            try
+            {
+                final Class<?> theClass = Class.forName( classNameString );
+                theShortener = ( BasicUrlShortener ) theClass.newInstance();
+                theShortener.setConfiguration( sConfig );
+            }
+            catch ( java.lang.IllegalAccessException e )
+            {
+                LOGGER.error( "Illegal access to class " + classNameString + ": " + e.toString() );
+            }
+            catch ( java.lang.InstantiationException e )
+            {
+                LOGGER.error( "Cannot instantiate class " + classNameString + ": " + e.toString() );
+            }
+            catch ( java.lang.ClassNotFoundException e )
+            {
+                LOGGER.error( "Class " + classNameString + " not found: " + e.getMessage() );
             }
         }
         status = PwmService.STATUS.OPEN;
     }
 
-    public STATUS status() {
+    public STATUS status( )
+    {
         return status;
     }
 
-    public void close() {
+    public void close( )
+    {
         status = PwmService.STATUS.CLOSED;
     }
 
-    public List<HealthRecord> healthCheck() {
+    public List<HealthRecord> healthCheck( )
+    {
         return Collections.emptyList();
     }
 
-    public String shortenUrl(final String text) throws PwmUnrecoverableException {
-        if (theShortener != null) {
-            return theShortener.shorten(text, pwmApplication);
+    public String shortenUrl( final String text ) throws PwmUnrecoverableException
+    {
+        if ( theShortener != null )
+        {
+            return theShortener.shorten( text, pwmApplication );
         }
         return text;
     }
-    
-    public String shortenUrlInText(final String text) throws PwmUnrecoverableException {
-        final String urlRegex = pwmApplication.getConfig().readAppProperty(AppProperty.URL_SHORTNER_URL_REGEX);
-        try {
-            final Pattern p = Pattern.compile(urlRegex);
-            final Matcher m = p.matcher(text);
+
+    public String shortenUrlInText( final String text ) throws PwmUnrecoverableException
+    {
+        final String urlRegex = pwmApplication.getConfig().readAppProperty( AppProperty.URL_SHORTNER_URL_REGEX );
+        try
+        {
+            final Pattern p = Pattern.compile( urlRegex );
+            final Matcher m = p.matcher( text );
             final StringBuilder result = new StringBuilder();
             Boolean found = m.find();
-            if (found) {
+            if ( found )
+            {
                 int start = 0;
                 int end = m.start();
-                result.append(text.substring(start,end));
+                result.append( text.substring( start, end ) );
                 start = end;
                 end = m.end();
-                while (found) {
-                    result.append(shortenUrl(text.substring(start,end)));
+                while ( found )
+                {
+                    result.append( shortenUrl( text.substring( start, end ) ) );
                     start = end;
                     found = m.find();
-                    if (found) {
+                    if ( found )
+                    {
                         end = m.start();
-                        result.append(text.substring(start,end));
+                        result.append( text.substring( start, end ) );
                         start = end;
                         end = m.end();
                     }
                 }
-                result.append(text.substring(end));
+                result.append( text.substring( end ) );
                 return result.toString();
             }
-        } catch (PatternSyntaxException e) {
-            LOGGER.error("Error compiling pattern: " + e.getMessage());
+        }
+        catch ( PatternSyntaxException e )
+        {
+            LOGGER.error( "Error compiling pattern: " + e.getMessage() );
         }
         return text;
     }
 
-    public ServiceInfoBean serviceInfo()
+    public ServiceInfoBean serviceInfo( )
     {
-        return new ServiceInfoBean(Collections.<DataStorageMethod>emptyList());
+        return new ServiceInfoBean( Collections.<DataStorageMethod>emptyList() );
     }
 }

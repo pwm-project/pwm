@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,25 +48,28 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-public class RestFormDataClient {
+public class RestFormDataClient
+{
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass(RestFormDataClient.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass( RestFormDataClient.class );
 
     private final PwmApplication pwmApplication;
     private final SessionLabel sessionLabel;
     private RemoteWebServiceConfiguration remoteWebServiceConfiguration;
 
-    public RestFormDataClient(final PwmApplication pwmApplication, final SessionLabel sessionLabel)
+    public RestFormDataClient( final PwmApplication pwmApplication, final SessionLabel sessionLabel )
     {
         this.sessionLabel = sessionLabel;
         this.pwmApplication = pwmApplication;
-        final List<RemoteWebServiceConfiguration> values = pwmApplication.getConfig().readSettingAsRemoteWebService(PwmSetting.EXTERNAL_REMOTE_DATA_URL);
-        if (values != null && !values.isEmpty()) {
+        final List<RemoteWebServiceConfiguration> values = pwmApplication.getConfig().readSettingAsRemoteWebService( PwmSetting.EXTERNAL_REMOTE_DATA_URL );
+        if ( values != null && !values.isEmpty() )
+        {
             remoteWebServiceConfiguration = values.iterator().next();
         }
     }
 
-    public boolean isEnabled() {
+    public boolean isEnabled( )
+    {
         return remoteWebServiceConfiguration != null;
     }
 
@@ -76,23 +79,24 @@ public class RestFormDataClient {
     )
             throws PwmUnrecoverableException
     {
-        final Map<String,String> httpHeaders = new LinkedHashMap<>();
-        httpHeaders.put(HttpHeader.Accept.getHttpName(), PwmConstants.AcceptValue.json.getHeaderValue());
-        httpHeaders.put(HttpHeader.Content_Type.getHttpName(), HttpContentType.json.getHeaderValue());
-        if (locale != null) {
-            httpHeaders.put(HttpHeader.Accept_Language.getHttpName(), locale.toString());
+        final Map<String, String> httpHeaders = new LinkedHashMap<>();
+        httpHeaders.put( HttpHeader.Accept.getHttpName(), PwmConstants.AcceptValue.json.getHeaderValue() );
+        httpHeaders.put( HttpHeader.Content_Type.getHttpName(), HttpContentType.json.getHeaderValue() );
+        if ( locale != null )
+        {
+            httpHeaders.put( HttpHeader.Accept_Language.getHttpName(), locale.toString() );
         }
 
         {
-            final List<RemoteWebServiceConfiguration> webServiceConfigurations = pwmApplication.getConfig().readSettingAsRemoteWebService(PwmSetting.EXTERNAL_REMOTE_DATA_URL);
-            final Map<String,String> configuredHeaders = webServiceConfigurations != null && !webServiceConfigurations.isEmpty()
+            final List<RemoteWebServiceConfiguration> webServiceConfigurations = pwmApplication.getConfig().readSettingAsRemoteWebService( PwmSetting.EXTERNAL_REMOTE_DATA_URL );
+            final Map<String, String> configuredHeaders = webServiceConfigurations != null && !webServiceConfigurations.isEmpty()
                     ? webServiceConfigurations.iterator().next().getHeaders()
                     : Collections.emptyMap();
 
-            httpHeaders.putAll(configuredHeaders);
+            httpHeaders.putAll( configuredHeaders );
         }
 
-        final String jsonRequestBody = JsonUtil.serialize(formDataRequestBean);
+        final String jsonRequestBody = JsonUtil.serialize( formDataRequestBean );
 
         final PwmHttpClientRequest pwmHttpClientRequest = new PwmHttpClientRequest(
                 HttpMethod.POST,
@@ -103,29 +107,33 @@ public class RestFormDataClient {
         );
 
         final PwmHttpClientResponse httpResponse;
-        try {
-            httpResponse = getHttpClient(pwmApplication.getConfig()).makeRequest(pwmHttpClientRequest);
+        try
+        {
+            httpResponse = getHttpClient( pwmApplication.getConfig() ).makeRequest( pwmHttpClientRequest );
             final String responseBody = httpResponse.getBody();
-            LOGGER.trace("external rest call returned: " + httpResponse.getStatusPhrase() + ", body: " + responseBody);
-            if (httpResponse.getStatusCode() != 200) {
+            LOGGER.trace( "external rest call returned: " + httpResponse.getStatusPhrase() + ", body: " + responseBody );
+            if ( httpResponse.getStatusCode() != 200 )
+            {
                 final String errorMsg = "received non-200 response code (" + httpResponse.getStatusCode() + ") when executing web-service";
-                LOGGER.error(errorMsg);
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SERVICE_UNREACHABLE, errorMsg));
+                LOGGER.error( errorMsg );
+                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_SERVICE_UNREACHABLE, errorMsg ) );
             }
-            final FormDataResponseBean formDataResponseBean = JsonUtil.deserialize(responseBody, FormDataResponseBean.class);
+            final FormDataResponseBean formDataResponseBean = JsonUtil.deserialize( responseBody, FormDataResponseBean.class );
             return formDataResponseBean;
-        } catch (PwmUnrecoverableException e) {
+        }
+        catch ( PwmUnrecoverableException e )
+        {
             final String errorMsg = "http response error while executing external rest call, error: " + e.getMessage();
-            LOGGER.error(errorMsg);
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SERVICE_UNREACHABLE, errorMsg),e);
+            LOGGER.error( errorMsg );
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_SERVICE_UNREACHABLE, errorMsg ), e );
         }
 
     }
 
-    private PwmHttpClient getHttpClient(final Configuration configuration)
+    private PwmHttpClient getHttpClient( final Configuration configuration )
             throws PwmUnrecoverableException
     {
-        final List<RemoteWebServiceConfiguration> webServiceConfigurations = configuration.readSettingAsRemoteWebService(PwmSetting.EXTERNAL_REMOTE_DATA_URL);
+        final List<RemoteWebServiceConfiguration> webServiceConfigurations = configuration.readSettingAsRemoteWebService( PwmSetting.EXTERNAL_REMOTE_DATA_URL );
 
         final List<X509Certificate> certificates;
         certificates = webServiceConfigurations != null && !webServiceConfigurations.isEmpty()
@@ -133,9 +141,9 @@ public class RestFormDataClient {
                 : null;
 
         final PwmHttpClientConfiguration pwmHttpClientConfiguration = PwmHttpClientConfiguration.builder()
-                .certificates(certificates)
+                .certificates( certificates )
                 .build();
-        return new PwmHttpClient(pwmApplication, null, pwmHttpClientConfiguration);
+        return new PwmHttpClient( pwmApplication, null, pwmHttpClientConfiguration );
     }
 
 }

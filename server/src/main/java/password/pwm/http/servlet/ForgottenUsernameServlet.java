@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,61 +63,68 @@ import java.util.Locale;
 import java.util.Map;
 
 @WebServlet(
-        name="ForgottenUsernameServlet",
+        name = "ForgottenUsernameServlet",
         urlPatterns = {
                 PwmConstants.URL_PREFIX_PUBLIC + "/forgottenusername",
                 PwmConstants.URL_PREFIX_PUBLIC + "/ForgottenUsername",
 
         }
 )
-public class ForgottenUsernameServlet extends AbstractPwmServlet {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(ForgottenUsernameServlet.class);
+public class ForgottenUsernameServlet extends AbstractPwmServlet
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( ForgottenUsernameServlet.class );
 
-    public enum ForgottenUsernameAction implements AbstractPwmServlet.ProcessAction {
-        search,
-        ;
+    public enum ForgottenUsernameAction implements AbstractPwmServlet.ProcessAction
+    {
+        search,;
 
-        public Collection<HttpMethod> permittedMethods()
+        public Collection<HttpMethod> permittedMethods( )
         {
-            return Collections.singletonList(HttpMethod.POST);
+            return Collections.singletonList( HttpMethod.POST );
         }
     }
 
-    protected ForgottenUsernameAction readProcessAction(final PwmRequest request)
+    protected ForgottenUsernameAction readProcessAction( final PwmRequest request )
             throws PwmUnrecoverableException
     {
-        try {
-            return ForgottenUsernameAction.valueOf(request.readParameterAsString(PwmConstants.PARAM_ACTION_REQUEST));
-        } catch (IllegalArgumentException e) {
+        try
+        {
+            return ForgottenUsernameAction.valueOf( request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
+        }
+        catch ( IllegalArgumentException e )
+        {
             return null;
         }
     }
 
-    protected void processAction(final PwmRequest pwmRequest)
+    protected void processAction( final PwmRequest pwmRequest )
             throws ServletException, IOException, PwmUnrecoverableException
     {
         final Configuration config = pwmRequest.getConfig();
 
-        if (!config.readSettingAsBoolean(PwmSetting.FORGOTTEN_USERNAME_ENABLE)) {
-            pwmRequest.respondWithError(PwmError.ERROR_SERVICE_NOT_AVAILABLE.toInfo());
+        if ( !config.readSettingAsBoolean( PwmSetting.FORGOTTEN_USERNAME_ENABLE ) )
+        {
+            pwmRequest.respondWithError( PwmError.ERROR_SERVICE_NOT_AVAILABLE.toInfo() );
             return;
         }
 
-        final ForgottenUsernameAction action = readProcessAction(pwmRequest);
+        final ForgottenUsernameAction action = readProcessAction( pwmRequest );
 
-        if (action != null) {
+        if ( action != null )
+        {
             pwmRequest.validatePwmFormID();
-            switch (action) {
+            switch ( action )
+            {
                 case search:
-                    handleSearchRequest(pwmRequest);
+                    handleSearchRequest( pwmRequest );
                     return;
 
                 default:
-                    JavaHelper.unhandledSwitchStatement(action);
+                    JavaHelper.unhandledSwitchStatement( action );
             }
         }
 
-        forwardToFormJsp(pwmRequest);
+        forwardToFormJsp( pwmRequest );
     }
 
     public void handleSearchRequest(
@@ -129,40 +136,46 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
 
-        if (CaptchaUtility.captchaEnabledForRequest(pwmRequest)) {
-            if (!CaptchaUtility.verifyReCaptcha(pwmRequest)) {
-                final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_BAD_CAPTCHA_RESPONSE);
-                LOGGER.debug(pwmRequest, errorInfo);
-                setLastError(pwmRequest, errorInfo);
-                forwardToFormJsp(pwmRequest);
+        if ( CaptchaUtility.captchaEnabledForRequest( pwmRequest ) )
+        {
+            if ( !CaptchaUtility.verifyReCaptcha( pwmRequest ) )
+            {
+                final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_BAD_CAPTCHA_RESPONSE );
+                LOGGER.debug( pwmRequest, errorInfo );
+                setLastError( pwmRequest, errorInfo );
+                forwardToFormJsp( pwmRequest );
                 return;
             }
         }
 
-        final String contextParam = pwmRequest.readParameterAsString(PwmConstants.PARAM_CONTEXT);
-        final String ldapProfile = pwmRequest.readParameterAsString(PwmConstants.PARAM_LDAP_PROFILE);
+        final String contextParam = pwmRequest.readParameterAsString( PwmConstants.PARAM_CONTEXT );
+        final String ldapProfile = pwmRequest.readParameterAsString( PwmConstants.PARAM_LDAP_PROFILE );
 
-        final List<FormConfiguration> forgottenUsernameForm = pwmApplication.getConfig().readSettingAsForm(PwmSetting.FORGOTTEN_USERNAME_FORM);
+        final List<FormConfiguration> forgottenUsernameForm = pwmApplication.getConfig().readSettingAsForm( PwmSetting.FORGOTTEN_USERNAME_FORM );
 
         //read the values from the request
         Map<FormConfiguration, String> formValues = new HashMap<>();
-        try {
-            formValues = FormUtility.readFormValuesFromRequest(pwmRequest,
-                    forgottenUsernameForm, ssBean.getLocale());
+        try
+        {
+            formValues = FormUtility.readFormValuesFromRequest( pwmRequest,
+                    forgottenUsernameForm, ssBean.getLocale() );
 
             // check for intruder search
-            pwmApplication.getIntruderManager().convenience().checkAttributes(formValues);
+            pwmApplication.getIntruderManager().convenience().checkAttributes( formValues );
 
             // see if the values meet the configured form requirements.
-            FormUtility.validateFormValues(pwmRequest.getConfig(), formValues, ssBean.getLocale());
+            FormUtility.validateFormValues( pwmRequest.getConfig(), formValues, ssBean.getLocale() );
 
             final String searchFilter;
             {
-                final String configuredSearchFilter = pwmApplication.getConfig().readSettingAsString(PwmSetting.FORGOTTEN_USERNAME_SEARCH_FILTER);
-                if (configuredSearchFilter == null || configuredSearchFilter.isEmpty()) {
-                    searchFilter = FormUtility.ldapSearchFilterForForm(pwmApplication, forgottenUsernameForm);
-                    LOGGER.trace(pwmSession,"auto generated ldap search filter: " + searchFilter);
-                } else {
+                final String configuredSearchFilter = pwmApplication.getConfig().readSettingAsString( PwmSetting.FORGOTTEN_USERNAME_SEARCH_FILTER );
+                if ( configuredSearchFilter == null || configuredSearchFilter.isEmpty() )
+                {
+                    searchFilter = FormUtility.ldapSearchFilterForForm( pwmApplication, forgottenUsernameForm );
+                    LOGGER.trace( pwmSession, "auto generated ldap search filter: " + searchFilter );
+                }
+                else
+                {
                     searchFilter = configuredSearchFilter;
                 }
             }
@@ -171,24 +184,25 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet {
             {
                 final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
                 final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
-                        .filter(searchFilter)
-                        .formValues(formValues)
-                        .ldapProfile(ldapProfile)
-                        .contexts(Collections.singletonList(contextParam))
+                        .filter( searchFilter )
+                        .formValues( formValues )
+                        .ldapProfile( ldapProfile )
+                        .contexts( Collections.singletonList( contextParam ) )
                         .build();
-                userIdentity = userSearchEngine.performSingleUserSearch(searchConfiguration, pwmSession.getLabel());
+                userIdentity = userSearchEngine.performSingleUserSearch( searchConfiguration, pwmSession.getLabel() );
             }
 
-            if (userIdentity == null) {
-                pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
-                pwmApplication.getStatisticsManager().incrementValue(Statistic.FORGOTTEN_USERNAME_FAILURES);
-                setLastError(pwmRequest, PwmError.ERROR_CANT_MATCH_USER.toInfo());
-                forwardToFormJsp(pwmRequest);
+            if ( userIdentity == null )
+            {
+                pwmApplication.getIntruderManager().convenience().markAddressAndSession( pwmSession );
+                pwmApplication.getStatisticsManager().incrementValue( Statistic.FORGOTTEN_USERNAME_FAILURES );
+                setLastError( pwmRequest, PwmError.ERROR_CANT_MATCH_USER.toInfo() );
+                forwardToFormJsp( pwmRequest );
                 return;
             }
 
             // make sure the user isn't locked.
-            pwmApplication.getIntruderManager().convenience().checkUserIdentity(userIdentity);
+            pwmApplication.getIntruderManager().convenience().checkUserIdentity( userIdentity );
 
             final UserInfo forgottenUserInfo = UserInfoFactory.newUserInfoUsingProxy(
                     pwmApplication,
@@ -197,30 +211,32 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet {
             );
 
             // send username
-            sendUsername(pwmApplication, pwmSession, forgottenUserInfo);
+            sendUsername( pwmApplication, pwmSession, forgottenUserInfo );
 
-            pwmApplication.getIntruderManager().convenience().clearAddressAndSession(pwmSession);
-            pwmApplication.getIntruderManager().convenience().clearAttributes(formValues);
+            pwmApplication.getIntruderManager().convenience().clearAddressAndSession( pwmSession );
+            pwmApplication.getIntruderManager().convenience().clearAttributes( formValues );
 
-            pwmApplication.getStatisticsManager().incrementValue(Statistic.FORGOTTEN_USERNAME_SUCCESSES);
+            pwmApplication.getStatisticsManager().incrementValue( Statistic.FORGOTTEN_USERNAME_SUCCESSES );
 
             // redirect user to success page.
-            forwardToCompletePage(pwmRequest, userIdentity);
+            forwardToCompletePage( pwmRequest, userIdentity );
             return;
 
-        } catch (PwmOperationalException e) {
+        }
+        catch ( PwmOperationalException e )
+        {
             final ErrorInformation errorInfo;
             errorInfo = e.getError() == PwmError.ERROR_UNKNOWN
-                    ? new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER,e.getErrorInformation().getDetailedErrorMsg(),
-                    e.getErrorInformation().getFieldValues())
+                    ? new ErrorInformation( PwmError.ERROR_CANT_MATCH_USER, e.getErrorInformation().getDetailedErrorMsg(),
+                    e.getErrorInformation().getFieldValues() )
                     : e.getErrorInformation();
-            setLastError(pwmRequest, errorInfo);
-            pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
-            pwmApplication.getIntruderManager().convenience().markAttributes(formValues, pwmSession);
+            setLastError( pwmRequest, errorInfo );
+            pwmApplication.getIntruderManager().convenience().markAddressAndSession( pwmSession );
+            pwmApplication.getIntruderManager().convenience().markAttributes( formValues, pwmSession );
         }
 
-        pwmApplication.getStatisticsManager().incrementValue(Statistic.FORGOTTEN_USERNAME_FAILURES);
-        forwardToFormJsp(pwmRequest);
+        pwmApplication.getStatisticsManager().incrementValue( Statistic.FORGOTTEN_USERNAME_FAILURES );
+        forwardToFormJsp( pwmRequest );
     }
 
 
@@ -233,11 +249,12 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet {
     {
         final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
         final Configuration configuration = pwmApplication.getConfig();
-        final MessageSendMethod messageSendMethod = configuration.readSettingAsEnum(PwmSetting.FORGOTTEN_USERNAME_SEND_USERNAME_METHOD, MessageSendMethod.class);
-        final EmailItemBean emailItemBean = configuration.readSettingAsEmail(PwmSetting.EMAIL_SEND_USERNAME, userLocale);
-        final String smsMessage = configuration.readSettingAsLocalizedString(PwmSetting.SMS_FORGOTTEN_USERNAME_TEXT, userLocale);
+        final MessageSendMethod messageSendMethod = configuration.readSettingAsEnum( PwmSetting.FORGOTTEN_USERNAME_SEND_USERNAME_METHOD, MessageSendMethod.class );
+        final EmailItemBean emailItemBean = configuration.readSettingAsEmail( PwmSetting.EMAIL_SEND_USERNAME, userLocale );
+        final String smsMessage = configuration.readSettingAsLocalizedString( PwmSetting.SMS_FORGOTTEN_USERNAME_TEXT, userLocale );
 
-        if (messageSendMethod == null || messageSendMethod == MessageSendMethod.NONE) {
+        if ( messageSendMethod == null || messageSendMethod == MessageSendMethod.NONE )
+        {
             return;
         }
 
@@ -262,31 +279,35 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet {
     )
             throws PwmOperationalException, PwmUnrecoverableException
     {
-        if (pwmApplication == null) {
-            throw new IllegalArgumentException("pwmApplication can not be null");
+        if ( pwmApplication == null )
+        {
+            throw new IllegalArgumentException( "pwmApplication can not be null" );
         }
 
-        if (userInfo == null) {
-            throw new IllegalArgumentException("userInfoBean can not be null");
+        if ( userInfo == null )
+        {
+            throw new IllegalArgumentException( "userInfoBean can not be null" );
         }
 
         ErrorInformation error = null;
-        switch (messageSendMethod) {
+        switch ( messageSendMethod )
+        {
             case NONE:
                 break;
 
             case SMSONLY:
                 // Only try SMS
-                error = sendSmsViaMethod(pwmApplication, sessionLabel, userInfo, smsMessage);
+                error = sendSmsViaMethod( pwmApplication, sessionLabel, userInfo, smsMessage );
                 break;
             case EMAILONLY:
             default:
                 // Only try email
-                error = sendEmailViaMethod(pwmApplication, sessionLabel, userInfo, emailItemBean);
+                error = sendEmailViaMethod( pwmApplication, sessionLabel, userInfo, emailItemBean );
                 break;
         }
-        if (error != null) {
-            throw new PwmOperationalException(error);
+        if ( error != null )
+        {
+            throw new PwmOperationalException( error );
         }
     }
 
@@ -299,14 +320,15 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet {
             throws PwmOperationalException, PwmUnrecoverableException
     {
         final String toNumber = userInfo.getUserSmsNumber();
-        if (toNumber == null || toNumber.length() < 1) {
-            final String errorMsg = String.format("unable to send new password email for '%s'; no SMS number available in ldap", userInfo.getUserIdentity());
-            return new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+        if ( toNumber == null || toNumber.length() < 1 )
+        {
+            final String errorMsg = String.format( "unable to send new password email for '%s'; no SMS number available in ldap", userInfo.getUserIdentity() );
+            return new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
         }
 
-        final MacroMachine macroMachine = new MacroMachine(pwmApplication, sessionLabel, userInfo, null);
+        final MacroMachine macroMachine = new MacroMachine( pwmApplication, sessionLabel, userInfo, null );
 
-        pwmApplication.sendSmsUsingQueue(toNumber, smsMessage, sessionLabel, macroMachine);
+        pwmApplication.sendSmsUsingQueue( toNumber, smsMessage, sessionLabel, macroMachine );
         return null;
     }
 
@@ -318,34 +340,35 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet {
     )
             throws PwmUnrecoverableException
     {
-        if (emailItemBean == null) {
+        if ( emailItemBean == null )
+        {
             final String errorMsg = "emailItemBean is null";
-            return new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+            return new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
         }
 
-        final MacroMachine macroMachine = new MacroMachine(pwmApplication, sessionLabel, userInfo, null);
+        final MacroMachine macroMachine = new MacroMachine( pwmApplication, sessionLabel, userInfo, null );
 
-        pwmApplication.getEmailQueue().submitEmail(emailItemBean, userInfo, macroMachine);
+        pwmApplication.getEmailQueue().submitEmail( emailItemBean, userInfo, macroMachine );
 
         return null;
     }
 
-    private void forwardToFormJsp(final PwmRequest pwmRequest)
+    private void forwardToFormJsp( final PwmRequest pwmRequest )
             throws ServletException, PwmUnrecoverableException, IOException
     {
-        pwmRequest.addFormInfoToRequestAttr(PwmSetting.FORGOTTEN_USERNAME_FORM,false,false);
-        pwmRequest.forwardToJsp(JspUrl.FORGOTTEN_USERNAME);
+        pwmRequest.addFormInfoToRequestAttr( PwmSetting.FORGOTTEN_USERNAME_FORM, false, false );
+        pwmRequest.forwardToJsp( JspUrl.FORGOTTEN_USERNAME );
     }
 
-    private static void forwardToCompletePage(final PwmRequest pwmRequest, final UserIdentity userIdentity)
+    private static void forwardToCompletePage( final PwmRequest pwmRequest, final UserIdentity userIdentity )
             throws PwmUnrecoverableException, ServletException, IOException
     {
         final Locale locale = pwmRequest.getLocale();
-        final String completeMessage = pwmRequest.getConfig().readSettingAsLocalizedString(PwmSetting.FORGOTTEN_USERNAME_MESSAGE,locale);
-        final MacroMachine macroMachine = MacroMachine.forUser(pwmRequest.getPwmApplication(), pwmRequest.getLocale(), pwmRequest.getSessionLabel(), userIdentity);
-        final String expandedText = macroMachine.expandMacros(completeMessage);
-        pwmRequest.setAttribute(PwmRequestAttribute.CompleteText, expandedText);
-        pwmRequest.forwardToJsp(JspUrl.FORGOTTEN_USERNAME_COMPLETE);
+        final String completeMessage = pwmRequest.getConfig().readSettingAsLocalizedString( PwmSetting.FORGOTTEN_USERNAME_MESSAGE, locale );
+        final MacroMachine macroMachine = MacroMachine.forUser( pwmRequest.getPwmApplication(), pwmRequest.getLocale(), pwmRequest.getSessionLabel(), userIdentity );
+        final String expandedText = macroMachine.expandMacros( completeMessage );
+        pwmRequest.setAttribute( PwmRequestAttribute.CompleteText, expandedText );
+        pwmRequest.forwardToJsp( JspUrl.FORGOTTEN_USERNAME_COMPLETE );
     }
 
 }

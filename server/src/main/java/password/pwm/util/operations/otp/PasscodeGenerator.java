@@ -1,10 +1,9 @@
-
 /*
  * Password Management Servlets (PWM)
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,30 +31,35 @@ import java.nio.ByteBuffer;
 import java.security.GeneralSecurityException;
 
 /**
- * An implementation of the HOTP generator specified by RFC 4226. Generates
+ * <p>An implementation of the HOTP generator specified by RFC 4226. Generates
  * short passcodes that may be used in challenge-response protocols or as
- * timeout passcodes that are only valid for a short period.
+ * timeout passcodes that are only valid for a short period.</p>
  *
- * The default passcode is a 6-digit decimal code and the default timeout
- * period is 5 minutes.
+ * <p>The default passcode is a 6-digit decimal code and the default timeout
+ * period is 5 minutes.</p>
  *
  * @author sweis@google.com (Steve Weis)
- *
- * http://code.google.com/p/google-authenticator/
- *
+ *         http://code.google.com/p/google-authenticator/
  */
-public class PasscodeGenerator {
-    /** Default decimal passcode length */
+public class PasscodeGenerator
+{
+    /**
+     * Default decimal passcode length.
+     */
     private static final int PASS_CODE_LENGTH = 6;
 
-    /** Default passcode timeout period (in seconds) */
+    /**
+     * Default passcode timeout period (in seconds).
+     */
     private static final int INTERVAL = 30;
 
-    /** The number of previous and future intervals to check */
+    /**
+     * The number of previous and future intervals to check.
+     */
     private static final int ADJACENT_INTERVALS = 1;
 
     private static final int PIN_MODULO =
-            (int) Math.pow(10, PASS_CODE_LENGTH);
+            ( int ) Math.pow( 10, PASS_CODE_LENGTH );
 
     private final Signer signer;
     private final int codeLength;
@@ -65,39 +69,47 @@ public class PasscodeGenerator {
      * Using an interface to allow us to inject different signature
      * implementations.
      */
-    interface Signer {
-        byte[] sign(byte[] data) throws GeneralSecurityException;
+    interface Signer
+    {
+        byte[] sign( byte[] data ) throws GeneralSecurityException;
     }
 
     /**
      * @param mac A {@link Mac} used to generate passcodes
      */
-    public PasscodeGenerator(final Mac mac) {
-        this(mac, PASS_CODE_LENGTH, INTERVAL);
+    public PasscodeGenerator( final Mac mac )
+    {
+        this( mac, PASS_CODE_LENGTH, INTERVAL );
     }
 
     /**
-     * @param mac A {@link Mac} used to generate passcodes
+     * @param mac            A {@link Mac} used to generate passcodes
      * @param passCodeLength The length of the decimal passcode
-     * @param interval The interval that a passcode is valid for
+     * @param interval       The interval that a passcode is valid for
      */
-    public PasscodeGenerator(final Mac mac, final int passCodeLength, final int interval) {
-        this(new Signer() {
-            public byte[] sign(final byte[] data){
-                return mac.doFinal(data);
+    public PasscodeGenerator( final Mac mac, final int passCodeLength, final int interval )
+    {
+        this( new Signer()
+        {
+            public byte[] sign( final byte[] data )
+            {
+                return mac.doFinal( data );
             }
-        }, passCodeLength, interval);
+        }, passCodeLength, interval );
     }
 
-    public PasscodeGenerator(final Signer signer, final int passCodeLength, final int interval) {
+    public PasscodeGenerator( final Signer signer, final int passCodeLength, final int interval )
+    {
         this.signer = signer;
         this.codeLength = passCodeLength;
         this.intervalPeriod = interval;
     }
 
-    private String padOutput(final int value) {
-        String result = Integer.toString(value);
-        for (int i = result.length(); i < codeLength; i++) {
+    private String padOutput( final int value )
+    {
+        String result = Integer.toString( value );
+        for ( int i = result.length(); i < codeLength; i++ )
+        {
             result = "0" + result;
         }
         return result;
@@ -105,10 +117,10 @@ public class PasscodeGenerator {
 
     /**
      * @return A decimal timeout code
-     *
      */
-    public String generateTimeoutCode() throws GeneralSecurityException {
-        return generateResponseCode(clock.getCurrentInterval());
+    public String generateTimeoutCode( ) throws GeneralSecurityException
+    {
+        return generateResponseCode( clock.getCurrentInterval() );
     }
 
     /**
@@ -116,10 +128,11 @@ public class PasscodeGenerator {
      * @return A decimal response code
      * @throws GeneralSecurityException If a JCE exception occur
      */
-    public String generateResponseCode(final long challenge)
-            throws GeneralSecurityException {
-        final byte[] value = ByteBuffer.allocate(8).putLong(challenge).array();
-        return generateResponseCode(value);
+    public String generateResponseCode( final long challenge )
+            throws GeneralSecurityException
+    {
+        final byte[] value = ByteBuffer.allocate( 8 ).putLong( challenge ).array();
+        return generateResponseCode( value );
     }
 
     /**
@@ -127,47 +140,54 @@ public class PasscodeGenerator {
      * @return A decimal response code
      * @throws GeneralSecurityException If a JCE exception occur
      */
-    public String generateResponseCode(final byte[] challenge)
-            throws GeneralSecurityException {
-        final byte[] hash = signer.sign(challenge);
+    public String generateResponseCode( final byte[] challenge )
+            throws GeneralSecurityException
+    {
+        final byte[] hash = signer.sign( challenge );
 
         // Dynamically truncate the hash
         // OffsetBits are the low order bits of the last byte of the hash
-        final int offset = hash[hash.length - 1] & 0xF;
+        final int offset = hash[ hash.length - 1 ] & 0xF;
         // Grab a positive integer value starting at the given offset.
-        final int truncatedHash = hashToInt(hash, offset) & 0x7FFFFFFF;
+        final int truncatedHash = hashToInt( hash, offset ) & 0x7FFFFFFF;
         final int pinValue = truncatedHash % PIN_MODULO;
-        return padOutput(pinValue);
+        return padOutput( pinValue );
     }
 
     /**
      * Grabs a positive integer value from the input array starting at
      * the given offset.
+     *
      * @param bytes the array of bytes
      * @param start the index into the array to start grabbing bytes
      * @return the integer constructed from the four bytes in the array
      */
-    private int hashToInt(final byte[] bytes, final int start) {
+    private int hashToInt( final byte[] bytes, final int start )
+    {
         final DataInput input = new DataInputStream(
-                new ByteArrayInputStream(bytes, start, bytes.length - start));
+                new ByteArrayInputStream( bytes, start, bytes.length - start ) );
         final int val;
-        try {
+        try
+        {
             val = input.readInt();
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
+        }
+        catch ( IOException e )
+        {
+            throw new IllegalStateException( e );
         }
         return val;
     }
 
     /**
      * @param challenge A challenge to check a response against
-     * @param response A response to verify
+     * @param response  A response to verify
      * @return True if the response is valid
      */
-    public boolean verifyResponseCode(final long challenge, final String response)
-            throws GeneralSecurityException {
-        final String expectedResponse = generateResponseCode(challenge);
-        return expectedResponse.equals(response);
+    public boolean verifyResponseCode( final long challenge, final String response )
+            throws GeneralSecurityException
+    {
+        final String expectedResponse = generateResponseCode( challenge );
+        return expectedResponse.equals( response );
     }
 
     /**
@@ -178,10 +198,11 @@ public class PasscodeGenerator {
      * @param timeoutCode The timeout code
      * @return True if the timeout code is valid
      */
-    public boolean verifyTimeoutCode(final String timeoutCode)
-            throws GeneralSecurityException {
-        return verifyTimeoutCode(timeoutCode, ADJACENT_INTERVALS,
-                ADJACENT_INTERVALS);
+    public boolean verifyTimeoutCode( final String timeoutCode )
+            throws GeneralSecurityException
+    {
+        return verifyTimeoutCode( timeoutCode, ADJACENT_INTERVALS,
+                ADJACENT_INTERVALS );
     }
 
     /**
@@ -189,51 +210,61 @@ public class PasscodeGenerator {
      * determined by the interval period and the number of adjacent intervals
      * checked.
      *
-     * @param timeoutCode The timeout code
-     * @param pastIntervals The number of past intervals to check
+     * @param timeoutCode     The timeout code
+     * @param pastIntervals   The number of past intervals to check
      * @param futureIntervals The number of future intervals to check
      * @return True if the timeout code is valid
      */
-    public boolean verifyTimeoutCode(final String timeoutCode, final int pastIntervals,
-                                     final int futureIntervals) throws GeneralSecurityException {
+    public boolean verifyTimeoutCode( final String timeoutCode, final int pastIntervals,
+                                      final int futureIntervals ) throws GeneralSecurityException
+    {
         final long currentInterval = clock.getCurrentInterval();
-        final String expectedResponse = generateResponseCode(currentInterval);
-        if (expectedResponse.equals(timeoutCode)) {
+        final String expectedResponse = generateResponseCode( currentInterval );
+        if ( expectedResponse.equals( timeoutCode ) )
+        {
             return true;
         }
-        for (int i = 1; i <= pastIntervals; i++) {
-            final String pastResponse = generateResponseCode(currentInterval - i);
-            if (pastResponse.equals(timeoutCode)) {
+        for ( int i = 1; i <= pastIntervals; i++ )
+        {
+            final String pastResponse = generateResponseCode( currentInterval - i );
+            if ( pastResponse.equals( timeoutCode ) )
+            {
                 return true;
             }
         }
-        for (int i = 1; i <= futureIntervals; i++) {
-            final String futureResponse = generateResponseCode(currentInterval + i);
-            if (futureResponse.equals(timeoutCode)) {
+        for ( int i = 1; i <= futureIntervals; i++ )
+        {
+            final String futureResponse = generateResponseCode( currentInterval + i );
+            if ( futureResponse.equals( timeoutCode ) )
+            {
                 return true;
             }
         }
         return false;
     }
 
-    private IntervalClock clock = new IntervalClock() {
+    private IntervalClock clock = new IntervalClock()
+    {
         /*
          * @return The current interval
          */
-        public long getCurrentInterval() {
+        public long getCurrentInterval( )
+        {
             final long currentTimeSeconds = System.currentTimeMillis() / 1000;
             return currentTimeSeconds / getIntervalPeriod();
         }
 
-        public int getIntervalPeriod() {
+        public int getIntervalPeriod( )
+        {
             return intervalPeriod;
         }
     };
 
     // To facilitate injecting a mock clock
-    interface IntervalClock {
-        int getIntervalPeriod();
+    interface IntervalClock
+    {
+        int getIntervalPeriod( );
 
-        long getCurrentInterval();
+        long getCurrentInterval( );
     }
 }

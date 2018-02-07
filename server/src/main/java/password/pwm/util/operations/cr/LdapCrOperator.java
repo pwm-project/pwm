@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,89 +41,109 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.logging.PwmLogger;
 
-public class LdapCrOperator implements CrOperator {
+public class LdapCrOperator implements CrOperator
+{
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass(LdapCrOperator.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass( LdapCrOperator.class );
 
     private final Configuration config;
 
-    public LdapCrOperator(final Configuration config) {
+    public LdapCrOperator( final Configuration config )
+    {
         this.config = config;
     }
 
-    public void close() {
+    public void close( )
+    {
     }
 
-    public ResponseSet readResponseSet(final ChaiUser theUser, final UserIdentity userIdentity, final String userGuid)
+    public ResponseSet readResponseSet( final ChaiUser theUser, final UserIdentity userIdentity, final String userGuid )
             throws PwmUnrecoverableException
     {
-        try {
-            return ChaiCrFactory.readChaiResponseSet(theUser);
-        } catch (ChaiException e) {
-            LOGGER.debug("ldap error reading response set: " + e.getMessage());
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        try
+        {
+            return ChaiCrFactory.readChaiResponseSet( theUser );
+        }
+        catch ( ChaiException e )
+        {
+            LOGGER.debug( "ldap error reading response set: " + e.getMessage(), e );
         }
         return null;
     }
 
-    public ResponseInfoBean readResponseInfo(final ChaiUser theUser, final UserIdentity userIdentity, final String userGUID)
+    public ResponseInfoBean readResponseInfo( final ChaiUser theUser, final UserIdentity userIdentity, final String userGUID )
             throws PwmUnrecoverableException
     {
-        try {
-            final ResponseSet responseSet = readResponseSet(theUser, userIdentity, userGUID);
-            return responseSet == null ? null : CrOperators.convertToNoAnswerInfoBean(responseSet, DataStorageMethod.LDAP);
-        } catch (ChaiException e) {
+        try
+        {
+            final ResponseSet responseSet = readResponseSet( theUser, userIdentity, userGUID );
+            return responseSet == null ? null : CrOperators.convertToNoAnswerInfoBean( responseSet, DataStorageMethod.LDAP );
+        }
+        catch ( ChaiException e )
+        {
             final String errorMsg = "unexpected error reading response info " + e.getMessage();
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_RESPONSES_NORESPONSES,errorMsg));
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_RESPONSES_NORESPONSES, errorMsg ) );
         }
     }
 
-    public void clearResponses(final UserIdentity userIdentity, final ChaiUser theUser, final String userGuid)
+    public void clearResponses( final UserIdentity userIdentity, final ChaiUser theUser, final String userGuid )
             throws PwmUnrecoverableException
     {
-        final LdapProfile ldapProfile = userIdentity.getLdapProfile(config);
-        final String ldapStorageAttribute = ldapProfile.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE);
-        if (ldapStorageAttribute == null || ldapStorageAttribute.length() < 1) {
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( config );
+        final String ldapStorageAttribute = ldapProfile.readSettingAsString( PwmSetting.CHALLENGE_USER_ATTRIBUTE );
+        if ( ldapStorageAttribute == null || ldapStorageAttribute.length() < 1 )
+        {
             final String errorMsg = "ldap storage attribute is not configured, unable to clear user responses";
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG, errorMsg);
-            throw new PwmUnrecoverableException(errorInformation);
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INVALID_CONFIG, errorMsg );
+            throw new PwmUnrecoverableException( errorInformation );
 
         }
-        try {
-            final String currentValue = theUser.readStringAttribute(ldapStorageAttribute);
-            if (currentValue != null && currentValue.length() > 0) {
-                theUser.deleteAttribute(ldapStorageAttribute, null);
+        try
+        {
+            final String currentValue = theUser.readStringAttribute( ldapStorageAttribute );
+            if ( currentValue != null && currentValue.length() > 0 )
+            {
+                theUser.deleteAttribute( ldapStorageAttribute, null );
             }
-            LOGGER.info("cleared responses for user to chai-ldap format");
-        } catch (ChaiOperationException e) {
+            LOGGER.info( "cleared responses for user to chai-ldap format" );
+        }
+        catch ( ChaiOperationException e )
+        {
             final String errorMsg;
-            if (e.getErrorCode() == ChaiError.NO_ACCESS) {
+            if ( e.getErrorCode() == ChaiError.NO_ACCESS )
+            {
                 errorMsg = "permission error clearing responses to ldap attribute '"
                         + ldapStorageAttribute
                         + "', user does not appear to have correct permissions to clear responses: " + e.getMessage();
-            } else {
+            }
+            else
+            {
                 errorMsg = "error clearing responses to ldap attribute '" + ldapStorageAttribute + "': " + e.getMessage();
             }
-            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, errorMsg);
-            final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException(errorInfo);
-            pwmOE.initCause(e);
+            final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_WRITING_RESPONSES, errorMsg );
+            final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException( errorInfo );
+            pwmOE.initCause( e );
             throw pwmOE;
-        } catch (ChaiUnavailableException e) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
+        }
+        catch ( ChaiUnavailableException e )
+        {
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_DIRECTORY_UNAVAILABLE, e.getMessage() ) );
         }
     }
 
-    public void writeResponses(final UserIdentity userIdentity, final ChaiUser theUser, final String userGuid, final ResponseInfoBean responseInfoBean)
+    public void writeResponses( final UserIdentity userIdentity, final ChaiUser theUser, final String userGuid, final ResponseInfoBean responseInfoBean )
             throws PwmUnrecoverableException
     {
-        final LdapProfile ldapProfile = userIdentity.getLdapProfile(config);
-        final String ldapStorageAttribute = ldapProfile.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE);
-        if (ldapStorageAttribute == null || ldapStorageAttribute.length() < 1) {
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( config );
+        final String ldapStorageAttribute = ldapProfile.readSettingAsString( PwmSetting.CHALLENGE_USER_ATTRIBUTE );
+        if ( ldapStorageAttribute == null || ldapStorageAttribute.length() < 1 )
+        {
             final String errorMsg = "ldap storage attribute is not configured, unable to write user responses";
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG, errorMsg);
-            throw new PwmUnrecoverableException(errorInformation);
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INVALID_CONFIG, errorMsg );
+            throw new PwmUnrecoverableException( errorInformation );
         }
-        try {
+        try
+        {
             final ChaiResponseSet responseSet = ChaiCrFactory.newChaiResponseSet(
                     responseInfoBean.getCrMap(),
                     responseInfoBean.getHelpdeskCrMap(),
@@ -132,20 +152,25 @@ public class LdapCrOperator implements CrOperator {
                     theUser.getChaiProvider().getChaiConfiguration(),
                     responseInfoBean.getCsIdentifier()
             );
-            ChaiCrFactory.writeChaiResponseSet(responseSet, theUser);
-            LOGGER.info("saved responses for user to chai-ldap format");
-        } catch (ChaiException e) {
+            ChaiCrFactory.writeChaiResponseSet( responseSet, theUser );
+            LOGGER.info( "saved responses for user to chai-ldap format" );
+        }
+        catch ( ChaiException e )
+        {
             final String errorMsg;
-            if (e.getErrorCode() == ChaiError.NO_ACCESS) {
+            if ( e.getErrorCode() == ChaiError.NO_ACCESS )
+            {
                 errorMsg = "permission error writing user responses to ldap attribute '"
                         + ldapStorageAttribute
                         + "', user does not appear to have correct permissions to save responses: " + e.getMessage();
-            } else {
+            }
+            else
+            {
                 errorMsg = "error writing user responses to ldap attribute '" + ldapStorageAttribute + "': " + e.getMessage();
             }
-            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, errorMsg);
-            final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException(errorInfo);
-            pwmOE.initCause(e);
+            final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_WRITING_RESPONSES, errorMsg );
+            final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException( errorInfo );
+            pwmOE.initCause( e );
             throw pwmOE;
         }
     }

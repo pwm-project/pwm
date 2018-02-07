@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,24 +30,29 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class HealthRecord implements Serializable {
+public class HealthRecord implements Serializable
+{
     public HealthStatus status;
     public String topic;
     public String detail;
 
-    public static HealthRecord fromHealthRecord(final password.pwm.health.HealthRecord healthRecord, final Locale locale, final Configuration config) {
+    public static HealthRecord fromHealthRecord( final password.pwm.health.HealthRecord healthRecord, final Locale locale, final Configuration config )
+    {
         final HealthRecord bean = new HealthRecord();
         bean.status = healthRecord.getStatus();
-        bean.topic = healthRecord.getTopic(locale,config);
-        bean.detail = healthRecord.getDetail(locale,config);
+        bean.topic = healthRecord.getTopic( locale, config );
+        bean.detail = healthRecord.getDetail( locale, config );
         return bean;
     }
 
-    public static List<HealthRecord> fromHealthRecords(final List<password.pwm.health.HealthRecord> healthRecords, final Locale locale, final Configuration config) {
+    public static List<HealthRecord> fromHealthRecords( final List<password.pwm.health.HealthRecord> healthRecords, final Locale locale, final Configuration config )
+    {
         final List<HealthRecord> beanList = new ArrayList<>();
-        for (final password.pwm.health.HealthRecord record : healthRecords) {
-            if (record != null) {
-                beanList.add(fromHealthRecord(record, locale, config));
+        for ( final password.pwm.health.HealthRecord record : healthRecords )
+        {
+            if ( record != null )
+            {
+                beanList.add( fromHealthRecord( record, locale, config ) );
             }
         }
         return beanList;

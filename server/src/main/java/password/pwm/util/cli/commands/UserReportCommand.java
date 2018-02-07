@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,59 +40,66 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
-public class UserReportCommand extends AbstractCliCommand {
+public class UserReportCommand extends AbstractCliCommand
+{
     private static final String OUTPUT_FILE_OPTIONNAME = "outputFile";
 
     @Override
-    @SuppressFBWarnings("DM_EXIT")
-
-    void doCommand()
+    @SuppressFBWarnings( "DM_EXIT" )
+    void doCommand( )
             throws Exception
     {
-        final File outputFile = (File)cliEnvironment.getOptions().get(OUTPUT_FILE_OPTIONNAME);
+        final File outputFile = ( File ) cliEnvironment.getOptions().get( OUTPUT_FILE_OPTIONNAME );
 
-        try (OutputStream outputFileStream = new BufferedOutputStream(new FileOutputStream(outputFile))) {
+        try ( OutputStream outputFileStream = new BufferedOutputStream( new FileOutputStream( outputFile ) ) )
+        {
 
             final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
 
             final ReportService userReport = pwmApplication.getReportService();
-            if (userReport.status() != PwmService.STATUS.OPEN) {
-                out("report service is not open or enabled");
+            if ( userReport.status() != PwmService.STATUS.OPEN )
+            {
+                out( "report service is not open or enabled" );
                 final List<HealthRecord> healthIssues = userReport.healthCheck();
-                if (healthIssues != null) {
-                    for (final HealthRecord record : healthIssues) {
-                        out("report health status: " + record.toDebugString(Locale.getDefault(), pwmApplication.getConfig()));
+                if ( healthIssues != null )
+                {
+                    for ( final HealthRecord record : healthIssues )
+                    {
+                        out( "report health status: " + record.toDebugString( Locale.getDefault(), pwmApplication.getConfig() ) );
                     }
                 }
                 return;
             }
 
-            final ReportCsvUtility reportCsvUtility = new ReportCsvUtility(pwmApplication);
-            reportCsvUtility.outputToCsv(outputFileStream, true, PwmConstants.DEFAULT_LOCALE);
-        } catch (IOException e) {
-            out("unable to open file '" + outputFile.getAbsolutePath() + "' for writing");
-            System.exit(-1);
+            final ReportCsvUtility reportCsvUtility = new ReportCsvUtility( pwmApplication );
+            reportCsvUtility.outputToCsv( outputFileStream, true, PwmConstants.DEFAULT_LOCALE );
+        }
+        catch ( IOException e )
+        {
+            out( "unable to open file '" + outputFile.getAbsolutePath() + "' for writing" );
+            System.exit( -1 );
             throw new Exception();
         }
 
-        out("report output complete.");
+        out( "report output complete." );
     }
 
     @Override
-    public CliParameters getCliParameters()
+    public CliParameters getCliParameters( )
     {
-        final CliParameters.Option outputFileOption = new CliParameters.Option() {
-            public boolean isOptional()
+        final CliParameters.Option outputFileOption = new CliParameters.Option()
+        {
+            public boolean isOptional( )
             {
                 return false;
             }
 
-            public Type getType()
+            public Type getType( )
             {
                 return Type.NEW_FILE;
             }
 
-            public String getName()
+            public String getName( )
             {
                 return OUTPUT_FILE_OPTIONNAME;
             }
@@ -102,7 +109,7 @@ public class UserReportCommand extends AbstractCliCommand {
         final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "ExportUserReportDetail";
         cliParameters.description = "Output user report details to the output file (csv format)";
-        cliParameters.options = Collections.singletonList(outputFileOption);
+        cliParameters.options = Collections.singletonList( outputFileOption );
 
         cliParameters.needsPwmApplication = true;
         cliParameters.readOnly = false;

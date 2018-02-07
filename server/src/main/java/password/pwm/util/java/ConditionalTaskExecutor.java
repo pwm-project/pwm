@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,15 +28,16 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
 /**
- * Executes a predefined task if a conditional has occurred.  Both the task and the conditional must be supplied by the caller.
- * All processing occurs in the current thread, no new threads will be created.
+ * <p>Executes a predefined task if a conditional has occurred.  Both the task and the conditional must be supplied by the caller.
+ * All processing occurs in the current thread, no new threads will be created.</p>
  *
- * The user of this class must periodically call {@code conditionallyExecuteTask(}) or the task will never be run.  Because of this
+ * <p>The user of this class must periodically call {@code conditionallyExecuteTask(}) or the task will never be run.  Because of this
  * reliance, the conditional is only evaluated during execution of {@code conditionallyExecuteTask()} so the conditional on its own is not
- * a strictly reliable indicator of how frequently the task will execute.
+ * a strictly reliable indicator of how frequently the task will execute.</p>
  */
-public class ConditionalTaskExecutor {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(ConditionalTaskExecutor.class);
+public class ConditionalTaskExecutor
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( ConditionalTaskExecutor.class );
 
     private Runnable task;
     private Predicate predicate;
@@ -44,44 +45,56 @@ public class ConditionalTaskExecutor {
     /**
      * Execute the task if the conditional has been met.  Exceptions when running the task will be logged but not returned.
      */
-    public void conditionallyExecuteTask() {
-        if (predicate.test(null)) {
-            try {
+    public void conditionallyExecuteTask( )
+    {
+        if ( predicate.test( null ) )
+        {
+            try
+            {
                 task.run();
-            } catch (Throwable t) {
-                LOGGER.warn("unexpected error executing conditional task: " + t.getMessage(), t);
+            }
+            catch ( Throwable t )
+            {
+                LOGGER.warn( "unexpected error executing conditional task: " + t.getMessage(), t );
             }
 
         }
     }
 
-    public ConditionalTaskExecutor(final Runnable task, final Predicate predicate) {
+    public ConditionalTaskExecutor( final Runnable task, final Predicate predicate )
+    {
         this.task = task;
         this.predicate = predicate;
     }
 
 
-    public static class TimeDurationPredicate implements Predicate {
+    public static class TimeDurationPredicate implements Predicate
+    {
         private final TimeDuration timeDuration;
         private long nextExecuteTimestamp;
 
-        public TimeDurationPredicate(final TimeDuration timeDuration) {
+        public TimeDurationPredicate( final TimeDuration timeDuration )
+        {
             this.timeDuration = timeDuration;
             nextExecuteTimestamp = System.currentTimeMillis() + timeDuration.getTotalMilliseconds();
         }
 
-        public TimeDurationPredicate(final long value, final TimeUnit unit) {
-            this(new TimeDuration(value, unit));
+        public TimeDurationPredicate( final long value, final TimeUnit unit )
+        {
+            this( new TimeDuration( value, unit ) );
         }
 
-        public TimeDurationPredicate setNextTimeFromNow(final long value, final TimeUnit unit) {
-            nextExecuteTimestamp = System.currentTimeMillis() + unit.toMillis(value);
+        public TimeDurationPredicate setNextTimeFromNow( final long value, final TimeUnit unit )
+        {
+            nextExecuteTimestamp = System.currentTimeMillis() + unit.toMillis( value );
             return this;
         }
 
         @Override
-        public boolean test(final Object o) {
-            if (nextExecuteTimestamp <= System.currentTimeMillis()) {
+        public boolean test( final Object o )
+        {
+            if ( nextExecuteTimestamp <= System.currentTimeMillis() )
+            {
                 nextExecuteTimestamp = System.currentTimeMillis() + timeDuration.getTotalMilliseconds();
                 return true;
             }

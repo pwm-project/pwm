@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +27,8 @@ import password.pwm.util.LocaleHelper;
 
 import java.util.Locale;
 
-public enum Config implements PwmDisplayBundle {
+public enum Config implements PwmDisplayBundle
+{
 
     Button_Next,
     Button_Previous,
@@ -122,16 +123,16 @@ public enum Config implements PwmDisplayBundle {
     Tooltip_HelpButton,
     Tooltip_Setting_Permission_Profile,
     Tooltip_Setting_Permission_Filter,
-    Tooltip_Setting_Permission_Base,
+    Tooltip_Setting_Permission_Base,;
 
-    ;
-
-    public static String getLocalizedMessage(final Locale locale, final Config key, final Configuration config) {
-        return LocaleHelper.getLocalizedMessage(locale, key.toString(), config, Config.class);
+    public static String getLocalizedMessage( final Locale locale, final Config key, final Configuration config )
+    {
+        return LocaleHelper.getLocalizedMessage( locale, key.toString(), config, Config.class );
     }
 
     @Override
-    public String getKey() {
+    public String getKey( )
+    {
         return this.toString();
 
     }

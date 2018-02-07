@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,76 +36,85 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
-public class BooleanValue implements StoredValue {
+public class BooleanValue implements StoredValue
+{
     boolean value;
 
-    public BooleanValue(final boolean value) {
+    public BooleanValue( final boolean value )
+    {
         this.value = value;
     }
 
 
-    public static StoredValueFactory factory()
+    public static StoredValueFactory factory( )
     {
-        return new StoredValueFactory() {
-            public BooleanValue fromJson(final String value) {
-                return new BooleanValue(JsonUtil.deserialize(value, Boolean.class));
+        return new StoredValueFactory()
+        {
+            public BooleanValue fromJson( final String value )
+            {
+                return new BooleanValue( JsonUtil.deserialize( value, Boolean.class ) );
             }
 
-            public BooleanValue fromXmlElement(final Element settingElement, final PwmSecurityKey input)
+            public BooleanValue fromXmlElement( final Element settingElement, final PwmSecurityKey input )
             {
-                final Element valueElement = settingElement.getChild("value");
+                final Element valueElement = settingElement.getChild( "value" );
                 final String value = valueElement.getText();
-                return new BooleanValue(Boolean.valueOf(value));
+                return new BooleanValue( Boolean.valueOf( value ) );
             }
 
         };
     }
 
-    public List<String> validateValue(final PwmSetting pwmSetting)
+    public List<String> validateValue( final PwmSetting pwmSetting )
     {
         return Collections.emptyList();
     }
 
     @Override
-    public List<Element> toXmlValues(final String valueElementName) {
-        final Element valueElement = new Element(valueElementName);
-        valueElement.addContent(String.valueOf(value));
-        return Collections.singletonList(valueElement);
+    public List<Element> toXmlValues( final String valueElementName )
+    {
+        final Element valueElement = new Element( valueElementName );
+        valueElement.addContent( String.valueOf( value ) );
+        return Collections.singletonList( valueElement );
     }
 
     @Override
-    public Object toNativeObject() {
+    public Object toNativeObject( )
+    {
         return value;
     }
 
-    public String toDebugString(final Locale locale) {
-        final Locale loc = (locale == null)
+    public String toDebugString( final Locale locale )
+    {
+        final Locale loc = ( locale == null )
                 ? PwmConstants.DEFAULT_LOCALE
                 : locale;
         return value
-                ? Display.getLocalizedMessage(loc,Display.Value_True,null)
-                : Display.getLocalizedMessage(loc,Display.Value_False,null);
+                ? Display.getLocalizedMessage( loc, Display.Value_True, null )
+                : Display.getLocalizedMessage( loc, Display.Value_False, null );
     }
 
     @Override
-    public Serializable toDebugJsonObject(final Locale locale) {
+    public Serializable toDebugJsonObject( final Locale locale )
+    {
         return value;
     }
 
     @Override
-    public boolean requiresStoredUpdate()
+    public boolean requiresStoredUpdate( )
     {
         return false;
     }
 
     @Override
-    public int currentSyntaxVersion()
+    public int currentSyntaxVersion( )
     {
         return 0;
     }
 
     @Override
-    public String valueHash() throws PwmUnrecoverableException {
+    public String valueHash( ) throws PwmUnrecoverableException
+    {
         return value ? "1" : "0";
     }
 }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,54 +31,66 @@ import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-public class ChecksumOutputStream extends OutputStream {
+public class ChecksumOutputStream extends OutputStream
+{
     private final MessageDigest messageDigest;
     private final OutputStream wrappedStream;
 
-    public ChecksumOutputStream(final PwmHashAlgorithm hash, final OutputStream wrappedStream) throws PwmUnrecoverableException {
+    public ChecksumOutputStream( final PwmHashAlgorithm hash, final OutputStream wrappedStream ) throws PwmUnrecoverableException
+    {
         this.wrappedStream = wrappedStream;
 
-        try {
-            messageDigest = MessageDigest.getInstance(hash.getAlgName());
-        } catch (NoSuchAlgorithmException e) {
+        try
+        {
+            messageDigest = MessageDigest.getInstance( hash.getAlgName() );
+        }
+        catch ( NoSuchAlgorithmException e )
+        {
             final String errorMsg = "missing hash algorithm: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_CRYPT_ERROR, errorMsg);
-            throw new PwmUnrecoverableException(errorInformation);
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );
+            throw new PwmUnrecoverableException( errorInformation );
         }
     }
 
     @Override
-    public void close() throws IOException {
+    public void close( ) throws IOException
+    {
         wrappedStream.close();
     }
 
     @Override
-    public void write(final byte[] b) throws IOException {
-        messageDigest.update(b);
-        wrappedStream.write(b);
+    public void write( final byte[] b ) throws IOException
+    {
+        messageDigest.update( b );
+        wrappedStream.write( b );
     }
 
     @Override
-    public void write(final byte[] b, final int off, final int len) throws IOException {
-        if (len > 0) {
-            messageDigest.update(b,off,len);
+    public void write( final byte[] b, final int off, final int len ) throws IOException
+    {
+        if ( len > 0 )
+        {
+            messageDigest.update( b, off, len );
         }
 
-        wrappedStream.write(b, off, len);
+        wrappedStream.write( b, off, len );
     }
 
     @Override
-    public void flush() throws IOException {
+    public void flush( ) throws IOException
+    {
         wrappedStream.flush();
     }
 
     @Override
-    public void write(final int b) throws IOException {
-        messageDigest.update((byte)b);
-        wrappedStream.write(b);
+    public void write( final int b ) throws IOException
+    {
+        messageDigest.update( ( byte ) b );
+        wrappedStream.write( b );
     }
 
-    public byte[] getInProgressChecksum() {
+    public byte[] getInProgressChecksum( )
+    {
         return messageDigest.digest();
     }
 }

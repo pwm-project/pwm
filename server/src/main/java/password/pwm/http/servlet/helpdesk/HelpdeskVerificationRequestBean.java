@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,71 +25,89 @@ package password.pwm.http.servlet.helpdesk;
 import java.io.Serializable;
 import java.util.Date;
 
-public class HelpdeskVerificationRequestBean implements Serializable {
+public class HelpdeskVerificationRequestBean implements Serializable
+{
 
     private String destination;
     private String userKey;
     private String code;
-    private String tokenData; // encrypted during transport
+
+    // encrypted during transport
+    private String tokenData;
     private String verificationState;
 
-    public String getDestination() {
+    public String getDestination( )
+    {
         return destination;
     }
 
-    public void setDestination(final String destination) {
+    public void setDestination( final String destination )
+    {
         this.destination = destination;
     }
 
-    public String getUserKey() {
+    public String getUserKey( )
+    {
         return userKey;
     }
 
-    public void setUserKey(final String userKey) {
+    public void setUserKey( final String userKey )
+    {
         this.userKey = userKey;
     }
 
-    public String getCode() {
+    public String getCode( )
+    {
         return code;
     }
 
-    public void setCode(final String code) {
+    public void setCode( final String code )
+    {
         this.code = code;
     }
 
-    public String getTokenData() {
+    public String getTokenData( )
+    {
         return tokenData;
     }
 
-    public void setTokenData(final String tokenData) {
+    public void setTokenData( final String tokenData )
+    {
         this.tokenData = tokenData;
     }
 
-    public String getVerificationState() {
+    public String getVerificationState( )
+    {
         return verificationState;
     }
 
-    public void setVerificationState(final String verificationState) {
+    public void setVerificationState( final String verificationState )
+    {
         this.verificationState = verificationState;
     }
 
-    static class TokenData implements Serializable {
+    static class TokenData implements Serializable
+    {
         private String token;
         private Date issueDate;
 
-        public String getToken() {
+        public String getToken( )
+        {
             return token;
         }
 
-        public void setToken(final String token) {
+        public void setToken( final String token )
+        {
             this.token = token;
         }
 
-        public Date getIssueDate() {
+        public Date getIssueDate( )
+        {
             return issueDate;
         }
 
-        public void setIssueDate(final Date issueDate) {
+        public void setIssueDate( final Date issueDate )
+        {
             this.issueDate = issueDate;
         }
     }

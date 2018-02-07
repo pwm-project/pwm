@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,7 +33,8 @@ import java.util.Map;
 
 @Builder
 @Getter
-public class SearchConfiguration implements Serializable {
+public class SearchConfiguration implements Serializable
+{
 
     private String filter;
     private String ldapProfile;
@@ -53,9 +54,11 @@ public class SearchConfiguration implements Serializable {
     @Builder.Default
     private boolean enableSplitWhitespace = false;
 
-    void validate() {
-        if (this.username != null && this.formValues != null) {
-            throw new IllegalArgumentException("username OR formValues cannot both be supplied");
+    void validate( )
+    {
+        if ( this.username != null && this.formValues != null )
+        {
+            throw new IllegalArgumentException( "username OR formValues cannot both be supplied" );
         }
     }
 

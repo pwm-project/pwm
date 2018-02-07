@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 
 @WebServlet(
-        name="PublicPeopleSearchServlet",
+        name = "PublicPeopleSearchServlet",
         urlPatterns = {
                 PwmConstants.URL_PREFIX_PUBLIC + "/peoplesearch/",
                 PwmConstants.URL_PREFIX_PUBLIC + "/peoplesearch",
@@ -44,17 +44,20 @@ import java.io.IOException;
                 PwmConstants.URL_PREFIX_PUBLIC + "/PeopleSearch/*",
         }
 )
-public class PublicPeopleSearchServlet extends PeopleSearchServlet {
+public class PublicPeopleSearchServlet extends PeopleSearchServlet
+{
 
-        @Override
-        public ProcessStatus preProcessCheck(final PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException, ServletException {
-                if (!pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_ENABLE_PUBLIC)) {
-                        throw new PwmUnrecoverableException(new ErrorInformation(
-                                PwmError.ERROR_SERVICE_NOT_AVAILABLE,
-                                "public peoplesearch service is not enabled")
-                        );
-                }
-
-                return super.preProcessCheck(pwmRequest);
+    @Override
+    public ProcessStatus preProcessCheck( final PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException, ServletException
+    {
+        if ( !pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE_PUBLIC ) )
+        {
+            throw new PwmUnrecoverableException( new ErrorInformation(
+                    PwmError.ERROR_SERVICE_NOT_AVAILABLE,
+                    "public peoplesearch service is not enabled" )
+            );
         }
+
+        return super.preProcessCheck( pwmRequest );
+    }
 }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,31 +32,31 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
 
 /**
- *
  * @author mpieters
  */
-public interface OtpOperator {
-    
+public interface OtpOperator
+{
+
     OTPUserRecord readOtpUserConfiguration(
-             UserIdentity theUser,
-             String userGUID
+            UserIdentity theUser,
+            String userGUID
     )
             throws PwmUnrecoverableException;
 
     void writeOtpUserConfiguration(
-             PwmSession pwmSession,
-             UserIdentity theUser,
-             String userGuid,
-             OTPUserRecord otpConfig
+            PwmSession pwmSession,
+            UserIdentity theUser,
+            String userGuid,
+            OTPUserRecord otpConfig
     )
             throws PwmUnrecoverableException;
 
     void clearOtpUserConfiguration(
-             PwmSession pwmSession,
-             UserIdentity theUser,
-             String userGuid
+            PwmSession pwmSession,
+            UserIdentity theUser,
+            String userGuid
     )
             throws PwmUnrecoverableException;
 
-    void close();
+    void close( );
 }

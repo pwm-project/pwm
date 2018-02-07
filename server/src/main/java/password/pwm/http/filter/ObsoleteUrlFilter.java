@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,59 +37,70 @@ import password.pwm.util.logging.PwmLogger;
 import javax.servlet.ServletException;
 import java.io.IOException;
 
-public class ObsoleteUrlFilter extends AbstractPwmFilter {
+public class ObsoleteUrlFilter extends AbstractPwmFilter
+{
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass(ObsoleteUrlFilter.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass( ObsoleteUrlFilter.class );
 
     @Override
-    void processFilter(final PwmApplicationMode mode, final PwmRequest pwmRequest, final PwmFilterChain filterChain)
+    void processFilter( final PwmApplicationMode mode, final PwmRequest pwmRequest, final PwmFilterChain filterChain )
             throws PwmException, IOException, ServletException
     {
-        final ProcessStatus processStatus = redirectOldUrls(pwmRequest);
-        if (processStatus == ProcessStatus.Continue) {
+        final ProcessStatus processStatus = redirectOldUrls( pwmRequest );
+        if ( processStatus == ProcessStatus.Continue )
+        {
             filterChain.doFilter();
         }
     }
 
-    private ProcessStatus redirectOldUrls(final PwmRequest pwmRequest)
+    private ProcessStatus redirectOldUrls( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException, IOException
     {
-        if (pwmRequest == null || pwmRequest.getURL() == null) {
+        if ( pwmRequest == null || pwmRequest.getURL() == null )
+        {
             return ProcessStatus.Continue;
         }
         final PwmURL pwmURL = pwmRequest.getURL();
-        if (pwmURL.isResourceURL() || pwmURL.isCommandServletURL()) {
+        if ( pwmURL.isResourceURL() || pwmURL.isCommandServletURL() )
+        {
             return ProcessStatus.Continue;
         }
 
-        if (pwmRequest.getMethod() != HttpMethod.GET) {
+        if ( pwmRequest.getMethod() != HttpMethod.GET )
+        {
             return ProcessStatus.Continue;
         }
 
-        if (!pwmRequest.readParametersAsMap().isEmpty()) {
+        if ( !pwmRequest.readParametersAsMap().isEmpty() )
+        {
             return ProcessStatus.Continue;
         }
 
         final String requestUrl = pwmRequest.getURLwithoutQueryString();
-        final String requestServletUrl = requestUrl.substring(pwmRequest.getContextPath().length(), requestUrl.length());
+        final String requestServletUrl = requestUrl.substring( pwmRequest.getContextPath().length(), requestUrl.length() );
 
-        for (final PwmServletDefinition pwmServletDefinition : PwmServletDefinition.values()) {
+        for ( final PwmServletDefinition pwmServletDefinition : PwmServletDefinition.values() )
+        {
             boolean match = false;
-            for (final String patternUrl : pwmServletDefinition.urlPatterns()) {
-                if (patternUrl.equals(requestServletUrl)) {
+            for ( final String patternUrl : pwmServletDefinition.urlPatterns() )
+            {
+                if ( patternUrl.equals( requestServletUrl ) )
+                {
                     match = true;
                     break;
                 }
             }
 
-            if (match) {
-                if (!pwmServletDefinition.servletUrl().equals(requestServletUrl)) {
-                    LOGGER.debug(pwmRequest, "obsolete url of '"
-                            +  requestServletUrl
+            if ( match )
+            {
+                if ( !pwmServletDefinition.servletUrl().equals( requestServletUrl ) )
+                {
+                    LOGGER.debug( pwmRequest, "obsolete url of '"
+                            + requestServletUrl
                             + "' detected, redirecting to canonical URL of '"
-                            + pwmServletDefinition.servletUrl() + "'");
-                    StatisticsManager.incrementStat(pwmRequest, Statistic.OBSOLETE_URL_REQUESTS);
-                    pwmRequest.sendRedirect(pwmServletDefinition);
+                            + pwmServletDefinition.servletUrl() + "'" );
+                    StatisticsManager.incrementStat( pwmRequest, Statistic.OBSOLETE_URL_REQUESTS );
+                    pwmRequest.sendRedirect( pwmServletDefinition );
                     return ProcessStatus.Halt;
                 }
             }
@@ -100,7 +111,8 @@ public class ObsoleteUrlFilter extends AbstractPwmFilter {
     }
 
     @Override
-    boolean isInterested(final PwmApplicationMode mode, final PwmURL pwmURL) {
+    boolean isInterested( final PwmApplicationMode mode, final PwmURL pwmURL )
+    {
         return !pwmURL.isRestService();
     }
 }

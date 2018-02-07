@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,15 +49,19 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 
-public class SharedHistoryManager implements PwmService {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(SharedHistoryManager.class);
+public class SharedHistoryManager implements PwmService
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( SharedHistoryManager.class );
 
     private static final String KEY_OLDEST_ENTRY = "oldest_entry";
     private static final String KEY_VERSION = "version";
     private static final String KEY_SALT = "salt";
 
-    private static final int MIN_CLEANER_FREQUENCY = 1000 * 60 * 60; // 1 hour
-    private static final int MAX_CLEANER_FREQUENCY = 1000 * 60 * 60 * 24; // 1 day
+    // 1 hour
+    private static final int MIN_CLEANER_FREQUENCY = 1000 * 60 * 60;
+
+    // 1 day
+    private static final int MAX_CLEANER_FREQUENCY = 1000 * 60 * 60 * 24;
 
     private static final LocalDB.DB META_DB = LocalDB.DB.SHAREDHISTORY_META;
     private static final LocalDB.DB WORDS_DB = LocalDB.DB.SHAREDHISTORY_WORDS;
@@ -72,132 +76,170 @@ public class SharedHistoryManager implements PwmService {
 
     private final Settings settings = new Settings();
 
-    public SharedHistoryManager() throws LocalDBException {
+    public SharedHistoryManager( ) throws LocalDBException
+    {
     }
 
-    public void close() {
+    public void close( )
+    {
         status = STATUS.CLOSED;
-        if (cleanerTimer != null) {
+        if ( cleanerTimer != null )
+        {
             cleanerTimer.cancel();
         }
         localDB = null;
     }
 
-    public boolean containsWord(final String word) {
-        if (status != STATUS.OPEN) {
+    public boolean containsWord( final String word )
+    {
+        if ( status != STATUS.OPEN )
+        {
             return false;
         }
 
-        final String testWord = normalizeWord(word);
+        final String testWord = normalizeWord( word );
 
-        if (testWord == null) {
+        if ( testWord == null )
+        {
             return false;
         }
 
         //final long startTime = System.currentTimeMillis();
         boolean result = false;
 
-        try {
-            final String hashedWord = hashWord(testWord);
-            final boolean inDB = localDB.contains(WORDS_DB, hashedWord);
-            if (inDB) {
-                final long timeStamp = Long.parseLong(localDB.get(WORDS_DB, hashedWord));
+        try
+        {
+            final String hashedWord = hashWord( testWord );
+            final boolean inDB = localDB.contains( WORDS_DB, hashedWord );
+            if ( inDB )
+            {
+                final long timeStamp = Long.parseLong( localDB.get( WORDS_DB, hashedWord ) );
                 final long entryAge = System.currentTimeMillis() - timeStamp;
-                if (entryAge < settings.maxAgeMs) {
+                if ( entryAge < settings.maxAgeMs )
+                {
                     result = true;
                 }
             }
 
-        } catch (Exception e) {
-            LOGGER.warn("error checking global history list: " + e.getMessage());
+        }
+        catch ( Exception e )
+        {
+            LOGGER.warn( "error checking global history list: " + e.getMessage() );
         }
 
         //LOGGER.trace(pwmSession, "successfully checked word, result=" + result + ", duration=" + new TimeDuration(System.currentTimeMillis(), startTime).asCompactString());
         return result;
     }
 
-    public PwmService.STATUS status() {
+    public PwmService.STATUS status( )
+    {
         return status;
     }
 
-    public Instant getOldestEntryTime() {
-        if (size() > 0) {
-            return Instant.ofEpochMilli(oldestEntry);
+    public Instant getOldestEntryTime( )
+    {
+        if ( size() > 0 )
+        {
+            return Instant.ofEpochMilli( oldestEntry );
         }
         return null;
     }
 
-    public int size() {
-        if (localDB != null) {
-            try {
-                return localDB.size(WORDS_DB);
-            } catch (Exception e) {
-                LOGGER.error("error checking wordlist size: " + e.getMessage());
+    public int size( )
+    {
+        if ( localDB != null )
+        {
+            try
+            {
+                return localDB.size( WORDS_DB );
+            }
+            catch ( Exception e )
+            {
+                LOGGER.error( "error checking wordlist size: " + e.getMessage() );
                 return 0;
             }
-        } else {
+        }
+        else
+        {
             return 0;
         }
     }
 
-    private boolean checkDbVersion()
-            throws Exception {
-        LOGGER.trace("checking version number stored in LocalDB");
+    private boolean checkDbVersion( )
+            throws Exception
+    {
+        LOGGER.trace( "checking version number stored in LocalDB" );
 
-        final Object versionInDB = localDB.get(META_DB, KEY_VERSION);
+        final Object versionInDB = localDB.get( META_DB, KEY_VERSION );
         final String currentVersion = "version=" + settings.version;
-        final boolean result = currentVersion.equals(versionInDB);
+        final boolean result = currentVersion.equals( versionInDB );
 
-        if (!result) {
-            LOGGER.info("existing db version does not match current db version db=(" + versionInDB + ")  current=(" + currentVersion + "), clearing db");
-            localDB.truncate(WORDS_DB);
-            localDB.put(META_DB, KEY_VERSION, currentVersion);
-            localDB.remove(META_DB, KEY_OLDEST_ENTRY);
-        } else {
-            LOGGER.trace("existing db version matches current db version db=(" + versionInDB + ")  current=(" + currentVersion + ")");
+        if ( !result )
+        {
+            LOGGER.info( "existing db version does not match current db version db=(" + versionInDB + ")  current=(" + currentVersion + "), clearing db" );
+            localDB.truncate( WORDS_DB );
+            localDB.put( META_DB, KEY_VERSION, currentVersion );
+            localDB.remove( META_DB, KEY_OLDEST_ENTRY );
+        }
+        else
+        {
+            LOGGER.trace( "existing db version matches current db version db=(" + versionInDB + ")  current=(" + currentVersion + ")" );
         }
 
         return result;
     }
 
-    private void init(final PwmApplication pwmApplication, final long maxAgeMs) {
+    private void init( final PwmApplication pwmApplication, final long maxAgeMs )
+    {
         status = STATUS.OPENING;
         final long startTime = System.currentTimeMillis();
 
-        try {
+        try
+        {
             checkDbVersion();
-        } catch (Exception e) {
-            LOGGER.error("error checking db version", e);
+        }
+        catch ( Exception e )
+        {
+            LOGGER.error( "error checking db version", e );
             status = STATUS.CLOSED;
             return;
         }
 
 
-        try {
-            final String oldestEntryStr = localDB.get(META_DB, KEY_OLDEST_ENTRY);
-            if (oldestEntryStr == null || oldestEntryStr.length() < 1) {
+        try
+        {
+            final String oldestEntryStr = localDB.get( META_DB, KEY_OLDEST_ENTRY );
+            if ( oldestEntryStr == null || oldestEntryStr.length() < 1 )
+            {
                 oldestEntry = 0;
-                LOGGER.trace("no oldestEntry timestamp stored, will rescan");
-            } else {
-                oldestEntry = Long.parseLong(oldestEntryStr);
-                LOGGER.trace("oldest timestamp loaded from localDB, age is " + TimeDuration.fromCurrent(oldestEntry).asCompactString());
+                LOGGER.trace( "no oldestEntry timestamp stored, will rescan" );
             }
-        } catch (LocalDBException e) {
-            LOGGER.error("unexpected error loading oldest-entry meta record, will remain closed: " + e.getMessage(), e);
+            else
+            {
+                oldestEntry = Long.parseLong( oldestEntryStr );
+                LOGGER.trace( "oldest timestamp loaded from localDB, age is " + TimeDuration.fromCurrent( oldestEntry ).asCompactString() );
+            }
+        }
+        catch ( LocalDBException e )
+        {
+            LOGGER.error( "unexpected error loading oldest-entry meta record, will remain closed: " + e.getMessage(), e );
             status = STATUS.CLOSED;
             return;
         }
 
-        try {
-            final int size = localDB.size(WORDS_DB);
+        try
+        {
+            final int size = localDB.size( WORDS_DB );
             final StringBuilder sb = new StringBuilder();
-            sb.append("open with ").append(size).append(" words (");
-            sb.append(new TimeDuration(System.currentTimeMillis(), startTime).asCompactString()).append(")");
-            sb.append(", maxAgeMs=").append(new TimeDuration(maxAgeMs).asCompactString());
-            sb.append(", oldestEntry=").append(new TimeDuration(System.currentTimeMillis(), oldestEntry).asCompactString());
-            LOGGER.info(sb.toString());
-        } catch (LocalDBException e) {
-            LOGGER.error("unexpected error examining size of DB, will remain closed: " + e.getMessage(), e);
+            sb.append( "open with " ).append( size ).append( " words (" );
+            sb.append( new TimeDuration( System.currentTimeMillis(), startTime ).asCompactString() ).append( ")" );
+            sb.append( ", maxAgeMs=" ).append( new TimeDuration( maxAgeMs ).asCompactString() );
+            sb.append( ", oldestEntry=" ).append( new TimeDuration( System.currentTimeMillis(), oldestEntry ).asCompactString() );
+            LOGGER.info( sb.toString() );
+        }
+        catch ( LocalDBException e )
+        {
+            LOGGER.error( "unexpected error examining size of DB, will remain closed: " + e.getMessage(), e );
             status = STATUS.CLOSED;
             return;
         }
@@ -205,25 +247,29 @@ public class SharedHistoryManager implements PwmService {
         status = STATUS.OPEN;
         //populateFromWordlist();  //only used for debugging!!!
 
-        if (pwmApplication.getApplicationMode() == PwmApplicationMode.RUNNING || pwmApplication.getApplicationMode() == PwmApplicationMode.CONFIGURATION) {
+        if ( pwmApplication.getApplicationMode() == PwmApplicationMode.RUNNING || pwmApplication.getApplicationMode() == PwmApplicationMode.CONFIGURATION )
+        {
             long frequencyMs = maxAgeMs > MAX_CLEANER_FREQUENCY ? MAX_CLEANER_FREQUENCY : maxAgeMs;
             frequencyMs = frequencyMs < MIN_CLEANER_FREQUENCY ? MIN_CLEANER_FREQUENCY : frequencyMs;
 
-            LOGGER.debug("scheduling cleaner task to run once every " + new TimeDuration(frequencyMs).asCompactString());
-            final String threadName = JavaHelper.makeThreadName(pwmApplication, this.getClass()) + " timer";
-            cleanerTimer = new Timer(threadName, true);
-            cleanerTimer.schedule(new CleanerTask(), 1000, frequencyMs);
+            LOGGER.debug( "scheduling cleaner task to run once every " + new TimeDuration( frequencyMs ).asCompactString() );
+            final String threadName = JavaHelper.makeThreadName( pwmApplication, this.getClass() ) + " timer";
+            cleanerTimer = new Timer( threadName, true );
+            cleanerTimer.schedule( new CleanerTask(), 1000, frequencyMs );
         }
     }
 
-    private String normalizeWord(final String input) {
-        if (input == null) {
+    private String normalizeWord( final String input )
+    {
+        if ( input == null )
+        {
             return null;
         }
 
         String word = input.trim();
 
-        if (settings.caseInsensitive) {
+        if ( settings.caseInsensitive )
+        {
             word = word.toLowerCase();
         }
 
@@ -233,78 +279,95 @@ public class SharedHistoryManager implements PwmService {
     public synchronized void addWord(
             final SessionLabel sessionLabel,
             final String word
-    ) {
-        if (status != STATUS.OPEN) {
+    )
+    {
+        if ( status != STATUS.OPEN )
+        {
             return;
         }
 
-        final String addWord = normalizeWord(word);
+        final String addWord = normalizeWord( word );
 
-        if (addWord == null) {
+        if ( addWord == null )
+        {
             return;
         }
 
         final long startTime = System.currentTimeMillis();
 
-        try {
-            final String hashedWord = hashWord(addWord);
+        try
+        {
+            final String hashedWord = hashWord( addWord );
 
-            final boolean preExisting = localDB.contains(WORDS_DB, hashedWord);
-            localDB.put(WORDS_DB, hashedWord, Long.toString(System.currentTimeMillis()));
+            final boolean preExisting = localDB.contains( WORDS_DB, hashedWord );
+            localDB.put( WORDS_DB, hashedWord, Long.toString( System.currentTimeMillis() ) );
 
             {
                 final StringBuilder logOutput = new StringBuilder();
-                logOutput.append(preExisting ? "updated" : "added").append(" word");
-                logOutput.append(" (").append(new TimeDuration(System.currentTimeMillis(), startTime).asCompactString()).append(")");
-                logOutput.append(" (").append(this.size()).append(" total words)");
-                LOGGER.trace(logOutput.toString());
+                logOutput.append( preExisting ? "updated" : "added" ).append( " word" );
+                logOutput.append( " (" ).append( new TimeDuration( System.currentTimeMillis(), startTime ).asCompactString() ).append( ")" );
+                logOutput.append( " (" ).append( this.size() ).append( " total words)" );
+                LOGGER.trace( logOutput.toString() );
             }
-        } catch (Exception e) {
-            LOGGER.warn(sessionLabel, "error adding word to global history list: " + e.getMessage());
+        }
+        catch ( Exception e )
+        {
+            LOGGER.warn( sessionLabel, "error adding word to global history list: " + e.getMessage() );
         }
     }
 
-    private String hashWord(final String word) throws NoSuchAlgorithmException {
-        final MessageDigest md = MessageDigest.getInstance(settings.hashName);
+    private String hashWord( final String word ) throws NoSuchAlgorithmException
+    {
+        final MessageDigest md = MessageDigest.getInstance( settings.hashName );
         final String wordWithSalt = salt + word;
         final int hashLoopCount = settings.hashIterations;
-        byte[] hashedAnswer = md.digest((wordWithSalt).getBytes(PwmConstants.DEFAULT_CHARSET));
+        byte[] hashedAnswer = md.digest( ( wordWithSalt ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
 
-        for (int i = 0; i < hashLoopCount; i++) {
-            hashedAnswer = md.digest(hashedAnswer);
+        for ( int i = 0; i < hashLoopCount; i++ )
+        {
+            hashedAnswer = md.digest( hashedAnswer );
         }
 
-        return JavaHelper.binaryArrayToHex(hashedAnswer);
+        return JavaHelper.binaryArrayToHex( hashedAnswer );
     }
 
-    private class CleanerTask extends TimerTask {
-        final Sleeper sleeper = new Sleeper(10);
+    private class CleanerTask extends TimerTask
+    {
+        final Sleeper sleeper = new Sleeper( 10 );
 
-        private CleanerTask() {
+        private CleanerTask( )
+        {
         }
 
-        public void run() {
-            try {
+        public void run( )
+        {
+            try
+            {
                 reduceWordDB();
-            } catch (LocalDBException e) {
-                LOGGER.error("error during old record purge: " + e.getMessage());
+            }
+            catch ( LocalDBException e )
+            {
+                LOGGER.error( "error during old record purge: " + e.getMessage() );
             }
         }
 
 
-        private void reduceWordDB()
-                throws LocalDBException {
+        private void reduceWordDB( )
+                throws LocalDBException
+        {
 
-            if (localDB == null || localDB.status() != LocalDB.Status.OPEN) {
+            if ( localDB == null || localDB.status() != LocalDB.Status.OPEN )
+            {
                 return;
             }
 
             final long oldestEntryAge = System.currentTimeMillis() - oldestEntry;
-            if (oldestEntryAge < settings.maxAgeMs) {
-                LOGGER.debug("skipping wordDB reduce operation, eldestEntry="
-                        + TimeDuration.asCompactString(oldestEntryAge)
+            if ( oldestEntryAge < settings.maxAgeMs )
+            {
+                LOGGER.debug( "skipping wordDB reduce operation, eldestEntry="
+                        + TimeDuration.asCompactString( oldestEntryAge )
                         + ", maxAge="
-                        + TimeDuration.asCompactString(settings.maxAgeMs));
+                        + TimeDuration.asCompactString( settings.maxAgeMs ) );
                 return;
             }
 
@@ -313,108 +376,133 @@ public class SharedHistoryManager implements PwmService {
             int removeCount = 0;
             long localOldestEntry = System.currentTimeMillis();
 
-            LOGGER.debug("beginning wordDB reduce operation, examining " + initialSize + " words for entries older than " + TimeDuration.asCompactString(settings.maxAgeMs));
+            LOGGER.debug( "beginning wordDB reduce operation, examining " + initialSize + " words for entries older than " + TimeDuration.asCompactString( settings.maxAgeMs ) );
 
             LocalDB.LocalDBIterator<String> keyIterator = null;
-            try {
-                keyIterator = localDB.iterator(WORDS_DB);
-                while (status == STATUS.OPEN && keyIterator.hasNext()) {
+            try
+            {
+                keyIterator = localDB.iterator( WORDS_DB );
+                while ( status == STATUS.OPEN && keyIterator.hasNext() )
+                {
                     final String key = keyIterator.next();
-                    final String value = localDB.get(WORDS_DB, key);
-                    final long timeStamp = Long.parseLong(value);
+                    final String value = localDB.get( WORDS_DB, key );
+                    final long timeStamp = Long.parseLong( value );
                     final long entryAge = System.currentTimeMillis() - timeStamp;
 
-                    if (entryAge > settings.maxAgeMs) {
-                        localDB.remove(WORDS_DB, key);
+                    if ( entryAge > settings.maxAgeMs )
+                    {
+                        localDB.remove( WORDS_DB, key );
                         removeCount++;
 
-                        if (removeCount % 1000 == 0) {
-                            LOGGER.trace("wordDB reduce operation in progress, removed=" + removeCount + ", total=" + (initialSize - removeCount));
+                        if ( removeCount % 1000 == 0 )
+                        {
+                            LOGGER.trace( "wordDB reduce operation in progress, removed=" + removeCount + ", total=" + ( initialSize - removeCount ) );
                         }
-                    } else {
+                    }
+                    else
+                    {
                         localOldestEntry = timeStamp < localOldestEntry ? timeStamp : localOldestEntry;
                     }
                     sleeper.sleep();
                 }
-            } finally {
-                try {
-                    if (keyIterator != null) {
+            }
+            finally
+            {
+                try
+                {
+                    if ( keyIterator != null )
+                    {
                         keyIterator.close();
                     }
-                } catch (Exception e) {
-                    LOGGER.warn("error returning LocalDB iterator: " + e.getMessage());
+                }
+                catch ( Exception e )
+                {
+                    LOGGER.warn( "error returning LocalDB iterator: " + e.getMessage() );
                 }
             }
 
             //update the oldest entry
-            if (status == STATUS.OPEN) {
+            if ( status == STATUS.OPEN )
+            {
                 oldestEntry = localOldestEntry;
-                localDB.put(META_DB, KEY_OLDEST_ENTRY, Long.toString(oldestEntry));
+                localDB.put( META_DB, KEY_OLDEST_ENTRY, Long.toString( oldestEntry ) );
             }
 
-            LOGGER.debug("completed wordDB reduce operation" + ", removed=" + removeCount
+            LOGGER.debug( "completed wordDB reduce operation" + ", removed=" + removeCount
                     + ", totalRemaining=" + size()
-                    + ", oldestEntry=" + TimeDuration.asCompactString(oldestEntry)
-                    + " in " + TimeDuration.fromCurrent(startTime).asCompactString());
+                    + ", oldestEntry=" + TimeDuration.asCompactString( oldestEntry )
+                    + " in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
         }
     }
 
-    public List<HealthRecord> healthCheck() {
+    public List<HealthRecord> healthCheck( )
+    {
         return null;
     }
 
-    public void init(final PwmApplication pwmApplication)
+    public void init( final PwmApplication pwmApplication )
             throws PwmException
     {
-        settings.maxAgeMs = 1000 *  pwmApplication.getConfig().readSettingAsLong(PwmSetting.PASSWORD_SHAREDHISTORY_MAX_AGE); // convert to MS;
-        settings.caseInsensitive = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.SECURITY_SHAREDHISTORY_CASE_INSENSITIVE));
-        settings.hashName = pwmApplication.getConfig().readAppProperty(AppProperty.SECURITY_SHAREDHISTORY_HASH_NAME);
-        settings.hashIterations = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.SECURITY_SHAREDHISTORY_HASH_ITERATIONS));
+        // convert to MS;
+        settings.maxAgeMs = 1000 * pwmApplication.getConfig().readSettingAsLong( PwmSetting.PASSWORD_SHAREDHISTORY_MAX_AGE );
+        settings.caseInsensitive = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.SECURITY_SHAREDHISTORY_CASE_INSENSITIVE ) );
+        settings.hashName = pwmApplication.getConfig().readAppProperty( AppProperty.SECURITY_SHAREDHISTORY_HASH_NAME );
+        settings.hashIterations = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.SECURITY_SHAREDHISTORY_HASH_ITERATIONS ) );
         settings.version = "2" + "_" + settings.hashName + "_" + settings.hashIterations + "_" + settings.caseInsensitive;
 
-        final int SALT_LENGTH = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.SECURITY_SHAREDHISTORY_SALT_LENGTH));
+        final int saltLength = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.SECURITY_SHAREDHISTORY_SALT_LENGTH ) );
         this.localDB = pwmApplication.getLocalDB();
 
         boolean needsClearing = false;
-        if (localDB == null) {
-            LOGGER.info("LocalDB is not available, will remain closed");
+        if ( localDB == null )
+        {
+            LOGGER.info( "LocalDB is not available, will remain closed" );
             status = STATUS.CLOSED;
             return;
         }
 
-        if (settings.maxAgeMs < 1) {
-            LOGGER.debug("max age=" + settings.maxAgeMs + ", will remain closed");
+        if ( settings.maxAgeMs < 1 )
+        {
+            LOGGER.debug( "max age=" + settings.maxAgeMs + ", will remain closed" );
             needsClearing = true;
         }
 
         {
-            this.salt = localDB.get(META_DB, KEY_SALT);
-            if (salt == null || salt.length() < SALT_LENGTH) {
-                LOGGER.warn("stored global salt value is not present, creating new salt");
-                this.salt = PwmRandom.getInstance().alphaNumericString(SALT_LENGTH);
-                localDB.put(META_DB, KEY_SALT,this.salt);
+            this.salt = localDB.get( META_DB, KEY_SALT );
+            if ( salt == null || salt.length() < saltLength )
+            {
+                LOGGER.warn( "stored global salt value is not present, creating new salt" );
+                this.salt = PwmRandom.getInstance().alphaNumericString( saltLength );
+                localDB.put( META_DB, KEY_SALT, this.salt );
                 needsClearing = true;
             }
         }
 
-        if (needsClearing) {
-            LOGGER.trace("clearing wordlist");
-            try {
-                localDB.truncate(WORDS_DB);
-            } catch (Exception e) {
-                LOGGER.error("error during wordlist truncate", e);
+        if ( needsClearing )
+        {
+            LOGGER.trace( "clearing wordlist" );
+            try
+            {
+                localDB.truncate( WORDS_DB );
+            }
+            catch ( Exception e )
+            {
+                LOGGER.error( "error during wordlist truncate", e );
             }
         }
 
-        new Thread(new Runnable() {
-            public void run() {
-                LOGGER.debug("starting up in background thread");
-                init(pwmApplication, settings.maxAgeMs);
+        new Thread( new Runnable()
+        {
+            public void run( )
+            {
+                LOGGER.debug( "starting up in background thread" );
+                init( pwmApplication, settings.maxAgeMs );
             }
-        }, JavaHelper.makeThreadName(pwmApplication, this.getClass()) + " initializer").start();
+        }, JavaHelper.makeThreadName( pwmApplication, this.getClass() ) + " initializer" ).start();
     }
 
-    private static class Settings {
+    private static class Settings
+    {
         private String version;
         private String hashName;
         private int hashIterations;
@@ -422,12 +510,15 @@ public class SharedHistoryManager implements PwmService {
         private boolean caseInsensitive;
     }
 
-    public ServiceInfoBean serviceInfo()
+    public ServiceInfoBean serviceInfo( )
     {
-        if (status == STATUS.OPEN) {
-            return new ServiceInfoBean(Collections.singletonList(DataStorageMethod.LOCALDB));
-        } else {
-            return new ServiceInfoBean(Collections.<DataStorageMethod>emptyList());
+        if ( status == STATUS.OPEN )
+        {
+            return new ServiceInfoBean( Collections.singletonList( DataStorageMethod.LOCALDB ) );
+        }
+        else
+        {
+            return new ServiceInfoBean( Collections.<DataStorageMethod>emptyList() );
         }
     }
 }

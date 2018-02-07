@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,7 +44,8 @@ import java.util.Map;
 
 @Getter
 @Builder
-public class UserInfoBean implements UserInfo {
+public class UserInfoBean implements UserInfo
+{
 
     private final UserIdentity userIdentity;
     private final String username;
@@ -53,16 +54,16 @@ public class UserInfoBean implements UserInfo {
     private final String userGuid;
 
     /**
-     * A listing of all readable attributes on the ldap user object
+     * A listing of all readable attributes on the ldap user object.
      */
     @Builder.Default
-    private final Map<String,String> cachedPasswordRuleAttributes = Collections.emptyMap();
+    private final Map<String, String> cachedPasswordRuleAttributes = Collections.emptyMap();
 
     @Builder.Default
-    private final Map<String,String> cachedAttributeValues = Collections.emptyMap();
+    private final Map<String, String> cachedAttributeValues = Collections.emptyMap();
 
     @Builder.Default
-    private final Map<ProfileType,String> profileIDs = new HashMap<>();
+    private final Map<ProfileType, String> profileIDs = new HashMap<>();
 
     @Builder.Default
     private final PasswordStatus passwordStatus = PasswordStatus.builder().build();
@@ -90,43 +91,47 @@ public class UserInfoBean implements UserInfo {
     private final boolean requiresInteraction;
 
     @Builder.Default
-    private Map<String,String> attributes = Collections.emptyMap();
+    private Map<String, String> attributes = Collections.emptyMap();
 
     @Override
-    public String readStringAttribute(final String attribute) throws PwmUnrecoverableException
+    public String readStringAttribute( final String attribute ) throws PwmUnrecoverableException
     {
-        return attributes.get(attribute);
+        return attributes.get( attribute );
     }
 
     @Override
-    public Instant readDateAttribute(final String attribute) throws PwmUnrecoverableException
+    public Instant readDateAttribute( final String attribute ) throws PwmUnrecoverableException
     {
-        if (attributes.containsKey(attribute)) {
-            return EdirEntries.convertZuluToInstant(attributes.get(attribute));
+        if ( attributes.containsKey( attribute ) )
+        {
+            return EdirEntries.convertZuluToInstant( attributes.get( attribute ) );
         }
         return null;
     }
 
     @Override
-    public List<String> readMultiStringAttribute(final String attribute) throws PwmUnrecoverableException
+    public List<String> readMultiStringAttribute( final String attribute ) throws PwmUnrecoverableException
     {
-        if (attributes.containsKey(attribute)) {
-            return Collections.unmodifiableList(Collections.singletonList(attributes.get(attribute)));
+        if ( attributes.containsKey( attribute ) )
+        {
+            return Collections.unmodifiableList( Collections.singletonList( attributes.get( attribute ) ) );
         }
 
         return Collections.emptyList();
     }
 
     @Override
-    public Map<String, String> readStringAttributes(final Collection<String> attributes) throws PwmUnrecoverableException
+    public Map<String, String> readStringAttributes( final Collection<String> attributes ) throws PwmUnrecoverableException
     {
-        final Map<String,String> returnObj = new LinkedHashMap<>();
-        for (final String attribute : attributes) {
-            if (this.attributes.containsKey(attribute)) {
-                returnObj.put(attribute, this.attributes.get(attribute));
+        final Map<String, String> returnObj = new LinkedHashMap<>();
+        for ( final String attribute : attributes )
+        {
+            if ( this.attributes.containsKey( attribute ) )
+            {
+                returnObj.put( attribute, this.attributes.get( attribute ) );
             }
         }
-        return Collections.unmodifiableMap(returnObj);
+        return Collections.unmodifiableMap( returnObj );
     }
 }
 

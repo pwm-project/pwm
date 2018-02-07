@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,51 +35,67 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class SchemaManager {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(SchemaManager.class);
+public class SchemaManager
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( SchemaManager.class );
 
     private static final Map<DirectoryVendor, Class<? extends SchemaExtender>> IMPLEMENTATIONS;
 
-    static {
+    static
+    {
         final Map<DirectoryVendor, Class<? extends SchemaExtender>> implMap = new HashMap<>();
-        implMap.put(DirectoryVendor.EDIRECTORY, EdirSchemaExtender.class);
-        IMPLEMENTATIONS = Collections.unmodifiableMap(implMap);
+        implMap.put( DirectoryVendor.EDIRECTORY, EdirSchemaExtender.class );
+        IMPLEMENTATIONS = Collections.unmodifiableMap( implMap );
     }
 
-    protected static SchemaExtender implForChaiProvider(final ChaiProvider chaiProvider) throws PwmUnrecoverableException {
-        if (!chaiProvider.isConnected()) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE, "provider is not connected"));
+    protected static SchemaExtender implForChaiProvider( final ChaiProvider chaiProvider ) throws PwmUnrecoverableException
+    {
+        if ( !chaiProvider.isConnected() )
+        {
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_DIRECTORY_UNAVAILABLE,
+                    "provider is not connected" ) );
         }
-        try {
-            if (chaiProvider.getDirectoryVendor() != DirectoryVendor.EDIRECTORY) {
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE, "directory vendor is not supported"));
+        try
+        {
+            if ( chaiProvider.getDirectoryVendor() != DirectoryVendor.EDIRECTORY )
+            {
+                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_DIRECTORY_UNAVAILABLE,
+                        "directory vendor is not supported" ) );
             }
             final List<String> urls = chaiProvider.getChaiConfiguration().bindURLsAsList();
-            if (urls.size() > 1) {
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE, "provider used for schema extension must have only a single ldap url defined"));
+            if ( urls.size() > 1 )
+            {
+                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_DIRECTORY_UNAVAILABLE,
+                        "provider used for schema extension must have only a single ldap url defined" ) );
             }
 
             final DirectoryVendor vendor = chaiProvider.getDirectoryVendor();
-            final Class<? extends SchemaExtender> implClass = IMPLEMENTATIONS.get(vendor);
+            final Class<? extends SchemaExtender> implClass = IMPLEMENTATIONS.get( vendor );
             final SchemaExtender schemaExtenderImpl = implClass.newInstance();
-            schemaExtenderImpl.init(chaiProvider);
+            schemaExtenderImpl.init( chaiProvider );
             return schemaExtenderImpl;
-        } catch (ChaiUnavailableException e) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE, e.getMessage()));
-        } catch (Exception e) {
+        }
+        catch ( ChaiUnavailableException e )
+        {
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_DIRECTORY_UNAVAILABLE, e.getMessage() ) );
+        }
+        catch ( Exception e )
+        {
             final String errorMsg = "error instantiating schema extender: " + e.getMessage();
-            LOGGER.error(errorMsg);
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg));
+            LOGGER.error( errorMsg );
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg ) );
         }
 
     }
 
-    public static SchemaOperationResult extendSchema(final ChaiProvider chaiProvider) throws PwmUnrecoverableException {
-        return  implForChaiProvider(chaiProvider).extendSchema();
+    public static SchemaOperationResult extendSchema( final ChaiProvider chaiProvider ) throws PwmUnrecoverableException
+    {
+        return implForChaiProvider( chaiProvider ).extendSchema();
     }
 
-    public static SchemaOperationResult checkExistingSchema(final ChaiProvider chaiProvider) throws PwmUnrecoverableException {
-        return  implForChaiProvider(chaiProvider).checkExistingSchema();
+    public static SchemaOperationResult checkExistingSchema( final ChaiProvider chaiProvider ) throws PwmUnrecoverableException
+    {
+        return implForChaiProvider( chaiProvider ).checkExistingSchema();
     }
 
 

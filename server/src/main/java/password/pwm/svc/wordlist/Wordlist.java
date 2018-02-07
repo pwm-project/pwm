@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,22 +30,23 @@ import java.io.IOException;
 import java.io.InputStream;
 
 
-public interface Wordlist extends PwmService {
+public interface Wordlist extends PwmService
+{
 
-    boolean containsWord( String word);
+    boolean containsWord( String word );
 
-    int size();
+    int size( );
 
-    StoredWordlistDataBean readMetadata();
+    StoredWordlistDataBean readMetadata( );
 
 
-    void populate(InputStream inputStream)
+    void populate( InputStream inputStream )
             throws IOException, PwmUnrecoverableException;
 
-    void clear()
-                    throws IOException, PwmUnrecoverableException;
+    void clear( )
+            throws IOException, PwmUnrecoverableException;
 
-    WordlistConfiguration getConfiguration();
+    WordlistConfiguration getConfiguration( );
 
-    ErrorInformation getAutoImportError();
+    ErrorInformation getAutoImportError( );
 }

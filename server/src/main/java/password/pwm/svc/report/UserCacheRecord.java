@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,16 +27,17 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import password.pwm.bean.PasswordStatus;
+import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.UserInfo;
-import password.pwm.config.option.DataStorageMethod;
 
 import java.io.Serializable;
 import java.time.Instant;
 
 @Getter
-@Setter(AccessLevel.PRIVATE)
-public class UserCacheRecord implements Serializable {
+@Setter( AccessLevel.PRIVATE )
+public class UserCacheRecord implements Serializable
+{
     public String userDN;
     public String ldapProfile;
     public String userGUID;
@@ -70,47 +71,47 @@ public class UserCacheRecord implements Serializable {
     )
             throws PwmUnrecoverableException
     {
-        this.setUserDN(userInfo.getUserIdentity().getUserDN());
-        this.setLdapProfile(userInfo.getUserIdentity().getLdapProfileID());
-        this.setUsername(userInfo.getUsername());
-        this.setEmail(userInfo.getUserEmailAddress());
-        this.setUserGUID(userInfo.getUserGuid());
+        this.setUserDN( userInfo.getUserIdentity().getUserDN() );
+        this.setLdapProfile( userInfo.getUserIdentity().getLdapProfileID() );
+        this.setUsername( userInfo.getUsername() );
+        this.setEmail( userInfo.getUserEmailAddress() );
+        this.setUserGUID( userInfo.getUserGuid() );
 
-        this.setPasswordStatus(userInfo.getPasswordStatus());
+        this.setPasswordStatus( userInfo.getPasswordStatus() );
 
-        this.setPasswordChangeTime(userInfo.getPasswordLastModifiedTime());
-        this.setPasswordExpirationTime(userInfo.getPasswordExpirationTime());
-        this.setLastLoginTime(userInfo.getLastLdapLoginTime());
-        this.setAccountExpirationTime(userInfo.getAccountExpirationTime());
+        this.setPasswordChangeTime( userInfo.getPasswordLastModifiedTime() );
+        this.setPasswordExpirationTime( userInfo.getPasswordExpirationTime() );
+        this.setLastLoginTime( userInfo.getLastLdapLoginTime() );
+        this.setAccountExpirationTime( userInfo.getAccountExpirationTime() );
 
-        this.setHasResponses(userInfo.getResponseInfoBean() != null);
-        this.setResponseSetTime(userInfo.getResponseInfoBean() != null
-                        ? userInfo.getResponseInfoBean().getTimestamp()
-                        : null
+        this.setHasResponses( userInfo.getResponseInfoBean() != null );
+        this.setResponseSetTime( userInfo.getResponseInfoBean() != null
+                ? userInfo.getResponseInfoBean().getTimestamp()
+                : null
         );
-        this.setResponseStorageMethod(userInfo.getResponseInfoBean() != null
-                        ? userInfo.getResponseInfoBean().getDataStorageMethod()
-                        : null
+        this.setResponseStorageMethod( userInfo.getResponseInfoBean() != null
+                ? userInfo.getResponseInfoBean().getDataStorageMethod()
+                : null
         );
-        this.setResponseFormatType(userInfo.getResponseInfoBean() != null
-                        ? userInfo.getResponseInfoBean().getFormatType()
-                        : null
-        );
-
-        this.setRequiresPasswordUpdate(userInfo.isRequiresNewPassword());
-        this.setRequiresResponseUpdate(userInfo.isRequiresResponseConfig());
-        this.setRequiresProfileUpdate(userInfo.isRequiresUpdateProfile());
-        this.setCacheTimestamp(Instant.now());
-
-        this.setHasOtpSecret(userInfo.getOtpUserRecord() != null);
-        this.setOtpSecretSetTime(userInfo.getOtpUserRecord() != null && userInfo.getOtpUserRecord().getTimestamp() != null
-                        ? userInfo.getOtpUserRecord().getTimestamp()
-                        : null
+        this.setResponseFormatType( userInfo.getResponseInfoBean() != null
+                ? userInfo.getResponseInfoBean().getFormatType()
+                : null
         );
 
-        this.setHasHelpdeskResponses(userInfo.getResponseInfoBean() != null
-                        && userInfo.getResponseInfoBean().getHelpdeskCrMap() != null
-                        && !userInfo.getResponseInfoBean().getHelpdeskCrMap().isEmpty()
+        this.setRequiresPasswordUpdate( userInfo.isRequiresNewPassword() );
+        this.setRequiresResponseUpdate( userInfo.isRequiresResponseConfig() );
+        this.setRequiresProfileUpdate( userInfo.isRequiresUpdateProfile() );
+        this.setCacheTimestamp( Instant.now() );
+
+        this.setHasOtpSecret( userInfo.getOtpUserRecord() != null );
+        this.setOtpSecretSetTime( userInfo.getOtpUserRecord() != null && userInfo.getOtpUserRecord().getTimestamp() != null
+                ? userInfo.getOtpUserRecord().getTimestamp()
+                : null
+        );
+
+        this.setHasHelpdeskResponses( userInfo.getResponseInfoBean() != null
+                && userInfo.getResponseInfoBean().getHelpdeskCrMap() != null
+                && !userInfo.getResponseInfoBean().getHelpdeskCrMap().isEmpty()
         );
     }
 

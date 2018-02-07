@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,10 +23,10 @@
 package password.pwm.config.function;
 
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.config.value.ActionValue;
+import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -38,29 +38,41 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ActionCertImportFunction extends AbstractUriCertImportFunction {
+public class ActionCertImportFunction extends AbstractUriCertImportFunction
+{
 
     @Override
-    String getUri(final StoredConfigurationImpl storedConfiguration, final PwmSetting pwmSetting, final String profile, final String extraData) throws PwmOperationalException {
-        final ActionValue actionValue = (ActionValue)storedConfiguration.readSetting(pwmSetting, profile);
-        final String actionName = actionNameFromExtraData(extraData);
-        final ActionConfiguration action =  actionValue.forName(actionName);
+    String getUri( final StoredConfigurationImpl storedConfiguration, final PwmSetting pwmSetting, final String profile, final String extraData ) throws PwmOperationalException
+    {
+        final ActionValue actionValue = ( ActionValue ) storedConfiguration.readSetting( pwmSetting, profile );
+        final String actionName = actionNameFromExtraData( extraData );
+        final ActionConfiguration action = actionValue.forName( actionName );
         final String uriString = action.getUrl();
 
-        if (uriString == null || uriString.isEmpty()) {
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"Setting " + pwmSetting.toMenuLocationDebug(profile, null) + " action " + actionName + " must first be configured");
-            throw new PwmOperationalException(errorInformation);
+        if ( uriString == null || uriString.isEmpty() )
+        {
+            final ErrorInformation errorInformation = new ErrorInformation(
+                    PwmError.CONFIG_FORMAT_ERROR,
+                    "Setting " + pwmSetting.toMenuLocationDebug( profile, null )
+                            + " action " + actionName + " must first be configured" );
+            throw new PwmOperationalException( errorInformation );
         }
-        try {
-            URI.create(uriString);
-        } catch (IllegalArgumentException e) {
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"Setting " + pwmSetting.toMenuLocationDebug(profile, null) + " action " + actionName + " has an invalid URL syntax");
-            throw new PwmOperationalException(errorInformation);
+        try
+        {
+            URI.create( uriString );
+        }
+        catch ( IllegalArgumentException e )
+        {
+            final ErrorInformation errorInformation = new ErrorInformation(
+                    PwmError.CONFIG_FORMAT_ERROR, "Setting "
+                    + pwmSetting.toMenuLocationDebug( profile, null ) + " action " + actionName + " has an invalid URL syntax" );
+            throw new PwmOperationalException( errorInformation );
         }
         return uriString;
     }
 
-    private String actionNameFromExtraData(final String extraData) {
+    private String actionNameFromExtraData( final String extraData )
+    {
         return extraData;
     }
 
@@ -74,19 +86,23 @@ public class ActionCertImportFunction extends AbstractUriCertImportFunction {
     )
             throws PwmOperationalException, PwmUnrecoverableException
     {
-        final ActionValue actionValue = (ActionValue)storedConfiguration.readSetting(pwmSetting, profile);
-        final String actionName = actionNameFromExtraData(extraData);
+        final ActionValue actionValue = ( ActionValue ) storedConfiguration.readSetting( pwmSetting, profile );
+        final String actionName = actionNameFromExtraData( extraData );
         final List<ActionConfiguration> newList = new ArrayList<>();
-        for (final ActionConfiguration loopConfiguration : actionValue.toNativeObject()) {
-            if (actionName.equals(loopConfiguration.getName())) {
-                final ActionConfiguration newConfig = loopConfiguration.copyWithNewCertificate(certs);
-                newList.add(newConfig);
-            } else {
-                newList.add(JsonUtil.cloneUsingJson(loopConfiguration,ActionConfiguration.class));
+        for ( final ActionConfiguration loopConfiguration : actionValue.toNativeObject() )
+        {
+            if ( actionName.equals( loopConfiguration.getName() ) )
+            {
+                final ActionConfiguration newConfig = loopConfiguration.copyWithNewCertificate( certs );
+                newList.add( newConfig );
+            }
+            else
+            {
+                newList.add( JsonUtil.cloneUsingJson( loopConfiguration, ActionConfiguration.class ) );
             }
         }
-        final ActionValue newActionValue = new ActionValue(newList);
-        storedConfiguration.writeSetting(pwmSetting, profile, newActionValue, userIdentity);
+        final ActionValue newActionValue = new ActionValue( newList );
+        storedConfiguration.writeSetting( pwmSetting, profile, newActionValue, userIdentity );
     }
 
 }

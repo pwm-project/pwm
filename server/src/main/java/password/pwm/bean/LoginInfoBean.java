@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,199 +42,222 @@ import java.util.Set;
 
 
 /**
- * This bean is synchronized across application sessions by {@link password.pwm.http.state.SessionLoginProvider}.
+ * <p>This bean is synchronized across application sessions by {@link password.pwm.http.state.SessionLoginProvider}.</p>
  *
- * Short serialized names are used to shrink the effective size of the login cookie.
+ * <p>Short serialized names are used to shrink the effective size of the login cookie.</p>
  */
 @Getter
 @Setter
-public class LoginInfoBean implements Serializable {
+public class LoginInfoBean implements Serializable
+{
 
-    public enum LoginFlag {
+    public enum LoginFlag
+    {
         skipOtp,
         skipNewPw,
-        noSso, // bypass sso
+
+        // bypass sso
+        noSso,
         authRecordSet,
         forcePwChange
     }
 
-    @SerializedName("u")
+    @SerializedName( "u" )
     private UserIdentity userIdentity;
 
-    @SerializedName("a")
+    @SerializedName( "a" )
     private boolean auth;
 
-    @SerializedName("p")
+    @SerializedName( "p" )
     private PasswordData pw;
 
-    @SerializedName("t")
+    @SerializedName( "t" )
     private AuthenticationType type = AuthenticationType.UNAUTHENTICATED;
 
-    @SerializedName("af")
+    @SerializedName( "af" )
     private List<AuthenticationType> authFlags = new ArrayList<>();
 
-    @SerializedName("as")
+    @SerializedName( "as" )
     private PwmAuthenticationSource authSource;
 
-    @SerializedName("at")
+    @SerializedName( "at" )
     private Instant authTime;
 
-    @SerializedName("rq")
+    @SerializedName( "rq" )
     private Instant reqTime;
 
-    @SerializedName("g")
+    @SerializedName( "g" )
     private String guid;
 
-    @SerializedName("ba")
+    @SerializedName( "ba" )
     private BasicAuthInfo basicAuth;
 
-    @SerializedName("oe")
+    @SerializedName( "oe" )
     private Instant oauthExp;
 
-    @SerializedName("or")
+    @SerializedName( "or" )
     private String oauthRefToken;
 
-    @SerializedName("c")
+    @SerializedName( "c" )
     private int reqCounter;
 
-    @SerializedName("lf")
+    @SerializedName( "lf" )
     private Set<LoginFlag> loginFlags = new HashSet<>();
 
-    public Instant getAuthTime()
+    public Instant getAuthTime( )
     {
         return authTime;
     }
 
-    public void setAuthTime(final Instant authTime)
+    public void setAuthTime( final Instant authTime )
     {
         this.authTime = authTime;
     }
 
-    public AuthenticationType getType()
+    public AuthenticationType getType( )
     {
         return type;
     }
 
-    public void setType(final AuthenticationType type)
+    public void setType( final AuthenticationType type )
     {
         this.type = type;
     }
 
-    public PasswordData getUserCurrentPassword()
+    public PasswordData getUserCurrentPassword( )
     {
         return pw;
     }
 
-    public void setUserCurrentPassword(final PasswordData userCurrentPassword)
+    public void setUserCurrentPassword( final PasswordData userCurrentPassword )
     {
         this.pw = userCurrentPassword;
     }
 
-    public BasicAuthInfo getBasicAuth()
+    public BasicAuthInfo getBasicAuth( )
     {
         return basicAuth;
     }
 
-    public void setBasicAuth(final BasicAuthInfo basicAuth)
+    public void setBasicAuth( final BasicAuthInfo basicAuth )
     {
         this.basicAuth = basicAuth;
     }
 
-    public Instant getOauthExp()
+    public Instant getOauthExp( )
     {
         return oauthExp;
     }
 
-    public void setOauthExp(final Instant oauthExp)
+    public void setOauthExp( final Instant oauthExp )
     {
         this.oauthExp = oauthExp;
     }
 
-    public String getOauthRefToken()
+    public String getOauthRefToken( )
     {
         return oauthRefToken;
     }
 
-    public void setOauthRefToken(final String oauthRefToken)
+    public void setOauthRefToken( final String oauthRefToken )
     {
         this.oauthRefToken = oauthRefToken;
     }
 
-    public List<AuthenticationType> getAuthFlags() {
+    public List<AuthenticationType> getAuthFlags( )
+    {
         return authFlags;
     }
 
-    public PwmAuthenticationSource getAuthSource() {
+    public PwmAuthenticationSource getAuthSource( )
+    {
         return authSource;
     }
 
-    public void setAuthSource(final PwmAuthenticationSource authSource) {
+    public void setAuthSource( final PwmAuthenticationSource authSource )
+    {
         this.authSource = authSource;
     }
 
-    public String getGuid() {
+    public String getGuid( )
+    {
         return guid;
     }
 
-    public void setGuid(final String guid) {
+    public void setGuid( final String guid )
+    {
         this.guid = guid;
     }
 
-    public int getReqCounter() {
+    public int getReqCounter( )
+    {
         return reqCounter;
     }
 
-    public void setReqCounter(final int reqCounter) {
+    public void setReqCounter( final int reqCounter )
+    {
         this.reqCounter = reqCounter;
     }
 
-    public UserIdentity getUserIdentity() {
+    public UserIdentity getUserIdentity( )
+    {
         return userIdentity;
     }
 
-    public void setUserIdentity(final UserIdentity userIdentity) {
+    public void setUserIdentity( final UserIdentity userIdentity )
+    {
         this.userIdentity = userIdentity;
     }
 
-    public boolean isAuthenticated() {
+    public boolean isAuthenticated( )
+    {
         return auth;
     }
 
-    public void setAuthenticated(final boolean authenticated) {
+    public void setAuthenticated( final boolean authenticated )
+    {
         this.auth = authenticated;
     }
 
-    public PasswordData getPw() {
+    public PasswordData getPw( )
+    {
         return pw;
     }
 
-    public void setPw(final PasswordData pw) {
+    public void setPw( final PasswordData pw )
+    {
         this.pw = pw;
     }
 
-    public Instant getReqTime() {
+    public Instant getReqTime( )
+    {
         return reqTime;
     }
 
-    public void setReqTime(final Instant reqTime) {
+    public void setReqTime( final Instant reqTime )
+    {
         this.reqTime = reqTime;
     }
 
-    public boolean isLoginFlag(final LoginFlag loginStateFlag) {
-        return loginFlags.contains(loginStateFlag);
+    public boolean isLoginFlag( final LoginFlag loginStateFlag )
+    {
+        return loginFlags.contains( loginStateFlag );
     }
 
-    public void setFlag(final LoginFlag loginFlag) {
-        loginFlags.add(loginFlag);
+    public void setFlag( final LoginFlag loginFlag )
+    {
+        loginFlags.add( loginFlag );
     }
 
-    public void removeFlag(final LoginFlag loginFlag) {
-        loginFlags.remove(loginFlag);
+    public void removeFlag( final LoginFlag loginFlag )
+    {
+        loginFlags.remove( loginFlag );
     }
 
-    public String toDebugString() throws PwmUnrecoverableException {
-        final LoginInfoBean debugLoginCookieBean = JsonUtil.cloneUsingJson(this, LoginInfoBean.class);
-        debugLoginCookieBean.setUserCurrentPassword(new PasswordData(PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT));
-        return JsonUtil.serialize(debugLoginCookieBean);
+    public String toDebugString( ) throws PwmUnrecoverableException
+    {
+        final LoginInfoBean debugLoginCookieBean = JsonUtil.cloneUsingJson( this, LoginInfoBean.class );
+        debugLoginCookieBean.setUserCurrentPassword( new PasswordData( PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT ) );
+        return JsonUtil.serialize( debugLoginCookieBean );
     }
 }

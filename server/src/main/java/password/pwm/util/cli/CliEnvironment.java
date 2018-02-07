@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,7 +31,8 @@ import java.io.File;
 import java.io.Writer;
 import java.util.Map;
 
-public class CliEnvironment {
+public class CliEnvironment
+{
     final ConfigurationReader configurationReader;
     final File configurationFile;
     final Configuration config;
@@ -39,9 +40,10 @@ public class CliEnvironment {
     final PwmApplication pwmApplication;
     final LocalDB localDB;
     final Writer debugWriter;
-    final Map<String,Object> options;
+    final Map<String, Object> options;
     final MainOptions mainOptions;
 
+    @SuppressWarnings( "checkstyle:ParameterNumber" )
     public CliEnvironment(
             final ConfigurationReader configurationReader,
             final File configurationFile,
@@ -65,45 +67,48 @@ public class CliEnvironment {
         this.mainOptions = mainOptions;
     }
 
-    public Configuration getConfig()
+    public Configuration getConfig( )
     {
         return config;
     }
 
-    public PwmApplication getPwmApplication()
+    public PwmApplication getPwmApplication( )
     {
         return pwmApplication;
     }
 
-    public LocalDB getLocalDB()
+    public LocalDB getLocalDB( )
     {
         return localDB;
     }
 
-    public Writer getDebugWriter()
+    public Writer getDebugWriter( )
     {
         return debugWriter;
     }
 
-    public Map<String, Object> getOptions()
+    public Map<String, Object> getOptions( )
     {
         return options;
     }
 
-    public File getApplicationPath()
+    public File getApplicationPath( )
     {
         return applicationPath;
     }
 
-    public ConfigurationReader getConfigurationReader() {
+    public ConfigurationReader getConfigurationReader( )
+    {
         return configurationReader;
     }
 
-    public MainOptions getMainOptions() {
+    public MainOptions getMainOptions( )
+    {
         return mainOptions;
     }
 
-    public File getConfigurationFile() {
+    public File getConfigurationFile( )
+    {
         return configurationFile;
     }
 }

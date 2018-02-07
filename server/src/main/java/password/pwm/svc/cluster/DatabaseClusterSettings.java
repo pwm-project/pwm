@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,19 +32,21 @@ import password.pwm.util.java.TimeDuration;
 import java.util.concurrent.TimeUnit;
 
 @Getter
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-class DatabaseClusterSettings {
+@AllArgsConstructor( access = AccessLevel.PRIVATE )
+class DatabaseClusterSettings
+{
     private final boolean enable;
     private final TimeDuration heartbeatInterval;
     private final TimeDuration nodeTimeout;
     private final TimeDuration nodePurgeInterval;
 
-    static DatabaseClusterSettings fromConfig(final Configuration configuration) {
+    static DatabaseClusterSettings fromConfig( final Configuration configuration )
+    {
         return new DatabaseClusterSettings(
-                Boolean.parseBoolean(configuration.readAppProperty(AppProperty.CLUSTER_DB_ENABLE)),
-                new TimeDuration( Integer.parseInt(configuration.readAppProperty(AppProperty.CLUSTER_DB_HEARTBEAT_SECONDS)), TimeUnit.SECONDS),
-                new TimeDuration( Integer.parseInt(configuration.readAppProperty(AppProperty.CLUSTER_DB_NODE_TIMEOUT_SECONDS)), TimeUnit.SECONDS),
-                new TimeDuration( Integer.parseInt(configuration.readAppProperty(AppProperty.CLUSTER_DB_NODE_PURGE_SECONDS)), TimeUnit.SECONDS)
+                Boolean.parseBoolean( configuration.readAppProperty( AppProperty.CLUSTER_DB_ENABLE ) ),
+                new TimeDuration( Integer.parseInt( configuration.readAppProperty( AppProperty.CLUSTER_DB_HEARTBEAT_SECONDS ) ), TimeUnit.SECONDS ),
+                new TimeDuration( Integer.parseInt( configuration.readAppProperty( AppProperty.CLUSTER_DB_NODE_TIMEOUT_SECONDS ) ), TimeUnit.SECONDS ),
+                new TimeDuration( Integer.parseInt( configuration.readAppProperty( AppProperty.CLUSTER_DB_NODE_PURGE_SECONDS ) ), TimeUnit.SECONDS )
         );
     }
 }

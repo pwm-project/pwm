@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Password Management Servlets (PWM)
-  ~ http://www.pwm-project.org
-  ~
-  ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2017 The PWM Project
+  ~ Copyright (c) 2006-2018 Novell, Inc.
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -899,7 +896,7 @@
         </default>
     </setting>
     <setting hidden="false" key="sms.requestContentType" level="2">
-        <regex>^[A-Za-z0-9_\.-]+/[A-Za-z0-9\+_\.-]+([ 	]*;[ 	]*[A-Za-z0-9_\.-]+=([A-Za-z0-9_\.-]|\".+\")+)*$</regex>
+        <regex>^[A-Za-z0-9_\.-]+/[A-Za-z0-9\+_\.-]+([ &#x9;]*;[ &#x9;]*[A-Za-z0-9_\.-]+=([A-Za-z0-9_\.-]|\".+\")+)*$</regex>
         <default>
             <value><![CDATA[application/x-www-form-urlencoded]]></value>
         </default>

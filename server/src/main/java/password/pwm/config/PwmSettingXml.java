@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,9 +41,10 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class PwmSettingXml {
-    private static final String SETTING_XML_FILENAME = (PwmSetting.class.getPackage().getName() +
-            "." + PwmSetting.class.getSimpleName()).replace(".","/") + ".xml";
+public class PwmSettingXml
+{
+    private static final String SETTING_XML_FILENAME = ( PwmSetting.class.getPackage().getName()
+            + "." + PwmSetting.class.getSimpleName() ).replace( ".", "/" ) + ".xml";
 
     public static final String XML_ELEMENT_LDAP_PERMISSION = "ldapPermission";
     public static final String XML_ELEMENT_EXAMPLE = "example";
@@ -56,82 +57,102 @@ public class PwmSettingXml {
 
     private static Document xmlDocCache;
 
-    private static Document readXml() {
+    private static Document readXml( )
+    {
         final Document docRefCopy = xmlDocCache;
-        if (docRefCopy == null) {
+        if ( docRefCopy == null )
+        {
             //validateXmlSchema();
-            final InputStream inputStream = PwmSetting.class.getClassLoader().getResourceAsStream(SETTING_XML_FILENAME);
+            final InputStream inputStream = PwmSetting.class.getClassLoader().getResourceAsStream( SETTING_XML_FILENAME );
             final SAXBuilder builder = new SAXBuilder();
-            try {
-                final Document newDoc = builder.build(inputStream);
+            try
+            {
+                final Document newDoc = builder.build( inputStream );
                 xmlDocCache = newDoc;
 
                 // clear cached dom after 30 seconds.
-                final Thread t = new Thread("PwmSettingXml static cache clear thread") {
+                final Thread t = new Thread( "PwmSettingXml static cache clear thread" )
+                {
                     @Override
-                    public void run() {
-                        JavaHelper.pause(30 * 1000);
+                    public void run( )
+                    {
+                        JavaHelper.pause( 30 * 1000 );
                         xmlDocCache = null;
                     }
                 };
-                t.setDaemon(true);
+                t.setDaemon( true );
                 t.start();
 
                 return newDoc;
-            } catch (JDOMException e) {
-                throw new IllegalStateException("error parsing " + SETTING_XML_FILENAME + ": " + e.getMessage());
-            } catch (IOException e) {
-                throw new IllegalStateException("unable to load " + SETTING_XML_FILENAME + ": " + e.getMessage());
+            }
+            catch ( JDOMException e )
+            {
+                throw new IllegalStateException( "error parsing " + SETTING_XML_FILENAME + ": " + e.getMessage() );
+            }
+            catch ( IOException e )
+            {
+                throw new IllegalStateException( "unable to load " + SETTING_XML_FILENAME + ": " + e.getMessage() );
             }
 
         }
         return docRefCopy;
     }
 
-    private static void validateXmlSchema() {
-        try {
-            final InputStream xsdInputStream = PwmSetting.class.getClassLoader().getResourceAsStream("password/pwm/config/PwmSetting.xsd");
-            final InputStream xmlInputStream = PwmSetting.class.getClassLoader().getResourceAsStream("password/pwm/config/PwmSetting.xml");
-            final SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-            final Schema schema = factory.newSchema(new StreamSource(xsdInputStream));
+    private static void validateXmlSchema( )
+    {
+        try
+        {
+            final InputStream xsdInputStream = PwmSetting.class.getClassLoader().getResourceAsStream( "password/pwm/config/PwmSetting.xsd" );
+            final InputStream xmlInputStream = PwmSetting.class.getClassLoader().getResourceAsStream( "password/pwm/config/PwmSetting.xml" );
+            final SchemaFactory factory = SchemaFactory.newInstance( XMLConstants.W3C_XML_SCHEMA_NS_URI );
+            final Schema schema = factory.newSchema( new StreamSource( xsdInputStream ) );
             final Validator validator = schema.newValidator();
-            validator.validate(new StreamSource(xmlInputStream));
-        } catch (Exception e) {
-            throw new IllegalStateException("error validating PwmSetting.xml schema using PwmSetting.xsd definition: " + e.getMessage());
+            validator.validate( new StreamSource( xmlInputStream ) );
+        }
+        catch ( Exception e )
+        {
+            throw new IllegalStateException( "error validating PwmSetting.xml schema using PwmSetting.xsd definition: " + e.getMessage() );
         }
     }
 
-    static Element readSettingXml(final PwmSetting setting) {
+    static Element readSettingXml( final PwmSetting setting )
+    {
         final XPathFactory xpfac = XPathFactory.instance();
-        final XPathExpression xp = xpfac.compile("/settings/setting[@key=\"" + setting.getKey() + "\"]");
-        return (Element)xp.evaluateFirst(readXml());
+        final XPathExpression xp = xpfac.compile( "/settings/setting[@key=\"" + setting.getKey() + "\"]" );
+        return ( Element ) xp.evaluateFirst( readXml() );
     }
 
-    static Element readCategoryXml(final PwmSettingCategory category) {
+    static Element readCategoryXml( final PwmSettingCategory category )
+    {
         final XPathFactory xpfac = XPathFactory.instance();
-        final XPathExpression xp = xpfac.compile("/settings/category[@key=\"" + category.toString() + "\"]");
-        return (Element)xp.evaluateFirst(readXml());
+        final XPathExpression xp = xpfac.compile( "/settings/category[@key=\"" + category.toString() + "\"]" );
+        return ( Element ) xp.evaluateFirst( readXml() );
     }
 
-    static Element readTemplateXml(final PwmSettingTemplate template) {
+    static Element readTemplateXml( final PwmSettingTemplate template )
+    {
         final XPathFactory xpfac = XPathFactory.instance();
-        final XPathExpression xp = xpfac.compile("/settings/template[@key=\"" + template.toString() + "\"]");
-        return (Element)xp.evaluateFirst(readXml());
+        final XPathExpression xp = xpfac.compile( "/settings/template[@key=\"" + template.toString() + "\"]" );
+        return ( Element ) xp.evaluateFirst( readXml() );
     }
 
-    static Set<PwmSettingTemplate> parseTemplateAttribute(final Element element) {
-        if (element == null) {
+    static Set<PwmSettingTemplate> parseTemplateAttribute( final Element element )
+    {
+        if ( element == null )
+        {
             return Collections.emptySet();
         }
-        final String templateStrValues = element.getAttributeValue("template");
+        final String templateStrValues = element.getAttributeValue( "template" );
         final String[] templateSplitValues = templateStrValues == null
-                ? new String[0]
-                : templateStrValues.split(",");
+                ? new String[ 0 ]
+                : templateStrValues.split( "," );
         final Set<PwmSettingTemplate> definedTemplates = new LinkedHashSet<>();
-        for (final String templateStrValue : templateSplitValues) {
-            final PwmSettingTemplate template = PwmSettingTemplate.valueOf(templateStrValue);
-            if (template != null) {
-                definedTemplates.add(template);
+        for ( final String templateStrValue : templateSplitValues )
+        {
+            final PwmSettingTemplate template = PwmSettingTemplate.valueOf( templateStrValue );
+            if ( template != null )
+            {
+                definedTemplates.add( template );
             }
         }
         return definedTemplates;

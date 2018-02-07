@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,38 +24,39 @@ package password.pwm.http.servlet.oauth;
 
 import java.io.Serializable;
 
-class OAuthResolveResults implements Serializable {
+class OAuthResolveResults implements Serializable
+{
     private String accessToken;
     private int expiresSeconds;
     private String refreshToken;
 
 
-    public String getAccessToken()
+    public String getAccessToken( )
     {
         return accessToken;
     }
 
-    public void setAccessToken(final String accessToken)
+    public void setAccessToken( final String accessToken )
     {
         this.accessToken = accessToken;
     }
 
-    public int getExpiresSeconds()
+    public int getExpiresSeconds( )
     {
         return expiresSeconds;
     }
 
-    public void setExpiresSeconds(final int expiresSeconds)
+    public void setExpiresSeconds( final int expiresSeconds )
     {
         this.expiresSeconds = expiresSeconds;
     }
 
-    public String getRefreshToken()
+    public String getRefreshToken( )
     {
         return refreshToken;
     }
 
-    public void setRefreshToken(final String refreshToken)
+    public void setRefreshToken( final String refreshToken )
     {
         this.refreshToken = refreshToken;
     }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,37 +22,42 @@
 
 package password.pwm.http;
 
-public enum HttpMethod {
-    POST(   false,  true),
-    GET(    true,   false),
-    DELETE( false,  true),
-    PUT(    false,  true),
-    PATCH(  false,  true),
-
-    ;
+public enum HttpMethod
+{
+    POST( false, true ),
+    GET( true, false ),
+    DELETE( false, true ),
+    PUT( false, true ),
+    PATCH( false, true ),;
 
     private final boolean idempotent;
     private final boolean hasBody;
 
-    HttpMethod(final boolean idempotent, final boolean hasBody) {
+    HttpMethod( final boolean idempotent, final boolean hasBody )
+    {
         this.hasBody = hasBody;
         this.idempotent = idempotent;
     }
 
-    public static HttpMethod fromString(final String input) {
-        for (final HttpMethod method : HttpMethod.values()) {
-            if (method.toString().equalsIgnoreCase(input)) {
+    public static HttpMethod fromString( final String input )
+    {
+        for ( final HttpMethod method : HttpMethod.values() )
+        {
+            if ( method.toString().equalsIgnoreCase( input ) )
+            {
                 return method;
             }
         }
         return null;
     }
 
-    public boolean isIdempotent() {
+    public boolean isIdempotent( )
+    {
         return idempotent;
     }
 
-    public boolean isHasBody() {
+    public boolean isHasBody( )
+    {
         return hasBody;
     }
 }

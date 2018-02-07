@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,31 +27,34 @@ import password.pwm.util.LocaleHelper;
 
 import java.util.Locale;
 
-public enum HealthStatus {
-    WARN(4),
-    CAUTION(3),
-    CONFIG(2),
-    GOOD(1),
-    INFO(0),
-    DEBUG(-1),
-
-    ;
+public enum HealthStatus
+{
+    WARN( 4 ),
+    CAUTION( 3 ),
+    CONFIG( 2 ),
+    GOOD( 1 ),
+    INFO( 0 ),
+    DEBUG( -1 ),;
 
     private int severityLevel;
 
-    HealthStatus(final int severityLevel) {
+    HealthStatus( final int severityLevel )
+    {
         this.severityLevel = severityLevel;
     }
 
-    public String getKey() {
+    public String getKey( )
+    {
         return HealthStatus.class.getSimpleName() + "_" + this.toString();
     }
 
-    public String getDescription(final Locale locale, final password.pwm.config.Configuration config) {
-        return LocaleHelper.getLocalizedMessage(locale, this.getKey(), config, Health.class);
+    public String getDescription( final Locale locale, final password.pwm.config.Configuration config )
+    {
+        return LocaleHelper.getLocalizedMessage( locale, this.getKey(), config, Health.class );
     }
 
-    public int getSeverityLevel() {
+    public int getSeverityLevel( )
+    {
         return severityLevel;
     }
 }

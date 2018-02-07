@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,58 +25,71 @@ package password.pwm.svc.intruder;
 import java.io.Serializable;
 import java.time.Instant;
 
-public class IntruderRecord implements Serializable {
+public class IntruderRecord implements Serializable
+{
     private RecordType type;
     private String subject;
     private Instant timeStamp = Instant.now();
     private int attemptCount = 0;
     private boolean alerted = false;
 
-    IntruderRecord() {
+    IntruderRecord( )
+    {
     }
 
-    public IntruderRecord(final RecordType type, final String subject) {
-        if (type == null) {
-            throw new IllegalArgumentException("type must have a value");
+    public IntruderRecord( final RecordType type, final String subject )
+    {
+        if ( type == null )
+        {
+            throw new IllegalArgumentException( "type must have a value" );
         }
-        if (subject == null || subject.length() < 1) {
-            throw new IllegalArgumentException("subject must have a value");
+        if ( subject == null || subject.length() < 1 )
+        {
+            throw new IllegalArgumentException( "subject must have a value" );
         }
         this.type = type;
         this.subject = subject;
     }
 
-    public RecordType getType() {
+    public RecordType getType( )
+    {
         return type;
     }
 
-    public String getSubject() {
+    public String getSubject( )
+    {
         return subject;
     }
 
-    public Instant getTimeStamp() {
+    public Instant getTimeStamp( )
+    {
         return timeStamp;
     }
 
-    public int getAttemptCount() {
+    public int getAttemptCount( )
+    {
         return attemptCount;
     }
 
-    void incrementAttemptCount() {
+    void incrementAttemptCount( )
+    {
         timeStamp = Instant.now();
         attemptCount++;
     }
 
-    void clearAttemptCount() {
+    void clearAttemptCount( )
+    {
         alerted = false;
         attemptCount = 0;
     }
 
-    public boolean isAlerted() {
+    public boolean isAlerted( )
+    {
         return alerted;
     }
 
-    void setAlerted() {
+    void setAlerted( )
+    {
         this.alerted = true;
     }
 }

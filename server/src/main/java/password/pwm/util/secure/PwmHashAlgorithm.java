@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,19 +22,22 @@
 
 package password.pwm.util.secure;
 
-public enum PwmHashAlgorithm {
-    MD5("MD5"),
-    SHA1("SHA1"),
-    SHA256("SHA-256"),
-    SHA512("SHA-512"),;
+public enum PwmHashAlgorithm
+{
+    MD5( "MD5" ),
+    SHA1( "SHA1" ),
+    SHA256( "SHA-256" ),
+    SHA512( "SHA-512" ),;
 
     private final String algName;
 
-    PwmHashAlgorithm(final String algName) {
+    PwmHashAlgorithm( final String algName )
+    {
         this.algName = algName;
     }
 
-    public String getAlgName() {
+    public String getAlgName( )
+    {
         return algName;
     }
 }

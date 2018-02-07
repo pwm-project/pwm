@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,38 +39,42 @@ import java.util.Map;
  * An interface for daemon/background services.  Services are initialized, shutdown and accessed via {@link PwmApplication}.  Some services
  * will have associated background threads, so implementations will generally be thread safe.
  */
-public interface PwmService {
+public interface PwmService
+{
 
-    enum STATUS {
+    enum STATUS
+    {
         NEW,
         OPENING,
         OPEN,
         CLOSED
     }
 
-    STATUS status();
+    STATUS status( );
 
-    void init(PwmApplication pwmApplication) throws PwmException;
-    
-    void close();
+    void init( PwmApplication pwmApplication ) throws PwmException;
 
-    List<HealthRecord> healthCheck();
+    void close( );
 
-    ServiceInfoBean serviceInfo();
+    List<HealthRecord> healthCheck( );
 
-    interface ServiceInfo {
-        Collection<DataStorageMethod> getUsedStorageMethods();
+    ServiceInfoBean serviceInfo( );
 
-        Map<String,String> getDebugProperties();
+    interface ServiceInfo
+    {
+        Collection<DataStorageMethod> getUsedStorageMethods( );
+
+        Map<String, String> getDebugProperties( );
     }
 
     @Getter
     @AllArgsConstructor
-    class ServiceInfoBean implements ServiceInfo, Serializable {
+    class ServiceInfoBean implements ServiceInfo, Serializable
+    {
         private final Collection<DataStorageMethod> usedStorageMethods;
-        private final Map<String,String> debugProperties;
+        private final Map<String, String> debugProperties;
 
-        public ServiceInfoBean(final Collection<DataStorageMethod> usedStorageMethods)
+        public ServiceInfoBean( final Collection<DataStorageMethod> usedStorageMethods )
         {
             this.usedStorageMethods = usedStorageMethods;
             this.debugProperties = Collections.emptyMap();

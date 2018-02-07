@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,13 +28,13 @@ import com.novell.ldapchai.cr.Challenge;
 import com.novell.ldapchai.cr.ChallengeSet;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import password.pwm.PwmConstants;
-import password.pwm.config.value.data.ChallengeItemConfiguration;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
-import password.pwm.config.value.data.UserPermission;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.value.ChallengeValue;
+import password.pwm.config.value.data.ChallengeItemConfiguration;
+import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -49,8 +49,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-public class ChallengeProfile implements Profile, Serializable {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(ChallengeProfile.class);
+public class ChallengeProfile implements Profile, Serializable
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( ChallengeProfile.class );
 
     private final String profileID;
     private final Locale locale;
@@ -76,18 +77,20 @@ public class ChallengeProfile implements Profile, Serializable {
         this.helpdeskChallengeSet = helpdeskChallengeSet;
         this.minRandomSetup = minRandomSetup;
         this.minHelpdeskRandomsSetup = minHelpdeskRandomSetup;
-        this.userPermissions = userPermissions != null ? Collections.unmodifiableList(userPermissions) : Collections.<UserPermission>emptyList();
+        this.userPermissions = userPermissions != null ? Collections.unmodifiableList( userPermissions ) : Collections.<UserPermission>emptyList();
     }
 
     public static ChallengeProfile readChallengeProfileFromConfig(
             final String profileID,
             final Locale locale,
             final StoredConfiguration storedConfiguration
-    ) {
-        final int minRandomRequired = (int)Configuration.JavaTypeConverter.valueToLong(storedConfiguration.readSetting(PwmSetting.CHALLENGE_MIN_RANDOM_REQUIRED,profileID));
+    )
+    {
+        final int minRandomRequired = ( int ) Configuration.JavaTypeConverter.valueToLong( storedConfiguration.readSetting( PwmSetting.CHALLENGE_MIN_RANDOM_REQUIRED, profileID ) );
 
         ChallengeSet readChallengeSet = null;
-        try {
+        try
+        {
             readChallengeSet = readChallengeSet(
                     profileID,
                     locale,
@@ -96,12 +99,15 @@ public class ChallengeProfile implements Profile, Serializable {
                     PwmSetting.CHALLENGE_RANDOM_CHALLENGES,
                     minRandomRequired
             );
-        } catch (PwmOperationalException e) {
-            LOGGER.trace("configured challengeSet for profile '" + profileID + "' is not valid: " + e.getMessage());
+        }
+        catch ( PwmOperationalException e )
+        {
+            LOGGER.trace( "configured challengeSet for profile '" + profileID + "' is not valid: " + e.getMessage() );
         }
 
         ChallengeSet readHelpdeskChallengeSet = null;
-        try {
+        try
+        {
             readHelpdeskChallengeSet = readChallengeSet(
                     profileID,
                     locale,
@@ -110,15 +116,23 @@ public class ChallengeProfile implements Profile, Serializable {
                     PwmSetting.CHALLENGE_HELPDESK_RANDOM_CHALLENGES,
                     1
             );
-        } catch (PwmOperationalException e) {
-            LOGGER.trace("discarding configured helpdesk challengeSet for profile '" + profileID + "' issue: " + e.getMessage());
         }
-        
-        final int minRandomSetup = (int)Configuration.JavaTypeConverter.valueToLong(storedConfiguration.readSetting(PwmSetting.CHALLENGE_MIN_RANDOM_SETUP, profileID));
-        final int minHelpdeskRandomSetup = (int)Configuration.JavaTypeConverter.valueToLong(storedConfiguration.readSetting(PwmSetting.CHALLENGE_HELPDESK_MIN_RANDOM_SETUP, profileID));
-        final List<UserPermission> userPermissions = (List<UserPermission>)storedConfiguration.readSetting(PwmSetting.CHALLENGE_POLICY_QUERY_MATCH, profileID).toNativeObject();
+        catch ( PwmOperationalException e )
+        {
+            LOGGER.trace( "discarding configured helpdesk challengeSet for profile '" + profileID + "' issue: " + e.getMessage() );
+        }
 
-        return new ChallengeProfile(profileID, locale, readChallengeSet, readHelpdeskChallengeSet, minRandomSetup, minHelpdeskRandomSetup, userPermissions);
+        final int minRandomSetup = ( int ) Configuration.JavaTypeConverter.valueToLong( storedConfiguration.readSetting( PwmSetting.CHALLENGE_MIN_RANDOM_SETUP, profileID ) );
+        final int minHelpdeskRandomSetup = ( int ) Configuration.JavaTypeConverter.valueToLong( storedConfiguration.readSetting(
+                PwmSetting.CHALLENGE_HELPDESK_MIN_RANDOM_SETUP,
+                profileID
+        ) );
+        final List<UserPermission> userPermissions = ( List<UserPermission> ) storedConfiguration.readSetting(
+                PwmSetting.CHALLENGE_POLICY_QUERY_MATCH,
+                profileID
+        ).toNativeObject();
+
+        return new ChallengeProfile( profileID, locale, readChallengeSet, readHelpdeskChallengeSet, minRandomSetup, minHelpdeskRandomSetup, userPermissions );
     }
 
     public static ChallengeProfile createChallengeProfile(
@@ -128,43 +142,48 @@ public class ChallengeProfile implements Profile, Serializable {
             final ChallengeSet helpdeskChallengeSet,
             final int minRandomSetup,
             final int minHelpdeskRandomSetup
-    ) {
-        return new ChallengeProfile(profileID, locale, challengeSet, helpdeskChallengeSet, minRandomSetup, minHelpdeskRandomSetup, null);
+    )
+    {
+        return new ChallengeProfile( profileID, locale, challengeSet, helpdeskChallengeSet, minRandomSetup, minHelpdeskRandomSetup, null );
     }
 
-    public String getIdentifier()
+    public String getIdentifier( )
     {
         return profileID;
     }
 
-    public String getDisplayName(final Locale locale) {
+    public String getDisplayName( final Locale locale )
+    {
         return getIdentifier();
     }
 
-    public Locale getLocale()
+    public Locale getLocale( )
     {
         return locale;
     }
 
-    public ChallengeSet getChallengeSet()
+    public ChallengeSet getChallengeSet( )
     {
         return challengeSet;
     }
 
-    public ChallengeSet getHelpdeskChallengeSet()
+    public ChallengeSet getHelpdeskChallengeSet( )
     {
         return helpdeskChallengeSet;
     }
 
-    public int getMinRandomSetup() {
+    public int getMinRandomSetup( )
+    {
         return minRandomSetup;
     }
 
-    public int getMinHelpdeskRandomsSetup() {
+    public int getMinHelpdeskRandomsSetup( )
+    {
         return minHelpdeskRandomsSetup;
     }
 
-    public List<UserPermission> getUserPermissions() {
+    public List<UserPermission> getUserPermissions( )
+    {
         return userPermissions;
     }
 
@@ -179,85 +198,102 @@ public class ChallengeProfile implements Profile, Serializable {
             throws PwmOperationalException
     {
         final List<ChallengeItemConfiguration> requiredQuestions = valueToChallengeItemArray(
-                storedConfiguration.readSetting(requiredChallenges, profileID), locale);
+                storedConfiguration.readSetting( requiredChallenges, profileID ), locale );
         final List<ChallengeItemConfiguration> randomQuestions = valueToChallengeItemArray(
-                storedConfiguration.readSetting(randomChallenges, profileID), locale);
+                storedConfiguration.readSetting( randomChallenges, profileID ), locale );
 
         final List<Challenge> challenges = new ArrayList<>();
         int randoms = minimumRands;
 
-        if (requiredQuestions != null) {
-            for (final ChallengeItemConfiguration item : requiredQuestions) {
-                if (item != null) {
+        if ( requiredQuestions != null )
+        {
+            for ( final ChallengeItemConfiguration item : requiredQuestions )
+            {
+                if ( item != null )
+                {
                     final Challenge chaiChallenge = new ChaiChallenge(
-                            true, 
-                            item.getText(), 
-                            item.getMinLength(), 
-                            item.getMaxLength(), 
+                            true,
+                            item.getText(),
+                            item.getMinLength(),
+                            item.getMaxLength(),
                             item.isAdminDefined(),
                             item.getMaxQuestionCharsInAnswer(),
                             item.isEnforceWordlist()
                     );
-                    challenges.add(chaiChallenge);
+                    challenges.add( chaiChallenge );
                 }
             }
         }
 
-        if (randomQuestions != null) {
-            for (final ChallengeItemConfiguration item : randomQuestions) {
-                if (item != null) {
+        if ( randomQuestions != null )
+        {
+            for ( final ChallengeItemConfiguration item : randomQuestions )
+            {
+                if ( item != null )
+                {
                     final Challenge chaiChallenge = new ChaiChallenge(
-                            false, 
-                            item.getText(), 
-                            item.getMinLength(), 
-                            item.getMaxLength(), 
+                            false,
+                            item.getText(),
+                            item.getMinLength(),
+                            item.getMaxLength(),
                             item.isAdminDefined(),
                             item.getMaxQuestionCharsInAnswer(),
                             item.isEnforceWordlist()
                     );
-                    challenges.add(chaiChallenge);
+                    challenges.add( chaiChallenge );
                 }
             }
 
-            if (randoms > randomQuestions.size()) {
+            if ( randoms > randomQuestions.size() )
+            {
                 randoms = randomQuestions.size();
             }
-        } else {
+        }
+        else
+        {
             randoms = 0;
         }
 
-        try {
-            return new ChaiChallengeSet(challenges, randoms, locale, PwmConstants.PWM_APP_NAME + "-defined " + PwmConstants.SERVLET_VERSION);
-        } catch (ChaiValidationException e) {
-            throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"invalid challenge set configuration: " + e.getMessage()));
+        try
+        {
+            return new ChaiChallengeSet( challenges, randoms, locale, PwmConstants.PWM_APP_NAME + "-defined " + PwmConstants.SERVLET_VERSION );
+        }
+        catch ( ChaiValidationException e )
+        {
+            throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, "invalid challenge set configuration: " + e.getMessage() ) );
         }
     }
 
     static List<ChallengeItemConfiguration> valueToChallengeItemArray(
             final StoredValue value,
             final Locale locale
-    ) {
-        if (!(value instanceof ChallengeValue)) {
-            throw new IllegalArgumentException("may not read ChallengeValue value");
+    )
+    {
+        if ( !( value instanceof ChallengeValue ) )
+        {
+            throw new IllegalArgumentException( "may not read ChallengeValue value" );
         }
-        final Map<String, List<ChallengeItemConfiguration>> storedValues = (Map<String, List<ChallengeItemConfiguration>>)value.toNativeObject();
+        final Map<String, List<ChallengeItemConfiguration>> storedValues = ( Map<String, List<ChallengeItemConfiguration>> ) value.toNativeObject();
         final Map<Locale, List<ChallengeItemConfiguration>> availableLocaleMap = new LinkedHashMap<>();
-        for (final Map.Entry<String,List<ChallengeItemConfiguration>> entry : storedValues.entrySet()) {
+        for ( final Map.Entry<String, List<ChallengeItemConfiguration>> entry : storedValues.entrySet() )
+        {
             final String localeStr = entry.getKey();
-            availableLocaleMap.put(LocaleHelper.parseLocaleString(localeStr), entry.getValue());
+            availableLocaleMap.put( LocaleHelper.parseLocaleString( localeStr ), entry.getValue() );
         }
-        final Locale matchedLocale = LocaleHelper.localeResolver(locale, availableLocaleMap.keySet());
+        final Locale matchedLocale = LocaleHelper.localeResolver( locale, availableLocaleMap.keySet() );
 
-        return availableLocaleMap.get(matchedLocale);
+        return availableLocaleMap.get( matchedLocale );
     }
 
     @Override
-    public ProfileType profileType() {
+    public ProfileType profileType( )
+    {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public List<UserPermission> getPermissionMatches() {
+    public List<UserPermission> getPermissionMatches( )
+    {
         throw new UnsupportedOperationException();
     }
 }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,66 +31,77 @@ import java.util.Date;
     This serialized JSON object is passed to the browser during the OAuth request sequence.  The state is forwarded to the OAuth server and then returned (without
     modification when the OAuth server redirects back here.
  */
-class OAuthState implements Serializable {
+class OAuthState implements Serializable
+{
     private static int oauthStateIdCounter = 0;
 
-    @SerializedName("c")
+    @SerializedName( "c" )
     private final int stateID = oauthStateIdCounter++;
 
-    @SerializedName("t")
+    @SerializedName( "t" )
     private final Date issueTime = new Date();
 
-    @SerializedName("i")
+    @SerializedName( "i" )
     private String sessionID;
 
-    @SerializedName("n")
+    @SerializedName( "n" )
     private String nextUrl;
 
-    @SerializedName("u")
+    @SerializedName( "u" )
     private OAuthUseCase use;
 
-    @SerializedName("f")
+    @SerializedName( "f" )
     private String forgottenProfileId;
 
-    @SerializedName("v")
+    @SerializedName( "v" )
     private int version = 1;
 
-    private OAuthState() {
+    private OAuthState( )
+    {
     }
 
-    public static int getOauthStateIdCounter() {
+    public static int getOauthStateIdCounter( )
+    {
         return oauthStateIdCounter;
     }
 
-    public int getStateID() {
+    public int getStateID( )
+    {
         return stateID;
     }
 
-    public Date getIssueTime() {
+    public Date getIssueTime( )
+    {
         return issueTime;
     }
 
-    public String getSessionID() {
+    public String getSessionID( )
+    {
         return sessionID;
     }
 
-    public String getNextUrl() {
+    public String getNextUrl( )
+    {
         return nextUrl;
     }
 
-    public OAuthUseCase getUseCase() {
+    public OAuthUseCase getUseCase( )
+    {
         return use;
     }
 
-    public int getVersion() {
+    public int getVersion( )
+    {
         return version;
     }
 
-    public String getForgottenProfileId() {
+    public String getForgottenProfileId( )
+    {
         return forgottenProfileId;
     }
 
-    public static OAuthState newSSOAuthenticationState(final String sessionID, final String nextUrl) {
+    public static OAuthState newSSOAuthenticationState( final String sessionID, final String nextUrl )
+    {
         final OAuthState state = new OAuthState();
         state.sessionID = sessionID;
         state.nextUrl = nextUrl;
@@ -98,7 +109,8 @@ class OAuthState implements Serializable {
         return state;
     }
 
-    public static OAuthState newForgottenPasswordState(final String sessionID, final String forgottenProfileId) {
+    public static OAuthState newForgottenPasswordState( final String sessionID, final String forgottenProfileId )
+    {
         final OAuthState state = new OAuthState();
         state.sessionID = sessionID;
         state.forgottenProfileId = forgottenProfileId;

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,36 +28,36 @@ import password.pwm.util.logging.PwmLogger;
 /**
  * @author Jason D. Rivard
  */
-public enum Permission {
-    PWMADMIN(PwmSetting.QUERY_MATCH_PWM_ADMIN),
-    CHANGE_PASSWORD(PwmSetting.QUERY_MATCH_CHANGE_PASSWORD),
-    ACTIVATE_USER(PwmSetting.ACTIVATE_USER_QUERY_MATCH),
-    SETUP_RESPONSE(PwmSetting.QUERY_MATCH_SETUP_RESPONSE),
-    SETUP_OTP_SECRET(PwmSetting.OTP_SETUP_USER_PERMISSION),
-    GUEST_REGISTRATION(PwmSetting.GUEST_ADMIN_GROUP),
-    PEOPLE_SEARCH(PwmSetting.PEOPLE_SEARCH_QUERY_MATCH),
-    PROFILE_UPDATE(PwmSetting.UPDATE_PROFILE_QUERY_MATCH),
-    WEBSERVICE(PwmSetting.WEBSERVICES_QUERY_MATCH),
-    WEBSERVICE_THIRDPARTY(PwmSetting.WEBSERVICES_THIRDPARTY_QUERY_MATCH),
+public enum Permission
+{
+    PWMADMIN( PwmSetting.QUERY_MATCH_PWM_ADMIN ),
+    CHANGE_PASSWORD( PwmSetting.QUERY_MATCH_CHANGE_PASSWORD ),
+    ACTIVATE_USER( PwmSetting.ACTIVATE_USER_QUERY_MATCH ),
+    SETUP_RESPONSE( PwmSetting.QUERY_MATCH_SETUP_RESPONSE ),
+    SETUP_OTP_SECRET( PwmSetting.OTP_SETUP_USER_PERMISSION ),
+    GUEST_REGISTRATION( PwmSetting.GUEST_ADMIN_GROUP ),
+    PEOPLE_SEARCH( PwmSetting.PEOPLE_SEARCH_QUERY_MATCH ),
+    PROFILE_UPDATE( PwmSetting.UPDATE_PROFILE_QUERY_MATCH ),
+    WEBSERVICE( PwmSetting.WEBSERVICES_QUERY_MATCH ),
+    WEBSERVICE_THIRDPARTY( PwmSetting.WEBSERVICES_THIRDPARTY_QUERY_MATCH ),;
 
-    ;
 
-
-    private static final PwmLogger LOGGER = PwmLogger.forClass(Permission.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass( Permission.class );
 
     private PwmSetting pwmSetting;
 
-    Permission(final PwmSetting pwmSetting)
+    Permission( final PwmSetting pwmSetting )
     {
         this.pwmSetting = pwmSetting;
     }
 
-    public PwmSetting getPwmSetting()
+    public PwmSetting getPwmSetting( )
     {
         return pwmSetting;
     }
 
-    public enum PermissionStatus {
+    public enum PermissionStatus
+    {
         UNCHECKED,
         GRANTED,
         DENIED

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,11 +27,12 @@ import password.pwm.PwmConstants;
 import javax.servlet.annotation.WebServlet;
 
 @WebServlet(
-        name="PrivateChangePasswordServlet",
-        urlPatterns={
+        name = "PrivateChangePasswordServlet",
+        urlPatterns = {
                 PwmConstants.URL_PREFIX_PRIVATE + "/changepassword",
                 PwmConstants.URL_PREFIX_PRIVATE + "/ChangePassword",
         }
 )
-public class PrivateChangePasswordServlet extends ChangePasswordServlet {
+public class PrivateChangePasswordServlet extends ChangePasswordServlet
+{
 }

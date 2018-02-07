@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,15 +32,16 @@ import java.io.Serializable;
 import java.time.Instant;
 
 @Getter
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-class DatabaseStoredNodeData implements Serializable {
+@AllArgsConstructor( access = AccessLevel.PRIVATE )
+class DatabaseStoredNodeData implements Serializable
+{
     private Instant timestamp;
     private Instant startupTimestamp;
     private String instanceID;
     private String guid;
     private String configHash;
 
-    static DatabaseStoredNodeData makeNew(final PwmApplication pwmApplication)
+    static DatabaseStoredNodeData makeNew( final PwmApplication pwmApplication )
             throws PwmUnrecoverableException
     {
         return new DatabaseStoredNodeData(

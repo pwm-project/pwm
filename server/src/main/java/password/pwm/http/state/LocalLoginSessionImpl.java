@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,24 +27,29 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 
-class LocalLoginSessionImpl implements SessionLoginProvider {
+class LocalLoginSessionImpl implements SessionLoginProvider
+{
     @Override
-    public void init(final PwmApplication pwmApplication) throws PwmException {
+    public void init( final PwmApplication pwmApplication ) throws PwmException
+    {
 
     }
 
     @Override
-    public void clearLoginSession(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
+    public void clearLoginSession( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
+    {
 
     }
 
     @Override
-    public void saveLoginSessionState(final PwmRequest pwmRequest) {
+    public void saveLoginSessionState( final PwmRequest pwmRequest )
+    {
 
     }
 
     @Override
-    public void readLoginSessionState(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
+    public void readLoginSessionState( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
+    {
 
     }
 }

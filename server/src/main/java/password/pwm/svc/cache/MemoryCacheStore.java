@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,50 +28,57 @@ import password.pwm.error.PwmUnrecoverableException;
 
 import java.time.Instant;
 
-class MemoryCacheStore implements CacheStore {
-    private final Cache<String,CacheValueWrapper> memoryStore;
+class MemoryCacheStore implements CacheStore
+{
+    private final Cache<String, CacheValueWrapper> memoryStore;
     private final CacheStoreInfo cacheStoreInfo = new CacheStoreInfo();
 
-    MemoryCacheStore(final int maxItems) {
+    MemoryCacheStore( final int maxItems )
+    {
         memoryStore = Caffeine.newBuilder()
-                .maximumSize(maxItems)
+                .maximumSize( maxItems )
                 .build();
     }
 
     @Override
-    public void store(final CacheKey cacheKey, final Instant expirationDate, final String data)
-            throws PwmUnrecoverableException {
+    public void store( final CacheKey cacheKey, final Instant expirationDate, final String data )
+            throws PwmUnrecoverableException
+    {
         cacheStoreInfo.getStoreCount();
-        memoryStore.put(cacheKey.getHash(), new CacheValueWrapper(cacheKey, expirationDate, data));
+        memoryStore.put( cacheKey.getHash(), new CacheValueWrapper( cacheKey, expirationDate, data ) );
     }
 
     @Override
-    public String read(final CacheKey cacheKey)
-            throws PwmUnrecoverableException 
+    public String read( final CacheKey cacheKey )
+            throws PwmUnrecoverableException
     {
         cacheStoreInfo.getReadCount();
-        final CacheValueWrapper valueWrapper = memoryStore.getIfPresent(cacheKey.getHash());
-        if (valueWrapper != null) {
-            if (cacheKey.equals(valueWrapper.getCacheKey())) {
-                if (valueWrapper.getExpirationDate().isAfter(Instant.now())) {
+        final CacheValueWrapper valueWrapper = memoryStore.getIfPresent( cacheKey.getHash() );
+        if ( valueWrapper != null )
+        {
+            if ( cacheKey.equals( valueWrapper.getCacheKey() ) )
+            {
+                if ( valueWrapper.getExpirationDate().isAfter( Instant.now() ) )
+                {
                     cacheStoreInfo.incrementHitCount();
                     return valueWrapper.getPayload();
                 }
             }
         }
-        memoryStore.invalidate(cacheKey.getHash());
+        memoryStore.invalidate( cacheKey.getHash() );
         cacheStoreInfo.incrementMissCount();
         return null;
     }
 
     @Override
-    public CacheStoreInfo getCacheStoreInfo() {
+    public CacheStoreInfo getCacheStoreInfo( )
+    {
         return cacheStoreInfo;
     }
 
     @Override
-    public int itemCount()
+    public int itemCount( )
     {
-        return (int)memoryStore.estimatedSize();
+        return ( int ) memoryStore.estimatedSize();
     }
 }

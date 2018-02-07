@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,48 +25,49 @@ package password.pwm.svc.cache;
 import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class CacheStoreInfo implements Serializable {
+public class CacheStoreInfo implements Serializable
+{
     private final AtomicLong storeCount = new AtomicLong();
     private final AtomicLong readCount = new AtomicLong();
     private final AtomicLong hitCount = new AtomicLong();
     private final AtomicLong missCount = new AtomicLong();
 
-    public void incrementStoreCount()
+    public void incrementStoreCount( )
     {
         storeCount.incrementAndGet();
     }
 
-    public void incrementReadCount()
+    public void incrementReadCount( )
     {
         readCount.incrementAndGet();
     }
 
-    public void incrementHitCount()
+    public void incrementHitCount( )
     {
         hitCount.incrementAndGet();
     }
 
-    public void incrementMissCount()
+    public void incrementMissCount( )
     {
         missCount.incrementAndGet();
     }
 
-    public long getStoreCount()
+    public long getStoreCount( )
     {
         return storeCount.get();
     }
 
-    public long getReadCount()
+    public long getReadCount( )
     {
         return readCount.get();
     }
 
-    public long getHitCount()
+    public long getHitCount( )
     {
         return hitCount.get();
     }
 
-    public long getMissCount()
+    public long getMissCount( )
     {
         return missCount.get();
     }

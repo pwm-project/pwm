@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,74 +31,84 @@ import java.util.List;
 
 
 /**
- *
  * @author Menno Pieters
  */
-public class OTPPamUtil {
+public class OTPPamUtil
+{
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass(OTPPamUtil.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass( OTPPamUtil.class );
 
     /**
      * Split the string in lines; separate by CR, LF or CRLF.
-     *
-     * @param text
-     * @return list of Strings
      */
-    public static List<String> splitLines(final String text) {
+    public static List<String> splitLines( final String text )
+    {
         final List<String> list = new ArrayList<>();
-        if (text != null) {
-            final String[] lines = text.split("\r?\n|\r");
-            list.addAll(Arrays.asList(lines));
+        if ( text != null )
+        {
+            final String[] lines = text.split( "\r?\n|\r" );
+            list.addAll( Arrays.asList( lines ) );
         }
         return list;
     }
 
-    /**
-     *
-     * @param otpInfo
-     * @return
-     */
-    public static OTPUserRecord decomposePamData(final String otpInfo) {
-        final List<String> lines = splitLines(otpInfo);
-        if (lines.size() >= 2) {
+    public static OTPUserRecord decomposePamData( final String otpInfo )
+    {
+        final List<String> lines = splitLines( otpInfo );
+        if ( lines.size() >= 2 )
+        {
             final Iterator<String> iterator = lines.iterator();
             String line = iterator.next();
-            if (line.matches("^[A-Z2-7\\=]{16}$")) {
-                final OTPUserRecord otp = new OTPUserRecord(); // default identifier
-                otp.setSecret(line);
+            if ( line.matches( "^[A-Z2-7\\=]{16}$" ) )
+            {
+                // default identifier
+                final OTPUserRecord otp = new OTPUserRecord();
+                otp.setSecret( line );
                 final List<OTPUserRecord.RecoveryCode> recoveryCodes = new ArrayList<>();
-                while (iterator.hasNext()) {
+                while ( iterator.hasNext() )
+                {
                     line = iterator.next();
-                    if (line.startsWith("\" ")) {
-                        final String option = line.substring(2).trim();
-                        if ("TOTP_AUTH".equals(option)) {
-                            otp.setType(OTPUserRecord.Type.TOTP);
-                        } else if (option.matches("^HOTP_COUNTER\\s+\\d+$")) {
-                            final String countStr = option.substring(option.indexOf(" ") + 1);
-                            otp.setType(OTPUserRecord.Type.HOTP);
-                            otp.setAttemptCount(Long.parseLong(countStr));
+                    if ( line.startsWith( "\" " ) )
+                    {
+                        final String option = line.substring( 2 ).trim();
+                        if ( "TOTP_AUTH".equals( option ) )
+                        {
+                            otp.setType( OTPUserRecord.Type.TOTP );
                         }
-                    } else if(line.matches("^\\d{8}$")) {
+                        else if ( option.matches( "^HOTP_COUNTER\\s+\\d+$" ) )
+                        {
+                            final String countStr = option.substring( option.indexOf( " " ) + 1 );
+                            otp.setType( OTPUserRecord.Type.HOTP );
+                            otp.setAttemptCount( Long.parseLong( countStr ) );
+                        }
+                    }
+                    else if ( line.matches( "^\\d{8}$" ) )
+                    {
                         final OTPUserRecord.RecoveryCode code = new OTPUserRecord.RecoveryCode();
-                        code.setUsed(false);
-                        code.setHashCode(line);
-                        recoveryCodes.add(code);
-                    } else {
-                        LOGGER.trace(String.format("Unrecognized line: \"%s\"", line));
+                        code.setUsed( false );
+                        code.setHashCode( line );
+                        recoveryCodes.add( code );
+                    }
+                    else
+                    {
+                        LOGGER.trace( String.format( "Unrecognized line: \"%s\"", line ) );
                     }
                 }
-                if (recoveryCodes.isEmpty()) {
-                    LOGGER.debug("No recovery codes read.");
-                    otp.setRecoveryCodes(null);
-                    otp.setRecoveryInfo(null);
-                } else {
-                    LOGGER.debug(String.format("%d recovery codes read.", recoveryCodes.size()));
+                if ( recoveryCodes.isEmpty() )
+                {
+                    LOGGER.debug( "No recovery codes read." );
+                    otp.setRecoveryCodes( null );
+                    otp.setRecoveryInfo( null );
+                }
+                else
+                {
+                    LOGGER.debug( String.format( "%d recovery codes read.", recoveryCodes.size() ) );
                     final OTPUserRecord.RecoveryInfo recoveryInfo = new OTPUserRecord.RecoveryInfo();
-                    recoveryInfo.setHashCount(0);
-                    recoveryInfo.setSalt(null);
-                    recoveryInfo.setHashMethod(null);
-                    otp.setRecoveryInfo(recoveryInfo);
-                    otp.setRecoveryCodes(recoveryCodes);
+                    recoveryInfo.setHashCount( 0 );
+                    recoveryInfo.setSalt( null );
+                    recoveryInfo.setHashMethod( null );
+                    otp.setRecoveryInfo( recoveryInfo );
+                    otp.setRecoveryCodes( recoveryCodes );
                 }
                 return otp;
             }
@@ -112,25 +122,33 @@ public class OTPPamUtil {
      * @param otp the record with OTP configuration
      * @return the string representation of the OTP record
      */
-    public static String composePamData(final OTPUserRecord otp) {
-        if (otp == null) {
+    public static String composePamData( final OTPUserRecord otp )
+    {
+        if ( otp == null )
+        {
             return "";
         }
         final String secret = otp.getSecret();
         final OTPUserRecord.Type type = otp.getType();
         final List<OTPUserRecord.RecoveryCode> recoveryCodes = otp.getRecoveryCodes();
         final StringBuilder pamData = new StringBuilder();
-        pamData.append(secret).append("\n");
-        if (OTPUserRecord.Type.HOTP.equals(type)) {
-            pamData.append(String.format("\" HOTP_COUNTER %d%n", otp.getAttemptCount()));
-        } else {
-            pamData.append("\" TOTP_AUTH\n");
+        pamData.append( secret ).append( "\n" );
+        if ( OTPUserRecord.Type.HOTP.equals( type ) )
+        {
+            pamData.append( String.format( "\" HOTP_COUNTER %d%n", otp.getAttemptCount() ) );
         }
-        if (recoveryCodes != null && recoveryCodes.size() > 0) {
+        else
+        {
+            pamData.append( "\" TOTP_AUTH\n" );
+        }
+        if ( recoveryCodes != null && recoveryCodes.size() > 0 )
+        {
             // The codes are assumed to be non-hashed
-            for (final OTPUserRecord.RecoveryCode code : recoveryCodes) {
-                if (!code.isUsed()) {
-                    pamData.append(code.getHashCode() + "\n");
+            for ( final OTPUserRecord.RecoveryCode code : recoveryCodes )
+            {
+                if ( !code.isUsed() )
+                {
+                    pamData.append( code.getHashCode() + "\n" );
                 }
             }
         }

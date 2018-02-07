@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,33 +30,40 @@ import java.util.zip.ZipFile;
 /**
  * Created by amb on 7/13/15.
  */
-class ZipFileResource implements FileResource {
+class ZipFileResource implements FileResource
+{
     private final ZipFile zipFile;
     private final ZipEntry zipEntry;
 
-    ZipFileResource(final ZipFile zipFile, final ZipEntry zipEntry) {
+    ZipFileResource( final ZipFile zipFile, final ZipEntry zipEntry )
+    {
         this.zipFile = zipFile;
         this.zipEntry = zipEntry;
     }
 
-    public InputStream getInputStream()
-            throws IOException {
-        return zipFile.getInputStream(zipEntry);
+    public InputStream getInputStream( )
+            throws IOException
+    {
+        return zipFile.getInputStream( zipEntry );
     }
 
-    public long length() {
+    public long length( )
+    {
         return zipEntry.getSize();
     }
 
-    public long lastModified() {
+    public long lastModified( )
+    {
         return zipEntry.getTime();
     }
 
-    public boolean exists() {
+    public boolean exists( )
+    {
         return zipEntry != null && zipFile != null;
     }
 
-    public String getName() {
+    public String getName( )
+    {
         return zipFile.getName() + ":" + zipEntry.getName();
     }
 }

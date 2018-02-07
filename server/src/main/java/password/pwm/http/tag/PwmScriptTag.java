@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,43 +35,54 @@ import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class PwmScriptTag extends BodyTagSupport {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(PwmScriptTag.class);
+public class PwmScriptTag extends BodyTagSupport
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( PwmScriptTag.class );
 
-    private static final Pattern SCRIPT_TAG_PATTERN = Pattern.compile("<\\s*script.*?>|<\\s*\\/\\s*script\\s*.*?>"); // match start and end <script> tags
+    // match start and end <script> tags
+    private static final Pattern SCRIPT_TAG_PATTERN = Pattern.compile( "<\\s*script.*?>|<\\s*\\/\\s*script\\s*.*?>" );
 
-    public int doStartTag()
+    public int doStartTag( )
             throws JspException
     {
         return EVAL_BODY_BUFFERED;
     }
 
-    public int doAfterBody() {
-        try {
-            final PwmRequest pwmRequest = PwmRequest.forRequest((HttpServletRequest) pageContext.getRequest(), (HttpServletResponse) pageContext.getResponse());
+    public int doAfterBody( )
+    {
+        try
+        {
+            final PwmRequest pwmRequest = PwmRequest.forRequest( ( HttpServletRequest ) pageContext.getRequest(), ( HttpServletResponse ) pageContext.getResponse() );
             final BodyContent bc = getBodyContent();
-            if (bc != null) {
+            if ( bc != null )
+            {
                 final String tagBody = bc.getString();
-                final String strippedTagBody = stripHtmlScriptTags(tagBody);
-                    final String output = "<script type=\"text/javascript\" nonce=\"" + pwmRequest.getCspNonce() + "\">"
-                            + strippedTagBody
-                            + "</script>";
-                    getPreviousOut().write(output);
+                final String strippedTagBody = stripHtmlScriptTags( tagBody );
+                final String output = "<script type=\"text/javascript\" nonce=\"" + pwmRequest.getCspNonce() + "\">"
+                        + strippedTagBody
+                        + "</script>";
+                getPreviousOut().write( output );
             }
-        } catch (IOException e) {
-            LOGGER.error("IO error while processing PwmScriptTag: " + e.getMessage());
-        } catch (PwmUnrecoverableException e) {
-            LOGGER.error("error while processing PwmScriptTag: " + e.getMessage());
+        }
+        catch ( IOException e )
+        {
+            LOGGER.error( "IO error while processing PwmScriptTag: " + e.getMessage() );
+        }
+        catch ( PwmUnrecoverableException e )
+        {
+            LOGGER.error( "error while processing PwmScriptTag: " + e.getMessage() );
         }
         return SKIP_BODY;
     }
 
-    private static String stripHtmlScriptTags(final String input) {
-        if (input == null) {
+    private static String stripHtmlScriptTags( final String input )
+    {
+        if ( input == null )
+        {
             return null;
         }
 
-        final Matcher matcher = SCRIPT_TAG_PATTERN.matcher(input);
-        return matcher.replaceAll("");
+        final Matcher matcher = SCRIPT_TAG_PATTERN.matcher( input );
+        return matcher.replaceAll( "" );
     }
 }

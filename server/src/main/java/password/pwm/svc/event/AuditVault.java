@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,37 +32,42 @@ import password.pwm.util.localdb.LocalDBException;
 import java.time.Instant;
 import java.util.Iterator;
 
-public interface AuditVault {
+public interface AuditVault
+{
 
-    void init( PwmApplication pwmApplication,  LocalDB localDB,  Settings settings) throws LocalDBException, PwmException;
+    void init( PwmApplication pwmApplication, LocalDB localDB, Settings settings ) throws LocalDBException, PwmException;
 
-    void close();
+    void close( );
 
-    int size();
+    int size( );
 
-    Instant oldestRecord();
+    Instant oldestRecord( );
 
-    Iterator<AuditRecord> readVault();
+    Iterator<AuditRecord> readVault( );
 
-    String sizeToDebugString();
+    String sizeToDebugString( );
 
-    void add(AuditRecord record) throws PwmOperationalException;
+    void add( AuditRecord record ) throws PwmOperationalException;
 
-    class Settings {
+    class Settings
+    {
         private long maxRecordCount;
         private TimeDuration maxRecordAge;
 
 
-        public Settings(final long maxRecordCount, final TimeDuration maxRecordAge) {
+        public Settings( final long maxRecordCount, final TimeDuration maxRecordAge )
+        {
             this.maxRecordCount = maxRecordCount;
             this.maxRecordAge = maxRecordAge;
         }
 
-        public long getMaxRecordCount() {
+        public long getMaxRecordCount( )
+        {
             return maxRecordCount;
         }
 
-        public TimeDuration getMaxRecordAge() {
+        public TimeDuration getMaxRecordAge( )
+        {
             return maxRecordAge;
         }
     }

@@ -1,3 +1,25 @@
+<%--
+ ~ Password Management Servlets (PWM)
+ ~ http://www.pwm-project.org
+ ~
+ ~ Copyright (c) 2006-2009 Novell, Inc.
+ ~ Copyright (c) 2009-2018 The PWM Project
+ ~
+ ~ This program is free software; you can redistribute it and/or modify
+ ~ it under the terms of the GNU General Public License as published by
+ ~ the Free Software Foundation; either version 2 of the License, or
+ ~ (at your option) any later version.
+ ~
+ ~ This program is distributed in the hope that it will be useful,
+ ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ ~ GNU General Public License for more details.
+ ~
+ ~ You should have received a copy of the GNU General Public License
+ ~ along with this program; if not, write to the Free Software
+ ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+--%>
+
 <%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.i18n.PwmLocaleBundle" %>
@@ -7,27 +29,6 @@
 <%@ page import="java.util.Arrays" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Locale" %>
-<%--
-  ~ Password Management Servlets (PWM)
-  ~ http://www.pwm-project.org
-  ~
-  ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2017 The PWM Project
-  ~
-  ~ This program is free software; you can redistribute it and/or modify
-  ~ it under the terms of the GNU General Public License as published by
-  ~ the Free Software Foundation; either version 2 of the License, or
-  ~ (at your option) any later version.
-  ~
-  ~ This program is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~ GNU General Public License for more details.
-  ~
-  ~ You should have received a copy of the GNU General Public License
-  ~ along with this program; if not, write to the Free Software
-  ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-  --%>
 
 <!DOCTYPE html>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_HEADER_WARNINGS); %>
@@ -167,13 +168,13 @@
                     <%=loopLocale.toString()%>
                 </td>
                 <td>
-                    <%=userFacingStats.getPerLocale_presentLocalizations().get(loopLocale)%>
+                    <%=userFacingStats.getPerLocalePresentLocalizations().get(loopLocale)%>
                 </td>
                 <td>
-                    <%=userFacingStats.getPerLocale_missingLocalizations().get(loopLocale)%>
+                    <%=userFacingStats.getPerLocaleMissingLocalizations().get(loopLocale)%>
                 </td>
                 <td>
-                    <%=userFacingStats.getPerLocale_percentLocalizations().get(loopLocale)%>
+                    <%=userFacingStats.getPerLocalePercentLocalizations().get(loopLocale)%>
                 </td>
             </tr>
             <% } %>
@@ -224,13 +225,13 @@
                     <%=loopLocale.toString()%>
                 </td>
                 <td>
-                    <%=adminFacingStats.getPerLocale_presentLocalizations().get(loopLocale)%>
+                    <%=adminFacingStats.getPerLocalePresentLocalizations().get(loopLocale)%>
                 </td>
                 <td>
-                    <%=adminFacingStats.getPerLocale_missingLocalizations().get(loopLocale)%>
+                    <%=adminFacingStats.getPerLocaleMissingLocalizations().get(loopLocale)%>
                 </td>
                 <td>
-                    <%=adminFacingStats.getPerLocale_percentLocalizations().get(loopLocale)%>
+                    <%=adminFacingStats.getPerLocalePercentLocalizations().get(loopLocale)%>
                 </td>
             </tr>
             <% } %>
@@ -282,13 +283,13 @@
                     <%=loopLocale.toString()%>
                 </td>
                 <td>
-                    <%=allStats.getPerLocale_presentLocalizations().get(loopLocale)%>
+                    <%=allStats.getPerLocalePresentLocalizations().get(loopLocale)%>
                 </td>
                 <td>
-                    <%=allStats.getPerLocale_missingLocalizations().get(loopLocale)%>
+                    <%=allStats.getPerLocaleMissingLocalizations().get(loopLocale)%>
                 </td>
                 <td>
-                    <%=allStats.getPerLocale_percentLocalizations().get(loopLocale)%>
+                    <%=allStats.getPerLocalePercentLocalizations().get(loopLocale)%>
                 </td>
             </tr>
             <% } %>
@@ -339,13 +340,13 @@
                     <%= loopLocale.toString() %>
                 </td>
                 <td>
-                    <%= configLocaleStats.getDescription_presentLocalizations().get(loopLocale) %>
+                    <%= configLocaleStats.getDescriptionPresentLocalizations().get(loopLocale) %>
                 </td>
                 <td>
-                    <%= configLocaleStats.getDescription_missingLocalizations().get(loopLocale) %>
+                    <%= configLocaleStats.getDescriptionMissingLocalizations().get(loopLocale) %>
                 </td>
                 <td>
-                    <%= configLocaleStats.getDescription_percentLocalizations().get(loopLocale) %>
+                    <%= configLocaleStats.getDescriptionPercentLocalizations().get(loopLocale) %>
                 </td>
             </tr>
             <% } %>

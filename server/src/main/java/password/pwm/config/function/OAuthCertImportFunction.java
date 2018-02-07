@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,41 +32,48 @@ import password.pwm.util.java.JavaHelper;
 
 import java.net.URI;
 
-public class OAuthCertImportFunction extends AbstractUriCertImportFunction {
+public class OAuthCertImportFunction extends AbstractUriCertImportFunction
+{
 
 
     @Override
-    String getUri(final StoredConfigurationImpl storedConfiguration, final PwmSetting pwmSetting, final String profile, final String extraData) throws PwmOperationalException {
+    String getUri( final StoredConfigurationImpl storedConfiguration, final PwmSetting pwmSetting, final String profile, final String extraData ) throws PwmOperationalException
+    {
 
         final String uriString;
         final String menuDebugLocation;
 
-        switch (pwmSetting) {
+        switch ( pwmSetting )
+        {
             case OAUTH_ID_CERTIFICATE:
-                uriString = (String)storedConfiguration.readSetting(PwmSetting.OAUTH_ID_CODERESOLVE_URL).toNativeObject();
-                menuDebugLocation = PwmSetting.OAUTH_ID_CODERESOLVE_URL.toMenuLocationDebug(null, PwmConstants.DEFAULT_LOCALE);
+                uriString = ( String ) storedConfiguration.readSetting( PwmSetting.OAUTH_ID_CODERESOLVE_URL ).toNativeObject();
+                menuDebugLocation = PwmSetting.OAUTH_ID_CODERESOLVE_URL.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE );
                 break;
 
             case RECOVERY_OAUTH_ID_CERTIFICATE:
-                uriString = (String)storedConfiguration.readSetting(PwmSetting.RECOVERY_OAUTH_ID_CODERESOLVE_URL, profile).toNativeObject();
-                menuDebugLocation = PwmSetting.RECOVERY_OAUTH_ID_CERTIFICATE.toMenuLocationDebug(profile, PwmConstants.DEFAULT_LOCALE);
+                uriString = ( String ) storedConfiguration.readSetting( PwmSetting.RECOVERY_OAUTH_ID_CODERESOLVE_URL, profile ).toNativeObject();
+                menuDebugLocation = PwmSetting.RECOVERY_OAUTH_ID_CERTIFICATE.toMenuLocationDebug( profile, PwmConstants.DEFAULT_LOCALE );
                 break;
 
             default:
-                JavaHelper.unhandledSwitchStatement(pwmSetting);
+                JavaHelper.unhandledSwitchStatement( pwmSetting );
                 return null;
         }
 
 
-        if (uriString.isEmpty()) {
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"Setting " + menuDebugLocation + " must first be configured");
-            throw new PwmOperationalException(errorInformation);
+        if ( uriString.isEmpty() )
+        {
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, "Setting " + menuDebugLocation + " must first be configured" );
+            throw new PwmOperationalException( errorInformation );
         }
-        try {
-            URI.create(uriString);
-        } catch (IllegalArgumentException e) {
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"Setting " + menuDebugLocation + " has an invalid URL syntax");
-            throw new PwmOperationalException(errorInformation);
+        try
+        {
+            URI.create( uriString );
+        }
+        catch ( IllegalArgumentException e )
+        {
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, "Setting " + menuDebugLocation + " has an invalid URL syntax" );
+            throw new PwmOperationalException( errorInformation );
         }
         return uriString;
     }

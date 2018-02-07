@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,54 +36,63 @@ import java.util.Set;
 /**
  * @author Jason D. Rivard, Menno Pieters
  */
-public class GuestRegistrationBean extends PwmSessionBean {
+public class GuestRegistrationBean extends PwmSessionBean
+{
 
     private UserIdentity updateUserIdentity;
     private Instant updateUserExpirationDate;
     private FormMap formValues = new FormMap();
     private GuestRegistrationServlet.Page currentPage = GuestRegistrationServlet.Page.create;
 
-    public UserIdentity getUpdateUserIdentity() {
+    public UserIdentity getUpdateUserIdentity( )
+    {
         return updateUserIdentity;
     }
 
-    public void setUpdateUserIdentity(final UserIdentity updateUserIdentity) {
+    public void setUpdateUserIdentity( final UserIdentity updateUserIdentity )
+    {
         this.updateUserIdentity = updateUserIdentity;
     }
 
-    public Instant getUpdateUserExpirationDate() {
+    public Instant getUpdateUserExpirationDate( )
+    {
         return updateUserExpirationDate;
     }
 
-    public void setUpdateUserExpirationDate(final Instant updateUserExpirationDate) {
+    public void setUpdateUserExpirationDate( final Instant updateUserExpirationDate )
+    {
         this.updateUserExpirationDate = updateUserExpirationDate;
     }
 
-    public GuestRegistrationServlet.Page getCurrentPage() {
+    public GuestRegistrationServlet.Page getCurrentPage( )
+    {
         return currentPage;
     }
 
-    public void setCurrentPage(final GuestRegistrationServlet.Page currentPage) {
+    public void setCurrentPage( final GuestRegistrationServlet.Page currentPage )
+    {
         this.currentPage = currentPage;
     }
 
-    public FormMap getFormValues()
+    public FormMap getFormValues( )
     {
         return formValues;
     }
 
-    public void setFormValues(final FormMap formValues)
+    public void setFormValues( final FormMap formValues )
     {
         this.formValues = formValues;
     }
 
-    public Type getType() {
+    public Type getType( )
+    {
         return Type.AUTHENTICATED;
     }
 
     @Override
-    public Set<SessionBeanMode> supportedModes() {
-        return Collections.unmodifiableSet(new HashSet<>(Arrays.asList(SessionBeanMode.LOCAL, SessionBeanMode.CRYPTCOOKIE)));
+    public Set<SessionBeanMode> supportedModes( )
+    {
+        return Collections.unmodifiableSet( new HashSet<>( Arrays.asList( SessionBeanMode.LOCAL, SessionBeanMode.CRYPTCOOKIE ) ) );
     }
 
 }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,11 +51,13 @@ import static password.pwm.util.localdb.LocalDB.DB;
  *
  * @author Jason D. Rivard
  */
-public class Berkeley_LocalDB {}
+public class BerkeleyLocalDB
+{
+}
 
 
 /*implements LocalDBProvider {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(Berkeley_LocalDB.class, true);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(BerkeleyLocalDB.class, true);
 
     private final static boolean IS_TRANSACTIONAL = true;
     private final static int OPEN_RETRY_SECONDS = 60;
@@ -144,7 +146,7 @@ public class Berkeley_LocalDB {}
         return environment;
     }
 
-    Berkeley_LocalDB()
+    BerkeleyLocalDB()
             throws Exception {
     }
 

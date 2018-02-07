@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,13 +26,16 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmDataStoreException;
 import password.pwm.error.PwmError;
 
-public class LocalDBException extends PwmDataStoreException {
+public class LocalDBException extends PwmDataStoreException
+{
 
-    public LocalDBException(final ErrorInformation error) {
-        super(error);
+    public LocalDBException( final ErrorInformation error )
+    {
+        super( error );
     }
 
-    public LocalDBException(final PwmError error) {
-        super(error);
+    public LocalDBException( final PwmError error )
+    {
+        super( error );
     }
 }

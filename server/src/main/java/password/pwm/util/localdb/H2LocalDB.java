@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,8 +23,9 @@
 package password.pwm.util.localdb;
 
 
-public class H2_LocalDB {}
-
+public class H2LocalDB
+{
+}
 
 
 // No longer used, commented in case it may be resurrected some day.
@@ -44,9 +45,9 @@ import java.util.Map;
 import java.util.Properties;
 
 
-public class H2_LocalDB extends AbstractJDBC_LocalDB {
+public class H2LocalDB extends AbstractJDBCLocalDB {
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass(H2_LocalDB.class, true);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(H2LocalDB.class, true);
 
     private static final String H2_CLASSPATH = "org.h2.Driver";
     private static final Map<String,String> DEFAULT_INIT_PARAMS;
@@ -60,7 +61,7 @@ public class H2_LocalDB extends AbstractJDBC_LocalDB {
 
     private Driver driver;
 
-    H2_LocalDB()
+    H2LocalDB()
             throws Exception
     {
         super();

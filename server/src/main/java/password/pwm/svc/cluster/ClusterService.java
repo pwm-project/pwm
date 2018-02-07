@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,32 +32,37 @@ import password.pwm.util.logging.PwmLogger;
 import java.util.Collections;
 import java.util.List;
 
-public class ClusterService implements PwmService {
+public class ClusterService implements PwmService
+{
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass(ClusterService.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass( ClusterService.class );
 
     private PwmApplication pwmApplication;
     private STATUS status = STATUS.NEW;
     private ClusterProvider clusterProvider;
 
     @Override
-    public STATUS status()
+    public STATUS status( )
     {
         return status;
     }
 
     @Override
-    public void init(final PwmApplication pwmApplication) throws PwmException
+    public void init( final PwmApplication pwmApplication ) throws PwmException
     {
         status = STATUS.OPENING;
         this.pwmApplication = pwmApplication;
 
-        try {
-            if (this.pwmApplication.getConfig().hasDbConfigured()) {
-                clusterProvider = new DatabaseClusterProvider(pwmApplication);
+        try
+        {
+            if ( this.pwmApplication.getConfig().hasDbConfigured() )
+            {
+                clusterProvider = new DatabaseClusterProvider( pwmApplication );
             }
-        } catch (PwmException e) {
-            LOGGER.error("error starting up cluster provider service: " + e.getMessage());
+        }
+        catch ( PwmException e )
+        {
+            LOGGER.error( "error starting up cluster provider service: " + e.getMessage() );
             status = STATUS.CLOSED;
             return;
         }
@@ -66,9 +71,10 @@ public class ClusterService implements PwmService {
     }
 
     @Override
-    public void close()
+    public void close( )
     {
-        if (clusterProvider != null) {
+        if ( clusterProvider != null )
+        {
             clusterProvider.close();
             clusterProvider = null;
         }
@@ -77,28 +83,31 @@ public class ClusterService implements PwmService {
     }
 
     @Override
-    public List<HealthRecord> healthCheck()
+    public List<HealthRecord> healthCheck( )
     {
         return null;
     }
 
     @Override
-    public ServiceInfoBean serviceInfo()
+    public ServiceInfoBean serviceInfo( )
     {
         return null;
     }
 
-    public boolean isMaster() {
-        if (clusterProvider != null) {
+    public boolean isMaster( )
+    {
+        if ( clusterProvider != null )
+        {
             return clusterProvider.isMaster();
         }
 
         return false;
     }
 
-    public List<NodeInfo> nodes() throws PwmUnrecoverableException
+    public List<NodeInfo> nodes( ) throws PwmUnrecoverableException
     {
-        if (status == STATUS.OPEN && clusterProvider != null) {
+        if ( status == STATUS.OPEN && clusterProvider != null )
+        {
             return clusterProvider.nodes();
         }
         return Collections.emptyList();

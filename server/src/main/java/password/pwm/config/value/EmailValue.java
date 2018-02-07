@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,28 +39,37 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class EmailValue extends AbstractValue implements StoredValue {
-    final Map<String,EmailItemBean> values; //key is locale identifier
+public class EmailValue extends AbstractValue implements StoredValue
+{
+    //key is locale identifier
+    final Map<String, EmailItemBean> values;
 
-    EmailValue(final Map<String,EmailItemBean> values) {
+    EmailValue( final Map<String, EmailItemBean> values )
+    {
         this.values = values;
     }
 
-    public static StoredValueFactory factory()
+    public static StoredValueFactory factory( )
     {
-        return new StoredValueFactory() {
-            public EmailValue fromJson(final String input)
+        return new StoredValueFactory()
+        {
+            public EmailValue fromJson( final String input )
             {
-                if (input == null) {
-                    return new EmailValue(Collections.emptyMap());
-                } else {
-                    Map<String, EmailItemBean> srcList = JsonUtil.deserialize(input,
-                            new TypeToken<Map<String, EmailItemBean>>() {}
+                if ( input == null )
+                {
+                    return new EmailValue( Collections.emptyMap() );
+                }
+                else
+                {
+                    Map<String, EmailItemBean> srcList = JsonUtil.deserialize( input,
+                            new TypeToken<Map<String, EmailItemBean>>()
+                            {
+                            }
                     );
 
                     srcList = srcList == null ? Collections.emptyMap() : srcList;
-                    srcList.remove(null);
-                    return new EmailValue(Collections.unmodifiableMap(srcList));
+                    srcList.remove( null );
+                    return new EmailValue( Collections.unmodifiableMap( srcList ) );
                 }
             }
 
@@ -72,82 +81,98 @@ public class EmailValue extends AbstractValue implements StoredValue {
             {
                 final Map<String, EmailItemBean> values = new TreeMap<>();
                 {
-                    final List valueElements = settingElement.getChildren("value");
-                    for (final Object loopValue : valueElements) {
-                        final Element loopValueElement = (Element) loopValue;
+                    final List valueElements = settingElement.getChildren( "value" );
+                    for ( final Object loopValue : valueElements )
+                    {
+                        final Element loopValueElement = ( Element ) loopValue;
                         final String value = loopValueElement.getText();
-                        if (value != null && value.length() > 0) {
+                        if ( value != null && value.length() > 0 )
+                        {
                             final String localeValue = loopValueElement.getAttribute(
-                                    "locale") == null ? "" : loopValueElement.getAttribute("locale").getValue();
-                            values.put(localeValue, JsonUtil.deserialize(value, EmailItemBean.class));
+                                    "locale" ) == null ? "" : loopValueElement.getAttribute( "locale" ).getValue();
+                            values.put( localeValue, JsonUtil.deserialize( value, EmailItemBean.class ) );
                         }
                     }
                 }
-                return new EmailValue(values);
+                return new EmailValue( values );
             }
         };
     }
 
-    public List<Element> toXmlValues(final String valueElementName) {
+    public List<Element> toXmlValues( final String valueElementName )
+    {
         final List<Element> returnList = new ArrayList<>();
-        for (final Map.Entry<String,EmailItemBean> entry : values.entrySet()) {
+        for ( final Map.Entry<String, EmailItemBean> entry : values.entrySet() )
+        {
             final String localeValue = entry.getKey();
             final EmailItemBean emailItemBean = entry.getValue();
-            final Element valueElement = new Element(valueElementName);
-            if (localeValue.length() > 0) {
-                valueElement.setAttribute("locale",localeValue);
+            final Element valueElement = new Element( valueElementName );
+            if ( localeValue.length() > 0 )
+            {
+                valueElement.setAttribute( "locale", localeValue );
             }
-            valueElement.addContent(JsonUtil.serialize(emailItemBean));
-            returnList.add(valueElement);
+            valueElement.addContent( JsonUtil.serialize( emailItemBean ) );
+            returnList.add( valueElement );
         }
         return returnList;
     }
 
-    public Map<String,EmailItemBean> toNativeObject() {
-        return Collections.unmodifiableMap(values);
+    public Map<String, EmailItemBean> toNativeObject( )
+    {
+        return Collections.unmodifiableMap( values );
     }
 
-    public List<String> validateValue(final PwmSetting pwmSetting) {
-        if (pwmSetting.isRequired()) {
-            if (values == null || values.isEmpty() || values.values().iterator().next() == null) {
-                return Collections.singletonList("required value missing");
+    public List<String> validateValue( final PwmSetting pwmSetting )
+    {
+        if ( pwmSetting.isRequired() )
+        {
+            if ( values == null || values.isEmpty() || values.values().iterator().next() == null )
+            {
+                return Collections.singletonList( "required value missing" );
             }
         }
 
-        for (final Map.Entry<String,EmailItemBean> entry : values.entrySet()) {
+        for ( final Map.Entry<String, EmailItemBean> entry : values.entrySet() )
+        {
             final String loopLocale = entry.getKey();
             final EmailItemBean emailItemBean = entry.getValue();
 
-            if (emailItemBean.getSubject() == null || emailItemBean.getSubject().length() < 1) {
-                return Collections.singletonList("subject field is required " + (loopLocale.length() > 0 ? " for locale " + loopLocale:""));
+            if ( emailItemBean.getSubject() == null || emailItemBean.getSubject().length() < 1 )
+            {
+                return Collections.singletonList( "subject field is required " + ( loopLocale.length() > 0 ? " for locale " + loopLocale : "" ) );
             }
 
-            if (emailItemBean.getFrom() == null || emailItemBean.getFrom().length() < 1) {
-                return Collections.singletonList("from field is required" + (loopLocale.length() > 0 ? " for locale " + loopLocale:""));
+            if ( emailItemBean.getFrom() == null || emailItemBean.getFrom().length() < 1 )
+            {
+                return Collections.singletonList( "from field is required" + ( loopLocale.length() > 0 ? " for locale " + loopLocale : "" ) );
             }
 
-            if (emailItemBean.getBodyPlain() == null || emailItemBean.getBodyPlain().length() < 1) {
-                return Collections.singletonList("plain body field is required" + (loopLocale.length() > 0 ? " for locale " + loopLocale:""));
+            if ( emailItemBean.getBodyPlain() == null || emailItemBean.getBodyPlain().length() < 1 )
+            {
+                return Collections.singletonList( "plain body field is required" + ( loopLocale.length() > 0 ? " for locale " + loopLocale : "" ) );
             }
         }
 
         return Collections.emptyList();
     }
 
-    public String toDebugString(final Locale locale) {
-        if (values == null) {
+    public String toDebugString( final Locale locale )
+    {
+        if ( values == null )
+        {
             return "No Email Item";
         }
         final StringBuilder sb = new StringBuilder();
-        for (final Map.Entry<String,EmailItemBean> entry : values.entrySet()) {
+        for ( final Map.Entry<String, EmailItemBean> entry : values.entrySet() )
+        {
             final String localeKey = entry.getKey();
             final EmailItemBean emailItemBean = entry.getValue();
-            sb.append("EmailItem ").append(LocaleHelper.debugLabel(LocaleHelper.parseLocaleString(localeKey))).append(": \n");
-            sb.append("  To:").append(emailItemBean.getTo()).append("\n");
-            sb.append("From:").append(emailItemBean.getFrom()).append("\n");
-            sb.append("Subj:").append(emailItemBean.getSubject()).append("\n");
-            sb.append("Body:").append(emailItemBean.getBodyPlain()).append("\n");
-            sb.append("Html:").append(emailItemBean.getBodyHtml()).append("\n");
+            sb.append( "EmailItem " ).append( LocaleHelper.debugLabel( LocaleHelper.parseLocaleString( localeKey ) ) ).append( ": \n" );
+            sb.append( "  To:" ).append( emailItemBean.getTo() ).append( "\n" );
+            sb.append( "From:" ).append( emailItemBean.getFrom() ).append( "\n" );
+            sb.append( "Subj:" ).append( emailItemBean.getSubject() ).append( "\n" );
+            sb.append( "Body:" ).append( emailItemBean.getBodyPlain() ).append( "\n" );
+            sb.append( "Html:" ).append( emailItemBean.getBodyHtml() ).append( "\n" );
         }
         return sb.toString();
     }

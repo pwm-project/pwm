@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,24 +29,27 @@ import org.apache.log4j.spi.ThrowableInformation;
 
 import java.time.Instant;
 
-public class LocalDBLog4jAppender extends AppenderSkeleton {
+public class LocalDBLog4jAppender extends AppenderSkeleton
+{
 
     private LocalDBLogger localDBLogger;
 
-    public LocalDBLog4jAppender(final LocalDBLogger localDBLogger)
+    public LocalDBLog4jAppender( final LocalDBLogger localDBLogger )
     {
         this.localDBLogger = localDBLogger;
     }
 
     @Override
-    protected void append(final LoggingEvent loggingEvent) {
+    protected void append( final LoggingEvent loggingEvent )
+    {
         final Object message = loggingEvent.getMessage();
         final ThrowableInformation throwableInformation = loggingEvent.getThrowableInformation();
         final Level level = loggingEvent.getLevel();
-        final Instant timeStamp = Instant.ofEpochMilli(loggingEvent.getTimeStamp());
+        final Instant timeStamp = Instant.ofEpochMilli( loggingEvent.getTimeStamp() );
         final String sourceLogger = loggingEvent.getLogger().getName();
 
-        if (localDBLogger != null) {
+        if ( localDBLogger != null )
+        {
             final PwmLogEvent logEvent = PwmLogEvent.createPwmLogEvent(
                     timeStamp,
                     sourceLogger,
@@ -55,19 +58,21 @@ public class LocalDBLog4jAppender extends AppenderSkeleton {
                     null,
                     null,
                     throwableInformation == null ? null : throwableInformation.getThrowable(),
-                    PwmLogLevel.fromLog4jLevel(level)
+                    PwmLogLevel.fromLog4jLevel( level )
             );
 
-            localDBLogger.writeEvent(logEvent);
+            localDBLogger.writeEvent( logEvent );
         }
     }
 
     @Override
-    public void close() {
+    public void close( )
+    {
     }
 
     @Override
-    public boolean requiresLayout() {
+    public boolean requiresLayout( )
+    {
         return false;
     }
 }

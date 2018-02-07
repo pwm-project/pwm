@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,74 +35,90 @@ import password.pwm.util.secure.PwmRandom;
 import java.util.Collections;
 import java.util.Map;
 
-public class SeedlistManager extends AbstractWordlist implements Wordlist {
+public class SeedlistManager extends AbstractWordlist implements Wordlist
+{
 
     private int initialPopulationCounter = 0;
 
-    public SeedlistManager() {
-        LOGGER = PwmLogger.forClass(SeedlistManager.class);
+    public SeedlistManager( )
+    {
+        logger = PwmLogger.forClass( SeedlistManager.class );
     }
 
-    public String randomSeed() {
-        if (wlStatus != STATUS.OPEN) {
+    public String randomSeed( )
+    {
+        if ( wlStatus != STATUS.OPEN )
+        {
             return null;
         }
         final long startTime = System.currentTimeMillis();
         String returnValue = null;
-        try {
+        try
+        {
             final int seedCount = size();
-            if (seedCount > 1000) {
-                final int randomKey = PwmRandom.getInstance().nextInt(size());
-                final Object obj = localDB.get(getWordlistDB(), String.valueOf(randomKey));
-                if (obj != null) {
+            if ( seedCount > 1000 )
+            {
+                final int randomKey = PwmRandom.getInstance().nextInt( size() );
+                final Object obj = localDB.get( getWordlistDB(), String.valueOf( randomKey ) );
+                if ( obj != null )
+                {
                     returnValue = obj.toString();
                 }
             }
-        } catch (Exception e) {
-            LOGGER.warn("error while generating random word: " + e.getMessage());
+        }
+        catch ( Exception e )
+        {
+            logger.warn( "error while generating random word: " + e.getMessage() );
         }
 
-        if (debugTrace) {
-            LOGGER.trace("getRandomSeed fetch time: " + TimeDuration.fromCurrent(startTime).asCompactString());
+        if ( debugTrace )
+        {
+            logger.trace( "getRandomSeed fetch time: " + TimeDuration.fromCurrent( startTime ).asCompactString() );
         }
         return returnValue;
     }
 
-    protected Map<String, String> getWriteTxnForValue(final String value) {
-        final Map<String, String> txItem = Collections.singletonMap(String.valueOf(initialPopulationCounter), value);
+    protected Map<String, String> getWriteTxnForValue( final String value )
+    {
+        final Map<String, String> txItem = Collections.singletonMap( String.valueOf( initialPopulationCounter ), value );
         initialPopulationCounter++;
         return txItem;
     }
 
-    public void init(final PwmApplication pwmApplication) throws PwmException {
-        super.init(pwmApplication);
+    public void init( final PwmApplication pwmApplication ) throws PwmException
+    {
+        super.init( pwmApplication );
         final String seedlistUrl = readAutoImportUrl();
 
-        final int minSize = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.WORDLIST_CHAR_LENGTH_MIN));
-        final int maxSize = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.WORDLIST_CHAR_LENGTH_MAX));
+        final int minSize = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.WORDLIST_CHAR_LENGTH_MIN ) );
+        final int maxSize = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.WORDLIST_CHAR_LENGTH_MAX ) );
 
-        this.wordlistConfiguration = new WordlistConfiguration(true, 0, seedlistUrl, minSize, maxSize);
-        this.DEBUG_LABEL = PwmConstants.PWM_APP_NAME + "-Seedist";
+        this.wordlistConfiguration = new WordlistConfiguration( true, 0, seedlistUrl, minSize, maxSize );
+        this.debugLabel = PwmConstants.PWM_APP_NAME + "-Seedist";
         backgroundStartup();
     }
 
     @Override
-    protected PwmApplication.AppAttribute getMetaDataAppAttribute() {
+    protected PwmApplication.AppAttribute getMetaDataAppAttribute( )
+    {
         return PwmApplication.AppAttribute.SEEDLIST_METADATA;
     }
 
     @Override
-    protected LocalDB.DB getWordlistDB() {
+    protected LocalDB.DB getWordlistDB( )
+    {
         return LocalDB.DB.SEEDLIST_WORDS;
     }
 
     @Override
-    protected AppProperty getBuiltInWordlistLocationProperty() {
+    protected AppProperty getBuiltInWordlistLocationProperty( )
+    {
         return AppProperty.SEEDLIST_BUILTIN_PATH;
     }
 
     @Override
-    protected PwmSetting getWordlistFileSetting() {
+    protected PwmSetting getWordlistFileSetting( )
+    {
         return PwmSetting.SEEDLIST_FILENAME;
     }
 }

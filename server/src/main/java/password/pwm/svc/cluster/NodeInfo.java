@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,15 +30,17 @@ import java.io.Serializable;
 import java.time.Instant;
 
 @Getter
-@AllArgsConstructor(access = AccessLevel.PACKAGE)
-public class NodeInfo implements Serializable {
+@AllArgsConstructor( access = AccessLevel.PACKAGE )
+public class NodeInfo implements Serializable
+{
     private String instanceID;
     private Instant lastSeen;
     private Instant startupTime;
     private NodeState nodeState;
     private boolean configMatch;
 
-    public enum NodeState {
+    public enum NodeState
+    {
         master,
         online,
         offline

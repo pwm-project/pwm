@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,12 +47,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-public class FileValue extends AbstractValue implements StoredValue {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(FileValue.class);
+public class FileValue extends AbstractValue implements StoredValue
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( FileValue.class );
 
     private Map<FileInformation, FileContent> values = new LinkedHashMap<>();
 
-    public static class FileInformation implements Serializable {
+    public static class FileInformation implements Serializable
+    {
         private String filename;
         private String filetype;
 
@@ -65,132 +67,144 @@ public class FileValue extends AbstractValue implements StoredValue {
             this.filetype = filetype;
         }
 
-        public String getFilename()
+        public String getFilename( )
         {
             return filename;
         }
 
-        public String getFiletype()
+        public String getFiletype( )
         {
             return filetype;
         }
     }
 
     @Value
-    public static class FileContent implements Serializable {
+    public static class FileContent implements Serializable
+    {
         private ImmutableByteArray contents;
 
 
-        public static FileContent fromEncodedString(final String input)
+        public static FileContent fromEncodedString( final String input )
                 throws IOException
         {
-            final byte[] convertedBytes = StringUtil.base64Decode(input);
-            return new FileContent(new ImmutableByteArray(convertedBytes));
+            final byte[] convertedBytes = StringUtil.base64Decode( input );
+            return new FileContent( new ImmutableByteArray( convertedBytes ) );
         }
 
-        public String toEncodedString()
+        public String toEncodedString( )
                 throws IOException
         {
-            return StringUtil.base64Encode(contents.getBytes(), StringUtil.Base64Options.GZIP);
+            return StringUtil.base64Encode( contents.getBytes(), StringUtil.Base64Options.GZIP );
         }
 
-        public String md5sum()
+        public String md5sum( )
                 throws PwmUnrecoverableException
         {
-            return SecureEngine.hash(new ByteArrayInputStream(contents.getBytes()), PwmHashAlgorithm.MD5);
+            return SecureEngine.hash( new ByteArrayInputStream( contents.getBytes() ), PwmHashAlgorithm.MD5 );
         }
 
-        public String sha1sum()
+        public String sha1sum( )
                 throws PwmUnrecoverableException
         {
-            return SecureEngine.hash(new ByteArrayInputStream(contents.getBytes()), PwmHashAlgorithm.SHA1);
+            return SecureEngine.hash( new ByteArrayInputStream( contents.getBytes() ), PwmHashAlgorithm.SHA1 );
         }
 
-        public int size()
+        public int size( )
         {
             return contents.getBytes().length;
         }
     }
 
-    public FileValue(final Map<FileInformation, FileContent> values)
+    public FileValue( final Map<FileInformation, FileContent> values )
     {
         this.values = values;
     }
 
-    public static StoredValueFactory factory()
+    public static StoredValueFactory factory( )
     {
-        return new StoredValueFactory() {
+        return new StoredValueFactory()
+        {
 
-            public FileValue fromXmlElement(final Element settingElement, final PwmSecurityKey input)
+            public FileValue fromXmlElement( final Element settingElement, final PwmSecurityKey input )
                     throws PwmOperationalException
             {
-                final List valueElements = settingElement.getChildren("value");
+                final List valueElements = settingElement.getChildren( "value" );
                 final Map<FileInformation, FileContent> values = new LinkedHashMap<>();
-                for (final Object loopValue : valueElements) {
-                    final Element loopValueElement = (Element) loopValue;
+                for ( final Object loopValue : valueElements )
+                {
+                    final Element loopValueElement = ( Element ) loopValue;
 
-                    final Element loopFileInformation = loopValueElement.getChild("FileInformation");
-                    if (loopFileInformation != null) {
+                    final Element loopFileInformation = loopValueElement.getChild( "FileInformation" );
+                    if ( loopFileInformation != null )
+                    {
                         final String loopFileInformationJson = loopFileInformation.getText();
-                        final FileInformation fileInformation = JsonUtil.deserialize(loopFileInformationJson,
-                                FileInformation.class);
+                        final FileInformation fileInformation = JsonUtil.deserialize( loopFileInformationJson,
+                                FileInformation.class );
 
-                        final Element loopFileContentElement = loopValueElement.getChild("FileContent");
-                        if (loopFileContentElement != null) {
+                        final Element loopFileContentElement = loopValueElement.getChild( "FileContent" );
+                        if ( loopFileContentElement != null )
+                        {
                             final String fileContentString = loopFileContentElement.getText();
                             final FileContent fileContent;
-                            try {
-                                fileContent = FileContent.fromEncodedString(fileContentString);
-                                values.put(fileInformation, fileContent);
-                            } catch (IOException e) {
-                                LOGGER.error("error reading file contents item: " + e.getMessage(),e);
+                            try
+                            {
+                                fileContent = FileContent.fromEncodedString( fileContentString );
+                                values.put( fileInformation, fileContent );
+                            }
+                            catch ( IOException e )
+                            {
+                                LOGGER.error( "error reading file contents item: " + e.getMessage(), e );
                             }
                         }
                     }
                 }
-                return new FileValue(values);
+                return new FileValue( values );
             }
 
-            public StoredValue fromJson(final String input)
+            public StoredValue fromJson( final String input )
             {
-                throw new IllegalStateException("not implemented");
+                throw new IllegalStateException( "not implemented" );
             }
         };
     }
 
-    public List<Element> toXmlValues(final String valueElementName)
+    public List<Element> toXmlValues( final String valueElementName )
     {
         final List<Element> returnList = new ArrayList<>();
-        for (final Map.Entry<FileInformation, FileContent> entry : this.values.entrySet()) {
+        for ( final Map.Entry<FileInformation, FileContent> entry : this.values.entrySet() )
+        {
             final FileValue.FileInformation fileInformation = entry.getKey();
             final FileContent fileContent = entry.getValue();
-            final Element valueElement = new Element(valueElementName);
+            final Element valueElement = new Element( valueElementName );
 
-            final Element fileInformationElement = new Element("FileInformation");
-            fileInformationElement.addContent(JsonUtil.serialize(fileInformation));
-            valueElement.addContent(fileInformationElement);
+            final Element fileInformationElement = new Element( "FileInformation" );
+            fileInformationElement.addContent( JsonUtil.serialize( fileInformation ) );
+            valueElement.addContent( fileInformationElement );
 
-            final Element fileContentElement = new Element("FileContent");
-            try {
-                fileContentElement.addContent(fileContent.toEncodedString());
-            } catch (IOException e) {
-                LOGGER.error("unexpected error writing setting to xml, IO error during base64 encoding: " + e.getMessage());
+            final Element fileContentElement = new Element( "FileContent" );
+            try
+            {
+                fileContentElement.addContent( fileContent.toEncodedString() );
             }
-            valueElement.addContent(fileContentElement);
+            catch ( IOException e )
+            {
+                LOGGER.error( "unexpected error writing setting to xml, IO error during base64 encoding: " + e.getMessage() );
+            }
+            valueElement.addContent( fileContentElement );
 
-            returnList.add(valueElement);
+            returnList.add( valueElement );
         }
         return returnList;
     }
 
     @Override
-    public Object toNativeObject()
+    public Object toNativeObject( )
     {
         return values;
     }
 
     @Override
-    public List<String> validateValue(final PwmSetting pwm)
+    public List<String> validateValue( final PwmSetting pwm )
     {
         return Collections.emptyList();
     }
@@ -201,89 +215,108 @@ public class FileValue extends AbstractValue implements StoredValue {
     )
     {
         final List<Map<String, Object>> output = asMetaData();
-        return JsonUtil.serialize((Serializable)output, JsonUtil.Flag.PrettyPrint);
+        return JsonUtil.serialize( ( Serializable ) output, JsonUtil.Flag.PrettyPrint );
     }
 
     @Override
-    public Serializable toDebugJsonObject(final Locale locale) {
-        return (Serializable)asMetaData();
+    public Serializable toDebugJsonObject( final Locale locale )
+    {
+        return ( Serializable ) asMetaData();
     }
 
-    public List<Map<String, Object>> asMetaData()
+    public List<Map<String, Object>> asMetaData( )
     {
         final List<Map<String, Object>> output = new ArrayList<>();
-        for (final Map.Entry<FileInformation, FileContent> entry : this.values.entrySet()) {
+        for ( final Map.Entry<FileInformation, FileContent> entry : this.values.entrySet() )
+        {
             final FileValue.FileInformation fileInformation = entry.getKey();
             final FileContent fileContent = entry.getValue();
             final Map<String, Object> details = new LinkedHashMap<>();
-            details.put("name", fileInformation.getFilename());
-            details.put("type", fileInformation.getFiletype());
-            details.put("size", fileContent.size());
-            try {
-                details.put("md5sum", fileContent.md5sum());
-            } catch (PwmUnrecoverableException e) {
-                LOGGER.trace("error generating file hash");
+            details.put( "name", fileInformation.getFilename() );
+            details.put( "type", fileInformation.getFiletype() );
+            details.put( "size", fileContent.size() );
+            try
+            {
+                details.put( "md5sum", fileContent.md5sum() );
             }
-            output.add(details);
+            catch ( PwmUnrecoverableException e )
+            {
+                LOGGER.trace( "error generating file hash" );
+            }
+            output.add( details );
         }
         return output;
     }
 
-    public List<FileInfo> toInfoMap() {
-        if (values == null) {
+    public List<FileInfo> toInfoMap( )
+    {
+        if ( values == null )
+        {
             return Collections.emptyList();
         }
         final List<FileInfo> returnObj = new ArrayList<>();
-        for (final Map.Entry<FileInformation, FileContent> entry : this.values.entrySet()) {
+        for ( final Map.Entry<FileInformation, FileContent> entry : this.values.entrySet() )
+        {
             final FileValue.FileInformation fileInformation = entry.getKey();
             final FileContent fileContent = entry.getValue();
             final FileInfo loopInfo = new FileInfo();
             loopInfo.name = fileInformation.getFilename();
             loopInfo.type = fileInformation.getFiletype();
             loopInfo.size = fileContent.size();
-            try {
+            try
+            {
                 loopInfo.md5sum = fileContent.md5sum();
                 loopInfo.sha1sum = fileContent.sha1sum();
-            } catch (PwmUnrecoverableException e) {
-                LOGGER.warn("error generating hash for certificate: " + e.getMessage());
             }
-            returnObj.add(loopInfo);
+            catch ( PwmUnrecoverableException e )
+            {
+                LOGGER.warn( "error generating hash for certificate: " + e.getMessage() );
+            }
+            returnObj.add( loopInfo );
         }
-        return Collections.unmodifiableList(returnObj);
+        return Collections.unmodifiableList( returnObj );
     }
 
     @Override
-    public String valueHash() throws PwmUnrecoverableException {
-        return SecureEngine.hash(JsonUtil.serializeCollection(toInfoMap()), PwmConstants.SETTING_CHECKSUM_HASH_METHOD);
+    public String valueHash( ) throws PwmUnrecoverableException
+    {
+        return SecureEngine.hash( JsonUtil.serializeCollection( toInfoMap() ), PwmConstants.SETTING_CHECKSUM_HASH_METHOD );
     }
 
-    public static class FileInfo implements Serializable {
+    public static class FileInfo implements Serializable
+    {
         public String name;
         public String type;
         public int size;
         public String md5sum;
         public String sha1sum;
 
-        private FileInfo() {
+        private FileInfo( )
+        {
         }
 
-        public String getName() {
+        public String getName( )
+        {
             return name;
         }
 
-        public String getType() {
+        public String getType( )
+        {
             return type;
         }
 
-        public int getSize() {
+        public int getSize( )
+        {
             return size;
         }
 
-        public String getMd5sum() {
+        public String getMd5sum( )
+        {
             return md5sum;
         }
 
-        public String getSha1sum() {
+        public String getSha1sum( )
+        {
             return sha1sum;
         }
     }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,14 +27,15 @@ import password.pwm.config.StoredValue;
 import java.util.Collection;
 import java.util.Locale;
 
-public interface ConfigChangeLog {
-    boolean isModified();
+public interface ConfigChangeLog
+{
+    boolean isModified( );
 
-    String changeLogAsDebugString(Locale locale, boolean asHtml);
+    String changeLogAsDebugString( Locale locale, boolean asHtml );
 
-    void updateChangeLog(StoredConfigReference reference, StoredValue newValue);
+    void updateChangeLog( StoredConfigReference reference, StoredValue newValue );
 
-    void updateChangeLog( StoredConfigReference reference,  StoredValue currentValue,  StoredValue newValue);
+    void updateChangeLog( StoredConfigReference reference, StoredValue currentValue, StoredValue newValue );
 
-    Collection<StoredConfigReference> changedValues();
+    Collection<StoredConfigReference> changedValues( );
 }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,7 +31,8 @@ import java.util.List;
 
 @Getter
 @Setter
-class OrgChartDataBean implements Serializable {
+class OrgChartDataBean implements Serializable
+{
     private OrgChartReferenceBean parent;
     private OrgChartReferenceBean self;
     private OrgChartReferenceBean assistant;

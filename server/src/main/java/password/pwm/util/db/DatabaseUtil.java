@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,48 +36,60 @@ import java.sql.Statement;
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicInteger;
 
-class DatabaseUtil {
+class DatabaseUtil
+{
     private static final AtomicInteger OP_COUNTER = new AtomicInteger();
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass(DatabaseUtil.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass( DatabaseUtil.class );
 
-    private DatabaseUtil()
+    private DatabaseUtil( )
     {
     }
 
 
-    static void close(final Statement statement) throws DatabaseException
+    static void close( final Statement statement ) throws DatabaseException
     {
-        if (statement != null) {
-            try {
+        if ( statement != null )
+        {
+            try
+            {
                 statement.close();
-            } catch (SQLException e) {
-                LOGGER.error("unexpected error during close statement object " + e.getMessage(), e);
-                throw new DatabaseException(new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE, "statement close failure: " + e.getMessage()));
+            }
+            catch ( SQLException e )
+            {
+                LOGGER.error( "unexpected error during close statement object " + e.getMessage(), e );
+                throw new DatabaseException( new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, "statement close failure: " + e.getMessage() ) );
             }
         }
     }
 
-    static void close(final ResultSet resultSet) throws DatabaseException
+    static void close( final ResultSet resultSet ) throws DatabaseException
     {
-        if (resultSet != null) {
-            try {
+        if ( resultSet != null )
+        {
+            try
+            {
                 resultSet.close();
-            } catch (SQLException e) {
-                LOGGER.error("unexpected error during close resultSet object " + e.getMessage(), e);
-                throw new DatabaseException(new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE, "resultset close failure: " + e.getMessage()));
+            }
+            catch ( SQLException e )
+            {
+                LOGGER.error( "unexpected error during close resultSet object " + e.getMessage(), e );
+                throw new DatabaseException( new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, "resultset close failure: " + e.getMessage() ) );
             }
         }
     }
 
-    static void commit(final Connection connection)
+    static void commit( final Connection connection )
             throws DatabaseException
     {
-        try {
+        try
+        {
             connection.commit();
-        } catch (SQLException e) {
-            LOGGER.warn("database commit failed: " + e.getMessage());
-            throw new DatabaseException(new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE, "commit failure: " + e.getMessage()));
+        }
+        catch ( SQLException e )
+        {
+            LOGGER.warn( "database commit failed: " + e.getMessage() );
+            throw new DatabaseException( new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, "commit failure: " + e.getMessage() ) );
         }
     }
 
@@ -87,8 +99,8 @@ class DatabaseUtil {
     )
     {
         final String errorMsg = debugInfo.getOpName() + " operation opId=" + debugInfo.getOpId() + " failed, error: " + e.getMessage();
-        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE, errorMsg);
-        return new DatabaseException(errorInformation);
+        final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, errorMsg );
+        return new DatabaseException( errorInformation );
     }
 
     static void initTable(
@@ -99,16 +111,21 @@ class DatabaseUtil {
             throws DatabaseException
     {
         boolean tableExists = false;
-        try {
-            checkIfTableExists(connection, table);
-            LOGGER.trace("table " + table + " appears to exist");
+        try
+        {
+            checkIfTableExists( connection, table );
+            LOGGER.trace( "table " + table + " appears to exist" );
             tableExists = true;
-        } catch (DatabaseException e) { // assume error was due to table missing;
-            LOGGER.trace("error while checking for table: " + e.getMessage() + ", assuming due to table non-existence");
+        }
+        catch ( DatabaseException e )
+        {
+            // assume error was due to table missing;
+            LOGGER.trace( "error while checking for table: " + e.getMessage() + ", assuming due to table non-existence" );
         }
 
-        if (!tableExists) {
-            createTable(connection, table, dbConfiguration);
+        if ( !tableExists )
+        {
+            createTable( connection, table, dbConfiguration );
         }
     }
 
@@ -126,20 +143,25 @@ class DatabaseUtil {
                     + "  " + DatabaseService.VALUE_COLUMN + " " + dbConfiguration.getColumnTypeValue() + " " + "\n"
                     + ")" + "\n";
 
-            LOGGER.trace("attempting to execute the following sql statement:\n " + sqlString);
+            LOGGER.trace( "attempting to execute the following sql statement:\n " + sqlString );
 
             Statement statement = null;
-            try {
+            try
+            {
                 statement = connection.createStatement();
-                statement.execute(sqlString);
+                statement.execute( sqlString );
                 connection.commit();
-                LOGGER.debug("created table " + table.toString());
-            } catch (SQLException ex) {
+                LOGGER.debug( "created table " + table.toString() );
+            }
+            catch ( SQLException ex )
+            {
                 final String errorMsg = "error creating new table " + table.toString() + ": " + ex.getMessage();
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE, errorMsg);
-                throw new DatabaseException(errorInformation);
-            } finally {
-                DatabaseUtil.close(statement);
+                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, errorMsg );
+                throw new DatabaseException( errorInformation );
+            }
+            finally
+            {
+                DatabaseUtil.close( statement );
             }
         }
 
@@ -151,19 +173,24 @@ class DatabaseUtil {
 
             Statement statement = null;
 
-            LOGGER.trace("attempting to execute the following sql statement:\n " + sqlString);
+            LOGGER.trace( "attempting to execute the following sql statement:\n " + sqlString );
 
-            try {
+            try
+            {
                 statement = connection.createStatement();
-                statement.execute(sqlString);
+                statement.execute( sqlString );
                 connection.commit();
-                LOGGER.debug("created index " + indexName);
-            } catch (SQLException ex) {
+                LOGGER.debug( "created index " + indexName );
+            }
+            catch ( SQLException ex )
+            {
                 final String errorMsg = "error creating new index " + indexName + ": " + ex.getMessage();
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE, errorMsg);
-                throw new DatabaseException(errorInformation);
-            } finally {
-                DatabaseUtil.close(statement);
+                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, errorMsg );
+                throw new DatabaseException( errorInformation );
+            }
+            finally
+            {
+                DatabaseUtil.close( statement );
             }
         }
     }
@@ -174,34 +201,44 @@ class DatabaseUtil {
     )
             throws DatabaseException
     {
-        final DatabaseUtil.DebugInfo debugInfo = DatabaseUtil.DebugInfo.create("checkIfTableExists",null,null,null);
+        final DatabaseUtil.DebugInfo debugInfo = DatabaseUtil.DebugInfo.create( "checkIfTableExists", null, null, null );
         final String sqlText = "SELECT * FROM  " + table.toString() + " WHERE " + DatabaseService.KEY_COLUMN + " = '0'";
 
         ResultSet resultSet = null;
-        try (Statement statement = connection.createStatement()) {
-            resultSet = statement.executeQuery(sqlText);
-        } catch (SQLException e) {
-            rollbackTransaction(connection);
-            throw DatabaseUtil.convertSqlException(debugInfo, e);
-        } finally {
-             close(resultSet);
+        try ( Statement statement = connection.createStatement() )
+        {
+            resultSet = statement.executeQuery( sqlText );
+        }
+        catch ( SQLException e )
+        {
+            rollbackTransaction( connection );
+            throw DatabaseUtil.convertSqlException( debugInfo, e );
+        }
+        finally
+        {
+            close( resultSet );
         }
     }
 
-    static void rollbackTransaction(final Connection connection) throws DatabaseException {
-        try {
+    static void rollbackTransaction( final Connection connection ) throws DatabaseException
+    {
+        try
+        {
             connection.rollback();
-        } catch (SQLException e1) {
+        }
+        catch ( SQLException e1 )
+        {
             final String errorMsg = "error during transaction rollback: " + e1.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE, errorMsg);
-            throw new DatabaseException(errorInformation);
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, errorMsg );
+            throw new DatabaseException( errorInformation );
         }
     }
 
 
     @Getter
     @AllArgsConstructor
-    static class DebugInfo implements Serializable {
+    static class DebugInfo implements Serializable
+    {
         private final Instant startTime = Instant.now();
         private final int opId = OP_COUNTER.incrementAndGet();
         private final String opName;
@@ -214,7 +251,8 @@ class DatabaseUtil {
                 final DatabaseTable table,
                 final String key,
                 final String value
-        ) {
+        )
+        {
             return new DebugInfo(
                     opName,
                     table,

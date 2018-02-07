@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,29 +42,36 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-public class RemoteWebServiceValue extends AbstractValue implements StoredValue {
+public class RemoteWebServiceValue extends AbstractValue implements StoredValue
+{
     final List<RemoteWebServiceConfiguration> values;
 
-    public RemoteWebServiceValue(final List<RemoteWebServiceConfiguration> values) {
-        this.values = Collections.unmodifiableList(values);
+    public RemoteWebServiceValue( final List<RemoteWebServiceConfiguration> values )
+    {
+        this.values = Collections.unmodifiableList( values );
     }
 
-    public static StoredValueFactory factory()
+    public static StoredValueFactory factory( )
     {
-        return new StoredValueFactory() {
-            public RemoteWebServiceValue fromJson(final String input)
+        return new StoredValueFactory()
+        {
+            public RemoteWebServiceValue fromJson( final String input )
             {
-                if (input == null) {
-                    return new RemoteWebServiceValue(Collections.emptyList());
-                } else {
-                    List<RemoteWebServiceConfiguration> srcList = JsonUtil.deserialize(input,
-                            new TypeToken<List<RemoteWebServiceConfiguration>>() {
+                if ( input == null )
+                {
+                    return new RemoteWebServiceValue( Collections.emptyList() );
+                }
+                else
+                {
+                    List<RemoteWebServiceConfiguration> srcList = JsonUtil.deserialize( input,
+                            new TypeToken<List<RemoteWebServiceConfiguration>>()
+                            {
                             }
                     );
 
                     srcList = srcList == null ? Collections.emptyList() : srcList;
-                    srcList.removeIf(Objects::isNull);
-                    return new RemoteWebServiceValue(Collections.unmodifiableList(srcList));
+                    srcList.removeIf( Objects::isNull );
+                    return new RemoteWebServiceValue( Collections.unmodifiableList( srcList ) );
                 }
             }
 
@@ -74,85 +81,105 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue 
             )
                     throws PwmOperationalException
             {
-                final List valueElements = settingElement.getChildren("value");
+                final List valueElements = settingElement.getChildren( "value" );
                 final List<RemoteWebServiceConfiguration> values = new ArrayList<>();
-                for (final Object loopValue : valueElements) {
-                    final Element loopValueElement = (Element) loopValue;
+                for ( final Object loopValue : valueElements )
+                {
+                    final Element loopValueElement = ( Element ) loopValue;
                     final String value = loopValueElement.getText();
-                    if (value != null && value.length() > 0) {
-                            values.add(JsonUtil.deserialize(value, RemoteWebServiceConfiguration.class));
+                    if ( value != null && value.length() > 0 )
+                    {
+                        values.add( JsonUtil.deserialize( value, RemoteWebServiceConfiguration.class ) );
                     }
                 }
-                return new RemoteWebServiceValue(values);
+                return new RemoteWebServiceValue( values );
             }
         };
     }
 
-    public List<Element> toXmlValues(final String valueElementName) {
+    public List<Element> toXmlValues( final String valueElementName )
+    {
         final List<Element> returnList = new ArrayList<>();
-        for (final RemoteWebServiceConfiguration value : values) {
-            final Element valueElement = new Element(valueElementName);
-            valueElement.addContent(JsonUtil.serialize(value));
-            returnList.add(valueElement);
+        for ( final RemoteWebServiceConfiguration value : values )
+        {
+            final Element valueElement = new Element( valueElementName );
+            valueElement.addContent( JsonUtil.serialize( value ) );
+            returnList.add( valueElement );
         }
         return returnList;
     }
 
-    public List<RemoteWebServiceConfiguration> toNativeObject() {
-        return Collections.unmodifiableList(values);
+    public List<RemoteWebServiceConfiguration> toNativeObject( )
+    {
+        return Collections.unmodifiableList( values );
     }
 
-    public List<String> validateValue(final PwmSetting pwmSetting) {
-        if (pwmSetting.isRequired()) {
-            if (values == null || values.size() < 1 || values.get(0) == null) {
-                return Collections.singletonList("required value missing");
+    public List<String> validateValue( final PwmSetting pwmSetting )
+    {
+        if ( pwmSetting.isRequired() )
+        {
+            if ( values == null || values.size() < 1 || values.get( 0 ) == null )
+            {
+                return Collections.singletonList( "required value missing" );
             }
         }
 
         final Set<String> seenNames = new HashSet<>();
-        for (final RemoteWebServiceConfiguration item : values) {
-            if (seenNames.contains(item.getName().toLowerCase())) {
-                return Collections.singletonList("each action name must be unique: " + item.getName().toLowerCase());
+        for ( final RemoteWebServiceConfiguration item : values )
+        {
+            if ( seenNames.contains( item.getName().toLowerCase() ) )
+            {
+                return Collections.singletonList( "each action name must be unique: " + item.getName().toLowerCase() );
             }
-            seenNames.add(item.getName().toLowerCase());
+            seenNames.add( item.getName().toLowerCase() );
         }
 
 
         return Collections.emptyList();
     }
 
-    public List<Map<String,Object>> toInfoMap() {
-        final String originalJson = JsonUtil.serializeCollection(values);
-        final List<Map<String,Object>> tempObj = JsonUtil.deserialize(originalJson, new TypeToken<List<Map<String,Object>>>() {
-        });
-        for (final Map<String,Object> mapObj : tempObj) {
-            final RemoteWebServiceConfiguration serviceConfig = forName((String)mapObj.get("name"));
-            if (serviceConfig != null && serviceConfig.getCertificates() != null) {
-                final List<Map<String,String>> certificateInfos = new ArrayList<>();
-                for (final X509Certificate certificate : serviceConfig.getCertificates()) {
-                    certificateInfos.add(X509Utils.makeDebugInfoMap(certificate, X509Utils.DebugInfoFlag.IncludeCertificateDetail));
+    public List<Map<String, Object>> toInfoMap( )
+    {
+        final String originalJson = JsonUtil.serializeCollection( values );
+        final List<Map<String, Object>> tempObj = JsonUtil.deserialize( originalJson, new TypeToken<List<Map<String, Object>>>()
+        {
+        } );
+        for ( final Map<String, Object> mapObj : tempObj )
+        {
+            final RemoteWebServiceConfiguration serviceConfig = forName( ( String ) mapObj.get( "name" ) );
+            if ( serviceConfig != null && serviceConfig.getCertificates() != null )
+            {
+                final List<Map<String, String>> certificateInfos = new ArrayList<>();
+                for ( final X509Certificate certificate : serviceConfig.getCertificates() )
+                {
+                    certificateInfos.add( X509Utils.makeDebugInfoMap( certificate, X509Utils.DebugInfoFlag.IncludeCertificateDetail ) );
                 }
-                mapObj.put("certificateInfos", certificateInfos);
+                mapObj.put( "certificateInfos", certificateInfos );
             }
         }
         return tempObj;
     }
 
 
-    public RemoteWebServiceConfiguration forName(final String name) {
-        if (name==null) {
+    public RemoteWebServiceConfiguration forName( final String name )
+    {
+        if ( name == null )
+        {
             return null;
         }
-        for (final RemoteWebServiceConfiguration config : values) {
-            if (name.equals(config.getName())) {
+        for ( final RemoteWebServiceConfiguration config : values )
+        {
+            if ( name.equals( config.getName() ) )
+            {
                 return config;
             }
         }
         return null;
     }
 
-    public String toDebugString(final Locale locale) {
-        return JsonUtil.serialize(this);
+    public String toDebugString( final Locale locale )
+    {
+        return JsonUtil.serialize( this );
     }
 
 }

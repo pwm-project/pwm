@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,62 +36,63 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-public interface UserInfo {
-    Map<String,String> getCachedPasswordRuleAttributes() throws PwmUnrecoverableException;
+public interface UserInfo
+{
+    Map<String, String> getCachedPasswordRuleAttributes( ) throws PwmUnrecoverableException;
 
-    Map<String, String> getCachedAttributeValues() throws PwmUnrecoverableException;
+    Map<String, String> getCachedAttributeValues( ) throws PwmUnrecoverableException;
 
-    Instant getLastLdapLoginTime() throws PwmUnrecoverableException;
+    Instant getLastLdapLoginTime( ) throws PwmUnrecoverableException;
 
-    ChallengeProfile getChallengeProfile() throws PwmUnrecoverableException;
+    ChallengeProfile getChallengeProfile( ) throws PwmUnrecoverableException;
 
-    PwmPasswordPolicy getPasswordPolicy() throws PwmUnrecoverableException;
+    PwmPasswordPolicy getPasswordPolicy( ) throws PwmUnrecoverableException;
 
-    UserIdentity getUserIdentity();
+    UserIdentity getUserIdentity( );
 
-    Instant getPasswordExpirationTime() throws PwmUnrecoverableException;
+    Instant getPasswordExpirationTime( ) throws PwmUnrecoverableException;
 
-    String getUsername() throws PwmUnrecoverableException;
+    String getUsername( ) throws PwmUnrecoverableException;
 
-    PasswordStatus getPasswordStatus() throws PwmUnrecoverableException;
+    PasswordStatus getPasswordStatus( ) throws PwmUnrecoverableException;
 
-    boolean isRequiresNewPassword() throws PwmUnrecoverableException;
+    boolean isRequiresNewPassword( ) throws PwmUnrecoverableException;
 
-    boolean isRequiresResponseConfig() throws PwmUnrecoverableException;
+    boolean isRequiresResponseConfig( ) throws PwmUnrecoverableException;
 
-    boolean isRequiresOtpConfig() throws PwmUnrecoverableException;
+    boolean isRequiresOtpConfig( ) throws PwmUnrecoverableException;
 
-    boolean isRequiresUpdateProfile() throws PwmUnrecoverableException;
+    boolean isRequiresUpdateProfile( ) throws PwmUnrecoverableException;
 
-    boolean isRequiresInteraction() throws PwmUnrecoverableException;
+    boolean isRequiresInteraction( ) throws PwmUnrecoverableException;
 
-    boolean isAccountEnabled() throws PwmUnrecoverableException;
+    boolean isAccountEnabled( ) throws PwmUnrecoverableException;
 
-    boolean isAccountExpired() throws PwmUnrecoverableException;
+    boolean isAccountExpired( ) throws PwmUnrecoverableException;
 
-    boolean isPasswordLocked() throws PwmUnrecoverableException;
+    boolean isPasswordLocked( ) throws PwmUnrecoverableException;
 
-    Instant getPasswordLastModifiedTime() throws PwmUnrecoverableException;
+    Instant getPasswordLastModifiedTime( ) throws PwmUnrecoverableException;
 
-    String getUserEmailAddress() throws PwmUnrecoverableException;
+    String getUserEmailAddress( ) throws PwmUnrecoverableException;
 
-    String getUserSmsNumber() throws PwmUnrecoverableException;
+    String getUserSmsNumber( ) throws PwmUnrecoverableException;
 
-    String getUserGuid() throws PwmUnrecoverableException;
+    String getUserGuid( ) throws PwmUnrecoverableException;
 
-    ResponseInfoBean getResponseInfoBean() throws PwmUnrecoverableException;
+    ResponseInfoBean getResponseInfoBean( ) throws PwmUnrecoverableException;
 
-    OTPUserRecord getOtpUserRecord() throws PwmUnrecoverableException;
+    OTPUserRecord getOtpUserRecord( ) throws PwmUnrecoverableException;
 
-    Instant getAccountExpirationTime() throws PwmUnrecoverableException;
+    Instant getAccountExpirationTime( ) throws PwmUnrecoverableException;
 
-    Map<ProfileType, String> getProfileIDs() throws PwmUnrecoverableException;
+    Map<ProfileType, String> getProfileIDs( ) throws PwmUnrecoverableException;
 
-    String readStringAttribute(String attribute) throws PwmUnrecoverableException;
+    String readStringAttribute( String attribute ) throws PwmUnrecoverableException;
 
-    Instant readDateAttribute(String attribute) throws PwmUnrecoverableException;
+    Instant readDateAttribute( String attribute ) throws PwmUnrecoverableException;
 
-    List<String> readMultiStringAttribute(String attribute) throws PwmUnrecoverableException;
+    List<String> readMultiStringAttribute( String attribute ) throws PwmUnrecoverableException;
 
-    Map<String,String> readStringAttributes(Collection<String> attributes) throws PwmUnrecoverableException;
+    Map<String, String> readStringAttributes( Collection<String> attributes ) throws PwmUnrecoverableException;
 }

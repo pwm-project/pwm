@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,46 +32,54 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-public class UpdateAttributesProfile extends AbstractProfile implements Profile {
+public class UpdateAttributesProfile extends AbstractProfile implements Profile
+{
 
     private static final ProfileType PROFILE_TYPE = ProfileType.UpdateAttributes;
 
-    protected UpdateAttributesProfile(final String identifier, final Map<PwmSetting, StoredValue> storedValueMap) {
-        super(identifier, storedValueMap);
+    protected UpdateAttributesProfile( final String identifier, final Map<PwmSetting, StoredValue> storedValueMap )
+    {
+        super( identifier, storedValueMap );
     }
 
-    public static UpdateAttributesProfile makeFromStoredConfiguration(final StoredConfiguration storedConfiguration, final String identifier) {
-        final Map<PwmSetting,StoredValue> valueMap = makeValueMap(storedConfiguration, identifier, PROFILE_TYPE.getCategory());
-        return new UpdateAttributesProfile(identifier, valueMap);
+    public static UpdateAttributesProfile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
+    {
+        final Map<PwmSetting, StoredValue> valueMap = makeValueMap( storedConfiguration, identifier, PROFILE_TYPE.getCategory() );
+        return new UpdateAttributesProfile( identifier, valueMap );
 
     }
 
     @Override
-    public String getDisplayName(final Locale locale)
+    public String getDisplayName( final Locale locale )
     {
         return this.getIdentifier();
     }
 
     @Override
-    public ProfileType profileType() {
+    public ProfileType profileType( )
+    {
         return PROFILE_TYPE;
     }
 
-    public TimeDuration getTokenDurationEmail(final Configuration configuration) {
-        final long duration = readSettingAsLong(PwmSetting.UPDATE_PROFILE_TOKEN_LIFETIME_EMAIL);
-        if (duration < 1) {
-            final long defaultDuration = configuration.readSettingAsLong(PwmSetting.TOKEN_LIFETIME);
-            return new TimeDuration(defaultDuration, TimeUnit.SECONDS);
+    public TimeDuration getTokenDurationEmail( final Configuration configuration )
+    {
+        final long duration = readSettingAsLong( PwmSetting.UPDATE_PROFILE_TOKEN_LIFETIME_EMAIL );
+        if ( duration < 1 )
+        {
+            final long defaultDuration = configuration.readSettingAsLong( PwmSetting.TOKEN_LIFETIME );
+            return new TimeDuration( defaultDuration, TimeUnit.SECONDS );
         }
-        return new TimeDuration(duration, TimeUnit.SECONDS);
+        return new TimeDuration( duration, TimeUnit.SECONDS );
     }
 
-    public TimeDuration getTokenDurationSMS(final Configuration configuration) {
-        final long duration = readSettingAsLong(PwmSetting.UPDATE_PROFILE_TOKEN_LIFETIME_SMS);
-        if (duration < 1) {
-            final long defaultDuration = configuration.readSettingAsLong(PwmSetting.TOKEN_LIFETIME);
-            return new TimeDuration(defaultDuration, TimeUnit.SECONDS);
+    public TimeDuration getTokenDurationSMS( final Configuration configuration )
+    {
+        final long duration = readSettingAsLong( PwmSetting.UPDATE_PROFILE_TOKEN_LIFETIME_SMS );
+        if ( duration < 1 )
+        {
+            final long defaultDuration = configuration.readSettingAsLong( PwmSetting.TOKEN_LIFETIME );
+            return new TimeDuration( defaultDuration, TimeUnit.SECONDS );
         }
-        return new TimeDuration(duration, TimeUnit.SECONDS);
+        return new TimeDuration( duration, TimeUnit.SECONDS );
     }
 }

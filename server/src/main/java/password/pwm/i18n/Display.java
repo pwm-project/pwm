@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,7 +30,8 @@ import java.util.Locale;
 /**
  * Empty class to facilitate easy resource bundle loading of "Display" resource bundle.
  */
-public enum Display implements PwmDisplayBundle {
+public enum Display implements PwmDisplayBundle
+{
 
     Button_Activate,
     Button_Agree,
@@ -309,16 +310,16 @@ public enum Display implements PwmDisplayBundle {
     Value_True,
     Value_NotApplicable,
     Value_Default,
-    Placeholder_Search,
-    
-    ;
+    Placeholder_Search,;
 
-    public static String getLocalizedMessage(final Locale locale, final Display key, final Configuration config) {
-        return LocaleHelper.getLocalizedMessage(locale, key.toString(), config, Display.class);
+    public static String getLocalizedMessage( final Locale locale, final Display key, final Configuration config )
+    {
+        return LocaleHelper.getLocalizedMessage( locale, key.toString(), config, Display.class );
     }
 
     @Override
-    public String getKey() {
+    public String getKey( )
+    {
         return this.toString();
 
     }

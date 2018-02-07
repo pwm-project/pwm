@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,47 +38,69 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RemoteWebServiceCertImportFunction extends AbstractUriCertImportFunction {
+public class RemoteWebServiceCertImportFunction extends AbstractUriCertImportFunction
+{
 
     @Override
-    String getUri(final StoredConfigurationImpl storedConfiguration, final PwmSetting pwmSetting, final String profile, final String extraData) throws PwmOperationalException {
-        final RemoteWebServiceValue actionValue = (RemoteWebServiceValue)storedConfiguration.readSetting(pwmSetting, profile);
-        final String serviceName = actionNameFromExtraData(extraData);
-        final RemoteWebServiceConfiguration action =  actionValue.forName(serviceName);
+    String getUri( final StoredConfigurationImpl storedConfiguration, final PwmSetting pwmSetting, final String profile, final String extraData ) throws PwmOperationalException
+    {
+        final RemoteWebServiceValue actionValue = ( RemoteWebServiceValue ) storedConfiguration.readSetting( pwmSetting, profile );
+        final String serviceName = actionNameFromExtraData( extraData );
+        final RemoteWebServiceConfiguration action = actionValue.forName( serviceName );
         final String uriString = action.getUrl();
 
-        if (uriString == null || uriString.isEmpty()) {
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"Setting " + pwmSetting.toMenuLocationDebug(profile, null) + " action " + serviceName + " must first be configured");
-            throw new PwmOperationalException(errorInformation);
+        if ( uriString == null || uriString.isEmpty() )
+        {
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR,
+                    "Setting " + pwmSetting.toMenuLocationDebug( profile, null ) + " action " + serviceName + " must first be configured" );
+            throw new PwmOperationalException( errorInformation );
         }
-        try {
-            URI.create(uriString);
-        } catch (IllegalArgumentException e) {
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"Setting " + pwmSetting.toMenuLocationDebug(profile, null) + " action " + serviceName + " has an invalid URL syntax");
-            throw new PwmOperationalException(errorInformation);
+        try
+        {
+            URI.create( uriString );
+        }
+        catch ( IllegalArgumentException e )
+        {
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR,
+                    "Setting " + pwmSetting.toMenuLocationDebug( profile, null ) + " action " + serviceName + " has an invalid URL syntax" );
+            throw new PwmOperationalException( errorInformation );
         }
         return uriString;
     }
 
-    private String actionNameFromExtraData(final String extraData) {
+    private String actionNameFromExtraData( final String extraData )
+    {
         return extraData;
     }
 
-    void store(final List<X509Certificate> certs, final StoredConfigurationImpl storedConfiguration, final PwmSetting pwmSetting, final String profile, final String extraData, final UserIdentity userIdentity) throws PwmOperationalException, PwmUnrecoverableException {
-        final RemoteWebServiceValue actionValue = (RemoteWebServiceValue)storedConfiguration.readSetting(pwmSetting, profile);
-        final String actionName = actionNameFromExtraData(extraData);
+    void store(
+            final List<X509Certificate> certs,
+            final StoredConfigurationImpl storedConfiguration,
+            final PwmSetting pwmSetting,
+            final String profile,
+            final String extraData,
+            final UserIdentity userIdentity
+    )
+            throws PwmOperationalException, PwmUnrecoverableException
+    {
+        final RemoteWebServiceValue actionValue = ( RemoteWebServiceValue ) storedConfiguration.readSetting( pwmSetting, profile );
+        final String actionName = actionNameFromExtraData( extraData );
         final List<RemoteWebServiceConfiguration> newList = new ArrayList<>();
-        for (final RemoteWebServiceConfiguration loopConfiguration : actionValue.toNativeObject()) {
-            if (actionName.equals(loopConfiguration.getName())) {
-                final RemoteWebServiceConfiguration newConfig = JsonUtil.cloneUsingJson(loopConfiguration, RemoteWebServiceConfiguration.class);
-                newConfig.setCertificates(certs);
-                newList.add(newConfig);
-            } else {
-                newList.add(JsonUtil.cloneUsingJson(loopConfiguration,RemoteWebServiceConfiguration.class));
+        for ( final RemoteWebServiceConfiguration loopConfiguration : actionValue.toNativeObject() )
+        {
+            if ( actionName.equals( loopConfiguration.getName() ) )
+            {
+                final RemoteWebServiceConfiguration newConfig = JsonUtil.cloneUsingJson( loopConfiguration, RemoteWebServiceConfiguration.class );
+                newConfig.setCertificates( certs );
+                newList.add( newConfig );
+            }
+            else
+            {
+                newList.add( JsonUtil.cloneUsingJson( loopConfiguration, RemoteWebServiceConfiguration.class ) );
             }
         }
-        final RemoteWebServiceValue newActionValue = new RemoteWebServiceValue(newList);
-        storedConfiguration.writeSetting(pwmSetting, profile, newActionValue, userIdentity);
+        final RemoteWebServiceValue newActionValue = new RemoteWebServiceValue( newList );
+        storedConfiguration.writeSetting( pwmSetting, profile, newActionValue, userIdentity );
     }
 
 }

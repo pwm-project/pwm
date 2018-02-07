@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,27 +30,29 @@ import java.time.Instant;
 
 @Getter
 @Builder
-public class StoredWordlistDataBean implements Serializable {
+public class StoredWordlistDataBean implements Serializable
+{
     private boolean completed;
     private Source source;
     private Instant storeDate;
     private String sha1hash;
     private int size;
 
-    public enum Source {
-        BuiltIn("Built-In"),
-        AutoImport("Import from configured URL"),
-        User("Uploaded"),
-
-        ;
+    public enum Source
+    {
+        BuiltIn( "Built-In" ),
+        AutoImport( "Import from configured URL" ),
+        User( "Uploaded" ),;
 
         private final String label;
 
-        Source(final String label) {
+        Source( final String label )
+        {
             this.label = label;
         }
 
-        public String getLabel() {
+        public String getLabel( )
+        {
             return label;
         }
     }

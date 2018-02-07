@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,23 +27,28 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class HelpdeskSearchResultsBean implements Serializable {
-    private List<Map<String,Object>> searchResults = new ArrayList<>();
+public class HelpdeskSearchResultsBean implements Serializable
+{
+    private List<Map<String, Object>> searchResults = new ArrayList<>();
     private boolean sizeExceeded;
 
-    public List<Map<String, Object>> getSearchResults() {
+    public List<Map<String, Object>> getSearchResults( )
+    {
         return searchResults;
     }
 
-    public void setSearchResults(final List<Map<String, Object>> searchResults) {
+    public void setSearchResults( final List<Map<String, Object>> searchResults )
+    {
         this.searchResults = searchResults;
     }
 
-    public boolean isSizeExceeded() {
+    public boolean isSizeExceeded( )
+    {
         return sizeExceeded;
     }
 
-    public void setSizeExceeded(final boolean sizeExceeded) {
+    public void setSizeExceeded( final boolean sizeExceeded )
+    {
         this.sizeExceeded = sizeExceeded;
     }
 }

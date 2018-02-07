@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,23 +28,27 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public class BlockingThreadPool extends ThreadPoolExecutor {
+public class BlockingThreadPool extends ThreadPoolExecutor
+{
 
     private final Semaphore semaphore;
 
-    public BlockingThreadPool(final int bound, final String name) {
-        super(bound, bound, 0, TimeUnit.MILLISECONDS, new LinkedBlockingDeque<>(), JavaHelper.makePwmThreadFactory(name, true));
-        semaphore = new Semaphore(bound);
+    public BlockingThreadPool( final int bound, final String name )
+    {
+        super( bound, bound, 0, TimeUnit.MILLISECONDS, new LinkedBlockingDeque<>(), JavaHelper.makePwmThreadFactory( name, true ) );
+        semaphore = new Semaphore( bound );
     }
 
-    public Future<?> blockingSubmit(final Runnable task) {
+    public Future<?> blockingSubmit( final Runnable task )
+    {
         semaphore.acquireUninterruptibly();
-        return super.submit(task);
+        return super.submit( task );
     }
 
     @Override
-    protected void afterExecute(final Runnable r, final Throwable t) {
-        super.afterExecute(r, t);
+    protected void afterExecute( final Runnable r, final Throwable t )
+    {
+        super.afterExecute( r, t );
         semaphore.release();
     }
 }

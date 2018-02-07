@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,55 +23,53 @@
 package password.pwm.config.option;
 
 /**
- * One Time Password Storage Format
+ * One Time Password Storage Format.
  */
-public enum OTPStorageFormat {
+public enum OTPStorageFormat
+{
 
-    PWM(true, true),
-    BASE32SECRET(false),
-    OTPURL(false),
-    PAM(true, false);
+    PWM( true, true ),
+    BASE32SECRET( false ),
+    OTPURL( false ),
+    PAM( true, false );
 
     private final boolean useRecoveryCodes;
     private final boolean hashRecoveryCodes;
 
-    /**
-     * Constructor.
-     *
-     * @param useRecoveryCodes
-     */
-    OTPStorageFormat(final boolean useRecoveryCodes) {
+    OTPStorageFormat( final boolean useRecoveryCodes )
+    {
         this.useRecoveryCodes = useRecoveryCodes;
-        this.hashRecoveryCodes = useRecoveryCodes; // defaults to true, if recovery codes enabled.
+
+        // defaults to true, if recovery codes enabled.
+        this.hashRecoveryCodes = useRecoveryCodes;
     }
 
-    /**
-     * Constructor.
-     *
-     * @param useRecoveryCodes
-     * @param hashRecoveryCodes
-     */
     OTPStorageFormat(
             final boolean useRecoveryCodes,
             final boolean hashRecoveryCodes
-    ) {
+    )
+    {
         this.useRecoveryCodes = useRecoveryCodes;
         this.hashRecoveryCodes = useRecoveryCodes && hashRecoveryCodes;
     }
 
     /**
      * Check support for recovery codes.
+     *
      * @return true if recovery codes are supported.
      */
-    public boolean supportsRecoveryCodes() {
+    public boolean supportsRecoveryCodes( )
+    {
         return useRecoveryCodes;
     }
 
     /**
      * Check support for hashed recovery codes.
+     *
      * @return true if recovery codes are supported and hashes are to be used.
      */
-    public boolean supportsHashedRecoveryCodes() {
+    public boolean supportsHashedRecoveryCodes( )
+    {
         return useRecoveryCodes && hashRecoveryCodes;
     }
 

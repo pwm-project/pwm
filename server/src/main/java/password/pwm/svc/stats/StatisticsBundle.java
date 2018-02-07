@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,104 +33,135 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
 
-public class StatisticsBundle {
+public class StatisticsBundle
+{
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass(StatisticsBundle.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass( StatisticsBundle.class );
 
-    static final SimpleDateFormat STORED_DATETIME_FORMATTER = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z");
+    static final SimpleDateFormat STORED_DATETIME_FORMATTER = new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss Z" );
 
-    static {
-        STORED_DATETIME_FORMATTER.setTimeZone(TimeZone.getTimeZone("Zulu"));
+    static
+    {
+        STORED_DATETIME_FORMATTER.setTimeZone( TimeZone.getTimeZone( "Zulu" ) );
     }
 
 
     private final Map<Statistic, String> valueMap = new HashMap<>();
 
-    public StatisticsBundle() {
+    public StatisticsBundle( )
+    {
     }
 
-    public String output() {
-        return JsonUtil.serializeMap(valueMap);
+    public String output( )
+    {
+        return JsonUtil.serializeMap( valueMap );
     }
 
-    public static StatisticsBundle input(final String inputString) {
+    public static StatisticsBundle input( final String inputString )
+    {
         final Map<Statistic, String> srcMap = new HashMap<>();
-        final Map<String, String> loadedMap = JsonUtil.deserializeStringMap(inputString);
-        for (final Map.Entry<String, String> entry : loadedMap.entrySet()) {
+        final Map<String, String> loadedMap = JsonUtil.deserializeStringMap( inputString );
+        for ( final Map.Entry<String, String> entry : loadedMap.entrySet() )
+        {
             final String key = entry.getKey();
-            try {
-                srcMap.put(Statistic.valueOf(key), entry.getValue());
-            } catch (IllegalArgumentException e) {
-                LOGGER.error("error parsing statistic key '" + key + "', reason: " + e.getMessage());
+            try
+            {
+                srcMap.put( Statistic.valueOf( key ), entry.getValue() );
+            }
+            catch ( IllegalArgumentException e )
+            {
+                LOGGER.error( "error parsing statistic key '" + key + "', reason: " + e.getMessage() );
             }
         }
         final StatisticsBundle bundle = new StatisticsBundle();
 
-        for (final Statistic loopStat : Statistic.values()) {
-            final String value = srcMap.get(loopStat);
-            if (!StringUtil.isEmpty(value)) {
-                bundle.valueMap.put(loopStat, value);
+        for ( final Statistic loopStat : Statistic.values() )
+        {
+            final String value = srcMap.get( loopStat );
+            if ( !StringUtil.isEmpty( value ) )
+            {
+                bundle.valueMap.put( loopStat, value );
             }
         }
 
         return bundle;
     }
 
-    public synchronized void incrementValue(final Statistic statistic) {
-        if (Statistic.Type.INCREMENTOR != statistic.getType()) {
-            LOGGER.error("attempt to increment non-counter/incremental stat " + statistic);
+    public synchronized void incrementValue( final Statistic statistic )
+    {
+        if ( Statistic.Type.INCREMENTOR != statistic.getType() )
+        {
+            LOGGER.error( "attempt to increment non-counter/incremental stat " + statistic );
             return;
         }
 
         BigInteger currentValue = BigInteger.ZERO;
-        try {
-            if (valueMap.containsKey(statistic)) {
-                currentValue = new BigInteger(valueMap.get(statistic));
-            } else {
+        try
+        {
+            if ( valueMap.containsKey( statistic ) )
+            {
+                currentValue = new BigInteger( valueMap.get( statistic ) );
+            }
+            else
+            {
                 currentValue = BigInteger.ZERO;
             }
-        } catch (NumberFormatException e) {
-            LOGGER.error("error reading counter/incremental stat " + statistic);
         }
-        final BigInteger newValue = currentValue.add(BigInteger.ONE);
-        valueMap.put(statistic, newValue.toString());
+        catch ( NumberFormatException e )
+        {
+            LOGGER.error( "error reading counter/incremental stat " + statistic );
+        }
+        final BigInteger newValue = currentValue.add( BigInteger.ONE );
+        valueMap.put( statistic, newValue.toString() );
     }
 
-    public synchronized void updateAverageValue(final Statistic statistic, final long timeDuration) {
-        if (Statistic.Type.AVERAGE != statistic.getType()) {
-            LOGGER.error("attempt to update average value of non-average stat " + statistic);
+    public synchronized void updateAverageValue( final Statistic statistic, final long timeDuration )
+    {
+        if ( Statistic.Type.AVERAGE != statistic.getType() )
+        {
+            LOGGER.error( "attempt to update average value of non-average stat " + statistic );
             return;
         }
 
-        final String avgStrValue = valueMap.get(statistic);
+        final String avgStrValue = valueMap.get( statistic );
 
         AverageBean avgBean = new AverageBean();
-        if (avgStrValue != null && avgStrValue.length() > 0) {
-            try {
-                avgBean = JsonUtil.deserialize(avgStrValue, AverageBean.class);
-            } catch (Exception e) {
-                LOGGER.trace("unable to parse statistics value for stat " + statistic.toString() + ", value=" + avgStrValue);
+        if ( avgStrValue != null && avgStrValue.length() > 0 )
+        {
+            try
+            {
+                avgBean = JsonUtil.deserialize( avgStrValue, AverageBean.class );
+            }
+            catch ( Exception e )
+            {
+                LOGGER.trace( "unable to parse statistics value for stat " + statistic.toString() + ", value=" + avgStrValue );
             }
         }
 
-        avgBean.appendValue(timeDuration);
-        valueMap.put(statistic, JsonUtil.serialize(avgBean));
+        avgBean.appendValue( timeDuration );
+        valueMap.put( statistic, JsonUtil.serialize( avgBean ) );
     }
 
-    public String getStatistic(final Statistic statistic) {
-        switch (statistic.getType()) {
+    public String getStatistic( final Statistic statistic )
+    {
+        switch ( statistic.getType() )
+        {
             case INCREMENTOR:
-                return valueMap.containsKey(statistic) ? valueMap.get(statistic) : "0";
+                return valueMap.containsKey( statistic ) ? valueMap.get( statistic ) : "0";
 
             case AVERAGE:
-                final String avgStrValue = valueMap.get(statistic);
+                final String avgStrValue = valueMap.get( statistic );
 
                 AverageBean avgBean = new AverageBean();
-                if (avgStrValue != null && avgStrValue.length() > 0) {
-                    try {
-                        avgBean = JsonUtil.deserialize(avgStrValue, AverageBean.class);
-                    } catch (Exception e) {
-                        LOGGER.trace("unable to parse statistics value for stat " + statistic.toString() + ", value=" + avgStrValue);
+                if ( avgStrValue != null && avgStrValue.length() > 0 )
+                {
+                    try
+                    {
+                        avgBean = JsonUtil.deserialize( avgStrValue, AverageBean.class );
+                    }
+                    catch ( Exception e )
+                    {
+                        LOGGER.trace( "unable to parse statistics value for stat " + statistic.toString() + ", value=" + avgStrValue );
                     }
                 }
                 return avgBean.getAverage().toString();
@@ -140,24 +171,29 @@ public class StatisticsBundle {
         }
     }
 
-    private static class AverageBean implements Serializable {
+    private static class AverageBean implements Serializable
+    {
         BigInteger total = BigInteger.ZERO;
         BigInteger count = BigInteger.ZERO;
 
-        AverageBean() {
+        AverageBean( )
+        {
         }
 
-        BigInteger getAverage() {
-            if (BigInteger.ZERO.equals(count)) {
+        BigInteger getAverage( )
+        {
+            if ( BigInteger.ZERO.equals( count ) )
+            {
                 return BigInteger.ZERO;
             }
 
-            return total.divide(count);
+            return total.divide( count );
         }
 
-        void appendValue(final long value) {
-            count = count.add(BigInteger.ONE);
-            total = total.add(BigInteger.valueOf(value));
+        void appendValue( final long value )
+        {
+            count = count.add( BigInteger.ONE );
+            total = total.add( BigInteger.valueOf( value ) );
         }
     }
 }

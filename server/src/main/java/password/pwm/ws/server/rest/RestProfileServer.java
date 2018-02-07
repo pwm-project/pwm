@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,9 +48,9 @@ import password.pwm.util.FormMap;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.macro.MacroMachine;
-import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestMethodHandler;
 import password.pwm.ws.server.RestRequest;
+import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServlet;
 import password.pwm.ws.server.RestWebServer;
 
@@ -62,41 +62,50 @@ import java.util.List;
 import java.util.Map;
 
 @WebServlet(
-        urlPatterns={
+        urlPatterns = {
                 PwmConstants.URL_PREFIX_PUBLIC + PwmConstants.URL_PREFIX_REST + "/profile",
         }
 )
-@RestWebServer(webService = WebServiceUsage.RandomPassword, requireAuthentication = false)
-public class RestProfileServer extends RestServlet {
+@RestWebServer( webService = WebServiceUsage.RandomPassword, requireAuthentication = false )
+public class RestProfileServer extends RestServlet
+{
 
     @Data
-    public static class JsonProfileData implements Serializable {
+    public static class JsonProfileData implements Serializable
+    {
         private String username;
-        private Map<String,String> profile;
+        private Map<String, String> profile;
         private List<FormConfiguration> formDefinition;
     }
 
     @Override
-    public void preCheckRequest(final RestRequest request) throws PwmUnrecoverableException {
-        if (!request.getPwmApplication().getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE)) {
-            throw new PwmUnrecoverableException(PwmError.ERROR_SERVICE_NOT_AVAILABLE, "update profile module is not enabled");
+    public void preCheckRequest( final RestRequest request ) throws PwmUnrecoverableException
+    {
+        if ( !request.getPwmApplication().getConfig().readSettingAsBoolean( PwmSetting.UPDATE_PROFILE_ENABLE ) )
+        {
+            throw new PwmUnrecoverableException( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "update profile module is not enabled" );
         }
     }
 
-    @RestMethodHandler(method = HttpMethod.GET, produces = HttpContentType.json)
-    public RestResultBean doGetProfileJsonData(final RestRequest restRequest)
+    @RestMethodHandler( method = HttpMethod.GET, produces = HttpContentType.json )
+    public RestResultBean doGetProfileJsonData( final RestRequest restRequest )
             throws PwmUnrecoverableException
     {
-        final String username = restRequest.readParameterAsString("username", PwmHttpRequestWrapper.Flag.BypassValidation);
+        final String username = restRequest.readParameterAsString( "username", PwmHttpRequestWrapper.Flag.BypassValidation );
 
-        try {
-            return doGetProfileDataImpl(restRequest,username);
-        } catch (PwmUnrecoverableException e) {
-            return RestResultBean.fromError(restRequest, e.getErrorInformation());
-        } catch (Exception e) {
+        try
+        {
+            return doGetProfileDataImpl( restRequest, username );
+        }
+        catch ( PwmUnrecoverableException e )
+        {
+            return RestResultBean.fromError( restRequest, e.getErrorInformation() );
+        }
+        catch ( Exception e )
+        {
             final String errorMsg = "unexpected error building json response: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-            return RestResultBean.fromError(restRequest, errorInformation);
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            return RestResultBean.fromError( restRequest, errorInformation );
         }
     }
 
@@ -106,7 +115,7 @@ public class RestProfileServer extends RestServlet {
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
-        final TargetUserIdentity targetUserIdentity = resolveRequestedUsername(restRequest, username);
+        final TargetUserIdentity targetUserIdentity = resolveRequestedUsername( restRequest, username );
 
         final String updateProfileID = ProfileUtility.discoverProfileIDforUser(
                 restRequest.getPwmApplication(),
@@ -115,19 +124,21 @@ public class RestProfileServer extends RestServlet {
                 ProfileType.UpdateAttributes
         );
 
-        if (StringUtil.isEmpty(updateProfileID)) {
-            throw new PwmUnrecoverableException(PwmError.ERROR_NO_PROFILE_ASSIGNED);
+        if ( StringUtil.isEmpty( updateProfileID ) )
+        {
+            throw new PwmUnrecoverableException( PwmError.ERROR_NO_PROFILE_ASSIGNED );
         }
 
-        final UpdateAttributesProfile updateAttributesProfile = restRequest.getPwmApplication().getConfig().getUpdateAttributesProfile().get(updateProfileID);
+        final UpdateAttributesProfile updateAttributesProfile = restRequest.getPwmApplication().getConfig().getUpdateAttributesProfile().get( updateProfileID );
 
-        final Map<String,String> profileData = new HashMap<>();
+        final Map<String, String> profileData = new HashMap<>();
         {
-            final Map<FormConfiguration,String> formData = new HashMap<>();
-            for (final FormConfiguration formConfiguration : updateAttributesProfile.readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM)) {
-                formData.put(formConfiguration,"");
+            final Map<FormConfiguration, String> formData = new HashMap<>();
+            for ( final FormConfiguration formConfiguration : updateAttributesProfile.readSettingAsForm( PwmSetting.UPDATE_PROFILE_FORM ) )
+            {
+                formData.put( formConfiguration, "" );
             }
-            final List<FormConfiguration> formFields = updateAttributesProfile.readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
+            final List<FormConfiguration> formFields = updateAttributesProfile.readSettingAsForm( PwmSetting.UPDATE_PROFILE_FORM );
 
             final UserInfo userInfo = UserInfoFactory.newUserInfo(
                     restRequest.getPwmApplication(),
@@ -136,32 +147,37 @@ public class RestProfileServer extends RestServlet {
                     targetUserIdentity.getUserIdentity(),
                     targetUserIdentity.getChaiProvider()
             );
-            FormUtility.populateFormMapFromLdap(formFields, restRequest.getSessionLabel(), formData, userInfo);
+            FormUtility.populateFormMapFromLdap( formFields, restRequest.getSessionLabel(), formData, userInfo );
 
-            for (final Map.Entry<FormConfiguration,String> entry : formData.entrySet()) {
+            for ( final Map.Entry<FormConfiguration, String> entry : formData.entrySet() )
+            {
                 final FormConfiguration formConfig = entry.getKey();
-                profileData.put(formConfig.getName(), entry.getValue());
+                profileData.put( formConfig.getName(), entry.getValue() );
             }
         }
 
         final JsonProfileData outputData = new JsonProfileData();
         outputData.profile = profileData;
-        outputData.formDefinition = updateAttributesProfile.readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
-        final RestResultBean restResultBean = RestResultBean.withData(outputData);
+        outputData.formDefinition = updateAttributesProfile.readSettingAsForm( PwmSetting.UPDATE_PROFILE_FORM );
+        final RestResultBean restResultBean = RestResultBean.withData( outputData );
         return restResultBean;
     }
 
-    @RestMethodHandler(method = HttpMethod.POST, consumes = HttpContentType.json, produces = HttpContentType.json)
-    public RestResultBean doPostProfileData(final RestRequest restRequest) throws IOException, PwmUnrecoverableException {
+    @RestMethodHandler( method = HttpMethod.POST, consumes = HttpContentType.json, produces = HttpContentType.json )
+    public RestResultBean doPostProfileData( final RestRequest restRequest ) throws IOException, PwmUnrecoverableException
+    {
 
-        final JsonProfileData jsonInput = deserializeJsonBody(restRequest, JsonProfileData.class);
+        final JsonProfileData jsonInput = deserializeJsonBody( restRequest, JsonProfileData.class );
 
-        try {
-            return doPostProfileDataImpl(restRequest, jsonInput);
-        } catch (Exception e) {
+        try
+        {
+            return doPostProfileDataImpl( restRequest, jsonInput );
+        }
+        catch ( Exception e )
+        {
             final String errorMsg = "unexpected error building json response: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-            return RestResultBean.fromError(restRequest, errorInformation);
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            return RestResultBean.fromError( restRequest, errorInformation );
         }
     }
 
@@ -171,7 +187,7 @@ public class RestProfileServer extends RestServlet {
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
     {
-        final TargetUserIdentity targetUserIdentity = resolveRequestedUsername(restRequest, jsonInput.getUsername());
+        final TargetUserIdentity targetUserIdentity = resolveRequestedUsername( restRequest, jsonInput.getUsername() );
 
         final String updateProfileID = ProfileUtility.discoverProfileIDforUser(
                 restRequest.getPwmApplication(),
@@ -180,14 +196,15 @@ public class RestProfileServer extends RestServlet {
                 ProfileType.UpdateAttributes
         );
 
-        if (StringUtil.isEmpty(updateProfileID)) {
-            throw new PwmUnrecoverableException(PwmError.ERROR_NO_PROFILE_ASSIGNED);
+        if ( StringUtil.isEmpty( updateProfileID ) )
+        {
+            throw new PwmUnrecoverableException( PwmError.ERROR_NO_PROFILE_ASSIGNED );
         }
 
-        final UpdateAttributesProfile updateAttributesProfile = restRequest.getPwmApplication().getConfig().getUpdateAttributesProfile().get(updateProfileID);
+        final UpdateAttributesProfile updateAttributesProfile = restRequest.getPwmApplication().getConfig().getUpdateAttributesProfile().get( updateProfileID );
 
         {
-            final List<UserPermission> userPermission = updateAttributesProfile.readSettingAsUserPermission(PwmSetting.UPDATE_PROFILE_QUERY_MATCH);
+            final List<UserPermission> userPermission = updateAttributesProfile.readSettingAsUserPermission( PwmSetting.UPDATE_PROFILE_QUERY_MATCH );
             final boolean result = LdapPermissionTester.testUserPermissions(
                     restRequest.getPwmApplication(),
                     restRequest.getSessionLabel(),
@@ -195,18 +212,21 @@ public class RestProfileServer extends RestServlet {
                     userPermission
             );
 
-            if (!result) {
-                throw new PwmUnrecoverableException(PwmError.ERROR_UNAUTHORIZED);
+            if ( !result )
+            {
+                throw new PwmUnrecoverableException( PwmError.ERROR_UNAUTHORIZED );
             }
         }
 
 
-        final FormMap inputFormData = new FormMap(jsonInput.profile);
-        final List<FormConfiguration> profileForm = updateAttributesProfile.readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
-        final Map<FormConfiguration,String> profileFormData = new HashMap<>();
-        for (final FormConfiguration formConfiguration : profileForm) {
-            if (!formConfiguration.isReadonly() && inputFormData.containsKey(formConfiguration.getName())) {
-                profileFormData.put(formConfiguration,inputFormData.get(formConfiguration.getName()));
+        final FormMap inputFormData = new FormMap( jsonInput.profile );
+        final List<FormConfiguration> profileForm = updateAttributesProfile.readSettingAsForm( PwmSetting.UPDATE_PROFILE_FORM );
+        final Map<FormConfiguration, String> profileFormData = new HashMap<>();
+        for ( final FormConfiguration formConfiguration : profileForm )
+        {
+            if ( !formConfiguration.isReadonly() && inputFormData.containsKey( formConfiguration.getName() ) )
+            {
+                profileFormData.put( formConfiguration, inputFormData.get( formConfiguration.getName() ) );
             }
         }
 
@@ -232,11 +252,11 @@ public class RestProfileServer extends RestServlet {
                 userInfo,
                 macroMachine,
                 updateAttributesProfile,
-                FormUtility.asStringMap(profileFormData),
+                FormUtility.asStringMap( profileFormData ),
                 targetUserIdentity.getChaiUser()
         );
 
-        final RestResultBean restResultBean = RestResultBean.forSuccessMessage(restRequest, Message.Success_UpdateProfile);
+        final RestResultBean restResultBean = RestResultBean.forSuccessMessage( restRequest, Message.Success_UpdateProfile );
         return restResultBean;
     }
 }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -69,138 +69,161 @@ import java.util.Collections;
                 PwmConstants.URL_PREFIX_PRIVATE + "/config/manager/localdb",
         }
 )
-public class ConfigManagerLocalDBServlet extends AbstractPwmServlet {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(ConfigManagerLocalDBServlet.class);
+public class ConfigManagerLocalDBServlet extends AbstractPwmServlet
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( ConfigManagerLocalDBServlet.class );
 
-    public enum ConfigManagerAction implements ProcessAction {
-        exportLocalDB(HttpMethod.GET),
-        importLocalDB(HttpMethod.POST),
-
-        ;
+    public enum ConfigManagerAction implements ProcessAction
+    {
+        exportLocalDB( HttpMethod.GET ),
+        importLocalDB( HttpMethod.POST ),;
 
         private final HttpMethod method;
 
-        ConfigManagerAction(final HttpMethod method)
+        ConfigManagerAction( final HttpMethod method )
         {
             this.method = method;
         }
 
-        public Collection<HttpMethod> permittedMethods()
+        public Collection<HttpMethod> permittedMethods( )
         {
-            return Collections.singletonList(method);
+            return Collections.singletonList( method );
         }
     }
 
-    protected ConfigManagerAction readProcessAction(final PwmRequest request)
+    protected ConfigManagerAction readProcessAction( final PwmRequest request )
             throws PwmUnrecoverableException
     {
-        try {
-            return ConfigManagerAction.valueOf(request.readParameterAsString(PwmConstants.PARAM_ACTION_REQUEST));
-        } catch (IllegalArgumentException e) {
+        try
+        {
+            return ConfigManagerAction.valueOf( request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
+        }
+        catch ( IllegalArgumentException e )
+        {
             return null;
         }
     }
 
-    protected void processAction(final PwmRequest pwmRequest)
+    protected void processAction( final PwmRequest pwmRequest )
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {
 
-        final ConfigManagerAction processAction = readProcessAction(pwmRequest);
-        if (processAction != null) {
-            switch (processAction) {
+        final ConfigManagerAction processAction = readProcessAction( pwmRequest );
+        if ( processAction != null )
+        {
+            switch ( processAction )
+            {
                 case exportLocalDB:
-                    doExportLocalDB(pwmRequest);
+                    doExportLocalDB( pwmRequest );
                     break;
 
                 case importLocalDB:
-                    restUploadLocalDB(pwmRequest);
+                    restUploadLocalDB( pwmRequest );
                     return;
 
                 default:
-                    JavaHelper.unhandledSwitchStatement(processAction);
+                    JavaHelper.unhandledSwitchStatement( processAction );
 
 
             }
             return;
         }
 
-        pwmRequest.forwardToJsp(JspUrl.CONFIG_MANAGER_LOCALDB);
+        pwmRequest.forwardToJsp( JspUrl.CONFIG_MANAGER_LOCALDB );
     }
 
-    private void doExportLocalDB(final PwmRequest pwmRequest)
+    private void doExportLocalDB( final PwmRequest pwmRequest )
             throws IOException, ServletException, PwmUnrecoverableException
     {
         final PwmResponse resp = pwmRequest.getPwmResponse();
         final Instant startTime = Instant.now();
-        resp.setHeader(HttpHeader.ContentDisposition, "attachment;filename=" + PwmConstants.PWM_APP_NAME + "-LocalDB.bak");
-        resp.setContentType(HttpContentType.octetstream);
-        resp.setHeader(HttpHeader.ContentTransferEncoding, "binary");
-        final LocalDBUtility localDBUtility = new LocalDBUtility(pwmRequest.getPwmApplication().getLocalDB());
-        try {
-            final int bufferSize = Integer.parseInt(pwmRequest.getConfig().readAppProperty(AppProperty.HTTP_DOWNLOAD_BUFFER_SIZE));
-            final OutputStream bos = new BufferedOutputStream(resp.getOutputStream(),bufferSize);
-            localDBUtility.exportLocalDB(bos, LOGGER.asAppendable(PwmLogLevel.DEBUG, pwmRequest.getSessionLabel()), true);
-            LOGGER.debug(pwmRequest, "completed localDBExport process in " + TimeDuration.fromCurrent(startTime).asCompactString());
-        } catch (Exception e) {
-            LOGGER.error(pwmRequest, "error downloading export localdb: " + e.getMessage());
+        resp.setHeader( HttpHeader.ContentDisposition, "attachment;filename=" + PwmConstants.PWM_APP_NAME + "-LocalDB.bak" );
+        resp.setContentType( HttpContentType.octetstream );
+        resp.setHeader( HttpHeader.ContentTransferEncoding, "binary" );
+        final LocalDBUtility localDBUtility = new LocalDBUtility( pwmRequest.getPwmApplication().getLocalDB() );
+        try
+        {
+            final int bufferSize = Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_DOWNLOAD_BUFFER_SIZE ) );
+            final OutputStream bos = new BufferedOutputStream( resp.getOutputStream(), bufferSize );
+            localDBUtility.exportLocalDB( bos, LOGGER.asAppendable( PwmLogLevel.DEBUG, pwmRequest.getSessionLabel() ), true );
+            LOGGER.debug( pwmRequest, "completed localDBExport process in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
+        }
+        catch ( Exception e )
+        {
+            LOGGER.error( pwmRequest, "error downloading export localdb: " + e.getMessage() );
         }
     }
 
-    void restUploadLocalDB(final PwmRequest pwmRequest)
+    void restUploadLocalDB( final PwmRequest pwmRequest )
             throws IOException, ServletException, PwmUnrecoverableException
 
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();
 
-        if (pwmApplication.getApplicationMode() == PwmApplicationMode.RUNNING) {
+        if ( pwmApplication.getApplicationMode() == PwmApplicationMode.RUNNING )
+        {
             final String errorMsg = "database upload is not permitted when in running mode";
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_UPLOAD_FAILURE,errorMsg,new String[]{errorMsg});
-            pwmRequest.respondWithError(errorInformation, true);
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_UPLOAD_FAILURE, errorMsg, new String[]
+                    {
+                            errorMsg,
+                    }
+            );
+            pwmRequest.respondWithError( errorInformation, true );
             return;
         }
 
-        if (!ServletFileUpload.isMultipartContent(req)) {
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"no file found in upload");
-            pwmRequest.outputJsonResult(RestResultBean.fromError(errorInformation, pwmRequest));
-            LOGGER.error(pwmRequest, "error during database import: " + errorInformation.toDebugStr());
+        if ( !ServletFileUpload.isMultipartContent( req ) )
+        {
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, "no file found in upload" );
+            pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
+            LOGGER.error( pwmRequest, "error during database import: " + errorInformation.toDebugStr() );
             return;
         }
 
-        final InputStream inputStream = pwmRequest.readFileUploadStream(PwmConstants.PARAM_FILE_UPLOAD);
+        final InputStream inputStream = pwmRequest.readFileUploadStream( PwmConstants.PARAM_FILE_UPLOAD );
 
-        final ContextManager contextManager = ContextManager.getContextManager(pwmRequest);
+        final ContextManager contextManager = ContextManager.getContextManager( pwmRequest );
         LocalDB localDB = null;
-        try {
+        try
+        {
             final File localDBLocation = pwmApplication.getLocalDB().getFileLocation();
             final Configuration configuration = pwmApplication.getConfig();
             contextManager.shutdown();
 
-            localDB = LocalDBFactory.getInstance(localDBLocation, false, null, configuration);
-            final LocalDBUtility localDBUtility = new LocalDBUtility(localDB);
-            LOGGER.info(pwmRequest, "beginning LocalDB import");
-            localDBUtility.importLocalDB(inputStream,
-                    LOGGER.asAppendable(PwmLogLevel.DEBUG, pwmRequest.getSessionLabel()));
-            LOGGER.info(pwmRequest, "completed LocalDB import");
-        } catch (Exception e) {
+            localDB = LocalDBFactory.getInstance( localDBLocation, false, null, configuration );
+            final LocalDBUtility localDBUtility = new LocalDBUtility( localDB );
+            LOGGER.info( pwmRequest, "beginning LocalDB import" );
+            localDBUtility.importLocalDB( inputStream,
+                    LOGGER.asAppendable( PwmLogLevel.DEBUG, pwmRequest.getSessionLabel() ) );
+            LOGGER.info( pwmRequest, "completed LocalDB import" );
+        }
+        catch ( Exception e )
+        {
             final ErrorInformation errorInformation = e instanceof PwmException
-                    ? ((PwmException) e).getErrorInformation()
-                    : new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage());
-            pwmRequest.outputJsonResult(RestResultBean.fromError(errorInformation, pwmRequest));
-            LOGGER.error(pwmRequest, "error during LocalDB import: " + errorInformation.toDebugStr());
+                    ? ( ( PwmException ) e ).getErrorInformation()
+                    : new ErrorInformation( PwmError.ERROR_UNKNOWN, e.getMessage() );
+            pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
+            LOGGER.error( pwmRequest, "error during LocalDB import: " + errorInformation.toDebugStr() );
             return;
-        } finally {
-            if (localDB != null) {
-                try {
+        }
+        finally
+        {
+            if ( localDB != null )
+            {
+                try
+                {
                     localDB.close();
-                } catch (Exception e) {
-                    LOGGER.error(pwmRequest, "error closing LocalDB after import process: " + e.getMessage());
+                }
+                catch ( Exception e )
+                {
+                    LOGGER.error( pwmRequest, "error closing LocalDB after import process: " + e.getMessage() );
                 }
             }
             contextManager.initialize();
         }
 
-        pwmRequest.outputJsonResult(RestResultBean.forSuccessMessage(pwmRequest, Message.Success_Unknown));
+        pwmRequest.outputJsonResult( RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown ) );
     }
 }
 

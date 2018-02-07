@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,34 +31,39 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Collections;
 
-public class ExportLocalDBCommand extends AbstractCliCommand {
+public class ExportLocalDBCommand extends AbstractCliCommand
+{
     @Override
-    void doCommand()
+    void doCommand( )
             throws Exception
     {
         final LocalDB localDB = cliEnvironment.getLocalDB();
 
-        final File outputFile = (File)cliEnvironment.getOptions().get(CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName());
-        if (outputFile.exists()) {
-            out("outputFile for exportLocalDB cannot already exist");
+        final File outputFile = ( File ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName() );
+        if ( outputFile.exists() )
+        {
+            out( "outputFile for exportLocalDB cannot already exist" );
             return;
         }
 
-        final LocalDBUtility localDBUtility = new LocalDBUtility(localDB);
-        try (FileOutputStream fileOutputStream = new FileOutputStream(outputFile)) {
-            localDBUtility.exportLocalDB(fileOutputStream, System.out, true);
-        } catch (PwmOperationalException e) {
-            out("error during export: " + e.getMessage());
+        final LocalDBUtility localDBUtility = new LocalDBUtility( localDB );
+        try ( FileOutputStream fileOutputStream = new FileOutputStream( outputFile ) )
+        {
+            localDBUtility.exportLocalDB( fileOutputStream, System.out, true );
+        }
+        catch ( PwmOperationalException e )
+        {
+            out( "error during export: " + e.getMessage() );
         }
     }
 
     @Override
-    public CliParameters getCliParameters()
+    public CliParameters getCliParameters( )
     {
         final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "ExportLocalDB";
         cliParameters.description = "Export the entire LocalDB contents to a backup file";
-        cliParameters.options = Collections.singletonList(CliParameters.REQUIRED_NEW_OUTPUT_FILE);
+        cliParameters.options = Collections.singletonList( CliParameters.REQUIRED_NEW_OUTPUT_FILE );
 
         cliParameters.needsLocalDB = true;
         cliParameters.readOnly = true;

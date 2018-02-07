@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,22 +31,25 @@ import java.util.Map;
 
 @Getter
 @AllArgsConstructor
-class NewUserTokenData implements Serializable {
+class NewUserTokenData implements Serializable
+{
 
-    @SerializedName("id")
+    @SerializedName( "id" )
     private String profileID;
 
-    @SerializedName("f")
+    @SerializedName( "f" )
     private NewUserForm formData;
 
-    @SerializedName("i")
-    private Map<String,String> injectionData;
+    @SerializedName( "i" )
+    private Map<String, String> injectionData;
 
-    public String getProfileID() {
+    public String getProfileID( )
+    {
         return profileID;
     }
 
-    public NewUserForm getFormData() {
+    public NewUserForm getFormData( )
+    {
         return formData;
     }
 }

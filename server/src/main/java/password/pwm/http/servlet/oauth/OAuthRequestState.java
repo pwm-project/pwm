@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,20 +24,25 @@ package password.pwm.http.servlet.oauth;
 
 import java.io.Serializable;
 
-public class OAuthRequestState implements Serializable {
+public class OAuthRequestState implements Serializable
+{
+    @SuppressWarnings( "checkstyle:MemberName" )
     private OAuthState oAuthState;
     private boolean sessionMatch;
 
-    public OAuthRequestState(final OAuthState oAuthState, final boolean sessionMatch) {
+    public OAuthRequestState( final OAuthState oAuthState, final boolean sessionMatch )
+    {
         this.oAuthState = oAuthState;
         this.sessionMatch = sessionMatch;
     }
 
-    public OAuthState getoAuthState() {
+    public OAuthState getoAuthState( )
+    {
         return oAuthState;
     }
 
-    public boolean isSessionMatch() {
+    public boolean isSessionMatch( )
+    {
         return sessionMatch;
     }
 }

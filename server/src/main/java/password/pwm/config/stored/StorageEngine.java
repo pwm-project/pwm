@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,18 +25,19 @@ package password.pwm.config.stored;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.StoredValue;
 
-interface StorageEngine {
-    StoredValue read(StoredConfigReference storedConfigReference);
+interface StorageEngine
+{
+    StoredValue read( StoredConfigReference storedConfigReference );
 
-    void write(StoredConfigReference storedConfigReference, StoredValue value, UserIdentity userIdentity);
+    void write( StoredConfigReference storedConfigReference, StoredValue value, UserIdentity userIdentity );
 
-    void reset(StoredConfigReference storedConfigReference, UserIdentity userIdentity);
+    void reset( StoredConfigReference storedConfigReference, UserIdentity userIdentity );
 
-    boolean isWriteLocked();
+    boolean isWriteLocked( );
 
-    void writeLock();
+    void writeLock( );
 
-    ValueMetaData readMetaData(StoredConfigReference storedConfigReference);
+    ValueMetaData readMetaData( StoredConfigReference storedConfigReference );
 
-    ConfigChangeLog changeLog();
+    ConfigChangeLog changeLog( );
 }

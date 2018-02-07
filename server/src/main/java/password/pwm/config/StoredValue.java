@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,27 +31,29 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Locale;
 
-public interface StoredValue extends Serializable {
-    List<Element> toXmlValues( String valueElementName);
+public interface StoredValue extends Serializable
+{
+    List<Element> toXmlValues( String valueElementName );
 
-    Object toNativeObject();
+    Object toNativeObject( );
 
-    List<String> validateValue(PwmSetting pwm);
+    List<String> validateValue( PwmSetting pwm );
 
-    Serializable toDebugJsonObject(Locale locale);
+    Serializable toDebugJsonObject( Locale locale );
 
-    String toDebugString(Locale locale);
+    String toDebugString( Locale locale );
 
-    boolean requiresStoredUpdate();
+    boolean requiresStoredUpdate( );
 
-    int currentSyntaxVersion();
+    int currentSyntaxVersion( );
 
-    interface StoredValueFactory {
-        StoredValue fromJson( String input);
+    interface StoredValueFactory
+    {
+        StoredValue fromJson( String input );
 
-        StoredValue fromXmlElement( Element settingElement,  PwmSecurityKey key)
+        StoredValue fromXmlElement( Element settingElement, PwmSecurityKey key )
                 throws PwmException;
     }
 
-    String valueHash() throws PwmUnrecoverableException;
+    String valueHash( ) throws PwmUnrecoverableException;
 }

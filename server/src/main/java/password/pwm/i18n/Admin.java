@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,8 @@
 
 package password.pwm.i18n;
 
-public enum Admin implements PwmDisplayBundle {
+public enum Admin implements PwmDisplayBundle
+{
 
 
     Notice_TrialRestrictConfig,
@@ -62,16 +63,15 @@ public enum Admin implements PwmDisplayBundle {
     EventLog_Narrative_HelpdeskVerifyToken,
     EventLog_Narrative_HelpdeskVerifyTokenIncorrect,
     EventLog_Narrative_HelpdeskVerifyAttributes,
-    EventLog_Narrative_HelpdeskVerifyAttributesIncorrect,
-
-    ;
+    EventLog_Narrative_HelpdeskVerifyAttributesIncorrect,;
 
     public static final String STATISTICS_LABEL_PREFIX = "Statistic_Label.";
-    public static final String STATISTICS_DESCRIPTION_PREFIX =  "Statistic_Description.";
+    public static final String STATISTICS_DESCRIPTION_PREFIX = "Statistic_Description.";
     public static final String EPS_STATISTICS_LABEL_PREFIX = "EpsStatistic_Label.";
 
     @Override
-    public String getKey() {
+    public String getKey( )
+    {
         return this.toString();
     }
 }

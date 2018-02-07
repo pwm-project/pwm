@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,9 +32,11 @@ import java.util.Map;
 
 @Getter
 @Setter
-public class RemoteWebServiceConfiguration implements Serializable {
+public class RemoteWebServiceConfiguration implements Serializable
+{
 
-    public enum WebMethod {
+    public enum WebMethod
+    {
         delete,
         get,
         post,
@@ -44,7 +46,7 @@ public class RemoteWebServiceConfiguration implements Serializable {
 
     private String name;
     private WebMethod method = WebMethod.get;
-    private Map<String,String> headers;
+    private Map<String, String> headers;
     private String url;
     private String body;
     private List<X509Certificate> certificates;

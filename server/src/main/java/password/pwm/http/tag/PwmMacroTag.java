@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,33 +32,39 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.tagext.TagSupport;
 
-public class PwmMacroTag extends TagSupport {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(PwmMacroTag.class);
+public class PwmMacroTag extends TagSupport
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( PwmMacroTag.class );
 
     private String value;
 
-    public String getValue()
+    public String getValue( )
     {
         return value;
     }
 
-    public void setValue(final String value)
+    public void setValue( final String value )
     {
         this.value = value;
     }
 
-    public int doEndTag()
+    public int doEndTag( )
             throws JspTagException
     {
-        try {
-            final PwmRequest pwmRequest = PwmRequest.forRequest((HttpServletRequest) pageContext.getRequest(), (HttpServletResponse) pageContext.getResponse());
-            final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine(pwmRequest.getPwmApplication());
-            final String outputValue = macroMachine.expandMacros(value);
-            pageContext.getOut().write(outputValue);
-        } catch (PwmUnrecoverableException e) {
-            LOGGER.error("error while processing PwmMacroTag: " + e.getMessage());
-        } catch (Exception e) {
-            throw new JspTagException(e.getMessage(),e);
+        try
+        {
+            final PwmRequest pwmRequest = PwmRequest.forRequest( ( HttpServletRequest ) pageContext.getRequest(), ( HttpServletResponse ) pageContext.getResponse() );
+            final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( pwmRequest.getPwmApplication() );
+            final String outputValue = macroMachine.expandMacros( value );
+            pageContext.getOut().write( outputValue );
+        }
+        catch ( PwmUnrecoverableException e )
+        {
+            LOGGER.error( "error while processing PwmMacroTag: " + e.getMessage() );
+        }
+        catch ( Exception e )
+        {
+            throw new JspTagException( e.getMessage(), e );
         }
         return EVAL_PAGE;
     }

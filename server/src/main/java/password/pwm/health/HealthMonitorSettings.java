@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,34 +29,40 @@ import password.pwm.util.java.TimeDuration;
 import java.io.Serializable;
 import java.util.concurrent.TimeUnit;
 
-class HealthMonitorSettings implements Serializable {
-    private TimeDuration nominalCheckInterval = new TimeDuration(1, TimeUnit.MINUTES);
-    private TimeDuration minimumCheckInterval = new TimeDuration(30, TimeUnit.SECONDS);
-    private TimeDuration maximumRecordAge = new TimeDuration(5, TimeUnit.MINUTES);
-    private TimeDuration maximumForceCheckWait = new TimeDuration(30, TimeUnit.SECONDS);
+class HealthMonitorSettings implements Serializable
+{
+    private TimeDuration nominalCheckInterval = new TimeDuration( 1, TimeUnit.MINUTES );
+    private TimeDuration minimumCheckInterval = new TimeDuration( 30, TimeUnit.SECONDS );
+    private TimeDuration maximumRecordAge = new TimeDuration( 5, TimeUnit.MINUTES );
+    private TimeDuration maximumForceCheckWait = new TimeDuration( 30, TimeUnit.SECONDS );
 
-    public TimeDuration getMaximumRecordAge() {
+    public TimeDuration getMaximumRecordAge( )
+    {
         return maximumRecordAge;
     }
 
-    public TimeDuration getMinimumCheckInterval() {
+    public TimeDuration getMinimumCheckInterval( )
+    {
         return minimumCheckInterval;
     }
 
-    public TimeDuration getNominalCheckInterval() {
+    public TimeDuration getNominalCheckInterval( )
+    {
         return nominalCheckInterval;
     }
 
-    public TimeDuration getMaximumForceCheckWait() {
+    public TimeDuration getMaximumForceCheckWait( )
+    {
         return maximumForceCheckWait;
     }
 
-    public static HealthMonitorSettings fromConfiguration(final Configuration config) {
+    public static HealthMonitorSettings fromConfiguration( final Configuration config )
+    {
         final HealthMonitorSettings settings = new HealthMonitorSettings();
-        settings.nominalCheckInterval = new TimeDuration(Long.parseLong(config.readAppProperty(AppProperty.HEALTHCHECK_NOMINAL_CHECK_INTERVAL)), TimeUnit.SECONDS);
-        settings.minimumCheckInterval = new TimeDuration(Long.parseLong(config.readAppProperty(AppProperty.HEALTHCHECK_MIN_CHECK_INTERVAL)), TimeUnit.SECONDS);
-        settings.maximumRecordAge = new TimeDuration(Long.parseLong(config.readAppProperty(AppProperty.HEALTHCHECK_MAX_RECORD_AGE)), TimeUnit.SECONDS);
-        settings.maximumForceCheckWait = new TimeDuration(Long.parseLong(config.readAppProperty(AppProperty.HEALTHCHECK_MAX_FORCE_WAIT)), TimeUnit.SECONDS);
+        settings.nominalCheckInterval = new TimeDuration( Long.parseLong( config.readAppProperty( AppProperty.HEALTHCHECK_NOMINAL_CHECK_INTERVAL ) ), TimeUnit.SECONDS );
+        settings.minimumCheckInterval = new TimeDuration( Long.parseLong( config.readAppProperty( AppProperty.HEALTHCHECK_MIN_CHECK_INTERVAL ) ), TimeUnit.SECONDS );
+        settings.maximumRecordAge = new TimeDuration( Long.parseLong( config.readAppProperty( AppProperty.HEALTHCHECK_MAX_RECORD_AGE ) ), TimeUnit.SECONDS );
+        settings.maximumForceCheckWait = new TimeDuration( Long.parseLong( config.readAppProperty( AppProperty.HEALTHCHECK_MAX_FORCE_WAIT ) ), TimeUnit.SECONDS );
         return settings;
     }
 }

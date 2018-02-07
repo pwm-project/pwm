@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -92,7 +92,7 @@ table {
 
 table.nomargin {
     width: 100%;
-    margin:0;
+    margin: 0;
     padding: 0;
 }
 
@@ -125,13 +125,17 @@ html[dir="rtl"] table td.key {
 }
 
 .health-body {
-    padding-top:5px;
-    padding-bottom:10px;
+    padding-top: 5px;
+    padding-bottom: 10px;
 }
 
 .healthTable-wrapper {
-    margin-top:5px; margin-left: 0; margin-right: 0; padding:0;
-    max-height: 300px; overflow-y: auto
+    margin-top: 5px;
+    margin-left: 0;
+    margin-right: 0;
+    padding: 0;
+    max-height: 300px;
+    overflow-y: auto
 }
 
 .healthTable-footer {
@@ -142,31 +146,31 @@ html[dir="rtl"] table td.key {
 }
 
 .health-GOOD {
-    white-space:nowrap;
+    white-space: nowrap;
     background-color: #8ced3f;
     text-align: center;
 }
 
 .health-CAUTION {
-    white-space:nowrap;
+    white-space: nowrap;
     background-color: #ffcd59;
     text-align: center;
 }
 
 .health-CONFIG {
-    white-space:nowrap;
+    white-space: nowrap;
     background-color: #ecd5d5;
     text-align: center;
 }
 
 .health-WARN {
-    white-space:nowrap;
+    white-space: nowrap;
     background-color: #d20734;
     text-align: center;
 }
 
 .health-UNKNOWN {
-    white-space:nowrap;
+    white-space: nowrap;
     background-color: red;
     text-align: center;
 }
@@ -183,7 +187,6 @@ html[dir="rtl"] table td.key {
     width: 60%;
 }
 
-
 .noticebar {
     width: 100%;
     font-size: smaller;
@@ -196,10 +199,12 @@ html[dir="rtl"] table td.key {
 .noborder {
     border: 0;
     border-collapse: collapse;
-} .noborder td {
-      border: 0;
-      border-collapse: collapse;
-  }
+}
+
+.noborder td {
+    border: 0;
+    border-collapse: collapse;
+}
 
 .nopadding {
     padding: 0;
@@ -210,7 +215,9 @@ html[dir="rtl"] table td.key {
 }
 
 /* disable ie password reveal */
-input[type=password]::-ms-reveal{display: none;}
+input[type=password]::-ms-reveal {
+    display: none;
+}
 
 .tokenInput {
     height: 130px;
@@ -245,7 +252,6 @@ input[type=password]::-ms-reveal{display: none;}
     margin: 0 5px;
     cursor: pointer;
 }
-
 
 /* main body wrapper, all elements (except footer) should be within wrapper */
 #wrapper {
@@ -316,7 +322,6 @@ input[type=password]::-ms-reveal{display: none;}
     z-index: 600;
     font-weight: normal;
 }
-
 
 .tile:hover {
     background: #fff;
@@ -391,7 +396,6 @@ input[type=password]::-ms-reveal{display: none;}
     content: "\f085";
 }
 
-
 .tile-image.selfdelete-image:before {
     content: "\f235";
 }
@@ -399,8 +403,6 @@ input[type=password]::-ms-reveal{display: none;}
 .tile-image.orgchart-image:before {
     content: "\f0e8";
 }
-
-
 
 .tile-title {
     color: #434c50;
@@ -427,7 +429,7 @@ input[type=password]::-ms-reveal{display: none;}
 }
 
 .btn {
-    border-style:none;
+    border-style: none;
     border-radius: 3px;
     padding: 5px 10px;
     margin: 9px 7px;
@@ -435,8 +437,10 @@ input[type=password]::-ms-reveal{display: none;}
     color: white;
     background: #3e374c;
     cursor: pointer;
-}.btn:disabled {
-     color: #9e9e9e;
+}
+
+.btn:disabled {
+    color: #9e9e9e;
 }
 
 .helpdesk-detail-btn {
@@ -465,25 +469,24 @@ div.progress-container > div {
     height: 70px;
     margin: 0;
     background-image: url('header-gradient.gif'); /* for older ie browsers */
-    background:linear-gradient(to bottom, #3e374c, #08070f );
+    background: linear-gradient(to bottom, #3e374c, #08070f);
     z-index: 5;
     position: relative;
 }
 
 #header-balance-div {
     position: absolute;
-    text-align:left;
-    border-width:0;
+    text-align: left;
+    border-width: 0;
     top: 19px;
-    left:18px;
+    left: 18px;
 }
-
 
 #header-center {
     width: 600px;
     margin: 0 auto;
-    position:relative;
-    padding:4px;
+    position: relative;
+    padding: 4px;
 }
 
 #header-center-left {
@@ -492,9 +495,9 @@ div.progress-container > div {
 }
 
 #header-center-right {
-  position: absolute;
-  right: 0;
-  top: 10px;
+    position: absolute;
+    right: 0;
+    top: 10px;
 }
 
 html[dir="rtl"] #header-center-left {
@@ -586,7 +589,7 @@ html[dir="rtl"] #header-center-right {
 }
 
 #header-warning-message {
-margin-right: 20px;
+    margin-right: 20px;
 }
 
 .header-warning-row {
@@ -598,39 +601,41 @@ margin-right: 20px;
 }
 
 .header-warning-version {
-	font-size: 10px;
-	text-align: center;
-	letter-spacing: .5px;
-	margin-top: 20px;
-	margin-bottom: 0;
+    font-size: 10px;
+    text-align: center;
+    letter-spacing: .5px;
+    margin-top: 20px;
+    margin-bottom: 0;
 }
 
+.header-warning-buttons {
+    text-align: left;
+}
 
-	.header-warning-buttons {
-		text-align: left;
-	}
-	.header-warning-button {
-		text-align: left;
-		color: #f6f6f6;
-		font-size: 15px;
-		font-weight: normal;
-		text-decoration: none;
-		width: auto;
-		padding: 8px;
-		border-radius: 3px;
-	    display: block;
-    	color: black;
-    	cursor: pointer;
-	}
-	.header-warning-button:hover {
-		background-color: #ededed;
-		}
-	.header-warning-button span.btn-icon {
-			display: none !important;		
-		}
+.header-warning-button {
+    text-align: left;
+    color: #f6f6f6;
+    font-size: 15px;
+    font-weight: normal;
+    text-decoration: none;
+    width: auto;
+    padding: 8px;
+    border-radius: 3px;
+    display: block;
+    color: black;
+    cursor: pointer;
+}
+
+.header-warning-button:hover {
+    background-color: #ededed;
+}
+
+.header-warning-button span.btn-icon {
+    display: none !important;
+}
 
 .header-error {
-	color: #fff;
+    color: #fff;
     white-space: normal;
     max-width: 600px;
     padding: 5px;
@@ -686,7 +691,6 @@ margin-right: 20px;
     padding-bottom: 10px;
 }
 
-
 #footer .infotext {
     font-family: Arial, Helvetica, sans-serif;
     color: #333333;
@@ -713,8 +717,6 @@ margin-right: 20px;
     border-radius: 3px;
 }
 
-
-
 .agreementText {
     border: 0;
     background-color: #DDDDDD;
@@ -738,7 +740,7 @@ margin-right: 20px;
 
 /* hide recaptcha iframe near footer */
 body > iframe[src="about:blank"] {
-    display:none !important;
+    display: none !important;
 }
 
 .qrcodeblock {
@@ -780,7 +782,7 @@ img.qrcodeimage {
     width: 100%;
     z-index: 1001;
     display: none;
-    opacity:0.6;
+    opacity: 0.6;
     background-color: black;
 }
 
@@ -801,9 +803,9 @@ img.qrcodeimage {
 }
 
 select {
-    padding:0;
+    padding: 0;
     margin: 0;
-    border-radius:2px;
+    border-radius: 2px;
     border-color: #bfbfbf;
     font-size: 9pt;
     background: #f8f8f8;
@@ -824,7 +826,7 @@ select {
 }
 
 #button-closeHeader {
-    background: transparent url("close_40.png") no-repeat scroll 0 0 / cover ;
+    background: transparent url("close_40.png") no-repeat scroll 0 0 / cover;
     cursor: pointer;
     height: 20px;
     position: absolute;
@@ -848,11 +850,11 @@ select {
     white-space: nowrap;
     cursor: pointer;
     text-decoration: none;
-    background:none;
-    border:none;
-    font-size:1em;
-    padding:0;
-    color:inherit;
+    background: none;
+    border: none;
+    font-size: 1em;
+    padding: 0;
+    color: inherit;
 }
 
 .localeDisplayName {
@@ -860,9 +862,12 @@ select {
 }
 
 .login-wrapper {
-    width:400px;
+    width: 400px;
 }
-.sign-in { margin-left: 15px;}
+
+.sign-in {
+    margin-left: 15px;
+}
 
 #login .selectfield, #configLogin .selectfield {
     margin: 0;
@@ -870,25 +875,25 @@ select {
     width: 250px;
     margin-right: 8px;
     font-size: 15px;
-    box-sizing:content-box;
+    box-sizing: content-box;
 }
 
-#login .inputfield , #configLogin .inputfield {
-	margin: 0;
-	padding: 6px;
-	width: 250px;
-	margin-right: 8px;
-	font-size: 15px;
+#login .inputfield, #configLogin .inputfield {
+    margin: 0;
+    padding: 6px;
+    width: 250px;
+    margin-right: 8px;
+    font-size: 15px;
 }
 
 #login .buttonbar #submitBtn {
-	margin: 0;
-	width: auto;
-	height: auto;
-	min-width: 80px;
-	padding: 5px 10px;
-	font-size: 14px;
-	border: 1px solid transparent;
+    margin: 0;
+    width: auto;
+    height: auto;
+    min-width: 80px;
+    padding: 5px 10px;
+    font-size: 14px;
+    border: 1px solid transparent;
 }
 
 #login .buttonbar #submitBtn span {
@@ -982,14 +987,36 @@ progress[value] {
     color: orange;
 }
 
+.blink {
+    animation: blink 4s infinite;
+}
 
-.blink { animation: blink 4s infinite; }
-@keyframes blink {0%{opacity:0} 20%{opacity:1} 80%{opacity:1} 100%{opacity:0}}
+@keyframes blink {
+    0% {
+        opacity: 0
+    }
+    20% {
+        opacity: 1
+    }
+    80% {
+        opacity: 1
+    }
+    100% {
+        opacity: 0
+    }
+}
 
-@keyframes fadein { from { opacity:0; } to { opacity:1; } }
+@keyframes fadein {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
 
 .meteredProgressBar {
-    width:80%;
+    width: 80%;
     margin-left: 10%;
     margin-right: 10%;
     padding-top: 70px;
@@ -999,21 +1026,74 @@ progress[value] {
     background: #fff;
 }
 
-
 /* begin dialog section */
-.dialogBody { width: 500px; max-width: 500px; }
-.dialogBody.narrow { width: 350px; max-width: 350px; }
-.dialogBody.wide { width: 95%; max-width: 100%; min-width: 800px; }
-.WaitDialogBlank { height: 35px; width: 35px; margin-left: auto; margin-right: auto; background-image: url('wait.gif'); background-size: 35px; background-repeat: no-repeat;}
-#dialogPopup_underlay { background-color: #222222; }
-#idleDialog_underlay { background-color: #111111; }
-dialog::backdrop { background: rgba(0,0,0,0.6); }
-dialog { border: 2px solid #DDDDDD; border-radius: 3px; padding:0; max-width: 100%;}
-dialog .titleBar { text-align: center; font-weight: bold; padding-top: 3px; padding-bottom: 3px; background-color: #eaeaea; margin-bottom: 5px; }
-dialog .body { padding:5px; max-height: 98vh; overflow-x: auto; }
-dialog .closeIcon { float: right; cursor: pointer; margin-right: 3px; }
-/* end dialog section */
+.dialogBody {
+    width: 500px;
+    max-width: 500px;
+}
 
+.dialogBody.narrow {
+    width: 350px;
+    max-width: 350px;
+}
+
+.dialogBody.wide {
+    width: 95%;
+    max-width: 100%;
+    min-width: 800px;
+}
+
+.WaitDialogBlank {
+    height: 35px;
+    width: 35px;
+    margin-left: auto;
+    margin-right: auto;
+    background-image: url('wait.gif');
+    background-size: 35px;
+    background-repeat: no-repeat;
+}
+
+#dialogPopup_underlay {
+    background-color: #222222;
+}
+
+#idleDialog_underlay {
+    background-color: #111111;
+}
+
+dialog::backdrop {
+    background: rgba(0, 0, 0, 0.6);
+}
+
+dialog {
+    border: 2px solid #DDDDDD;
+    border-radius: 3px;
+    padding: 0;
+    max-width: 100%;
+}
+
+dialog .titleBar {
+    text-align: center;
+    font-weight: bold;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    background-color: #eaeaea;
+    margin-bottom: 5px;
+}
+
+dialog .body {
+    padding: 5px;
+    max-height: 98vh;
+    overflow-x: auto;
+}
+
+dialog .closeIcon {
+    float: right;
+    cursor: pointer;
+    margin-right: 3px;
+}
+
+/* end dialog section */
 
 /* begin peoplesearch section */
 
@@ -1034,43 +1114,189 @@ dialog .closeIcon { float: right; cursor: pointer; margin-right: 3px; }
     border-color: #949494;
 }
 
-.panel-peoplesearch-userDetailPhoto { display: inline;  }
-.img-peoplesearch-userDetailPhoto { width: auto; height: 80px; border-radius: 3px; border: 1px solid #dae1e1; }
-.panel-peoplesearch-person { margin-left:5px; background: #eaeaea; position: relative; padding: 6px; width: auto; height: 83px; margin-right: 5px; margin-bottom: 10px; border:  1px solid transparent; }
-.panel-peoplesearch-displayNames { margin-left: 10px; vertical-align: top; display: inline-block; position: relative }
+.panel-peoplesearch-userDetailPhoto {
+    display: inline;
+}
 
+.img-peoplesearch-userDetailPhoto {
+    width: auto;
+    height: 80px;
+    border-radius: 3px;
+    border: 1px solid #dae1e1;
+}
 
-#peopleSearch-userDetailWrapper { max-height: 450px; overflow-y: auto; }
-.peoplesearch-input-username, .helpdesk-input-username { width:400px; }
+.panel-peoplesearch-person {
+    margin-left: 5px;
+    background: #eaeaea;
+    position: relative;
+    padding: 6px;
+    width: auto;
+    height: 83px;
+    margin-right: 5px;
+    margin-bottom: 10px;
+    border: 1px solid transparent;
+}
 
-.peopleSearch-userDetails { max-height: 450px; overflow-y: auto; border: 1px solid #d8e2e2; }
-.peopleSearch-userDetails td.key { font-weight: normal; color: #949494; width: auto; padding: 3px 15px 3px 10px; border-bottom: 1px solid #d8e2e2; }
+.panel-peoplesearch-displayNames {
+    margin-left: 10px;
+    vertical-align: top;
+    display: inline-block;
+    position: relative
+}
 
+#peopleSearch-userDetailWrapper {
+    max-height: 450px;
+    overflow-y: auto;
+}
+
+.peoplesearch-input-username, .helpdesk-input-username {
+    width: 400px;
+}
+
+.peopleSearch-userDetails {
+    max-height: 450px;
+    overflow-y: auto;
+    border: 1px solid #d8e2e2;
+}
+
+.peopleSearch-userDetails td.key {
+    font-weight: normal;
+    color: #949494;
+    width: auto;
+    padding: 3px 15px 3px 10px;
+    border-bottom: 1px solid #d8e2e2;
+}
 
 /* end peoplesearch section */
 
-
 /* begin peoplesearch org chart section */
-.dialogBody.orgChart { width: 550px; max-width: 550px; }
-.panel-orgChart-parent .panel-orgChart-person {border-left: 5px solid #697c87;}
-.panel-orgChart-parent .panel-orgChart-person:hover {border-left: 5px solid #26A9E0;}
-.panel-orgChart-parent { margin-left: 5px }
-.panel-orgChart-person { position: relative; background: #eaeaea; padding: 6px; width: 220px; height: 70px; margin-right: 10px; margin-bottom: 10px; border: 1px solid transparent; cursor:pointer; }
-.panel-orgChart-sibling { float: left; display: block; }
-.panel-orgChart-siblings { margin-left: 40px; }
-.panel-orgChart-userPhoto { width: 40px;  height: 40px; float: left; border-radius: 2px; margin-right: 6px; margin-bottom: 35px;  }
-.img-orgChart-userPhoto { display: block; width: auto; height:auto; max-height: 100%; margin: auto; max-width: 100%; border: 1px solid #dae1e1; border-radius: 2px; }
-.icon-orgChart-up { position: absolute; left: 12px; top: 54px; padding: 4px 8px; border: 1px solid #abb5b7; }
-.icon-orgChart-down {position: absolute; left: 12px; top: 54px; padding: 4px 8px; border: 1px solid #abb5b7;}
-.panel-orgChart-displayNames { }
-.panel-orgChart-displayName-1 { font-weight: bold; font-size: 14px; }
-.panel-orgChart-displayName-2 { color: #697374; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.panel-orgChart-displayName-3 { color: #697374; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 11px;}
-.panel-orgChart-displayName-4 { color: #697374; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 11px; }
-.panel-orgChart-displayName-5 { color: #697374; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 11px; }
-.panel-orgChart-person:hover { border:  1px solid #26A9E0; }
-.panel-orgChart { max-height: 80vh; overflow-y: auto }
-.panel-orgChart-footer {clear: both; margin-bottom: 10px; }
+.dialogBody.orgChart {
+    width: 550px;
+    max-width: 550px;
+}
+
+.panel-orgChart-parent .panel-orgChart-person {
+    border-left: 5px solid #697c87;
+}
+
+.panel-orgChart-parent .panel-orgChart-person:hover {
+    border-left: 5px solid #26A9E0;
+}
+
+.panel-orgChart-parent {
+    margin-left: 5px
+}
+
+.panel-orgChart-person {
+    position: relative;
+    background: #eaeaea;
+    padding: 6px;
+    width: 220px;
+    height: 70px;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    border: 1px solid transparent;
+    cursor: pointer;
+}
+
+.panel-orgChart-sibling {
+    float: left;
+    display: block;
+}
+
+.panel-orgChart-siblings {
+    margin-left: 40px;
+}
+
+.panel-orgChart-userPhoto {
+    width: 40px;
+    height: 40px;
+    float: left;
+    border-radius: 2px;
+    margin-right: 6px;
+    margin-bottom: 35px;
+}
+
+.img-orgChart-userPhoto {
+    display: block;
+    width: auto;
+    height: auto;
+    max-height: 100%;
+    margin: auto;
+    max-width: 100%;
+    border: 1px solid #dae1e1;
+    border-radius: 2px;
+}
+
+.icon-orgChart-up {
+    position: absolute;
+    left: 12px;
+    top: 54px;
+    padding: 4px 8px;
+    border: 1px solid #abb5b7;
+}
+
+.icon-orgChart-down {
+    position: absolute;
+    left: 12px;
+    top: 54px;
+    padding: 4px 8px;
+    border: 1px solid #abb5b7;
+}
+
+.panel-orgChart-displayNames {
+}
+
+.panel-orgChart-displayName-1 {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.panel-orgChart-displayName-2 {
+    color: #697374;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.panel-orgChart-displayName-3 {
+    color: #697374;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 11px;
+}
+
+.panel-orgChart-displayName-4 {
+    color: #697374;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 11px;
+}
+
+.panel-orgChart-displayName-5 {
+    color: #697374;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 11px;
+}
+
+.panel-orgChart-person:hover {
+    border: 1px solid #26A9E0;
+}
+
+.panel-orgChart {
+    max-height: 80vh;
+    overflow-y: auto
+}
+
+.panel-orgChart-footer {
+    clear: both;
+    margin-bottom: 10px;
+}
+
 /* end peoplesearch org chart section */
 
 #centerbody.attribution-centerbody {
@@ -1105,10 +1331,20 @@ dialog .closeIcon { float: right; cursor: pointer; margin-right: 3px; }
     font-weight: bold;
 }
 
-.footer-segment::after { padding: 10px; content: '\2022'; filter: brightness(50%); }
-.footer-segment:last-child:after { content: ""; }​
+.footer-segment::after {
+    padding: 10px;
+    content: '\2022';
+    filter: brightness(50%);
+}
 
-.center { text-align: center; }
+.footer-segment:last-child:after {
+    content: "";
+}
+
+​
+.center {
+    text-align: center;
+}
 
 .display-none {
     display: none;
@@ -1123,7 +1359,6 @@ dialog .closeIcon { float: right; cursor: pointer; margin-right: 3px; }
     display: inline-block;
 }
 
-
 #header-username-group, #header-username {
     display: inline-block;
 }
@@ -1137,7 +1372,6 @@ dialog .closeIcon { float: right; cursor: pointer; margin-right: 3px; }
     text-align: right;
 }
 
-
 #header-menu:only-child {
     padding-top: 15px;
 }
@@ -1146,7 +1380,6 @@ dialog .closeIcon { float: right; cursor: pointer; margin-right: 3px; }
     font: 20px FontAwesome;
     margin-right: 0px;
 }
-
 
 #header-menu-icon {
     display: inline-block;
@@ -1164,25 +1397,33 @@ dialog .closeIcon { float: right; cursor: pointer; margin-right: 3px; }
     width: 200px;
 }
 
-@keyframes idle-fadein { from { opacity:0.1; } to { opacity:0.8; } }
+@keyframes idle-fadein {
+    from {
+        opacity: 0.1;
+    }
+    to {
+        opacity: 0.8;
+    }
+}
+
 #idle-overlay {
-    position:fixed;
-    top:0;
-    bottom:0;
-    left:0;
-    right:0;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
     background-color: black;
     opacity: 0.8;
-    z-index:1001;
+    z-index: 1001;
     animation: idle-fadein 6s;
 }
 
-#idle-overlay-message{
+#idle-overlay-message {
     position: absolute;
     margin: auto;
     opacity: 1;
     padding: 15px;
-    text-align:center;
+    text-align: center;
     top: 0;
     right: 0;
     bottom: 0;
@@ -1191,7 +1432,7 @@ dialog .closeIcon { float: right; cursor: pointer; margin-right: 3px; }
     height: 100px;
     background-color: white;
     border-radius: 3px;
-    z-index:1002;
+    z-index: 1002;
 }
 
 html[dir="rtl"] .nihilo .dijitTabContainerTop-tabs {
@@ -1202,37 +1443,50 @@ html[dir="rtl"] .nihilo .dijitTabContainerTop-tabs > .dijitTabContent:first-chil
     margin-right: 10px;
 }
 
-
 @keyframes wait-fadein {
-    0% { opacity: 0 }
-    20% { opacity: 0 }
-    100% { opacity: 0.6 }
+    0% {
+        opacity: 0
+    }
+    20% {
+        opacity: 0
+    }
+    100% {
+        opacity: 0.6
+    }
 }
+
 #wait-overlay {
-    position:fixed;
-    top:0;
-    bottom:0;
-    left:0;
-    right:0;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
     background-color: black;
     opacity: 0.6;
-    z-index:1001;
+    z-index: 1001;
     animation: wait-fadein 5s;
     cursor: wait;
 }
 
 @keyframes wait-fadein-message {
-    0% { opacity: 0 }
-    50% { opacity: 0 }
-    100% { opacity: 1 }
+    0% {
+        opacity: 0
+    }
+    50% {
+        opacity: 0
+    }
+    100% {
+        opacity: 1
+    }
 }
-#wait-overlay-message{
+
+#wait-overlay-message {
     cursor: wait;
     position: absolute;
     margin: auto;
     opacity: 1;
     padding: 15px;
-    text-align:center;
+    text-align: center;
     top: 0;
     right: 0;
     bottom: 0;
@@ -1240,7 +1494,7 @@ html[dir="rtl"] .nihilo .dijitTabContainerTop-tabs > .dijitTabContent:first-chil
     width: 500px;
     height: 100px;
     border-radius: 3px;
-    z-index:1002;
+    z-index: 1002;
     animation: wait-fadein-message 2s;
     background-color: white;
     background-image: url('loading.gif');
@@ -1254,7 +1508,7 @@ html[dir="rtl"] .nihilo .dijitTabContainerTop-tabs > .dijitTabContent:first-chil
     width: 50px;
     height: 50px;
     position: relative;
-    z-index:1003;
+    z-index: 1003;
 }
 
 html[dir="rtl"] .errorDetail {

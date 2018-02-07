@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,8 +37,9 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.tagext.BodyTagSupport;
 
-public class PwmIfTag extends BodyTagSupport {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(PwmIfTag.class);
+public class PwmIfTag extends BodyTagSupport
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( PwmIfTag.class );
 
     private PwmIfTest test;
     private Permission permission;
@@ -46,62 +47,76 @@ public class PwmIfTag extends BodyTagSupport {
     private PwmRequestFlag requestFlag;
     private PwmSetting setting;
 
-    public void setTest(final PwmIfTest test)
+    public void setTest( final PwmIfTest test )
     {
         this.test = test;
     }
 
-    public void setPermission(final Permission permission)
+    public void setPermission( final Permission permission )
     {
         this.permission = permission;
     }
 
-    public void setNegate(final boolean negate)
+    public void setNegate( final boolean negate )
     {
         this.negate = negate;
     }
 
-    public void setRequestFlag(final PwmRequestFlag requestFlag) {
+    public void setRequestFlag( final PwmRequestFlag requestFlag )
+    {
         this.requestFlag = requestFlag;
     }
 
-    public void setSetting(final PwmSetting setting) {
+    public void setSetting( final PwmSetting setting )
+    {
         this.setting = setting;
     }
 
     @Override
-    public int doStartTag()
+    public int doStartTag( )
             throws JspException
     {
 
         boolean showBody = false;
-        if (PwmApplicationMode.determineMode((HttpServletRequest) pageContext.getRequest()) != PwmApplicationMode.ERROR) {
-            if (test != null) {
-                try {
+        if ( PwmApplicationMode.determineMode( ( HttpServletRequest ) pageContext.getRequest() ) != PwmApplicationMode.ERROR )
+        {
+            if ( test != null )
+            {
+                try
+                {
 
-                    final PwmRequest pwmRequest = PwmRequest.forRequest((HttpServletRequest) pageContext.getRequest(),
-                            (HttpServletResponse) pageContext.getResponse());
+                    final PwmRequest pwmRequest = PwmRequest.forRequest( ( HttpServletRequest ) pageContext.getRequest(),
+                            ( HttpServletResponse ) pageContext.getResponse() );
                     final PwmSession pwmSession = pwmRequest.getPwmSession();
 
                     final PwmIfTest testEnum = test;
-                    if (testEnum != null) {
-                        try {
-                            final PwmIfOptions options = new PwmIfOptions(negate, permission, setting, requestFlag);
-                            showBody = testEnum.passed(pwmRequest, options);
-                        } catch (ChaiUnavailableException e) {
-                            LOGGER.error("error testing jsp if '" + testEnum.toString() + "', error: " + e.getMessage());
+                    if ( testEnum != null )
+                    {
+                        try
+                        {
+                            final PwmIfOptions options = new PwmIfOptions( negate, permission, setting, requestFlag );
+                            showBody = testEnum.passed( pwmRequest, options );
                         }
-                    } else {
-                        final String errorMsg = "unknown test name '" + test + "' in pwm:If jsp tag!";
-                        LOGGER.warn(pwmSession, errorMsg);
+                        catch ( ChaiUnavailableException e )
+                        {
+                            LOGGER.error( "error testing jsp if '" + testEnum.toString() + "', error: " + e.getMessage() );
+                        }
                     }
-                } catch (PwmUnrecoverableException e) {
-                    LOGGER.error("error executing PwmIfTag for test '" + test + "', error: " + e.getMessage());
+                    else
+                    {
+                        final String errorMsg = "unknown test name '" + test + "' in pwm:If jsp tag!";
+                        LOGGER.warn( pwmSession, errorMsg );
+                    }
+                }
+                catch ( PwmUnrecoverableException e )
+                {
+                    LOGGER.error( "error executing PwmIfTag for test '" + test + "', error: " + e.getMessage() );
                 }
             }
         }
 
-        if (negate) {
+        if ( negate )
+        {
             showBody = !showBody;
         }
 

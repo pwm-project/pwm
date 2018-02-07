@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,43 +31,47 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-public enum IdentityVerificationMethod implements Serializable, ConfigurationOption {
-    PREVIOUS_AUTH(      false,  Display.Field_VerificationMethodPreviousAuth,       Display.Description_VerificationMethodPreviousAuth),
-    ATTRIBUTES(         true,   Display.Field_VerificationMethodAttributes,         Display.Description_VerificationMethodAttributes),
-    CHALLENGE_RESPONSES(true,   Display.Field_VerificationMethodChallengeResponses, Display.Description_VerificationMethodChallengeResponses),
-    TOKEN(              true,   Display.Field_VerificationMethodToken,              Display.Description_VerificationMethodToken),
-    OTP(                true,   Display.Field_VerificationMethodOTP,                Display.Description_VerificationMethodOTP),
-    REMOTE_RESPONSES(   false,  Display.Field_VerificationMethodRemoteResponses,    Display.Description_VerificationMethodRemoteResponses),
-    OAUTH(              true,   Display.Field_VerificationMethodOAuth,              Display.Description_VerificationMethodOAuth),
+public enum IdentityVerificationMethod implements Serializable, ConfigurationOption
+{
+    PREVIOUS_AUTH( false, Display.Field_VerificationMethodPreviousAuth, Display.Description_VerificationMethodPreviousAuth ),
+    ATTRIBUTES( true, Display.Field_VerificationMethodAttributes, Display.Description_VerificationMethodAttributes ),
+    CHALLENGE_RESPONSES( true, Display.Field_VerificationMethodChallengeResponses, Display.Description_VerificationMethodChallengeResponses ),
+    TOKEN( true, Display.Field_VerificationMethodToken, Display.Description_VerificationMethodToken ),
+    OTP( true, Display.Field_VerificationMethodOTP, Display.Description_VerificationMethodOTP ),
+    REMOTE_RESPONSES( false, Display.Field_VerificationMethodRemoteResponses, Display.Description_VerificationMethodRemoteResponses ),
+    OAUTH( true, Display.Field_VerificationMethodOAuth, Display.Description_VerificationMethodOAuth ),;
 
-    ;
-    
     private final transient boolean userSelectable;
     private final transient Display labelKey;
     private final transient Display descriptionKey;
 
-    IdentityVerificationMethod(final boolean userSelectable, final Display labelKey, final Display descriptionKey) {
+    IdentityVerificationMethod( final boolean userSelectable, final Display labelKey, final Display descriptionKey )
+    {
         this.userSelectable = userSelectable;
         this.labelKey = labelKey;
         this.descriptionKey = descriptionKey;
     }
 
-    public boolean isUserSelectable() {
+    public boolean isUserSelectable( )
+    {
         return userSelectable;
     }
 
-    public String getLabel(final Configuration configuration, final Locale locale) {
-        return Display.getLocalizedMessage(locale, this.labelKey, configuration);
+    public String getLabel( final Configuration configuration, final Locale locale )
+    {
+        return Display.getLocalizedMessage( locale, this.labelKey, configuration );
     }
 
-    public String getDescription(final Configuration configuration, final Locale locale) {
-        return Display.getLocalizedMessage(locale, this.descriptionKey, configuration);
+    public String getDescription( final Configuration configuration, final Locale locale )
+    {
+        return Display.getLocalizedMessage( locale, this.descriptionKey, configuration );
     }
 
-    public static IdentityVerificationMethod[] availableValues() {
+    public static IdentityVerificationMethod[] availableValues( )
+    {
         final List<IdentityVerificationMethod> values = new ArrayList<>();
-        values.addAll(Arrays.asList(IdentityVerificationMethod.values()));
-        return values.toArray(new IdentityVerificationMethod[values.size()]);
+        values.addAll( Arrays.asList( IdentityVerificationMethod.values() ) );
+        return values.toArray( new IdentityVerificationMethod[ values.size() ] );
     }
 
 }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,11 +24,11 @@ package password.pwm.bean.pub;
 
 import lombok.Getter;
 import password.pwm.bean.PasswordStatus;
-import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.ldap.UserInfo;
 import password.pwm.config.Configuration;
 import password.pwm.config.profile.PwmPasswordRule;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.tag.PasswordRequirementsTag;
+import password.pwm.ldap.UserInfo;
 import password.pwm.util.macro.MacroMachine;
 
 import java.io.Serializable;
@@ -40,7 +40,8 @@ import java.util.Locale;
 import java.util.Map;
 
 @Getter
-public class PublicUserInfoBean implements Serializable {
+public class PublicUserInfoBean implements Serializable
+{
     private String userDN;
     private String ldapProfile;
     private String userID;
@@ -71,8 +72,8 @@ public class PublicUserInfoBean implements Serializable {
             throws PwmUnrecoverableException
     {
         final PublicUserInfoBean publicUserInfoBean = new PublicUserInfoBean();
-        publicUserInfoBean.userDN = (userInfoBean.getUserIdentity() == null) ? "" : userInfoBean.getUserIdentity().getUserDN();
-        publicUserInfoBean.ldapProfile = (userInfoBean.getUserIdentity() == null) ? "" : userInfoBean.getUserIdentity().getLdapProfileID();
+        publicUserInfoBean.userDN = ( userInfoBean.getUserIdentity() == null ) ? "" : userInfoBean.getUserIdentity().getUserDN();
+        publicUserInfoBean.ldapProfile = ( userInfoBean.getUserIdentity() == null ) ? "" : userInfoBean.getUserIdentity().getLdapProfileID();
         publicUserInfoBean.userID = userInfoBean.getUsername();
         publicUserInfoBean.userGUID = publicUserInfoBean.getUserGUID();
         publicUserInfoBean.userEmailAddress = userInfoBean.getUserEmailAddress();
@@ -90,8 +91,9 @@ public class PublicUserInfoBean implements Serializable {
         publicUserInfoBean.requiresInteraction = userInfoBean.isRequiresInteraction();
 
         publicUserInfoBean.passwordPolicy = new HashMap<>();
-        for (final PwmPasswordRule rule : PwmPasswordRule.values()) {
-            publicUserInfoBean.passwordPolicy.put(rule.name(), userInfoBean.getPasswordPolicy().getValue(rule));
+        for ( final PwmPasswordRule rule : PwmPasswordRule.values() )
+        {
+            publicUserInfoBean.passwordPolicy.put( rule.name(), userInfoBean.getPasswordPolicy().getValue( rule ) );
         }
 
         publicUserInfoBean.passwordRules = PasswordRequirementsTag.getPasswordRequirementsStrings(
@@ -101,8 +103,9 @@ public class PublicUserInfoBean implements Serializable {
                 macroMachine
         );
 
-        if (userInfoBean.getCachedAttributeValues() != null && !userInfoBean.getCachedAttributeValues().isEmpty()) {
-            publicUserInfoBean.attributes = Collections.unmodifiableMap(userInfoBean.getCachedAttributeValues());
+        if ( userInfoBean.getCachedAttributeValues() != null && !userInfoBean.getCachedAttributeValues().isEmpty() )
+        {
+            publicUserInfoBean.attributes = Collections.unmodifiableMap( userInfoBean.getCachedAttributeValues() );
         }
 
         return publicUserInfoBean;

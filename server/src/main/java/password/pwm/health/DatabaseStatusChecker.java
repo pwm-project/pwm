@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,38 +33,47 @@ import password.pwm.util.logging.PwmLogger;
 import java.util.Collections;
 import java.util.List;
 
-public class DatabaseStatusChecker implements HealthChecker {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(DatabaseStatusChecker.class);
+public class DatabaseStatusChecker implements HealthChecker
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( DatabaseStatusChecker.class );
 
     @Override
-    public List<HealthRecord> doHealthCheck(final PwmApplication pwmApplication)
+    public List<HealthRecord> doHealthCheck( final PwmApplication pwmApplication )
     {
         return Collections.emptyList();
     }
 
-    public static List<HealthRecord> checkNewDatabaseStatus(final PwmApplication pwmApplication, final Configuration config) {
-        return checkDatabaseStatus(pwmApplication, config);
+    public static List<HealthRecord> checkNewDatabaseStatus( final PwmApplication pwmApplication, final Configuration config )
+    {
+        return checkDatabaseStatus( pwmApplication, config );
     }
 
-    private static List<HealthRecord> checkDatabaseStatus(final PwmApplication pwmApplication, final Configuration config)
+    private static List<HealthRecord> checkDatabaseStatus( final PwmApplication pwmApplication, final Configuration config )
     {
-        if (!config.hasDbConfigured()) {
-            return Collections.singletonList(new HealthRecord(HealthStatus.INFO,HealthTopic.Database,"Database not configured"));
+        if ( !config.hasDbConfigured() )
+        {
+            return Collections.singletonList( new HealthRecord( HealthStatus.INFO, HealthTopic.Database, "Database not configured" ) );
         }
 
         PwmApplication runtimeInstance = null;
-        try {
-            final PwmEnvironment runtimeEnvironment = pwmApplication.getPwmEnvironment().makeRuntimeInstance(config);
-            runtimeInstance = new PwmApplication(runtimeEnvironment);
+        try
+        {
+            final PwmEnvironment runtimeEnvironment = pwmApplication.getPwmEnvironment().makeRuntimeInstance( config );
+            runtimeInstance = new PwmApplication( runtimeEnvironment );
             final DatabaseAccessor accessor = runtimeInstance.getDatabaseService().getAccessor();
-            accessor.get(DatabaseTable.PWM_META, "test");
+            accessor.get( DatabaseTable.PWM_META, "test" );
             return runtimeInstance.getDatabaseService().healthCheck();
-        } catch (PwmException e) {
-            LOGGER.error("error during healthcheck: " + e.getMessage());
+        }
+        catch ( PwmException e )
+        {
+            LOGGER.error( "error during healthcheck: " + e.getMessage() );
             e.printStackTrace();
             return runtimeInstance.getDatabaseService().healthCheck();
-        } finally {
-            if (runtimeInstance != null) {
+        }
+        finally
+        {
+            if ( runtimeInstance != null )
+            {
                 runtimeInstance.shutdown();
             }
         }

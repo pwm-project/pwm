@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,71 +38,89 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.TreeSet;
 
-public class OptionListValue extends AbstractValue  implements StoredValue {
+public class OptionListValue extends AbstractValue implements StoredValue
+{
     final Set<String> values;
 
-    public OptionListValue(final Set<String> values) {
-        this.values = new TreeSet(values);
+    public OptionListValue( final Set<String> values )
+    {
+        this.values = new TreeSet( values );
     }
 
-    public static StoredValueFactory factory()
+    public static StoredValueFactory factory( )
     {
-        return new StoredValueFactory() {
-            public OptionListValue fromJson(final String input)
+        return new StoredValueFactory()
+        {
+            public OptionListValue fromJson( final String input )
             {
-                if (input == null) {
-                    return new OptionListValue(Collections.<String>emptySet());
-                } else {
-                    Set<String> srcList = JsonUtil.deserialize(input, new TypeToken<Set<String>>() {});
+                if ( input == null )
+                {
+                    return new OptionListValue( Collections.<String>emptySet() );
+                }
+                else
+                {
+                    Set<String> srcList = JsonUtil.deserialize( input, new TypeToken<Set<String>>()
+                    {
+                    } );
                     srcList = srcList == null ? Collections.<String>emptySet() : srcList;
-                    while (srcList.contains(null)) {
-                        srcList.remove(null);
+                    while ( srcList.contains( null ) )
+                    {
+                        srcList.remove( null );
                     }
-                    return new OptionListValue(Collections.unmodifiableSet(srcList));
+                    return new OptionListValue( Collections.unmodifiableSet( srcList ) );
                 }
             }
 
-            public OptionListValue fromXmlElement(final Element settingElement, final PwmSecurityKey key)
+            public OptionListValue fromXmlElement( final Element settingElement, final PwmSecurityKey key )
                     throws PwmOperationalException
             {
-                final List valueElements = settingElement.getChildren("value");
+                final List valueElements = settingElement.getChildren( "value" );
                 final Set<String> values = new TreeSet<>();
-                for (final Object loopValue : valueElements) {
-                    final Element loopValueElement = (Element) loopValue;
+                for ( final Object loopValue : valueElements )
+                {
+                    final Element loopValueElement = ( Element ) loopValue;
                     final String value = loopValueElement.getText();
-                    if (value != null && !value.trim().isEmpty()) {
-                        values.add(value);
+                    if ( value != null && !value.trim().isEmpty() )
+                    {
+                        values.add( value );
                     }
                 }
-                return new OptionListValue(values);
+                return new OptionListValue( values );
             }
         };
     }
 
-    public List<Element> toXmlValues(final String valueElementName) {
+    public List<Element> toXmlValues( final String valueElementName )
+    {
         final List<Element> returnList = new ArrayList<>();
-        for (final String value : values) {
-            final Element valueElement = new Element(valueElementName);
-            valueElement.addContent(value);
-            returnList.add(valueElement);
+        for ( final String value : values )
+        {
+            final Element valueElement = new Element( valueElementName );
+            valueElement.addContent( value );
+            returnList.add( valueElement );
         }
         return returnList;
     }
 
-    public Set<String> toNativeObject() {
-        return Collections.unmodifiableSet(values);
+    public Set<String> toNativeObject( )
+    {
+        return Collections.unmodifiableSet( values );
     }
 
-    public List<String> validateValue(final PwmSetting pwmSetting) {
+    public List<String> validateValue( final PwmSetting pwmSetting )
+    {
         return Collections.emptyList();
     }
 
-    public String toDebugString(final Locale locale) {
+    public String toDebugString( final Locale locale )
+    {
         final StringBuilder sb = new StringBuilder();
-        for (final Iterator valueIterator = values.iterator(); valueIterator.hasNext(); ) {
-            sb.append(valueIterator.next());
-            if (valueIterator.hasNext()) {
-                sb.append("\n");
+        for ( final Iterator valueIterator = values.iterator(); valueIterator.hasNext(); )
+        {
+            sb.append( valueIterator.next() );
+            if ( valueIterator.hasNext() )
+            {
+                sb.append( "\n" );
             }
         }
         return sb.toString();

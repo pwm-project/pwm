@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,7 +29,8 @@ package password.pwm.util.java;
  *
  * @author Jason D. Rivard
  */
-public class Sleeper {
+public class Sleeper
+{
 
     private static final long MAX_SLEEP_TIME = 500;
     private static final long STANDARD_SLEEP_TIME = 20;
@@ -40,36 +41,43 @@ public class Sleeper {
     private long startTime = System.currentTimeMillis();
     private long sleepTime = 0;
 
-    public Sleeper(final int loadFactor) {
+    public Sleeper( final int loadFactor )
+    {
         this.loadFactor = loadFactor >= 0 ? loadFactor : 0;
 
         doSleep = loadFactor > 0;
     }
 
-    public int getLoadFactor() {
+    public int getLoadFactor( )
+    {
         return loadFactor;
     }
 
-    public void reset() {
+    public void reset( )
+    {
         startTime = System.currentTimeMillis();
         sleepTime = 0;
     }
 
-    public void sleep() {
-        if (!doSleep) {
+    public void sleep( )
+    {
+        if ( !doSleep )
+        {
             return;
         }
 
         final long totalRunTime = System.currentTimeMillis() - startTime;
         final float factor = loadFactor / 100f;
-        final long desiredTotalSleepTime = (long) (totalRunTime * factor);
+        final long desiredTotalSleepTime = ( long ) ( totalRunTime * factor );
 
         final long beginSleepTime = System.currentTimeMillis();
-        while (sleepTime < desiredTotalSleepTime) {
-            sleepTime += JavaHelper.pause(STANDARD_SLEEP_TIME);
+        while ( sleepTime < desiredTotalSleepTime )
+        {
+            sleepTime += JavaHelper.pause( STANDARD_SLEEP_TIME );
 
             final long currentSleepTime = System.currentTimeMillis() - beginSleepTime;
-            if (currentSleepTime > MAX_SLEEP_TIME) {
+            if ( currentSleepTime > MAX_SLEEP_TIME )
+            {
                 return;
             }
         }

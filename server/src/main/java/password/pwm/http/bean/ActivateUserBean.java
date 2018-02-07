@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,7 +28,8 @@ import password.pwm.config.option.SessionBeanMode;
 import java.util.Collections;
 import java.util.Set;
 
-public class ActivateUserBean extends PwmSessionBean {
+public class ActivateUserBean extends PwmSessionBean
+{
     private boolean tokenIssued;
     private boolean tokenPassed;
     private boolean agreementPassed;
@@ -38,70 +39,84 @@ public class ActivateUserBean extends PwmSessionBean {
 
     private UserIdentity userIdentity;
 
-    public boolean isTokenIssued() {
+    public boolean isTokenIssued( )
+    {
         return tokenIssued;
     }
 
-    public void setTokenIssued(final boolean tokenIssued) {
+    public void setTokenIssued( final boolean tokenIssued )
+    {
         this.tokenIssued = tokenIssued;
     }
 
-    public boolean isAgreementPassed() {
+    public boolean isAgreementPassed( )
+    {
         return agreementPassed;
     }
 
-    public void setAgreementPassed(final boolean agreementPassed) {
+    public void setAgreementPassed( final boolean agreementPassed )
+    {
         this.agreementPassed = agreementPassed;
     }
 
-    public boolean isFormValidated() {
+    public boolean isFormValidated( )
+    {
         return formValidated;
     }
 
-    public void setFormValidated(final boolean formValidated) {
+    public void setFormValidated( final boolean formValidated )
+    {
         this.formValidated = formValidated;
     }
 
-    public boolean isTokenPassed() {
+    public boolean isTokenPassed( )
+    {
         return tokenPassed;
     }
 
-    public void setTokenPassed(final boolean tokenPassed) {
+    public void setTokenPassed( final boolean tokenPassed )
+    {
         this.tokenPassed = tokenPassed;
     }
 
-    public UserIdentity getUserIdentity() {
+    public UserIdentity getUserIdentity( )
+    {
         return userIdentity;
     }
 
-    public void setUserIdentity(final UserIdentity userIdentity) {
+    public void setUserIdentity( final UserIdentity userIdentity )
+    {
         this.userIdentity = userIdentity;
     }
 
-    public String getTokenDisplayText() {
+    public String getTokenDisplayText( )
+    {
         return tokenDisplayText;
     }
 
-    public void setTokenDisplayText(final String tokenSendAddress) {
+    public void setTokenDisplayText( final String tokenSendAddress )
+    {
         this.tokenDisplayText = tokenSendAddress;
     }
 
-    public String getAgreementText()
+    public String getAgreementText( )
     {
         return agreementText;
     }
 
-    public void setAgreementText(final String agreementText)
+    public void setAgreementText( final String agreementText )
     {
         this.agreementText = agreementText;
     }
 
-    public Type getType() {
+    public Type getType( )
+    {
         return Type.PUBLIC;
     }
 
     @Override
-    public Set<SessionBeanMode> supportedModes() {
-        return Collections.singleton(SessionBeanMode.LOCAL);
+    public Set<SessionBeanMode> supportedModes( )
+    {
+        return Collections.singleton( SessionBeanMode.LOCAL );
     }
 }

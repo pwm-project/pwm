@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,13 +22,34 @@
 
 package password.pwm.i18n;
 
-public enum ConfigGuide implements PwmDisplayBundle {
+public enum ConfigGuide implements PwmDisplayBundle
+{
 
-
-    ;
+    ldap_admin_description,
+    ldap_admin_title,
+    ldap_admin_title_proxy_dn,
+    ldap_admin_title_proxy_pw,
+    ldap_cert_description,
+    ldap_context_description,
+    ldap_context_admin_title,
+    ldap_context_admin_description,
+    ldap_server_description,
+    ldap_server_title,
+    ldap_server_title_hostname,
+    ldap_server_title_port,
+    ldap_server_title_secure,
+    ldap_telemetry_enable_title,
+    ldap_telemetry_description_title,
+    ldap_testuser_description,
+    password_description,
+    password_title,
+    password_title_verify,
+    template_description,
+    title,;
 
     @Override
-    public String getKey() {
+    public String getKey( )
+    {
         return this.toString();
     }
 }

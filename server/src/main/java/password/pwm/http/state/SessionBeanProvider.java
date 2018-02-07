@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,12 +26,13 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.bean.PwmSessionBean;
 
-interface SessionBeanProvider {
-    <E extends PwmSessionBean> E getSessionBean(PwmRequest pwmRequest, Class<E> userBeanClass) throws PwmUnrecoverableException;
+interface SessionBeanProvider
+{
+    <E extends PwmSessionBean> E getSessionBean( PwmRequest pwmRequest, Class<E> userBeanClass ) throws PwmUnrecoverableException;
 
-    <E extends PwmSessionBean> void clearSessionBean(PwmRequest pwmRequest, Class<E> userBeanClass) throws PwmUnrecoverableException;
+    <E extends PwmSessionBean> void clearSessionBean( PwmRequest pwmRequest, Class<E> userBeanClass ) throws PwmUnrecoverableException;
 
-    void saveSessionBeans( PwmRequest pwmRequest);
+    void saveSessionBeans( PwmRequest pwmRequest );
 
-    String getSessionStateInfo( PwmRequest pwmRequest) throws PwmUnrecoverableException;
+    String getSessionStateInfo( PwmRequest pwmRequest ) throws PwmUnrecoverableException;
 }

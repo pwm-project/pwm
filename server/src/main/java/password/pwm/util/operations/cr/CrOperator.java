@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,54 +42,60 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public interface CrOperator {
+public interface CrOperator
+{
     /**
-     Read a response set suitable for use in forgotten password scenarios
+     * Read a response set suitable for use in forgotten password scenarios.
      */
-    ResponseSet readResponseSet(ChaiUser theUser, UserIdentity userIdentity, String userGUID)
+    ResponseSet readResponseSet( ChaiUser theUser, UserIdentity userIdentity, String userGUID )
             throws PwmUnrecoverableException;
 
     /**
      * Read a response info bean suitable for examining the user's stored response data, but not for use during forgotten password.
-     * @param theUser
-     * @param userGUID
-     * @return
-     * @throws PwmUnrecoverableException
      */
-    ResponseInfoBean readResponseInfo(ChaiUser theUser, UserIdentity userIdentity, String userGUID)
+    ResponseInfoBean readResponseInfo( ChaiUser theUser, UserIdentity userIdentity, String userGUID )
             throws PwmUnrecoverableException;
 
-    void clearResponses(UserIdentity userIdentity, ChaiUser theUser, String userGUID)
+    void clearResponses( UserIdentity userIdentity, ChaiUser theUser, String userGUID )
             throws PwmUnrecoverableException;
 
-    void writeResponses(UserIdentity userIdentity, ChaiUser theUser, String userGuid, ResponseInfoBean responseInfoBean)
+    void writeResponses( UserIdentity userIdentity, ChaiUser theUser, String userGuid, ResponseInfoBean responseInfoBean )
             throws PwmUnrecoverableException;
 
-    void close();
+    void close( );
 
-    class CrOperators {
-        private static final PwmLogger LOGGER = PwmLogger.forClass(CrOperator.class);
+    class CrOperators
+    {
+        private static final PwmLogger LOGGER = PwmLogger.forClass( CrOperator.class );
 
-        static ResponseInfoBean convertToNoAnswerInfoBean(final ResponseSet responseSet, final DataStorageMethod dataSource
+        static ResponseInfoBean convertToNoAnswerInfoBean( final ResponseSet responseSet, final DataStorageMethod dataSource
         )
                 throws ChaiUnavailableException, ChaiOperationException, ChaiValidationException
         {
-            final Map<Challenge,String> crMap = new LinkedHashMap<>();
+            final Map<Challenge, String> crMap = new LinkedHashMap<>();
             Answer.FormatType formatType = null;
-            try {
-                if (responseSet instanceof NmasResponseSet) {
+            try
+            {
+                if ( responseSet instanceof NmasResponseSet )
+                {
                     formatType = Answer.FormatType.NMAS;
-                } else {
-                    final List<ChallengeBean> challengeBeans = responseSet.asChallengeBeans(true);
-                    if (challengeBeans != null && !challengeBeans.isEmpty()) {
-                        formatType = challengeBeans.get(0).answer.getType();
+                }
+                else
+                {
+                    final List<ChallengeBean> challengeBeans = responseSet.asChallengeBeans( true );
+                    if ( challengeBeans != null && !challengeBeans.isEmpty() )
+                    {
+                        formatType = challengeBeans.get( 0 ).answer.getType();
                     }
                 }
-            } catch (Exception e) {
-                LOGGER.error("unable to determine formatType of stored responses: " + e.getMessage());
             }
-            for (final Challenge challenge : responseSet.getChallengeSet().getChallenges()) {
-                crMap.put(challenge,"");
+            catch ( Exception e )
+            {
+                LOGGER.error( "unable to determine formatType of stored responses: " + e.getMessage() );
+            }
+            for ( final Challenge challenge : responseSet.getChallengeSet().getChallenges() )
+            {
+                crMap.put( challenge, "" );
             }
 
             final ResponseInfoBean responseInfoBean = new ResponseInfoBean(
@@ -101,9 +107,9 @@ public interface CrOperator {
                     dataSource,
                     formatType
             );
-            responseInfoBean.setTimestamp(responseSet.getTimestamp() == null
+            responseInfoBean.setTimestamp( responseSet.getTimestamp() == null
                     ? null
-                    : Instant.ofEpochMilli(responseSet.getTimestamp().getTime())
+                    : Instant.ofEpochMilli( responseSet.getTimestamp().getTime() )
             );
             return responseInfoBean;
         }

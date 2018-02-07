@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,7 +41,8 @@ import java.util.Locale;
  */
 
 @Data
-public class LocalSessionStateBean implements Serializable {
+public class LocalSessionStateBean implements Serializable
+{
 
     private String srcAddress;
     private String srcHostname;
@@ -70,20 +71,24 @@ public class LocalSessionStateBean implements Serializable {
     private int sessionVerificationKeyLength;
     private boolean sessionIdRecycleNeeded;
 
-    public LocalSessionStateBean(final int sessionVerificationKeyLength) {
+    public LocalSessionStateBean( final int sessionVerificationKeyLength )
+    {
         this.sessionVerificationKeyLength = sessionVerificationKeyLength;
     }
 
-    public void incrementIntruderAttempts() {
+    public void incrementIntruderAttempts( )
+    {
         intruderAttempts++;
     }
 
-    public void clearIntruderAttempts() {
+    public void clearIntruderAttempts( )
+    {
         intruderAttempts = 0;
     }
 
-    public void regenerateSessionVerificationKey() {
-        sessionVerificationKey = PwmRandom.getInstance().alphaNumericString(sessionVerificationKeyLength) + Long.toHexString(System.currentTimeMillis());
+    public void regenerateSessionVerificationKey( )
+    {
+        sessionVerificationKey = PwmRandom.getInstance().alphaNumericString( sessionVerificationKeyLength ) + Long.toHexString( System.currentTimeMillis() );
     }
 }
 

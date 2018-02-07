@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,8 +27,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
-import password.pwm.config.value.data.UserPermission;
 import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.i18n.Display;
 import password.pwm.util.java.JsonUtil;
@@ -39,142 +39,174 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
-public class UserPermissionValue extends AbstractValue implements StoredValue {
+public class UserPermissionValue extends AbstractValue implements StoredValue
+{
     final List<UserPermission> values;
 
     private boolean needsXmlUpdate;
 
-    public UserPermissionValue(final List<UserPermission> values) {
+    public UserPermissionValue( final List<UserPermission> values )
+    {
         this.values = values;
     }
 
-    public static StoredValueFactory factory()
+    public static StoredValueFactory factory( )
     {
-        return new StoredValueFactory() {
-            public UserPermissionValue fromJson(final String input)
+        return new StoredValueFactory()
+        {
+            public UserPermissionValue fromJson( final String input )
             {
-                if (input == null) {
-                    return new UserPermissionValue(Collections.<UserPermission>emptyList());
-                } else {
-                    List<UserPermission> srcList = JsonUtil.deserialize(input, new TypeToken<List<UserPermission>>() {
-                    });
+                if ( input == null )
+                {
+                    return new UserPermissionValue( Collections.<UserPermission>emptyList() );
+                }
+                else
+                {
+                    List<UserPermission> srcList = JsonUtil.deserialize( input, new TypeToken<List<UserPermission>>()
+                    {
+                    } );
                     srcList = srcList == null ? Collections.<UserPermission>emptyList() : srcList;
-                    while (srcList.contains(null)) {
-                        srcList.remove(null);
+                    while ( srcList.contains( null ) )
+                    {
+                        srcList.remove( null );
                     }
-                    return new UserPermissionValue(Collections.unmodifiableList(srcList));
+                    return new UserPermissionValue( Collections.unmodifiableList( srcList ) );
                 }
             }
 
-            public UserPermissionValue fromXmlElement(final Element settingElement, final PwmSecurityKey key)
+            public UserPermissionValue fromXmlElement( final Element settingElement, final PwmSecurityKey key )
                     throws PwmOperationalException
             {
                 final boolean newType = "2".equals(
-                        settingElement.getAttributeValue(StoredConfigurationImpl.XML_ATTRIBUTE_SYNTAX_VERSION));
-                final List valueElements = settingElement.getChildren("value");
+                        settingElement.getAttributeValue( StoredConfigurationImpl.XML_ATTRIBUTE_SYNTAX_VERSION ) );
+                final List valueElements = settingElement.getChildren( "value" );
                 final List<UserPermission> values = new ArrayList<>();
-                for (final Object loopValue : valueElements) {
-                    final Element loopValueElement = (Element) loopValue;
+                for ( final Object loopValue : valueElements )
+                {
+                    final Element loopValueElement = ( Element ) loopValue;
                     final String value = loopValueElement.getText();
-                    if (value != null && !value.isEmpty()) {
-                        if (newType) {
-                            final UserPermission userPermission = JsonUtil.deserialize(value, UserPermission.class);
-                            values.add(userPermission);
-                        } else {
-                            values.add(new UserPermission(UserPermission.Type.ldapQuery, null, value, null));
+                    if ( value != null && !value.isEmpty() )
+                    {
+                        if ( newType )
+                        {
+                            final UserPermission userPermission = JsonUtil.deserialize( value, UserPermission.class );
+                            values.add( userPermission );
+                        }
+                        else
+                        {
+                            values.add( new UserPermission( UserPermission.Type.ldapQuery, null, value, null ) );
                         }
                     }
                 }
-                final UserPermissionValue userPermissionValue = new UserPermissionValue(values);
+                final UserPermissionValue userPermissionValue = new UserPermissionValue( values );
                 userPermissionValue.needsXmlUpdate = !newType;
                 return userPermissionValue;
             }
         };
     }
 
-    public List<Element> toXmlValues(final String valueElementName) {
+    public List<Element> toXmlValues( final String valueElementName )
+    {
         final List<Element> returnList = new ArrayList<>();
-        for (final UserPermission value : values) {
-            final Element valueElement = new Element(valueElementName);
-            valueElement.addContent(JsonUtil.serialize(value));
-            returnList.add(valueElement);
+        for ( final UserPermission value : values )
+        {
+            final Element valueElement = new Element( valueElementName );
+            valueElement.addContent( JsonUtil.serialize( value ) );
+            returnList.add( valueElement );
         }
         return returnList;
     }
 
-    public List<UserPermission> toNativeObject() {
-        return Collections.unmodifiableList(values);
+    public List<UserPermission> toNativeObject( )
+    {
+        return Collections.unmodifiableList( values );
     }
 
-    public List<String> validateValue(final PwmSetting pwmSetting) {
+    public List<String> validateValue( final PwmSetting pwmSetting )
+    {
         final List<String> returnObj = new ArrayList<>();
-        for (final UserPermission userPermission : values) {
-            try {
-                validateLdapSearchFilter(userPermission.getLdapQuery());
-            } catch (IllegalArgumentException e) {
-                returnObj.add(e.getMessage() + " for filter " + userPermission.getLdapQuery());
+        for ( final UserPermission userPermission : values )
+        {
+            try
+            {
+                validateLdapSearchFilter( userPermission.getLdapQuery() );
+            }
+            catch ( IllegalArgumentException e )
+            {
+                returnObj.add( e.getMessage() + " for filter " + userPermission.getLdapQuery() );
             }
         }
         return returnObj;
     }
 
-    public boolean isNeedsXmlUpdate()
+    public boolean isNeedsXmlUpdate( )
     {
         return needsXmlUpdate;
     }
 
-    private void validateLdapSearchFilter(final String filter) {
-        if (filter == null || filter.isEmpty()) {
+    private void validateLdapSearchFilter( final String filter )
+    {
+        if ( filter == null || filter.isEmpty() )
+        {
             return;
         }
 
-        final int leftParens = StringUtils.countMatches(filter, "(");
-        final int rightParens = StringUtils.countMatches(filter,")");
+        final int leftParens = StringUtils.countMatches( filter, "(" );
+        final int rightParens = StringUtils.countMatches( filter, ")" );
 
-        if (leftParens != rightParens) {
-            throw new IllegalArgumentException("unbalanced parentheses");
+        if ( leftParens != rightParens )
+        {
+            throw new IllegalArgumentException( "unbalanced parentheses" );
         }
     }
 
     @Override
-    public int currentSyntaxVersion()
+    public int currentSyntaxVersion( )
     {
         return 2;
     }
 
-    public String toDebugString(final Locale locale) {
-        if (values != null && !values.isEmpty()) {
+    public String toDebugString( final Locale locale )
+    {
+        if ( values != null && !values.isEmpty() )
+        {
             final StringBuilder sb = new StringBuilder();
             int counter = 0;
-            for (final UserPermission userPermission : values) {
-                sb.append("UserPermission");
-                if (values.size() > 1) {
-                    sb.append(counter);
+            for ( final UserPermission userPermission : values )
+            {
+                sb.append( "UserPermission" );
+                if ( values.size() > 1 )
+                {
+                    sb.append( counter );
                 }
-                sb.append("-");
-                sb.append(userPermission.getType() == null ? UserPermission.Type.ldapQuery.toString() : userPermission.getType().toString());
-                sb.append(": [");
-                sb.append("Profile:").append(
+                sb.append( "-" );
+                sb.append( userPermission.getType() == null ? UserPermission.Type.ldapQuery.toString() : userPermission.getType().toString() );
+                sb.append( ": [" );
+                sb.append( "Profile:" ).append(
                         userPermission.getLdapProfileID() == null
                                 ? "All"
                                 : userPermission.getLdapProfileID()
                 );
-                sb.append(" Base:").append(
+                sb.append( " Base:" ).append(
                         userPermission.getLdapBase() == null
-                                ? Display.getLocalizedMessage(locale,Display.Value_NotApplicable,null)
+                                ? Display.getLocalizedMessage( locale, Display.Value_NotApplicable, null )
                                 : userPermission.getLdapBase()
                 );
-                if (userPermission.getLdapQuery() != null) {
-                    sb.append(" Query:").append(userPermission.getLdapQuery());
+                if ( userPermission.getLdapQuery() != null )
+                {
+                    sb.append( " Query:" ).append( userPermission.getLdapQuery() );
                 }
-                sb.append("]");
+                sb.append( "]" );
                 counter++;
-                if (counter != values.size()) {
-                    sb.append("\n");
+                if ( counter != values.size() )
+                {
+                    sb.append( "\n" );
                 }
             }
             return sb.toString();
-        } else {
+        }
+        else
+        {
             return "";
         }
     }

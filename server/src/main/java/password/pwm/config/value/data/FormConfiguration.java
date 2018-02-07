@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,9 +53,11 @@ import java.util.regex.PatternSyntaxException;
  * @author Jason D. Rivard
  */
 @Getter
-public class FormConfiguration implements Serializable {
+public class FormConfiguration implements Serializable
+{
 
-    public enum Type {
+    public enum Type
+    {
         text,
         email,
         number,
@@ -74,7 +76,8 @@ public class FormConfiguration implements Serializable {
         checkbox,
     }
 
-    public enum Source {
+    public enum Source
+    {
         ldap,
         remote,
     }
@@ -89,229 +92,309 @@ public class FormConfiguration implements Serializable {
     private boolean readonly;
     private boolean unique;
     private boolean multivalue;
-    private Map<String,String> labels = Collections.singletonMap("", "");
-    private Map<String,String> regexErrors = Collections.singletonMap("","");
-    private Map<String,String> description = Collections.singletonMap("","");
+    private Map<String, String> labels = Collections.singletonMap( "", "" );
+    private Map<String, String> regexErrors = Collections.singletonMap( "", "" );
+    private Map<String, String> description = Collections.singletonMap( "", "" );
     private String regex = "";
     private String placeholder = "";
     private String javascript = "";
-    private Map<String,String> selectOptions = Collections.emptyMap();
+    private Map<String, String> selectOptions = Collections.emptyMap();
 
 
-    public static FormConfiguration parseOldConfigString(final String config)
+    public static FormConfiguration parseOldConfigString( final String config )
             throws PwmOperationalException
     {
-        if (config == null) {
-            throw new NullPointerException("config can not be null");
+        if ( config == null )
+        {
+            throw new NullPointerException( "config can not be null" );
         }
 
         final FormConfiguration formItem = new FormConfiguration();
-        final StringTokenizer st = new StringTokenizer(config, ":");
+        final StringTokenizer st = new StringTokenizer( config, ":" );
 
         // attribute name
         formItem.name = st.nextToken();
 
         // label
-        formItem.labels = Collections.singletonMap("",st.nextToken());
+        formItem.labels = Collections.singletonMap( "", st.nextToken() );
 
         // type
         {
             final String typeStr = st.nextToken();
-            try {
-                formItem.type = Type.valueOf(typeStr.toLowerCase());
-            } catch (IllegalArgumentException e) {
-                throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,null,new String[]{"unknown type for form config: " + typeStr}));
+            try
+            {
+                formItem.type = Type.valueOf( typeStr.toLowerCase() );
+            }
+            catch ( IllegalArgumentException e )
+            {
+                throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[] {
+                        "unknown type for form config: " + typeStr,
+                } ) );
             }
         }
 
         //minimum length
-        try {
-            formItem.minimumLength = Integer.parseInt(st.nextToken());
-        } catch (NumberFormatException e) {
-            throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,null,new String[]{"invalid minimum length type for form config: " + e.getMessage()}));
+        try
+        {
+            formItem.minimumLength = Integer.parseInt( st.nextToken() );
+        }
+        catch ( NumberFormatException e )
+        {
+            throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[] {
+                    "invalid minimum length type for form config: " + e.getMessage(),
+            } ) );
         }
 
         //maximum length
-        try {
-            formItem.maximumLength = Integer.parseInt(st.nextToken());
-        } catch (NumberFormatException e) {
-            throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,null,new String[]{"invalid maximum length type for form config: " + e.getMessage()}));
+        try
+        {
+            formItem.maximumLength = Integer.parseInt( st.nextToken() );
+        }
+        catch ( NumberFormatException e )
+        {
+            throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[] {
+                    "invalid maximum length type for form config: " + e.getMessage(),
+            } ) );
         }
 
         //required
-        formItem.required = Boolean.TRUE.toString().equalsIgnoreCase(st.nextToken());
+        formItem.required = Boolean.TRUE.toString().equalsIgnoreCase( st.nextToken() );
 
         //confirmation
-        formItem.confirmationRequired = Boolean.TRUE.toString().equalsIgnoreCase(st.nextToken());
+        formItem.confirmationRequired = Boolean.TRUE.toString().equalsIgnoreCase( st.nextToken() );
 
         return formItem;
     }
 
-    public void validate() throws PwmOperationalException {
-        if (this.getName() == null || this.getName().length() < 1) {
-            throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,null,new String[]{" form field name is required"}));
+    public void validate( ) throws PwmOperationalException
+    {
+        if ( this.getName() == null || this.getName().length() < 1 )
+        {
+            throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[] {
+                    " form field name is required",
+            } ) );
         }
 
-        if (this.getType() == null) {
-            throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,null,new String[]{" type is required for field " + this.getName()}));
+        if ( this.getType() == null )
+        {
+            throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[] {
+                    " type is required for field " + this.getName(),
+            } ) );
         }
 
-        if (labels == null || this.labels.isEmpty() || this.getLabel(PwmConstants.DEFAULT_LOCALE) == null || this.getLabel(PwmConstants.DEFAULT_LOCALE).length() < 1) {
-            throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,null,new String[]{" a default label value is required for " + this.getName()}));
+        if ( labels == null || this.labels.isEmpty() || this.getLabel( PwmConstants.DEFAULT_LOCALE ) == null || this.getLabel( PwmConstants.DEFAULT_LOCALE ).length() < 1 )
+        {
+            throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[] {
+                    " a default label value is required for " + this.getName(),
+            } ) );
         }
 
-        if (this.getRegex() != null && this.getRegex().length() > 0) {
-            try {
-                Pattern.compile(this.getRegex());
-            } catch (PatternSyntaxException e) {
-                throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,null,new String[]{" regular expression for '" + this.getName() + " ' is not valid: " + e.getMessage()}));
+        if ( this.getRegex() != null && this.getRegex().length() > 0 )
+        {
+            try
+            {
+                Pattern.compile( this.getRegex() );
+            }
+            catch ( PatternSyntaxException e )
+            {
+                throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[] {
+                        " regular expression for '" + this.getName() + " ' is not valid: " + e.getMessage(),
+                } ) );
             }
         }
 
-        if (this.getType() == Type.select) {
-            if (this.getSelectOptions() == null || this.getSelectOptions().isEmpty()) {
-                throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,null,new String[]{" field '" + this.getName() + " ' is type select, but no select options are defined"}));
+        if ( this.getType() == Type.select )
+        {
+            if ( this.getSelectOptions() == null || this.getSelectOptions().isEmpty() )
+            {
+                throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[] {
+                        " field '" + this.getName() + " ' is type select, but no select options are defined",
+                } ) );
             }
         }
     }
 
-    public FormConfiguration() {
-        labels = Collections.singletonMap("","");
-        regexErrors = Collections.singletonMap("","");
+    public FormConfiguration( )
+    {
+        labels = Collections.singletonMap( "", "" );
+        regexErrors = Collections.singletonMap( "", "" );
     }
 
-    public String getName() {
+    public String getName( )
+    {
         return name;
     }
 
-    public String getLabel(final Locale locale) {
-        return LocaleHelper.resolveStringKeyLocaleMap(locale, labels);
+    public String getLabel( final Locale locale )
+    {
+        return LocaleHelper.resolveStringKeyLocaleMap( locale, labels );
     }
 
-    public Map<String,String> getLabelLocaleMap() {
-        return Collections.unmodifiableMap(this.labels);
+    public Map<String, String> getLabelLocaleMap( )
+    {
+        return Collections.unmodifiableMap( this.labels );
     }
 
-    public String getRegexError(final Locale locale) {
-        return LocaleHelper.resolveStringKeyLocaleMap(locale, regexErrors);
+    public String getRegexError( final Locale locale )
+    {
+        return LocaleHelper.resolveStringKeyLocaleMap( locale, regexErrors );
     }
 
-    public String getDescription(final Locale locale) {
-        return LocaleHelper.resolveStringKeyLocaleMap(locale, description);
+    public String getDescription( final Locale locale )
+    {
+        return LocaleHelper.resolveStringKeyLocaleMap( locale, description );
     }
 
-    public Map<String,String> getLabelDescriptionLocaleMap() {
-        return Collections.unmodifiableMap(this.description);
+    public Map<String, String> getLabelDescriptionLocaleMap( )
+    {
+        return Collections.unmodifiableMap( this.description );
     }
 
-    public int getMaximumLength() {
+    public int getMaximumLength( )
+    {
         return maximumLength;
     }
 
-    public int getMinimumLength() {
+    public int getMinimumLength( )
+    {
         return minimumLength;
     }
 
-    public Type getType() {
+    public Type getType( )
+    {
         return type;
     }
 
-    public boolean isConfirmationRequired() {
+    public boolean isConfirmationRequired( )
+    {
         return confirmationRequired;
     }
 
-    public boolean isRequired() {
+    public boolean isRequired( )
+    {
         return required;
     }
 
-    public boolean isReadonly() {
+    public boolean isReadonly( )
+    {
         return readonly;
     }
 
-    public boolean isUnique() {
+    public boolean isUnique( )
+    {
         return unique;
     }
 
-    public boolean isMultivalue() {
+    public boolean isMultivalue( )
+    {
         return multivalue;
     }
 
-    public String getRegex() {
+    public String getRegex( )
+    {
         return regex;
     }
 
-    public String getPlaceholder() {
+    public String getPlaceholder( )
+    {
         return placeholder;
     }
 
-    public String getJavascript() {
+    public String getJavascript( )
+    {
         return javascript;
     }
 
-    public Map<String,String> getSelectOptions() {
-        return Collections.unmodifiableMap(selectOptions);
+    public Map<String, String> getSelectOptions( )
+    {
+        return Collections.unmodifiableMap( selectOptions );
     }
 
-    public boolean equals(final Object o) {
-        if (this == o) {
+    public boolean equals( final Object o )
+    {
+        if ( this == o )
+        {
             return true;
         }
-        if (!(o instanceof FormConfiguration)) {
+        if ( !( o instanceof FormConfiguration ) )
+        {
             return false;
         }
 
-        final FormConfiguration parameterConfig = (FormConfiguration) o;
+        final FormConfiguration parameterConfig = ( FormConfiguration ) o;
 
-        return !(name != null ? !name.equals(parameterConfig.name) : parameterConfig.name != null);
+        return !( name != null ? !name.equals( parameterConfig.name ) : parameterConfig.name != null );
     }
 
-    public int hashCode() {
-        return (name != null ? name.hashCode() : 0);
+    public int hashCode( )
+    {
+        return ( name != null ? name.hashCode() : 0 );
     }
 
-    public String toString() {
+    public String toString( )
+    {
         final StringBuilder sb = new StringBuilder();
 
-        sb.append("FormItem: ");
-        sb.append(JsonUtil.serialize(this));
+        sb.append( "FormItem: " );
+        sb.append( JsonUtil.serialize( this ) );
 
         return sb.toString();
     }
 
 
-
-    public void checkValue(final Configuration config, final String value, final Locale locale)
-            throws PwmDataValidationException, PwmUnrecoverableException {
+    public void checkValue( final Configuration config, final String value, final Locale locale )
+            throws PwmDataValidationException, PwmUnrecoverableException
+    {
 
         // ignore read only fields
-        if (readonly) {
+        if ( readonly )
+        {
             return;
         }
 
         //check if value is missing and required.
-        if (required && (value == null || value.length() < 1)) {
-            final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_REQUIRED, null, new String[]{getLabel(locale)});
-            throw new PwmDataValidationException(error);
+        if ( required && ( value == null || value.length() < 1 ) )
+        {
+            final ErrorInformation error = new ErrorInformation( PwmError.ERROR_FIELD_REQUIRED, null, new String[] {
+                    getLabel( locale ),
+            } );
+            throw new PwmDataValidationException( error );
         }
 
-        switch (type) {
+        switch ( type )
+        {
             case number:
-                if (value != null && value.length() > 0) {
-                    try {
-                        new BigInteger(value);
-                    } catch (NumberFormatException e) {
-                        final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_NOT_A_NUMBER, null, new String[]{getLabel(locale)});
-                        throw new PwmDataValidationException(error);
+                if ( value != null && value.length() > 0 )
+                {
+                    try
+                    {
+                        new BigInteger( value );
+                    }
+                    catch ( NumberFormatException e )
+                    {
+                        final ErrorInformation error = new ErrorInformation( PwmError.ERROR_FIELD_NOT_A_NUMBER, null, new String[] {
+                                getLabel( locale ),
+                        } );
+                        throw new PwmDataValidationException( error );
                     }
                 }
                 break;
 
 
             case email:
-                if (value != null && value.length() > 0) {
-                    if (!testEmailAddress(config, value)) {
-                        final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_INVALID_EMAIL, null, new String[]{getLabel(locale)});
-                        throw new PwmDataValidationException(error);
+                if ( value != null && value.length() > 0 )
+                {
+                    if ( !testEmailAddress( config, value ) )
+                    {
+                        final ErrorInformation error = new ErrorInformation(
+                                PwmError.ERROR_FIELD_INVALID_EMAIL,
+                                null,
+                                new String[]
+                                        {
+                                                getLabel( locale ),
+                                        }
+                        );
+                        throw new PwmDataValidationException( error );
                     }
                 }
                 break;
@@ -321,67 +404,94 @@ public class FormConfiguration implements Serializable {
                 break;
         }
 
-        if (value != null && (this.getMinimumLength() > 0) && (value.length() > 0) && (value.length() < this.getMinimumLength())) {
-            final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_TOO_SHORT, null, new String[]{getLabel(locale)});
-            throw new PwmDataValidationException(error);
+        if ( value != null && ( this.getMinimumLength() > 0 ) && ( value.length() > 0 ) && ( value.length() < this.getMinimumLength() ) )
+        {
+            final ErrorInformation error = new ErrorInformation( PwmError.ERROR_FIELD_TOO_SHORT, null, new String[] {
+                    getLabel( locale ),
+            } );
+            throw new PwmDataValidationException( error );
         }
 
-        if (value != null && value.length() > this.getMaximumLength()) {
-            final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_TOO_LONG, null, new String[]{getLabel(locale)});
-            throw new PwmDataValidationException(error);
+        if ( value != null && value.length() > this.getMaximumLength() )
+        {
+            final ErrorInformation error = new ErrorInformation( PwmError.ERROR_FIELD_TOO_LONG, null, new String[] {
+                    getLabel( locale ),
+            } );
+            throw new PwmDataValidationException( error );
         }
 
-        if (value != null && value.length() > 0 && this.getRegex() != null && this.getRegex().length() > 0) {
-            if (!value.matches(this.getRegex())) {
-                final String configuredErrorMessage = this.getRegexError(locale);
-                final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_REGEX_NOMATCH, null, configuredErrorMessage, new String[]{getLabel(locale)});
-                throw new PwmDataValidationException(error);
+        if ( value != null && value.length() > 0 && this.getRegex() != null && this.getRegex().length() > 0 )
+        {
+            if ( !value.matches( this.getRegex() ) )
+            {
+                final String configuredErrorMessage = this.getRegexError( locale );
+                final ErrorInformation error = new ErrorInformation(
+                        PwmError.ERROR_FIELD_REGEX_NOMATCH,
+                        null,
+                        configuredErrorMessage,
+                        new String[]
+                                {
+                                        getLabel( locale ),
+                                }
+                );
+                throw new PwmDataValidationException( error );
             }
         }
     }
 
-    public static List<String> convertToListOfNames(final Collection<FormConfiguration> formConfigurations) {
-        if (formConfigurations == null) {
+    public static List<String> convertToListOfNames( final Collection<FormConfiguration> formConfigurations )
+    {
+        if ( formConfigurations == null )
+        {
             return Collections.emptyList();
         }
         final ArrayList<String> returnList = new ArrayList<>();
-        for (final FormConfiguration formConfiguration : formConfigurations) {
-            returnList.add(formConfiguration.getName());
+        for ( final FormConfiguration formConfiguration : formConfigurations )
+        {
+            returnList.add( formConfiguration.getName() );
         }
         return returnList;
     }
 
     /**
      * Return false if an invalid email address is issued.
-     * @param config
-     * @param address
-     * @return
      */
-    public static boolean testEmailAddress(final Configuration config, final String address) {
+    public static boolean testEmailAddress( final Configuration config, final String address )
+    {
         final String patternStr;
-        if (config != null) {
-            patternStr = config.readAppProperty(AppProperty.FORM_EMAIL_REGEX);
-        } else {
+        if ( config != null )
+        {
+            patternStr = config.readAppProperty( AppProperty.FORM_EMAIL_REGEX );
+        }
+        else
+        {
             patternStr = AppProperty.FORM_EMAIL_REGEX.getDefaultValue();
         }
 
-        final Pattern pattern = Pattern.compile(patternStr);
-        final Matcher matcher = pattern.matcher(address);
+        final Pattern pattern = Pattern.compile( patternStr );
+        final Matcher matcher = pattern.matcher( address );
         return matcher.matches();
     }
 
-    public String displayValue(final String value, final Locale locale, final Configuration config) {
-        if (value == null) {
-            return LocaleHelper.getLocalizedMessage(locale, Display.Value_NotApplicable, config);
+    public String displayValue( final String value, final Locale locale, final Configuration config )
+    {
+        if ( value == null )
+        {
+            return LocaleHelper.getLocalizedMessage( locale, Display.Value_NotApplicable, config );
         }
 
-        if (this.getType() == Type.select) {
-            if (this.getSelectOptions() != null) {
-                for (final Map.Entry<String,String> entry : selectOptions.entrySet()) {
+        if ( this.getType() == Type.select )
+        {
+            if ( this.getSelectOptions() != null )
+            {
+                for ( final Map.Entry<String, String> entry : selectOptions.entrySet() )
+                {
                     final String key = entry.getKey();
-                    if (value.equals(key)) {
+                    if ( value.equals( key ) )
+                    {
                         final String displayValue = entry.getValue();
-                        if (!StringUtil.isEmpty(displayValue)) {
+                        if ( !StringUtil.isEmpty( displayValue ) )
+                        {
                             return displayValue;
                         }
                     }

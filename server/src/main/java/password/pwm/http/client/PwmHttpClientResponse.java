@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,39 +26,46 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.Map;
 
-public class PwmHttpClientResponse implements Serializable {
+public class PwmHttpClientResponse implements Serializable
+{
     private final int statusCode;
     private final String statusPhrase;
-    private final Map<String,String> headers;
+    private final Map<String, String> headers;
     private final String body;
 
-    public PwmHttpClientResponse(final int statusCode, final String statusPhrase, final Map<String, String> headers, final String body) {
+    public PwmHttpClientResponse( final int statusCode, final String statusPhrase, final Map<String, String> headers, final String body )
+    {
         this.statusCode = statusCode;
         this.statusPhrase = statusPhrase;
         this.headers = headers == null
                 ? Collections.emptyMap()
-                : Collections.unmodifiableMap(headers);
+                : Collections.unmodifiableMap( headers );
         this.body = body;
     }
 
-    public int getStatusCode() {
+    public int getStatusCode( )
+    {
         return statusCode;
     }
 
-    public String getStatusPhrase() {
+    public String getStatusPhrase( )
+    {
         return statusPhrase;
     }
 
-    public Map<String, String> getHeaders() {
+    public Map<String, String> getHeaders( )
+    {
         return headers;
     }
 
-    public String getBody() {
+    public String getBody( )
+    {
         return body;
     }
 
-    public String toDebugString() {
-        return PwmHttpClient.entityToDebugString("HTTP response status " + statusCode + " " + statusPhrase, headers, body);
+    public String toDebugString( )
+    {
+        return PwmHttpClient.entityToDebugString( "HTTP response status " + statusCode + " " + statusPhrase, headers, body );
     }
 
 }

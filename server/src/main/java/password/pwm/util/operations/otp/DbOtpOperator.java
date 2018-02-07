@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,47 +43,59 @@ import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
 
 /**
- *
  * @author mpieters
  */
-public class DbOtpOperator extends AbstractOtpOperator {
+public class DbOtpOperator extends AbstractOtpOperator
+{
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass(DbOtpOperator.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass( DbOtpOperator.class );
 
-    public DbOtpOperator(final PwmApplication pwmApplication) {
-        super.setPwmApplication(pwmApplication);
+    public DbOtpOperator( final PwmApplication pwmApplication )
+    {
+        super.setPwmApplication( pwmApplication );
     }
-    
+
     @Override
-    public OTPUserRecord readOtpUserConfiguration(final UserIdentity theUser, final String userGUID) throws PwmUnrecoverableException {
-        LOGGER.trace(String.format("Enter: readOtpUserConfiguration(%s, %s)", theUser, userGUID));
-        if (userGUID == null || userGUID.length() < 1) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot save otp to db, user does not have a GUID"));
+    public OTPUserRecord readOtpUserConfiguration( final UserIdentity theUser, final String userGUID ) throws PwmUnrecoverableException
+    {
+        LOGGER.trace( String.format( "Enter: readOtpUserConfiguration(%s, %s)", theUser, userGUID ) );
+        if ( userGUID == null || userGUID.length() < 1 )
+        {
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_MISSING_GUID, "cannot save otp to db, user does not have a GUID" ) );
         }
 
         OTPUserRecord otpConfig = null;
-        try {
+        try
+        {
             final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseAccessor();
-            String value = databaseAccessor.get(DatabaseTable.OTP, userGUID);
-            if (value != null && value.length() > 0) {
-                if (getPwmApplication().getConfig().readSettingAsBoolean(PwmSetting.OTP_SECRET_ENCRYPT)) {
-                    value = decryptAttributeValue(value);
+            String value = databaseAccessor.get( DatabaseTable.OTP, userGUID );
+            if ( value != null && value.length() > 0 )
+            {
+                if ( getPwmApplication().getConfig().readSettingAsBoolean( PwmSetting.OTP_SECRET_ENCRYPT ) )
+                {
+                    value = decryptAttributeValue( value );
                 }
-                if (value != null) {
-                    otpConfig = decomposeOtpAttribute(value);
+                if ( value != null )
+                {
+                    otpConfig = decomposeOtpAttribute( value );
                 }
-                if (otpConfig != null) {
-                    LOGGER.debug("found user OTP secret in db: " + otpConfig.toString());
+                if ( otpConfig != null )
+                {
+                    LOGGER.debug( "found user OTP secret in db: " + otpConfig.toString() );
                 }
             }
-        } catch (LocalDBException e) {
+        }
+        catch ( LocalDBException e )
+        {
             final String errorMsg = "unexpected LocalDB error reading responses: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-            throw new PwmUnrecoverableException(errorInformation);
-        } catch (PwmOperationalException e) {
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            throw new PwmUnrecoverableException( errorInformation );
+        }
+        catch ( PwmOperationalException e )
+        {
             final String errorMsg = "unexpected error reading responses: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-            throw new PwmUnrecoverableException(errorInformation);
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            throw new PwmUnrecoverableException( errorInformation );
         }
         return otpConfig;
     }
@@ -97,25 +109,32 @@ public class DbOtpOperator extends AbstractOtpOperator {
     )
             throws PwmUnrecoverableException
     {
-        if (userGUID == null || userGUID.length() < 1) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot save OTP secret to remote database, user " + theUser +  " does not have a guid"));
+        if ( userGUID == null || userGUID.length() < 1 )
+        {
+            throw new PwmUnrecoverableException( new ErrorInformation(
+                    PwmError.ERROR_MISSING_GUID,
+                    "cannot save OTP secret to remote database, user " + theUser + " does not have a guid" ) );
         }
 
-        LOGGER.trace("attempting to save OTP secret for " + theUser + " in remote database (key=" + userGUID + ")");
-        
-        try {
-            String value = composeOtpAttribute(otpConfig);
-            if (getPwmApplication().getConfig().readSettingAsBoolean(PwmSetting.OTP_SECRET_ENCRYPT)) {
-                LOGGER.debug("Encrypting OTP secret for storage");
-                value = encryptAttributeValue(value);
+        LOGGER.trace( "attempting to save OTP secret for " + theUser + " in remote database (key=" + userGUID + ")" );
+
+        try
+        {
+            String value = composeOtpAttribute( otpConfig );
+            if ( getPwmApplication().getConfig().readSettingAsBoolean( PwmSetting.OTP_SECRET_ENCRYPT ) )
+            {
+                LOGGER.debug( "Encrypting OTP secret for storage" );
+                value = encryptAttributeValue( value );
             }
             final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseAccessor();
-            databaseAccessor.put(DatabaseTable.OTP, userGUID, value);
-            LOGGER.info("saved OTP secret for " + theUser + " in remote database (key=" + userGUID + ")");
-        } catch (PwmOperationalException ex) {
-            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_OTP_SECRET, "unexpected error saving otp to db: " + ex.getMessage());
-            final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException(errorInfo);
-            pwmOE.initCause(ex);
+            databaseAccessor.put( DatabaseTable.OTP, userGUID, value );
+            LOGGER.info( "saved OTP secret for " + theUser + " in remote database (key=" + userGUID + ")" );
+        }
+        catch ( PwmOperationalException ex )
+        {
+            final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_WRITING_OTP_SECRET, "unexpected error saving otp to db: " + ex.getMessage() );
+            final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException( errorInfo );
+            pwmOE.initCause( ex );
             throw pwmOE;
         }
     }
@@ -128,26 +147,38 @@ public class DbOtpOperator extends AbstractOtpOperator {
     )
             throws PwmUnrecoverableException
     {
-        if (userGUID == null || userGUID.length() < 1) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot save OTP secret to remote database, user " + theUser +  " does not have a guid"));
+        if ( userGUID == null || userGUID.length() < 1 )
+        {
+            throw new PwmUnrecoverableException(
+                    new ErrorInformation(
+                            PwmError.ERROR_MISSING_GUID,
+                            "cannot save OTP secret to remote database, user " + theUser + " does not have a guid"
+                    ) );
         }
 
-        LOGGER.trace("attempting to clear OTP secret for " + theUser + " in remote database (key=" + userGUID + ")");
-        
-        try {
+        LOGGER.trace( "attempting to clear OTP secret for " + theUser + " in remote database (key=" + userGUID + ")" );
+
+        try
+        {
             final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseAccessor();
-            databaseAccessor.remove(DatabaseTable.OTP, userGUID);
-            LOGGER.info("cleared OTP secret for " + theUser + " in remote database (key=" + userGUID + ")");
-        } catch (DatabaseException ex) {
-            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_OTP_SECRET, "unexpected error saving otp to db: " + ex.getMessage());
-            final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException(errorInfo);
-            pwmOE.initCause(ex);
+            databaseAccessor.remove( DatabaseTable.OTP, userGUID );
+            LOGGER.info( "cleared OTP secret for " + theUser + " in remote database (key=" + userGUID + ")" );
+        }
+        catch ( DatabaseException ex )
+        {
+            final ErrorInformation errorInfo = new ErrorInformation(
+                    PwmError.ERROR_WRITING_OTP_SECRET,
+                    "unexpected error saving otp to db: " + ex.getMessage()
+            );
+            final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException( errorInfo );
+            pwmOE.initCause( ex );
             throw pwmOE;
         }
     }
 
     @Override
-    public void close() {
+    public void close( )
+    {
     }
 
 }

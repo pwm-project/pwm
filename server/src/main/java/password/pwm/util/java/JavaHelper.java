@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -67,37 +67,70 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
-public class JavaHelper {
+public class JavaHelper
+{
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass(JavaHelper.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass( JavaHelper.class );
 
-    private JavaHelper() {
+    private JavaHelper( )
+    {
     }
 
-
     /**
-     * Convert a byte[] array to readable string format. This makes the "hex" readable
+     * Convert a byte[] array to readable string format. This makes the "hex" readable.
      *
      * @param in byte[] buffer to convert to string format
      * @return result String buffer in String format
      */
-    @SuppressFBWarnings("ICAST_QUESTIONABLE_UNSIGNED_RIGHT_SHIFT")
-    public static String byteArrayToHexString(final byte[] in) {
-        final String[] pseudo = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"};
+    @SuppressFBWarnings( "ICAST_QUESTIONABLE_UNSIGNED_RIGHT_SHIFT" )
+    public static String byteArrayToHexString( final byte[] in )
+    {
+        final String[] pseudo =
+                {
+                        "0",
+                        "1",
+                        "2",
+                        "3",
+                        "4",
+                        "5",
+                        "6",
+                        "7",
+                        "8",
+                        "9",
+                        "A",
+                        "B",
+                        "C",
+                        "D",
+                        "E",
+                        "F",
+                };
 
-        if (in == null || in.length <= 0) {
+        if ( in == null || in.length <= 0 )
+        {
             return "";
         }
 
-        final StringBuilder out = new StringBuilder(in.length * 2);
+        final StringBuilder out = new StringBuilder( in.length * 2 );
 
-        for (final byte b : in) {
-            byte ch = (byte) (b & 0xF0);    // strip off high nibble
-            ch = (byte) (ch >>> 4);         // shift the bits down
-            ch = (byte) (ch & 0x0F);        // must do this is high order bit is on!
-            out.append(pseudo[(int) ch]);   // convert the nibble to a String Character
-            ch = (byte) (b & 0x0F);         // strip off low nibble
-            out.append(pseudo[(int) ch]);   // convert the nibble to a String Character
+        for ( final byte b : in )
+        {
+            // strip off high nibble
+            byte ch = ( byte ) ( b & 0xF0 );
+
+            // shift the bits down
+            ch = ( byte ) ( ch >>> 4 );
+
+            // must do this is high order bit is on!
+            ch = ( byte ) ( ch & 0x0F );
+
+            // convert the nibble to a String Character
+            out.append( pseudo[ ( int ) ch ] );
+
+            // strip off low nibble
+            ch = ( byte ) ( b & 0x0F );
+
+            // convert the nibble to a String Character
+            out.append( pseudo[ ( int ) ch ] );
         }
 
         return out.toString();
@@ -109,17 +142,23 @@ public class JavaHelper {
      * @param sleepTimeMS - a time duration in milliseconds
      * @return time actually spent sleeping
      */
-    @CheckReturnValue(when = javax.annotation.meta.When.NEVER)
-    public static long pause(final long sleepTimeMS) {
+    @CheckReturnValue( when = javax.annotation.meta.When.NEVER )
+    public static long pause( final long sleepTimeMS )
+    {
         final long startTime = System.currentTimeMillis();
-        do {
-            try {
-                final long sleepTime = sleepTimeMS - (System.currentTimeMillis() - startTime);
-                Thread.sleep(sleepTime > 0 ? sleepTime : 5);
-            } catch (InterruptedException e) {
+        do
+        {
+            try
+            {
+                final long sleepTime = sleepTimeMS - ( System.currentTimeMillis() - startTime );
+                Thread.sleep( sleepTime > 0 ? sleepTime : 5 );
+            }
+            catch ( InterruptedException e )
+            {
                 //who cares
             }
-        } while ((System.currentTimeMillis() - startTime) < sleepTimeMS);
+        }
+        while ( ( System.currentTimeMillis() - startTime ) < sleepTimeMS );
 
         return System.currentTimeMillis() - startTime;
     }
@@ -128,12 +167,15 @@ public class JavaHelper {
             final long sleepTimeMS,
             final long predicateCheckIntervalMS,
             final Predicate predicate
-    ) {
+    )
+    {
         final long startTime = System.currentTimeMillis();
-        final long pauseTime = Math.max(sleepTimeMS, predicateCheckIntervalMS);
-        while ((System.currentTimeMillis() - startTime) < sleepTimeMS) {
-            JavaHelper.pause(pauseTime);
-            if (predicate.test(null)) {
+        final long pauseTime = Math.max( sleepTimeMS, predicateCheckIntervalMS );
+        while ( ( System.currentTimeMillis() - startTime ) < sleepTimeMS )
+        {
+            JavaHelper.pause( pauseTime );
+            if ( predicate.test( null ) )
+            {
                 break;
             }
         }
@@ -141,61 +183,76 @@ public class JavaHelper {
         return System.currentTimeMillis() - startTime;
     }
 
-    public static String binaryArrayToHex(final byte[] buf) {
-        final char[] HEX_CHARS = "0123456789ABCDEF".toCharArray();
-        final char[] chars = new char[2 * buf.length];
-        for (int i = 0; i < buf.length; ++i) {
-            chars[2 * i] = HEX_CHARS[(buf[i] & 0xF0) >>> 4];
-            chars[2 * i + 1] = HEX_CHARS[buf[i] & 0x0F];
+    public static String binaryArrayToHex( final byte[] buf )
+    {
+        final char[] hexChars = "0123456789ABCDEF".toCharArray();
+        final char[] chars = new char[ 2 * buf.length ];
+        for ( int i = 0; i < buf.length; ++i )
+        {
+            chars[ 2 * i ] = hexChars[ ( buf[ i ] & 0xF0 ) >>> 4 ];
+            chars[ 2 * i + 1 ] = hexChars[ buf[ i ] & 0x0F ];
         }
-        return new String(chars);
+        return new String( chars );
     }
 
-    public static Instant nextZuluZeroTime() {
-        final Calendar nextZuluMidnight = GregorianCalendar.getInstance(TimeZone.getTimeZone("Zulu"));
-        nextZuluMidnight.set(Calendar.HOUR_OF_DAY,0);
-        nextZuluMidnight.set(Calendar.MINUTE,0);
-        nextZuluMidnight.set(Calendar.SECOND, 0);
-        nextZuluMidnight.add(Calendar.HOUR, 24);
+    public static Instant nextZuluZeroTime( )
+    {
+        final Calendar nextZuluMidnight = GregorianCalendar.getInstance( TimeZone.getTimeZone( "Zulu" ) );
+        nextZuluMidnight.set( Calendar.HOUR_OF_DAY, 0 );
+        nextZuluMidnight.set( Calendar.MINUTE, 0 );
+        nextZuluMidnight.set( Calendar.SECOND, 0 );
+        nextZuluMidnight.add( Calendar.HOUR, 24 );
         return nextZuluMidnight.getTime().toInstant();
     }
 
-    public static <E extends Enum<E>> List<E> readEnumListFromStringCollection(final Class<E> enumClass, final Collection<String> inputs ) {
+    public static <E extends Enum<E>> List<E> readEnumListFromStringCollection( final Class<E> enumClass, final Collection<String> inputs )
+    {
         final List<E> returnList = new ArrayList<E>();
-        for (final String input : inputs) {
-            final E item = readEnumFromString(enumClass, null, input);
-            if (item != null) {
-                returnList.add(item);
+        for ( final String input : inputs )
+        {
+            final E item = readEnumFromString( enumClass, null, input );
+            if ( item != null )
+            {
+                returnList.add( item );
             }
         }
-        return Collections.unmodifiableList(returnList);
+        return Collections.unmodifiableList( returnList );
     }
 
-    public static <E extends Enum<E>> E readEnumFromString(final Class<E> enumClass, final E defaultValue, final String input) {
-        if (StringUtil.isEmpty(input)) {
+    public static <E extends Enum<E>> E readEnumFromString( final Class<E> enumClass, final E defaultValue, final String input )
+    {
+        if ( StringUtil.isEmpty( input ) )
+        {
             return defaultValue;
         }
 
-        if (enumClass == null || !enumClass.isEnum()) {
+        if ( enumClass == null || !enumClass.isEnum() )
+        {
             return defaultValue;
         }
 
-        try {
-            return Enum.valueOf(enumClass, input);
-        } catch (IllegalArgumentException e) {
+        try
+        {
+            return Enum.valueOf( enumClass, input );
+        }
+        catch ( IllegalArgumentException e )
+        {
             /* noop */
             //LOGGER.trace("input=" + input + " does not exist in enumClass=" + enumClass.getSimpleName());
-        } catch (Throwable e) {
-            LOGGER.warn("unexpected error translating input=" + input + " to enumClass=" + enumClass.getSimpleName() + ", error: " + e.getMessage());
+        }
+        catch ( Throwable e )
+        {
+            LOGGER.warn( "unexpected error translating input=" + input + " to enumClass=" + enumClass.getSimpleName() + ", error: " + e.getMessage() );
         }
 
         return defaultValue;
     }
 
-    public static String throwableToString(final Throwable throwable) {
+    public static String throwableToString( final Throwable throwable )
+    {
         final StringWriter sw = new StringWriter();
-        final PrintWriter pw = new PrintWriter(sw);
-        throwable.printStackTrace(pw);
+        final PrintWriter pw = new PrintWriter( sw );
+        throwable.printStackTrace( pw );
         pw.flush();
         return sw.toString();
     }
@@ -203,23 +260,28 @@ public class JavaHelper {
     /**
      * Converts an exception to a string message.  Handles cases where the message in the exception is null
      * and/or there are multiple nested cause exceptions.
+     *
      * @param e The exception to convert to a string
      * @return A string containing any meaningful extractable cause information, suitable for debugging.
      */
-    public static String readHostileExceptionMessage(final Throwable e) {
+    public static String readHostileExceptionMessage( final Throwable e )
+    {
         final StringBuilder errorMsg = new StringBuilder();
-        errorMsg.append(e.getClass().getName());
-        if (e.getMessage() != null) {
-            errorMsg.append(": ").append(e.getMessage());
+        errorMsg.append( e.getClass().getName() );
+        if ( e.getMessage() != null )
+        {
+            errorMsg.append( ": " ).append( e.getMessage() );
         }
 
         Throwable cause = e.getCause();
         int safetyCounter = 0;
-        while (cause != null && safetyCounter < 10) {
+        while ( cause != null && safetyCounter < 10 )
+        {
             safetyCounter++;
-            errorMsg.append(", cause:").append(cause.getClass().getName());
-            if (cause.getMessage() != null) {
-                errorMsg.append(": ").append(cause.getMessage());
+            errorMsg.append( ", cause:" ).append( cause.getClass().getName() );
+            if ( cause.getMessage() != null )
+            {
+                errorMsg.append( ": " ).append( cause.getMessage() );
             }
             cause = cause.getCause();
         }
@@ -227,11 +289,13 @@ public class JavaHelper {
         return errorMsg.toString();
     }
 
-    public static <E extends Enum<E>> boolean enumArrayContainsValue(final E[] enumArray, final E enumValue) {
-        return !(enumArray == null || enumArray.length == 0) && Arrays.asList(enumArray).contains(enumValue);
+    public static <E extends Enum<E>> boolean enumArrayContainsValue( final E[] enumArray, final E enumValue )
+    {
+        return !( enumArray == null || enumArray.length == 0 ) && Arrays.asList( enumArray ).contains( enumValue );
     }
 
-    public static void unhandledSwitchStatement(final Object switchParameter) {
+    public static void unhandledSwitchStatement( final Object switchParameter )
+    {
         final String className = switchParameter == null
                 ? "unknown - see stack trace"
                 : switchParameter.getClass().getName();
@@ -241,44 +305,51 @@ public class JavaHelper {
                 : switchParameter.toString();
 
         final String errorMsg = "unhandled switch statement on parameter class=" + className + ", value=" + paramValue;
-        final UnsupportedOperationException exception = new UnsupportedOperationException(errorMsg);
-        LOGGER.warn(errorMsg, exception);
+        final UnsupportedOperationException exception = new UnsupportedOperationException( errorMsg );
+        LOGGER.warn( errorMsg, exception );
         throw exception;
     }
 
-    public static long copy(final InputStream input, final OutputStream output)
+    public static long copy( final InputStream input, final OutputStream output )
             throws IOException
     {
         final int bufferSize = 4 * 1024;
-        final byte[] buffer = new byte[bufferSize];
-        return IOUtils.copyLarge(input, output, 0 , bufferSize, buffer);
+        final byte[] buffer = new byte[ bufferSize ];
+        return IOUtils.copyLarge( input, output, 0, bufferSize, buffer );
     }
 
-    public static long copyWhilePredicate(final InputStream input, final OutputStream output, final Predicate predicate)
+    public static long copyWhilePredicate( final InputStream input, final OutputStream output, final Predicate predicate )
             throws IOException
     {
         final int bufferSize = 4 * 1024;
-        final byte[] buffer = new byte[bufferSize];
+        final byte[] buffer = new byte[ bufferSize ];
         long bytesCopied;
         long totalCopied = 0;
-        do {
-            bytesCopied = IOUtils.copyLarge(input, output, 0 , bufferSize, buffer);
-            if (bytesCopied > 0) {
+        do
+        {
+            bytesCopied = IOUtils.copyLarge( input, output, 0, bufferSize, buffer );
+            if ( bytesCopied > 0 )
+            {
                 totalCopied += bytesCopied;
             }
-            if (!predicate.test(null)) {
+            if ( !predicate.test( null ) )
+            {
                 return totalCopied;
             }
-        } while (bytesCopied > 0);
+        }
+        while ( bytesCopied > 0 );
         return totalCopied;
     }
 
-    public static String toIsoDate(final Instant instant) {
-        return instant == null ? "" : instant.truncatedTo(ChronoUnit.SECONDS).toString();
+    public static String toIsoDate( final Instant instant )
+    {
+        return instant == null ? "" : instant.truncatedTo( ChronoUnit.SECONDS ).toString();
     }
 
-    public static String toIsoDate(final Date date) {
-        if (date == null) {
+    public static String toIsoDate( final Date date )
+    {
+        if ( date == null )
+        {
             return "";
         }
 
@@ -287,83 +358,99 @@ public class JavaHelper {
                 PwmConstants.DEFAULT_LOCALE
         );
 
-        dateFormat.setTimeZone(PwmConstants.DEFAULT_TIMEZONE);
+        dateFormat.setTimeZone( PwmConstants.DEFAULT_TIMEZONE );
 
-        return dateFormat.format(date);
+        return dateFormat.format( date );
     }
 
-    public static Instant parseIsoToInstant(final String input) {
-        return Instant.parse(input);
-    }
-
-    @CheckReturnValue(when = javax.annotation.meta.When.NEVER)
-    public static boolean closeAndWaitExecutor(final ExecutorService executor, final TimeDuration timeDuration)
+    public static Instant parseIsoToInstant( final String input )
     {
-        if (executor == null) {
+        return Instant.parse( input );
+    }
+
+    @CheckReturnValue( when = javax.annotation.meta.When.NEVER )
+    public static boolean closeAndWaitExecutor( final ExecutorService executor, final TimeDuration timeDuration )
+    {
+        if ( executor == null )
+        {
             return true;
         }
 
         executor.shutdown();
-        try {
-            return executor.awaitTermination(timeDuration.getTotalMilliseconds(), TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            LOGGER.warn("unexpected error shutting down executor service " + executor.getClass().toString() + " error: " + e.getMessage());
+        try
+        {
+            return executor.awaitTermination( timeDuration.getTotalMilliseconds(), TimeUnit.MILLISECONDS );
+        }
+        catch ( InterruptedException e )
+        {
+            LOGGER.warn( "unexpected error shutting down executor service " + executor.getClass().toString() + " error: " + e.getMessage() );
         }
         return false;
     }
 
-    public static String makeThreadName(final PwmApplication pwmApplication, final Class theClass) {
+    public static String makeThreadName( final PwmApplication pwmApplication, final Class theClass )
+    {
         String instanceName = "-";
-        if (pwmApplication != null && pwmApplication.getInstanceID() != null) {
+        if ( pwmApplication != null && pwmApplication.getInstanceID() != null )
+        {
             instanceName = pwmApplication.getInstanceID();
         }
 
         return PwmConstants.PWM_APP_NAME + "-" + instanceName + "-" + theClass.getSimpleName();
     }
 
-    public static Properties newSortedProperties() {
-        return new Properties() {
-            public synchronized Enumeration<Object> keys() {
-                return Collections.enumeration(new TreeSet<>(super.keySet()));
+    public static Properties newSortedProperties( )
+    {
+        return new Properties()
+        {
+            public synchronized Enumeration<Object> keys( )
+            {
+                return Collections.enumeration( new TreeSet<>( super.keySet() ) );
             }
         };
     }
 
-    public static ThreadFactory makePwmThreadFactory(final String namePrefix, final boolean daemon) {
-        return new ThreadFactory() {
+    public static ThreadFactory makePwmThreadFactory( final String namePrefix, final boolean daemon )
+    {
+        return new ThreadFactory()
+        {
             private final ThreadFactory realThreadFactory = Executors.defaultThreadFactory();
 
             @Override
-            public Thread newThread(final Runnable r) {
-                final Thread t = realThreadFactory.newThread(r);
-                t.setDaemon(daemon);
-                if (namePrefix != null) {
+            public Thread newThread( final Runnable r )
+            {
+                final Thread t = realThreadFactory.newThread( r );
+                t.setDaemon( daemon );
+                if ( namePrefix != null )
+                {
                     final String newName = namePrefix + t.getName();
-                    t.setName(newName);
+                    t.setName( newName );
                 }
                 return t;
             }
         };
     }
 
-    public static Collection<Method> getAllMethodsForClass(final Class clazz) {
+    public static Collection<Method> getAllMethodsForClass( final Class clazz )
+    {
         final LinkedHashSet<Method> methods = new LinkedHashSet<>();
 
         // add local methods;
-        methods.addAll(Arrays.asList(clazz.getDeclaredMethods()));
+        methods.addAll( Arrays.asList( clazz.getDeclaredMethods() ) );
 
         final Class superClass = clazz.getSuperclass();
-        if (superClass != null) {
-            methods.addAll(getAllMethodsForClass(superClass));
+        if ( superClass != null )
+        {
+            methods.addAll( getAllMethodsForClass( superClass ) );
         }
 
-        return Collections.unmodifiableSet(methods);
+        return Collections.unmodifiableSet( methods );
     }
 
-    public static CSVPrinter makeCsvPrinter(final OutputStream outputStream)
+    public static CSVPrinter makeCsvPrinter( final OutputStream outputStream )
             throws IOException
     {
-        return new CSVPrinter(new OutputStreamWriter(outputStream, PwmConstants.DEFAULT_CHARSET), PwmConstants.DEFAULT_CSV_FORMAT);
+        return new CSVPrinter( new OutputStreamWriter( outputStream, PwmConstants.DEFAULT_CHARSET ), PwmConstants.DEFAULT_CSV_FORMAT );
     }
 
     public static ScheduledExecutorService makeSingleThreadExecutorService(
@@ -373,114 +460,135 @@ public class JavaHelper {
     {
         return Executors.newSingleThreadScheduledExecutor(
                 makePwmThreadFactory(
-                        JavaHelper.makeThreadName(pwmApplication,clazz) + "-",
+                        JavaHelper.makeThreadName( pwmApplication, clazz ) + "-",
                         true
-                ));
+                ) );
     }
 
 
     /**
      * Copy of {@link ThreadInfo#toString()} but with the MAX_FRAMES changed from 8 to 256.
      */
-    public static String threadInfoToString(final ThreadInfo threadInfo) {
-        final int MAX_FRAMES = 256;
-        final StringBuilder sb = new StringBuilder("\"" + threadInfo.getThreadName() + "\"" +
-                " Id=" + threadInfo.getThreadId() + " " +
-                threadInfo.getThreadState());
-        if (threadInfo.getLockName() != null) {
-            sb.append(" on " + threadInfo.getLockName());
+    public static String threadInfoToString( final ThreadInfo threadInfo )
+    {
+        final int maxFrames = 256;
+        final StringBuilder sb = new StringBuilder( "\"" + threadInfo.getThreadName() + "\""
+                + " Id=" + threadInfo.getThreadId() + " "
+                + threadInfo.getThreadState() );
+        if ( threadInfo.getLockName() != null )
+        {
+            sb.append( " on " + threadInfo.getLockName() );
         }
-        if (threadInfo.getLockOwnerName() != null) {
-            sb.append(" owned by \"" + threadInfo.getLockOwnerName() +
-                    "\" Id=" + threadInfo.getLockOwnerId());
+        if ( threadInfo.getLockOwnerName() != null )
+        {
+            sb.append( " owned by \"" + threadInfo.getLockOwnerName()
+                    + "\" Id=" + threadInfo.getLockOwnerId() );
         }
-        if (threadInfo.isSuspended()) {
-            sb.append(" (suspended)");
+        if ( threadInfo.isSuspended() )
+        {
+            sb.append( " (suspended)" );
         }
-        if (threadInfo.isInNative()) {
-            sb.append(" (in native)");
+        if ( threadInfo.isInNative() )
+        {
+            sb.append( " (in native)" );
         }
-        sb.append('\n');
+        sb.append( '\n' );
 
         int counter = 0;
-        for (; counter < threadInfo.getStackTrace().length && counter < MAX_FRAMES; counter++) {
-            final StackTraceElement ste = threadInfo.getStackTrace()[counter];
-            sb.append("\tat ").append(ste.toString());
-            sb.append('\n');
-            if (counter == 0 && threadInfo.getLockInfo() != null) {
+
+        for (; counter < threadInfo.getStackTrace().length && counter < maxFrames; counter++ )
+        {
+            final StackTraceElement ste = threadInfo.getStackTrace()[ counter ];
+            sb.append( "\tat " ).append( ste.toString() );
+            sb.append( '\n' );
+            if ( counter == 0 && threadInfo.getLockInfo() != null )
+            {
                 final Thread.State ts = threadInfo.getThreadState();
-                switch (ts) {
+                switch ( ts )
+                {
                     case BLOCKED:
-                        sb.append("\t-  blocked on " + threadInfo.getLockInfo());
-                        sb.append('\n');
+                        sb.append( "\t-  blocked on " + threadInfo.getLockInfo() );
+                        sb.append( '\n' );
                         break;
                     case WAITING:
-                        sb.append("\t-  waiting on " + threadInfo.getLockInfo());
-                        sb.append('\n');
+                        sb.append( "\t-  waiting on " + threadInfo.getLockInfo() );
+                        sb.append( '\n' );
                         break;
                     case TIMED_WAITING:
-                        sb.append("\t-  waiting on " + threadInfo.getLockInfo());
-                        sb.append('\n');
+                        sb.append( "\t-  waiting on " + threadInfo.getLockInfo() );
+                        sb.append( '\n' );
                         break;
                     default:
                 }
             }
 
-            for (MonitorInfo mi : threadInfo.getLockedMonitors()) {
-                if (mi.getLockedStackDepth() == counter) {
-                    sb.append("\t-  locked " + mi);
-                    sb.append('\n');
+            for ( MonitorInfo mi : threadInfo.getLockedMonitors() )
+            {
+                if ( mi.getLockedStackDepth() == counter )
+                {
+                    sb.append( "\t-  locked " + mi );
+                    sb.append( '\n' );
                 }
             }
         }
-        if (counter < threadInfo.getStackTrace().length) {
-            sb.append("\t...");
-            sb.append('\n');
+        if ( counter < threadInfo.getStackTrace().length )
+        {
+            sb.append( "\t..." );
+            sb.append( '\n' );
         }
 
         final LockInfo[] locks = threadInfo.getLockedSynchronizers();
-        if (locks.length > 0) {
-            sb.append("\n\tNumber of locked synchronizers = " + locks.length);
-            sb.append('\n');
-            for (LockInfo li : locks) {
-                sb.append("\t- " + li);
-                sb.append('\n');
+        if ( locks.length > 0 )
+        {
+            sb.append( "\n\tNumber of locked synchronizers = " + locks.length );
+            sb.append( '\n' );
+            for ( LockInfo li : locks )
+            {
+                sb.append( "\t- " + li );
+                sb.append( '\n' );
             }
         }
-        sb.append('\n');
+        sb.append( '\n' );
         return sb.toString();
     }
 
-    public static String readEulaText(final ContextManager contextManager, final String filename)
+    public static String readEulaText( final ContextManager contextManager, final String filename )
             throws IOException
     {
         final String path = PwmConstants.URL_PREFIX_PUBLIC + "/resources/text/" + filename;
-        final InputStream inputStream = contextManager.getResourceAsStream(path);
+        final InputStream inputStream = contextManager.getResourceAsStream( path );
         final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        copyWhilePredicate(inputStream, byteArrayOutputStream, o -> true);
-        return byteArrayOutputStream.toString(PwmConstants.DEFAULT_CHARSET.name());
+        copyWhilePredicate( inputStream, byteArrayOutputStream, o -> true );
+        return byteArrayOutputStream.toString( PwmConstants.DEFAULT_CHARSET.name() );
     }
 
-    public static boolean isEmpty(final Collection collection) {
+    public static boolean isEmpty( final Collection collection )
+    {
         return collection == null ? true : collection.isEmpty();
     }
 
-    public static boolean isEmpty(final Map map) {
+    public static boolean isEmpty( final Map map )
+    {
         return map == null ? true : map.isEmpty();
     }
 
-    public static int rangeCheck(final int min, final int max, final int value) {
-        if (min > max) {
-            throw new IllegalArgumentException("min range is greater than max range");
+    public static int rangeCheck( final int min, final int max, final int value )
+    {
+        if ( min > max )
+        {
+            throw new IllegalArgumentException( "min range is greater than max range" );
         }
-        if (max < min) {
-            throw new IllegalArgumentException("max range is less than min range");
+        if ( max < min )
+        {
+            throw new IllegalArgumentException( "max range is less than min range" );
         }
         int returnValue = value;
-        if (value < min) {
+        if ( value < min )
+        {
             returnValue = min;
         }
-        if (value > max) {
+        if ( value > max )
+        {
             returnValue = max;
         }
         return returnValue;

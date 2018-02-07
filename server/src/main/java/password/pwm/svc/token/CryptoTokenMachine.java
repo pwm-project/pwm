@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2016 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,11 +26,12 @@ import password.pwm.bean.SessionLabel;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 
-class CryptoTokenMachine implements TokenMachine {
+class CryptoTokenMachine implements TokenMachine
+{
 
     private final TokenService tokenService;
 
-    CryptoTokenMachine(final TokenService tokenService)
+    CryptoTokenMachine( final TokenService tokenService )
             throws PwmOperationalException
     {
         this.tokenService = tokenService;
@@ -42,58 +43,70 @@ class CryptoTokenMachine implements TokenMachine {
     )
             throws PwmUnrecoverableException, PwmOperationalException
     {
-        final int WRAP_LENGTH = 60;
-        final StringBuilder returnString = new StringBuilder(tokenService.toEncryptedString(tokenPayload));
-        for (int i = WRAP_LENGTH - 1; i < returnString.length(); i += WRAP_LENGTH) {
-            returnString.insert(i,"\n");
+        final int wrapLength = 60;
+        final StringBuilder returnString = new StringBuilder( tokenService.toEncryptedString( tokenPayload ) );
+        for ( int i = wrapLength - 1; i < returnString.length(); i += wrapLength )
+        {
+            returnString.insert( i, "\n" );
         }
         return returnString.toString();
     }
 
-    public TokenPayload retrieveToken(final TokenKey tokenKey)
+    public TokenPayload retrieveToken( final TokenKey tokenKey )
             throws PwmOperationalException, PwmUnrecoverableException
     {
-        if (tokenKey == null || tokenKey.getStoredHash().length() < 1) {
+        if ( tokenKey == null || tokenKey.getStoredHash().length() < 1 )
+        {
             return null;
         }
-        return tokenService.fromEncryptedString(tokenKey.getStoredHash());
+        return tokenService.fromEncryptedString( tokenKey.getStoredHash() );
     }
 
-    public void storeToken(final TokenKey tokenKey, final TokenPayload tokenPayload) throws PwmOperationalException, PwmUnrecoverableException {
+    public void storeToken( final TokenKey tokenKey, final TokenPayload tokenPayload ) throws PwmOperationalException, PwmUnrecoverableException
+    {
     }
 
-    public void removeToken(final TokenKey tokenKey) throws PwmOperationalException, PwmUnrecoverableException {
+    public void removeToken( final TokenKey tokenKey ) throws PwmOperationalException, PwmUnrecoverableException
+    {
     }
 
-    public int size() throws PwmOperationalException, PwmUnrecoverableException {
+    public int size( ) throws PwmOperationalException, PwmUnrecoverableException
+    {
         return 0;
     }
 
-    public void cleanup() {
+    public void cleanup( )
+    {
     }
 
-    public boolean supportsName() {
+    public boolean supportsName( )
+    {
         return true;
     }
 
-    public TokenKey keyFromKey(final String key) throws PwmUnrecoverableException {
-        return new CryptoTokenKey(key);
+    public TokenKey keyFromKey( final String key ) throws PwmUnrecoverableException
+    {
+        return new CryptoTokenKey( key );
     }
 
     @Override
-    public TokenKey keyFromStoredHash(final String storedHash) {
-        return new CryptoTokenKey(storedHash);
+    public TokenKey keyFromStoredHash( final String storedHash )
+    {
+        return new CryptoTokenKey( storedHash );
     }
 
-    private static class CryptoTokenKey implements TokenKey {
+    private static class CryptoTokenKey implements TokenKey
+    {
         private String value;
 
-        CryptoTokenKey(final String value) {
+        CryptoTokenKey( final String value )
+        {
             this.value = value;
         }
 
         @Override
-        public String getStoredHash() {
+        public String getStoredHash( )
+        {
             return value;
         }
     }

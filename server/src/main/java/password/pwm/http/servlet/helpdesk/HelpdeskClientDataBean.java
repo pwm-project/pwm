@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 
 package password.pwm.http.servlet.helpdesk;
 
+import lombok.Data;
 import password.pwm.config.option.HelpdeskClearResponseMode;
 import password.pwm.config.option.HelpdeskUIMode;
 import password.pwm.config.option.IdentityVerificationMethod;
@@ -33,8 +34,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class HelpdeskClientDataBean implements Serializable {
-    private Map<String,String> helpdesk_search_columns = new HashMap<>();
+@Data
+@SuppressWarnings( "checkstyle:MemberName" )
+public class HelpdeskClientDataBean implements Serializable
+{
+    private Map<String, String> helpdesk_search_columns = new HashMap<>();
     private boolean helpdesk_setting_maskPasswords;
     private HelpdeskClearResponseMode helpdesk_setting_clearResponses;
     private HelpdeskUIMode helpdesk_setting_PwUiMode;
@@ -43,109 +47,17 @@ public class HelpdeskClientDataBean implements Serializable {
     private Map<String, Collection<IdentityVerificationMethod>> verificationMethods = new HashMap<>();
     private List<FormInformation> verificationForm;
 
-    public Map<String, String> getHelpdesk_search_columns() {
-        return helpdesk_search_columns;
-    }
-
-    public void setHelpdesk_search_columns(final Map<String, String> helpdesk_search_columns) {
-        this.helpdesk_search_columns = helpdesk_search_columns;
-    }
-
-    public boolean isHelpdesk_setting_maskPasswords() {
-        return helpdesk_setting_maskPasswords;
-    }
-
-    public void setHelpdesk_setting_maskPasswords(final boolean helpdesk_setting_maskPasswords) {
-        this.helpdesk_setting_maskPasswords = helpdesk_setting_maskPasswords;
-    }
-
-    public HelpdeskClearResponseMode getHelpdesk_setting_clearResponses() {
-        return helpdesk_setting_clearResponses;
-    }
-
-    public void setHelpdesk_setting_clearResponses(final HelpdeskClearResponseMode helpdesk_setting_clearResponses) {
-        this.helpdesk_setting_clearResponses = helpdesk_setting_clearResponses;
-    }
-
-    public HelpdeskUIMode getHelpdesk_setting_PwUiMode() {
-        return helpdesk_setting_PwUiMode;
-    }
-
-    public void setHelpdesk_setting_PwUiMode(final HelpdeskUIMode helpdesk_setting_PwUiMode) {
-        this.helpdesk_setting_PwUiMode = helpdesk_setting_PwUiMode;
-    }
-
-    public MessageSendMethod getHelpdesk_setting_tokenSendMethod() {
-        return helpdesk_setting_tokenSendMethod;
-    }
-
-    public void setHelpdesk_setting_tokenSendMethod(final MessageSendMethod helpdesk_setting_tokenSendMethod) {
-        this.helpdesk_setting_tokenSendMethod = helpdesk_setting_tokenSendMethod;
-    }
-
-    public Map<String, ActionInformation> getActions() {
-        return actions;
-    }
-
-    public void setActions(final Map<String, ActionInformation> actions) {
-        this.actions = actions;
-    }
-
-    public Map<String, Collection<IdentityVerificationMethod>> getVerificationMethods() {
-        return verificationMethods;
-    }
-
-    public void setVerificationMethods(final Map<String, Collection<IdentityVerificationMethod>> verificationMethods) {
-        this.verificationMethods = verificationMethods;
-    }
-
-    public List getVerificationForm() {
-        return verificationForm;
-    }
-
-    public void setVerificationForm(final List verificationForm) {
-        this.verificationForm = verificationForm;
-    }
-
-    public static class ActionInformation implements Serializable {
+    @Data
+    public static class ActionInformation implements Serializable
+    {
         private String name;
         private String description;
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(final String name) {
-            this.name = name;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public void setDescription(final String description) {
-            this.description = description;
-        }
     }
 
-    public static class FormInformation implements Serializable {
+    @Data
+    public static class FormInformation implements Serializable
+    {
         private String name;
         private String label;
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(final String name) {
-            this.name = name;
-        }
-
-        public String getLabel() {
-            return label;
-        }
-
-        public void setLabel(final String label) {
-            this.label = label;
-        }
     }
 }

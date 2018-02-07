@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,8 +33,10 @@ import java.util.Set;
 
 @Getter
 @Setter
-public abstract class PwmSessionBean implements Serializable {
-    public enum Type {
+public abstract class PwmSessionBean implements Serializable
+{
+    public enum Type
+    {
         PUBLIC,
         AUTHENTICATED,
     }
@@ -43,7 +45,7 @@ public abstract class PwmSessionBean implements Serializable {
     private Instant timestamp;
     private ErrorInformation lastError;
 
-    public abstract Type getType();
+    public abstract Type getType( );
 
-    public abstract Set<SessionBeanMode> supportedModes();
+    public abstract Set<SessionBeanMode> supportedModes( );
 }

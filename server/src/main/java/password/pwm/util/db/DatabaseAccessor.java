@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,19 +27,22 @@ import password.pwm.util.java.ClosableIterator;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
-public interface DatabaseAccessor {
+public interface DatabaseAccessor
+{
     /**
      * Indicates if the method is actually performing an DB operation.
      */
-    @Retention(RetentionPolicy.RUNTIME)
-    @interface DbOperation {
+    @Retention( RetentionPolicy.RUNTIME )
+    @interface DbOperation
+    {
     }
 
     /**
      * Indicates if the method may cause a modification of the database.
      */
-    @Retention(RetentionPolicy.RUNTIME)
-    @interface DbModifyOperation {
+    @Retention( RetentionPolicy.RUNTIME )
+    @interface DbModifyOperation
+    {
     }
 
 
@@ -75,7 +78,7 @@ public interface DatabaseAccessor {
     )
             throws DatabaseException;
 
-    ClosableIterator<String> iterator(DatabaseTable table)
+    ClosableIterator<String> iterator( DatabaseTable table )
             throws DatabaseException;
 
     @DbOperation
@@ -87,6 +90,6 @@ public interface DatabaseAccessor {
             throws DatabaseException;
 
     @DbOperation
-    int size(DatabaseTable table) throws
+    int size( DatabaseTable table ) throws
             DatabaseException;
 }

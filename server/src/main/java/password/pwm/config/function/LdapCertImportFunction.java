@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,7 +45,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public class LdapCertImportFunction implements SettingUIFunction {
+public class LdapCertImportFunction implements SettingUIFunction
+{
 
     @Override
     public String provideFunction(
@@ -53,34 +54,42 @@ public class LdapCertImportFunction implements SettingUIFunction {
             final StoredConfigurationImpl storedConfiguration,
             final PwmSetting setting,
             final String profile,
-            final String extraData)
-            throws PwmOperationalException, PwmUnrecoverableException {
+            final String extraData )
+            throws PwmOperationalException, PwmUnrecoverableException
+    {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
-        final StringArrayValue ldapUrlsValue = (StringArrayValue)storedConfiguration.readSetting(PwmSetting.LDAP_SERVER_URLS,profile);
+        final StringArrayValue ldapUrlsValue = ( StringArrayValue ) storedConfiguration.readSetting( PwmSetting.LDAP_SERVER_URLS, profile );
         final Set<X509Certificate> resultCertificates = new LinkedHashSet<>();
-        try {
-            if (ldapUrlsValue != null && ldapUrlsValue.toNativeObject() != null) {
+        try
+        {
+            if ( ldapUrlsValue != null && ldapUrlsValue.toNativeObject() != null )
+            {
                 final List<String> ldapUrlStrings = ldapUrlsValue.toNativeObject();
-                for (final String ldapUrlString : ldapUrlStrings) {
-                    final URI ldapURI = new URI(ldapUrlString);
-                    final List<X509Certificate> certs = X509Utils.readRemoteCertificates(ldapURI);
-                    if (certs != null) {
-                        resultCertificates.addAll(certs);
+                for ( final String ldapUrlString : ldapUrlStrings )
+                {
+                    final URI ldapURI = new URI( ldapUrlString );
+                    final List<X509Certificate> certs = X509Utils.readRemoteCertificates( ldapURI );
+                    if ( certs != null )
+                    {
+                        resultCertificates.addAll( certs );
                     }
                 }
             }
-        } catch (Exception e) {
-            if (e instanceof PwmException) {
-                throw new PwmOperationalException(((PwmException) e).getErrorInformation());
+        }
+        catch ( Exception e )
+        {
+            if ( e instanceof PwmException )
+            {
+                throw new PwmOperationalException( ( ( PwmException ) e ).getErrorInformation() );
             }
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"error importing certificates: " + e.getMessage());
-            throw new PwmOperationalException(errorInformation);
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, "error importing certificates: " + e.getMessage() );
+            throw new PwmOperationalException( errorInformation );
         }
 
         final UserIdentity userIdentity = pwmSession.isAuthenticated() ? pwmSession.getUserInfo().getUserIdentity() : null;
-        storedConfiguration.writeSetting(setting, profile, new X509CertificateValue(resultCertificates), userIdentity);
-        return Message.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(), Message.Success_Unknown, pwmApplication.getConfig());
+        storedConfiguration.writeSetting( setting, profile, new X509CertificateValue( resultCertificates ), userIdentity );
+        return Message.getLocalizedMessage( pwmSession.getSessionStateBean().getLocale(), Message.Success_Unknown, pwmApplication.getConfig() );
     }
 }

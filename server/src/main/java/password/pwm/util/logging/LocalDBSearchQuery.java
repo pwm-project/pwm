@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,8 @@
 
 package password.pwm.util.logging;
 
-public class LocalDBSearchQuery {
+public class LocalDBSearchQuery
+{
     private final PwmLogLevel minimumLevel;
     private final int maxEvents;
     private final String username;
@@ -36,7 +37,7 @@ public class LocalDBSearchQuery {
             final String username,
             final String text,
             final long maxQueryTime,
-            final LocalDBLogger.EventType eventType        )
+            final LocalDBLogger.EventType eventType )
     {
         this.eventType = eventType;
         this.maxQueryTime = maxQueryTime;
@@ -46,32 +47,32 @@ public class LocalDBSearchQuery {
         this.minimumLevel = minimumLevel;
     }
 
-    public PwmLogLevel getMinimumLevel()
+    public PwmLogLevel getMinimumLevel( )
     {
         return minimumLevel;
     }
 
-    public int getMaxEvents()
+    public int getMaxEvents( )
     {
         return maxEvents;
     }
 
-    public String getUsername()
+    public String getUsername( )
     {
         return username;
     }
 
-    public String getText()
+    public String getText( )
     {
         return text;
     }
 
-    public long getMaxQueryTime()
+    public long getMaxQueryTime( )
     {
         return maxQueryTime;
     }
 
-    public LocalDBLogger.EventType getEventType()
+    public LocalDBLogger.EventType getEventType( )
     {
         return eventType;
     }

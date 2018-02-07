@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,11 +26,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- *
  * @author mpieters
  */
-public class OTPUrlUtil {
-    
+public class OTPUrlUtil
+{
+
     public static final String OTP_URL_PATTERN = "^otpauth:\\/\\/(totp|hotp)\\/(.*)\\?secret=([A-Z2-7\\=]{16})$";
     public static final int OTP_URL_GROUPS = 3;
     public static final int OTP_URL_TYPE = 1;
@@ -39,36 +39,33 @@ public class OTPUrlUtil {
 
     /**
      * Convert a OTPUserRecord object into an otpauth:// url.
-     * 
-     * @param otp
-     * @return 
      */
-    public static String composeOtpUrl(final OTPUserRecord otp) {
+    public static String composeOtpUrl( final OTPUserRecord otp )
+    {
         final String ident = otp.getIdentifier();
         final String secret = otp.getSecret();
         final String otptype = otp.getType().toString();
-        final String otpInfo = String.format("otpauth://%s/%s?secret=%s", otptype.toLowerCase(), ident, secret);
+        final String otpInfo = String.format( "otpauth://%s/%s?secret=%s", otptype.toLowerCase(), ident, secret );
         return otpInfo;
     }
-    
+
     /**
      * Read a string with an otpauth:// url and convert to an OTPUserRecord object.
-     * 
-     * @param otpInfo
-     * @return 
      */
-    public static OTPUserRecord decomposeOtpUrl(final String otpInfo) {
+    public static OTPUserRecord decomposeOtpUrl( final String otpInfo )
+    {
         OTPUserRecord otp = null;
-        final Pattern pattern = Pattern.compile(OTP_URL_PATTERN);
-        final Matcher matcher = pattern.matcher(otpInfo);
-        if (matcher.matches() && matcher.groupCount() == OTP_URL_GROUPS) {
-            final String type = matcher.group(OTP_URL_TYPE);
-            final String ident = matcher.group(OTP_URL_IDENT);
-            final String secret = matcher.group(OTP_URL_SECRET);
+        final Pattern pattern = Pattern.compile( OTP_URL_PATTERN );
+        final Matcher matcher = pattern.matcher( otpInfo );
+        if ( matcher.matches() && matcher.groupCount() == OTP_URL_GROUPS )
+        {
+            final String type = matcher.group( OTP_URL_TYPE );
+            final String ident = matcher.group( OTP_URL_IDENT );
+            final String secret = matcher.group( OTP_URL_SECRET );
             otp = new OTPUserRecord();
-            otp.setType(OTPUserRecord.Type.valueOf(type.toUpperCase()));
-            otp.setIdentifier(ident);
-            otp.setSecret(secret);
+            otp.setType( OTPUserRecord.Type.valueOf( type.toUpperCase() ) );
+            otp.setIdentifier( ident );
+            otp.setSecret( secret );
         }
         return otp;
     }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,16 +41,19 @@ import java.io.IOException;
  *
  * @author Jason D. Rivard
  */
-public class AuthorizationFilter extends AbstractPwmFilter {
+public class AuthorizationFilter extends AbstractPwmFilter
+{
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass(AuthenticationFilter.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass( AuthenticationFilter.class );
 
-    public void init(final FilterConfig filterConfig)
-            throws ServletException {
+    public void init( final FilterConfig filterConfig )
+            throws ServletException
+    {
     }
 
     @Override
-    boolean isInterested(final PwmApplicationMode mode, final PwmURL pwmURL) {
+    boolean isInterested( final PwmApplicationMode mode, final PwmURL pwmURL )
+    {
         return !pwmURL.isRestService();
     }
 
@@ -67,25 +70,33 @@ public class AuthorizationFilter extends AbstractPwmFilter {
 
         // if the user is not authenticated as a PWM Admin, redirect to error page.
         boolean hasPermission = false;
-        try {
-            hasPermission = pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.PWMADMIN);
-        } catch (Exception e) {
-            LOGGER.warn(pwmRequest, "error during authorization check: " + e.getMessage());
+        try
+        {
+            hasPermission = pwmSession.getSessionManager().checkPermission( pwmApplication, Permission.PWMADMIN );
+        }
+        catch ( Exception e )
+        {
+            LOGGER.warn( pwmRequest, "error during authorization check: " + e.getMessage() );
         }
 
-        try {
-            if (hasPermission) {
+        try
+        {
+            if ( hasPermission )
+            {
                 chain.doFilter();
                 return;
             }
-        } catch (Exception e) {
-            LOGGER.warn(pwmRequest, "unexpected error executing filter chain: " + e.getMessage());
+        }
+        catch ( Exception e )
+        {
+            LOGGER.warn( pwmRequest, "unexpected error executing filter chain: " + e.getMessage() );
             return;
         }
 
-        pwmRequest.respondWithError(PwmError.ERROR_UNAUTHORIZED.toInfo());
+        pwmRequest.respondWithError( PwmError.ERROR_UNAUTHORIZED.toInfo() );
     }
 
-    public void destroy() {
+    public void destroy( )
+    {
     }
 }

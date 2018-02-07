@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,66 +29,79 @@ import password.pwm.util.secure.SecureEngine;
 
 import java.io.Serializable;
 
-public class CacheKey implements Serializable{
+public class CacheKey implements Serializable
+{
     private final String cacheKey;
     private transient String hash;
 
-    private CacheKey(final String cacheKey)
+    private CacheKey( final String cacheKey )
     {
-        if (cacheKey == null) {
-            throw new NullPointerException("key can not be null");
+        if ( cacheKey == null )
+        {
+            throw new NullPointerException( "key can not be null" );
         }
         this.cacheKey = cacheKey;
     }
 
-    String getHash()
+    String getHash( )
             throws PwmUnrecoverableException
     {
-        if (hash != null) {
+        if ( hash != null )
+        {
             return hash;
         }
-        hash = SecureEngine.hash(this.cacheKey, PwmHashAlgorithm.SHA256);
+        hash = SecureEngine.hash( this.cacheKey, PwmHashAlgorithm.SHA256 );
         return hash;
     }
 
-    String getStorageValue() {
+    String getStorageValue( )
+    {
         return cacheKey;
 
     }
 
-    static CacheKey fromStorageValue(final String input) {
-        return new CacheKey(input);
+    static CacheKey fromStorageValue( final String input )
+    {
+        return new CacheKey( input );
     }
 
     public static CacheKey makeCacheKey(
             final Class srcClass,
             final UserIdentity userIdentity,
             final String valueID
-    ) {
-        if (srcClass == null) {
-            throw new NullPointerException("srcClass can not be null");
+    )
+    {
+        if ( srcClass == null )
+        {
+            throw new NullPointerException( "srcClass can not be null" );
         }
-        if (valueID == null) {
-            throw new NullPointerException("valueID can not be null");
+        if ( valueID == null )
+        {
+            throw new NullPointerException( "valueID can not be null" );
         }
-        if (valueID.isEmpty()) {
-            throw new IllegalArgumentException("valueID can not be empty");
+        if ( valueID.isEmpty() )
+        {
+            throw new IllegalArgumentException( "valueID can not be empty" );
         }
-        return new CacheKey(srcClass.getName() + "!" + (userIdentity == null ? "null" : userIdentity.toDelimitedKey()) + "!" + valueID);
+        return new CacheKey( srcClass.getName() + "!" + ( userIdentity == null ? "null" : userIdentity.toDelimitedKey() ) + "!" + valueID );
     }
 
     @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
+    public boolean equals( final Object o )
+    {
+        if ( this == o )
+        {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if ( o == null || getClass() != o.getClass() )
+        {
             return false;
         }
 
-        final CacheKey cacheKey1 = (CacheKey) o;
+        final CacheKey cacheKey1 = ( CacheKey ) o;
 
-        if (!cacheKey.equals(cacheKey1.cacheKey)) {
+        if ( !cacheKey.equals( cacheKey1.cacheKey ) )
+        {
             return false;
         }
 
@@ -96,11 +109,13 @@ public class CacheKey implements Serializable{
     }
 
     @Override
-    public int hashCode() {
+    public int hashCode( )
+    {
         return cacheKey.hashCode();
     }
-    
-    public String toString() {
+
+    public String toString( )
+    {
         return cacheKey;
     }
 }

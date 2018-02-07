@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,60 +23,65 @@
 package password.pwm;
 
 import password.pwm.bean.SessionLabel;
-import password.pwm.ldap.UserInfo;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.ldap.UserInfo;
 
 import java.io.Serializable;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-public interface VerificationMethodSystem {
-    enum VerificationState {
+public interface VerificationMethodSystem
+{
+    enum VerificationState
+    {
         INPROGRESS,
         FAILED,
         COMPLETE,
     }
 
-    interface UserPrompt {
-        String getDisplayPrompt();
+    interface UserPrompt
+    {
+        String getDisplayPrompt( );
 
-        String getIdentifier();
+        String getIdentifier( );
     }
 
-    class UserPromptBean implements Serializable, UserPrompt {
+    class UserPromptBean implements Serializable, UserPrompt
+    {
         private String displayPrompt;
         private String identifier;
 
-        public String getDisplayPrompt() {
+        public String getDisplayPrompt( )
+        {
             return displayPrompt;
         }
 
-        public void setDisplayPrompt(final String displayPrompt) {
+        public void setDisplayPrompt( final String displayPrompt )
+        {
             this.displayPrompt = displayPrompt;
         }
 
-        public String getIdentifier() {
+        public String getIdentifier( )
+        {
             return identifier;
         }
 
-        public void setIdentifier(final String identifier) {
+        public void setIdentifier( final String identifier )
+        {
             this.identifier = identifier;
         }
     }
 
-    List<UserPrompt> getCurrentPrompts() throws PwmUnrecoverableException;
+    List<UserPrompt> getCurrentPrompts( ) throws PwmUnrecoverableException;
 
-    String getCurrentDisplayInstructions();
+    String getCurrentDisplayInstructions( );
 
-    ErrorInformation respondToPrompts( Map<String, String> answers) throws PwmUnrecoverableException;
+    ErrorInformation respondToPrompts( Map<String, String> answers ) throws PwmUnrecoverableException;
 
-    VerificationState getVerificationState();
+    VerificationState getVerificationState( );
 
-    void init(PwmApplication pwmApplication, UserInfo userInfoBean, SessionLabel sessionLabel, Locale locale)
-            throws PwmUnrecoverableException
-            ;
-
-
+    void init( PwmApplication pwmApplication, UserInfo userInfoBean, SessionLabel sessionLabel, Locale locale )
+            throws PwmUnrecoverableException;
 }

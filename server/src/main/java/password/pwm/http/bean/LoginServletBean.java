@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,25 +30,30 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-public class LoginServletBean extends PwmSessionBean {
-    @SerializedName("n")
+public class LoginServletBean extends PwmSessionBean
+{
+    @SerializedName( "n" )
     private String nextUrl;
 
-    public String getNextUrl() {
+    public String getNextUrl( )
+    {
         return nextUrl;
     }
 
-    public void setNextUrl(final String nextUrl) {
+    public void setNextUrl( final String nextUrl )
+    {
         this.nextUrl = nextUrl;
     }
 
-    public Type getType() {
+    public Type getType( )
+    {
         return Type.PUBLIC;
     }
 
     @Override
-    public Set<SessionBeanMode> supportedModes() {
-        return Collections.unmodifiableSet(new HashSet<>(Arrays.asList(SessionBeanMode.LOCAL, SessionBeanMode.CRYPTCOOKIE)));
+    public Set<SessionBeanMode> supportedModes( )
+    {
+        return Collections.unmodifiableSet( new HashSet<>( Arrays.asList( SessionBeanMode.LOCAL, SessionBeanMode.CRYPTCOOKIE ) ) );
     }
 
 }

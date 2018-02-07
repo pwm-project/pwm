@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,7 +44,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public class SyslogCertImportFunction implements SettingUIFunction {
+public class SyslogCertImportFunction implements SettingUIFunction
+{
 
     @Override
     public String provideFunction(
@@ -52,8 +53,9 @@ public class SyslogCertImportFunction implements SettingUIFunction {
             final StoredConfigurationImpl storedConfiguration,
             final PwmSetting setting,
             final String profile,
-            final String extraData)
-            throws PwmOperationalException, PwmUnrecoverableException {
+            final String extraData )
+            throws PwmOperationalException, PwmUnrecoverableException
+    {
         boolean error = false;
         Exception exeception = null;
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
@@ -61,19 +63,27 @@ public class SyslogCertImportFunction implements SettingUIFunction {
 
         final Set<X509Certificate> resultCertificates = new LinkedHashSet<>();
 
-        final List<String> syslogConfigStrs = (List<String>)storedConfiguration.readSetting(PwmSetting.AUDIT_SYSLOG_SERVERS).toNativeObject();
-        if (syslogConfigStrs != null && !syslogConfigStrs.isEmpty()) {
-            for(String entry : syslogConfigStrs) {
-                if (entry.toUpperCase().startsWith("TLS")) {
-                    final SyslogAuditService.SyslogConfig syslogConfig = SyslogAuditService.SyslogConfig.fromConfigString(entry);
-                    if (syslogConfig != null) {
-                        try {
-                            final List<X509Certificate> certs = X509Utils.readRemoteCertificates(syslogConfig.getHost(), syslogConfig.getPort());
-                            if (certs != null) {
-                                resultCertificates.addAll(certs);
+        final List<String> syslogConfigStrs = ( List<String> ) storedConfiguration.readSetting( PwmSetting.AUDIT_SYSLOG_SERVERS ).toNativeObject();
+        if ( syslogConfigStrs != null && !syslogConfigStrs.isEmpty() )
+        {
+            for ( String entry : syslogConfigStrs )
+            {
+                if ( entry.toUpperCase().startsWith( "TLS" ) )
+                {
+                    final SyslogAuditService.SyslogConfig syslogConfig = SyslogAuditService.SyslogConfig.fromConfigString( entry );
+                    if ( syslogConfig != null )
+                    {
+                        try
+                        {
+                            final List<X509Certificate> certs = X509Utils.readRemoteCertificates( syslogConfig.getHost(), syslogConfig.getPort() );
+                            if ( certs != null )
+                            {
+                                resultCertificates.addAll( certs );
                                 error = false;
                             }
-                        } catch (Exception e) {
+                        }
+                        catch ( Exception e )
+                        {
                             error = true;
                             exeception = e;
                         }
@@ -82,16 +92,20 @@ public class SyslogCertImportFunction implements SettingUIFunction {
             }
         }
 
-        if (false == error) {
+        if ( !error )
+        {
             final UserIdentity userIdentity = pwmSession.isAuthenticated() ? pwmSession.getUserInfo().getUserIdentity() : null;
-            storedConfiguration.writeSetting(setting, new X509CertificateValue(resultCertificates), userIdentity);
-            return Message.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(), Message.Success_Unknown, pwmApplication.getConfig());
-        } else {
-            if (exeception instanceof PwmException) {
-                throw new PwmOperationalException(((PwmException) exeception).getErrorInformation());
+            storedConfiguration.writeSetting( setting, new X509CertificateValue( resultCertificates ), userIdentity );
+            return Message.getLocalizedMessage( pwmSession.getSessionStateBean().getLocale(), Message.Success_Unknown, pwmApplication.getConfig() );
+        }
+        else
+        {
+            if ( exeception instanceof PwmException )
+            {
+                throw new PwmOperationalException( ( ( PwmException ) exeception ).getErrorInformation() );
             }
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"error importing certificates: " + exeception.getMessage());
-            throw new PwmOperationalException(errorInformation);
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, "error importing certificates: " + exeception.getMessage() );
+            throw new PwmOperationalException( errorInformation );
         }
     }
 }

@@ -1,3 +1,25 @@
+/*
+ * Password Management Servlets (PWM)
+ * http://www.pwm-project.org
+ *
+ * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2018 The PWM Project
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
 package password.pwm.http.servlet.changepw;
 
 import com.novell.ldapchai.ChaiUser;
@@ -31,9 +53,10 @@ import password.pwm.util.operations.PasswordUtility;
 import java.util.Locale;
 import java.util.Map;
 
-public class ChangePasswordServletUtil {
+public class ChangePasswordServletUtil
+{
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass(ChangePasswordServletUtil.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass( ChangePasswordServletUtil.class );
 
     static boolean determineIfCurrentPasswordRequired(
             final PwmApplication pwmApplication,
@@ -41,26 +64,30 @@ public class ChangePasswordServletUtil {
     )
             throws PwmUnrecoverableException
     {
-        final RequireCurrentPasswordMode currentSetting = pwmApplication.getConfig().readSettingAsEnum(PwmSetting.PASSWORD_REQUIRE_CURRENT, RequireCurrentPasswordMode.class);
+        final RequireCurrentPasswordMode currentSetting = pwmApplication.getConfig().readSettingAsEnum( PwmSetting.PASSWORD_REQUIRE_CURRENT, RequireCurrentPasswordMode.class );
 
-        if (currentSetting == RequireCurrentPasswordMode.FALSE) {
+        if ( currentSetting == RequireCurrentPasswordMode.FALSE )
+        {
             return false;
         }
 
-        if (pwmSession.getLoginInfoBean().getType() == AuthenticationType.AUTH_FROM_PUBLIC_MODULE) {
-            LOGGER.debug(pwmSession, "skipping user current password requirement, authentication type is " + AuthenticationType.AUTH_FROM_PUBLIC_MODULE);
+        if ( pwmSession.getLoginInfoBean().getType() == AuthenticationType.AUTH_FROM_PUBLIC_MODULE )
+        {
+            LOGGER.debug( pwmSession, "skipping user current password requirement, authentication type is " + AuthenticationType.AUTH_FROM_PUBLIC_MODULE );
             return false;
         }
 
         {
             final PasswordData currentPassword = pwmSession.getLoginInfoBean().getUserCurrentPassword();
-            if (currentPassword == null) {
-                LOGGER.debug(pwmSession, "skipping user current password requirement, current password is not known to application");
+            if ( currentPassword == null )
+            {
+                LOGGER.debug( pwmSession, "skipping user current password requirement, current password is not known to application" );
                 return false;
             }
         }
 
-        if (currentSetting == RequireCurrentPasswordMode.TRUE) {
+        if ( currentSetting == RequireCurrentPasswordMode.TRUE )
+        {
             return true;
         }
 
@@ -80,21 +107,37 @@ public class ChangePasswordServletUtil {
     )
             throws ChaiUnavailableException, PwmDataValidationException
     {
-        for (final Map.Entry<FormConfiguration, String> entry : formValues.entrySet()) {
+        for ( final Map.Entry<FormConfiguration, String> entry : formValues.entrySet() )
+        {
             final FormConfiguration formItem = entry.getKey();
             final String attrName = formItem.getName();
             final String value = entry.getValue();
-            try {
-                if (!theUser.compareStringAttribute(attrName, value)) {
+            try
+            {
+                if ( !theUser.compareStringAttribute( attrName, value ) )
+                {
                     final String errorMsg = "incorrect value for '" + attrName + "'";
-                    final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_INCORRECT_RESPONSE, errorMsg, new String[]{attrName});
-                    LOGGER.debug(pwmSession, errorInfo.toDebugStr());
-                    throw new PwmDataValidationException(errorInfo);
+                    final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INCORRECT_RESPONSE, errorMsg, new String[]
+                            {
+                                    attrName,
+                            }
+                    );
+                    LOGGER.debug( pwmSession, errorInfo.toDebugStr() );
+                    throw new PwmDataValidationException( errorInfo );
                 }
-                LOGGER.trace(pwmSession, "successful validation of ldap value for '" + attrName + "'");
-            } catch (ChaiOperationException e) {
-                LOGGER.error(pwmSession, "error during param validation of '" + attrName + "', error: " + e.getMessage());
-                throw new PwmDataValidationException(new ErrorInformation(PwmError.ERROR_INCORRECT_RESPONSE, "ldap error testing value for '" + attrName + "'", new String[]{attrName}));
+                LOGGER.trace( pwmSession, "successful validation of ldap value for '" + attrName + "'" );
+            }
+            catch ( ChaiOperationException e )
+            {
+                LOGGER.error( pwmSession, "error during param validation of '" + attrName + "', error: " + e.getMessage() );
+                throw new PwmDataValidationException( new ErrorInformation(
+                        PwmError.ERROR_INCORRECT_RESPONSE,
+                        "ldap error testing value for '" + attrName + "'",
+                        new String[]
+                                {
+                                        attrName,
+                                }
+                ) );
             }
         }
     }
@@ -107,10 +150,11 @@ public class ChangePasswordServletUtil {
     {
         final Configuration config = pwmApplication.getConfig();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
-        final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_CHANGEPASSWORD, locale);
+        final EmailItemBean configuredEmailSetting = config.readSettingAsEmail( PwmSetting.EMAIL_CHANGEPASSWORD, locale );
 
-        if (configuredEmailSetting == null) {
-            LOGGER.debug(pwmSession, "skipping change password email for '" + pwmSession.getUserInfo().getUserIdentity() + "' no email configured");
+        if ( configuredEmailSetting == null )
+        {
+            LOGGER.debug( pwmSession, "skipping change password email for '" + pwmSession.getUserInfo().getUserIdentity() + "' no email configured" );
             return;
         }
 
@@ -118,7 +162,7 @@ public class ChangePasswordServletUtil {
                 configuredEmailSetting,
                 pwmSession.getUserInfo(),
 
-                pwmSession.getSessionManager().getMacroMachine(pwmApplication));
+                pwmSession.getSessionManager().getMacroMachine( pwmApplication ) );
     }
 
     static void checkMinimumLifetime(
@@ -129,29 +173,36 @@ public class ChangePasswordServletUtil {
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
     {
-        if (changePasswordBean.isNextAllowedTimePassed()) {
+        if ( changePasswordBean.isNextAllowedTimePassed() )
+        {
             return;
         }
 
-        try {
+        try
+        {
             PasswordUtility.checkIfPasswordWithinMinimumLifetime(
-                    pwmSession.getSessionManager().getActor(pwmApplication),
+                    pwmSession.getSessionManager().getActor( pwmApplication ),
                     pwmSession.getLabel(),
                     userInfo.getPasswordPolicy(),
                     userInfo.getPasswordLastModifiedTime(),
                     userInfo.getPasswordStatus()
             );
-        } catch (PwmException e) {
-            final boolean enforceFromForgotten = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_ENFORCE_MINIMUM_PASSWORD_LIFETIME);
-            if (!enforceFromForgotten && userInfo.isRequiresNewPassword()) {
-                LOGGER.debug(pwmSession, "current password is too young, but skipping enforcement of minimum lifetime check due to setting "
-                        + PwmSetting.CHALLENGE_ENFORCE_MINIMUM_PASSWORD_LIFETIME.toMenuLocationDebug(null, pwmSession.getSessionStateBean().getLocale()));
-            } else {
-                throw new PwmUnrecoverableException(e.getErrorInformation());
+        }
+        catch ( PwmException e )
+        {
+            final boolean enforceFromForgotten = pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.CHALLENGE_ENFORCE_MINIMUM_PASSWORD_LIFETIME );
+            if ( !enforceFromForgotten && userInfo.isRequiresNewPassword() )
+            {
+                LOGGER.debug( pwmSession, "current password is too young, but skipping enforcement of minimum lifetime check due to setting "
+                        + PwmSetting.CHALLENGE_ENFORCE_MINIMUM_PASSWORD_LIFETIME.toMenuLocationDebug( null, pwmSession.getSessionStateBean().getLocale() ) );
+            }
+            else
+            {
+                throw new PwmUnrecoverableException( e.getErrorInformation() );
             }
         }
 
-        changePasswordBean.setNextAllowedTimePassed(true);
+        changePasswordBean.setNextAllowedTimePassed( true );
     }
 
     static void executeChangePassword(
@@ -163,10 +214,10 @@ public class ChangePasswordServletUtil {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         // password accepted, setup change password
-        final ChangePasswordBean cpb = pwmApplication.getSessionStateService().getBean(pwmRequest, ChangePasswordBean.class);
+        final ChangePasswordBean cpb = pwmApplication.getSessionStateService().getBean( pwmRequest, ChangePasswordBean.class );
 
         // change password
-        PasswordUtility.setActorPassword(pwmSession, pwmApplication, newPassword);
+        PasswordUtility.setActorPassword( pwmSession, pwmApplication, newPassword );
 
         //init values for progress screen
         {
@@ -177,15 +228,15 @@ public class ChangePasswordServletUtil {
                     pwmSession.getLabel(),
                     pwmSession.getSessionStateBean().getLocale()
             );
-            cpb.setChangeProgressTracker(tracker);
-            cpb.setChangePasswordMaxCompletion(checker.maxCompletionTime(tracker));
+            cpb.setChangeProgressTracker( tracker );
+            cpb.setChangePasswordMaxCompletion( checker.maxCompletionTime( tracker ) );
         }
 
         // send user an email confirmation
-        ChangePasswordServletUtil.sendChangePasswordEmailNotice(pwmSession, pwmApplication);
+        ChangePasswordServletUtil.sendChangePasswordEmailNotice( pwmSession, pwmApplication );
 
         // send audit event
-        pwmApplication.getAuditManager().submit(AuditEvent.CHANGE_PASSWORD, pwmSession.getUserInfo(), pwmSession);
+        pwmApplication.getAuditManager().submit( AuditEvent.CHANGE_PASSWORD, pwmSession.getUserInfo(), pwmSession );
     }
 
     static boolean warnPageShouldBeShown(
@@ -196,23 +247,28 @@ public class ChangePasswordServletUtil {
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
-        if (!pwmSession.getUserInfo().getPasswordStatus().isWarnPeriod()) {
+        if ( !pwmSession.getUserInfo().getPasswordStatus().isWarnPeriod() )
+        {
             return false;
         }
 
-        if (pwmRequest.getPwmSession().getLoginInfoBean().isLoginFlag(LoginInfoBean.LoginFlag.skipNewPw)) {
+        if ( pwmRequest.getPwmSession().getLoginInfoBean().isLoginFlag( LoginInfoBean.LoginFlag.skipNewPw ) )
+        {
             return false;
         }
 
-        if (changePasswordBean.isWarnPassed()) {
+        if ( changePasswordBean.isWarnPassed() )
+        {
             return false;
         }
 
-        if (pwmRequest.getPwmSession().getLoginInfoBean().getAuthFlags().contains(AuthenticationType.AUTH_FROM_PUBLIC_MODULE)) {
+        if ( pwmRequest.getPwmSession().getLoginInfoBean().getAuthFlags().contains( AuthenticationType.AUTH_FROM_PUBLIC_MODULE ) )
+        {
             return false;
         }
 
-        if (pwmRequest.getPwmSession().getLoginInfoBean().getType() == AuthenticationType.AUTH_FROM_PUBLIC_MODULE) {
+        if ( pwmRequest.getPwmSession().getLoginInfoBean().getType() == AuthenticationType.AUTH_FROM_PUBLIC_MODULE )
+        {
             return false;
         }
 

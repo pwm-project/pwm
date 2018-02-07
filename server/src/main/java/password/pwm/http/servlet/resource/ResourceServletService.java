@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,187 +56,230 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-public class ResourceServletService implements PwmService {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(ResourceServletService.class);
+public class ResourceServletService implements PwmService
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( ResourceServletService.class );
 
 
     private ResourceServletConfiguration resourceServletConfiguration;
     private Cache<CacheKey, CacheEntry> cache;
-    private EventRateMeter.MovingAverage cacheHitRatio = new EventRateMeter.MovingAverage(60 * 60 * 1000);
+    private EventRateMeter.MovingAverage cacheHitRatio = new EventRateMeter.MovingAverage( 60 * 60 * 1000 );
     private String resourceNonce;
     private STATUS status = STATUS.NEW;
 
     private PwmApplication pwmApplication;
 
-    public String getResourceNonce() {
+    public String getResourceNonce( )
+    {
         return resourceNonce;
     }
 
-    public Cache<CacheKey, CacheEntry> getCacheMap() {
+    public Cache<CacheKey, CacheEntry> getCacheMap( )
+    {
         return cache;
     }
 
-    public EventRateMeter.MovingAverage getCacheHitRatio() {
+    public EventRateMeter.MovingAverage getCacheHitRatio( )
+    {
         return cacheHitRatio;
     }
 
 
-    public long bytesInCache() {
-        final Map<CacheKey, CacheEntry> cacheCopy = new HashMap<>(cache.asMap());
+    public long bytesInCache( )
+    {
+        final Map<CacheKey, CacheEntry> cacheCopy = new HashMap<>( cache.asMap() );
         long cacheByteCount = 0;
-        for (final CacheEntry cacheEntry : cacheCopy.values()) {
-            if (cacheEntry != null && cacheEntry.getEntity() != null) {
+        for ( final CacheEntry cacheEntry : cacheCopy.values() )
+        {
+            if ( cacheEntry != null && cacheEntry.getEntity() != null )
+            {
                 cacheByteCount += cacheEntry.getEntity().length;
             }
         }
         return cacheByteCount;
     }
 
-    public int itemsInCache() {
+    public int itemsInCache( )
+    {
         final Cache<CacheKey, CacheEntry> responseCache = getCacheMap();
-        return (int)responseCache.estimatedSize();
+        return ( int ) responseCache.estimatedSize();
     }
 
-    public Percent cacheHitRatio() {
-        final BigDecimal numerator = BigDecimal.valueOf(getCacheHitRatio().getAverage());
+    public Percent cacheHitRatio( )
+    {
+        final BigDecimal numerator = BigDecimal.valueOf( getCacheHitRatio().getAverage() );
         final BigDecimal denominator = BigDecimal.ONE;
-        return new Percent(numerator, denominator);
+        return new Percent( numerator, denominator );
     }
 
     @Override
-    public STATUS status() {
+    public STATUS status( )
+    {
         return status;
     }
 
     @Override
-    public void init(final PwmApplication pwmApplication) throws PwmException {
+    public void init( final PwmApplication pwmApplication ) throws PwmException
+    {
         this.pwmApplication = pwmApplication;
         status = STATUS.OPENING;
-        try {
-            this.resourceServletConfiguration = ResourceServletConfiguration.createResourceServletConfiguration(pwmApplication);
+        try
+        {
+            this.resourceServletConfiguration = ResourceServletConfiguration.createResourceServletConfiguration( pwmApplication );
 
             cache = Caffeine.newBuilder()
-                    .maximumSize(resourceServletConfiguration.getMaxCacheItems())
+                    .maximumSize( resourceServletConfiguration.getMaxCacheItems() )
                     .build();
 
             status = STATUS.OPEN;
-        } catch (Exception e) {
-            LOGGER.error("error during cache initialization, will remain closed; error: " + e.getMessage());
+        }
+        catch ( Exception e )
+        {
+            LOGGER.error( "error during cache initialization, will remain closed; error: " + e.getMessage() );
             status = STATUS.CLOSED;
             return;
         }
 
-        try {
+        try
+        {
             resourceNonce = makeResourcePathNonce();
-        } catch (Exception e) {
-            LOGGER.error("error during nonce generation, will remain closed; error: " + e.getMessage());
+        }
+        catch ( Exception e )
+        {
+            LOGGER.error( "error during nonce generation, will remain closed; error: " + e.getMessage() );
             status = STATUS.CLOSED;
         }
     }
 
     @Override
-    public void close() {
+    public void close( )
+    {
 
     }
 
     @Override
-    public List<HealthRecord> healthCheck() {
+    public List<HealthRecord> healthCheck( )
+    {
         return Collections.emptyList();
     }
 
     @Override
-    public ServiceInfoBean serviceInfo() {
+    public ServiceInfoBean serviceInfo( )
+    {
         return null;
     }
 
-    ResourceServletConfiguration getResourceServletConfiguration() {
+    ResourceServletConfiguration getResourceServletConfiguration( )
+    {
         return resourceServletConfiguration;
     }
 
-    private String makeResourcePathNonce()
+    private String makeResourcePathNonce( )
             throws PwmUnrecoverableException, IOException
     {
-        final int nonceLength = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_RESOURCES_PATH_NONCE_LENGTH));
-        final boolean enablePathNonce = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_RESOURCES_ENABLE_PATH_NONCE));
-        if (!enablePathNonce) {
+        final int nonceLength = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_RESOURCES_PATH_NONCE_LENGTH ) );
+        final boolean enablePathNonce = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_RESOURCES_ENABLE_PATH_NONCE ) );
+        if ( !enablePathNonce )
+        {
             return "";
         }
 
         final Instant startTime = Instant.now();
-        final ChecksumOutputStream checksumStream = new ChecksumOutputStream(PwmHashAlgorithm.SHA512, new NullOutputStream());
+        final ChecksumOutputStream checksumStream = new ChecksumOutputStream( PwmHashAlgorithm.SHA512, new NullOutputStream() );
 
-        if (pwmApplication.getPwmEnvironment().getContextManager() != null) {
-            try {
+        if ( pwmApplication.getPwmEnvironment().getContextManager() != null )
+        {
+            try
+            {
                 final File webInfPath = pwmApplication.getPwmEnvironment().getContextManager().locateWebInfFilePath();
-                if (webInfPath != null && webInfPath.exists()) {
+                if ( webInfPath != null && webInfPath.exists() )
+                {
                     final File basePath = webInfPath.getParentFile();
-                    if (basePath != null && basePath.exists()) {
-                        final File resourcePath = new File(basePath.getAbsolutePath() + File.separator + "public" + File.separator + "resources");
-                        if (resourcePath.exists()) {
-                            for (final FileSystemUtility.FileSummaryInformation fileSummaryInformation : FileSystemUtility.readFileInformation(resourcePath)) {
-                                checksumStream.write((fileSummaryInformation.getSha1sum()).getBytes(PwmConstants.DEFAULT_CHARSET));
+                    if ( basePath != null && basePath.exists() )
+                    {
+                        final File resourcePath = new File( basePath.getAbsolutePath() + File.separator + "public" + File.separator + "resources" );
+                        if ( resourcePath.exists() )
+                        {
+                            for ( final FileSystemUtility.FileSummaryInformation fileSummaryInformation : FileSystemUtility.readFileInformation( resourcePath ) )
+                            {
+                                checksumStream.write( ( fileSummaryInformation.getSha1sum() ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
                             }
                         }
                     }
                 }
-            } catch (Exception e) {
-                LOGGER.error("unable to generate resource path nonce: " + e.getMessage());
+            }
+            catch ( Exception e )
+            {
+                LOGGER.error( "unable to generate resource path nonce: " + e.getMessage() );
             }
         }
 
-        for (final FileResource fileResource : getResourceServletConfiguration().getCustomFileBundle().values()) {
-            JavaHelper.copy(fileResource.getInputStream(), checksumStream);
+        for ( final FileResource fileResource : getResourceServletConfiguration().getCustomFileBundle().values() )
+        {
+            JavaHelper.copy( fileResource.getInputStream(), checksumStream );
         }
 
-        if (getResourceServletConfiguration().getZipResources() != null) {
-            for (final String key : getResourceServletConfiguration().getZipResources().keySet()) {
-                final ZipFile zipFile = getResourceServletConfiguration().getZipResources().get(key);
-                checksumStream.write(key.getBytes(PwmConstants.DEFAULT_CHARSET));
-                for (Enumeration<? extends ZipEntry> zipEnum = zipFile.entries(); zipEnum.hasMoreElements(); ) {
+        if ( getResourceServletConfiguration().getZipResources() != null )
+        {
+            for ( final String key : getResourceServletConfiguration().getZipResources().keySet() )
+            {
+                final ZipFile zipFile = getResourceServletConfiguration().getZipResources().get( key );
+                checksumStream.write( key.getBytes( PwmConstants.DEFAULT_CHARSET ) );
+                for ( Enumeration<? extends ZipEntry> zipEnum = zipFile.entries(); zipEnum.hasMoreElements(); )
+                {
                     final ZipEntry entry = zipEnum.nextElement();
-                    JavaHelper.copy(zipFile.getInputStream(entry),checksumStream);
+                    JavaHelper.copy( zipFile.getInputStream( entry ), checksumStream );
                 }
             }
         }
 
         final byte[] checksumBytes = checksumStream.getInProgressChecksum();
-        final String nonce = StringUtil.truncate(JavaHelper.byteArrayToHexString(checksumBytes).toLowerCase(), nonceLength);
-        LOGGER.debug("completed generation of nonce '" + nonce + "' in " + TimeDuration.fromCurrent(startTime).asCompactString());
+        final String nonce = StringUtil.truncate( JavaHelper.byteArrayToHexString( checksumBytes ).toLowerCase(), nonceLength );
+        LOGGER.debug( "completed generation of nonce '" + nonce + "' in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
 
-        final String noncePrefix = pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_RESOURCES_NONCE_PATH_PREFIX);
+        final String noncePrefix = pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_RESOURCES_NONCE_PATH_PREFIX );
         return "/" + noncePrefix + nonce;
     }
 
-    public boolean checkIfThemeExists(final PwmRequest pwmRequest, final String themeName)
+    public boolean checkIfThemeExists( final PwmRequest pwmRequest, final String themeName )
             throws PwmUnrecoverableException
     {
-        if (themeName == null) {
+        if ( themeName == null )
+        {
             return false;
         }
 
-        if (themeName.equals(ResourceFileServlet.EMBED_THEME)) {
+        if ( themeName.equals( ResourceFileServlet.EMBED_THEME ) )
+        {
             return true;
         }
 
-        if (!themeName.matches(pwmRequest.getConfig().readAppProperty(AppProperty.SECURITY_INPUT_THEME_MATCH_REGEX))) {
-            LOGGER.warn(pwmRequest, "discarding suspicious theme name in request: " + themeName);
+        if ( !themeName.matches( pwmRequest.getConfig().readAppProperty( AppProperty.SECURITY_INPUT_THEME_MATCH_REGEX ) ) )
+        {
+            LOGGER.warn( pwmRequest, "discarding suspicious theme name in request: " + themeName );
             return false;
         }
 
         final ServletContext servletContext = pwmRequest.getHttpServletRequest().getServletContext();
 
-        final String[] testUrls = new String[]{ ResourceFileServlet.THEME_CSS_PATH,  ResourceFileServlet.THEME_CSS_MOBILE_PATH };
+        final String[] testUrls = new String[]
+                {
+                        ResourceFileServlet.THEME_CSS_PATH,
+                        ResourceFileServlet.THEME_CSS_MOBILE_PATH,
+                };
 
-        for (final String testUrl : testUrls) {
-            final String themePathUrl = ResourceFileServlet.RESOURCE_PATH + testUrl.replace(ResourceFileServlet.TOKEN_THEME, themeName);
-            final FileResource resolvedFile = ResourceFileServlet.resolveRequestedFile(servletContext, themePathUrl, getResourceServletConfiguration());
-            if (resolvedFile != null && resolvedFile.exists()) {
-                LOGGER.debug(pwmRequest, "check for theme validity of '" + themeName + "' returned true");
+        for ( final String testUrl : testUrls )
+        {
+            final String themePathUrl = ResourceFileServlet.RESOURCE_PATH + testUrl.replace( ResourceFileServlet.TOKEN_THEME, themeName );
+            final FileResource resolvedFile = ResourceFileServlet.resolveRequestedFile( servletContext, themePathUrl, getResourceServletConfiguration() );
+            if ( resolvedFile != null && resolvedFile.exists() )
+            {
+                LOGGER.debug( pwmRequest, "check for theme validity of '" + themeName + "' returned true" );
                 return true;
             }
         }
 
-        LOGGER.debug(pwmRequest, "check for theme validity of '" + themeName + "' returned false");
+        LOGGER.debug( pwmRequest, "check for theme validity of '" + themeName + "' returned false" );
         return false;
     }
 }

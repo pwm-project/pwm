@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,37 +26,38 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.util.List;
 
-public class HealthData implements Serializable {
+public class HealthData implements Serializable
+{
     public Instant timestamp;
     public String overall;
     public List<HealthRecord> records;
 
-    public Instant getTimestamp()
+    public Instant getTimestamp( )
     {
         return timestamp;
     }
 
-    public void setTimestamp(final Instant timestamp)
+    public void setTimestamp( final Instant timestamp )
     {
         this.timestamp = timestamp;
     }
 
-    public String getOverall()
+    public String getOverall( )
     {
         return overall;
     }
 
-    public void setOverall(final String overall)
+    public void setOverall( final String overall )
     {
         this.overall = overall;
     }
 
-    public List<HealthRecord> getRecords()
+    public List<HealthRecord> getRecords( )
     {
         return records;
     }
 
-    public void setRecords(final List<HealthRecord> records)
+    public void setRecords( final List<HealthRecord> records )
     {
         this.records = records;
     }

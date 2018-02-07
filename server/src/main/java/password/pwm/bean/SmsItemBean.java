@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,12 +31,14 @@ import java.io.Serializable;
 
 @Getter
 @AllArgsConstructor
-public class SmsItemBean implements Serializable {
+public class SmsItemBean implements Serializable
+{
     private final String to;
     private final String message;
     private final SessionLabel sessionLabel;
 
-    public String toString() {
-        return "SMS Item: " + JsonUtil.serialize(this);
+    public String toString( )
+    {
+        return "SMS Item: " + JsonUtil.serialize( this );
     }
 }

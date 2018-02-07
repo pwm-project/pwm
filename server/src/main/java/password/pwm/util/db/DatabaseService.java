@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -70,7 +70,7 @@ public class DatabaseService implements PwmService
     static final String KEY_COLUMN = "id";
     static final String VALUE_COLUMN = "value";
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass(DatabaseService.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass( DatabaseService.class );
 
     private DBConfiguration dbConfiguration;
 
@@ -83,310 +83,371 @@ public class DatabaseService implements PwmService
     private STATUS status = STATUS.NEW;
 
     private AtomicLoopIntIncrementer slotIncrementer;
-    private final Map<Integer,DatabaseAccessorImpl> accessors = new ConcurrentHashMap<>();
+    private final Map<Integer, DatabaseAccessorImpl> accessors = new ConcurrentHashMap<>();
 
     private ScheduledExecutorService executorService;
 
-    private final Map<PwmAboutProperty,String> debugInfo = new LinkedHashMap<>();
+    private final Map<PwmAboutProperty, String> debugInfo = new LinkedHashMap<>();
 
     private volatile boolean initialized = false;
 
 
     @Override
-    public STATUS status()
+    public STATUS status( )
     {
         return status;
     }
 
     @Override
-    public void init(final PwmApplication pwmApplication) throws PwmException
+    public void init( final PwmApplication pwmApplication ) throws PwmException
     {
         this.pwmApplication = pwmApplication;
         init();
 
         executorService = Executors.newSingleThreadScheduledExecutor(
                 JavaHelper.makePwmThreadFactory(
-                        JavaHelper.makeThreadName(pwmApplication, this.getClass()) + "-",
+                        JavaHelper.makeThreadName( pwmApplication, this.getClass() ) + "-",
                         true
-                ));
+                ) );
 
-        final int watchdogFrequencySeconds = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.DB_CONNECTIONS_WATCHDOG_FREQUENCY_SECONDS));
-        executorService.scheduleWithFixedDelay(new ConnectionMonitor(),watchdogFrequencySeconds, watchdogFrequencySeconds, TimeUnit.SECONDS);
+        final int watchdogFrequencySeconds = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.DB_CONNECTIONS_WATCHDOG_FREQUENCY_SECONDS ) );
+        executorService.scheduleWithFixedDelay( new ConnectionMonitor(), watchdogFrequencySeconds, watchdogFrequencySeconds, TimeUnit.SECONDS );
     }
 
-    private synchronized void init()
+    private synchronized void init( )
     {
-        if (initialized) {
+        if ( initialized )
+        {
             return;
         }
 
         final Instant startTime = Instant.now();
         status = STATUS.OPENING;
 
-        try {
+        try
+        {
             final Configuration config = pwmApplication.getConfig();
-            this.dbConfiguration = DBConfiguration.fromConfiguration(config);
+            this.dbConfiguration = DBConfiguration.fromConfiguration( config );
 
-            if (!dbConfiguration.isEnabled()) {
+            if ( !dbConfiguration.isEnabled() )
+            {
                 status = PwmService.STATUS.CLOSED;
-                LOGGER.debug("skipping database connection open, no connection parameters configured");
+                LOGGER.debug( "skipping database connection open, no connection parameters configured" );
                 initialized = true;
                 return;
             }
 
-            LOGGER.debug("opening connection to database " + this.dbConfiguration.getConnectionString());
-            slotIncrementer = new AtomicLoopIntIncrementer(dbConfiguration.getMaxConnections());
+            LOGGER.debug( "opening connection to database " + this.dbConfiguration.getConnectionString() );
+            slotIncrementer = new AtomicLoopIntIncrementer( dbConfiguration.getMaxConnections() );
 
-            { // make initial connection and establish schema
+            {
+                // make initial connection and establish schema
                 clearCurrentAccessors();
 
-                final Connection connection = openConnection(dbConfiguration);
-                updateDebugProperties(connection);
-                LOGGER.debug("established initial connection to " + dbConfiguration.getConnectionString() + ", properties: " + JsonUtil.serializeMap(this.debugInfo));
+                final Connection connection = openConnection( dbConfiguration );
+                updateDebugProperties( connection );
+                LOGGER.debug( "established initial connection to " + dbConfiguration.getConnectionString() + ", properties: " + JsonUtil.serializeMap( this.debugInfo ) );
 
-                for (final DatabaseTable table : DatabaseTable.values()) {
-                    DatabaseUtil.initTable(connection, table, dbConfiguration);
+                for ( final DatabaseTable table : DatabaseTable.values() )
+                {
+                    DatabaseUtil.initTable( connection, table, dbConfiguration );
                 }
 
                 connection.close();
             }
 
             accessors.clear();
-            { // set up connection pool
-                final boolean traceLogging = config.readSettingAsBoolean(PwmSetting.DATABASE_DEBUG_TRACE);
-                for (int i = 0; i < dbConfiguration.getMaxConnections(); i++) {
-                    final Connection connection = openConnection(dbConfiguration);
-                    final DatabaseAccessorImpl accessor = new DatabaseAccessorImpl(this, this.dbConfiguration, connection, traceLogging);
-                    accessors.put(i, accessor);
+            {
+                // set up connection pool
+                final boolean traceLogging = config.readSettingAsBoolean( PwmSetting.DATABASE_DEBUG_TRACE );
+                for ( int i = 0; i < dbConfiguration.getMaxConnections(); i++ )
+                {
+                    final Connection connection = openConnection( dbConfiguration );
+                    final DatabaseAccessorImpl accessor = new DatabaseAccessorImpl( this, this.dbConfiguration, connection, traceLogging );
+                    accessors.put( i, accessor );
                 }
             }
 
-            LOGGER.debug("successfully connected to remote database (" + TimeDuration.fromCurrent(startTime).asCompactString() + ")");
+            LOGGER.debug( "successfully connected to remote database (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
 
             status = STATUS.OPEN;
             initialized = true;
-        } catch (Throwable t) {
+        }
+        catch ( Throwable t )
+        {
             final String errorMsg = "exception initializing database service: " + t.getMessage();
-            LOGGER.warn(errorMsg);
+            LOGGER.warn( errorMsg );
             initialized = false;
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE, errorMsg);
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, errorMsg );
             lastError = errorInformation;
         }
     }
 
     @Override
-    public void close()
+    public void close( )
     {
         status = PwmService.STATUS.CLOSED;
 
-        if (executorService != null) {
+        if ( executorService != null )
+        {
             executorService.shutdown();
         }
 
         clearCurrentAccessors();
 
-        try {
+        try
+        {
             driver = null;
-        } catch (Exception e) {
-            LOGGER.debug("error while de-registering driver: " + e.getMessage());
+        }
+        catch ( Exception e )
+        {
+            LOGGER.debug( "error while de-registering driver: " + e.getMessage() );
         }
 
-        if (jdbcDriverLoader != null) {
+        if ( jdbcDriverLoader != null )
+        {
             jdbcDriverLoader.unloadDriver();
             jdbcDriverLoader = null;
         }
     }
 
-    private void clearCurrentAccessors() {
-        for (DatabaseAccessorImpl accessor : accessors.values()) {
+    private void clearCurrentAccessors( )
+    {
+        for ( DatabaseAccessorImpl accessor : accessors.values() )
+        {
             accessor.close();
         }
         accessors.clear();
     }
 
-    public List<HealthRecord> healthCheck() {
-        if (status == PwmService.STATUS.CLOSED) {
+    public List<HealthRecord> healthCheck( )
+    {
+        if ( status == PwmService.STATUS.CLOSED )
+        {
             return Collections.emptyList();
         }
 
         final List<HealthRecord> returnRecords = new ArrayList<>();
 
-        if (!initialized) {
-            returnRecords.add(new HealthRecord(HealthStatus.WARN, HealthTopic.Database, makeUninitializedError().getDetailedErrorMsg()));
+        if ( !initialized )
+        {
+            returnRecords.add( new HealthRecord( HealthStatus.WARN, HealthTopic.Database, makeUninitializedError().getDetailedErrorMsg() ) );
             return returnRecords;
         }
 
-        try {
-            final Map<String,String> tempMap = new HashMap<>();
-            tempMap.put("date", JavaHelper.toIsoDate(Instant.now()));
+        try
+        {
+            final Map<String, String> tempMap = new HashMap<>();
+            tempMap.put( "date", JavaHelper.toIsoDate( Instant.now() ) );
             final DatabaseAccessor accessor = getAccessor();
-            accessor.put(DatabaseTable.PWM_META, KEY_TEST, JsonUtil.serializeMap(tempMap));
-        } catch (PwmException e) {
-            returnRecords.add(new HealthRecord(HealthStatus.WARN, HealthTopic.Database, "Error writing to database: " + e.getErrorInformation().toDebugStr()));
+            accessor.put( DatabaseTable.PWM_META, KEY_TEST, JsonUtil.serializeMap( tempMap ) );
+        }
+        catch ( PwmException e )
+        {
+            returnRecords.add( new HealthRecord( HealthStatus.WARN, HealthTopic.Database, "Error writing to database: " + e.getErrorInformation().toDebugStr() ) );
             return returnRecords;
         }
 
-        if (lastError != null) {
-            final TimeDuration errorAge = TimeDuration.fromCurrent(lastError.getDate());
+        if ( lastError != null )
+        {
+            final TimeDuration errorAge = TimeDuration.fromCurrent( lastError.getDate() );
 
-            if (errorAge.isShorterThan(TimeDuration.HOUR)) {
+            if ( errorAge.isShorterThan( TimeDuration.HOUR ) )
+            {
                 final String msg = "Database server was recently unavailable ("
-                        + errorAge.asLongString(PwmConstants.DEFAULT_LOCALE)
-                        + " ago at " + lastError.getDate().toString()+ "): " + lastError.toDebugStr();
-                returnRecords.add(new HealthRecord(HealthStatus.CAUTION, HealthTopic.Database, msg));
+                        + errorAge.asLongString( PwmConstants.DEFAULT_LOCALE )
+                        + " ago at " + lastError.getDate().toString() + "): " + lastError.toDebugStr();
+                returnRecords.add( new HealthRecord( HealthStatus.CAUTION, HealthTopic.Database, msg ) );
             }
         }
 
-        if (returnRecords.isEmpty()) {
-            returnRecords.add(new HealthRecord(HealthStatus.GOOD, HealthTopic.Database, "Database connection to " + this.dbConfiguration.getConnectionString() + " okay"));
+        if ( returnRecords.isEmpty() )
+        {
+            returnRecords.add( new HealthRecord( HealthStatus.GOOD, HealthTopic.Database, "Database connection to " + this.dbConfiguration.getConnectionString() + " okay" ) );
         }
 
         return returnRecords;
     }
 
-    private ErrorInformation makeUninitializedError() {
+    private ErrorInformation makeUninitializedError( )
+    {
 
         final String errorMsg;
-        if (dbConfiguration != null && !dbConfiguration.isEnabled()) {
+        if ( dbConfiguration != null && !dbConfiguration.isEnabled() )
+        {
             errorMsg = "database is not configured";
-        } else {
-            if (lastError != null) {
+        }
+        else
+        {
+            if ( lastError != null )
+            {
                 errorMsg = "unable to initialize database: " + lastError.getDetailedErrorMsg();
-            } else {
+            }
+            else
+            {
                 errorMsg = "database is not yet initialized";
             }
         }
-        return new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE, errorMsg);
+        return new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, errorMsg );
     }
 
 
     @Override
-    public ServiceInfoBean serviceInfo()
+    public ServiceInfoBean serviceInfo( )
     {
-        final Map<String,String> debugProperties = new LinkedHashMap<>();
-        for (final Map.Entry<PwmAboutProperty,String> entry : debugInfo.entrySet()) {
+        final Map<String, String> debugProperties = new LinkedHashMap<>();
+        for ( final Map.Entry<PwmAboutProperty, String> entry : debugInfo.entrySet() )
+        {
             final PwmAboutProperty pwmAboutProperty = entry.getKey();
-            debugProperties.put(pwmAboutProperty.name(), entry.getValue());
+            debugProperties.put( pwmAboutProperty.name(), entry.getValue() );
         }
-        if (status() == STATUS.OPEN) {
-            return new ServiceInfoBean(Collections.singletonList(DataStorageMethod.DB), debugProperties);
-        } else {
-            return new ServiceInfoBean(Collections.emptyList(), debugProperties);
+        if ( status() == STATUS.OPEN )
+        {
+            return new ServiceInfoBean( Collections.singletonList( DataStorageMethod.DB ), debugProperties );
+        }
+        else
+        {
+            return new ServiceInfoBean( Collections.emptyList(), debugProperties );
         }
     }
 
-    public DatabaseAccessor getAccessor()
+    public DatabaseAccessor getAccessor( )
             throws PwmUnrecoverableException
     {
-        if (status == PwmService.STATUS.CLOSED) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,"database connection is not open"));
+        if ( status == PwmService.STATUS.CLOSED )
+        {
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, "database connection is not open" ) );
         }
 
-        if (!initialized) {
-            throw new PwmUnrecoverableException(makeUninitializedError());
+        if ( !initialized )
+        {
+            throw new PwmUnrecoverableException( makeUninitializedError() );
         }
 
-        return accessors.get(slotIncrementer.next());
+        return accessors.get( slotIncrementer.next() );
     }
 
-    private Connection openConnection(final DBConfiguration dbConfiguration)
+    private Connection openConnection( final DBConfiguration dbConfiguration )
             throws DatabaseException
     {
         final String connectionURL = dbConfiguration.getConnectionString();
 
-        final JDBCDriverLoader.DriverWrapper wrapper = JDBCDriverLoader.loadDriver(pwmApplication, dbConfiguration);
+        final JDBCDriverLoader.DriverWrapper wrapper = JDBCDriverLoader.loadDriver( pwmApplication, dbConfiguration );
         driver = wrapper.getDriver();
         jdbcDriverLoader = wrapper.getDriverLoader();
 
-        try {
-            LOGGER.debug("initiating connecting to database " + connectionURL);
+        try
+        {
+            LOGGER.debug( "initiating connecting to database " + connectionURL );
             final Properties connectionProperties = new Properties();
-            if (dbConfiguration.getUsername() != null && !dbConfiguration.getUsername().isEmpty()) {
-                connectionProperties.setProperty("user", dbConfiguration.getUsername());
+            if ( dbConfiguration.getUsername() != null && !dbConfiguration.getUsername().isEmpty() )
+            {
+                connectionProperties.setProperty( "user", dbConfiguration.getUsername() );
             }
-            if (dbConfiguration.getPassword() != null) {
-                connectionProperties.setProperty("password", dbConfiguration.getPassword().getStringValue());
+            if ( dbConfiguration.getPassword() != null )
+            {
+                connectionProperties.setProperty( "password", dbConfiguration.getPassword().getStringValue() );
             }
 
-            final Connection connection = driver.connect(connectionURL, connectionProperties);
-            LOGGER.debug("connected to database " + connectionURL);
+            final Connection connection = driver.connect( connectionURL, connectionProperties );
+            LOGGER.debug( "connected to database " + connectionURL );
 
-            connection.setAutoCommit(false);
+            connection.setAutoCommit( false );
             return connection;
-        } catch (Throwable e) {
-            final String errorMsg = "error connecting to database: " + JavaHelper.readHostileExceptionMessage(e);
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,errorMsg);
-            LOGGER.error(errorInformation);
-            throw new DatabaseException(errorInformation);
+        }
+        catch ( Throwable e )
+        {
+            final String errorMsg = "error connecting to database: " + JavaHelper.readHostileExceptionMessage( e );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, errorMsg );
+            LOGGER.error( errorInformation );
+            throw new DatabaseException( errorInformation );
         }
     }
 
 
-    enum OperationType {
+    enum OperationType
+    {
         WRITE,
         READ,
     }
 
-    void updateStats(final OperationType operationType) {
-        if (pwmApplication != null && pwmApplication.getApplicationMode() == PwmApplicationMode.RUNNING) {
+    void updateStats( final OperationType operationType )
+    {
+        if ( pwmApplication != null && pwmApplication.getApplicationMode() == PwmApplicationMode.RUNNING )
+        {
             final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
-            if (statisticsManager != null && statisticsManager.status() == PwmService.STATUS.OPEN) {
-                if (operationType == OperationType.READ) {
-                    statisticsManager.updateEps(EpsStatistic.DB_READS,1);
+            if ( statisticsManager != null && statisticsManager.status() == PwmService.STATUS.OPEN )
+            {
+                if ( operationType == OperationType.READ )
+                {
+                    statisticsManager.updateEps( EpsStatistic.DB_READS, 1 );
                 }
-                if (operationType == OperationType.WRITE) {
-                    statisticsManager.updateEps(EpsStatistic.DB_WRITES,1);
+                if ( operationType == OperationType.WRITE )
+                {
+                    statisticsManager.updateEps( EpsStatistic.DB_WRITES, 1 );
                 }
             }
         }
     }
 
-    public Map<PwmAboutProperty,String> getConnectionDebugProperties() {
-        return Collections.unmodifiableMap(debugInfo);
+    public Map<PwmAboutProperty, String> getConnectionDebugProperties( )
+    {
+        return Collections.unmodifiableMap( debugInfo );
     }
 
-    private void updateDebugProperties(final Connection connection) {
-        if (connection != null) {
-            try {
-                final Map<PwmAboutProperty,String> returnObj = new LinkedHashMap<>();
+    private void updateDebugProperties( final Connection connection )
+    {
+        if ( connection != null )
+        {
+            try
+            {
+                final Map<PwmAboutProperty, String> returnObj = new LinkedHashMap<>();
                 final DatabaseMetaData databaseMetaData = connection.getMetaData();
-                returnObj.put(PwmAboutProperty.database_driverName, databaseMetaData.getDriverName());
-                returnObj.put(PwmAboutProperty.database_driverVersion, databaseMetaData.getDriverVersion());
-                returnObj.put(PwmAboutProperty.database_databaseProductName, databaseMetaData.getDatabaseProductName());
-                returnObj.put(PwmAboutProperty.database_databaseProductVersion, databaseMetaData.getDatabaseProductVersion());
+                returnObj.put( PwmAboutProperty.database_driverName, databaseMetaData.getDriverName() );
+                returnObj.put( PwmAboutProperty.database_driverVersion, databaseMetaData.getDriverVersion() );
+                returnObj.put( PwmAboutProperty.database_databaseProductName, databaseMetaData.getDatabaseProductName() );
+                returnObj.put( PwmAboutProperty.database_databaseProductVersion, databaseMetaData.getDatabaseProductVersion() );
                 debugInfo.clear();
-                debugInfo.putAll(Collections.unmodifiableMap(returnObj));
-            } catch (SQLException e) {
-                LOGGER.error("error reading jdbc meta data: " + e.getMessage());
+                debugInfo.putAll( Collections.unmodifiableMap( returnObj ) );
+            }
+            catch ( SQLException e )
+            {
+                LOGGER.error( "error reading jdbc meta data: " + e.getMessage() );
             }
         }
     }
 
-    void setLastError(final ErrorInformation lastError)
+    void setLastError( final ErrorInformation lastError )
     {
         this.lastError = lastError;
     }
 
-    private class ConnectionMonitor implements Runnable {
+    private class ConnectionMonitor implements Runnable
+    {
         @Override
-        public void run()
+        public void run( )
         {
-            if (initialized) {
+            if ( initialized )
+            {
                 boolean valid = true;
-                for (final DatabaseAccessorImpl databaseAccessor : accessors.values()) {
-                    if (!databaseAccessor.isValid()) {
+                for ( final DatabaseAccessorImpl databaseAccessor : accessors.values() )
+                {
+                    if ( !databaseAccessor.isValid() )
+                    {
                         valid = false;
                         break;
                     }
                 }
-                if (!valid) {
-                    LOGGER.warn("database connection lost; will retry connect periodically");
+                if ( !valid )
+                {
+                    LOGGER.warn( "database connection lost; will retry connect periodically" );
                     initialized = false;
                 }
 
             }
 
-            if (!initialized) {
+            if ( !initialized )
+            {
                 init();
             }
         }

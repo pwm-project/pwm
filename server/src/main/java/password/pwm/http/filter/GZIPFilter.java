@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,52 +43,64 @@ import java.io.IOException;
  * GZip Filter Wrapper.  This filter must be invoked _before_ a PwmRequest object is instantiated, else
  * it will cache a reference to the original response and break the application.
  */
-public class GZIPFilter implements Filter {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(GZIPFilter.class);
+public class GZIPFilter implements Filter
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( GZIPFilter.class );
 
     private final CompressingFilter compressingFilter = new CompressingFilter();
     private boolean enabled = false;
 
-    public void init(final FilterConfig filterConfig)
+    public void init( final FilterConfig filterConfig )
             throws ServletException
     {
         final PwmApplication pwmApplication;
-        try {
+        try
+        {
             pwmApplication = ContextManager.getPwmApplication( filterConfig.getServletContext() );
-            enabled = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_ENABLE_GZIP));
-        } catch (PwmUnrecoverableException e) {
+            enabled = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_ENABLE_GZIP ) );
+        }
+        catch ( PwmUnrecoverableException e )
+        {
             LOGGER.warn( "unable to load application configuration, defaulting to disabled" );
         }
 
         compressingFilter.init( filterConfig );
     }
 
-    public void destroy()
+    public void destroy( )
     {
         compressingFilter.destroy();
     }
 
     @Override
-    public void doFilter(final ServletRequest servletRequest, final ServletResponse servletResponse, final FilterChain filterChain)
+    public void doFilter( final ServletRequest servletRequest, final ServletResponse servletResponse, final FilterChain filterChain )
             throws IOException, ServletException
     {
-        if ( enabled && interestInRequest( servletRequest )) {
+        if ( enabled && interestInRequest( servletRequest ) )
+        {
             compressingFilter.doFilter( servletRequest, servletResponse, filterChain );
-        } else {
-            filterChain.doFilter(servletRequest, servletResponse);
+        }
+        else
+        {
+            filterChain.doFilter( servletRequest, servletResponse );
         }
     }
 
-    private boolean interestInRequest( final ServletRequest servletRequest) {
-        try {
-            final PwmURL pwmURL = new PwmURL((HttpServletRequest) servletRequest);
+    private boolean interestInRequest( final ServletRequest servletRequest )
+    {
+        try
+        {
+            final PwmURL pwmURL = new PwmURL( ( HttpServletRequest ) servletRequest );
 
             // resource servlet does its own gzip compression with fancy server-side caching
-            if (pwmURL.isResourceURL()) {
+            if ( pwmURL.isResourceURL() )
+            {
                 return false;
             }
-        } catch (Exception e) {
-            LOGGER.error("unable to parse request url, defaulting to non-gzip: " + e.getMessage());
+        }
+        catch ( Exception e )
+        {
+            LOGGER.error( "unable to parse request url, defaulting to non-gzip: " + e.getMessage() );
         }
 
         return true;

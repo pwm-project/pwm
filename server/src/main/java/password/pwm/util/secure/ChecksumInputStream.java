@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,87 +31,107 @@ import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-public class ChecksumInputStream extends InputStream {
+public class ChecksumInputStream extends InputStream
+{
     private final MessageDigest messageDigest;
     private final InputStream wrappedStream;
 
-    public ChecksumInputStream(final PwmHashAlgorithm hash, final InputStream wrappedStream) throws PwmUnrecoverableException {
+    public ChecksumInputStream( final PwmHashAlgorithm hash, final InputStream wrappedStream ) throws PwmUnrecoverableException
+    {
         this.wrappedStream = wrappedStream;
 
-        try {
-            messageDigest = MessageDigest.getInstance(hash.getAlgName());
-        } catch (NoSuchAlgorithmException e) {
+        try
+        {
+            messageDigest = MessageDigest.getInstance( hash.getAlgName() );
+        }
+        catch ( NoSuchAlgorithmException e )
+        {
             final String errorMsg = "missing hash algorithm: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_CRYPT_ERROR, errorMsg);
-            throw new PwmUnrecoverableException(errorInformation);
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );
+            throw new PwmUnrecoverableException( errorInformation );
         }
     }
 
     @Override
-    public int read() throws IOException {
+    public int read( ) throws IOException
+    {
         final int value = wrappedStream.read();
-        if (value >= 0) {
-            messageDigest.update((byte)value);
+        if ( value >= 0 )
+        {
+            messageDigest.update( ( byte ) value );
         }
         return value;
     }
 
     @Override
-    public int read(final byte[] b) throws IOException {
-        final int length = wrappedStream.read(b);
-        if (length > 0) {
-            messageDigest.update(b,0,length);
+    public int read( final byte[] b ) throws IOException
+    {
+        final int length = wrappedStream.read( b );
+        if ( length > 0 )
+        {
+            messageDigest.update( b, 0, length );
         }
         return length;
     }
 
     @Override
-    public int read(final byte[] b, final int off, final int len) throws IOException {
-        final int length = wrappedStream.read(b, off, len);
-        if (length > 0) {
-            messageDigest.update(b,off,length);
+    public int read( final byte[] b, final int off, final int len ) throws IOException
+    {
+        final int length = wrappedStream.read( b, off, len );
+        if ( length > 0 )
+        {
+            messageDigest.update( b, off, length );
         }
         return length;
     }
 
     @Override
-    public long skip(final long n) throws IOException {
-        throw new IOException("operation not supported");
+    public long skip( final long n ) throws IOException
+    {
+        throw new IOException( "operation not supported" );
     }
 
     @Override
-    public int available() throws IOException {
+    public int available( ) throws IOException
+    {
         return wrappedStream.available();
     }
 
     @Override
-    public void close() throws IOException {
+    public void close( ) throws IOException
+    {
         wrappedStream.close();
     }
 
     @Override
-    public synchronized void mark(final int readlimit) {
-        wrappedStream.mark(readlimit);
+    public synchronized void mark( final int readlimit )
+    {
+        wrappedStream.mark( readlimit );
     }
 
     @Override
-    public synchronized void reset() throws IOException {
-        throw new IOException("operation not supported");
+    public synchronized void reset( ) throws IOException
+    {
+        throw new IOException( "operation not supported" );
     }
 
     @Override
-    public boolean markSupported() {
+    public boolean markSupported( )
+    {
         return false;
     }
 
-    public byte[] getInProgressChecksum() {
+    public byte[] getInProgressChecksum( )
+    {
         return messageDigest.digest();
     }
 
-    public byte[] closeAndFinalChecksum() throws IOException {
-        final byte[] buffer = new byte[1024];
+    public byte[] closeAndFinalChecksum( ) throws IOException
+    {
+        final byte[] buffer = new byte[ 1024 ];
 
-        while (read(buffer) > 0) {
+        while ( read( buffer ) > 0 )
+        {
             // read out the remainder of the stream contents
         }
 

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,42 +48,43 @@ import password.pwm.config.value.X509CertificateValue;
  * methods for marshaling to and from XML and JSON formats.  For user-facing syntactical differences in format, see the
  * {@link PwmSetting#getRegExPattern()} or use a {@link PwmSettingFlag} type.
  */
-public enum PwmSettingSyntax {
-    STRING(StringValue.factory()),
-    USER_PERMISSION(UserPermissionValue.factory()),
-    STRING_ARRAY(StringArrayValue.factory()),
-    TEXT_AREA(StringValue.factory()),
-    LOCALIZED_STRING(LocalizedStringValue.factory()),
-    LOCALIZED_TEXT_AREA(LocalizedStringValue.factory()),
-    LOCALIZED_STRING_ARRAY(LocalizedStringArrayValue.factory()),
-    PASSWORD(PasswordValue.factory()),
-    NUMERIC(NumericValue.factory()),
-    DURATION(NumericValue.factory()),
-    BOOLEAN(BooleanValue.factory()),
-    SELECT(StringValue.factory()),
-    FORM(FormValue.factory()),
-    ACTION(ActionValue.factory()),
-    EMAIL(EmailValue.factory()),
-    X509CERT(X509CertificateValue.factory()),
-    CHALLENGE(ChallengeValue.factory()),
-    OPTIONLIST(OptionListValue.factory()),
-    FILE(FileValue.factory()),
-    PROFILE(StringArrayValue.factory()),
-    VERIFICATION_METHOD(VerificationMethodValue.factory()),
-    PRIVATE_KEY(PrivateKeyValue.factory()),
-    NAMED_SECRET(NamedSecretValue.factory()),
-    CUSTOMLINKS(CustomLinkValue.factory()),
-    REMOTE_WEB_SERVICE(RemoteWebServiceValue.factory()),
-
-    ;
+public enum PwmSettingSyntax
+{
+    STRING( StringValue.factory() ),
+    USER_PERMISSION( UserPermissionValue.factory() ),
+    STRING_ARRAY( StringArrayValue.factory() ),
+    TEXT_AREA( StringValue.factory() ),
+    LOCALIZED_STRING( LocalizedStringValue.factory() ),
+    LOCALIZED_TEXT_AREA( LocalizedStringValue.factory() ),
+    LOCALIZED_STRING_ARRAY( LocalizedStringArrayValue.factory() ),
+    PASSWORD( PasswordValue.factory() ),
+    NUMERIC( NumericValue.factory() ),
+    DURATION( NumericValue.factory() ),
+    BOOLEAN( BooleanValue.factory() ),
+    SELECT( StringValue.factory() ),
+    FORM( FormValue.factory() ),
+    ACTION( ActionValue.factory() ),
+    EMAIL( EmailValue.factory() ),
+    X509CERT( X509CertificateValue.factory() ),
+    CHALLENGE( ChallengeValue.factory() ),
+    OPTIONLIST( OptionListValue.factory() ),
+    FILE( FileValue.factory() ),
+    PROFILE( StringArrayValue.factory() ),
+    VERIFICATION_METHOD( VerificationMethodValue.factory() ),
+    PRIVATE_KEY( PrivateKeyValue.factory() ),
+    NAMED_SECRET( NamedSecretValue.factory() ),
+    CUSTOMLINKS( CustomLinkValue.factory() ),
+    REMOTE_WEB_SERVICE( RemoteWebServiceValue.factory() ),;
 
     private StoredValue.StoredValueFactory storedValueImpl;
 
-    PwmSettingSyntax(final StoredValue.StoredValueFactory storedValueImpl) {
+    PwmSettingSyntax( final StoredValue.StoredValueFactory storedValueImpl )
+    {
         this.storedValueImpl = storedValueImpl;
     }
 
-    public StoredValue.StoredValueFactory getStoredValueImpl() {
+    public StoredValue.StoredValueFactory getStoredValueImpl( )
+    {
         return storedValueImpl;
     }
 }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,20 +28,24 @@ import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.List;
 
-public class PrivateKeyCertificate implements Serializable {
+public class PrivateKeyCertificate implements Serializable
+{
     private final List<X509Certificate> certificates;
     private final PrivateKey key;
 
-    public PrivateKeyCertificate(final List<X509Certificate> certificates, final PrivateKey key) {
-        this.certificates = Collections.unmodifiableList(certificates);
+    public PrivateKeyCertificate( final List<X509Certificate> certificates, final PrivateKey key )
+    {
+        this.certificates = Collections.unmodifiableList( certificates );
         this.key = key;
     }
 
-    public List<X509Certificate> getCertificates() {
-        return Collections.unmodifiableList(certificates);
+    public List<X509Certificate> getCertificates( )
+    {
+        return Collections.unmodifiableList( certificates );
     }
 
-    public PrivateKey getKey() {
+    public PrivateKey getKey( )
+    {
         return key;
     }
 }

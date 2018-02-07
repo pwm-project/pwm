@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,31 +22,35 @@
 
 package password.pwm.config.option;
 
-public enum MessageSendMethod implements ConfigurationOption {
-    NONE(false),
+public enum MessageSendMethod implements ConfigurationOption
+{
+    NONE( false ),
 
-    EMAILONLY(false),
-    SMSONLY(false),
-    CHOICE_SMS_EMAIL(false),
+    EMAILONLY( false ),
+    SMSONLY( false ),
+    CHOICE_SMS_EMAIL( false ),
 
+    //deprecated oct 2017
     @Deprecated
-    BOTH(true),         //deprecated oct 2017
+    BOTH( true ),
 
+    //deprecated oct 2017
     @Deprecated
-    EMAILFIRST(true),   //deprecated oct 2017
+    EMAILFIRST( true ),
 
+    //deprecated oct 2017
     @Deprecated
-    SMSFIRST(true),     //deprecated oct 2017
-
-    ;
+    SMSFIRST( true ),;
 
     private final boolean deprecated;
 
-    MessageSendMethod(final boolean deprecated) {
+    MessageSendMethod( final boolean deprecated )
+    {
         this.deprecated = deprecated;
     }
 
-    public boolean isDeprecated() {
+    public boolean isDeprecated( )
+    {
         return deprecated;
     }
 }

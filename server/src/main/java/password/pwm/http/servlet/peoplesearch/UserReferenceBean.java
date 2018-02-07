@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,23 +24,28 @@ package password.pwm.http.servlet.peoplesearch;
 
 import java.io.Serializable;
 
-class UserReferenceBean implements Serializable {
+class UserReferenceBean implements Serializable
+{
     private String userKey;
     private String displayName;
 
-    public String getUserKey() {
+    public String getUserKey( )
+    {
         return userKey;
     }
 
-    public void setUserKey(final String userKey) {
+    public void setUserKey( final String userKey )
+    {
         this.userKey = userKey;
     }
 
-    public String getDisplayName() {
+    public String getDisplayName( )
+    {
         return displayName;
     }
 
-    public void setDisplayName(final String displayName) {
+    public void setDisplayName( final String displayName )
+    {
         this.displayName = displayName;
     }
 }

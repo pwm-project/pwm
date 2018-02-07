@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,9 +34,9 @@ import password.pwm.http.HttpMethod;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestMethodHandler;
 import password.pwm.ws.server.RestRequest;
+import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServlet;
 import password.pwm.ws.server.RestWebServer;
 import password.pwm.ws.server.rest.bean.HealthData;
@@ -49,49 +49,56 @@ import java.util.List;
 import java.util.Locale;
 
 @WebServlet(
-        urlPatterns={
+        urlPatterns = {
                 PwmConstants.URL_PREFIX_PUBLIC + PwmConstants.URL_PREFIX_REST + "/health",
         }
 )
-@RestWebServer(webService = WebServiceUsage.Health, requireAuthentication = false)
-public class RestHealthServer extends RestServlet {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(RestHealthServer.class);
+@RestWebServer( webService = WebServiceUsage.Health, requireAuthentication = false )
+public class RestHealthServer extends RestServlet
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( RestHealthServer.class );
 
     private static final String PARAM_IMMEDIATE_REFRESH = "refreshImmediate";
 
     @Override
-    public void preCheckRequest(final RestRequest restRequest) throws PwmUnrecoverableException {
-        if (!restRequest.getRestAuthentication().getUsages().contains(WebServiceUsage.Health)) {
-            throw PwmUnrecoverableException.newException(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"public health service is not enabled");
+    public void preCheckRequest( final RestRequest restRequest ) throws PwmUnrecoverableException
+    {
+        if ( !restRequest.getRestAuthentication().getUsages().contains( WebServiceUsage.Health ) )
+        {
+            throw PwmUnrecoverableException.newException( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "public health service is not enabled" );
         }
     }
 
-    @RestMethodHandler(method = HttpMethod.GET, produces = HttpContentType.plain)
-    private RestResultBean doPwmHealthPlainGet(final RestRequest restRequest)
+    @RestMethodHandler( method = HttpMethod.GET, produces = HttpContentType.plain )
+    private RestResultBean doPwmHealthPlainGet( final RestRequest restRequest )
             throws PwmUnrecoverableException
     {
-        final boolean requestImmediateParam = restRequest.readParameterAsBoolean(PARAM_IMMEDIATE_REFRESH);
+        final boolean requestImmediateParam = restRequest.readParameterAsBoolean( PARAM_IMMEDIATE_REFRESH );
 
-        try {
-            final HealthMonitor.CheckTimeliness timeliness = determineDataTimeliness(requestImmediateParam);
-            final String resultString = restRequest.getPwmApplication().getHealthMonitor().getMostSevereHealthStatus(timeliness).toString() + "\n";
-            StatisticsManager.incrementStat(restRequest.getPwmApplication(), Statistic.REST_HEALTH);
-            return RestResultBean.withData(resultString);
-        } catch (Exception e) {
+        try
+        {
+            final HealthMonitor.CheckTimeliness timeliness = determineDataTimeliness( requestImmediateParam );
+            final String resultString = restRequest.getPwmApplication().getHealthMonitor().getMostSevereHealthStatus( timeliness ).toString() + "\n";
+            StatisticsManager.incrementStat( restRequest.getPwmApplication(), Statistic.REST_HEALTH );
+            return RestResultBean.withData( resultString );
+        }
+        catch ( Exception e )
+        {
             final String errorMessage = "unexpected error executing web service: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMessage);
-            return RestResultBean.fromError(restRequest, errorInformation);
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMessage );
+            return RestResultBean.fromError( restRequest, errorInformation );
         }
     }
 
-    @RestMethodHandler(method = HttpMethod.GET, consumes = HttpContentType.json, produces = HttpContentType.json)
-    private RestResultBean doPwmHealthJsonGet(final RestRequest restRequest)
-            throws PwmUnrecoverableException, IOException {
-        final boolean requestImmediateParam = restRequest.readParameterAsBoolean(PARAM_IMMEDIATE_REFRESH);
+    @RestMethodHandler( method = HttpMethod.GET, consumes = HttpContentType.json, produces = HttpContentType.json )
+    private RestResultBean doPwmHealthJsonGet( final RestRequest restRequest )
+            throws PwmUnrecoverableException, IOException
+    {
+        final boolean requestImmediateParam = restRequest.readParameterAsBoolean( PARAM_IMMEDIATE_REFRESH );
 
-        final HealthData jsonOutput = processGetHealthCheckData(restRequest.getPwmApplication(), restRequest.getLocale(), requestImmediateParam);
-        StatisticsManager.incrementStat(restRequest.getPwmApplication(), Statistic.REST_HEALTH);
-        return RestResultBean.withData(jsonOutput);
+        final HealthData jsonOutput = processGetHealthCheckData( restRequest.getPwmApplication(), restRequest.getLocale(), requestImmediateParam );
+        StatisticsManager.incrementStat( restRequest.getPwmApplication(), Statistic.REST_HEALTH );
+        return RestResultBean.withData( jsonOutput );
     }
 
     private static HealthMonitor.CheckTimeliness determineDataTimeliness(
@@ -112,13 +119,13 @@ public class RestHealthServer extends RestServlet {
             throws IOException, PwmUnrecoverableException
     {
         final HealthMonitor healthMonitor = pwmApplication.getHealthMonitor();
-        final HealthMonitor.CheckTimeliness timeliness = determineDataTimeliness(refreshImmediate);
-        final List<password.pwm.health.HealthRecord> healthRecords = new ArrayList<>(healthMonitor.getHealthRecords(timeliness));
-        final List<HealthRecord> healthRecordBeans = HealthRecord.fromHealthRecords(healthRecords, locale,
-                pwmApplication.getConfig());
+        final HealthMonitor.CheckTimeliness timeliness = determineDataTimeliness( refreshImmediate );
+        final List<password.pwm.health.HealthRecord> healthRecords = new ArrayList<>( healthMonitor.getHealthRecords( timeliness ) );
+        final List<HealthRecord> healthRecordBeans = HealthRecord.fromHealthRecords( healthRecords, locale,
+                pwmApplication.getConfig() );
         final HealthData healthData = new HealthData();
         healthData.timestamp = healthMonitor.getLastHealthCheckTime();
-        healthData.overall = healthMonitor.getMostSevereHealthStatus(timeliness).toString();
+        healthData.overall = healthMonitor.getMostSevereHealthStatus( timeliness ).toString();
         healthData.records = healthRecordBeans;
         return healthData;
     }

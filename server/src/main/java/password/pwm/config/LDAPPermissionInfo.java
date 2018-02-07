@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,44 +29,50 @@ import password.pwm.util.macro.MacroMachine;
 import java.io.Serializable;
 import java.util.Locale;
 
-public class LDAPPermissionInfo implements Serializable {
+public class LDAPPermissionInfo implements Serializable
+{
     private final Access access;
     private final Actor actor;
 
-    public LDAPPermissionInfo(final Access type, final Actor actor) {
+    public LDAPPermissionInfo( final Access type, final Actor actor )
+    {
         this.access = type;
         this.actor = actor;
     }
 
-    public Access getAccess() {
+    public Access getAccess( )
+    {
         return access;
     }
 
-    public Actor getActor() {
+    public Actor getActor( )
+    {
         return actor;
     }
 
-    public enum Access {
+    public enum Access
+    {
         read,
         write,
     }
 
-    public enum Actor {
+    public enum Actor
+    {
         proxy,
         self,
         self_other,
         helpdesk,
-        guestManager,
+        guestManager,;
 
-        ;
-
-        public String getLabel(final Locale locale, final Configuration config) {
-            return LocaleHelper.getLocalizedMessage(locale, "Actor_Label_" + this.toString(), config, Config.class);
+        public String getLabel( final Locale locale, final Configuration config )
+        {
+            return LocaleHelper.getLocalizedMessage( locale, "Actor_Label_" + this.toString(), config, Config.class );
         }
 
-        public String getDescription(final Locale locale, final Configuration config) {
+        public String getDescription( final Locale locale, final Configuration config )
+        {
             final MacroMachine macroMachine = MacroMachine.forStatic();
-            return macroMachine.expandMacros(LocaleHelper.getLocalizedMessage(locale, "Actor_Description_" + this.toString(), config, Config.class));
+            return macroMachine.expandMacros( LocaleHelper.getLocalizedMessage( locale, "Actor_Description_" + this.toString(), config, Config.class ) );
         }
     }
 }

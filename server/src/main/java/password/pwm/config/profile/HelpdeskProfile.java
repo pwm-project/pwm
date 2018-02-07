@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,38 +35,44 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-public class HelpdeskProfile extends AbstractProfile implements Profile {
+public class HelpdeskProfile extends AbstractProfile implements Profile
+{
 
     private static final ProfileType PROFILE_TYPE = ProfileType.Helpdesk;
 
-    protected HelpdeskProfile(final String identifier, final Map<PwmSetting, StoredValue> storedValueMap) {
-        super(identifier, storedValueMap);
+    protected HelpdeskProfile( final String identifier, final Map<PwmSetting, StoredValue> storedValueMap )
+    {
+        super( identifier, storedValueMap );
     }
 
-    public static HelpdeskProfile makeFromStoredConfiguration(final StoredConfiguration storedConfiguration, final String identifier) {
-        final Map<PwmSetting,StoredValue> valueMap = makeValueMap(storedConfiguration, identifier, PROFILE_TYPE.getCategory());
-        return new HelpdeskProfile(identifier, valueMap);
+    public static HelpdeskProfile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
+    {
+        final Map<PwmSetting, StoredValue> valueMap = makeValueMap( storedConfiguration, identifier, PROFILE_TYPE.getCategory() );
+        return new HelpdeskProfile( identifier, valueMap );
     }
 
     @Override
-    public String getDisplayName(final Locale locale)
+    public String getDisplayName( final Locale locale )
     {
         return this.getIdentifier();
     }
 
     @Override
-    public ProfileType profileType() {
+    public ProfileType profileType( )
+    {
         return PROFILE_TYPE;
     }
 
-    public Collection<IdentityVerificationMethod> readOptionalVerificationMethods() {
+    public Collection<IdentityVerificationMethod> readOptionalVerificationMethods( )
+    {
         final Set<IdentityVerificationMethod> result = new LinkedHashSet<>();
-        result.addAll(readVerificationMethods(PwmSetting.HELPDESK_VERIFICATION_METHODS, VerificationMethodValue.EnabledState.optional));
-        result.addAll(readVerificationMethods(PwmSetting.HELPDESK_VERIFICATION_METHODS, VerificationMethodValue.EnabledState.required));
-        return Collections.unmodifiableSet(result);
+        result.addAll( readVerificationMethods( PwmSetting.HELPDESK_VERIFICATION_METHODS, VerificationMethodValue.EnabledState.optional ) );
+        result.addAll( readVerificationMethods( PwmSetting.HELPDESK_VERIFICATION_METHODS, VerificationMethodValue.EnabledState.required ) );
+        return Collections.unmodifiableSet( result );
     }
 
-    public Collection<IdentityVerificationMethod> readRequiredVerificationMethods() {
-        return readVerificationMethods(PwmSetting.HELPDESK_VERIFICATION_METHODS, VerificationMethodValue.EnabledState.required);
+    public Collection<IdentityVerificationMethod> readRequiredVerificationMethods( )
+    {
+        return readVerificationMethods( PwmSetting.HELPDESK_VERIFICATION_METHODS, VerificationMethodValue.EnabledState.required );
     }
 }

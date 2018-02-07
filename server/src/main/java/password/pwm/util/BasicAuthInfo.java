@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,15 +40,16 @@ import java.io.Serializable;
  *
  * @author Jason D. Rivard
  */
-public class BasicAuthInfo implements Serializable {
+public class BasicAuthInfo implements Serializable
+{
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass(BasicAuthInfo.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass( BasicAuthInfo.class );
 
     private final String username;
     private final PasswordData password;
 
     /**
-     * Extracts the basic auth info from the header
+     * Extracts the basic auth info from the header.
      *
      * @param pwmRequest http servlet request
      * @return a BasicAuthInfo object containing username/password, or null if the "Authorization" header doesn't exist or is malformed
@@ -56,33 +57,40 @@ public class BasicAuthInfo implements Serializable {
     public static BasicAuthInfo parseAuthHeader(
             final PwmApplication pwmApplication,
             final PwmRequest pwmRequest
-    ) {
-        return parseAuthHeader(pwmApplication, pwmRequest.getHttpServletRequest());
+    )
+    {
+        return parseAuthHeader( pwmApplication, pwmRequest.getHttpServletRequest() );
     }
 
     public static BasicAuthInfo parseAuthHeader(
             final PwmApplication pwmApplication,
             final HttpServletRequest httpServletRequest
-    ) {
-        final String authHeader = httpServletRequest.getHeader(HttpHeader.Authorization.getHttpName());
+    )
+    {
+        final String authHeader = httpServletRequest.getHeader( HttpHeader.Authorization.getHttpName() );
 
-        if (authHeader != null) {
-            if (authHeader.contains(PwmConstants.HTTP_BASIC_AUTH_PREFIX)) {
+        if ( authHeader != null )
+        {
+            if ( authHeader.contains( PwmConstants.HTTP_BASIC_AUTH_PREFIX ) )
+            {
                 // ***** Get the encoded username/chpass string
                 // Strip off "Basic " from "Basic c2pvaG5zLmNzaTo=bm92ZWxs"
-                final String toStrip = PwmConstants.HTTP_BASIC_AUTH_PREFIX  +" ";
-                final String encodedValue = authHeader.substring(toStrip.length(), authHeader.length());
+                final String toStrip = PwmConstants.HTTP_BASIC_AUTH_PREFIX + " ";
+                final String encodedValue = authHeader.substring( toStrip.length(), authHeader.length() );
 
-                try {
+                try
+                {
                     // ***** Decode the username/chpass string
-                    final String charSet = pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_BASIC_AUTH_CHARSET);
-                    final String decoded = new String(StringUtil.base64Decode(encodedValue), charSet);
+                    final String charSet = pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_BASIC_AUTH_CHARSET );
+                    final String decoded = new String( StringUtil.base64Decode( encodedValue ), charSet );
 
                     // The decoded string should now look something like:
                     //   "cn=user,o=company:chpass" or "user:chpass"
-                    return parseHeaderString(decoded);
-                } catch (IOException e) {
-                    LOGGER.debug("error decoding auth header" + e.getMessage());
+                    return parseHeaderString( decoded );
+                }
+                catch ( IOException e )
+                {
+                    LOGGER.debug( "error decoding auth header" + e.getMessage() );
                 }
             }
         }
@@ -90,37 +98,44 @@ public class BasicAuthInfo implements Serializable {
         return null;
     }
 
-    public static BasicAuthInfo parseHeaderString(final String input) {
-        try {
+    public static BasicAuthInfo parseHeaderString( final String input )
+    {
+        try
+        {
             // The decoded string should now look something like:
             //   "cn=user,o=company:chpass" or "user:chpass"
 
-            final int index = input.indexOf(":");
-            if (index != -1) {
+            final int index = input.indexOf( ":" );
+            if ( index != -1 )
+            {
                 // ***** Separate "username:chpass"
-                final String username = input.substring(0, index);
-                final PasswordData password = new PasswordData(input.substring(index + 1));
-                return new BasicAuthInfo(username, password);
-            } else {
-                return new BasicAuthInfo(input, null);
+                final String username = input.substring( 0, index );
+                final PasswordData password = new PasswordData( input.substring( index + 1 ) );
+                return new BasicAuthInfo( username, password );
             }
-        } catch (Exception e) {
-            LOGGER.error("error decoding auth header: " + e.getMessage());
-            throw new IllegalArgumentException("invalid basic authentication input string: " + e.getMessage(), e);
+            else
+            {
+                return new BasicAuthInfo( input, null );
+            }
+        }
+        catch ( Exception e )
+        {
+            LOGGER.error( "error decoding auth header: " + e.getMessage() );
+            throw new IllegalArgumentException( "invalid basic authentication input string: " + e.getMessage(), e );
         }
     }
 
-    public String toAuthHeader()
+    public String toAuthHeader( )
             throws PwmUnrecoverableException
     {
         final StringBuilder sb = new StringBuilder();
-        sb.append(this.getUsername());
-        sb.append(":");
-        sb.append(this.getPassword().getStringValue());
+        sb.append( this.getUsername() );
+        sb.append( ":" );
+        sb.append( this.getPassword().getStringValue() );
 
-        sb.replace(0, sb.length(), StringUtil.base64Encode(sb.toString().getBytes(PwmConstants.DEFAULT_CHARSET)));
+        sb.replace( 0, sb.length(), StringUtil.base64Encode( sb.toString().getBytes( PwmConstants.DEFAULT_CHARSET ) ) );
 
-        sb.insert(0, PwmConstants.HTTP_BASIC_AUTH_PREFIX+" ");
+        sb.insert( 0, PwmConstants.HTTP_BASIC_AUTH_PREFIX + " " );
 
         return sb.toString();
     }
@@ -128,36 +143,49 @@ public class BasicAuthInfo implements Serializable {
     public BasicAuthInfo(
             final String username,
             final PasswordData password
-    ) {
+    )
+    {
         this.username = username;
         this.password = password;
     }
 
-    public PasswordData getPassword() {
+    public PasswordData getPassword( )
+    {
         return password;
     }
 
-    public String getUsername() {
+    public String getUsername( )
+    {
         return username;
     }
 
-    public boolean equals(final Object o) {
-        if (this == o) {
+    public boolean equals( final Object o )
+    {
+        if ( this == o )
+        {
             return true;
         }
-        if (!(o instanceof BasicAuthInfo)) {
+        if ( !( o instanceof BasicAuthInfo ) )
+        {
             return false;
         }
 
-        final BasicAuthInfo basicAuthInfo = (BasicAuthInfo) o;
+        final BasicAuthInfo basicAuthInfo = ( BasicAuthInfo ) o;
 
-        return !(password != null ? !password.equals(basicAuthInfo.password) : basicAuthInfo.password != null) && !(username != null ? !username.equals(basicAuthInfo.username) : basicAuthInfo.username != null);
+        return !( password != null
+                ? !password.equals( basicAuthInfo.password )
+                : basicAuthInfo.password != null )
+                &&
+                !( username != null
+                        ? !username.equals( basicAuthInfo.username )
+                        : basicAuthInfo.username != null );
     }
 
-    public int hashCode() {
+    public int hashCode( )
+    {
         int result;
-        result = (username != null ? username.hashCode() : 0);
-        result = 29 * result + (password != null ? password.hashCode() : 0);
+        result = ( username != null ? username.hashCode() : 0 );
+        result = 29 * result + ( password != null ? password.hashCode() : 0 );
         return result;
     }
 }

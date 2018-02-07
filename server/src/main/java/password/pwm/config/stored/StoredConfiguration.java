@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,7 +31,8 @@ import password.pwm.util.secure.PwmSecurityKey;
 
 import java.time.Instant;
 
-public interface StoredConfiguration {
+public interface StoredConfiguration
+{
     String XML_ELEMENT_ROOT = "PwmConfiguration";
     String XML_ELEMENT_PROPERTIES = "properties";
     String XML_ELEMENT_PROPERTY = "property";
@@ -54,34 +55,34 @@ public interface StoredConfiguration {
     String XML_ATTRIBUTE_BUNDLE = "bundle";
 
 
-    PwmSecurityKey getKey() throws PwmUnrecoverableException;
+    PwmSecurityKey getKey( ) throws PwmUnrecoverableException;
 
-    Instant modifyTime();
+    Instant modifyTime( );
 
-    boolean isLocked();
+    boolean isLocked( );
 
-    String readConfigProperty(ConfigurationProperty propertyName);
+    String readConfigProperty( ConfigurationProperty propertyName );
 
     void writeConfigProperty(
             ConfigurationProperty propertyName,
             String value
     );
 
-    void lock();
+    void lock( );
 
-    ValueMetaData readSettingMetadata( PwmSetting setting,  String profileID);
+    ValueMetaData readSettingMetadata( PwmSetting setting, String profileID );
 
-    void resetSetting(PwmSetting setting, String profileID, UserIdentity userIdentity);
+    void resetSetting( PwmSetting setting, String profileID, UserIdentity userIdentity );
 
-    boolean isDefaultValue(PwmSetting setting);
+    boolean isDefaultValue( PwmSetting setting );
 
-    boolean isDefaultValue(PwmSetting setting, String profileID);
+    boolean isDefaultValue( PwmSetting setting, String profileID );
 
-    StoredValue readSetting(PwmSetting setting);
+    StoredValue readSetting( PwmSetting setting );
 
-    StoredValue readSetting(PwmSetting setting, String profileID);
+    StoredValue readSetting( PwmSetting setting, String profileID );
 
-    void copyProfileID(PwmSettingCategory category, String sourceID, String destinationID, UserIdentity userIdentity)
+    void copyProfileID( PwmSettingCategory category, String sourceID, String destinationID, UserIdentity userIdentity )
             throws PwmUnrecoverableException;
 
     void writeSetting(

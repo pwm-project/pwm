@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -192,12 +192,12 @@ table td.key {
     background-color: #444444;
 }
 .header-warning-button {
-	color: #5c8597;
-	}
+    color: #5c8597;
+    }
 .header-warning-button:hover {
-	background-color: #071119;
-	color: #dae1e1;
-	}
+    background-color: #071119;
+    color: #dae1e1;
+    }
 
 
 

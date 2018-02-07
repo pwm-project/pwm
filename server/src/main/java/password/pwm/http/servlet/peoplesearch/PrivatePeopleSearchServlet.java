@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@ import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 
 @WebServlet(
-        name="PrivatePeopleSearchServlet",
+        name = "PrivatePeopleSearchServlet",
         urlPatterns = {
                 PwmConstants.URL_PREFIX_PRIVATE + "/peoplesearch/",
                 PwmConstants.URL_PREFIX_PRIVATE + "/peoplesearch",
@@ -45,14 +45,17 @@ import java.io.IOException;
                 PwmConstants.URL_PREFIX_PRIVATE + "/PeopleSearch/*",
         }
 )
-public class PrivatePeopleSearchServlet extends PeopleSearchServlet {
+public class PrivatePeopleSearchServlet extends PeopleSearchServlet
+{
 
-        @Override
-        public ProcessStatus preProcessCheck(final PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException, ServletException {
-                if (!pwmRequest.getPwmSession().getSessionManager().checkPermission(pwmRequest.getPwmApplication(), Permission.PEOPLE_SEARCH)) {
-                        throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED));
-                }
-
-                return super.preProcessCheck(pwmRequest);
+    @Override
+    public ProcessStatus preProcessCheck( final PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException, ServletException
+    {
+        if ( !pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmApplication(), Permission.PEOPLE_SEARCH ) )
+        {
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNAUTHORIZED ) );
         }
+
+        return super.preProcessCheck( pwmRequest );
+    }
 }

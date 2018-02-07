@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,16 +26,18 @@ import com.google.gson.annotations.SerializedName;
 
 import java.io.Serializable;
 
-class SearchResultItem implements Serializable {
+class SearchResultItem implements Serializable
+{
     private String category;
     private String value;
     private String navigation;
 
-    @SerializedName("default")
+    @SerializedName( "default" )
     private boolean defaultValue;
     private String profile;
 
-    SearchResultItem(final String category, final String value, final String navigation, final boolean defaultValue, final String profile) {
+    SearchResultItem( final String category, final String value, final String navigation, final boolean defaultValue, final String profile )
+    {
         this.category = category;
         this.value = value;
         this.navigation = navigation;
@@ -43,23 +45,28 @@ class SearchResultItem implements Serializable {
         this.profile = profile;
     }
 
-    public String getCategory() {
+    public String getCategory( )
+    {
         return category;
     }
 
-    public String getValue() {
+    public String getValue( )
+    {
         return value;
     }
 
-    public String getNavigation() {
+    public String getNavigation( )
+    {
         return navigation;
     }
 
-    public boolean isDefaultValue() {
+    public boolean isDefaultValue( )
+    {
         return defaultValue;
     }
 
-    public String getProfile() {
+    public String getProfile( )
+    {
         return profile;
     }
 }

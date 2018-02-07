@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,20 +27,24 @@ import password.pwm.http.bean.ImmutableByteArray;
 import java.io.Serializable;
 import java.util.Map;
 
-final class CacheEntry implements Serializable {
+final class CacheEntry implements Serializable
+{
     private final ImmutableByteArray entity;
     private final Map<String, String> headerStrings;
 
-    CacheEntry(final byte[] entity, final Map<String, String> headerStrings) {
-        this.entity = new ImmutableByteArray(entity);
+    CacheEntry( final byte[] entity, final Map<String, String> headerStrings )
+    {
+        this.entity = new ImmutableByteArray( entity );
         this.headerStrings = headerStrings;
     }
 
-    public byte[] getEntity() {
+    public byte[] getEntity( )
+    {
         return entity.getBytes();
     }
 
-    public Map<String, String> getHeaderStrings() {
+    public Map<String, String> getHeaderStrings( )
+    {
         return headerStrings;
     }
 }

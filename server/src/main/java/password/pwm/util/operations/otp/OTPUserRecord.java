@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +27,8 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-public class OTPUserRecord implements Serializable {
+public class OTPUserRecord implements Serializable
+{
 
     private static final String CURRENT_VERSION = "1";
 
@@ -40,142 +41,153 @@ public class OTPUserRecord implements Serializable {
     private Type type = Type.TOTP;
     private String version = CURRENT_VERSION;
 
-    public static class RecoveryInfo implements Serializable {
+    public static class RecoveryInfo implements Serializable
+    {
         private String salt;
         private String hashMethod;
         private int hashCount;
 
-        public String getSalt()
+        public String getSalt( )
         {
             return salt;
         }
 
-        public void setSalt(final String salt)
+        public void setSalt( final String salt )
         {
             this.salt = salt;
         }
 
-        public String getHashMethod()
+        public String getHashMethod( )
         {
             return hashMethod;
         }
 
-        public void setHashMethod(final String hashMethod)
+        public void setHashMethod( final String hashMethod )
         {
             this.hashMethod = hashMethod;
         }
 
-        public int getHashCount()
+        public int getHashCount( )
         {
             return hashCount;
         }
 
-        public void setHashCount(final int hashCount)
+        public void setHashCount( final int hashCount )
         {
             this.hashCount = hashCount;
         }
     }
 
-    public enum Type {
-        HOTP,           // NOT currently used!
+    public enum Type
+    {
+        // NOT currently used!
+        HOTP,
+
         TOTP,
     }
 
-    public static class RecoveryCode implements Serializable {
+    public static class RecoveryCode implements Serializable
+    {
         private String hashCode;
         private boolean used;
 
-        public String getHashCode()
+        public String getHashCode( )
         {
             return hashCode;
         }
 
-        public void setHashCode(final String hashCode)
+        public void setHashCode( final String hashCode )
         {
             this.hashCode = hashCode;
         }
 
-        public boolean isUsed()
+        public boolean isUsed( )
         {
             return used;
         }
 
-        public void setUsed(final boolean used)
+        public void setUsed( final boolean used )
         {
             this.used = used;
         }
     }
 
-    public String getIdentifier() {
+    public String getIdentifier( )
+    {
         return identifier;
     }
 
-    public void setIdentifier(final String identifier) {
+    public void setIdentifier( final String identifier )
+    {
         this.identifier = identifier;
     }
 
-    public String getSecret() {
+    public String getSecret( )
+    {
         return secret;
     }
 
-    public void setSecret(final String secret) {
+    public void setSecret( final String secret )
+    {
         this.secret = secret;
     }
 
-    public List<RecoveryCode> getRecoveryCodes()
+    public List<RecoveryCode> getRecoveryCodes( )
     {
         return recoveryCodes;
     }
 
-    public void setRecoveryCodes(final List<RecoveryCode> recoveryCodes)
+    public void setRecoveryCodes( final List<RecoveryCode> recoveryCodes )
     {
         this.recoveryCodes = recoveryCodes;
     }
 
-    public Type getType() {
+    public Type getType( )
+    {
         return type;
     }
 
-    public void setType(final Type type) {
+    public void setType( final Type type )
+    {
         this.type = type;
     }
 
-    public Instant getTimestamp()
+    public Instant getTimestamp( )
     {
         return timestamp;
     }
 
-    public void setTimestamp(final Instant timestamp)
+    public void setTimestamp( final Instant timestamp )
     {
         this.timestamp = timestamp;
     }
 
-    public String getVersion()
+    public String getVersion( )
     {
         return version;
     }
 
-    public void setVersion(final String version)
+    public void setVersion( final String version )
     {
         this.version = version;
     }
 
-    public long getAttemptCount()
+    public long getAttemptCount( )
     {
         return attemptCount;
     }
 
-    public void setAttemptCount(final long attemptCount)
+    public void setAttemptCount( final long attemptCount )
     {
         this.attemptCount = attemptCount;
     }
 
-    public RecoveryInfo getRecoveryInfo()
+    public RecoveryInfo getRecoveryInfo( )
     {
         return recoveryInfo;
     }
 
-    public void setRecoveryInfo(final RecoveryInfo recoveryInfo)
+    public void setRecoveryInfo( final RecoveryInfo recoveryInfo )
     {
         this.recoveryInfo = recoveryInfo;
     }

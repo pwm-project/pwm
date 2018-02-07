@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,45 +30,53 @@ import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.jsp.tagext.TagSupport;
 
-public class PwmScriptRefTag extends TagSupport {
+public class PwmScriptRefTag extends TagSupport
+{
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass(PwmScriptRefTag.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass( PwmScriptRefTag.class );
 
     private String url;
 
-    public String getUrl() {
+    public String getUrl( )
+    {
         return url;
     }
 
-    public void setUrl(final String url) {
+    public void setUrl( final String url )
+    {
         this.url = url;
     }
 
-    public int doEndTag()
+    public int doEndTag( )
             throws javax.servlet.jsp.JspTagException
     {
-        try {
-            final PwmRequest pwmRequest = JspUtility.getPwmRequest(pageContext);
+        try
+        {
+            final PwmRequest pwmRequest = JspUtility.getPwmRequest( pageContext );
             final String cspNonce = pwmRequest.getCspNonce();
 
             String url = getUrl();
-            url = convertUrl(url);
-            url = PwmUrlTag.insertContext(pageContext,url);
-            url = PwmUrlTag.insertResourceNonce(pwmRequest.getPwmApplication(), url);
+            url = convertUrl( url );
+            url = PwmUrlTag.insertContext( pageContext, url );
+            url = PwmUrlTag.insertResourceNonce( pwmRequest.getPwmApplication(), url );
 
             final String output = "<script type=\"text/javascript\" nonce=\"" + cspNonce + "\" src=\"" + url + "\"></script>";
-            pageContext.getOut().write(output);
-        } catch (Exception e) {
-            LOGGER.error("error during scriptRef output of pwmFormID: " + e.getMessage());
+            pageContext.getOut().write( output );
+        }
+        catch ( Exception e )
+        {
+            LOGGER.error( "error during scriptRef output of pwmFormID: " + e.getMessage() );
         }
         return EVAL_PAGE;
     }
 
-    private String convertUrl(final String input) {
+    private String convertUrl( final String input )
+    {
         final String pwmClientUrl = "/resources/webjars/pwm-client/";
-        if (input.contains(pwmClientUrl)) {
+        if ( input.contains( pwmClientUrl ) )
+        {
             final String correctedUrl = "/resources/webjars/" + PwmConstants.PWM_APP_NAME.toLowerCase() + "-client/";
-            return input.replace(pwmClientUrl, correctedUrl);
+            return input.replace( pwmClientUrl, correctedUrl );
         }
         return input;
     }

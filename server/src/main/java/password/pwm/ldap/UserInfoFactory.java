@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,9 +34,11 @@ import password.pwm.util.PasswordData;
 
 import java.util.Locale;
 
-public class UserInfoFactory {
+public class UserInfoFactory
+{
 
-    private UserInfoFactory() {
+    private UserInfoFactory( )
+    {
     }
 
     public static UserInfo newUserInfoUsingProxy(
@@ -49,7 +51,7 @@ public class UserInfoFactory {
             throws PwmUnrecoverableException
     {
         final String userLdapProfile = userIdentity.getLdapProfileID();
-        final ChaiProvider provider = pwmApplication.getProxyChaiProvider(userLdapProfile);
+        final ChaiProvider provider = pwmApplication.getProxyChaiProvider( userLdapProfile );
         return newUserInfo(
                 pwmApplication,
                 sessionLabel,
@@ -68,8 +70,8 @@ public class UserInfoFactory {
     )
             throws PwmUnrecoverableException
     {
-        final ChaiProvider provider = pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID());
-        return newUserInfo(pwmApplication, sessionLabel, userLocale, userIdentity, provider, null);
+        final ChaiProvider provider = pwmApplication.getProxyChaiProvider( userIdentity.getLdapProfileID() );
+        return newUserInfo( pwmApplication, sessionLabel, userLocale, userIdentity, provider, null );
     }
 
     public static UserInfo newUserInfo(
@@ -81,10 +83,13 @@ public class UserInfoFactory {
     )
             throws PwmUnrecoverableException
     {
-        try {
-            return makeUserInfoImpl(pwmApplication, sessionLabel, userLocale, userIdentity, provider, null);
-        } catch (ChaiUnavailableException e) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE, e.getMessage()));
+        try
+        {
+            return makeUserInfoImpl( pwmApplication, sessionLabel, userLocale, userIdentity, provider, null );
+        }
+        catch ( ChaiUnavailableException e )
+        {
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_DIRECTORY_UNAVAILABLE, e.getMessage() ) );
         }
     }
 
@@ -98,10 +103,13 @@ public class UserInfoFactory {
     )
             throws PwmUnrecoverableException
     {
-        try {
-            return makeUserInfoImpl(pwmApplication, sessionLabel, userLocale, userIdentity, provider, currentPassword);
-        } catch (ChaiUnavailableException e) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE, e.getMessage()));
+        try
+        {
+            return makeUserInfoImpl( pwmApplication, sessionLabel, userLocale, userIdentity, provider, currentPassword );
+        }
+        catch ( ChaiUnavailableException e )
+        {
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_DIRECTORY_UNAVAILABLE, e.getMessage() ) );
         }
     }
 
@@ -115,7 +123,7 @@ public class UserInfoFactory {
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
-        return UserInfoReader.create(userIdentity, currentPassword, sessionLabel, userLocale, pwmApplication, provider);
+        return UserInfoReader.create( userIdentity, currentPassword, sessionLabel, userLocale, pwmApplication, provider );
     }
 
 

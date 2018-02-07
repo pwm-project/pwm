@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,34 +31,39 @@ import password.pwm.util.secure.SecureEngine;
 import java.io.Serializable;
 import java.util.Locale;
 
-public abstract class AbstractValue implements StoredValue {
-    public String toString() {
-        return toDebugString(null);
+public abstract class AbstractValue implements StoredValue
+{
+    public String toString( )
+    {
+        return toDebugString( null );
     }
 
     @Override
-    public String toDebugString(final Locale locale) {
-        return JsonUtil.serialize((Serializable) this.toNativeObject(), JsonUtil.Flag.PrettyPrint);
+    public String toDebugString( final Locale locale )
+    {
+        return JsonUtil.serialize( ( Serializable ) this.toNativeObject(), JsonUtil.Flag.PrettyPrint );
     }
 
     @Override
-    public Serializable toDebugJsonObject(final Locale locale) {
-        return (Serializable)this.toNativeObject();
+    public Serializable toDebugJsonObject( final Locale locale )
+    {
+        return ( Serializable ) this.toNativeObject();
     }
 
-    public boolean requiresStoredUpdate()
+    public boolean requiresStoredUpdate( )
     {
         return false;
     }
 
     @Override
-    public int currentSyntaxVersion()
+    public int currentSyntaxVersion( )
     {
         return 0;
     }
 
     @Override
-    public String valueHash() throws PwmUnrecoverableException {
-        return SecureEngine.hash(JsonUtil.serialize((Serializable) this.toNativeObject()), PwmConstants.SETTING_CHECKSUM_HASH_METHOD);
+    public String valueHash( ) throws PwmUnrecoverableException
+    {
+        return SecureEngine.hash( JsonUtil.serialize( ( Serializable ) this.toNativeObject() ), PwmConstants.SETTING_CHECKSUM_HASH_METHOD );
     }
 }

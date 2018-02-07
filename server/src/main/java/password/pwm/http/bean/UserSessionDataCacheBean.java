@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,18 +31,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class UserSessionDataCacheBean implements Serializable {
+public class UserSessionDataCacheBean implements Serializable
+{
     private Map<Permission, Permission.PermissionStatus> permissions = new HashMap<>();
     private Map<String, PostChangePasswordAction> postChangePasswordActions = new HashMap<>();
 
-    public void clearPermissions()
+    public void clearPermissions( )
     {
         permissions.clear();
     }
 
-    public Permission.PermissionStatus getPermission(final Permission permission)
+    public Permission.PermissionStatus getPermission( final Permission permission )
     {
-        final Permission.PermissionStatus status = permissions.get(permission);
+        final Permission.PermissionStatus status = permissions.get( permission );
         return status == null ? Permission.PermissionStatus.UNCHECKED : status;
     }
 
@@ -51,15 +52,15 @@ public class UserSessionDataCacheBean implements Serializable {
             final Permission.PermissionStatus status
     )
     {
-        permissions.put(permission, status);
+        permissions.put( permission, status );
     }
 
-    public Map<Permission, Permission.PermissionStatus> getPermissions()
+    public Map<Permission, Permission.PermissionStatus> getPermissions( )
     {
         return permissions;
     }
 
-    public void setPermissions(final Map<Permission, Permission.PermissionStatus> permissions)
+    public void setPermissions( final Map<Permission, Permission.PermissionStatus> permissions )
     {
         this.permissions = permissions;
     }
@@ -69,17 +70,20 @@ public class UserSessionDataCacheBean implements Serializable {
             final PostChangePasswordAction postChangePasswordAction
     )
     {
-        if (postChangePasswordAction == null) {
-            postChangePasswordActions.remove(key);
-        } else {
-            postChangePasswordActions.put(key, postChangePasswordAction);
+        if ( postChangePasswordAction == null )
+        {
+            postChangePasswordActions.remove( key );
+        }
+        else
+        {
+            postChangePasswordActions.put( key, postChangePasswordAction );
         }
     }
 
-    public List<PostChangePasswordAction> removePostChangePasswordActions()
+    public List<PostChangePasswordAction> removePostChangePasswordActions( )
     {
         final List<PostChangePasswordAction> copiedList = new ArrayList<>();
-        copiedList.addAll(postChangePasswordActions.values());
+        copiedList.addAll( postChangePasswordActions.values() );
         postChangePasswordActions.clear();
         return copiedList;
     }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,50 +27,61 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-class UserDetailBean implements Serializable {
+class UserDetailBean implements Serializable
+{
     private List<String> displayNames;
     private String userKey;
     private Map<String, AttributeDetailBean> detail;
     private String photoURL;
     private List<LinkReferenceBean> links = Collections.emptyList();
 
-    public List<String> getDisplayNames() {
+    public List<String> getDisplayNames( )
+    {
         return displayNames;
     }
 
-    public void setDisplayNames(final List<String> displayNames) {
+    public void setDisplayNames( final List<String> displayNames )
+    {
         this.displayNames = displayNames;
     }
 
-    public String getUserKey() {
+    public String getUserKey( )
+    {
         return userKey;
     }
 
-    public void setUserKey(final String userKey) {
+    public void setUserKey( final String userKey )
+    {
         this.userKey = userKey;
     }
 
-    public Map<String, AttributeDetailBean> getDetail() {
+    public Map<String, AttributeDetailBean> getDetail( )
+    {
         return detail;
     }
 
-    public void setDetail(final Map<String, AttributeDetailBean> detail) {
+    public void setDetail( final Map<String, AttributeDetailBean> detail )
+    {
         this.detail = detail;
     }
 
-    public String getPhotoURL() {
+    public String getPhotoURL( )
+    {
         return photoURL;
     }
 
-    public void setPhotoURL(final String photoURL) {
+    public void setPhotoURL( final String photoURL )
+    {
         this.photoURL = photoURL;
     }
 
-    public List<LinkReferenceBean> getLinks() {
+    public List<LinkReferenceBean> getLinks( )
+    {
         return links;
     }
 
-    public void setLinks(final List<LinkReferenceBean> links) {
+    public void setLinks( final List<LinkReferenceBean> links )
+    {
         this.links = links;
     }
 }

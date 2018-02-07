@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,22 +24,26 @@ package password.pwm.http.tag.url;
 
 import password.pwm.http.servlet.resource.ResourceFileServlet;
 
-public enum PwmThemeURL {
-    THEME_URL(ResourceFileServlet.THEME_CSS_PATH),
-    MOBILE_THEME_URL(ResourceFileServlet.THEME_CSS_MOBILE_PATH),
-    CONFIG_THEME_URL(ResourceFileServlet.THEME_CSS_CONFIG_PATH),;
+public enum PwmThemeURL
+{
+    THEME_URL( ResourceFileServlet.THEME_CSS_PATH ),
+    MOBILE_THEME_URL( ResourceFileServlet.THEME_CSS_MOBILE_PATH ),
+    CONFIG_THEME_URL( ResourceFileServlet.THEME_CSS_CONFIG_PATH ),;
 
-    PwmThemeURL(final String cssName) {
+    PwmThemeURL( final String cssName )
+    {
         this.cssName = cssName;
     }
 
     private final String cssName;
 
-    public String token() {
+    public String token( )
+    {
         return "%" + this.toString() + "%";
     }
 
-    public String getCssName() {
+    public String getCssName( )
+    {
         return cssName;
     }
 }

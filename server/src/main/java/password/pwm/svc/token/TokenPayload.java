@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,24 +36,25 @@ import java.util.Map;
 import java.util.Set;
 
 @Getter
-public class TokenPayload implements Serializable {
-    @SerializedName("t")
+public class TokenPayload implements Serializable
+{
+    @SerializedName( "t" )
     private final Instant issueTime;
 
-    @SerializedName("e")
+    @SerializedName( "e" )
     private final Instant expiration;
 
-    @SerializedName("n")
+    @SerializedName( "n" )
     private final String name;
 
-    private final Map<String,String> data;
+    private final Map<String, String> data;
 
-    @SerializedName("user")
+    @SerializedName( "user" )
     private final UserIdentity userIdentity;
 
     private final Set<String> dest;
 
-    @SerializedName("g")
+    @SerializedName( "g" )
     private final String guid;
 
     TokenPayload(
@@ -63,26 +64,29 @@ public class TokenPayload implements Serializable {
             final UserIdentity user,
             final Set<String> dest,
             final String guid
-    ) {
+    )
+    {
         this.issueTime = Instant.now();
         this.expiration = expiration;
-        this.data = data == null ? Collections.emptyMap() : Collections.unmodifiableMap(data);
+        this.data = data == null ? Collections.emptyMap() : Collections.unmodifiableMap( data );
         this.name = name;
         this.userIdentity = user;
-        this.dest = dest == null ? Collections.emptySet() : Collections.unmodifiableSet(dest);
+        this.dest = dest == null ? Collections.emptySet() : Collections.unmodifiableSet( dest );
         this.guid = guid;
     }
 
 
-    public String toDebugString() {
-        final Map<String,String> debugMap = new HashMap<>();
-        debugMap.put("issueTime", JavaHelper.toIsoDate(issueTime));
-        debugMap.put("expiration", JavaHelper.toIsoDate(expiration));
-        debugMap.put("name", getName());
-        if (getUserIdentity() != null) {
-            debugMap.put("user", getUserIdentity().toDisplayString());
+    public String toDebugString( )
+    {
+        final Map<String, String> debugMap = new HashMap<>();
+        debugMap.put( "issueTime", JavaHelper.toIsoDate( issueTime ) );
+        debugMap.put( "expiration", JavaHelper.toIsoDate( expiration ) );
+        debugMap.put( "name", getName() );
+        if ( getUserIdentity() != null )
+        {
+            debugMap.put( "user", getUserIdentity().toDisplayString() );
         }
-        debugMap.put("guid", getGuid());
-        return JsonUtil.serializeMap(debugMap);
+        debugMap.put( "guid", getGuid() );
+        return JsonUtil.serializeMap( debugMap );
     }
 }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,7 +28,8 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 
-class AttributeDetailBean implements Serializable {
+class AttributeDetailBean implements Serializable
+{
     private String name;
     private String label;
     private FormConfiguration.Type type;
@@ -36,51 +37,63 @@ class AttributeDetailBean implements Serializable {
     private Collection<UserReferenceBean> userReferences;
     private boolean searchable;
 
-    public String getName() {
+    public String getName( )
+    {
         return name;
     }
 
-    public void setName(final String name) {
+    public void setName( final String name )
+    {
         this.name = name;
     }
 
-    public String getLabel() {
+    public String getLabel( )
+    {
         return label;
     }
 
-    public void setLabel(final String label) {
+    public void setLabel( final String label )
+    {
         this.label = label;
     }
 
-    public FormConfiguration.Type getType() {
+    public FormConfiguration.Type getType( )
+    {
         return type;
     }
 
-    public void setType(final FormConfiguration.Type type) {
+    public void setType( final FormConfiguration.Type type )
+    {
         this.type = type;
     }
 
-    public List<String> getValues() {
+    public List<String> getValues( )
+    {
         return values;
     }
 
-    public void setValues(final List<String> values) {
+    public void setValues( final List<String> values )
+    {
         this.values = values;
     }
 
-    public Collection<UserReferenceBean> getUserReferences() {
+    public Collection<UserReferenceBean> getUserReferences( )
+    {
         return userReferences;
     }
 
-    public void setUserReferences(final Collection<UserReferenceBean> userReferences) {
+    public void setUserReferences( final Collection<UserReferenceBean> userReferences )
+    {
         this.userReferences = userReferences;
     }
 
-    public boolean isSearchable() {
+    public boolean isSearchable( )
+    {
         return searchable;
     }
 
-    public void setSearchable(final boolean searchable) {
+    public void setSearchable( final boolean searchable )
+    {
         this.searchable = searchable;
     }
 

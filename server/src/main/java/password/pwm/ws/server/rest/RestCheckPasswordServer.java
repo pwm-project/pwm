@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,9 +46,9 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
-import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestMethodHandler;
 import password.pwm.ws.server.RestRequest;
+import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServlet;
 import password.pwm.ws.server.RestWebServer;
 
@@ -58,19 +58,21 @@ import java.io.Serializable;
 import java.time.Instant;
 
 @WebServlet(
-        urlPatterns={
+        urlPatterns = {
                 PwmConstants.URL_PREFIX_PUBLIC + PwmConstants.URL_PREFIX_REST + "/checkpassword"
         }
 )
-@RestWebServer(webService = WebServiceUsage.CheckPassword, requireAuthentication = true)
-public class RestCheckPasswordServer extends RestServlet {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(RestCheckPasswordServer.class);
+@RestWebServer( webService = WebServiceUsage.CheckPassword, requireAuthentication = true )
+public class RestCheckPasswordServer extends RestServlet
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass( RestCheckPasswordServer.class );
 
     @Getter
     @Setter
     @AllArgsConstructor
     @NoArgsConstructor
-    public static class JsonInput implements Serializable {
+    public static class JsonInput implements Serializable
+    {
         public String password1;
         public String password2;
         public String username;
@@ -80,7 +82,8 @@ public class RestCheckPasswordServer extends RestServlet {
     @Setter
     @AllArgsConstructor
     @NoArgsConstructor
-    public static class JsonOutput implements Serializable {
+    public static class JsonOutput implements Serializable
+    {
         public int version;
         public int strength;
         public PasswordUtility.PasswordCheckInfo.MatchStatus match;
@@ -90,7 +93,8 @@ public class RestCheckPasswordServer extends RestServlet {
 
         public static JsonOutput fromPasswordCheckInfo(
                 final PasswordUtility.PasswordCheckInfo checkInfo
-        ) {
+        )
+        {
             final JsonOutput outputMap = new JsonOutput();
             outputMap.version = 2;
             outputMap.strength = checkInfo.getStrength();
@@ -103,43 +107,53 @@ public class RestCheckPasswordServer extends RestServlet {
     }
 
     @Override
-    public void preCheckRequest(final RestRequest request) throws PwmUnrecoverableException {
+    public void preCheckRequest( final RestRequest request ) throws PwmUnrecoverableException
+    {
 
     }
 
-    @RestMethodHandler(method = HttpMethod.POST, consumes = HttpContentType.form, produces = HttpContentType.json)
-    public RestResultBean doPasswordRuleCheckFormPost(final RestRequest restRequest)
-            throws PwmUnrecoverableException {
+    @RestMethodHandler( method = HttpMethod.POST, consumes = HttpContentType.form, produces = HttpContentType.json )
+    public RestResultBean doPasswordRuleCheckFormPost( final RestRequest restRequest )
+            throws PwmUnrecoverableException
+    {
 
 
         final JsonInput jsonInput = new JsonInput(
-                restRequest.readParameterAsString("password1", PwmHttpRequestWrapper.Flag.BypassValidation),
-                restRequest.readParameterAsString("password2", PwmHttpRequestWrapper.Flag.BypassValidation),
-                restRequest.readParameterAsString("username", PwmHttpRequestWrapper.Flag.BypassValidation)
+                restRequest.readParameterAsString( "password1", PwmHttpRequestWrapper.Flag.BypassValidation ),
+                restRequest.readParameterAsString( "password2", PwmHttpRequestWrapper.Flag.BypassValidation ),
+                restRequest.readParameterAsString( "username", PwmHttpRequestWrapper.Flag.BypassValidation )
         );
-        return doOperation(restRequest, jsonInput);
+        return doOperation( restRequest, jsonInput );
     }
 
-    @RestMethodHandler(method = HttpMethod.POST, consumes = HttpContentType.json, produces = HttpContentType.json)
-    public RestResultBean doPasswordRuleCheckJsonPost(final RestRequest restRequest)
-            throws PwmUnrecoverableException, IOException {
-        final JsonInput jsonInput = deserializeJsonBody(restRequest, JsonInput.class);
-        return doOperation(restRequest, jsonInput);
+    @RestMethodHandler( method = HttpMethod.POST, consumes = HttpContentType.json, produces = HttpContentType.json )
+    public RestResultBean doPasswordRuleCheckJsonPost( final RestRequest restRequest )
+            throws PwmUnrecoverableException, IOException
+    {
+        final JsonInput jsonInput = deserializeJsonBody( restRequest, JsonInput.class );
+        return doOperation( restRequest, jsonInput );
     }
 
-    public RestResultBean doOperation(final RestRequest restRequest, final JsonInput jsonInput)
-            throws PwmUnrecoverableException {
+    public RestResultBean doOperation( final RestRequest restRequest, final JsonInput jsonInput )
+            throws PwmUnrecoverableException
+    {
         final Instant startTime = Instant.now();
 
-        if (StringUtil.isEmpty(jsonInput.getPassword1())) {
+        if ( StringUtil.isEmpty( jsonInput.getPassword1() ) )
+        {
             final String errorMessage = "missing field 'password1'";
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_FIELD_REQUIRED, errorMessage, new String[]{"password1"});
-            return RestResultBean.fromError(restRequest, errorInformation);
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_FIELD_REQUIRED, errorMessage, new String[]
+                    {
+                            "password1",
+                    }
+                    );
+            return RestResultBean.fromError( restRequest, errorInformation );
         }
 
-        try {
+        try
+        {
 
-            final TargetUserIdentity targetUserIdentity = resolveRequestedUsername(restRequest, jsonInput.getUsername());
+            final TargetUserIdentity targetUserIdentity = resolveRequestedUsername( restRequest, jsonInput.getUsername() );
             final UserInfo userInfo = UserInfoFactory.newUserInfo(
                     restRequest.getPwmApplication(),
                     restRequest.getSessionLabel(),
@@ -150,12 +164,12 @@ public class RestCheckPasswordServer extends RestServlet {
 
             final PasswordCheckRequest checkRequest = new PasswordCheckRequest(
                     targetUserIdentity.getUserIdentity(),
-                    StringUtil.isEmpty(jsonInput.getPassword1()) ? null : new PasswordData(jsonInput.getPassword1()),
-                    StringUtil.isEmpty(jsonInput.getPassword2()) ? null : new PasswordData(jsonInput.getPassword2()),
+                    StringUtil.isEmpty( jsonInput.getPassword1() ) ? null : new PasswordData( jsonInput.getPassword1() ),
+                    StringUtil.isEmpty( jsonInput.getPassword2() ) ? null : new PasswordData( jsonInput.getPassword2() ),
                     userInfo
             );
 
-            restRequest.getPwmApplication().getStatisticsManager().incrementValue(Statistic.REST_CHECKPASSWORD);
+            restRequest.getPwmApplication().getStatisticsManager().incrementValue( Statistic.REST_CHECKPASSWORD );
 
             final PasswordUtility.PasswordCheckInfo passwordCheckInfo = PasswordUtility.checkEnteredPassword(
                     restRequest.getPwmApplication(),
@@ -167,25 +181,30 @@ public class RestCheckPasswordServer extends RestServlet {
                     checkRequest.getPassword2()
             );
 
-            final JsonOutput jsonOutput = JsonOutput.fromPasswordCheckInfo(passwordCheckInfo);
-            final RestResultBean restResultBean = RestResultBean.withData(jsonOutput);
-            final TimeDuration timeDuration = TimeDuration.fromCurrent(startTime);
-            LOGGER.trace(restRequest.getSessionLabel(), "REST /checkpassword response (" + timeDuration.asCompactString() + "): " + JsonUtil.serialize(jsonOutput));
+            final JsonOutput jsonOutput = JsonOutput.fromPasswordCheckInfo( passwordCheckInfo );
+            final RestResultBean restResultBean = RestResultBean.withData( jsonOutput );
+            final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
+            LOGGER.trace( restRequest.getSessionLabel(), "REST /checkpassword response (" + timeDuration.asCompactString() + "): " + JsonUtil.serialize( jsonOutput ) );
             return restResultBean;
-        } catch (PwmException e) {
-            LOGGER.debug(restRequest.getSessionLabel(), "REST /checkpassword error during execution: " + e.getMessage());
-            return RestResultBean.fromError(restRequest, e.getErrorInformation());
-        } catch (Exception e) {
+        }
+        catch ( PwmException e )
+        {
+            LOGGER.debug( restRequest.getSessionLabel(), "REST /checkpassword error during execution: " + e.getMessage() );
+            return RestResultBean.fromError( restRequest, e.getErrorInformation() );
+        }
+        catch ( Exception e )
+        {
             final String errorMessage = "unexpected error executing web service: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMessage);
-            LOGGER.error(restRequest.getSessionLabel(), errorInformation.toDebugStr(), e);
-            return RestResultBean.fromError(restRequest, errorInformation);
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMessage );
+            LOGGER.error( restRequest.getSessionLabel(), errorInformation.toDebugStr(), e );
+            return RestResultBean.fromError( restRequest, errorInformation );
         }
     }
 
     @Getter
     @AllArgsConstructor
-    public static class PasswordCheckRequest {
+    public static class PasswordCheckRequest
+    {
         final UserIdentity userIdentity;
         final PasswordData password1;
         final PasswordData password2;

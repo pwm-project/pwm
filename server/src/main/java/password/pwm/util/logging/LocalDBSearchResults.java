@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,7 +28,8 @@ import java.time.Instant;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class LocalDBSearchResults implements Iterator<PwmLogEvent> {
+public class LocalDBSearchResults implements Iterator<PwmLogEvent>
+{
     private transient LocalDBLogger localDBLogger;
     private final Iterator<String> localDBIterator;
     private final LocalDBSearchQuery searchParameters;
@@ -39,10 +40,11 @@ public class LocalDBSearchResults implements Iterator<PwmLogEvent> {
     private int eventCount = 0;
     private Instant finishTime;
 
-    LocalDBSearchResults(final LocalDBLogger localDBLogger,
-                         final Iterator<String> localDBIterator,
-                         final LocalDBSearchQuery searchParameters
-    ) {
+    LocalDBSearchResults( final LocalDBLogger localDBLogger,
+                          final Iterator<String> localDBIterator,
+                          final LocalDBSearchQuery searchParameters
+    )
+    {
         this.localDBLogger = localDBLogger;
         startTime = Instant.now();
         this.localDBIterator = localDBIterator;
@@ -51,19 +53,21 @@ public class LocalDBSearchResults implements Iterator<PwmLogEvent> {
     }
 
     @Override
-    public boolean hasNext()
+    public boolean hasNext( )
     {
         return nextEvent != null;
     }
 
     @Override
-    public void remove()
+    public void remove( )
     {
         throw new UnsupportedOperationException();
     }
 
-    public PwmLogEvent next() {
-        if (nextEvent == null) {
+    public PwmLogEvent next( )
+    {
+        if ( nextEvent == null )
+        {
             throw new NoSuchElementException();
         }
 
@@ -72,26 +76,31 @@ public class LocalDBSearchResults implements Iterator<PwmLogEvent> {
         return returnEvent;
     }
 
-    private boolean isTimedout() {
-        return TimeDuration.fromCurrent(startTime).isLongerThan(new TimeDuration(searchParameters.getMaxQueryTime()));
+    private boolean isTimedout( )
+    {
+        return TimeDuration.fromCurrent( startTime ).isLongerThan( new TimeDuration( searchParameters.getMaxQueryTime() ) );
     }
 
-    private PwmLogEvent readNextEvent()
+    private PwmLogEvent readNextEvent( )
     {
-        if (eventCount >= searchParameters.getMaxEvents() || isTimedout()) {
+        if ( eventCount >= searchParameters.getMaxEvents() || isTimedout() )
+        {
             finishTime = Instant.now();
             return null;
         }
 
-        while (!isTimedout() && localDBIterator.hasNext()) {
+        while ( !isTimedout() && localDBIterator.hasNext() )
+        {
             final String nextDbValue = localDBIterator.next();
-            if (nextDbValue == null) {
+            if ( nextDbValue == null )
+            {
                 finishTime = Instant.now();
                 return null;
             }
 
-            final PwmLogEvent logEvent = localDBLogger.readEvent(nextDbValue);
-            if (logEvent != null && localDBLogger.checkEventForParams(logEvent, searchParameters)) {
+            final PwmLogEvent logEvent = localDBLogger.readEvent( nextDbValue );
+            if ( logEvent != null && localDBLogger.checkEventForParams( logEvent, searchParameters ) )
+            {
                 eventCount++;
                 return logEvent;
             }
@@ -101,14 +110,14 @@ public class LocalDBSearchResults implements Iterator<PwmLogEvent> {
         return null;
     }
 
-    public int getReturnedEvents()
+    public int getReturnedEvents( )
     {
         return eventCount;
     }
 
 
-    public TimeDuration getSearchTime()
+    public TimeDuration getSearchTime( )
     {
-        return finishTime == null ? TimeDuration.fromCurrent(startTime) : new TimeDuration(startTime,finishTime);
+        return finishTime == null ? TimeDuration.fromCurrent( startTime ) : new TimeDuration( startTime, finishTime );
     }
 }

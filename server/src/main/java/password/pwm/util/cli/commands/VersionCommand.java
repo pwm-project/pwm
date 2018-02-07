@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,16 +25,17 @@ package password.pwm.util.cli.commands;
 import password.pwm.PwmConstants;
 import password.pwm.util.cli.CliParameters;
 
-public class VersionCommand extends AbstractCliCommand {
+public class VersionCommand extends AbstractCliCommand
+{
     @Override
-    void doCommand()
+    void doCommand( )
             throws Exception
     {
-        out(PwmConstants.PWM_APP_NAME + " version " + PwmConstants.SERVLET_VERSION);
+        out( PwmConstants.PWM_APP_NAME + " version " + PwmConstants.SERVLET_VERSION );
     }
 
     @Override
-    public CliParameters getCliParameters()
+    public CliParameters getCliParameters( )
     {
         final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "Version";

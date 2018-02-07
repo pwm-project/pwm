@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,9 +31,10 @@ import java.time.Instant;
 import java.util.Locale;
 import java.util.Map;
 
-public class ResponseInfoBean implements Serializable {
-    private final Map<Challenge,String> crMap;
-    private final Map<Challenge,String> helpdeskCrMap;
+public class ResponseInfoBean implements Serializable
+{
+    private final Map<Challenge, String> crMap;
+    private final Map<Challenge, String> helpdeskCrMap;
     private final Locale locale;
     private final int minRandoms;
     private final String csIdentifier;
@@ -43,14 +44,15 @@ public class ResponseInfoBean implements Serializable {
     private Instant timestamp;
 
     public ResponseInfoBean(
-            final Map<Challenge,String> crMap,
-            final Map<Challenge,String> helpdeskCrMap,
+            final Map<Challenge, String> crMap,
+            final Map<Challenge, String> helpdeskCrMap,
             final Locale locale,
             final int minRandoms,
             final String csIdentifier,
             final DataStorageMethod dataSource,
             final Answer.FormatType formatType
-    ) {
+    )
+    {
         this.crMap = crMap;
         this.helpdeskCrMap = helpdeskCrMap;
         this.locale = locale;
@@ -60,40 +62,47 @@ public class ResponseInfoBean implements Serializable {
         this.formatType = formatType;
     }
 
-    public Map<Challenge, String> getCrMap() {
+    public Map<Challenge, String> getCrMap( )
+    {
         return crMap;
     }
 
-    public Locale getLocale() {
+    public Locale getLocale( )
+    {
         return locale;
     }
 
-    public int getMinRandoms() {
+    public int getMinRandoms( )
+    {
         return minRandoms;
     }
 
-    public String getCsIdentifier() {
+    public String getCsIdentifier( )
+    {
         return csIdentifier;
     }
 
-    public Map<Challenge, String> getHelpdeskCrMap() {
+    public Map<Challenge, String> getHelpdeskCrMap( )
+    {
         return helpdeskCrMap;
     }
 
-    public Instant getTimestamp() {
+    public Instant getTimestamp( )
+    {
         return timestamp;
     }
 
-    public void setTimestamp(final Instant timestamp) {
+    public void setTimestamp( final Instant timestamp )
+    {
         this.timestamp = timestamp;
     }
 
-    public DataStorageMethod getDataStorageMethod()
+    public DataStorageMethod getDataStorageMethod( )
     {
         return dataStorageMethod;
     }
 
-    public Answer.FormatType getFormatType()
+    public Answer.FormatType getFormatType( )
     {
         return formatType;
     }

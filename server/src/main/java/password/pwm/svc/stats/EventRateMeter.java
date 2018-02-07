@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,94 +27,115 @@ import password.pwm.util.java.TimeDuration;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
-public class EventRateMeter implements Serializable {
+public class EventRateMeter implements Serializable
+{
 
     private final TimeDuration maxDuration;
 
     private MovingAverage movingAverage;
     private double remainder;
 
-    public EventRateMeter(final TimeDuration maxDuration) {
-        if (maxDuration == null) {
-            throw new NullPointerException("maxDuration cannot be null");
+    public EventRateMeter( final TimeDuration maxDuration )
+    {
+        if ( maxDuration == null )
+        {
+            throw new NullPointerException( "maxDuration cannot be null" );
         }
         this.maxDuration = maxDuration;
         reset();
     }
 
-    public synchronized void reset() {
-        movingAverage = new MovingAverage(maxDuration.getTotalMilliseconds());
+    public synchronized void reset( )
+    {
+        movingAverage = new MovingAverage( maxDuration.getTotalMilliseconds() );
         remainder = 0;
     }
 
-    public synchronized void markEvents(final int eventCount) {
+    public synchronized void markEvents( final int eventCount )
+    {
         final long timeSinceLastUpdate = System.currentTimeMillis() - movingAverage.getLastMillis();
-        if (timeSinceLastUpdate != 0) {
-            final double eventRate  = (eventCount + remainder) / timeSinceLastUpdate;
-            movingAverage.update(eventRate * 1000);
+        if ( timeSinceLastUpdate != 0 )
+        {
+            final double eventRate = ( eventCount + remainder ) / timeSinceLastUpdate;
+            movingAverage.update( eventRate * 1000 );
             remainder = 0;
-        } else {
+        }
+        else
+        {
             remainder += eventCount;
         }
     }
 
-    public synchronized BigDecimal readEventRate() {
-        return new BigDecimal(this.movingAverage.getAverage());
+    public synchronized BigDecimal readEventRate( )
+    {
+        return new BigDecimal( this.movingAverage.getAverage() );
     }
 
-    /** MovingAverage.java
+    /**
+     * <p>MovingAverage.java</p>
      *
-     * Copyright 2009-2010 Comcast Interactive Media, LLC.
+     * <p>Copyright 2009-2010 Comcast Interactive Media, LLC.</p>
      *
-     * Licensed under the Apache License, Version 2.0 (the "License");
+     * <p>Licensed under the Apache License, Version 2.0 (the "License");
      * you may not use this file except in compliance with the License.
-     * You may obtain a copy of the License at
+     * You may obtain a copy of the License at</p>
      *
-     *      http://www.apache.org/licenses/LICENSE-2.0
+     * <p>http://www.apache.org/licenses/LICENSE-2.0</p>
      *
-     * Unless required by applicable law or agreed to in writing, software
+     * <p>Unless required by applicable law or agreed to in writing, software
      * distributed under the License is distributed on an "AS IS" BASIS,
      * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
      * See the License for the specific language governing permissions and
-     * limitations under the License.
+     * limitations under the License.</p>
      *
-     *
-     *  This class implements an exponential moving average, using the
-     *  algorithm described at <a href="http://en.wikipedia.org/wiki/Moving_average">http://en.wikipedia.org/wiki/Moving_average</a>. The average does not
-     *  sample itself; it merely computes the new average when updated with
-     *  a sample by an external mechanism.
+     * <p>This class implements an exponential moving average, using the
+     * algorithm described at <a href="http://en.wikipedia.org/wiki/Moving_average">http://en.wikipedia.org/wiki/Moving_average</a>. The average does not
+     * sample itself; it merely computes the new average when updated with
+     * a sample by an external mechanism.</p>
      **/
-    public static class MovingAverage implements Serializable {
+    public static class MovingAverage implements Serializable
+    {
         private long windowMillis;
         private long lastMillis;
         private double average;
 
-        /** Construct a {@link MovingAverage}, providing the time window
-         *  we want the average over. For example, providing a value of
-         *  3,600,000 provides a moving average over the last hour.
-         *  @param windowMillis the length of the sliding window in
-         *    milliseconds */
-        public MovingAverage(final long windowMillis) {
+        /**
+         * Construct a {@link MovingAverage}, providing the time window
+         * we want the average over. For example, providing a value of
+         * 3,600,000 provides a moving average over the last hour.
+         *
+         * @param windowMillis the length of the sliding window in
+         *                     milliseconds
+         */
+        public MovingAverage( final long windowMillis )
+        {
             this.windowMillis = windowMillis;
         }
 
-        public MovingAverage(final TimeDuration timeDuration) {
+        public MovingAverage( final TimeDuration timeDuration )
+        {
             this.windowMillis = timeDuration.getTotalMilliseconds();
         }
 
-        /** Updates the average with the latest measurement.
-         *  @param sample the latest measurement in the rolling average */
-        public synchronized void update(final double sample) {
+        /**
+         * Updates the average with the latest measurement.
+         *
+         * @param sample the latest measurement in the rolling average
+         */
+        public synchronized void update( final double sample )
+        {
             final long now = System.currentTimeMillis();
 
-            if (lastMillis == 0) {  // first sample
+            if ( lastMillis == 0 )
+            {
+                // first sample
                 average = sample;
                 lastMillis = now;
                 return;
             }
             final long deltaTime = now - lastMillis;
-            final double coeff = Math.exp(-1.0 * ((double)deltaTime / windowMillis));
-            average = (1.0 - coeff) * sample + coeff * average;
+            final double coeff = Math.exp( -1.0 * ( ( double ) deltaTime / windowMillis ) );
+            average = ( 1.0 - coeff ) * sample + coeff * average;
 
             lastMillis = now;
         }
@@ -123,13 +144,15 @@ public class EventRateMeter implements Serializable {
          * Returns the last computed average value.
          *
          * @return current average value
-         * */
-        public double getAverage() {
-            update(0);
+         */
+        public double getAverage( )
+        {
+            update( 0 );
             return average;
         }
 
-        public long getLastMillis() {
+        public long getLastMillis( )
+        {
             return lastMillis;
         }
     }

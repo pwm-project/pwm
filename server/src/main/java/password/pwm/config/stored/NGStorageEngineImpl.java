@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,7 +30,8 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-class NGStorageEngineImpl implements StorageEngine {
+class NGStorageEngineImpl implements StorageEngine
+{
     private final Map<StoredConfigReference, StoredValue> values = new TreeMap<>();
     private final Map<StoredConfigReference, ValueMetaData> metaValues = new TreeMap<>();
     private final ConfigChangeLog changeLog;
@@ -41,79 +42,102 @@ class NGStorageEngineImpl implements StorageEngine {
     NGStorageEngineImpl(
             final Map<StoredConfigReference, StoredValue> values,
             final Map<StoredConfigReference, ValueMetaData> metaValues
-    ) {
-        this.values.putAll(values);
-        this.metaValues.putAll(metaValues);
-        changeLog = new ConfigChangeLogImpl(this);
+    )
+    {
+        this.values.putAll( values );
+        this.metaValues.putAll( metaValues );
+        changeLog = new ConfigChangeLogImpl( this );
     }
 
-    public ConfigChangeLog changeLog() {
+    public ConfigChangeLog changeLog( )
+    {
         return changeLog;
     }
 
-    public StoredValue read(final StoredConfigReference storedConfigReference) {
+    public StoredValue read( final StoredConfigReference storedConfigReference )
+    {
         bigLock.readLock().lock();
-        try {
-            return values.get(storedConfigReference);
-        } finally {
+        try
+        {
+            return values.get( storedConfigReference );
+        }
+        finally
+        {
             bigLock.readLock().unlock();
         }
     }
 
-    public ValueMetaData readMetaData(final StoredConfigReference storedConfigReference) {
-        return metaValues.get(storedConfigReference);
+    public ValueMetaData readMetaData( final StoredConfigReference storedConfigReference )
+    {
+        return metaValues.get( storedConfigReference );
     }
 
-    public void write(final StoredConfigReference reference, final StoredValue value, final UserIdentity userIdentity)
+    public void write( final StoredConfigReference reference, final StoredValue value, final UserIdentity userIdentity )
     {
         checkWriteLock();
         bigLock.writeLock().lock();
-        try {
-            if (values.containsKey(reference)) {
-                changeLog.updateChangeLog(reference, values.get(reference), value);
-            } else {
-                changeLog.updateChangeLog(reference, value);
+        try
+        {
+            if ( values.containsKey( reference ) )
+            {
+                changeLog.updateChangeLog( reference, values.get( reference ), value );
             }
-            values.put(reference, value);
-            final ValueMetaData valueMetaData = new ValueMetaData(Instant.now(), userIdentity);
-            metaValues.put(reference, valueMetaData);
-        } finally {
+            else
+            {
+                changeLog.updateChangeLog( reference, value );
+            }
+            values.put( reference, value );
+            final ValueMetaData valueMetaData = new ValueMetaData( Instant.now(), userIdentity );
+            metaValues.put( reference, valueMetaData );
+        }
+        finally
+        {
             bigLock.writeLock().unlock();
         }
     }
 
-    public void reset(final StoredConfigReference reference, final UserIdentity userIdentity)
+    public void reset( final StoredConfigReference reference, final UserIdentity userIdentity )
     {
         checkWriteLock();
         bigLock.writeLock().lock();
-        try {
-            if (values.containsKey(reference)) {
-                changeLog.updateChangeLog(reference, values.get(reference), null);
-            } else {
-                changeLog.updateChangeLog(reference, null);
+        try
+        {
+            if ( values.containsKey( reference ) )
+            {
+                changeLog.updateChangeLog( reference, values.get( reference ), null );
             }
-            values.remove(reference);
-            if (metaValues.containsKey(reference)) {
-                final ValueMetaData valueMetaData = new ValueMetaData(Instant.now(), userIdentity);
-                metaValues.put(reference, valueMetaData);
+            else
+            {
+                changeLog.updateChangeLog( reference, null );
             }
-        } finally {
+            values.remove( reference );
+            if ( metaValues.containsKey( reference ) )
+            {
+                final ValueMetaData valueMetaData = new ValueMetaData( Instant.now(), userIdentity );
+                metaValues.put( reference, valueMetaData );
+            }
+        }
+        finally
+        {
             bigLock.writeLock().unlock();
         }
     }
 
-    private void checkWriteLock()
+    private void checkWriteLock( )
     {
-        if (writeLocked) {
-            throw new IllegalStateException("attempt to modify writeLock configuration");
+        if ( writeLocked )
+        {
+            throw new IllegalStateException( "attempt to modify writeLock configuration" );
         }
     }
 
-    public boolean isWriteLocked() {
+    public boolean isWriteLocked( )
+    {
         return writeLocked;
     }
 
-    public void writeLock() {
+    public void writeLock( )
+    {
         writeLocked = true;
     }
 }

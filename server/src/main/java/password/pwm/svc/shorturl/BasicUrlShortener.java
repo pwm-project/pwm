@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,29 +27,35 @@ import password.pwm.error.PwmUnrecoverableException;
 
 import java.util.Properties;
 
-public class BasicUrlShortener implements AbstractUrlShortener {
+public class BasicUrlShortener implements AbstractUrlShortener
+{
     private Properties configuration = null;
 
-    public BasicUrlShortener() {
+    public BasicUrlShortener( )
+    {
     }
 
-    public BasicUrlShortener(final Properties configuration) {
+    public BasicUrlShortener( final Properties configuration )
+    {
         this.configuration = configuration;
     }
 
-    public void setConfiguration(final Properties configuration) {
+    public void setConfiguration( final Properties configuration )
+    {
         this.configuration = configuration;
     }
 
-    public Properties getConfiguration() {
+    public Properties getConfiguration( )
+    {
         return configuration;
     }
 
-    public String shorten(final String input, final PwmApplication context) throws PwmUnrecoverableException {
+    public String shorten( final String input, final PwmApplication context ) throws PwmUnrecoverableException
+    {
         /*
-        * This function does nothing.
-        * Real functionality has to be implemented by extending this class
-        */
+         * This function does nothing.
+         * Real functionality has to be implemented by extending this class
+         */
         return input;
     }
 }

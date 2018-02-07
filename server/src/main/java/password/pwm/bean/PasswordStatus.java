@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,18 +30,21 @@ import java.io.Serializable;
 
 @Getter
 @Builder
-public class PasswordStatus implements Serializable {
+public class PasswordStatus implements Serializable
+{
     private final boolean expired;
     private final boolean preExpired;
     private final boolean violatesPolicy;
     private final boolean warnPeriod;
 
     @Override
-    public String toString() {
-        return JsonUtil.serialize(this);
+    public String toString( )
+    {
+        return JsonUtil.serialize( this );
     }
 
-    public boolean isEffectivelyExpired() {
+    public boolean isEffectivelyExpired( )
+    {
         return this.isExpired() || !this.isPreExpired() || !this.isViolatesPolicy();
     }
 }

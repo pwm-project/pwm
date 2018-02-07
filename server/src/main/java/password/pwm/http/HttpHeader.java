@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,71 +26,76 @@ import password.pwm.PwmConstants;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 
-public enum HttpHeader {
-    Accept("Accept"),
-    Connection("Connection"),
-    Content_Type("Content-Type"),
-    Content_Encoding("Content-Encoding"),
-    Location("Location"),
-    ContentSecurityPolicy("Content-Security-Policy"),
-    If_None_Match("If-None-Match"),
-    Server("Server"),
-    Cache_Control("Cache-Control"),
-    WWW_Authenticate("WWW-Authenticate"),
-    ContentDisposition("content-disposition"),
-    ContentTransferEncoding("Content-Transfer-Encoding"),
-    Content_Language("Content-Language"),
-    Accept_Encoding("Accept-Encoding"),
-    Accept_Language("Accept-Language"),
-    Authorization("Authorization", Property.Sensitive),
-    UserAgent("User-Agent"),
-    Referer("Referer"),
-    Origin("Origin"),
-    XForwardedFor("X-Forwarded-For"),
-    ETag("ETag"),
-    Expires("Expires"),
+public enum HttpHeader
+{
+    Accept( "Accept" ),
+    Connection( "Connection" ),
+    Content_Type( "Content-Type" ),
+    Content_Encoding( "Content-Encoding" ),
+    Location( "Location" ),
+    ContentSecurityPolicy( "Content-Security-Policy" ),
+    If_None_Match( "If-None-Match" ),
+    Server( "Server" ),
+    Cache_Control( "Cache-Control" ),
+    WWW_Authenticate( "WWW-Authenticate" ),
+    ContentDisposition( "content-disposition" ),
+    ContentTransferEncoding( "Content-Transfer-Encoding" ),
+    Content_Language( "Content-Language" ),
+    Accept_Encoding( "Accept-Encoding" ),
+    Accept_Language( "Accept-Language" ),
+    Authorization( "Authorization", Property.Sensitive ),
+    UserAgent( "User-Agent" ),
+    Referer( "Referer" ),
+    Origin( "Origin" ),
+    XForwardedFor( "X-Forwarded-For" ),
+    ETag( "ETag" ),
+    Expires( "Expires" ),
 
-    XFrameOptions("X-Frame-Options"),
-    XContentTypeOptions("X-Content-Type-Options"),
-    XXSSProtection("X-XSS-Protection"),
+    XFrameOptions( "X-Frame-Options" ),
+    XContentTypeOptions( "X-Content-Type-Options" ),
+    XXSSProtection( "X-XSS-Protection" ),
 
-    XAmb("X-" + PwmConstants.PWM_APP_NAME + "-Amb"),
-    XVersion("X-" + PwmConstants.PWM_APP_NAME + "-Version"),
-    XInstance("X-" + PwmConstants.PWM_APP_NAME + "-Instance"),
-    XSessionID("X-" + PwmConstants.PWM_APP_NAME + "-SessionID"),
-    XNoise("X-" + PwmConstants.PWM_APP_NAME + "-Noise"),
+    XAmb( "X-" + PwmConstants.PWM_APP_NAME + "-Amb" ),
+    XVersion( "X-" + PwmConstants.PWM_APP_NAME + "-Version" ),
+    XInstance( "X-" + PwmConstants.PWM_APP_NAME + "-Instance" ),
+    XSessionID( "X-" + PwmConstants.PWM_APP_NAME + "-SessionID" ),
+    XNoise( "X-" + PwmConstants.PWM_APP_NAME + "-Noise" ),;
 
-    ;
-
-    private enum Property {
+    private enum Property
+    {
         Sensitive
     }
 
     private final String httpName;
     private final Property[] properties;
 
-    HttpHeader(final String httpName, final Property... properties)
+    HttpHeader( final String httpName, final Property... properties )
     {
         this.httpName = httpName;
         this.properties = properties;
     }
 
-    public String getHttpName()
+    public String getHttpName( )
     {
         return httpName;
     }
 
-    public boolean isSensitive() {
-        return JavaHelper.enumArrayContainsValue(properties, Property.Sensitive);
+    public boolean isSensitive( )
+    {
+        return JavaHelper.enumArrayContainsValue( properties, Property.Sensitive );
     }
 
-    public static HttpHeader forHttpHeader(final String header) {
-        if (StringUtil.isEmpty(header)) {
+    public static HttpHeader forHttpHeader( final String header )
+    {
+        if ( StringUtil.isEmpty( header ) )
+        {
             return null;
         }
 
-        for (final HttpHeader httpHeader : values()) {
-            if (header.equals(httpHeader.getHttpName())) {
+        for ( final HttpHeader httpHeader : values() )
+        {
+            if ( header.equals( httpHeader.getHttpName() ) )
+            {
                 return httpHeader;
             }
         }
