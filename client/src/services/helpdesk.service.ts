@@ -108,8 +108,13 @@ export default class HelpDeskService implements IHelpDeskService {
         let url: string = this.pwmService.getServerUrl('checkVerification');
         let data = {
             userKey: userKey,
-            verificationState: this.localStorageService.getItem(this.localStorageService.keys.VERIFICATION_STATE)
+            verificationState: undefined
         };
+
+        const verificationState = this.localStorageService.getItem(this.localStorageService.keys.VERIFICATION_STATE);
+        if (verificationState != null) {
+            data.verificationState = verificationState;
+        }
 
         return this.pwmService
             .httpRequest(url, { data: data })
@@ -165,9 +170,12 @@ export default class HelpDeskService implements IHelpDeskService {
 
     getPerson(userKey: string): IPromise<any> {
         let url: string = this.pwmService.getServerUrl('detail');
-        let verificationState = this.localStorageService.getItem(this.localStorageService.keys.VERIFICATION_STATE);
         url += `&userKey=${userKey}`;
-        url += `&verificationState=${verificationState}`;
+
+        const verificationState = this.localStorageService.getItem(this.localStorageService.keys.VERIFICATION_STATE);
+        if (verificationState != null) {
+            url += `&verificationState=${verificationState}`;
+        }
 
         return this.pwmService
             .httpRequest(url, {})
@@ -191,9 +199,15 @@ export default class HelpDeskService implements IHelpDeskService {
 
     getRecentVerifications(): IPromise<IRecentVerifications> {
         let url: string = this.pwmService.getServerUrl('showVerifications');
-        let data = {
-            verificationState: this.localStorageService.getItem(this.localStorageService.keys.VERIFICATION_STATE)
+        const data = {
+            verificationState: undefined
         };
+
+        const verificationState = this.localStorageService.getItem(this.localStorageService.keys.VERIFICATION_STATE);
+        if (verificationState != null) {
+            data.verificationState = verificationState;
+        }
+
         return this.pwmService
             .httpRequest(url, { data: data })
             .then((result: {records: IRecentVerifications}) => {
@@ -249,8 +263,14 @@ export default class HelpDeskService implements IHelpDeskService {
         let url: string = this.pwmService.getServerUrl(processAction);
         let content = {
             userKey: userKey,
-            verificationState: this.localStorageService.getItem(this.localStorageService.keys.VERIFICATION_STATE)
+            verificationState: undefined
         };
+
+        const verificationState = this.localStorageService.getItem(this.localStorageService.keys.VERIFICATION_STATE);
+        if (verificationState != null) {
+            content.verificationState = verificationState;
+        }
+
         this.objectService.assign(data, content);
 
         return this.pwmService
