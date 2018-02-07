@@ -280,7 +280,9 @@
                             <includeTestResources>false</includeTestResources>
                             <failsOnError>true</failsOnError>
                             <includes>**/*.java,**/*.jsp,**/*.properties,**/*.xml,**/*.css,**/*.svg</includes>
-                            <sourceDirectories>src/main</sourceDirectories>
+                            <sourceDirectories>
+                                <directory>src/main</directory>
+                            </sourceDirectories>
                         </configuration>
                         <goals>
                             <goal>check</goal>
