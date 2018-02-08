@@ -155,7 +155,7 @@ abstract class PeopleSearchBaseComponent {
 
     abstract fetchData(): void;
 
-    protected fetchSearchData(): IPromise<SearchResult> {
+    protected fetchSearchData(): IPromise<void | SearchResult> {
         this.abortPendingRequests();
         this.searchResult = null;
 

@@ -28,6 +28,7 @@ import {
     IControllerService,
     IDeferred,
     IDocumentService,
+    IHttpResponse,
     IHttpService,
     IPromise,
     IQService,
@@ -112,7 +113,8 @@ export default class DialogService {
         let self = this;
 
         // Initialize scope
-        let scope = options.scope ? options.scope.$new(false) : <IDialogScope>(this.$rootScope.$new(true));
+        let scope: IScope | any = options.scope ? options.scope.$new(false) : <IDialogScope>(this.$rootScope
+            .$new(true));
         scope.cancel = () => { self.cancel(); };
         scope.cancelText = options.cancel;
         scope.close = () => { self.close(scope.data.response); };
@@ -166,7 +168,7 @@ export default class DialogService {
 
             return this.$http
                 .get(options.templateUrl)
-                .then((response) => {
+                .then((response: IHttpResponse<any>) => {
                     self.$templateCache.put(options.templateUrl, response.data);
                     return response.data;
                 });

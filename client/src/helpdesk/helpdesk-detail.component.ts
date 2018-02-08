@@ -23,7 +23,7 @@
 
 import {Component} from '../component';
 import {IButtonInfo, IHelpDeskService, ISuccessResponse} from '../services/helpdesk.service';
-import {IScope, ui} from '@types/angular';
+import {IScope, ui} from 'angular';
 import {IQService, noop} from 'angular';
 import {IHelpDeskConfigService, PASSWORD_UI_MODES} from '../services/helpdesk-config.service';
 import DialogService from '../ux/ias-dialog.service';
@@ -129,7 +129,7 @@ export default class HelpDeskDetailComponent {
                     '$scope',
                     'HelpDeskService',
                     'translateFilter',
-                    function ($scope: IScope,
+                    function ($scope: IScope | any,
                               helpDeskService: IHelpDeskService,
                               translateFilter: (id: string) => string) {
                         $scope.status = STATUS_WAIT;
@@ -208,7 +208,7 @@ export default class HelpDeskDetailComponent {
                     '$scope',
                     'HelpDeskService',
                     'translateFilter',
-                    function ($scope: IScope,
+                    function ($scope: IScope | any,
                               helpDeskService: IHelpDeskService,
                               translateFilter: (id: string) => string) {
                         $scope.status = STATUS_CONFIRM;
@@ -241,7 +241,7 @@ export default class HelpDeskDetailComponent {
                     '$scope',
                     'HelpDeskService',
                     'translateFilter',
-                    function ($scope: IScope,
+                    function ($scope: IScope | any,
                               helpDeskService: IHelpDeskService,
                               translateFilter: (id: string) => string) {
                         $scope.status = STATUS_CONFIRM;
@@ -272,7 +272,7 @@ export default class HelpDeskDetailComponent {
                     '$scope',
                     'HelpDeskService',
                     'translateFilter',
-                    function ($scope: IScope,
+                    function ($scope: IScope | any,
                               helpDeskService: IHelpDeskService,
                               translateFilter: (id: string) => string) {
                         $scope.status = STATUS_CONFIRM;
@@ -310,7 +310,7 @@ export default class HelpDeskDetailComponent {
                     'HelpDeskService',
                     'IasDialogService',
                     'translateFilter',
-                    function ($scope: IScope,
+                    function ($scope: IScope | any,
                               helpDeskService: IHelpDeskService,
                               IasDialogService: DialogService,
                               translateFilter: (id: string) => string) {
@@ -384,7 +384,7 @@ export default class HelpDeskDetailComponent {
                     '$scope',
                     'HelpDeskService',
                     'translateFilter',
-                    function ($scope: IScope,
+                    function ($scope: IScope | any,
                               helpDeskService: IHelpDeskService,
                               translateFilter: (id: string) => string) {
                         $scope.status = STATUS_CONFIRM;

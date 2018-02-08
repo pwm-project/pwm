@@ -21,7 +21,7 @@
  */
 
 
-import { module } from 'angular';
+import {IComponentOptions, module} from 'angular';
 import { HighlightFilter } from './string.filters';
 import { FullNameFilter } from './person.filters';
 import OrgChartComponent from './orgchart.component';
@@ -44,12 +44,12 @@ module(moduleName, [
 ])
     .filter('fullName', FullNameFilter)
     .filter('highlight', HighlightFilter)
-    .component('orgChart', OrgChartComponent)
-    .component('orgChartSearch', OrgChartSearchComponent)
-    .component('personCard', PersonCardComponent)
-    .component('peopleSearchTable', PeopleSearchTableComponent)
-    .component('peopleSearchCards', PeopleSearchCardsComponent)
-    .component('personDetailsDialogComponent', PersonDetailsDialogComponent)
+    .component('orgChart', OrgChartComponent as IComponentOptions)
+    .component('orgChartSearch', OrgChartSearchComponent as IComponentOptions)
+    .component('personCard', PersonCardComponent as IComponentOptions)
+    .component('peopleSearchTable', PeopleSearchTableComponent as IComponentOptions)
+    .component('peopleSearchCards', PeopleSearchCardsComponent as IComponentOptions)
+    .component('personDetailsDialogComponent', PersonDetailsDialogComponent as IComponentOptions)
     .service('PromiseService', PromiseService)
     .service('LocalStorageService', LocalStorageService);
 
