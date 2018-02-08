@@ -21,19 +21,12 @@
  */
 
 var webpack = require('webpack');
-// var webpackConfig = require('./webpack.test.js');
+var webpackConfig = require('./webpack.test.js');
 var path = require("path");
 var os = require('os');
 
 module.exports = function (config) {
     config.set({
-        karmaTypescriptConfig: {
-            // tsconfig: "tsconfig.json",
-            files: [
-                "src/temp.ts"
-            ]
-        },
-
         // base path that will be used to resolve all patterns (eg. files, exclude)
         basePath: '',
 
@@ -41,20 +34,17 @@ module.exports = function (config) {
         // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
         frameworks: [ 'jasmine' ],
 
-        // 'node_modules/angular/angular.js',
-        // 'node_modules/angular-mocks/angular-mocks.js',
-        // 'node_modules/angular-translate/dist/angular-translate.js',
-        // 'vendor/angular-ui-router.js',
-        // 'src/main.ts',
-
         // list of files / patterns to load in the browser
         files: [
-            // 'src/**/*.test.ts'
-            'src/peoplesearch/orgchart.component.test.ts'
+            // 'node_modules/angular/angular.js',
+            // 'node_modules/angular-mocks/angular-mocks.js',
+            // 'node_modules/angular-translate/dist/angular-translate.js',
+            // 'vendor/angular-ui-router.js',
+            // 'src/main.ts',
+            'src/**/*.test.ts'
         ],
 
-        exclude: [
-        ],
+        exclude: [],
 
         // preprocess matching files before serving them to the browser
         // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
@@ -68,19 +58,8 @@ module.exports = function (config) {
         },
 
         webpack: {
-            // resolve: webpackConfig.resolve,
-            // module: webpackConfig.module,
-            resolve: {
-                extensions: [".ts", ".js"]
-            },
-            module: {
-                rules: [
-                    {
-                        test: /\.ts$/,
-                        loader: 'ts-loader'
-                    }
-                ]
-            },
+            resolve: webpackConfig.resolve,
+            module: webpackConfig.module,
             plugins: [
                 new webpack.SourceMapDevToolPlugin({
                     filename: null, // if no value is provided the sourcemap is inlined
