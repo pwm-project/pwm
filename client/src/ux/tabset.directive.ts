@@ -33,7 +33,7 @@ export class TabsetController implements ITabsetController {
 
     activateTab(tabIndex): void {
         this.activeTab = tabIndex;
-    };
+    }
 }
 
 require('ux/tabset.directive.scss');

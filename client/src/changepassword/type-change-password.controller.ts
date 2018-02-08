@@ -40,7 +40,7 @@ export default class TypeChangePasswordController {
     passwordUiMode: string;
     passwordSuggestions: string[];
     showStrengthMeter: boolean;
-    strength: string = 'Very Strong';
+    strength = 'Very Strong';
 
     static $inject = [
         '$q',

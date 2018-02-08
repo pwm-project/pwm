@@ -47,5 +47,5 @@ export default class ConfigService
 
     orgChartEnabled(): IPromise<boolean> {
         return this.$q.resolve(true);
-    };
+    }
 }

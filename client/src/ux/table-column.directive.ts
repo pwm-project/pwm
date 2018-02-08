@@ -25,8 +25,8 @@ import { IAttributes, IAugmentedJQuery, IDirective, IScope } from 'angular';
 import TableDirectiveController from './table.directive.controller';
 
 class TableColumnDirective implements IDirective {
-    require: string = '^mfTable';
-    restrict: string = 'E';
+    require = '^mfTable';
+    restrict = 'E';
 
     constructor() {}
 
@@ -43,4 +43,4 @@ class TableColumnDirective implements IDirective {
 TableColumnDirectiveFactory.$inject = [];
 export default function TableColumnDirectiveFactory(): IDirective {
     return new TableColumnDirective();
-};
+}

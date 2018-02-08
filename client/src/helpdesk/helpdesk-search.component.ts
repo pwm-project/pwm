@@ -79,7 +79,7 @@ export default class HelpDeskSearchComponent {
         }
     }
 
-    private fetchSearchData(): IPromise<SearchResult> {
+    private fetchSearchData(): IPromise<void | SearchResult> {
         // this.abortPendingRequests();
         this.searchResult = null;
 

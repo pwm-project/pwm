@@ -64,7 +64,7 @@ type IRecentVerification = {
     username: string,
     timestamp: string,
     method: string
-}
+};
 
 export interface IRandomPasswordResponse {
     password: string;

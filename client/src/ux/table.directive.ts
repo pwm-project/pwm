@@ -95,4 +95,4 @@ class TableDirective implements IDirective {
 TableDirectiveFactory.$inject = [ '$document', '$parse' ];
 export default function TableDirectiveFactory($document: IDocumentService, $parse: IParseService): IDirective {
     return new TableDirective($document, $parse);
-};
+}

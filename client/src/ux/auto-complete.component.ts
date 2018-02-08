@@ -45,7 +45,7 @@ import { IAttributes, IAugmentedJQuery, IDocumentService, IPromise, IScope } fro
             return `
                 <mf-search-bar input-debounce="$ctrl.inputDebounce"
                                search-text="$ctrl.searchText"
-                               on-search-text-change="$ctrl.onSearchBarTextChange(value)"                           
+                               on-search-text-change="$ctrl.onSearchBarTextChange(value)"
                                on-key-down="$ctrl.onSearchBarKeyDown($event)"
                                ng-click="$ctrl.onSearchBarClick($event)"
                                auto-focus></mf-search-bar>
@@ -55,7 +55,7 @@ import { IAttributes, IAugmentedJQuery, IDocumentService, IPromise, IScope } fro
                        ng-class="{ \'selected\': $index == $ctrl.selectedIndex }\">` +
                 contentTemplate.html().replace(new RegExp($attrs['item'], 'g'), 'item') +
                     `</li>
-                    <li class="search-message" 
+                    <li class="search-message"
                         ng-if="$ctrl.show && $ctrl.searchText && !$ctrl.loading && !$ctrl.items.length">
                         <span translate="Display_SearchResultsNone"></span>
                     </li>

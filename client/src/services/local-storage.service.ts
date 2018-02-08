@@ -32,7 +32,7 @@ const KEYS = {
 
 export default class LocalStorageService {
     keys: any = KEYS;
-    private localStorageEnabled: boolean = true;
+    private localStorageEnabled = true;
 
     static $inject = [ '$log', '$window' ];
     constructor($log: ILogService, private $window: IWindowService) {

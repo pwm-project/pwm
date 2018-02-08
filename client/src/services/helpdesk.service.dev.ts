@@ -472,7 +472,7 @@ export default class HelpDeskService implements IHelpDeskService {
             deferred.resolve();
         });
 
-        return deferred.promise;
+        return deferred.promise as IPromise<T>;
     }
 
     unlockIntruder(userKey: string): IPromise<ISuccessResponse> {

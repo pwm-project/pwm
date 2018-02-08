@@ -21,7 +21,7 @@
  */
 
 
-import { module } from 'angular';
+import {IComponentOptions, module} from 'angular';
 import { DateFilter } from './date.filters';
 import HelpDeskDetailComponent from './helpdesk-detail.component';
 import HelpDeskSearchComponent from './helpdesk-search.component';
@@ -45,9 +45,9 @@ module(moduleName, [
     uxModule
 ])
 
-    .component('helpDeskSearch', HelpDeskSearchComponent)
-    .component('helpDeskDetail', HelpDeskDetailComponent)
-    .component('personCard', PersonCardComponent)
+    .component('helpDeskSearch', HelpDeskSearchComponent as IComponentOptions)
+    .component('helpDeskDetail', HelpDeskDetailComponent as IComponentOptions)
+    .component('personCard', PersonCardComponent as IComponentOptions)
     .controller('AutogenChangePasswordController', AutogenChangePasswordController)
     .controller('RandomChangePasswordController', RandomChangePasswordController)
     .controller('RecentVerificationsDialogController', RecentVerificationsDialogController)

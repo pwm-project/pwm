@@ -32,9 +32,9 @@ export default class TableDirectiveController {
     itemName: string;
     onClickItem: (scope: IScope, locals: any) => void;
     searchHighlight: string;
-    showConfiguration: boolean = false;
+    showConfiguration = false;
     sortColumn: Column;
-    reverseSort: boolean = false;
+    reverseSort = false;
 
     static $inject = [ '$filter', '$scope' ];
     constructor(private $filter: IFilterService, private $scope: IScope) {
