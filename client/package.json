@@ -61,6 +61,7 @@
         "string-replace-loader": "1.3.0",
         "style-loader": "0.20.1",
         "ts-loader": "3.5.0",
+        "ts-mockito": "2.2.9",
         "tslint": "^5.9.1",
         "tslint-loader": "3.5.3",
         "typescript": "2.7.1",

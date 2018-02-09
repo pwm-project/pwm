@@ -36,12 +36,7 @@ module.exports = function (config) {
 
         // list of files / patterns to load in the browser
         files: [
-            // 'node_modules/angular/angular.js',
-            // 'node_modules/angular-mocks/angular-mocks.js',
-            // 'node_modules/angular-translate/dist/angular-translate.js',
-            // 'vendor/angular-ui-router.js',
-            // 'src/main.ts',
-            'src/**/*.test.ts'
+            'test/karma-test-suite.ts'
         ],
 
         exclude: [],
@@ -49,7 +44,7 @@ module.exports = function (config) {
         // preprocess matching files before serving them to the browser
         // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
         preprocessors: {
-            "**/*.ts": ["webpack"]
+            "**/*.ts": ["webpack", "sourcemap"]
         },
 
         // fix typescript serving video/mp2t mime type
@@ -61,6 +56,7 @@ module.exports = function (config) {
             resolve: webpackConfig.resolve,
             module: webpackConfig.module,
             plugins: [
+                // Without this, we're not able to debug our tests in the browser:
                 new webpack.SourceMapDevToolPlugin({
                     filename: null, // if no value is provided the sourcemap is inlined
                     test: /\.(ts|js)($|\?)/i // process .js and .ts files only
