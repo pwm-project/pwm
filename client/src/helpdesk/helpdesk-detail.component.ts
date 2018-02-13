@@ -42,6 +42,9 @@ const STATUS_WAIT = 'wait';
 const STATUS_CONFIRM = 'confirm';
 const STATUS_SUCCESS = 'success';
 
+declare const PWM_HELPDESK: any;
+declare const PWM_VAR: any;
+
 @Component({
     stylesheetUrl: require('helpdesk/helpdesk-detail.component.scss'),
     templateUrl: require('helpdesk/helpdesk-detail.component.html')
@@ -92,17 +95,33 @@ export default class HelpDeskDetailComponent {
     changePassword(): void {
         this.configService.getPasswordUiMode()
             .then((passwordUiMode) => {
-                if (passwordUiMode === PASSWORD_UI_MODES.AUTOGEN) {
-                    this.changePasswordAutogen();
-                }
-                else if (passwordUiMode === PASSWORD_UI_MODES.RANDOM) {
-                    this.changePasswordRandom();
-                }
-                else if (passwordUiMode === PASSWORD_UI_MODES.BOTH || passwordUiMode === PASSWORD_UI_MODES.TYPE) {
-                    this.changePasswordType();
+                if (passwordUiMode) {
+                    if (document.title === 'PWM Development') {
+                        const pwUiMode: string = passwordUiMode.toUpperCase();
+                        if (pwUiMode === PASSWORD_UI_MODES.TYPE) {
+                            this.changePasswordType();
+                        }
+                        else if (pwUiMode === PASSWORD_UI_MODES.AUTOGEN) {
+                            this.changePasswordAutogen();
+                        }
+                        else if (pwUiMode === PASSWORD_UI_MODES.BOTH) {
+                            // TODO: Need to take into account both autogen and typing in this scenario
+                            this.changePasswordType();
+                        }
+                        else if (pwUiMode === PASSWORD_UI_MODES.RANDOM) {
+                            this.changePasswordRandom();
+                        }
+                    }
+                    else {
+                        // Until the new AngularJS version of "Change Password" is finished, we'll just call into the
+                        // old PWM JavaScript functions:
+                        PWM_VAR['helpdesk_obfuscatedDN'] = this.getUserKey();
+                        PWM_VAR['helpdesk_setting_PwUiMode'] = passwordUiMode;
+                        PWM_HELPDESK.initiateChangePasswordDialog();
+                    }
                 }
                 else {
-                    throw new Error('Password type unsupported!');  // TODO: best way to do this?
+                    throw new Error('Unable to retrieve a valid password UI mode.');
                 }
             });
     }
