@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,8 +30,6 @@ import uiRouter from '@uirouter/angularjs';
 import HelpDeskConfigService from '../services/helpdesk-config.service';
 import HelpDeskService from '../services/helpdesk.service';
 
-// fontgen-loader needs this :(
-require('../icons.json');
 
 module('app', [
     uiRouter,

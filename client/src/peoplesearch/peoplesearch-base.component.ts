@@ -57,6 +57,10 @@ abstract class PeopleSearchBaseComponent {
         this.searchViewLocalStorageKey = this.localStorageService.keys.SEARCH_VIEW;
 
         this.inputDebounce = this.pwmService.ajaxTypingWait;
+
+        $scope.$watch('$ctrl.query', (newValue: string, oldValue: string) => {
+            this.onSearchTextChange(newValue, oldValue);
+        });
     }
 
     getMessage(): string {
@@ -71,20 +75,18 @@ abstract class PeopleSearchBaseComponent {
         this.$state.go(state, { query: this.query });
     }
 
-    onSearchBoxKeyDown(event: KeyboardEvent): void {
-        switch (event.keyCode) {
-            case 27: // ESC
-                this.clearSearch();
-                break;
-        }
-    }
+    // onSearchBoxKeyDown(event: KeyboardEvent): void {
+    //     switch (event.keyCode) {
+    //         case 27: // ESC
+    //             this.clearSearch();
+    //             break;
+    //     }
+    // }
 
-    onSearchTextChange(value: string): void {
-        if (value === this.query) {
+    private onSearchTextChange(newValue: string, oldValue: string): void {
+        if (newValue === oldValue) {
             return;
         }
-
-        this.query = value;
 
         this.storeSearchText();
         this.clearSearchMessage();

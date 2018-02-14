@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +27,6 @@ import {
     VERIFICATION_METHOD_NAMES
 } from '../services/helpdesk-config.service';
 import {IHelpDeskService, IVerificationTokenResponse} from '../services/helpdesk.service';
-import DialogService from '../ux/ias-dialog.service';
 import {IPerson} from '../models/person.model';
 import ObjectService from '../services/object.service';
 
@@ -62,7 +61,7 @@ export default class VerificationsDialogController {
                 private $timeout: ITimeoutService,
                 private configService: IHelpDeskConfigService,
                 private helpDeskService: IHelpDeskService,
-                private IasDialogService: DialogService,
+                private IasDialogService: any,
                 private objectService: ObjectService,
                 private personUserKey: string,
                 private search: boolean) {

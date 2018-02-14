@@ -33,22 +33,6 @@ module.exports = webpackMerge(commonConfig, {
         'configeditor.ng': './src/pages/configeditor/configeditor.module',
         'helpdesk.ng': './src/helpdesk/main'
     },
-    module: {
-        loaders: [
-            {
-                test: /icons\.json$/,
-                loaders: [
-                    'ignore',
-                    // Need to output to an external file, since fontgen consolidates: "../.." into: "../", even after
-                    // doing the string-replace below.  This is a problem, since we're loading from a webjar now.
-                    'file?name=fonts.css',
-                    // This replaces path from app root so the urls are relative to the output directory
-                    'string-replace?search=url%5C("%5C/&replace=url("./&flags=gm',
-                    'fontgen?fileName=fonts/[fontname]-[hash][ext]'
-                ]
-            }
-        ]
-    },
     plugins: [
         new webpack.optimize.UglifyJsPlugin({
             compress: { warnings: false },

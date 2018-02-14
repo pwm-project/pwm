@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,6 +33,12 @@ export default [
                 $location.url('search');
             });
 
-        $stateProvider.state('search', { url: '/search?query', component: 'helpDeskSearch' });
+        $stateProvider.state('search', {
+            url: '/search?query',
+            abstract: true,
+            template: '<div><ui-view/></div>',
+        });
+        $stateProvider.state('search.cards', { url: '/cards', component: 'helpDeskSearchCards' });
+        $stateProvider.state('search.table', { url: '/table', component: 'helpDeskSearchTable' });
         $stateProvider.state('details', { url: '/details/{personId}', component: 'helpDeskDetail' });
     }];

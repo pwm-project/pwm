@@ -33,25 +33,17 @@ module.exports = webpackMerge(commonConfig, {
         'configeditor.ng': './src/pages/configeditor/configeditor.module',
         'helpdesk.ng': './src/helpdesk/main.dev'
     },
-    module: {
-        loaders: [
-            {
-                test: /icons\.json$/,
-                loaders: [
-                    'style',
-                    'raw',
-                    'fontgen?fileName=fonts/[fontname][ext]'
-                ]
-            }
-        ]
-    },
     plugins: [
         // Don't forget to add this to karma.conf.js
         new CopyWebpackPlugin([
             { from: 'node_modules/@uirouter/angularjs/release/angular-ui-router.js', to: 'vendor/' },
             { from: 'node_modules/angular/angular.js', to: 'vendor/' },
+            { from: 'node_modules/angular-aria/angular-aria.js', to: 'vendor/' },
             { from: 'node_modules/angular-translate/dist/angular-translate.js', to: 'vendor/' },
-            { from: 'images/avatars', to: 'images/avatars' }
+            { from: 'node_modules/@microfocus/ux-ias/dist/ux-ias.css', to: 'vendor/' },
+            { from: 'node_modules/@microfocus/ng-ias/dist/ng-ias.js', to: 'vendor/' },
+            { from: 'node_modules/@microfocus/ias-icons/dist/ias-icons.css', to: 'vendor/' },
+            { from: 'node_modules/@microfocus/ias-icons/dist/fonts', to: 'vendor/fonts' }
         ])
     ]
 });
