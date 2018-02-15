@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,65 +21,66 @@
  */
 
 
-import {Component} from '../component';
 import {IPeopleService} from '../services/people.service';
 import SearchResult from '../models/search-result.model';
-import {IPromise, IQService} from 'angular';
+import {isArray, isString, IPromise, IQService, IScope} from 'angular';
 import {IPerson} from '../models/person.model';
-import DialogService from '../ux/ias-dialog.service';
 import {IHelpDeskConfigService} from '../services/helpdesk-config.service';
+import LocalStorageService from '../services/local-storage.service';
 
 let verificationsDialogTemplateUrl = require('./verifications-dialog.template.html');
 let recentVerificationsDialogTemplateUrl = require('./recent-verifications-dialog.template.html');
 
-@Component({
-    stylesheetUrl: require('helpdesk/helpdesk-search.component.scss'),
-    templateUrl: require('helpdesk/helpdesk-search.component.html')
-})
-export default class HelpDeskSearchComponent {
+export default abstract class HelpDeskSearchBaseComponent {
     columnConfiguration: any;
     protected pendingRequests: IPromise<any>[] = [];
     photosEnabled: boolean;
     query: string;
     searchResult: SearchResult;
+    searchTextLocalStorageKey: string;
+    searchViewLocalStorageKey: string;
     verificationsEnabled: boolean;
     view: string;
 
-    static $inject = ['$q',
-        'ConfigService',
-        'IasDialogService',
-        'PeopleService'
-    ];
+    constructor(protected $q: IQService,
+                protected $scope: IScope,
+                protected $stateParams: angular.ui.IStateParamsService,
+                protected configService: IHelpDeskConfigService,
+                protected IasDialogService: any,
+                protected localStorageService: LocalStorageService,
+                protected peopleService: IPeopleService) {
+        this.searchTextLocalStorageKey = this.localStorageService.keys.HELPDESK_SEARCH_TEXT;
+        this.searchViewLocalStorageKey = this.localStorageService.keys.HELPDESK_SEARCH_VIEW;
 
-    constructor(private $q: IQService,
-                private configService: IHelpDeskConfigService,
-                private IasDialogService: DialogService,
-                private peopleService: IPeopleService) {
+        $scope.$watch('$ctrl.query', (newValue: string, oldValue: string) => {
+            this.onSearchTextChange(newValue, oldValue);
+        });
     }
 
-    $onInit(): void {
-        this.view = 'cards';
-
-        this.configService.photosEnabled().then((photosEnabled: boolean) => {
-            this.photosEnabled = photosEnabled;
-        }); // TODO: only if in cards view (some other things are like that too)
+    protected initialize(): void {
+        this.query = this.getSearchText();
 
         this.configService.verificationsEnabled().then((verificationsEnabled: boolean) => {
             this.verificationsEnabled = verificationsEnabled;
         });
-
-        this.fetchData();
     }
 
-    private fetchData() {
-        let searchResultPromise = this.fetchSearchData();
-        if (searchResultPromise) {
-
-            searchResultPromise.then(this.onSearchResult.bind(this));
+    private getSearchText(): string {
+        let param: string = this.$stateParams['query'];
+        // If multiple query parameters are defined, use the first one
+        if (isArray(param)) {
+            param = param[0].trim();
         }
+        else if (isString(param)) {
+            param = param.trim();
+        }
+
+        return param || this.localStorageService.getItem(this.searchTextLocalStorageKey);
     }
 
-    private fetchSearchData(): IPromise<void | SearchResult> {
+    abstract fetchData(): void;
+
+    protected fetchSearchData(): IPromise<void | SearchResult> {
         // this.abortPendingRequests();
         this.searchResult = null;
 
@@ -88,10 +89,7 @@ export default class HelpDeskSearchComponent {
             return null;
         }
 
-        const self = this;
-
         let promise = this.peopleService.search(this.query);
-
         this.pendingRequests.push(promise);
 
         return promise
@@ -126,93 +124,18 @@ export default class HelpDeskSearchComponent {
             });
     }
 
-    gotoCardsView(): void {
-        if (this.view !== 'cards') {
-            this.view = 'cards';
-            this.fetchData();
-        }
-    }
-
-    gotoTableView(): void {
-        if (this.view !== 'table') {
-            this.view = 'table';
-            this.fetchData();
-        }
-
-        let self = this;
-
-        // The table columns are dynamic and configured via a service
-        this.configService.getColumnConfig().then(
-            (columnConfiguration: any) => {
-                self.columnConfiguration = columnConfiguration;
-            },
-            (error) => {
-                // self.setErrorMessage(error);
-            }); // TODO: remove self
-    }
-
-    private onSearchResult(searchResult: SearchResult): void {
-        if (this.view === 'table') {
-            this.searchResult = searchResult;
+    private onSearchTextChange(newValue: string, oldValue: string): void {
+        if (newValue === oldValue) {
             return;
         }
 
-        // Aborted request
-        if (!searchResult) {
-            return;
-        }
-
-        this.searchResult = new SearchResult({
-            sizeExceeded: searchResult.sizeExceeded,
-            searchResults: []
-        });
-
-        let self = this;
-
-        this.pendingRequests = searchResult.people.map(
-            (person: IPerson) => {
-                // Store this promise because it is abortable
-                let promise = this.peopleService.getPerson(person.userKey);
-
-                promise
-                    .then((person: IPerson) => {
-                            // Aborted request
-                            if (!person) {
-                                return;
-                            }
-
-                            // searchResult may be overwritten by ESC->[LETTER] typed in after a search
-                            // has started but before all calls to peopleService.getPerson have resolved
-                            if (self.searchResult) {
-                                self.searchResult.people.push(person);
-                            }
-                        },
-                        (error) => {
-                            // self.setErrorMessage(error);
-                        })
-                    .finally(() => {
-                        // self.removePendingRequest(promise);
-                    });
-
-                return promise;
-            }
-        );  // TODO: this arg
-    }
-
-    onSearchTextChange(value: string): void {
-        if (value === this.query) {
-            return;
-        }
-
-        this.query = value;
-
-        // this.storeSearchText();
+        this.storeSearchText();
         // this.clearSearchMessage();
         // this.clearErrorMessage();
         this.fetchData();
     }
 
-    selectPerson(person: IPerson): void {
+    protected selectPerson(person: IPerson): void {
         this.IasDialogService
             .open({
                 controller: 'VerificationsDialogController as $ctrl',
@@ -224,11 +147,15 @@ export default class HelpDeskSearchComponent {
             });
     }
 
-    showVerifications(): void {
+    protected showVerifications(): void {
         this.IasDialogService
             .open({
                 controller: 'RecentVerificationsDialogController as $ctrl',
                 templateUrl: recentVerificationsDialogTemplateUrl
             });
+    }
+
+    protected storeSearchText(): void {
+        this.localStorageService.setItem(this.searchTextLocalStorageKey, this.query || '');
     }
 }

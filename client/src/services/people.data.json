@@ -9,7 +9,7 @@
     "title": "Senior Sales Associate",
     "workforceId": "E84-001",
     "managerId": null,
-    "photoURL": "/images/avatars/1.jpg",
+    "photoURL": "http://i.pravatar.cc/128?img=1",
     "_displayName": "Jean Ryan - Senior Sales Associate",
     "displayNames": [
       "Jean Ryan",
@@ -90,7 +90,7 @@
     "title": "Quality Engineer",
     "workforceId": "E84-002",
     "managerId": 1,
-    "photoURL": "/images/avatars/2.jpg",
+    "photoURL": "http://i.pravatar.cc/128?img=2",
     "_displayName": "Ruby Bowman - Quality Engineer",
     "displayNames": [
       "Ruby Bowman",
@@ -171,7 +171,7 @@
     "title": "Community Outreach Specialist",
     "workforceId": "E84-003",
     "managerId": 1,
-    "photoURL": "/images/avatars/3.jpg",
+    "photoURL": "http://i.pravatar.cc/128?img=3",
     "_displayName": "William Carter - Community Outreach Specialist",
     "displayNames": [
       "William Carter",
@@ -252,7 +252,7 @@
     "title": "Research Nurse",
     "workforceId": "E84-004",
     "managerId": 1,
-    "photoURL": "/images/avatars/4.jpg",
+    "photoURL": "http://i.pravatar.cc/128?img=4",
     "_displayName": "Alan Snyder - Research Nurse",
     "displayNames": [
       "Alan Snyder",
@@ -333,7 +333,7 @@
     "title": "Financial Analyst",
     "workforceId": "E84-005",
     "managerId": 2,
-    "photoURL": "/images/avatars/5.jpg",
+    "photoURL": "http://i.pravatar.cc/128?img=5",
     "_displayName": "Aaron Alvarez - Financial Analyst",
     "displayNames": [
       "Aaron Alvarez",
@@ -495,7 +495,7 @@
     "title": "Design Engineer",
     "workforceId": "E84-007",
     "managerId": 2,
-    "photoURL": "/images/avatars/7.jpg",
+    "photoURL": "http://i.pravatar.cc/128?img=7",
     "_displayName": "Mildred Hayes - Design Engineer",
     "displayNames": [
       "Mildred Hayes",
@@ -576,7 +576,7 @@
     "title": "Structural Engineer",
     "workforceId": "E84-008",
     "managerId": 3,
-    "photoURL": "/images/avatars/8.jpg",
+    "photoURL": "http://i.pravatar.cc/128?img=8",
     "_displayName": "Margaret Holmes - Structural Engineer",
     "displayNames": [
       "Margaret Holmes",
@@ -657,7 +657,7 @@
     "title": "Junior Executive",
     "workforceId": "E84-009",
     "managerId": 3,
-    "photoURL": "/images/avatars/9.jpg",
+    "photoURL": "http://i.pravatar.cc/128?img=9",
     "_displayName": "Jack Jackson - Junior Executive",
     "displayNames": [
       "Jack Jackson",
@@ -749,7 +749,7 @@
     "title": "Chief Design Engineer",
     "workforceId": "E84-010",
     "managerId": 3,
-    "photoURL": "/images/avatars/10.jpg",
+    "photoURL": "http://i.pravatar.cc/128?img=10",
     "_displayName": "Judy Butler - Chief Design Engineer",
     "displayNames": [
       "Judy Butler",
@@ -830,7 +830,7 @@
     "title": "Engineer IV",
     "workforceId": "E84-011",
     "managerId": 9,
-    "photoURL": "/images/avatars/11.jpg",
+    "photoURL": "http://i.pravatar.cc/128?img=11",
     "_displayName": "Tina Gutierrez - Engineer IV",
     "displayNames": [
       "Tina Gutierrez",
@@ -911,7 +911,7 @@
     "title": "Human Resources Manager",
     "workforceId": "E84-012",
     "managerId": 9,
-    "photoURL": "/images/avatars/12.jpg",
+    "photoURL": "http://i.pravatar.cc/128?img=12",
     "_displayName": "Jose Cox - Human Resources Manager",
     "displayNames": [
       "Jose Cox",
@@ -1073,7 +1073,7 @@
     "title": "Automation Specialist I",
     "workforceId": "E84-014",
     "managerId": 9,
-    "photoURL": "/images/avatars/14.jpg",
+    "photoURL": "http://i.pravatar.cc/128?img=14",
     "_displayName": "Joe Stevens - Automation Specialist I",
     "displayNames": [
       "Joe Stevens",
@@ -1154,7 +1154,7 @@
     "title": "Safety Technician I",
     "workforceId": "E84-015",
     "managerId": 20,
-    "photoURL": "/images/avatars/15.jpg",
+    "photoURL": "http://i.pravatar.cc/128?img=15",
     "_displayName": "Randy Grant - Safety Technician I",
     "displayNames": [
       "Randy Grant",
@@ -1235,7 +1235,7 @@
     "title": "Compensation Analyst",
     "workforceId": "E84-016",
     "managerId": 9,
-    "photoURL": "/images/avatars/16.jpg",
+    "photoURL": "http://i.pravatar.cc/128?img=16",
     "_displayName": "Martin Mason - Compensation Analyst",
     "displayNames": [
       "Martin Mason",
@@ -1316,7 +1316,7 @@
     "title": "Data Coordiator",
     "workforceId": "E84-017",
     "managerId": 16,
-    "photoURL": "/images/avatars/17.jpg",
+    "photoURL": "http://i.pravatar.cc/128?img=17",
     "_displayName": "Cynthia Porter - Data Coordiator",
     "displayNames": [
       "Cynthia Porter",
@@ -1397,13 +1397,11 @@
     "title": "Business Systems Development Analyst",
     "workforceId": "E84-018",
     "managerId": 17,
-    "photoURL": "/images/avatars/18.jpg",
+    "photoURL": "http://i.pravatar.cc/128?img=18",
     "_displayName": "Nancy Burns - Business Systems Development Analyst",
     "displayNames": [
       "Nancy Burns",
-      "nburnsh@wordpress.org",
-      "Business Systems Development Analyst",
-      "(444) 231-5492"
+      "nburnsh@wordpress.org"
     ],
     "detail": {
       "sn": {
@@ -1478,7 +1476,7 @@
     "title": "Structural Engineer",
     "workforceId": "E84-019",
     "managerId": 18,
-    "photoURL": "/images/avatars/19.jpg",
+    "photoURL": "http://i.pravatar.cc/128?img=26",
     "_displayName": "Jimmy Montgomery - Structural Engineer",
     "displayNames": [
       "Jimmy Montgomery",
@@ -1559,7 +1557,7 @@
     "title": "Desktop Support Technician",
     "workforceId": "E84-020",
     "managerId": 19,
-    "photoURL": "/images/avatars/20.jpg",
+    "photoURL": "http://i.pravatar.cc/128?img=20",
     "_displayName": "Bruce Carroll - Desktop Support Technician",
     "displayNames": [
       "Bruce Carroll",
@@ -1640,7 +1638,7 @@
     "title": "No Real Position",
     "workforceId": "E84-021",
     "managerId": null,
-    "photoURL": "/images/avatars/21.jpg",
+    "photoURL": "http://i.pravatar.cc/128?img=21",
     "_displayName": "Orphan User - No Real Position",
     "displayNames": [
       "Orphan User",

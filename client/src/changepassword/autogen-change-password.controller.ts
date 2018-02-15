@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,6 @@
 
 import {IHelpDeskService, IRandomPasswordResponse, ISuccessResponse} from '../services/helpdesk.service';
 import {IPromise, IQService} from 'angular';
-import DialogService from '../ux/ias-dialog.service';
 import {IChangePasswordSuccess} from './success-change-password.controller';
 
 const RANDOM_MAPPING_SIZE = 20;
@@ -37,9 +36,9 @@ export default class AutogenChangePasswordController {
     static $inject = [ '$q', 'HelpDeskService', 'IasDialogService', 'personUserKey' ];
     constructor(private $q: IQService,
                 private HelpDeskService: IHelpDeskService,
-                private IasDialogService: DialogService,
+                private IasDialogService: any,
                 private personUserKey: string) {
-        this.passwordSuggestions = Array(20).fill('');
+        this.passwordSuggestions = Array<string>(20).fill('');
         this.populatePasswordSuggestions();
     }
 

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,101 +25,59 @@ help-desk-detail {
     margin-right: 20px;
   }
 
-  mf-icon-button {
-    margin-left: 5px;
-  }
-
-  person-card {
-    margin-top: 20px;
+  .ias-tile {
+    margin: 20px 0 15px;
   }
 
   > .help-desk-content {
-    > .person-details-content,
+    display: flex;
+    flex-flow: row wrap;
+
     > .help-desk-buttons {
-      display: inline-block;
-      vertical-align: top;
-    }
+      margin-left: 15px;
 
-    > .person-details-content {
-      min-width: 580px;
-      max-width: 700px;
-      padding: 10px;
-
-      .mf-tab-pane-container {
-        max-height: 500px;
-        overflow: auto;
-
-        table {
-          border: none;
-          border-collapse: collapse;
-          max-width: 560px;
-          max-height: 500px;
-          width: 100%;
-
-          tr {
-            height: 25px;
-
-            &.bottom-border {
-              border-bottom: 1px solid #949494;
-            }
-
-            td {
-              border: none;
-              font-size: 12px;
-              height: 19px;
-              text-align: left;
-
-              &:first-child {
-                color: #949494;
-                width: 200px;
-                text-align: right;
-                padding: 3px 0;
-              }
-
-              &:last-child {
-                padding: 3px 10px;
-
-                > .detail-container {
-                  > ul {
-                    > li {
-                      > mf-icon-button {
-                        display: inline-block;
-                        height: 16px;
-                        width: 16px;
-
-                        > button {
-                          > mf-icon {
-                            font-size: 16px;
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-
-              ul {
-                list-style: none;
-                margin: 0;
-                padding: 0;
-
-                > li {
-                  margin: 0;
-                  padding: 0;
-                }
-              }
-            }
-          }
-        }
+      > .ias-button {
+        display: block;
+        margin-bottom: 5px;
+        width: 100%;
       }
     }
+  }
+}
 
-    > .help-desk-buttons {
-      > mf-button {
-        display: block;
+.details-table {
+  border: none;
+  border-collapse: collapse;
+  //width: 100%;
 
-        > button {
-          margin: 0 auto;
+  tr {
+    height: 25px;
+
+    td {
+      border: none;
+      font-size: 12px;
+      height: 19px;
+      text-align: left;
+
+      &:first-child {
+        color: #949494;
+        //width: 100px;
+        text-align: right;
+        padding: 3px 0;
+      }
+
+      &:last-child {
+        padding: 3px 15px;
+      }
+
+      ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+
+        > li {
+          margin: 0;
+          padding: 0;
         }
       }
     }

@@ -30,13 +30,12 @@ import routes from './routes';
 import routeErrorHandler from './route-error-handler';
 import uiRouter from '@uirouter/angularjs';
 
-// fontgen-loader needs this :(
-require('./icons.json');
 
 module('app', [
     uiRouter,
     peopleSearchModule,
-    'pascalprecht.translate'
+    'pascalprecht.translate',
+    'ng-ias'
 ])
 
     .config(routes)

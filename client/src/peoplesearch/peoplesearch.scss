@@ -36,31 +36,12 @@ body {
   }
 }
 
-a {
-  color: #007cd0;
-  cursor: pointer;
-  font-weight: normal;
-  text-decoration: none;
-
-  &:focus {
-    outline: 1px solid #01a9e7;
-  }
-
-  &:hover {
-    background-color: #f6f9f8;
-  }
-}
-
 .people-search-component {
   height: 100%;
 
   > ui-view {
     height: 100%;
     overflow: auto;
-  }
-
-  mf-app-bar {
-    margin-bottom: 10px;
   }
 
   .search-info-container {
@@ -92,5 +73,29 @@ a {
     .search-info-container {
       text-align: right;
     }
+  }
+}
+
+.ias-avatar {
+  background: transparent url('../../images/user.png') no-repeat center center;
+  background-size: contain;
+}
+
+.ias-header {
+  max-width: 100%;
+}
+
+.checkbox-button {
+  align-items: center;
+  display: flex;
+  flex-flow: row nowrap;
+}
+
+.icon-divider {
+  &.vertical {
+    background-color: rgba(#808080, .5);
+    height: 25px;
+    margin: 0 5px;
+    width: 1px;
   }
 }
