@@ -1532,3 +1532,7 @@ html[dir="rtl"] .message.message-error .errorDetail {
     border-left-color: #2D2D2D;
     border-right-color: #2D2D2D;
 }
+
+table.ias-table, table.ias-table td {
+    border: none;
+}
