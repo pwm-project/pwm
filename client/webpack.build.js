@@ -22,6 +22,7 @@
 
 
 var commonConfig = require('./webpack.common.js');
+var CopyWebpackPlugin = require('copy-webpack-plugin');
 var webpack = require('webpack');
 var webpackMerge = require('webpack-merge');
 
@@ -34,6 +35,12 @@ module.exports = webpackMerge(commonConfig, {
         'helpdesk.ng': './src/helpdesk/main'
     },
     plugins: [
+        new CopyWebpackPlugin([
+            { from: 'node_modules/@microfocus/ux-ias/dist/ux-ias.css', to: 'vendor/' },
+            { from: 'node_modules/@microfocus/ng-ias/dist/ng-ias.js', to: 'vendor/' },
+            { from: 'node_modules/@microfocus/ias-icons/dist/ias-icons.css', to: 'vendor/' },
+            { from: 'node_modules/@microfocus/ias-icons/dist/fonts', to: 'vendor/fonts' }
+        ]),
         new webpack.optimize.UglifyJsPlugin({
             compress: { warnings: false },
             comments: false,

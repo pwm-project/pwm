@@ -45,12 +45,16 @@
 </div>
 
 <pwm:script-ref url="/public/resources/webjars/angular/angular.min.js" />
+<pwm:script-ref url="/public/resources/webjars/angular-aria/angular-aria.min.js" />
 <pwm:script-ref url="/public/resources/webjars/angular-ui-router/release/angular-ui-router.min.js" />
 <pwm:script-ref url="/public/resources/webjars/angular-translate/dist/angular-translate.min.js" />
 
 <jsp:include page="/WEB-INF/jsp/fragment/footer.jsp"/>
 <pwm:script-ref url="/public/resources/js/helpdesk.js"/>
-<link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/webjars/pwm-client/fonts.css' addContext="true"/>"/>
+
+<link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/webjars/pwm-client/vendor/ias-icons.css' addContext="true"/>"/>
+<link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/webjars/pwm-client/vendor/ux-ias.css' addContext="true"/>"/>
+<pwm:script-ref url="/public/resources/webjars/pwm-client/vendor/ng-ias.js" />
 <pwm:script-ref url="/public/resources/webjars/pwm-client/helpdesk.ng.js" />
 <pwm:script-ref url="/public/resources/js/changepassword.js"/>
 

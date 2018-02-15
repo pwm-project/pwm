@@ -30,7 +30,7 @@ export default [
     ) => {
         $urlRouterProvider.otherwise(
             ($injector: angular.auto.IInjectorService, $location: angular.ILocationService) => {
-                $location.url('search');
+                $location.url('search/cards');
             });
 
         $stateProvider.state('search', {
