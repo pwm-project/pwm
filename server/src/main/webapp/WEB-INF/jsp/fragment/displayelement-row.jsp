@@ -29,11 +29,11 @@
         <%= displayElement.getLabel() %>
     </td>
     <% if (displayElement.getType() == DisplayElement.Type.timestamp) { %>
-    <td class="timestamp">
+    <td class="timestamp" id="<%=StringUtil.escapeHtml(displayElement.getKey())%>">
         <%= StringUtil.escapeHtml(displayElement.getValue()) %>
     </td>
     <% } else { %>
-    <td>
+    <td  id="<%=StringUtil.escapeHtml(displayElement.getKey())%>">
         <%= StringUtil.escapeHtml(displayElement.getValue()) %>
     </td>
     <% } %>
