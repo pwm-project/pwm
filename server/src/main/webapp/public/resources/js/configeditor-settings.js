@@ -862,7 +862,7 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
         }
         bodyText += '<td id="' + inputID + '-label-placeholder" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_Placeholder') + '">Placeholder</td><td><input type="text" class="configStringInput" style="width:300px" id="' + inputID + 'placeholder' + '"/></td>';
         bodyText += '</tr><tr>';
-        bodyText += '<td id="' + inputID + '-label-js" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_Javascript') + '">JavaScript</td><td><input type="text" class="configStringInput" style="width:300px" id="' + inputID + 'javascript' + '"/></td>';
+        bodyText += '<td id="' + inputID + '-label-js" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_Javascript') + '">JavaScript (Depreciated)</td><td><input type="text" class="configStringInput" style="width:300px" id="' + inputID + 'javascript' + '"/></td>';
         bodyText += '</tr><tr>';
         if (currentValue['type'] === 'select') {
             bodyText += '<td class="key">Select Options</td><td><button id="' + inputID + 'editOptionsButton"><span class="btn-icon pwm-icon pwm-icon-list-ul"/> Edit</button></td>';

@@ -30,6 +30,7 @@ import password.pwm.bean.SessionLabel;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
+import password.pwm.config.StoredValue;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.profile.ForgottenPasswordProfile;
@@ -37,11 +38,13 @@ import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.profile.NewUserProfile;
 import password.pwm.config.profile.PwmPasswordPolicy;
+import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Config;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.PasswordData;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
 
@@ -273,7 +276,8 @@ public class ConfigurationChecker implements HealthChecker
             VerifyPasswordPolicyConfigs.class,
             VerifyResponseLdapAttribute.class,
             VerifyDbConfiguredIfNeeded.class,
-            VerifyIfDeprecatedSendMethodValuesUsed.class
+            VerifyIfDeprecatedSendMethodValuesUsed.class,
+            VerifyIfDeprecatedJsFormOptionUsed.class
     ) );
 
     static class VerifyResponseLdapAttribute implements ConfigHealthCheck
@@ -359,6 +363,65 @@ public class ConfigurationChecker implements HealthChecker
                 catch ( Exception e )
                 {
                     LOGGER.error( "unexpected error during password policy health check: " + e.getMessage(), e );
+                }
+            }
+            return records;
+        }
+    }
+
+    static class VerifyIfDeprecatedJsFormOptionUsed implements ConfigHealthCheck
+    {
+        @Override
+        public List<HealthRecord> healthCheck( final Configuration config, final Locale locale )
+        {
+            final List<HealthRecord> records = new ArrayList<>();
+
+            for ( final PwmSetting loopSetting : PwmSetting.values() )
+            {
+                if ( loopSetting.getSyntax() == PwmSettingSyntax.FORM )
+                {
+                    if ( loopSetting.getCategory().hasProfiles() )
+                    {
+                        try
+                        {
+                            final List<String> profiles = config.getStoredConfiguration().profilesForSetting( loopSetting );
+                            for ( final String profile : profiles )
+                            {
+                                final StoredValue storedValue = config.getStoredConfiguration().readSetting( loopSetting, profile );
+                                final List<FormConfiguration> forms = (List<FormConfiguration>) storedValue.toNativeObject();
+                                for ( final FormConfiguration form : forms )
+                                {
+                                    if ( !StringUtil.isEmpty( form.getJavascript() ) )
+                                    {
+                                        records.add( HealthRecord.forMessage(
+                                                HealthMessage.Config_DeprecatedJSForm,
+                                                loopSetting.toMenuLocationDebug( profile, locale ),
+                                                PwmSetting.DISPLAY_CUSTOM_JAVASCRIPT.toMenuLocationDebug( null, locale )
+                                        ) );
+                                    }
+                                }
+                            }
+                        }
+                        catch ( PwmUnrecoverableException e )
+                        {
+                            LOGGER.error( "unexpected error examining profiles for deprecated form  js option check: " + e.getMessage() );
+                        }
+                    }
+                    else
+                    {
+                        final List<FormConfiguration> forms = config.readSettingAsForm( loopSetting );
+                        for ( final FormConfiguration form : forms )
+                        {
+                            if ( !StringUtil.isEmpty( form.getJavascript() ) )
+                            {
+                                records.add( HealthRecord.forMessage(
+                                        HealthMessage.Config_DeprecatedJSForm,
+                                        loopSetting.toMenuLocationDebug( null, locale ),
+                                        PwmSetting.DISPLAY_CUSTOM_JAVASCRIPT.toMenuLocationDebug( null, locale )
+                                ) );
+                            }
+                        }
+                    }
                 }
             }
             return records;
