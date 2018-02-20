@@ -231,6 +231,7 @@ public enum PwmSetting
     LDAP_PROFILE_DISPLAY_NAME(
             "ldap.profile.displayName", PwmSettingSyntax.LOCALIZED_STRING, PwmSettingCategory.LDAP_LOGIN ),
 
+    // ldap attributes
     LDAP_USERNAME_ATTRIBUTE(
             "ldap.username.attr", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
     LDAP_GUID_ATTRIBUTE(
@@ -253,6 +254,8 @@ public enum PwmSetting
             "events.ldap.attribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
     CACHED_USER_ATTRIBUTES(
             "webservice.userAttributes", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.LDAP_ATTRIBUTES ),
+    OTP_SECRET_LDAP_ATTRIBUTE(
+            "otp.secret.ldap.attribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
     AUTO_ADD_OBJECT_CLASSES(
             "ldap.addObjectClasses", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.LDAP_ATTRIBUTES ),
 
@@ -602,26 +605,27 @@ public enum PwmSetting
             "token.ldap.attribute", PwmSettingSyntax.STRING, PwmSettingCategory.TOKEN ),
 
     // OTP
-    OTP_ENABLED(
-            "otp.enabled", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.OTP ),
-    OTP_FORCE_SETUP(
-            "otp.forceSetup", PwmSettingSyntax.SELECT, PwmSettingCategory.OTP ),
-    OTP_SECRET_READ_PREFERENCE(
-            "otp.secret.readPreference", PwmSettingSyntax.SELECT, PwmSettingCategory.OTP ),
-    OTP_SECRET_WRITE_PREFERENCE(
-            "otp.secret.writePreference", PwmSettingSyntax.SELECT, PwmSettingCategory.OTP ),
-    OTP_SECRET_STORAGEFORMAT(
-            "otp.secret.storageFormat", PwmSettingSyntax.SELECT, PwmSettingCategory.OTP ),
-    OTP_SECRET_ENCRYPT(
-            "otp.secret.encrypt", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.OTP ),
-    OTP_SECRET_LDAP_ATTRIBUTE(
-            "otp.secret.ldap.attribute", PwmSettingSyntax.STRING, PwmSettingCategory.OTP ),
+    OTP_PROFILE_LIST(
+            "otp.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL ),
     OTP_SETUP_USER_PERMISSION(
-            "otp.secret.allowSetup.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.OTP ),
+            "otp.secret.allowSetup.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.OTP_PROFILE ),
+    OTP_ALLOW_SETUP(
+            "otp.enabled", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.OTP_PROFILE ),
+    OTP_FORCE_SETUP(
+            "otp.forceSetup", PwmSettingSyntax.SELECT, PwmSettingCategory.OTP_PROFILE ),
     OTP_SECRET_IDENTIFIER(
-            "otp.secret.identifier", PwmSettingSyntax.STRING, PwmSettingCategory.OTP ),
+            "otp.secret.identifier", PwmSettingSyntax.STRING, PwmSettingCategory.OTP_PROFILE ),
     OTP_RECOVERY_CODES(
-            "otp.secret.recoveryCodes", PwmSettingSyntax.NUMERIC, PwmSettingCategory.OTP ),
+            "otp.secret.recoveryCodes", PwmSettingSyntax.NUMERIC, PwmSettingCategory.OTP_PROFILE ),
+
+    OTP_SECRET_READ_PREFERENCE(
+            "otp.secret.readPreference", PwmSettingSyntax.SELECT, PwmSettingCategory.OTP_SETTINGS ),
+    OTP_SECRET_WRITE_PREFERENCE(
+            "otp.secret.writePreference", PwmSettingSyntax.SELECT, PwmSettingCategory.OTP_SETTINGS ),
+    OTP_SECRET_STORAGEFORMAT(
+            "otp.secret.storageFormat", PwmSettingSyntax.SELECT, PwmSettingCategory.OTP_SETTINGS ),
+    OTP_SECRET_ENCRYPT(
+            "otp.secret.encrypt", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.OTP_SETTINGS ),
 
     // logger settings
     EVENTS_JAVA_STDOUT_LEVEL(

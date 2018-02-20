@@ -25,6 +25,8 @@
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ page import="password.pwm.util.operations.otp.OTPUserRecord" %>
 <%@ page import="password.pwm.http.PwmRequestAttribute" %>
+<%@ page import="password.pwm.config.profile.SetupOtpProfile" %>
+<%@ page import="password.pwm.http.servlet.SetupOtpServlet" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html" %>
@@ -34,10 +36,11 @@
     boolean allowSkip = false;
     boolean forcedPageView = false;
     try {
-        final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
+        final PwmRequest pwmRequest = JspUtility.getPwmRequest( pageContext );
         final SetupOtpBean setupOtpBean = JspUtility.getSessionBean(pageContext, SetupOtpBean.class);
+        final SetupOtpProfile setupOtpProfile = SetupOtpServlet.getSetupOtpProfile( pwmRequest );
         otpUserRecord = setupOtpBean.getOtpUserRecord();
-        allowSkip = pwmRequest.getConfig().readSettingAsEnum(PwmSetting.OTP_FORCE_SETUP, ForceSetupPolicy.class) == ForceSetupPolicy.FORCE_ALLOW_SKIP;
+        allowSkip = setupOtpProfile.readSettingAsEnum(PwmSetting.OTP_FORCE_SETUP, ForceSetupPolicy.class) == ForceSetupPolicy.FORCE_ALLOW_SKIP;
         forcedPageView = pwmRequest.isForcedPageView();
     } catch (PwmUnrecoverableException e) {
         /* application must be unavailable */

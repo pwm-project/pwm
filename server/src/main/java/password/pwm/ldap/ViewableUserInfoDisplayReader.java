@@ -225,7 +225,6 @@ public final class ViewableUserInfoDisplayReader
             );
         }
 
-        if ( config.readSettingAsBoolean( PwmSetting.OTP_ENABLED ) )
         {
             maker.add(
                     ViewStatusFields.OTPStored,
