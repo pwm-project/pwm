@@ -114,30 +114,30 @@ PWM_ADMIN.initAdminNavMenu = function() {
 };
 
 PWM_ADMIN.reportDataHeaders = function() {
-    return {
-        "username":PWM_ADMIN.showString("Field_Report_Username"),
-        "userDN":PWM_ADMIN.showString("Field_Report_UserDN"),
-        "ldapProfile":PWM_ADMIN.showString("Field_Report_LDAP_Profile"),
-        "email":PWM_ADMIN.showString("Field_Report_Email"),
-        "userGUID":PWM_ADMIN.showString("Field_Report_UserGuid"),
-        "accountExpirationTime":PWM_ADMIN.showString("Field_Report_AccountExpireTime"),
-        "passwordExpirationTime":PWM_ADMIN.showString("Field_Report_PwdExpireTime"),
-        "passwordChangeTime":PWM_ADMIN.showString("Field_Report_PwdChangeTime"),
-        "responseSetTime":PWM_ADMIN.showString("Field_Report_ResponseSaveTime"),
-        "lastLoginTime":PWM_ADMIN.showString("Field_Report_LastLogin"),
-        "hasResponses":PWM_ADMIN.showString("Field_Report_HasResponses"),
-        "hasHelpdeskResponses":PWM_ADMIN.showString("Field_Report_HasHelpdeskResponses"),
-        "responseStorageMethod":PWM_ADMIN.showString("Field_Report_ResponseStorageMethod"),
-        "responseFormatType":PWM_ADMIN.showString("Field_Report_ResponseFormatType"),
-        "passwordStatusExpired":PWM_ADMIN.showString("Field_Report_PwdExpired"),
-        "passwordStatusPreExpired":PWM_ADMIN.showString("Field_Report_PwdPreExpired"),
-        "passwordStatusViolatesPolicy":PWM_ADMIN.showString("Field_Report_PwdViolatesPolicy"),
-        "passwordStatusWarnPeriod":PWM_ADMIN.showString("Field_Report_PwdWarnPeriod"),
-        "requiresPasswordUpdate":PWM_ADMIN.showString("Field_Report_RequiresPasswordUpdate"),
-        "requiresResponseUpdate":PWM_ADMIN.showString("Field_Report_RequiresResponseUpdate"),
-        "requiresProfileUpdate":PWM_ADMIN.showString("Field_Report_RequiresProfileUpdate"),
-        "cacheTimestamp":PWM_ADMIN.showString("Field_Report_RecordCacheTime")
-    };
+    return [
+        {field:"username",label:PWM_ADMIN.showString("Field_Report_Username")},
+        {field:"userDN",label:PWM_ADMIN.showString("Field_Report_UserDN"),hidden:true},
+        {field:"ldapProfile",label:PWM_ADMIN.showString("Field_Report_LDAP_Profile"),hidden:true},
+        {field:"email",label:PWM_ADMIN.showString("Field_Report_Email"),hidden:true},
+        {field:"userGUID",label:PWM_ADMIN.showString("Field_Report_UserGuid"),hidden:true},
+        {field:"accountExpirationTime",label:PWM_ADMIN.showString("Field_Report_AccountExpireTime")},
+        {field:"passwordExpirationTime",label:PWM_ADMIN.showString("Field_Report_PwdExpireTime")},
+        {field:"passwordChangeTime",label:PWM_ADMIN.showString("Field_Report_PwdChangeTime")},
+        {field:"responseSetTime",label:PWM_ADMIN.showString("Field_Report_ResponseSaveTime")},
+        {field:"lastLoginTime",label:PWM_ADMIN.showString("Field_Report_LastLogin")},
+        {field:"hasResponses",label:PWM_ADMIN.showString("Field_Report_HasResponses")},
+        {field:"hasHelpdeskResponses",label:PWM_ADMIN.showString("Field_Report_HasHelpdeskResponses"),hidden:true},
+        {field:"responseStorageMethod",label:PWM_ADMIN.showString("Field_Report_ResponseStorageMethod"),hidden:true},
+        {field:"responseFormatType",label:PWM_ADMIN.showString("Field_Report_ResponseFormatType"),hidden:true},
+        {field:"passwordStatusExpired",label:PWM_ADMIN.showString("Field_Report_PwdExpired"),hidden:true},
+        {field:"passwordStatusPreExpired",label:PWM_ADMIN.showString("Field_Report_PwdPreExpired"),hidden:true},
+        {field:"passwordStatusViolatesPolicy",label:PWM_ADMIN.showString("Field_Report_PwdViolatesPolicy"),hidden:true},
+        {field:"passwordStatusWarnPeriod",label:PWM_ADMIN.showString("Field_Report_PwdWarnPeriod"),hidden:true},
+        {field:"requiresPasswordUpdate",label:PWM_ADMIN.showString("Field_Report_RequiresPasswordUpdate")},
+        {field:"requiresResponseUpdate",label:PWM_ADMIN.showString("Field_Report_RequiresResponseUpdate")},
+        {field:"requiresProfileUpdate",label:PWM_ADMIN.showString("Field_Report_RequiresProfileUpdate")},
+        {field:"cacheTimestamp",label:PWM_ADMIN.showString("Field_Report_RecordCacheTime"),hidden:true}
+    ];
 };
 
 PWM_ADMIN.initReportDataGrid=function() {
@@ -152,20 +152,6 @@ PWM_ADMIN.initReportDataGrid=function() {
 
             // Now, create an instance of our custom grid
             PWM_VAR['reportGrid'] = new CustomGrid({columns: columnHeaders}, "grid");
-
-            // unclick superfluous fields
-            PWM_MAIN.getObject('grid-hider-menu-check-cacheTimestamp').click();
-            PWM_MAIN.getObject('grid-hider-menu-check-ldapProfile').click();
-            PWM_MAIN.getObject('grid-hider-menu-check-email').click();
-            PWM_MAIN.getObject('grid-hider-menu-check-userGUID').click();
-            PWM_MAIN.getObject('grid-hider-menu-check-responseStorageMethod').click();
-            PWM_MAIN.getObject('grid-hider-menu-check-responseFormatType').click();
-            PWM_MAIN.getObject('grid-hider-menu-check-userDN').click();
-            PWM_MAIN.getObject('grid-hider-menu-check-hasHelpdeskResponses').click();
-            PWM_MAIN.getObject('grid-hider-menu-check-passwordStatusExpired').click();
-            PWM_MAIN.getObject('grid-hider-menu-check-passwordStatusPreExpired').click();
-            PWM_MAIN.getObject('grid-hider-menu-check-passwordStatusViolatesPolicy').click();
-            PWM_MAIN.getObject('grid-hider-menu-check-passwordStatusWarnPeriod').click();
 
             PWM_VAR['reportGrid'].on(".dgrid-row:click", function(evt){
                 PWM_ADMIN.detailView(evt, PWM_ADMIN.reportDataHeaders(), PWM_VAR['reportGrid']);
@@ -280,36 +266,36 @@ PWM_ADMIN.reportAction=function(action) {
     confirmText = PWM_ADMIN.showString('Confirm_Report_' + action);
     actionText = PWM_ADMIN.showString('Display_Report_Action_' + action);
     PWM_MAIN.showConfirmDialog({text:confirmText,okAction:function(){
-        PWM_MAIN.showWaitDialog({title:PWM_MAIN.showString('Display_PleaseWait'),text:actionText,loadFunction:function(){
-            var url = PWM_GLOBAL['url-context'] + "/private/admin";
-            url = PWM_MAIN.addParamToUrl(url, 'processAction','reportCommand');
-            url = PWM_MAIN.addParamToUrl(url, 'command',action);
-            PWM_MAIN.ajaxRequest(url,function(){
-                setTimeout(function(){
-                    PWM_ADMIN.refreshReportDataStatus();
-                    PWM_ADMIN.refreshReportDataSummary();
-                    PWM_MAIN.closeWaitDialog();
-                },7500);
-            });
+            PWM_MAIN.showWaitDialog({title:PWM_MAIN.showString('Display_PleaseWait'),text:actionText,loadFunction:function(){
+                    var url = PWM_GLOBAL['url-context'] + "/private/admin";
+                    url = PWM_MAIN.addParamToUrl(url, 'processAction','reportCommand');
+                    url = PWM_MAIN.addParamToUrl(url, 'command',action);
+                    PWM_MAIN.ajaxRequest(url,function(){
+                        setTimeout(function(){
+                            PWM_ADMIN.refreshReportDataStatus();
+                            PWM_ADMIN.refreshReportDataSummary();
+                            PWM_MAIN.closeWaitDialog();
+                        },7500);
+                    });
+                }});
         }});
-    }});
 };
 
 PWM_ADMIN.webSessionHeaders = function() {
-    return {
-        "userID":PWM_ADMIN.showString('Field_Session_UserID'),
-        "ldapProfile":PWM_ADMIN.showString('Field_Session_LdapProfile'),
-        "userDN":PWM_ADMIN.showString('Field_Session_UserDN'),
-        "createTime":PWM_ADMIN.showString('Field_Session_CreateTime'),
-        "lastTime":PWM_ADMIN.showString('Field_Session_LastTime'),
-        "label":PWM_ADMIN.showString('Field_Session_Label'),
-        "idle":PWM_ADMIN.showString('Field_Session_Idle'),
-        "locale":PWM_ADMIN.showString('Field_Session_Locale'),
-        "srcAddress":PWM_ADMIN.showString('Field_Session_SrcAddress'),
-        "srcHost":PWM_ADMIN.showString('Field_Session_SrcHost'),
-        "lastUrl":PWM_ADMIN.showString('Field_Session_LastURL'),
-        "intruderAttempts":PWM_ADMIN.showString('Field_Session_IntruderAttempts')
-    };
+    return [
+        {field:"userID",label:PWM_ADMIN.showString('Field_Session_UserID')},
+        {field:"ldapProfile",label:PWM_ADMIN.showString('Field_Session_LdapProfile')},
+        {field:"userDN",label:PWM_ADMIN.showString('Field_Session_UserDN'),hidden:true},
+        {field:"createTime",label:PWM_ADMIN.showString('Field_Session_CreateTime')},
+        {field:"lastTime",label:PWM_ADMIN.showString('Field_Session_LastTime')},
+        {field:"label",label:PWM_ADMIN.showString('Field_Session_Label')},
+        {field:"idle",label:PWM_ADMIN.showString('Field_Session_Idle')},
+        {field:"locale",label:PWM_ADMIN.showString('Field_Session_Locale'),hidden:true},
+        {field:"srcAddress",label:PWM_ADMIN.showString('Field_Session_SrcAddress')},
+        {field:"srcHost",label:PWM_ADMIN.showString('Field_Session_SrcHost'),hidden:true},
+        {field:"lastUrl",label:PWM_ADMIN.showString('Field_Session_LastURL'),hidden:true},
+        {field:"intruderAttempts",label:PWM_ADMIN.showString('Field_Session_IntruderAttempts'),hidden:true}
+    ];
 };
 
 PWM_ADMIN.initActiveSessionGrid=function() {
@@ -326,14 +312,6 @@ PWM_ADMIN.initActiveSessionGrid=function() {
             PWM_VAR['activeSessionsGrid'] = new CustomGrid({
                 columns: columnHeaders
             }, "activeSessionGrid");
-
-            // unclick superfluous fields
-            PWM_MAIN.getObject('activeSessionGrid-hider-menu-check-label').click();
-            PWM_MAIN.getObject('activeSessionGrid-hider-menu-check-userDN').click();
-            PWM_MAIN.getObject('activeSessionGrid-hider-menu-check-srcHost').click();
-            PWM_MAIN.getObject('activeSessionGrid-hider-menu-check-locale').click();
-            PWM_MAIN.getObject('activeSessionGrid-hider-menu-check-lastUrl').click();
-            PWM_MAIN.getObject('activeSessionGrid-hider-menu-check-intruderAttempts').click();
 
             PWM_ADMIN.refreshActiveSessionGrid();
 
@@ -358,12 +336,12 @@ PWM_ADMIN.refreshActiveSessionGrid=function() {
 };
 
 PWM_ADMIN.intruderHeaders = function(){
-    return {
-        "subject":PWM_ADMIN.showString('Field_Intruder_Subject'),
-        "timestamp":PWM_ADMIN.showString('Field_Intruder_Timestamp'),
-        "count":PWM_ADMIN.showString('Field_Intruder_Count'),
-        "status":PWM_ADMIN.showString('Field_Intruder_Status')
-    };
+    return [
+        {field:"subject",label:PWM_ADMIN.showString('Field_Intruder_Subject')},
+        {field:"timestamp",label:PWM_ADMIN.showString('Field_Intruder_Timestamp')},
+        {field:"count",label:PWM_ADMIN.showString('Field_Intruder_Count')},
+        {field:"status",label:PWM_ADMIN.showString('Field_Intruder_Status')}
+    ];
 };
 
 
@@ -417,47 +395,55 @@ PWM_ADMIN.refreshIntruderGrid=function() {
 };
 
 PWM_ADMIN.auditUserHeaders = function() {
-    return {
-        "timestamp": PWM_ADMIN.showString('Field_Audit_Timestamp'),
-        "perpetratorID": PWM_ADMIN.showString('Field_Audit_PerpetratorID'),
-        "perpetratorDN": PWM_ADMIN.showString('Field_Audit_PerpetratorDN'),
-        "perpetratorLdapProfile": PWM_ADMIN.showString('Field_Audit_PerpetratorLdapProfile'),
-        "eventCode": PWM_ADMIN.showString('Field_Audit_EventCode'),
-        "message": PWM_ADMIN.showString('Field_Audit_Message'),
-        "sourceAddress": PWM_ADMIN.showString('Field_Audit_SourceAddress'),
-        "sourceHost": PWM_ADMIN.showString('Field_Audit_SourceHost'),
-        "guid": PWM_ADMIN.showString('Field_Audit_GUID'),
-        "narrative": PWM_ADMIN.showString('Field_Audit_Narrative')
-    };
+    return [
+        {field:"timestamp",label:PWM_ADMIN.showString('Field_Audit_Timestamp')},
+        {field:"perpetratorID",label:PWM_ADMIN.showString('Field_Audit_PerpetratorID')},
+        {field:"perpetratorDN",label:PWM_ADMIN.showString('Field_Audit_PerpetratorDN'),hidden:true},
+        {field:"perpetratorLdapProfile",label:PWM_ADMIN.showString('Field_Audit_PerpetratorLdapProfile'),hidden:true},
+        {field:"eventCode",label:PWM_ADMIN.showString('Field_Audit_EventCode')},
+        {field:"message",label:PWM_ADMIN.showString('Field_Audit_Message'),hidden:true},
+        {field:"sourceAddress",label:PWM_ADMIN.showString('Field_Audit_SourceAddress')},
+        {field:"sourceHost",label:PWM_ADMIN.showString('Field_Audit_SourceHost'),hidden:true},
+        {field:"guid",label:PWM_ADMIN.showString('Field_Audit_GUID'),hidden:true},
+        {field:"narrative",label:PWM_ADMIN.showString('Field_Audit_Narrative')}
+    ];
 };
 
 PWM_ADMIN.auditHelpdeskHeaders = function() {
-    return {
-        "timestamp": PWM_ADMIN.showString('Field_Audit_Timestamp'),
-        "perpetratorID": PWM_ADMIN.showString('Field_Audit_PerpetratorID'),
-        "perpetratorDN": PWM_ADMIN.showString('Field_Audit_PerpetratorDN'),
-        "perpetratorLdapProfile": PWM_ADMIN.showString('Field_Audit_PerpetratorLdapProfile'),
-        "eventCode": PWM_ADMIN.showString('Field_Audit_EventCode'),
-        "message": PWM_ADMIN.showString('Field_Audit_Message'),
-        "targetID": PWM_ADMIN.showString('Field_Audit_TargetID'),
-        "targetDN": PWM_ADMIN.showString('Field_Audit_TargetDN'),
-        "targetLdapProfile": PWM_ADMIN.showString('Field_Audit_TargetLdapProfile'),
-        "sourceAddress": PWM_ADMIN.showString('Field_Audit_SourceAddress'),
-        "sourceHost": PWM_ADMIN.showString('Field_Audit_SourceHost'),
-        "guid": PWM_ADMIN.showString('Field_Audit_GUID'),
-        "narrative": PWM_ADMIN.showString('Field_Audit_Narrative')
-    };
+    return [
+        {field:"timestamp",label:PWM_ADMIN.showString('Field_Audit_Timestamp')},
+        {field:"perpetratorID",label:PWM_ADMIN.showString('Field_Audit_PerpetratorID')},
+        {field:"perpetratorDN",label:PWM_ADMIN.showString('Field_Audit_PerpetratorDN'),hidden:true},
+        {field:"perpetratorLdapProfile",label:PWM_ADMIN.showString('Field_Audit_PerpetratorLdapProfile'),hidden:true},
+        {field:"eventCode",label:PWM_ADMIN.showString('Field_Audit_EventCode')},
+        {field:"message",label:PWM_ADMIN.showString('Field_Audit_Message'),hidden:true},
+        {field:"targetID",label:PWM_ADMIN.showString('Field_Audit_TargetID')},
+        {field:"targetDN",label:PWM_ADMIN.showString('Field_Audit_TargetDN')},
+        {field:"targetLdapProfile",label:PWM_ADMIN.showString('Field_Audit_TargetLdapProfile')},
+        {field:"sourceAddress",label:PWM_ADMIN.showString('Field_Audit_SourceAddress')},
+        {field:"sourceHost",label:PWM_ADMIN.showString('Field_Audit_SourceHost'),hidden:true},
+        {field:"guid",label:PWM_ADMIN.showString('Field_Audit_GUID'),hidden:true},
+        {field:"narrative",label:PWM_ADMIN.showString('Field_Audit_Narrative'),hidden:true}
+    ];
 };
 
 PWM_ADMIN.auditSystemHeaders = function() {
-    return {
-        "timestamp":PWM_ADMIN.showString('Field_Audit_Timestamp'),
-        "eventCode":PWM_ADMIN.showString('Field_Audit_EventCode'),
-        "message":PWM_ADMIN.showString('Field_Audit_Message'),
-        "instance":PWM_ADMIN.showString('Field_Audit_Instance'),
-        "guid":PWM_ADMIN.showString('Field_Audit_GUID'),
-        "narrative":PWM_ADMIN.showString('Field_Audit_Narrative')
-    };
+    return [
+        {field:"timestamp",label:PWM_ADMIN.showString('Field_Audit_Timestamp')},
+        {field:"eventCode",label:PWM_ADMIN.showString('Field_Audit_EventCode')},
+        {field:"message",label:PWM_ADMIN.showString('Field_Audit_Message')},
+        {field:"instance",label:PWM_ADMIN.showString('Field_Audit_Instance'),hidden:true},
+        {field:"guid",label:PWM_ADMIN.showString('Field_Audit_GUID'),hidden:true},
+        {field:"narrative",label:PWM_ADMIN.showString('Field_Audit_Narrative'),hidden:true}
+    ];
+};
+
+PWM_ADMIN.makeGrid = function() {
+    require(["dojo","dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dgrid/extensions/DijitRegistry"],
+        function(dojo, declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider, DijitRegistry){
+            return declare([ Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider, DijitRegistry ]);
+        }
+    );
 };
 
 PWM_ADMIN.initAuditGrid=function() {
@@ -471,27 +457,9 @@ PWM_ADMIN.initAuditGrid=function() {
             PWM_VAR['auditSystemGrid'] = new CustomGrid({columns: PWM_ADMIN.auditSystemHeaders()}, "auditSystemGrid");
             PWM_VAR['auditHelpdeskGrid'] = new CustomGrid({columns: PWM_ADMIN.auditHelpdeskHeaders()}, "auditHelpdeskGrid");
 
-            // unclick superfluous fields
-            PWM_MAIN.getObject('auditUserGrid-hider-menu-check-perpetratorDN').click();
-            PWM_MAIN.getObject('auditUserGrid-hider-menu-check-perpetratorLdapProfile').click();
-            PWM_MAIN.getObject('auditUserGrid-hider-menu-check-message').click();
-            PWM_MAIN.getObject('auditUserGrid-hider-menu-check-sourceHost').click();
-            PWM_MAIN.getObject('auditUserGrid-hider-menu-check-guid').click();
-            PWM_MAIN.getObject('auditUserGrid-hider-menu-check-narrative').click();
-
-            PWM_MAIN.getObject('auditHelpdeskGrid-hider-menu-check-perpetratorDN').click();
-            PWM_MAIN.getObject('auditHelpdeskGrid-hider-menu-check-perpetratorLdapProfile').click();
-            PWM_MAIN.getObject('auditHelpdeskGrid-hider-menu-check-message').click();
-            PWM_MAIN.getObject('auditHelpdeskGrid-hider-menu-check-targetDN').click();
-            PWM_MAIN.getObject('auditHelpdeskGrid-hider-menu-check-targetLdapProfile').click();
-            PWM_MAIN.getObject('auditHelpdeskGrid-hider-menu-check-sourceHost').click();
-            PWM_MAIN.getObject('auditHelpdeskGrid-hider-menu-check-guid').click();
-            PWM_MAIN.getObject('auditHelpdeskGrid-hider-menu-check-narrative').click();
-
-            PWM_MAIN.getObject('auditSystemGrid-hider-menu-check-instance').click();
-            PWM_MAIN.getObject('auditSystemGrid-hider-menu-check-guid').click();
-            PWM_MAIN.getObject('auditSystemGrid-hider-menu-check-narrative').click();
-            PWM_ADMIN.refreshAuditGridData();
+            PWM_ADMIN.refreshAuditGridData(undefined,'USER');
+            PWM_ADMIN.refreshAuditGridData(undefined,'HELPDESK');
+            PWM_ADMIN.refreshAuditGridData(undefined,'SYSTEM');
 
             PWM_VAR['auditUserGrid'].on(".dgrid-row:click", function(evt){
                 PWM_ADMIN.detailView(evt, PWM_ADMIN.auditUserHeaders(), PWM_VAR['auditUserGrid']);
@@ -505,28 +473,32 @@ PWM_ADMIN.initAuditGrid=function() {
         });
 };
 
-PWM_ADMIN.refreshAuditGridData=function(maximum) {
-    PWM_VAR['auditUserGrid'].refresh();
-    PWM_VAR['auditHelpdeskGrid'].refresh();
-    PWM_VAR['auditSystemGrid'].refresh();
-    if (!maximum) {
-        maximum = 1000;
+PWM_ADMIN.refreshAuditGridData=function(maximum,type) {
+    switch (type) {
+        case 'USER':
+            var grid = PWM_VAR['auditUserGrid'];
+            break;
+
+        case 'HELPDESK':
+            var grid = PWM_VAR['auditHelpdeskGrid'];
+            break;
+
+        case 'SYSTEM':
+            var grid = PWM_VAR['auditSystemGrid'];
+            break;
     }
-    var url = PWM_MAIN.addParamToUrl(window.location.href,"processAction", "auditData");
+
+    grid.refresh();
+
+    if (!maximum) {
+        maximum = 100;
+    }
+
+    var url = PWM_MAIN.addParamToUrl(window.location.href, "processAction", "auditData");
     url = PWM_MAIN.addParamToUrl(url,'maximum',maximum);
+    url = PWM_MAIN.addParamToUrl(url,'type',type);
     var loadFunction = function(data) {
-        PWM_VAR['auditUserGrid'].renderArray(data['data']['user']);
-        PWM_VAR['auditUserGrid'].set("sort", { attribute : 'timestamp', ascending: false, descending: true });
-        PWM_VAR['auditUserGrid'].resize();
-
-        PWM_VAR['auditHelpdeskGrid'].renderArray(data['data']['helpdesk']);
-        PWM_VAR['auditHelpdeskGrid'].set("sort", { attribute : 'timestamp', ascending: false, descending: true });
-        PWM_VAR['auditHelpdeskGrid'].resize();
-
-        PWM_VAR['auditSystemGrid'].renderArray(data['data']['system']);
-        PWM_VAR['auditSystemGrid'].set("sort", { attribute : 'timestamp', ascending: false, descending: true });
-        PWM_VAR['auditSystemGrid'].resize();
-
+        grid.renderArray(data['data']['records']);
     };
     PWM_MAIN.ajaxRequest(url,loadFunction,{method:'GET'});
 };
@@ -768,8 +740,9 @@ PWM_ADMIN.detailView = function(evt, headers, grid){
     var postExecuteFunctions = [];
     for (var item in headers) {
         (function(key){
-            var value = key in row.data ? row.data[key] : '';
-            var label = headers[key];
+            var field = headers[key]['field'];
+            var label = headers[key]['label'];
+            var value = field in row.data ? row.data[field] : '';
             var id = "record-detail-" + key;
             text += '<tr><td class="key">' + label + '</td>';
             text += '<td><span id="' + id + '" style="max-height: 200px; overflow: auto; max-width: 400px" class="timestamp">';
@@ -788,10 +761,10 @@ PWM_ADMIN.detailView = function(evt, headers, grid){
     }
     text += '</table>';
     PWM_MAIN.showDialog({title:"Record Detail",text:text,showClose:true,allowMove:true,loadFunction:function(){
-        for (var i = 0; i < postExecuteFunctions.length; i++) {
-            postExecuteFunctions[i]();
-        }
-    }});
+            for (var i = 0; i < postExecuteFunctions.length; i++) {
+                postExecuteFunctions[i]();
+            }
+        }});
 };
 
 PWM_ADMIN.showString=function (key, options) {

@@ -34,7 +34,8 @@ import HelpDeskService from '../services/helpdesk.service';
 module('app', [
     uiRouter,
     helpDeskModule,
-    'pascalprecht.translate'
+    'pascalprecht.translate',
+    'ng-ias'
 ])
     .config(routes)
     .config([

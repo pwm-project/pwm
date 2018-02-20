@@ -34,7 +34,8 @@ import uiRouter from '@uirouter/angularjs';
 module('app', [
     uiRouter,
     peopleSearchModule,
-    'pascalprecht.translate'
+    'pascalprecht.translate',
+    'ng-ias'
 ])
 
     .config(routes)

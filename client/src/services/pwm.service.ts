@@ -111,7 +111,26 @@ export default class PwmService implements IPwmService {
                     return this.handlePwmError(response);
                 }
 
-                return this.$q.resolve(response.data['data']);
+                // Note: sometimes response.data looks like this:
+                // {
+                //     "error": false,
+                //     "errorCode": 0,
+                //     "data": {
+                //         "foo": "1",
+                //         "bar": "2"
+                //     }
+                // }
+
+                // Note: other times, response.data looks like this:
+                // {
+                //     "error": false,
+                //     "errorCode": 0,
+                //     "successMessage": "The operation has been successfully completed."
+                // }
+
+                // Since we can't make assumptions about the structure, we just need to return the whole response.data
+                // payload:
+                return this.$q.resolve(response.data);
             });
 
         return promise;

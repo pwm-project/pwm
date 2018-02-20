@@ -1049,6 +1049,10 @@
         </default>
     </setting>
     <setting hidden="false" key="password.policy.maximumLength" level="1" required="true">
+        <properties>
+            <property key="Minimum">0</property>
+            <property key="Maximum">10000</property>
+        </properties>
         <default>
             <value>64</value>
         </default>
