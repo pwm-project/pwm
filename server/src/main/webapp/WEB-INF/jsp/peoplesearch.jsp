@@ -21,6 +21,7 @@
 --%>
 
 <!DOCTYPE html>
+<% JspUtility.setFlag(pageContext, PwmRequestFlag.INCLUDE_IAS_ANGULAR); %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
@@ -38,16 +39,8 @@
     <div class="push"></div>
 </div>
 
-<pwm:script-ref url="/public/resources/webjars/angular/angular.min.js" />
-<pwm:script-ref url="/public/resources/webjars/angular-aria/angular-aria.min.js" />
-<pwm:script-ref url="/public/resources/webjars/angular-ui-router/release/angular-ui-router.min.js" />
-<pwm:script-ref url="/public/resources/webjars/angular-translate/dist/angular-translate.min.js" />
-
 <%@ include file="fragment/footer.jsp" %>
 
-<link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/webjars/pwm-client/vendor/ias-icons.css' addContext="true"/>"/>
-<link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/webjars/pwm-client/vendor/ux-ias.css' addContext="true"/>"/>
-<pwm:script-ref url="/public/resources/webjars/pwm-client/vendor/ng-ias.js" />
 <pwm:script-ref url="/public/resources/webjars/pwm-client/peoplesearch.ng.js" />
 
 </body>

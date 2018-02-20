@@ -25,6 +25,15 @@
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ page import="password.pwm.http.PwmRequestFlag" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
+
+<pwm:if test="<%=PwmIfTest.requestFlag%>" requestFlag="<%=PwmRequestFlag.INCLUDE_IAS_ANGULAR%>">
+    <pwm:script-ref url="/public/resources/webjars/angular/angular.min.js" />
+    <pwm:script-ref url="/public/resources/webjars/angular-aria/angular-aria.min.js" />
+    <pwm:script-ref url="/public/resources/webjars/angular-ui-router/release/angular-ui-router.min.js" />
+    <pwm:script-ref url="/public/resources/webjars/angular-translate/dist/angular-translate.min.js" />
+    <pwm:script-ref url="/public/resources/webjars/pwm-client/vendor/ng-ias.js" />
+</pwm:if>
+
 <%-- begin pwm footer --%>
 <pwm:if test="<%=PwmIfTest.requestFlag%>" requestFlag="<%=PwmRequestFlag.HIDE_FOOTER_TEXT%>" negate="true">
     <div id="footer">
