@@ -75,14 +75,6 @@ abstract class PeopleSearchBaseComponent {
         this.$state.go(state, { query: this.query });
     }
 
-    // onSearchBoxKeyDown(event: KeyboardEvent): void {
-    //     switch (event.keyCode) {
-    //         case 27: // ESC
-    //             this.clearSearch();
-    //             break;
-    //     }
-    // }
-
     private onSearchTextChange(newValue: string, oldValue: string): void {
         if (newValue === oldValue) {
             return;

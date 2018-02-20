@@ -52,10 +52,19 @@
     </ias-menu>
 </div>
 
-<div class="people-search-component-content">
-    <ias-button class="verifications-button ias-cta" ng-if="$ctrl.verificationsEnabled"
-                ng-click="$ctrl.showVerifications()">{{ 'Button_Verifications' | translate }}</ias-button>
+<div class="search-info-container">
+    <div>
+        <ias-button class="verifications-button ias-cta" ng-if="$ctrl.verificationsEnabled"
+                    ng-click="$ctrl.showVerifications()">{{ 'Button_Verifications' | translate }}</ias-button>
+    </div>
 
+    <div class="search-info" ng-class="{'loading': !$ctrl.getMessage()}"
+         ng-if="$ctrl.loading || $ctrl.searchMessage || $ctrl.errorMessage"
+         ng-bind="$ctrl.getMessage() || ('Display_PleaseWait' | translate)">
+    </div>
+</div>
+
+<div class="people-search-component-content">
     <table class="ias-table" ias-sort="$ctrl.sort" ng-show="$ctrl.searchResult.people.length">
         <thead>
         <tr>

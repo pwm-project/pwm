@@ -36,7 +36,7 @@ export default [
         $stateProvider.state('search', {
             url: '/search?query',
             abstract: true,
-            template: '<div><ui-view/></div>',
+            template: '<div class="help-desk-search-component"><ui-view/></div>',
         });
         $stateProvider.state('search.cards', { url: '/cards', component: 'helpDeskSearchCards' });
         $stateProvider.state('search.table', { url: '/table', component: 'helpDeskSearchTable' });

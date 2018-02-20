@@ -28,6 +28,7 @@ import SearchResult from '../models/search-result.model';
 import {IPeopleService} from '../services/people.service';
 import {IHelpDeskConfigService} from '../services/helpdesk-config.service';
 import LocalStorageService from '../services/local-storage.service';
+import PromiseService from '../services/promise.service';
 
 @Component({
     stylesheetUrl: require('helpdesk/helpdesk-search.component.scss'),
@@ -41,20 +42,25 @@ export default class HelpDeskSearchTableComponent extends HelpDeskSearchBaseComp
         '$scope',
         '$state',
         '$stateParams',
+        '$translate',
         'ConfigService',
         'IasDialogService',
         'LocalStorageService',
-        'PeopleService'
+        'PeopleService',
+        'PromiseService'
     ];
     constructor($q: IQService,
                 $scope: IScope,
                 private $state: angular.ui.IStateService,
                 $stateParams: angular.ui.IStateParamsService,
+                $translate: angular.translate.ITranslateService,
                 configService: IHelpDeskConfigService,
                 IasDialogService: any,
                 localStorageService: LocalStorageService,
-                peopleService: IPeopleService) {
-        super($q, $scope, $stateParams, configService, IasDialogService, localStorageService, peopleService);
+                peopleService: IPeopleService,
+                 promiseService: PromiseService) {
+        super($q, $scope, $stateParams, $translate, configService, IasDialogService, localStorageService,
+            peopleService, promiseService);
     }
 
     $onInit() {
@@ -76,7 +82,7 @@ export default class HelpDeskSearchTableComponent extends HelpDeskSearchBaseComp
                     {});
             },
             (error) => {
-                // self.setErrorMessage(error);
+                this.setErrorMessage(error);
             });
     }
 

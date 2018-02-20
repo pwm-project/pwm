@@ -29,6 +29,7 @@ import LocalStorageService from '../services/local-storage.service';
 import HelpDeskSearchBaseComponent from './helpdesk-search-base.component';
 import SearchResult from '../models/search-result.model';
 import {IPerson} from '../models/person.model';
+import PromiseService from '../services/promise.service';
 
 @Component({
     stylesheetUrl: require('helpdesk/helpdesk-search.component.scss'),
@@ -40,20 +41,25 @@ export default class HelpDeskSearchCardsComponent extends HelpDeskSearchBaseComp
         '$scope',
         '$state',
         '$stateParams',
+        '$translate',
         'ConfigService',
         'IasDialogService',
         'LocalStorageService',
-        'PeopleService'
+        'PeopleService',
+        'PromiseService'
     ];
     constructor($q: IQService,
                 $scope: IScope,
                 private $state: angular.ui.IStateService,
                 $stateParams: angular.ui.IStateParamsService,
+                $translate: angular.translate.ITranslateService,
                 configService: IHelpDeskConfigService,
                 IasDialogService: any,
                 localStorageService: LocalStorageService,
-                peopleService: IPeopleService) {
-        super($q, $scope, $stateParams, configService, IasDialogService, localStorageService, peopleService);
+                peopleService: IPeopleService,
+                promiseService: PromiseService) {
+        super($q, $scope, $stateParams, $translate, configService, IasDialogService, localStorageService,
+            peopleService, promiseService);
     }
 
     $onInit() {
@@ -106,10 +112,10 @@ export default class HelpDeskSearchCardsComponent extends HelpDeskSearchBaseComp
                             }
                         }.bind(this),
                         (error) => {
-                            // self.setErrorMessage(error);
+                            this.setErrorMessage(error);
                         })
                     .finally(() => {
-                        // self.removePendingRequest(promise);
+                        this.removePendingRequest(promise);
                     });
 
                 return promise;
