@@ -42,7 +42,7 @@
     </jsp:include>
     <div id="centerbody">
         <div id="page-content-title" style="display: none;"><pwm:display key="Title_UserInformation" displayIfMissing="true"/></div>
-        <div class="tab-container" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false">
+        <div class="tab-container" style="width: 100%; height: 100%;">
             <input name="tabs" type="radio" id="tab-1" checked="checked" class="input"/>
             <label for="tab-1" class="label"><pwm:display key="Title_UserInformation"/></label>
             <div class="tab-content-pane" id="UserInformation" title="<pwm:display key="Title_UserInformation"/>" class="tabContent">
@@ -55,7 +55,7 @@
             </div>
             <% if (!JavaHelper.isEmpty(accountInformationBean.getFormData())) { %>
             <input name="tabs" type="radio" id="tab-2" class="input"/>
-            <label for="tab-2" class="label"><%=Display.Title_UserData.toString()%></label>
+            <label for="tab-2" class="label"><pwm:display key="Title_UserData"/></label>
             <div class="tab-content-pane" id="UserData" title="<pwm:display key="<%=Display.Title_UserData.toString()%>"/>" class="tabContent">
                 <div style="max-height: 400px; overflow: auto;">
                     <table class="nomargin">
@@ -126,16 +126,6 @@
     </div>
     <div class="push"></div>
 </div>
-<pwm:script>
-    <script type="text/javascript">
-        PWM_GLOBAL['startupFunctions'].push(function(){
-            require(["dojo/parser","dijit/layout/TabContainer","dijit/layout/ContentPane"],function(dojoParser){
-                dojoParser.parse();
-            });
-        });
-    </script>
-</pwm:script>
-<link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/tab-container.css' addContext="true"/>"/>
 <jsp:include page="/WEB-INF/jsp/fragment/footer.jsp"/>
 </body>
 </html>                   

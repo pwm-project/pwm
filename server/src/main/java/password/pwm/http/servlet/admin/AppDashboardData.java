@@ -480,7 +480,7 @@ public class AppDashboardData implements Serializable
             javaInfo.add( new DisplayElement(
                     "sessionAverageSize",
                     DisplayElement.Type.string,
-                    "Estimated Session Total Size",
+                    "Estimated Session Average Size",
                     debugInfoMap.get( SessionTrackService.DebugKey.HttpSessionAvgSize )
             ) );
         }
