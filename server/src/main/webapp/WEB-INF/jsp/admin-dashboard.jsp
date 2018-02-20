@@ -55,7 +55,7 @@
     <div id="centerbody">
         <div id="page-content-title"><pwm:display key="Title_Dashboard" bundle="Admin"/></div>
         <%@ include file="fragment/admin-nav.jsp" %>
-        <div id="DashboardTabContainer" class="tab-container" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
+        <div id="DashboardTabContainer" class="tab-container" style="width: 100%; height: 100%;">
             <input name="tabs" type="radio" id="tab-1" checked="checked" class="input"/>
             <label for="tab-1" class="label">Status</label>
             <div id="StatusTab" class="tab-content-pane" title="Status" >
@@ -109,7 +109,7 @@
                     <% } %>
                     <% } %>
                 </table>
-                <div class="tab-container" style="margin-top: 15px;" data-dojo-props="doLayout: false, persist: true">
+                <div class="tab-container" style="margin-top: 15px;">
                     <input name="status_tabs" type="radio" id="tab-1.1" checked="checked" class="input"/>
                     <label for="tab-1.1" class="label">Last Minute</label>
                     <div class="tab-content-pane" title="Last Minute" class="tabContent">
@@ -242,6 +242,7 @@
             <input name="tabs" type="radio" id="tab-4" class="input"/>
             <label for="tab-4" class="label">Services</label>
             <div id="ServicesTab" class="tab-content-pane" title="Services">
+                <div style="max-height: 600px; overflow: auto;">
                 <table class="nomargin">
                     <tr>
                         <th style="font-weight:bold;">
@@ -289,6 +290,7 @@
                     </tr>
                     <% } %>
                 </table>
+                </div>
             </div>
 
             <input name="tabs" type="radio" id="tab-5" class="input"/>
@@ -304,32 +306,32 @@
                 </div>
                 <br/>
                 <div style="max-height: 400px; overflow: auto;">
-                <% if (!JavaHelper.isEmpty(appDashboardData.getLocalDbSizes())) { %>
-                <table class="nomargin">
-                    <tr>
-                        <td class="key">
-                            Name
-                        </td>
-                        <td class="key" style="text-align: left">
-                            Record Count
-                        </td>
-                    </tr>
-                    <% for (final Map.Entry<LocalDB.DB,String> entry : appDashboardData.getLocalDbSizes().entrySet()) { %>
-                    <tr>
-                        <td style="text-align: right">
-                            <%= entry.getKey() %>
-                        </td>
-                        <td>
-                            <%= entry.getValue() %>
-                        </td>
-                    </tr>
+                    <% if (!JavaHelper.isEmpty(appDashboardData.getLocalDbSizes())) { %>
+                    <table class="nomargin">
+                        <tr>
+                            <td class="key">
+                                Name
+                            </td>
+                            <td class="key" style="text-align: left">
+                                Record Count
+                            </td>
+                        </tr>
+                        <% for (final Map.Entry<LocalDB.DB,String> entry : appDashboardData.getLocalDbSizes().entrySet()) { %>
+                        <tr>
+                            <td style="text-align: right">
+                                <%= entry.getKey() %>
+                            </td>
+                            <td>
+                                <%= entry.getValue() %>
+                            </td>
+                        </tr>
+                        <% } %>
+                    </table>
+                    <% } else { %>
+                    <div class="noborder" style="text-align:center; width:100%;">
+                        <a style="cursor: pointer" id="button-showLocalDBCounts">Show LocalDB record counts</a> (may be slow to load)
+                    </div>
                     <% } %>
-                </table>
-                <% } else { %>
-                <div class="noborder" style="text-align:center; width:100%;">
-                    <a style="cursor: pointer" id="button-showLocalDBCounts">Show LocalDB record counts</a> (may be slow to load)
-                </div>
-                <% } %>
                 </div>
             </div>
 
@@ -449,21 +451,18 @@
 <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
-            require(["dojo/parser","dijit/layout/TabContainer","dijit/layout/ContentPane"],function(dojoParser){
-                dojoParser.parse();
-                PWM_ADMIN.showStatChart('PASSWORD_CHANGES',14,'statsChart',{refreshTime:11*1000});
-                PWM_ADMIN.showAppHealth('healthBody', {showRefresh:true,showTimestamp:true});
+            PWM_ADMIN.showStatChart('PASSWORD_CHANGES',14,'statsChart',{refreshTime:11*1000});
+            PWM_ADMIN.showAppHealth('healthBody', {showRefresh:true,showTimestamp:true});
 
-                PWM_MAIN.addEventHandler('button-showLocalDBCounts','click',function(){
-                    PWM_MAIN.showWaitDialog({loadFunction:function(){
+            PWM_MAIN.addEventHandler('button-showLocalDBCounts','click',function(){
+                PWM_MAIN.showWaitDialog({loadFunction:function(){
                         PWM_MAIN.goto('dashboard?showLocalDBCounts=true');
                     }})
-                });
-                PWM_MAIN.addEventHandler('button-showThreadDetails','click',function(){
-                    PWM_MAIN.showWaitDialog({loadFunction:function(){
+            });
+            PWM_MAIN.addEventHandler('button-showThreadDetails','click',function(){
+                PWM_MAIN.showWaitDialog({loadFunction:function(){
                         PWM_MAIN.goto('dashboard?showThreadDetails=true');
                     }})
-                });
             });
             <% for (final AppDashboardData.ServiceData loopService : appDashboardData.getServices()) { %>
             <% if (!JavaHelper.isEmpty(loopService.getDebugData())) { %>
@@ -471,7 +470,7 @@
                 var tableText = '<table>';
                 <% for (final Map.Entry<String,String> entry : loopService.getDebugData().entrySet()) { %>
                 tableText += '<tr><td><%=StringUtil.escapeJS(entry.getKey())%></td>'
-                + '<td><%=StringUtil.escapeJS(entry.getValue())%></td></tr>';
+                    + '<td><%=StringUtil.escapeJS(entry.getValue())%></td></tr>';
                 <% } %>
                 tableText += '</table>';
                 PWM_MAIN.showDialog({title:'Debug Properties',text:tableText});
@@ -482,7 +481,6 @@
     </script>
 </pwm:script>
 
-<link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/tab-container.css' addContext="true"/>"/>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 <pwm:script-ref url="/public/resources/js/admin.js"/>
 </body>

@@ -298,7 +298,10 @@ public class SyslogAuditService
     public void close( )
     {
         final SyslogIF syslogIF = syslogInstance;
-        syslogIF.shutdown();
+        if ( syslogIF != null )
+        {
+            syslogIF.shutdown();
+        }
         workQueueProcessor.close();
         syslogInstance = null;
     }

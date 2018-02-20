@@ -63,10 +63,10 @@
     <div id="centerbody" class="wide">
         <div id="page-content-title"><pwm:display key="Title_DataAnalysis" bundle="Admin"/></div>
         <%@ include file="fragment/admin-nav.jsp" %>
-        <div class="tab-container" style="width: 100%; height: 100%;"  data-dojo-props="doLayout: false, persist: true" id="analysis-topLevelTab">
+        <div class="tab-container" style="width: 100%; height: 100%;" id="analysis-topLevelTab">
             <input name="tabs" type="radio" id="tab-1" checked="checked" class="input"/>
             <label for="tab-1" class="label"><pwm:display key="Title_DirectoryReporting" bundle="Admin"/></label>
-            <div class="tab-content-pane" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true" title="<pwm:display key="Title_DirectoryReporting" bundle="Admin"/>">
+            <div class="tab-content-pane" style="width: 100%; height: 100%;" title="<pwm:display key="Title_DirectoryReporting" bundle="Admin"/>">
                 <div class="tab-container" style="width: 100%; height: 100%;">
                     <input name="dr_tabs" type="radio" id="tab-1.1" checked="checked" class="input"/>
                     <label for="tab-1.1" class="label"><pwm:display key="Title_ReportEngineStatus" bundle="Admin"/></label>
@@ -169,7 +169,7 @@
 
             <input name="tabs" type="radio" id="tab-2" class="input"/>
             <label for="tab-2" class="label"><pwm:display key="Title_EventStatistics" bundle="Admin"/></label>
-            <div class="tab-content-pane" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true" title="<pwm:display key="Title_EventStatistics" bundle="Admin"/>">
+            <div class="tab-content-pane" style="width: 100%; height: 100%;" title="<pwm:display key="Title_EventStatistics" bundle="Admin"/>">
                 <div class="tab-container" style="width: 100%; height: 100%;">
                     <input name="es_tabs" type="radio" id="tab-2.1" checked="checked" class="input"/>
                     <label for="tab-2.1" class="label"><pwm:display key="Title_RawStatistics" bundle="Admin"/></label>
@@ -181,7 +181,7 @@
                                         <form action="<pwm:current-url/>" method="GET" enctype="application/x-www-form-urlencoded"
                                               name="statsUpdateForm" id="statsUpdateForm">
                                             <select name="statsPeriodSelect"
-                                                    style="width: 350px;" data-dojo-props="maxHeight: -1">
+                                                    style="width: 350px;">
                                                 <option value="<%=StatisticsManager.KEY_CUMULATIVE%>" <%= StatisticsManager.KEY_CUMULATIVE.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
                                                     since installation - <%= JavaHelper.toIsoDate(analysis_pwmRequest.getPwmApplication().getInstallTime()) %>
                                                 </option>
@@ -253,7 +253,6 @@
                 </div>
             </div>
 
-            <div class="tab-end"></div>
         </div>
     </div>
     <div class="push"></div>
@@ -269,8 +268,7 @@
 
 
         PWM_GLOBAL['startupFunctions'].push(function(){
-            require(["dojo","dojo/query","dojo/parser","dijit/registry","dojo/ready","dijit/layout/TabContainer","dijit/layout/ContentPane"],function(dojo,query,dojoParser,registry,ready){
-                dojoParser.parse('centerbody');
+            require(["dojo","dojo/query"],function(dojo,query){
                 PWM_MAIN.JSLibrary.setValueOfSelectElement('statsChartSelect','<%=Statistic.PASSWORD_CHANGES%>');
 
                 setTimeout(function(){
@@ -308,7 +306,6 @@
     </script>
 </pwm:script>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_LOCALE); %>
-<link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/tab-container.css' addContext="true"/>"/>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>
