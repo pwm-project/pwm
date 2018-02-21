@@ -55,7 +55,7 @@
         <div id="page-content-title"><pwm:display key="Title_SetupOtpSecret" displayIfMissing="true"/></div>
         <p><pwm:display key="Display_SetupOtpSecret"/></p>
         <%@ include file="fragment/message.jsp" %>
-        <div class="tab-container" data-dojo-props="doLayout: false, persist: true">
+        <div class="tab-container">
             <input name="tabs" type="radio" id="tab-1" checked="checked" class="input"/>
             <label for="tab-1" class="label"><pwm:display key="Display_SetupOtp_Android_Title"/></label>
             <div class="tab-content-pane" title="<pwm:display key="Display_SetupOtp_Android_Title"/>">
@@ -126,20 +126,8 @@
     </div>
     <div class="push"></div>
 </div>
-<pwm:script>
-    <script type="text/javascript">
-        PWM_GLOBAL['startupFunctions'].push(function(){
-            require(["dojo/parser","dojo/ready","dijit/layout/TabContainer","dijit/layout/ContentPane"],function(dojoParser,ready){
-                ready(function(){
-                    dojoParser.parse();
-                });
-            });
-        });
-    </script>
-</pwm:script>
 <pwm:script-ref url="/public/resources/js/responses.js"/>
 <pwm:script-ref url="/public/resources/js/otpsecret.js"/>
-<link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/tab-container.css' addContext="true"/>"/>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

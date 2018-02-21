@@ -48,10 +48,8 @@ import password.pwm.http.servlet.ControlledPwmServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecord;
-import password.pwm.svc.event.HelpdeskAuditRecord;
-import password.pwm.svc.event.SystemAuditRecord;
-import password.pwm.svc.event.UserAuditRecord;
 import password.pwm.svc.intruder.RecordType;
 import password.pwm.svc.report.ReportColumnFilter;
 import password.pwm.svc.report.ReportCsvUtility;
@@ -62,6 +60,7 @@ import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.reports.ReportUtils;
@@ -75,6 +74,7 @@ import java.io.OutputStream;
 import java.io.Writer;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -84,6 +84,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
 @WebServlet(
         name = "AdminServlet",
@@ -437,38 +438,32 @@ public class AdminServlet extends ControlledPwmServlet
 
     @ActionHandler( action = "auditData" )
     private ProcessStatus restAuditDataHandler( final PwmRequest pwmRequest )
-            throws ChaiUnavailableException, PwmUnrecoverableException, IOException
+            throws PwmUnrecoverableException, IOException
     {
-        final int max = readMaxParameter( pwmRequest, 1000, 10 * 1000 );
-        final ArrayList<UserAuditRecord> userRecords = new ArrayList<>();
-        final ArrayList<HelpdeskAuditRecord> helpdeskRecords = new ArrayList<>();
-        final ArrayList<SystemAuditRecord> systemRecords = new ArrayList<>();
+        final Instant startTime = Instant.now();
+        final TimeDuration maxSearchTime = new TimeDuration( 10, TimeUnit.SECONDS );
+        final int max = readMaxParameter( pwmRequest, 100, 10 * 1000 );
+        final AuditEvent.Type auditDataType = AuditEvent.Type.valueOf( pwmRequest.readParameterAsString( "type", AuditEvent.Type.USER.name() ) );
+        final ArrayList<AuditRecord> records = new ArrayList<>();
         final Iterator<AuditRecord> iterator = pwmRequest.getPwmApplication().getAuditManager().readVault();
-        int counter = 0;
-        while ( iterator.hasNext() && counter <= max )
+
+        while (
+                iterator.hasNext()
+                        && records.size() < max
+                        && TimeDuration.fromCurrent( startTime ).isShorterThan( maxSearchTime )
+                )
         {
             final AuditRecord loopRecord = iterator.next();
-            counter++;
-            if ( loopRecord instanceof SystemAuditRecord )
+            if ( auditDataType == loopRecord.getType() )
             {
-                systemRecords.add( ( SystemAuditRecord ) loopRecord );
-            }
-            else if ( loopRecord instanceof HelpdeskAuditRecord )
-            {
-                helpdeskRecords.add( ( HelpdeskAuditRecord ) loopRecord );
-            }
-            else if ( loopRecord instanceof UserAuditRecord )
-            {
-                userRecords.add( ( UserAuditRecord ) loopRecord );
+                records.add( loopRecord );
             }
         }
-        final HashMap<String, List> outputMap = new HashMap<>();
-        outputMap.put( "user", userRecords );
-        outputMap.put( "helpdesk", helpdeskRecords );
-        outputMap.put( "system", systemRecords );
 
-        final RestResultBean restResultBean = RestResultBean.withData( outputMap );
-        LOGGER.debug( pwmRequest.getPwmSession(), "output " + counter + " audit records." );
+        final HashMap<String, Object> resultData = new HashMap<>( Collections.singletonMap( "records", records ) );
+
+        final RestResultBean restResultBean = RestResultBean.withData( resultData );
+        LOGGER.debug( pwmRequest.getPwmSession(), "output " + records.size() + " audit records." );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
     }
@@ -640,7 +635,7 @@ public class AdminServlet extends ControlledPwmServlet
             throws PwmUnrecoverableException
     {
         final String stringMax = pwmRequest.readParameterAsString( "maximum", String.valueOf( defaultValue ) );
-        return Math.max( Integer.parseInt( stringMax ), maxValue );
+        return Math.min( Integer.parseInt( stringMax ), maxValue );
     }
 
     public enum Page

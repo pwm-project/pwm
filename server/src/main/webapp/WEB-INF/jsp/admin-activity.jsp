@@ -49,20 +49,22 @@
     }
 </style>
 <div id="wrapper">
-    <% final String PageName = JspUtility.localizedString(pageContext,"Title_UserActivity",Admin.class);%>
+        <% final String PageName = JspUtility.localizedString(pageContext,"Title_UserActivity",Admin.class);%>
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp" flush="true" >
         <jsp:param name="pwm.PageName" value="<%=PageName%>"/>
     </jsp:include>
     <div id="centerbody" class="wide">
         <div id="page-content-title"><pwm:display key="Title_UserActivity" bundle="Admin"/></div>
         <%@ include file="fragment/admin-nav.jsp" %>
-        <div data-dojo-type="dijit/layout/TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
-            <div id="ActiveWebSessions" data-dojo-type="dijit/layout/ContentPane" title="<pwm:display key="Title_Sessions" bundle="Admin"/>" class="tabContent">
+        <div id="ActivityTabContainer" class="tab-container" style="width: 100%; height: 100%;">
+            <input name="tabs" type="radio" id="tab-1" checked="checked" class="input"/>
+            <label for="tab-1" class="label"><pwm:display key="Title_Sessions" bundle="Admin"/></label>
+            <div id="SessionsTab" class="tab-content-pane" title="<pwm:display key="Title_Sessions" bundle="Admin"/>" >
+
                 <div id="activeSessionGrid" class="analysisGrid">
                 </div>
                 <div style="text-align: center">
-                    <input name="maxResults" id="maxActiveSessionResults" value="1000" data-dojo-type="dijit/form/NumberSpinner" style="width: 70px"
-                           data-dojo-props="constraints:{min:10,max:10000000,pattern:'#'},smallDelta:100"/>
+                    <input name="maxResults" id="maxActiveSessionResults" value="1000" type="number" min="10" max="10000000" style="width: 70px"/>
                     Rows
                     <button class="btn" type="button" id="button-activeSessionRefresh">
                         <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-refresh">&nbsp;</span></pwm:if>
@@ -77,126 +79,129 @@
                             });
                         </script>
                     </pwm:script>
+                </div>
+            </div>
+            <input name="tabs" type="radio" id="tab-2" class="input"/>
+            <label for="tab-2" class="label"><pwm:display key="Title_Intruders" bundle="Admin"/></label>
+            <div id="IntrudersTab" class="tab-content-pane" title="<pwm:display key="Title_Intruders" bundle="Admin"/>">
+                <div class="tab-container" style="width: 100%; height: 100%;">
+                    <% boolean checked = true; %>
+                    <% for (final RecordType recordType : RecordType.values()) { %>
+                    <% final String titleName = LocaleHelper.getLocalizedMessage(activity_pwmRequest.getLocale(),"IntruderRecordType_" + recordType.toString(), activity_pwmRequest.getConfig(), Admin.class); %>
+                    <input name="intruder_tabs" type="radio" id="tab-2.<%=recordType%>" <%=checked?"checked=\"checked\"":""%> class="input"/>
+                    <label for="tab-2.<%=recordType%>" class="label"><%=titleName%></label>
+                    <div class="tab-content-pane" title="<%=titleName%>">
 
+                            <div id="<%=recordType%>_Grid" class="analysisGrid">
+                            </div>
+                    </div>
+                    <% checked = false; %>
+                    <% } %>
+                    <div class="tab-end"></div>
                 </div>
             </div>
+            <input name="tabs" type="radio" id="tab-3" class="input"/>
+            <label for="tab-3" class="label" id="audit_tab_label"><pwm:display key="Title_Audit" bundle="Admin"/></label>
+            <div id="AuditTab" class="tab-content-pane" title="<pwm:display key="Title_Audit" bundle="Admin"/>">
+                <div class="tab-container" style="width: 100%; height: 100%;">
 
+                    <input name="audit_tabs" type="radio" id="tab-3.1" checked="checked" class="input"/>
+                    <label for="tab-3.1" class="label"><pwm:display key="Title_AuditUsers" bundle="Admin"/></label>
+                    <div class="tab-content-pane" title="<pwm:display key="Title_AuditUsers" bundle="Admin"/>" class="tabContent">
 
-            <div data-dojo-type="dijit/layout/TabContainer" title="<pwm:display key="Title_Intruders" bundle="Admin"/>" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
-            <% for (final RecordType recordType : RecordType.values()) { %>
-            <% final String titleName = LocaleHelper.getLocalizedMessage(activity_pwmRequest.getLocale(),"IntruderRecordType_" + recordType.toString(), activity_pwmRequest.getConfig(), Admin.class); %>
-            <div id="Intruders<%=titleName%>" data-dojo-type="dijit/layout/ContentPane" title="<%=titleName%>" class="tabContent">
-                <div id="<%=recordType%>_Grid" class="analysisGrid">
-                </div>
-            </div>
-            <% } %>
-            </div>
+                        <div id="auditUserGrid" class="analysisGrid">
+                        </div>
 
-            <div data-dojo-type="dijit/layout/TabContainer" title="<pwm:display key="Title_Audit" bundle="Admin"/>" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
-            <div id="AuditUser" data-dojo-type="dijit/layout/ContentPane" title="<pwm:display key="Title_AuditUsers" bundle="Admin"/>" class="tabContent">
-                <div id="auditUserGrid" class="analysisGrid">
-                </div>
-                <div style="text-align: center">
-                    <input name="maxAuditUserResults" id="maxAuditUserResults" value="1000" data-dojo-type="dijit/form/NumberSpinner" style="width: 70px"
-                           data-dojo-props="constraints:{min:10,max:10000000,pattern:'#'},smallDelta:100"/>
-                    Rows
-                    <button class="btn" type="button" id="button-refreshAuditUser">
-                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-refresh">&nbsp;</span></pwm:if>
-                        <pwm:display key="Button_Refresh" bundle="Admin"/>
-                    </button>
-                    <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded">
-                        <button type="submit" class="btn">
-                            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-download"></span></pwm:if>
-                            <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
-                        </button>
-                        <input type="hidden" name="processAction" value="downloadAuditLogCsv"/>
-                        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-                    </form>
+                        <div style="text-align: center">
+                            <input name="maxAuditUserResults" id="maxAuditUserResults" value="100" type="number" min="10" max="10000000" style="width: 70px"/>
+                            Rows
+                            <button class="btn" type="button" id="button-refreshAuditUser">
+                                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-refresh">&nbsp;</span></pwm:if>
+                                <pwm:display key="Button_Refresh" bundle="Admin"/>
+                            </button>
+                            <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded">
+                                <button type="submit" class="btn">
+                                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-download"></span></pwm:if>
+                                    <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
+                                </button>
+                                <input type="hidden" name="processAction" value="downloadAuditLogCsv"/>
+                                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+                            </form>
+                        </div>
+                    </div>
+                    <input name="audit_tabs" type="radio" id="tab-3.2" class="input"/>
+                    <label for="tab-3.2" class="label"><pwm:display key="Title_AuditHelpdesk" bundle="Admin"/></label>
+                    <div class="tab-content-pane" title="<pwm:display key="Title_AuditHelpdesk" bundle="Admin"/>" class="tabContent">
+                        <div id="auditHelpdeskGrid" class="analysisGrid">
+                        </div>
+                        <div style="text-align: center">
+                            <input name="maxAuditHelpdeskResults" id="maxAuditHelpdeskResults" value="100" type="number" min="10" max="10000000" style="width: 70px"/>
+                            Rows
+                            <button class="btn" type="button" id="button-refreshHelpdeskUser">
+                                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-refresh">&nbsp;</span></pwm:if>
+                                <pwm:display key="Button_Refresh" bundle="Admin"/>
+                            </button>
+                            <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded">
+                                <button type="submit" class="btn">
+                                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-download"></span></pwm:if>
+                                    <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
+                                </button>
+                                <input type="hidden" name="processAction" value="downloadAuditLogCsv"/>
+                                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+                            </form>
+                        </div>
+                    </div>
+                    <input name="audit_tabs" type="radio" id="tab-3.3" class="input"/>
+                    <label for="tab-3.3" class="label"><pwm:display key="Title_AuditSystem" bundle="Admin"/></label>
+                    <div class="tab-content-pane" title="<pwm:display key="Title_AuditSystem" bundle="Admin"/>" class="tabContent">
+                        <div id="auditSystemGrid" class="analysisGrid">
+                        </div>
+                        <div style="text-align: center">
+                            <input name="maxAuditSystemResults" id="maxAuditSystemResults" value="100" type="number" min="10" max="10000000" style="width: 70px"/>
+                            Rows
+                            <button class="btn" type="button" id="button-refreshSystemAudit">
+                                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-refresh">&nbsp;</span></pwm:if>
+                                <pwm:display key="Button_Refresh" bundle="Admin"/>
+                            </button>
+                            <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded">
+                                <button type="submit" class="btn">
+                                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-download"></span></pwm:if>
+                                    <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
+                                </button>
+                                <input type="hidden" name="processAction" value="downloadAuditLogCsv"/>
+                                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="tab-end"></div>
                 </div>
             </div>
-            <div id="AuditHelpdesk" data-dojo-type="dijit/layout/ContentPane" title="<pwm:display key="Title_AuditHelpdesk" bundle="Admin"/>" class="tabContent">
-                <div id="auditHelpdeskGrid" class="analysisGrid">
-                </div>
-                <div style="text-align: center">
-                    <input name="maxAuditHelpdeskResults" id="maxAuditHelpdeskResults" value="1000" data-dojo-type="dijit/form/NumberSpinner" style="width: 70px"
-                           data-dojo-props="constraints:{min:10,max:10000000,pattern:'#'},smallDelta:100"/>
-                    Rows
-                    <button class="btn" type="button" id="button-refreshHelpdeskUser">
-                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-refresh">&nbsp;</span></pwm:if>
-                        <pwm:display key="Button_Refresh" bundle="Admin"/>
-                    </button>
-                    <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded">
-                        <button type="submit" class="btn">
-                            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-download"></span></pwm:if>
-                            <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
-                        </button>
-                        <input type="hidden" name="processAction" value="downloadAuditLogCsv"/>
-                        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-                    </form>
-                </div>
-            </div>
-            <div id="AuditSystem" data-dojo-type="dijit/layout/ContentPane" title="<pwm:display key="Title_AuditSystem" bundle="Admin"/>" class="tabContent">
-                <div id="auditSystemGrid" class="analysisGrid">
-                </div>
-                <div style="text-align: center">
-                    <input name="maxAuditSystemResults" id="maxAuditSystemResults" value="1000" data-dojo-type="dijit/form/NumberSpinner" style="width: 70px"
-                           data-dojo-props="constraints:{min:10,max:10000000,pattern:'#'},smallDelta:100"/>
-                    Rows
-                    <button class="btn" type="button" id="button-refreshSystemAudit">
-                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-refresh">&nbsp;</span></pwm:if>
-                        <pwm:display key="Button_Refresh" bundle="Admin"/>
-                    </button>
-                    <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded">
-                        <button type="submit" class="btn">
-                            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-download"></span></pwm:if>
-                            <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
-                        </button>
-                        <input type="hidden" name="processAction" value="downloadAuditLogCsv"/>
-                        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-                    </form>
-                </div>
-            </div>
-            </div>
+            <div class="tab-end"></div>
         </div>
-        <br/>
-        <%--
-        <div style="text-align: center">
-            <input name="maxResults" id="maxIntruderGridResults" value="1000" data-dojo-type="dijit/form/NumberSpinner" style="width: 70px"
-                   data-dojo-props="constraints:{min:10,max:10000000,pattern:'#'},smallDelta:100"/>
-            Rows
-            <button class="btn" type="button" onclick="PWM_ADMIN.refreshIntruderGrid()">
-                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-refresh">&nbsp;</span></pwm:if>
-                <pwm:display key="Button_Refresh" bundle="Admin"/>
-            </button>
-        </div>
-        --%>
+        <div class="push"></div>
     </div>
-    <div class="push"></div>
-</div>
-<pwm:script>
+    <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
-            require(["dojo/parser","dojo/ready","dijit/layout/TabContainer","dijit/layout/ContentPane","dijit/Dialog","dijit/form/NumberSpinner"],function(dojoParser,ready){
-                dojoParser.parse(PWM_MAIN.getObject('centerbody'));
-                PWM_ADMIN.initIntrudersGrid();
-                PWM_ADMIN.initActiveSessionGrid();
-                PWM_ADMIN.initAuditGrid();
+            PWM_MAIN.addEventHandler('audit_tab_label','click',function(){
+            });
 
+            PWM_ADMIN.initAuditGrid();
+            PWM_ADMIN.initActiveSessionGrid();
+            PWM_ADMIN.initIntrudersGrid();
 
-
-                PWM_MAIN.addEventHandler('button-refreshAuditUser','click',function(){
-                    PWM_ADMIN.refreshAuditGridData(PWM_MAIN.getObject('maxAuditUserResults').value);
-                });
-                PWM_MAIN.addEventHandler('button-refreshHelpdeskUser','click',function(){
-                    PWM_ADMIN.refreshAuditGridData(PWM_MAIN.getObject('maxAuditHelpdeskResults').value);
-                });
-                PWM_MAIN.addEventHandler('button-refreshSystemAudit','click',function(){
-                    PWM_ADMIN.refreshAuditGridData(PWM_MAIN.getObject('maxAuditSystemResults').value);
-                });
+            PWM_MAIN.addEventHandler('button-refreshAuditUser','click',function(){
+                PWM_ADMIN.refreshAuditGridData(PWM_MAIN.getObject('maxAuditUserResults').value,'USER');
+            });
+            PWM_MAIN.addEventHandler('button-refreshHelpdeskUser','click',function(){
+                PWM_ADMIN.refreshAuditGridData(PWM_MAIN.getObject('maxAuditHelpdeskResults').value,'HELPDESK');
+            });
+            PWM_MAIN.addEventHandler('button-refreshSystemAudit','click',function(){
+                PWM_ADMIN.refreshAuditGridData(PWM_MAIN.getObject('maxAuditSystemResults').value,'SYSTEM');
             });
         });
     </script>
-</pwm:script>
-<%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
+    </pwm:script>
+    <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>

@@ -164,3 +164,26 @@ h3 {
     border: 1px solid transparent;
     box-shadow: 0 0 0 0 white, 0 0 0 0 white, 9px 0 12px -4px #B2B1B9, -9px 0 12px -4px #B2B1B9;
 }
+
+.tab-container > .tab-end {
+    border-bottom: 1px solid #E8E1F6;
+}
+
+.tab-container > .input:checked + .label {
+    border: 1px solid #E8E1F6;
+    color: #808080;
+}
+
+.tab-container > .label {
+    font-size: 14px;
+    height: 25px;
+    padding-top: 3px;
+}
+
+.tab-container > .label:hover {
+    color: #808080;
+    border-top-color: #E8E1F6;
+    border-left-color: #E8E1F6;
+    border-right-color: #E8E1F6;
+}
+
