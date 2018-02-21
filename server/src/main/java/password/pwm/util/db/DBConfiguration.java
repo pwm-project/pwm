@@ -53,6 +53,7 @@ public class DBConfiguration implements Serializable
     private final int maxConnections;
     private final int connectionTimeout;
     private final int keyColumnLength;
+    private final boolean failOnIndexCreation;
 
     public byte[] getJdbcDriver( )
     {
@@ -94,6 +95,8 @@ public class DBConfiguration implements Serializable
 
         final int keyColumnLength = Integer.parseInt( config.readAppProperty( AppProperty.DB_SCHEMA_KEY_LENGTH ) );
 
+        final boolean haltOnIndexCreateError = Boolean.parseBoolean( config.readAppProperty( AppProperty.DB_INIT_HALT_ON_INDEX_CREATE_ERROR ) );
+
         return new DBConfiguration(
                 config.readSettingAsString( PwmSetting.DATABASE_CLASS ),
                 config.readSettingAsString( PwmSetting.DATABASE_URL ),
@@ -105,7 +108,8 @@ public class DBConfiguration implements Serializable
                 strategies,
                 maxConnections,
                 connectionTimeout,
-                keyColumnLength
+                keyColumnLength,
+                haltOnIndexCreateError
         );
     }
 }
