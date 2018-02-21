@@ -479,6 +479,8 @@ export default class HelpDeskService implements IHelpDeskService {
         return this.simulateResponse({ successMessage: 'Unlock successful.' });
     }
 
+
+
     validateVerificationData(userKey: string, data: any, method: string): IPromise<IVerificationStatus> {
         return this.simulateResponse({ passed: true });
     }

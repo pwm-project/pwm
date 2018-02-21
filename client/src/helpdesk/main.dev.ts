@@ -27,6 +27,7 @@ import uiRouter from '@uirouter/angularjs';
 import PeopleService from '../services/people.service.dev';
 import HelpDeskConfigService from '../services/helpdesk-config.service.dev';
 import HelpDeskService from '../services/helpdesk.service.dev';
+import PasswordService from '../services/password.service.dev';
 
 // fontgen-loader needs this :(
 require('../icons.json');
@@ -43,6 +44,7 @@ module('app', [
     }])
     .config(routes)
     .service('HelpDeskService', HelpDeskService)
+    .service('PasswordService', PasswordService)
     .service('PeopleService', PeopleService)
     .service('ConfigService', HelpDeskConfigService);
 

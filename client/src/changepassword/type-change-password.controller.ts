@@ -22,48 +22,59 @@
 
 
 import {IHelpDeskService, ISuccessResponse} from '../services/helpdesk.service';
-import {IQService, IScope} from 'angular';
+import {IQService, IScope, IWindowService} from 'angular';
 import {IHelpDeskConfigService} from '../services/helpdesk-config.service';
 import DialogService from '../ux/ias-dialog.service';
 import {IChangePasswordSuccess} from './success-change-password.controller';
+import {IPasswordService, IValidatePasswordData} from '../services/password.service';
 
 require('changepassword/type-change-password.component.scss');
+
+const EMPTY_MATCH_STATUS = 'EMPTY';
 
 export default class TypeChangePasswordController {
     passwordAcceptable: boolean;
     maskPasswords: boolean;
+    matchStatus: string;
     message: string;
     password1: string;
     password2: string;
-    password1Masked: boolean;
-    password2Masked: boolean;
+    passwordMasked: boolean;
     passwordUiMode: string;
     passwordSuggestions: string[];
     showStrengthMeter: boolean;
-    strength = 'Very Strong';
+    strength: number;
 
     static $inject = [
         '$q',
         '$scope',
+        '$window',
         'ConfigService',
         'HelpDeskService',
         'IasDialogService',
+        'PasswordService',
         'personUsername',
         'personUserKey',
         'translateFilter'
     ];
     constructor(private $q: IQService,
                 private $scope: IScope,
+                private $window: IWindowService,
                 private configService: IHelpDeskConfigService,
                 private HelpDeskService: IHelpDeskService,
                 private IasDialogService: DialogService,
+                private passwordService: IPasswordService,
                 private personUsername: string,
                 private personUserKey: string,
                 private translateFilter: (id: string) => string) {
+        this.password1 = '';
+        this.password2 = '';
         this.passwordAcceptable = true;
         this.passwordSuggestions = Array(20).fill('');
+        this.matchStatus = EMPTY_MATCH_STATUS;
         this.message = translateFilter('Display_PasswordPrompt');
         this.showStrengthMeter = HelpDeskService.showStrengthMeter;
+        this.strength = 0;
 
         let promise = this.$q.all([
             this.configService.getPasswordUiMode(),
@@ -72,18 +83,23 @@ export default class TypeChangePasswordController {
         promise.then((result) => {
             this.passwordUiMode = result[0];
             this.maskPasswords = result[1];
-            this.password1Masked = this.maskPasswords;
-            this.password2Masked = this.maskPasswords;
+            this.passwordMasked = this.maskPasswords;
         });
 
-        // update display (TODO)
+        // Update dialog whenever a password field changes
         this.$scope.$watch('$ctrl.password1', (newValue, oldValue) => {
             if (newValue !== oldValue) {
-                // update display (TODO; first or second?)
-
                 if (this.password2.length) {
-                    this.password2 = '';        // TODO: should we do this.$scope.applyAsync?
+                    this.password2 = '';
                 }
+
+                this.updateDialog();
+            }
+        });
+
+        this.$scope.$watch('$ctrl.password2', (newValue, oldValue) => {
+            if (newValue !== oldValue) {
+                this.updateDialog();
             }
         });
     }
@@ -106,11 +122,44 @@ export default class TypeChangePasswordController {
         this.IasDialogService.close({ autogenPasswords: true });
     }
 
-    togglePassword1Masked() {
-        this.password1Masked = !this.password1Masked;
+    togglePasswordMasked() {
+        this.passwordMasked = !this.passwordMasked;
     }
 
-    togglePassword2Masked() {
-        this.password2Masked = !this.password2Masked;
+    updateDialog() {
+        this.passwordService.validatePassword(this.password1, this.password2, this.personUserKey)
+            .onResult(
+                (data: IValidatePasswordData) => {
+                    if (data.version !== 2) {
+                        // TODO: error message - '[ unexpected version string from server ]'
+                    }
+
+                    this.passwordAcceptable = data.passed && data.match === 'MATCH';
+                    this.matchStatus = data.match;
+                    this.message = data.message;
+
+                    if (!this.password1) {
+                        this.strength = 0;
+                    }
+                    if (data.strength < 20) {
+                        this.strength = 1;
+                    }
+                    else if (data.strength < 45) {
+                        this.strength = 2;
+                    }
+                    else if (data.strength < 70) {
+                        this.strength = 3;
+                    }
+                    else if (data.strength < 100) {
+                        this.strength = 4;
+                    }
+                    else {
+                        this.strength = 5;
+                    }
+                },
+                (message: string) => {
+                    this.message = message;
+                }
+            );
     }
 }
