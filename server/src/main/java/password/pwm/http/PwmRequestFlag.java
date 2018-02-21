@@ -34,4 +34,5 @@ public enum PwmRequestFlag
     NO_MOBILE_CSS,
     ALWAYS_EXPAND_MESSAGE_TEXT,
     INCLUDE_CONFIG_CSS,
+    INCLUDE_IAS_ANGULAR,
 }

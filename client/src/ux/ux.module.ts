@@ -21,38 +21,12 @@
  */
 
 
-import {IComponentOptions, module} from 'angular';
-import AppBarComponent from './app-bar.component';
-import AutoCompleteComponent from './auto-complete.component';
-import ButtonComponent from './button.component';
-import DialogComponent from './dialog.component';
-import IasDialogComponent from './ias-dialog.component';
-// import { DialogService } from './dialog.service';
-import IconButtonComponent from './icon-button.component';
-import IconComponent from './icon.component';
-import SearchBarComponent from './search-bar.component';
-import TableDirectiveFactory from './table.directive';
-import TableColumnDirectiveFactory from './table-column.directive';
+import { module } from 'angular';
 import ElementSizeService from './element-size.service';
-import TabsetDirective from './tabset.directive';
-import DialogService from './ias-dialog.service';
 
-var moduleName = 'peoplesearch.ux';
+const moduleName = 'peoplesearch.ux';
 
 module(moduleName, [ ])
-    .component('iasDialog', IasDialogComponent as IComponentOptions)
-    .component('mfAppBar', AppBarComponent as IComponentOptions)
-    .component('mfAutoComplete', AutoCompleteComponent as IComponentOptions)
-    .component('mfButton', ButtonComponent as IComponentOptions)
-    .component('mfDialog', DialogComponent as IComponentOptions)
-    .component('mfIconButton', IconButtonComponent as IComponentOptions)
-    .component('mfIcon', IconComponent as IComponentOptions)
-    .component('mfSearchBar', SearchBarComponent as IComponentOptions)
-    .directive('mfTable', TableDirectiveFactory)
-    .directive('mfTableColumn', TableColumnDirectiveFactory)
-    .directive('mfTabset', TabsetDirective)
-    .service('IasDialogService', DialogService)
     .service('MfElementSizeService', ElementSizeService);
-    // .service('MfDialogService', DialogService);
 
 export default moduleName;

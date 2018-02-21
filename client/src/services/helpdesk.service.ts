@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -118,8 +118,8 @@ export default class HelpDeskService implements IHelpDeskService {
 
         return this.pwmService
             .httpRequest(url, { data: data })
-            .then((result: IVerificationStatus) => {
-                return this.$q.resolve(result);
+            .then((result: any) => {
+                return this.$q.resolve(result.data);
             });
     }
 
@@ -180,7 +180,7 @@ export default class HelpDeskService implements IHelpDeskService {
         return this.pwmService
             .httpRequest(url, {})
             .then((result: any) => {
-                return this.$q.resolve(result);
+                return this.$q.resolve(result.data);
             });
     }
 
@@ -275,12 +275,14 @@ export default class HelpDeskService implements IHelpDeskService {
 
         return this.pwmService
             .httpRequest(url, { data: data })
-            .then((result: IValidationStatus) => {
+            .then((result: any) => {
+                const validationStatus: IValidationStatus = result.data;
+
                 this.localStorageService.setItem(
                     this.localStorageService.keys.VERIFICATION_STATE,
-                    result.verificationState
+                    validationStatus.verificationState
                 );
-                return this.$q.resolve(result);
+                return this.$q.resolve(validationStatus);
             });
     }
 

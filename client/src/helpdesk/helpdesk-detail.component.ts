@@ -3,7 +3,7 @@
   htt://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,9 +24,8 @@
 import {Component} from '../component';
 import {IButtonInfo, IHelpDeskService, ISuccessResponse} from '../services/helpdesk.service';
 import {IScope, ui} from 'angular';
-import {IQService, noop} from 'angular';
+import {noop} from 'angular';
 import {IHelpDeskConfigService, PASSWORD_UI_MODES} from '../services/helpdesk-config.service';
-import DialogService from '../ux/ias-dialog.service';
 import {IPeopleService} from '../services/people.service';
 import {IPerson} from '../models/person.model';
 import {IChangePasswordSuccess} from '../changepassword/success-change-password.controller';
@@ -42,6 +41,9 @@ const STATUS_WAIT = 'wait';
 const STATUS_CONFIRM = 'confirm';
 const STATUS_SUCCESS = 'success';
 
+declare const PWM_HELPDESK: any;
+declare const PWM_VAR: any;
+
 @Component({
     stylesheetUrl: require('helpdesk/helpdesk-detail.component.scss'),
     templateUrl: require('helpdesk/helpdesk-detail.component.html')
@@ -52,7 +54,6 @@ export default class HelpDeskDetailComponent {
     photosEnabled: boolean;
 
     static $inject = [
-        '$q',
         '$state',
         '$stateParams',
         'ConfigService',
@@ -60,12 +61,11 @@ export default class HelpDeskDetailComponent {
         'IasDialogService',
         'PeopleService'
     ];
-    constructor(private $q: IQService,
-                private $state: ui.IStateService,
+    constructor(private $state: ui.IStateService,
                 private $stateParams: ui.IStateParamsService,
                 private configService: IHelpDeskConfigService,
                 private helpDeskService: IHelpDeskService,
-                private IasDialogService: DialogService,
+                private IasDialogService: any,
                 private peopleService: IPeopleService) {
     }
 
@@ -92,17 +92,33 @@ export default class HelpDeskDetailComponent {
     changePassword(): void {
         this.configService.getPasswordUiMode()
             .then((passwordUiMode) => {
-                if (passwordUiMode === PASSWORD_UI_MODES.AUTOGEN) {
-                    this.changePasswordAutogen();
-                }
-                else if (passwordUiMode === PASSWORD_UI_MODES.RANDOM) {
-                    this.changePasswordRandom();
-                }
-                else if (passwordUiMode === PASSWORD_UI_MODES.BOTH || passwordUiMode === PASSWORD_UI_MODES.TYPE) {
-                    this.changePasswordType();
+                if (passwordUiMode) {
+                    if (document.title === 'PWM Development') {
+                        const pwUiMode: string = passwordUiMode.toUpperCase();
+                        if (pwUiMode === PASSWORD_UI_MODES.TYPE) {
+                            this.changePasswordType();
+                        }
+                        else if (pwUiMode === PASSWORD_UI_MODES.AUTOGEN) {
+                            this.changePasswordAutogen();
+                        }
+                        else if (pwUiMode === PASSWORD_UI_MODES.BOTH) {
+                            // TODO: Need to take into account both autogen and typing in this scenario
+                            this.changePasswordType();
+                        }
+                        else if (pwUiMode === PASSWORD_UI_MODES.RANDOM) {
+                            this.changePasswordRandom();
+                        }
+                    }
+                    else {
+                        // Until the new AngularJS version of "Change Password" is finished, we'll just call into the
+                        // old PWM JavaScript functions:
+                        PWM_VAR['helpdesk_obfuscatedDN'] = this.getUserKey();
+                        PWM_VAR['helpdesk_setting_PwUiMode'] = passwordUiMode;
+                        PWM_HELPDESK.initiateChangePasswordDialog();
+                    }
                 }
                 else {
-                    throw new Error('Password type unsupported!');  // TODO: best way to do this?
+                    throw new Error('Unable to retrieve a valid password UI mode.');
                 }
             });
     }
@@ -312,7 +328,7 @@ export default class HelpDeskDetailComponent {
                     'translateFilter',
                     function ($scope: IScope | any,
                               helpDeskService: IHelpDeskService,
-                              IasDialogService: DialogService,
+                              IasDialogService: any,
                               translateFilter: (id: string) => string) {
                         $scope.status = STATUS_CONFIRM;
                         $scope.title = translateFilter('Button_Confirm');
@@ -336,14 +352,12 @@ export default class HelpDeskDetailComponent {
             });
     }
 
-
-
     getUserKey(): string {
         return this.$stateParams['personId'];
     }
 
     gotoSearch(): void {
-        this.$state.go('search');
+        this.$state.go('search.cards');
     }
 
     initialize(): void {

@@ -3,7 +3,7 @@
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2017 The PWM Project
+  ~ Copyright (c) 2009-2018 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -20,35 +20,17 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   -->
 
-<mf-app-bar>
-    <div id="page-content-title" class="page-content-title" translate="Title_HelpDesk">Help Desk</div>
-    <mf-icon-button
-        icon="password_thin"
-        ng-attr-title="{{ 'Button_ChangePassword' | translate }}"
-        ng-click=""
-        id="password-icon"></mf-icon-button>
-    <mf-icon-button
-        icon="unlock_thin"
-        ng-attr-title="{{ 'Button_Unlock' | translate }}"
-        ng-click=""
-        id="unlock-icon"></mf-icon-button>
-    <mf-icon-button
-        icon="reload_refresh_thin"
-        ng-attr-title="{{ 'Display_CaptchaRefresh' | translate }}"
-        ng-click=""
-        id="reload-refresh-icon"></mf-icon-button>
-</mf-app-bar>
+<div class="ias-header">
+    <h2 id="page-content-title" translate="Title_HelpDesk">Help Desk</h2>
+</div>
 
-
-
-<person-card person="$ctrl.personCard" show-image="$ctrl.photosEnabled">
-</person-card>
+<person-card person="$ctrl.personCard" show-image="$ctrl.photosEnabled"></person-card>
 
 <div class="help-desk-content">
-    <div class="person-details-content">
-        <mf-tabset>
-            <mf-tab id="Field_Profile" label="Profile">
-                <table>
+    <div>
+        <ias-tabset>
+            <ias-tab id="Field_Profile" label="Profile">
+                <table class="details-table">
                     <tbody>
                     <tr ng-repeat="item in $ctrl.person.profileData">
                         <td ng-bind="item.label"></td>
@@ -58,9 +40,9 @@
                     </tr>
                     </tbody>
                 </table>
-            </mf-tab>
-            <mf-tab id="Title_Status" label="Status">
-                <table>
+            </ias-tab>
+            <ias-tab id="Title_Status" label="Status">
+                <table class="details-table">
                     <tbody>
                     <tr ng-repeat="item in $ctrl.person.statusData">
                         <td ng-bind="item.label"></td>
@@ -70,9 +52,9 @@
                     </tr>
                     </tbody>
                 </table>
-            </mf-tab>
-            <mf-tab ng-if="!!$ctrl.person.userHistory" id="Title_UserEventHistory" label="Password History">
-                <table>
+            </ias-tab>
+            <ias-tab ng-if="!!$ctrl.person.userHistory" id="Title_UserEventHistory" label="Password History">
+                <table class="details-table">
                     <tbody>
                     <tr ng-repeat="item in $ctrl.person.userHistory">
                         <td ng-bind="item.timestamp | dateFilter"></td>
@@ -80,9 +62,9 @@
                     </tr>
                     </tbody>
                 </table>
-            </mf-tab>
-            <mf-tab id="Title_PasswordPolicy" label="Password Policy">
-                <table>
+            </ias-tab>
+            <ias-tab id="Title_PasswordPolicy" label="Password Policy">
+                <table class="details-table">
                     <tbody>
                     <tr>
                         <td ng-bind="'Field_Policy' | translate"></td>
@@ -106,9 +88,9 @@
                     </tr>
                     </tbody>
                 </table>
-            </mf-tab>
-            <mf-tab id="Title_SecurityResponses" label="Security Responses">
-                <table>
+            </ias-tab>
+            <ias-tab id="Title_SecurityResponses" label="Security Responses">
+                <table class="details-table">
                     <tbody>
                     <tr ng-repeat="item in $ctrl.person.helpdeskResponses">
                         <td ng-bind="item.label"></td>
@@ -118,37 +100,37 @@
                     </tr>
                     </tbody>
                 </table>
-            </mf-tab>
-        </mf-tabset>
+            </ias-tab>
+        </ias-tabset>
     </div>
 
     <div class="help-desk-buttons">
-        <mf-button ng-click="$ctrl.gotoSearch()"
+        <ias-button ng-click="$ctrl.gotoSearch()"
                    ng-disabled="$ctrl.buttonDisabled('back')"
-                   ng-if="$ctrl.buttonVisible('back')">{{ 'Button_GoBack' | translate }}</mf-button>
-        <mf-button ng-click="$ctrl.refresh()"
+                   ng-if="$ctrl.buttonVisible('back')">{{ 'Button_GoBack' | translate }}</ias-button>
+        <ias-button ng-click="$ctrl.refresh()"
                    ng-disabled="$ctrl.buttonDisabled('refresh')"
-                   ng-if="$ctrl.buttonVisible('refresh')">{{ 'Display_CaptchaRefresh' | translate }}</mf-button>
-        <mf-button ng-click="$ctrl.changePassword()"
+                   ng-if="$ctrl.buttonVisible('refresh')">{{ 'Display_CaptchaRefresh' | translate }}</ias-button>
+        <ias-button ng-click="$ctrl.changePassword()"
                    ng-disabled="$ctrl.buttonDisabled('changePassword')"
-                   ng-if="$ctrl.buttonVisible('changePassword')">{{ 'Button_ChangePassword' | translate }}</mf-button>
-        <mf-button ng-click="$ctrl.unlockUser()"
+                   ng-if="$ctrl.buttonVisible('changePassword')">{{ 'Button_ChangePassword' | translate }}</ias-button>
+        <ias-button ng-click="$ctrl.unlockUser()"
                    ng-disabled="$ctrl.buttonDisabled('unlock')"
-                   ng-if="$ctrl.buttonVisible('unlock')">{{ 'Button_Unlock' | translate }}</mf-button>
-        <mf-button ng-click="$ctrl.clearResponses()"
+                   ng-if="$ctrl.buttonVisible('unlock')">{{ 'Button_Unlock' | translate }}</ias-button>
+        <ias-button ng-click="$ctrl.clearResponses()"
                    ng-disabled="$ctrl.buttonDisabled('clearResponses')"
-                   ng-if="$ctrl.buttonVisible('clearResponses')">{{ 'Button_ClearResponses' | translate }}</mf-button>
-        <mf-button ng-click="$ctrl.clearOtpSecret()"
+                   ng-if="$ctrl.buttonVisible('clearResponses')">{{ 'Button_ClearResponses' | translate }}</ias-button>
+        <ias-button ng-click="$ctrl.clearOtpSecret()"
                    ng-disabled="$ctrl.buttonDisabled('clearOtpSecret')"
-                   ng-if="$ctrl.buttonVisible('clearOtpSecret')">{{ 'Button_HelpdeskClearOtpSecret' | translate }}</mf-button>
-        <mf-button ng-click="$ctrl.verifyUser()"
+                   ng-if="$ctrl.buttonVisible('clearOtpSecret')">{{ 'Button_HelpdeskClearOtpSecret' | translate }}</ias-button>
+        <ias-button ng-click="$ctrl.verifyUser()"
                    ng-disabled="$ctrl.buttonDisabled('verification')"
-                   ng-if="$ctrl.buttonVisible('verification')">{{ 'Button_Verify' | translate }}</mf-button>
-        <mf-button ng-click="$ctrl.deleteUser()"
+                   ng-if="$ctrl.buttonVisible('verification')">{{ 'Button_Verify' | translate }}</ias-button>
+        <ias-button ng-click="$ctrl.deleteUser()"
                    ng-disabled="$ctrl.buttonDisabled('deleteUser')"
-                   ng-if="$ctrl.buttonVisible('deleteUser')">{{ 'Button_Delete' | translate }}</mf-button>
-        <mf-button ng-click="$ctrl.clickCustomButton(button)"
+                   ng-if="$ctrl.buttonVisible('deleteUser')">{{ 'Button_Delete' | translate }}</ias-button>
+        <ias-button ng-click="$ctrl.clickCustomButton(button)"
                    ng-repeat="button in $ctrl.person.customButtons"
-                   ng-attr-title="{{button.description}}">{{ button.label }}</mf-button>
+                   ng-attr-title="{{button.description}}">{{ button.label }}</ias-button>
     </div>
 </div>

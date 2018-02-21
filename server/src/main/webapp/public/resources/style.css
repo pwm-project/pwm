@@ -1629,3 +1629,7 @@ html[dir="rtl"] .message.message-error .errorDetail {
         height: 7px;
     }
 }
+
+table.ias-table, table.ias-table td {
+    border: none;
+}

@@ -28,7 +28,7 @@ import OrgChartComponent from './orgchart.component';
 import OrgChartSearchComponent from './orgchart-search.component';
 import PeopleSearchTableComponent from './peoplesearch-table.component';
 import PeopleSearchCardsComponent from './peoplesearch-cards.component';
-import PersonCardComponent from './person-card.component';
+import PersonCardDirective from './person-card.component';
 import PersonDetailsDialogComponent from './person-details-dialog.component';
 import LocalStorageService from '../services/local-storage.service';
 import PromiseService from '../services/promise.service';
@@ -39,6 +39,7 @@ require('./peoplesearch.scss');
 const moduleName = 'people-search';
 
 module(moduleName, [
+    'ngAria',
     'pascalprecht.translate',
     uxModule
 ])
@@ -46,7 +47,7 @@ module(moduleName, [
     .filter('highlight', HighlightFilter)
     .component('orgChart', OrgChartComponent as IComponentOptions)
     .component('orgChartSearch', OrgChartSearchComponent as IComponentOptions)
-    .component('personCard', PersonCardComponent as IComponentOptions)
+    .directive('personCard', PersonCardDirective)
     .component('peopleSearchTable', PeopleSearchTableComponent as IComponentOptions)
     .component('peopleSearchCards', PeopleSearchCardsComponent as IComponentOptions)
     .component('personDetailsDialogComponent', PersonDetailsDialogComponent as IComponentOptions)

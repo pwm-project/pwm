@@ -26,6 +26,7 @@ import { ILogService, IWindowService } from 'angular';
 const PWM_PREFIX = 'PWM_';
 const KEYS = {
     SEARCH_TEXT: 'searchText',
+    HELPDESK_SEARCH_TEXT: 'helpdeskSearchText',
     SEARCH_VIEW: 'searchView',
     VERIFICATION_STATE: 'verificationState'
 };
@@ -51,7 +52,7 @@ export default class LocalStorageService {
     }
 
     setItem(key: string, value: any): void {
-        if (this.localStorageEnabled) {
+        if (this.localStorageEnabled && value) {
             this.$window.sessionStorage[this.prepKey(key)] = value;
         }
     }

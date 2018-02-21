@@ -21,29 +21,31 @@
   -->
 
 <div class="ias-header">
-    <h2 id="page-content-title" translate="Title_PeopleSearch">People Search</h2>
-    <ias-search-box id="input" ng-model="$ctrl.query" ng-model-options="{debounce: $ctrl.inputDebounce}"
+    <h2 id="page-content-title" translate="Title_HelpDesk">Help Desk</h2>
+    <ias-search-box ng-model="$ctrl.query" ng-model-options="{debounce: $ctrl.inputDebounce}"
                     placeholder="{{'Placeholder_Search' | translate}}" auto-focus>
     </ias-search-box>
 
     <span class="ias-fill"></span>
 
-    <ias-button id="view-tile-icon" class="ias-icon-button ias-selected" ng-disabled="true"
-                ng-attr-title="{{ 'Title_PeopleSearchCard' | translate }}">
-        <ias-icon class="ias-selected" icon="view_tile_thin"></ias-icon>
+    <ias-button id="view-tile-icon" class="ias-icon-button ias-selected"
+                ng-disabled="true"
+                ng-attr-title="{{ 'Title_HelpDeskCard' | translate }}">
+        <ias-icon icon="view_tile_thin"></ias-icon>
     </ias-button>
-    <ias-button id="view-list-icon" class="ias-icon-button" ng-click="$ctrl.gotoTableView()"
-                ng-attr-title="{{ 'Title_PeopleSearchTable' | translate }}">
-        <ias-icon class="ias-selected" icon="view_list_thin"></ias-icon>
-    </ias-button>
-    <div class="icon-divider vertical" ng-if="$ctrl.orgChartEnabled"></div>
-    <ias-button id="orgchart-icon" class="ias-icon-button" ng-click="$ctrl.gotoOrgchart()" ng-if="$ctrl.orgChartEnabled"
-                ng-attr-title="{{ 'Title_OrgChart' | translate }}">
-        <ias-icon class="ias-selected" icon="orgchart_thin"></ias-icon>
+    <ias-button id="view-list-icon" class="ias-icon-button"
+                ng-click="$ctrl.gotoTableView()"
+                ng-attr-title="{{ 'Title_HelpDeskTable' | translate }}">
+        <ias-icon icon="view_list_thin"></ias-icon>
     </ias-button>
 </div>
 
 <div class="search-info-container">
+    <div>
+        <ias-button class="verifications-button ias-cta" ng-if="$ctrl.verificationsEnabled"
+                    ng-click="$ctrl.showVerifications()">{{ 'Button_Verifications' | translate }}</ias-button>
+    </div>
+
     <div class="search-info" ng-class="{'loading': !$ctrl.getMessage()}"
          ng-if="$ctrl.loading || $ctrl.searchMessage || $ctrl.errorMessage"
          ng-bind="$ctrl.getMessage() || ('Display_PleaseWait' | translate)">
@@ -58,6 +60,4 @@
                      ng-click="$ctrl.selectPerson(person)">
         </person-card>
     </div>
-
-    <ui-view></ui-view>
 </div>

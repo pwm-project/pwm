@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,10 +24,11 @@
 import {IComponentOptions, module} from 'angular';
 import { DateFilter } from './date.filters';
 import HelpDeskDetailComponent from './helpdesk-detail.component';
-import HelpDeskSearchComponent from './helpdesk-search.component';
+import HelpDeskSearchTableComponent from './helpdesk-search-table.component';
+import HelpDeskSearchCardsComponent from './helpdesk-search-cards.component';
 import LocalStorageService from '../services/local-storage.service';
 import ObjectService from '../services/object.service';
-import PersonCardComponent from '../peoplesearch/person-card.component';
+import PersonCardDirective from '../peoplesearch/person-card.component';
 import PromiseService from '../services/promise.service';
 import RecentVerificationsDialogController from './recent-verifications-dialog.controller';
 import uxModule from '../ux/ux.module';
@@ -42,12 +43,14 @@ require('../peoplesearch/peoplesearch.scss');
 const moduleName = 'help-desk';
 
 module(moduleName, [
+    'ngAria',
     uxModule
 ])
 
-    .component('helpDeskSearch', HelpDeskSearchComponent as IComponentOptions)
+    .component('helpDeskSearchCards', HelpDeskSearchCardsComponent as IComponentOptions)
+    .component('helpDeskSearchTable', HelpDeskSearchTableComponent as IComponentOptions)
     .component('helpDeskDetail', HelpDeskDetailComponent as IComponentOptions)
-    .component('personCard', PersonCardComponent as IComponentOptions)
+    .directive('personCard', PersonCardDirective)
     .controller('AutogenChangePasswordController', AutogenChangePasswordController)
     .controller('RandomChangePasswordController', RandomChangePasswordController)
     .controller('RecentVerificationsDialogController', RecentVerificationsDialogController)

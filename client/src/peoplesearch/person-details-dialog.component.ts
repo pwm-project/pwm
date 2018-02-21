@@ -79,6 +79,14 @@ export default class PersonDetailsDialogComponent {
         this.$state.go('^', { query: this.$stateParams['query'] });
     }
 
+    getAvatarStyle(): any {
+        if (!this.person || !this.person.photoURL || !this.photosEnabled) {
+            return null;
+        }
+
+        return  { 'background-image': 'url(' + this.person.photoURL + ')' };
+    }
+
     gotoOrgChart(): void {
         this.$state.go('orgchart.search', { personId: this.person.userKey });
     }

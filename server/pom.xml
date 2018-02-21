@@ -837,6 +837,11 @@
             <version>1.6.5</version>
         </dependency>
         <dependency>
+            <groupId>org.webjars.bower</groupId>
+            <artifactId>angular-aria</artifactId>
+            <version>1.6.9</version>
+        </dependency>
+        <dependency>
             <groupId>org.webjars.npm</groupId>
             <artifactId>angular-ui-router</artifactId>
             <version>1.0.3</version>

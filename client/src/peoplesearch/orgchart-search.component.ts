@@ -63,6 +63,10 @@ export default class OrgChartSearchComponent {
                 private pwmService: IPwmService) {
         this.searchTextLocalStorageKey = this.localStorageService.keys.SEARCH_TEXT;
         this.inputDebounce = this.pwmService.ajaxTypingWait;
+
+        $scope.$watch('$ctrl.query', () => {
+            this.onSearchTextChange();
+        });
     }
 
     $onInit(): void {
@@ -131,8 +135,8 @@ export default class OrgChartSearchComponent {
         this.$state.go('orgchart.search', { personId: person.userKey, query: null });
     }
 
-    onSearchTextChange(value: string): void {
-        this.query = value;
+    onSearchTextChange(): void {
+        // this.query = value;
         this.storeSearchText();
     }
 

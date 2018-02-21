@@ -21,21 +21,20 @@
  */
 
 
-import { Component } from '../component';
-import { IPeopleSearchConfigService } from '../services/peoplesearch-config.service';
-import IPeopleService from '../services/people.service';
-import IPwmService from '../services/pwm.service';
-import { IQService, IScope } from 'angular';
-import LocalStorageService from '../services/local-storage.service';
-import PeopleSearchBaseComponent from './peoplesearch-base.component';
-import PromiseService from '../services/promise.service';
+import {IQService, IScope} from 'angular';
+import HelpDeskSearchBaseComponent from './helpdesk-search-base.component';
+import {Component} from '../component';
 import SearchResult from '../models/search-result.model';
+import {IPeopleService} from '../services/people.service';
+import {IHelpDeskConfigService} from '../services/helpdesk-config.service';
+import LocalStorageService from '../services/local-storage.service';
+import PromiseService from '../services/promise.service';
 
 @Component({
-    stylesheetUrl: require('peoplesearch/peoplesearch-table.component.scss'),
-    templateUrl: require('peoplesearch/peoplesearch-table.component.html')
+    stylesheetUrl: require('helpdesk/helpdesk-search.component.scss'),
+    templateUrl: require('helpdesk/helpdesk-search-table.component.html')
 })
-export default class PeopleSearchTableComponent extends PeopleSearchBaseComponent {
+export default class HelpDeskSearchTableComponent extends HelpDeskSearchBaseComponent {
     columnConfiguration: any;
 
     static $inject = [
@@ -45,43 +44,33 @@ export default class PeopleSearchTableComponent extends PeopleSearchBaseComponen
         '$stateParams',
         '$translate',
         'ConfigService',
+        'IasDialogService',
         'LocalStorageService',
         'PeopleService',
-        'PromiseService',
-        'PwmService'
+        'PromiseService'
     ];
     constructor($q: IQService,
                 $scope: IScope,
-                $state: angular.ui.IStateService,
+                private $state: angular.ui.IStateService,
                 $stateParams: angular.ui.IStateParamsService,
                 $translate: angular.translate.ITranslateService,
-                configService: IPeopleSearchConfigService,
+                configService: IHelpDeskConfigService,
+                IasDialogService: any,
                 localStorageService: LocalStorageService,
                 peopleService: IPeopleService,
-                promiseService: PromiseService,
-                pwmService: IPwmService) {
-        super($q,
-            $scope,
-            $state,
-            $stateParams,
-            $translate,
-            configService,
-            localStorageService,
-            peopleService,
-            promiseService,
-            pwmService);
+                 promiseService: PromiseService) {
+        super($q, $scope, $stateParams, $translate, configService, IasDialogService, localStorageService,
+            peopleService, promiseService);
     }
 
-    $onInit(): void {
+    $onInit() {
         this.initialize();
         this.fetchData();
-
-        let self = this;
 
         // The table columns are dynamic and configured via a service
         this.configService.getColumnConfig().then(
             (columnConfiguration: any) => {
-                self.columnConfiguration = Object.keys(columnConfiguration).reduce(
+                this.columnConfiguration = Object.keys(columnConfiguration).reduce(
                     function(accumulator, columnId) {
                         accumulator[columnId] = {
                             label: columnConfiguration[columnId],
@@ -93,12 +82,8 @@ export default class PeopleSearchTableComponent extends PeopleSearchBaseComponen
                     {});
             },
             (error) => {
-                self.setErrorMessage(error);
+                this.setErrorMessage(error);
             });
-    }
-
-    gotoCardsView() {
-        this.toggleView('search.cards');
     }
 
     fetchData() {
@@ -106,6 +91,10 @@ export default class PeopleSearchTableComponent extends PeopleSearchBaseComponen
         if (searchResult) {
             searchResult.then(this.onSearchResult.bind(this));
         }
+    }
+
+    gotoCardsView(): void {
+        this.$state.go('search.cards', {query: this.query});
     }
 
     toggleColumnVisible(event, columnId): void {
