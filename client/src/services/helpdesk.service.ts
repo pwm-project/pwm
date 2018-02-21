@@ -275,12 +275,14 @@ export default class HelpDeskService implements IHelpDeskService {
 
         return this.pwmService
             .httpRequest(url, { data: data })
-            .then((result: IValidationStatus) => {
+            .then((result: any) => {
+                const validationStatus: IValidationStatus = result.data;
+
                 this.localStorageService.setItem(
                     this.localStorageService.keys.VERIFICATION_STATE,
-                    result.verificationState
+                    validationStatus.verificationState
                 );
-                return this.$q.resolve(result);
+                return this.$q.resolve(validationStatus);
             });
     }
 
