@@ -398,9 +398,9 @@ export default class HelpDeskDetailComponent {
                     '$scope',
                     'HelpDeskService',
                     'translateFilter',
-                    function ($scope: IScope | any,
+                    ($scope: IScope | any,
                               helpDeskService: IHelpDeskService,
-                              translateFilter: (id: string) => string) {
+                              translateFilter: (id: string) => string) => {
                         $scope.status = STATUS_CONFIRM;
                         $scope.title = translateFilter('Button_Unlock');
                         $scope.text = translateFilter('Confirm');
@@ -410,6 +410,7 @@ export default class HelpDeskDetailComponent {
                                 // TODO - error dialog?
                                 $scope.status = STATUS_SUCCESS;
                                 $scope.text = data.successMessage;
+                                this.refresh();
                             });
                         };
                     }
