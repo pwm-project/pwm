@@ -22,31 +22,37 @@
 
 
 import {IHelpDeskService, ISuccessResponse} from '../services/helpdesk.service';
-import {IQService, IScope, IWindowService} from 'angular';
+import {ILogService, IQService, IScope, ITimeoutService, IWindowService} from 'angular';
 import {IHelpDeskConfigService} from '../services/helpdesk-config.service';
 import {IChangePasswordSuccess} from './success-change-password.controller';
 import {IPasswordService, IValidatePasswordData} from '../services/password.service';
+import IPwmService from '../services/pwm.service';
 
 require('changepassword/type-change-password.component.scss');
 
 const EMPTY_MATCH_STATUS = 'EMPTY';
+const IN_PROGRESS_MESSAGE_WAIT_MS = 5;
 
 export default class TypeChangePasswordController {
-    passwordAcceptable: boolean;
+    inputDebounce: number;
     maskPasswords: boolean;
     matchStatus: string;
     message: string;
     password1: string;
     password2: string;
+    passwordAcceptable: boolean;
     passwordMasked: boolean;
-    passwordUiMode: string;
     passwordSuggestions: string[];
+    passwordUiMode: string;
+    pendingValidation: boolean;
     showStrengthMeter: boolean;
     strength: number;
 
     static $inject = [
+        '$log',
         '$q',
         '$scope',
+        '$timeout',
         '$window',
         'ConfigService',
         'HelpDeskService',
@@ -54,10 +60,13 @@ export default class TypeChangePasswordController {
         'PasswordService',
         'personUsername',
         'personUserKey',
+        'PwmService',
         'translateFilter'
     ];
-    constructor(private $q: IQService,
+    constructor(private $log: ILogService,
+                private $q: IQService,
                 private $scope: IScope,
+                private $timeout: ITimeoutService,
                 private $window: IWindowService,
                 private configService: IHelpDeskConfigService,
                 private HelpDeskService: IHelpDeskService,
@@ -65,13 +74,16 @@ export default class TypeChangePasswordController {
                 private passwordService: IPasswordService,
                 private personUsername: string,
                 private personUserKey: string,
+                private pwmService: IPwmService,
                 private translateFilter: (id: string) => string) {
-        this.password1 = '';
-        this.password2 = '';
-        this.passwordAcceptable = true;
-        this.passwordSuggestions = Array<string>(20).fill('');
+        this.inputDebounce = this.pwmService.ajaxTypingWait;
         this.matchStatus = EMPTY_MATCH_STATUS;
         this.message = translateFilter('Display_PasswordPrompt');
+        this.password1 = '';
+        this.password2 = '';
+        this.passwordAcceptable = false;
+        this.passwordSuggestions = Array<string>(20).fill('');
+        this.pendingValidation = false;
         this.showStrengthMeter = HelpDeskService.showStrengthMeter;
         this.strength = 0;
 
@@ -126,9 +138,18 @@ export default class TypeChangePasswordController {
     }
 
     updateDialog() {
+        // Since user may continue typing, don't process request if another is already in progress
+        if (this.pendingValidation) {
+            return;
+        }
+
+        this.pendingValidation = true;
+
+
         this.passwordService.validatePassword(this.password1, this.password2, this.personUserKey)
-            .onResult(
+            .then(
                 (data: IValidatePasswordData) => {
+                    this.pendingValidation = false;
                     if (data.version !== 2) {
                         // TODO: error message - '[ unexpected version string from server ]'
                     }
@@ -156,9 +177,18 @@ export default class TypeChangePasswordController {
                         this.strength = 5;
                     }
                 },
-                (message: string) => {
-                    this.message = message;
+                (result: any) => {
+                    this.pendingValidation = false;
+                    this.$log.error(result);
+                    this.message = this.translateFilter('Display_CommunicationError');
+
                 }
             );
+
+        this.$timeout(() => {
+            if (this.pendingValidation) {
+                this.message = this.translateFilter('Display_CheckingPassword');
+            }
+        }, IN_PROGRESS_MESSAGE_WAIT_MS);
     }
 }

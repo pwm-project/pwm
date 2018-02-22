@@ -20,27 +20,21 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-const RESPONSE_PROGRESS_WAIT_MS = 10;
-const RESPONSE_WAIT_MS = 100;
+const SIMULATED_RESPONSE_TIME = 100;
 const STRENGTH_PER_PASSWORD_CHARACTER = 10;
 const MAX_STRENGTH = 100;
 const STRENGTH_REQUIRED = 40;
 
-import {IPasswordService, IValidatePasswordResultsFunction} from './password.service';
-import {ILogService, ITimeoutService} from 'angular';
+import {IPasswordService, IValidatePasswordData} from './password.service';
+import {IPromise, IQService, ITimeoutService} from 'angular';
 
 export default class PasswordService implements IPasswordService {
 
-    static $inject = ['$log', '$timeout'];
-    constructor(private $log: ILogService, private $timeout: ITimeoutService) {
+    static $inject = ['$q', '$timeout'];
+    constructor(private $q: IQService, private $timeout: ITimeoutService) {
     }
 
-    validatePassword(password1: string, password2: string, userKey: string): IValidatePasswordResultsFunction {
-        let resultFunctions = {
-            dataCallback: this.$log.info.bind(this.$log),
-            messageCallback: this.$log.error.bind(this.$log)
-        };
-
+    validatePassword(password1: string, password2: string, userKey: string): IPromise<IValidatePasswordData> {
         let strength = Math.min((password1.length * STRENGTH_PER_PASSWORD_CHARACTER), MAX_STRENGTH);
         let match = (password1 === password2);
         let message: string = null;
@@ -79,24 +73,22 @@ export default class PasswordService implements IPasswordService {
             errorCode: 0
         };
 
-        this.$timeout(() => {
-            resultFunctions.messageCallback('Checking Password...');
-        }, RESPONSE_PROGRESS_WAIT_MS);
+        let self = this;
 
-        this.$timeout(() => {
-            resultFunctions.dataCallback(data);
-        }, RESPONSE_WAIT_MS);
+        let deferred = this.$q.defer();
+        let deferredAbort = this.$q.defer();
 
-        return {
-            onResult: (dataCallback, messageCallback) => {
-                if (dataCallback) {
-                    resultFunctions.dataCallback = dataCallback;
-                }
+        let timeoutPromise = this.$timeout(() => {
+            deferred.resolve(data);
+        }, SIMULATED_RESPONSE_TIME);
 
-                if (messageCallback) {
-                    resultFunctions.messageCallback = messageCallback;
-                }
-            }
-        };
+        // To simulate an abortable promise, edit SIMULATED_RESPONSE_TIME
+        deferred.promise['_httpTimeout'] = deferredAbort;
+        deferredAbort.promise.then(() => {
+            self.$timeout.cancel(timeoutPromise);
+            deferred.resolve();
+        });
+
+        return deferred.promise as IPromise<IValidatePasswordData>;
     }
 }

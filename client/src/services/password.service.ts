@@ -21,18 +21,11 @@
  */
 
 
-import {ILogService, IWindowService} from 'angular';
+import {ILogService, IPromise, ITimeoutService, IWindowService} from 'angular';
 import {IPwmService} from './pwm.service';
 
 export interface IPasswordService {
-    validatePassword(password1: string, password2: string, userKey: string): IValidatePasswordResultsFunction;
-}
-
-export interface IValidatePasswordResultsFunction {
-    onResult: (
-        dataCallback: (IValidatePasswordData) => void,
-        messageCallback: (message: string) => void
-    ) => void;
+    validatePassword(password1: string, password2: string, userKey: string): IPromise<IValidatePasswordData>;
 }
 
 export interface IValidatePasswordData {
@@ -47,8 +40,9 @@ export interface IValidatePasswordData {
 export default class PasswordService implements IPasswordService {
     PWM_MAIN: any;
 
-    static $inject = [ '$log', '$window', 'pwmService', 'translateFilter' ];
+    static $inject = [ '$log', '$timeout', '$window', 'pwmService', 'translateFilter' ];
     constructor(private $log: ILogService,
+                private $timeout: ITimeoutService,
                 private $window: IWindowService,
                 private pwmService: IPwmService,
                 private translateFilter: (id: string) => string) {
@@ -60,17 +54,14 @@ export default class PasswordService implements IPasswordService {
         }
     }
 
-    validatePassword(password1: string, password2: string, userKey: string): IValidatePasswordResultsFunction {
-        let data = { password1: password1, password2: password2, userDN: userKey };
-        let processResultsFunction = null;
-        let validationProps = {
-            messageWorking: this.translateFilter('Display_CheckingPassword'),
-            processResultsFunction: processResultsFunction,
-            readDataFunction: () => data,
-            serviceURL: this.pwmService.getServerUrl('checkPassword')
+    validatePassword(password1: string, password2: string, userKey: string): IPromise<IValidatePasswordData> {
+        let data = {
+            password1: password1,
+            password2: password2,
+            userDN: userKey
         };
-        this.PWM_MAIN.pwmFormValidator(validationProps);
+        let url: string = this.pwmService.getServerUrl('checkPassword');
 
-        return null;
+        return this.pwmService.httpRequest(url, { data: data });
     }
 }
