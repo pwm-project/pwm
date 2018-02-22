@@ -102,7 +102,7 @@ export default class VerificationsDialogController {
 
     private loadVerificationOptions() {
         this.configService
-            .getVerificationMethods()
+            .getVerificationMethods({includeOptional: this.isDetailsView})
             .then((methods) => {
                 this.status = STATUS_SELECT;
                 this.availableVerificationMethods = methods;

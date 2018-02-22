@@ -27,5 +27,6 @@ import 'angular-mocks';
 
 // This creates a single bundle with all test cases (*.test.ts), which improves performance
 // (i.e. we don't create a webpack bundle for each test):
-var appContext = (require as any).context('../src', true, /\.test\.ts/);
+// var appContext = (require as any).context('../src', true, /\.test\.ts/);
+var appContext = (require as any).context('../src', true, /helpdesk-config\.service\.test\.ts/);
 appContext.keys().forEach(appContext);
