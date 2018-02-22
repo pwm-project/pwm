@@ -224,18 +224,19 @@ export default class HelpDeskDetailComponent {
                     '$scope',
                     'HelpDeskService',
                     'translateFilter',
-                    function ($scope: IScope | any,
+                    ($scope: IScope | any,
                               helpDeskService: IHelpDeskService,
-                              translateFilter: (id: string) => string) {
+                              translateFilter: (id: string) => string) => {
                         $scope.status = STATUS_CONFIRM;
                         $scope.title = translateFilter('Button_HelpdeskClearOtpSecret');
                         $scope.text = translateFilter('Confirm');
                         $scope.confirm = () => {
                             $scope.status = STATUS_WAIT;
-                            helpDeskService.clearResponses(userKey).then((data: ISuccessResponse) => {
+                            helpDeskService.clearOtpSecret(userKey).then((data: ISuccessResponse) => {
                                 // TODO - error dialog?
                                 $scope.status = STATUS_SUCCESS;
                                 $scope.text = data.successMessage;
+                                this.refresh();
                             });
                         };
                     }
@@ -257,9 +258,9 @@ export default class HelpDeskDetailComponent {
                     '$scope',
                     'HelpDeskService',
                     'translateFilter',
-                    function ($scope: IScope | any,
+                    ($scope: IScope | any,
                               helpDeskService: IHelpDeskService,
-                              translateFilter: (id: string) => string) {
+                              translateFilter: (id: string) => string) => {
                         $scope.status = STATUS_CONFIRM;
                         $scope.title = translateFilter('Button_ClearResponses');
                         $scope.text = translateFilter('Confirm');
@@ -269,6 +270,7 @@ export default class HelpDeskDetailComponent {
                                 // TODO - error dialog?
                                 $scope.status = STATUS_SUCCESS;
                                 $scope.text = data.successMessage;
+                                this.refresh();
                             });
                         };
                     }
@@ -398,9 +400,9 @@ export default class HelpDeskDetailComponent {
                     '$scope',
                     'HelpDeskService',
                     'translateFilter',
-                    function ($scope: IScope | any,
+                    ($scope: IScope | any,
                               helpDeskService: IHelpDeskService,
-                              translateFilter: (id: string) => string) {
+                              translateFilter: (id: string) => string) => {
                         $scope.status = STATUS_CONFIRM;
                         $scope.title = translateFilter('Button_Unlock');
                         $scope.text = translateFilter('Confirm');
@@ -410,6 +412,7 @@ export default class HelpDeskDetailComponent {
                                 // TODO - error dialog?
                                 $scope.status = STATUS_SUCCESS;
                                 $scope.text = data.successMessage;
+                                this.refresh();
                             });
                         };
                     }

@@ -1692,6 +1692,15 @@
             <value>false</value>
         </default>
     </setting>
+    <setting hidden="true" key="otp.profile.list" level="1" required="false">
+        <regex>^(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
+        <properties>
+            <property key="Minimum">1</property>
+        </properties>
+        <default>
+            <value>default</value>
+        </default>
+    </setting>
     <setting hidden="false" key="otp.forceSetup" level="1" required="true">
         <default>
             <value><![CDATA[SKIP]]></value>
@@ -1755,7 +1764,7 @@
             <value><![CDATA[PWM]]></value>
         </default>
         <options>
-            <option value="PWM">PWM JSON</option>
+            <option value="PWM">JSON</option>
             <option value="BASE32SECRET">Base32 secret</option>
             <option value="OTPURL">OTP URL</option>
             <option value="PAM">PAM text</option>
@@ -3900,7 +3909,12 @@
     </category>
     <category hidden="false" key="TOKEN">
     </category>
-    <category hidden="false" key="OTP">
+    <category hidden="false" key="OTP_SETUP">
+    </category>
+    <category hidden="false" key="OTP_SETTINGS">
+    </category>
+    <category hidden="false" key="OTP_PROFILE" profiles="true">
+        <profile setting="otp.profile.list"/>
     </category>
     <category hidden="false" key="LOGGING">
     </category>

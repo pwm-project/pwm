@@ -38,10 +38,10 @@
     </jsp:include>
 
     <div id="centerbody" class="tile-centerbody">
-    <pwm:if test="<%=PwmIfTest.endUserFunctionalityAvailable%>" negate="true">
-        <p><pwm:display key="Warning_NoEndUserModules" bundle="Config"/></p>
-        <br/>
-    </pwm:if>
+        <pwm:if test="<%=PwmIfTest.endUserFunctionalityAvailable%>" negate="true">
+            <p><pwm:display key="Warning_NoEndUserModules" bundle="Config"/></p>
+            <br/>
+        </pwm:if>
         <pwm:if test="<%=PwmIfTest.endUserFunctionalityAvailable%>">
             <pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.CHANGE_PASSWORD%>">
                 <a id="button_ChangePassword" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.PrivateChangePassword.servletUrl()%>'/>">
@@ -97,18 +97,16 @@
                 </pwm:if>
             </pwm:if>
 
-            <pwm:if test="<%=PwmIfTest.otpEnabled%>">
-                <pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.SETUP_OTP_SECRET%>">
-                    <a id="button_SetupOtpSecret" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.SetupOtp.servletUrl()%>'/>">
-                        <div class="tile">
-                            <div class="tile-content">
-                                <div class="tile-image mobile-image"></div>
-                                <div class="tile-title" title="<pwm:display key='Title_SetupOtpSecret'/>"><pwm:display key="Title_SetupOtpSecret"/></div>
-                                <div class="tile-subtitle" title="<pwm:display key='Long_Title_SetupOtpSecret'/>"><pwm:display key="Long_Title_SetupOtpSecret"/></div>
-                            </div>
+            <pwm:if test="<%=PwmIfTest.otpSetupEnabled%>">
+                <a id="button_SetupOtpSecret" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.SetupOtp.servletUrl()%>'/>">
+                    <div class="tile">
+                        <div class="tile-content">
+                            <div class="tile-image mobile-image"></div>
+                            <div class="tile-title" title="<pwm:display key='Title_SetupOtpSecret'/>"><pwm:display key="Title_SetupOtpSecret"/></div>
+                            <div class="tile-subtitle" title="<pwm:display key='Long_Title_SetupOtpSecret'/>"><pwm:display key="Long_Title_SetupOtpSecret"/></div>
                         </div>
-                    </a>
-                </pwm:if>
+                    </div>
+                </a>
             </pwm:if>
 
             <pwm:if test="<%=PwmIfTest.updateProfileAvailable%>">

@@ -43,6 +43,7 @@ import password.pwm.config.profile.ProfileType;
 import password.pwm.config.profile.ProfileUtility;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.PwmPasswordRule;
+import password.pwm.config.profile.SetupOtpProfile;
 import password.pwm.config.profile.UpdateAttributesProfile;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.value.data.UserPermission;
@@ -422,11 +423,30 @@ public class UserInfoReader implements UserInfo
     {
         LOGGER.trace( sessionLabel, "checkOtp: beginning process to check if user OTP setup is required" );
 
-        final UserIdentity userIdentity = getUserIdentity();
-
-        if ( !pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.OTP_ENABLED ) )
+        SetupOtpProfile setupOtpProfile = null;
+        final Map<ProfileType, String> profileIDs = selfCachedReference.getProfileIDs();
+        if ( profileIDs.containsKey( ProfileType.UpdateAttributes ) )
         {
-            LOGGER.trace( sessionLabel, "checkOtp: OTP is not enabled, user OTP setup is not required" );
+            setupOtpProfile = pwmApplication.getConfig().getSetupOTPProfiles().get( profileIDs.get( ProfileType.SetupOTPProfile ) );
+        }
+
+        if ( setupOtpProfile == null )
+        {
+            LOGGER.trace( sessionLabel, "checkOtp: no otp setup profile assigned, user OTP setup is not required" );
+            return false;
+        }
+
+        if ( !setupOtpProfile.readSettingAsBoolean( PwmSetting.OTP_ALLOW_SETUP ) )
+        {
+            LOGGER.trace( sessionLabel, "checkOtp: OTP allow setup is not enabled" );
+            return false;
+        }
+
+        final ForceSetupPolicy policy = setupOtpProfile.readSettingAsEnum( PwmSetting.OTP_FORCE_SETUP, ForceSetupPolicy.class );
+
+        if ( policy == ForceSetupPolicy.SKIP )
+        {
+            LOGGER.trace( sessionLabel, "checkOtp: OTP force setup policy is set to SKIP, user OTP setup is not required" );
             return false;
         }
 
@@ -438,15 +458,6 @@ public class UserInfoReader implements UserInfo
             LOGGER.trace( sessionLabel, "checkOtp: user has existing valid otp record, user OTP setup is not required" );
             return false;
         }
-
-        final List<UserPermission> setupOtpPermission = pwmApplication.getConfig().readSettingAsUserPermission( PwmSetting.OTP_SETUP_USER_PERMISSION );
-        if ( !LdapPermissionTester.testUserPermissions( pwmApplication, sessionLabel, userIdentity, setupOtpPermission ) )
-        {
-            LOGGER.trace( sessionLabel, "checkOtp: " + userIdentity.toString() + " is not eligible for checkOtp due to query match" );
-            return false;
-        }
-
-        final ForceSetupPolicy policy = pwmApplication.getConfig().readSettingAsEnum( PwmSetting.OTP_FORCE_SETUP, ForceSetupPolicy.class );
 
         // hasStoredOtp is always true at this point, so if forced then update needed
         LOGGER.debug( sessionLabel, "checkOtp: user does not have existing valid otp record, user OTP setup is required" );

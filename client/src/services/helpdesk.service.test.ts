@@ -20,11 +20,12 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-import HelpDeskService from './helpdesk.service';
-import {IHttpService, ILogService, IQService, IWindowService, module} from 'angular';
+import HelpDeskService, {IRecentVerifications} from './helpdesk.service';
+import {IHttpBackendService, IHttpService, ILogService, IQService, IWindowService, module} from 'angular';
 import ObjectService from './object.service';
 import {default as PwmService, IPwmService} from './pwm.service';
 import LocalStorageService from './local-storage.service';
+import {getRecentVerifications_response} from './helpdesk.service.test-data';
 
 describe('In helpdesk.service.test.ts', () => {
     beforeEach(() => {
@@ -35,26 +36,47 @@ describe('In helpdesk.service.test.ts', () => {
     let objectService: ObjectService;
     let pwmService: IPwmService;
     let helpDeskService: HelpDeskService;
+    let $httpBackend: IHttpBackendService;
+    let $window: IWindowService;
 
-    beforeEach(inject(($http: IHttpService, $log: ILogService, $q: IQService, $window: IWindowService) => {
+    beforeEach(inject((
+        $http: IHttpService,
+        $log: ILogService,
+        $q: IQService,
+        _$window_: IWindowService,
+        _$httpBackend_: IHttpBackendService
+    ) => {
+        $httpBackend = _$httpBackend_;
+        $window = _$window_;
+
         localStorageService = new LocalStorageService($log, $window);
         objectService = new ObjectService();
         pwmService = new PwmService($http, $log, $q, $window);
         helpDeskService = new HelpDeskService($log, $q, localStorageService, objectService, pwmService, $window);
     }));
 
-    it('a person can be obtained from the HelpDeskService', (done: DoneFn) => {
-        expect(helpDeskService).toBeDefined();
+    it('getRecentVerifications returns the right record data', (done: DoneFn) => {
+        (pwmService as PwmService).PWM_GLOBAL = { pwmFormID: 'fake-pwm-form-id' };
 
-        // TODO: need to come back and build up some tests...
-        helpDeskService.getPerson('123')
-            .then((result: any) => {
-                expect(result).toBeDefined();
+        $httpBackend.whenPOST( '/context.html?processAction=showVerifications&pwmFormID=fake-pwm-form-id')
+            .respond(getRecentVerifications_response);
+
+        helpDeskService.getRecentVerifications()
+            .then((recentVerifications: IRecentVerifications) => {
+                expect(recentVerifications.length).toBe(1);
+
+                expect(recentVerifications[0].username).toBe('bjenner');
+                expect(recentVerifications[0].profile).toBe('default');
+                expect(recentVerifications[0].timestamp).toBe('2018-02-22T15:14:39Z');
+                expect(recentVerifications[0].method).toBe('Personal Data');
 
                 done();
             })
             .catch((error: Error) => {
                 done.fail(error);
             });
+
+        // This causes the $http service to finally resolve the response:
+        $httpBackend.flush();
     });
 });

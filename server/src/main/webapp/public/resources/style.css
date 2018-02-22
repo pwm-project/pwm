@@ -1633,3 +1633,7 @@ html[dir="rtl"] .message.message-error .errorDetail {
 table.ias-table, table.ias-table td {
     border: none;
 }
+
+.helpdesk-wrapper #centerbody {
+    overflow: auto;
+}

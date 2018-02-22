@@ -210,8 +210,8 @@ export default class HelpDeskService implements IHelpDeskService {
 
         return this.pwmService
             .httpRequest(url, { data: data })
-            .then((result: {records: IRecentVerifications}) => {
-                return this.$q.resolve(result.records);
+            .then((result: any) => {
+                return this.$q.resolve(result.data.records);
             });
     }
 

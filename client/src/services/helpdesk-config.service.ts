@@ -76,7 +76,7 @@ export interface IHelpDeskConfigService extends IConfigService {
     getPasswordUiMode(): IPromise<string>;
     getTokenSendMethod(): IPromise<string>;
     getVerificationAttributes(): IPromise<IVerificationMap>;
-    getVerificationMethods(): IPromise<IVerificationMap>;
+    getVerificationMethods(options?: {includeOptional: boolean}): IPromise<IVerificationMap>;
     maskPasswordsEnabled(): IPromise<boolean>;
     verificationsEnabled(): IPromise<boolean>;
 }
@@ -115,18 +115,22 @@ export default class HelpDeskConfigService extends ConfigBaseService implements 
         };
     }
 
-    getVerificationMethods(): IPromise<IVerificationMap> {
+    getVerificationMethods(options?: {includeOptional: boolean}): IPromise<IVerificationMap> {
         let promise = this.$q.all([
             this.getValue(VERIFICATION_METHODS_CONFIG),
             this.getTokenSendMethod()
         ]);
 
         return promise.then((result) => {
-            let methods: IVerificationResponse = result[0];
+            let availableMethods: string[] = result[0].required;
+            if (options && options.includeOptional) {
+                availableMethods = Array.from(new Set([].concat(result[0].required, result[0].optional)));
+            }
+
             let tokenSendMethod: string = result[1];
 
             let verificationMethods: IVerificationMap = [];
-            methods.required.forEach((method) => {
+            availableMethods.forEach((method) => {
                 if (method === TOKEN_VERIFICATION_METHOD) {
                     if (tokenSendMethod === TOKEN_EMAIL_ONLY || tokenSendMethod === TOKEN_CHOICE) {
                         verificationMethods.push(this.getVerificationMethod(VERIFICATION_METHOD_NAMES.EMAIL));

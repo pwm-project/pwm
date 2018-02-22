@@ -33,6 +33,7 @@ import password.pwm.config.profile.DeleteAccountProfile;
 import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.config.profile.Profile;
 import password.pwm.config.profile.ProfileType;
+import password.pwm.config.profile.SetupOtpProfile;
 import password.pwm.config.profile.UpdateAttributesProfile;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.ErrorInformation;
@@ -252,6 +253,11 @@ public class SessionManager
     public HelpdeskProfile getHelpdeskProfile( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
     {
         return ( HelpdeskProfile ) getProfile( pwmApplication, ProfileType.Helpdesk );
+    }
+
+    public SetupOtpProfile getSetupOTPProfile( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
+    {
+        return ( SetupOtpProfile ) getProfile( pwmApplication, ProfileType.SetupOTPProfile );
     }
 
     public UpdateAttributesProfile getUpdateAttributeProfile( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
