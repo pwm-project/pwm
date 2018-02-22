@@ -25,7 +25,6 @@ package password.pwm.http.servlet;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import net.glxn.qrgen.QRCode;
 import password.pwm.AppProperty;
-import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.LoginInfoBean;
@@ -33,6 +32,7 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.ForceSetupPolicy;
+import password.pwm.config.profile.SetupOtpProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -40,11 +40,11 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.JspUrl;
+import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.SetupOtpBean;
-import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.event.AuditEvent;
@@ -52,7 +52,6 @@ import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.event.UserAuditRecord;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.Validator;
-import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -80,11 +79,11 @@ import java.util.Map;
                 PwmConstants.URL_PREFIX_PRIVATE + "/SetupOtp"
         }
 )
-public class SetupOtpServlet extends AbstractPwmServlet
+public class SetupOtpServlet extends ControlledPwmServlet
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( SetupOtpServlet.class );
 
-    enum SetupOtpAction implements AbstractPwmServlet.ProcessAction
+    public enum SetupOtpAction implements AbstractPwmServlet.ProcessAction
     {
         clearOtp( HttpMethod.POST ),
         testOtpSecret( HttpMethod.POST ),
@@ -106,45 +105,39 @@ public class SetupOtpServlet extends AbstractPwmServlet
         }
     }
 
-    protected SetupOtpAction readProcessAction( final PwmRequest request )
-            throws PwmUnrecoverableException
+    public Class<? extends ProcessAction> getProcessActionsClass( )
     {
-        try
-        {
-            return SetupOtpAction.valueOf( request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
-        }
-        catch ( IllegalArgumentException e )
-        {
-            return null;
-        }
+        return SetupOtpAction.class;
     }
 
-    protected void processAction( final PwmRequest pwmRequest )
-            throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException
+
+    private SetupOtpBean getSetupOtpBean( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
+    {
+        return pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, SetupOtpBean.class );
+    }
+
+    public static SetupOtpProfile getSetupOtpProfile( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
+    {
+        return pwmRequest.getPwmSession().getSessionManager().getSetupOTPProfile( pwmRequest.getPwmApplication() );
+    }
+
+    @Override
+    public ProcessStatus preProcessCheck( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException, IOException, ServletException
     {
         // fetch the required beans / managers
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final UserInfo userInfo = pwmSession.getUserInfo();
         final Configuration config = pwmApplication.getConfig();
 
-        if ( !config.readSettingAsBoolean( PwmSetting.OTP_ENABLED ) )
+        final SetupOtpProfile setupOtpProfile = getSetupOtpProfile( pwmRequest );
+        if ( setupOtpProfile == null || !setupOtpProfile.readSettingAsBoolean( PwmSetting.OTP_ALLOW_SETUP ) )
         {
-            final String errorMsg = "setup OTP Secret service is not enabled";
+            final String errorMsg = "setup OTP is not enabled";
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, errorMsg );
             LOGGER.error( pwmRequest, errorInformation );
             pwmRequest.respondWithError( errorInformation );
-            return;
-        }
-
-        // check to see if the user is permitted to setup OTP
-        if ( !pwmSession.getSessionManager().checkPermission( pwmApplication, Permission.SETUP_OTP_SECRET ) )
-        {
-            final String errorMsg = String.format( "user %s does not have permission to setup an OTP secret", userInfo.getUserIdentity() );
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNAUTHORIZED, errorMsg );
-            LOGGER.error( pwmRequest, errorInformation );
-            pwmRequest.respondWithError( errorInformation );
-            return;
+            return ProcessStatus.Halt;
         }
 
         // check whether the setup can be stored
@@ -152,7 +145,7 @@ public class SetupOtpServlet extends AbstractPwmServlet
         {
             LOGGER.error( pwmSession, "OTP Secret cannot be setup" );
             pwmRequest.respondWithError( PwmError.ERROR_INVALID_CONFIG.toInfo() );
-            return;
+            return ProcessStatus.Halt;
         }
 
         if ( pwmSession.getLoginInfoBean().getType() == AuthenticationType.AUTH_WITHOUT_PASSWORD )
@@ -161,54 +154,16 @@ public class SetupOtpServlet extends AbstractPwmServlet
             throw new PwmUnrecoverableException( PwmError.ERROR_PASSWORD_REQUIRED );
         }
 
-        final SetupOtpBean otpBean = pwmApplication.getSessionStateService().getBean( pwmRequest, SetupOtpBean.class );
-
+        final SetupOtpBean otpBean = getSetupOtpBean( pwmRequest );
         initializeBean( pwmRequest, otpBean );
-
-        final SetupOtpAction action = readProcessAction( pwmRequest );
-        if ( action != null )
-        {
-            pwmRequest.validatePwmFormID();
-
-            switch ( action )
-            {
-                case clearOtp:
-                    handleClearOtpSecret( pwmRequest, otpBean );
-                    break;
-
-                case testOtpSecret:
-                    handleTestOtpSecret( pwmRequest, otpBean );
-                    break;
-
-                case toggleSeen:
-                    otpBean.setCodeSeen( !otpBean.isCodeSeen() );
-                    break;
-
-                case restValidateCode:
-                    handleRestValidateCode( pwmRequest );
-                    return;
-
-                case complete:
-                    handleComplete( pwmRequest );
-                    return;
-
-                case skip:
-                    handleSkip( pwmRequest, otpBean );
-                    return;
-
-                default:
-                    JavaHelper.unhandledSwitchStatement( action );
-            }
-        }
-        this.advanceToNextStage( pwmRequest, otpBean );
+        return ProcessStatus.Continue;
     }
 
-    private void advanceToNextStage(
-            final PwmRequest pwmRequest,
-            final SetupOtpBean otpBean
-    )
-            throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException
+    @Override
+    protected void nextStep( final  PwmRequest pwmRequest )
+            throws PwmUnrecoverableException, IOException, ServletException
     {
+        final SetupOtpBean otpBean = getSetupOtpBean( pwmRequest );
         if ( otpBean.isHasPreExistingOtp() )
         {
             pwmRequest.forwardToJsp( JspUrl.SETUP_OTP_SECRET_EXISTING );
@@ -284,12 +239,13 @@ public class SetupOtpServlet extends AbstractPwmServlet
     }
 
 
-    private void handleSkip(
-            final PwmRequest pwmRequest,
-            final SetupOtpBean otpBean
+    @ActionHandler( action = "skip" )
+    private ProcessStatus handleSkipRequest(
+            final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException
     {
+
         boolean allowSkip = false;
         if ( !pwmRequest.isForcedPageView() )
         {
@@ -297,7 +253,8 @@ public class SetupOtpServlet extends AbstractPwmServlet
         }
         else
         {
-            final ForceSetupPolicy policy = pwmRequest.getConfig().readSettingAsEnum( PwmSetting.OTP_FORCE_SETUP, ForceSetupPolicy.class );
+            final SetupOtpProfile setupOtpProfile = getSetupOtpProfile( pwmRequest );
+            final ForceSetupPolicy policy = setupOtpProfile.readSettingAsEnum( PwmSetting.OTP_FORCE_SETUP, ForceSetupPolicy.class );
             if ( policy == ForceSetupPolicy.FORCE_ALLOW_SKIP )
             {
                 allowSkip = true;
@@ -308,13 +265,14 @@ public class SetupOtpServlet extends AbstractPwmServlet
         {
             pwmRequest.getPwmSession().getLoginInfoBean().getLoginFlags().add( LoginInfoBean.LoginFlag.skipOtp );
             pwmRequest.sendRedirectToContinue();
-            return;
+            return ProcessStatus.Halt;
         }
 
-        this.advanceToNextStage( pwmRequest, otpBean );
+        return ProcessStatus.Continue;
     }
 
-    private void handleComplete(
+    @ActionHandler( action = "complete" )
+    private ProcessStatus handleComplete(
             final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException
@@ -324,10 +282,11 @@ public class SetupOtpServlet extends AbstractPwmServlet
         pwmRequest.getPwmApplication().getSessionStateService().clearBean( pwmRequest, SetupOtpBean.class );
 
         pwmRequest.sendRedirectToContinue();
+        return ProcessStatus.Halt;
     }
 
-
-    private void handleRestValidateCode(
+    @ActionHandler( action = "restValidateCode" )
+    private ProcessStatus handleRestValidateCode(
             final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException
@@ -363,14 +322,18 @@ public class SetupOtpServlet extends AbstractPwmServlet
             LOGGER.error( pwmSession, errorMsg );
             pwmRequest.outputJsonResult( RestResultBean.fromError( new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg ), pwmRequest ) );
         }
+
+        return ProcessStatus.Continue;
     }
 
-    private void handleClearOtpSecret(
-            final PwmRequest pwmRequest,
-            final SetupOtpBean otpBean
+    @ActionHandler( action = "clearOtp" )
+    private ProcessStatus handleClearOtpSecret(
+            final PwmRequest pwmRequest
     )
-            throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException
+            throws PwmUnrecoverableException, ChaiUnavailableException
     {
+        final SetupOtpBean otpBean = getSetupOtpBean( pwmRequest );
+
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final OtpService service = pwmApplication.getOtpService();
@@ -383,19 +346,22 @@ public class SetupOtpServlet extends AbstractPwmServlet
         {
             setLastError( pwmRequest, e.getErrorInformation() );
             LOGGER.error( pwmRequest, e.getErrorInformation() );
-            return;
+            return ProcessStatus.Halt;
         }
 
         otpBean.setHasPreExistingOtp( false );
         initializeBean( pwmRequest, otpBean );
+        return ProcessStatus.Continue;
     }
 
-    private void handleTestOtpSecret(
-            final PwmRequest pwmRequest,
-            final SetupOtpBean otpBean
+    @ActionHandler( action = "testOtpSecret" )
+    private ProcessStatus handleTestOtpSecret(
+            final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
     {
+        final SetupOtpBean otpBean = getSetupOtpBean( pwmRequest );
+
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
@@ -435,14 +401,14 @@ public class SetupOtpServlet extends AbstractPwmServlet
             }
         }
 
-        //@todo: handle case to HOTP
+        return ProcessStatus.Continue;
     }
 
     private void initializeBean(
             final PwmRequest pwmRequest,
             final SetupOtpBean otpBean
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException
+            throws PwmUnrecoverableException
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
@@ -459,7 +425,17 @@ public class SetupOtpServlet extends AbstractPwmServlet
         // first time here
         if ( otpBean.getOtpUserRecord() == null )
         {
-            final OTPUserRecord existingUserRecord = service.readOTPUserConfiguration( pwmRequest.getSessionLabel(), theUser );
+
+            final OTPUserRecord existingUserRecord;
+            try
+            {
+                existingUserRecord = service.readOTPUserConfiguration( pwmRequest.getSessionLabel(), theUser );
+            }
+            catch ( ChaiUnavailableException e )
+            {
+                throw PwmUnrecoverableException.fromChaiException( e );
+            }
+
             if ( existingUserRecord != null )
             {
                 otpBean.setHasPreExistingOtp( true );
@@ -474,10 +450,12 @@ public class SetupOtpServlet extends AbstractPwmServlet
             try
             {
                 final Configuration config = pwmApplication.getConfig();
-                final String identifierConfigValue = config.readSettingAsString( PwmSetting.OTP_SECRET_IDENTIFIER );
+                final SetupOtpProfile setupOtpProfile = getSetupOtpProfile( pwmRequest );
+                final String identifierConfigValue = setupOtpProfile.readSettingAsString( PwmSetting.OTP_SECRET_IDENTIFIER );
                 final String identifier = pwmSession.getSessionManager().getMacroMachine( pwmApplication ).expandMacros( identifierConfigValue );
                 final OTPUserRecord otpUserRecord = new OTPUserRecord();
                 final List<String> rawRecoveryCodes = pwmApplication.getOtpService().initializeUserRecord(
+                        setupOtpProfile,
                         otpUserRecord,
                         pwmRequest.getSessionLabel(),
                         identifier
@@ -497,6 +475,15 @@ public class SetupOtpServlet extends AbstractPwmServlet
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg ) );
             }
         }
+    }
+
+    @ActionHandler( action = "toggleSeen" )
+    private ProcessStatus processToggleSeen( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException
+    {
+        final SetupOtpBean otpBean = getSetupOtpBean( pwmRequest );
+        otpBean.setCodeSeen( !otpBean.isCodeSeen() );
+        return ProcessStatus.Continue;
     }
 
     private boolean canSetupOtpSecret( final Configuration config )

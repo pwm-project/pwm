@@ -53,6 +53,15 @@ public class PwmSettingCategoryTest {
         }
     }
 
+    @Test
+    public void testProfileSettingSyntax() {
+        for (final PwmSettingCategory category : PwmSettingCategory.values()) {
+            if (category.hasProfiles()) {
+                final PwmSetting pwmSetting = category.getProfileSetting();
+                Assert.assertEquals( pwmSetting.getSyntax(), PwmSettingSyntax.PROFILE );
+            }
+        }
+    }
 
     @Test
     public void testProfileCategoryHasSettingsOrChildren() {

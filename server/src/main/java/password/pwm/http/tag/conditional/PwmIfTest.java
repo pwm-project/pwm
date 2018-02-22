@@ -31,6 +31,7 @@ import password.pwm.PwmEnvironment;
 import password.pwm.bean.PasswordStatus;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.ProfileType;
+import password.pwm.config.profile.SetupOtpProfile;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMonitor;
 import password.pwm.health.HealthStatus;
@@ -58,7 +59,7 @@ public enum PwmIfTest
     showHeaderMenu( new ShowHeaderMenuTest() ),
     showVersionHeader( new BooleanAppPropertyTest( AppProperty.HTTP_HEADER_SEND_XVERSION ) ),
     permission( new BooleanPermissionTest() ),
-    otpEnabled( new BooleanPwmSettingTest( PwmSetting.OTP_ENABLED ) ),
+    otpSetupEnabled( new SetupOTPEnabled() ),
     hasStoredOtpTimestamp( new HasStoredOtpTimestamp() ),
     setupChallengeEnabled( new BooleanPwmSettingTest( PwmSetting.CHALLENGE_ENABLE ) ),
     shortcutsEnabled( new BooleanPwmSettingTest( PwmSetting.SHORTCUT_ENABLE ) ),
@@ -493,6 +494,21 @@ public enum PwmIfTest
             final UserInfo userInfoBean = pwmRequest.getPwmSession().getUserInfo();
             final PasswordStatus passwordStatus = userInfoBean.getPasswordStatus();
             return passwordStatus.isExpired() || passwordStatus.isPreExpired() || passwordStatus.isViolatesPolicy();
+        }
+    }
+
+    private static class SetupOTPEnabled implements Test
+    {
+        @Override
+        public boolean test( final PwmRequest pwmRequest, final PwmIfOptions options ) throws ChaiUnavailableException, PwmUnrecoverableException
+        {
+            if ( !pwmRequest.isAuthenticated() )
+            {
+                return false;
+            }
+
+            final SetupOtpProfile setupOtpProfile = pwmRequest.getPwmSession().getSessionManager().getSetupOTPProfile( pwmRequest.getPwmApplication() );
+            return setupOtpProfile != null && setupOtpProfile.readSettingAsBoolean( PwmSetting.OTP_ALLOW_SETUP );
         }
     }
 }

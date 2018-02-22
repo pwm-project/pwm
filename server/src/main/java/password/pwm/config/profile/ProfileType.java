@@ -31,7 +31,8 @@ public enum ProfileType
     ForgottenPassword( false, PwmSettingCategory.RECOVERY_PROFILE, PwmSetting.RECOVERY_PROFILE_QUERY_MATCH ),
     NewUser( false, PwmSettingCategory.NEWUSER_PROFILE, null ),
     UpdateAttributes( true, PwmSettingCategory.UPDATE_PROFILE, PwmSetting.UPDATE_PROFILE_QUERY_MATCH ),
-    DeleteAccount( true, PwmSettingCategory.DELETE_ACCOUNT_PROFILE, PwmSetting.DELETE_ACCOUNT_PERMISSION ),;
+    DeleteAccount( true, PwmSettingCategory.DELETE_ACCOUNT_PROFILE, PwmSetting.DELETE_ACCOUNT_PERMISSION ),
+    SetupOTPProfile( true, PwmSettingCategory.OTP_PROFILE, PwmSetting.OTP_SETUP_USER_PERMISSION ),;
 
     private final boolean authenticated;
     private final PwmSettingCategory category;

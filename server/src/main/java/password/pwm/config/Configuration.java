@@ -42,6 +42,7 @@ import password.pwm.config.profile.ProfileType;
 import password.pwm.config.profile.ProfileUtility;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.PwmPasswordRule;
+import password.pwm.config.profile.SetupOtpProfile;
 import password.pwm.config.profile.UpdateAttributesProfile;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.StoredConfigurationImpl;
@@ -1069,6 +1070,17 @@ public class Configuration implements SettingReader
         return returnMap;
     }
 
+    public Map<String, SetupOtpProfile> getSetupOTPProfiles( )
+    {
+        final Map<String, SetupOtpProfile> returnMap = new LinkedHashMap<>();
+        final Map<String, Profile> profileMap = profileMap( ProfileType.SetupOTPProfile );
+        for ( final Map.Entry<String, Profile> entry : profileMap.entrySet() )
+        {
+            returnMap.put( entry.getKey(), ( SetupOtpProfile ) entry.getValue() );
+        }
+        return returnMap;
+    }
+
     public Map<String, UpdateAttributesProfile> getUpdateAttributesProfile( )
     {
         final Map<String, UpdateAttributesProfile> returnMap = new LinkedHashMap<>();
@@ -1128,6 +1140,10 @@ public class Configuration implements SettingReader
 
             case DeleteAccount:
                 newProfile = DeleteAccountProfile.makeFromStoredConfiguration( storedConfiguration, profileID );
+                break;
+
+            case SetupOTPProfile:
+                newProfile = SetupOtpProfile.makeFromStoredConfiguration( storedConfiguration, profileID );
                 break;
 
             default:
