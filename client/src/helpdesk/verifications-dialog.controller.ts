@@ -126,9 +126,9 @@ export default class VerificationsDialogController {
                     let choice = (tokenSendMethod === TOKEN_CHOICE) ? method : null;
                     return this.helpDeskService.sendVerificationToken(this.personUserKey, choice);
                 })
-                .then((response) => {
+                .then((response: any) => {
                     this.status = STATUS_VERIFY;
-                    this.tokenData = response;
+                    this.tokenData = response.data;
                 });
         }
         else if (method === VERIFICATION_METHOD_NAMES.OTP) {
