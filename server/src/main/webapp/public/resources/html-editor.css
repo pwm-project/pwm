@@ -67,6 +67,7 @@
 
 .html-editor .btn-group button {
     height: 24px;
+    min-width: auto;
     width: 24px;
 }
 
