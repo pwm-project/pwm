@@ -24,7 +24,6 @@ package password.pwm.bean;
 
 import lombok.Builder;
 import lombok.Getter;
-import password.pwm.ldap.PwmLdapVendor;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -40,7 +39,7 @@ public class TelemetryPublishBean implements Serializable
     private final String instanceHash;
     private final String siteDescription;
     private final Instant installTime;
-    private final List<PwmLdapVendor> ldapVendor;
+    private final String ldapVendorName;
     private final Map<String, String> statistics;
     private final List<String> configuredSettings;
     private final String versionBuild;

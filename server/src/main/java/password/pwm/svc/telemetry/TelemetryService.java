@@ -63,10 +63,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -291,18 +289,24 @@ public class TelemetryService implements PwmService
             }
         }
 
-        final Set<PwmLdapVendor> ldapVendors = new LinkedHashSet<>();
+        String ldapVendorName = null;
         for ( final LdapProfile ldapProfile : config.getLdapProfiles().values() )
         {
-            try
+            if ( ldapVendorName == null )
             {
-                final DirectoryVendor directoryVendor = ldapProfile.getProxyChaiProvider( pwmApplication ).getDirectoryVendor();
-                final PwmLdapVendor pwmLdapVendor = PwmLdapVendor.fromChaiVendor( directoryVendor );
-                ldapVendors.add( pwmLdapVendor );
-            }
-            catch ( Exception e )
-            {
-                LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "unable to read ldap vendor type for stats publication: " + e.getMessage() );
+                try
+                {
+                    final DirectoryVendor directoryVendor = ldapProfile.getProxyChaiProvider( pwmApplication ).getDirectoryVendor();
+                    final PwmLdapVendor pwmLdapVendor = PwmLdapVendor.fromChaiVendor( directoryVendor );
+                    if ( pwmLdapVendor != null )
+                    {
+                        ldapVendorName = pwmLdapVendor.name();
+                    }
+                }
+                catch ( Exception e )
+                {
+                    LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "unable to read ldap vendor type for stats publication: " + e.getMessage() );
+                }
             }
         }
 
@@ -325,7 +329,7 @@ public class TelemetryService implements PwmService
         builder.siteDescription( config.readSettingAsString( PwmSetting.PUBLISH_STATS_SITE_DESCRIPTION ) );
         builder.versionBuild( PwmConstants.BUILD_NUMBER );
         builder.versionVersion( PwmConstants.BUILD_VERSION );
-        builder.ldapVendor( Collections.unmodifiableList( new ArrayList<>( ldapVendors ) ) );
+        builder.ldapVendorName( ldapVendorName );
         builder.statistics( Collections.unmodifiableMap( statData ) );
         builder.configuredSettings( Collections.unmodifiableList( configuredSettings ) );
         builder.about( aboutStrings );
