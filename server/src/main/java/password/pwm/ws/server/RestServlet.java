@@ -290,16 +290,17 @@ public abstract class RestServlet extends HttpServlet
             throw PwmUnrecoverableException.newException( PwmError.ERROR_UNKNOWN, "class is missing " + RestWebServer.class.getSimpleName() + " annotation" );
         }
 
-        if ( !restRequest.getRestAuthentication().getUsages().contains( classAnnotation.webService() ) )
-        {
-            throw PwmUnrecoverableException.newException( PwmError.ERROR_UNAUTHORIZED, "access to " + classAnnotation.webService() + " service is not permitted for this login" );
-        }
 
         if ( classAnnotation.requireAuthentication() )
         {
             if ( restRequest.getRestAuthentication().getType() == RestAuthenticationType.PUBLIC )
             {
                 throw PwmUnrecoverableException.newException( PwmError.ERROR_UNAUTHORIZED, "this service requires authentication" );
+            }
+
+            if ( !restRequest.getRestAuthentication().getUsages().contains( classAnnotation.webService() ) )
+            {
+                throw PwmUnrecoverableException.newException( PwmError.ERROR_UNAUTHORIZED, "access to " + classAnnotation.webService() + " service is not permitted for this login" );
             }
         }
 
@@ -344,7 +345,7 @@ public abstract class RestServlet extends HttpServlet
                     resp.setHeader( HttpHeader.Content_Type.getHttpName(), HttpContentType.plain.getHeaderValue() );
                     if ( restResultBean.isError() )
                     {
-                        resp.setStatus( HttpServletResponse.SC_INTERNAL_SERVER_ERROR, restResultBean.getErrorMessage() );
+                        resp.sendError( HttpServletResponse.SC_INTERNAL_SERVER_ERROR, restResultBean.getErrorMessage() );
                     }
                     else
                     {
@@ -352,7 +353,8 @@ public abstract class RestServlet extends HttpServlet
                         {
                             try ( PrintWriter pw = resp.getWriter() )
                             {
-                                pw.write( restResultBean.getData().toString() );
+                                final String output = String.valueOf( restResultBean.getData() );
+                                pw.write( output );
                             }
                         }
                     }

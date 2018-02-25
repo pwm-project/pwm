@@ -37,6 +37,7 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.PasswordData;
 import password.pwm.util.RandomPasswordGenerator;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.ws.server.RestMethodHandler;
@@ -130,7 +131,8 @@ public class RestRandomPasswordServer extends RestServlet
 
         try
         {
-            return RestResultBean.withData( doOperation( restRequest, jsonInput ) );
+            final JsonOutput jsonOutput = doOperation( restRequest, jsonInput );
+            return RestResultBean.withData( jsonOutput.getPassword() );
         }
         catch ( Exception e )
         {
@@ -175,7 +177,7 @@ public class RestRandomPasswordServer extends RestServlet
     {
         final PwmPasswordPolicy pwmPasswordPolicy;
 
-        if ( jsonInput.isNoUser() )
+        if ( jsonInput.isNoUser() || StringUtil.isEmpty( jsonInput.getUsername() ) )
         {
             pwmPasswordPolicy = PwmPasswordPolicy.defaultPolicy();
         }
