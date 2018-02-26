@@ -33,6 +33,7 @@ import password.pwm.config.option.WebServiceUsage;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
+import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.i18n.Message;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
@@ -41,6 +42,7 @@ import password.pwm.ws.server.RestMethodHandler;
 import password.pwm.ws.server.RestRequest;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServlet;
+import password.pwm.ws.server.RestUtility;
 import password.pwm.ws.server.RestWebServer;
 
 import javax.servlet.annotation.WebServlet;
@@ -102,9 +104,14 @@ public class RestVerifyResponsesServer extends RestServlet
     {
         final Instant startTime = Instant.now();
 
-        final JsonPutChallengesInput jsonInput = deserializeJsonBody( restRequest, JsonPutChallengesInput.class );
+        final JsonPutChallengesInput jsonInput = RestUtility.deserializeJsonBody( restRequest, JsonPutChallengesInput.class );
 
-        final TargetUserIdentity targetUserIdentity = resolveRequestedUsername( restRequest, jsonInput.getUsername() );
+        final String username = RestUtility.readValueFromJsonAndParam(
+                jsonInput.getUsername(),
+                restRequest.readParameterAsString( "username", PwmHttpRequestWrapper.Flag.BypassValidation ),
+                "username" );
+
+        final TargetUserIdentity targetUserIdentity = RestUtility.resolveRequestedUsername( restRequest, username );
 
         LOGGER.debug( restRequest.getSessionLabel(), "beginning /verifyresponses REST service against "
                 + ( targetUserIdentity.isSelf() ? "self" : targetUserIdentity.getUserIdentity().toDisplayString() ) );
@@ -133,5 +140,6 @@ public class RestVerifyResponsesServer extends RestServlet
             throw PwmUnrecoverableException.fromChaiException( e );
         }
     }
+
 }
 

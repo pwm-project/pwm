@@ -22,7 +22,6 @@
 
 package password.pwm.ws.server;
 
-import com.google.gson.stream.MalformedJsonException;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
@@ -36,14 +35,12 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.filter.RequestInitializationFilter;
-import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.JavaHelper;
@@ -300,7 +297,10 @@ public abstract class RestServlet extends HttpServlet
 
             if ( !restRequest.getRestAuthentication().getUsages().contains( classAnnotation.webService() ) )
             {
-                throw PwmUnrecoverableException.newException( PwmError.ERROR_UNAUTHORIZED, "access to " + classAnnotation.webService() + " service is not permitted for this login" );
+                throw PwmUnrecoverableException.newException(
+                        PwmError.ERROR_UNAUTHORIZED,
+                        "access to " + classAnnotation.webService() + " service is not permitted for this login"
+                );
             }
         }
 
@@ -420,85 +420,4 @@ public abstract class RestServlet extends HttpServlet
         }
     }
 
-    public static <T> T deserializeJsonBody( final RestRequest restRequest, final Class<T> classOfT )
-            throws IOException, PwmUnrecoverableException
-    {
-        try
-        {
-            final T jsonData = JsonUtil.deserialize( restRequest.readRequestBodyAsString(), classOfT );
-            if ( jsonData == null )
-            {
-                throw PwmUnrecoverableException.newException( PwmError.ERROR_REST_INVOCATION_ERROR, "missing json body" );
-            }
-            return jsonData;
-        }
-        catch ( Exception e )
-        {
-            if ( e.getCause() instanceof MalformedJsonException )
-            {
-                throw PwmUnrecoverableException.newException( PwmError.ERROR_REST_INVOCATION_ERROR, "json parse error: " + e.getCause().getMessage() );
-            }
-            throw PwmUnrecoverableException.newException( PwmError.ERROR_REST_INVOCATION_ERROR, "json parse error: " + e.getMessage() );
-        }
-    }
-
-    public static TargetUserIdentity resolveRequestedUsername(
-            final RestRequest restRequest,
-            final String username
-    )
-            throws PwmUnrecoverableException
-    {
-        final PwmApplication pwmApplication = restRequest.getPwmApplication();
-
-        if ( StringUtil.isEmpty( username ) )
-        {
-            if ( restRequest.getRestAuthentication().getType() == RestAuthenticationType.NAMED_SECRET )
-            {
-                throw PwmUnrecoverableException.newException( PwmError.ERROR_REST_INVOCATION_ERROR, "username field required" );
-            }
-        }
-        else
-        {
-            if ( !restRequest.getRestAuthentication().isThirdPartyEnabled() )
-            {
-                throw PwmUnrecoverableException.newException(
-                        PwmError.ERROR_UNAUTHORIZED,
-                        "username specified in request, however third party permission is not granted to the authenticated login."
-                );
-            }
-        }
-
-        if ( StringUtil.isEmpty( username ) )
-        {
-            if ( restRequest.getRestAuthentication().getType() == RestAuthenticationType.LDAP )
-            {
-                return new TargetUserIdentity( restRequest, restRequest.getRestAuthentication().getLdapIdentity(), true );
-            }
-        }
-
-        final String ldapProfileID;
-        final String effectiveUsername;
-        if ( username.contains( "|" ) )
-        {
-            final int pipeIndex = username.indexOf( "|" );
-            ldapProfileID = username.substring( 0, pipeIndex );
-            effectiveUsername = username.substring( pipeIndex + 1, username.length() );
-        }
-        else
-        {
-            ldapProfileID = null;
-            effectiveUsername = username;
-        }
-
-        try
-        {
-            final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
-            final UserIdentity userIdentity = userSearchEngine.resolveUsername( effectiveUsername, null, ldapProfileID, restRequest.getSessionLabel() );
-            return new TargetUserIdentity( restRequest, userIdentity, false );
-        }
-        catch ( PwmOperationalException e )
-        {
-            throw new PwmUnrecoverableException( e.getErrorInformation() );
-        }
-    }
 }

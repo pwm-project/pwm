@@ -28,6 +28,7 @@ import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.WebServiceUsage;
+import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.value.data.NamedSecretData;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.ErrorInformation;
@@ -116,6 +117,8 @@ public class RestAuthenticationProcessor
 
                 final ChaiProvider chaiProvider = authenticateUser( userIdentity );
 
+                verifyAuthUserIsNotSystemUser( userIdentity );
+
                 return new RestAuthentication(
                         RestAuthenticationType.LDAP,
                         null,
@@ -165,10 +168,38 @@ public class RestAuthenticationProcessor
                 {
                     return basicAuthUsername;
                 }
-                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_WRONGPASSWORD, "incorrect password value for named secret" ) );
+                throw PwmUnrecoverableException.newException( PwmError.ERROR_WRONGPASSWORD, "incorrect password value for named secret" );
             }
         }
         return null;
+    }
+
+    private void verifyAuthUserIsNotSystemUser( final UserIdentity userIdentity )
+            throws PwmUnrecoverableException
+    {
+        final LdapProfile ldapProfile = pwmApplication.getConfig().getLdapProfiles().get( userIdentity.getLdapProfileID() );
+        if ( ldapProfile != null )
+        {
+            {
+                final UserIdentity testUser = ldapProfile.getTestUser( pwmApplication );
+                if ( testUser != null && testUser.canonicalEquals( userIdentity, pwmApplication ) )
+                {
+                    final String msg = "rest services can not be authenticated using the configured LDAP profile test user";
+                    final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_REST_INVOCATION_ERROR, msg );
+                    throw new PwmUnrecoverableException( errorInformation );
+                }
+            }
+
+            {
+                final UserIdentity testUser = ldapProfile.getTestUser( pwmApplication );
+                if ( testUser != null && testUser.canonicalEquals( userIdentity, pwmApplication ) )
+                {
+                    final String msg = "rest services can not be authenticated using the configured LDAP profile proxy user";
+                    final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_REST_INVOCATION_ERROR, msg );
+                    throw new PwmUnrecoverableException( errorInformation );
+                }
+            }
+        }
     }
 
     private UserIdentity readLdapUserIdentity( ) throws PwmUnrecoverableException
@@ -186,7 +217,7 @@ public class RestAuthenticationProcessor
         }
         catch ( PwmOperationalException e )
         {
-            throw new PwmUnrecoverableException( e.getErrorInformation() );
+            throw new PwmUnrecoverableException( e.getErrorInformation().wrapWithNewErrorCode( PwmError.ERROR_WRONGPASSWORD ) );
         }
     }
 

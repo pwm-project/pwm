@@ -44,6 +44,7 @@ import password.pwm.ws.server.RestMethodHandler;
 import password.pwm.ws.server.RestRequest;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServlet;
+import password.pwm.ws.server.RestUtility;
 import password.pwm.ws.server.RestWebServer;
 
 import javax.servlet.annotation.WebServlet;
@@ -72,7 +73,7 @@ public class RestStatusServer extends RestServlet
         final Instant startTime = Instant.now();
 
         final String username = restRequest.readParameterAsString( "username" );
-        final TargetUserIdentity targetUserIdentity = RestServlet.resolveRequestedUsername( restRequest, username );
+        final TargetUserIdentity targetUserIdentity = RestUtility.resolveRequestedUsername( restRequest, username );
 
         try
         {

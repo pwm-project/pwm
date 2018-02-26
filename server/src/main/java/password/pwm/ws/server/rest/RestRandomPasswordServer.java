@@ -44,6 +44,7 @@ import password.pwm.ws.server.RestMethodHandler;
 import password.pwm.ws.server.RestRequest;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServlet;
+import password.pwm.ws.server.RestUtility;
 import password.pwm.ws.server.RestWebServer;
 
 import javax.servlet.annotation.WebServlet;
@@ -148,7 +149,7 @@ public class RestRandomPasswordServer extends RestServlet
     public RestResultBean doPostRandomPasswordJson( final RestRequest restRequest )
             throws PwmUnrecoverableException, IOException
     {
-        final JsonInput jsonInput = deserializeJsonBody( restRequest, JsonInput.class );
+        final JsonInput jsonInput = RestUtility.deserializeJsonBody( restRequest, JsonInput.class );
 
         try
         {
@@ -183,7 +184,7 @@ public class RestRandomPasswordServer extends RestServlet
         }
         else
         {
-            final TargetUserIdentity targetUserIdentity = resolveRequestedUsername( restRequest, jsonInput.getUsername() );
+            final TargetUserIdentity targetUserIdentity = RestUtility.resolveRequestedUsername( restRequest, jsonInput.getUsername() );
             pwmPasswordPolicy = PasswordUtility.readPasswordPolicyForUser(
                     restRequest.getPwmApplication(),
                     restRequest.getSessionLabel(),

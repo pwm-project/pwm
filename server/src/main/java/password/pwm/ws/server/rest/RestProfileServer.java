@@ -44,6 +44,8 @@ import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
+import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.FormMap;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.StringUtil;
@@ -52,6 +54,7 @@ import password.pwm.ws.server.RestMethodHandler;
 import password.pwm.ws.server.RestRequest;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServlet;
+import password.pwm.ws.server.RestUtility;
 import password.pwm.ws.server.RestWebServer;
 
 import javax.servlet.annotation.WebServlet;
@@ -115,7 +118,7 @@ public class RestProfileServer extends RestServlet
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
-        final TargetUserIdentity targetUserIdentity = resolveRequestedUsername( restRequest, username );
+        final TargetUserIdentity targetUserIdentity = RestUtility.resolveRequestedUsername( restRequest, username );
 
         final String updateProfileID = ProfileUtility.discoverProfileIDforUser(
                 restRequest.getPwmApplication(),
@@ -160,6 +163,7 @@ public class RestProfileServer extends RestServlet
         outputData.profile = profileData;
         outputData.formDefinition = updateAttributesProfile.readSettingAsForm( PwmSetting.UPDATE_PROFILE_FORM );
         final RestResultBean restResultBean = RestResultBean.withData( outputData );
+        StatisticsManager.incrementStat( restRequest.getPwmApplication(), Statistic.REST_PROFILE );
         return restResultBean;
     }
 
@@ -167,7 +171,7 @@ public class RestProfileServer extends RestServlet
     public RestResultBean doPostProfileData( final RestRequest restRequest ) throws IOException, PwmUnrecoverableException
     {
 
-        final JsonProfileData jsonInput = deserializeJsonBody( restRequest, JsonProfileData.class );
+        final JsonProfileData jsonInput = RestUtility.deserializeJsonBody( restRequest, JsonProfileData.class );
 
         try
         {
@@ -181,13 +185,13 @@ public class RestProfileServer extends RestServlet
         }
     }
 
-    public static RestResultBean doPostProfileDataImpl(
+    private static RestResultBean doPostProfileDataImpl(
             final RestRequest restRequest,
             final JsonProfileData jsonInput
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
     {
-        final TargetUserIdentity targetUserIdentity = resolveRequestedUsername( restRequest, jsonInput.getUsername() );
+        final TargetUserIdentity targetUserIdentity = RestUtility.resolveRequestedUsername( restRequest, jsonInput.getUsername() );
 
         final String updateProfileID = ProfileUtility.discoverProfileIDforUser(
                 restRequest.getPwmApplication(),
@@ -256,7 +260,7 @@ public class RestProfileServer extends RestServlet
                 targetUserIdentity.getChaiUser()
         );
 
-        final RestResultBean restResultBean = RestResultBean.forSuccessMessage( restRequest, Message.Success_UpdateProfile );
-        return restResultBean;
+        StatisticsManager.incrementStat( restRequest.getPwmApplication(), Statistic.REST_PROFILE );
+        return RestResultBean.forSuccessMessage( restRequest, Message.Success_UpdateProfile );
     }
 }

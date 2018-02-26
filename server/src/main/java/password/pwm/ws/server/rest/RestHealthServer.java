@@ -33,7 +33,6 @@ import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestMethodHandler;
 import password.pwm.ws.server.RestRequest;
 import password.pwm.ws.server.RestResultBean;
@@ -56,8 +55,6 @@ import java.util.Locale;
 @RestWebServer( webService = WebServiceUsage.Health, requireAuthentication = false )
 public class RestHealthServer extends RestServlet
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass( RestHealthServer.class );
-
     private static final String PARAM_IMMEDIATE_REFRESH = "refreshImmediate";
 
     @Override

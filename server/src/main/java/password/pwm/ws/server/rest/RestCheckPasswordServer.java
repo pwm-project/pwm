@@ -26,7 +26,6 @@ package password.pwm.ws.server.rest;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.option.WebServiceUsage;
@@ -50,6 +49,7 @@ import password.pwm.ws.server.RestMethodHandler;
 import password.pwm.ws.server.RestRequest;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServlet;
+import password.pwm.ws.server.RestUtility;
 import password.pwm.ws.server.RestWebServer;
 
 import javax.servlet.annotation.WebServlet;
@@ -67,8 +67,11 @@ public class RestCheckPasswordServer extends RestServlet
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( RestCheckPasswordServer.class );
 
+    private static final String FIELD_PASSWORD_1 = "password1";
+    private static final String FIELD_PASSWORD_2 = "password2";
+    private static final String FIELD_USERNAME = "username";
+
     @Getter
-    @Setter
     @AllArgsConstructor
     @NoArgsConstructor
     public static class JsonInput implements Serializable
@@ -79,7 +82,6 @@ public class RestCheckPasswordServer extends RestServlet
     }
 
     @Getter
-    @Setter
     @AllArgsConstructor
     @NoArgsConstructor
     public static class JsonOutput implements Serializable
@@ -116,12 +118,10 @@ public class RestCheckPasswordServer extends RestServlet
     public RestResultBean doPasswordRuleCheckFormPost( final RestRequest restRequest )
             throws PwmUnrecoverableException
     {
-
-
         final JsonInput jsonInput = new JsonInput(
-                restRequest.readParameterAsString( "password1", PwmHttpRequestWrapper.Flag.BypassValidation ),
-                restRequest.readParameterAsString( "password2", PwmHttpRequestWrapper.Flag.BypassValidation ),
-                restRequest.readParameterAsString( "username", PwmHttpRequestWrapper.Flag.BypassValidation )
+                restRequest.readParameterAsString( FIELD_PASSWORD_1, PwmHttpRequestWrapper.Flag.BypassValidation ),
+                restRequest.readParameterAsString( FIELD_PASSWORD_2, PwmHttpRequestWrapper.Flag.BypassValidation ),
+                restRequest.readParameterAsString( FIELD_USERNAME, PwmHttpRequestWrapper.Flag.BypassValidation )
         );
         return doOperation( restRequest, jsonInput );
     }
@@ -130,7 +130,30 @@ public class RestCheckPasswordServer extends RestServlet
     public RestResultBean doPasswordRuleCheckJsonPost( final RestRequest restRequest )
             throws PwmUnrecoverableException, IOException
     {
-        final JsonInput jsonInput = deserializeJsonBody( restRequest, JsonInput.class );
+
+        final JsonInput jsonInput;
+        {
+            final JsonInput jsonBody = RestUtility.deserializeJsonBody( restRequest, JsonInput.class, RestUtility.Flag.AllowNullReturn );
+
+            jsonInput = new JsonInput(
+                    RestUtility.readValueFromJsonAndParam(
+                            jsonBody == null ? null : jsonBody.getPassword1(),
+                            restRequest.readParameterAsString( FIELD_PASSWORD_1 ),
+                            FIELD_PASSWORD_1
+                    ),
+                    RestUtility.readValueFromJsonAndParam(
+                            jsonBody == null ? null : jsonBody.getPassword2(),
+                            restRequest.readParameterAsString( FIELD_PASSWORD_2 ),
+                            FIELD_PASSWORD_2
+                    ),
+                    RestUtility.readValueFromJsonAndParam(
+                            jsonBody == null ? null : jsonBody.getUsername(),
+                            restRequest.readParameterAsString( FIELD_USERNAME ),
+                            FIELD_USERNAME
+                    )
+            );
+        }
+
         return doOperation( restRequest, jsonInput );
     }
 
@@ -141,10 +164,10 @@ public class RestCheckPasswordServer extends RestServlet
 
         if ( StringUtil.isEmpty( jsonInput.getPassword1() ) )
         {
-            final String errorMessage = "missing field 'password1'";
+            final String errorMessage = "missing field '" + FIELD_PASSWORD_1 + "'";
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_FIELD_REQUIRED, errorMessage, new String[]
                     {
-                            "password1",
+                            FIELD_PASSWORD_1,
                     }
                     );
             return RestResultBean.fromError( restRequest, errorInformation );
@@ -153,7 +176,7 @@ public class RestCheckPasswordServer extends RestServlet
         try
         {
 
-            final TargetUserIdentity targetUserIdentity = resolveRequestedUsername( restRequest, jsonInput.getUsername() );
+            final TargetUserIdentity targetUserIdentity = RestUtility.resolveRequestedUsername( restRequest, jsonInput.getUsername() );
             final UserInfo userInfo = UserInfoFactory.newUserInfo(
                     restRequest.getPwmApplication(),
                     restRequest.getSessionLabel(),
