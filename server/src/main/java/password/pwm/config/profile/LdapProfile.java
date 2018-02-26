@@ -28,6 +28,7 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.StoredValue;
@@ -180,5 +181,28 @@ public class LdapProfile extends AbstractProfile implements Profile
         }
 
         return canonicalValue;
+    }
+
+    public UserIdentity getTestUser( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
+    {
+        return readUserIdentity( pwmApplication, PwmSetting.LDAP_TEST_USER_DN );
+    }
+
+    public UserIdentity getProxyUser( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
+    {
+        return readUserIdentity( pwmApplication, PwmSetting.LDAP_PROXY_USER_DN );
+    }
+
+    private UserIdentity readUserIdentity( final PwmApplication pwmApplication, final PwmSetting pwmSetting ) throws PwmUnrecoverableException
+    {
+        final String testUserDN = this.readSettingAsString( pwmSetting );
+
+        if ( !StringUtil.isEmpty( testUserDN ) )
+        {
+            final String canonicalDN = readCanonicalDN( pwmApplication, testUserDN );
+            return new UserIdentity( canonicalDN, this.getIdentifier() );
+        }
+
+        return null;
     }
 }

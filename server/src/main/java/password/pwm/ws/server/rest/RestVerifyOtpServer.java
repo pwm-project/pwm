@@ -23,7 +23,7 @@
 package password.pwm.ws.server.rest;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import lombok.Data;
+import lombok.Value;
 import password.pwm.PwmConstants;
 import password.pwm.config.option.WebServiceUsage;
 import password.pwm.error.ErrorInformation;
@@ -33,12 +33,15 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
 import password.pwm.i18n.Message;
+import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.operations.OtpService;
 import password.pwm.util.operations.otp.OTPUserRecord;
 import password.pwm.ws.server.RestMethodHandler;
 import password.pwm.ws.server.RestRequest;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServlet;
+import password.pwm.ws.server.RestUtility;
 import password.pwm.ws.server.RestWebServer;
 
 import javax.servlet.annotation.WebServlet;
@@ -54,7 +57,7 @@ import java.io.Serializable;
 public class RestVerifyOtpServer extends RestServlet
 {
 
-    @Data
+    @Value
     public static class JsonPutOtpInput implements Serializable
     {
         public String token;
@@ -70,9 +73,28 @@ public class RestVerifyOtpServer extends RestServlet
     public RestResultBean doSetOtpDataJson( final RestRequest restRequest )
             throws IOException, PwmUnrecoverableException
     {
-        final RestVerifyOtpServer.JsonPutOtpInput jsonInput = deserializeJsonBody( restRequest, JsonPutOtpInput.class );
+        final RestVerifyOtpServer.JsonPutOtpInput jsonInput;
+        {
+            final RestVerifyOtpServer.JsonPutOtpInput jsonBody = RestUtility.deserializeJsonBody(
+                    restRequest,
+                    RestVerifyOtpServer.JsonPutOtpInput.class,
+                    RestUtility.Flag.AllowNullReturn );
 
-        final TargetUserIdentity targetUserIdentity = resolveRequestedUsername( restRequest, jsonInput.getUsername() );
+            jsonInput = new RestVerifyOtpServer.JsonPutOtpInput(
+                    RestUtility.readValueFromJsonAndParam(
+                            jsonBody == null ? null : jsonBody.getToken(),
+                            restRequest.readParameterAsString( "token" ),
+                            "token"
+                    ),
+                    RestUtility.readValueFromJsonAndParam(
+                            jsonBody == null ? null : jsonBody.getUsername(),
+                            restRequest.readParameterAsString( "username" ),
+                            "username"
+                    )
+            );
+        }
+
+        final TargetUserIdentity targetUserIdentity = RestUtility.resolveRequestedUsername( restRequest, jsonInput.getUsername() );
 
         try
         {
@@ -87,6 +109,7 @@ public class RestVerifyOtpServer extends RestServlet
                     false
             );
 
+            StatisticsManager.incrementStat( restRequest.getPwmApplication(), Statistic.REST_VERIFYOTP );
             return RestResultBean.forSuccessMessage( verified, restRequest, Message.Success_Unknown );
         }
         catch ( ChaiUnavailableException e )

@@ -8,6 +8,7 @@ import org.reflections.scanners.SubTypesScanner;
 import org.reflections.scanners.TypeAnnotationsScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
+import password.pwm.http.HttpContentType;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.ws.server.RestMethodHandler;
 import password.pwm.ws.server.RestRequest;
@@ -16,6 +17,7 @@ import password.pwm.ws.server.RestServlet;
 import password.pwm.ws.server.RestWebServer;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -39,9 +41,24 @@ public class RestServletTest {
                 final RestMethodHandler methodHandler = method.getAnnotation(RestMethodHandler.class);
                 if (methodHandler != null) {
                     final String returnTypeName = method.getReturnType().getName();
+                    final RestMethodHandler restMethodHandler = method.getAnnotation( RestMethodHandler.class );
+
                     if (!returnTypeName.equals(RestResultBean.class.getName())) {
-                        Assert.fail("method " + restServlet.getName() +
-                                ":" + method.getName() + " should have return type of " + RestResultBean.class.getName());
+                        boolean requiresRestResultBeanReturnType = true;
+
+                        if (restMethodHandler != null)
+                        {
+                            if ( Arrays.asList(restMethodHandler.produces()).contains( HttpContentType.plain ))
+                            {
+                                requiresRestResultBeanReturnType = false;
+                            }
+                        }
+
+                        if (requiresRestResultBeanReturnType)
+                        {
+                            Assert.fail( "method " + restServlet.getName() +
+                                    ":" + method.getName() + " should have return type of " + RestResultBean.class.getName() );
+                        }
                     }
 
                     final Class[] paramTypes = method.getParameterTypes();

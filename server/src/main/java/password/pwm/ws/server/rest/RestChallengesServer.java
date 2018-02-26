@@ -54,6 +54,7 @@ import password.pwm.ws.server.RestMethodHandler;
 import password.pwm.ws.server.RestRequest;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServlet;
+import password.pwm.ws.server.RestUtility;
 import password.pwm.ws.server.RestWebServer;
 
 import javax.servlet.annotation.WebServlet;
@@ -75,12 +76,20 @@ import java.util.Map;
 public class RestChallengesServer extends RestServlet
 {
 
+    private static final String FIELD_USERNAME = "username";
+
     @Data
     public static class Policy implements Serializable
     {
         public List<ChallengeBean> challenges;
         public List<ChallengeBean> helpdeskChallenges;
         public int minimumRandoms;
+    }
+
+    @Data
+    private static class JsonDeleteInput implements Serializable
+    {
+        private String username;
     }
 
     @Data
@@ -151,7 +160,7 @@ public class RestChallengesServer extends RestServlet
     {
         final boolean answers = restRequest.readParameterAsBoolean( "answers" );
         final boolean helpdesk = restRequest.readParameterAsBoolean( "helpdesk" );
-        final String username = restRequest.readParameterAsString( "username", PwmHttpRequestWrapper.Flag.BypassValidation );
+        final String username = restRequest.readParameterAsString( FIELD_USERNAME, PwmHttpRequestWrapper.Flag.BypassValidation );
 
         try
         {
@@ -160,7 +169,7 @@ public class RestChallengesServer extends RestServlet
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "retrieval of answers is not permitted" ) );
             }
 
-            final TargetUserIdentity targetUserIdentity = resolveRequestedUsername( restRequest, username );
+            final TargetUserIdentity targetUserIdentity = RestUtility.resolveRequestedUsername( restRequest, username );
 
             // gather data
             final ResponseSet responseSet;
@@ -237,9 +246,9 @@ public class RestChallengesServer extends RestServlet
     public RestResultBean doSetChallengeDataJson( final RestRequest restRequest )
             throws IOException, PwmUnrecoverableException
     {
-        final JsonChallengesData jsonInput = deserializeJsonBody( restRequest, JsonChallengesData.class );
+        final JsonChallengesData jsonInput = RestUtility.deserializeJsonBody( restRequest, JsonChallengesData.class );
 
-        final TargetUserIdentity targetUserIdentity = resolveRequestedUsername( restRequest, jsonInput.getUsername() );
+        final TargetUserIdentity targetUserIdentity = RestUtility.resolveRequestedUsername( restRequest, jsonInput.getUsername() );
 
         try
         {
@@ -284,12 +293,25 @@ public class RestChallengesServer extends RestServlet
     }
 
     @RestMethodHandler( method = HttpMethod.DELETE, produces = HttpContentType.json )
-    public RestResultBean doDeleteChallengeData( final RestRequest restRequest )
+    public RestResultBean processJsonDeleteChallengeData( final RestRequest restRequest )
             throws IOException, PwmUnrecoverableException
     {
-        final String username = restRequest.readParameterAsString( "username", PwmHttpRequestWrapper.Flag.BypassValidation );
+        final JsonDeleteInput jsonBody = RestUtility.deserializeJsonBody( restRequest, JsonDeleteInput.class, RestUtility.Flag.AllowNullReturn );
 
-        final TargetUserIdentity targetUserIdentity = resolveRequestedUsername( restRequest, username );
+        final String username = RestUtility.readValueFromJsonAndParam(
+                jsonBody == null ? null : jsonBody.getUsername(),
+                restRequest.readParameterAsString( FIELD_USERNAME ),
+                FIELD_USERNAME
+        );
+
+        return doDeleteChallengeData( restRequest, username );
+    }
+
+    private RestResultBean doDeleteChallengeData( final RestRequest restRequest, final String username )
+            throws PwmUnrecoverableException
+    {
+
+        final TargetUserIdentity targetUserIdentity = RestUtility.resolveRequestedUsername( restRequest, username );
 
         try
         {

@@ -49,12 +49,27 @@
 <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
     <jsp:param name="pwm.PageName" value="REST Services Reference"/>
 </jsp:include>
-<div id="centerbody">
+<div id="centerbody" class="wide">
     <%@ include file="reference-nav.jsp"%>
 
+    <ol>
+        <li><a href="#introduction">Introduction</a></li>
+        <li><a href="#rest-challenges">Rest Service - challenges</a></li>
+        <li><a href="#rest-checkpassword">Rest Service - checkpassword</a></li>
+        <li><a href="#rest-health">Rest Service - health</a></li>
+        <li><a href="#rest-profile">Rest Service - profile</a></li>
+        <li><a href="#rest-randompassword">Rest Service - randompassword</a></li>
+        <li><a href="#rest-signing-form">Rest Service - signing/form</a></li>
+        <li><a href="#rest-statistics">Rest Service - statistics</a></li>
+        <li><a href="#rest-status">Rest Service - status</a></li>
+        <li><a href="#rest-verifyotp">Rest Service - verifyotp</a></li>
+        <li><a href="#rest-verifyresponses">Rest Service - verifyresponses</a></li>
+    </ol>
+
     <br/><br/>
-<div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
-<div data-dojo-type="dijit.layout.ContentPane" title="Introduction">
+
+    <br/>
+    <h1><a id="introduction">Introduction</a></h1>
     <p>This system has a set of <a href="https://en.wikipedia.org/wiki/Representational_state_transfer#RESTful_web_APIs">RESTful web APIs</a> to facilitate 3rd party application development.</p>
     <h2>Authentication</h2>
     <p>All web services are authenticated using <a href="http://en.wikipedia.org/wiki/Basic_access_authentication">basic access authentication</a> utilizing the standard <i>Authorization</i> header.</p>
@@ -85,8 +100,8 @@
         <tr><td>successMessage</td><td>string</td><td>Localized success message string</td></tr>
         <tr><td>data</td><td>object</td><td>Requested data</td></tr>
     </table>
-</div>
-<div data-dojo-type="dijit.layout.ContentPane" title="challenges">
+    <br/>
+    <h1><a id="rest-challenges">Rest Service - challenges</a></h1>
 <table >
 <tr>
     <td class="key" style="width:50px">url</td>
@@ -118,30 +133,39 @@
         <td>application/json</td>
     </tr>
     <tr>
-        <td class="key">Content-Type Header</td>
-        <td>application/x-www-form-urlencoded</td>
-    </tr>
-    <tr>
         <td class="key">Parameter answers</td>
         <td>
-            answers=true
-            <br/>
-            <i>Boolean indicating if answers (in whatever format stored) should be returned in the result.
-            </i>
+            <table>
+                <tr><td>Name</td><td>answers</td></tr>
+                <tr><td>Required</td><td>Optional</td></tr>
+                <tr><td>Location</td><td>query string</td></tr>
+                <tr><td>Value</td><td>Boolean indicating if answers (in whatever format stored) should be returned in the result.</td></tr>
+                <tr><td>Default</td><td>false</td></tr>
+            </table>
         </td>
     </tr>
     <tr>
         <td class="key">Parameter helpdesk</td>
         <td>
-            helpdesk=true
-            <br/>
-            <i>Boolean indicating if helpdesk answers should be returned in the result.</i>
+            <table>
+                <tr><td>Name</td><td>helpdesk</td></tr>
+                <tr><td>Required</td><td>Optional</td></tr>
+                <tr><td>Location</td><td>query string</td></tr>
+                <tr><td>Value</td><td>Boolean indicating if helpdesk answers should be returned in the result.</td></tr>
+                <tr><td>Default</td><td>false</td></tr>
+            </table>
         </td>
     </tr>
     <tr>
         <td class="key">Parameter username</td>
         <td>
-            <i>Optional username or userDN of user to whom the responses will be read.</i>
+            <table>
+                <tr><td>Name</td><td>username</td></tr>
+                <tr><td>Required</td><td>Optional</td></tr>
+                <tr><td>Location</td><td>query string</td></tr>
+                <tr><td>Value</td><td>Optional username or ldap DN of a user on which to perform the operation</td></tr>
+                <tr><td>Default</td><td>Authenticating user (if LDAP)</td></tr>
+            </table>
         </td>
     </tr>
 </table>
@@ -351,9 +375,30 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
                 <td>application/json</td>
             </tr>
             <tr>
-                <td class="key">JSON Parameter username</td>
+                <td class="key">Parameter username</td>
                 <td>
-                    <i>Optional username or userDN of user to whom the responses will be written.</i>
+                    <table>
+                        <tr><td>Name</td><td>username</td></tr>
+                        <tr><td>Required</td><td>Optional</td></tr>
+                        <tr><td>Location</td><td>query string or json body</td></tr>
+                        <tr><td>Value</td><td>Optional username or ldap DN of a user on which to perform the operation</td></tr>
+                        <tr><td>Default</td><td>Authenticating user (if LDAP)</td></tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td class="key">Parameter challenges</td>
+                <td>
+                    <table>
+                        <tr><td>Name</td><td>challenges</td></tr>
+                        <tr><td>Required</td><td>Required</td></tr>
+                        <tr><td>Location</td><td>json body</td></tr>
+                        <tr><td>Value</td><td>List of challenge objects including answers with an answerText property.  Retrieve challenge objects using
+                            the challenges service to discover the proper object formatting.  The question object data must match
+                            precisely the question object received from the challenges service so that the answer can be applied to
+                            the correct corresponding question.  This includes each parameter of the question object.</td></tr>
+                        <tr><td>Default</td><td>n/a</td></tr>
+                    </table>
                 </td>
             </tr>
         </table>
@@ -519,13 +564,15 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
                 <td>application/json</td>
             </tr>
             <tr>
-                <td class="key">Content-Type Header</td>
-                <td>application/x-www-form-urlencoded</td>
-            </tr>
-            <tr>
                 <td class="key">Parameter username</td>
                 <td>
-                    <i>Optional username or userDN of user to whom the responses will be deleted.</i>
+                    <table>
+                        <tr><td>Name</td><td>username</td></tr>
+                        <tr><td>Required</td><td>Optional</td></tr>
+                        <tr><td>Location</td><td>query string</td></tr>
+                        <tr><td>Value</td><td>Optional username or ldap DN of a user on which to perform the operation</td></tr>
+                        <tr><td>Default</td><td>Authenticating user (if LDAP)</td></tr>
+                    </table>
                 </td>
             </tr>
         </table>
@@ -561,8 +608,8 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
     </td>
 </tr>
 </table>
-</div>
-<div data-dojo-type="dijit.layout.ContentPane" title="checkpassword">
+    <br/>
+    <h1><a id="rest-checkpassword">Rest Service - checkpassword</a></h1>
     <table >
         <tr>
             <td class="key" style="width:50px">url</td>
@@ -604,15 +651,39 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
                     </tr>
                     <tr>
                         <td class="key">Parameter password1</td>
-                        <td><i>password value</i></td>
+                        <td>
+                            <table>
+                                <tr><td>Name</td><td>password1</td></tr>
+                                <tr><td>Required</td><td>Required</td></tr>
+                                <tr><td>Location</td><td>query string, json body, or form body</td></tr>
+                                <tr><td>Value</td><td>Password value</td></tr>
+                                <tr><td>Default</td><td>n/a</td></tr>
+                            </table>
+                        </td>
                     </tr>
                     <tr>
                         <td class="key">Parameter password2</td>
-                        <td><i>password value confirmation</i></td>
+                        <td>
+                            <table>
+                                <tr><td>Name</td><td>password2</td></tr>
+                                <tr><td>Required</td><td>Required</td></tr>
+                                <tr><td>Location</td><td>query string, json body, or form body</td></tr>
+                                <tr><td>Value</td><td>Password confirmation value</td></tr>
+                                <tr><td>Default</td><td>n/a</td></tr>
+                            </table>
+                        </td>
                     </tr>
                     <tr>
                         <td class="key">Parameter username</td>
-                        <td><i>Optional username or userDN of user's password policy to check against</i></td>
+                        <td>
+                            <table>
+                                <tr><td>Name</td><td>username</td></tr>
+                                <tr><td>Required</td><td>Optional</td></tr>
+                                <tr><td>Location</td><td>query string, json body, or form body</td></tr>
+                                <tr><td>Value</td><td>Optional username or ldap DN of a user on which to perform the operation</td></tr>
+                                <tr><td>Default</td><td>Authenticating user (if LDAP)</td></tr>
+                            </table>
+                        </td>
                     </tr>
                 </table>
                 <table style="max-width: 100%">
@@ -697,8 +768,8 @@ password1=dsa32!dabed&password2=dsa32!dabed&username=user1234
             </td>
         </tr>
     </table>
-</div>
-<div data-dojo-type="dijit.layout.ContentPane" title="health">
+    <br/>
+    <h1><a id="rest-health">Rest Service - health</a></h1>
     <table >
         <tr>
             <td class="key" style="width:50px">url</td>
@@ -835,8 +906,8 @@ GOOD
             </td>
         </tr>
     </table>
-</div>
-<div data-dojo-type="dijit.layout.ContentPane" title="profile">
+    <br/>
+    <h1><a id="rest-profile">Rest Service - profile</a></h1>
     <table >
         <tr>
             <td class="key" style="width:50px">url</td>
@@ -1035,8 +1106,8 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
             </td>
         </tr>
     </table>
-</div>
-<div data-dojo-type="dijit.layout.ContentPane" title="randompassword">
+    <br/>
+    <h1><a id="rest-randompassword">Rest Service - randompassword</a></h1>
     <table>
         <tr>
             <td class="key" style="width:50px">url</td>
@@ -1229,8 +1300,8 @@ Content-Type: application/json
             </td>
         </tr>
     </table>
-</div>
-<div data-dojo-type="dijit.layout.ContentPane" title="setpassword">
+    <br/>
+    <h1><a id="rest-setpassword">Rest Service - setpassword</a></h1>
     <table>
         <tr>
             <td class="key" style="width:50px">url</td>
@@ -1328,8 +1399,8 @@ cLi2mbers
             </td>
         </tr>
     </table>
-</div>
-    <div data-dojo-type="dijit.layout.ContentPane" title="signing/form">
+    <br/>
+    <h1><a id="rest-signing-form">Rest Service - signing/form</a></h1>
         <table>
             <tr>
                 <td class="key" style="width:50px">url</td>
@@ -1419,8 +1490,8 @@ Authorization: Basic c2VjcmV0MTpwYXNzd29yZA==
                 </td>
             </tr>
         </table>
-    </div>
-<div data-dojo-type="dijit.layout.ContentPane" title="statistics">
+    <br/>
+    <h1><a id="rest-statistics">Rest Service - statistics</a></h1>
     <table>
         <tr>
             <td class="key" style="width:50px">url</td>
@@ -1554,8 +1625,8 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
             </td>
         </tr>
     </table>
-</div>
-<div data-dojo-type="dijit.layout.ContentPane" title="status">
+    <br/>
+    <h1><a id="rest-status">Rest Service - status</a></h1>
     <table >
         <tr>
             <td class="key" style="width:50px">url</td>
@@ -1678,8 +1749,8 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
             </td>
         </tr>
     </table>
-</div>
-<div data-dojo-type="dijit.layout.ContentPane" title="verifyotp">
+    <br/>
+    <h1><a id="rest-verifyotp">Rest Service - verifyotp</a></h1>
     <table>
         <tr>
             <td class="key" style="width:50px">url</td>
@@ -1765,8 +1836,8 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
             </td>
         </tr>
     </table>
-</div>
-<div data-dojo-type="dijit.layout.ContentPane" title="verifyresponses">
+    <br/>
+    <h1><a id="rest-verifyresponses">Rest Service - verifyresponses</a></h1>
     <table>
         <tr>
             <td class="key" style="width:50px">url</td>
@@ -1809,21 +1880,28 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
                     <tr>
                         <td class="key">Parameter username</td>
                         <td>
-                            username=user1234
-                            <br/>
-                            <i>Optional username or ldap DN of a user on which to verify the responses.</i>
+                            <table>
+                                <tr><td>Name</td><td>username</td></tr>
+                                <tr><td>Required</td><td>Optional</td></tr>
+                                <tr><td>Location</td><td>query string or json body</td></tr>
+                                <tr><td>Value</td><td>Optional username or ldap DN of a user on which to verify the responses</td></tr>
+                                <tr><td>Default</td><td>Authenticating user (if LDAP)</td></tr>
+                            </table>
                         </td>
                     </tr>
                     <tr>
                         <td class="key">Parameter challenges</td>
                         <td>
-                            challenges=[list of challenges]
-                            <br/>
-                            <i>List of challenge objects including answers with an answerText property.  Retrieve challenge objects using
-                                the challenges service to discover the proper object formatting.  The question object data must match
-                                precisely the question object received from the challenges service so that the answer can be applied to
-                                the correct corresponding question.  This includes each parameter of the question object.
-                            </i>
+                            <table>
+                                <tr><td>Name</td><td>challenges</td></tr>
+                                <tr><td>Required</td><td>Required</td></tr>
+                                <tr><td>Location</td><td>json body</td></tr>
+                                <tr><td>Value</td><td>List of challenge objects including answers with an answerText property.  Retrieve challenge objects using
+                                    the challenges service to discover the proper object formatting.  The question object data must match
+                                    precisely the question object received from the challenges service so that the answer can be applied to
+                                    the correct corresponding question.  This includes each parameter of the question object.</td></tr>
+                                <tr><td>Default</td><td>n/a</td></tr>
+                            </table>
                         </td>
                     </tr>
                 </table>
@@ -1842,6 +1920,7 @@ Content-Type: application/json
 Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
 
 {
+   "username":"user1234",
    "challenges":[
       {
          "challengeText":"What is the name of the main character in your favorite book?",
@@ -1887,18 +1966,8 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
     </table>
 </div>
 </div>
-</div>
 <div class="push"></div>
 </div>
-<pwm:script>
-<script type="text/javascript">
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        require(["dojo/parser","dojo/domReady!","dijit/layout/TabContainer","dijit/layout/ContentPane","dijit/Dialog","dijit/TitlePane"],function(dojoParser){
-            dojoParser.parse();
-        });
-    });
-</script>
-</pwm:script>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>

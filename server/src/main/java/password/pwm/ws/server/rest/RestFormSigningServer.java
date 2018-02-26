@@ -34,6 +34,8 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmHttpRequestWrapper;
+import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.secure.SecureService;
@@ -79,32 +81,33 @@ public class RestFormSigningServer extends RestServlet
 
         if ( !restRequest.getRestAuthentication().getUsages().contains( WebServiceUsage.SigningForm ) )
         {
-            final String errorMsg = "request is not authenticated with permission for SigningForm";
+            final String errorMsg = "request is not authenticated with permission for " + WebServiceUsage.SigningForm;
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNAUTHORIZED, errorMsg );
             return RestResultBean.fromError( errorInformation );
         }
 
         try
         {
-            if ( JavaHelper.isEmpty( inputFormData ) )
+            if ( !JavaHelper.isEmpty( inputFormData ) )
             {
                 final SecureService securityService = restRequest.getPwmApplication().getSecureService();
                 final SignedFormData signedFormData = new SignedFormData( Instant.now(), inputFormData );
                 final String signedValue = securityService.encryptObjectToString( signedFormData );
-                final RestResultBean restResultBean = RestResultBean.withData( signedValue );
-                return restResultBean;
+                StatisticsManager.incrementStat( restRequest.getPwmApplication(), Statistic.REST_SIGNING_FORM );
+                return RestResultBean.withData( signedValue );
             }
-            return RestResultBean.fromError( new ErrorInformation( PwmError.ERROR_MISSING_PARAMETER, "no json form in body" ) );
-        }
-        catch ( PwmUnrecoverableException e )
-        {
-            return RestResultBean.fromError( e.getErrorInformation() );
+            throw PwmUnrecoverableException.newException( PwmError.ERROR_MISSING_PARAMETER, "POST body should be a json object" );
         }
         catch ( Exception e )
         {
+            if ( e instanceof PwmUnrecoverableException )
+            {
+                throw e;
+            }
+
             final String errorMsg = "unexpected error building json response: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
-            return RestResultBean.fromError( errorInformation );
+            throw new PwmUnrecoverableException( errorInformation );
         }
     }
 
