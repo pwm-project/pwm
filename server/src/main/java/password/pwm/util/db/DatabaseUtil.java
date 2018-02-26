@@ -22,6 +22,7 @@
 
 package password.pwm.util.db;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import password.pwm.error.ErrorInformation;
@@ -36,6 +37,7 @@ import java.sql.Statement;
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicInteger;
 
+@SuppressFBWarnings( value = "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE" )
 class DatabaseUtil
 {
     private static final AtomicInteger OP_COUNTER = new AtomicInteger();
@@ -141,7 +143,7 @@ class DatabaseUtil
         {
             final String sqlString = "CREATE table " + table.toString() + " (" + "\n"
                     + "  " + DatabaseService.KEY_COLUMN + " " + dbConfiguration.getColumnTypeKey() + "("
-                    + dbConfiguration.getKeyColumnLength() + ") NOT NULL PRIMARY KEY" + "\n"
+                    + dbConfiguration.getKeyColumnLength() + ") NOT NULL PRIMARY KEY," + "\n"
                     + "  " + DatabaseService.VALUE_COLUMN + " " + dbConfiguration.getColumnTypeValue() + " " + "\n"
                     + ")" + "\n";
 
