@@ -297,6 +297,8 @@ public enum PwmError
             5085, "Error_EmailSendFailure", null, ErrorFlag.Permanent ),
     ERROR_PASSWORD_ONLY_BAD(
             5089, "Error_PasswordOnlyBad", null ),
+    ERROR_RECOVERY_SEQUENCE_INCOMPLETE(
+            5090, "Error_RecoverySequenceIncomplete", null ),
 
     ERROR_REMOTE_ERROR_VALUE(
             6000, "Error_RemoteErrorValue", null, ErrorFlag.Permanent ),

@@ -191,7 +191,10 @@ public class FormUtility
         return returnObj;
     }
 
-    public static Map<FormConfiguration, String> asFormConfigurationMap( final List<FormConfiguration> formConfigurations, final Map<String, String> values )
+    public static Map<FormConfiguration, String> asFormConfigurationMap(
+            final List<FormConfiguration> formConfigurations,
+            final Map<String, String> values
+    )
     {
         final Map<FormConfiguration, String> returnMap = new LinkedHashMap<>();
         for ( final FormConfiguration formConfiguration : formConfigurations )

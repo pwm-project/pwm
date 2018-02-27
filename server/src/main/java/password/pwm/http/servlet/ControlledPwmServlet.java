@@ -133,7 +133,7 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
                 final String msg = "unexpected error during action handler for '"
                         + this.getClass().getName()
                         + ":" + action + "', error: " + cause.getMessage();
-                LOGGER.error( pwmRequest, msg );
+                LOGGER.error( pwmRequest, msg, e.getCause() );
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, msg ) );
             }
             LOGGER.error( "uncaused invocation error: " + e.getMessage(), e );

@@ -22,6 +22,9 @@
 
 package password.pwm.config.value.data;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
@@ -53,6 +56,8 @@ import java.util.regex.PatternSyntaxException;
  * @author Jason D. Rivard
  */
 @Getter
+@Builder
+@AllArgsConstructor( access = AccessLevel.PRIVATE )
 public class FormConfiguration implements Serializable
 {
 
@@ -80,24 +85,49 @@ public class FormConfiguration implements Serializable
     {
         ldap,
         remote,
+        bogus,
     }
 
+    @Builder.Default
     private String name = "";
+
+    @Builder.Default
     private int minimumLength;
+
+    @Builder.Default
     private int maximumLength;
+
+    @Builder.Default
     private Type type = Type.text;
+
+    @Builder.Default
     private Source source = Source.ldap;
+
     private boolean required;
     private boolean confirmationRequired;
     private boolean readonly;
     private boolean unique;
     private boolean multivalue;
+
+    @Builder.Default
     private Map<String, String> labels = Collections.singletonMap( "", "" );
+
+    @Builder.Default
     private Map<String, String> regexErrors = Collections.singletonMap( "", "" );
+
+    @Builder.Default
     private Map<String, String> description = Collections.singletonMap( "", "" );
+
+    @Builder.Default
     private String regex = "";
+
+    @Builder.Default
     private String placeholder = "";
+
+    @Builder.Default
     private String javascript = "";
+
+    @Builder.Default
     private Map<String, String> selectOptions = Collections.emptyMap();
 
 
@@ -220,19 +250,9 @@ public class FormConfiguration implements Serializable
         regexErrors = Collections.singletonMap( "", "" );
     }
 
-    public String getName( )
-    {
-        return name;
-    }
-
     public String getLabel( final Locale locale )
     {
         return LocaleHelper.resolveStringKeyLocaleMap( locale, labels );
-    }
-
-    public Map<String, String> getLabelLocaleMap( )
-    {
-        return Collections.unmodifiableMap( this.labels );
     }
 
     public String getRegexError( final Locale locale )
@@ -243,71 +263,6 @@ public class FormConfiguration implements Serializable
     public String getDescription( final Locale locale )
     {
         return LocaleHelper.resolveStringKeyLocaleMap( locale, description );
-    }
-
-    public Map<String, String> getLabelDescriptionLocaleMap( )
-    {
-        return Collections.unmodifiableMap( this.description );
-    }
-
-    public int getMaximumLength( )
-    {
-        return maximumLength;
-    }
-
-    public int getMinimumLength( )
-    {
-        return minimumLength;
-    }
-
-    public Type getType( )
-    {
-        return type;
-    }
-
-    public boolean isConfirmationRequired( )
-    {
-        return confirmationRequired;
-    }
-
-    public boolean isRequired( )
-    {
-        return required;
-    }
-
-    public boolean isReadonly( )
-    {
-        return readonly;
-    }
-
-    public boolean isUnique( )
-    {
-        return unique;
-    }
-
-    public boolean isMultivalue( )
-    {
-        return multivalue;
-    }
-
-    public String getRegex( )
-    {
-        return regex;
-    }
-
-    public String getPlaceholder( )
-    {
-        return placeholder;
-    }
-
-    public String getJavascript( )
-    {
-        return javascript;
-    }
-
-    public Map<String, String> getSelectOptions( )
-    {
-        return Collections.unmodifiableMap( selectOptions );
     }
 
     public boolean equals( final Object o )

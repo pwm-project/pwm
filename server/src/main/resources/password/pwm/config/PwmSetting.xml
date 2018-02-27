@@ -2525,6 +2525,11 @@
             <value>false</value>
         </default>
     </setting>
+    <setting hidden="false" key="recovery.bogus.user.enable" level="2">
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
     <setting hidden="false" key="recovery.token.resend.enable" level="1" required="true">
         <default>
             <value>true</value>
@@ -3967,6 +3972,8 @@
     <category hidden="false" key="RECOVERY">
     </category>
     <category hidden="false" key="RECOVERY_SETTINGS">
+    </category>
+    <category hidden="false" key="RECOVERY_OPTIONS">
     </category>
     <category hidden="false" key="RECOVERY_PROFILE" profiles="true">
         <profile setting="recovery.profile.list"/>

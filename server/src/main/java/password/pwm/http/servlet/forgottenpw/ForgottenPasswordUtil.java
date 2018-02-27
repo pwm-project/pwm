@@ -34,6 +34,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.TokenDestinationItem;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
@@ -42,6 +43,8 @@ import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.RecoveryAction;
 import password.pwm.config.profile.ForgottenPasswordProfile;
+import password.pwm.config.profile.ProfileType;
+import password.pwm.config.profile.ProfileUtility;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -75,6 +78,7 @@ import password.pwm.ws.client.rest.RestTokenDataClient;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -685,5 +689,243 @@ class ForgottenPasswordUtil
             // the password set flag should not have been set, this is a safety method
             pwmRequest.getPwmSession().getSessionStateBean().setPasswordModified( false );
         }
+    }
+
+    static void initBogusForgottenPasswordBean( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException
+    {
+        final ForgottenPasswordBean forgottenPasswordBean = ForgottenPasswordServlet.forgottenPasswordBean( pwmRequest );
+        forgottenPasswordBean.setUserIdentity( null );
+        forgottenPasswordBean.setPresentableChallengeSet( null );
+
+
+        final List<Challenge> challengeList = new ArrayList<>( );
+        {
+            final String firstProfile = pwmRequest.getConfig().getChallengeProfileIDs().iterator().next();
+            final ChallengeSet challengeSet = pwmRequest.getConfig().getChallengeProfile( firstProfile, PwmConstants.DEFAULT_LOCALE ).getChallengeSet();
+            challengeList.addAll( challengeSet.getRequiredChallenges() );
+            for ( int i = 0; i < challengeSet.getMinRandomRequired(); i++ )
+            {
+                challengeList.add( challengeSet.getRandomChallenges().get( i ) );
+            }
+        }
+
+        final List<FormConfiguration> formData = new ArrayList<>(  );
+        {
+            int counter = 0;
+            for ( Challenge challenge: challengeList )
+            {
+                final FormConfiguration formConfiguration = FormConfiguration.builder()
+                        .name( "challenge" + counter++ )
+                        .type( FormConfiguration.Type.text )
+                        .labels( Collections.singletonMap( "", challenge.getChallengeText() ) )
+                        .minimumLength( challenge.getMinLength() )
+                        .maximumLength( challenge.getMaxLength() )
+                        .source( FormConfiguration.Source.bogus )
+                        .build();
+                formData.add( formConfiguration );
+            }
+        }
+        forgottenPasswordBean.setAttributeForm( formData );
+        forgottenPasswordBean.setBogusUser( true );
+        {
+            final String profileID = pwmRequest.getConfig().getForgottenPasswordProfiles().keySet().iterator().next();
+            forgottenPasswordBean.setForgottenPasswordProfileID( profileID  );
+        }
+
+        final ForgottenPasswordBean.RecoveryFlags recoveryFlags = new ForgottenPasswordBean.RecoveryFlags(
+                false,
+                Collections.singleton( IdentityVerificationMethod.ATTRIBUTES ),
+                Collections.emptySet(),
+                0,
+                MessageSendMethod.NONE
+        );
+
+        forgottenPasswordBean.setRecoveryFlags( recoveryFlags );
+    }
+
+    static void initForgottenPasswordBean(
+            final PwmRequest pwmRequest,
+            final UserIdentity userIdentity,
+            final ForgottenPasswordBean forgottenPasswordBean
+    )
+            throws PwmUnrecoverableException, PwmOperationalException
+    {
+
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final Locale locale = pwmRequest.getLocale();
+        final SessionLabel sessionLabel = pwmRequest.getSessionLabel();
+
+        forgottenPasswordBean.setUserIdentity( userIdentity );
+
+        final UserInfo userInfo = readUserInfo( pwmRequest, forgottenPasswordBean );
+
+        final String forgottenProfileID = ProfileUtility.discoverProfileIDforUser( pwmApplication, sessionLabel, userIdentity, ProfileType.ForgottenPassword );
+        if ( forgottenProfileID == null || forgottenProfileID.isEmpty() )
+        {
+            throw new PwmUnrecoverableException( PwmError.ERROR_NO_PROFILE_ASSIGNED.toInfo() );
+        }
+        forgottenPasswordBean.setForgottenPasswordProfileID( forgottenProfileID );
+        final ForgottenPasswordProfile forgottenPasswordProfile = ForgottenPasswordServlet.forgottenPasswordProfile( pwmRequest );
+
+        final ForgottenPasswordBean.RecoveryFlags recoveryFlags = calculateRecoveryFlags(
+                pwmApplication,
+                forgottenProfileID
+        );
+
+        final ChallengeSet challengeSet;
+        if ( recoveryFlags.getRequiredAuthMethods().contains( IdentityVerificationMethod.CHALLENGE_RESPONSES )
+                || recoveryFlags.getOptionalAuthMethods().contains( IdentityVerificationMethod.CHALLENGE_RESPONSES ) )
+        {
+            final ResponseSet responseSet;
+            try
+            {
+                final ChaiUser theUser = pwmApplication.getProxiedChaiUser( userInfo.getUserIdentity() );
+                responseSet = pwmApplication.getCrService().readUserResponseSet(
+                        sessionLabel,
+                        userInfo.getUserIdentity(),
+                        theUser
+                );
+                challengeSet = responseSet == null ? null : responseSet.getPresentableChallengeSet();
+            }
+            catch ( ChaiValidationException e )
+            {
+                final String errorMsg = "unable to determine presentable challengeSet for stored responses: " + e.getMessage();
+                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_NO_CHALLENGES, errorMsg );
+                throw new PwmUnrecoverableException( errorInformation );
+            }
+            catch ( ChaiUnavailableException e )
+            {
+                throw new PwmUnrecoverableException( PwmError.forChaiError( e.getErrorCode() ) );
+            }
+        }
+        else
+        {
+            challengeSet = null;
+        }
+
+
+        if ( !recoveryFlags.isAllowWhenLdapIntruderLocked() )
+        {
+            try
+            {
+                final ChaiUser chaiUser = pwmApplication.getProxiedChaiUser( userInfo.getUserIdentity() );
+                if ( chaiUser.isPasswordLocked() )
+                {
+                    throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTRUDER_LDAP ) );
+                }
+            }
+            catch ( ChaiOperationException e )
+            {
+                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN,
+                        "error checking user '" + userInfo.getUserIdentity() + "' ldap intruder lock status: " + e.getMessage() );
+                LOGGER.error( sessionLabel, errorInformation );
+                throw new PwmUnrecoverableException( errorInformation );
+            }
+            catch ( ChaiUnavailableException e )
+            {
+                throw new PwmUnrecoverableException( PwmError.forChaiError( e.getErrorCode() ) );
+            }
+        }
+
+        final List<FormConfiguration> attributeForm;
+        try
+        {
+            attributeForm = figureAttributeForm( forgottenPasswordProfile, forgottenPasswordBean, pwmRequest, userIdentity );
+        }
+        catch ( ChaiUnavailableException e )
+        {
+            throw new PwmUnrecoverableException( PwmError.forChaiError( e.getErrorCode() ) );
+        }
+
+        forgottenPasswordBean.setUserLocale( locale );
+        forgottenPasswordBean.setPresentableChallengeSet( challengeSet );
+        forgottenPasswordBean.setAttributeForm( attributeForm );
+
+        forgottenPasswordBean.setRecoveryFlags( recoveryFlags );
+        forgottenPasswordBean.setProgress( new ForgottenPasswordBean.Progress() );
+
+        for ( final IdentityVerificationMethod recoveryVerificationMethods : recoveryFlags.getRequiredAuthMethods() )
+        {
+            verifyRequirementsForAuthMethod( pwmRequest, forgottenPasswordBean, recoveryVerificationMethods );
+        }
+    }
+
+    static List<FormConfiguration> figureAttributeForm(
+            final ForgottenPasswordProfile forgottenPasswordProfile,
+            final ForgottenPasswordBean forgottenPasswordBean,
+            final PwmRequest pwmRequest,
+            final UserIdentity userIdentity
+    )
+            throws ChaiUnavailableException, PwmOperationalException, PwmUnrecoverableException
+    {
+        final List<FormConfiguration> requiredAttributesForm = forgottenPasswordProfile.readSettingAsForm( PwmSetting.RECOVERY_ATTRIBUTE_FORM );
+        if ( requiredAttributesForm.isEmpty() )
+        {
+            return requiredAttributesForm;
+        }
+
+        final UserInfo userInfo = readUserInfo( pwmRequest, forgottenPasswordBean );
+        final List<FormConfiguration> returnList = new ArrayList<>();
+        for ( final FormConfiguration formItem : requiredAttributesForm )
+        {
+            if ( formItem.isRequired() )
+            {
+                returnList.add( formItem );
+            }
+            else
+            {
+                try
+                {
+                    final String currentValue = userInfo.readStringAttribute( formItem.getName() );
+                    if ( currentValue != null && currentValue.length() > 0 )
+                    {
+                        returnList.add( formItem );
+                    }
+                    else
+                    {
+                        LOGGER.trace( pwmRequest, "excluding optional required attribute(" + formItem.getName() + "), user has no value" );
+                    }
+                }
+                catch ( PwmUnrecoverableException e )
+                {
+                    throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_NO_CHALLENGES, "unexpected error reading value for attribute " + formItem.getName() ) );
+                }
+            }
+        }
+
+        if ( returnList.isEmpty() )
+        {
+            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_NO_CHALLENGES, "user has no values for any optional attribute" ) );
+        }
+
+        return returnList;
+    }
+
+    static ForgottenPasswordBean.RecoveryFlags calculateRecoveryFlags(
+            final PwmApplication pwmApplication,
+            final String forgottenPasswordProfileID
+    )
+    {
+        final Configuration config = pwmApplication.getConfig();
+        final ForgottenPasswordProfile forgottenPasswordProfile = config.getForgottenPasswordProfiles().get( forgottenPasswordProfileID );
+
+        final MessageSendMethod tokenSendMethod = config.getForgottenPasswordProfiles().get( forgottenPasswordProfileID ).readSettingAsEnum(
+                PwmSetting.RECOVERY_TOKEN_SEND_METHOD,
+                MessageSendMethod.class
+        );
+
+        final Set<IdentityVerificationMethod> requiredRecoveryVerificationMethods = forgottenPasswordProfile.requiredRecoveryAuthenticationMethods();
+        final Set<IdentityVerificationMethod> optionalRecoveryVerificationMethods = forgottenPasswordProfile.optionalRecoveryAuthenticationMethods();
+        final int minimumOptionalRecoveryAuthMethods = forgottenPasswordProfile.getMinOptionalRequired();
+        final boolean allowWhenLdapIntruderLocked = forgottenPasswordProfile.readSettingAsBoolean( PwmSetting.RECOVERY_ALLOW_WHEN_LOCKED );
+
+        return new ForgottenPasswordBean.RecoveryFlags(
+                allowWhenLdapIntruderLocked,
+                requiredRecoveryVerificationMethods,
+                optionalRecoveryVerificationMethods,
+                minimumOptionalRecoveryAuthMethods,
+                tokenSendMethod
+        );
     }
 }

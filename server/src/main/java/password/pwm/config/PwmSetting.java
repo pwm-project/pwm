@@ -726,6 +726,8 @@ public enum PwmSetting
             "recovery.postActions", PwmSettingSyntax.ACTION, PwmSettingCategory.RECOVERY_SETTINGS ),
     CHALLENGE_ENFORCE_MINIMUM_PASSWORD_LIFETIME(
             "challenge.enforceMinimumPasswordLifetime", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_SETTINGS ),
+    RECOVERY_BOGUS_USER_ENABLE(
+            "recovery.bogus.user.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_SETTINGS ),
 
     // recovery profile
     RECOVERY_PROFILE_LIST(
@@ -736,18 +738,20 @@ public enum PwmSetting
             "recovery.verificationMethods", PwmSettingSyntax.VERIFICATION_METHOD, PwmSettingCategory.RECOVERY_DEF ),
     RECOVERY_TOKEN_SEND_METHOD(
             "challenge.token.sendMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_DEF ),
-    RECOVERY_ALLOW_UNLOCK(
-            "challenge.allowUnlock", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_DEF ),
     RECOVERY_ACTION(
             "recovery.action", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_DEF ),
     RECOVERY_SENDNEWPW_METHOD(
             "recovery.sendNewPassword.sendMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_DEF ),
     RECOVERY_ATTRIBUTE_FORM(
             "challenge.requiredAttributes", PwmSettingSyntax.FORM, PwmSettingCategory.RECOVERY_DEF ),
+
+    // recover options
+    RECOVERY_ALLOW_UNLOCK(
+            "challenge.allowUnlock", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_OPTIONS ),
     RECOVERY_ALLOW_WHEN_LOCKED(
-            "recovery.allowWhenLocked", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_DEF ),
+            "recovery.allowWhenLocked", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_OPTIONS ),
     TOKEN_RESEND_ENABLE(
-            "recovery.token.resend.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_DEF ),
+            "recovery.token.resend.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_OPTIONS ),
 
     // recovery oauth
     RECOVERY_OAUTH_ID_LOGIN_URL(

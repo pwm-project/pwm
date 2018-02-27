@@ -39,6 +39,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -66,8 +67,14 @@ public class ForgottenPasswordBean extends PwmSessionBean
     @SerializedName( "f" )
     private RecoveryFlags recoveryFlags = new RecoveryFlags();
 
+    @SerializedName( "b" )
+    private boolean bogusUser;
+
     @SerializedName( "fp" )
     private String forgottenPasswordProfileID;
+
+    @SerializedName( "lf" )
+    private Map<String, String> userSearchValues;
 
     @Data
     public static class Progress implements Serializable
