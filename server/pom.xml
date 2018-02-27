@@ -20,7 +20,6 @@
         <skipTests>false</skipTests>
         <skipSpotbugs>false</skipSpotbugs>
         <timestamp.iso>${maven.build.timestamp}</timestamp.iso>
-        <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ss'Z'</maven.build.timestamp.format>
     </properties>
 
     <profiles>
@@ -47,43 +46,6 @@
             <properties>
                 <skipSpotbugs>true</skipSpotbugs>
             </properties>
-        </profile>
-        <profile>
-            <id>doclint-java8-disable</id>
-            <activation>
-                <jdk>[1.8,)</jdk>
-            </activation>
-            <properties>
-                <javadoc.opts>-Xdoclint:none</javadoc.opts>
-            </properties>
-        </profile>
-        <profile>
-            <!-- Builds a zip file containing the built war file, along with the supplemental directory -->
-            <id>release</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-assembly-plugin</artifactId>
-                        <version>2.6</version>
-                        <configuration>
-                            <descriptors>
-                                <descriptor>src/build/assembly/release-bundle.xml</descriptor>
-                            </descriptors>
-                            <finalName>${project.build.finalName}-${timestamp.iso}</finalName>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>make-release-bundle</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>single</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
         </profile>
     </profiles>
 
@@ -211,31 +173,39 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>2.4</version>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <goals>
-                            <goal>jar-no-fork</goal>
-                        </goals>
-                    </execution>
-                </executions>
+                <version>3.0.1</version>
+                <configuration>
+                    <includePom>true</includePom>
+                    <archive>
+                        <manifestEntries>
+                            <Implementation-Title>${project.name}</Implementation-Title>
+                            <Implementation-Version>${project.version}</Implementation-Version>
+                            <Implementation-Vendor>${project.organization.name}</Implementation-Vendor>
+                            <Implementation-URL>${project.organization.url}</Implementation-URL>
+                            <Implementation-Build>${build.number}</Implementation-Build>
+                            <Implementation-Revision>${build.revision}</Implementation-Revision>
+                            <Implementation-Version-Display>v${project.version} b${build.number} r${build.revision}</Implementation-Version-Display>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.10.3</version>
-                <executions>
-                    <execution>
-                        <id>attach-javadocs</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                        <configuration>
-                            <additionalparam>${javadoc.opts}</additionalparam>
-                        </configuration>
-                    </execution>
-                </executions>
+                <version>3.0.0</version>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Implementation-Title>${project.name}</Implementation-Title>
+                            <Implementation-Version>${project.version}</Implementation-Version>
+                            <Implementation-Vendor>${project.organization.name}</Implementation-Vendor>
+                            <Implementation-URL>${project.organization.url}</Implementation-URL>
+                            <Implementation-Build>${build.number}</Implementation-Build>
+                            <Implementation-Revision>${build.revision}</Implementation-Revision>
+                            <Implementation-Version-Display>v${project.version} b${build.number} r${build.revision}</Implementation-Version-Display>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -295,20 +265,6 @@
                 <version>2.7</version>
                 <executions>
                     <execution>
-                        <id>copy-resources</id>
-                        <phase>validate</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.outputDirectory}/src</outputDirectory>
-                            <resources>
-                                <resource><directory>src/main/java</directory></resource>
-                                <resource><directory>src/main/resources</directory></resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                    <execution>
                         <id>replace-build-properties</id>
                         <phase>process-resources</phase>
                         <goals>
@@ -358,7 +314,7 @@
                         <goals>
                             <goal>generate-attribution-file</goal>
                         </goals>
-                        <phase>generate-resources</phase>
+                        <phase>process-resources</phase>
                     </execution>
                 </executions>
                 <configuration>
@@ -446,22 +402,6 @@
                     </dependencyOverrides>
                 </configuration>
             </plugin>
-            <plugin> <!-- checks owsp vulnerability database during verify phase -->
-                <groupId>org.owasp</groupId>
-                <artifactId>dependency-check-maven</artifactId>
-                <version>3.1.1</version>
-                <configuration>
-                    <nuspecAnalyzerEnabled>false</nuspecAnalyzerEnabled>
-                    <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
@@ -538,6 +478,20 @@
     </build>
 
     <reporting>
+        <plugins>
+            <plugin> <!-- checks owsp vulnerability database -->
+                <groupId>org.owasp</groupId>
+                <artifactId>dependency-check-maven</artifactId>
+                <version>3.1.1</version>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>aggregate</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+        </plugins>
     </reporting>
 
     <dependencies>
@@ -763,7 +717,7 @@
         <dependency>
             <groupId>com.nulab-inc</groupId>
             <artifactId>zxcvbn</artifactId>
-            <version>1.2.3</version>
+            <version>1.2.4</version>
         </dependency>
         <dependency>
             <groupId>com.github.ziplet</groupId>
@@ -781,17 +735,17 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.webjars.npm</groupId>
+            <groupId>org.webjars.bower</groupId>
             <artifactId>dojo</artifactId>
             <version>1.13.0</version>
         </dependency>
         <dependency>
-            <groupId>org.webjars.npm</groupId>
+            <groupId>org.webjars.bower</groupId>
             <artifactId>dijit</artifactId>
             <version>1.13.0</version>
         </dependency>
         <dependency>
-            <groupId>org.webjars.npm</groupId>
+            <groupId>org.webjars.bower</groupId>
             <artifactId>dojox</artifactId>
             <version>1.13.0</version>
         </dependency>
