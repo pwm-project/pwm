@@ -22,7 +22,7 @@
 
 
 import { bootstrap, module } from 'angular';
-import ConfigService from './services/config.service.dev';
+import ConfigService from './services/peoplesearch-config.service.dev';
 import peopleSearchModule from './peoplesearch/peoplesearch.module';
 import PeopleService from './services/people.service.dev';
 import PwmService from './services/pwm.service.dev';
@@ -30,13 +30,12 @@ import routes from './routes';
 import routeErrorHandler from './route-error-handler';
 import uiRouter from '@uirouter/angularjs';
 
-// fontgen-loader needs this :(
-require('./icons.json');
 
 module('app', [
     uiRouter,
     peopleSearchModule,
-    'pascalprecht.translate'
+    'pascalprecht.translate',
+    'ng-ias'
 ])
 
     .config(routes)

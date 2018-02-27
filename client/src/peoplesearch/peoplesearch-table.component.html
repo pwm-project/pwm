@@ -20,33 +20,41 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   -->
 
-<mf-app-bar>
-    <div id="page-content-title" translate="Title_PeopleSearch">People Search</div>
-    <mf-search-bar input-debounce="$ctrl.inputDebounce"
-                   search-text="$ctrl.query"
-                   on-search-text-change="$ctrl.onSearchTextChange(value)"
-                   on-key-down="$ctrl.onSearchBoxKeyDown($event)"
-                   auto-focus></mf-search-bar>
-    <span flex></span>
-    <mf-icon-button
-            icon="view-tile_thin"
-            id="view-title-button"
-            ng-click="$ctrl.gotoCardsView()"
-            ng-attr-title="{{ 'Title_PeopleSearchCard' | translate }}"></mf-icon-button>
-    <mf-icon-button
-            icon="view-list_thin"
-            id="view-list-button"
-            class="selected"
-            disabled="true"
-            ng-attr-title="{{ 'Title_PeopleSearchTable' | translate }}"></mf-icon-button>
-    <div class="mf-divider vertical" ng-if="$ctrl.orgChartEnabled"></div>
-    <mf-icon-button
-            icon="orgchart_thin"
-            id="view-orgchart-button"
-            ng-click="$ctrl.gotoOrgchart()"
-            ng-if="$ctrl.orgChartEnabled"
-            ng-attr-title="{{ 'Title_OrgChart' | translate }}"></mf-icon-button>
-</mf-app-bar>
+<div class="ias-header">
+    <h2 id="page-content-title" translate="Title_PeopleSearch">People Search</h2>
+    <ias-search-box id="input" ng-model="$ctrl.query" ng-model-options="{debounce: $ctrl.inputDebounce}"
+                    placeholder="{{'Placeholder_Search' | translate}}" auto-focus>
+    </ias-search-box>
+
+    <span class="ias-fill"></span>
+
+    <ias-button id="view-title-button" class="ias-icon-button"
+                ng-click="$ctrl.gotoCardsView()"
+                ng-attr-title="{{ 'Title_PeopleSearchCard' | translate }}">
+        <ias-icon class="ias-selected" icon="view_tile_thin"></ias-icon>
+    </ias-button>
+    <ias-button id="view-list-button" class="ias-icon-button ias-selected" ng-disabled="true"
+                ng-attr-title="{{ 'Title_PeopleSearchTable' | translate }}">
+        <ias-icon class="ias-selected" icon="view_list_thin"></ias-icon>
+    </ias-button>
+    <div class="icon-divider vertical"></div>
+    <ias-button id="view-orgchart-button" class="ias-icon-button" ng-click="$ctrl.gotoOrgchart()"
+                ng-if="$ctrl.orgChartEnabled"
+                ng-attr-title="{{ 'Title_OrgChart' | translate }}">
+        <ias-icon class="ias-selected" icon="orgchart_thin"></ias-icon>
+    </ias-button>
+    <ias-button class="ias-icon-button table-configuration-menu-toggle" ias-toggle="menu1">
+        <ias-icon icon="configure_thick"></ias-icon>
+    </ias-button>
+    <ias-menu name="menu1" ias-align="end end">
+        <div class="ias-input-container">
+            <div class="checkbox-button" ng-repeat="(key, value) in $ctrl.columnConfiguration">
+                <input type="checkbox" ng-checked="value.visible" aria-label="Toggle column visibility" disabled/>
+                <ias-button ng-click="$ctrl.toggleColumnVisible($event, key)">{{value.label}}</ias-button>
+            </div>
+        </div>
+    </ias-menu>
+</div>
 
 <div class="search-info-container">
     <div class="search-info" ng-class="{'loading': !$ctrl.getMessage()}"
@@ -56,15 +64,23 @@
 </div>
 
 <div class="people-search-component-content">
-    <mf-table data="person in $ctrl.searchResult.people"
-              ng-show="$ctrl.searchResult.people.length"
-              search-highlight="$ctrl.query"
-              on-click-item="$ctrl.selectPerson(person)">
-        <mf-table-column ng-repeat="(key, value) in $ctrl.columnConfiguration"
-                         label="value"
-                         value="'person.' + key">
-        </mf-table-column>
-    </mf-table>
+    <table class="ias-table" ias-sort="$ctrl.sort" ng-show="$ctrl.searchResult.people.length">
+        <thead>
+        <tr>
+            <th ng-repeat="(key, value) in $ctrl.columnConfiguration" ng-if="value.visible"
+                ias-sort-on="key">{{value.label}}</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="person in $ctrl.searchResult.people | orderBy:$ctrl.sort"
+            ng-click="$ctrl.selectPerson(person)">
+            <td ng-repeat="(key, value) in $ctrl.columnConfiguration" ng-if="value.visible">
+                <span ng-bind="person[key]"></span>
+            </td>
+            <td></td>
+        </tr>
+        </tbody>
+    </table>
 
     <ui-view></ui-view>
 </div>

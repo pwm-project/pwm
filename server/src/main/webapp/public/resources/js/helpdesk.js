@@ -26,6 +26,10 @@
 var PWM_HELPDESK = PWM_HELPDESK || {};
 var PWM_VAR = PWM_VAR || {};
 
+function getPageUrl() {
+    return window.location.href.replace(window.location.hash, "");
+}
+
 PWM_HELPDESK.executeAction = function(actionName) {
     var body = PWM_VAR['actions'][actionName]['description'];
     body += "<br/><br/>" + PWM_MAIN.showString('Confirm');
@@ -36,7 +40,7 @@ PWM_HELPDESK.executeAction = function(actionName) {
             var inputValues = {};
             inputValues['userKey'] = PWM_VAR['helpdesk_obfuscatedDN'];
             PWM_MAIN.showWaitDialog({loadFunction:function() {
-                var url = PWM_MAIN.addParamToUrl(window.location.href,"processAction", "executeAction");
+                var url = PWM_MAIN.addParamToUrl(getPageUrl(),"processAction", "executeAction");
                 url = PWM_MAIN.addParamToUrl(url, "name", actionName);
                 var loadFunction = function(data) {
                     PWM_MAIN.closeWaitDialog();
@@ -252,7 +256,7 @@ PWM_HELPDESK.loadSearchDetails = function(userKey) {
             if (PWM_MAIN.Preferences.readSessionStorage(PREF_KEY_VERIFICATION_STATE)) {
                 contents[PARAM_VERIFICATION_STATE] = PWM_MAIN.Preferences.readSessionStorage(PREF_KEY_VERIFICATION_STATE);
             }
-            PWM_MAIN.submitPostAction(window.location.href,'showDetail',contents);
+            PWM_MAIN.submitPostAction(getPageUrl(),'showDetail',contents);
         }});
     };
 
@@ -261,7 +265,10 @@ PWM_HELPDESK.loadSearchDetails = function(userKey) {
             PWM_MAIN.showErrorDialog(data);
         } else {
             if (data['data']['passed']) {
-                gotoDetailFunction(userKey);
+                PWM_MAIN.closeWaitDialog();
+
+                // Don't need to do anything else, since we have an angular page going on.
+                // gotoDetailFunction(userKey);
             } else {
                 var verificationMethods = PWM_VAR['verificationMethods']['required'];
                 PWM_HELPDESK.sendVerificationToken(userKey,verificationMethods);
@@ -270,7 +277,7 @@ PWM_HELPDESK.loadSearchDetails = function(userKey) {
     };
 
     var checkVerificationFunction = function() {
-        var url = PWM_MAIN.addParamToUrl(window.location.href,"processAction", "checkVerification");
+        var url = PWM_MAIN.addParamToUrl(getPageUrl(),"processAction", "checkVerification");
         var content = {};
         content['userKey'] = userKey;
         content[PARAM_VERIFICATION_STATE] = PWM_MAIN.Preferences.readSessionStorage(PREF_KEY_VERIFICATION_STATE);
@@ -314,7 +321,7 @@ PWM_HELPDESK.showRecentVerifications = function() {
     };
 
     var loadVerificationsFunction = function() {
-        var url = PWM_MAIN.addParamToUrl(window.location.href,"processAction", "showVerifications");
+        var url = PWM_MAIN.addParamToUrl(getPageUrl(),"processAction", "showVerifications");
         var content = {};
         content[PARAM_VERIFICATION_STATE] = PWM_MAIN.Preferences.readSessionStorage(PREF_KEY_VERIFICATION_STATE);
         PWM_MAIN.ajaxRequest(url, handleVerificationResult, {content:content});
@@ -326,7 +333,7 @@ PWM_HELPDESK.showRecentVerifications = function() {
 
 PWM_HELPDESK.processHelpdeskSearch = function() {
     var validationProps = {};
-    validationProps['serviceURL'] = PWM_MAIN.addParamToUrl(window.location.href,"processAction", "search");
+    validationProps['serviceURL'] = PWM_MAIN.addParamToUrl(getPageUrl(),"processAction", "search");
     validationProps['showMessage'] = false;
     validationProps['ajaxTimeout'] = 120 * 1000;
     validationProps['usernameField'] = PWM_MAIN.getObject('username').value;
@@ -450,7 +457,7 @@ PWM_HELPDESK.validateCode = function(options) {
             content['code'] = PWM_MAIN.getObject('code').value;
         }
         content[PARAM_VERIFICATION_STATE] = PWM_MAIN.Preferences.readSessionStorage(PREF_KEY_VERIFICATION_STATE);
-        var url = PWM_MAIN.addParamToUrl(window.location.href,"processAction", processAction);
+        var url = PWM_MAIN.addParamToUrl(getPageUrl(),"processAction", processAction);
         var loadFunction = function(data) {
             PWM_MAIN.getObject('icon-working').style.display = 'none';
 
@@ -521,7 +528,7 @@ PWM_HELPDESK.sendVerificationToken = function(userKey, methods) {
             sendContent['method'] = choice;
         }
         PWM_MAIN.showWaitDialog({loadFunction:function(){
-            var url = PWM_MAIN.addParamToUrl(window.location.href,"processAction", "sendVerificationToken");
+            var url = PWM_MAIN.addParamToUrl(getPageUrl(),"processAction", "sendVerificationToken");
             var loadFunction = function(data) {
                 if (!data['error']) {
                     var text = '<table><tr><td>' + PWM_MAIN.showString('Display_TokenDestination') + '</td><td>' + data['data']['destination'] + '</td></tr></table>';
@@ -624,15 +631,17 @@ PWM_HELPDESK.initHelpdeskSearchPage = function() {
             }
         });
 
-        try {
-            var helpdeskFieldUsername = PWM_MAIN.Preferences.readSessionStorage("helpdesk_field_username","");
-            PWM_MAIN.getObject('username').value = helpdeskFieldUsername;
-        } catch (e) {
-            console.log('error reading username field from sessionStorage: ' + e);
-        }
+        if (PWM_MAIN.getObject('username')) {
+            try {
+                var helpdeskFieldUsername = PWM_MAIN.Preferences.readSessionStorage("helpdesk_field_username","");
+                PWM_MAIN.getObject('username').value = helpdeskFieldUsername;
+            } catch (e) {
+                console.log('error reading username field from sessionStorage: ' + e);
+            }
 
-        if (PWM_MAIN.getObject('username').value && PWM_MAIN.getObject('username').value.length > 0) {
-            PWM_HELPDESK.processHelpdeskSearch();
+            if (PWM_MAIN.getObject('username').value && PWM_MAIN.getObject('username').value.length > 0) {
+                PWM_HELPDESK.processHelpdeskSearch();
+            }
         }
     });
 };
@@ -711,7 +720,7 @@ PWM_HELPDESK.unlockIntruder = function() {
         okAction:function() {
             PWM_MAIN.showWaitDialog({
                 loadFunction:function(){
-                    var url = PWM_MAIN.addParamToUrl(window.location.href,"processAction", "unlockIntruder");
+                    var url = PWM_MAIN.addParamToUrl(getPageUrl(),"processAction", "unlockIntruder");
                     url = PWM_MAIN.addParamToUrl(url, "userKey", PWM_VAR['helpdesk_obfuscatedDN']);
                     var load = function(data) {
                         if (data['error'] === true) {
@@ -737,7 +746,7 @@ PWM_HELPDESK.doOtpClear = function() {
     var inputValues = {};
     inputValues['userKey'] = PWM_VAR['helpdesk_obfuscatedDN'];
     PWM_MAIN.showWaitDialog({loadFunction:function() {
-        var url = PWM_MAIN.addParamToUrl(window.location.href,"processAction", "clearOtpSecret");
+        var url = PWM_MAIN.addParamToUrl(getPageUrl(),"processAction", "clearOtpSecret");
         var loadFunction = function(results) {
             if (results['error'] !== true) {
                 PWM_MAIN.showDialog({

@@ -22,7 +22,7 @@
 
 
 import { Component } from '../component';
-import { IConfigService } from '../services/config.service';
+import { IPeopleSearchConfigService } from '../services/peoplesearch-config.service';
 import IPeopleService from '../services/people.service';
 import IPwmService from '../services/pwm.service';
 import { IQService, IScope } from 'angular';
@@ -55,7 +55,7 @@ export default class PeopleSearchTableComponent extends PeopleSearchBaseComponen
                 $state: angular.ui.IStateService,
                 $stateParams: angular.ui.IStateParamsService,
                 $translate: angular.translate.ITranslateService,
-                configService: IConfigService,
+                configService: IPeopleSearchConfigService,
                 localStorageService: LocalStorageService,
                 peopleService: IPeopleService,
                 promiseService: PromiseService,
@@ -81,7 +81,16 @@ export default class PeopleSearchTableComponent extends PeopleSearchBaseComponen
         // The table columns are dynamic and configured via a service
         this.configService.getColumnConfig().then(
             (columnConfiguration: any) => {
-                self.columnConfiguration = columnConfiguration;
+                self.columnConfiguration = Object.keys(columnConfiguration).reduce(
+                    function(accumulator, columnId) {
+                        accumulator[columnId] = {
+                            label: columnConfiguration[columnId],
+                            visible: true
+                        };
+
+                        return accumulator;
+                    },
+                    {});
             },
             (error) => {
                 self.setErrorMessage(error);
@@ -97,6 +106,18 @@ export default class PeopleSearchTableComponent extends PeopleSearchBaseComponen
         if (searchResult) {
             searchResult.then(this.onSearchResult.bind(this));
         }
+    }
+
+    toggleColumnVisible(event, columnId): void {
+        const visibleColumns = Object.keys(this.columnConfiguration).filter((columnId) => {
+            return this.columnConfiguration[columnId].visible;
+        });
+
+        if (!(visibleColumns.length === 1 && this.columnConfiguration[columnId].visible)) {
+            this.columnConfiguration[columnId].visible = !this.columnConfiguration[columnId].visible;
+        }
+
+        event.stopImmediatePropagation();
     }
 
     private onSearchResult(searchResult: SearchResult): void {

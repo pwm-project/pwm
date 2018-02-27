@@ -22,7 +22,7 @@
 
 
 import { isArray, isString, IPromise, IQService, IScope } from 'angular';
-import { IConfigService } from '../services/config.service';
+import { IPeopleSearchConfigService } from '../services/peoplesearch-config.service';
 import { IPeopleService } from '../services/people.service';
 import IPwmService from '../services/pwm.service';
 import LocalStorageService from '../services/local-storage.service';
@@ -48,7 +48,7 @@ abstract class PeopleSearchBaseComponent {
                 protected $state: angular.ui.IStateService,
                 protected $stateParams: angular.ui.IStateParamsService,
                 protected $translate: angular.translate.ITranslateService,
-                protected configService: IConfigService,
+                protected configService: IPeopleSearchConfigService,
                 protected localStorageService: LocalStorageService,
                 protected peopleService: IPeopleService,
                 protected promiseService: PromiseService,
@@ -57,6 +57,10 @@ abstract class PeopleSearchBaseComponent {
         this.searchViewLocalStorageKey = this.localStorageService.keys.SEARCH_VIEW;
 
         this.inputDebounce = this.pwmService.ajaxTypingWait;
+
+        $scope.$watch('$ctrl.query', (newValue: string, oldValue: string) => {
+            this.onSearchTextChange(newValue, oldValue);
+        });
     }
 
     getMessage(): string {
@@ -71,20 +75,10 @@ abstract class PeopleSearchBaseComponent {
         this.$state.go(state, { query: this.query });
     }
 
-    onSearchBoxKeyDown(event: KeyboardEvent): void {
-        switch (event.keyCode) {
-            case 27: // ESC
-                this.clearSearch();
-                break;
-        }
-    }
-
-    onSearchTextChange(value: string): void {
-        if (value === this.query) {
+    private onSearchTextChange(newValue: string, oldValue: string): void {
+        if (newValue === oldValue) {
             return;
         }
-
-        this.query = value;
 
         this.storeSearchText();
         this.clearSearchMessage();
@@ -155,7 +149,7 @@ abstract class PeopleSearchBaseComponent {
 
     abstract fetchData(): void;
 
-    protected fetchSearchData(): IPromise<SearchResult> {
+    protected fetchSearchData(): IPromise<void | SearchResult> {
         this.abortPendingRequests();
         this.searchResult = null;
 

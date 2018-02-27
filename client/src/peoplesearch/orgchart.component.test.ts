@@ -31,6 +31,5 @@ describe('testing OrgChartComponent', () => {
 
     it('should fail', () => {
         expect('foo').not.toEqual('bar');
-        expect('foo').not.toEqual('bar');
     });
 });

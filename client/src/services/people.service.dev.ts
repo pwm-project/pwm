@@ -179,7 +179,7 @@ export default class PeopleService implements IPeopleService {
             deferred.resolve();
         });
 
-        return deferred.promise;
+        return deferred.promise as IPromise<SearchResult>;
     }
 
     private findDirectReports(id: string): IPerson[] {

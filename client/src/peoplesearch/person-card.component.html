@@ -20,34 +20,35 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   -->
 
-<div class="person-card-content" ng-attr-id="{{'displayName-' + $ctrl.person.displayNames[0] }}" ng-switch="$ctrl.size">
-    <div class="avatar" ng-if="$ctrl.isSmall() || $ctrl.showImage" ng-style="$ctrl.getAvatarStyle()" aria-label="User avatar"></div>
+<div class="ias-tile ias-medium" ng-attr-id="{{'displayName-' + $ctrl.person.displayNames[0] }}" ng-switch="$ctrl.size">
+    <div class="ias-avatar" ng-if="$ctrl.isSmall() || $ctrl.showImage"
+         ng-style="$ctrl.getAvatarStyle()"
+         aria-label="User avatar"></div>
+
     <div class="reports"
          ng-if="$ctrl.numDirectReportsVisible"
          ng-bind="$ctrl.person.numDirectReports"
          ng-attr-title="{{$ctrl.person.numDirectReports}} {{ 'Title_DirectReports' | translate }}"></div>
 
-    <div class="details" ng-switch-when="small">
-        <div ng-bind="$ctrl.person.displayNames[0]"></div>
+    <div class="ias-tile-content" ng-switch-when="small">
+        <h3 ng-bind="$ctrl.person.displayNames[0]"></h3>
         <div ng-bind="$ctrl.person.displayNames[1]"></div>
     </div>
 
-    <div ng-class="{details: true, 'direct-reports': $ctrl.numDirectReportsVisible}" ng-switch-when="large">
-        <div ng-bind="$ctrl.person.displayNames[0]"></div>
+    <div class="ias-tile-content" ng-class="{'direct-reports': $ctrl.numDirectReportsVisible}" ng-switch-when="large">
+        <h3 ng-bind="$ctrl.person.displayNames[0]"></h3>
         <div ng-bind="$ctrl.person.displayNames[1]"></div>
         <div ng-bind="$ctrl.person.displayNames[2]"></div>
         <div ng-bind="$ctrl.person.displayNames[3]"></div>
 
-        <div class="secondary-details">
-            <div ng-bind="$ctrl.person.displayNames[4]"></div>
-            <div ng-bind="$ctrl.person.displayNames[5]"></div>
-            <div ng-bind="$ctrl.person.displayNames[6]"></div>
-            <div ng-bind="$ctrl.person.displayNames[7]"></div>
-        </div>
+        <div ng-bind="$ctrl.person.displayNames[4]"></div>
+        <div ng-bind="$ctrl.person.displayNames[5]"></div>
+        <div ng-bind="$ctrl.person.displayNames[6]"></div>
+        <div ng-bind="$ctrl.person.displayNames[7]"></div>
     </div>
 
-    <div ng-class="{details: true, 'direct-reports': $ctrl.numDirectReportsVisible}" ng-switch-default>
-        <div ng-bind="$ctrl.person.displayNames[0]"></div>
+    <div class="ias-tile-content" ng-class="{'direct-reports': $ctrl.numDirectReportsVisible}" ng-switch-default>
+        <h3 ng-bind="$ctrl.person.displayNames[0]"></h3>
         <div ng-bind="$ctrl.person.displayNames[1]"></div>
         <div ng-bind="$ctrl.person.displayNames[2]"></div>
         <div ng-bind="$ctrl.person.displayNames[3]"></div>

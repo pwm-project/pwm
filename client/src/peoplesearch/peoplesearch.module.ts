@@ -21,14 +21,14 @@
  */
 
 
-import { module } from 'angular';
+import {IComponentOptions, module} from 'angular';
 import { HighlightFilter } from './string.filters';
 import { FullNameFilter } from './person.filters';
 import OrgChartComponent from './orgchart.component';
 import OrgChartSearchComponent from './orgchart-search.component';
 import PeopleSearchTableComponent from './peoplesearch-table.component';
 import PeopleSearchCardsComponent from './peoplesearch-cards.component';
-import PersonCardComponent from './person-card.component';
+import PersonCardDirective from './person-card.component';
 import PersonDetailsDialogComponent from './person-details-dialog.component';
 import LocalStorageService from '../services/local-storage.service';
 import PromiseService from '../services/promise.service';
@@ -39,17 +39,18 @@ require('./peoplesearch.scss');
 const moduleName = 'people-search';
 
 module(moduleName, [
+    'ngAria',
     'pascalprecht.translate',
     uxModule
 ])
     .filter('fullName', FullNameFilter)
     .filter('highlight', HighlightFilter)
-    .component('orgChart', OrgChartComponent)
-    .component('orgChartSearch', OrgChartSearchComponent)
-    .component('personCard', PersonCardComponent)
-    .component('peopleSearchTable', PeopleSearchTableComponent)
-    .component('peopleSearchCards', PeopleSearchCardsComponent)
-    .component('personDetailsDialogComponent', PersonDetailsDialogComponent)
+    .component('orgChart', OrgChartComponent as IComponentOptions)
+    .component('orgChartSearch', OrgChartSearchComponent as IComponentOptions)
+    .directive('personCard', PersonCardDirective)
+    .component('peopleSearchTable', PeopleSearchTableComponent as IComponentOptions)
+    .component('peopleSearchCards', PeopleSearchCardsComponent as IComponentOptions)
+    .component('personDetailsDialogComponent', PersonDetailsDialogComponent as IComponentOptions)
     .service('PromiseService', PromiseService)
     .service('LocalStorageService', LocalStorageService);
 

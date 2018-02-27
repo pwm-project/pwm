@@ -21,6 +21,7 @@
 --%>
 
 <!DOCTYPE html>
+<% JspUtility.setFlag(pageContext, PwmRequestFlag.INCLUDE_IAS_ANGULAR); %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
@@ -38,13 +39,8 @@
     <div class="push"></div>
 </div>
 
-<pwm:script-ref url="/public/resources/webjars/angular/angular.min.js" />
-<pwm:script-ref url="/public/resources/webjars/angular-ui-router/release/angular-ui-router.min.js" />
-<pwm:script-ref url="/public/resources/webjars/angular-translate/dist/angular-translate.min.js" />
-
 <%@ include file="fragment/footer.jsp" %>
-<pwm:script-ref url="/public/resourcess/js/peoplesearch.js" />
-<link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/webjars/pwm-client/fonts.css' addContext="true"/>"/>
+
 <pwm:script-ref url="/public/resources/webjars/pwm-client/peoplesearch.ng.js" />
 
 </body>

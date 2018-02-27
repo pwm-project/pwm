@@ -1,0 +1,68 @@
+<!--
+  ~ Password Management Servlets (PWM)
+  ~ http://www.pwm-project.org
+  ~
+  ~ Copyright (c) 2006-2009 Novell, Inc.
+  ~ Copyright (c) 2009-2018 The PWM Project
+  ~
+  ~ This program is free software; you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation; either version 2 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program; if not, write to the Free Software
+  ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  -->
+
+<div class="ias-dialog">
+    <div class="ias-dialog-container">
+        <div class="ias-dialog-label">
+            <div class="ias-title" ng-bind="'Title_RecentVerifications' | translate"></div>
+        </div>
+
+        <div class="ias-dialog-content">
+            <p ng-bind="'Display_SearchResultsNone' | translate"
+               ng-if="!$ctrl.recentVerifications.length"></p>
+            <table class="ias-table" ng-if="!!$ctrl.recentVerifications.length">
+                <thead>
+                <tr>
+                    <th ng-bind="'Field_LdapProfile' | translate"></th>
+                    <th ng-bind="'Field_Username' | translate"></th>
+                    <th ng-bind="'Field_DateTime' | translate"></th>
+                    <th ng-bind="'Field_Method' | translate"></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="record in $ctrl.recentVerifications">
+                    <td ng-bind="record.profile"></td>
+                    <td ng-bind="record.username"></td>
+                    <td ng-bind="record.timestamp | dateFilter"></td>
+                    <td ng-bind="record.method"></td>
+                </tr>
+                </tbody>
+            </table>
+            <div ng-repeat="method in $ctrl.availableVerificationMethods">
+                <ias-button ng-click="$ctrl.selectVerificationMethod(method.name)">
+                    {{ method.label | translate }}
+                </ias-button>
+            </div>
+        </div>
+
+        <div class="ias-actions">
+            <ias-button ng-click="close()">{{ 'Button_OK' | translate }}</ias-button>
+        </div>
+
+        <ias-button class="ias-icon-button ias-dialog-cancel-button"
+                    id="close-icon"
+                    ng-attr-title="{{ 'Button_CloseWindow' | translate }}"
+                    ng-click="close()">
+            <ias-icon icon="close_thick"></ias-icon>
+        </ias-button>
+    </div>
+</div>

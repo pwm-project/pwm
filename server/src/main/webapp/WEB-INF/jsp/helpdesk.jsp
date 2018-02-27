@@ -24,6 +24,7 @@
 <%@ page import="password.pwm.http.PwmRequestAttribute" %>
 
 <!DOCTYPE html>
+<% JspUtility.setFlag(pageContext, PwmRequestFlag.INCLUDE_IAS_ANGULAR); %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
@@ -34,39 +35,21 @@
         <jsp:param name="pwm.PageName" value="Title_Helpdesk"/>
     </jsp:include>
     <div id="centerbody" class="wide tall">
-        <div id="page-content-title"><pwm:display key="Title_Helpdesk" displayIfMissing="true"/></div>
-        <div id="panel-searchbar" class="searchbar">
-            <input id="username" name="username" placeholder="<pwm:display key="Placeholder_Search"/>" class="helpdesk-input-username" <pwm:autofocus/> autocomplete="off"/>
-            <div class="searchbar-extras">
-                <div id="searchIndicator" style="display: none;">
-                    <span style="" class="pwm-icon pwm-icon-lg pwm-icon-spin pwm-icon-spinner"></span>
-                </div>
+        <ui-view id="helpdesk-view"><div class="WaitDialogBlank"></div></ui-view>
 
-                <div id="maxResultsIndicator" style="display: none;">
-                    <span style="color: #ffcd59;" class="pwm-icon pwm-icon-lg pwm-icon-exclamation-circle"></span>
-                </div>
-
-                <% if ((Boolean)JspUtility.getPwmRequest(pageContext).getAttribute(PwmRequestAttribute.HelpdeskVerificationEnabled)) { %>
-                <div id="verifications-btn">
-                    <button class="btn" id="button-show-current-verifications">
-                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-check"></span></pwm:if>
-                        <pwm:display key="Button_Verificiations"/>
-                    </button>
-                </div>
-                <% } %>
-            </div>
-
-            <noscript>
-                <span><pwm:display key="Display_JavascriptRequired"/></span>
-                <a href="<pwm:context/>"><pwm:display key="Title_MainPage"/></a>
-            </noscript>
-        </div>
-        <div id="helpdesk-searchResultsGrid" class="searchResultsGrid grid tall">
-        </div>
+        <noscript>
+            <span><pwm:display key="Display_JavascriptRequired"/></span>
+            <a href="<pwm:context/>"><pwm:display key="Title_MainPage"/></a>
+        </noscript>
     </div>
     <div class="push"></div>
 </div>
+
 <jsp:include page="/WEB-INF/jsp/fragment/footer.jsp"/>
+
 <pwm:script-ref url="/public/resources/js/helpdesk.js"/>
+<pwm:script-ref url="/public/resources/webjars/pwm-client/helpdesk.ng.js" />
+<pwm:script-ref url="/public/resources/js/changepassword.js"/>
+
 </body>
 </html>
