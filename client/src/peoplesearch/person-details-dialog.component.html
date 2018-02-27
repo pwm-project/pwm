@@ -20,23 +20,33 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   -->
 
-<mf-dialog class="person-details" on-close="$ctrl.closeDialog()">
-    <div class="mf-dialog-content">
-        <div class="person-details-header">
-            <person-card size="medium"
-                         person="$ctrl.person"
-                         disable-focus="true"
-                         show-image="$ctrl.photosEnabled"
-                         show-direct-report-count="false"></person-card>
-            <mf-button type="button" ng-click="$ctrl.gotoOrgChart()" ng-if="$ctrl.orgChartEnabled">
-                <mf-icon icon="orgchart_thin" id="orgchart-button"></mf-icon>
-                <span translate="Title_OrgChart">Organizational Chart</span>
-            </mf-button>
-        </div>
+<div class="ias-dialog person-details-dialog">
+    <div class="ias-dialog-container">
+        <div class="ias-dialog-content">
+            <div class="person-details-dialog-header">
+                <div class="ias-avatar" ng-if="$ctrl.photosEnabled" ng-style="$ctrl.getAvatarStyle()" alt="User image"></div>
 
-        <div class="person-details-content">
-            <table>
-                <tbody>
+                <div class="ias-header">
+                    <h2 ng-bind="$ctrl.person.displayNames[0]"></h2>
+                    <span class="ias-fill"></span>
+                    <ias-button class="ias-icon-button" ng-click="$ctrl.closeDialog()">
+                        <ias-icon icon="close_thick"></ias-icon>
+                    </ias-button>
+                </div>
+                <div ng-bind="$ctrl.person.displayNames[1]"></div>
+                <div ng-bind="$ctrl.person.displayNames[2]"></div>
+                <div ng-bind="$ctrl.person.displayNames[3]"></div>
+                <div class="person-dialog-actions">
+                    <ias-button type="button" class="ias-icon-text-button"
+                                ng-click="$ctrl.gotoOrgChart()" ng-if="$ctrl.orgChartEnabled">
+                        <ias-icon icon="orgchart_thin" id="orgchart-button"></ias-icon>
+                        <span translate="Title_OrgChart">Organizational Chart</span>
+                    </ias-button>
+                </div>
+            </div>
+            <div class="person-details-content">
+                <table class="details-table">
+                    <tbody>
                     <tr>
                         <td></td>
                         <td>
@@ -69,17 +79,22 @@
                                            ng-if="detail.type === 'tel'"></a>
                                         <span ng-bind="value"
                                               ng-if="detail.type !== 'email' && detail.type !== 'tel'"></span>
-                                        <mf-icon-button icon="search_thick"
-                                                        ng-click="$ctrl.searchText(value)"
-                                                        ng-if="detail.searchable"
-                                                        ng-attr-title="{{('Placeholder_Search' | translate) + ' \'' + value + '\''}}"></mf-icon-button>
+
+                                        <a ui-sref="search.table({ query: value })"
+                                           class="details-table-search-link"
+                                           ng-if="detail.searchable"
+                                           ng-attr-title="{{('Placeholder_Search' | translate) + ' \'' + value + '\''}}">
+                                            <ias-icon icon="search_thick"></ias-icon>
+                                        </a>
+
                                     </li>
                                 </ul>
                             </div>
                         </td>
                     </tr>
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-</mf-dialog>
+</div>

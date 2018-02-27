@@ -21,24 +21,14 @@
  */
 
 
-import { isString, IAugmentedJQuery } from 'angular';
-import { Component } from '../component';
+import {IAugmentedJQuery} from 'angular';
 import { IPerson } from '../models/person.model';
 import { IPeopleService } from '../services/people.service';
 
-@Component({
-    bindings: {
-        directReports: '<',
-        disableFocus: '<',
-        person: '<',
-        showImage: '<',
-        size: '@',
-        showDirectReportCount: '<'
-    },
-    stylesheetUrl: require('peoplesearch/person-card.component.scss'),
-    templateUrl: require('peoplesearch/person-card.component.html')
-})
-export default class PersonCardComponent {
+const templateUrl = require('peoplesearch/person-card.component.html');
+require('peoplesearch/person-card.component.scss');
+
+class PersonCardController {
     private details: any[]; // For large style cards
     private disableFocus: boolean;
     private person: IPerson;
@@ -123,4 +113,23 @@ export default class PersonCardComponent {
             this.person.numDirectReports = this.directReports.length;
         }
     }
+}
+
+export default function PersonCardDirectiveFactory() {
+    return {
+        bindToController: true,
+        controller: PersonCardController,
+        controllerAs: '$ctrl',
+        restrict: 'E',
+        replace: true,
+        scope: {
+            directReports: '<',
+            disableFocus: '<',
+            person: '<',
+            showImage: '<',
+            size: '@',
+            showDirectReportCount: '<'
+        },
+        templateUrl: templateUrl
+    };
 }

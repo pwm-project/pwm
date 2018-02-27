@@ -1,20 +1,22 @@
 {
-  "compilerOptions": {
-    "baseUrl": "./",
-    "experimentalDecorators": true,
-    "module": "commonjs",
-    "removeComments": true,
-    "sourceMap": true,
-    "target": "es5",
-    "types": [
-      "node"
+    "compilerOptions": {
+        "baseUrl": "./",
+        "experimentalDecorators": true,
+        "lib": [
+            "es2015",
+            "es2015.iterable",
+            "dom"
+        ],
+        "module": "commonjs",
+        "removeComments": true,
+        "sourceMap": true,
+        "target": "es5"
+    },
+    "files": [
+        "src/main.ts"
+    ],
+    "exclude": [
+        "dist",
+        "node_modules"
     ]
-  },
-  "files": [
-    "src/main.ts"
-  ],
-  "exclude": [
-    "dist",
-    "node_modules"
-  ]
 }

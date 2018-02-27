@@ -20,37 +20,41 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   -->
 
-<mf-app-bar>
-    <div id="page-content-title" translate="Title_Organization">Organization</div>
-    <mf-auto-complete search-text="$ctrl.query"
-                      on-search-text-change="$ctrl.onSearchTextChange(value)"
-                      search="$ctrl.autoCompleteSearch(query)"
-                      input-debounce="$ctrl.inputDebounce"
-                      item-selected="$ctrl.onAutoCompleteItemSelected(person)"
-                      item="person">
-        <content-template>
-            <span ng-bind="person._displayName"></span>
-        </content-template>
-    </mf-auto-complete>
-    <span flex></span>
-    <mf-icon-button
-            icon="view-tile_thin"
-            ng-click="$ctrl.gotoSearchState('search.cards')"
-            ng-attr-title="{{ 'Title_PeopleSearchCard' | translate }}"
-            id="view-tile-icon"></mf-icon-button>
-    <mf-icon-button
-            icon="view-list_thin"
-            ng-click="$ctrl.gotoSearchState('search.table')"
-            ng-attr-title="{{ 'Title_PeopleSearchTable' | translate }}"
-            id="view-list-icon"></mf-icon-button>
-    <div class="mf-divider vertical"></div>
-    <mf-icon-button
-            icon="orgchart_thin"
-            class="selected"
-            disabled="true"
-            ng-attr-title="{{ 'Title_OrgChart' | translate }}"
-            id="orgcharg-icon"></mf-icon-button>
-</mf-app-bar>
+<div class="ias-header">
+    <h2 id="page-content-title" translate="Title_Organization">Organization</h2>
+    <ias-search-box id="input" ng-model="$ctrl.query" ng-model-options="{debounce: $ctrl.inputDebounce}"
+                    placeholder="{{'Placeholder_Search' | translate}}" auto-focus>
+    </ias-search-box>
+    <!--<mf-auto-complete search-text="$ctrl.query"-->
+                      <!--on-search-text-change="$ctrl.onSearchTextChange(value)"-->
+                      <!--search="$ctrl.autoCompleteSearch(query)"-->
+                      <!--input-debounce="$ctrl.inputDebounce"-->
+                      <!--item-selected="$ctrl.onAutoCompleteItemSelected(person)"-->
+                      <!--item="person">-->
+        <!--<content-template>-->
+            <!--<span ng-bind="person._displayName"></span>-->
+        <!--</content-template>-->
+    <!--</mf-auto-complete>-->
+
+    <span class="ias-fill"></span>
+
+    <ias-button id="view-tile-icon" class="ias-icon-button"
+                ng-click="$ctrl.gotoSearchState('search.cards')"
+                ng-attr-title="{{ 'Title_PeopleSearchCard' | translate }}">
+        <ias-icon class="ias-selected" icon="view_tile_thin"></ias-icon>
+    </ias-button>
+    <ias-button id="view-list-icon" class="ias-icon-button"
+                ng-click="$ctrl.gotoSearchState('search.table')"
+                ng-attr-title="{{ 'Title_PeopleSearchTable' | translate }}">
+        <ias-icon class="ias-selected" icon="view_list_thin"></ias-icon>
+    </ias-button>
+    <div class="icon-divider vertical"></div>
+    <ias-button id="orgchart-icon" class="ias-icon-button ias-selected" ng-disabled="true"
+                ng-attr-title="{{ 'Title_OrgChart' | translate }}">
+        <ias-icon class="ias-selected" icon="orgchart_thin"></ias-icon>
+    </ias-button>
+</div>
+
 
 <org-chart person="$ctrl.person"
            direct-reports="$ctrl.directReports"

@@ -31,7 +31,7 @@ var outDir = path.resolve(__dirname, 'dist');
 module.exports = {
     devServer: {
         contentBase: outDir,
-        outputPath: outDir,
+        // outputPath: outDir,
         port: 4000,
         historyApiFallback: true
     },
@@ -44,39 +44,45 @@ module.exports = {
         'angular-translate': 'window["angular-translate"]'
     },
     module: {
-        preLoaders: [
+        rules: [
             {
                 test: /\.ts$/,
-                loader: 'tslint'
-            }
-        ],
-        loaders: [
+                enforce: 'pre',
+                loader: 'tslint-loader'
+            },
             {
                 test: /\.ts$/,
-                loader: 'ts',
+                loader: 'ts-loader',
                 exclude: /node_modules/
             },
             {
                 test: /index\.html$/,
-                loader: 'html',
+                loader: 'html-loader',
                 exclude: /node_modules/
             },
             {
                 test: /\.html$/,
-                loader: 'ngtemplate?relativeTo=' + (path.resolve(__dirname, './src')) + '/!html',
+                loader: 'ngtemplate-loader?relativeTo=' + (path.resolve(__dirname, './src')) + '/!html-loader',
                 exclude: /index\.html$/
             },
             {
                 test: /\.scss$/,
-                loaders: [ 'style', 'css', 'sass', 'postcss' ]
+                loaders: [ 'style-loader', 'css-loader', 'sass-loader', {
+                    loader: 'postcss-loader',
+                    options: {
+                        plugins: function () {
+                            return [autoPrefixer('last 2 versions')]
+                        }
+                    }
+                }]
             },
             {
                 test: /\.json/,
-                loaders: [ 'json' ]
+                loaders: [ 'json-loader' ]
             },
             {
                 test: /\.(png|jpg|jpeg|gif|svg)$/,
-                loaders: [ 'url?limit=25000' ]
+                loaders: [ 'url-loader?limit=25000' ]
             }
         ]
     },
@@ -87,19 +93,22 @@ module.exports = {
     },
     plugins: [
         new HtmlWebpackPlugin({
+            chunks: ['peoplesearch.ng'],
+            filename: 'peoplesearch.html',
             template: 'index.html',
+            // title: 'PeopleSearch Development',
+            inject: 'body'
+        }),
+        new HtmlWebpackPlugin({
+            chunks: ['helpdesk.ng'],
+            filename: 'helpdesk.html',
+            template: 'index.html',
+            // title: 'PeopleSearch Development',
             inject: 'body'
         })
     ],
-    postcss: function() {
-        return [
-            autoPrefixer({
-                browsers: ['last 2 versions']
-            })
-        ];
-    },
     resolve: {
-        extensions: [ '', '.ts', '.js', '.json' ],
-        modulesDirectories: ['./src', './vendor', 'node_modules']
+        extensions: [ '.ts', '.js', '.json' ],
+        modules: ['./src', './vendor', 'node_modules']
     }
 };

@@ -64,4 +64,8 @@
             var PWM_GLOBAL = PWM_GLOBAL || {}; PWM_GLOBAL['startupFunctions'] = [];
         </script>
     </pwm:script>
+    <pwm:if test="<%=PwmIfTest.requestFlag%>" requestFlag="<%=PwmRequestFlag.INCLUDE_IAS_ANGULAR%>">
+        <link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/webjars/pwm-client/vendor/ias-icons.css' addContext="true"/>"/>
+        <link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/webjars/pwm-client/vendor/ux-ias.css' addContext="true"/>"/>
+    </pwm:if>
 </head>

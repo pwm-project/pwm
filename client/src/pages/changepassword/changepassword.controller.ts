@@ -34,7 +34,7 @@ require("pages/changepassword/password-suggestions.scss");
 export default class ChangePasswordController {
     static $inject = ["$scope", "$compile", "$templateCache"];
     constructor(
-            private $scope: IScope,
+            private $scope: IScope | any,
             private $compile: ICompileService,
             private $templateCache: ITemplateCacheService
     ) {
@@ -59,7 +59,7 @@ export default class ChangePasswordController {
 
     populateDialog() {
         this.$scope.$ctrl = this;
-        const passwordSuggestionsElement: JQuery<HTMLElement> = this.$compile(this.$templateCache.get(PW_SUGGESTIONS_TEMPLATE) as string)(this.$scope);
+        const passwordSuggestionsElement: JQuery = this.$compile(this.$templateCache.get(PW_SUGGESTIONS_TEMPLATE) as string)(this.$scope);
 
         var myElement = element( document.querySelector( '#dialogPopup .dialogBody, #html5Dialog .dialogBody' ) );
         myElement.replaceWith(passwordSuggestionsElement);

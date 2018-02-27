@@ -1,0 +1,85 @@
+<!--
+  ~ Password Management Servlets (PWM)
+  ~ http://www.pwm-project.org
+  ~
+  ~ Copyright (c) 2006-2009 Novell, Inc.
+  ~ Copyright (c) 2009-2018 The PWM Project
+  ~
+  ~ This program is free software; you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation; either version 2 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program; if not, write to the Free Software
+  ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  -->
+
+<div class="ias-header">
+    <h2 id="page-content-title" translate="Title_HelpDesk">Help Desk</h2>
+    <ias-search-box ng-model="$ctrl.query" ng-model-options="{debounce: $ctrl.inputDebounce}"
+                    placeholder="{{'Placeholder_Search' | translate}}" auto-focus>
+    </ias-search-box>
+
+    <span class="ias-fill"></span>
+
+    <ias-button id="view-tile-icon" class="ias-icon-button"
+                ng-click="$ctrl.gotoCardsView()"
+                ng-attr-title="{{ 'Title_HelpDeskCard' | translate }}">
+        <ias-icon icon="view_tile_thin"></ias-icon>
+    </ias-button>
+    <ias-button id="view-list-icon" class="ias-icon-button ias-selected"
+                ng-disabled="true"
+                ng-attr-title="{{ 'Title_HelpDeskTable' | translate }}">
+        <ias-icon icon="view_list_thin"></ias-icon>
+    </ias-button>
+    <div class="icon-divider vertical"></div>
+    <ias-button class="ias-icon-button table-configuration-menu-toggle" ias-toggle="menu1">
+        <ias-icon icon="configure_thick"></ias-icon>
+    </ias-button>
+    <ias-menu name="menu1" ias-align="end end">
+        <div class="ias-input-container">
+            <div class="checkbox-button" ng-repeat="(key, value) in $ctrl.columnConfiguration">
+                <input type="checkbox" ng-checked="value.visible" aria-label="Toggle column visibility" disabled/>
+                <ias-button ng-click="$ctrl.toggleColumnVisible($event, key)">{{value.label}}</ias-button>
+            </div>
+        </div>
+    </ias-menu>
+</div>
+
+<div class="search-info-container">
+    <div>
+        <ias-button class="verifications-button ias-cta" ng-if="$ctrl.verificationsEnabled"
+                    ng-click="$ctrl.showVerifications()">{{ 'Button_Verifications' | translate }}</ias-button>
+    </div>
+
+    <div class="search-info" ng-class="{'loading': !$ctrl.getMessage()}"
+         ng-if="$ctrl.loading || $ctrl.searchMessage || $ctrl.errorMessage"
+         ng-bind="$ctrl.getMessage() || ('Display_PleaseWait' | translate)">
+    </div>
+</div>
+
+<div class="people-search-component-content">
+    <table class="ias-table" ias-sort="$ctrl.sort" ng-show="$ctrl.searchResult.people.length">
+        <thead>
+        <tr>
+            <th ng-repeat="(key, value) in $ctrl.columnConfiguration" ng-if="value.visible"
+                ias-sort-on="key">{{value.label}}</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="person in $ctrl.searchResult.people | orderBy:$ctrl.sort"
+            ng-click="$ctrl.selectPerson(person)">
+            <td ng-repeat="(key, value) in $ctrl.columnConfiguration" ng-if="value.visible">
+                <span ng-bind="person[key]"></span>
+            </td>
+            <td></td>
+        </tr>
+        </tbody>
+    </table>
+</div>

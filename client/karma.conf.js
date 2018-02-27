@@ -20,12 +20,13 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-
+var webpack = require('webpack');
 var webpackConfig = require('./webpack.test.js');
+var path = require("path");
+var os = require('os');
 
 module.exports = function (config) {
     config.set({
-
         // base path that will be used to resolve all patterns (eg. files, exclude)
         basePath: '',
 
@@ -34,28 +35,34 @@ module.exports = function (config) {
         frameworks: [ 'jasmine' ],
 
         // list of files / patterns to load in the browser
-        // Don't forget to add this to webpack.dev.js
         files: [
-            'node_modules/angular/angular.js',
-            'node_modules/angular-mocks/angular-mocks.js',
-            'node_modules/angular-translate/dist/angular-translate.js',
-            'vendor/angular-ui-router.js',
-            'src/main.ts',
-            'src/**/*.test.ts'
+            'test/karma-test-suite.ts'
         ],
 
-        exclude: [
-        ],
+        exclude: [],
 
         // preprocess matching files before serving them to the browser
         // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
         preprocessors: {
-            'src/main.ts': ['webpack'],
-            'src/**/*.test.ts': ['webpack']
+            "**/*.ts": ["webpack", "sourcemap"]
         },
 
-        // webpack configuration
-        webpack: webpackConfig,
+        // fix typescript serving video/mp2t mime type
+        mime: {
+            'text/x-typescript': ['ts', 'tsx']
+        },
+
+        webpack: {
+            resolve: webpackConfig.resolve,
+            module: webpackConfig.module,
+            plugins: [
+                // Without this, we're not able to debug our tests in the browser:
+                new webpack.SourceMapDevToolPlugin({
+                    filename: null, // if no value is provided the sourcemap is inlined
+                    test: /\.(ts|js)($|\?)/i // process .js and .ts files only
+                })
+            ]
+        },
 
         webpackMiddleware: {
             // display no info to console (only warnings and errors)
@@ -68,7 +75,7 @@ module.exports = function (config) {
         // test results reporter to use
         // possible values: 'dots', 'progress'
         // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-        reporters: ['progress'],
+        reporters: ['kjhtml', 'spec'],
 
         // web server port
         port: 9876,
@@ -85,7 +92,16 @@ module.exports = function (config) {
 
         // start these browsers
         // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-        browsers: [ 'PhantomJS' ],
+        browsers: ['Chrome_with_debug_plugins'],
+
+        // Provides the ability to install plugins in Chrome (such as JetBrains debugger), and have them stick around
+        // between launches:
+        customLaunchers: {
+            Chrome_with_debug_plugins: {
+                base: 'Chrome',
+                chromeDataDir: path.resolve(os.homedir(), '.karma/customLaunchers/Chrome_with_debug_plugins')
+            }
+        },
 
         // Continuous Integration mode
         // if true, Karma captures browsers, runs the tests and exits

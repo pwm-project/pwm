@@ -20,33 +20,28 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   -->
 
-<mf-app-bar>
-    <div id="page-content-title" translate="Title_PeopleSearch">People Search</div>
-    <mf-search-bar input-debounce="$ctrl.inputDebounce"
-                   search-text="$ctrl.query"
-                   on-search-text-change="$ctrl.onSearchTextChange(value)"
-                   on-key-down="$ctrl.onSearchBoxKeyDown($event)"
-                   auto-focus></mf-search-bar>
-    <span flex></span>
-    <mf-icon-button
-            icon="view-tile_thin"
-            class="selected"
-            disabled="true"
-            ng-attr-title="{{ 'Title_PeopleSearchCard' | translate }}"
-            id="view-tile-icon"></mf-icon-button>
-    <mf-icon-button
-            icon="view-list_thin"
-            ng-click="$ctrl.gotoTableView()"
-            ng-attr-title="{{ 'Title_PeopleSearchTable' | translate }}"
-            id="view-list-icon"></mf-icon-button>
-    <div class="mf-divider vertical" ng-if="$ctrl.orgChartEnabled"></div>
-    <mf-icon-button
-            icon="orgchart_thin"
-            ng-click="$ctrl.gotoOrgchart()"
-            ng-if="$ctrl.orgChartEnabled"
-            ng-attr-title="{{ 'Title_OrgChart' | translate }}"
-            id="orgchart-icon"></mf-icon-button>
-</mf-app-bar>
+<div class="ias-header">
+    <h2 id="page-content-title" translate="Title_PeopleSearch">People Search</h2>
+    <ias-search-box id="input" ng-model="$ctrl.query" ng-model-options="{debounce: $ctrl.inputDebounce}"
+                    placeholder="{{'Placeholder_Search' | translate}}" auto-focus>
+    </ias-search-box>
+
+    <span class="ias-fill"></span>
+
+    <ias-button id="view-tile-icon" class="ias-icon-button ias-selected" ng-disabled="true"
+                ng-attr-title="{{ 'Title_PeopleSearchCard' | translate }}">
+        <ias-icon class="ias-selected" icon="view_tile_thin"></ias-icon>
+    </ias-button>
+    <ias-button id="view-list-icon" class="ias-icon-button" ng-click="$ctrl.gotoTableView()"
+                ng-attr-title="{{ 'Title_PeopleSearchTable' | translate }}">
+        <ias-icon class="ias-selected" icon="view_list_thin"></ias-icon>
+    </ias-button>
+    <div class="icon-divider vertical" ng-if="$ctrl.orgChartEnabled"></div>
+    <ias-button id="orgchart-icon" class="ias-icon-button" ng-click="$ctrl.gotoOrgchart()" ng-if="$ctrl.orgChartEnabled"
+                ng-attr-title="{{ 'Title_OrgChart' | translate }}">
+        <ias-icon class="ias-selected" icon="orgchart_thin"></ias-icon>
+    </ias-button>
+</div>
 
 <div class="search-info-container">
     <div class="search-info" ng-class="{'loading': !$ctrl.getMessage()}"
@@ -56,7 +51,7 @@
 </div>
 
 <div class="people-search-component-content">
-    <div class="person-card-list">
+    <div class="ias-grid">
         <person-card person="person"
                      show-image="$ctrl.photosEnabled"
                      ng-repeat="person in $ctrl.searchResult.people | orderBy:'displayNames[0]'"

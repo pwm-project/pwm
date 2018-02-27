@@ -22,6 +22,7 @@
 
 
 var commonConfig = require('./webpack.common.js');
+var CopyWebpackPlugin = require('copy-webpack-plugin');
 var webpack = require('webpack');
 var webpackMerge = require('webpack-merge');
 
@@ -30,25 +31,16 @@ module.exports = webpackMerge(commonConfig, {
     entry: {
         'peoplesearch.ng': './src/main',
         'changepassword.ng': './src/pages/changepassword/changepassword.module',
-        'configeditor.ng': './src/pages/configeditor/configeditor.module'
-    },
-    module: {
-        loaders: [
-            {
-                test: /icons\.json$/,
-                loaders: [
-                    'ignore',
-                    // Need to output to an external file, since fontgen consolidates: "../.." into: "../", even after
-                    // doing the string-replace below.  This is a problem, since we're loading from a webjar now.
-                    'file?name=fonts.css',
-                    // This replaces path from app root so the urls are relative to the output directory
-                    'string-replace?search=url%5C("%5C/&replace=url("./&flags=gm',
-                    'fontgen?fileName=fonts/[fontname]-[hash][ext]'
-                ]
-            }
-        ]
+        'configeditor.ng': './src/pages/configeditor/configeditor.module',
+        'helpdesk.ng': './src/helpdesk/main'
     },
     plugins: [
+        new CopyWebpackPlugin([
+            { from: 'node_modules/@microfocus/ux-ias/dist/ux-ias.css', to: 'vendor/' },
+            { from: 'node_modules/@microfocus/ng-ias/dist/ng-ias.js', to: 'vendor/' },
+            { from: 'node_modules/@microfocus/ias-icons/dist/ias-icons.css', to: 'vendor/' },
+            { from: 'node_modules/@microfocus/ias-icons/dist/fonts', to: 'vendor/fonts' }
+        ]),
         new webpack.optimize.UglifyJsPlugin({
             compress: { warnings: false },
             comments: false,

@@ -22,7 +22,7 @@
 
 
 import { Component } from '../component';
-import { IConfigService } from '../services/config.service';
+import { IPeopleSearchConfigService } from '../services/peoplesearch-config.service';
 import { IPeopleService } from '../services/people.service';
 import IPwmService from '../services/pwm.service';
 import { isArray, isString, IPromise, IQService, IScope } from 'angular';
@@ -57,12 +57,16 @@ export default class OrgChartSearchComponent {
                 private $scope: IScope,
                 private $state: angular.ui.IStateService,
                 private $stateParams: angular.ui.IStateParamsService,
-                private configService: IConfigService,
+                private configService: IPeopleSearchConfigService,
                 private localStorageService: LocalStorageService,
                 private peopleService: IPeopleService,
                 private pwmService: IPwmService) {
         this.searchTextLocalStorageKey = this.localStorageService.keys.SEARCH_TEXT;
         this.inputDebounce = this.pwmService.ajaxTypingWait;
+
+        $scope.$watch('$ctrl.query', () => {
+            this.onSearchTextChange();
+        });
     }
 
     $onInit(): void {
@@ -131,8 +135,8 @@ export default class OrgChartSearchComponent {
         this.$state.go('orgchart.search', { personId: person.userKey, query: null });
     }
 
-    onSearchTextChange(value: string): void {
-        this.query = value;
+    onSearchTextChange(): void {
+        // this.query = value;
         this.storeSearchText();
     }
 
