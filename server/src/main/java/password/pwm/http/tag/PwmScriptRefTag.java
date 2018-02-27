@@ -30,6 +30,8 @@ import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.jsp.tagext.TagSupport;
 
+import static password.pwm.http.tag.url.PwmUrlTag.convertUrl;
+
 public class PwmScriptRefTag extends TagSupport
 {
 
@@ -70,14 +72,4 @@ public class PwmScriptRefTag extends TagSupport
         return EVAL_PAGE;
     }
 
-    private String convertUrl( final String input )
-    {
-        final String pwmClientUrl = "/resources/webjars/pwm-client/";
-        if ( input.contains( pwmClientUrl ) )
-        {
-            final String correctedUrl = "/resources/webjars/" + PwmConstants.PWM_APP_NAME.toLowerCase() + "-client/";
-            return input.replace( pwmClientUrl, correctedUrl );
-        }
-        return input;
-    }
 }

@@ -65,8 +65,7 @@
         </script>
     </pwm:script>
     <pwm:if test="<%=PwmIfTest.requestFlag%>" requestFlag="<%=PwmRequestFlag.INCLUDE_IAS_ANGULAR%>">
-        <% request.setAttribute("clientWebjarName", PwmConstants.PWM_CLIENT_WEBJAR_NAME); %>
-        <link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/webjars/${clientWebjarName}/vendor/ias-icons.css' addContext="true"/>"/>
-        <link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/webjars/${clientWebjarName}/vendor/ux-ias.css' addContext="true"/>"/>
+        <link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/webjars/pwm-client/vendor/ias-icons.css' addContext="true"/>"/>
+        <link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/webjars/pwm-client/vendor/ux-ias.css' addContext="true"/>"/>
     </pwm:if>
 </head>

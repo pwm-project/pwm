@@ -75,7 +75,6 @@ public abstract class PwmConstants
     public static final String DEFAULT_CONFIG_FILE_FILENAME = readPwmConstantsBundle( "defaultConfigFilename" );
 
     public static final String PWM_APP_NAME = readPwmConstantsBundle( "pwm.appName" );
-    public static final String PWM_CLIENT_WEBJAR_NAME = readPwmConstantsBundle( "pwm.client.webjarName" );
     public static final String PWM_URL_HOME = readPwmConstantsBundle( "url.pwm-home" );
     public static final String PWM_URL_CLOUD = readPwmConstantsBundle( "url.pwm-cloud" );
 

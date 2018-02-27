@@ -24,6 +24,7 @@ package password.pwm.http.tag.url;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmException;
@@ -59,6 +60,8 @@ public class PwmUrlTag extends PwmAbstractTag
     public int doEndTag( )
             throws javax.servlet.jsp.JspTagException
     {
+        String url = convertUrl(this.url);
+
         String outputURL = url;
         PwmRequest pwmRequest = null;
         try
@@ -204,4 +207,14 @@ public class PwmUrlTag extends PwmAbstractTag
         return themeURL;
     }
 
+    public static String convertUrl( final String input )
+    {
+        final String pwmClientUrl = "/resources/webjars/pwm-client/";
+        if ( input.contains( pwmClientUrl ) )
+        {
+            final String correctedUrl = "/resources/webjars/" + PwmConstants.PWM_APP_NAME.toLowerCase() + "-client/";
+            return input.replace( pwmClientUrl, correctedUrl );
+        }
+        return input;
+    }
 }
