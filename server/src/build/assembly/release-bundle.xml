@@ -1,0 +1,57 @@
+<!--
+  ~ Password Management Servlets (PWM)
+  ~ http://www.pwm-project.org
+  ~
+  ~ Copyright (c) 2006-2009 Novell, Inc.
+  ~ Copyright (c) 2009-2018 The PWM Project
+  ~
+  ~ This program is free software; you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation; either version 2 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program; if not, write to the Free Software
+  ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  -->
+
+<assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.3 http://maven.apache.org/xsd/assembly-1.1.3.xsd">
+
+    <id>release-bundle</id>
+    <formats>
+        <format>zip</format>
+    </formats>
+    <includeBaseDirectory>false</includeBaseDirectory>
+    <files>
+        <file>
+            <source>target/${project.build.finalName}.war</source>
+            <destName>pwm.war</destName>
+        </file>
+        <file>
+            <source>${project.basedir}/../LICENSE</source>
+        </file>
+        <file>
+            <source>${project.basedir}/pom.xml</source>
+        </file>
+    </files>
+    <fileSets>
+        <fileSet>
+            <directory>${project.basedir}/src</directory>
+            <includes>
+                <include>*/**</include>
+            </includes>
+        </fileSet>
+        <fileSet>
+            <directory>${project.basedir}/supplemental</directory>
+            <includes>
+                <include>*/**</include>
+            </includes>
+        </fileSet>
+    </fileSets>
+</assembly>

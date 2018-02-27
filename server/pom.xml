@@ -47,6 +47,34 @@
                 <skipSpotbugs>true</skipSpotbugs>
             </properties>
         </profile>
+        <profile>
+            <!-- Builds a zip file containing the built war file, along with the supplemental directory -->
+            <id>release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <version>2.6</version>
+                        <configuration>
+                            <descriptors>
+                                <descriptor>src/build/assembly/release-bundle.xml</descriptor>
+                            </descriptors>
+                            <finalName>${project.build.finalName}-${timestamp.iso}</finalName>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>make-release-bundle</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>single</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 
     <build>
