@@ -60,7 +60,7 @@ public class PwmUrlTag extends PwmAbstractTag
     public int doEndTag( )
             throws javax.servlet.jsp.JspTagException
     {
-        String url = convertUrl(this.url);
+        final String url = convertUrl( this.url );
 
         String outputURL = url;
         PwmRequest pwmRequest = null;

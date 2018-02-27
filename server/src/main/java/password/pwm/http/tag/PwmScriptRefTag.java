@@ -22,15 +22,12 @@
 
 package password.pwm.http.tag;
 
-import password.pwm.PwmConstants;
 import password.pwm.http.JspUtility;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.tag.url.PwmUrlTag;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.jsp.tagext.TagSupport;
-
-import static password.pwm.http.tag.url.PwmUrlTag.convertUrl;
 
 public class PwmScriptRefTag extends TagSupport
 {
@@ -58,7 +55,7 @@ public class PwmScriptRefTag extends TagSupport
             final String cspNonce = pwmRequest.getCspNonce();
 
             String url = getUrl();
-            url = convertUrl( url );
+            url = PwmUrlTag.convertUrl( url );
             url = PwmUrlTag.insertContext( pageContext, url );
             url = PwmUrlTag.insertResourceNonce( pwmRequest.getPwmApplication(), url );
 
