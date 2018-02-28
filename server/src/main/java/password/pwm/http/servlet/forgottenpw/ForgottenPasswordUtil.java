@@ -42,6 +42,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.RecoveryAction;
+import password.pwm.config.option.RecoveryMinLifetimeOption;
 import password.pwm.config.profile.ForgottenPasswordProfile;
 import password.pwm.config.profile.ProfileType;
 import password.pwm.config.profile.ProfileUtility;
@@ -88,7 +89,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-class ForgottenPasswordUtil
+public class ForgottenPasswordUtil
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ForgottenPasswordUtil.class );
 
@@ -146,12 +147,12 @@ class ForgottenPasswordUtil
             return null;
         }
 
-        final String cacheKey = PwmConstants.SESSION_ATTR_FORGOTTEN_PW_USERINFO_CACHE;
+        final String cacheKey = PwmConstants.REQUEST_ATTR_FORGOTTEN_PW_USERINFO_CACHE;
 
         final UserIdentity userIdentity = forgottenPasswordBean.getUserIdentity();
 
         {
-            final UserInfo userInfoFromSession = ( UserInfo ) pwmRequest.getHttpServletRequest().getSession().getAttribute( cacheKey );
+            final UserInfo userInfoFromSession = ( UserInfo ) pwmRequest.getHttpServletRequest().getAttribute( cacheKey );
             if ( userInfoFromSession != null )
             {
                 if ( userIdentity.equals( userInfoFromSession.getUserIdentity() ) )
@@ -173,7 +174,7 @@ class ForgottenPasswordUtil
                 userIdentity, pwmRequest.getLocale()
         );
 
-        pwmRequest.getHttpServletRequest().getSession().setAttribute( cacheKey, userInfo );
+        pwmRequest.getHttpServletRequest().setAttribute( cacheKey, userInfo );
 
         return userInfo;
     }
@@ -572,7 +573,7 @@ class ForgottenPasswordUtil
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final ForgottenPasswordBean forgottenPasswordBean = ForgottenPasswordServlet.forgottenPasswordBean( pwmRequest );
-        final ForgottenPasswordProfile forgottenPasswordProfile = ForgottenPasswordServlet.forgottenPasswordProfile( pwmRequest );
+        final ForgottenPasswordProfile forgottenPasswordProfile = forgottenPasswordProfile( pwmRequest.getPwmApplication(), forgottenPasswordBean );
         final RecoveryAction recoveryAction = ForgottenPasswordUtil.getRecoveryAction( pwmApplication.getConfig(), forgottenPasswordBean );
 
         LOGGER.trace( pwmRequest, "beginning process to send new password to user" );
@@ -744,6 +745,77 @@ class ForgottenPasswordUtil
         forgottenPasswordBean.setRecoveryFlags( recoveryFlags );
     }
 
+    public static boolean permitPwChangeDuringMinLifetime(
+            final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
+            final UserIdentity userIdentity
+    )
+            throws PwmUnrecoverableException
+    {
+        ForgottenPasswordProfile forgottenPasswordProfile = null;
+        try
+        {
+            forgottenPasswordProfile = ForgottenPasswordUtil.forgottenPasswordProfile(
+                    pwmApplication,
+                    sessionLabel,
+                    userIdentity
+            );
+        }
+        catch ( PwmUnrecoverableException e )
+        {
+            LOGGER.debug( sessionLabel, "can't read user's forgotten password profile - assuming no profile assigned, error: " + e.getMessage() );
+        }
+
+        if ( forgottenPasswordProfile == null )
+        {
+            // default is true.
+            return true;
+        }
+
+        final RecoveryMinLifetimeOption option = forgottenPasswordProfile.readSettingAsEnum(
+                PwmSetting.RECOVERY_MINIMUM_PASSWORD_LIFETIME_OPTIONS,
+                RecoveryMinLifetimeOption.class
+        );
+        return option == RecoveryMinLifetimeOption.ALLOW;
+    }
+
+    private static ForgottenPasswordProfile forgottenPasswordProfile(
+            final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
+            final UserIdentity userIdentity
+    )
+            throws PwmUnrecoverableException
+    {
+        final String forgottenProfileID = ProfileUtility.discoverProfileIDforUser(
+                pwmApplication,
+                sessionLabel,
+                userIdentity,
+                ProfileType.ForgottenPassword
+        );
+
+        if ( StringUtil.isEmpty( forgottenProfileID ) )
+        {
+            final String msg = "user does not have a forgotten password profile assigned";
+            throw PwmUnrecoverableException.newException( PwmError.ERROR_NO_PROFILE_ASSIGNED, msg );
+        }
+
+        return pwmApplication.getConfig().getForgottenPasswordProfiles().get( forgottenProfileID );
+    }
+
+    static ForgottenPasswordProfile forgottenPasswordProfile(
+            final PwmApplication pwmApplication,
+            final ForgottenPasswordBean forgottenPasswordBean
+    )
+    {
+        final String forgottenProfileID = forgottenPasswordBean.getForgottenPasswordProfileID();
+        if ( StringUtil.isEmpty( forgottenProfileID ) )
+        {
+            throw new IllegalStateException( "cannot load forgotten profile without ID registered in bean" );
+        }
+        return pwmApplication.getConfig().getForgottenPasswordProfiles().get( forgottenProfileID );
+    }
+
+
     static void initForgottenPasswordBean(
             final PwmRequest pwmRequest,
             final UserIdentity userIdentity,
@@ -760,13 +832,13 @@ class ForgottenPasswordUtil
 
         final UserInfo userInfo = readUserInfo( pwmRequest, forgottenPasswordBean );
 
-        final String forgottenProfileID = ProfileUtility.discoverProfileIDforUser( pwmApplication, sessionLabel, userIdentity, ProfileType.ForgottenPassword );
-        if ( forgottenProfileID == null || forgottenProfileID.isEmpty() )
-        {
-            throw new PwmUnrecoverableException( PwmError.ERROR_NO_PROFILE_ASSIGNED.toInfo() );
-        }
+        final ForgottenPasswordProfile forgottenPasswordProfile = forgottenPasswordProfile(
+                pwmApplication,
+                pwmRequest.getSessionLabel(),
+                userIdentity
+        );
+        final String forgottenProfileID = forgottenPasswordProfile.getIdentifier();
         forgottenPasswordBean.setForgottenPasswordProfileID( forgottenProfileID );
-        final ForgottenPasswordProfile forgottenPasswordProfile = ForgottenPasswordServlet.forgottenPasswordProfile( pwmRequest );
 
         final ForgottenPasswordBean.RecoveryFlags recoveryFlags = calculateRecoveryFlags(
                 pwmApplication,

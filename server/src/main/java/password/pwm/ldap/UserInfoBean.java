@@ -89,6 +89,7 @@ public class UserInfoBean implements UserInfo
     private final boolean requiresOtpConfig;
     private final boolean requiresUpdateProfile;
     private final boolean requiresInteraction;
+    private final boolean withinPasswordMinimumLifetime;
 
     @Builder.Default
     private Map<String, String> attributes = Collections.emptyMap();

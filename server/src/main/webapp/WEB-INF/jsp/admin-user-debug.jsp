@@ -196,6 +196,14 @@
                     <%= JspUtility.freindlyWrite(pageContext, userInfo.isRequiresUpdateProfile()) %>
                 </td>
             </tr>
+            <tr>
+                <td class="key">
+                    Password is Within Minimum Lifetime
+                </td>
+                <td>
+                    <%= JspUtility.freindlyWrite(pageContext, userDebugDataBean.isPasswordWithinMinimumLifetime()) %>
+                </td>
+            </tr>
         </table>
         <br/>
         <table>

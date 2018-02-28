@@ -36,12 +36,12 @@ import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ChangePasswordBean;
+import password.pwm.http.servlet.forgottenpw.ForgottenPasswordUtil;
 import password.pwm.ldap.PasswordChangeProgressChecker;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.auth.AuthenticationType;
@@ -171,34 +171,34 @@ public class ChangePasswordServletUtil
             final ChangePasswordBean changePasswordBean,
             final UserInfo userInfo
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
+            throws PwmUnrecoverableException
     {
         if ( changePasswordBean.isNextAllowedTimePassed() )
         {
             return;
         }
 
-        try
+        if ( userInfo.isWithinPasswordMinimumLifetime() )
         {
-            PasswordUtility.checkIfPasswordWithinMinimumLifetime(
-                    pwmSession.getSessionManager().getActor( pwmApplication ),
-                    pwmSession.getLabel(),
-                    userInfo.getPasswordPolicy(),
-                    userInfo.getPasswordLastModifiedTime(),
-                    userInfo.getPasswordStatus()
-            );
-        }
-        catch ( PwmException e )
-        {
-            final boolean enforceFromForgotten = pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.CHALLENGE_ENFORCE_MINIMUM_PASSWORD_LIFETIME );
-            if ( !enforceFromForgotten && userInfo.isRequiresNewPassword() )
+            boolean allowChange = false;
+            if ( pwmSession.getLoginInfoBean().getAuthFlags().contains( AuthenticationType.AUTH_FROM_PUBLIC_MODULE ) )
+            {
+                allowChange = ForgottenPasswordUtil.permitPwChangeDuringMinLifetime(
+                        pwmApplication,
+                        pwmSession.getLabel(),
+                        userInfo.getUserIdentity()
+                );
+
+            }
+
+            if ( allowChange )
             {
                 LOGGER.debug( pwmSession, "current password is too young, but skipping enforcement of minimum lifetime check due to setting "
-                        + PwmSetting.CHALLENGE_ENFORCE_MINIMUM_PASSWORD_LIFETIME.toMenuLocationDebug( null, pwmSession.getSessionStateBean().getLocale() ) );
+                        + PwmSetting.RECOVERY_MINIMUM_PASSWORD_LIFETIME_OPTIONS.toMenuLocationDebug( null, pwmSession.getSessionStateBean().getLocale() ) );
             }
             else
             {
-                throw new PwmUnrecoverableException( e.getErrorInformation() );
+                PasswordUtility.throwPasswordTooSoonException( userInfo, pwmSession.getLabel() );
             }
         }
 

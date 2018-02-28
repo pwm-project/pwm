@@ -23,7 +23,6 @@
 package password.pwm.http.servlet.changepw;
 
 import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
 import password.pwm.Permission;
@@ -441,7 +440,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
     public void nextStep(
             final PwmRequest pwmRequest
     )
-            throws IOException, PwmUnrecoverableException, ChaiUnavailableException, ServletException
+            throws IOException, PwmUnrecoverableException, ServletException
     {
         final ChangePasswordBean changePasswordBean = pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, ChangePasswordBean.class );
 
@@ -546,18 +545,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
             return ProcessStatus.Halt;
         }
 
-        try
-        {
-            ChangePasswordServletUtil.checkMinimumLifetime( pwmApplication, pwmSession, changePasswordBean, pwmSession.getUserInfo() );
-        }
-        catch ( PwmOperationalException e )
-        {
-            throw new PwmUnrecoverableException( e.getErrorInformation() );
-        }
-        catch ( ChaiException e )
-        {
-            throw PwmUnrecoverableException.fromChaiException( e );
-        }
+        ChangePasswordServletUtil.checkMinimumLifetime( pwmApplication, pwmSession, changePasswordBean, pwmSession.getUserInfo() );
 
         return ProcessStatus.Continue;
     }

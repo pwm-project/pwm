@@ -154,6 +154,23 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
             }
 
             outputUnrecoverableException( pwmRequest, pue );
+
+            clearModuleBeans( pwmRequest );
+        }
+    }
+
+    private void clearModuleBeans( final PwmRequest pwmRequest )
+    {
+        for ( final Class theClass : PwmSessionBean.getPublicBeans() )
+        {
+            try
+            {
+                pwmRequest.getPwmApplication().getSessionStateService().clearBean( pwmRequest, theClass );
+            }
+            catch ( PwmUnrecoverableException e )
+            {
+                LOGGER.debug( pwmRequest, "error while clearing module bean during after module error output: " + e.getMessage() );
+            }
         }
     }
 

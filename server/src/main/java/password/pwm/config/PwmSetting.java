@@ -724,8 +724,6 @@ public enum PwmSetting
             "response.hashMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_SETTINGS ),
     FORGOTTEN_USER_POST_ACTIONS(
             "recovery.postActions", PwmSettingSyntax.ACTION, PwmSettingCategory.RECOVERY_SETTINGS ),
-    CHALLENGE_ENFORCE_MINIMUM_PASSWORD_LIFETIME(
-            "challenge.enforceMinimumPasswordLifetime", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_SETTINGS ),
     RECOVERY_BOGUS_USER_ENABLE(
             "recovery.bogus.user.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_SETTINGS ),
 
@@ -752,6 +750,9 @@ public enum PwmSetting
             "recovery.allowWhenLocked", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_OPTIONS ),
     TOKEN_RESEND_ENABLE(
             "recovery.token.resend.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_OPTIONS ),
+    RECOVERY_MINIMUM_PASSWORD_LIFETIME_OPTIONS(
+            "recovery.minimumPasswordLifetimeOptions", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_OPTIONS ),
+
 
     // recovery oauth
     RECOVERY_OAUTH_ID_LOGIN_URL(
@@ -1157,6 +1158,11 @@ public enum PwmSetting
 
 
     // deprecated.
+
+    // deprecated 2018-02-27
+    RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME(
+            "challenge.enforceMinimumPasswordLifetime", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_OPTIONS ),
+
     UPDATE_PROFILE_CHECK_QUERY_MATCH(
             "updateAttributes.check.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.UPDATE_PROFILE ),
     PASSWORD_POLICY_AD_COMPLEXITY(
@@ -1167,6 +1173,10 @@ public enum PwmSetting
             "recovery.require.otp", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_SETTINGS ),
     HELPDESK_ENABLE_OTP_VERIFY(
             "helpdesk.otp.verify", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_BASE ),;
+
+
+
+
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmSetting.class );
 

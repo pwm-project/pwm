@@ -1234,14 +1234,55 @@ public class PasswordUtility
         return null;
     }
 
-    public static void checkIfPasswordWithinMinimumLifetime(
+    public static void throwPasswordTooSoonException(
+            final UserInfo userInfo,
+            final SessionLabel sessionLabel
+    )
+            throws PwmUnrecoverableException
+    {
+        if ( !userInfo.isWithinPasswordMinimumLifetime() )
+        {
+            return;
+        }
+
+        final Instant lastModified = userInfo.getPasswordLastModifiedTime();
+        final TimeDuration minimumLifetime;
+        {
+            final int minimumLifetimeSeconds = userInfo.getPasswordPolicy().getRuleHelper().readIntValue( PwmPasswordRule.MinimumLifetime );
+            if ( minimumLifetimeSeconds < 1 )
+            {
+                return;
+            }
+
+            if ( userInfo.getPasswordPolicy() == null )
+            {
+                LOGGER.debug( sessionLabel, "skipping minimum lifetime check, password last set time is unknown" );
+                return;
+            }
+
+            minimumLifetime = new TimeDuration( minimumLifetimeSeconds, TimeUnit.SECONDS );
+
+        }
+        final Instant allowedChangeDate = Instant.ofEpochMilli( lastModified.toEpochMilli() + minimumLifetime.getTotalMilliseconds() );
+        final TimeDuration passwordAge = TimeDuration.fromCurrent( lastModified );
+        final String msg = "last password change was at "
+                + JavaHelper.toIsoDate( lastModified )
+                + " and is too recent (" + passwordAge.asCompactString()
+                + " ago), password cannot be changed within minimum lifetime of "
+                + minimumLifetime.asCompactString()
+                + ", next eligible time to change is after " + JavaHelper.toIsoDate( allowedChangeDate );
+        throw PwmUnrecoverableException.newException( PwmError.PASSWORD_TOO_SOON, msg );
+
+    }
+
+    public static boolean isPasswordWithinMinimumLifetimeImpl(
             final ChaiUser chaiUser,
             final SessionLabel sessionLabel,
             final PwmPasswordPolicy passwordPolicy,
             final Instant lastModified,
             final PasswordStatus passwordStatus
     )
-            throws PwmOperationalException, PwmUnrecoverableException
+            throws PwmUnrecoverableException
     {
 
         // for oracle DS; this check is also handled in UserAuthenticator.
@@ -1261,7 +1302,7 @@ public class PasswordUtility
                         throw new PwmUnrecoverableException( errorInformation );
                     }
                 }
-                return;
+                return false;
             }
         }
         catch ( ChaiException e )
@@ -1274,13 +1315,13 @@ public class PasswordUtility
             final int minimumLifetimeSeconds = passwordPolicy.getRuleHelper().readIntValue( PwmPasswordRule.MinimumLifetime );
             if ( minimumLifetimeSeconds < 1 )
             {
-                return;
+                return false;
             }
 
             if ( lastModified == null )
             {
                 LOGGER.debug( sessionLabel, "skipping minimum lifetime check, password last set time is unknown" );
-                return;
+                return false;
             }
 
             minimumLifetime = new TimeDuration( minimumLifetimeSeconds, TimeUnit.SECONDS );
@@ -1296,31 +1337,22 @@ public class PasswordUtility
         if ( lastModified.isAfter( Instant.now() ) )
         {
             LOGGER.debug( sessionLabel, "skipping minimum lifetime check, password lastModified time is in the future" );
-            return;
+            return false;
         }
 
         final boolean passwordTooSoon = passwordAge.isShorterThan( minimumLifetime );
         if ( !passwordTooSoon )
         {
             LOGGER.trace( sessionLabel, "minimum lifetime check passed, password age " );
-            return;
+            return false;
         }
 
         if ( passwordStatus.isExpired() || passwordStatus.isPreExpired() || passwordStatus.isWarnPeriod() )
         {
             LOGGER.debug( sessionLabel, "current password is too young, but skipping enforcement of minimum lifetime check because current password is expired" );
-            return;
+            return false;
         }
 
-        final Instant allowedChangeDate = Instant.ofEpochMilli( lastModified.toEpochMilli() + minimumLifetime.getTotalMilliseconds() );
-        final String errorMsg = "last password change was at "
-                + JavaHelper.toIsoDate( lastModified )
-                + " and is too recent (" + passwordAge.asCompactString()
-                + " ago), password cannot be changed within minimum lifetime of "
-                + minimumLifetime.asCompactString()
-                + ", next eligible time to change is after " + JavaHelper.toIsoDate( allowedChangeDate );
-
-        final ErrorInformation errorInformation = new ErrorInformation( PwmError.PASSWORD_TOO_SOON, errorMsg );
-        throw new PwmOperationalException( errorInformation );
+        return true;
     }
 }

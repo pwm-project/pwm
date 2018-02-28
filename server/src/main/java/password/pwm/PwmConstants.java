@@ -112,7 +112,7 @@ public abstract class PwmConstants
     public static final String SESSION_ATTR_PWM_SESSION = "PwmSession";
     public static final String SESSION_ATTR_BEANS = "SessionBeans";
     public static final String SESSION_ATTR_PWM_APP_NONCE = "PwmApplication-Nonce";
-    public static final String SESSION_ATTR_FORGOTTEN_PW_USERINFO_CACHE = "ForgottenPw-UserInfoCache";
+    public static final String REQUEST_ATTR_FORGOTTEN_PW_USERINFO_CACHE = "ForgottenPw-UserInfoCache";
 
     public static final PwmHashAlgorithm SETTING_CHECKSUM_HASH_METHOD = PwmHashAlgorithm.SHA256;
 

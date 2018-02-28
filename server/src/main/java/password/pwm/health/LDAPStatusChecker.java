@@ -50,7 +50,6 @@ import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.UserInfo;
@@ -312,20 +311,19 @@ public class LDAPStatusChecker implements HealthChecker
                             passwordStatus = userInfo.getPasswordStatus();
                         }
 
-                        try
                         {
-                            PasswordUtility.checkIfPasswordWithinMinimumLifetime(
-                                    theUser,
-                                    SessionLabel.HEALTH_SESSION_LABEL,
-                                    passwordPolicy,
-                                    pwdLastModified,
-                                    passwordStatus
-                            );
-                        }
-                        catch ( PwmException e )
-                        {
-                            LOGGER.trace( SessionLabel.HEALTH_SESSION_LABEL, "skipping test user password set: " + e.getMessage() );
-                            doPasswordChange = false;
+                            final boolean withinMinLifetime = PasswordUtility.isPasswordWithinMinimumLifetimeImpl(
+                                            theUser,
+                                            SessionLabel.HEALTH_SESSION_LABEL,
+                                            passwordPolicy,
+                                            pwdLastModified,
+                                            passwordStatus
+                                    );
+                            if ( withinMinLifetime )
+                            {
+                                LOGGER.trace( SessionLabel.HEALTH_SESSION_LABEL, "skipping test user password set due to password being within minimum lifetime" );
+                                doPasswordChange = false;
+                            }
                         }
                     }
                     if ( doPasswordChange )

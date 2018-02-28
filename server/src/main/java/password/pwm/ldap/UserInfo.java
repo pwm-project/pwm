@@ -72,6 +72,8 @@ public interface UserInfo
 
     boolean isPasswordLocked( ) throws PwmUnrecoverableException;
 
+    boolean isWithinPasswordMinimumLifetime( ) throws PwmUnrecoverableException;
+
     Instant getPasswordLastModifiedTime( ) throws PwmUnrecoverableException;
 
     String getUserEmailAddress( ) throws PwmUnrecoverableException;

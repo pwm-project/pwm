@@ -1391,39 +1391,26 @@ public class StoredConfigurationImpl implements StoredConfiguration
                 }
             }
 
-            /*
+            for ( final String profileID : storedConfiguration.profilesForSetting( PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME ) )
             {
-                if (!storedConfiguration.isDefaultValue(PwmSetting.CHALLENGE_REQUIRE_RESPONSES)) {
-                    final StoredValue configValue = storedConfiguration.readSetting(PwmSetting.RECOVERY_VERIFICATION_METHODS, "default");
-                    final VerificationMethodValue.VerificationMethodSettings existingSettings = (VerificationMethodValue.VerificationMethodSettings)configValue.toNativeObject();
-                    final Map<RecoveryVerificationMethod,VerificationMethodValue.VerificationMethodSetting> newMethods = new HashMap<>();
-                    newMethods.putAll(existingSettings.getMethodSettings());
-                    VerificationMethodValue.VerificationMethodSetting setting = new VerificationMethodValue.VerificationMethodSetting(VerificationMethodValue.EnabledState.disabled);
-                    newMethods.put(RecoveryVerificationMethod.CHALLENGE_RESPONSES,setting);
-                    final VerificationMethodValue.VerificationMethodSettings newSettings = new VerificationMethodValue.VerificationMethodSettings(
-                            newMethods,
-                            existingSettings.getMinOptionalRequired()
-                    );
-                    storedConfiguration.writeSetting(PwmSetting.RECOVERY_VERIFICATION_METHODS, "default", new VerificationMethodValue(newSettings), actor);
+                if ( !storedConfiguration.isDefaultValue( PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME, profileID ) )
+                {
+                    final boolean enforceEnabled = ( boolean ) storedConfiguration.readSetting( PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME, profileID ).toNativeObject();
+                    final StoredValue value = enforceEnabled
+                            ? new StringValue( "NONE" )
+                            : new StringValue( "ALLOW" );
+                    final ValueMetaData existingData = storedConfiguration.readSettingMetadata( PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME, profileID );
+                    LOGGER.warn( "converting deprecated non-default setting "
+                            + PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME.toMenuLocationDebug(profileID,PwmConstants.DEFAULT_LOCALE) + "/" + profileID
+                            + " to replacement setting " + PwmSetting.RECOVERY_MINIMUM_PASSWORD_LIFETIME_OPTIONS.toMenuLocationDebug( profileID, PwmConstants.DEFAULT_LOCALE )
+                            + ", value=" + value.toNativeObject().toString() );
+                    final UserIdentity newActor = existingData != null && existingData.getUserIdentity() != null
+                            ? existingData.getUserIdentity()
+                            : actor;
+                    storedConfiguration.writeSetting( PwmSetting.RECOVERY_MINIMUM_PASSWORD_LIFETIME_OPTIONS, profileID, value, newActor );
+                    storedConfiguration.resetSetting( PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME, profileID, actor );
                 }
             }
-
-            {
-                if (!storedConfiguration.isDefaultValue(PwmSetting.FORGOTTEN_PASSWORD_REQUIRE_OTP)) {
-                    final StoredValue configValue = storedConfiguration.readSetting(PwmSetting.RECOVERY_VERIFICATION_METHODS, "default");
-                    final VerificationMethodValue.VerificationMethodSettings existingSettings = (VerificationMethodValue.VerificationMethodSettings)configValue.toNativeObject();
-                    final Map<RecoveryVerificationMethod,VerificationMethodValue.VerificationMethodSetting> newMethods = new HashMap<>();
-                    newMethods.putAll(existingSettings.getMethodSettings());
-                    VerificationMethodValue.VerificationMethodSetting setting = new VerificationMethodValue.VerificationMethodSetting(VerificationMethodValue.EnabledState.required);
-                    newMethods.put(RecoveryVerificationMethod.CHALLENGE_RESPONSES,setting);
-                    final VerificationMethodValue.VerificationMethodSettings newSettings = new VerificationMethodValue.VerificationMethodSettings(
-                            newMethods,
-                            existingSettings.getMinOptionalRequired()
-                    );
-                    storedConfiguration.writeSetting(PwmSetting.FORGOTTEN_PASSWORD_REQUIRE_OTP, "default", new VerificationMethodValue(newSettings), actor);
-                }
-            }
-            */
         }
     }
 
