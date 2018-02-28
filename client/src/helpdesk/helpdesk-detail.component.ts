@@ -41,9 +41,6 @@ const STATUS_WAIT = 'wait';
 const STATUS_CONFIRM = 'confirm';
 const STATUS_SUCCESS = 'success';
 
-declare const PWM_HELPDESK: any;
-declare const PWM_VAR: any;
-
 @Component({
     stylesheetUrl: require('helpdesk/helpdesk-detail.component.scss'),
     templateUrl: require('helpdesk/helpdesk-detail.component.html')
@@ -61,6 +58,7 @@ export default class HelpDeskDetailComponent {
         'IasDialogService',
         'PeopleService'
     ];
+
     constructor(private $state: ui.IStateService,
                 private $stateParams: ui.IStateParamsService,
                 private configService: IHelpDeskConfigService,
@@ -93,28 +91,17 @@ export default class HelpDeskDetailComponent {
         this.configService.getPasswordUiMode()
             .then((passwordUiMode) => {
                 if (passwordUiMode) {
-                    if (document.title === 'PWM Development') {
-                        const pwUiMode: string = passwordUiMode.toUpperCase();
-                        if (pwUiMode === PASSWORD_UI_MODES.TYPE) {
-                            this.changePasswordType();
-                        }
-                        else if (pwUiMode === PASSWORD_UI_MODES.AUTOGEN) {
-                            this.changePasswordAutogen();
-                        }
-                        else if (pwUiMode === PASSWORD_UI_MODES.BOTH) {
-                            // TODO: Need to take into account both autogen and typing in this scenario
-                            this.changePasswordType();
-                        }
-                        else if (pwUiMode === PASSWORD_UI_MODES.RANDOM) {
-                            this.changePasswordRandom();
-                        }
+                    if (passwordUiMode === PASSWORD_UI_MODES.TYPE) {
+                        this.changePasswordType();
                     }
-                    else {
-                        // Until the new AngularJS version of "Change Password" is finished, we'll just call into the
-                        // old PWM JavaScript functions:
-                        PWM_VAR['helpdesk_obfuscatedDN'] = this.getUserKey();
-                        PWM_VAR['helpdesk_setting_PwUiMode'] = passwordUiMode;
-                        PWM_HELPDESK.initiateChangePasswordDialog();
+                    else if (passwordUiMode === PASSWORD_UI_MODES.AUTOGEN) {
+                        this.changePasswordAutogen();
+                    }
+                    else if (passwordUiMode === PASSWORD_UI_MODES.BOTH) {
+                        this.changePasswordType();
+                    }
+                    else if (passwordUiMode === PASSWORD_UI_MODES.RANDOM) {
+                        this.changePasswordRandom();
                     }
                 }
                 else {
@@ -225,8 +212,8 @@ export default class HelpDeskDetailComponent {
                     'HelpDeskService',
                     'translateFilter',
                     ($scope: IScope | any,
-                              helpDeskService: IHelpDeskService,
-                              translateFilter: (id: string) => string) => {
+                     helpDeskService: IHelpDeskService,
+                     translateFilter: (id: string) => string) => {
                         $scope.status = STATUS_CONFIRM;
                         $scope.title = translateFilter('Button_HelpdeskClearOtpSecret');
                         $scope.text = translateFilter('Confirm');
@@ -259,8 +246,8 @@ export default class HelpDeskDetailComponent {
                     'HelpDeskService',
                     'translateFilter',
                     ($scope: IScope | any,
-                              helpDeskService: IHelpDeskService,
-                              translateFilter: (id: string) => string) => {
+                     helpDeskService: IHelpDeskService,
+                     translateFilter: (id: string) => string) => {
                         $scope.status = STATUS_CONFIRM;
                         $scope.title = translateFilter('Button_ClearResponses');
                         $scope.text = translateFilter('Confirm');
@@ -401,8 +388,8 @@ export default class HelpDeskDetailComponent {
                     'HelpDeskService',
                     'translateFilter',
                     ($scope: IScope | any,
-                              helpDeskService: IHelpDeskService,
-                              translateFilter: (id: string) => string) => {
+                     helpDeskService: IHelpDeskService,
+                     translateFilter: (id: string) => string) => {
                         $scope.status = STATUS_CONFIRM;
                         $scope.title = translateFilter('Button_Unlock');
                         $scope.text = translateFilter('Confirm');

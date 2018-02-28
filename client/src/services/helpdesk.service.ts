@@ -192,8 +192,8 @@ export default class HelpDeskService implements IHelpDeskService {
         };
         return this.pwmService
             .httpRequest(url, { data: data })
-            .then((result: IRandomPasswordResponse) => {
-                return this.$q.resolve(result);
+            .then((result: { data: IRandomPasswordResponse }) => {
+                return this.$q.resolve(result.data);
             });
     }
 
