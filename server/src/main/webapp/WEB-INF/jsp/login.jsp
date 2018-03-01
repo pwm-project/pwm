@@ -34,7 +34,7 @@
         <jsp:param name="pwm.PageName" value="Title_Login"/>
     </jsp:include>
     <div id="centerbody">
-        <div id="page-content-title"><pwm:display key="Title_Login" displayIfMissing="true"/></div>
+        <h1 id="page-content-title"><pwm:display key="Title_Login" displayIfMissing="true"/></h1>
         <p>
             <span class="panel-login-display-message"><pwm:display key="Display_Login"/></span>
         </p>

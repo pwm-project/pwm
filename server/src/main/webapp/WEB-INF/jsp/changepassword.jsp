@@ -36,7 +36,7 @@
         <jsp:param name="pwm.PageName" value="Title_ChangePassword"/>
     </jsp:include>
     <div id="centerbody" ng-app="changepassword.module" ng-controller="ChangePasswordController as $ctrl">
-        <div id="page-content-title"><pwm:display key="Title_ChangePassword" displayIfMissing="true"/></div>
+        <h1 id="page-content-title"><pwm:display key="Title_ChangePassword" displayIfMissing="true"/></h1>
         <pwm:if test="<%=PwmIfTest.passwordExpired%>">
         <h1><pwm:display key="Display_PasswordExpired"/></h1><br/>
         </pwm:if>

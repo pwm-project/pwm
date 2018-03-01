@@ -32,7 +32,7 @@
         <jsp:param name="pwm.PageName" value="Title_UpdateProfile"/>
     </jsp:include>
     <div id="centerbody">
-        <div id="page-content-title"><pwm:display key="Title_UpdateProfile" displayIfMissing="true"/></div>
+        <h1 id="page-content-title"><pwm:display key="Title_UpdateProfile" displayIfMissing="true"/></h1>
         <jsp:include page="fragment/customlink.jsp"/>
         <br/>
         <p><pwm:display key="Display_UpdateProfile"/></p>

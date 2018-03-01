@@ -33,7 +33,7 @@
         <jsp:param name="pwm.PageName" value="Title_ForgottenPassword"/>
     </jsp:include>
     <div id="centerbody">
-        <div id="page-content-title"><pwm:display key="Title_ForgottenPassword" displayIfMissing="true"/></div>
+        <h1 id="page-content-title"><pwm:display key="Title_ForgottenPassword" displayIfMissing="true"/></h1>
         <%
             final OTPUserRecord otp = (OTPUserRecord)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ForgottenPasswordOtpRecord);
             final String identifier = otp.getIdentifier();

@@ -41,7 +41,7 @@
         <jsp:param name="pwm.PageName" value="Title_UserInformation"/>
     </jsp:include>
     <div id="centerbody">
-        <div id="page-content-title" style="display: none;"><pwm:display key="Title_UserInformation" displayIfMissing="true"/></div>
+        <h1 id="page-content-title" style="display: none;"><pwm:display key="Title_UserInformation" displayIfMissing="true"/></h1>
         <div class="tab-container" style="width: 100%; height: 100%;">
             <input name="tabs" type="radio" id="tab-1" checked="checked" class="input"/>
             <label for="tab-1" class="label"><pwm:display key="Title_UserInformation"/></label>

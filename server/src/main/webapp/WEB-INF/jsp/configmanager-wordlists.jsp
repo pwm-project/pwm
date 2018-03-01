@@ -38,7 +38,7 @@
         <jsp:param name="pwm.PageName" value="<%=LocaleHelper.getLocalizedMessage(Config.Title_ConfigManager, JspUtility.getPwmRequest(pageContext))%>"/>
     </jsp:include>
     <div id="centerbody">
-        <div id="page-content-title"><%=LocaleHelper.getLocalizedMessage(Config.Title_ConfigManager, JspUtility.getPwmRequest(pageContext))%></div>
+        <h1 id="page-content-title"><%=LocaleHelper.getLocalizedMessage(Config.Title_ConfigManager, JspUtility.getPwmRequest(pageContext))%></h1>
         <%@ include file="fragment/configmanager-nav.jsp" %>
         <% { %>
         <table style="width:550px" id="table-wordlistInfo">

@@ -49,7 +49,7 @@
         <jsp:param name="pwm.PageName" value="<%=PageName%>"/>
     </jsp:include>
     <div id="centerbody">
-        <div id="page-content-title"><pwm:display key="Title_TokenLookup" bundle="Admin" displayIfMissing="true"/></div>
+        <h1 id="page-content-title"><pwm:display key="Title_TokenLookup" bundle="Admin" displayIfMissing="true"/></h1>
         <%@ include file="fragment/admin-nav.jsp" %>
         <% final String tokenKey = tokenlookup_pwmRequest.readParameterAsString("token");%>
         <% if (tokenKey != null && tokenKey.length() > 0) { %>
