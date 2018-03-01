@@ -29,6 +29,7 @@ import org.mockito.Mockito;
 import password.pwm.AppProperty;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.config.Configuration;
+import password.pwm.svc.email.EmailServer;
 import password.pwm.svc.email.EmailServerUtil;
 import password.pwm.svc.email.EmailService;
 
@@ -37,6 +38,7 @@ import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
 import java.io.IOException;
 import java.util.List;
+import java.util.Properties;
 
 public class EmailQueueManagerTest {
     @Test
@@ -48,7 +50,11 @@ public class EmailQueueManagerTest {
 
         EmailItemBean emailItemBean = new EmailItemBean("fred@flintstones.tv, barney@flintstones.tv", "bedrock-admin@flintstones.tv", "Test Subject", "bodyPlain", "bodyHtml");
 
-        List<Message> messages = EmailServerUtil.convertEmailItemToMessages(emailItemBean, config, null);
+        EmailServer emailServer = EmailServer.builder()
+                .javaMailProps( new Properties(  ) )
+                .build();
+
+        List<Message> messages = EmailServerUtil.convertEmailItemToMessages(emailItemBean, config, emailServer);
         Assert.assertEquals(2, messages.size());
 
         Message message = messages.get(0);

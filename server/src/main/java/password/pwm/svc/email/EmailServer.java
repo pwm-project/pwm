@@ -33,7 +33,7 @@ import java.util.Properties;
 
 @Value
 @Builder
-class EmailServer
+public class EmailServer
 {
     private final String id;
     private final String host;
