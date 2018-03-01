@@ -22,6 +22,7 @@
 
 package password.pwm.svc;
 
+import password.pwm.svc.email.EmailService;
 import password.pwm.util.java.JavaHelper;
 
 import java.util.ArrayList;
@@ -39,7 +40,7 @@ public enum PwmServiceEnum
     StatisticsManager( password.pwm.svc.stats.StatisticsManager.class, Flag.StartDuringRuntimeInstance ),
     WordlistManager( password.pwm.svc.wordlist.WordlistManager.class ),
     SeedlistManager( password.pwm.svc.wordlist.SeedlistManager.class ),
-    EmailQueueManager( password.pwm.util.queue.EmailQueueManager.class ),
+    EmailQueueManager( EmailService.class ),
     SmsQueueManager( password.pwm.util.queue.SmsQueueManager.class ),
     UrlShortenerService( password.pwm.svc.shorturl.UrlShortenerService.class ),
     TokenService( password.pwm.svc.token.TokenService.class, Flag.StartDuringRuntimeInstance ),
