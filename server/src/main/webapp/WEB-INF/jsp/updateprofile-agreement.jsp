@@ -38,7 +38,7 @@
         <jsp:param name="pwm.PageName" value="Title_UpdateProfile"/>
     </jsp:include>
     <div id="centerbody">
-        <div id="page-content-title"><pwm:display key="Title_UpdateProfile" displayIfMissing="true"/></div>
+        <h1 id="page-content-title"><pwm:display key="Title_UpdateProfile" displayIfMissing="true"/></h1>
         <%@ include file="fragment/message.jsp" %>
         <% final String expandedText = (String)JspUtility.getAttribute(pageContext, PwmRequestAttribute.AgreementText); %>
         <div class="agreementText"><%= expandedText %></div>

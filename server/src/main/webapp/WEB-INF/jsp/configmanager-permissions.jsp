@@ -38,7 +38,7 @@
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
 <div style="padding: 10px">
-    <div id="page-content-title"><pwm:display key="Title_LDAPPermissionRecommendations" bundle="Config" displayIfMissing="true"/></div>
+    <h1 id="page-content-title"><pwm:display key="Title_LDAPPermissionRecommendations" bundle="Config" displayIfMissing="true"/></h1>
     <div>
         <a class="menubutton pwm-basic-link" id="MenuItem_DownloadBundle" title="<pwm:display key="Button_DownloadCSV" bundle="Admin"/>"
            href="manager?processAction=<%=ConfigManagerServlet.ConfigManagerAction.downloadPermissionCsv.toString()%>">
