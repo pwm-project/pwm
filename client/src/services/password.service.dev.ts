@@ -79,7 +79,7 @@ export default class PasswordService implements IPasswordService {
         let deferredAbort = this.$q.defer();
 
         let timeoutPromise = this.$timeout(() => {
-            deferred.resolve({ data: data} );
+            deferred.resolve(data);
         }, SIMULATED_RESPONSE_TIME);
 
         // To simulate an abortable promise, edit SIMULATED_RESPONSE_TIME

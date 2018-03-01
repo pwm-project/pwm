@@ -154,7 +154,6 @@ export default class HelpDeskDetailComponent {
                 controller: 'RandomChangePasswordController as $ctrl',
                 templateUrl: randomChangePasswordTemplateUrl,
                 locals: {
-                    personUsername: this.person.userDisplayName,
                     personUserKey: this.getUserKey()
                 }
             })
@@ -169,7 +168,6 @@ export default class HelpDeskDetailComponent {
                 templateUrl: successChangePasswordTemplateUrl,
                 locals: {
                     changePasswordSuccessData: data,
-                    personUsername: this.person.userDisplayName,
                     personUserKey: this.getUserKey()
                 }
             })
@@ -182,7 +180,6 @@ export default class HelpDeskDetailComponent {
                 controller: 'TypeChangePasswordController as $ctrl',
                 templateUrl: typeChangePasswordTemplateUrl,
                 locals: {
-                    personUsername: this.person.userDisplayName,
                     personUserKey: this.getUserKey()
                 }
             })          // TODO: right data type?

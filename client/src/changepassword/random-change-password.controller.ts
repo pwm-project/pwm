@@ -29,13 +29,11 @@ export default class RandomChangePasswordController {
     static $inject = [
         'HelpDeskService',
         'IasDialogService',
-        'personUsername',
         'personUserKey',
         'translateFilter'
     ];
     constructor(private HelpDeskService: IHelpDeskService,
                 private IasDialogService: any,
-                private personUsername: string,
                 private personUserKey: string,
                 private translateFilter: (id: string) => string) {
     }
