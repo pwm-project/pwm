@@ -27,6 +27,8 @@ import uiRouter from '@uirouter/angularjs';
 import PeopleService from '../services/people.service.dev';
 import HelpDeskConfigService from '../services/helpdesk-config.service.dev';
 import HelpDeskService from '../services/helpdesk.service.dev';
+import PasswordService from '../services/password.service.dev';
+import PwmService from '../services/pwm.service.dev';
 
 
 module('app', [
@@ -42,7 +44,9 @@ module('app', [
     }])
     .config(routes)
     .service('HelpDeskService', HelpDeskService)
+    .service('PasswordService', PasswordService)
     .service('PeopleService', PeopleService)
+    .service('PwmService', PwmService)
     .service('ConfigService', HelpDeskConfigService);
 
 // Attach to the page document

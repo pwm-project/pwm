@@ -192,8 +192,8 @@ export default class HelpDeskService implements IHelpDeskService {
         };
         return this.pwmService
             .httpRequest(url, { data: data })
-            .then((result: IRandomPasswordResponse) => {
-                return this.$q.resolve(result);
+            .then((result: { data: IRandomPasswordResponse }) => {
+                return this.$q.resolve(result.data);
             });
     }
 
@@ -210,8 +210,8 @@ export default class HelpDeskService implements IHelpDeskService {
 
         return this.pwmService
             .httpRequest(url, { data: data })
-            .then((result: {records: IRecentVerifications}) => {
-                return this.$q.resolve(result.records);
+            .then((result: any) => {
+                return this.$q.resolve(result.data.records);
             });
     }
 
@@ -275,12 +275,14 @@ export default class HelpDeskService implements IHelpDeskService {
 
         return this.pwmService
             .httpRequest(url, { data: data })
-            .then((result: IValidationStatus) => {
+            .then((result: any) => {
+                const validationStatus: IValidationStatus = result.data;
+
                 this.localStorageService.setItem(
                     this.localStorageService.keys.VERIFICATION_STATE,
-                    result.verificationState
+                    validationStatus.verificationState
                 );
-                return this.$q.resolve(result);
+                return this.$q.resolve(validationStatus);
             });
     }
 

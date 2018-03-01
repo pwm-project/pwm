@@ -42,6 +42,8 @@ class DatabaseUtil
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( DatabaseUtil.class );
 
+    private static final String INDEX_NAME_SUFFIX = "_IDX";
+
     private DatabaseUtil( )
     {
     }
@@ -166,7 +168,7 @@ class DatabaseUtil
         }
 
         {
-            final String indexName = table.toString() + "_IDX";
+            final String indexName = table.toString() + INDEX_NAME_SUFFIX;
             final String sqlString = "CREATE index " + indexName
                     + " ON " + table.toString()
                     + " (" + DatabaseService.KEY_COLUMN + ")";
@@ -186,7 +188,14 @@ class DatabaseUtil
             {
                 final String errorMsg = "error creating new index " + indexName + ": " + ex.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, errorMsg );
-                throw new DatabaseException( errorInformation );
+                if ( dbConfiguration.isFailOnIndexCreation() )
+                {
+                    throw new DatabaseException ( errorInformation );
+                }
+                else
+                {
+                    LOGGER.warn( errorInformation.toDebugStr() );
+                }
             }
             finally
             {

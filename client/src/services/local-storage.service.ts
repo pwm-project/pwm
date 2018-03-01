@@ -52,7 +52,7 @@ export default class LocalStorageService {
     }
 
     setItem(key: string, value: any): void {
-        if (this.localStorageEnabled) {
+        if (this.localStorageEnabled && value) {
             this.$window.sessionStorage[this.prepKey(key)] = value;
         }
     }

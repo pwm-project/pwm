@@ -19,18 +19,19 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+/* tslint:disable */
 
-Error.stackTraceLimit = Infinity;
-
-import 'angular';
-import 'angular-mocks';
-
-// This creates a single bundle with all test cases (*.test.ts), which improves performance
-// (i.e. we don't create a webpack bundle for each test):
-var appContext = (require as any).context('../src', true, /\.test\.ts/);
-
-// If you want to run a specific test, comment out the general line above, and uncomment the specific one below:
-// var appContext = (require as any).context('../src', true, /helpdesk-config\.service\.test\.ts/);
-// var appContext = (require as any).context('../src', true, /helpdesk\.service\.test\.ts/);
-
-appContext.keys().forEach(appContext);
+export const getRecentVerifications_response = {
+    "error": false,
+    "errorCode": 0,
+    "data": {
+        "records": [
+            {
+                "timestamp": "2018-02-22T15:14:39Z",
+                "profile": "default",
+                "username": "bjenner",
+                "method": "Personal Data"
+            }
+        ]
+    }
+};

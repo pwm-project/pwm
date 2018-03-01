@@ -84,6 +84,7 @@ public enum AppProperty
     DB_CONNECTIONS_MAX                              ( "db.connections.max" ),
     DB_CONNECTIONS_TIMEOUT_MS                       ( "db.connections.timeoutMs" ),
     DB_CONNECTIONS_WATCHDOG_FREQUENCY_SECONDS       ( "db.connections.watchdogFrequencySeconds" ),
+    DB_INIT_HALT_ON_INDEX_CREATE_ERROR              ( "db.init.haltOnIndexCreateError" ),
     DB_SCHEMA_KEY_LENGTH                            ( "db.schema.keyLength" ),
     DOWNLOAD_FILENAME_STATISTICS_CSV                ( "download.filename.statistics.csv" ),
     DOWNLOAD_FILENAME_USER_REPORT_SUMMARY_CSV       ( "download.filename.reportSummary.csv" ),

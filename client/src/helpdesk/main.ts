@@ -29,6 +29,7 @@ import TranslationsLoaderFactory from '../services/translations-loader.factory';
 import uiRouter from '@uirouter/angularjs';
 import HelpDeskConfigService from '../services/helpdesk-config.service';
 import HelpDeskService from '../services/helpdesk.service';
+import PasswordService from '../services/password.service';
 
 
 module('app', [
@@ -50,6 +51,7 @@ module('app', [
                 .forceAsyncReload(true);
         }])
     .service('HelpDeskService', HelpDeskService)
+    .service('PasswordService', PasswordService)
     .service('PeopleService', PeopleService)
     .service('PwmService', PwmService)
     .service('ConfigService', HelpDeskConfigService)

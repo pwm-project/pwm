@@ -43,7 +43,6 @@ export default class SuccessChangePasswordController {
         'ConfigService',
         'HelpDeskService',
         'IasDialogService',
-        'personUsername',
         'personUserKey',
         'translateFilter'
     ];
@@ -52,7 +51,6 @@ export default class SuccessChangePasswordController {
                 private configService: IHelpDeskConfigService,
                 private HelpDeskService: IHelpDeskService,
                 private IasDialogService: any,
-                private personUsername: string,
                 private personUserKey: string,
                 private translateFilter: (id: string) => string) {
         this.password = changePasswordSuccessData.password;

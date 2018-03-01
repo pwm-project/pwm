@@ -325,12 +325,9 @@ public class HelpdeskDetailInfoBean implements Serializable
             buttons.add( StandardButton.clearResponses );
         }
 
-        if ( pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.OTP_ENABLED ) )
+        if ( helpdeskProfile.readSettingAsBoolean( PwmSetting.HELPDESK_CLEAR_OTP_BUTTON ) )
         {
-            if ( helpdeskProfile.readSettingAsBoolean( PwmSetting.HELPDESK_CLEAR_OTP_BUTTON ) )
-            {
-                buttons.add( StandardButton.clearOtpSecret );
-            }
+            buttons.add( StandardButton.clearOtpSecret );
         }
 
         if ( !helpdeskProfile.readOptionalVerificationMethods().isEmpty() )

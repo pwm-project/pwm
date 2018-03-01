@@ -356,15 +356,6 @@ public class LDAPPermissionCalculator implements Serializable
             }
             break;
 
-            case OTP_SECRET_LDAP_ATTRIBUTE:
-            {
-                if ( !configuration.readSettingAsBoolean( PwmSetting.OTP_ENABLED ) )
-                {
-                    return Collections.emptyList();
-                }
-            }
-            break;
-
             case SMS_USER_PHONE_ATTRIBUTE:
             {
                 if ( !SmsQueueManager.smsIsConfigured( configuration ) )

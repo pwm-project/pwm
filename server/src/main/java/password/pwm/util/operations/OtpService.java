@@ -23,6 +23,7 @@
 package password.pwm.util.operations;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import lombok.Getter;
 import org.apache.commons.codec.binary.Base32;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
@@ -33,6 +34,7 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.OTPStorageFormat;
+import password.pwm.config.profile.SetupOtpProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -176,6 +178,7 @@ public class OtpService implements PwmService
     }
 
     public List<String> initializeUserRecord(
+            final SetupOtpProfile otpProfile,
             final OTPUserRecord otpUserRecord,
             final SessionLabel sessionLabel,
             final String identifier
@@ -205,7 +208,8 @@ public class OtpService implements PwmService
         final List<String> rawRecoveryCodes;
         if ( settings.getOtpStorageFormat().supportsRecoveryCodes() )
         {
-            rawRecoveryCodes = createRawRecoveryCodes( settings.getRecoveryCodesCount(), sessionLabel );
+            final int recoveryCodesCount = ( int ) otpProfile.readSettingAsLong( PwmSetting.OTP_RECOVERY_CODES );
+            rawRecoveryCodes = createRawRecoveryCodes( recoveryCodesCount, sessionLabel );
             final List<OTPUserRecord.RecoveryCode> recoveryCodeList = new ArrayList<>();
             final OTPUserRecord.RecoveryInfo recoveryInfo = new OTPUserRecord.RecoveryInfo();
             if ( settings.getOtpStorageFormat().supportsHashedRecoveryCodes() )
@@ -509,11 +513,11 @@ public class OtpService implements PwmService
         return userGUID;
     }
 
+    @Getter
     public static class OtpSettings implements Serializable
     {
         private OTPStorageFormat otpStorageFormat;
         private OTPUserRecord.Type otpType = OTPUserRecord.Type.TOTP;
-        private int recoveryCodesCount;
         private int totpPastIntervals;
         private int totpFutureIntervals;
         private int totpIntervalSeconds;
@@ -522,62 +526,12 @@ public class OtpService implements PwmService
         private int recoveryHashIterations;
         private String recoveryHashMethod;
 
-        public OTPStorageFormat getOtpStorageFormat( )
-        {
-            return otpStorageFormat;
-        }
 
-        public OTPUserRecord.Type getOtpType( )
-        {
-            return otpType;
-        }
-
-        public int getRecoveryCodesCount( )
-        {
-            return recoveryCodesCount;
-        }
-
-        public int getTotpPastIntervals( )
-        {
-            return totpPastIntervals;
-        }
-
-        public int getTotpFutureIntervals( )
-        {
-            return totpFutureIntervals;
-        }
-
-        public int getTotpIntervalSeconds( )
-        {
-            return totpIntervalSeconds;
-        }
-
-        public int getOtpTokenLength( )
-        {
-            return otpTokenLength;
-        }
-
-        public String getRecoveryTokenMacro( )
-        {
-            return recoveryTokenMacro;
-        }
-
-        public int getRecoveryHashIterations( )
-        {
-            return recoveryHashIterations;
-        }
-
-        public String getRecoveryHashMethod( )
-        {
-            return recoveryHashMethod;
-        }
-
-        public static OtpSettings fromConfig( final Configuration config )
+        static OtpSettings fromConfig( final Configuration config )
         {
             final OtpSettings otpSettings = new OtpSettings();
 
             otpSettings.otpStorageFormat = config.readSettingAsEnum( PwmSetting.OTP_SECRET_STORAGEFORMAT, OTPStorageFormat.class );
-            otpSettings.recoveryCodesCount = ( int ) config.readSettingAsLong( PwmSetting.OTP_RECOVERY_CODES );
             otpSettings.totpPastIntervals = Integer.parseInt( config.readAppProperty( AppProperty.TOTP_PAST_INTERVALS ) );
             otpSettings.totpFutureIntervals = Integer.parseInt( config.readAppProperty( AppProperty.TOTP_FUTURE_INTERVALS ) );
             otpSettings.totpIntervalSeconds = Integer.parseInt( config.readAppProperty( AppProperty.TOTP_INTERVAL ) );
