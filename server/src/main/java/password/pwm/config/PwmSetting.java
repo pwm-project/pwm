@@ -280,22 +280,21 @@ public enum PwmSetting
             "ldap.wireTrace.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.LDAP_GLOBAL ),
 
     // New multiple email settings
-    EMAIL_PROFILES(
-            "email.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL),
-    EMAIL_SERVER_ADDRESSES(
-            "email.smtp.addresses", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_PROFILES),
-    EMAIL_SERVER_PORTS(
-            "email.smtp.ports", PwmSettingSyntax.NUMERIC, PwmSettingCategory.EMAIL_PROFILES),
+    EMAIL_SERVERS(
+            "email.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL ),
+    EMAIL_SERVER_ADDRESS(
+            "email.smtp.address", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_SERVERS ),
+    EMAIL_SERVER_PORT(
+            "email.smtp.port", PwmSettingSyntax.NUMERIC, PwmSettingCategory.EMAIL_SERVERS ),
     EMAIL_USERNAMES(
-            "email.smtp.usernames", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_PROFILES),
+            "email.smtp.username", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_SERVERS ),
     EMAIL_PASSWORDS(
-            "email.smtp.userpasswords", PwmSettingSyntax.PASSWORD, PwmSettingCategory.EMAIL_PROFILES),
+            "email.smtp.userpassword", PwmSettingSyntax.PASSWORD, PwmSettingCategory.EMAIL_SERVERS ),
 
-    // system wideemail settings
+    // system wide email settings
 
     EMAIL_DEFAULT_FROM_ADDRESS(
-            "email.default.fromAddress", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_SETTINGS),
-
+            "email.default.fromAddress", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_SETTINGS ),
     EMAIL_MAX_QUEUE_AGE(
             "email.queueMaxAge", PwmSettingSyntax.DURATION, PwmSettingCategory.EMAIL_SETTINGS ),
     EMAIL_ADVANCED_SETTINGS(
@@ -673,8 +672,9 @@ public enum PwmSetting
     AUDIT_SYSLOG_SERVERS(
             "audit.syslog.servers", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.AUDIT_FORWARD ),
     AUDIT_SYSLOG_CERTIFICATES(
-            "audit.syslog.certificates", PwmSettingSyntax.X509CERT, PwmSettingCategory.AUDIT_FORWARD),
-
+            "audit.syslog.certificates", PwmSettingSyntax.X509CERT, PwmSettingCategory.AUDIT_FORWARD ),
+    AUDIT_SYSLOG_OUTPUT_FORMAT(
+            "audit.syslog.outputFormat", PwmSettingSyntax.SELECT, PwmSettingCategory.AUDIT_FORWARD ),
 
     // challenge settings
     CHALLENGE_ENABLE(

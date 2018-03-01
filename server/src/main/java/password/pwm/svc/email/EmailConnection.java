@@ -20,27 +20,15 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.bean;
+package password.pwm.svc.email;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.Value;
 
-import java.io.Serializable;
+import javax.mail.Transport;
 
-@Getter
-@AllArgsConstructor
-@Builder
-public class EmailItemBean implements Serializable
+@Value
+class EmailConnection
 {
-    private final String to;
-    private final String from;
-    private final String subject;
-    private final String bodyPlain;
-    private final String bodyHtml;
-
-    public String toDebugString( )
-    {
-        return "from: " + from + ", to: " + to + ", subject: " + subject;
-    }
+    private final EmailServer emailServer;
+    private final Transport transport;
 }

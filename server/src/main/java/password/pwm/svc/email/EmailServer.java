@@ -20,27 +20,39 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.bean;
+package password.pwm.svc.email;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Value;
+import password.pwm.util.PasswordData;
+import password.pwm.util.java.StringUtil;
 
-import java.io.Serializable;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Properties;
 
-@Getter
-@AllArgsConstructor
+@Value
 @Builder
-public class EmailItemBean implements Serializable
+class EmailServer
 {
-    private final String to;
-    private final String from;
-    private final String subject;
-    private final String bodyPlain;
-    private final String bodyHtml;
+    private final String id;
+    private final String host;
+    private final int port;
+    private final String username;
+    private final PasswordData password;
+    private final Properties javaMailProps;
+    private final javax.mail.Session session;
 
-    public String toDebugString( )
+    public String toDebugString()
     {
-        return "from: " + from + ", to: " + to + ", subject: " + subject;
+        final Map<String, String> debugProps = new LinkedHashMap<>(  );
+        debugProps.put( "id", id );
+        debugProps.put( "host", host );
+        debugProps.put( "port", String.valueOf( port ) );
+        if ( !StringUtil.isEmpty( username ) )
+        {
+            debugProps.put( "username", username );
+        }
+        return StringUtil.mapToString( debugProps );
     }
 }

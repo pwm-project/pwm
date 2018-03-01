@@ -33,6 +33,7 @@ import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.TokenStorageMethod;
 import password.pwm.config.profile.ChallengeProfile;
 import password.pwm.config.profile.DeleteAccountProfile;
+import password.pwm.config.profile.EmailServerProfile;
 import password.pwm.config.profile.ForgottenPasswordProfile;
 import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.config.profile.LdapProfile;
@@ -1048,11 +1049,13 @@ public class Configuration implements SettingReader
     /* generic profile stuff */
 
 
-    public Map<String,NewUserProfile> getNewUserProfiles() {
-        final Map<String,NewUserProfile> returnMap = new LinkedHashMap<>();
-        final Map<String,Profile> profileMap = profileMap(ProfileType.NewUser);
-        for (final Map.Entry<String,Profile> entry : profileMap.entrySet()) {
-            returnMap.put(entry.getKey(), (NewUserProfile) entry.getValue());
+    public Map<String, NewUserProfile> getNewUserProfiles( )
+    {
+        final Map<String, NewUserProfile> returnMap = new LinkedHashMap<>();
+        final Map<String, Profile> profileMap = profileMap( ProfileType.NewUser );
+        for ( final Map.Entry<String, Profile> entry : profileMap.entrySet() )
+        {
+            returnMap.put( entry.getKey(), ( NewUserProfile ) entry.getValue() );
         }
         return returnMap;
     }
@@ -1064,6 +1067,17 @@ public class Configuration implements SettingReader
         for ( final Map.Entry<String, Profile> entry : profileMap.entrySet() )
         {
             returnMap.put( entry.getKey(), ( HelpdeskProfile ) entry.getValue() );
+        }
+        return returnMap;
+    }
+
+    public Map<String, EmailServerProfile> getEmailServerProfiles( )
+    {
+        final Map<String, EmailServerProfile> returnMap = new LinkedHashMap<>();
+        final Map<String, Profile> profileMap = profileMap( ProfileType.EmailServers );
+        for ( final Map.Entry<String, Profile> entry : profileMap.entrySet() )
+        {
+            returnMap.put( entry.getKey(), ( EmailServerProfile ) entry.getValue() );
         }
         return returnMap;
     }
@@ -1141,7 +1155,7 @@ public class Configuration implements SettingReader
                 break;
 
             case EmailServers:
-                newProfile = EmailServerProfile.makeFromStoredConfiguration(storedConfiguration, profileID);
+                newProfile = EmailServerProfile.makeFromStoredConfiguration( storedConfiguration, profileID );
                 break;
 
             case SetupOTPProfile:

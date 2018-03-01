@@ -43,6 +43,7 @@ import password.pwm.svc.PwmService;
 import password.pwm.svc.PwmServiceManager;
 import password.pwm.svc.cache.CacheService;
 import password.pwm.svc.cluster.ClusterService;
+import password.pwm.svc.email.EmailService;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.event.AuditService;
@@ -75,7 +76,6 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.CrService;
 import password.pwm.util.operations.OtpService;
-import password.pwm.util.queue.EmailQueueManager;
 import password.pwm.util.queue.SmsQueueManager;
 import password.pwm.util.secure.HttpsServerCertificateManager;
 import password.pwm.util.secure.PwmRandom;
@@ -550,9 +550,9 @@ public class PwmApplication
         return ( ReportService ) pwmServiceManager.getService( ReportService.class );
     }
 
-    public EmailQueueManager getEmailQueue( )
+    public EmailService getEmailQueue( )
     {
-        return ( EmailQueueManager ) pwmServiceManager.getService( EmailQueueManager.class );
+        return ( EmailService ) pwmServiceManager.getService( EmailService.class );
     }
 
     public AuditService getAuditManager( )
