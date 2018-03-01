@@ -48,7 +48,7 @@
         <jsp:param name="pwm.PageName" value="<%=PageName%>"/>
     </jsp:include>
     <div id="centerbody" style="width: 96%; margin-left: 2%; margin-right: 2%; background: white">
-        <div id="page-content-title"><pwm:display key="Title_LogViewer" bundle="Admin" displayIfMissing="true"/></div>
+        <h1 id="page-content-title"><pwm:display key="Title_LogViewer" bundle="Admin" displayIfMissing="true"/></h1>
         <%@ include file="fragment/admin-nav.jsp" %>
         <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded"
               name="searchForm" id="searchForm" class="pwm-form">

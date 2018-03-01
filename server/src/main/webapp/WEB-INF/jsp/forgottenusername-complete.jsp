@@ -35,7 +35,7 @@
         <jsp:param name="pwm.PageName" value="Title_ForgottenUsername"/>
     </jsp:include>
     <div id="centerbody">
-        <div id="page-content-title"><pwm:display key="Title_ForgottenUsername" displayIfMissing="true"/></div>
+        <h1 id="page-content-title"><pwm:display key="Title_ForgottenUsername" displayIfMissing="true"/></h1>
         <%@ include file="fragment/message.jsp" %>
         <% final String expandedText = (String) JspUtility.getAttribute(pageContext, PwmRequestAttribute.CompleteText); %>
         <br/>

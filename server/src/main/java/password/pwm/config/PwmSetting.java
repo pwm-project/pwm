@@ -286,9 +286,9 @@ public enum PwmSetting
             "email.smtp.address", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_SERVERS ),
     EMAIL_SERVER_PORT(
             "email.smtp.port", PwmSettingSyntax.NUMERIC, PwmSettingCategory.EMAIL_SERVERS ),
-    EMAIL_USERNAMES(
+    EMAIL_USERNAME(
             "email.smtp.username", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_SERVERS ),
-    EMAIL_PASSWORDS(
+    EMAIL_PASSWORD(
             "email.smtp.userpassword", PwmSettingSyntax.PASSWORD, PwmSettingCategory.EMAIL_SERVERS ),
 
     // system wide email settings

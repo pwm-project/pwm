@@ -42,7 +42,7 @@
         <jsp:param name="pwm.PageName" value="Title_NewUser"/>
     </jsp:include>
     <div id="centerbody">
-        <div id="page-content-title"><pwm:display key="Title_NewUser" displayIfMissing="true"/></div>
+        <h1 id="page-content-title"><pwm:display key="Title_NewUser" displayIfMissing="true"/></h1>
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <p>
             <pwm:display key="Display_NewUserProfile"/>

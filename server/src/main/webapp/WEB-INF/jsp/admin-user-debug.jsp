@@ -42,7 +42,7 @@
         <jsp:param name="pwm.PageName" value="User Debug"/>
     </jsp:include>
     <div id="centerbody" class="wide">
-        <div id="page-content-title">User Debug</div>
+        <h1 id="page-content-title">User Debug</h1>
         <%@ include file="fragment/admin-nav.jsp" %>
 
         <% final UserDebugDataBean userDebugDataBean = (UserDebugDataBean)JspUtility.getAttribute(pageContext, PwmRequestAttribute.UserDebugData); %>

@@ -69,8 +69,8 @@ public class EmailServerUtil
             final String id = profile.getIdentifier();
             final String address = profile.readSettingAsString( PwmSetting.EMAIL_SERVER_ADDRESS );
             final int port = (int) profile.readSettingAsLong( PwmSetting.EMAIL_SERVER_PORT );
-            final String username = profile.readSettingAsString( PwmSetting.EMAIL_USERNAMES );
-            final PasswordData password = profile.readSettingAsPassword( PwmSetting.EMAIL_PASSWORDS );
+            final String username = profile.readSettingAsString( PwmSetting.EMAIL_USERNAME );
+            final PasswordData password = profile.readSettingAsPassword( PwmSetting.EMAIL_PASSWORD );
             if ( !StringUtil.isEmpty( address )
                     && port > 0
                     )
