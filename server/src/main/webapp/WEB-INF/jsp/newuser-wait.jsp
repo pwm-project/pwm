@@ -50,7 +50,7 @@
         <jsp:param name="pwm.PageName" value="Title_PleaseWait"/>
     </jsp:include>
     <div id="centerbody">
-        <div id="page-content-title"><pwm:display key="Title_PleaseWait" displayIfMissing="true"/></div>
+        <h1 id="page-content-title"><pwm:display key="Title_PleaseWait" displayIfMissing="true"/></h1>
         <p><pwm:display key="Display_PleaseWaitNewUser"/></p>
         <%@ include file="fragment/message.jsp" %>
         <div class="meteredProgressBar">

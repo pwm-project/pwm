@@ -34,7 +34,7 @@
         <jsp:param name="pwm.PageName" value="Title_SetupResponses"/>
     </jsp:include>
     <div id="centerbody">
-        <div id="page-content-title"><pwm:display key="Title_SetupResponses" displayIfMissing="true"/></div>
+        <h1 id="page-content-title"><pwm:display key="Title_SetupResponses" displayIfMissing="true"/></h1>
         <p><pwm:display key="Display_SetupResponses"/></p>
         <form action="<pwm:current-url/>" method="post" name="form-setupResponses" enctype="application/x-www-form-urlencoded" id="form-setupResponses" class="pwm-form" autocomplete="off">
             <%@ include file="fragment/message.jsp" %>

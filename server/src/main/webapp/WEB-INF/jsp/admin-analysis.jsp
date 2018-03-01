@@ -61,7 +61,7 @@
         <jsp:param name="pwm.PageName" value="<%=PageName%>"/>
     </jsp:include>
     <div id="centerbody" class="wide">
-        <div id="page-content-title"><pwm:display key="Title_DataAnalysis" bundle="Admin"/></div>
+        <h1 id="page-content-title"><pwm:display key="Title_DataAnalysis" bundle="Admin"/></h1>
         <%@ include file="fragment/admin-nav.jsp" %>
         <div class="tab-container" style="width: 100%; height: 100%;" id="analysis-topLevelTab">
             <input name="tabs" type="radio" id="tab-1" checked="checked" class="input"/>

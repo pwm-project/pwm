@@ -36,7 +36,7 @@
         <jsp:param name="pwm.PageName" value="Title_DeleteAccount"/>
     </jsp:include>
     <div id="centerbody">
-        <div id="page-content-title"><pwm:display key="Title_DeleteAccount" displayIfMissing="true"/></div>
+        <h1 id="page-content-title"><pwm:display key="Title_DeleteAccount" displayIfMissing="true"/></h1>
         <%@ include file="fragment/message.jsp" %>
         <% final String expandedText = (String)JspUtility.getAttribute(pageContext, PwmRequestAttribute.AgreementText); %>
         <div class="agreementText"><%= expandedText %></div>
