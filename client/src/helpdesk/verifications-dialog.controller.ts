@@ -123,7 +123,7 @@ export default class VerificationsDialogController {
             this.status = STATUS_WAIT;
             this.configService.getTokenSendMethod()
                 .then((tokenSendMethod) => {
-                    let choice = (tokenSendMethod === TOKEN_CHOICE) ? method : null;
+                    let choice = (tokenSendMethod === TOKEN_CHOICE) ? method.toLowerCase() : null;
                     return this.helpDeskService.sendVerificationToken(this.personUserKey, choice);
                 })
                 .then((response: any) => {

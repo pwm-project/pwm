@@ -26,7 +26,6 @@ import { IPerson } from '../models/person.model';
 import { IPeopleService } from '../services/people.service';
 
 const templateUrl = require('peoplesearch/person-card.component.html');
-require('peoplesearch/person-card.component.scss');
 
 class PersonCardController {
     private details: any[]; // For large style cards
