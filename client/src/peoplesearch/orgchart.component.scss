@@ -27,6 +27,19 @@ $org-chart-text-color: #808080;
 
 $manager-connector-height: 16px;
 
+.reports {
+  background-color: #dae1e1;
+  border-radius: 2px;
+  color: #434c50;
+  font-size: 14px;
+  height: 25px;
+  line-height: 25px;
+  position: absolute;
+  right: 3px;
+  text-align: center;
+  top: 3px;
+  min-width: 35px;
+}
 
 .assistant,
 .manager {
@@ -50,6 +63,10 @@ $manager-connector-height: 16px;
       }
     }
 
+    > .reports {
+      right: 20px;
+    }
+
     > .ias-tile-content {
       background-color: white;
       display: block;
@@ -57,14 +74,14 @@ $manager-connector-height: 16px;
       text-align: center;
       width: 100%;
 
-      > .reports {
-        right: 20px;
-      }
-
       :nth-child(n + 3) {
         display: none;
       }
     }
+  }
+
+  .reports {
+    right: 20px;
   }
 }
 
@@ -233,13 +250,13 @@ org-chart {
         .manager {
           &:last-child {
             > .ias-tile {
+              > .reports {
+                display: none;
+              }
+
               > .ias-tile-content {
                 > .avatar {
                   //background-image: url('../../images/icons/m_circle-horz-menu_thin.svg');
-                }
-
-                > .reports {
-                  display: none;
                 }
               }
             }
@@ -316,6 +333,14 @@ org-chart {
 }
 
 [dir="rtl"] {
+  .assistant,
+  .manager {
+    .reports {
+      left: 20px;
+      right: auto;
+    }
+  }
+
   // (XS) Default display
   org-chart {
     > .org-chart-section {
@@ -332,6 +357,11 @@ org-chart {
         > .ias-tile {
           &[size="large"] {
             margin: 0 128px 0 0;
+          }
+
+          .reports {
+            left: 3px;
+            right: initial;
           }
         }
 

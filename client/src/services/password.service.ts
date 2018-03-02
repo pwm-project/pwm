@@ -21,7 +21,7 @@
  */
 
 
-import {ILogService, IPromise, ITimeoutService, IWindowService} from 'angular';
+import {ILogService, IPromise, IQService, ITimeoutService, IWindowService} from 'angular';
 import {IPwmService} from './pwm.service';
 
 export interface IPasswordService {
@@ -40,8 +40,10 @@ export interface IValidatePasswordData {
 export default class PasswordService implements IPasswordService {
     PWM_MAIN: any;
 
-    static $inject = [ '$log', '$timeout', '$window', 'pwmService', 'translateFilter' ];
+    static $inject = ['$log', '$q', '$timeout', '$window', 'PwmService', 'translateFilter'];
+
     constructor(private $log: ILogService,
+                private $q: IQService,
                 private $timeout: ITimeoutService,
                 private $window: IWindowService,
                 private pwmService: IPwmService,
@@ -58,10 +60,14 @@ export default class PasswordService implements IPasswordService {
         let data = {
             password1: password1,
             password2: password2,
-            userDN: userKey
+            username: userKey
         };
         let url: string = this.pwmService.getServerUrl('checkPassword');
 
-        return this.pwmService.httpRequest(url, { data: data });
+        return this.pwmService
+            .httpRequest(url, {data: data})
+            .then((result: { data: IValidatePasswordData }) => {
+                return this.$q.resolve(result.data);
+            });
     }
 }

@@ -21,6 +21,10 @@
  */
 
 people-search-cards {
+  #page-content-title {
+    margin-bottom: 0;
+  }
+
   display: flex;
   flex-flow: column nowrap;
   height: 100%;

@@ -39,11 +39,11 @@ const VERIFICATION_METHODS_CONFIG = 'verificationMethods';
 export const TOKEN_CHOICE = 'CHOICE_SMS_EMAIL';
 
 export const PASSWORD_UI_MODES = {
-    NONE: 'NONE',
-    AUTOGEN: 'AUTOGEN',
-    RANDOM: 'RANDOM',
-    TYPE: 'TYPE',
-    BOTH: 'BOTH'
+    NONE: 'none',
+    AUTOGEN: 'autogen',
+    RANDOM: 'random',
+    TYPE: 'type',
+    BOTH: 'both'
 };
 
 export const VERIFICATION_METHOD_NAMES = {

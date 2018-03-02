@@ -100,3 +100,9 @@ body {
     width: 1px;
   }
 }
+
+.single-line {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

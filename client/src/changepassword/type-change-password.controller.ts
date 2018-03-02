@@ -53,12 +53,10 @@ export default class TypeChangePasswordController {
         '$q',
         '$scope',
         '$timeout',
-        '$window',
         'ConfigService',
         'HelpDeskService',
         'IasDialogService',
         'PasswordService',
-        'personUsername',
         'personUserKey',
         'PwmService',
         'translateFilter'
@@ -67,12 +65,10 @@ export default class TypeChangePasswordController {
                 private $q: IQService,
                 private $scope: IScope,
                 private $timeout: ITimeoutService,
-                private $window: IWindowService,
                 private configService: IHelpDeskConfigService,
                 private HelpDeskService: IHelpDeskService,
                 private IasDialogService: any,
                 private passwordService: IPasswordService,
-                private personUsername: string,
                 private personUserKey: string,
                 private pwmService: IPwmService,
                 private translateFilter: (id: string) => string) {
@@ -142,16 +138,14 @@ export default class TypeChangePasswordController {
         if (this.pendingValidation) {
             return;
         }
-
         this.pendingValidation = true;
-
 
         this.passwordService.validatePassword(this.password1, this.password2, this.personUserKey)
             .then(
                 (data: IValidatePasswordData) => {
                     this.pendingValidation = false;
                     if (data.version !== 2) {
-                        // TODO: error message - '[ unexpected version string from server ]'
+                        throw new Error('[ unexpected version string from server ]');
                     }
 
                     this.passwordAcceptable = data.passed && data.match === 'MATCH';
@@ -181,7 +175,6 @@ export default class TypeChangePasswordController {
                     this.pendingValidation = false;
                     this.$log.error(result);
                     this.message = this.translateFilter('Display_CommunicationError');
-
                 }
             );
 
