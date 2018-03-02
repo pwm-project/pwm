@@ -111,12 +111,15 @@
     </div>
 
     <div class="help-desk-buttons">
-        <ias-button ng-click="$ctrl.gotoSearch()"
-                   ng-disabled="$ctrl.buttonDisabled('back')"
-                   ng-if="$ctrl.buttonVisible('back')">{{ 'Button_GoBack' | translate }}</ias-button>
-        <ias-button ng-click="$ctrl.refresh()"
-                   ng-disabled="$ctrl.buttonDisabled('refresh')"
-                   ng-if="$ctrl.buttonVisible('refresh')">{{ 'Display_CaptchaRefresh' | translate }}</ias-button>
+        <ias-button id="helpdesk-refresh-icon" class="ias-icon-button"
+                    ng-click="$ctrl.refresh()" ng-attr-title="{{ 'Display_CaptchaRefresh' | translate }}">
+            <ias-icon class="ias-selected" icon="reload_refresh_thin"></ias-icon>
+        </ias-button>
+        <ias-button id="helpdesk-go-back-icon" class="ias-icon-button"
+                    ng-click="$ctrl.gotoSearch()" ng-attr-title="{{ 'Button_GoBack' | translate }}">
+            <ias-icon class="ias-selected" icon="close_thin"></ias-icon>
+        </ias-button>
+
         <ias-button ng-click="$ctrl.changePassword()"
                    ng-disabled="$ctrl.buttonDisabled('changePassword')"
                    ng-if="$ctrl.buttonVisible('changePassword')">{{ 'Button_ChangePassword' | translate }}</ias-button>
