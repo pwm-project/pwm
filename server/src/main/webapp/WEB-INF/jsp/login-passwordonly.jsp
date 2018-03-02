@@ -34,7 +34,7 @@
         <jsp:param name="pwm.PageName" value="Title_Login"/>
     </jsp:include>
     <div id="centerbody">
-        <div id="page-content-title"><pwm:display key="Title_Login" displayIfMissing="true"/></div>
+        <h1 id="page-content-title"><pwm:display key="Title_Login" displayIfMissing="true"/></h1>
         <p><pwm:display key="Display_LoginPasswordOnly"/></p>
         <form action="<pwm:current-url/>" method="post" name="login-password" enctype="application/x-www-form-urlencoded" id="login-password" autocomplete="off" class="pwm-form">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>

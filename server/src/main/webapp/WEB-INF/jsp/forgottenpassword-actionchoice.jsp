@@ -27,13 +27,14 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
+<% boolean passwordResetInhibit = (boolean)JspUtility.getAttribute( pageContext, PwmRequestAttribute.ForgottenPasswordInhibitPasswordReset ); %>
 <body class="nihilo">
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_ForgottenPassword"/>
     </jsp:include>
     <div id="centerbody">
-        <div id="page-content-title"><pwm:display key="Title_ForgottenPassword" displayIfMissing="true"/></div>
+        <h1 id="page-content-title"><pwm:display key="Title_ForgottenPassword" displayIfMissing="true"/></h1>
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <p><pwm:display key="Display_RecoverPasswordChoices"/></p>
         <table class="noborder">
@@ -61,7 +62,7 @@
             <tr>
                 <td>
                     <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="search">
-                        <button class="btn" type="submit" name="submitBtn">
+                        <button class="btn" type="submit" name="submitBtn" <%=passwordResetInhibit?"disabled=\"disabled\"":""%>>
                             <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-key"></span></pwm:if>
                             <pwm:display key="Button_ChangePassword"/>
                         </button>
@@ -71,7 +72,11 @@
                     </form>
                 </td>
                 <td>
+                    <% if (passwordResetInhibit) { %>
+                    <pwm:display key="Display_RecoverChoiceResetInhibit"/>
+                    <% } else { %>
                     <pwm:display key="Display_RecoverChoiceReset"/>
+                    <% } %>
                 </td>
             </tr>
             <tr>

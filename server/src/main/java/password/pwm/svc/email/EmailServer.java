@@ -20,31 +20,39 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.http.servlet.admin;
+package password.pwm.svc.email;
 
 import lombok.Builder;
-import lombok.Getter;
-import password.pwm.Permission;
-import password.pwm.bean.pub.PublicUserInfoBean;
-import password.pwm.config.profile.ProfileType;
-import password.pwm.config.profile.PwmPasswordPolicy;
-import password.pwm.ldap.UserInfo;
+import lombok.Value;
+import password.pwm.util.PasswordData;
+import password.pwm.util.java.StringUtil;
 
-import java.io.Serializable;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Properties;
 
-@Getter
+@Value
 @Builder
-public class UserDebugDataBean implements Serializable
+public class EmailServer
 {
-    private transient UserInfo userInfo;
+    private final String id;
+    private final String host;
+    private final int port;
+    private final String username;
+    private final PasswordData password;
+    private final Properties javaMailProps;
+    private final javax.mail.Session session;
 
-    private final PublicUserInfoBean publicUserInfoBean;
-    private final boolean passwordReadable;
-    private final boolean passwordWithinMinimumLifetime;
-    private final Map<Permission, String> permissions;
-
-    private final PwmPasswordPolicy ldapPasswordPolicy;
-    private final PwmPasswordPolicy configuredPasswordPolicy;
-    private final Map<ProfileType, String> profiles;
+    public String toDebugString()
+    {
+        final Map<String, String> debugProps = new LinkedHashMap<>(  );
+        debugProps.put( "id", id );
+        debugProps.put( "host", host );
+        debugProps.put( "port", String.valueOf( port ) );
+        if ( !StringUtil.isEmpty( username ) )
+        {
+            debugProps.put( "username", username );
+        }
+        return StringUtil.mapToString( debugProps );
+    }
 }

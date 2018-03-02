@@ -682,6 +682,47 @@
             <value><![CDATA[User]]></value>
         </default>
     </setting>
+
+    <setting hidden="true" key="email.profile.list" level="1">
+        <regex>^(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
+        <properties>
+            <property key="Minimum">1</property>
+            <property key="Minimum">5</property>
+        </properties>
+        <default>
+            <value>default</value>
+        </default>
+    </setting>
+
+    <setting hidden="false" key="email.smtp.address" level="1">
+        <regex>^[a-zA-Z0-9.-]*$</regex>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting hidden="false" key="email.smtp.port" level="1">
+        <default>
+            <value>25</value>
+        </default>
+        <properties>
+            <property key="Minimum">1</property>
+            <property key="Maximum">65535</property>
+        </properties>
+    </setting>
+    <setting hidden="false" key="email.default.fromAddresses" level="1">
+        <flag>emailSyntax</flag>
+        <default>
+            <value>noreply@example.org</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="email.smtp.username" level="1">
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting hidden="false" key="email.smtp.userpassword" level="1">
+    </setting>
+
     <setting hidden="false" key="email.smtp.address" level="1">
         <regex>^[a-zA-Z0-9.-]*$</regex>
         <default>
@@ -2311,11 +2352,6 @@
             <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
-    <setting hidden="false" key="challenge.enforceMinimumPasswordLifetime" level="2" required="true">
-        <default>
-            <value>false</value>
-        </default>
-    </setting>
     <setting hidden="true" key="challenge.profile.list" level="1">
         <regex>^(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
         <properties>
@@ -2342,7 +2378,7 @@
             <option value="TOKEN">SMS/Email Token Verification</option>
             <option value="OTP">OTP (Mobile Device) Verification</option>
             <option value="REMOTE_RESPONSES">External Responses</option>
-            <option value="OAUTH">OAuth2</option>
+            <option value="OAUTH">OAuth</option>
         </options>
     </setting>
     <setting hidden="false" key="recovery.oauth.idserver.loginUrl" level="2">
@@ -2534,6 +2570,16 @@
         <default>
             <value>true</value>
         </default>
+    </setting>
+    <setting hidden="false" key="recovery.minimumPasswordLifetimeOptions" level="1" required="true">
+        <default>
+            <value>ALLOW</value>
+        </default>
+        <options>
+            <option value="ALLOW">Allow - Allow normal action (ignore minimum lifetime)</option>
+            <option value="UNLOCKONLY">UnlockOnly - Allow only intruder password unlock</option>
+            <option value="NONE">None - Prohibit usage of the forgotten password module</option>
+        </options>
     </setting>
     <setting hidden="false" key="forgottenUsername.enable" level="1" required="true">
         <default>
@@ -3830,6 +3876,12 @@
             <value>false</value>
         </default>
     </setting>
+    <setting hidden="true" key="challenge.enforceMinimumPasswordLifetime" level="2" required="true">
+        <!-- deprecated 2018-02-27-->
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
     <!-- DEPRECATED SETTINGS -->
     <category hidden="false" key="TEMPLATES">
     </category>
@@ -3883,6 +3935,11 @@
     </category>
     <category hidden="false" key="CHALLENGE_POLICY">
         <profile setting="challenge.profile.list"/>
+    </category>
+    <category hidden="false" key="EMAIL_SERVERS">
+        <profile setting="email.profile.list"/>
+    </category>
+    <category hidden="false" key="EMAIL_PROFILE_SETTING">
     </category>
     <category hidden="false" key="EMAIL">
     </category>

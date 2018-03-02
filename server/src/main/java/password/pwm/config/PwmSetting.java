@@ -260,6 +260,7 @@ public enum PwmSetting
             "ldap.addObjectClasses", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.LDAP_ATTRIBUTES ),
 
 
+
     // ldap global settings
     LDAP_PROFILE_LIST(
             "ldap.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL ),
@@ -278,23 +279,26 @@ public enum PwmSetting
     LDAP_ENABLE_WIRE_TRACE(
             "ldap.wireTrace.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.LDAP_GLOBAL ),
 
-
-    // email settings
+    // New multiple email settings
+    EMAIL_SERVERS(
+            "email.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL ),
     EMAIL_SERVER_ADDRESS(
-            "email.smtp.address", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_SETTINGS ),
+            "email.smtp.address", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_SERVERS ),
     EMAIL_SERVER_PORT(
-            "email.smtp.port", PwmSettingSyntax.NUMERIC, PwmSettingCategory.EMAIL_SETTINGS ),
+            "email.smtp.port", PwmSettingSyntax.NUMERIC, PwmSettingCategory.EMAIL_SERVERS ),
+    EMAIL_USERNAME(
+            "email.smtp.username", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_SERVERS ),
+    EMAIL_PASSWORD(
+            "email.smtp.userpassword", PwmSettingSyntax.PASSWORD, PwmSettingCategory.EMAIL_SERVERS ),
+
+    // system wide email settings
+
     EMAIL_DEFAULT_FROM_ADDRESS(
             "email.default.fromAddress", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_SETTINGS ),
-    EMAIL_USERNAME(
-            "email.smtp.username", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_SETTINGS ),
-    EMAIL_PASSWORD(
-            "email.smtp.userpassword", PwmSettingSyntax.PASSWORD, PwmSettingCategory.EMAIL_SETTINGS ),
     EMAIL_MAX_QUEUE_AGE(
             "email.queueMaxAge", PwmSettingSyntax.DURATION, PwmSettingCategory.EMAIL_SETTINGS ),
     EMAIL_ADVANCED_SETTINGS(
             "email.smtp.advancedSettings", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.EMAIL_SETTINGS ),
-
 
     // email template
     EMAIL_CHANGEPASSWORD(
@@ -724,8 +728,6 @@ public enum PwmSetting
             "response.hashMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_SETTINGS ),
     FORGOTTEN_USER_POST_ACTIONS(
             "recovery.postActions", PwmSettingSyntax.ACTION, PwmSettingCategory.RECOVERY_SETTINGS ),
-    CHALLENGE_ENFORCE_MINIMUM_PASSWORD_LIFETIME(
-            "challenge.enforceMinimumPasswordLifetime", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_SETTINGS ),
     RECOVERY_BOGUS_USER_ENABLE(
             "recovery.bogus.user.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_SETTINGS ),
 
@@ -752,6 +754,9 @@ public enum PwmSetting
             "recovery.allowWhenLocked", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_OPTIONS ),
     TOKEN_RESEND_ENABLE(
             "recovery.token.resend.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_OPTIONS ),
+    RECOVERY_MINIMUM_PASSWORD_LIFETIME_OPTIONS(
+            "recovery.minimumPasswordLifetimeOptions", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_OPTIONS ),
+
 
     // recovery oauth
     RECOVERY_OAUTH_ID_LOGIN_URL(
@@ -1157,6 +1162,11 @@ public enum PwmSetting
 
 
     // deprecated.
+
+    // deprecated 2018-02-27
+    RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME(
+            "challenge.enforceMinimumPasswordLifetime", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_OPTIONS ),
+
     UPDATE_PROFILE_CHECK_QUERY_MATCH(
             "updateAttributes.check.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.UPDATE_PROFILE ),
     PASSWORD_POLICY_AD_COMPLEXITY(
@@ -1167,6 +1177,10 @@ public enum PwmSetting
             "recovery.require.otp", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_SETTINGS ),
     HELPDESK_ENABLE_OTP_VERIFY(
             "helpdesk.otp.verify", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_BASE ),;
+
+
+
+
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmSetting.class );
 

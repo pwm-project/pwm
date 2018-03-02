@@ -41,7 +41,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
     <jsp:param name="pwm.PageName" value="Title_RecoverPassword"/>
 </jsp:include>
     <div id="centerbody">
-        <div id="page-content-title"><pwm:display key="Title_RecoverPassword" displayIfMissing="true"/></div>
+        <h1 id="page-content-title"><pwm:display key="Title_RecoverPassword" displayIfMissing="true"/></h1>
         <p><pwm:display key="Display_RecoverPassword"/></p>
 
         <form name="responseForm" action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" class="pwm-form" autocomplete="off">

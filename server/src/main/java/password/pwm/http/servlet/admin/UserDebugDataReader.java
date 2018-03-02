@@ -92,6 +92,7 @@ public class UserDebugDataReader
                 .ldapPasswordPolicy( ldapPasswordPolicy )
                 .configuredPasswordPolicy( configPasswordPolicy )
                 .passwordReadable( readablePassword )
+                .passwordWithinMinimumLifetime( userInfo.isWithinPasswordMinimumLifetime() )
                 .build();
 
         return userDebugData;

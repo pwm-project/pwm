@@ -794,4 +794,16 @@ public class UserInfoReader implements UserInfo
                 || selfCachedReference.isRequiresOtpConfig()
                 || selfCachedReference.getPasswordStatus().isWarnPeriod();
     }
+
+    @Override
+    public boolean isWithinPasswordMinimumLifetime( ) throws PwmUnrecoverableException
+    {
+        return PasswordUtility.isPasswordWithinMinimumLifetimeImpl(
+                this.chaiUser,
+                this.sessionLabel,
+                this.getPasswordPolicy(),
+                this.getPasswordLastModifiedTime(),
+                this.getPasswordStatus()
+        );
+    }
 }

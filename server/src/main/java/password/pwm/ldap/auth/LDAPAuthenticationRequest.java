@@ -45,6 +45,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.servlet.forgottenpw.ForgottenPasswordUtil;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecord;
@@ -512,7 +513,12 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
         {
             final Instant date = OracleDSEntries.convertZuluToDate( oracleDSPrePasswordAllowChangeTime );
 
-            final boolean enforceFromForgotten = pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.CHALLENGE_ENFORCE_MINIMUM_PASSWORD_LIFETIME );
+            final boolean enforceFromForgotten = !ForgottenPasswordUtil.permitPwChangeDuringMinLifetime(
+                    pwmApplication,
+                    sessionLabel,
+                    userIdentity
+            );
+
             if ( enforceFromForgotten )
             {
                 if ( Instant.now().isBefore( date ) )
