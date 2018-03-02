@@ -59,7 +59,7 @@ public class PwmScriptRefTag extends TagSupport
             url = PwmUrlTag.insertContext( pageContext, url );
             url = PwmUrlTag.insertResourceNonce( pwmRequest.getPwmApplication(), url );
 
-            final String output = "<script type=\"text/javascript\" nonce=\"" + cspNonce + "\" src=\"" + url + "\"></script>";
+            final String output = "<script type=\"text/javascript\" nonce=\"" + cspNonce + "\" src=\"" + url + "\"></script><noscript></noscript>";
             pageContext.getOut().write( output );
         }
         catch ( Exception e )
