@@ -22,19 +22,13 @@
 
 <div class="ias-header">
     <h2 id="page-content-title" translate="Title_Organization">Organization</h2>
-    <ias-search-box id="input" ng-model="$ctrl.query" ng-model-options="{debounce: $ctrl.inputDebounce}"
-                    placeholder="{{'Placeholder_Search' | translate}}" auto-focus>
-    </ias-search-box>
-    <!--<mf-auto-complete search-text="$ctrl.query"-->
-                      <!--on-search-text-change="$ctrl.onSearchTextChange(value)"-->
-                      <!--search="$ctrl.autoCompleteSearch(query)"-->
-                      <!--input-debounce="$ctrl.inputDebounce"-->
-                      <!--item-selected="$ctrl.onAutoCompleteItemSelected(person)"-->
-                      <!--item="person">-->
-        <!--<content-template>-->
-            <!--<span ng-bind="person._displayName"></span>-->
-        <!--</content-template>-->
-    <!--</mf-auto-complete>-->
+    <ias-autocomplete placeholder="{{'Placeholder_Search' | translate}}"
+                      ias-debounce="$ctrl.inputDebounce"
+                      ias-items="person in $ctrl.autoCompleteSearch($query)"
+                      ias-on-item-selected="$ctrl.onAutoCompleteItemSelected($item)"
+                      ias-search-text="$ctrl.query">
+        <template><span ng-bind="person._displayName" class="single-line"></span></template>
+    </ias-autocomplete>
 
     <span class="ias-fill"></span>
 
