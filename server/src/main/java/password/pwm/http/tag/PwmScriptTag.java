@@ -60,7 +60,7 @@ public class PwmScriptTag extends BodyTagSupport
                 final String strippedTagBody = stripHtmlScriptTags( tagBody );
                 final String output = "<script type=\"text/javascript\" nonce=\"" + pwmRequest.getCspNonce() + "\">"
                         + strippedTagBody
-                        + "</script>";
+                        + "</script><noscript></noscript>";
                 getPreviousOut().write( output );
             }
         }

@@ -169,6 +169,8 @@ public enum Display implements PwmDisplayBundle
     Display_WarnExistingOtpSecret,
     Display_WarnExistingResponseTime,
     Display_WarnExistingResponse,
+    Display_WarnJavaScriptNotEnabledTitle,
+    Display_WarnJavaScriptNotEnabledMessage,
     Display_PleaseVerifyOtp,
     Display_OtpRecoveryInfo,
     Display_OtpClearWarning,
