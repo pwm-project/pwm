@@ -30,6 +30,7 @@
 <%@ page import="password.pwm.http.tag.value.PwmValue" %>
 <%@ page import="password.pwm.http.PwmRequestFlag" %>
 <%@ page import="password.pwm.http.tag.url.PwmThemeURL" %>
+<%@ page import="password.pwm.http.JspUtility" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 
 <head>
