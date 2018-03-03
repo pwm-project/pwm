@@ -70,7 +70,7 @@ public class PeopleSearchClientConfigBean implements Serializable
         peopleSearchClientConfigBean.setPeoplesearch_enablePhoto( peopleSearchConfiguration.isPhotosEnabled() );
         peopleSearchClientConfigBean.setPeoplesearch_orgChartEnabled( peopleSearchConfiguration.isOrgChartEnabled() );
         peopleSearchClientConfigBean.setOrgChartShowChildCount( peopleSearchConfiguration.isOrgChartShowChildCount() );
-        peopleSearchClientConfigBean.setOrgChartMaxParents( peopleSearchClientConfigBean.getOrgChartMaxParents() );
+        peopleSearchClientConfigBean.setOrgChartMaxParents( peopleSearchConfiguration.getOrgChartMaxParents() );
 
         return peopleSearchClientConfigBean;
     }
