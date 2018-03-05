@@ -149,7 +149,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
     ProcessStatus handleEnterCodeRequest(
             final PwmRequest pwmRequest
     )
-            throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException
+            throws PwmUnrecoverableException
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final UpdateProfileBean updateProfileBean = getBean( pwmRequest );
@@ -298,7 +298,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
     ProcessStatus handleUpdateProfileRequest(
             final PwmRequest pwmRequest
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
+            throws PwmUnrecoverableException, ChaiUnavailableException
     {
         final UpdateProfileBean updateProfileBean = getBean( pwmRequest );
         final UpdateAttributesProfile updateAttributesProfile = getProfile( pwmRequest );
@@ -319,7 +319,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
     }
 
     protected void nextStep( final PwmRequest pwmRequest )
-            throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
+            throws IOException, ServletException, PwmUnrecoverableException
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final UpdateProfileBean updateProfileBean = getBean( pwmRequest );
@@ -331,7 +331,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
                 pwmSession.getSessionStateBean().getLocale()
         );
 
-        if ( updateProfileAgreementText != null && updateProfileAgreementText.length() > 0 )
+        if ( !StringUtil.isEmpty( updateProfileAgreementText ) )
         {
             if ( !updateProfileBean.isAgreementPassed() )
             {

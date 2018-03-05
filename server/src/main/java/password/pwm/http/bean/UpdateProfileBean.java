@@ -23,6 +23,7 @@
 package password.pwm.http.bean;
 
 import com.google.gson.annotations.SerializedName;
+import lombok.Data;
 import password.pwm.bean.TokenVerificationProgress;
 import password.pwm.config.option.SessionBeanMode;
 
@@ -33,7 +34,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-
+@Data
 public class UpdateProfileBean extends PwmSessionBean
 {
 
@@ -60,60 +61,10 @@ public class UpdateProfileBean extends PwmSessionBean
         return Type.AUTHENTICATED;
     }
 
-    public boolean isAgreementPassed( )
-    {
-        return agreementPassed;
-    }
-
-    public void setAgreementPassed( final boolean agreementPassed )
-    {
-        this.agreementPassed = agreementPassed;
-    }
-
-    public boolean isFormLdapLoaded( )
-    {
-        return formLdapLoaded;
-    }
-
-    public void setFormLdapLoaded( final boolean formLdapLoaded )
-    {
-        this.formLdapLoaded = formLdapLoaded;
-    }
-
-    public Map<String, String> getFormData( )
-    {
-        return formData;
-    }
-
-    public boolean isConfirmationPassed( )
-    {
-        return confirmationPassed;
-    }
-
-    public void setConfirmationPassed( final boolean confirmationPassed )
-    {
-        this.confirmationPassed = confirmationPassed;
-    }
-
-    public boolean isFormSubmitted( )
-    {
-        return formSubmitted;
-    }
-
-    public void setFormSubmitted( final boolean formSubmitted )
-    {
-        this.formSubmitted = formSubmitted;
-    }
-
     @Override
     public Set<SessionBeanMode> supportedModes( )
     {
         return Collections.unmodifiableSet( new HashSet<>( Arrays.asList( SessionBeanMode.LOCAL, SessionBeanMode.CRYPTCOOKIE ) ) );
-    }
-
-    public TokenVerificationProgress getTokenVerificationProgress( )
-    {
-        return tokenVerificationProgress;
     }
 
     public void clearTokenVerificationProgress( )

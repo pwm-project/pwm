@@ -523,7 +523,7 @@ public class FormUtility
         {
             for ( final FormConfiguration formConfiguration : formFields )
             {
-                if ( formConfiguration.getSource() == FormConfiguration.Source.ldap )
+                if ( formConfiguration.getSource() == FormConfiguration.Source.ldap || formConfiguration.getSource() == null )
                 {
                     final String attribute = formConfiguration.getName();
                     if ( formConfiguration.isMultivalue() )
