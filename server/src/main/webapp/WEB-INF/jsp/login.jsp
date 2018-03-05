@@ -23,8 +23,6 @@
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTag" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 
-<% JspUtility.setFlag(pageContext, PwmRequestFlag.INCLUDE_IAS_CSS); %>
-
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -37,9 +35,9 @@
     </jsp:include>
     <div id="centerbody">
         <noscript>
-            <div class="ias-status-message">
-                <div class="ias-status-message-title">
-                    <i class="ias-icon ias-icon-status_warn_thick ias-warn"></i>
+            <div class="pwm-status-message">
+                <div class="pwm-status-message-title">
+                    <i class="pwm-icon pwm-icon-status_warn_thick pwm-warn"></i>
                     <span><pwm:display key="Display_WarnJavaScriptNotEnabledTitle" displayIfMissing="true"/></span>
                 </div>
                 <p><pwm:display key="Display_WarnJavaScriptNotEnabledMessage" displayIfMissing="true"/></p>

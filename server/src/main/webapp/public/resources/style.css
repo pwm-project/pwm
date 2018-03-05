@@ -1637,3 +1637,53 @@ table.ias-table, table.ias-table td {
 .helpdesk-wrapper #centerbody {
     overflow: auto;
 }
+
+.pwm-status-message {
+    background-color: #eef2f2;
+    border-radius: 3px;
+    border: 1px solid #dae1e1;
+    box-sizing: border-box;
+    font-size: 15px;
+    margin: 15px 0;
+    max-width: 750px;
+    padding: 15px;
+    width: 100%;
+}
+
+.pwm-status-message p {
+    color: #808080;
+    font-size: 14px;
+    margin: 10px 0 0;
+}
+
+.pwm-status-message-title {
+    color: #434c50;
+    font-weight: bold;
+}
+
+.pwm-status-message-title span, .pwm-status-message-title .pwm-icon {
+    vertical-align: middle;
+}
+
+.pwm-status-message-title .pwm-icon {
+    color: inherit;
+    display: inline-block;
+    font-size: 25px;
+    height: 1em;
+    line-height: 1em;
+    margin-right: 5px;
+    width: 1em;
+}
+
+[dir="rtl"] .pwm-status-message-title .pwm-icon {
+    margin-left: 5px;
+    margin-right: initial;
+}
+
+.pwm-status-message-title .pwm-icon.pwm-warn {
+    color: #f17e12;
+}
+
+.pwm-icon-status_warn_thick:before {
+    content: "\f192";
+}
