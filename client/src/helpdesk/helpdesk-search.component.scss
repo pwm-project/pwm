@@ -22,7 +22,7 @@
 
 
 .verifications-button {
-  margin-bottom: 15px;
+  margin: 5px 5px 5px 0;
 }
 
 help-desk-search-cards,
@@ -30,6 +30,10 @@ help-desk-search-table {
   display: flex;
   flex-flow: column nowrap;
   height: 100%;
+
+  #page-content-title {
+    margin-bottom: 0;
+  }
 
   > .people-search-component-content {
     flex: 1 1;

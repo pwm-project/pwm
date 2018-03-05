@@ -104,7 +104,8 @@ progress .wait {
 
 .dialogBody.orgChart { width: 100%; max-width: 100%; }
 
-.peoplesearch-wrapper #centerbody.wide {
+.peoplesearch-wrapper #centerbody.wide,
+.helpdesk-wrapper #centerbody.wide {
     bottom: 80px;
     height: auto !important;
     left: 0;

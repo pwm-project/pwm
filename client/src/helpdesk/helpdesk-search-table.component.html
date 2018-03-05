@@ -25,6 +25,8 @@
     <ias-search-box ng-model="$ctrl.query" ng-model-options="{debounce: $ctrl.inputDebounce}"
                     placeholder="{{'Placeholder_Search' | translate}}" auto-focus>
     </ias-search-box>
+    <ias-button class="verifications-button ias-cta" ng-if="$ctrl.verificationsEnabled"
+                ng-click="$ctrl.showVerifications()">{{ 'Button_Verifications' | translate }}</ias-button>
 
     <span class="ias-fill"></span>
 
@@ -53,11 +55,6 @@
 </div>
 
 <div class="search-info-container">
-    <div>
-        <ias-button class="verifications-button ias-cta" ng-if="$ctrl.verificationsEnabled"
-                    ng-click="$ctrl.showVerifications()">{{ 'Button_Verifications' | translate }}</ias-button>
-    </div>
-
     <div class="search-info" ng-class="{'loading': !$ctrl.getMessage()}"
          ng-if="$ctrl.loading || $ctrl.searchMessage || $ctrl.errorMessage"
          ng-bind="$ctrl.getMessage() || ('Display_PleaseWait' | translate)">

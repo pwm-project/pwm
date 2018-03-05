@@ -44,8 +44,7 @@ export default class OrgChartSearchComponent {
     query: string;
     searchTextLocalStorageKey: string;
 
-    static $inject = [ '$q',
-        '$scope',
+    static $inject = [
         '$state',
         '$stateParams',
         'ConfigService',
@@ -53,9 +52,7 @@ export default class OrgChartSearchComponent {
         'PeopleService',
         'PwmService'
     ];
-    constructor(private $q: IQService,
-                private $scope: IScope,
-                private $state: angular.ui.IStateService,
+    constructor(private $state: angular.ui.IStateService,
                 private $stateParams: angular.ui.IStateParamsService,
                 private configService: IPeopleSearchConfigService,
                 private localStorageService: LocalStorageService,
@@ -63,10 +60,6 @@ export default class OrgChartSearchComponent {
                 private pwmService: IPwmService) {
         this.searchTextLocalStorageKey = this.localStorageService.keys.SEARCH_TEXT;
         this.inputDebounce = this.pwmService.ajaxTypingWait;
-
-        $scope.$watch('$ctrl.query', () => {
-            this.onSearchTextChange();
-        });
     }
 
     $onInit(): void {
@@ -124,6 +117,7 @@ export default class OrgChartSearchComponent {
     }
 
     autoCompleteSearch(query: string): IPromise<IPerson[]> {
+        this.storeSearchText(query);
         return this.peopleService.autoComplete(query);
     }
 
@@ -132,12 +126,8 @@ export default class OrgChartSearchComponent {
     }
 
     onAutoCompleteItemSelected(person: IPerson): void {
+        this.storeSearchText(null);
         this.$state.go('orgchart.search', { personId: person.userKey, query: null });
-    }
-
-    onSearchTextChange(): void {
-        // this.query = value;
-        this.storeSearchText();
     }
 
     private fetchOrgChartData(personId): IPromise<IOrgChartData> {
@@ -157,7 +147,7 @@ export default class OrgChartSearchComponent {
         return param || this.localStorageService.getItem(this.searchTextLocalStorageKey);
     }
 
-    protected storeSearchText(): void {
-        this.localStorageService.setItem(this.searchTextLocalStorageKey, this.query || '');
+    protected storeSearchText(query): void {
+        this.localStorageService.setItem(this.searchTextLocalStorageKey, query || '');
     }
 }

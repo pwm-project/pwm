@@ -31,26 +31,23 @@
          ng-attr-title="{{$ctrl.person.numDirectReports}} {{ 'Title_DirectReports' | translate }}"></div>
 
     <div class="ias-tile-content" ng-switch-when="small">
-        <h3 ng-bind="$ctrl.person.displayNames[0]"></h3>
-        <div ng-bind="$ctrl.person.displayNames[1]"></div>
+        <h3 class="single-line" ng-bind="$ctrl.person.displayNames[0]"
+            ng-attr-title="{{$ctrl.person.displayNames[0]}}"></h3>
+        <div class="single-line" ng-bind="$ctrl.person.displayNames[1]"
+             ng-attr-title="{{$ctrl.person.displayNames[1]}}"></div>
     </div>
 
     <div class="ias-tile-content" ng-class="{'direct-reports': $ctrl.numDirectReportsVisible}" ng-switch-when="large">
-        <h3 ng-bind="$ctrl.person.displayNames[0]"></h3>
-        <div ng-bind="$ctrl.person.displayNames[1]"></div>
-        <div ng-bind="$ctrl.person.displayNames[2]"></div>
-        <div ng-bind="$ctrl.person.displayNames[3]"></div>
-
-        <div ng-bind="$ctrl.person.displayNames[4]"></div>
-        <div ng-bind="$ctrl.person.displayNames[5]"></div>
-        <div ng-bind="$ctrl.person.displayNames[6]"></div>
-        <div ng-bind="$ctrl.person.displayNames[7]"></div>
+        <h3 class="single-line" ng-bind="$ctrl.person.displayNames[0]"
+            ng-attr-title="{{$ctrl.person.displayNames[0]}}"></h3>
+        <div class="single-line" ng-bind="displayName" ng-attr-title="{{displayName}}"
+            ng-repeat="displayName in $ctrl.person.displayNames.slice(1, 8)"></div>
     </div>
 
     <div class="ias-tile-content" ng-class="{'direct-reports': $ctrl.numDirectReportsVisible}" ng-switch-default>
-        <h3 ng-bind="$ctrl.person.displayNames[0]"></h3>
-        <div ng-bind="$ctrl.person.displayNames[1]"></div>
-        <div ng-bind="$ctrl.person.displayNames[2]"></div>
-        <div ng-bind="$ctrl.person.displayNames[3]"></div>
+        <h3 class="single-line" ng-bind="$ctrl.person.displayNames[0]"
+            ng-attr-title="{{$ctrl.person.displayNames[0]}}"></h3>
+        <div class="single-line" ng-bind="displayName" ng-attr-title="{{displayName}}"
+             ng-repeat="displayName in $ctrl.person.displayNames.slice(1, 4)"></div>
     </div>
 </div>

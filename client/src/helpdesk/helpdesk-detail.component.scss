@@ -21,8 +21,8 @@
  */
 
 help-desk-detail {
-  .page-content-title {
-    margin-right: 20px;
+  #page-content-title {
+    margin-bottom: 0;
   }
 
   .ias-tile {
@@ -35,6 +35,20 @@ help-desk-detail {
 
     > .help-desk-buttons {
       margin-left: 15px;
+
+      > #helpdesk-go-back-icon {
+        position: absolute;
+        top: 50px;
+        margin-left: 115px;
+        width: 28px;
+      }
+
+      > #helpdesk-refresh-icon {
+        position: absolute;
+        top: 50px;
+        margin-left: 80px;
+        width: 28px;
+      }
 
       > .ias-button {
         display: block;

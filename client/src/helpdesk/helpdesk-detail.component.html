@@ -28,89 +28,98 @@
 
 <div class="help-desk-content">
     <div>
-        <ias-tabset>
-            <ias-tab id="Field_Profile" label="Profile">
-                <table class="details-table">
-                    <tbody>
-                    <tr ng-repeat="item in $ctrl.person.profileData">
-                        <td ng-bind="item.label"></td>
-                        <td ng-bind="item.value | dateFilter" ng-if="item.type==='timestamp'"></td>
-                        <td ng-bind="item.value" ng-if="item.type==='string' || item.type==='number'"></td>
-                        <td ng-bind="value" ng-if="item.type==='multiString'" ng-repeat="value in item.values"></td>
-                    </tr>
-                    </tbody>
-                </table>
-            </ias-tab>
-            <ias-tab id="Title_Status" label="Status">
-                <table class="details-table">
-                    <tbody>
-                    <tr ng-repeat="item in $ctrl.person.statusData">
-                        <td ng-bind="item.label"></td>
-                        <td ng-bind="item.value | dateFilter" ng-if="item.type==='timestamp'"></td>
-                        <td ng-bind="item.value" ng-if="item.type==='string' || item.type==='number'"></td>
-                        <td ng-bind="value" ng-if="item.type==='multiString'" ng-repeat="value in item.values"></td>
-                    </tr>
-                    </tbody>
-                </table>
-            </ias-tab>
-            <ias-tab ng-if="!!$ctrl.person.userHistory" id="Title_UserEventHistory" label="Password History">
-                <table class="details-table">
-                    <tbody>
-                    <tr ng-repeat="item in $ctrl.person.userHistory">
-                        <td ng-bind="item.timestamp | dateFilter"></td>
-                        <td ng-bind="item.label"></td>
-                    </tr>
-                    </tbody>
-                </table>
-            </ias-tab>
-            <ias-tab id="Title_PasswordPolicy" label="Password Policy">
-                <table class="details-table">
-                    <tbody>
-                    <tr>
-                        <td ng-bind="'Field_Policy' | translate"></td>
-                        <td ng-bind="$ctrl.person.passwordPolicyDN"></td>
-                    </tr>
-                    <tr>
-                        <td ng-bind="'Field_Profile' | translate"></td>
-                        <td ng-bind="$ctrl.person.passwordPolicyID"></td>
-                    </tr>
-                    <tr class="bottom-border">
-                        <td ng-bind="'Field_Display' | translate"></td>
-                        <td>
-                            <ul>
-                                <li ng-repeat="item in $ctrl.person.passwordRequirements" ng-bind="item"></li>
-                            </ul>
-                        </td>
-                    </tr>
-                    <tr ng-repeat="(key, item) in $ctrl.person.passwordPolicyRules">
-                        <td ng-bind="key"></td>
-                        <td ng-bind="item"></td>
-                    </tr>
-                    </tbody>
-                </table>
-            </ias-tab>
-            <ias-tab id="Title_SecurityResponses" label="Security Responses">
-                <table class="details-table">
-                    <tbody>
-                    <tr ng-repeat="item in $ctrl.person.helpdeskResponses">
-                        <td ng-bind="item.label"></td>
-                        <td ng-bind="item.value | dateFilter" ng-if="item.type==='timestamp'"></td>
-                        <td ng-bind="item.value" ng-if="item.type==='string' || item.type==='number'"></td>
-                        <td ng-bind="value" ng-if="item.type==='multiString'" ng-repeat="value in item.values"></td>
-                    </tr>
-                    </tbody>
-                </table>
-            </ias-tab>
-        </ias-tabset>
+        <div class="ias-tabset">
+            <div class="ias-tab" ias-toggle-active="ias-active" ias-toggle="profileTab">{{'Field_Profile' | translate}}</div>
+            <div class="ias-tab" ias-toggle-active="ias-active" ias-toggle="statusTab">{{'Title_Status' | translate}}</div>
+            <div class="ias-tab" ias-toggle-active="ias-active" ias-toggle="historyTab">{{'Title_UserEventHistory' | translate}}</div>
+            <div class="ias-tab" ias-toggle-active="ias-active" ias-toggle="passwordTab">{{'Title_PasswordPolicy' | translate}}</div>
+            <div class="ias-tab" ias-toggle-active="ias-active" ias-toggle="securityTab">{{'Title_SecurityResponses' | translate}}</div>
+        </div>
+
+        <ias-tab-pane toggle-group="detailsTabGroup" name="profileTab">
+            <table class="details-table">
+                <tbody>
+                <tr ng-repeat="item in $ctrl.person.profileData">
+                    <td ng-bind="item.label"></td>
+                    <td ng-bind="item.value | dateFilter" ng-if="item.type==='timestamp'"></td>
+                    <td ng-bind="item.value" ng-if="item.type==='string' || item.type==='number'"></td>
+                    <td ng-bind="value" ng-if="item.type==='multiString'" ng-repeat="value in item.values"></td>
+                </tr>
+                </tbody>
+            </table>
+        </ias-tab-pane>
+        <ias-tab-pane toggle-group="detailsTabGroup" name="statusTab">
+            <table class="details-table">
+                <tbody>
+                <tr ng-repeat="item in $ctrl.person.statusData">
+                    <td ng-bind="item.label"></td>
+                    <td ng-bind="item.value | dateFilter" ng-if="item.type==='timestamp'"></td>
+                    <td ng-bind="item.value" ng-if="item.type==='string' || item.type==='number'"></td>
+                    <td ng-bind="value" ng-if="item.type==='multiString'" ng-repeat="value in item.values"></td>
+                </tr>
+                </tbody>
+            </table>
+        </ias-tab-pane>
+        <ias-tab-pane toggle-group="detailsTabGroup" name="historyTab" ng-if="!!$ctrl.person.userHistory">
+            <table class="details-table">
+                <tbody>
+                <tr ng-repeat="item in $ctrl.person.userHistory">
+                    <td ng-bind="item.timestamp | dateFilter"></td>
+                    <td ng-bind="item.label"></td>
+                </tr>
+                </tbody>
+            </table>
+        </ias-tab-pane>
+        <ias-tab-pane toggle-group="detailsTabGroup" name="passwordTab">
+            <table class="details-table">
+                <tbody>
+                <tr>
+                    <td ng-bind="'Field_Policy' | translate"></td>
+                    <td ng-bind="$ctrl.person.passwordPolicyDN"></td>
+                </tr>
+                <tr>
+                    <td ng-bind="'Field_Profile' | translate"></td>
+                    <td ng-bind="$ctrl.person.passwordPolicyID"></td>
+                </tr>
+                <tr class="bottom-border">
+                    <td ng-bind="'Field_Display' | translate"></td>
+                    <td>
+                        <ul>
+                            <li ng-repeat="item in $ctrl.person.passwordRequirements" ng-bind="item"></li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr ng-repeat="(key, item) in $ctrl.person.passwordPolicyRules">
+                    <td ng-bind="key"></td>
+                    <td ng-bind="item"></td>
+                </tr>
+                </tbody>
+            </table>
+        </ias-tab-pane>
+        <ias-tab-pane toggle-group="detailsTabGroup" name="securityTab">
+            <table class="details-table">
+                <tbody>
+                <tr ng-repeat="item in $ctrl.person.helpdeskResponses">
+                    <td ng-bind="item.label"></td>
+                    <td ng-bind="item.value | dateFilter" ng-if="item.type==='timestamp'"></td>
+                    <td ng-bind="item.value" ng-if="item.type==='string' || item.type==='number'"></td>
+                    <td ng-bind="value" ng-if="item.type==='multiString'" ng-repeat="value in item.values"></td>
+                </tr>
+                </tbody>
+            </table>
+        </ias-tab-pane>
     </div>
 
     <div class="help-desk-buttons">
-        <ias-button ng-click="$ctrl.gotoSearch()"
-                   ng-disabled="$ctrl.buttonDisabled('back')"
-                   ng-if="$ctrl.buttonVisible('back')">{{ 'Button_GoBack' | translate }}</ias-button>
-        <ias-button ng-click="$ctrl.refresh()"
-                   ng-disabled="$ctrl.buttonDisabled('refresh')"
-                   ng-if="$ctrl.buttonVisible('refresh')">{{ 'Display_CaptchaRefresh' | translate }}</ias-button>
+        <ias-button id="helpdesk-refresh-icon" class="ias-icon-button"
+                    ng-click="$ctrl.refresh()" ng-attr-title="{{ 'Display_CaptchaRefresh' | translate }}">
+            <ias-icon class="ias-selected" icon="reload_refresh_thin"></ias-icon>
+        </ias-button>
+        <ias-button id="helpdesk-go-back-icon" class="ias-icon-button"
+                    ng-click="$ctrl.gotoSearch()" ng-attr-title="{{ 'Button_GoBack' | translate }}">
+            <ias-icon class="ias-selected" icon="close_thin"></ias-icon>
+        </ias-button>
+
         <ias-button ng-click="$ctrl.changePassword()"
                    ng-disabled="$ctrl.buttonDisabled('changePassword')"
                    ng-if="$ctrl.buttonVisible('changePassword')">{{ 'Button_ChangePassword' | translate }}</ias-button>

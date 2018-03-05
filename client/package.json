@@ -20,8 +20,8 @@
     "dependencies": {},
     "devDependencies": {
         "@microfocus/ias-icons": "1.0.0-alpha",
-        "@microfocus/ng-ias": "1.0.0-alpha1",
-        "@microfocus/ux-ias": "1.0.0-alpha",
+        "@microfocus/ux-ias": "1.0.0-alpha.1",
+        "@microfocus/ng-ias": "1.0.0-alpha.2",
         "@types/angular": "1.6.42",
         "@types/angular-mocks": "1.5.11",
         "@types/angular-translate": "2.15.1",
