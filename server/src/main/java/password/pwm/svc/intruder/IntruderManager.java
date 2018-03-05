@@ -690,7 +690,7 @@ public class IntruderManager implements PwmService
                     userIdentity, locale
             );
 
-            final MacroMachine macroMachine = new MacroMachine(
+            final MacroMachine macroMachine = MacroMachine.forUser(
                     pwmApplication,
                     sessionLabel,
                     userInfo,

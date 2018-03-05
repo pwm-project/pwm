@@ -112,7 +112,9 @@ public abstract class PwmConstants
     public static final String SESSION_ATTR_PWM_SESSION = "PwmSession";
     public static final String SESSION_ATTR_BEANS = "SessionBeans";
     public static final String SESSION_ATTR_PWM_APP_NONCE = "PwmApplication-Nonce";
+
     public static final String REQUEST_ATTR_FORGOTTEN_PW_USERINFO_CACHE = "ForgottenPw-UserInfoCache";
+    public static final String REQUEST_ATTR_FORGOTTEN_PW_AVAIL_TOKEN_DEST_CACHE = "ForgottenPw-AvailableTokenDestCache";
 
     public static final PwmHashAlgorithm SETTING_CHECKSUM_HASH_METHOD = PwmHashAlgorithm.SHA256;
 
@@ -141,6 +143,7 @@ public abstract class PwmConstants
 
 
     public static final String PARAM_ACTION_REQUEST = "processAction";
+    public static final String PARAM_RESET_TYPE = "resetType";
     public static final String PARAM_ACTION_STATE = "actionState";
     public static final String PARAM_RESPONSE_PREFIX = "PwmResponse_R_";
     public static final String PARAM_QUESTION_PREFIX = "PwmResponse_Q_";

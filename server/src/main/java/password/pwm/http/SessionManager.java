@@ -233,7 +233,7 @@ public class SessionManager
         final UserInfo userInfoBean = pwmSession.isAuthenticated()
                 ? pwmSession.getUserInfo()
                 : null;
-        return new MacroMachine( pwmApplication, pwmSession.getLabel(), userInfoBean, pwmSession.getLoginInfoBean() );
+        return MacroMachine.forUser( pwmApplication, pwmSession.getLabel(), userInfoBean, pwmSession.getLoginInfoBean() );
     }
 
     public Profile getProfile( final PwmApplication pwmApplication, final ProfileType profileType ) throws PwmUnrecoverableException

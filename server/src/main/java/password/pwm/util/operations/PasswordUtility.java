@@ -348,7 +348,7 @@ public class PasswordUtility
                 final LoginInfoBean clonedLoginInfoBean = JsonUtil.cloneUsingJson( pwmSession.getLoginInfoBean(), LoginInfoBean.class );
                 clonedLoginInfoBean.setUserCurrentPassword( newPassword );
 
-                final MacroMachine macroMachine = new MacroMachine(
+                final MacroMachine macroMachine = MacroMachine.forUser(
                         pwmApplication,
                         pwmSession.getLabel(),
                         pwmSession.getUserInfo(),
@@ -515,7 +515,7 @@ public class PasswordUtility
                 final LoginInfoBean loginInfoBean = new LoginInfoBean();
                 loginInfoBean.setUserCurrentPassword( newPassword );
 
-                final MacroMachine macroMachine = new MacroMachine(
+                final MacroMachine macroMachine = MacroMachine.forUser(
                         pwmApplication,
                         sessionLabel,
                         userInfo,
@@ -1170,7 +1170,7 @@ public class PasswordUtility
 
         final MacroMachine macroMachine = userInfo == null
                 ? null
-                : new MacroMachine(
+                : MacroMachine.forUser(
                 pwmApplication,
                 pwmSession.getLabel(),
                 userInfo,

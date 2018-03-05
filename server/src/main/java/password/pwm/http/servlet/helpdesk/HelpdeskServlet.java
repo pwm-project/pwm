@@ -788,7 +788,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
                 userIdentity,
                 getChaiUser( pwmRequest, helpdeskProfile, userIdentity ).getChaiProvider()
         );
-        final MacroMachine macroMachine = new MacroMachine( pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), userInfo, null );
+        final MacroMachine macroMachine = MacroMachine.forUser( pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), userInfo, null );
         final String configuredTokenString = config.readAppProperty( AppProperty.HELPDESK_TOKEN_VALUE );
         final String tokenKey = macroMachine.expandMacros( configuredTokenString );
         final EmailItemBean emailItemBean = config.readSettingAsEmail( PwmSetting.EMAIL_HELPDESK_TOKEN, pwmRequest.getLocale() );

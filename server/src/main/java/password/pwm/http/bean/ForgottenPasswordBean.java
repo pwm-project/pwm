@@ -28,9 +28,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Value;
 import password.pwm.VerificationMethodSystem;
+import password.pwm.bean.TokenDestinationItem;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.option.IdentityVerificationMethod;
-import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.SessionBeanMode;
 import password.pwm.config.value.data.FormConfiguration;
 
@@ -88,11 +88,8 @@ public class ForgottenPasswordBean extends PwmSessionBean
         @SerializedName( "m" )
         private final Set<IdentityVerificationMethod> satisfiedMethods = new LinkedHashSet<>();
 
-        @SerializedName( "c" )
-        private MessageSendMethod tokenSendChoice;
-
-        @SerializedName( "a" )
-        private String tokenSentAddress;
+        @SerializedName( "d" )
+        private TokenDestinationItem tokenDestination;
 
         @SerializedName( "i" )
         private IdentityVerificationMethod inProgressVerificationMethod;
@@ -102,8 +99,7 @@ public class ForgottenPasswordBean extends PwmSessionBean
         public void clearTokenSentStatus( )
         {
             this.setTokenSent( false );
-            this.setTokenSentAddress( null );
-            this.setTokenSendChoice( null );
+            this.setTokenDestination( null );
         }
     }
 
@@ -123,16 +119,12 @@ public class ForgottenPasswordBean extends PwmSessionBean
         @SerializedName( "m" )
         private final int minimumOptionalAuthMethods;
 
-        @SerializedName( "t" )
-        private final MessageSendMethod tokenSendMethod;
-
         public RecoveryFlags( )
         {
             this.requiredAuthMethods = Collections.emptySet();
             this.optionalAuthMethods = Collections.emptySet();
             this.allowWhenLdapIntruderLocked = false;
             this.minimumOptionalAuthMethods = 0;
-            this.tokenSendMethod = MessageSendMethod.NONE;
         }
     }
 

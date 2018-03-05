@@ -545,10 +545,42 @@ public class UserInfoReader implements UserInfo
     }
 
     @Override
+    public String getUserEmailAddress2( ) throws PwmUnrecoverableException
+    {
+        final LdapProfile ldapProfile = getUserIdentity().getLdapProfile( pwmApplication.getConfig() );
+        final String ldapEmailAttribute = ldapProfile.readSettingAsString( PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE_2 );
+        return readStringAttribute( ldapEmailAttribute );
+    }
+
+    @Override
+    public String getUserEmailAddress3( ) throws PwmUnrecoverableException
+    {
+        final LdapProfile ldapProfile = getUserIdentity().getLdapProfile( pwmApplication.getConfig() );
+        final String ldapEmailAttribute = ldapProfile.readSettingAsString( PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE_3 );
+        return readStringAttribute( ldapEmailAttribute );
+    }
+
+    @Override
     public String getUserSmsNumber( ) throws PwmUnrecoverableException
     {
         final LdapProfile ldapProfile = getUserIdentity().getLdapProfile( pwmApplication.getConfig() );
         final String ldapSmsAttribute = ldapProfile.readSettingAsString( PwmSetting.SMS_USER_PHONE_ATTRIBUTE );
+        return readStringAttribute( ldapSmsAttribute );
+    }
+
+    @Override
+    public String getUserSmsNumber2( ) throws PwmUnrecoverableException
+    {
+        final LdapProfile ldapProfile = getUserIdentity().getLdapProfile( pwmApplication.getConfig() );
+        final String ldapSmsAttribute = ldapProfile.readSettingAsString( PwmSetting.SMS_USER_PHONE_ATTRIBUTE_2 );
+        return readStringAttribute( ldapSmsAttribute );
+    }
+
+    @Override
+    public String getUserSmsNumber3( ) throws PwmUnrecoverableException
+    {
+        final LdapProfile ldapProfile = getUserIdentity().getLdapProfile( pwmApplication.getConfig() );
+        final String ldapSmsAttribute = ldapProfile.readSettingAsString( PwmSetting.SMS_USER_PHONE_ATTRIBUTE_3 );
         return readStringAttribute( ldapSmsAttribute );
     }
 

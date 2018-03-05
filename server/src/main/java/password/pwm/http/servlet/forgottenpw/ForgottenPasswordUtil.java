@@ -69,6 +69,7 @@ import password.pwm.svc.token.TokenType;
 import password.pwm.util.PasswordData;
 import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -88,6 +89,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class ForgottenPasswordUtil
 {
@@ -228,7 +230,7 @@ public class ForgottenPasswordUtil
         }
 
         final UserInfo userInfo = readUserInfo( pwmRequest, forgottenPasswordBean );
-        final MacroMachine macroMachine = new MacroMachine(
+        final MacroMachine macroMachine = MacroMachine.forUser(
                 pwmApplication,
                 pwmRequest.getSessionLabel(),
                 userInfo,
@@ -276,48 +278,61 @@ public class ForgottenPasswordUtil
         return false;
     }
 
-    static MessageSendMethod figureTokenSendPreference(
+    static List<TokenDestinationItem> figureAvailableTokenDestinations(
             final PwmRequest pwmRequest,
             final ForgottenPasswordBean forgottenPasswordBean
     )
             throws PwmUnrecoverableException
     {
-        final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo( pwmRequest, forgottenPasswordBean );
-        final MessageSendMethod tokenSendMethod = forgottenPasswordBean.getRecoveryFlags().getTokenSendMethod();
+        {
+            @SuppressWarnings( "unchecked" )
+            final List<TokenDestinationItem> cachedItems = (List<TokenDestinationItem>) pwmRequest.getHttpServletRequest().getAttribute(
+                    PwmConstants.REQUEST_ATTR_FORGOTTEN_PW_AVAIL_TOKEN_DEST_CACHE
+            );
+            if ( cachedItems != null )
+            {
+                return cachedItems;
+            }
+        }
+
+        final String profileID = forgottenPasswordBean.getForgottenPasswordProfileID();
+        final ForgottenPasswordProfile forgottenPasswordProfile = pwmRequest.getConfig().getForgottenPasswordProfiles().get( profileID );
+        final MessageSendMethod tokenSendMethod = forgottenPasswordProfile.readSettingAsEnum( PwmSetting.RECOVERY_TOKEN_SEND_METHOD, MessageSendMethod.class );
         if ( tokenSendMethod == null || tokenSendMethod.equals( MessageSendMethod.NONE ) )
         {
-            return MessageSendMethod.NONE;
+            throw PwmUnrecoverableException.newException( PwmError.ERROR_TOKEN_MISSING_CONTACT, "no token send methods configured in profile" );
         }
 
-        if ( !tokenSendMethod.equals( MessageSendMethod.CHOICE_SMS_EMAIL ) )
+        final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo( pwmRequest, forgottenPasswordBean );
+        List<TokenDestinationItem> tokenDestinations = new ArrayList<>( TokenDestinationItem.allFromConfig( pwmRequest.getPwmApplication(), userInfo ) );
+
+        if ( tokenSendMethod != MessageSendMethod.CHOICE_SMS_EMAIL )
         {
-            return tokenSendMethod;
+            tokenDestinations = tokenDestinations
+                    .stream()
+                    .filter( tokenDestinationItem -> tokenSendMethod == tokenDestinationItem.getType().getMessageSendMethod() )
+                    .collect( Collectors.toList() );
         }
 
-        final String emailAddress = userInfo.getUserEmailAddress();
-        final String smsAddress = userInfo.getUserSmsNumber();
-
-        final boolean hasEmail = emailAddress != null && emailAddress.length() > 1;
-        final boolean hasSms = smsAddress != null && smsAddress.length() > 1;
-
-        if ( hasEmail && hasSms )
+        final List<TokenDestinationItem> effectiveItems = new ArrayList<>(  );
+        for ( final TokenDestinationItem item : tokenDestinations )
         {
-            return MessageSendMethod.CHOICE_SMS_EMAIL;
-        }
-        else if ( hasEmail )
-        {
-            LOGGER.debug( pwmRequest, "though token send method is "
-                    + MessageSendMethod.CHOICE_SMS_EMAIL + ", no sms address is available for user so defaulting to email method" );
-            return MessageSendMethod.EMAILONLY;
-        }
-        else if ( hasSms )
-        {
-            LOGGER.debug( pwmRequest, "though token send method is "
-                    + MessageSendMethod.CHOICE_SMS_EMAIL + ", no email address is available for user so defaulting to sms method" );
-            return MessageSendMethod.SMSONLY;
+            final TokenDestinationItem effectiveItem = invokeExternalTokenDestRestClient( pwmRequest, userInfo.getUserIdentity(), item );
+            effectiveItems.add( effectiveItem );
         }
 
-        throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_TOKEN_MISSING_CONTACT ) );
+        LOGGER.trace( pwmRequest, "calculated available token send destinations: " + JsonUtil.serializeCollection( effectiveItems ) );
+
+        if ( tokenDestinations.isEmpty() )
+        {
+            final String msg = "no available contact methods of type " + tokenSendMethod.name() + " available";
+            throw PwmUnrecoverableException.newException( PwmError.ERROR_TOKEN_MISSING_CONTACT, msg );
+        }
+
+        final List<TokenDestinationItem> finalList = Collections.unmodifiableList( effectiveItems );
+        pwmRequest.getHttpServletRequest().setAttribute( PwmConstants.REQUEST_ATTR_FORGOTTEN_PW_AVAIL_TOKEN_DEST_CACHE, finalList );
+
+        return finalList;
     }
 
     static void verifyRequirementsForAuthMethod(
@@ -331,8 +346,7 @@ public class ForgottenPasswordUtil
         {
             case TOKEN:
             {
-                final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo( pwmRequest, forgottenPasswordBean );
-                figureIfTokenSendMethodIsAvailableForUser( forgottenPasswordBean, userInfo );
+                ForgottenPasswordUtil.figureAvailableTokenDestinations( pwmRequest, forgottenPasswordBean );
             }
             break;
 
@@ -401,55 +415,12 @@ public class ForgottenPasswordUtil
         }
     }
 
-    private static void figureIfTokenSendMethodIsAvailableForUser(
-            final ForgottenPasswordBean forgottenPasswordBean,
-            final UserInfo userInfoBean
-    )
-            throws PwmUnrecoverableException
-    {
-        final MessageSendMethod tokenSendMethod = forgottenPasswordBean.getRecoveryFlags().getTokenSendMethod();
-        if ( tokenSendMethod == null || tokenSendMethod == MessageSendMethod.NONE )
-        {
-            final String errorMsg = "user is required to complete token validation, yet there is not a token send method configured";
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INVALID_CONFIG, errorMsg );
-            throw new PwmUnrecoverableException( errorInformation );
-        }
-
-        final boolean hasEmailAddr = !StringUtil.isEmpty( userInfoBean.getUserEmailAddress() );
-        final boolean hasSmsAddr = !StringUtil.isEmpty( userInfoBean.getUserSmsNumber() );
-
-        if ( tokenSendMethod == MessageSendMethod.EMAILONLY && !hasEmailAddr )
-        {
-            final String errorMsg = "token send method requires an email address, yet user does not have an email address value";
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_TOKEN_MISSING_CONTACT, errorMsg );
-            throw new PwmUnrecoverableException( errorInformation );
-        }
-
-        if ( tokenSendMethod == MessageSendMethod.SMSONLY && !hasSmsAddr )
-        {
-            final String errorMsg = "token send method requires an sms destination, yet user does not have an sms destination value";
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_TOKEN_MISSING_CONTACT, errorMsg );
-            throw new PwmUnrecoverableException( errorInformation );
-        }
-
-        if ( tokenSendMethod == MessageSendMethod.CHOICE_SMS_EMAIL
-                || tokenSendMethod == MessageSendMethod.EMAILFIRST
-                || tokenSendMethod == MessageSendMethod.SMSFIRST )
-        {
-            if ( !hasEmailAddr && !hasSmsAddr )
-            {
-                final String errorMsg = "token send method requires an sms or email desitnation, yet user does not have an sms or email destination value";
-                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_TOKEN_MISSING_CONTACT, errorMsg );
-                throw new PwmUnrecoverableException( errorInformation );
-            }
-        }
-    }
 
     static Map<Challenge, String> readResponsesFromHttpRequest(
             final PwmRequest req,
             final ChallengeSet challengeSet
     )
-            throws ChaiValidationException, ChaiUnavailableException, PwmUnrecoverableException
+            throws PwmUnrecoverableException
     {
         final Map<Challenge, String> responses = new LinkedHashMap<>();
 
@@ -465,10 +436,10 @@ public class ForgottenPasswordUtil
         return responses;
     }
 
-    static String initializeAndSendToken(
+    static void initializeAndSendToken(
             final PwmRequest pwmRequest,
             final UserInfo userInfo,
-            final MessageSendMethod tokenSendMethod
+            final TokenDestinationItem tokenDestinationItem
 
     )
             throws PwmUnrecoverableException
@@ -476,7 +447,6 @@ public class ForgottenPasswordUtil
         final Configuration config = pwmRequest.getConfig();
         final UserIdentity userIdentity = userInfo.getUserIdentity();
         final Map<String, String> tokenMapData = new LinkedHashMap<>();
-
 
         try
         {
@@ -497,30 +467,16 @@ public class ForgottenPasswordUtil
         }
 
         final EmailItemBean emailItemBean = config.readSettingAsEmail( PwmSetting.EMAIL_CHALLENGE_TOKEN, pwmRequest.getLocale() );
-        final MacroMachine macroMachine = MacroMachine.forUser( pwmRequest, userIdentity );
-
-        final RestTokenDataClient.TokenDestinationData inputDestinationData = new RestTokenDataClient.TokenDestinationData(
-                macroMachine.expandMacros( emailItemBean.getTo() ),
-                userInfo.getUserSmsNumber(),
-                null
-        );
-
-        final RestTokenDataClient restTokenDataClient = new RestTokenDataClient( pwmRequest.getPwmApplication() );
-        final RestTokenDataClient.TokenDestinationData outputDestrestTokenDataClient = restTokenDataClient.figureDestTokenDisplayString(
-                pwmRequest.getSessionLabel(),
-                inputDestinationData,
-                userIdentity,
-                pwmRequest.getLocale() );
-
-        final Set<String> destinationValues = new LinkedHashSet<>();
-        if ( outputDestrestTokenDataClient.getEmail() != null )
+        final MacroMachine.StringReplacer stringReplacer = ( matchedMacro, newValue ) ->
         {
-            destinationValues.add( outputDestrestTokenDataClient.getEmail() );
-        }
-        if ( outputDestrestTokenDataClient.getSms() != null )
-        {
-            destinationValues.add( outputDestrestTokenDataClient.getSms() );
-        }
+            if ( "@User:Email@".equals( matchedMacro )  )
+            {
+                return tokenDestinationItem.getValue();
+            }
+
+            return newValue;
+        };
+        final MacroMachine macroMachine = MacroMachine.forUser( pwmRequest, userIdentity, stringReplacer );
 
         final String tokenKey;
         final TokenPayload tokenPayload;
@@ -531,7 +487,7 @@ public class ForgottenPasswordUtil
                     new TimeDuration( config.readSettingAsLong( PwmSetting.TOKEN_LIFETIME ), TimeUnit.SECONDS ),
                     tokenMapData,
                     userIdentity,
-                    destinationValues
+                    Collections.singleton( tokenDestinationItem.getValue() )
             );
             tokenKey = pwmRequest.getPwmApplication().getTokenService().generateNewToken( tokenPayload, pwmRequest.getSessionLabel() );
         }
@@ -542,15 +498,15 @@ public class ForgottenPasswordUtil
 
         final String smsMessage = config.readSettingAsLocalizedString( PwmSetting.SMS_CHALLENGE_TOKEN_TEXT, pwmRequest.getLocale() );
 
-        final List<TokenDestinationItem.Type> sentTypes = TokenService.TokenSender.sendToken(
+        TokenService.TokenSender.sendToken(
                 TokenService.TokenSendInfo.builder()
                         .pwmApplication( pwmRequest.getPwmApplication() )
                         .userInfo( userInfo )
                         .macroMachine( macroMachine )
                         .configuredEmailSetting( emailItemBean )
-                        .tokenSendMethod( tokenSendMethod )
-                        .emailAddress( outputDestrestTokenDataClient.getEmail() )
-                        .smsNumber( outputDestrestTokenDataClient.getSms() )
+                        .tokenSendMethod( tokenDestinationItem.getType().getMessageSendMethod() )
+                        .emailAddress( tokenDestinationItem.getValue() )
+                        .smsNumber( tokenDestinationItem.getValue() )
                         .smsMessage( smsMessage )
                         .tokenKey( tokenKey )
                         .sessionLabel( pwmRequest.getSessionLabel() )
@@ -558,14 +514,38 @@ public class ForgottenPasswordUtil
         );
 
         StatisticsManager.incrementStat( pwmRequest, Statistic.RECOVERY_TOKENS_SENT );
+    }
 
-        final String displayDestAddress = TokenService.TokenSender.figureDisplayString(
-                pwmRequest.getConfig(),
-                sentTypes,
-                outputDestrestTokenDataClient.getEmail(),
-                outputDestrestTokenDataClient.getSms()
+    private static TokenDestinationItem invokeExternalTokenDestRestClient(
+            final PwmRequest pwmRequest,
+            final UserIdentity userIdentity,
+            final TokenDestinationItem tokenDestinationItem
+    )
+            throws PwmUnrecoverableException
+    {
+        final RestTokenDataClient.TokenDestinationData inputDestinationData = new RestTokenDataClient.TokenDestinationData(
+                tokenDestinationItem.getType() == TokenDestinationItem.Type.email ? tokenDestinationItem.getValue() : null,
+                tokenDestinationItem.getType() == TokenDestinationItem.Type.sms ? tokenDestinationItem.getValue() : null,
+                tokenDestinationItem.getDisplay()
         );
-        return displayDestAddress;
+
+        final RestTokenDataClient restTokenDataClient = new RestTokenDataClient( pwmRequest.getPwmApplication() );
+        final RestTokenDataClient.TokenDestinationData outputDestrestTokenDataClient = restTokenDataClient.figureDestTokenDisplayString(
+                pwmRequest.getSessionLabel(),
+                inputDestinationData,
+                userIdentity,
+                pwmRequest.getLocale() );
+
+        final String outputValue = tokenDestinationItem.getType() == TokenDestinationItem.Type.email
+                ? outputDestrestTokenDataClient.getEmail()
+                : outputDestrestTokenDataClient.getSms();
+
+        return TokenDestinationItem.builder()
+                .type( tokenDestinationItem.getType() )
+                .display( outputDestrestTokenDataClient.getDisplayValue() )
+                .value( outputValue )
+                .id( tokenDestinationItem.getId() )
+                .build();
     }
 
     static void doActionSendNewPassword( final PwmRequest pwmRequest )
@@ -738,8 +718,7 @@ public class ForgottenPasswordUtil
                 false,
                 Collections.singleton( IdentityVerificationMethod.ATTRIBUTES ),
                 Collections.emptySet(),
-                0,
-                MessageSendMethod.NONE
+                0
         );
 
         forgottenPasswordBean.setRecoveryFlags( recoveryFlags );
@@ -982,11 +961,6 @@ public class ForgottenPasswordUtil
         final Configuration config = pwmApplication.getConfig();
         final ForgottenPasswordProfile forgottenPasswordProfile = config.getForgottenPasswordProfiles().get( forgottenPasswordProfileID );
 
-        final MessageSendMethod tokenSendMethod = config.getForgottenPasswordProfiles().get( forgottenPasswordProfileID ).readSettingAsEnum(
-                PwmSetting.RECOVERY_TOKEN_SEND_METHOD,
-                MessageSendMethod.class
-        );
-
         final Set<IdentityVerificationMethod> requiredRecoveryVerificationMethods = forgottenPasswordProfile.requiredRecoveryAuthenticationMethods();
         final Set<IdentityVerificationMethod> optionalRecoveryVerificationMethods = forgottenPasswordProfile.optionalRecoveryAuthenticationMethods();
         final int minimumOptionalRecoveryAuthMethods = forgottenPasswordProfile.getMinOptionalRequired();
@@ -996,8 +970,7 @@ public class ForgottenPasswordUtil
                 allowWhenLdapIntruderLocked,
                 requiredRecoveryVerificationMethods,
                 optionalRecoveryVerificationMethods,
-                minimumOptionalRecoveryAuthMethods,
-                tokenSendMethod
+                minimumOptionalRecoveryAuthMethods
         );
     }
 }

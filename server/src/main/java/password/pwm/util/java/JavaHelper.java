@@ -146,12 +146,13 @@ public class JavaHelper
     public static long pause( final long sleepTimeMS )
     {
         final long startTime = System.currentTimeMillis();
+        final long sliceTime = Math.max( 5, sleepTimeMS / 10 );
         do
         {
             try
             {
                 final long sleepTime = sleepTimeMS - ( System.currentTimeMillis() - startTime );
-                Thread.sleep( sleepTime > 0 ? sleepTime : 5 );
+                Thread.sleep( Math.min( sleepTime, sliceTime ) );
             }
             catch ( InterruptedException e )
             {

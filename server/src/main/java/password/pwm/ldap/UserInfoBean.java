@@ -50,7 +50,13 @@ public class UserInfoBean implements UserInfo
     private final UserIdentity userIdentity;
     private final String username;
     private final String userEmailAddress;
+    private final String userEmailAddress2;
+    private final String userEmailAddress3;
+
     private final String userSmsNumber;
+    private final String userSmsNumber2;
+    private final String userSmsNumber3;
+
     private final String userGuid;
 
     /**

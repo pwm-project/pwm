@@ -47,7 +47,11 @@ public class PublicUserInfoBean implements Serializable
     private String userID;
     private String userGUID;
     private String userEmailAddress;
+    private String userEmailAddress2;
+    private String userEmailAddress3;
     private String userSmsNumber;
+    private String userSmsNumber2;
+    private String userSmsNumber3;
     private Instant passwordExpirationTime;
     private Instant passwordLastModifiedTime;
     private Instant lastLoginTime;
@@ -77,7 +81,11 @@ public class PublicUserInfoBean implements Serializable
         publicUserInfoBean.userID = userInfoBean.getUsername();
         publicUserInfoBean.userGUID = publicUserInfoBean.getUserGUID();
         publicUserInfoBean.userEmailAddress = userInfoBean.getUserEmailAddress();
+        publicUserInfoBean.userEmailAddress2 = userInfoBean.getUserEmailAddress2();
+        publicUserInfoBean.userEmailAddress3 = userInfoBean.getUserEmailAddress3();
         publicUserInfoBean.userSmsNumber = userInfoBean.getUserSmsNumber();
+        publicUserInfoBean.userSmsNumber2 = userInfoBean.getUserSmsNumber2();
+        publicUserInfoBean.userSmsNumber3 = userInfoBean.getUserSmsNumber3();
         publicUserInfoBean.passwordExpirationTime = userInfoBean.getPasswordExpirationTime();
         publicUserInfoBean.passwordLastModifiedTime = userInfoBean.getPasswordLastModifiedTime();
         publicUserInfoBean.passwordStatus = userInfoBean.getPasswordStatus();

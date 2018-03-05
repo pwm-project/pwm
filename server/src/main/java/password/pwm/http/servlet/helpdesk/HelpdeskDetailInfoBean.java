@@ -138,7 +138,7 @@ public class HelpdeskDetailInfoBean implements Serializable
                 userIdentity,
                 theUser.getChaiProvider()
         );
-        final MacroMachine macroMachine = new MacroMachine( pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), userInfo, null );
+        final MacroMachine macroMachine = MacroMachine.forUser( pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), userInfo, null );
 
         try
         {

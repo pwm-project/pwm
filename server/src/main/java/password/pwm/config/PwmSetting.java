@@ -246,8 +246,16 @@ public enum PwmSetting
             "ldap.group.label.attribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
     EMAIL_USER_MAIL_ATTRIBUTE(
             "email.userMailAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
+    EMAIL_USER_MAIL_ATTRIBUTE_2(
+            "email.userMailAttribute2", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
+    EMAIL_USER_MAIL_ATTRIBUTE_3(
+            "email.userMailAttribute3", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
     SMS_USER_PHONE_ATTRIBUTE(
             "sms.userSmsAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
+    SMS_USER_PHONE_ATTRIBUTE_2(
+            "sms.userSmsAttribute2", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
+    SMS_USER_PHONE_ATTRIBUTE_3(
+            "sms.userSmsAttribute3", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
     CHALLENGE_USER_ATTRIBUTE(
             "challenge.userAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
     EVENTS_LDAP_ATTRIBUTE(

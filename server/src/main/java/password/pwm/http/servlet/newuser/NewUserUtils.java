@@ -500,7 +500,7 @@ class NewUserUtils
                 .attributes( formValues )
                 .build();
 
-        return new MacroMachine( pwmApplication, sessionLabel, stubUserBean, stubLoginBean );
+        return MacroMachine.forUser( pwmApplication, sessionLabel, stubUserBean, stubLoginBean );
     }
 
     @SuppressWarnings( "checkstyle:MethodLength" )

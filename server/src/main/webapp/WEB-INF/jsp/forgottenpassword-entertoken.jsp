@@ -38,7 +38,7 @@
     <div id="centerbody">
         <h1 id="page-content-title"><pwm:display key="Title_ForgottenPassword" displayIfMissing="true"/></h1>
         <% final ForgottenPasswordBean fpb = JspUtility.getSessionBean(pageContext, ForgottenPasswordBean.class); %>
-        <% final String destination = fpb.getProgress().getTokenSentAddress(); %>
+        <% final String destination = fpb.getProgress().getTokenDestination().getDisplay(); %>
         <p><pwm:display key="Display_RecoverEnterCode" value1="<%=destination%>"/></p>
         <% if (resendEnabled) { %>
         <p><pwm:display key="Display_TokenResend"/></p>
@@ -108,11 +108,13 @@
     <div class="push"></div>
 </div>
 <form id="form-goBack" action="<pwm:current-url/>" method="post">
-    <input type="hidden" name="processAction" value="<%=ForgottenPasswordServlet.ForgottenPasswordAction.verificationChoice%>"/>
+    <input type="hidden" name="processAction" value="<%=ForgottenPasswordServlet.ForgottenPasswordAction.reset%>"/>
+    <input type="hidden" name="<%=PwmConstants.PARAM_ACTION_REQUEST%>" value="<%=ForgottenPasswordServlet.ForgottenPasswordAction.reset%>"/>
+    <input type="hidden" name="<%=PwmConstants.PARAM_RESET_TYPE%>" value="<%=ForgottenPasswordServlet.ResetType.clearTokenDestination%>"/>
     <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
 </form>
 <form id="form-cancel" action="<pwm:current-url/>" method="post">
-    <input type="hidden" name="processAction" value="<%=ForgottenPasswordServlet.ForgottenPasswordAction.reset%>"/>
+    <input type="hidden" name="<%=PwmConstants.PARAM_ACTION_REQUEST%>" value="<%=ForgottenPasswordServlet.ForgottenPasswordAction.reset%>"/>
     <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
 </form>
 <%@ include file="fragment/footer.jsp" %>

@@ -326,7 +326,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
             return new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
         }
 
-        final MacroMachine macroMachine = new MacroMachine( pwmApplication, sessionLabel, userInfo, null );
+        final MacroMachine macroMachine = MacroMachine.forUser( pwmApplication, sessionLabel, userInfo, null );
 
         pwmApplication.sendSmsUsingQueue( toNumber, smsMessage, sessionLabel, macroMachine );
         return null;
@@ -346,7 +346,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
             return new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
         }
 
-        final MacroMachine macroMachine = new MacroMachine( pwmApplication, sessionLabel, userInfo, null );
+        final MacroMachine macroMachine = MacroMachine.forUser( pwmApplication, sessionLabel, userInfo, null );
 
         pwmApplication.getEmailQueue().submitEmail( emailItemBean, userInfo, macroMachine );
 

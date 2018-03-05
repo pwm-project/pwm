@@ -22,21 +22,27 @@
 
 package password.pwm.bean;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Builder;
+import lombok.Value;
+import password.pwm.PwmApplication;
 import password.pwm.config.Configuration;
+import password.pwm.config.option.MessageSendMethod;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.UserInfo;
 import password.pwm.util.ValueObfuscator;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.secure.SecureService;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
-@Getter
-@AllArgsConstructor
-public class TokenDestinationItem
+@Value
+@Builder
+public class TokenDestinationItem implements Serializable
 {
     private String id;
     private String display;
@@ -45,44 +51,77 @@ public class TokenDestinationItem
 
     public enum Type
     {
-        sms,
-        email,
+        sms( MessageSendMethod.SMSONLY ),
+        email( MessageSendMethod.EMAILONLY ),;
+
+        private MessageSendMethod messageSendMethod;
+
+        Type( final MessageSendMethod messageSendMethod )
+        {
+            this.messageSendMethod = messageSendMethod;
+        }
+
+        public MessageSendMethod getMessageSendMethod( )
+        {
+            return messageSendMethod;
+        }
     }
 
-    public static List<TokenDestinationItem> allFromConfig( final Configuration configuration, final UserInfo userInfo )
+    public static List<TokenDestinationItem> allFromConfig(
+            final PwmApplication pwmApplication,
+            final UserInfo userInfo
+    )
             throws PwmUnrecoverableException
     {
+        final Configuration configuration = pwmApplication.getConfig();
+        final SecureService secureService = pwmApplication.getSecureService();
+
         final ValueObfuscator valueObfuscator = new ValueObfuscator( configuration );
-        int counter = 0;
 
-        final List<TokenDestinationItem> results = new ArrayList<>();
+        final Map<String, TokenDestinationItem> results = new LinkedHashMap<>(  );
 
+        for ( final String emailValue : new String[]
+                {
+                        userInfo.getUserEmailAddress(),
+                        userInfo.getUserEmailAddress2(),
+                        userInfo.getUserEmailAddress3(),
+                }
+                )
         {
-            final String smsValue = userInfo.getUserSmsNumber();
-            if ( !StringUtil.isEmpty( smsValue ) )
-            {
-                results.add( new TokenDestinationItem(
-                        String.valueOf( ++counter ),
-                        valueObfuscator.maskPhone( smsValue ),
-                        smsValue,
-                        Type.sms
-                ) );
-            }
-        }
-
-        {
-            final String emailValue = userInfo.getUserEmailAddress();
             if ( !StringUtil.isEmpty( emailValue ) )
             {
-                results.add( new TokenDestinationItem(
-                        String.valueOf( ++counter ),
-                        valueObfuscator.maskEmail( emailValue ),
-                        emailValue,
-                        Type.email
-                ) );
+                final String idHash = secureService.hash( emailValue + Type.email.name() );
+                final TokenDestinationItem item = TokenDestinationItem.builder()
+                        .id( idHash )
+                        .display( valueObfuscator.maskEmail( emailValue ) )
+                        .value( emailValue )
+                        .type( Type.email )
+                        .build();
+                results.put( idHash, item );
             }
         }
 
-        return Collections.unmodifiableList( results );
+        for ( final String smsValue : new String[]
+                {
+                        userInfo.getUserSmsNumber(),
+                        userInfo.getUserSmsNumber2(),
+                        userInfo.getUserSmsNumber3(),
+                }
+                )
+        {
+            if ( !StringUtil.isEmpty( smsValue ) )
+            {
+                final String idHash = secureService.hash( smsValue + Type.sms.name() );
+                final TokenDestinationItem item = TokenDestinationItem.builder()
+                        .id( idHash )
+                        .display( valueObfuscator.maskPhone( smsValue ) )
+                        .value( smsValue )
+                        .type( Type.sms )
+                        .build();
+                results.put(  idHash, item );
+            }
+        }
+
+        return Collections.unmodifiableList( new ArrayList<>( results.values() ) );
     }
 }

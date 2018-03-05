@@ -113,12 +113,28 @@
                 <td><%=JspUtility.freindlyWrite(pageContext, userInfo.getPasswordLastModifiedTime())%></td>
             </tr>
             <tr>
-                <td class="key">Email Address</td>
+                <td class="key">Email Address 1</td>
                 <td><%=JspUtility.freindlyWrite(pageContext, userInfo.getUserEmailAddress())%></td>
             </tr>
             <tr>
-                <td class="key">Phone Number</td>
+                <td class="key">Email Address 2</td>
+                <td><%=JspUtility.freindlyWrite(pageContext, userInfo.getUserEmailAddress2())%></td>
+            </tr>
+            <tr>
+                <td class="key">Email Address 3</td>
+                <td><%=JspUtility.freindlyWrite(pageContext, userInfo.getUserEmailAddress3())%></td>
+            </tr>
+            <tr>
+                <td class="key">Phone Number 1</td>
                 <td><%=JspUtility.freindlyWrite(pageContext, userDebugDataBean.getUserInfo().getUserSmsNumber())%></td>
+            </tr>
+            <tr>
+                <td class="key">Phone Number 2</td>
+                <td><%=JspUtility.freindlyWrite(pageContext, userDebugDataBean.getUserInfo().getUserSmsNumber2())%></td>
+            </tr>
+            <tr>
+                <td class="key">Phone Number 3</td>
+                <td><%=JspUtility.freindlyWrite(pageContext, userDebugDataBean.getUserInfo().getUserSmsNumber3())%></td>
             </tr>
             <tr>
                 <td class="key">Username</td>

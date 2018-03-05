@@ -268,7 +268,7 @@ class HelpdeskServletUtil
                 chaiUser.getChaiProvider()
         );
 
-        final MacroMachine macroMachine = new MacroMachine(
+        final MacroMachine macroMachine = MacroMachine.forUser(
                 pwmApplication,
                 pwmRequest.getSessionLabel(),
                 userInfo,

@@ -619,7 +619,7 @@ class PeopleSearchDataReader
                 userIdentity,
                 chaiProvider
         );
-        return new MacroMachine( pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), userInfo, null );
+        return MacroMachine.forUser( pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), userInfo, null );
     }
 
     void checkIfUserIdentityViewable(

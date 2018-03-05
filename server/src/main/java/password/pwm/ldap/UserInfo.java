@@ -78,7 +78,15 @@ public interface UserInfo
 
     String getUserEmailAddress( ) throws PwmUnrecoverableException;
 
+    String getUserEmailAddress2( ) throws PwmUnrecoverableException;
+
+    String getUserEmailAddress3( ) throws PwmUnrecoverableException;
+
     String getUserSmsNumber( ) throws PwmUnrecoverableException;
+
+    String getUserSmsNumber2( ) throws PwmUnrecoverableException;
+
+    String getUserSmsNumber3( ) throws PwmUnrecoverableException;
 
     String getUserGuid( ) throws PwmUnrecoverableException;
 

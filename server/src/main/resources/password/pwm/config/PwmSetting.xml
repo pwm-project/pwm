@@ -758,6 +758,16 @@
             <value><![CDATA[mail]]></value>
         </default>
     </setting>
+    <setting hidden="false" key="email.userMailAttribute2" level="2" required="false">
+        <ldapPermission actor="proxy" access="read"/>
+        <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
+        <default/>
+    </setting>
+    <setting hidden="false" key="email.userMailAttribute3" level="2" required="false">
+        <ldapPermission actor="proxy" access="read"/>
+        <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
+        <default/>
+    </setting>
     <setting hidden="false" key="email.queueMaxAge" level="2" required="true">
         <default>
             <value>3600</value>
@@ -887,6 +897,16 @@
         <default>
             <value><![CDATA[personalMobile]]></value>
         </default>
+    </setting>
+    <setting hidden="false" key="sms.userSmsAttribute2" level="1" required="false">
+        <ldapPermission actor="proxy" access="read"/>
+        <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
+        <default/>
+    </setting>
+    <setting hidden="false" key="sms.userSmsAttribute3" level="1" required="false">
+        <ldapPermission actor="proxy" access="read"/>
+        <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
+        <default/>
     </setting>
     <setting hidden="false" key="sms.queueMaxAge" level="2" required="true">
         <default>

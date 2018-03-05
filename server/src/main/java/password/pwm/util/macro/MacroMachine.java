@@ -54,6 +54,7 @@ public class MacroMachine
     private final SessionLabel sessionLabel;
     private final UserInfo userInfo;
     private final LoginInfoBean loginInfoBean;
+    private final StringReplacer stringReplacer;
 
     private static final Map<MacroImplementation.Scope, Map<Pattern, MacroImplementation>> BUILTIN_MACROS = makeImplementations();
 
@@ -61,13 +62,15 @@ public class MacroMachine
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
             final UserInfo userInfo,
-            final LoginInfoBean loginInfoBean
+            final LoginInfoBean loginInfoBean,
+            final StringReplacer stringReplacer
     )
     {
         this.pwmApplication = pwmApplication;
         this.sessionLabel = sessionLabel;
         this.userInfo = userInfo;
         this.loginInfoBean = loginInfoBean;
+        this.stringReplacer = stringReplacer;
     }
 
     private static Map<MacroImplementation.Scope, Map<Pattern, MacroImplementation>> makeImplementations( )
@@ -121,14 +124,6 @@ public class MacroMachine
 
     public String expandMacros(
             final String input
-    )
-    {
-        return expandMacros( input, null );
-    }
-
-    public String expandMacros(
-            final String input,
-            final StringReplacer stringReplacer
     )
     {
         if ( input == null )
@@ -193,7 +188,7 @@ public class MacroMachine
                         final Matcher matcher = pattern.matcher( workingString );
                         if ( matcher.find() )
                         {
-                            workingString = doReplace( workingString, pwmMacro, matcher, stringReplacer, macroRequestInfo );
+                            workingString = doReplace( workingString, pwmMacro, matcher, macroRequestInfo );
                             if ( workingString.equals( previousString ) )
                             {
                                 LOGGER.warn( sessionLabel, "macro replace was called but input string was not modified.  "
@@ -238,7 +233,6 @@ public class MacroMachine
             final String input,
             final MacroImplementation macroImplementation,
             final Matcher matcher,
-            final StringReplacer stringReplacer,
             final MacroImplementation.MacroRequestInfo macroRequestInfo
     )
     {
@@ -299,7 +293,7 @@ public class MacroMachine
 
     public static MacroMachine forStatic( )
     {
-        return new MacroMachine( null, null, null, null );
+        return new MacroMachine( null, null, null, null, null );
     }
 
     public interface StringReplacer
@@ -317,14 +311,23 @@ public class MacroMachine
     }
 
     public static MacroMachine forUser(
+            final PwmRequest pwmRequest,
+            final UserIdentity userIdentity,
+            final StringReplacer stringReplacer
+    )
+            throws PwmUnrecoverableException
+    {
+        return forUser( pwmRequest.getPwmApplication(), pwmRequest.getLocale(), pwmRequest.getSessionLabel(), userIdentity, stringReplacer );
+    }
+
+    public static MacroMachine forUser(
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
             final UserInfo userInfo,
             final LoginInfoBean loginInfoBean
-
     )
     {
-        return new MacroMachine( pwmApplication, sessionLabel, userInfo, loginInfoBean );
+        return new MacroMachine( pwmApplication, sessionLabel, userInfo, loginInfoBean, null );
     }
 
     public static MacroMachine forUser(
@@ -336,7 +339,20 @@ public class MacroMachine
             throws PwmUnrecoverableException
     {
         final UserInfo userInfoBean = UserInfoFactory.newUserInfoUsingProxy( pwmApplication, sessionLabel, userIdentity, userLocale );
-        return new MacroMachine( pwmApplication, sessionLabel, userInfoBean, null );
+        return new MacroMachine( pwmApplication, sessionLabel, userInfoBean, null, null );
+    }
+
+    public static MacroMachine forUser(
+            final PwmApplication pwmApplication,
+            final Locale userLocale,
+            final SessionLabel sessionLabel,
+            final UserIdentity userIdentity,
+            final StringReplacer stringReplacer
+    )
+            throws PwmUnrecoverableException
+    {
+        final UserInfo userInfoBean = UserInfoFactory.newUserInfoUsingProxy( pwmApplication, sessionLabel, userIdentity, userLocale );
+        return new MacroMachine( pwmApplication, sessionLabel, userInfoBean, null, stringReplacer );
     }
 
     public static MacroMachine forNonUserSpecific(
@@ -345,6 +361,6 @@ public class MacroMachine
     )
             throws PwmUnrecoverableException
     {
-        return new MacroMachine( pwmApplication, sessionLabel, null, null );
+        return new MacroMachine( pwmApplication, sessionLabel, null, null, null );
     }
 }
