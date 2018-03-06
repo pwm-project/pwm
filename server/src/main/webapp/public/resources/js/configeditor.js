@@ -974,6 +974,10 @@ PWM_CFGEDIT.initSettingDisplay = function(setting, options) {
             DurationValueHandler.init(settingKey);
             break;
 
+        case 'DURATION_ARRAY':
+            DurationArrayValueHandler.init(settingKey);
+            break;
+
         case 'STRING':
             StringValueHandler.init(settingKey);
             break;

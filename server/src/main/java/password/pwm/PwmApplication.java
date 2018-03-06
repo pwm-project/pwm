@@ -50,6 +50,7 @@ import password.pwm.svc.event.AuditService;
 import password.pwm.svc.event.SystemAuditRecord;
 import password.pwm.svc.intruder.IntruderManager;
 import password.pwm.svc.intruder.RecordType;
+import password.pwm.svc.pwnotify.PwNotifyService;
 import password.pwm.svc.report.ReportService;
 import password.pwm.svc.sessiontrack.SessionTrackService;
 import password.pwm.svc.shorturl.UrlShortenerService;
@@ -563,6 +564,11 @@ public class PwmApplication
     public SmsQueueManager getSmsQueue( )
     {
         return ( SmsQueueManager ) pwmServiceManager.getService( SmsQueueManager.class );
+    }
+
+    public PwNotifyService getPwNotifyService( )
+    {
+        return ( PwNotifyService ) pwmServiceManager.getService( PwNotifyService.class );
     }
 
     public UrlShortenerService getUrlShortener( )

@@ -58,6 +58,7 @@ import password.pwm.util.cli.commands.ImportLocalDBCommand;
 import password.pwm.util.cli.commands.ImportResponsesCommand;
 import password.pwm.util.cli.commands.LdapSchemaExtendCommand;
 import password.pwm.util.cli.commands.LocalDBInfoCommand;
+import password.pwm.util.cli.commands.PasswordExpireNotificationCommand;
 import password.pwm.util.cli.commands.ResponseStatsCommand;
 import password.pwm.util.cli.commands.ShellCommand;
 import password.pwm.util.cli.commands.TokenInfoCommand;
@@ -126,7 +127,7 @@ public class MainClass
         commandList.add( new ShellCommand() );
         commandList.add( new ConfigResetHttpsCommand() );
         commandList.add( new HelpCommand() );
-        //commandList.add(new PasswordExpireNotificationCommand());
+        commandList.add( new PasswordExpireNotificationCommand() );
 
         final Map<String, CliCommand> sortedMap = new TreeMap<>();
         for ( final CliCommand command : commandList )
@@ -220,17 +221,17 @@ public class MainClass
         out( "" );
 
         final Writer outputStream = new OutputStreamWriter( System.out, PwmConstants.DEFAULT_CHARSET );
-        return new CliEnvironment(
-                configReader,
-                configurationFile,
-                config,
-                applicationPath,
-                pwmApplication,
-                localDB,
-                outputStream,
-                options,
-                mainOptions
-        );
+        return CliEnvironment.builder()
+                .configurationReader( configReader )
+                .configurationFile( configurationFile )
+                .config( config )
+                .applicationPath( applicationPath )
+                .pwmApplication( pwmApplication )
+                .localDB( localDB )
+                .debugWriter( outputStream )
+                .options( options )
+                .mainOptions( mainOptions )
+                .build();
     }
 
     public static Map<String, Object> parseCommandOptions(

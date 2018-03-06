@@ -23,6 +23,7 @@
 package password.pwm.svc;
 
 import password.pwm.svc.email.EmailService;
+import password.pwm.svc.pwnotify.PwNotifyService;
 import password.pwm.util.java.JavaHelper;
 
 import java.util.ArrayList;
@@ -56,7 +57,7 @@ public enum PwmServiceEnum
     UserSearchEngine( password.pwm.ldap.search.UserSearchEngine.class, Flag.StartDuringRuntimeInstance ),
     TelemetryService( password.pwm.svc.telemetry.TelemetryService.class ),
     ClusterService( password.pwm.svc.cluster.ClusterService.class ),
-    PwExpiryNotifyService(  password.pwm.svc.pwnotify.PasswordExpireNotificationService.class),;
+    PwExpiryNotifyService( PwNotifyService.class ),;
 
     private final Class<? extends PwmService> clazz;
     private final Flag[] flags;

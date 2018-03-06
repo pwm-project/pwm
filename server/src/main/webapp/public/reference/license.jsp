@@ -60,6 +60,7 @@
             </p>
         </pwm:if>
 
+        <% if (dependencyInfos != null) { %>
         <% for (final XmlUtil.DependencyInfo dependencyInfo : dependencyInfos) { %>
         <div class="licenseBlock">
             <div class="dependency-name"><%=StringUtil.escapeHtml(dependencyInfo.getName())%></div>
@@ -87,6 +88,11 @@
                 </a>
             </div>
             <% } %>
+        </div>
+        <% } %>
+        <% } else { %>
+        <div class="licenseBlock">
+            Error: attribution file not found: attribution.xml
         </div>
         <% } %>
         <pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.PWMADMIN%>">

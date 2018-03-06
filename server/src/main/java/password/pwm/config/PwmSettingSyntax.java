@@ -32,6 +32,7 @@ import password.pwm.config.value.FormValue;
 import password.pwm.config.value.LocalizedStringArrayValue;
 import password.pwm.config.value.LocalizedStringValue;
 import password.pwm.config.value.NamedSecretValue;
+import password.pwm.config.value.NumericArrayValue;
 import password.pwm.config.value.NumericValue;
 import password.pwm.config.value.OptionListValue;
 import password.pwm.config.value.PasswordValue;
@@ -60,6 +61,7 @@ public enum PwmSettingSyntax
     PASSWORD( PasswordValue.factory() ),
     NUMERIC( NumericValue.factory() ),
     DURATION( NumericValue.factory() ),
+    DURATION_ARRAY( NumericArrayValue.factory() ),
     BOOLEAN( BooleanValue.factory() ),
     SELECT( StringValue.factory() ),
     FORM( FormValue.factory() ),

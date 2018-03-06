@@ -30,6 +30,9 @@ public enum PwmSettingProperty
     Minimum,
     Maximum,
 
+    Minimum_Values,
+    Maximum_Values,
+
     Form_Types,
 
     Cert_ImportHandler,
