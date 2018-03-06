@@ -49,6 +49,12 @@
             LocalDB
         </button>
     </form>
+    <form action="<pwm:context/><%=PwmServletDefinition.ConfigManager_PwNotify.servletUrl()%>" method="get">
+        <button type="submit" class="navbutton">
+            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-envelope"></span></pwm:if>
+            Password Expiration Notification
+        </button>
+    </form>
 </div>
 <br/>
 

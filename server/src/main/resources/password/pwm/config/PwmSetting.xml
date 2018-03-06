@@ -881,7 +881,7 @@
             <value>{"to":"@User:Email@","from":"Unlock Account Notice \u003c@DefaultEmailFromAddress@\u003e","subject":"Account Unlock Notice","bodyPlain":"Your account has been unlocked.","bodyHtml":""}</value>
         </default>
     </setting>
-    <setting hidden="true" key="email.pwExpirationNotice" level="1">
+    <setting hidden="false" key="email.pwNotice" level="1">
         <flag>MacroSupport</flag>
         <default>
             <value>{"to":"@User:Email@","from":"Password Expiration Notice \u003c@DefaultEmailFromAddress@\u003e","subject":"Password Expiration Notice","bodyPlain":"Your password is about to expire.  Your password will expire in @User:DaysUntilPwExpire@ days.","bodyHtml":""}</value>
@@ -3660,6 +3660,33 @@
             <value>false</value>
         </default>
     </setting>
+    <setting hidden="false" key="pwNotify.enable" level="1">
+        <default>
+            <value/>
+        </default>
+    </setting>
+    <setting hidden="false" key="pwNotify.queryString" level="1">
+        <default>
+            <value/>
+        </default>
+    </setting>
+    <setting hidden="false" key="pwNotify.intervals" level="1">
+        <default>
+            <value>1</value>
+            <value>3</value>
+            <value>7</value>
+        </default>
+        <regex>^[0-9]{1,2}$</regex>
+    </setting>
+    <setting hidden="false" key="pwNotify.job.offSet" level="1">
+        <properties>
+            <property key="Minimum">0</property>
+            <property key="Maximum">86400</property>
+        </properties>
+        <default>
+            <value>0</value>
+        </default>
+    </setting>
     <setting hidden="false" key="reporting.enable" level="1">
         <default>
             <value/>
@@ -4025,6 +4052,8 @@
     <category hidden="false" key="DATABASE_ADV">
     </category>
     <category hidden="false" key="REPORTING">
+    </category>
+    <category hidden="false" key="PW_EXP_NOTIFY">
     </category>
     <category hidden="false" key="WEB_SERVICES" level="2">
     </category>

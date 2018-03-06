@@ -331,8 +331,8 @@ StringArrayValueHandler.drawRow = function(settingKey, iteration, value, itemCou
                     }
                 };
                 PWM_MAIN.showWaitDialog({loadFunction:function(){
-                    PWM_MAIN.ajaxRequest("editor?processAction=copyProfile",resultFunction,{content:options});
-                }});
+                        PWM_MAIN.ajaxRequest("editor?processAction=copyProfile",resultFunction,{content:options});
+                    }});
             };
             UILibrary.stringEditorDialog(editorOptions);
         });
@@ -1242,13 +1242,13 @@ ChangePasswordHandler.markConfirmationCheck = function(matchStatus) {
 
 ChangePasswordHandler.doChange = function(settingKey, passwordValue) {
     PWM_MAIN.showWaitDialog({loadFunction:function(){
-        PWM_CFGEDIT.writeSetting(settingKey,passwordValue,function(){
-            ChangePasswordHandler.clear(settingKey);
-            ChangePasswordHandler.init(settingKey);
-            PWM_MAIN.closeWaitDialog();
-        });
+            PWM_CFGEDIT.writeSetting(settingKey,passwordValue,function(){
+                ChangePasswordHandler.clear(settingKey);
+                ChangePasswordHandler.init(settingKey);
+                PWM_MAIN.closeWaitDialog();
+            });
 
-    }})
+        }})
 };
 
 ChangePasswordHandler.clear = function(settingKey) {
@@ -1284,8 +1284,8 @@ ChangePasswordHandler.generateRandom = function(settingKey) {
     };
 
     PWM_MAIN.showWaitDialog({loadFunction:function(){
-        PWM_MAIN.ajaxRequest(url,loadFunction,{content:postData});
-    }});
+            PWM_MAIN.ajaxRequest(url,loadFunction,{content:postData});
+        }});
 };
 
 ChangePasswordHandler.changePasswordPopup = function(settingKey) {
@@ -1659,23 +1659,23 @@ ActionHandler.showOptionsDialog = function(keyName, iteration) {
                         });
                         PWM_MAIN.addEventHandler('button-' + inputID + '-clearCertificates','click',function() {
                             PWM_MAIN.showConfirmDialog({okAction:function(){
-                                delete value['certificates'];
-                                delete value['certificateInfos'];
-                                ActionHandler.write(keyName, function(){ ActionHandler.showOptionsDialog(keyName,iteration)});
-                            },cancelAction:function(){
-                                ActionHandler.showOptionsDialog(keyName,iteration);
-                            }});
+                                    delete value['certificates'];
+                                    delete value['certificateInfos'];
+                                    ActionHandler.write(keyName, function(){ ActionHandler.showOptionsDialog(keyName,iteration)});
+                                },cancelAction:function(){
+                                    ActionHandler.showOptionsDialog(keyName,iteration);
+                                }});
                         });
                     } else {
                         PWM_MAIN.addEventHandler('button-' + inputID + '-importCertificates','click',function() {
                             var dataHandler = function(data) {
                                 var msgBody = '<div style="max-height: 400px; overflow-y: auto">' + data['successMessage'] + '</div>';
                                 PWM_MAIN.showDialog({width:700,title: 'Results', text: msgBody, okAction: function () {
-                                    PWM_CFGEDIT.readSetting(keyName, function(resultValue) {
-                                        PWM_VAR['clientSettingCache'][keyName] = resultValue;
-                                        ActionHandler.showOptionsDialog(keyName, iteration);
-                                    });
-                                }});
+                                        PWM_CFGEDIT.readSetting(keyName, function(resultValue) {
+                                            PWM_VAR['clientSettingCache'][keyName] = resultValue;
+                                            ActionHandler.showOptionsDialog(keyName, iteration);
+                                        });
+                                    }});
                             };
                             PWM_CFGEDIT.executeSettingFunction(keyName, 'password.pwm.config.function.ActionCertImportFunction', dataHandler, value['name'])
                         });
@@ -1915,9 +1915,9 @@ EmailTableHandler.instrumentRow = function(settingKey, localeName) {
 
     PWM_MAIN.addEventHandler("button-deleteRow-" + idPrefix,"click",function(){
         PWM_MAIN.showConfirmDialog({okAction:function(){
-            delete PWM_VAR['clientSettingCache'][settingKey][localeName];
-            EmailTableHandler.writeSetting(settingKey,true);
-        }});
+                delete PWM_VAR['clientSettingCache'][settingKey][localeName];
+                EmailTableHandler.writeSetting(settingKey,true);
+            }});
     });
 };
 
@@ -2264,7 +2264,6 @@ NumericValueHandler.impl = function(settingKey, type, defaultMin, defaultMax) {
     var parentDiv = 'table_setting_' + settingKey;
     var parentDivElement = PWM_MAIN.getObject(parentDiv);
     var properties = PWM_SETTINGS['settings'][settingKey]['properties'];
-    var pattern = PWM_SETTINGS['settings'][settingKey]['pattern'];
     var min = 'Minimum' in properties ? parseInt(properties['Minimum']) : defaultMin;
     var max = 'Maximum' in properties ? parseInt(properties['Maximum']) : defaultMax;
 
@@ -2307,9 +2306,111 @@ NumericValueHandler.updateDurationDisplay = function(settingKey, numberValue) {
 
 var DurationValueHandler = {};
 DurationValueHandler.init = function(settingKey) {
-    NumericValueHandler.impl(settingKey, 'duration', -1, 365 * 24 * 60 * 60 );
+    NumericValueHandler.impl(settingKey, 'duration', -1, 365 * 24 * 60 * 60, 1 );
 };
 
+// -------------------------- numeric array value handler ------------------------------------
+
+var NumericArrayValueHandler = {};
+NumericArrayValueHandler.init = function(settingKey) {
+    NumericArrayValueHandler.impl(settingKey, 'number', 0, 100);
+};
+
+NumericArrayValueHandler.impl = function(settingKey, type) {
+    PWM_CFGEDIT.readSetting(settingKey,function(data){
+        PWM_VAR['clientSettingCache'][settingKey] = data;
+        NumericArrayValueHandler.draw(settingKey, type);
+    });
+};
+
+NumericArrayValueHandler.draw = function(settingKey, type) {
+    var resultValue = PWM_VAR['clientSettingCache'][settingKey];
+
+    var parentDiv = 'table_setting_' + settingKey;
+    var parentDivElement = PWM_MAIN.getObject(parentDiv);
+    var properties = PWM_SETTINGS['settings'][settingKey]['properties'];
+    var min = 'Minimum' in properties ? parseInt(properties['Minimum']) : 1;
+    var max = 'Maximum' in properties ? parseInt(properties['Maximum']) : 365 * 24 * 60 * 60;
+    var minValues = 'Minimum_Values' in properties ? parseInt(properties['Minimum_Values']) : 1;
+    var maxValues = 'Maximum_Values' in properties ? parseInt(properties['Maximum_Values']) : 10;
+
+    var htmlBody = '<table class="noborder">';
+    for (var iteration in resultValue) {
+        (function(rowKey) {
+            var id = settingKey+ "-" + rowKey;
+
+            htmlBody += '<tr><td><input type="number" id="value-' + id + '" class="configNumericInput" min="'+min+'" max="'+max+'" disabled/>';
+            if (type === 'number') {
+                htmlBody += '<span class="configNumericLimits">' + min + ' - ' + max + '</span>';
+            } else if (type === 'duration') {
+                htmlBody +=  '<span class="configNumericLimits">' + PWM_MAIN.showString('Display_Seconds')  + '</span>'
+                htmlBody +=  '<span style="margin-left:20px" id="display-' + id + '-duration"></span>';
+            }
+            htmlBody += '</td><td>';
+            if ( resultValue.length > minValues ) {
+                htmlBody += '<span id="button-' + id + '-delete" class="delete-row-icon action-icon pwm-icon pwm-icon-times"></span>';
+            }
+            htmlBody += '</td></tr>';
+
+        }(iteration));
+    }
+
+    htmlBody += '</table>';
+    if ( resultValue.length < maxValues ) {
+        htmlBody += '<br/><button class="btn" id="button-addValue-' + settingKey + '">';
+        htmlBody += '<span class="btn-icon pwm-icon pwm-icon-plus-square"></span>Add Value';
+        htmlBody += '</button>';
+    }
+
+    parentDivElement.innerHTML = htmlBody;
+
+    var addListeners = function() {
+        for (var iteration in resultValue) {
+            (function(rowKey) {
+                var id = settingKey+ "-" + rowKey;
+                var readValue  = resultValue[rowKey];
+                PWM_MAIN.getObject('value-' + id).value = readValue;
+                PWM_MAIN.getObject('value-' + id).disabled = false;
+
+                UILibrary.manageNumericInput('value-' + id,function(value){
+                    PWM_VAR['clientSettingCache'][settingKey][rowKey] = value;
+                    PWM_CFGEDIT.writeSetting(settingKey, PWM_VAR['clientSettingCache'][settingKey]);
+                    NumericValueHandler.updateDurationDisplay(id, value);
+                });
+
+                PWM_MAIN.addEventHandler('value-' + settingKey,'mousewheel',function(e){ e.blur(); });
+                NumericValueHandler.updateDurationDisplay(id, readValue);
+
+                PWM_MAIN.addEventHandler('button-' + id + '-delete','click',function(){
+                    PWM_MAIN.showConfirmDialog({okAction:function(){
+                            PWM_VAR['clientSettingCache'][settingKey].splice(rowKey, 1);
+                            PWM_CFGEDIT.writeSetting(settingKey, PWM_VAR['clientSettingCache'][settingKey],function(){
+                                NumericArrayValueHandler.draw(settingKey, type);
+                            });
+                        }});
+                });
+
+            }(iteration));
+        }
+
+        PWM_MAIN.addEventHandler('button-addValue-' + settingKey,'click',function () {
+            PWM_VAR['clientSettingCache'][settingKey].push(86400);
+            PWM_CFGEDIT.writeSetting(settingKey, PWM_VAR['clientSettingCache'][settingKey],function(){
+                NumericArrayValueHandler.draw(settingKey, type);
+            });
+        });
+    };
+
+    addListeners();
+};
+
+
+// -------------------------- duration array value ---------------------------
+
+var DurationArrayValueHandler = {};
+DurationArrayValueHandler.init = function(settingKey) {
+    NumericArrayValueHandler.impl(settingKey, 'duration');
+};
 
 
 // -------------------------- string value handler ------------------------------------
@@ -2755,13 +2856,13 @@ FileValueHandler.draw = function(keyName) {
 
     PWM_MAIN.addEventHandler('button-removeFile-' + keyName,'click',function(){
         PWM_MAIN.showConfirmDialog({text:'Are you sure you want to remove the currently stored file?',okAction:function(){
-            PWM_MAIN.showWaitDialog({loadFunction:function(){
-                PWM_CFGEDIT.resetSetting(keyName,function(){
-                    FileValueHandler.init(keyName);
-                    PWM_MAIN.closeWaitDialog();
-                });
+                PWM_MAIN.showWaitDialog({loadFunction:function(){
+                        PWM_CFGEDIT.resetSetting(keyName,function(){
+                            FileValueHandler.init(keyName);
+                            PWM_MAIN.closeWaitDialog();
+                        });
+                    }});
             }});
-        }});
     });
 };
 
@@ -2770,9 +2871,9 @@ FileValueHandler.uploadFile = function(keyName) {
     options['url'] = "editor?processAction=uploadFile&key=" + keyName;
     options['nextFunction'] = function() {
         PWM_MAIN.showWaitDialog({loadFunction:function(){
-            FileValueHandler.init(keyName);
-            PWM_MAIN.closeWaitDialog();
-        }});
+                FileValueHandler.init(keyName);
+                PWM_MAIN.closeWaitDialog();
+            }});
     };
     UILibrary.uploadFileDialog(options);
 };

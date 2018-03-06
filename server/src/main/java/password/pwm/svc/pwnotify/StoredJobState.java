@@ -20,30 +20,23 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util.cli;
+package password.pwm.svc.pwnotify;
 
-import lombok.Builder;
-import lombok.Value;
-import password.pwm.PwmApplication;
-import password.pwm.config.Configuration;
-import password.pwm.config.stored.ConfigurationReader;
-import password.pwm.util.localdb.LocalDB;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import password.pwm.error.ErrorInformation;
 
-import java.io.File;
-import java.io.Writer;
-import java.util.Map;
+import java.io.Serializable;
+import java.time.Instant;
 
-@Value
-@Builder( toBuilder = true )
-public class CliEnvironment
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+public class StoredJobState implements Serializable
 {
-    final ConfigurationReader configurationReader;
-    final File configurationFile;
-    final Configuration config;
-    final File applicationPath;
-    final PwmApplication pwmApplication;
-    final LocalDB localDB;
-    final Writer debugWriter;
-    final Map<String, Object> options;
-    final MainOptions mainOptions;
+    private Instant lastStart = null;
+    private Instant lastCompletion = null;
+    private String serverInstance = null;
+    private ErrorInformation lastError = null;
 }

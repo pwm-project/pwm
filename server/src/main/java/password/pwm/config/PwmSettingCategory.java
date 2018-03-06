@@ -121,6 +121,8 @@ public enum PwmSettingCategory
     CAS_SSO( SSO ),
     BASIC_SSO( SSO ),
 
+    PW_EXP_NOTIFY( SETTINGS ),
+
     WEB_SERVICES( SETTINGS ),
     REST_SERVER( WEB_SERVICES ),
     REST_CLIENT( WEB_SERVICES ),

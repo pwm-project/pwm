@@ -20,30 +20,20 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util.cli;
+package password.pwm.svc.pwnotify;
 
-import lombok.Builder;
-import lombok.Value;
-import password.pwm.PwmApplication;
-import password.pwm.config.Configuration;
-import password.pwm.config.stored.ConfigurationReader;
-import password.pwm.util.localdb.LocalDB;
+import password.pwm.bean.SessionLabel;
+import password.pwm.bean.UserIdentity;
+import password.pwm.error.PwmUnrecoverableException;
 
-import java.io.File;
-import java.io.Writer;
-import java.util.Map;
-
-@Value
-@Builder( toBuilder = true )
-public class CliEnvironment
+interface PwNotifyStorageService
 {
-    final ConfigurationReader configurationReader;
-    final File configurationFile;
-    final Configuration config;
-    final File applicationPath;
-    final PwmApplication pwmApplication;
-    final LocalDB localDB;
-    final Writer debugWriter;
-    final Map<String, Object> options;
-    final MainOptions mainOptions;
+
+    StoredNotificationState readStoredState(
+            UserIdentity userIdentity,
+            SessionLabel sessionLabel
+    )
+            throws PwmUnrecoverableException;
+
+    void writeStoredState( UserIdentity userIdentity, SessionLabel sessionLabel, StoredNotificationState storedNotificationState ) throws PwmUnrecoverableException;
 }

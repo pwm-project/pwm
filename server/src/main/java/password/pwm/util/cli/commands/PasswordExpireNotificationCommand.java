@@ -23,7 +23,7 @@
 package password.pwm.util.cli.commands;
 
 import password.pwm.PwmApplication;
-import password.pwm.svc.pwnotify.PasswordExpireNotificationEngine;
+import password.pwm.svc.pwnotify.PwNotifyEngine;
 import password.pwm.util.cli.CliParameters;
 
 import java.util.Collections;
@@ -34,7 +34,7 @@ public class PasswordExpireNotificationCommand extends AbstractCliCommand
             throws Exception
     {
         final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
-        final PasswordExpireNotificationEngine engine = new PasswordExpireNotificationEngine( pwmApplication );
+        final PwNotifyEngine engine = new PwNotifyEngine( pwmApplication, this.cliEnvironment.getDebugWriter() );
         engine.executeJob();
     }
 
@@ -42,7 +42,7 @@ public class PasswordExpireNotificationCommand extends AbstractCliCommand
     public CliParameters getCliParameters( )
     {
         final CliParameters cliParameters = new CliParameters();
-        cliParameters.commandName = "PasswordExpirationNotification";
+        cliParameters.commandName = "PasswordNotificationJob";
         cliParameters.description = "Run the password expiration notification batch process";
         cliParameters.options = Collections.emptyList();
         cliParameters.needsPwmApplication = true;

@@ -136,17 +136,10 @@ public class ShellCommand extends AbstractCliCommand
             tokens.remove( 0 );
             cliOptions = MainClass.parseCommandOptions( command.getCliParameters(), tokens );
         }
-        final CliEnvironment newEnvironment = new CliEnvironment(
-                cliEnvironment.getConfigurationReader(),
-                cliEnvironment.getConfigurationFile(),
-                cliEnvironment.getConfig(),
-                cliEnvironment.getApplicationPath(),
-                cliEnvironment.getPwmApplication(),
-                cliEnvironment.getLocalDB(),
-                cliEnvironment.getDebugWriter(),
-                cliOptions,
-                cliEnvironment.getMainOptions()
-        );
+        final CliEnvironment newEnvironment = cliEnvironment.toBuilder()
+                .options( cliOptions )
+                .build();
+
         command.execute( commandLine, newEnvironment );
     }
 

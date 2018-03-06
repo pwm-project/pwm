@@ -346,7 +346,7 @@ public enum PwmSetting
     EMAIL_UNLOCK(
             "email.unlock", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES ),
     EMAIL_PW_EXPIRATION_NOTICE(
-            "email.pwExpirationNotice", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES ),
+            "email.pwNotice", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES ),
 
 
     // sms settings
@@ -1079,6 +1079,17 @@ public enum PwmSetting
             "db.columnType.value", PwmSettingSyntax.STRING, PwmSettingCategory.DATABASE_ADV ),
     DATABASE_DEBUG_TRACE(
             "db.debugTrace.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.DATABASE_ADV ),
+
+    // pw expiry notice
+    PW_EXPY_NOTIFY_ENABLE(
+            "pwNotify.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PW_EXP_NOTIFY ),
+    PW_EXPY_NOTIFY_PERMISSION(
+            "pwNotify.queryString", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.PW_EXP_NOTIFY ),
+    PW_EXPY_NOTIFY_INTERVAL(
+            "pwNotify.intervals", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.PW_EXP_NOTIFY ),
+    PW_EXPY_NOTIFY_JOB_OFFSET(
+            "pwNotify.job.offSet", PwmSettingSyntax.DURATION, PwmSettingCategory.PW_EXP_NOTIFY ),
+
 
     // reporting
     REPORTING_ENABLE(
