@@ -28,9 +28,13 @@ import {ConfigBaseService, IConfigService} from './base-config.service';
 
 const COLUMN_CONFIG = 'peoplesearch_search_columns';
 const ORGCHART_ENABLED = 'peoplesearch_orgChartEnabled';
+const ORGCHART_MAX_PARENTS = 'orgChartMaxParents';
+const ORGCHART_SHOW_CHILD_COUNT = 'orgChartShowChildCount';
 
 export interface IPeopleSearchConfigService extends IConfigService {
+    getOrgChartMaxParents(): IPromise<number>;
     orgChartEnabled(): IPromise<boolean>;
+    orgChartShowChildCount(): IPromise<boolean>;
 }
 
 export default class PeopleSearchConfigService
@@ -46,8 +50,16 @@ export default class PeopleSearchConfigService
         return this.getValue(COLUMN_CONFIG);
     }
 
+    getOrgChartMaxParents(): IPromise<number> {
+        return this.getValue(ORGCHART_MAX_PARENTS);
+    }
+
     orgChartEnabled(): IPromise<boolean> {
         return this.getValue(ORGCHART_ENABLED)
             .then(null, () => { return this.$q.resolve(true); }); // On error use default
+    }
+
+    orgChartShowChildCount(): IPromise<boolean> {
+        return this.getValue(ORGCHART_SHOW_CHILD_COUNT);
     }
 }

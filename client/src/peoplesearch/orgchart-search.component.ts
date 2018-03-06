@@ -41,6 +41,7 @@ export default class OrgChartSearchComponent {
     assistant: IPerson;
     person: IPerson;
     photosEnabled: boolean;
+    managementChainLimit: number;
     query: string;
     searchTextLocalStorageKey: string;
 
@@ -70,6 +71,11 @@ export default class OrgChartSearchComponent {
                 this.photosEnabled = photosEnabled;
             });
 
+        this.configService.getOrgChartMaxParents().then(
+            (orgChartMaxParents: number) => {
+                this.managementChainLimit = orgChartMaxParents;
+            });
+
         this.query = this.getSearchText();
 
         let personId: string = this.$stateParams['personId'];
@@ -95,7 +101,7 @@ export default class OrgChartSearchComponent {
                             // TODO: handle error
                         });
 
-                self.peopleService.getManagementChain(personId)
+                self.peopleService.getManagementChain(personId, self.managementChainLimit)
                     .then((managementChain: IPerson[]) => {
                             self.managementChain = managementChain;
                         },

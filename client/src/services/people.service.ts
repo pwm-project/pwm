@@ -21,29 +21,38 @@
  */
 
 
-import { IHttpService, ILogService, IPromise, IQService, IWindowService } from 'angular';
-import { IPerson } from '../models/person.model';
+import {IHttpService, ILogService, IPromise, IQService, IWindowService} from 'angular';
+import {IPerson} from '../models/person.model';
 import IPwmService from './pwm.service';
 import IOrgChartData from '../models/orgchart-data.model';
 import SearchResult from '../models/search-result.model';
+import {IPeopleSearchConfigService} from './peoplesearch-config.service';
 
 export interface IPeopleService {
     autoComplete(query: string): IPromise<IPerson[]>;
+
     getDirectReports(personId: string): IPromise<IPerson[]>;
+
     getNumberOfDirectReports(personId: string): IPromise<number>;
-    getManagementChain(personId: string): IPromise<IPerson[]>;
+
+    getManagementChain(id: string, managementChainLimit): IPromise<IPerson[]>;
+
     getOrgChartData(personId: string, skipChildren: boolean): IPromise<IOrgChartData>;
+
     getPerson(id: string): IPromise<IPerson>;
+
     search(query: string): IPromise<SearchResult>;
 }
 
 export default class PeopleService implements IPeopleService {
     PWM_GLOBAL: any;
 
-    static $inject = ['$http', '$log', '$q', 'PwmService', '$window' ];
+    static $inject = ['$http', '$log', '$q', 'ConfigService', 'PwmService', '$window'];
+
     constructor(private $http: IHttpService,
                 private $log: ILogService,
                 private $q: IQService,
+                private configService: IPeopleSearchConfigService,
                 private pwmService: IPwmService,
                 $window: IWindowService) {
         if ($window['PWM_GLOBAL']) {
@@ -55,7 +64,7 @@ export default class PeopleService implements IPeopleService {
     }
 
     autoComplete(query: string): IPromise<IPerson[]> {
-        return this.search(query, { 'includeDisplayName': true })
+        return this.search(query, {'includeDisplayName': true})
             .then((searchResult: SearchResult) => {
                 let people = searchResult.people;
 
@@ -86,18 +95,18 @@ export default class PeopleService implements IPeopleService {
         });
     }
 
-    getManagementChain(id: string): IPromise<IPerson[]> {
+    getManagementChain(id: string, managementChainLimit): IPromise<IPerson[]> {
         let people: IPerson[] = [];
-        return this.getManagerRecursive(id, people);
+        return this.getManagerRecursive(id, people, managementChainLimit);
     }
 
-    private getManagerRecursive(id: string, people: IPerson[]): IPromise<IPerson[]> {
+    private getManagerRecursive(id: string, people: IPerson[], managementChainLimit): IPromise<IPerson[]> {
         return this.getOrgChartData(id, true)
             .then((orgChartData: IOrgChartData) => {
-                if (orgChartData.manager) {
+                if (orgChartData.manager && people.length < managementChainLimit) {
                     people.push(orgChartData.manager);
 
-                    return this.getManagerRecursive(orgChartData.manager.userKey, people);
+                    return this.getManagerRecursive(orgChartData.manager.userKey, people, managementChainLimit);
                 }
 
                 return this.$q.resolve(people);
@@ -151,7 +160,7 @@ export default class PeopleService implements IPeopleService {
         let request = this.$http
             .get(this.pwmService.getPeopleSearchServerUrl('detail'), {
                 cache: true,
-                params: { userKey: id },
+                params: {userKey: id},
                 timeout: httpTimeout.promise
             });
 
@@ -177,7 +186,7 @@ export default class PeopleService implements IPeopleService {
 
         let formID: string = encodeURIComponent('&pwmFormID=' + this.PWM_GLOBAL['pwmFormID']);
         let url: string = this.pwmService.getServerUrl('search', params)
-                        + '&pwmFormID=' + this.PWM_GLOBAL['pwmFormID'];
+            + '&pwmFormID=' + this.PWM_GLOBAL['pwmFormID'];
         let request = this.$http
             .post(url, {
                 username: query,

@@ -83,7 +83,7 @@ export default class PeopleService implements IPeopleService {
         return this.$q.resolve(people);
     }
 
-    getManagementChain(id: string): angular.IPromise<IPerson[]> {
+    getManagementChain(id: string, managementChainLimit): IPromise<IPerson[]> {
         let person = this.findPerson(id);
 
         if (person) {
