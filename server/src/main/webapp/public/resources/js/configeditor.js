@@ -37,7 +37,8 @@ PWM_CFGEDIT.readSetting = function(keyName, valueWriter) {
     var maxLevel = parseInt(PWM_CFGEDIT.readNavigationFilters()['level']);
     PWM_VAR['outstandingOperations']++;
     PWM_CFGEDIT.handleWorkingIcon();
-    var url = "editor?processAction=readSetting&key=" + keyName;
+    var url = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction','readSetting');
+    url = PWM_MAIN.addParamToUrl(url, 'key', keyName);
     if (PWM_CFGEDIT.readCurrentProfile()) {
         url = PWM_MAIN.addParamToUrl(url, 'profile', PWM_CFGEDIT.readCurrentProfile());
     }
@@ -100,7 +101,8 @@ PWM_CFGEDIT.updateLastModifiedInfo = function(keyName, data) {
 PWM_CFGEDIT.writeSetting = function(keyName, valueData, nextAction) {
     PWM_VAR['outstandingOperations']++;
     PWM_CFGEDIT.handleWorkingIcon();
-    var url = "editor?processAction=writeSetting&key=" + keyName;
+    var url = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction','writeSetting');
+    url = PWM_MAIN.addParamToUrl(url, 'key', keyName);
     if (PWM_CFGEDIT.readCurrentProfile()) {
         url = PWM_MAIN.addParamToUrl(url,'profile',PWM_CFGEDIT.readCurrentProfile());
     }
@@ -171,15 +173,23 @@ PWM_CFGEDIT.updateSettingDisplay = function(keyName, isDefault) {
         }
 
         if (!isDefault) {
-            resetImageButton.style.visibility = 'visible';
-            modifiedIcon.style.display = 'inline';
+            if (resetImageButton) {
+                resetImageButton.style.visibility = 'visible';
+            }
+            if (modifiedIcon) {
+                modifiedIcon.style.display = 'inline';
+            }
             try {
                 dojo.addClass('title_' + keyName,"modified");
                 dojo.addClass('titlePane_' + keyName,"modified");
             } catch (e) { /* noop */ }
         } else {
-            resetImageButton.style.visibility = 'hidden';
-            modifiedIcon.style.display = 'none';
+            if (resetImageButton) {
+                resetImageButton.style.visibility = 'hidden';
+            }
+            if (modifiedIcon) {
+                modifiedIcon.style.display = 'none';
+            }
             try {
                 dojo.removeClass('title_' + keyName,"modified");
                 dojo.removeClass('titlePane_' + keyName,"modified");
@@ -252,13 +262,13 @@ PWM_CFGEDIT.saveConfiguration = function() {
                 } else {
                     console.log('save completed');
                     PWM_MAIN.showWaitDialog({title:'Save complete, restarting application...',loadFunction:function(){
-                        PWM_CONFIG.waitForRestart({location:'/'});
-                    }});
+                            PWM_CONFIG.waitForRestart({location:'/'});
+                        }});
                 }
             };
             PWM_MAIN.showWaitDialog({title:'Saving...',loadFunction:function(){
-                PWM_MAIN.ajaxRequest(url,loadFunction);
-            }});
+                    PWM_MAIN.ajaxRequest(url,loadFunction);
+                }});
         };
         PWM_CFGEDIT.showChangeLog(confirmText,confirmFunction);
     });
@@ -282,8 +292,8 @@ PWM_CFGEDIT.setConfigurationPassword = function(password) {
         };
         PWM_MAIN.clearDijitWidget('dialogPopup');
         PWM_MAIN.showWaitDialog({loadFunction:function(){
-            PWM_MAIN.ajaxRequest(url,loadFunction,{errorFunction:errorFunction,content:{password:password}});
-        }});
+                PWM_MAIN.ajaxRequest(url,loadFunction,{errorFunction:errorFunction,content:{password:password}});
+            }});
         return;
     }
 
@@ -300,10 +310,10 @@ function handleResetClick(settingKey) {
     var titleText = 'Reset ' + label ? label : '';
 
     PWM_MAIN.showConfirmDialog({title:titleText,text:dialogText,okAction:function(){
-        PWM_CFGEDIT.resetSetting(settingKey,function(){
-            PWM_CFGEDIT.loadMainPageBody();
-        });
-    }});
+            PWM_CFGEDIT.resetSetting(settingKey,function(){
+                PWM_CFGEDIT.loadMainPageBody();
+            });
+        }});
 }
 
 PWM_CFGEDIT.initConfigEditor = function(nextFunction) {
@@ -347,8 +357,8 @@ PWM_CFGEDIT.executeSettingFunction = function (setting, name, resultHandler, ext
     resultHandler = resultHandler !== undefined ? resultHandler : function(data) {
         var msgBody = '<div style="max-height: 400px; overflow-y: auto">' + data['successMessage'] + '</div>';
         PWM_MAIN.showDialog({width:700,title: 'Results', text: msgBody, okAction: function () {
-            PWM_CFGEDIT.loadMainPageBody();
-        }});
+                PWM_CFGEDIT.loadMainPageBody();
+            }});
     };
 
     var requestUrl = "editor?processAction=executeSettingFunction";
@@ -357,15 +367,15 @@ PWM_CFGEDIT.executeSettingFunction = function (setting, name, resultHandler, ext
     }
 
     PWM_MAIN.showWaitDialog({loadFunction:function() {
-        var loadFunction = function(data) {
-            if (data['error']) {
-                PWM_MAIN.showErrorDialog(data);
-            } else {
-                resultHandler(data);
-            }
-        };
-        PWM_MAIN.ajaxRequest(requestUrl, loadFunction, {content:jsonSendData});
-    }});
+            var loadFunction = function(data) {
+                if (data['error']) {
+                    PWM_MAIN.showErrorDialog(data);
+                } else {
+                    resultHandler(data);
+                }
+            };
+            PWM_MAIN.ajaxRequest(requestUrl, loadFunction, {content:jsonSendData});
+        }});
 };
 
 PWM_CFGEDIT.showChangeLog=function(confirmText, confirmFunction) {
@@ -400,13 +410,13 @@ PWM_CFGEDIT.showChangeLog=function(confirmText, confirmFunction) {
                 }
             };
 
-                showChangeLogDialog()
+            showChangeLogDialog()
 
         }
     };
     PWM_MAIN.showWaitDialog({loadFunction: function () {
-        PWM_MAIN.ajaxRequest(url, loadFunction);
-    }});
+            PWM_MAIN.ajaxRequest(url, loadFunction);
+        }});
 };
 
 PWM_CFGEDIT.processSettingSearch = function(destinationDiv) {
@@ -595,33 +605,33 @@ PWM_CFGEDIT.setBreadcrumbText = function(text) {
 PWM_CFGEDIT.cancelEditing = function() {
     var url =  "editor?processAction=readChangeLog";
     PWM_MAIN.showWaitDialog({loadFunction:function(){
-        var loadFunction = function(data) {
-            if (data['error']) {
-                PWM_MAIN.showDialog({title: PWM_MAIN.showString("Title_Error"), text: data['errorMessage']});
-            } else {
-                if (data['data']['modified'] === true) {
-                    var bodyText = '<div class="changeLogViewBox">';
-                    bodyText += data['data']['html'];
-                    bodyText += '</div><br/><div>';
-                    bodyText += PWM_CONFIG.showString('MenuDisplay_CancelConfig');
-                    bodyText += '</div>';
-                    PWM_MAIN.closeWaitDialog();
-                    PWM_MAIN.showConfirmDialog({dialogClass:'wide',showClose:true,allowMove:true,text:bodyText,okAction:
-                        function () {
-                            PWM_MAIN.showWaitDialog({loadFunction: function () {
-                                PWM_MAIN.ajaxRequest('editor?processAction=cancelEditing',function(){
-                                    PWM_MAIN.goto('manager', {addFormID: true});
-                                });
-                            }});
-                        }
-                    });
+            var loadFunction = function(data) {
+                if (data['error']) {
+                    PWM_MAIN.showDialog({title: PWM_MAIN.showString("Title_Error"), text: data['errorMessage']});
                 } else {
-                    PWM_MAIN.goto('manager', {addFormID: true});
+                    if (data['data']['modified'] === true) {
+                        var bodyText = '<div class="changeLogViewBox">';
+                        bodyText += data['data']['html'];
+                        bodyText += '</div><br/><div>';
+                        bodyText += PWM_CONFIG.showString('MenuDisplay_CancelConfig');
+                        bodyText += '</div>';
+                        PWM_MAIN.closeWaitDialog();
+                        PWM_MAIN.showConfirmDialog({dialogClass:'wide',showClose:true,allowMove:true,text:bodyText,okAction:
+                                function () {
+                                    PWM_MAIN.showWaitDialog({loadFunction: function () {
+                                            PWM_MAIN.ajaxRequest('editor?processAction=cancelEditing',function(){
+                                                PWM_MAIN.goto('manager', {addFormID: true});
+                                            });
+                                        }});
+                                }
+                        });
+                    } else {
+                        PWM_MAIN.goto('manager', {addFormID: true});
+                    }
                 }
-            }
-        };
-        PWM_MAIN.ajaxRequest(url, loadFunction);
-    }});
+            };
+            PWM_MAIN.ajaxRequest(url, loadFunction);
+        }});
 };
 
 PWM_CFGEDIT.showMacroHelp = function() {
@@ -694,55 +704,55 @@ PWM_CFGEDIT.showDateTimeFormatHelp = function() {
 
 PWM_CFGEDIT.ldapHealthCheck = function() {
     PWM_MAIN.showWaitDialog({loadFunction:function() {
-        var url = "editor?processAction=ldapHealthCheck";
-        url = PWM_MAIN.addParamToUrl(url,'profile',PWM_CFGEDIT.readCurrentProfile());
-        var loadFunction = function(data) {
-            PWM_MAIN.closeWaitDialog();
-            if (data['error']) {
-                PWM_MAIN.showDialog({title: PWM_MAIN.showString("Title_Error"), text: data['errorMessage']});
-            } else {
-                var bodyText = PWM_ADMIN.makeHealthHtml(data['data'],false,false);
-                var profileName = PWM_CFGEDIT.readCurrentProfile();
-                var titleText = PWM_MAIN.showString('Field_LdapProfile') + ": " + profileName;
-                PWM_MAIN.showDialog({text:bodyText,title:titleText});
-            }
-        };
-        PWM_MAIN.ajaxRequest(url,loadFunction);
-    }});
+            var url = "editor?processAction=ldapHealthCheck";
+            url = PWM_MAIN.addParamToUrl(url,'profile',PWM_CFGEDIT.readCurrentProfile());
+            var loadFunction = function(data) {
+                PWM_MAIN.closeWaitDialog();
+                if (data['error']) {
+                    PWM_MAIN.showDialog({title: PWM_MAIN.showString("Title_Error"), text: data['errorMessage']});
+                } else {
+                    var bodyText = PWM_ADMIN.makeHealthHtml(data['data'],false,false);
+                    var profileName = PWM_CFGEDIT.readCurrentProfile();
+                    var titleText = PWM_MAIN.showString('Field_LdapProfile') + ": " + profileName;
+                    PWM_MAIN.showDialog({text:bodyText,title:titleText});
+                }
+            };
+            PWM_MAIN.ajaxRequest(url,loadFunction);
+        }});
 };
 
 PWM_CFGEDIT.databaseHealthCheck = function() {
     PWM_MAIN.showWaitDialog({title:'Checking database connection...',loadFunction:function(){
-        var url =  "editor?processAction=databaseHealthCheck";
-        var loadFunction = function(data) {
-            PWM_MAIN.closeWaitDialog();
-            if (data['error']) {
-                PWM_MAIN.showDialog({title: PWM_MAIN.showString("Title_Error"), text: data['errorMessage']});
-            } else {
-                var bodyText = PWM_ADMIN.makeHealthHtml(data['data'],false,false);
-                var titleText = 'Database Connection Status';
-                PWM_MAIN.showDialog({text:bodyText,title:titleText});
-            }
-        };
-        PWM_MAIN.ajaxRequest(url,loadFunction);
-    }});
+            var url =  "editor?processAction=databaseHealthCheck";
+            var loadFunction = function(data) {
+                PWM_MAIN.closeWaitDialog();
+                if (data['error']) {
+                    PWM_MAIN.showDialog({title: PWM_MAIN.showString("Title_Error"), text: data['errorMessage']});
+                } else {
+                    var bodyText = PWM_ADMIN.makeHealthHtml(data['data'],false,false);
+                    var titleText = 'Database Connection Status';
+                    PWM_MAIN.showDialog({text:bodyText,title:titleText});
+                }
+            };
+            PWM_MAIN.ajaxRequest(url,loadFunction);
+        }});
 };
 
 PWM_CFGEDIT.httpsCertificateView = function() {
     PWM_MAIN.showWaitDialog({title:'Parsing...',loadFunction:function(){
-        var url =  "editor?processAction=httpsCertificateView";
-        var loadFunction = function(data) {
-            PWM_MAIN.closeWaitDialog();
-            if (data['error']) {
-                PWM_MAIN.showErrorDialog(data);
-            } else {
-                var bodyText = '<pre>' + data['data'] + '</pre>';
-                var titleText = 'HTTPS Certificate';
-                PWM_MAIN.showDialog({text:bodyText,title:titleText});
-            }
-        };
-        PWM_MAIN.ajaxRequest(url,loadFunction);
-    }});
+            var url =  "editor?processAction=httpsCertificateView";
+            var loadFunction = function(data) {
+                PWM_MAIN.closeWaitDialog();
+                if (data['error']) {
+                    PWM_MAIN.showErrorDialog(data);
+                } else {
+                    var bodyText = '<pre>' + data['data'] + '</pre>';
+                    var titleText = 'HTTPS Certificate';
+                    PWM_MAIN.showDialog({text:bodyText,title:titleText});
+                }
+            };
+            PWM_MAIN.ajaxRequest(url,loadFunction);
+        }});
 };
 
 PWM_CFGEDIT.smsHealthCheck = function() {
@@ -752,23 +762,23 @@ PWM_CFGEDIT.smsHealthCheck = function() {
         dialogBody += '<tr><td>Message</td><td><input name="message" type="text" value="Test Message"/></td></tr>';
         dialogBody += '</table></form>';
         PWM_MAIN.showDialog({text:dialogBody,showCancel:true,title:'Test SMS connection',closeOnOk:false,okAction:function(){
-            var formElement = PWM_MAIN.getObject("smsCheckParametersForm");
-            var formData = domForm.toObject(formElement);
-            var url =  "editor?processAction=smsHealthCheck";
-            PWM_MAIN.showWaitDialog({loadFunction:function(){
-                var loadFunction = function(data) {
-                    if (data['error']) {
-                        PWM_MAIN.showErrorDialog(data);
-                    } else {
-                        var bodyText = PWM_ADMIN.makeHealthHtml(data['data'],false,false);
-                        var titleText = 'SMS Send Message Status';
-                        PWM_MAIN.showDialog({text:bodyText,title:titleText,showCancel:true});
-                    }
+                var formElement = PWM_MAIN.getObject("smsCheckParametersForm");
+                var formData = domForm.toObject(formElement);
+                var url =  "editor?processAction=smsHealthCheck";
+                PWM_MAIN.showWaitDialog({loadFunction:function(){
+                        var loadFunction = function(data) {
+                            if (data['error']) {
+                                PWM_MAIN.showErrorDialog(data);
+                            } else {
+                                var bodyText = PWM_ADMIN.makeHealthHtml(data['data'],false,false);
+                                var titleText = 'SMS Send Message Status';
+                                PWM_MAIN.showDialog({text:bodyText,title:titleText,showCancel:true});
+                            }
 
-                };
-                PWM_MAIN.ajaxRequest(url,loadFunction,{content:formData});
+                        };
+                        PWM_MAIN.ajaxRequest(url,loadFunction,{content:formData});
+                    }});
             }});
-        }});
     });
 };
 
@@ -777,9 +787,9 @@ PWM_CFGEDIT.selectTemplate = function(newTemplate) {
         text: PWM_CONFIG.showString('Warning_ChangeTemplate'),
         okAction: function () {
             PWM_MAIN.showWaitDialog({loadFunction: function () {
-                var url = "editor?processAction=setOption&template=" + newTemplate;
-                PWM_MAIN.ajaxRequest(url, function(){ PWM_MAIN.goto('editor'); });
-            }});
+                    var url = "editor?processAction=setOption&template=" + newTemplate;
+                    PWM_MAIN.ajaxRequest(url, function(){ PWM_MAIN.goto('editor'); });
+                }});
         }
     });
 };
@@ -1184,7 +1194,7 @@ PWM_CFGEDIT.drawDisplayTextPage = function(settingKey, keys) {
 
 
 PWM_CFGEDIT.initConfigSettingsDefinition=function(nextFunction) {
-    var clientConfigUrl = PWM_GLOBAL['url-context'] + "/private/config/editor?processAction=settingData";
+    var clientConfigUrl = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction','settingData');
     var loadFunction = function(data) {
         if (data['error'] === true) {
             console.error('unable to load ' + clientConfigUrl + ', error: ' + data['errorDetail'])
@@ -1256,15 +1266,15 @@ PWM_CFGEDIT.showSettingFilter = function() {
     };
 
     PWM_MAIN.showDialog({title:'Setting Filters',text:dialogBody,loadFunction:function(){
-        //PWM_MAIN.getObject('input-settingFilterText').value = currentValues['text'];
-        PWM_MAIN.addEventHandler('form-settingFilter','change',function(){
-            updateVars();
-        });
-        updateSettingLevelDescription();
-    },okAction:function(){
-        updateIcon();
-        PWM_CFGEDIT.loadMainPageBody();
-    }});
+            //PWM_MAIN.getObject('input-settingFilterText').value = currentValues['text'];
+            PWM_MAIN.addEventHandler('form-settingFilter','change',function(){
+                updateVars();
+            });
+            updateSettingLevelDescription();
+        },okAction:function(){
+            updateIcon();
+            PWM_CFGEDIT.loadMainPageBody();
+        }});
 };
 
 

@@ -31,7 +31,7 @@ ChallengeSettingHandler.init = function(settingKey) {
         PWM_VAR['clientSettingCache'][settingKey] = resultValue;
         if (PWM_MAIN.JSLibrary.isEmpty(resultValue)) {
             var htmlBody = '<button class="btn" id="button-addValue-' + settingKey + '">';
-            htmlBody += '<span class="btn-icon pwm-icon pwm-icon-plus-square"></span>Add Value';
+            htmlBody += '<span class="btn-icon pwm-icon pwm-icon-plus-square"></span>Add Question';
             htmlBody += '</button>';
 
             var parentDivElement = PWM_MAIN.getObject(parentDiv);
@@ -55,7 +55,7 @@ ChallengeSettingHandler.draw = function(settingKey) {
     var parentDiv = "table_setting_" + settingKey;
     var resultValue = PWM_VAR['clientSettingCache'][settingKey];
     var parentDivElement = PWM_MAIN.getObject(parentDiv);
-    var bodyText = '<div class="footnote">Click on challenge questions to edit questions and policies</div>';
+    var bodyText = '<div class="footnote">Click on challenge questions to edit questions and policy settings.</div>';
     PWM_CFGEDIT.clearDivElements(parentDiv, false);
     for (var localeName in resultValue) {
         (function(localeKey) {
@@ -146,7 +146,6 @@ ChallengeSettingHandler.draw = function(settingKey) {
 
 ChallengeSettingHandler.editLocale = function(keyName, localeKey) {
     var localeDisplay = localeKey === "" ? "Default" : localeKey;
-    var dialogBody = '<div id="challengeLocaleDialogDiv" style="max-height:500px; overflow-x: auto">';
 
     var localeName = localeKey;
 
@@ -154,8 +153,19 @@ ChallengeSettingHandler.editLocale = function(keyName, localeKey) {
 
     var multiValues = resultValue[localeName];
 
+    var dialogBody = '';
+    dialogBody += '<div style="width:100%; text-align: center">'
+        + '<span>Toggle All: </span><button class="btn" id="button-toggleWordlist-' + keyName + '-' + localeKey + '">Apply Word List</button>'
+        + '<span>Change All: </span><button class="btn" id="button-changeAll-minLength-' + keyName + '-' + localeKey + '">Min Length</button>'
+        + '<button class="btn" id="button-changeAll-maxLength-' + keyName + '-' + localeKey + '">Max Length</button>'
+        + '<button class="btn" id="button-changeAll-maxQuestionCharsInAnswer-' + keyName + '-' + localeKey + '">Max Question Characters</button>'
+        + '</div>';
+    dialogBody += '<div id="challengeLocaleDialogDiv" style="max-height:500px; overflow-x: auto">';
+
     for (var iteration in multiValues) {
         (function(rowKey) {
+
+
             dialogBody += '<table class="noborder">';
             dialogBody += '<tr><td style="width: 15px" class="noborder">' + (parseInt(iteration) + 1) + '</td><td class="setting_outline">';
             dialogBody += '<table class="noborder" style="margin:0"><tr>';
@@ -171,7 +181,9 @@ ChallengeSettingHandler.editLocale = function(keyName, localeKey) {
 
             dialogBody += '<tr><td>';
 
-            dialogBody += '<label class="checkboxWrapper"><input type="checkbox" id="value-adminDefined-' + inputID + '" disabled/>Admin Defined</label>';
+            dialogBody += '<select id="value-adminDefined-' + inputID + '" disabled>'
+                + '<option value="ADMIN">Admin Defined</option><option value="USER">User Defined</option>'
+                + '</select>';
 
             dialogBody += '</td><td>';
 
@@ -208,7 +220,7 @@ ChallengeSettingHandler.editLocale = function(keyName, localeKey) {
     var dialogTitle = PWM_SETTINGS['settings'][keyName]['label'] + ' - ' + localeDisplay + ' Locale';
     PWM_MAIN.showDialog({
         title:dialogTitle,
-        buttonHtml:'<button class="btn" id="button-addValue"><span class="btn-icon pwm-icon pwm-icon-plus-square"></span>Add Value</button>',
+        buttonHtml:'<button class="btn" id="button-addValue"><span class="btn-icon pwm-icon pwm-icon-plus-square"></span>Add Question</button>',
         text:dialogBody,
         showClose:false,
         dialogClass:'wide',
@@ -216,18 +228,65 @@ ChallengeSettingHandler.editLocale = function(keyName, localeKey) {
             PWM_MAIN.addEventHandler('button-addValue','click',function(){
                 ChallengeSettingHandler.addRow(keyName,localeKey);
             });
+
+            var switchAllValues = function(settingType, settingValue) {
+                for (var iteration in multiValues) {
+                    (function(rowKey) {
+                        multiValues[rowKey][settingType] = settingValue;
+                    }(iteration));
+                }
+            };
+
+            var switchAllNumericValue = function(settingType, defaultValue, min, max) {
+                var dialogText = '<div>New Value <input type="number" id="newValue" value="' + defaultValue + '" min="' + min + '" max="' + max + '"></input></div>';
+                PWM_VAR['tempValue'] = defaultValue;
+                var loadFunction = function(){
+                    PWM_MAIN.addEventHandler('newValue','change',function(){
+                        PWM_VAR['tempValue'] = PWM_MAIN.getObject('newValue').value;
+                    })
+                };
+                var okAction = function() {
+                    switchAllValues(settingType,PWM_VAR['tempValue']);
+                    delete 'tempValue' in PWM_VAR;
+                    ChallengeSettingHandler.editLocale(keyName, localeKey);
+                };
+                PWM_MAIN.showConfirmDialog({text:dialogText,loadFunction:loadFunction, okAction:okAction});
+            };
+
+            PWM_MAIN.addEventHandler('button-toggleWordlist-' + keyName + '-' + localeKey,'click',function(){
+                PWM_MAIN.showConfirmDialog({okAction:function(){
+                        var row0value = multiValues[0]['enforceWordlist'];
+                        switchAllValues('enforceWordlist',!row0value);
+                        ChallengeSettingHandler.editLocale(keyName, localeKey);
+                    }
+                });
+            });
+
+            PWM_MAIN.addEventHandler('button-changeAll-minLength-' + keyName + '-' + localeKey,'click',function(){
+                switchAllNumericValue('minLength',4,1,255);
+            });
+            PWM_MAIN.addEventHandler('button-changeAll-maxLength-' + keyName + '-' + localeKey,'click',function(){
+                switchAllNumericValue('maxLength',200,1,255);
+            });
+            PWM_MAIN.addEventHandler('button-changeAll-maxQuestionCharsInAnswer-' + keyName + '-' + localeKey,'click',function(){
+                switchAllNumericValue('maxQuestionCharsInAnswer',3,0,100);
+            });
+
+
+
+
             for (var iteration in multiValues) {
                 (function(rowKey) {
                     var inputID = "value-" + keyName + "-" + localeName + "-" + rowKey;
                     UILibrary.manageNumericInput('button-minLength-' + inputID, function(value){
                         PWM_VAR['clientSettingCache'][keyName][localeKey][rowKey]['minLength'] = value;
-                    })
+                    });
                     UILibrary.manageNumericInput('button-maxLength-' + inputID, function(value){
                         PWM_VAR['clientSettingCache'][keyName][localeKey][rowKey]['maxLength'] = value;
-                    })
+                    });
                     UILibrary.manageNumericInput('button-maxQuestionCharsInAnswer-' + inputID, function(value){
                         PWM_VAR['clientSettingCache'][keyName][localeKey][rowKey]['maxQuestionCharsInAnswer'] = value;
-                    })
+                    });
 
                     // question text
                     var processQuestion = function() {
@@ -237,16 +296,17 @@ ChallengeSettingHandler.editLocale = function(keyName, localeKey) {
                     };
                     processQuestion();
                     PWM_MAIN.addEventHandler(inputID, 'input', function () {
-                        //if (!multiValues[rowKey]['adminDefined']) {
-                        PWM_VAR['clientSettingCache'][keyName][localeKey][rowKey]['text'] = PWM_MAIN.getObject(inputID).value;
-                        //}
+                        if (!multiValues[rowKey]['adminDefined']) {
+                            PWM_VAR['clientSettingCache'][keyName][localeKey][rowKey]['text'] = PWM_MAIN.getObject(inputID).value;
+                        }
                     });
 
-                    // admin defined checkbox
+                    // admin defined select
                     PWM_MAIN.getObject('value-adminDefined-' + inputID).disabled = false;
-                    PWM_MAIN.getObject('value-adminDefined-' + inputID).checked = multiValues[rowKey]['adminDefined'];
+                    PWM_MAIN.JSLibrary.setValueOfSelectElement('value-adminDefined-' + inputID, multiValues[rowKey]['adminDefined'] ? 'ADMIN' : 'USER');
+
                     PWM_MAIN.addEventHandler('value-adminDefined-' + inputID,'change',function(){
-                        var checked = PWM_MAIN.getObject('value-adminDefined-' + inputID).checked;
+                        var checked = PWM_MAIN.JSLibrary.readValueOfSelectElement('value-adminDefined-' + inputID) === 'ADMIN';
                         multiValues[rowKey]['adminDefined'] = checked;
                         processQuestion();
                     });
@@ -280,12 +340,12 @@ ChallengeSettingHandler.deleteLocale = function(keyName,localeKey) {
         text: 'Are you sure you want to remove all the questions for the <i>' + localeKey + '</i> locale?',
         okAction:function(){
             PWM_MAIN.showWaitDialog({loadFunction:function(){
-                delete PWM_VAR['clientSettingCache'][keyName][localeKey];
-                PWM_CFGEDIT.writeSetting(keyName, PWM_VAR['clientSettingCache'][keyName],function(){
-                    PWM_MAIN.closeWaitDialog();
-                    ChallengeSettingHandler.init(keyName);
-                });
-            }});
+                    delete PWM_VAR['clientSettingCache'][keyName][localeKey];
+                    PWM_CFGEDIT.writeSetting(keyName, PWM_VAR['clientSettingCache'][keyName],function(){
+                        PWM_MAIN.closeWaitDialog();
+                        ChallengeSettingHandler.init(keyName);
+                    });
+                }});
         }
     });
 };
@@ -310,11 +370,11 @@ ChallengeSettingHandler.deleteRow = function(keyName, localeKey, rowName) {
     PWM_MAIN.showConfirmDialog({
         okAction:function(){
             PWM_MAIN.showWaitDialog({loadFunction:function(){
-                delete PWM_VAR['clientSettingCache'][keyName][localeKey][rowName];
-                ChallengeSettingHandler.write(keyName,function(){
-                    ChallengeSettingHandler.editLocale(keyName, localeKey);
-                });
-            }})
+                    delete PWM_VAR['clientSettingCache'][keyName][localeKey][rowName];
+                    ChallengeSettingHandler.write(keyName,function(){
+                        ChallengeSettingHandler.editLocale(keyName, localeKey);
+                    });
+                }})
         }
     });
 };
@@ -325,7 +385,10 @@ ChallengeSettingHandler.addRow = function(keyName, localeKey) {
             var newValues = PWM_MAIN.copyObject(ChallengeSettingHandler.defaultItem);
             PWM_VAR['clientSettingCache'][keyName][localeKey].push(newValues);
             ChallengeSettingHandler.write(keyName,function(){
-                ChallengeSettingHandler.editLocale(keyName, localeKey);
+                PWM_MAIN.showDialog({title:PWM_MAIN.showString('Title_Success'),text:'Added new item to end of existing question list.',okAction:function(){
+                        ChallengeSettingHandler.editLocale(keyName, localeKey);
+                    }}
+                );
             });
         }
     });

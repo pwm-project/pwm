@@ -51,6 +51,8 @@ public enum ConfigGuideFormField
     PARAM_TELEMETRY_ENABLE( PwmSetting.PUBLISH_STATS_ENABLE ),
     PARAM_TELEMETRY_DESCRIPTION( PwmSetting.PUBLISH_STATS_SITE_DESCRIPTION ),
 
+    CHALLENGE_RESPONSE_DATA( null ),
+
     PARAM_CONFIG_PASSWORD( null ),;
 
     private final PwmSetting pwmSetting;

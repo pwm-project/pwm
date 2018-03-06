@@ -24,8 +24,10 @@ package password.pwm.http.servlet.configeditor;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
@@ -895,10 +897,39 @@ public class ConfigEditorServlet extends ControlledPwmServlet
             throws IOException, PwmUnrecoverableException
     {
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
-        final PwmSettingTemplateSet template = configManagerBean.getStoredConfiguration().getTemplateSet();
+        final LinkedHashMap<String, Object> returnMap = new LinkedHashMap<>( generateSettingData(
+                pwmRequest.getPwmApplication(),
+                configManagerBean.getStoredConfiguration(),
+                pwmRequest.getSessionLabel(),
+                pwmRequest.getLocale()
+                )
+        );
+
+        if ( pwmRequest.getPwmApplication().getApplicationMode() == PwmApplicationMode.CONFIGURATION && !PwmConstants.TRIAL_MODE )
+        {
+            if ( !configManagerBean.isConfigUnlockedWarningShown() )
+            {
+                returnMap.put( "configUnlocked", true );
+                configManagerBean.setConfigUnlockedWarningShown( true );
+            }
+        }
+
+        final RestResultBean restResultBean = RestResultBean.withData( new LinkedHashMap<>( returnMap ) );
+        pwmRequest.outputJsonResult( restResultBean );
+        return ProcessStatus.Halt;
+    }
+
+    public static Map<String, Object> generateSettingData(
+            final PwmApplication pwmApplication,
+            final StoredConfigurationImpl storedConfiguration,
+            final SessionLabel sessionLabel,
+            final Locale locale
+
+            ) throws PwmUnrecoverableException
+    {
         final LinkedHashMap<String, Object> returnMap = new LinkedHashMap<>();
-        final Locale locale = pwmRequest.getLocale();
-        final MacroMachine macroMachine = MacroMachine.forNonUserSpecific( pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel() );
+        final MacroMachine macroMachine = MacroMachine.forNonUserSpecific( pwmApplication, sessionLabel );
+        final PwmSettingTemplateSet template = storedConfiguration.getTemplateSet();
 
         {
             final LinkedHashMap<String, Object> settingMap = new LinkedHashMap<>();
@@ -931,23 +962,13 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         }
         {
             final LinkedHashMap<String, Object> varMap = new LinkedHashMap<>();
-            varMap.put( "ldapProfileIds", configManagerBean.getStoredConfiguration().readSetting( PwmSetting.LDAP_PROFILE_LIST ).toNativeObject() );
-            varMap.put( "currentTemplate", configManagerBean.getStoredConfiguration().getTemplateSet() );
-            if ( pwmRequest.getPwmApplication().getApplicationMode() == PwmApplicationMode.CONFIGURATION && !PwmConstants.TRIAL_MODE )
-            {
-                if ( !configManagerBean.isConfigUnlockedWarningShown() )
-                {
-                    varMap.put( "configUnlocked", true );
-                    configManagerBean.setConfigUnlockedWarningShown( true );
-                }
-            }
-            varMap.put( "configurationNotes", configManagerBean.getStoredConfiguration().readConfigProperty( ConfigurationProperty.NOTES ) );
+            varMap.put( "ldapProfileIds", storedConfiguration.readSetting( PwmSetting.LDAP_PROFILE_LIST ).toNativeObject() );
+            varMap.put( "currentTemplate", storedConfiguration.getTemplateSet() );
+            varMap.put( "configurationNotes", storedConfiguration.readConfigProperty( ConfigurationProperty.NOTES ) );
             returnMap.put( "var", varMap );
         }
+        return Collections.unmodifiableMap( returnMap );
 
-        final RestResultBean restResultBean = RestResultBean.withData( returnMap );
-        pwmRequest.outputJsonResult( restResultBean );
-        return ProcessStatus.Halt;
     }
 
     @ActionHandler( action = "testMacro" )

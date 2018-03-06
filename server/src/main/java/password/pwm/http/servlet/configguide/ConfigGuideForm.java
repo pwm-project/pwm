@@ -27,6 +27,7 @@ import password.pwm.config.PwmSettingTemplate;
 import password.pwm.config.StoredValue;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.config.value.BooleanValue;
+import password.pwm.config.value.ChallengeValue;
 import password.pwm.config.value.FileValue;
 import password.pwm.config.value.PasswordValue;
 import password.pwm.config.value.StringArrayValue;
@@ -61,6 +62,7 @@ public class ConfigGuideForm
 
         defaultLdapForm.put( ConfigGuideFormField.PARAM_LDAP_PORT, "636" );
         defaultLdapForm.put( ConfigGuideFormField.PARAM_LDAP_SECURE, "true" );
+        defaultLdapForm.remove( ConfigGuideFormField.CHALLENGE_RESPONSE_DATA );
 
         return Collections.unmodifiableMap( defaultLdapForm );
     }
@@ -203,6 +205,14 @@ public class ConfigGuideForm
 
             final String siteDescription = formData.get( ConfigGuideFormField.PARAM_TELEMETRY_DESCRIPTION );
             storedConfiguration.writeSetting( PwmSetting.PUBLISH_STATS_SITE_DESCRIPTION, null, new StringValue( siteDescription ), null );
+        }
+
+        // cr policy
+        if ( formData.containsKey( ConfigGuideFormField.CHALLENGE_RESPONSE_DATA ) )
+        {
+            final String stringValue = formData.get( ConfigGuideFormField.CHALLENGE_RESPONSE_DATA );
+            final StoredValue challengeValue = ChallengeValue.factory().fromJson( stringValue );
+            storedConfiguration.writeSetting( PwmSetting.CHALLENGE_RANDOM_CHALLENGES, "default", challengeValue, null );
         }
 
         // set site url

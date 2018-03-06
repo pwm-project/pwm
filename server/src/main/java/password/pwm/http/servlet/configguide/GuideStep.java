@@ -50,6 +50,7 @@ public enum GuideStep
     DATABASE( DbVisibilityCheck.class ),
     LDAP_PERMISSIONS( LdapSchemeVisibilityCheck.class ),
     LDAP_TESTUSER( null ),
+    CR_POLICY( null ),
     APP( null ),
     PASSWORD( null ),
     END( null ),
