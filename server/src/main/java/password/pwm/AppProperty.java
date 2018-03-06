@@ -256,7 +256,7 @@ public enum AppProperty
     PASSWORD_STRENGTH_THRESHOLD_WEAK                ( "password.strength.threshold.weak" ),
     PASSWORD_STRENGTH_THRESHOLD_VERY_WEAK           ( "password.strength.threshold.veryWeak" ),
 
-    PWNOTIFY__MAX_LDAP_SEARCH_SIZE                  ("pwNotify.maxLdapSearchSize"),
+    PWNOTIFY__MAX_LDAP_SEARCH_SIZE                  ( "pwNotify.maxLdapSearchSize" ),
 
     PEOPLESEARCH_MAX_VALUE_VERIFYUSERDN             ( "peoplesearch.values.verifyUserDN" ),
     PEOPLESEARCH_VALUE_MAXCOUNT                     ( "peoplesearch.values.maxCount" ),

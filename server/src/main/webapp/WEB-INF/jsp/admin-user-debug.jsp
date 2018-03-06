@@ -31,6 +31,7 @@
 <%@ page import="password.pwm.http.servlet.admin.UserDebugDataBean" %>
 <%@ page import="password.pwm.i18n.Display" %>
 <%@ page import="java.util.Map" %>
+<%@ page import="password.pwm.util.java.TimeDuration" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -106,7 +107,10 @@
             </tr>
             <tr>
                 <td class="key">Password Expiration</td>
-                <td><%=JspUtility.freindlyWrite(pageContext, userInfo.getPasswordExpirationTime())%></td>
+                <td>
+                    <%=JspUtility.freindlyWrite(pageContext, userInfo.getPasswordExpirationTime())%>
+                    ( <%=TimeDuration.fromCurrent(userInfo.getPasswordExpirationTime()).asCompactString()%> )
+                </td>
             </tr>
             <tr>
                 <td class="key">Password Last Modified</td>

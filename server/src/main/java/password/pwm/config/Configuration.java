@@ -55,6 +55,7 @@ import password.pwm.config.value.FormValue;
 import password.pwm.config.value.LocalizedStringArrayValue;
 import password.pwm.config.value.LocalizedStringValue;
 import password.pwm.config.value.NamedSecretValue;
+import password.pwm.config.value.NumericArrayValue;
 import password.pwm.config.value.NumericValue;
 import password.pwm.config.value.PasswordValue;
 import password.pwm.config.value.RemoteWebServiceValue;
@@ -251,6 +252,15 @@ public class Configuration implements SettingReader
                 throw new IllegalArgumentException( "setting value is not readable as number" );
             }
             return ( long ) value.toNativeObject();
+        }
+
+        public static List<Long> valueToLongArray( final StoredValue value )
+        {
+            if ( !( value instanceof NumericArrayValue ) )
+            {
+                throw new IllegalArgumentException( "setting value is not readable as number array" );
+            }
+            return ( List<Long> ) value.toNativeObject();
         }
 
         public static String valueToString( final StoredValue value )
@@ -555,6 +565,11 @@ public class Configuration implements SettingReader
         // challengeProfile challengeSet's are mutable (question text) and can not be cached.
         final ChallengeProfile challengeProfile = ChallengeProfile.readChallengeProfileFromConfig( profile, locale, storedConfiguration );
         return challengeProfile;
+    }
+
+    public List<Long> readSettingAsLongArray( final PwmSetting setting )
+    {
+        return JavaTypeConverter.valueToLongArray( readStoredValue( setting ) );
     }
 
     public long readSettingAsLong( final PwmSetting setting )

@@ -133,6 +133,35 @@
                 </table>
             </pwm:if>
         </pwm:if>
+        <pwm:if test="<%=PwmIfTest.configurationOpen%>">
+            <table class="noborder">
+                <tr>
+                    <td colspan="2"><pwm:display key="Header_ConfigModeActive" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/> </td>
+                </tr>
+                <tr>
+                    <td class="menubutton_key">
+                        <a class="menubutton" id="button-configmanager" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ConfigManager.servletUrl()%>'/>">
+                            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-file-text-o"></span></pwm:if>
+                            Configuration Manager
+                        </a>
+                    </td>
+                    <td class="menubutton-description">
+                        .
+                    </td>
+                </tr>
+                <tr>
+                    <td class="menubutton_key">
+                        <a class="menubutton" id="button-configeditor" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ConfigEditor.servletUrl()%>'/>">
+                            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-file-text-o"></span></pwm:if>
+                            Configuration Editor
+                        </a>
+                    </td>
+                    <td class="menubutton-description">
+                        .
+                    </td>
+                </tr>
+            </table>
+        </pwm:if>
     </div>
     <div class="push"></div>
 </div>

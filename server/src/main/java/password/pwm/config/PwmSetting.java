@@ -346,7 +346,7 @@ public enum PwmSetting
     EMAIL_UNLOCK(
             "email.unlock", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES ),
     EMAIL_PW_EXPIRATION_NOTICE(
-            "email.pwExpirationNotice", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES ),
+            "email.pwNotice", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES ),
 
 
     // sms settings
@@ -1082,11 +1082,13 @@ public enum PwmSetting
 
     // pw expiry notice
     PW_EXPY_NOTIFY_ENABLE(
-            "pwExpiryNotify.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PW_EXP_NOTIFY),
+            "pwNotify.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PW_EXP_NOTIFY ),
     PW_EXPY_NOTIFY_PERMISSION(
-            "pwExpiryNotify.queryString", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.PW_EXP_NOTIFY),
+            "pwNotify.queryString", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.PW_EXP_NOTIFY ),
     PW_EXPY_NOTIFY_INTERVAL(
-            "pwExpiryNotify.intervals", PwmSettingSyntax.DURATION, PwmSettingCategory.PW_EXP_NOTIFY),
+            "pwNotify.intervals", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.PW_EXP_NOTIFY ),
+    PW_EXPY_NOTIFY_JOB_OFFSET(
+            "pwNotify.job.offSet", PwmSettingSyntax.DURATION, PwmSettingCategory.PW_EXP_NOTIFY ),
 
 
     // reporting
