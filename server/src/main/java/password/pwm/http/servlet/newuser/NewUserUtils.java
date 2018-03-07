@@ -63,7 +63,7 @@ import password.pwm.svc.token.TokenPayload;
 import password.pwm.svc.token.TokenService;
 import password.pwm.util.PasswordData;
 import password.pwm.util.RandomPasswordGenerator;
-import password.pwm.util.ValueObfuscator;
+import password.pwm.svc.token.TokenDestinationDisplayMasker;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
@@ -598,8 +598,8 @@ class NewUserUtils
                 }
 
                 newUserBean.getTokenVerificationProgress().getIssuedTokens().add( TokenVerificationProgress.TokenChannel.SMS );
-                final ValueObfuscator valueObfuscator = new ValueObfuscator( pwmApplication.getConfig() );
-                newUserBean.getTokenVerificationProgress().setTokenDisplayText( valueObfuscator.maskPhone( toNum ) );
+                final TokenDestinationDisplayMasker tokenDestinationDisplayMasker = new TokenDestinationDisplayMasker( pwmApplication.getConfig() );
+                newUserBean.getTokenVerificationProgress().setTokenDisplayText( tokenDestinationDisplayMasker.maskPhone( toNum ) );
                 newUserBean.getTokenVerificationProgress().setPhase( TokenVerificationProgress.TokenChannel.SMS );
             }
             break;
@@ -643,8 +643,8 @@ class NewUserUtils
 
                 newUserBean.getTokenVerificationProgress().getIssuedTokens().add( TokenVerificationProgress.TokenChannel.EMAIL );
                 newUserBean.getTokenVerificationProgress().setPhase( TokenVerificationProgress.TokenChannel.EMAIL );
-                final ValueObfuscator valueObfuscator = new ValueObfuscator( pwmApplication.getConfig() );
-                newUserBean.getTokenVerificationProgress().setTokenDisplayText( valueObfuscator.maskEmail( toAddress ) );
+                final TokenDestinationDisplayMasker tokenDestinationDisplayMasker = new TokenDestinationDisplayMasker( pwmApplication.getConfig() );
+                newUserBean.getTokenVerificationProgress().setTokenDisplayText( tokenDestinationDisplayMasker.maskEmail( toAddress ) );
 
                 final EmailItemBean emailItemBean = new EmailItemBean(
                         outputDestTokenData.getEmail(),

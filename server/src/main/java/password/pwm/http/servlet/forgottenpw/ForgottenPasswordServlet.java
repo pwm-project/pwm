@@ -1506,7 +1506,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
     {
         final ForgottenPasswordBean forgottenPasswordBean = forgottenPasswordBean( pwmRequest );
         final List<TokenDestinationItem> destItems = ForgottenPasswordUtil.figureAvailableTokenDestinations( pwmRequest, forgottenPasswordBean );
-        pwmRequest.setAttribute( PwmRequestAttribute.ForgottenPasswordTokenDestItems, new ArrayList<>( destItems ) );
+        pwmRequest.setAttribute( PwmRequestAttribute.TokenDestItems, new ArrayList<>( destItems ) );
         pwmRequest.forwardToJsp( JspUrl.RECOVER_PASSWORD_TOKEN_CHOICE );
     }
 }

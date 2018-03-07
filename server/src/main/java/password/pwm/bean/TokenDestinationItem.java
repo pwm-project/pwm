@@ -29,7 +29,7 @@ import password.pwm.config.Configuration;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.UserInfo;
-import password.pwm.util.ValueObfuscator;
+import password.pwm.svc.token.TokenDestinationDisplayMasker;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.secure.SecureService;
 
@@ -76,7 +76,7 @@ public class TokenDestinationItem implements Serializable
         final Configuration configuration = pwmApplication.getConfig();
         final SecureService secureService = pwmApplication.getSecureService();
 
-        final ValueObfuscator valueObfuscator = new ValueObfuscator( configuration );
+        final TokenDestinationDisplayMasker tokenDestinationDisplayMasker = new TokenDestinationDisplayMasker( configuration );
 
         final Map<String, TokenDestinationItem> results = new LinkedHashMap<>(  );
 
@@ -93,7 +93,7 @@ public class TokenDestinationItem implements Serializable
                 final String idHash = secureService.hash( emailValue + Type.email.name() );
                 final TokenDestinationItem item = TokenDestinationItem.builder()
                         .id( idHash )
-                        .display( valueObfuscator.maskEmail( emailValue ) )
+                        .display( tokenDestinationDisplayMasker.maskEmail( emailValue ) )
                         .value( emailValue )
                         .type( Type.email )
                         .build();
@@ -114,7 +114,7 @@ public class TokenDestinationItem implements Serializable
                 final String idHash = secureService.hash( smsValue + Type.sms.name() );
                 final TokenDestinationItem item = TokenDestinationItem.builder()
                         .id( idHash )
-                        .display( valueObfuscator.maskPhone( smsValue ) )
+                        .display( tokenDestinationDisplayMasker.maskPhone( smsValue ) )
                         .value( smsValue )
                         .type( Type.sms )
                         .build();

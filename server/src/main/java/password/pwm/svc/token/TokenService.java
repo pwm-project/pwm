@@ -57,7 +57,6 @@ import password.pwm.svc.intruder.RecordType;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.DataStore;
-import password.pwm.util.ValueObfuscator;
 import password.pwm.util.db.DatabaseDataStore;
 import password.pwm.util.db.DatabaseTable;
 import password.pwm.util.java.JavaHelper;
@@ -826,12 +825,12 @@ public class TokenService implements PwmService
                 final String sms
         )
         {
-            final ValueObfuscator valueObfuscator = new ValueObfuscator( configuration );
+            final TokenDestinationDisplayMasker tokenDestinationDisplayMasker = new TokenDestinationDisplayMasker( configuration );
             final StringBuilder displayDestAddress = new StringBuilder();
             {
                 if ( sentTypes.contains( TokenDestinationItem.Type.email ) )
                 {
-                    displayDestAddress.append( valueObfuscator.maskEmail( email ) );
+                    displayDestAddress.append( tokenDestinationDisplayMasker.maskEmail( email ) );
                 }
 
                 if ( sentTypes.contains( TokenDestinationItem.Type.sms ) )
@@ -840,7 +839,7 @@ public class TokenService implements PwmService
                     {
                         displayDestAddress.append( " & " );
                     }
-                    displayDestAddress.append( valueObfuscator.maskPhone( sms ) );
+                    displayDestAddress.append( tokenDestinationDisplayMasker.maskPhone( sms ) );
                 }
             }
             return displayDestAddress.toString();

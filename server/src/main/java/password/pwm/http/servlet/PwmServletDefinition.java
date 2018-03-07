@@ -40,6 +40,7 @@ import password.pwm.http.bean.SetupResponsesBean;
 import password.pwm.http.bean.ShortcutsBean;
 import password.pwm.http.bean.UpdateProfileBean;
 import password.pwm.http.servlet.accountinfo.AccountInformationServlet;
+import password.pwm.http.servlet.activation.ActivateUserServlet;
 import password.pwm.http.servlet.admin.AdminServlet;
 import password.pwm.http.servlet.changepw.PrivateChangePasswordServlet;
 import password.pwm.http.servlet.changepw.PublicChangePasswordServlet;
@@ -94,7 +95,7 @@ public enum PwmServletDefinition
     ConfigManager_PwNotify( ConfigManagerPwNotifyServlet.class, ConfigManagerBean.class ),
 
     NewUser( NewUserServlet.class, NewUserBean.class ),
-    ActivateUser( password.pwm.http.servlet.ActivateUserServlet.class, ActivateUserBean.class ),
+    ActivateUser( ActivateUserServlet.class, ActivateUserBean.class ),
     ForgottenPassword( password.pwm.http.servlet.forgottenpw.ForgottenPasswordServlet.class, ForgottenPasswordBean.class ),
     ForgottenUsername( password.pwm.http.servlet.ForgottenUsernameServlet.class, null ),;
 

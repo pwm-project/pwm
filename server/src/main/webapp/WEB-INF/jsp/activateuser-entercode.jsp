@@ -25,6 +25,7 @@
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ page import="password.pwm.http.bean.ActivateUserBean" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
+<%@ page import="password.pwm.http.servlet.activation.ActivateUserServlet" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%@ include file="fragment/header.jsp" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
@@ -36,7 +37,7 @@
     <div id="centerbody">
         <h1 id="page-content-title"><pwm:display key="Title_ActivateUser" displayIfMissing="true"/></h1>
         <% final ActivateUserBean activateUserBean = JspUtility.getSessionBean(pageContext, ActivateUserBean.class); %>
-        <% final String destination = activateUserBean.getTokenDisplayText(); %>
+        <% final String destination = activateUserBean.getTokenDestination().getDisplay(); %>
         <p><pwm:display key="Display_RecoverEnterCode" value1="<%=destination%>"/></p>
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <h2><label for="<%=PwmConstants.PARAM_TOKEN%>"><pwm:display key="Field_Code"/></label></h2>
@@ -50,8 +51,16 @@
                 <input type="hidden" id="processAction" name="processAction" value="enterCode"/>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>
+
+            <% if ( (Boolean)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ShowGoBackButton) ) { %>
+            <button type="submit" id="button-goBack" name="button-goBack" class="btn" form="form-goBack">
+                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-backward"></span></pwm:if>
+                <pwm:display key="Button_GoBack"/>
+            </button>
+            <% } %>
+
             <pwm:if test="<%=PwmIfTest.showCancel%>">
-                <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" class="something">
+                <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded">
                     <input type="hidden" name="processAction" value="reset"/>
                     <button type="submit" name="button" class="btn" id="buttonCancel">
                         <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-times"></span>&nbsp</pwm:if>
@@ -64,13 +73,16 @@
     </div>
     <div class="push"></div>
 </div>
-<pwm:script>
-<script type="text/javascript">
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        PWM_MAIN.getObject('<%=PwmConstants.PARAM_TOKEN%>').focus();
-    });
-</script>
-</pwm:script>
+<form id="form-goBack" action="<pwm:current-url/>" method="post">
+    <input type="hidden" name="<%=PwmConstants.PARAM_ACTION_REQUEST%>" value="<%=ActivateUserServlet.ActivateUserAction.reset%>"/>
+    <input type="hidden" name="<%=PwmConstants.PARAM_RESET_TYPE%>" value="<%=ActivateUserServlet.ResetType.clearTokenDestination%>"/>
+    <input type="hidden" name="<%=PwmConstants.PARAM_FORM_ID%>" value="<pwm:FormID/>"/>
+</form>
+<form id="form-cancel" action="<pwm:current-url/>" method="post">
+    <input type="hidden" name="<%=PwmConstants.PARAM_ACTION_REQUEST%>" value="<%=ActivateUserServlet.ActivateUserAction.reset%>"/>
+    <input type="hidden" name="<%=PwmConstants.PARAM_RESET_TYPE%>" value="<%=ActivateUserServlet.ResetType.exitActivation%>"/>
+    <input type="hidden" name="<%=PwmConstants.PARAM_FORM_ID%>" value="<pwm:FormID/>"/>
+</form>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>
