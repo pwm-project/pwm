@@ -156,6 +156,7 @@
 <pwm:script-ref url="/public/resources/js/uilibrary.js"/>
 <pwm:script-ref url="/public/resources/js/configeditor.js"/>
 <pwm:script-ref url="/public/resources/js/configeditor-settings.js"/>
+<pwm:script-ref url="/public/resources/js/configeditor-settings-form.js"/>
 <pwm:script-ref url="/public/resources/js/configeditor-settings-challenges.js"/>
 <pwm:script-ref url="/public/resources/js/configeditor-settings-customlink.js"/>
 <pwm:script-ref url="/public/resources/js/configeditor-settings-remotewebservices.js"/>

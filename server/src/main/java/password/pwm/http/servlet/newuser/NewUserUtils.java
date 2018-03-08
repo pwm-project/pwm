@@ -34,7 +34,7 @@ import password.pwm.PwmApplication;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.SessionLabel;
-import password.pwm.bean.TokenVerificationProgress;
+import password.pwm.bean.TokenDestinationItem;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -43,11 +43,13 @@ import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.profile.NewUserProfile;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.value.data.ActionConfiguration;
+import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.NewUserBean;
@@ -59,11 +61,11 @@ import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.svc.token.TokenPayload;
-import password.pwm.svc.token.TokenService;
+import password.pwm.svc.token.TokenType;
+import password.pwm.svc.token.TokenUtil;
 import password.pwm.util.PasswordData;
 import password.pwm.util.RandomPasswordGenerator;
-import password.pwm.svc.token.TokenDestinationDisplayMasker;
+import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
@@ -72,13 +74,16 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.operations.PasswordUtility;
-import password.pwm.ws.client.rest.RestTokenDataClient;
 import password.pwm.ws.client.rest.form.FormDataRequestBean;
 import password.pwm.ws.client.rest.form.FormDataResponseBean;
 import password.pwm.ws.client.rest.form.RestFormDataClient;
 
+import javax.servlet.ServletException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -360,7 +365,7 @@ class NewUserUtils
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
-        final MacroMachine macroMachine = createMacroMachineForNewUser( pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), formValues );
+        final MacroMachine macroMachine = createMacroMachineForNewUser( pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), formValues, null );
         final NewUserProfile newUserProfile = NewUserServlet.getNewUserProfile( pwmRequest );
         final List<String> configuredNames = newUserProfile.readSettingAsStringArray( PwmSetting.NEWUSER_USERNAME_DEFINITION );
         final List<String> failedValues = new ArrayList<>();
@@ -480,7 +485,8 @@ class NewUserUtils
     static MacroMachine createMacroMachineForNewUser(
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
-            final NewUserForm newUserForm
+            final NewUserForm newUserForm,
+            final TokenDestinationItem tokenDestinationItem
     )
             throws PwmUnrecoverableException
     {
@@ -500,184 +506,11 @@ class NewUserUtils
                 .attributes( formValues )
                 .build();
 
-        return MacroMachine.forUser( pwmApplication, sessionLabel, stubUserBean, stubLoginBean );
-    }
+        final MacroMachine.StringReplacer stringReplacer = tokenDestinationItem == null
+                ? null
+                : TokenUtil.makeTokenDestStringReplacer( tokenDestinationItem );
 
-    @SuppressWarnings( "checkstyle:MethodLength" )
-    static void initializeToken(
-            final PwmRequest pwmRequest,
-            final NewUserBean newUserBean,
-            final TokenVerificationProgress.TokenChannel tokenType
-    )
-            throws PwmUnrecoverableException
-    {
-        final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-
-        if ( pwmApplication.getConfig().getTokenStorageMethod() == TokenStorageMethod.STORE_LDAP )
-        {
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[] {
-                    "cannot generate new user tokens when storage type is configured as STORE_LDAP.",
-            } ) );
-        }
-
-        final NewUserProfile newUserProfile = NewUserServlet.getNewUserProfile( pwmRequest );
-        final Configuration config = pwmApplication.getConfig();
-        final Map<String, String> tokenPayloadMap = NewUserFormUtils.toTokenPayload( pwmRequest, newUserBean );
-        final MacroMachine macroMachine = createMacroMachineForNewUser( pwmApplication, pwmRequest.getSessionLabel(), newUserBean.getNewUserForm() );
-
-        switch ( tokenType )
-        {
-            case SMS:
-            {
-                String toNum = null;
-                final NewUserForm userForm = newUserBean.getNewUserForm();
-                if ( userForm != null
-                        && userForm.getFormData() != null
-                        && userForm.getFormData().get( pwmApplication.getConfig().getDefaultLdapProfile().readSettingAsString( PwmSetting.SMS_USER_PHONE_ATTRIBUTE ) ) != null
-                        )
-                {
-                    toNum = userForm.getFormData().get( pwmApplication.getConfig().getDefaultLdapProfile().readSettingAsString( PwmSetting.SMS_USER_PHONE_ATTRIBUTE ) );
-                    if ( toNum.isEmpty() )
-                    {
-                        toNum = null;
-                    }
-                }
-
-                final RestTokenDataClient.TokenDestinationData inputTokenDestData = new RestTokenDataClient.TokenDestinationData(
-                        null, toNum, null );
-                final RestTokenDataClient restTokenDataClient = new RestTokenDataClient( pwmApplication );
-                final RestTokenDataClient.TokenDestinationData outputDestTokenData = restTokenDataClient.figureDestTokenDisplayString(
-                        pwmRequest.getSessionLabel(),
-                        inputTokenDestData,
-                        null,
-                        pwmRequest.getLocale() );
-                if ( outputDestTokenData == null || outputDestTokenData.getSms() == null || outputDestTokenData.getSms().isEmpty() )
-                {
-                    //avoid sending SMS code token
-                    break;
-                }
-                final String tokenKey;
-                try
-                {
-                    final TokenPayload tokenPayload = pwmApplication.getTokenService().createTokenPayload(
-                            password.pwm.svc.token.TokenType.NEWUSER_SMS,
-                            newUserProfile.getTokenDurationSMS( config ),
-                            tokenPayloadMap,
-                            null,
-                            Collections.singleton( outputDestTokenData.getSms() )
-                    );
-                    tokenKey = pwmApplication.getTokenService().generateNewToken( tokenPayload,
-                            pwmRequest.getSessionLabel() );
-                }
-                catch ( PwmOperationalException e )
-                {
-                    throw new PwmUnrecoverableException( e.getErrorInformation() );
-                }
-
-                final String message = config.readSettingAsLocalizedString( PwmSetting.SMS_NEWUSER_TOKEN_TEXT,
-                        pwmSession.getSessionStateBean().getLocale() );
-
-                try
-                {
-                    TokenService.TokenSender.sendSmsToken(
-                            TokenService.TokenSendInfo.builder()
-                                    .pwmApplication( pwmApplication )
-                                    .userInfo( null )
-                                    .macroMachine( macroMachine )
-                                    .smsNumber( outputDestTokenData.getSms() )
-                                    .smsMessage( message )
-                                    .tokenKey( tokenKey )
-                                    .sessionLabel( pwmRequest.getSessionLabel() )
-                                    .build()
-                    );
-                }
-                catch ( Exception e )
-                {
-                    throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN ) );
-                }
-
-                newUserBean.getTokenVerificationProgress().getIssuedTokens().add( TokenVerificationProgress.TokenChannel.SMS );
-                final TokenDestinationDisplayMasker tokenDestinationDisplayMasker = new TokenDestinationDisplayMasker( pwmApplication.getConfig() );
-                newUserBean.getTokenVerificationProgress().setTokenDisplayText( tokenDestinationDisplayMasker.maskPhone( toNum ) );
-                newUserBean.getTokenVerificationProgress().setPhase( TokenVerificationProgress.TokenChannel.SMS );
-            }
-            break;
-
-            case EMAIL:
-            {
-                final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(
-                        PwmSetting.EMAIL_NEWUSER_VERIFICATION, pwmSession.getSessionStateBean().getLocale() );
-                final String toAddress = macroMachine.expandMacros( configuredEmailSetting.getTo() );
-
-                final RestTokenDataClient.TokenDestinationData inputTokenDestData = new RestTokenDataClient.TokenDestinationData(
-                        toAddress, null, null );
-                final RestTokenDataClient restTokenDataClient = new RestTokenDataClient( pwmApplication );
-                final RestTokenDataClient.TokenDestinationData outputDestTokenData = restTokenDataClient.figureDestTokenDisplayString(
-                        pwmRequest.getSessionLabel(),
-                        inputTokenDestData,
-                        null,
-                        pwmRequest.getLocale() );
-                if ( outputDestTokenData == null || outputDestTokenData.getEmail() == null || outputDestTokenData.getEmail().isEmpty() )
-                {
-                    //avoid sending Email code token
-                    break;
-                }
-                final String tokenKey;
-                try
-                {
-                    final TokenPayload tokenPayload = pwmApplication.getTokenService().createTokenPayload(
-                            password.pwm.svc.token.TokenType.NEWUSER_EMAIL,
-                            newUserProfile.getTokenDurationEmail( config ),
-                            tokenPayloadMap,
-                            null,
-                            Collections.singleton( outputDestTokenData.getEmail() )
-                    );
-                    tokenKey = pwmApplication.getTokenService().generateNewToken( tokenPayload,
-                            pwmRequest.getSessionLabel() );
-                }
-                catch ( PwmOperationalException e )
-                {
-                    throw new PwmUnrecoverableException( e.getErrorInformation() );
-                }
-
-                newUserBean.getTokenVerificationProgress().getIssuedTokens().add( TokenVerificationProgress.TokenChannel.EMAIL );
-                newUserBean.getTokenVerificationProgress().setPhase( TokenVerificationProgress.TokenChannel.EMAIL );
-                final TokenDestinationDisplayMasker tokenDestinationDisplayMasker = new TokenDestinationDisplayMasker( pwmApplication.getConfig() );
-                newUserBean.getTokenVerificationProgress().setTokenDisplayText( tokenDestinationDisplayMasker.maskEmail( toAddress ) );
-
-                final EmailItemBean emailItemBean = new EmailItemBean(
-                        outputDestTokenData.getEmail(),
-                        configuredEmailSetting.getFrom(),
-                        configuredEmailSetting.getSubject(),
-                        configuredEmailSetting.getBodyPlain().replace( "%TOKEN%", tokenKey ),
-                        configuredEmailSetting.getBodyHtml().replace( "%TOKEN%", tokenKey ) );
-
-                try
-                {
-                    TokenService.TokenSender.sendEmailToken(
-                            TokenService.TokenSendInfo.builder()
-                                    .pwmApplication( pwmApplication )
-                                    .userInfo( null )
-                                    .macroMachine( macroMachine )
-                                    .configuredEmailSetting( emailItemBean )
-                                    .emailAddress( outputDestTokenData.getEmail() )
-                                    .tokenKey( tokenKey )
-                                    .sessionLabel( pwmRequest.getSessionLabel() )
-                                    .build()
-                    );
-                }
-                catch ( Exception e )
-                {
-                    throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN ) );
-                }
-            }
-            break;
-
-            default:
-                newUserBean.getTokenVerificationProgress().setPhase( null );
-                JavaHelper.unhandledSwitchStatement( tokenType );
-        }
+        return MacroMachine.forUser( pwmApplication, sessionLabel, stubUserBean, stubLoginBean, stringReplacer );
     }
 
     static Map<String, String> figureDisplayableProfiles( final PwmRequest pwmRequest )
@@ -767,4 +600,142 @@ class NewUserUtils
         }
     }
 
+    static Map<String, TokenDestinationItem.Type> determineTokenValidationsRequired(
+            final PwmRequest pwmRequest,
+            final NewUserBean newUserBean,
+            final NewUserProfile newUserProfile
+    )
+            throws PwmUnrecoverableException
+    {
+        final List<FormConfiguration> formFields = newUserProfile.readSettingAsForm( PwmSetting.NEWUSER_FORM );
+        final LdapProfile defaultLDAPProfile = pwmRequest.getConfig().getDefaultLdapProfile();
+
+        final Map<String, TokenDestinationItem.Type> workingMap = new LinkedHashMap<>( FormUtility.identifyFormItemsNeedingPotentialTokenValidation(
+                defaultLDAPProfile,
+                formFields
+        ) );
+
+        final Set<TokenDestinationItem.Type> interestedTypes = new HashSet<>(  );
+        if ( newUserProfile.readSettingAsBoolean( PwmSetting.NEWUSER_EMAIL_VERIFICATION ) )
+        {
+            interestedTypes.add( TokenDestinationItem.Type.email );
+        }
+        if ( newUserProfile.readSettingAsBoolean( PwmSetting.NEWUSER_SMS_VERIFICATION ) )
+        {
+            interestedTypes.add( TokenDestinationItem.Type.sms );
+        }
+
+        if ( !JavaHelper.isEmpty( workingMap ) )
+        {
+            final Map<String, String> formData = newUserBean.getNewUserForm().getFormData();
+
+            for ( final Iterator<Map.Entry<String, TokenDestinationItem.Type>> iter = workingMap.entrySet().iterator(); iter.hasNext(); )
+            {
+                final Map.Entry<String, TokenDestinationItem.Type> entry = iter.next();
+                final String attrName = entry.getKey();
+                final TokenDestinationItem.Type type = entry.getValue();
+
+                if ( !interestedTypes.contains( type ) )
+                {
+                    iter.remove();
+                }
+                if ( !formData.containsKey( attrName ) )
+                {
+                    iter.remove();
+                }
+            }
+        }
+
+        return Collections.unmodifiableMap( workingMap );
+    }
+
+    static ProcessStatus checkForTokenVerificationProgress(
+            final PwmRequest pwmRequest,
+            final NewUserBean newUserBean,
+            final NewUserProfile newUserProfile
+    )
+            throws PwmUnrecoverableException, ServletException, IOException
+    {
+        final Map<String, TokenDestinationItem.Type> requiredTokenValidations = determineTokenValidationsRequired(
+                pwmRequest,
+                newUserBean,
+                newUserProfile
+        );
+
+        if ( !requiredTokenValidations.isEmpty() )
+        {
+            final Set<String> remainingValidations = new HashSet<>( requiredTokenValidations.keySet() );
+            remainingValidations.removeAll( newUserBean.getCompletedTokenFields() );
+
+            if ( !remainingValidations.isEmpty() )
+            {
+                if ( StringUtil.isEmpty( newUserBean.getCurrentTokenField() ) )
+                {
+                    newUserBean.setCurrentTokenField( remainingValidations.iterator().next() );
+                    newUserBean.setTokenSent( false );
+                }
+
+                if ( !newUserBean.isTokenSent() )
+                {
+                    final TokenDestinationItem tokenDestinationItem = tokenDestinationItemForCurrentValidation( pwmRequest, newUserBean, newUserProfile );
+
+                    if ( pwmRequest.getConfig().getTokenStorageMethod() == TokenStorageMethod.STORE_LDAP )
+                    {
+                        throw new PwmUnrecoverableException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[] {
+                                "cannot generate new user tokens when storage type is configured as STORE_LDAP.",
+                        } ) );
+                    }
+
+                    final Map<String, String> tokenPayloadMap = NewUserFormUtils.toTokenPayload( pwmRequest, newUserBean );
+                    final MacroMachine macroMachine = createMacroMachineForNewUser(
+                            pwmRequest.getPwmApplication(),
+                            pwmRequest.getSessionLabel(),
+                            newUserBean.getNewUserForm(),
+                            tokenDestinationItem );
+
+                    TokenUtil.initializeAndSendToken(
+                            pwmRequest,
+                            null,
+                            tokenDestinationItem,
+                            PwmSetting.EMAIL_NEWUSER_VERIFICATION,
+                            TokenType.NEWUSER,
+                            PwmSetting.SMS_NEWUSER_TOKEN_TEXT,
+                            tokenPayloadMap,
+                            macroMachine
+                    );
+                    newUserBean.setTokenSent( true );
+                }
+
+                NewUserServlet.forwardToEnterCode( pwmRequest, newUserProfile, newUserBean );
+                return ProcessStatus.Halt;
+            }
+        }
+
+        return ProcessStatus.Continue;
+    }
+
+    static TokenDestinationItem tokenDestinationItemForCurrentValidation(
+            final PwmRequest pwmRequest,
+            final NewUserBean newUserBean,
+            final NewUserProfile newUserProfile
+    )
+            throws PwmUnrecoverableException
+    {
+        final List<FormConfiguration> formFields = newUserProfile.readSettingAsForm( PwmSetting.NEWUSER_FORM );
+        final LdapProfile defaultLDAPProfile = pwmRequest.getConfig().getDefaultLdapProfile();
+
+        final Map<String, TokenDestinationItem.Type> tokenTypeMap = FormUtility.identifyFormItemsNeedingPotentialTokenValidation(
+                defaultLDAPProfile,
+                formFields
+        );
+
+        final String value = newUserBean.getNewUserForm().getFormData().get( newUserBean.getCurrentTokenField() );
+        final TokenDestinationItem.Type type = tokenTypeMap.get( newUserBean.getCurrentTokenField() );
+        return TokenDestinationItem.builder()
+                .display( value )
+                .id( "1" )
+                .value( value )
+                .type( type )
+                .build();
+    }
 }

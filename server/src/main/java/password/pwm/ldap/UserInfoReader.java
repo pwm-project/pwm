@@ -44,7 +44,7 @@ import password.pwm.config.profile.ProfileUtility;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.config.profile.SetupOtpProfile;
-import password.pwm.config.profile.UpdateAttributesProfile;
+import password.pwm.config.profile.UpdateProfileProfile;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.ErrorInformation;
@@ -475,25 +475,25 @@ public class UserInfoReader implements UserInfo
             return false;
         }
 
-        UpdateAttributesProfile updateAttributesProfile = null;
+        UpdateProfileProfile updateProfileProfile = null;
         final Map<ProfileType, String> profileIDs = selfCachedReference.getProfileIDs();
         if ( profileIDs.containsKey( ProfileType.UpdateAttributes ) )
         {
-            updateAttributesProfile = configuration.getUpdateAttributesProfile().get( profileIDs.get( ProfileType.UpdateAttributes ) );
+            updateProfileProfile = configuration.getUpdateAttributesProfile().get( profileIDs.get( ProfileType.UpdateAttributes ) );
         }
 
-        if ( updateAttributesProfile == null )
+        if ( updateProfileProfile == null )
         {
             return false;
         }
 
-        if ( !updateAttributesProfile.readSettingAsBoolean( PwmSetting.UPDATE_PROFILE_FORCE_SETUP ) )
+        if ( !updateProfileProfile.readSettingAsBoolean( PwmSetting.UPDATE_PROFILE_FORCE_SETUP ) )
         {
             LOGGER.debug( sessionLabel, "checkProfiles: " + userIdentity.toString() + " profile force setup is not enabled" );
             return false;
         }
 
-        final List<FormConfiguration> updateFormFields = updateAttributesProfile.readSettingAsForm( PwmSetting.UPDATE_PROFILE_FORM );
+        final List<FormConfiguration> updateFormFields = updateProfileProfile.readSettingAsForm( PwmSetting.UPDATE_PROFILE_FORM );
 
         // populate the map from ldap
 

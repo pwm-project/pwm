@@ -76,7 +76,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TimerTask;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -110,6 +109,12 @@ public class TokenService implements PwmService
 
     private boolean verifyPwModifyTime = true;
 
+    public enum TokenEntryType
+    {
+        unauthenticated,
+        authenticated,
+    }
+
     public TokenService( )
             throws PwmOperationalException
     {
@@ -120,7 +125,7 @@ public class TokenService implements PwmService
             final TimeDuration lifetime,
             final Map<String, String> data,
             final UserIdentity userIdentity,
-            final Set<String> dest
+            final String destination
     )
     {
         final long count = counter.getAndUpdate( operand ->
@@ -145,7 +150,7 @@ public class TokenService implements PwmService
             LOGGER.error( "error making payload guid: " + e.getMessage(), e );
         }
         final Instant expiration = lifetime.incrementFromInstant( Instant.now() );
-        return new TokenPayload( name.name(), expiration, data, userIdentity, dest, guid.toString() );
+        return new TokenPayload( name.name(), expiration, data, userIdentity, destination, guid.toString() );
     }
 
     public void init( final PwmApplication pwmApplication )
@@ -570,7 +575,8 @@ public class TokenService implements PwmService
             final PwmSession pwmSession,
             final UserIdentity sessionUserIdentity,
             final TokenType tokenType,
-            final String userEnteredCode
+            final String userEnteredCode,
+            final TokenEntryType tokenEntryType
     )
             throws PwmOperationalException, PwmUnrecoverableException
     {
@@ -582,12 +588,9 @@ public class TokenService implements PwmService
                     tokenType,
                     userEnteredCode
             );
-            if ( tokenPayload.getDest() != null )
+            if ( !StringUtil.isEmpty( tokenPayload.getDestination() ) )
             {
-                for ( final String dest : tokenPayload.getDest() )
-                {
-                    pwmApplication.getIntruderManager().clear( RecordType.TOKEN_DEST, dest );
-                }
+                pwmApplication.getIntruderManager().clear( RecordType.TOKEN_DEST, tokenPayload.getDestination() );
             }
             markTokenAsClaimed( tokenMachine.keyFromKey( userEnteredCode ), pwmSession, tokenPayload );
             return tokenPayload;
@@ -606,7 +609,7 @@ public class TokenService implements PwmService
 
             LOGGER.debug( pwmSession, errorInformation.toDebugStr() );
 
-            if ( sessionUserIdentity != null )
+            if ( sessionUserIdentity != null && tokenEntryType == TokenEntryType.unauthenticated )
             {
                 final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator( pwmApplication, pwmSession, null );
                 sessionAuthenticator.simulateBadPassword( sessionUserIdentity );

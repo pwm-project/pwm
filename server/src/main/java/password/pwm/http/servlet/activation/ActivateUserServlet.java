@@ -57,6 +57,7 @@ import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecord;
 import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.token.TokenPayload;
+import password.pwm.svc.token.TokenService;
 import password.pwm.svc.token.TokenType;
 import password.pwm.svc.token.TokenUtil;
 import password.pwm.util.CaptchaUtility;
@@ -328,27 +329,29 @@ public class ActivateUserServlet extends ControlledPwmServlet
         final ActivateUserBean activateUserBean = pwmApplication.getSessionStateService().getBean( pwmRequest, ActivateUserBean.class );
         final String userEnteredCode = pwmRequest.readParameterAsString( PwmConstants.PARAM_TOKEN );
 
+
         ErrorInformation errorInformation = null;
         try
         {
-            final TokenPayload tokenPayload = pwmApplication.getTokenService().processUserEnteredCode(
-                    pwmSession,
-                    activateUserBean.getUserIdentity(),
+            final TokenPayload tokenPayload = TokenUtil.checkEnteredCode(
+                    pwmRequest,
+                    userEnteredCode,
+                    activateUserBean.getTokenDestination(),
+                    null,
                     TokenType.ACTIVATION,
-                    userEnteredCode
+                    TokenService.TokenEntryType.unauthenticated
             );
-            if ( tokenPayload != null )
-            {
-                activateUserBean.setUserIdentity( tokenPayload.getUserIdentity() );
-                activateUserBean.setTokenPassed( true );
-                activateUserBean.setFormValidated( true );
-            }
+
+            activateUserBean.setUserIdentity( tokenPayload.getUserIdentity() );
+            activateUserBean.setTokenPassed( true );
+            activateUserBean.setFormValidated( true );
         }
-        catch ( PwmOperationalException e )
+        catch ( PwmUnrecoverableException e )
         {
-            final String errorMsg = "token incorrect: " + e.getMessage();
-            errorInformation = new ErrorInformation( PwmError.ERROR_TOKEN_INCORRECT, errorMsg );
+            LOGGER.debug( pwmRequest, "error while checking entered token: " );
+            errorInformation = e.getErrorInformation();
         }
+
 
         if ( !activateUserBean.isTokenPassed() )
         {

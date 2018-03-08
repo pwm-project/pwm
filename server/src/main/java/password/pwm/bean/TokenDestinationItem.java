@@ -26,6 +26,7 @@ import lombok.Builder;
 import lombok.Value;
 import password.pwm.PwmApplication;
 import password.pwm.config.Configuration;
+import password.pwm.config.PwmSetting;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.UserInfo;
@@ -36,6 +37,7 @@ import password.pwm.util.secure.SecureService;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +46,25 @@ import java.util.Map;
 @Builder
 public class TokenDestinationItem implements Serializable
 {
+    private static final Map<PwmSetting, TokenDestinationItem.Type> SETTING_TO_DEST_TYPE_MAP;
+
+    static
+    {
+        final Map<PwmSetting, TokenDestinationItem.Type> tempMap = new HashMap<>(  );
+        tempMap.put( PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE, TokenDestinationItem.Type.email );
+        tempMap.put( PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE_2, TokenDestinationItem.Type.email );
+        tempMap.put( PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE_3, TokenDestinationItem.Type.email );
+        tempMap.put( PwmSetting.SMS_USER_PHONE_ATTRIBUTE, TokenDestinationItem.Type.sms );
+        tempMap.put( PwmSetting.SMS_USER_PHONE_ATTRIBUTE_2, TokenDestinationItem.Type.sms );
+        tempMap.put( PwmSetting.SMS_USER_PHONE_ATTRIBUTE_3, TokenDestinationItem.Type.sms );
+        SETTING_TO_DEST_TYPE_MAP = Collections.unmodifiableMap( tempMap );
+    }
+
+    public static Map<PwmSetting, Type> getSettingToDestTypeMap( )
+    {
+        return SETTING_TO_DEST_TYPE_MAP;
+    }
+
     private String id;
     private String display;
     private String value;

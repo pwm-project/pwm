@@ -31,10 +31,8 @@ public enum TokenType
 {
     FORGOTTEN_PW( "password.pwm.servlet.ForgottenPasswordServlet" ),
     ACTIVATION( "password.pwm.servlet.ActivateUserServlet" ),
-    UPDATE_SMS(),
-    UPDATE_EMAIL(),
-    NEWUSER_SMS( "password.pwm.servlet.NewUserServlet_SMS" ),
-    NEWUSER_EMAIL( "password.pwm.servlet.NewUserServlet_EMAIL" ),;
+    UPDATE( ),
+    NEWUSER( ),;
 
     private final Set<String> otherNames;
 

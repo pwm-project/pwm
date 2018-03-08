@@ -29,7 +29,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.option.WebServiceUsage;
 import password.pwm.config.profile.ProfileType;
 import password.pwm.config.profile.ProfileUtility;
-import password.pwm.config.profile.UpdateAttributesProfile;
+import password.pwm.config.profile.UpdateProfileProfile;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.ErrorInformation;
@@ -39,7 +39,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmHttpRequestWrapper;
-import password.pwm.http.servlet.UpdateProfileServlet;
+import password.pwm.http.servlet.updateprofile.UpdateProfileUtil;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.ldap.UserInfo;
@@ -132,16 +132,16 @@ public class RestProfileServer extends RestServlet
             throw new PwmUnrecoverableException( PwmError.ERROR_NO_PROFILE_ASSIGNED );
         }
 
-        final UpdateAttributesProfile updateAttributesProfile = restRequest.getPwmApplication().getConfig().getUpdateAttributesProfile().get( updateProfileID );
+        final UpdateProfileProfile updateProfileProfile = restRequest.getPwmApplication().getConfig().getUpdateAttributesProfile().get( updateProfileID );
 
         final Map<String, String> profileData = new HashMap<>();
         {
             final Map<FormConfiguration, String> formData = new HashMap<>();
-            for ( final FormConfiguration formConfiguration : updateAttributesProfile.readSettingAsForm( PwmSetting.UPDATE_PROFILE_FORM ) )
+            for ( final FormConfiguration formConfiguration : updateProfileProfile.readSettingAsForm( PwmSetting.UPDATE_PROFILE_FORM ) )
             {
                 formData.put( formConfiguration, "" );
             }
-            final List<FormConfiguration> formFields = updateAttributesProfile.readSettingAsForm( PwmSetting.UPDATE_PROFILE_FORM );
+            final List<FormConfiguration> formFields = updateProfileProfile.readSettingAsForm( PwmSetting.UPDATE_PROFILE_FORM );
 
             final UserInfo userInfo = UserInfoFactory.newUserInfo(
                     restRequest.getPwmApplication(),
@@ -161,7 +161,7 @@ public class RestProfileServer extends RestServlet
 
         final JsonProfileData outputData = new JsonProfileData();
         outputData.profile = profileData;
-        outputData.formDefinition = updateAttributesProfile.readSettingAsForm( PwmSetting.UPDATE_PROFILE_FORM );
+        outputData.formDefinition = updateProfileProfile.readSettingAsForm( PwmSetting.UPDATE_PROFILE_FORM );
         final RestResultBean restResultBean = RestResultBean.withData( outputData );
         StatisticsManager.incrementStat( restRequest.getPwmApplication(), Statistic.REST_PROFILE );
         return restResultBean;
@@ -205,10 +205,10 @@ public class RestProfileServer extends RestServlet
             throw new PwmUnrecoverableException( PwmError.ERROR_NO_PROFILE_ASSIGNED );
         }
 
-        final UpdateAttributesProfile updateAttributesProfile = restRequest.getPwmApplication().getConfig().getUpdateAttributesProfile().get( updateProfileID );
+        final UpdateProfileProfile updateProfileProfile = restRequest.getPwmApplication().getConfig().getUpdateAttributesProfile().get( updateProfileID );
 
         {
-            final List<UserPermission> userPermission = updateAttributesProfile.readSettingAsUserPermission( PwmSetting.UPDATE_PROFILE_QUERY_MATCH );
+            final List<UserPermission> userPermission = updateProfileProfile.readSettingAsUserPermission( PwmSetting.UPDATE_PROFILE_QUERY_MATCH );
             final boolean result = LdapPermissionTester.testUserPermissions(
                     restRequest.getPwmApplication(),
                     restRequest.getSessionLabel(),
@@ -224,7 +224,7 @@ public class RestProfileServer extends RestServlet
 
 
         final FormMap inputFormData = new FormMap( jsonInput.profile );
-        final List<FormConfiguration> profileForm = updateAttributesProfile.readSettingAsForm( PwmSetting.UPDATE_PROFILE_FORM );
+        final List<FormConfiguration> profileForm = updateProfileProfile.readSettingAsForm( PwmSetting.UPDATE_PROFILE_FORM );
         final Map<FormConfiguration, String> profileFormData = new HashMap<>();
         for ( final FormConfiguration formConfiguration : profileForm )
         {
@@ -249,13 +249,13 @@ public class RestProfileServer extends RestServlet
                 targetUserIdentity.getUserIdentity()
         );
 
-        UpdateProfileServlet.doProfileUpdate(
+        UpdateProfileUtil.doProfileUpdate(
                 restRequest.getPwmApplication(),
                 restRequest.getSessionLabel(),
                 restRequest.getLocale(),
                 userInfo,
                 macroMachine,
-                updateAttributesProfile,
+                updateProfileProfile,
                 FormUtility.asStringMap( profileFormData ),
                 targetUserIdentity.getChaiUser()
         );

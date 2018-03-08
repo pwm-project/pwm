@@ -38,6 +38,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.ldap.UserInfo;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -138,6 +139,67 @@ public class TokenUtil
                 .build();
     }
 
+    public static TokenPayload checkEnteredCode(
+            final PwmRequest pwmRequest,
+            final String userEnteredCode,
+            final TokenDestinationItem tokenDestinationItem,
+            final UserIdentity userIdentity,
+            final TokenType tokenType,
+            final TokenService.TokenEntryType tokenEntryType
+    )
+            throws PwmUnrecoverableException
+    {
+        try
+        {
+            final TokenPayload tokenPayload = pwmRequest.getPwmApplication().getTokenService().processUserEnteredCode(
+                    pwmRequest.getPwmSession(),
+                    pwmRequest.getUserInfoIfLoggedIn(),
+                    tokenType,
+                    userEnteredCode,
+                    tokenEntryType
+            );
+            if ( tokenPayload != null )
+            {
+                if ( !tokenType.matchesName( tokenPayload.getName() ) )
+                {
+                    final String errorMsg = "expecting email token type but received : " + tokenPayload.getName();
+                    throw PwmUnrecoverableException.newException( PwmError.ERROR_TOKEN_INCORRECT, errorMsg );
+                }
+
+                if ( tokenEntryType == TokenService.TokenEntryType.authenticated )
+                {
+                    if ( tokenPayload.getUserIdentity() == null )
+                    {
+                        final String errorMsg = "missing userID for received token";
+                        throw PwmUnrecoverableException.newException( PwmError.ERROR_TOKEN_INCORRECT, errorMsg );
+                    }
+
+                    if ( !userIdentity.canonicalEquals( pwmRequest.getUserInfoIfLoggedIn(), pwmRequest.getPwmApplication() ) )
+                    {
+                        final String errorMsg = "received token is not for currently authenticated user, received token is for: "
+                                + tokenPayload.getUserIdentity().toDisplayString();
+                        throw PwmUnrecoverableException.newException( PwmError.ERROR_TOKEN_INCORRECT, errorMsg );
+                    }
+                }
+
+                final String currentTokenDest = tokenDestinationItem.getValue();
+                final String payloadTokenDest = tokenPayload.getDestination();
+                if ( !StringUtil.nullSafeEquals( currentTokenDest, payloadTokenDest ) )
+                {
+                    final String errorMsg = "token is for destination '" + currentTokenDest
+                            + "', but the current expected destination is '" + payloadTokenDest + "'";
+                    throw PwmUnrecoverableException.newException( PwmError.ERROR_TOKEN_INCORRECT, errorMsg );
+                }
+            }
+
+            return tokenPayload;
+        }
+        catch ( PwmOperationalException e )
+        {
+            final String errorMsg = "token incorrect: " + e.getMessage();
+            throw PwmUnrecoverableException.newException( PwmError.ERROR_TOKEN_INCORRECT, errorMsg );
+        }
+    }
 
     public static void initializeAndSendToken(
             final PwmRequest pwmRequest,
@@ -146,14 +208,31 @@ public class TokenUtil
             final PwmSetting emailToSend,
             final TokenType tokenType,
             final PwmSetting smsToSend
+    )
+            throws PwmUnrecoverableException
+    {
+        final MacroMachine macroMachine = MacroMachine.forUser( pwmRequest, userInfo.getUserIdentity(), makeTokenDestStringReplacer( tokenDestinationItem ) );
+        initializeAndSendToken( pwmRequest, userInfo, tokenDestinationItem, emailToSend, tokenType, smsToSend, Collections.emptyMap(), macroMachine );
+    }
 
+    @SuppressWarnings( "checkstyle:ParameterNumber" )
+    public static void initializeAndSendToken(
+            final PwmRequest pwmRequest,
+            final UserInfo userInfo,
+            final TokenDestinationItem tokenDestinationItem,
+            final PwmSetting emailToSend,
+            final TokenType tokenType,
+            final PwmSetting smsToSend,
+            final Map<String, String> inputTokenData,
+            final MacroMachine macroMachine
     )
             throws PwmUnrecoverableException
     {
         final Configuration config = pwmRequest.getConfig();
-        final UserIdentity userIdentity = userInfo.getUserIdentity();
+        final UserIdentity userIdentity = userInfo == null ? null : userInfo.getUserIdentity();
         final Map<String, String> tokenMapData = new LinkedHashMap<>();
 
+        if ( userInfo != null )
         {
             final Instant userLastPasswordChange = userInfo.getPasswordLastModifiedTime();
             if ( userLastPasswordChange != null )
@@ -163,18 +242,12 @@ public class TokenUtil
             }
         }
 
-        final EmailItemBean emailItemBean = config.readSettingAsEmail( emailToSend, pwmRequest.getLocale() );
-        final MacroMachine.StringReplacer stringReplacer = ( matchedMacro, newValue ) ->
+        if ( inputTokenData != null )
         {
-            if ( "@User:Email@".equals( matchedMacro )  )
-            {
-                return tokenDestinationItem.getValue();
-            }
+            tokenMapData.putAll( inputTokenData );
+        }
 
-            return newValue;
-        };
-        final MacroMachine macroMachine = MacroMachine.forUser( pwmRequest, userIdentity, stringReplacer );
-
+        final EmailItemBean emailItemBean = config.readSettingAsEmail( emailToSend, pwmRequest.getLocale() );
         final String tokenKey;
         final TokenPayload tokenPayload;
         try
@@ -184,7 +257,7 @@ public class TokenUtil
                     new TimeDuration( config.readSettingAsLong( PwmSetting.TOKEN_LIFETIME ), TimeUnit.SECONDS ),
                     tokenMapData,
                     userIdentity,
-                    Collections.singleton( tokenDestinationItem.getValue() )
+                    tokenDestinationItem.getValue()
             );
             tokenKey = pwmRequest.getPwmApplication().getTokenService().generateNewToken( tokenPayload, pwmRequest.getSessionLabel() );
         }
@@ -211,4 +284,16 @@ public class TokenUtil
         );
     }
 
+    public static MacroMachine.StringReplacer makeTokenDestStringReplacer( final TokenDestinationItem tokenDestinationItem )
+    {
+        return ( matchedMacro, newValue ) ->
+        {
+            if ( "@User:Email@".equals( matchedMacro )  )
+            {
+                return tokenDestinationItem.getValue();
+            }
+
+            return newValue;
+        };
+    }
 }
