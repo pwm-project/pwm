@@ -122,12 +122,7 @@
                     Destination(s)
                 </td>
                 <td>
-                    <%for (final Iterator destIter = tokenPayload.getDest().iterator(); destIter.hasNext();) { %>
-                    <%=destIter.next()%>
-                    <% if (destIter.hasNext()) { %>
-                    <br/>
-                    <% } %>
-                    <% } %>
+                    <%=JspUtility.freindlyWrite(pageContext, tokenPayload.getDestination())%>
                 </td>
             </tr>
             <tr>

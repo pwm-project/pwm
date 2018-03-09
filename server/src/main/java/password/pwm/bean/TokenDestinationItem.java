@@ -26,16 +26,18 @@ import lombok.Builder;
 import lombok.Value;
 import password.pwm.PwmApplication;
 import password.pwm.config.Configuration;
+import password.pwm.config.PwmSetting;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.UserInfo;
-import password.pwm.util.ValueObfuscator;
+import password.pwm.svc.token.TokenDestinationDisplayMasker;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.secure.SecureService;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +46,25 @@ import java.util.Map;
 @Builder
 public class TokenDestinationItem implements Serializable
 {
+    private static final Map<PwmSetting, TokenDestinationItem.Type> SETTING_TO_DEST_TYPE_MAP;
+
+    static
+    {
+        final Map<PwmSetting, TokenDestinationItem.Type> tempMap = new HashMap<>(  );
+        tempMap.put( PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE, TokenDestinationItem.Type.email );
+        tempMap.put( PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE_2, TokenDestinationItem.Type.email );
+        tempMap.put( PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE_3, TokenDestinationItem.Type.email );
+        tempMap.put( PwmSetting.SMS_USER_PHONE_ATTRIBUTE, TokenDestinationItem.Type.sms );
+        tempMap.put( PwmSetting.SMS_USER_PHONE_ATTRIBUTE_2, TokenDestinationItem.Type.sms );
+        tempMap.put( PwmSetting.SMS_USER_PHONE_ATTRIBUTE_3, TokenDestinationItem.Type.sms );
+        SETTING_TO_DEST_TYPE_MAP = Collections.unmodifiableMap( tempMap );
+    }
+
+    public static Map<PwmSetting, Type> getSettingToDestTypeMap( )
+    {
+        return SETTING_TO_DEST_TYPE_MAP;
+    }
+
     private String id;
     private String display;
     private String value;
@@ -76,7 +97,7 @@ public class TokenDestinationItem implements Serializable
         final Configuration configuration = pwmApplication.getConfig();
         final SecureService secureService = pwmApplication.getSecureService();
 
-        final ValueObfuscator valueObfuscator = new ValueObfuscator( configuration );
+        final TokenDestinationDisplayMasker tokenDestinationDisplayMasker = new TokenDestinationDisplayMasker( configuration );
 
         final Map<String, TokenDestinationItem> results = new LinkedHashMap<>(  );
 
@@ -93,7 +114,7 @@ public class TokenDestinationItem implements Serializable
                 final String idHash = secureService.hash( emailValue + Type.email.name() );
                 final TokenDestinationItem item = TokenDestinationItem.builder()
                         .id( idHash )
-                        .display( valueObfuscator.maskEmail( emailValue ) )
+                        .display( tokenDestinationDisplayMasker.maskEmail( emailValue ) )
                         .value( emailValue )
                         .type( Type.email )
                         .build();
@@ -114,7 +135,7 @@ public class TokenDestinationItem implements Serializable
                 final String idHash = secureService.hash( smsValue + Type.sms.name() );
                 final TokenDestinationItem item = TokenDestinationItem.builder()
                         .id( idHash )
-                        .display( valueObfuscator.maskPhone( smsValue ) )
+                        .display( tokenDestinationDisplayMasker.maskPhone( smsValue ) )
                         .value( smsValue )
                         .type( Type.sms )
                         .build();

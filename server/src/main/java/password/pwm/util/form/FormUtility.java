@@ -30,9 +30,11 @@ import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.bean.SessionLabel;
+import password.pwm.bean.TokenDestinationItem;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmDataValidationException;
@@ -595,5 +597,31 @@ public class FormUtility
             returnMap.put( formConfiguration, value );
         }
         return returnMap;
+    }
+
+    public static Map<String, TokenDestinationItem.Type> identifyFormItemsNeedingPotentialTokenValidation(
+            final LdapProfile ldapProfile,
+            final Collection<FormConfiguration> formConfigurations
+    )
+    {
+        final Map<PwmSetting, TokenDestinationItem.Type> settingTypeMap = TokenDestinationItem.getSettingToDestTypeMap();
+        final Map<String, TokenDestinationItem.Type> returnObj = new LinkedHashMap<>(  );
+
+        for ( final Map.Entry<PwmSetting, TokenDestinationItem.Type> entry : settingTypeMap.entrySet() )
+        {
+            final String attrName = ldapProfile.readSettingAsString( entry.getKey() );
+            if ( !StringUtil.isEmpty( attrName ) )
+            {
+                for ( final FormConfiguration formConfiguration : formConfigurations )
+                {
+                    if ( attrName.equalsIgnoreCase( formConfiguration.getName() ) )
+                    {
+                        returnObj.put( attrName, entry.getValue() );
+                    }
+                }
+            }
+        }
+
+        return returnObj;
     }
 }

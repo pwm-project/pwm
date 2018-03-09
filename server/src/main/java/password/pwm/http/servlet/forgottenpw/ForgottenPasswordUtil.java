@@ -63,23 +63,17 @@ import password.pwm.svc.event.AuditRecord;
 import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.svc.token.TokenPayload;
-import password.pwm.svc.token.TokenService;
 import password.pwm.svc.token.TokenType;
+import password.pwm.svc.token.TokenUtil;
 import password.pwm.util.PasswordData;
 import password.pwm.util.RandomPasswordGenerator;
-import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
-import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.PasswordUtility;
-import password.pwm.ws.client.rest.RestTokenDataClient;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -88,8 +82,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 public class ForgottenPasswordUtil
 {
@@ -298,38 +290,17 @@ public class ForgottenPasswordUtil
         final String profileID = forgottenPasswordBean.getForgottenPasswordProfileID();
         final ForgottenPasswordProfile forgottenPasswordProfile = pwmRequest.getConfig().getForgottenPasswordProfiles().get( profileID );
         final MessageSendMethod tokenSendMethod = forgottenPasswordProfile.readSettingAsEnum( PwmSetting.RECOVERY_TOKEN_SEND_METHOD, MessageSendMethod.class );
-        if ( tokenSendMethod == null || tokenSendMethod.equals( MessageSendMethod.NONE ) )
-        {
-            throw PwmUnrecoverableException.newException( PwmError.ERROR_TOKEN_MISSING_CONTACT, "no token send methods configured in profile" );
-        }
-
         final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo( pwmRequest, forgottenPasswordBean );
-        List<TokenDestinationItem> tokenDestinations = new ArrayList<>( TokenDestinationItem.allFromConfig( pwmRequest.getPwmApplication(), userInfo ) );
 
-        if ( tokenSendMethod != MessageSendMethod.CHOICE_SMS_EMAIL )
-        {
-            tokenDestinations = tokenDestinations
-                    .stream()
-                    .filter( tokenDestinationItem -> tokenSendMethod == tokenDestinationItem.getType().getMessageSendMethod() )
-                    .collect( Collectors.toList() );
-        }
+        final List<TokenDestinationItem> items = TokenUtil.figureAvailableTokenDestinations(
+                pwmRequest.getPwmApplication(),
+                pwmRequest.getSessionLabel(),
+                pwmRequest.getLocale(),
+                userInfo,
+                tokenSendMethod
+        );
 
-        final List<TokenDestinationItem> effectiveItems = new ArrayList<>(  );
-        for ( final TokenDestinationItem item : tokenDestinations )
-        {
-            final TokenDestinationItem effectiveItem = invokeExternalTokenDestRestClient( pwmRequest, userInfo.getUserIdentity(), item );
-            effectiveItems.add( effectiveItem );
-        }
-
-        LOGGER.trace( pwmRequest, "calculated available token send destinations: " + JsonUtil.serializeCollection( effectiveItems ) );
-
-        if ( tokenDestinations.isEmpty() )
-        {
-            final String msg = "no available contact methods of type " + tokenSendMethod.name() + " available";
-            throw PwmUnrecoverableException.newException( PwmError.ERROR_TOKEN_MISSING_CONTACT, msg );
-        }
-
-        final List<TokenDestinationItem> finalList = Collections.unmodifiableList( effectiveItems );
+        final List<TokenDestinationItem> finalList = Collections.unmodifiableList( items );
         pwmRequest.getHttpServletRequest().setAttribute( PwmConstants.REQUEST_ATTR_FORGOTTEN_PW_AVAIL_TOKEN_DEST_CACHE, finalList );
 
         return finalList;
@@ -444,109 +415,18 @@ public class ForgottenPasswordUtil
     )
             throws PwmUnrecoverableException
     {
-        final Configuration config = pwmRequest.getConfig();
-        final UserIdentity userIdentity = userInfo.getUserIdentity();
-        final Map<String, String> tokenMapData = new LinkedHashMap<>();
-
-        try
-        {
-            final Instant userLastPasswordChange = PasswordUtility.determinePwdLastModified(
-                    pwmRequest.getPwmApplication(),
-                    pwmRequest.getSessionLabel(),
-                    userIdentity
-            );
-            if ( userLastPasswordChange != null )
-            {
-                final String userChangeString = JavaHelper.toIsoDate( userLastPasswordChange );
-                tokenMapData.put( PwmConstants.TOKEN_KEY_PWD_CHG_DATE, userChangeString );
-            }
-        }
-        catch ( ChaiUnavailableException e )
-        {
-            LOGGER.error( pwmRequest, "unexpected error reading user's last password change time" );
-        }
-
-        final EmailItemBean emailItemBean = config.readSettingAsEmail( PwmSetting.EMAIL_CHALLENGE_TOKEN, pwmRequest.getLocale() );
-        final MacroMachine.StringReplacer stringReplacer = ( matchedMacro, newValue ) ->
-        {
-            if ( "@User:Email@".equals( matchedMacro )  )
-            {
-                return tokenDestinationItem.getValue();
-            }
-
-            return newValue;
-        };
-        final MacroMachine macroMachine = MacroMachine.forUser( pwmRequest, userIdentity, stringReplacer );
-
-        final String tokenKey;
-        final TokenPayload tokenPayload;
-        try
-        {
-            tokenPayload = pwmRequest.getPwmApplication().getTokenService().createTokenPayload(
-                    TokenType.FORGOTTEN_PW,
-                    new TimeDuration( config.readSettingAsLong( PwmSetting.TOKEN_LIFETIME ), TimeUnit.SECONDS ),
-                    tokenMapData,
-                    userIdentity,
-                    Collections.singleton( tokenDestinationItem.getValue() )
-            );
-            tokenKey = pwmRequest.getPwmApplication().getTokenService().generateNewToken( tokenPayload, pwmRequest.getSessionLabel() );
-        }
-        catch ( PwmOperationalException e )
-        {
-            throw new PwmUnrecoverableException( e.getErrorInformation() );
-        }
-
-        final String smsMessage = config.readSettingAsLocalizedString( PwmSetting.SMS_CHALLENGE_TOKEN_TEXT, pwmRequest.getLocale() );
-
-        TokenService.TokenSender.sendToken(
-                TokenService.TokenSendInfo.builder()
-                        .pwmApplication( pwmRequest.getPwmApplication() )
-                        .userInfo( userInfo )
-                        .macroMachine( macroMachine )
-                        .configuredEmailSetting( emailItemBean )
-                        .tokenSendMethod( tokenDestinationItem.getType().getMessageSendMethod() )
-                        .emailAddress( tokenDestinationItem.getValue() )
-                        .smsNumber( tokenDestinationItem.getValue() )
-                        .smsMessage( smsMessage )
-                        .tokenKey( tokenKey )
-                        .sessionLabel( pwmRequest.getSessionLabel() )
-                        .build()
+        TokenUtil.initializeAndSendToken(
+                pwmRequest,
+                userInfo,
+                tokenDestinationItem,
+                PwmSetting.EMAIL_CHALLENGE_TOKEN,
+                TokenType.FORGOTTEN_PW,
+                PwmSetting.SMS_CHALLENGE_TOKEN_TEXT
         );
 
         StatisticsManager.incrementStat( pwmRequest, Statistic.RECOVERY_TOKENS_SENT );
     }
 
-    private static TokenDestinationItem invokeExternalTokenDestRestClient(
-            final PwmRequest pwmRequest,
-            final UserIdentity userIdentity,
-            final TokenDestinationItem tokenDestinationItem
-    )
-            throws PwmUnrecoverableException
-    {
-        final RestTokenDataClient.TokenDestinationData inputDestinationData = new RestTokenDataClient.TokenDestinationData(
-                tokenDestinationItem.getType() == TokenDestinationItem.Type.email ? tokenDestinationItem.getValue() : null,
-                tokenDestinationItem.getType() == TokenDestinationItem.Type.sms ? tokenDestinationItem.getValue() : null,
-                tokenDestinationItem.getDisplay()
-        );
-
-        final RestTokenDataClient restTokenDataClient = new RestTokenDataClient( pwmRequest.getPwmApplication() );
-        final RestTokenDataClient.TokenDestinationData outputDestrestTokenDataClient = restTokenDataClient.figureDestTokenDisplayString(
-                pwmRequest.getSessionLabel(),
-                inputDestinationData,
-                userIdentity,
-                pwmRequest.getLocale() );
-
-        final String outputValue = tokenDestinationItem.getType() == TokenDestinationItem.Type.email
-                ? outputDestrestTokenDataClient.getEmail()
-                : outputDestrestTokenDataClient.getSms();
-
-        return TokenDestinationItem.builder()
-                .type( tokenDestinationItem.getType() )
-                .display( outputDestrestTokenDataClient.getDisplayValue() )
-                .value( outputValue )
-                .id( tokenDestinationItem.getId() )
-                .build();
-    }
 
     static void doActionSendNewPassword( final PwmRequest pwmRequest )
             throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException

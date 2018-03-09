@@ -1748,6 +1748,11 @@
             <value><![CDATA[pwmToken]]></value>
         </default>
     </setting>
+    <setting hidden="false" key="token.valueMasking.enable" level="1" required="true">
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
     <setting hidden="false" key="otp.enabled" level="1" required="true">
         <default>
             <value>false</value>
@@ -2962,6 +2967,7 @@
             <option value="NONE">None - Token verification will not be performed</option>
             <option value="EMAILONLY">Email - Send to email address</option>
             <option value="SMSONLY">SMS - Send via SMS</option>
+            <option value="CHOICE_SMS_EMAIL">User Choice - If both SMS and email address is available, user decides</option>
         </options>
     </setting>
     <setting hidden="false" key="updateAttributes.enable" level="1" required="true">
@@ -3012,7 +3018,6 @@
             <option value="email">email</option>
             <option value="number">number</option>
             <option value="password">password</option>
-            <option value="random">random</option>
             <option value="tel">tel</option>
             <option value="hidden">hidden</option>
             <!--<option value="date">date</option>-->

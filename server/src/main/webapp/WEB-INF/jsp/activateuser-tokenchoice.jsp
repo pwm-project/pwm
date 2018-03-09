@@ -21,11 +21,11 @@
 --%>
 
 <%@ page import="password.pwm.bean.TokenDestinationItem" %>
-<%@ page import="password.pwm.http.servlet.forgottenpw.ForgottenPasswordServlet" %>
 <%@ page import="java.util.List" %>
+<%@ page import="password.pwm.http.servlet.activation.ActivateUserServlet" %>
 
 <!DOCTYPE html>
-<% List<TokenDestinationItem> tokenDestinationItems = (List)JspUtility.getAttribute(pageContext, PwmRequestAttribute.TokenDestItems); %>
+<% List<TokenDestinationItem> tokenDestinationItems = (List)JspUtility.getAttribute(pageContext, PwmRequestAttribute.TokenDestItems ); %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
@@ -54,7 +54,7 @@
                             <% } %>
                         </button>
                         <input type="hidden" name="choice" value="<%=item.getId()%>"/>
-                        <input type="hidden" name="processAction" value="<%=ForgottenPasswordServlet.ForgottenPasswordAction.tokenChoice%>"/>
+                        <input type="hidden" name="processAction" value="<%=ActivateUserServlet.ActivateUserAction.tokenChoice%>"/>
                         <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                     </form>
                 </td>
@@ -83,30 +83,28 @@
             <% } %>
         </table>
         <div>
-        <div class="buttonbar">
-            <% if ("true".equals(JspUtility.getAttribute(pageContext, PwmRequestAttribute.ForgottenPasswordOptionalPageView))) { %>
-            <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="search" class="pwm-form" autocomplete="off">
-                <button type="submit" id="button-goBack" name="button-goBack" class="btn">
-                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-backward"></span></pwm:if>
-                    <pwm:display key="Button_GoBack"/>
-                </button>
-                <input type="hidden" name="<%=PwmConstants.PARAM_ACTION_REQUEST%>" value="<%=ForgottenPasswordServlet.ForgottenPasswordAction.reset%>"/>
-                <input type="hidden" name="<%=PwmConstants.PARAM_RESET_TYPE%>" value="<%=ForgottenPasswordServlet.ResetType.gotoSearch%>"/>
-                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-            </form>
-            <% } %>
-            <pwm:if test="<%=PwmIfTest.showCancel%>">
-            <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="search" class="pwm-form" autocomplete="off">
-                <button type="submit" name="button" class="btn" id="button-sendReset">
-                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-times"></span></pwm:if>
-                    <pwm:display key="Button_Cancel"/>
-                </button>
-                <input type="hidden" name="<%=PwmConstants.PARAM_ACTION_REQUEST%>" value="<%=ForgottenPasswordServlet.ForgottenPasswordAction.reset%>"/>
-                <input type="hidden" name="<%=PwmConstants.PARAM_RESET_TYPE%>" value="<%=ForgottenPasswordServlet.ResetType.exitForgottenPassword%>"/>
-                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-            </form>
-            </pwm:if>
-        </div>
+            <div class="buttonbar">
+                <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="search" class="pwm-form" autocomplete="off">
+                    <button type="submit" id="button-goBack" name="button-goBack" class="btn">
+                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-backward"></span></pwm:if>
+                        <pwm:display key="Button_GoBack"/>
+                    </button>
+                    <input type="hidden" name="<%=PwmConstants.PARAM_ACTION_REQUEST%>" value="<%=ActivateUserServlet.ActivateUserAction.reset%>"/>
+                    <input type="hidden" name="<%=PwmConstants.PARAM_RESET_TYPE%>" value="<%=ActivateUserServlet.ResetType.clearTokenDestination%>"/>
+                    <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+                </form>
+                <pwm:if test="<%=PwmIfTest.showCancel%>">
+                    <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="search" class="pwm-form" autocomplete="off">
+                        <button type="submit" name="button" class="btn" id="button-sendReset">
+                            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-times"></span></pwm:if>
+                            <pwm:display key="Button_Cancel"/>
+                        </button>
+                        <input type="hidden" name="<%=PwmConstants.PARAM_ACTION_REQUEST%>" value="<%=ActivateUserServlet.ActivateUserAction.reset%>"/>
+                        <input type="hidden" name="<%=PwmConstants.PARAM_RESET_TYPE%>" value="<%=ActivateUserServlet.ResetType.exitActivation%>"/>
+                        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+                    </form>
+                </pwm:if>
+            </div>
         </div>
         </form>
     </div>

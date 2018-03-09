@@ -296,7 +296,7 @@ ChallengeSettingHandler.editLocale = function(keyName, localeKey) {
                     };
                     processQuestion();
                     PWM_MAIN.addEventHandler(inputID, 'input', function () {
-                        if (!multiValues[rowKey]['adminDefined']) {
+                        if (multiValues[rowKey]['adminDefined']) {
                             PWM_VAR['clientSettingCache'][keyName][localeKey][rowKey]['text'] = PWM_MAIN.getObject(inputID).value;
                         }
                     });

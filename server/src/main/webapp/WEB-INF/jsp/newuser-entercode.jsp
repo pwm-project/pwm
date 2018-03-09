@@ -20,15 +20,9 @@
  ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 --%>
 
-<%@ page import="password.pwm.bean.TokenVerificationProgress" %>
-<%@ page import="password.pwm.http.bean.NewUserBean" %>
+<%@ page import="password.pwm.bean.TokenDestinationItem" %>
 <%@ page import="password.pwm.http.servlet.newuser.NewUserServlet" %>
-<%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 
-<%
-    final NewUserBean newUserBean = JspUtility.getSessionBean(pageContext,NewUserBean.class);
-    final TokenVerificationProgress tokenVerificationProgress = newUserBean.getTokenVerificationProgress();
-%>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -40,11 +34,12 @@
         <jsp:param name="pwm.PageName" value="Title_NewUser"/>
     </jsp:include>
     <div id="centerbody">
+        <% TokenDestinationItem tokenDestinationItem = (TokenDestinationItem )JspUtility.getAttribute(pageContext, PwmRequestAttribute.TokenDestItems);%>
         <h1 id="page-content-title"><pwm:display key="Title_NewUser" displayIfMissing="true"/></h1>
-        <% if (newUserBean.getTokenVerificationProgress().getPhase() == TokenVerificationProgress.TokenChannel.EMAIL) { %>
-        <p><pwm:display key="Display_RecoverEnterCode" value1="<%=tokenVerificationProgress.getTokenDisplayText()%>"/></p>
-        <% } else if (newUserBean.getTokenVerificationProgress().getPhase() == TokenVerificationProgress.TokenChannel.SMS) { %>
-        <p><pwm:display key="Display_RecoverEnterCodeSMS" value1="<%=tokenVerificationProgress.getTokenDisplayText()%>"/></p>
+        <% if (tokenDestinationItem.getType() == TokenDestinationItem.Type.email) { %>
+        <p><pwm:display key="Display_RecoverEnterCode" value1="<%=tokenDestinationItem.getDisplay()%>"/></p>
+        <% } else if (tokenDestinationItem.getType() == TokenDestinationItem.Type.sms) { %>
+        <p><pwm:display key="Display_RecoverEnterCodeSMS" value1="<%=tokenDestinationItem.getDisplay()%>"/></p>
         <% } %>
         <form action="<pwm:current-url/>" method="post" autocomplete="off" enctype="application/x-www-form-urlencoded" name="search" class="pwm-form">
             <%@ include file="fragment/message.jsp" %>

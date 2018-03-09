@@ -332,6 +332,17 @@ public class MacroMachine
 
     public static MacroMachine forUser(
             final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
+            final UserInfo userInfo,
+            final LoginInfoBean loginInfoBean,
+            final StringReplacer stringReplacer
+    )
+    {
+        return new MacroMachine( pwmApplication, sessionLabel, userInfo, loginInfoBean, stringReplacer );
+    }
+
+    public static MacroMachine forUser(
+            final PwmApplication pwmApplication,
             final Locale userLocale,
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity

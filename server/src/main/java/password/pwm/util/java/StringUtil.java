@@ -216,6 +216,20 @@ public abstract class StringUtil
         return PwmNumberFormat.forDefaultLocale().format( diskSize ) + " bytes";
     }
 
+    public static boolean nullSafeEqualsIgnoreCase( final String value1, final String value2 )
+    {
+        return value1 == null
+                ? value2 == null
+                : value1.equalsIgnoreCase( value2 );
+    }
+
+    public static boolean nullSafeEquals( final String value1, final String value2 )
+    {
+        return value1 == null
+                ? value2 == null
+                : value1.equals( value2 );
+    }
+
     public enum Base64Options
     {
         GZIP,

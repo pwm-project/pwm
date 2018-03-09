@@ -33,7 +33,6 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 @Getter
 public class TokenPayload implements Serializable
@@ -52,7 +51,8 @@ public class TokenPayload implements Serializable
     @SerializedName( "user" )
     private final UserIdentity userIdentity;
 
-    private final Set<String> dest;
+    @SerializedName( "d" )
+    private final String destination;
 
     @SerializedName( "g" )
     private final String guid;
@@ -62,7 +62,7 @@ public class TokenPayload implements Serializable
             final Instant expiration,
             final Map<String, String> data,
             final UserIdentity user,
-            final Set<String> dest,
+            final String destination,
             final String guid
     )
     {
@@ -71,7 +71,7 @@ public class TokenPayload implements Serializable
         this.data = data == null ? Collections.emptyMap() : Collections.unmodifiableMap( data );
         this.name = name;
         this.userIdentity = user;
-        this.dest = dest == null ? Collections.emptySet() : Collections.unmodifiableSet( dest );
+        this.destination = destination;
         this.guid = guid;
     }
 

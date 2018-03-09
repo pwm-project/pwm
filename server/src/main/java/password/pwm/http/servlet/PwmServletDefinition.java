@@ -40,6 +40,7 @@ import password.pwm.http.bean.SetupResponsesBean;
 import password.pwm.http.bean.ShortcutsBean;
 import password.pwm.http.bean.UpdateProfileBean;
 import password.pwm.http.servlet.accountinfo.AccountInformationServlet;
+import password.pwm.http.servlet.activation.ActivateUserServlet;
 import password.pwm.http.servlet.admin.AdminServlet;
 import password.pwm.http.servlet.changepw.PrivateChangePasswordServlet;
 import password.pwm.http.servlet.changepw.PublicChangePasswordServlet;
@@ -56,6 +57,7 @@ import password.pwm.http.servlet.newuser.NewUserServlet;
 import password.pwm.http.servlet.oauth.OAuthConsumerServlet;
 import password.pwm.http.servlet.peoplesearch.PrivatePeopleSearchServlet;
 import password.pwm.http.servlet.peoplesearch.PublicPeopleSearchServlet;
+import password.pwm.http.servlet.updateprofile.UpdateProfileServlet;
 
 import javax.servlet.annotation.WebServlet;
 import java.lang.annotation.Annotation;
@@ -74,7 +76,7 @@ public enum PwmServletDefinition
     AccountInformation( AccountInformationServlet.class, null ),
     PrivateChangePassword( PrivateChangePasswordServlet.class, ChangePasswordBean.class ),
     SetupResponses( password.pwm.http.servlet.SetupResponsesServlet.class, SetupResponsesBean.class ),
-    UpdateProfile( password.pwm.http.servlet.UpdateProfileServlet.class, UpdateProfileBean.class ),
+    UpdateProfile( UpdateProfileServlet.class, UpdateProfileBean.class ),
     SetupOtp( password.pwm.http.servlet.SetupOtpServlet.class, SetupOtpBean.class ),
     Helpdesk( password.pwm.http.servlet.helpdesk.HelpdeskServlet.class, null ),
     Shortcuts( password.pwm.http.servlet.ShortcutServlet.class, ShortcutsBean.class ),
@@ -94,7 +96,7 @@ public enum PwmServletDefinition
     ConfigManager_PwNotify( ConfigManagerPwNotifyServlet.class, ConfigManagerBean.class ),
 
     NewUser( NewUserServlet.class, NewUserBean.class ),
-    ActivateUser( password.pwm.http.servlet.ActivateUserServlet.class, ActivateUserBean.class ),
+    ActivateUser( ActivateUserServlet.class, ActivateUserBean.class ),
     ForgottenPassword( password.pwm.http.servlet.forgottenpw.ForgottenPasswordServlet.class, ForgottenPasswordBean.class ),
     ForgottenUsername( password.pwm.http.servlet.ForgottenUsernameServlet.class, null ),;
 
