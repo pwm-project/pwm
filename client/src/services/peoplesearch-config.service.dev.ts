@@ -45,7 +45,15 @@ export default class ConfigService
         });
     }
 
+    getOrgChartMaxParents(): IPromise<number> {
+        return this.$q.resolve(50);
+    }
+
     orgChartEnabled(): IPromise<boolean> {
+        return this.$q.resolve(true);
+    }
+
+    orgChartShowChildCount(): IPromise<boolean> {
         return this.$q.resolve(true);
     }
 }

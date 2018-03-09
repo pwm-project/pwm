@@ -25,6 +25,7 @@ import { Component } from '../component';
 import { element, IAugmentedJQuery, IFilterService, IScope, IWindowService } from 'angular';
 import ElementSizeService from '../ux/element-size.service';
 import { IPerson } from '../models/person.model';
+import {IPeopleSearchConfigService} from '../services/peoplesearch-config.service';
 
 export enum OrgChartSize {
     ExtraSmall = 0,
@@ -49,19 +50,21 @@ export default class OrgChartComponent {
     isLargeLayout: boolean;
     managementChain: IPerson[];
     person: IPerson;
+    showDirectReports: boolean;
     assistant: IPerson;
 
     private elementSize: OrgChartSize = OrgChartSize.ExtraSmall;
     private maxVisibleManagers: number;
     private visibleManagers: IPerson[];
 
-    static $inject = [ '$element', '$filter', '$scope', '$state', '$window', 'MfElementSizeService' ];
+    static $inject = [ '$element', '$filter', '$scope', '$state', '$window', 'ConfigService', 'MfElementSizeService' ];
     constructor(
         private $element: IAugmentedJQuery,
         private $filter: IFilterService,
         private $scope: IScope,
         private $state: angular.ui.IStateService,
         private $window: IWindowService,
+        private configService: IPeopleSearchConfigService,
         private elementSizeService: ElementSizeService) {
     }
 
@@ -70,6 +73,11 @@ export default class OrgChartComponent {
     }
 
     $onInit(): void {
+        this.configService.orgChartShowChildCount().then(
+            (showChildCount: boolean) => {
+                this.showDirectReports = showChildCount;
+            });
+
         // OrgChartComponent has different functionality at different widths. On element resize, we
         // want to update the state of the component and trigger a $digest
         this.elementSizeService

@@ -44,7 +44,7 @@
                  ng-click="$ctrl.onClickPerson()"
                  class="self"
                  size="large"
-                 show-direct-report-count="true"
+                 show-direct-report-count="$ctrl.showDirectReports"
                  show-image="$ctrl.showImages"></person-card>
     <div class="assistant" ng-if="$ctrl.assistant">
         <div class="org-chart-connector dashed"></div>
@@ -62,7 +62,7 @@
 
     <div class="ias-grid">
         <person-card person="directReport"
-                     show-direct-report-count="true"
+                     show-direct-report-count="$ctrl.showDirectReports"
                      show-image="$ctrl.showImages"
                      ng-repeat="directReport in $ctrl.directReports | orderBy:'displayNames[0]'"
                      ng-click="$ctrl.selectPerson(directReport.userKey)">
