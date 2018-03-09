@@ -23,6 +23,7 @@
 package password.pwm.ws.client.rest;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import lombok.Value;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
@@ -35,7 +36,9 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
+import password.pwm.svc.token.TokenDestinationDisplayMasker;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
@@ -49,40 +52,15 @@ public class RestTokenDataClient implements RestClient
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( RestTokenDataClient.class );
 
+    private final PwmApplication pwmApplication;
+
+    @Value
     public static class TokenDestinationData implements Serializable
     {
         private String email;
         private String sms;
         private String displayValue;
-
-        public TokenDestinationData(
-                final String email,
-                final String sms,
-                final String displayValue
-        )
-        {
-            this.email = email;
-            this.sms = sms;
-            this.displayValue = displayValue;
-        }
-
-        public String getEmail( )
-        {
-            return email;
-        }
-
-        public String getSms( )
-        {
-            return sms;
-        }
-
-        public String getDisplayValue( )
-        {
-            return displayValue;
-        }
     }
-
-    private final PwmApplication pwmApplication;
 
     public RestTokenDataClient( final PwmApplication pwmApplication )
     {
@@ -152,21 +130,24 @@ public class RestTokenDataClient implements RestClient
 
     private TokenDestinationData builtInService( final TokenDestinationData tokenDestinationData )
     {
+
+        final TokenDestinationDisplayMasker tokenDestinationDisplayMasker = new TokenDestinationDisplayMasker( pwmApplication.getConfig() );
+
         final StringBuilder tokenSendDisplay = new StringBuilder();
 
-        if ( tokenDestinationData.getEmail() != null )
+        if ( !StringUtil.isEmpty( tokenDestinationData.getEmail() ) )
         {
-            tokenSendDisplay.append( tokenDestinationData.getEmail() );
+            tokenSendDisplay.append( tokenDestinationDisplayMasker.maskEmail( tokenDestinationData.getEmail() ) );
         }
 
-        if ( tokenDestinationData.getSms() != null )
+        if ( !StringUtil.isEmpty( tokenDestinationData.getSms() ) )
         {
             if ( tokenSendDisplay.length() > 0 )
             {
                 tokenSendDisplay.append( " / " );
             }
 
-            tokenSendDisplay.append( tokenDestinationData.getSms() );
+            tokenSendDisplay.append( tokenDestinationDisplayMasker.maskPhone( tokenDestinationData.getSms() ) );
         }
 
         return new TokenDestinationData(

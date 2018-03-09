@@ -22,92 +22,38 @@
 
 package password.pwm.http.bean;
 
+import com.google.gson.annotations.SerializedName;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import password.pwm.bean.TokenDestinationItem;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.option.SessionBeanMode;
 
 import java.util.Collections;
 import java.util.Set;
 
+@Data
+@EqualsAndHashCode( callSuper = false )
 public class ActivateUserBean extends PwmSessionBean
 {
-    private boolean tokenIssued;
+    @SerializedName( "tp" )
     private boolean tokenPassed;
-    private boolean agreementPassed;
-    private boolean formValidated;
-    private String tokenDisplayText;
-    private String agreementText;
 
+    @SerializedName( "ap" )
+    private boolean agreementPassed;
+
+    @SerializedName( "v" )
+    private boolean formValidated;
+
+    @SerializedName( "u" )
     private UserIdentity userIdentity;
 
-    public boolean isTokenIssued( )
-    {
-        return tokenIssued;
-    }
+    @SerializedName( "ts" )
+    private boolean tokenSent;
 
-    public void setTokenIssued( final boolean tokenIssued )
-    {
-        this.tokenIssued = tokenIssued;
-    }
+    @SerializedName( "td" )
+    private TokenDestinationItem tokenDestination;
 
-    public boolean isAgreementPassed( )
-    {
-        return agreementPassed;
-    }
-
-    public void setAgreementPassed( final boolean agreementPassed )
-    {
-        this.agreementPassed = agreementPassed;
-    }
-
-    public boolean isFormValidated( )
-    {
-        return formValidated;
-    }
-
-    public void setFormValidated( final boolean formValidated )
-    {
-        this.formValidated = formValidated;
-    }
-
-    public boolean isTokenPassed( )
-    {
-        return tokenPassed;
-    }
-
-    public void setTokenPassed( final boolean tokenPassed )
-    {
-        this.tokenPassed = tokenPassed;
-    }
-
-    public UserIdentity getUserIdentity( )
-    {
-        return userIdentity;
-    }
-
-    public void setUserIdentity( final UserIdentity userIdentity )
-    {
-        this.userIdentity = userIdentity;
-    }
-
-    public String getTokenDisplayText( )
-    {
-        return tokenDisplayText;
-    }
-
-    public void setTokenDisplayText( final String tokenSendAddress )
-    {
-        this.tokenDisplayText = tokenSendAddress;
-    }
-
-    public String getAgreementText( )
-    {
-        return agreementText;
-    }
-
-    public void setAgreementText( final String agreementText )
-    {
-        this.agreementText = agreementText;
-    }
 
     public Type getType( )
     {

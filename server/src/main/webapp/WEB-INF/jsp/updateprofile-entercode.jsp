@@ -20,17 +20,13 @@
  ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 --%>
 
-<%@ page import="password.pwm.bean.TokenVerificationProgress" %>
 <%@ page import="password.pwm.http.bean.NewUserBean" %>
 <%@ page import="password.pwm.http.servlet.newuser.NewUserServlet" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ page import="password.pwm.http.bean.UpdateProfileBean" %>
-<%@ page import="password.pwm.config.profile.UpdateAttributesProfile" %>
+<%@ page import="password.pwm.config.profile.UpdateProfileProfile" %>
+<%@ page import="password.pwm.bean.TokenDestinationItem" %>
 
-<%
-    final UpdateProfileBean updateProfileBean = JspUtility.getSessionBean(pageContext,UpdateProfileBean.class);
-    final TokenVerificationProgress tokenVerificationProgress = updateProfileBean.getTokenVerificationProgress();
-%>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -42,11 +38,12 @@
         <jsp:param name="pwm.PageName" value="Title_UpdateProfile"/>
     </jsp:include>
     <div id="centerbody">
+        <% TokenDestinationItem tokenDestinationItem = (TokenDestinationItem )JspUtility.getAttribute(pageContext, PwmRequestAttribute.TokenDestItems);%>
         <h1 id="page-content-title"><pwm:display key="Title_UpdateProfile" displayIfMissing="true"/></h1>
-        <% if (updateProfileBean.getTokenVerificationProgress().getPhase() == TokenVerificationProgress.TokenChannel.EMAIL) { %>
-        <p><pwm:display key="Display_UpdateProfileEnterCode" value1="<%=tokenVerificationProgress.getTokenDisplayText()%>"/></p>
-        <% } else if (updateProfileBean.getTokenVerificationProgress().getPhase() == TokenVerificationProgress.TokenChannel.SMS) { %>
-        <p><pwm:display key="Display_UpdateProfileEnterCodeSMS" value1="<%=tokenVerificationProgress.getTokenDisplayText()%>"/></p>
+        <% if (tokenDestinationItem.getType() == TokenDestinationItem.Type.email) { %>
+        <p><pwm:display key="Display_UpdateProfileEnterCode" value1="<%=tokenDestinationItem.getDisplay()%>"/></p>
+        <% } else if (tokenDestinationItem.getType() == TokenDestinationItem.Type.sms) { %>
+        <p><pwm:display key="Display_UpdateProfileEnterCodeSMS" value1="<%=tokenDestinationItem.getDisplay()%>"/></p>
         <% } %>
         <form action="<pwm:current-url/>" method="post" autocomplete="off" enctype="application/x-www-form-urlencoded" name="search" class="pwm-form">
             <%@ include file="fragment/message.jsp" %>
@@ -73,19 +70,6 @@
     </div>
     <div class="push"></div>
 </div>
-<pwm:script> <%-- ie doesn't support 'from' attribute on buttons, so handle with this script --%>
-    <script type="text/javascript">
-        PWM_GLOBAL['startupFunctions'].push(function() {
-            PWM_MAIN.addEventHandler('button-reset', 'click', function(e){
-                console.log('intercepted cancel button');
-                PWM_MAIN.cancelEvent(e);
-                var cancelForm = PWM_MAIN.getObject('form-reset');
-                PWM_MAIN.handleFormSubmit(cancelForm);
-            });
-        });
-    </script>
-</pwm:script>
-
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

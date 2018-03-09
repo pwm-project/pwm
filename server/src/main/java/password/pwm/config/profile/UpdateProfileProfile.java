@@ -32,20 +32,20 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-public class UpdateAttributesProfile extends AbstractProfile implements Profile
+public class UpdateProfileProfile extends AbstractProfile implements Profile
 {
 
     private static final ProfileType PROFILE_TYPE = ProfileType.UpdateAttributes;
 
-    protected UpdateAttributesProfile( final String identifier, final Map<PwmSetting, StoredValue> storedValueMap )
+    protected UpdateProfileProfile( final String identifier, final Map<PwmSetting, StoredValue> storedValueMap )
     {
         super( identifier, storedValueMap );
     }
 
-    public static UpdateAttributesProfile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
+    public static UpdateProfileProfile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
     {
         final Map<PwmSetting, StoredValue> valueMap = makeValueMap( storedConfiguration, identifier, PROFILE_TYPE.getCategory() );
-        return new UpdateAttributesProfile( identifier, valueMap );
+        return new UpdateProfileProfile( identifier, valueMap );
 
     }
 

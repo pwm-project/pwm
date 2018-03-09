@@ -25,7 +25,7 @@ package password.pwm.http.servlet.newuser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.bean.TokenVerificationProgress;
+import password.pwm.bean.TokenDestinationItem;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.NewUserProfile;
@@ -51,6 +51,9 @@ import password.pwm.i18n.Message;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoBean;
 import password.pwm.svc.token.TokenPayload;
+import password.pwm.svc.token.TokenService;
+import password.pwm.svc.token.TokenType;
+import password.pwm.svc.token.TokenUtil;
 import password.pwm.util.CaptchaUtility;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.JsonUtil;
@@ -255,41 +258,11 @@ public class NewUserServlet extends ControlledPwmServlet
             }
         }
 
-        final TokenVerificationProgress tokenVerificationProgress = newUserBean.getTokenVerificationProgress();
-        if ( newUserProfile.readSettingAsBoolean( PwmSetting.NEWUSER_EMAIL_VERIFICATION ) )
+        if ( NewUserUtils.checkForTokenVerificationProgress( pwmRequest, newUserBean, newUserProfile ) == ProcessStatus.Halt )
         {
-            if ( !tokenVerificationProgress.getIssuedTokens().contains( TokenVerificationProgress.TokenChannel.EMAIL ) )
-            {
-                NewUserUtils.initializeToken( pwmRequest, newUserBean, TokenVerificationProgress.TokenChannel.EMAIL );
-            }
-
-            if ( !tokenVerificationProgress.getPassedTokens().contains( TokenVerificationProgress.TokenChannel.EMAIL )
-                    //if the token has been sent during the InitializeToken call, the issuedTokens member must contains the SMS key.
-                    // If not, the token has not been sent (SMS number is null) and the verification phase should be ignored
-                    && tokenVerificationProgress.getIssuedTokens().contains( TokenVerificationProgress.TokenChannel.EMAIL )
-                    )
-            {
-                pwmRequest.forwardToJsp( JspUrl.NEW_USER_ENTER_CODE );
-                return;
-            }
+            return;
         }
 
-        if ( newUserProfile.readSettingAsBoolean( PwmSetting.NEWUSER_SMS_VERIFICATION ) )
-        {
-            if ( !newUserBean.getTokenVerificationProgress().getIssuedTokens().contains( TokenVerificationProgress.TokenChannel.SMS ) )
-            {
-                NewUserUtils.initializeToken( pwmRequest, newUserBean, TokenVerificationProgress.TokenChannel.SMS );
-            }
-            if ( !newUserBean.getTokenVerificationProgress().getPassedTokens().contains( TokenVerificationProgress.TokenChannel.SMS )
-                    // if the token has been sent during the InitializeToken call, the issuedTokens member must contains the SMS key.
-                    // If not, the token has not been sent (SMS number is null) and the verification phase should be ignored
-                    && newUserBean.getTokenVerificationProgress().getIssuedTokens().contains( TokenVerificationProgress.TokenChannel.SMS )
-                    )
-            {
-                pwmRequest.forwardToJsp( JspUrl.NEW_USER_ENTER_CODE );
-                return;
-            }
-        }
 
         final String newUserAgreementText = newUserProfile.readSettingAsLocalizedString( PwmSetting.NEWUSER_AGREEMENT_MESSAGE,
                 pwmSession.getSessionStateBean().getLocale() );
@@ -300,7 +273,8 @@ public class NewUserServlet extends ControlledPwmServlet
                 final MacroMachine macroMachine = NewUserUtils.createMacroMachineForNewUser(
                         pwmApplication,
                         pwmRequest.getSessionLabel(),
-                        newUserBean.getNewUserForm()
+                        newUserBean.getNewUserForm(),
+                        null
                 );
                 final String expandedText = macroMachine.expandMacros( newUserAgreementText );
                 pwmRequest.setAttribute( PwmRequestAttribute.AgreementText, expandedText );
@@ -475,89 +449,88 @@ public class NewUserServlet extends ControlledPwmServlet
     private ProcessStatus handleEnterCodeRequest( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
+        final NewUserBean newUserBean = getNewUserBean( pwmRequest );
+        final NewUserProfile newUserProfile = getNewUserProfile( pwmRequest );
         final String userEnteredCode = pwmRequest.readParameterAsString( PwmConstants.PARAM_TOKEN );
 
-        boolean tokenPassed = false;
+        final TokenDestinationItem tokenDestinationItem = NewUserUtils.tokenDestinationItemForCurrentValidation(
+                pwmRequest,
+                newUserBean,
+                newUserProfile
+        );
+
         ErrorInformation errorInformation = null;
+        TokenPayload tokenPayload = null;
         try
         {
-            final TokenPayload tokenPayload = pwmApplication.getTokenService().processUserEnteredCode(
-                    pwmSession,
+            tokenPayload = TokenUtil.checkEnteredCode(
+                    pwmRequest,
+                    userEnteredCode,
+                    tokenDestinationItem,
                     null,
-                    null,
-                    userEnteredCode
+                    TokenType.NEWUSER,
+                    TokenService.TokenEntryType.unauthenticated
             );
-            if ( tokenPayload != null )
+
+        }
+        catch ( PwmUnrecoverableException e )
+        {
+            LOGGER.debug( pwmRequest, "error while checking entered token: " );
+            errorInformation = e.getErrorInformation();
+        }
+
+        if ( tokenPayload != null )
+        {
+            try
             {
-                final NewUserBean newUserBean = getNewUserBean( pwmRequest );
                 final NewUserTokenData newUserTokenData = NewUserFormUtils.fromTokenPayload( pwmRequest, tokenPayload );
                 newUserBean.setProfileID( newUserTokenData.getProfileID() );
                 final NewUserForm newUserFormFromToken = newUserTokenData.getFormData();
-                if ( password.pwm.svc.token.TokenType.NEWUSER_EMAIL.matchesName( tokenPayload.getName() ) )
+
+                if ( tokenDestinationItem.getType() == TokenDestinationItem.Type.email )
                 {
-                    LOGGER.debug( pwmRequest, "email token passed" );
 
                     try
                     {
                         verifyForm( pwmRequest, newUserFormFromToken, false );
+                        newUserBean.setRemoteInputData( newUserTokenData.getInjectionData() );
+                        newUserBean.setNewUserForm( newUserFormFromToken );
+                        newUserBean.setFormPassed( true );
                     }
                     catch ( PwmUnrecoverableException | PwmOperationalException e )
                     {
                         LOGGER.error( pwmRequest, "while reading stored form data in token payload, form validation error occurred: " + e.getMessage() );
-                        throw e;
+                        errorInformation = e.getErrorInformation();
                     }
-
-                    newUserBean.setRemoteInputData( newUserTokenData.getInjectionData() );
-                    newUserBean.setNewUserForm( newUserFormFromToken );
-                    newUserBean.setFormPassed( true );
-                    newUserBean.getTokenVerificationProgress().getPassedTokens().add( TokenVerificationProgress.TokenChannel.EMAIL );
-                    newUserBean.getTokenVerificationProgress().getIssuedTokens().add( TokenVerificationProgress.TokenChannel.EMAIL );
-                    newUserBean.getTokenVerificationProgress().setPhase( null );
-                    tokenPassed = true;
                 }
-                else if ( password.pwm.svc.token.TokenType.NEWUSER_SMS.matchesName( tokenPayload.getName() ) )
+                else if ( tokenDestinationItem.getType() == TokenDestinationItem.Type.sms )
                 {
-                    if ( newUserBean.getNewUserForm() != null && newUserBean.getNewUserForm().isConsistentWith( newUserFormFromToken ) )
+                    if ( newUserBean.getNewUserForm() == null || newUserBean.getNewUserForm().isConsistentWith( newUserFormFromToken ) )
                     {
-                        LOGGER.debug( pwmRequest, "SMS token passed" );
-                        newUserBean.getTokenVerificationProgress().getPassedTokens().add( TokenVerificationProgress.TokenChannel.SMS );
-                        newUserBean.getTokenVerificationProgress().getIssuedTokens().add( TokenVerificationProgress.TokenChannel.SMS );
-                        newUserBean.getTokenVerificationProgress().setPhase( null );
-                        tokenPassed = true;
-                    }
-                    else
-                    {
-                        LOGGER.debug( pwmRequest, "SMS token value is valid, but form data does not match current session form data" );
+                        LOGGER.debug( pwmRequest, "token value is valid, but form data does not match current session form data" );
                         final String errorMsg = "sms token does not match current session";
                         errorInformation = new ErrorInformation( PwmError.ERROR_TOKEN_INCORRECT, errorMsg );
                     }
                 }
-                else
-                {
-                    final String errorMsg = "token name/type is not recognized: " + tokenPayload.getName();
-                    errorInformation = new ErrorInformation( PwmError.ERROR_TOKEN_INCORRECT, errorMsg );
-                }
             }
-        }
-        catch ( PwmOperationalException e )
-        {
-            final String errorMsg = "token incorrect: " + e.getMessage();
-            errorInformation = new ErrorInformation( PwmError.ERROR_TOKEN_INCORRECT, errorMsg );
-        }
-
-
-        if ( !tokenPassed )
-        {
-            if ( errorInformation == null )
+            catch ( PwmOperationalException e )
             {
-                errorInformation = new ErrorInformation( PwmError.ERROR_TOKEN_INCORRECT );
+                errorInformation = e.getErrorInformation();
             }
+        }
+
+        if ( errorInformation != null )
+        {
             LOGGER.debug( pwmSession, errorInformation.toDebugStr() );
             setLastError( pwmRequest, errorInformation );
+            return ProcessStatus.Continue;
         }
 
+        LOGGER.debug( pwmRequest, "marking token as passed " + JsonUtil.serialize( tokenDestinationItem ) );
+        newUserBean.getCompletedTokenFields().add( newUserBean.getCurrentTokenField() );
+        newUserBean.setTokenSent( false );
+        newUserBean.setCurrentTokenField( null );
         return ProcessStatus.Continue;
     }
 
@@ -769,6 +742,17 @@ public class NewUserServlet extends ControlledPwmServlet
         }
     }
 
+
+    static void forwardToEnterCode( final PwmRequest pwmRequest, final NewUserProfile newUserProfile, final NewUserBean newUserBean )
+            throws ServletException, PwmUnrecoverableException, IOException
+    {
+        final TokenDestinationItem tokenDestinationItem = NewUserUtils.tokenDestinationItemForCurrentValidation(
+                pwmRequest,
+                newUserBean,
+                newUserProfile );
+        pwmRequest.setAttribute( PwmRequestAttribute.TokenDestItems, tokenDestinationItem );
+        pwmRequest.forwardToJsp( JspUrl.NEW_USER_ENTER_CODE );
+    }
 
     private void forwardToFormPage( final PwmRequest pwmRequest, final NewUserBean newUserBean )
             throws ServletException, PwmUnrecoverableException, IOException

@@ -24,7 +24,6 @@ package password.pwm.http.bean;
 
 import com.google.gson.annotations.SerializedName;
 import lombok.Data;
-import password.pwm.bean.TokenVerificationProgress;
 import password.pwm.config.option.SessionBeanMode;
 
 import java.util.Arrays;
@@ -53,8 +52,14 @@ public class UpdateProfileBean extends PwmSessionBean
     @SerializedName( "f" )
     private Map<String, String> formData = new LinkedHashMap<>();
 
-    @SerializedName( "vp" )
-    private TokenVerificationProgress tokenVerificationProgress = new TokenVerificationProgress();
+    @SerializedName( "ct" )
+    private String currentTokenField;
+
+    @SerializedName( "ft" )
+    private Set<String> completedTokenFields = new HashSet<>();
+
+    @SerializedName( "ts" )
+    private boolean tokenSent;
 
     public Type getType( )
     {
@@ -65,10 +70,5 @@ public class UpdateProfileBean extends PwmSessionBean
     public Set<SessionBeanMode> supportedModes( )
     {
         return Collections.unmodifiableSet( new HashSet<>( Arrays.asList( SessionBeanMode.LOCAL, SessionBeanMode.CRYPTCOOKIE ) ) );
-    }
-
-    public void clearTokenVerificationProgress( )
-    {
-        tokenVerificationProgress = new TokenVerificationProgress();
     }
 }

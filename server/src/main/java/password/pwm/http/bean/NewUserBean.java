@@ -26,7 +26,6 @@ import com.google.gson.annotations.SerializedName;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import password.pwm.bean.TokenVerificationProgress;
 import password.pwm.config.option.SessionBeanMode;
 import password.pwm.http.servlet.newuser.NewUserForm;
 
@@ -64,8 +63,16 @@ public class NewUserBean extends PwmSessionBean
     @SerializedName( "u" )
     private boolean urlSpecifiedProfile;
 
-    @SerializedName( "v" )
-    private final TokenVerificationProgress tokenVerificationProgress = new TokenVerificationProgress();
+    @SerializedName( "ct" )
+    private String currentTokenField;
+
+    @SerializedName( "ft" )
+    private Set<String> completedTokenFields = new HashSet<>();
+
+    @SerializedName( "ts" )
+    private boolean tokenSent;
+
+
 
     @Override
     public Type getType( )
@@ -80,8 +87,4 @@ public class NewUserBean extends PwmSessionBean
     }
 
 
-    public TokenVerificationProgress getTokenVerificationProgress( )
-    {
-        return tokenVerificationProgress;
-    }
 }

@@ -738,12 +738,12 @@
         <dependency>
             <groupId>com.blueconic</groupId>
             <artifactId>browscap-java</artifactId>
-            <version>1.2.1</version>
+            <version>1.2.2</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.xodus</groupId>
             <artifactId>xodus-environment</artifactId>
-            <version>1.2.0</version>
+            <version>1.2.1</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

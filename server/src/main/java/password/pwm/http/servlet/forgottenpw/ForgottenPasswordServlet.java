@@ -76,7 +76,9 @@ import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.svc.token.TokenPayload;
+import password.pwm.svc.token.TokenService;
 import password.pwm.svc.token.TokenType;
+import password.pwm.svc.token.TokenUtil;
 import password.pwm.util.CaptchaUtility;
 import password.pwm.util.PostChangePasswordAction;
 import password.pwm.util.form.FormUtility;
@@ -506,30 +508,37 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
         final ForgottenPasswordBean forgottenPasswordBean = forgottenPasswordBean( pwmRequest );
         final String userEnteredCode = pwmRequest.readParameterAsString( PwmConstants.PARAM_TOKEN );
 
+
+
         ErrorInformation errorInformation = null;
         try
         {
-            final TokenPayload tokenPayload = pwmRequest.getPwmApplication().getTokenService().processUserEnteredCode(
-                    pwmRequest.getPwmSession(),
-                    forgottenPasswordBean.getUserIdentity() == null ? null : forgottenPasswordBean.getUserIdentity(),
+            final TokenPayload tokenPayload = TokenUtil.checkEnteredCode(
+                    pwmRequest,
+                    userEnteredCode,
+                    forgottenPasswordBean.getProgress().getTokenDestination(),
+                    null,
                     TokenType.FORGOTTEN_PW,
-                    userEnteredCode
+                    TokenService.TokenEntryType.unauthenticated
             );
-            if ( tokenPayload != null )
+
+            // token correct
+            if ( forgottenPasswordBean.getUserIdentity() == null )
             {
-                // token correct
-                if ( forgottenPasswordBean.getUserIdentity() == null )
-                {
-                    // clean session, user supplied token (clicked email, etc) and this is first request
-                    ForgottenPasswordUtil.initForgottenPasswordBean(
-                            pwmRequest,
-                            tokenPayload.getUserIdentity(),
-                            forgottenPasswordBean
-                    );
-                }
-                forgottenPasswordBean.getProgress().getSatisfiedMethods().add( IdentityVerificationMethod.TOKEN );
-                StatisticsManager.incrementStat( pwmRequest.getPwmApplication(), Statistic.RECOVERY_TOKENS_PASSED );
+                // clean session, user supplied token (clicked email, etc) and this is first request
+                ForgottenPasswordUtil.initForgottenPasswordBean(
+                        pwmRequest,
+                        tokenPayload.getUserIdentity(),
+                        forgottenPasswordBean
+                );
             }
+            forgottenPasswordBean.getProgress().getSatisfiedMethods().add( IdentityVerificationMethod.TOKEN );
+            StatisticsManager.incrementStat( pwmRequest.getPwmApplication(), Statistic.RECOVERY_TOKENS_PASSED );
+        }
+        catch ( PwmUnrecoverableException e )
+        {
+            LOGGER.debug( pwmRequest, "error while checking entered token: " );
+            errorInformation = e.getErrorInformation();
         }
         catch ( PwmOperationalException e )
         {
@@ -1506,7 +1515,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
     {
         final ForgottenPasswordBean forgottenPasswordBean = forgottenPasswordBean( pwmRequest );
         final List<TokenDestinationItem> destItems = ForgottenPasswordUtil.figureAvailableTokenDestinations( pwmRequest, forgottenPasswordBean );
-        pwmRequest.setAttribute( PwmRequestAttribute.ForgottenPasswordTokenDestItems, new ArrayList<>( destItems ) );
+        pwmRequest.setAttribute( PwmRequestAttribute.TokenDestItems, new ArrayList<>( destItems ) );
         pwmRequest.forwardToJsp( JspUrl.RECOVER_PASSWORD_TOKEN_CHOICE );
     }
 }

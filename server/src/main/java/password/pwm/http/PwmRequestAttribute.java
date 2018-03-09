@@ -79,7 +79,6 @@ public enum PwmRequestAttribute
     ForgottenPasswordInstructions,
     ForgottenPasswordOtpRecord,
     ForgottenPasswordResendTokenEnabled,
-    ForgottenPasswordTokenDestItems,
     ForgottenPasswordInhibitPasswordReset,
 
     GuestCurrentExpirationDate,
@@ -96,4 +95,8 @@ public enum PwmRequestAttribute
 
     UserDebugData,
     AppDashboardData,
+
+    TokenDestItems,
+
+    ShowGoBackButton,
 }

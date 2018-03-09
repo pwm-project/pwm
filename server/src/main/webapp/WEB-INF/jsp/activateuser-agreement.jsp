@@ -26,7 +26,6 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final ActivateUserBean activateUserBean = JspUtility.getSessionBean(pageContext, ActivateUserBean.class); %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
@@ -38,7 +37,7 @@
     <div id="centerbody">
         <h1 id="page-content-title"><pwm:display key="Title_ActivateUser" displayIfMissing="true"/></h1>
         <%@ include file="fragment/message.jsp" %>
-        <% final String expandedText = activateUserBean.getAgreementText(); %>
+        <% final String expandedText = (String)JspUtility.getAttribute( pageContext, PwmRequestAttribute.AgreementText ); %>
         <br/><br/>
         <div id="agreementText" class="agreementText"><%= expandedText %></div>
         <div class="buttonbar">

@@ -615,6 +615,8 @@ public enum PwmSetting
             "token.lifetime", PwmSettingSyntax.DURATION, PwmSettingCategory.TOKEN ),
     TOKEN_LDAP_ATTRIBUTE(
             "token.ldap.attribute", PwmSettingSyntax.STRING, PwmSettingCategory.TOKEN ),
+    TOKEN_ENABLE_VALUE_MASKING(
+            "token.valueMasking.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.TOKEN ),
 
     // OTP
     OTP_PROFILE_LIST(

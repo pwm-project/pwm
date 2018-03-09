@@ -20,23 +20,31 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util;
+package password.pwm.svc.token;
 
 import password.pwm.AppProperty;
 import password.pwm.config.Configuration;
+import password.pwm.config.PwmSetting;
 import password.pwm.util.java.StringUtil;
 
-public class ValueObfuscator
+public class TokenDestinationDisplayMasker
 {
     private final Configuration configuration;
+    private boolean enabled;
 
-    public ValueObfuscator( final Configuration configuration )
+    public TokenDestinationDisplayMasker( final Configuration configuration )
     {
         this.configuration = configuration;
+        this.enabled = configuration.readSettingAsBoolean( PwmSetting.TOKEN_ENABLE_VALUE_MASKING );
     }
 
     public String maskEmail( final String email )
     {
+        if ( !enabled )
+        {
+            return email;
+        }
+
         if ( StringUtil.isEmpty( email ) )
         {
             return "";
@@ -49,6 +57,11 @@ public class ValueObfuscator
 
     public String maskPhone( final String phone )
     {
+        if ( !enabled )
+        {
+            return phone;
+        }
+
         if ( StringUtil.isEmpty( phone ) )
         {
             return "";
