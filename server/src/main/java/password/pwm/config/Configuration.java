@@ -918,15 +918,15 @@ public class Configuration implements SettingReader
 
     public boolean hasDbConfigured( )
     {
-        if ( readSettingAsString( PwmSetting.DATABASE_CLASS ) == null || readSettingAsString( PwmSetting.DATABASE_CLASS ).length() < 1 )
+        if ( StringUtil.isEmpty( readSettingAsString( PwmSetting.DATABASE_CLASS ) ) )
         {
             return false;
         }
-        if ( readSettingAsString( PwmSetting.DATABASE_URL ) == null || readSettingAsString( PwmSetting.DATABASE_URL ).length() < 1 )
+        if ( StringUtil.isEmpty( readSettingAsString( PwmSetting.DATABASE_URL ) ) )
         {
             return false;
         }
-        if ( readSettingAsString( PwmSetting.DATABASE_USERNAME ) == null || readSettingAsString( PwmSetting.DATABASE_USERNAME ).length() < 1 )
+        if ( StringUtil.isEmpty( readSettingAsString( PwmSetting.DATABASE_USERNAME ) ) )
         {
             return false;
         }
@@ -1002,25 +1002,6 @@ public class Configuration implements SettingReader
                 writeMethods.add( DataStorageMethod.NMAS );
             }
             return writeMethods;
-        }
-
-        public boolean shouldHaveDbConfigured( )
-        {
-            final PwmSetting[] settingsToCheck = new PwmSetting[] {
-                    PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE,
-                    PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE,
-                    PwmSetting.INTRUDER_STORAGE_METHOD,
-                    PwmSetting.EVENTS_USER_STORAGE_METHOD,
-            };
-
-            for ( final PwmSetting loopSetting : settingsToCheck )
-            {
-                if ( getResponseStorageLocations( loopSetting ).contains( DataStorageMethod.DB ) )
-                {
-                    return true;
-                }
-            }
-            return false;
         }
     }
 

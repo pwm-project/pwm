@@ -255,9 +255,10 @@ public enum AppProperty
     PASSWORD_STRENGTH_THRESHOLD_GOOD                ( "password.strength.threshold.good" ),
     PASSWORD_STRENGTH_THRESHOLD_WEAK                ( "password.strength.threshold.weak" ),
     PASSWORD_STRENGTH_THRESHOLD_VERY_WEAK           ( "password.strength.threshold.veryWeak" ),
-
-    PWNOTIFY__MAX_LDAP_SEARCH_SIZE                  ( "pwNotify.maxLdapSearchSize" ),
-
+    PWNOTIFY_BATCH_COUNT                            ( "pwNotify.batch.count" ),
+    PWNOTIFY_BATCH_DELAY_TIME_MULTIPLIER            ( "pwNotify.batch.delayTimeMultiplier" ),
+    PWNOTIFY_MAX_LDAP_SEARCH_SIZE                   ( "pwNotify.maxLdapSearchSize" ),
+    PWNOTIFY_MAX_SKIP_RERUN_WINDOW_SECONDS          ( "pwNotify.maxSkipRerunWindowSeconds" ),
     PEOPLESEARCH_MAX_VALUE_VERIFYUSERDN             ( "peoplesearch.values.verifyUserDN" ),
     PEOPLESEARCH_VALUE_MAXCOUNT                     ( "peoplesearch.values.maxCount" ),
     PEOPLESEARCH_VIEW_DETAIL_LINKS                  ( "peoplesearch.view.detail.links" ),

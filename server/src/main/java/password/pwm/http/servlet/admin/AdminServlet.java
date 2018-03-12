@@ -23,12 +23,15 @@
 package password.pwm.http.servlet.admin;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.pub.SessionStateInfoBean;
+import password.pwm.config.Configuration;
+import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -43,6 +46,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmURL;
 import password.pwm.http.bean.AdminBean;
+import password.pwm.http.bean.DisplayElement;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.ControlledPwmServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
@@ -51,11 +55,15 @@ import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecord;
 import password.pwm.svc.intruder.RecordType;
+import password.pwm.svc.pwnotify.PwNotifyService;
+import password.pwm.svc.pwnotify.StoredJobState;
 import password.pwm.svc.report.ReportColumnFilter;
 import password.pwm.svc.report.ReportCsvUtility;
 import password.pwm.svc.report.ReportService;
 import password.pwm.svc.report.UserCacheRecord;
 import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.util.LocaleHelper;
+import password.pwm.util.db.DatabaseException;
 import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -71,6 +79,7 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.io.Writer;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
@@ -83,6 +92,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
@@ -115,7 +125,10 @@ public class AdminServlet extends ControlledPwmServlet
         auditData( HttpMethod.GET ),
         sessionData( HttpMethod.GET ),
         intruderData( HttpMethod.GET ),
-        statistics( HttpMethod.GET ),;
+        statistics( HttpMethod.GET ),
+        startPwNotifyJob( HttpMethod.POST ),
+        readPwNotifyStatus( HttpMethod.POST ),
+        readPwNotifyLog( HttpMethod.POST ),;
 
         private final Collection<HttpMethod> method;
 
@@ -682,5 +695,116 @@ public class AdminServlet extends ControlledPwmServlet
         }
     }
 
+    @ActionHandler( action = "readPwNotifyStatus" )
+    public ProcessStatus restreadPwNotifyStatus( final PwmRequest pwmRequest ) throws IOException, DatabaseException, PwmUnrecoverableException
+    {
+        int key = 0;
+        if ( !pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.PW_EXPY_NOTIFY_ENABLE ) )
+        {
+            final DisplayElement displayElement = new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.string, "Status",
+                    "Password Notification Feature is not enabled.  See setting: "
+                    + PwmSetting.PW_EXPY_NOTIFY_ENABLE.toMenuLocationDebug( null, pwmRequest.getLocale() ) );
+            pwmRequest.outputJsonResult( RestResultBean.withData( new PwNotifyStatusBean( Collections.singletonList( displayElement ), false ) ) );
+            return ProcessStatus.Halt;
+        }
+
+
+        {
+            ErrorInformation errorInformation = null;
+            try
+            {
+                if ( !pwmRequest.getPwmApplication().getDatabaseService().getAccessor().isConnected() )
+                {
+                    errorInformation = new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, "database is not connected" );
+                }
+            }
+            catch ( PwmUnrecoverableException e )
+            {
+                errorInformation = e.getErrorInformation();
+            }
+
+            if ( errorInformation != null )
+            {
+                final DisplayElement displayElement = new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.string, "Status",
+                        "Database must be functioning to view Password Notify status.  Current database error: "
+                                + errorInformation.toDebugStr() );
+                pwmRequest.outputJsonResult( RestResultBean.withData( new PwNotifyStatusBean( Collections.singletonList( displayElement ), false ) ) );
+                return ProcessStatus.Halt;
+            }
+        }
+
+        final List<DisplayElement> statusData = new ArrayList<>( );
+        final Configuration config = pwmRequest.getConfig();
+        final Locale locale = pwmRequest.getLocale();
+        final PwNotifyService pwNotifyService = pwmRequest.getPwmApplication().getPwNotifyService();
+        final StoredJobState storedJobState = pwNotifyService.getJobState();
+        final boolean canRunOnthisServer = pwNotifyService.canRunOnThisServer();
+
+        statusData.add( new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.string,
+                "Currently Processing (on this server)", LocaleHelper.booleanString( pwNotifyService.isRunning(), locale, config ) ) );
+
+        statusData.add( new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.string,
+                "This Server is the Job Processor", LocaleHelper.booleanString( canRunOnthisServer, locale, config ) ) );
+
+        if ( canRunOnthisServer )
+        {
+            statusData.add( new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.timestamp,
+                    "Next Job Scheduled Time", LocaleHelper.instantString( pwNotifyService.getNextExecutionTime(), locale, config ) ) );
+        }
+
+        if ( storedJobState != null )
+        {
+            statusData.add( new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.timestamp,
+                    "Last Job Start Time", LocaleHelper.instantString( storedJobState.getLastStart(), locale, config ) ) );
+
+            statusData.add( new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.timestamp,
+                    "Last Job Completion Time", LocaleHelper.instantString( storedJobState.getLastCompletion(), locale, config ) ) );
+
+            if ( storedJobState.getLastStart() != null && storedJobState.getLastCompletion() != null )
+            {
+                statusData.add( new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.timestamp,
+                        "Last Job Duration", TimeDuration.between( storedJobState.getLastStart(), storedJobState.getLastCompletion() ).asLongString( locale ) ) );
+            }
+
+            statusData.add( new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.string,
+                    "Last Job Server Instance",  storedJobState.getServerInstance() ) );
+
+            if ( storedJobState.getLastError() != null )
+            {
+                statusData.add( new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.string,
+                        "Last Job Error",  storedJobState.getLastError().toDebugStr() ) );
+            }
+        }
+
+        final boolean startButtonEnabled = !pwNotifyService.isRunning() && canRunOnthisServer;
+        final PwNotifyStatusBean pwNotifyStatusBean = new PwNotifyStatusBean( statusData, startButtonEnabled );
+        pwmRequest.outputJsonResult( RestResultBean.withData( pwNotifyStatusBean ) );
+        return ProcessStatus.Halt;
+    }
+
+    @ActionHandler( action = "readPwNotifyLog" )
+    public ProcessStatus restreadPwNotifyLog( final PwmRequest pwmRequest ) throws IOException, DatabaseException, PwmUnrecoverableException
+    {
+        final PwNotifyService pwNotifyService = pwmRequest.getPwmApplication().getPwNotifyService();
+
+        pwmRequest.outputJsonResult( RestResultBean.withData( pwNotifyService.debugLog() ) );
+        return ProcessStatus.Halt;
+    }
+
+    @ActionHandler( action = "startPwNotifyJob" )
+    public ProcessStatus restStartPwNotifyJob( final PwmRequest pwmRequest ) throws IOException
+    {
+        pwmRequest.getPwmApplication().getPwNotifyService().executeJob();
+        pwmRequest.outputJsonResult( RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown ) );
+        return ProcessStatus.Halt;
+    }
+
+    @Value
+    public static class PwNotifyStatusBean implements Serializable
+    {
+        private List<DisplayElement> statusData;
+        private boolean enableStartButton;
+    }
 
 }
+

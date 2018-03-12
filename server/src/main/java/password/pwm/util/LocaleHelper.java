@@ -41,6 +41,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.PwmDisplayBundle;
 import password.pwm.i18n.PwmLocaleBundle;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.Percent;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -48,6 +49,7 @@ import password.pwm.util.macro.MacroMachine;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -374,6 +376,16 @@ public class LocaleHelper
         final Display key = input ? Display.Value_True : Display.Value_False;
         return Display.getLocalizedMessage( locale, key, configuration );
     }
+
+    public static String instantString ( final Instant input, final Locale locale, final Configuration configuration )
+    {
+        if ( input == null )
+        {
+            return LocaleHelper.getLocalizedMessage( locale, Display.Value_NotApplicable, configuration );
+        }
+        return JavaHelper.toIsoDate( input );
+    }
+
 
     @Getter
     public static class LocaleStats

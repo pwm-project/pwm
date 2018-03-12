@@ -58,7 +58,6 @@ import password.pwm.util.cli.commands.ImportLocalDBCommand;
 import password.pwm.util.cli.commands.ImportResponsesCommand;
 import password.pwm.util.cli.commands.LdapSchemaExtendCommand;
 import password.pwm.util.cli.commands.LocalDBInfoCommand;
-import password.pwm.util.cli.commands.PasswordExpireNotificationCommand;
 import password.pwm.util.cli.commands.ResponseStatsCommand;
 import password.pwm.util.cli.commands.ShellCommand;
 import password.pwm.util.cli.commands.TokenInfoCommand;
@@ -127,7 +126,6 @@ public class MainClass
         commandList.add( new ShellCommand() );
         commandList.add( new ConfigResetHttpsCommand() );
         commandList.add( new HelpCommand() );
-        commandList.add( new PasswordExpireNotificationCommand() );
 
         final Map<String, CliCommand> sortedMap = new TreeMap<>();
         for ( final CliCommand command : commandList )

@@ -40,6 +40,7 @@ public class SessionLabel implements Serializable
     public static final SessionLabel REPORTING_SESSION_LABEL = new SessionLabel( SESSION_LABEL_SESSION_ID, null, "reporting", null, null );
     public static final SessionLabel AUDITING_SESSION_LABEL = new SessionLabel( SESSION_LABEL_SESSION_ID, null, "auditing", null, null );
     public static final SessionLabel TELEMETRY_SESSION_LABEL = new SessionLabel( SESSION_LABEL_SESSION_ID, null, "telemetry", null, null );
+    public static final SessionLabel PWNOTIFY_SESSION_LABEL = new SessionLabel( SESSION_LABEL_SESSION_ID, null, "pwnotify", null, null );
 
     private final String sessionID;
     private final UserIdentity userIdentity;

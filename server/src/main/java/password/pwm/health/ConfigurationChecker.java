@@ -53,6 +53,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -324,9 +325,32 @@ public class ConfigurationChecker implements HealthChecker
             final List<HealthRecord> records = new ArrayList<>();
             if ( !config.hasDbConfigured() )
             {
-                if ( config.helper().shouldHaveDbConfigured() )
+                final Set<PwmSetting> causalSettings = new LinkedHashSet<>();
                 {
-                    records.add( HealthRecord.forMessage( HealthMessage.Config_MissingDB ) );
+                    final PwmSetting[] settingsToCheck = new PwmSetting[] {
+                            PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE,
+                            PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE,
+                            PwmSetting.INTRUDER_STORAGE_METHOD,
+                            PwmSetting.EVENTS_USER_STORAGE_METHOD,
+                    };
+
+                    for ( final PwmSetting loopSetting : settingsToCheck )
+                    {
+                        if ( config.getResponseStorageLocations( loopSetting ).contains( DataStorageMethod.DB ) )
+                        {
+                            causalSettings.add( loopSetting );
+                        }
+                    }
+                }
+
+                if ( config.readSettingAsBoolean( PwmSetting.PW_EXPY_NOTIFY_ENABLE ) )
+                {
+                    causalSettings.add( PwmSetting.PW_EXPY_NOTIFY_ENABLE );
+                }
+
+                for ( final PwmSetting setting : causalSettings )
+                {
+                    records.add( HealthRecord.forMessage( HealthMessage.Config_MissingDB, setting.toMenuLocationDebug( null, locale ) ) );
                 }
             }
 
@@ -343,6 +367,7 @@ public class ConfigurationChecker implements HealthChecker
                         HealthMessage.Config_UsingLocalDBResponseStorage,
                         PwmSetting.OTP_SECRET_WRITE_PREFERENCE.toMenuLocationDebug( null, locale ) ) );
             }
+
             return records;
         }
     }

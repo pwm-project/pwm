@@ -734,6 +734,93 @@ PWM_ADMIN.makeHealthHtml = function(healthData, showTimestamp, showRefresh) {
     return htmlBody;
 };
 
+PWM_ADMIN.initPwNotifyPage = function() {
+    PWM_MAIN.addEventHandler('button-executePwNotifyJob','click',function(){
+        PWM_MAIN.showWaitDialog({loadFunction:function(){
+                var url = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction','startPwNotifyJob');
+                PWM_MAIN.ajaxRequest(url,function(data){
+                    setTimeout(function(){
+                        PWM_MAIN.showDialog({title:'Job Started',text:data['successMessage'],okAction:function(){
+                                PWM_ADMIN.loadPwNotifyStatus();
+                            }
+                        });
+                    },3000);
+                });
+            }
+        });
+    });
+
+    PWM_MAIN.addEventHandler('button-refreshPwNotifyStatus','click',function(){
+        PWM_MAIN.showWaitDialog({loadFunction:function() {
+                PWM_MAIN.getObject('button-refreshPwNotifyStatus').disabled = true;
+                PWM_ADMIN.loadPwNotifyStatus();
+                PWM_ADMIN.loadPwNotifyLog();
+                setTimeout(function () {
+                    PWM_MAIN.closeWaitDialog();
+                    PWM_MAIN.getObject('button-refreshPwNotifyStatus').disabled = false;
+                },500);
+            }
+        });
+    });
+
+    PWM_ADMIN.loadPwNotifyStatus();
+    setTimeout(function(){
+        PWM_ADMIN.loadPwNotifyStatus();
+    },5000);
+
+    PWM_ADMIN.loadPwNotifyLog();
+};
+
+PWM_ADMIN.loadPwNotifyStatus = function () {
+    var processData = function (data) {
+        var statusData = data['data']['statusData'];
+        var htmlData = '<tr><td colspan="2" class="title">Password Expiration Notification Status</td></tr>';
+        for (var item in statusData) {
+            (function(key){
+                var item = statusData[key];
+                htmlData += '<tr><td>' + item['label'] + '</td><td>';
+                if ( item['type'] === 'timestamp') {
+                    htmlData += '<span id="pwNotifyStatusRow-' + key + '" class="timestamp">' + item['value'] + '</span>';
+                } else {
+                    htmlData += item['value'];
+                }
+                htmlData += '</td></tr>';
+            })(item);
+        }
+
+        PWM_MAIN.getObject('table-pwNotifyStatus').innerHTML = htmlData;
+
+        for (var item in statusData) {
+            (function(key){
+                var item = statusData[key];
+                if ( item['type'] === 'timestamp') {
+                    PWM_MAIN.TimestampHandler.initElement(PWM_MAIN.getObject('pwNotifyStatusRow-' + key));
+                }
+            })(item);
+        }
+
+        PWM_MAIN.getObject('button-executePwNotifyJob').disabled = !data['data']['enableStartButton'];
+    };
+    var url = PWM_MAIN.addParamToUrl(window.location.href,'processAction','readPwNotifyStatus');
+    PWM_MAIN.ajaxRequest(url, processData);
+
+};
+
+PWM_ADMIN.loadPwNotifyLog = function () {
+    var processData = function (data) {
+        var debugData = data['data'];
+        if (debugData && debugData.length > 0) {
+            PWM_MAIN.getObject('div-pwNotifyDebugLog').innerHTML = '';
+            PWM_MAIN.getObject('div-pwNotifyDebugLog').appendChild(document.createTextNode(debugData));
+        } else {
+            PWM_MAIN.getObject('div-pwNotifyDebugLog').innerHTML = '<span class="footnote">Job has not been run on this server since startup.</span>';
+        }
+    };
+    var url = PWM_MAIN.addParamToUrl(window.location.href,'processAction','readPwNotifyLog');
+    PWM_MAIN.ajaxRequest(url, processData);
+
+};
+
 PWM_ADMIN.detailView = function(evt, headers, grid){
     var row = grid.row(evt);
     var text = '<table>';

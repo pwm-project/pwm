@@ -50,7 +50,6 @@ import password.pwm.http.servlet.configeditor.ConfigEditorServlet;
 import password.pwm.http.servlet.configguide.ConfigGuideServlet;
 import password.pwm.http.servlet.configmanager.ConfigManagerCertificatesServlet;
 import password.pwm.http.servlet.configmanager.ConfigManagerLocalDBServlet;
-import password.pwm.http.servlet.configmanager.ConfigManagerPwNotifyServlet;
 import password.pwm.http.servlet.configmanager.ConfigManagerServlet;
 import password.pwm.http.servlet.configmanager.ConfigManagerWordlistServlet;
 import password.pwm.http.servlet.newuser.NewUserServlet;
@@ -93,7 +92,6 @@ public enum PwmServletDefinition
     ConfigManager_Wordlists( ConfigManagerWordlistServlet.class, ConfigManagerBean.class ),
     ConfigManager_LocalDB( ConfigManagerLocalDBServlet.class, ConfigManagerBean.class ),
     ConfigManager_Certificates( ConfigManagerCertificatesServlet.class, ConfigManagerBean.class ),
-    ConfigManager_PwNotify( ConfigManagerPwNotifyServlet.class, ConfigManagerBean.class ),
 
     NewUser( NewUserServlet.class, NewUserBean.class ),
     ActivateUser( ActivateUserServlet.class, ActivateUserBean.class ),
