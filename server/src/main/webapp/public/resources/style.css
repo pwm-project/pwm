@@ -1687,3 +1687,7 @@ table.ias-table, table.ias-table td {
 .pwm-icon-status_warn_thick:before {
     content: "\f192";
 }
+
+.ias-fill {
+    display: inline-block;
+}
