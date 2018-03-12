@@ -41,13 +41,13 @@
         <h3 class="single-line" ng-bind="$ctrl.person.displayNames[0]"
             ng-attr-title="{{$ctrl.person.displayNames[0]}}"></h3>
         <div class="single-line" ng-bind="displayName" ng-attr-title="{{displayName}}"
-            ng-repeat="displayName in $ctrl.person.displayNames.slice(1, 8)"></div>
+            ng-repeat="displayName in $ctrl.person.displayNames.slice(1, 8) track by $index"></div>
     </div>
 
     <div class="ias-tile-content" ng-class="{'direct-reports': $ctrl.numDirectReportsVisible}" ng-switch-default>
         <h3 class="single-line" ng-bind="$ctrl.person.displayNames[0]"
             ng-attr-title="{{$ctrl.person.displayNames[0]}}"></h3>
         <div class="single-line" ng-bind="displayName" ng-attr-title="{{displayName}}"
-             ng-repeat="displayName in $ctrl.person.displayNames.slice(1, 4)"></div>
+             ng-repeat="displayName in $ctrl.person.displayNames.slice(1, 4) track by $index"></div>
     </div>
 </div>
