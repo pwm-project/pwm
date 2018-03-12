@@ -29,7 +29,12 @@ FormTableHandler.newRowValue = {
     labels:{'':''},
     regexErrors:{'':''},
     selectOptions:{},
-    description:{'':''}
+    description:{'':''},
+    type:'text',
+    placeholder:'',
+    javascript:'',
+    regex:'',
+    source:'ldap'
 };
 
 FormTableHandler.init = function(keyName) {
@@ -209,7 +214,6 @@ FormTableHandler.addRow = function(keyName) {
             PWM_VAR['clientSettingCache'][keyName][currentSize + 1] = FormTableHandler.newRowValue;
             PWM_VAR['clientSettingCache'][keyName][currentSize + 1].name = value;
             PWM_VAR['clientSettingCache'][keyName][currentSize + 1].labels = {'':value};
-            PWM_VAR['clientSettingCache'][keyName][currentSize + 1].type = 'text';
             FormTableHandler.write(keyName,function(){
                 FormTableHandler.init(keyName);
             });
