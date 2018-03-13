@@ -113,6 +113,7 @@ public enum AppProperty
     HTTP_COOKIE_LOGIN_NAME                          ( "http.cookie.login.name" ),
     HTTP_BASIC_AUTH_CHARSET                         ( "http.basicAuth.charset" ),
     HTTP_BODY_MAXREAD_LENGTH                        ( "http.body.maxReadLength" ),
+    HTTP_CLIENT_ALWAYS_LOG_ENTITIES                 ( "http.client.alwaysLogEntities" ),
     HTTP_CLIENT_SOCKET_TIMEOUT_MS                   ( "http.client.socketTimeoutMs" ),
     HTTP_CLIENT_CONNECT_TIMEOUT_MS                  ( "http.client.connectTimeoutMs" ),
     HTTP_CLIENT_REQUEST_TIMEOUT_MS                  ( "http.client.requestTimeoutMs" ),

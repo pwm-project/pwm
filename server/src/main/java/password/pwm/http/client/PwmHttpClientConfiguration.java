@@ -34,4 +34,5 @@ public class PwmHttpClientConfiguration
 {
     private List<X509Certificate> certificates;
     private boolean promiscuous;
+    private boolean maskBodyDebugOutput;
 }
