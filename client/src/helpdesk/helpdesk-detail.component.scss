@@ -39,7 +39,6 @@ help-desk-detail {
   > .secondary-header {
     display: flex;
     justify-content: space-between;
-    margin-top: 15px;
   }
 
   > .help-desk-content {
@@ -147,9 +146,9 @@ help-desk-detail {
     display: flex;
     flex-flow: column nowrap;
 
+    > .ias-header,
     > .secondary-header {
       flex-shrink: 0;
-
     }
 
     > .help-desk-content {
