@@ -30,7 +30,7 @@
     <pwm:script-ref url="/public/resources/webjars/angular/angular.min.js" />
     <pwm:script-ref url="/public/resources/webjars/angular-aria/angular-aria.min.js" />
     <pwm:script-ref url="/public/resources/webjars/angular-ui-router/release/angular-ui-router.min.js" />
-    <pwm:script-ref url="/public/resources/webjars/angular-translate/dist/angular-translate.min.js" />
+    <pwm:script-ref url="/public/resources/webjars/angular-translate/angular-translate.min.js" />
     <pwm:script-ref url="/public/resources/webjars/pwm-client/vendor/ng-ias.js" />
 </pwm:if>
 
