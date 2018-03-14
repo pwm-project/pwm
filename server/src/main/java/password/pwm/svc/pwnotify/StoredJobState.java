@@ -39,4 +39,5 @@ public class StoredJobState implements Serializable
     private Instant lastCompletion = null;
     private String serverInstance = null;
     private ErrorInformation lastError = null;
+    private boolean jobSuccess;
 }

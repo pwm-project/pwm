@@ -1029,8 +1029,8 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
                 );
                 if ( remainingAvailableOptionalMethods.isEmpty() )
                 {
-                    final String errorMsg = "additional optional verification methods are needed, however all available optional verification methods have been satisified by user";
-                    final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_TOKEN_MISSING_CONTACT, errorMsg );
+                    final String errorMsg = "additional optional verification methods are needed, however all available optional verification methods have been satisfied by user";
+                    final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_RECOVERY_SEQUENCE_INCOMPLETE, errorMsg );
                     LOGGER.error( pwmRequest, errorInformation );
                     pwmRequest.respondWithError( errorInformation );
                     return;

@@ -43,6 +43,7 @@ public enum HealthMessage
     LDAP_TestUserReadPwError( HealthStatus.WARN, HealthTopic.LDAP ),
     LDAP_TestUserOK( HealthStatus.GOOD, HealthTopic.LDAP ),
     Email_SendFailure( HealthStatus.WARN, HealthTopic.Email ),
+    PwNotify_Failure( HealthStatus.WARN, HealthTopic.Email ),
     MissingResource( HealthStatus.DEBUG, HealthTopic.Integrity ),
     BrokenMethod( HealthStatus.DEBUG, HealthTopic.Integrity ),
     Appliance_PendingUpdates( HealthStatus.CAUTION, HealthTopic.Appliance ),

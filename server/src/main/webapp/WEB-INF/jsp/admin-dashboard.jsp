@@ -56,6 +56,7 @@
         <h1 id="page-content-title"><pwm:display key="Title_Dashboard" bundle="Admin"/></h1>
         <%@ include file="fragment/admin-nav.jsp" %>
         <div id="DashboardTabContainer" class="tab-container" style="width: 100%; height: 100%;">
+
             <input name="tabs" type="radio" id="tab-1" checked="checked" class="input"/>
             <label for="tab-1" class="label">Status</label>
             <div id="StatusTab" class="tab-content-pane" title="Status" >
@@ -243,53 +244,53 @@
             <label for="tab-4" class="label">Services</label>
             <div id="ServicesTab" class="tab-content-pane" title="Services">
                 <div style="max-height: 600px; overflow: auto;">
-                <table class="nomargin">
-                    <tr>
-                        <th style="font-weight:bold;">
-                            Service
-                        </td>
-                        <td style="font-weight:bold;">
-                            Status
-                        </td>
-                        <td style="font-weight:bold;">
-                            Storage
-                        </td>
-                        <td style="font-weight:bold;">
-                            Health
-                        </td>
-                    </tr>
-                    <% for (final AppDashboardData.ServiceData loopService : appDashboardData.getServices()) { %>
-                    <tr id="serviceName-<%=loopService.getName()%>">
-                        <td>
-                            <%= loopService.getName() %>
-                            <% if (!JavaHelper.isEmpty(loopService.getDebugData())) { %>
-                            &nbsp;
-                            <div class="btn-icon pwm-icon pwm-icon-list-alt"></div>
-                            <% } %>
-                        </td>
-                        <td>
-                            <%= loopService.getStatus() %>
-                        </td>
-                        <td>
-                            <% for (final DataStorageMethod loopMethod : loopService.getStorageMethod()) { %>
-                            <%=loopMethod.toString()%>
-                            <br/>
-                            <% } %>
-                        </td>
-                        <td>
-                            <% if (!JavaHelper.isEmpty(loopService.getHealth())) { %>
-                            <% for (final HealthRecord loopRecord : loopService.getHealth()) { %>
-                            <%= loopRecord.getTopic(locale, dashboard_pwmApplication.getConfig()) %> - <%= loopRecord.getStatus().toString() %> - <%= loopRecord.getDetail(locale,
-                                dashboard_pwmApplication.getConfig()) %>
-                            <br/>
-                            <% } %>
-                            <% } else { %>
-                            No Issues
-                            <% } %>
-                        </td>
-                    </tr>
-                    <% } %>
-                </table>
+                    <table class="nomargin">
+                        <tr>
+                            <th style="font-weight:bold;">
+                                Service
+                            </td>
+                            <td style="font-weight:bold;">
+                                Status
+                            </td>
+                            <td style="font-weight:bold;">
+                                Storage
+                            </td>
+                            <td style="font-weight:bold;">
+                                Health
+                            </td>
+                        </tr>
+                        <% for (final AppDashboardData.ServiceData loopService : appDashboardData.getServices()) { %>
+                        <tr id="serviceName-<%=loopService.getName()%>">
+                            <td>
+                                <%= loopService.getName() %>
+                                <% if (!JavaHelper.isEmpty(loopService.getDebugData())) { %>
+                                &nbsp;
+                                <div class="btn-icon pwm-icon pwm-icon-list-alt"></div>
+                                <% } %>
+                            </td>
+                            <td>
+                                <%= loopService.getStatus() %>
+                            </td>
+                            <td>
+                                <% for (final DataStorageMethod loopMethod : loopService.getStorageMethod()) { %>
+                                <%=loopMethod.toString()%>
+                                <br/>
+                                <% } %>
+                            </td>
+                            <td>
+                                <% if (!JavaHelper.isEmpty(loopService.getHealth())) { %>
+                                <% for (final HealthRecord loopRecord : loopService.getHealth()) { %>
+                                <%= loopRecord.getTopic(locale, dashboard_pwmApplication.getConfig()) %> - <%= loopRecord.getStatus().toString() %> - <%= loopRecord.getDetail(locale,
+                                    dashboard_pwmApplication.getConfig()) %>
+                                <br/>
+                                <% } %>
+                                <% } else { %>
+                                No Issues
+                                <% } %>
+                            </td>
+                        </tr>
+                        <% } %>
+                    </table>
                 </div>
             </div>
 
@@ -443,6 +444,37 @@
             </div>
             <% } %>
 
+            <pwm:if test="<%=PwmIfTest.booleanSetting%>" setting="<%=PwmSetting.PW_EXPY_NOTIFY_ENABLE%>">
+            <input name="tabs" type="radio" id="tab-8" class="input"/>
+            <label for="tab-8" class="label">Password Notification</label>
+            <div id="Status" class="tab-content-pane" title="Password Notification">
+                <table id="table-pwNotifyStatus">
+                </table>
+                <div class="footnote">
+                    <pwm:display key="Notice_DynamicRefresh" bundle="Admin"/>
+                </div>
+
+                <br/>
+                <table><tr><td class="title">Local Debug Log</td></tr>
+                    <tr>
+                        <td>
+                            <div style="max-height: 500px; max-width: 580px; overflow: auto; white-space: pre" id="div-pwNotifyDebugLog"></div>
+                        </td>
+                    </tr>
+                </table>
+                <div class="buttonbar" style="width:100%">
+                    <button type="submit" class="btn" id="button-refreshPwNotifyStatus">
+                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-refresh"></span></pwm:if>
+                        Refresh Log
+                    </button>
+                    <button id="button-executePwNotifyJob" type="button" class="btn">
+                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-play"></span></pwm:if>
+                        Start Job
+                    </button>
+                </div>
+            </div>
+            </pwm:if>
+
             <div class="tab-end"></div>
         </div>
     </div>
@@ -477,6 +509,10 @@
             });
             <% } %>
             <% } %>
+
+            <pwm:if test="<%=PwmIfTest.booleanSetting%>" setting="<%=PwmSetting.PW_EXPY_NOTIFY_ENABLE%>">
+            PWM_ADMIN.initPwNotifyPage();
+            </pwm:if>
         });
     </script>
 </pwm:script>

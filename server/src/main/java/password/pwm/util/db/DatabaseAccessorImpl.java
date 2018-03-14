@@ -617,4 +617,18 @@ class DatabaseAccessorImpl implements DatabaseAccessor
             throw new IllegalStateException( "call to perform database operation but accessor has been closed" );
         }
     }
+
+    public boolean isConnected()
+    {
+        try
+        {
+            return connection.isValid( 5000 );
+        }
+        catch ( SQLException e )
+        {
+            LOGGER.error( "error while checking database connection: " + e.getMessage() );
+        }
+
+        return false;
+    }
 }

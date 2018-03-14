@@ -50,7 +50,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class TimeDuration implements Comparable, Serializable
 {
-
     public static final TimeDuration ZERO = new TimeDuration( 0 );
     public static final TimeDuration MILLISECOND = new TimeDuration( 1, TimeUnit.MILLISECONDS );
     public static final TimeDuration SECOND = new TimeDuration( 1, TimeUnit.SECONDS );
@@ -98,6 +97,11 @@ public class TimeDuration implements Comparable, Serializable
     public static TimeDuration fromCurrent( final Instant instant )
     {
         return new TimeDuration( System.currentTimeMillis(), instant.toEpochMilli() );
+    }
+
+    public static TimeDuration between( final Instant start, final Instant finish )
+    {
+        return new TimeDuration( start, finish );
     }
 
     public static String compactFromCurrent( final Instant instant )
@@ -517,6 +521,11 @@ public class TimeDuration implements Comparable, Serializable
      */
     public static TimeDuration pause( final long sleepTimeMS )
     {
+        if ( sleepTimeMS < 1 )
+        {
+            return TimeDuration.ZERO;
+        }
+
         final long startTime = System.currentTimeMillis();
         do
         {
