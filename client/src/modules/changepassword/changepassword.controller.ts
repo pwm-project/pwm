@@ -28,8 +28,8 @@ declare const PWM_GLOBAL: any;
 declare const PWM_MAIN: any;
 
 const PWM_CHANGEPW = window['PWM_CHANGEPW'];
-const PW_SUGGESTIONS_TEMPLATE = require("pages/changepassword/password-suggestions.html");
-require("pages/changepassword/password-suggestions.scss");
+const PW_SUGGESTIONS_TEMPLATE = require("./password-suggestions.html");
+require("./password-suggestions.scss");
 
 export default class ChangePasswordController {
     static $inject = ["$scope", "$compile", "$templateCache"];
