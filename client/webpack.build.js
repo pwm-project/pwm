@@ -23,6 +23,7 @@
 
 var commonConfig = require('./webpack.common.js');
 var CopyWebpackPlugin = require('copy-webpack-plugin');
+var UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 var webpack = require('webpack');
 var webpackMerge = require('webpack-merge');
 
@@ -41,10 +42,12 @@ module.exports = webpackMerge(commonConfig, {
             { from: 'node_modules/@microfocus/ias-icons/dist/ias-icons.css', to: 'vendor/' },
             { from: 'node_modules/@microfocus/ias-icons/dist/fonts', to: 'vendor/fonts' }
         ]),
-        new webpack.optimize.UglifyJsPlugin({
-            compress: { warnings: false },
-            comments: false,
-            sourceMap: true
+        new UglifyJsPlugin({
+            sourceMap: true,
+            uglifyOptions: {
+                compress: {warnings: false},
+                comments: false
+            }
         })
     ]
 });
