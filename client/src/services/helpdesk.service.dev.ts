@@ -374,8 +374,20 @@ export default class HelpDeskService implements IHelpDeskService {
                 {
                     'key': 'item_1',
                     'type': 'string',
-                    'label': 'How many years old are you?',
-                    'value': '25RRR'
+                    'label': 'In what year were you born?',
+                    'value': '1987'
+                },
+                {
+                    'key': 'item_2',
+                    'type': 'string',
+                    'label': 'What is your favorite type of weather?',
+                    'value': 'Clear sky with funny-shaped clouds'
+                },
+                {
+                    'key': 'item_3',
+                    'type': 'string',
+                    'label': 'What is your favorite song?',
+                    'value': 'Rudolph the Red-Nosed Reindeer'
                 }
             ],
             'visibleButtons': [
