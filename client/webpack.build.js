@@ -31,8 +31,8 @@ module.exports = webpackMerge(commonConfig, {
     devtool: 'source-map',
     entry: {
         'peoplesearch.ng': './src/main',
-        'changepassword.ng': './src/pages/changepassword/changepassword.module',
-        'configeditor.ng': './src/pages/configeditor/configeditor.module',
+        'changepassword.ng': './src/modules/changepassword/changepassword.module',
+        'configeditor.ng': './src/modules/configeditor/configeditor.module',
         'helpdesk.ng': './src/helpdesk/main'
     },
     plugins: [
