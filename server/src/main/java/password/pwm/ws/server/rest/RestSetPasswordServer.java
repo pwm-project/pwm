@@ -33,6 +33,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmHttpRequestWrapper;
+import password.pwm.i18n.Message;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.BasicAuthInfo;
@@ -107,7 +108,8 @@ public class RestSetPasswordServer extends RestServlet
                     RestUtility.readValueFromJsonAndParam(
                             jsonBody == null ? null : jsonBody.getUsername(),
                             restRequest.readParameterAsString( FIELD_USERNAME ),
-                            FIELD_USERNAME
+                            FIELD_USERNAME,
+                            RestUtility.ReadValueFlag.optional
                     ),
                     RestUtility.readValueFromJsonAndParam(
                             jsonBody == null ? null : jsonBody.getPassword(),
@@ -203,8 +205,8 @@ public class RestSetPasswordServer extends RestServlet
             );
 
             StatisticsManager.incrementStat( restRequest.getPwmApplication(), Statistic.REST_SETPASSWORD );
-            final JsonInputData jsonResultData = new JsonInputData( null, null, random );
-            return RestResultBean.withData( jsonResultData );
+            final JsonInputData jsonResultData = new JsonInputData( targetUserIdentity.getUserIdentity().toDelimitedKey(), null, random );
+            return RestResultBean.forSuccessMessage( jsonResultData, restRequest, Message.Success_PasswordChange );
         }
         catch ( PwmException e )
         {
