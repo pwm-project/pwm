@@ -22,13 +22,14 @@
 
 import { bootstrap, module } from 'angular';
 import helpDeskModule from './helpdesk.module';
+import PeopleService from '../../services/people.service';
+import PwmService from '../../services/pwm.service';
 import routes from './routes';
+import TranslationsLoaderFactory from '../../services/translations-loader.factory';
 import uiRouter from '@uirouter/angularjs';
-import PeopleService from '../services/people.service.dev';
-import HelpDeskConfigService from '../services/helpdesk-config.service.dev';
-import HelpDeskService from '../services/helpdesk.service.dev';
-import PasswordService from '../services/password.service.dev';
-import PwmService from '../services/pwm.service.dev';
+import HelpDeskConfigService from '../../services/helpdesk-config.service';
+import HelpDeskService from '../../services/helpdesk.service';
+import PasswordService from '../../services/password.service';
 
 
 module('app', [
@@ -37,17 +38,26 @@ module('app', [
     'pascalprecht.translate',
     'ng-ias'
 ])
-    .config(['$translateProvider', ($translateProvider: angular.translate.ITranslateProvider) => {
-        $translateProvider.translations('en', require('i18n/translations_en.json'));
-        $translateProvider.useSanitizeValueStrategy('escapeParameters');
-        $translateProvider.preferredLanguage('en');
-    }])
     .config(routes)
+    .config([
+        '$translateProvider',
+        ($translateProvider: angular.translate.ITranslateProvider) => {
+            $translateProvider
+                .translations('fallback', require('i18n/translations_en.json'))
+                .useLoader('translationsLoader')
+                .useSanitizeValueStrategy('escapeParameters')
+                .preferredLanguage('en')
+                .fallbackLanguage('fallback')
+                .forceAsyncReload(true);
+        }])
     .service('HelpDeskService', HelpDeskService)
     .service('PasswordService', PasswordService)
     .service('PeopleService', PeopleService)
     .service('PwmService', PwmService)
-    .service('ConfigService', HelpDeskConfigService);
+    .service('ConfigService', HelpDeskConfigService)
+    .factory('translationsLoader', TranslationsLoaderFactory);
 
-// Attach to the page document
-bootstrap(document, ['app']);
+// Attach to the page document, wait for PWM to load first
+window['PWM_GLOBAL'].startupFunctions.push(() => {
+    bootstrap(document, ['app'], { strictDi: true });
+});

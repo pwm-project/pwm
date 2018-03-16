@@ -21,13 +21,13 @@
  */
 
 
-import {IPeopleService} from '../services/people.service';
-import SearchResult from '../models/search-result.model';
+import {IPeopleService} from '../../services/people.service';
+import SearchResult from '../../models/search-result.model';
 import {isArray, isString, IPromise, IQService, IScope} from 'angular';
-import {IPerson} from '../models/person.model';
-import {IHelpDeskConfigService} from '../services/helpdesk-config.service';
-import LocalStorageService from '../services/local-storage.service';
-import PromiseService from '../services/promise.service';
+import {IPerson} from '../../models/person.model';
+import {IHelpDeskConfigService} from '../../services/helpdesk-config.service';
+import LocalStorageService from '../../services/local-storage.service';
+import PromiseService from '../../services/promise.service';
 
 let verificationsDialogTemplateUrl = require('./verifications-dialog.template.html');
 let recentVerificationsDialogTemplateUrl = require('./recent-verifications-dialog.template.html');

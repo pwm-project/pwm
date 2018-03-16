@@ -33,7 +33,7 @@ module.exports = webpackMerge(commonConfig, {
         'peoplesearch.ng': './src/main',
         'changepassword.ng': './src/modules/changepassword/changepassword.module',
         'configeditor.ng': './src/modules/configeditor/configeditor.module',
-        'helpdesk.ng': './src/helpdesk/main'
+        'helpdesk.ng': './src/modules/helpdesk/main'
     },
     plugins: [
         new CopyWebpackPlugin([

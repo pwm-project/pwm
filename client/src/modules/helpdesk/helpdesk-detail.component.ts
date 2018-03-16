@@ -21,14 +21,14 @@
  */
 
 
-import {Component} from '../component';
-import {IButtonInfo, IHelpDeskService, ISuccessResponse} from '../services/helpdesk.service';
+import {Component} from '../../component';
+import {IButtonInfo, IHelpDeskService, ISuccessResponse} from '../../services/helpdesk.service';
 import {IScope, ui} from 'angular';
 import {noop} from 'angular';
-import {IHelpDeskConfigService, PASSWORD_UI_MODES} from '../services/helpdesk-config.service';
-import {IPeopleService} from '../services/people.service';
-import {IPerson} from '../models/person.model';
-import {IChangePasswordSuccess} from '../changepassword/success-change-password.controller';
+import {IHelpDeskConfigService, PASSWORD_UI_MODES} from '../../services/helpdesk-config.service';
+import {IPeopleService} from '../../services/people.service';
+import {IPerson} from '../../models/person.model';
+import {IChangePasswordSuccess} from '../../changepassword/success-change-password.controller';
 
 let autogenChangePasswordTemplateUrl = require('changepassword/autogen-change-password.component.html');
 let helpdeskDetailDialogTemplateUrl = require('./helpdesk-detail-dialog.template.html');
@@ -42,8 +42,8 @@ const STATUS_CONFIRM = 'confirm';
 const STATUS_SUCCESS = 'success';
 
 @Component({
-    stylesheetUrl: require('helpdesk/helpdesk-detail.component.scss'),
-    templateUrl: require('helpdesk/helpdesk-detail.component.html')
+    stylesheetUrl: require('modules/helpdesk/helpdesk-detail.component.scss'),
+    templateUrl: require('modules/helpdesk/helpdesk-detail.component.html')
 })
 export default class HelpDeskDetailComponent {
     person: any;
