@@ -23,16 +23,16 @@
 
 import {IQService, IScope} from 'angular';
 import HelpDeskSearchBaseComponent from './helpdesk-search-base.component';
-import {Component} from '../component';
-import SearchResult from '../models/search-result.model';
-import {IPeopleService} from '../services/people.service';
-import {IHelpDeskConfigService} from '../services/helpdesk-config.service';
-import LocalStorageService from '../services/local-storage.service';
-import PromiseService from '../services/promise.service';
+import {Component} from '../../component';
+import SearchResult from '../../models/search-result.model';
+import {IPeopleService} from '../../services/people.service';
+import {IHelpDeskConfigService} from '../../services/helpdesk-config.service';
+import LocalStorageService from '../../services/local-storage.service';
+import PromiseService from '../../services/promise.service';
 
 @Component({
-    stylesheetUrl: require('helpdesk/helpdesk-search.component.scss'),
-    templateUrl: require('helpdesk/helpdesk-search-table.component.html')
+    stylesheetUrl: require('modules/helpdesk/helpdesk-search.component.scss'),
+    templateUrl: require('modules/helpdesk/helpdesk-search-table.component.html')
 })
 export default class HelpDeskSearchTableComponent extends HelpDeskSearchBaseComponent {
     columnConfiguration: any;

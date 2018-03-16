@@ -1,4 +1,4 @@
-/*!
+/*
  * Password Management Servlets (PWM)
  * http://www.pwm-project.org
  *
@@ -21,41 +21,16 @@
  */
 
 
-.verifications-button {
-  margin: 5px 5px 5px 0;
-}
+import {IHelpDeskService, IRecentVerifications} from '../../services/helpdesk.service';
 
-help-desk-search-cards,
-help-desk-search-table {
-  display: flex;
-  flex-flow: column nowrap;
-  height: 100%;
+export default class RecentVerificationsDialogController {
+    recentVerifications: IRecentVerifications;
 
-  #page-content-title {
-    margin-bottom: 0;
-  }
-
-  > .people-search-component-content {
-    flex: 1 1;
-    overflow: auto;
-  }
-}
-
-.aligned-input {
-  margin-top: 15px;
-
-  > * {
-    vertical-align: middle;
-  }
-
-  .ias-button {
-    margin-right: 5px;
-  }
-}
-
-.loading-gif-25 {
-  background-image: url('../../images/icons/wait_25.gif');
-  display: inline-block;
-  height: 25px;
-  width: 25px;
+    static $inject = [ 'HelpDeskService' ];
+    constructor(helpDeskService: IHelpDeskService) {
+        helpDeskService.getRecentVerifications()
+            .then((recentVerifications) => {
+                this.recentVerifications = recentVerifications;
+            });
+    }
 }

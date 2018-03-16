@@ -21,19 +21,19 @@
  */
 
 
-import {Component} from '../component';
-import {IPeopleService} from '../services/people.service';
+import {Component} from '../../component';
+import {IPeopleService} from '../../services/people.service';
 import {IQService, IScope} from 'angular';
-import {IHelpDeskConfigService} from '../services/helpdesk-config.service';
-import LocalStorageService from '../services/local-storage.service';
+import {IHelpDeskConfigService} from '../../services/helpdesk-config.service';
+import LocalStorageService from '../../services/local-storage.service';
 import HelpDeskSearchBaseComponent from './helpdesk-search-base.component';
-import SearchResult from '../models/search-result.model';
-import {IPerson} from '../models/person.model';
-import PromiseService from '../services/promise.service';
+import SearchResult from '../../models/search-result.model';
+import {IPerson} from '../../models/person.model';
+import PromiseService from '../../services/promise.service';
 
 @Component({
-    stylesheetUrl: require('helpdesk/helpdesk-search.component.scss'),
-    templateUrl: require('helpdesk/helpdesk-search-cards.component.html')
+    stylesheetUrl: require('modules/helpdesk/helpdesk-search.component.scss'),
+    templateUrl: require('modules/helpdesk/helpdesk-search-cards.component.html')
 })
 export default class HelpDeskSearchCardsComponent extends HelpDeskSearchBaseComponent {
     static $inject = [

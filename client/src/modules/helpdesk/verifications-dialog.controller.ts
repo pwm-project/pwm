@@ -25,10 +25,10 @@ import {ui, ITimeoutService} from 'angular';
 import {
     IHelpDeskConfigService, IVerificationMap, TOKEN_CHOICE,
     VERIFICATION_METHOD_NAMES
-} from '../services/helpdesk-config.service';
-import {IHelpDeskService, IVerificationTokenResponse} from '../services/helpdesk.service';
-import {IPerson} from '../models/person.model';
-import ObjectService from '../services/object.service';
+} from '../../services/helpdesk-config.service';
+import {IHelpDeskService, IVerificationTokenResponse} from '../../services/helpdesk.service';
+import {IPerson} from '../../models/person.model';
+import ObjectService from '../../services/object.service';
 
 const STATUS_FAILED = 'failed';
 const STATUS_NONE = 'none';
