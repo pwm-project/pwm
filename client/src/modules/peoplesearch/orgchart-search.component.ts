@@ -21,18 +21,18 @@
  */
 
 
-import { Component } from '../component';
-import { IPeopleSearchConfigService } from '../services/peoplesearch-config.service';
-import { IPeopleService } from '../services/people.service';
-import IPwmService from '../services/pwm.service';
+import { Component } from '../../component';
+import { IPeopleSearchConfigService } from '../../services/peoplesearch-config.service';
+import { IPeopleService } from '../../services/people.service';
+import IPwmService from '../../services/pwm.service';
 import { isArray, isString, IPromise, IQService, IScope } from 'angular';
-import LocalStorageService from '../services/local-storage.service';
-import IOrgChartData from '../models/orgchart-data.model';
-import { IPerson } from '../models/person.model';
+import LocalStorageService from '../../services/local-storage.service';
+import IOrgChartData from '../../models/orgchart-data.model';
+import { IPerson } from '../../models/person.model';
 
 @Component({
-    stylesheetUrl: require('peoplesearch/orgchart-search.component.scss'),
-    templateUrl: require('peoplesearch/orgchart-search.component.html')
+    stylesheetUrl: require('modules/peoplesearch/orgchart-search.component.scss'),
+    templateUrl: require('modules/peoplesearch/orgchart-search.component.html')
 })
 export default class OrgChartSearchComponent {
     directReports: IPerson[];

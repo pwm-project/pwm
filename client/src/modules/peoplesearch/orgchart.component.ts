@@ -21,11 +21,11 @@
  */
 
 
-import { Component } from '../component';
+import { Component } from '../../component';
 import { element, IAugmentedJQuery, IFilterService, IScope, IWindowService } from 'angular';
-import ElementSizeService from '../ux/element-size.service';
-import { IPerson } from '../models/person.model';
-import {IPeopleSearchConfigService} from '../services/peoplesearch-config.service';
+import ElementSizeService from '../../ux/element-size.service';
+import { IPerson } from '../../models/person.model';
+import {IPeopleSearchConfigService} from '../../services/peoplesearch-config.service';
 
 export enum OrgChartSize {
     ExtraSmall = 0,
@@ -41,8 +41,8 @@ export enum OrgChartSize {
         person: '<',
         showImages: '<'
     },
-    stylesheetUrl: require('peoplesearch/orgchart.component.scss'),
-    templateUrl: require('peoplesearch/orgchart.component.html')
+    stylesheetUrl: require('modules/peoplesearch/orgchart.component.scss'),
+    templateUrl: require('modules/peoplesearch/orgchart.component.html')
 })
 export default class OrgChartComponent {
     directReports: IPerson[];

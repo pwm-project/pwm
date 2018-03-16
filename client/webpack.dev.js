@@ -31,7 +31,7 @@ module.exports = webpackMerge(commonConfig, {
         'peoplesearch.ng': './src/main.dev',
         'changepassword.ng': './src/modules/changepassword/changepassword.module',
         'configeditor.ng': './src/modules/configeditor/configeditor.module',
-        'helpdesk.ng': './src/helpdesk/main.dev'
+        'helpdesk.ng': './src/modules/helpdesk/main.dev'
     },
     plugins: [
         // Don't forget to add this to karma.conf.js

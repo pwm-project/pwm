@@ -28,7 +28,7 @@ import HelpDeskSearchTableComponent from './helpdesk-search-table.component';
 import HelpDeskSearchCardsComponent from './helpdesk-search-cards.component';
 import LocalStorageService from '../../services/local-storage.service';
 import ObjectService from '../../services/object.service';
-import PersonCardDirective from '../../peoplesearch/person-card.component';
+import PersonCardDirective from '../peoplesearch/person-card.component';
 import PromiseService from '../../services/promise.service';
 import RecentVerificationsDialogController from './recent-verifications-dialog.controller';
 import uxModule from '../../ux/ux.module';
@@ -38,7 +38,7 @@ import RandomChangePasswordController from '../../changepassword/random-change-p
 import SuccessChangePasswordController from '../../changepassword/success-change-password.controller';
 import TypeChangePasswordController from '../../changepassword/type-change-password.controller';
 
-require('../../peoplesearch/peoplesearch.scss');
+require('../peoplesearch/peoplesearch.scss');
 
 const moduleName = 'help-desk';
 

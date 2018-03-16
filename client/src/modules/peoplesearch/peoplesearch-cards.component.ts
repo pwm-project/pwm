@@ -21,17 +21,17 @@
  */
 
 
-import { Component } from '../component';
-import ElementSizeService from '../ux/element-size.service';
-import IPeopleSearchConfigService from '../services/peoplesearch-config.service';
-import IPeopleService from '../services/people.service';
-import IPwmService from '../services/pwm.service';
+import { Component } from '../../component';
+import ElementSizeService from '../../ux/element-size.service';
+import IPeopleSearchConfigService from '../../services/peoplesearch-config.service';
+import IPeopleService from '../../services/people.service';
+import IPwmService from '../../services/pwm.service';
 import { isString, IAugmentedJQuery, IQService, IScope } from 'angular';
-import LocalStorageService from '../services/local-storage.service';
+import LocalStorageService from '../../services/local-storage.service';
 import PeopleSearchBaseComponent from './peoplesearch-base.component';
-import { IPerson } from '../models/person.model';
-import PromiseService from '../services/promise.service';
-import SearchResult from '../models/search-result.model';
+import { IPerson } from '../../models/person.model';
+import PromiseService from '../../services/promise.service';
+import SearchResult from '../../models/search-result.model';
 
 export enum PeopleSearchCardsSize {
     Small = 0,
@@ -40,8 +40,8 @@ export enum PeopleSearchCardsSize {
 }
 
 @Component({
-    stylesheetUrl: require('peoplesearch/peoplesearch-cards.component.scss'),
-    templateUrl: require('peoplesearch/peoplesearch-cards.component.html')
+    stylesheetUrl: require('modules/peoplesearch/peoplesearch-cards.component.scss'),
+    templateUrl: require('modules/peoplesearch/peoplesearch-cards.component.html')
 })
 export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponent {
     photosEnabled: boolean;

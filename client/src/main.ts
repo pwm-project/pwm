@@ -23,7 +23,7 @@
 
 import { bootstrap, module } from 'angular';
 import ConfigService from './services/peoplesearch-config.service';
-import peopleSearchModule from './peoplesearch/peoplesearch.module';
+import peopleSearchModule from './modules/peoplesearch/peoplesearch.module';
 import PeopleService from './services/people.service';
 import PwmService from './services/pwm.service';
 import routes from './routes';

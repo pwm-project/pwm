@@ -21,7 +21,7 @@
  */
 
 
-import { IPerson } from '../models/person.model';
+import { IPerson } from '../../models/person.model';
 
 export function FullNameFilter(): (person: IPerson) => string {
     return (person: IPerson): string => {

@@ -21,15 +21,15 @@
  */
 
 
-import { Component } from '../component';
-import { IPeopleSearchConfigService } from '../services/peoplesearch-config.service';
-import { IPeopleService } from '../services/people.service';
+import { Component } from '../../component';
+import { IPeopleSearchConfigService } from '../../services/peoplesearch-config.service';
+import { IPeopleService } from '../../services/people.service';
 import { IAugmentedJQuery, ITimeoutService } from 'angular';
-import { IPerson } from '../models/person.model';
+import { IPerson } from '../../models/person.model';
 
 @Component({
-    stylesheetUrl: require('peoplesearch/person-details-dialog.component.scss'),
-    templateUrl: require('peoplesearch/person-details-dialog.component.html')
+    stylesheetUrl: require('modules/peoplesearch/person-details-dialog.component.scss'),
+    templateUrl: require('modules/peoplesearch/person-details-dialog.component.html')
 })
 export default class PersonDetailsDialogComponent {
     person: IPerson;
