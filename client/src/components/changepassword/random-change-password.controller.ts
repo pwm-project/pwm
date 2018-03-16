@@ -21,7 +21,7 @@
  */
 
 
-import {IHelpDeskService, ISuccessResponse} from '../services/helpdesk.service';
+import {IHelpDeskService, ISuccessResponse} from '../../services/helpdesk.service';
 import {IChangePasswordSuccess} from './success-change-password.controller';
 
 export default class RandomChangePasswordController {

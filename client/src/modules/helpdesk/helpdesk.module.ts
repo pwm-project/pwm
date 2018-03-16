@@ -33,10 +33,10 @@ import PromiseService from '../../services/promise.service';
 import RecentVerificationsDialogController from './recent-verifications-dialog.controller';
 import uxModule from '../../ux/ux.module';
 import VerificationsDialogController from './verifications-dialog.controller';
-import AutogenChangePasswordController from '../../changepassword/autogen-change-password.controller';
-import RandomChangePasswordController from '../../changepassword/random-change-password.controller';
-import SuccessChangePasswordController from '../../changepassword/success-change-password.controller';
-import TypeChangePasswordController from '../../changepassword/type-change-password.controller';
+import AutogenChangePasswordController from '../../components/changepassword/autogen-change-password.controller';
+import RandomChangePasswordController from '../../components/changepassword/random-change-password.controller';
+import SuccessChangePasswordController from '../../components/changepassword/success-change-password.controller';
+import TypeChangePasswordController from '../../components/changepassword/type-change-password.controller';
 
 require('../peoplesearch/peoplesearch.scss');
 

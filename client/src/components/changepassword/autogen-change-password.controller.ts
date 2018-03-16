@@ -21,13 +21,13 @@
  */
 
 
-import {IHelpDeskService, IRandomPasswordResponse, ISuccessResponse} from '../services/helpdesk.service';
+import {IHelpDeskService, IRandomPasswordResponse, ISuccessResponse} from '../../services/helpdesk.service';
 import {IPromise, IQService} from 'angular';
 import {IChangePasswordSuccess} from './success-change-password.controller';
 
 const RANDOM_MAPPING_SIZE = 20;
 
-require('changepassword/autogen-change-password.component.scss');
+require('components/changepassword/autogen-change-password.component.scss');
 
 export default class AutogenChangePasswordController {
     fetchingRandoms: boolean;

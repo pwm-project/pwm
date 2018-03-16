@@ -21,9 +21,9 @@
  */
 
 
-import {IHelpDeskService } from '../services/helpdesk.service';
+import {IHelpDeskService } from '../../services/helpdesk.service';
 import {IQService} from 'angular';
-import {IHelpDeskConfigService} from '../services/helpdesk-config.service';
+import {IHelpDeskConfigService} from '../../services/helpdesk-config.service';
 
 export interface IChangePasswordSuccess {
     password: string;

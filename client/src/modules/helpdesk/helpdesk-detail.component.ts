@@ -28,13 +28,13 @@ import {noop} from 'angular';
 import {IHelpDeskConfigService, PASSWORD_UI_MODES} from '../../services/helpdesk-config.service';
 import {IPeopleService} from '../../services/people.service';
 import {IPerson} from '../../models/person.model';
-import {IChangePasswordSuccess} from '../../changepassword/success-change-password.controller';
+import {IChangePasswordSuccess} from '../../components/changepassword/success-change-password.controller';
 
-let autogenChangePasswordTemplateUrl = require('changepassword/autogen-change-password.component.html');
+let autogenChangePasswordTemplateUrl = require('components/changepassword/autogen-change-password.component.html');
 let helpdeskDetailDialogTemplateUrl = require('./helpdesk-detail-dialog.template.html');
-let randomChangePasswordTemplateUrl = require('changepassword/random-change-password.component.html');
-let successChangePasswordTemplateUrl = require('changepassword/success-change-password.component.html');
-let typeChangePasswordTemplateUrl = require('changepassword/type-change-password.component.html');
+let randomChangePasswordTemplateUrl = require('components/changepassword/random-change-password.component.html');
+let successChangePasswordTemplateUrl = require('components/changepassword/success-change-password.component.html');
+let typeChangePasswordTemplateUrl = require('components/changepassword/type-change-password.component.html');
 let verificationsDialogTemplateUrl = require('./verifications-dialog.template.html');
 
 const STATUS_WAIT = 'wait';
