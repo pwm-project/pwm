@@ -28,10 +28,10 @@ var webpackMerge = require('webpack-merge');
 module.exports = webpackMerge(commonConfig, {
     devtool: 'cheap-module-source-map',
     entry: {
-        'peoplesearch.ng': './src/main.dev',
+        'peoplesearch.ng': './src/modules/peoplesearch/main.dev',
         'changepassword.ng': './src/modules/changepassword/changepassword.module',
         'configeditor.ng': './src/modules/configeditor/configeditor.module',
-        'helpdesk.ng': './src/helpdesk/main.dev'
+        'helpdesk.ng': './src/modules/helpdesk/main.dev'
     },
     plugins: [
         // Don't forget to add this to karma.conf.js

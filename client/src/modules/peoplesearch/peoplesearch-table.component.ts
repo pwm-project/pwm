@@ -21,19 +21,19 @@
  */
 
 
-import { Component } from '../component';
-import { IPeopleSearchConfigService } from '../services/peoplesearch-config.service';
-import IPeopleService from '../services/people.service';
-import IPwmService from '../services/pwm.service';
+import { Component } from '../../component';
+import { IPeopleSearchConfigService } from '../../services/peoplesearch-config.service';
+import IPeopleService from '../../services/people.service';
+import IPwmService from '../../services/pwm.service';
 import { IQService, IScope } from 'angular';
-import LocalStorageService from '../services/local-storage.service';
+import LocalStorageService from '../../services/local-storage.service';
 import PeopleSearchBaseComponent from './peoplesearch-base.component';
-import PromiseService from '../services/promise.service';
-import SearchResult from '../models/search-result.model';
+import PromiseService from '../../services/promise.service';
+import SearchResult from '../../models/search-result.model';
 
 @Component({
-    stylesheetUrl: require('peoplesearch/peoplesearch-table.component.scss'),
-    templateUrl: require('peoplesearch/peoplesearch-table.component.html')
+    stylesheetUrl: require('modules/peoplesearch/peoplesearch-table.component.scss'),
+    templateUrl: require('modules/peoplesearch/peoplesearch-table.component.html')
 })
 export default class PeopleSearchTableComponent extends PeopleSearchBaseComponent {
     columnConfiguration: any;

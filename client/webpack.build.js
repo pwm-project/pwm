@@ -30,7 +30,7 @@ var webpackMerge = require('webpack-merge');
 module.exports = webpackMerge(commonConfig, {
     devtool: 'source-map',
     entry: {
-        'peoplesearch.ng': './src/main',
+        'peoplesearch.ng': './src/modules/peoplesearch/main',
         'changepassword.ng': './src/modules/changepassword/changepassword.module',
         'configeditor.ng': './src/modules/configeditor/configeditor.module',
         'helpdesk.ng': './src/modules/helpdesk/main'

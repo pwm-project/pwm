@@ -22,13 +22,13 @@
 
 
 import { isArray, isString, IPromise, IQService, IScope } from 'angular';
-import { IPeopleSearchConfigService } from '../services/peoplesearch-config.service';
-import { IPeopleService } from '../services/people.service';
-import IPwmService from '../services/pwm.service';
-import LocalStorageService from '../services/local-storage.service';
-import { IPerson } from '../models/person.model';
-import PromiseService from '../services/promise.service';
-import SearchResult from '../models/search-result.model';
+import { IPeopleSearchConfigService } from '../../services/peoplesearch-config.service';
+import { IPeopleService } from '../../services/people.service';
+import IPwmService from '../../services/pwm.service';
+import LocalStorageService from '../../services/local-storage.service';
+import { IPerson } from '../../models/person.model';
+import PromiseService from '../../services/promise.service';
+import SearchResult from '../../models/search-result.model';
 
 const SEARCH_TEXT_LOCAL_STORAGE_KEY = 'searchText';
 

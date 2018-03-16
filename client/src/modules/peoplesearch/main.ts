@@ -22,13 +22,13 @@
 
 
 import { bootstrap, module } from 'angular';
-import ConfigService from './services/peoplesearch-config.service';
-import peopleSearchModule from './peoplesearch/peoplesearch.module';
-import PeopleService from './services/people.service';
-import PwmService from './services/pwm.service';
-import routes from './routes';
-import routeErrorHandler from './route-error-handler';
-import TranslationsLoaderFactory from './services/translations-loader.factory';
+import ConfigService from '../../services/peoplesearch-config.service';
+import peopleSearchModule from './peoplesearch.module';
+import PeopleService from '../../services/people.service';
+import PwmService from '../../services/pwm.service';
+import routes from '../../routes';
+import routeErrorHandler from '../../route-error-handler';
+import TranslationsLoaderFactory from '../../services/translations-loader.factory';
 import uiRouter from '@uirouter/angularjs';
 
 module('app', [
