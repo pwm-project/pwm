@@ -117,6 +117,12 @@ export default class VerificationsDialogController {
                 .then((response) => {
                     this.status = STATUS_VERIFY;
                     this.inputs = response;
+
+                    // Need to initialize the formData values to empty strings, otherwise null values will be sent to
+                    // the server
+                    for (let i = 0; i < this.inputs.length; i++) {
+                        this.formData[this.inputs[i].name] = '';
+                    }
                 });
         }
         else if (method === VERIFICATION_METHOD_NAMES.SMS || method === VERIFICATION_METHOD_NAMES.EMAIL) {
