@@ -78,7 +78,8 @@ public class RestUtility
         {
             if ( restRequest.getRestAuthentication().getType() == RestAuthenticationType.NAMED_SECRET )
             {
-                throw PwmUnrecoverableException.newException( PwmError.ERROR_REST_INVOCATION_ERROR, "username field required when using external web services secrets for authentication " );
+                throw PwmUnrecoverableException.newException( PwmError.ERROR_REST_INVOCATION_ERROR,
+                        "username field required when using external web services secrets for authentication " );
             }
         }
         else

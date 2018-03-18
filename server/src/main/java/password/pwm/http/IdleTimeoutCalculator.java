@@ -173,6 +173,11 @@ public class IdleTimeoutCalculator
 
     public static TimeDuration idleTimeoutForRequest( final PwmURL pwmURL, final PwmApplication pwmApplication, final PwmSession pwmSession ) throws PwmUnrecoverableException
     {
+        if ( pwmURL.isResourceURL() )
+        {
+            return figureMaxSessionTimeout( pwmApplication, pwmSession ).getIdleTimeout();
+        }
+
         final Configuration config = pwmApplication.getConfig();
         if ( pwmURL.isPwmServletURL( PwmServletDefinition.Helpdesk ) )
         {
