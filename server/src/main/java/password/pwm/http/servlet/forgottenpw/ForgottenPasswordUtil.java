@@ -853,4 +853,25 @@ public class ForgottenPasswordUtil
                 minimumOptionalRecoveryAuthMethods
         );
     }
+
+    static boolean hasOtherMethodChoices( final ForgottenPasswordBean forgottenPasswordBean, final IdentityVerificationMethod thisMethod )
+    {
+        if ( forgottenPasswordBean.getRecoveryFlags().getRequiredAuthMethods().contains( thisMethod )  )
+        {
+            return false;
+        }
+
+        if ( forgottenPasswordBean.getRecoveryFlags().getMinimumOptionalAuthMethods() > 0 )
+        {
+            final Set<IdentityVerificationMethod> satisfiedOptionalMethods = figureSatisfiedOptionalAuthMethods(
+                    forgottenPasswordBean.getRecoveryFlags(), forgottenPasswordBean.getProgress()
+            );
+
+            if ( satisfiedOptionalMethods.size() < forgottenPasswordBean.getRecoveryFlags().getMinimumOptionalAuthMethods() )
+            {
+                return true;
+            }
+        }
+        return false;
+    }
 }
