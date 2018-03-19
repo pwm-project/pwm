@@ -1,0 +1,192 @@
+/*!
+ * Password Management Servlets (PWM)
+ * http://www.pwm-project.org
+ *
+ * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2018 The PWM Project
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+help-desk-detail {
+  display: block;
+  height: 100%;
+  overflow: auto;
+  width: 100%;
+
+  #page-content-title {
+    margin-bottom: 0;
+  }
+
+  .ias-header {
+    > .help-desk-icons {
+      margin-left: 15px;
+    }
+  }
+
+  > .secondary-header {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  > .help-desk-content {
+    display: flex;
+    flex-flow: row-reverse wrap;
+    justify-content: flex-end;
+
+    > .help-desk-buttons,
+    > .tabset-container {
+      margin-top: 15px;
+    }
+
+    > .help-desk-buttons {
+      > .ias-button {
+        display: block;
+        margin-bottom: 5px;
+        width: 100%;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+    }
+
+    > .tabset-container {
+      width: 100%;
+
+      > .tab-panes {
+        > .ias-tab-pane {
+          table {
+            width: 100%;
+            display: block;
+            overflow: auto;
+          }
+        }
+      }
+    }
+  }
+}
+
+.details-table {
+  border: none;
+  border-collapse: collapse;
+  //width: 100%;
+
+  tr {
+    height: 25px;
+
+    td {
+      border: none;
+      font-size: 12px;
+      height: 19px;
+      text-align: left;
+
+      &:first-child {
+        color: #949494;
+        //width: 100px;
+        text-align: right;
+        padding: 3px 0;
+      }
+
+      &:last-child {
+        padding: 3px 15px;
+      }
+
+      ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+
+        > li {
+          margin: 0;
+          padding: 0;
+        }
+      }
+    }
+  }
+}
+
+@media (min-width: 850px) {
+  help-desk-detail {
+    > .help-desk-content {
+      > .help-desk-buttons {
+        margin-left: 15px;
+      }
+
+      > .tabset-container {
+        max-width: 100%;
+        width: auto;
+
+        > .tab-panes {
+          > .ias-tab-pane {
+            table {
+              max-width: 800px;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (min-width: 1050px) {
+  help-desk-detail {
+    display: flex;
+    flex-flow: column nowrap;
+
+    > .ias-header,
+    > .secondary-header {
+      flex-shrink: 0;
+    }
+
+    > .help-desk-content {
+      flex-wrap: nowrap;
+      height: 100%;
+      margin-top: 15px;
+
+      > .help-desk-buttons,
+      > .tabset-container {
+        margin-top: 0;
+      }
+
+      > .help-desk-buttons {
+        flex-shrink: 0;
+        height: 100%;
+        overflow: auto;
+      }
+
+      > .tabset-container {
+        display: flex;
+        flex-flow: column nowrap;
+        height: 100%;
+        overflow: auto;
+
+        > .ias-tabset {
+          flex-shrink: 0;
+        }
+
+        .tab-panes {
+          overflow: auto;
+
+          > .ias-tab-pane {
+            table {
+              height: 100%;
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -23,16 +23,17 @@
 
 var commonConfig = require('./webpack.common.js');
 var CopyWebpackPlugin = require('copy-webpack-plugin');
+var UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 var webpack = require('webpack');
 var webpackMerge = require('webpack-merge');
 
 module.exports = webpackMerge(commonConfig, {
     devtool: 'source-map',
     entry: {
-        'peoplesearch.ng': './src/main',
-        'changepassword.ng': './src/pages/changepassword/changepassword.module',
-        'configeditor.ng': './src/pages/configeditor/configeditor.module',
-        'helpdesk.ng': './src/helpdesk/main'
+        'peoplesearch.ng': './src/modules/peoplesearch/main',
+        'changepassword.ng': './src/modules/changepassword/changepassword.module',
+        'configeditor.ng': './src/modules/configeditor/configeditor.module',
+        'helpdesk.ng': './src/modules/helpdesk/main'
     },
     plugins: [
         new CopyWebpackPlugin([
@@ -41,10 +42,12 @@ module.exports = webpackMerge(commonConfig, {
             { from: 'node_modules/@microfocus/ias-icons/dist/ias-icons.css', to: 'vendor/' },
             { from: 'node_modules/@microfocus/ias-icons/dist/fonts', to: 'vendor/fonts' }
         ]),
-        new webpack.optimize.UglifyJsPlugin({
-            compress: { warnings: false },
-            comments: false,
-            sourceMap: true
+        new UglifyJsPlugin({
+            sourceMap: true,
+            uglifyOptions: {
+                compress: {warnings: false},
+                comments: false
+            }
         })
     ]
 });

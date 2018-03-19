@@ -165,7 +165,7 @@
 <%--Add support for angular--%>
 <pwm:script-ref url="/public/resources/webjars/angular/angular.min.js" />
 <pwm:script-ref url="/public/resources/webjars/angular-ui-router/release/angular-ui-router.min.js" />
-<pwm:script-ref url="/public/resources/webjars/angular-translate/dist/angular-translate.min.js" />
+<pwm:script-ref url="/public/resources/webjars/angular-translate/angular-translate.min.js" />
 <%--/ Add support for angular--%>
 
 <%--Add support for the "textAngular" library (a control for editing HTML)--%>
