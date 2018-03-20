@@ -56,6 +56,7 @@ public class FormDataRequestBean implements Serializable
 
     public enum Mode
     {
+        edit,
         read,
         verify,
         write,

@@ -75,6 +75,7 @@ import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.ws.client.rest.form.FormDataRequestBean;
+import password.pwm.ws.client.rest.form.FormDataRequestBean.Mode;
 import password.pwm.ws.client.rest.form.FormDataResponseBean;
 import password.pwm.ws.client.rest.form.RestFormDataClient;
 
@@ -555,6 +556,20 @@ class NewUserUtils
         );
     }
 
+    static void remoteEditFormData(
+            final PwmRequest pwmRequest,
+            final NewUserForm newUserForm
+
+    )
+            throws PwmUnrecoverableException, PwmDataValidationException
+    {
+        remoteSendFormData(
+                pwmRequest,
+                newUserForm,
+                FormDataRequestBean.Mode.edit
+        );
+    }
+
     private static void remoteSendFormData(
             final PwmRequest pwmRequest,
             final NewUserForm newUserForm,
@@ -586,6 +601,25 @@ class NewUserUtils
                 .build();
 
         final FormDataResponseBean formDataResponseBean = restFormDataClient.invoke( formDataRequestBean, pwmRequest.getLocale() );
+        
+        if(Mode.edit == mode) {
+        	if(formDataResponseBean.isError()) {
+        		// TODO
+        	} else if(formDataResponseBean.getFormValues() != null && newUserForm.getFormData() != null) {
+		    	// merge (replace) form values with rest-returned
+		    	for(String respKey : formDataResponseBean.getFormValues().keySet()) {
+		    		newUserForm.getFormData().put(respKey, formDataResponseBean.getFormValues().get(respKey));
+		    	}
+		    	// delete form values if absent from rest-returned
+		    	Iterator<String> respKeysIter = formDataResponseBean.getFormValues().keySet().iterator();
+		    	while(respKeysIter.hasNext()) {
+		    		if(!formDataResponseBean.getFormValues().containsKey(respKeysIter.next())) {
+		    			respKeysIter.remove();
+		    		}
+		    	}
+		    }
+        }
+        
         if ( formDataResponseBean.isError() )
         {
             final ErrorInformation error = new ErrorInformation(
