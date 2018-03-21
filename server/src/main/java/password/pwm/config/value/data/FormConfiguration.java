@@ -265,6 +265,11 @@ public class FormConfiguration implements Serializable
         return LocaleHelper.resolveStringKeyLocaleMap( locale, description );
     }
 
+    public Source getSource( )
+    {
+        return source == null ? Source.ldap : source;
+    }
+
     public boolean equals( final Object o )
     {
         if ( this == o )
