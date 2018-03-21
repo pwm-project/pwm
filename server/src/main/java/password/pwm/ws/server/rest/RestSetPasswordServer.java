@@ -34,6 +34,8 @@ import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.i18n.Message;
+import password.pwm.ldap.UserInfo;
+import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.BasicAuthInfo;
@@ -133,7 +135,7 @@ public class RestSetPasswordServer extends RestServlet
             final RestRequest restRequest,
             final JsonInputData jsonInputData
 
-    ) throws PwmUnrecoverableException
+    )
     {
         final String password = jsonInputData.getPassword();
         final boolean random = jsonInputData.isRandom();
@@ -195,11 +197,18 @@ public class RestSetPasswordServer extends RestServlet
                 oldPassword = null;
             }
 
+            final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy(
+                    restRequest.getPwmApplication(),
+                    restRequest.getSessionLabel(),
+                    targetUserIdentity.getUserIdentity(),
+                    restRequest.getLocale()
+            );
+
             PasswordUtility.setPassword(
                     restRequest.getPwmApplication(),
                     restRequest.getSessionLabel(),
                     targetUserIdentity.getChaiProvider(),
-                    targetUserIdentity.getUserIdentity(),
+                    userInfo,
                     oldPassword,
                     newPassword
             );
