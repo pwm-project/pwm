@@ -427,7 +427,7 @@ FormTableHandler.multiLocaleStringDialog = function(keyName, iteration, settingT
             var value = PWM_VAR['clientSettingCache'][keyName][iteration][settingType][localeName];
             var localeID = inputID + localeName;
             bodyText += '<td>' + localeName + '</td>';
-            bodyText += '<td><input style="width:420px" class="configStringInput" type="text" value="' + value + '" id="' + localeID + '-input"></input></td>';
+            bodyText += '<td><textarea style="width:420px" class="configStringInput" id="' + localeID + '-input">' + value + '</textarea></td>';
             if (localeName !== '') {
                 bodyText += '<td><span class="delete-row-icon action-icon pwm-icon pwm-icon-times" id="' + localeID + '-removeLocaleButton"></span></td>';
             }
