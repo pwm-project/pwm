@@ -98,5 +98,5 @@ public enum PwmRequestAttribute
 
     TokenDestItems,
 
-    ShowGoBackButton,
+    GoBackAction,
 }

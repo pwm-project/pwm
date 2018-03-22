@@ -32,6 +32,7 @@ import java.util.ResourceBundle;
 public enum AppProperty
 {
 
+    ACTIVATE_USER_TOKEN_AUTO_SELECT_DEST            ( "activateUser.token.autoSelectSingleDestination" ),
     APPLICATION_FILELOCK_FILENAME                   ( "application.fileLock.filename" ),
     APPLICATION_FILELOCK_WAIT_SECONDS               ( "application.fileLock.waitSeconds" ),
     APPLICATION_WORDLIST_RETRY_SECONDS              ( "application.wordlistRetryImportSeconds" ),
@@ -92,6 +93,7 @@ public enum AppProperty
     DOWNLOAD_FILENAME_AUDIT_RECORDS_CSV             ( "download.filename.auditRecords.csv" ),
     DOWNLOAD_FILENAME_LDAP_PERMISSION_CSV           ( "download.filename.ldapPermission.csv" ),
     DOWNLOAD_FILENAME_USER_DEBUG_JSON               ( "download.filename.userDebug.json" ),
+    FORGOTTEN_PASSWORD_TOKEN_AUTO_SELECT_DEST       ( "forgottenPassword.token.autoSelectSingleDestination" ),
     FORM_EMAIL_REGEX                                ( "form.email.regexTest" ),
     HTTP_RESOURCES_MAX_CACHE_ITEMS                  ( "http.resources.maxCacheItems" ),
     HTTP_RESOURCES_MAX_CACHE_BYTES                  ( "http.resources.maxCacheBytes" ),
@@ -113,6 +115,7 @@ public enum AppProperty
     HTTP_COOKIE_LOGIN_NAME                          ( "http.cookie.login.name" ),
     HTTP_BASIC_AUTH_CHARSET                         ( "http.basicAuth.charset" ),
     HTTP_BODY_MAXREAD_LENGTH                        ( "http.body.maxReadLength" ),
+    HTTP_CLIENT_ALWAYS_LOG_ENTITIES                 ( "http.client.alwaysLogEntities" ),
     HTTP_CLIENT_SOCKET_TIMEOUT_MS                   ( "http.client.socketTimeoutMs" ),
     HTTP_CLIENT_CONNECT_TIMEOUT_MS                  ( "http.client.connectTimeoutMs" ),
     HTTP_CLIENT_REQUEST_TIMEOUT_MS                  ( "http.client.requestTimeoutMs" ),

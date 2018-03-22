@@ -26,6 +26,7 @@
 
 <!DOCTYPE html>
 <% List<TokenDestinationItem> tokenDestinationItems = (List)JspUtility.getAttribute(pageContext, PwmRequestAttribute.TokenDestItems); %>
+<% boolean singleItem = tokenDestinationItems.size() == 1; %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
@@ -38,7 +39,14 @@
     <div id="centerbody">
         <h1 id="page-content-title"><pwm:display key="Title_ForgottenPassword" displayIfMissing="true"/></h1>
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-        <p><pwm:display key="Display_RecoverTokenSendChoices"/></p>
+        <p>
+            <% if (singleItem) { %>
+            <pwm:display key="Display_RecoverTokenSendOneChoice" value1="<%=tokenDestinationItems.iterator().next().getDisplay()%>"/>
+            <% } else { %>
+            <pwm:display key="Display_RecoverTokenSendChoices"/>
+            <% } %>
+        </p>
+        <% if (!singleItem) { %>
         <table class="noborder">
             <% for (final TokenDestinationItem item : tokenDestinationItems) { %>
             <tr>
@@ -82,16 +90,28 @@
             </pwm:if>
             <% } %>
         </table>
+        <% } %>
         <div>
         <div class="buttonbar">
-            <% if ("true".equals(JspUtility.getAttribute(pageContext, PwmRequestAttribute.ForgottenPasswordOptionalPageView))) { %>
+            <% if (singleItem) { %>
+            <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="search" class="pwm-form">
+                <button type="submit" id="button-continue" name="button-continue" class="btn">
+                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
+                    <pwm:display key="Button_Continue"/>
+                </button>
+                <input type="hidden" name="choice" value="<%=tokenDestinationItems.iterator().next().getId()%>"/>
+                <input type="hidden" name="processAction" value="<%=ForgottenPasswordServlet.ForgottenPasswordAction.tokenChoice%>"/>
+                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+            </form>
+            <% } %>
+            <% if (JspUtility.getAttribute( pageContext, PwmRequestAttribute.GoBackAction ) != null) { %>
             <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="search" class="pwm-form" autocomplete="off">
                 <button type="submit" id="button-goBack" name="button-goBack" class="btn">
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-backward"></span></pwm:if>
                     <pwm:display key="Button_GoBack"/>
                 </button>
                 <input type="hidden" name="<%=PwmConstants.PARAM_ACTION_REQUEST%>" value="<%=ForgottenPasswordServlet.ForgottenPasswordAction.reset%>"/>
-                <input type="hidden" name="<%=PwmConstants.PARAM_RESET_TYPE%>" value="<%=ForgottenPasswordServlet.ResetType.gotoSearch%>"/>
+                <input type="hidden" name="<%=PwmConstants.PARAM_RESET_TYPE%>" value="<%=JspUtility.getAttribute( pageContext, PwmRequestAttribute.GoBackAction )%>"/>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>
             <% } %>
@@ -102,7 +122,7 @@
                     <pwm:display key="Button_Cancel"/>
                 </button>
                 <input type="hidden" name="<%=PwmConstants.PARAM_ACTION_REQUEST%>" value="<%=ForgottenPasswordServlet.ForgottenPasswordAction.reset%>"/>
-                <input type="hidden" name="<%=PwmConstants.PARAM_RESET_TYPE%>" value="<%=ForgottenPasswordServlet.ResetType.exitForgottenPassword%>"/>
+                <input type="hidden" name="<%=PwmConstants.PARAM_RESET_TYPE%>" value="<%=ForgottenPasswordServlet.ResetAction.exitForgottenPassword%>"/>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>
             </pwm:if>
