@@ -368,7 +368,7 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
                 FormTableHandler.write(keyName)
             });
 
-            PWM_MAIN.getObject(inputID + "regex").value = currentValue['regex'];
+            PWM_MAIN.getObject(inputID + "regex").value = currentValue['regex'] ? currentValue['regex'] : '';
             PWM_MAIN.addEventHandler(inputID + "regex", "change", function(){
                 currentValue['regex'] = PWM_MAIN.getObject(inputID + "regex").value;
                 FormTableHandler.write(keyName)
@@ -378,13 +378,13 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
                 FormTableHandler.showRegexErrorsDialog(keyName, iteration);
             });
 
-            PWM_MAIN.getObject(inputID + "placeholder").value = currentValue['placeholder'];
+            PWM_MAIN.getObject(inputID + "placeholder").value = currentValue['placeholder'] ? currentValue['placeholder'] : '';
             PWM_MAIN.addEventHandler(inputID + "placeholder", "change", function(){
                 currentValue['placeholder'] = PWM_MAIN.getObject(inputID + "placeholder").value;
                 FormTableHandler.write(keyName)
             });
 
-            PWM_MAIN.getObject(inputID + "javascript").value = currentValue['javascript'];
+            PWM_MAIN.getObject(inputID + "javascript").value = currentValue['javascript'] ? currentValue['javascript'] : '';
             PWM_MAIN.addEventHandler(inputID + "javascript", "change", function(){
                 currentValue['javascript'] = PWM_MAIN.getObject(inputID + "javascript").value;
                 FormTableHandler.write(keyName)

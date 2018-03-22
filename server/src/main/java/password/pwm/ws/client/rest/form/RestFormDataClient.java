@@ -38,11 +38,13 @@ import password.pwm.http.client.PwmHttpClient;
 import password.pwm.http.client.PwmHttpClientConfiguration;
 import password.pwm.http.client.PwmHttpClientRequest;
 import password.pwm.http.client.PwmHttpClientResponse;
+import password.pwm.util.BasicAuthInfo;
+import password.pwm.util.PasswordData;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.security.cert.X509Certificate;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -88,10 +90,16 @@ public class RestFormDataClient
         }
 
         {
-            final List<RemoteWebServiceConfiguration> webServiceConfigurations = pwmApplication.getConfig().readSettingAsRemoteWebService( PwmSetting.EXTERNAL_REMOTE_DATA_URL );
-            final Map<String, String> configuredHeaders = webServiceConfigurations != null && !webServiceConfigurations.isEmpty()
-                    ? webServiceConfigurations.iterator().next().getHeaders()
-                    : Collections.emptyMap();
+            final Map<String, String> configuredHeaders = new LinkedHashMap<>( remoteWebServiceConfiguration.getHeaders() );
+
+            // add basic auth header;
+            if ( !StringUtil.isEmpty( remoteWebServiceConfiguration.getUsername() ) && !StringUtil.isEmpty( remoteWebServiceConfiguration.getPassword() ) )
+            {
+                final String authHeaderValue = new BasicAuthInfo( remoteWebServiceConfiguration.getUsername(),
+                        new PasswordData( remoteWebServiceConfiguration.getPassword() ) )
+                        .toAuthHeader();
+                configuredHeaders.put( HttpHeader.Authorization.getHttpName(), authHeaderValue );
+            }
 
             httpHeaders.putAll( configuredHeaders );
         }
@@ -133,12 +141,8 @@ public class RestFormDataClient
     private PwmHttpClient getHttpClient( final Configuration configuration )
             throws PwmUnrecoverableException
     {
-        final List<RemoteWebServiceConfiguration> webServiceConfigurations = configuration.readSettingAsRemoteWebService( PwmSetting.EXTERNAL_REMOTE_DATA_URL );
 
-        final List<X509Certificate> certificates;
-        certificates = webServiceConfigurations != null && !webServiceConfigurations.isEmpty()
-                ? webServiceConfigurations.iterator().next().getCertificates()
-                : null;
+        final List<X509Certificate> certificates = remoteWebServiceConfiguration.getCertificates();
 
         final PwmHttpClientConfiguration pwmHttpClientConfiguration = PwmHttpClientConfiguration.builder()
                 .certificates( certificates )

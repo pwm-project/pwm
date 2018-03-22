@@ -49,5 +49,7 @@ public class RemoteWebServiceConfiguration implements Serializable
     private Map<String, String> headers;
     private String url;
     private String body;
+    private String username;
+    private String password;
     private List<X509Certificate> certificates;
 }
