@@ -69,6 +69,9 @@
         <input id="<%=loopConfiguration.getName()%>" name="<%=loopConfiguration.getName()%>" type="checkbox" <%=checked?"checked":""%> <pwm:autofocus/>/>
         <%=loopConfiguration.getLabel(formLocale)%>
     </label>
+    <% if (loopConfiguration.getDescription(formLocale) != null && loopConfiguration.getDescription(formLocale).length() > 0) { %>
+    <p><%=loopConfiguration.getDescription(formLocale)%></p>
+    <% } %>
     <% } else { %>
     <label for="<%=loopConfiguration.getName()%>">
         <div class="formFieldLabel">
