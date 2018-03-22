@@ -26,6 +26,7 @@ import java.util.ResourceBundle;
 
 enum Resource
 {
+    envVarPrefix,
     defaultContext,
     defaultWorkPathName,
     defaultPort,

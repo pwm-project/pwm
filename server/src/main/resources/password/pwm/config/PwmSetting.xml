@@ -3881,8 +3881,6 @@
     </setting>
     <setting hidden="false" key="https.server.tls.protocols" level="1">
         <default>
-            <value>TLS_1_0</value>
-            <value>TLS_1_1</value>
             <value>TLS_1_2</value>
         </default>
         <options>
