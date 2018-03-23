@@ -30,15 +30,10 @@ help-desk-detail {
     margin-bottom: 0;
   }
 
-  .ias-header {
+  > .ias-header {
     > .help-desk-icons {
       margin-left: 15px;
     }
-  }
-
-  > .secondary-header {
-    display: flex;
-    justify-content: space-between;
   }
 
   > .help-desk-content {
@@ -55,6 +50,7 @@ help-desk-detail {
       > .ias-button {
         display: block;
         margin-bottom: 5px;
+        min-width: 170px;
         width: 100%;
 
         &:last-child {
@@ -77,41 +73,39 @@ help-desk-detail {
       }
     }
   }
-}
 
-.details-table {
-  border: none;
-  border-collapse: collapse;
-  //width: 100%;
+  .details-table {
+    border: none;
+    border-collapse: collapse;
 
-  tr {
-    height: 25px;
+    tr {
+      height: 25px;
 
-    td {
-      border: none;
-      font-size: 12px;
-      height: 19px;
-      text-align: left;
+      td {
+        border: none;
+        font-size: 12px;
+        height: 19px;
+        text-align: left;
 
-      &:first-child {
-        color: #949494;
-        //width: 100px;
-        text-align: right;
-        padding: 3px 0;
-      }
+        &:first-child {
+          color: #949494;
+          text-align: right;
+          padding: 3px 0;
+        }
 
-      &:last-child {
-        padding: 3px 15px;
-      }
+        &:last-child {
+          padding: 3px 15px;
+        }
 
-      ul {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-
-        > li {
+        ul {
+          list-style: none;
           margin: 0;
           padding: 0;
+
+          > li {
+            margin: 0;
+            padding: 0;
+          }
         }
       }
     }
@@ -155,6 +149,7 @@ help-desk-detail {
       flex-wrap: nowrap;
       height: 100%;
       margin-top: 15px;
+      overflow: auto;
 
       > .help-desk-buttons,
       > .tabset-container {
@@ -189,4 +184,42 @@ help-desk-detail {
       }
     }
   }
+}
+
+[dir="rtl"] {
+  help-desk-detail {
+    > .ias-header {
+      > .help-desk-icons {
+        margin-left: 0;
+        margin-right: 15px;
+      }
+    }
+
+    .details-table {
+      tr {
+        td {
+          text-align: right;
+
+          &:first-child {
+            text-align: left;
+          }
+        }
+      }
+    }
+  }
+
+  @media (min-width: 850px) {
+    help-desk-detail {
+      > .help-desk-content {
+        > .help-desk-buttons {
+          margin-left: 0;
+          margin-right: 15px;
+        }
+      }
+    }
+  }
+}
+
+.ias-tab-pane.ias-open {
+  display: block;
 }
