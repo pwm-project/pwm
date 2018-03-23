@@ -21,7 +21,7 @@
  */
 
 
-import { isArray, isString, IPromise, IQService, IScope } from 'angular';
+import {isArray, isString, IPromise, IQService, IScope, ITimeoutService} from 'angular';
 import { IPeopleSearchConfigService } from '../../services/peoplesearch-config.service';
 import { IPeopleService } from '../../services/people.service';
 import IPwmService from '../../services/pwm.service';
@@ -47,6 +47,7 @@ abstract class PeopleSearchBaseComponent {
                 protected $scope: IScope,
                 protected $state: angular.ui.IStateService,
                 protected $stateParams: angular.ui.IStateParamsService,
+                protected $timeout: ITimeoutService,
                 protected $translate: angular.translate.ITranslateService,
                 protected configService: IPeopleSearchConfigService,
                 protected localStorageService: LocalStorageService,
@@ -203,6 +204,11 @@ abstract class PeopleSearchBaseComponent {
         });
 
         this.query = this.getSearchText();
+
+        // Once <ias-search-box> from ng-ias allows the autofocus attribute, we can remove this code
+        this.$timeout(() => {
+            document.getElementsByTagName('input')[0].focus();
+        });
     }
 
     private getSearchText(): string {

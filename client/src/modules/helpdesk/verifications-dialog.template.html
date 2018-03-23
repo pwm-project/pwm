@@ -57,7 +57,8 @@
                     <div ng-switch-when="ATTRIBUTES">
                         <div class="ias-input-container" ng-repeat="input in $ctrl.inputs">
                             <label ng-attr-for="{{input.name}}" ng-bind="input.label"></label>
-                            <input autocomplete="off"
+                            <input autofocus
+                                   autocomplete="off"
                                    ng-attr-id="{{input.name}}"
                                    type="text"
                                    ng-model="$ctrl.formData[input.name]">
@@ -70,7 +71,7 @@
                         </div>
                         <div class="ias-input-container">
                             <label>Token</label>
-                            <input autocomplete="off" id="token" type="text" ng-model="$ctrl.formData.code">
+                            <input autofocus autocomplete="off" id="token" type="text" ng-model="$ctrl.formData.code">
                         </div>
 
                     </div>
@@ -78,7 +79,7 @@
                         <p ng-bind="'Display_HelpdeskOtpValidation' | translate"></p>
                         <div class="ias-input-container">
                             <label>Code</label>
-                            <input autocomplete="off" id="code" type="text" ng-model="$ctrl.formData.code">
+                            <input autofocus autocomplete="off" id="code" type="text" ng-model="$ctrl.formData.code">
                         </div>
                     </div>
 
