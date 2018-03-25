@@ -39,6 +39,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmURL;
 import password.pwm.i18n.Display;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.LdapPermissionTester;
@@ -490,7 +491,10 @@ class PeopleSearchDataReader
             throw PwmUnrecoverableException.fromChaiException( e );
         }
 
-        return "PeopleSearch?processAction=photo&userKey=" + userIdentity.toObfuscatedKey( pwmApplication );
+        String returnUrl = pwmRequest.getURLwithoutQueryString();
+        returnUrl = PwmURL.appendAndEncodeUrlParameters( returnUrl, PwmConstants.PARAM_ACTION_REQUEST, PeopleSearchServlet.PeopleSearchActions.photo.name() );
+        returnUrl = PwmURL.appendAndEncodeUrlParameters( returnUrl, PwmConstants.PARAM_USERKEY,  userIdentity.toObfuscatedKey( pwmApplication ) );
+        return returnUrl;
     }
 
     private String figureDisplaynameValue(

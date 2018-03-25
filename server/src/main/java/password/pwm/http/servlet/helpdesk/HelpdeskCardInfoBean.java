@@ -60,7 +60,6 @@ public class HelpdeskCardInfoBean implements Serializable
     private static final PwmLogger LOGGER = PwmLogger.forClass( HelpdeskCardInfoBean.class );
 
     private String userKey;
-    private String userDisplayName;
     private List<String> displayNames;
     private String photoUrl;
 
@@ -73,7 +72,7 @@ public class HelpdeskCardInfoBean implements Serializable
     {
         final HelpdeskCardInfoBean.HelpdeskCardInfoBeanBuilder builder = HelpdeskCardInfoBean.builder();
         final Instant startTime = Instant.now();
-        LOGGER.trace( pwmRequest, "beginning to assemble detail data report for user " + userIdentity );
+        LOGGER.trace( pwmRequest, "beginning to assemble card data report for user " + userIdentity );
         final Locale actorLocale = pwmRequest.getLocale();
         final ChaiUser theUser = HelpdeskServlet.getChaiUser( pwmRequest, helpdeskProfile, userIdentity );
 
@@ -93,26 +92,16 @@ public class HelpdeskCardInfoBean implements Serializable
 
         builder.userKey( userIdentity.toObfuscatedKey( pwmRequest.getPwmApplication() ) );
 
-        builder.photoUrl( figurePhotoURL( pwmRequest.getPwmApplication(), helpdeskProfile, pwmRequest.getSessionLabel(), theUser, macroMachine, userIdentity ) );
+        builder.photoUrl( figurePhotoURL( pwmRequest, helpdeskProfile, theUser, macroMachine, userIdentity ) );
 
         builder.displayNames( figureDisplayNames( pwmRequest.getPwmApplication(), helpdeskProfile, pwmRequest.getSessionLabel(), userInfo ) );
-
-        final String configuredDisplayName = helpdeskProfile.readSettingAsString( PwmSetting.HELPDESK_DETAIL_DISPLAY_NAME );
-        if ( configuredDisplayName != null && !configuredDisplayName.isEmpty() )
-        {
-            final String displayName = macroMachine.expandMacros( configuredDisplayName );
-            builder.userDisplayName( displayName );
-        }
-
-        builder.userDisplayName( figureDisplayName( helpdeskProfile, macroMachine ) );
-
 
         final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
         final HelpdeskCardInfoBean helpdeskCardInfoBean = builder.build();
 
         if ( pwmRequest.getConfig().isDevDebugMode() )
         {
-            LOGGER.trace( pwmRequest, "completed assembly of detail data report for user " + userIdentity
+            LOGGER.trace( pwmRequest, "completed assembly of card data report for user " + userIdentity
                     + " in " + timeDuration.asCompactString() + ", contents: " + JsonUtil.serialize( helpdeskCardInfoBean ) );
         }
 
@@ -155,20 +144,20 @@ public class HelpdeskCardInfoBean implements Serializable
     }
 
     private static String figurePhotoURL(
-            final PwmApplication pwmApplication,
+            final PwmRequest pwmRequest,
             final HelpdeskProfile helpdeskProfile,
-            final SessionLabel sessionLabel,
             final ChaiUser chaiUser,
             final MacroMachine macroMachine,
             final UserIdentity userIdentity
     )
             throws PwmUnrecoverableException
     {
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final boolean enabled = helpdeskProfile.readSettingAsBoolean( PwmSetting.HELPDESK_ENABLE_PHOTOS );
 
         if ( !enabled )
         {
-            LOGGER.debug( sessionLabel, "detailed user data lookup for " + userIdentity.toString() + ", failed photo query filter, denying photo view" );
+            LOGGER.debug( pwmRequest, "detailed user data lookup for " + userIdentity.toString() + ", failed photo query filter, denying photo view" );
             return null;
         }
 
@@ -188,7 +177,7 @@ public class HelpdeskCardInfoBean implements Serializable
             }
             catch ( PwmOperationalException e )
             {
-                LOGGER.debug( sessionLabel, "determined " + userIdentity + " does not have photo data available while generating detail data" );
+                LOGGER.debug( pwmRequest, "determined " + userIdentity + " does not have photo data available while generating detail data" );
                 return null;
             }
         }
@@ -197,7 +186,7 @@ public class HelpdeskCardInfoBean implements Serializable
             throw PwmUnrecoverableException.fromChaiException( e );
         }
 
-        String returnUrl = PwmServletDefinition.Helpdesk.servletUrl();
+        String returnUrl = pwmRequest.getContextPath() + PwmServletDefinition.Helpdesk.servletUrl();
         returnUrl = PwmURL.appendAndEncodeUrlParameters( returnUrl, PwmConstants.PARAM_ACTION_REQUEST, HelpdeskServlet.HelpdeskAction.photo.name() );
         returnUrl = PwmURL.appendAndEncodeUrlParameters( returnUrl, PwmConstants.PARAM_USERKEY,  userIdentity.toObfuscatedKey( pwmApplication ) );
         return returnUrl;
