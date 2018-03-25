@@ -22,17 +22,23 @@
 
 package password.pwm.http.servlet.peoplesearch;
 
-import lombok.Getter;
 import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
+import password.pwm.bean.SessionLabel;
+import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.profile.LdapProfile;
+import password.pwm.config.value.data.UserPermission;
+import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.ldap.LdapPermissionTester;
 
-@Getter
+import java.util.List;
+
 public class PeopleSearchConfiguration
 {
-    private String photoAttribute;
-    private String photoUrlOverride;
-    private boolean photosEnabled;
+    private final PwmApplication pwmApplication;
+
     private boolean orgChartEnabled;
     private String orgChartParentAttr;
     private String orgChartChildAttr;
@@ -40,14 +46,72 @@ public class PeopleSearchConfiguration
     private boolean orgChartShowChildCount;
     private int orgChartMaxParents;
 
-    public static PeopleSearchConfiguration fromConfiguration( final Configuration configuration )
+    private PeopleSearchConfiguration( final PwmApplication pwmApplication )
     {
-        final PeopleSearchConfiguration config = new PeopleSearchConfiguration();
-        config.photoAttribute = configuration.readSettingAsString( PwmSetting.PEOPLE_SEARCH_PHOTO_ATTRIBUTE );
-        config.photoUrlOverride = configuration.readSettingAsString( PwmSetting.PEOPLE_SEARCH_PHOTO_URL_OVERRIDE );
-        config.photosEnabled = ( config.photoAttribute != null && !config.photoAttribute.isEmpty() )
-                || ( config.photoUrlOverride != null && !config.photoUrlOverride.isEmpty() );
+        this.pwmApplication = pwmApplication;
+    }
 
+    public String getPhotoAttribute( final UserIdentity userIdentity )
+    {
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmApplication.getConfig() );
+        return ldapProfile.readSettingAsString( PwmSetting.PEOPLE_SEARCH_PHOTO_ATTRIBUTE );
+    }
+
+    public String getPhotoUrlOverride( final UserIdentity userIdentity )
+    {
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmApplication.getConfig() );
+        return ldapProfile.readSettingAsString( PwmSetting.PEOPLE_SEARCH_PHOTO_URL_OVERRIDE );
+    }
+
+    public boolean isPhotosEnabled( final UserIdentity actor, final SessionLabel sessionLabel )
+            throws PwmUnrecoverableException
+    {
+        if ( actor == null )
+        {
+            return false;
+        }
+
+        final List<UserPermission> permissions =  pwmApplication.getConfig().readSettingAsUserPermission( PwmSetting.PEOPLE_SEARCH_PHOTO_QUERY_FILTER );
+        return LdapPermissionTester.testUserPermissions( pwmApplication, sessionLabel, actor, permissions );
+
+    }
+
+    public boolean isOrgChartEnabled( )
+    {
+        return orgChartEnabled;
+    }
+
+    public String getOrgChartParentAttr( )
+    {
+        return orgChartParentAttr;
+    }
+
+    public String getOrgChartChildAttr( )
+    {
+        return orgChartChildAttr;
+    }
+
+    public String getOrgChartAssistantAttr( )
+    {
+        return orgChartAssistantAttr;
+    }
+
+    public boolean isOrgChartShowChildCount( )
+    {
+        return orgChartShowChildCount;
+    }
+
+    public int getOrgChartMaxParents( )
+    {
+        return orgChartMaxParents;
+    }
+
+    public static PeopleSearchConfiguration fromConfiguration(
+            final PwmApplication pwmApplication
+    )
+    {
+        final Configuration configuration = pwmApplication.getConfig();
+        final PeopleSearchConfiguration config = new PeopleSearchConfiguration( pwmApplication );
         config.orgChartAssistantAttr = configuration.readSettingAsString( PwmSetting.PEOPLE_SEARCH_ORGCHART_ASSISTANT_ATTRIBUTE );
         config.orgChartParentAttr = configuration.readSettingAsString( PwmSetting.PEOPLE_SEARCH_ORGCHART_PARENT_ATTRIBUTE );
         config.orgChartChildAttr = configuration.readSettingAsString( PwmSetting.PEOPLE_SEARCH_ORGCHART_CHILD_ATTRIBUTE );

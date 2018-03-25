@@ -34,14 +34,15 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.value.data.FormConfiguration;
-import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.i18n.Display;
+import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.LdapPermissionTester;
+import password.pwm.ldap.PhotoDataBean;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.search.SearchConfiguration;
@@ -58,11 +59,7 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
-import javax.servlet.ServletException;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.Serializable;
-import java.net.URLConnection;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -79,12 +76,12 @@ class PeopleSearchDataReader
     private static final PwmLogger LOGGER = PwmLogger.forClass( PeopleSearchDataReader.class );
 
     private final PwmRequest pwmRequest;
-    private final PeopleSearchConfiguration config;
+    private final PeopleSearchConfiguration peopleSearchConfiguration;
 
     PeopleSearchDataReader( final PwmRequest pwmRequest )
     {
         this.pwmRequest = pwmRequest;
-        this.config = PeopleSearchConfiguration.fromConfiguration( pwmRequest.getConfig() );
+        this.peopleSearchConfiguration = PeopleSearchConfiguration.fromConfiguration( pwmRequest.getPwmApplication() );
     }
 
     SearchResultBean makeSearchResultBean(
@@ -156,7 +153,7 @@ class PeopleSearchDataReader
 
         {
             // make parent reference
-            final List<UserIdentity> parentIdentities = readUserDNAttributeValues( userIdentity, config.getOrgChartParentAttr() );
+            final List<UserIdentity> parentIdentities = readUserDNAttributeValues( userIdentity, peopleSearchConfiguration.getOrgChartParentAttr() );
             if ( parentIdentities != null && !parentIdentities.isEmpty() )
             {
                 final UserIdentity parentIdentity = parentIdentities.iterator().next();
@@ -169,7 +166,7 @@ class PeopleSearchDataReader
         {
             // make children reference
             final Map<String, OrgChartReferenceBean> sortedChildren = new TreeMap<>();
-            final List<UserIdentity> childIdentities = readUserDNAttributeValues( userIdentity, config.getOrgChartChildAttr() );
+            final List<UserIdentity> childIdentities = readUserDNAttributeValues( userIdentity, peopleSearchConfiguration.getOrgChartChildAttr() );
             for ( final UserIdentity childIdentity : childIdentities )
             {
                 final OrgChartReferenceBean childReference = makeOrgChartReferenceForIdentity( childIdentity );
@@ -190,9 +187,9 @@ class PeopleSearchDataReader
             orgChartData.setChildren( Collections.unmodifiableList( new ArrayList<>( sortedChildren.values() ) ) );
         }
 
-        if ( !StringUtil.isEmpty( config.getOrgChartAssistantAttr() ) )
+        if ( !StringUtil.isEmpty( peopleSearchConfiguration.getOrgChartAssistantAttr() ) )
         {
-            final List<UserIdentity> assistantIdentities = readUserDNAttributeValues( userIdentity, config.getOrgChartAssistantAttr() );
+            final List<UserIdentity> assistantIdentities = readUserDNAttributeValues( userIdentity, peopleSearchConfiguration.getOrgChartAssistantAttr() );
             if ( assistantIdentities != null && !assistantIdentities.isEmpty() )
             {
                 final UserIdentity assistantIdentity = assistantIdentities.iterator().next();
@@ -213,7 +210,7 @@ class PeopleSearchDataReader
     UserDetailBean makeUserDetailRequest(
             final String userKey
     )
-            throws PwmUnrecoverableException, IOException, ServletException, PwmOperationalException, ChaiUnavailableException
+            throws PwmUnrecoverableException, PwmOperationalException, ChaiUnavailableException
     {
         final Instant startTime = Instant.now();
         final UserIdentity userIdentity = UserIdentity.fromKey( userKey, pwmRequest.getPwmApplication() );
@@ -462,14 +459,14 @@ class PeopleSearchDataReader
             throws PwmUnrecoverableException
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final List<UserPermission> showPhotoPermission = pwmApplication.getConfig().readSettingAsUserPermission( PwmSetting.PEOPLE_SEARCH_PHOTO_QUERY_FILTER );
-        if ( !LdapPermissionTester.testUserPermissions( pwmApplication, pwmRequest.getSessionLabel(), userIdentity, showPhotoPermission ) )
+        final boolean enabled = peopleSearchConfiguration.isPhotosEnabled( pwmRequest.getUserInfoIfLoggedIn(), pwmRequest.getSessionLabel() );
+        if ( !enabled )
         {
             LOGGER.debug( pwmRequest, "detailed user data lookup for " + userIdentity.toString() + ", failed photo query filter, denying photo view" );
             return null;
         }
 
-        final String overrideURL = pwmApplication.getConfig().readSettingAsString( PwmSetting.PEOPLE_SEARCH_PHOTO_URL_OVERRIDE );
+        final String overrideURL = peopleSearchConfiguration.getPhotoUrlOverride( userIdentity );
         try
         {
             if ( overrideURL != null && !overrideURL.isEmpty() )
@@ -694,14 +691,14 @@ class PeopleSearchDataReader
         final Map<String, String> attributeHeaderMap = UserSearchResults.fromFormConfiguration(
                 detailFormConfig, pwmRequest.getLocale() );
 
-        if ( config.isOrgChartEnabled() )
+        if ( peopleSearchConfiguration.isOrgChartEnabled() )
         {
-            final String orgChartParentAttr = config.getOrgChartParentAttr();
+            final String orgChartParentAttr = peopleSearchConfiguration.getOrgChartParentAttr();
             if ( !attributeHeaderMap.containsKey( orgChartParentAttr ) )
             {
                 attributeHeaderMap.put( orgChartParentAttr, orgChartParentAttr );
             }
-            final String orgChartChildAttr = config.getOrgChartParentAttr();
+            final String orgChartChildAttr = peopleSearchConfiguration.getOrgChartParentAttr();
             if ( !attributeHeaderMap.containsKey( orgChartChildAttr ) )
             {
                 attributeHeaderMap.put( orgChartChildAttr, orgChartChildAttr );
@@ -730,30 +727,12 @@ class PeopleSearchDataReader
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
     {
-        final String attribute = pwmRequest.getConfig().readSettingAsString( PwmSetting.PEOPLE_SEARCH_PHOTO_ATTRIBUTE );
-        if ( attribute == null || attribute.isEmpty() )
-        {
-            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "ldap photo attribute is not configured" ) );
-        }
-
-        final byte[] photoData;
-        final String mimeType;
-        try
-        {
-            final ChaiUser chaiUser = getChaiUser( userIdentity );
-            final byte[][] photoAttributeData = chaiUser.readMultiByteAttribute( attribute );
-            if ( photoAttributeData == null || photoAttributeData.length == 0 || photoAttributeData[ 0 ].length == 0 )
-            {
-                throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "user has no photo data stored in LDAP attribute" ) );
-            }
-            photoData = photoAttributeData[ 0 ];
-            mimeType = URLConnection.guessContentTypeFromStream( new ByteArrayInputStream( photoData ) );
-        }
-        catch ( IOException | ChaiOperationException e )
-        {
-            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_UNKNOWN, "error reading user photo ldap attribute: " + e.getMessage() ) );
-        }
-        return new PhotoDataBean( mimeType, photoData );
+        final ChaiUser chaiUser = getChaiUser( userIdentity );
+        return LdapOperationsHelper.readPhotoDataFromLdap(
+                pwmRequest.getConfig(),
+                chaiUser,
+                userIdentity
+        );
     }
 
     private SearchResultBean makeSearchResultsImpl(

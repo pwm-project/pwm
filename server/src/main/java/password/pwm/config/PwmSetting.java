@@ -264,6 +264,10 @@ public enum PwmSetting
             "webservice.userAttributes", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.LDAP_ATTRIBUTES ),
     OTP_SECRET_LDAP_ATTRIBUTE(
             "otp.secret.ldap.attribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
+    PEOPLE_SEARCH_PHOTO_ATTRIBUTE(
+            "peopleSearch.photo.ldapAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
+    PEOPLE_SEARCH_PHOTO_URL_OVERRIDE(
+            "peopleSearch.photo.urlOverride", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
     AUTO_ADD_OBJECT_CLASSES(
             "ldap.addObjectClasses", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.LDAP_ATTRIBUTES ),
 
@@ -940,10 +944,6 @@ public enum PwmSetting
             "peopleSearch.displayName.user", PwmSettingSyntax.STRING, PwmSettingCategory.PEOPLE_SEARCH ),
     PEOPLE_SEARCH_DISPLAY_NAMES_CARD_LABELS(
             "peopleSearch.displayName.cardLabels", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.PEOPLE_SEARCH ),
-    PEOPLE_SEARCH_PHOTO_ATTRIBUTE(
-            "peopleSearch.photo.ldapAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.PEOPLE_SEARCH ),
-    PEOPLE_SEARCH_PHOTO_URL_OVERRIDE(
-            "peopleSearch.photo.urlOverride", PwmSettingSyntax.STRING, PwmSettingCategory.PEOPLE_SEARCH ),
     PEOPLE_SEARCH_MAX_CACHE_SECONDS(
             "peopleSearch.maxCacheSeconds", PwmSettingSyntax.DURATION, PwmSettingCategory.PEOPLE_SEARCH ),
     PEOPLE_SEARCH_PHOTO_QUERY_FILTER(
@@ -1036,6 +1036,8 @@ public enum PwmSetting
             "helpdesk.useProxy", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_BASE ),
     HELPDESK_DETAIL_DISPLAY_NAME(
             "helpdesk.displayName", PwmSettingSyntax.STRING, PwmSettingCategory.HELPDESK_BASE ),
+    HELPDESK_DISPLAY_NAMES_CARD_LABELS(
+            "helpdesk.displayName.cardLabels", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.HELPDESK_BASE ),
     HELPDESK_TOKEN_SEND_METHOD(
             "helpdesk.token.sendMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.HELPDESK_BASE ),
 
@@ -1053,6 +1055,8 @@ public enum PwmSetting
             "helpdesk.deleteUser.button", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_OPTIONS ),
     HELPDESK_PASSWORD_MASKVALUE(
             "helpdesk.setPassword.maskValue", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_OPTIONS ),
+    HELPDESK_ENABLE_PHOTOS(
+            "helpdesk.enablePhotos", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_OPTIONS ),
 
     HELPDESK_VERIFICATION_METHODS(
             "helpdesk.verificationMethods", PwmSettingSyntax.VERIFICATION_METHOD, PwmSettingCategory.HELPDESK_VERIFICATION ),

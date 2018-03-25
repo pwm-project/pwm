@@ -26,8 +26,8 @@ import IPwmService from './pwm.service';
 import PwmService from './pwm.service';
 import {ConfigBaseService, IConfigService} from './base-config.service';
 
-const COLUMN_CONFIG = 'peoplesearch_search_columns';
-const ORGCHART_ENABLED = 'peoplesearch_orgChartEnabled';
+const COLUMN_CONFIG = 'searchColumns';
+const ORGCHART_ENABLED = 'orgChartEnabled';
 const ORGCHART_MAX_PARENTS = 'orgChartMaxParents';
 const ORGCHART_SHOW_CHILD_COUNT = 'orgChartShowChildCount';
 

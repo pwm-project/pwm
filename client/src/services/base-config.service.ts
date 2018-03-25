@@ -23,7 +23,7 @@
 import {IHttpService, ILogService, IPromise, IQService} from 'angular';
 import {IPwmService} from './pwm.service';
 
-const PHOTO_ENABLED = 'peoplesearch_enablePhoto';
+const PHOTO_ENABLED = 'enablePhoto';
 
 export interface IConfigService {
     getColumnConfig(): IPromise<any>;

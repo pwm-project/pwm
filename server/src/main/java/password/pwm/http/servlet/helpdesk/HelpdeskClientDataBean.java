@@ -22,42 +22,116 @@
 
 package password.pwm.http.servlet.helpdesk;
 
-import lombok.Data;
+import lombok.Builder;
+import lombok.Value;
+import password.pwm.config.PwmSetting;
 import password.pwm.config.option.HelpdeskClearResponseMode;
 import password.pwm.config.option.HelpdeskUIMode;
 import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.option.MessageSendMethod;
+import password.pwm.config.profile.HelpdeskProfile;
+import password.pwm.config.value.data.ActionConfiguration;
+import password.pwm.config.value.data.FormConfiguration;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
-@Data
-@SuppressWarnings( "checkstyle:MemberName" )
+@Value
+@Builder
 public class HelpdeskClientDataBean implements Serializable
 {
-    private Map<String, String> helpdesk_search_columns = new HashMap<>();
-    private boolean helpdesk_setting_maskPasswords;
-    private HelpdeskClearResponseMode helpdesk_setting_clearResponses;
-    private HelpdeskUIMode helpdesk_setting_PwUiMode;
-    private MessageSendMethod helpdesk_setting_tokenSendMethod;
-    private Map<String, ActionInformation> actions = new HashMap<>();
-    private Map<String, Collection<IdentityVerificationMethod>> verificationMethods = new HashMap<>();
+    private Map<String, String> searchColumns;
+    private boolean enablePhoto;
+    private boolean maskPasswords;
+    private HelpdeskClearResponseMode clearResponses;
+    private HelpdeskUIMode pwUiMode;
+    private MessageSendMethod tokenSendMethod;
+    private Map<String, ActionInformation> actions;
+    private Map<String, Collection<IdentityVerificationMethod>> verificationMethods;
     private List<FormInformation> verificationForm;
+    private boolean enablePhotos;
 
-    @Data
+    @Value
     public static class ActionInformation implements Serializable
     {
         private String name;
         private String description;
     }
 
-    @Data
+    @Value
     public static class FormInformation implements Serializable
     {
         private String name;
         private String label;
+    }
+
+    static HelpdeskClientDataBean fromConfig(
+            final HelpdeskProfile helpdeskProfile,
+            final Locale locale
+    )
+    {
+        final HelpdeskClientDataBean.HelpdeskClientDataBeanBuilder builder = HelpdeskClientDataBean.builder();
+        {
+            // search page
+            final List<FormConfiguration> searchForm = helpdeskProfile.readSettingAsForm( PwmSetting.HELPDESK_SEARCH_FORM );
+            final Map<String, String> searchColumns = new LinkedHashMap<>();
+            for ( final FormConfiguration formConfiguration : searchForm )
+            {
+                searchColumns.put( formConfiguration.getName(), formConfiguration.getLabel( locale ) );
+            }
+            builder.searchColumns( searchColumns );
+        }
+        {
+            // detail page
+            builder.maskPasswords( helpdeskProfile.readSettingAsBoolean( PwmSetting.HELPDESK_PASSWORD_MASKVALUE ) );
+            builder.clearResponses( helpdeskProfile.readSettingAsEnum( PwmSetting.HELPDESK_CLEAR_RESPONSES, HelpdeskClearResponseMode.class ) );
+            builder.pwUiMode( helpdeskProfile.readSettingAsEnum( PwmSetting.HELPDESK_SET_PASSWORD_MODE, HelpdeskUIMode.class ) );
+            builder.tokenSendMethod( helpdeskProfile.readSettingAsEnum( PwmSetting.HELPDESK_TOKEN_SEND_METHOD, MessageSendMethod.class ) );
+        }
+        {
+            // actions
+            final List<ActionConfiguration> actionConfigurations = helpdeskProfile.readSettingAsAction( PwmSetting.HELPDESK_ACTIONS );
+            final Map<String, HelpdeskClientDataBean.ActionInformation> actions = new LinkedHashMap<>();
+            for ( final ActionConfiguration actionConfiguration : actionConfigurations )
+            {
+                final HelpdeskClientDataBean.ActionInformation actionInformation = new HelpdeskClientDataBean.ActionInformation(
+                        actionConfiguration.getName(),
+                        actionConfiguration.getDescription()
+                );
+                actions.put( actionConfiguration.getName(), actionInformation );
+            }
+
+            builder.actions( actions );
+        }
+        {
+            final Map<String, Collection<IdentityVerificationMethod>> verificationMethodsMap = new HashMap<>();
+            verificationMethodsMap.put( "optional", helpdeskProfile.readOptionalVerificationMethods() );
+            verificationMethodsMap.put( "required", helpdeskProfile.readRequiredVerificationMethods() );
+            builder.verificationMethods( verificationMethodsMap );
+        }
+        {
+            final List<FormConfiguration> attributeVerificationForm = helpdeskProfile.readSettingAsForm( PwmSetting.HELPDESK_VERIFICATION_FORM );
+            final List<HelpdeskClientDataBean.FormInformation> formInformations = new ArrayList<>();
+            if ( attributeVerificationForm != null )
+            {
+                for ( final FormConfiguration formConfiguration : attributeVerificationForm )
+                {
+                    final String name = formConfiguration.getName();
+                    String label = formConfiguration.getLabel( locale );
+                    label = ( label != null && !label.isEmpty() ) ? label : formConfiguration.getName();
+                    final HelpdeskClientDataBean.FormInformation formInformation = new HelpdeskClientDataBean.FormInformation( name, label );
+                    formInformations.add( formInformation );
+                }
+            }
+            builder.verificationForm( formInformations );
+        }
+
+        return builder.build();
     }
 }
