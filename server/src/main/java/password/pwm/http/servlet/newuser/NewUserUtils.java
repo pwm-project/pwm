@@ -301,7 +301,7 @@ class NewUserUtils
         NewUserUtils.LOGGER.trace( pwmSession, "new user ldap creation process complete, now authenticating user" );
 
         // write data to remote web service
-        remoteWriteFormData( pwmRequest, newUserForm );
+        remoteWriteFormData( pwmRequest, newUserForm, newUserDN );
 
         // authenticate the user to pwm
         final UserIdentity userIdentity = new UserIdentity( newUserDN, pwmApplication.getConfig().getDefaultLdapProfile().getIdentifier() );
@@ -529,7 +529,8 @@ class NewUserUtils
 
     static void remoteVerifyFormData(
             final PwmRequest pwmRequest,
-            final NewUserForm newUserForm
+            final NewUserForm newUserForm,
+            final String userDn
 
     )
             throws PwmUnrecoverableException, PwmDataValidationException
@@ -537,13 +538,15 @@ class NewUserUtils
         remoteSendFormData(
                 pwmRequest,
                 newUserForm,
+                userDn,
                 FormDataRequestBean.Mode.verify
         );
     }
 
     static void remoteWriteFormData(
             final PwmRequest pwmRequest,
-            final NewUserForm newUserForm
+            final NewUserForm newUserForm,
+            final String userDn
 
     )
             throws PwmUnrecoverableException, PwmDataValidationException
@@ -551,6 +554,7 @@ class NewUserUtils
         remoteSendFormData(
                 pwmRequest,
                 newUserForm,
+                userDn,
                 FormDataRequestBean.Mode.write
         );
     }
@@ -558,6 +562,7 @@ class NewUserUtils
     private static void remoteSendFormData(
             final PwmRequest pwmRequest,
             final NewUserForm newUserForm,
+            final String userDn,
             final FormDataRequestBean.Mode mode
 
     )
@@ -583,9 +588,11 @@ class NewUserUtils
                 .formInfo( formInfo )
                 .formConfigurations( newUserProfile.readSettingAsForm( PwmSetting.NEWUSER_FORM ) )
                 .formValues( newUserForm.getFormData() )
+                .userDN( userDn )
                 .build();
 
         final FormDataResponseBean formDataResponseBean = restFormDataClient.invoke( formDataRequestBean, pwmRequest.getLocale() );
+
         if ( formDataResponseBean.isError() )
         {
             final ErrorInformation error = new ErrorInformation(
