@@ -44,6 +44,7 @@ import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
 import password.pwm.http.PwmURL;
 import password.pwm.http.bean.NewUserBean;
+import password.pwm.http.filter.AuthenticationFilter;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.ControlledPwmServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
@@ -692,6 +693,25 @@ public class NewUserServlet extends ControlledPwmServlet
 
         // -- process complete -- \\
         pwmRequest.getPwmApplication().getSessionStateService().clearBean( pwmRequest, NewUserBean.class );
+
+        if ( pwmRequest.isAuthenticated() )
+        {
+            final PwmSession pwmSession = pwmRequest.getPwmSession();
+
+            if ( AuthenticationFilter.forceRequiredRedirects( pwmRequest ) == ProcessStatus.Halt )
+            {
+                return ProcessStatus.Halt;
+            }
+
+            // log the user out if the current profiles states so
+            final boolean forceLogoutOnChange = newUserProfile.readSettingAsBoolean( PwmSetting.NEWUSER_LOGOUT_AFTER_CREATION );
+            if ( forceLogoutOnChange )
+            {
+                LOGGER.trace( pwmSession, "logging out user; account created" );
+                pwmRequest.sendRedirect( PwmServletDefinition.Logout );
+                return ProcessStatus.Halt;
+            }
+        }
 
         final String configuredRedirectUrl = newUserProfile.readSettingAsString( PwmSetting.NEWUSER_REDIRECT_URL );
         if ( !StringUtil.isEmpty( configuredRedirectUrl ) && StringUtil.isEmpty( pwmRequest.getPwmSession().getSessionStateBean().getForwardURL() ) )
