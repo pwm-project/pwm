@@ -68,9 +68,6 @@
     <label class="checkboxWrapper">
         <input id="<%=loopConfiguration.getName()%>" name="<%=loopConfiguration.getName()%>" type="checkbox" <%=checked?"checked":""%> <pwm:autofocus/>/>
         <%=loopConfiguration.getLabel(formLocale)%>
-        <%if(loopConfiguration.isRequired()){%>
-        <span style="font-style: italic; font-size: smaller" id="label_required_<%=loopConfiguration.getName()%>">*&nbsp;</span>
-        <%}%>
     </label>
     <% } else { %>
     <label for="<%=loopConfiguration.getName()%>">
