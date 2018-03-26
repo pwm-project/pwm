@@ -48,14 +48,7 @@ PWM_NEWUSER.makeFormData=function() {
 
     for (var i = 0; i < newUserForm.elements.length; i++ ) {
         var loopElement = newUserForm.elements[i];
-        
-        if(loopElement.type == "checkbox") {
-        	if(loopElement.checked) {
-        		paramData[loopElement.name] = loopElement.value;
-        	}
-        } else {
-        	paramData[loopElement.name] = loopElement.value;
-        }
+        paramData[loopElement.name] = loopElement.value;
     }
 
     return paramData;
