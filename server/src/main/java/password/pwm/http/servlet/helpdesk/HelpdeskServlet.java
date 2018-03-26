@@ -1359,7 +1359,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
             PasswordUtility.helpdeskSetUserPassword(
                     pwmRequest.getPwmSession(),
                     chaiUser,
-                    userIdentity,
+                    userInfo,
                     pwmRequest.getPwmApplication(),
                     newPassword
             );

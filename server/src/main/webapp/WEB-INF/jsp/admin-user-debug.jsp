@@ -99,22 +99,39 @@
             </tr>
             <tr>
                 <td class="key">Last Login Time</td>
-                <td><%=JspUtility.freindlyWrite(pageContext, userInfo.getPasswordLastModifiedTime())%></td>
+                <td>
+                    <%=JspUtility.freindlyWrite(pageContext, userInfo.getPasswordLastModifiedTime())%>
+                    <% if ( userInfo.getPasswordLastModifiedTime() != null ) { %>
+                    ( <%=TimeDuration.fromCurrent(userInfo.getPasswordLastModifiedTime()).asCompactString()%> )
+                    <% } %>
+                </td>
             </tr>
             <tr>
                 <td class="key">Account Expiration Time</td>
-                <td><%=JspUtility.freindlyWrite(pageContext, userInfo.getAccountExpirationTime())%></td>
+                <td>
+                    <%=JspUtility.freindlyWrite(pageContext, userInfo.getAccountExpirationTime())%>
+                    <% if ( userInfo.getAccountExpirationTime() != null ) { %>
+                    ( <%=TimeDuration.fromCurrent(userInfo.getAccountExpirationTime()).asCompactString()%> )
+                    <% } %>
+                </td>
             </tr>
             <tr>
                 <td class="key">Password Expiration</td>
                 <td>
                     <%=JspUtility.freindlyWrite(pageContext, userInfo.getPasswordExpirationTime())%>
+                    <% if ( userInfo.getPasswordExpirationTime() != null ) { %>
                     ( <%=TimeDuration.fromCurrent(userInfo.getPasswordExpirationTime()).asCompactString()%> )
+                    <% } %>
                 </td>
             </tr>
             <tr>
                 <td class="key">Password Last Modified</td>
-                <td><%=JspUtility.freindlyWrite(pageContext, userInfo.getPasswordLastModifiedTime())%></td>
+                <td>
+                    <%=JspUtility.freindlyWrite(pageContext, userInfo.getPasswordLastModifiedTime())%>
+                    <% if ( userInfo.getPasswordLastModifiedTime() != null ) { %>
+                    ( <%=TimeDuration.fromCurrent(userInfo.getPasswordLastModifiedTime()).asCompactString()%> )
+                    <% } %>
+                </td>
             </tr>
             <tr>
                 <td class="key">Email Address 1</td>
@@ -389,7 +406,7 @@
                 <% final Map<Challenge,String> helpdeskCrMap = responseInfoBean.getHelpdeskCrMap(); %>
                 <% if (helpdeskCrMap == null) { %>
                 <td>
-                <pwm:display key="<%=Display.Value_NotApplicable.toString()%>"/>
+                    <pwm:display key="<%=Display.Value_NotApplicable.toString()%>"/>
                 </td>
                 <% } else { %>
                 <td>

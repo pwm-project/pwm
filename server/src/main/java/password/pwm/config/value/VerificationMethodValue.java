@@ -138,7 +138,7 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
     }
 
     @Override
-    public List<Element> toXmlValues( final String valueElementName )
+    public List<Element> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
     {
         final Element valueElement = new Element( valueElementName );
         valueElement.addContent( new CDATA( JsonUtil.serialize( value ) ) );
