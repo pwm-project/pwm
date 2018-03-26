@@ -105,7 +105,7 @@ public class X509CertificateValue extends AbstractValue implements StoredValue
 
 
     @Override
-    public List<Element> toXmlValues( final String valueElementName )
+    public List<Element> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
     {
         final List<Element> returnList = new ArrayList<>();
         for ( final X509Certificate value : certificates )

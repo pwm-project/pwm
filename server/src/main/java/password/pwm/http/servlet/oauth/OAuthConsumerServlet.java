@@ -22,7 +22,6 @@
 
 package password.pwm.http.servlet.oauth;
 
-import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -76,7 +75,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
     @Override
     @SuppressWarnings( "checkstyle:MethodLength" )
     protected void processAction( final PwmRequest pwmRequest )
-            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
+            throws ServletException, IOException, PwmUnrecoverableException
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final Configuration config = pwmRequest.getConfig();
@@ -213,18 +212,10 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
         {
             resolveResults = oAuthMachine.makeOAuthResolveRequest( pwmRequest, requestCodeStr );
         }
-        catch ( IOException | PwmException e )
+        catch ( PwmException e )
         {
-            final ErrorInformation errorInformation;
             final String errorMsg = "unexpected error communicating with oauth server: " + e.toString();
-            if ( e instanceof PwmException )
-            {
-                errorInformation = new ErrorInformation( ( ( PwmException ) e ).getError(), errorMsg );
-            }
-            else
-            {
-                errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
-            }
+            final ErrorInformation errorInformation = new ErrorInformation( e.getError(), errorMsg );
             setLastError( pwmRequest, errorInformation );
             LOGGER.error( errorInformation.toDebugStr() );
             return;
@@ -269,7 +260,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
 
         if ( oAuthUseCaseCase == OAuthUseCase.ForgottenPassword )
         {
-            redirecToForgottenPasswordServlet( pwmRequest, oauthSuppliedUsername );
+            redirectToForgottenPasswordServlet( pwmRequest, oauthSuppliedUsername );
             return;
         }
 
@@ -359,7 +350,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
         throw new PwmUnrecoverableException( errorInformation );
     }
 
-    private void redirecToForgottenPasswordServlet( final PwmRequest pwmRequest, final String oauthSuppliedUsername ) throws IOException, PwmUnrecoverableException
+    private void redirectToForgottenPasswordServlet( final PwmRequest pwmRequest, final String oauthSuppliedUsername ) throws IOException, PwmUnrecoverableException
     {
         final OAuthForgottenPasswordResults results = new OAuthForgottenPasswordResults( true, oauthSuppliedUsername );
         final String encryptedResults = pwmRequest.getPwmApplication().getSecureService().encryptObjectToString( results );

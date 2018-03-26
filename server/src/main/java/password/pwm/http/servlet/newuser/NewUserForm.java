@@ -57,7 +57,7 @@ public class NewUserForm implements Serializable
             return false;
         }
 
-        if ( newUserPassword == null || !newUserPassword.getStringValue().equals( otherForm.newUserPassword.getStringValue() ) )
+        if ( newUserPassword != null && otherForm.newUserPassword != null && !newUserPassword.getStringValue().equals( otherForm.newUserPassword.getStringValue() ) )
         {
             return false;
         }

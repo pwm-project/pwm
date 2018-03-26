@@ -52,7 +52,7 @@
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>
 
-            <% if ( (Boolean)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ShowGoBackButton) ) { %>
+            <% if ( JspUtility.getAttribute(pageContext, PwmRequestAttribute.GoBackAction) != null ) { %>
             <button type="submit" id="button-goBack" name="button-goBack" class="btn" form="form-goBack">
                 <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-backward"></span></pwm:if>
                 <pwm:display key="Button_GoBack"/>
@@ -73,11 +73,13 @@
     </div>
     <div class="push"></div>
 </div>
+<% if ( JspUtility.getAttribute(pageContext, PwmRequestAttribute.GoBackAction) != null ) { %>
 <form id="form-goBack" action="<pwm:current-url/>" method="post">
     <input type="hidden" name="<%=PwmConstants.PARAM_ACTION_REQUEST%>" value="<%=ActivateUserServlet.ActivateUserAction.reset%>"/>
-    <input type="hidden" name="<%=PwmConstants.PARAM_RESET_TYPE%>" value="<%=ActivateUserServlet.ResetType.clearTokenDestination%>"/>
+    <input type="hidden" name="<%=PwmConstants.PARAM_RESET_TYPE%>" value="<%=JspUtility.getAttribute(pageContext, PwmRequestAttribute.GoBackAction)%>"/>
     <input type="hidden" name="<%=PwmConstants.PARAM_FORM_ID%>" value="<pwm:FormID/>"/>
 </form>
+<% } %>
 <form id="form-cancel" action="<pwm:current-url/>" method="post">
     <input type="hidden" name="<%=PwmConstants.PARAM_ACTION_REQUEST%>" value="<%=ActivateUserServlet.ActivateUserAction.reset%>"/>
     <input type="hidden" name="<%=PwmConstants.PARAM_RESET_TYPE%>" value="<%=ActivateUserServlet.ResetType.exitActivation%>"/>

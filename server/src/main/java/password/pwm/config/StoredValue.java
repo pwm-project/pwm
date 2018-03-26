@@ -33,7 +33,7 @@ import java.util.Locale;
 
 public interface StoredValue extends Serializable
 {
-    List<Element> toXmlValues( String valueElementName );
+    List<Element> toXmlValues( String valueElementName, PwmSecurityKey pwmSecurityKey );
 
     Object toNativeObject( );
 

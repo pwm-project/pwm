@@ -1568,11 +1568,13 @@ html[dir="rtl"] .message.message-error .errorDetail {
 }
 
 .tab-container > .label:active {
-    /*background: #ccc;*/
+    background: #ccc;
 }
 
 .tab-container > .input:focus + .label {
     z-index: 1;
+    color:red;
+    background-color:red;
 }
 
 .tab-container > .input:checked + .label {

@@ -155,11 +155,11 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
         }
     }
 
-    public enum ResetType
+    public enum ResetAction
     {
         exitForgottenPassword,
         gotoSearch,
-        clearTokenDestination,
+        clearTokenDestination, clearActionChoice,
     }
 
 
@@ -291,7 +291,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
     private ProcessStatus processReset( final PwmRequest pwmRequest )
             throws IOException, PwmUnrecoverableException
     {
-        final ResetType resetType = pwmRequest.readParameterAsEnum( PwmConstants.PARAM_RESET_TYPE, ResetType.class, ResetType.exitForgottenPassword );
+        final ResetAction resetType = pwmRequest.readParameterAsEnum( PwmConstants.PARAM_RESET_TYPE, ResetAction.class, ResetAction.exitForgottenPassword );
 
         switch ( resetType )
         {
@@ -307,6 +307,12 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
             case clearTokenDestination:
                 forgottenPasswordBean( pwmRequest ).getProgress().setTokenDestination( null );
                 forgottenPasswordBean( pwmRequest ).getProgress().setTokenSent( false );
+                break;
+
+            case clearActionChoice:
+                forgottenPasswordBean( pwmRequest ).getProgress().setTokenDestination( null );
+                forgottenPasswordBean( pwmRequest ).getProgress().setTokenSent( false );
+                forgottenPasswordBean( pwmRequest ).getProgress().setInProgressVerificationMethod( null );
                 break;
 
             default:
@@ -1430,7 +1436,8 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
                 final List<TokenDestinationItem> tokenDestinations = ForgottenPasswordUtil.figureAvailableTokenDestinations( pwmRequest, forgottenPasswordBean );
                 if ( progress.getTokenDestination() == null )
                 {
-                    if ( tokenDestinations.size() == 1 )
+                    final boolean autoSelect = Boolean.parseBoolean( pwmRequest.getConfig().readAppProperty( AppProperty.FORGOTTEN_PASSWORD_TOKEN_AUTO_SELECT_DEST ) );
+                    if ( autoSelect && tokenDestinations.size() == 1 )
                     {
                         final TokenDestinationItem singleItem = tokenDestinations.iterator().next();
                         progress.setTokenDestination( singleItem );
@@ -1452,13 +1459,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
 
                 if ( !progress.getSatisfiedMethods().contains( IdentityVerificationMethod.TOKEN ) )
                 {
-                    final ForgottenPasswordProfile forgottenPasswordProfile = ForgottenPasswordUtil.forgottenPasswordProfile(
-                            pwmRequest.getPwmApplication(),
-                            forgottenPasswordBean
-                    );
-                    final boolean resendEnabled = forgottenPasswordProfile.readSettingAsBoolean( PwmSetting.TOKEN_RESEND_ENABLE );
-                    pwmRequest.setAttribute( PwmRequestAttribute.ForgottenPasswordResendTokenEnabled, resendEnabled );
-                    pwmRequest.forwardToJsp( JspUrl.RECOVER_PASSWORD_ENTER_TOKEN );
+                    forwardToEnterTokenJsp( pwmRequest );
                     return;
                 }
             }
@@ -1510,15 +1511,57 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
 
     }
 
-    private void forwardToTokenChoiceJsp( final PwmRequest pwmRequest )
+    private static void forwardToTokenChoiceJsp( final PwmRequest pwmRequest )
             throws ServletException, PwmUnrecoverableException, IOException
     {
         final ForgottenPasswordBean forgottenPasswordBean = forgottenPasswordBean( pwmRequest );
         final List<TokenDestinationItem> destItems = ForgottenPasswordUtil.figureAvailableTokenDestinations( pwmRequest, forgottenPasswordBean );
         pwmRequest.setAttribute( PwmRequestAttribute.TokenDestItems, new ArrayList<>( destItems ) );
+
+        if ( ForgottenPasswordUtil.hasOtherMethodChoices( forgottenPasswordBean, IdentityVerificationMethod.TOKEN ) )
+        {
+            pwmRequest.setAttribute( PwmRequestAttribute.GoBackAction, ResetAction.clearActionChoice.name() );
+        }
+
         pwmRequest.forwardToJsp( JspUrl.RECOVER_PASSWORD_TOKEN_CHOICE );
     }
+
+    private static void forwardToEnterTokenJsp( final PwmRequest pwmRequest )
+            throws ServletException, PwmUnrecoverableException, IOException
+    {
+        final ForgottenPasswordBean forgottenPasswordBean = forgottenPasswordBean( pwmRequest );
+        final ForgottenPasswordProfile forgottenPasswordProfile = ForgottenPasswordUtil.forgottenPasswordProfile(
+                pwmRequest.getPwmApplication(),
+                forgottenPasswordBean
+        );
+
+        final List<TokenDestinationItem> destItems = ForgottenPasswordUtil.figureAvailableTokenDestinations( pwmRequest, forgottenPasswordBean );
+
+        ResetAction goBackAction = null;
+
+        final boolean autoSelect = Boolean.parseBoolean( pwmRequest.getConfig().readAppProperty( AppProperty.FORGOTTEN_PASSWORD_TOKEN_AUTO_SELECT_DEST ) );
+        if ( destItems.size() > 1 || !autoSelect )
+        {
+            goBackAction = ResetAction.clearTokenDestination;
+        }
+        else if ( ForgottenPasswordUtil.hasOtherMethodChoices( forgottenPasswordBean, IdentityVerificationMethod.TOKEN ) )
+        {
+            goBackAction = ResetAction.clearActionChoice;
+        }
+
+        if ( goBackAction != null )
+        {
+            pwmRequest.setAttribute( PwmRequestAttribute.GoBackAction, goBackAction );
+        }
+
+        {
+            final boolean resendEnabled = forgottenPasswordProfile.readSettingAsBoolean( PwmSetting.TOKEN_RESEND_ENABLE );
+            pwmRequest.setAttribute( PwmRequestAttribute.ForgottenPasswordResendTokenEnabled, resendEnabled );
+        }
+        pwmRequest.forwardToJsp( JspUrl.RECOVER_PASSWORD_ENTER_TOKEN );
+    }
 }
+
 
 
 

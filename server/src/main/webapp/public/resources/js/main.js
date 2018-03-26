@@ -126,6 +126,7 @@ PWM_MAIN.loadLocaleBundle = function(bundleName, completeFunction) {
 
 PWM_MAIN.initPage = function() {
     PWM_MAIN.applyFormAttributes();
+    PWM_MAIN.initDisplayTabPreferences();
 
     require(["dojo"], function (dojo) {
         if (dojo.isIE) {
@@ -218,6 +219,33 @@ PWM_MAIN.initPage = function() {
 
     console.log('initPage completed');
 };
+
+PWM_MAIN.initDisplayTabPreferences = function() {
+    var storageName = 'lastTabState-' + window.location.pathname + '-';
+    var knownTabNames = [];
+    PWM_MAIN.doQuery('div.tab-container>input[type="radio"]',function(formElement) {
+        var name = formElement.name;
+        var id = formElement.id;
+        if (!PWM_MAIN.JSLibrary.arrayContains(knownTabNames,name)) {
+            knownTabNames.push(name);
+        }
+        PWM_MAIN.addEventHandler(formElement, 'click', function(){
+            PWM_MAIN.Preferences.writeSessionStorage(storageName + name, id);
+        });
+
+    });
+
+    knownTabNames.forEach(function(name){
+        var value = PWM_MAIN.Preferences.readSessionStorage(storageName + name);
+        if (value) {
+            var selector = "input[name='" + name + "'][type='radio'][id='" + value + "']";
+            PWM_MAIN.doQuery(selector,function(formElement){
+                formElement.checked = true;
+            });
+        }
+    });
+};
+
 
 PWM_MAIN.applyFormAttributes = function() {
     PWM_MAIN.doQuery('form',function(formElement) {

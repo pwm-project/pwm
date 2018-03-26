@@ -516,7 +516,7 @@ public class NewUserServlet extends ControlledPwmServlet
                 }
                 else if ( tokenDestinationItem.getType() == TokenDestinationItem.Type.sms )
                 {
-                    if ( newUserBean.getNewUserForm() == null || newUserBean.getNewUserForm().isConsistentWith( newUserFormFromToken ) )
+                    if ( newUserBean.getNewUserForm() == null || !newUserBean.getNewUserForm().isConsistentWith( newUserFormFromToken ) )
                     {
                         LOGGER.debug( pwmRequest, "token value is valid, but form data does not match current session form data" );
                         final String errorMsg = "sms token does not match current session";

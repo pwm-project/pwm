@@ -22,78 +22,22 @@
 
 package password.pwm.http.client;
 
+import lombok.Value;
 import password.pwm.http.HttpMethod;
 
 import java.io.Serializable;
-import java.security.cert.X509Certificate;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
+@Value
 public class PwmHttpClientRequest implements Serializable
 {
     private final HttpMethod method;
     private final String url;
     private final String body;
     private final Map<String, String> headers;
-    private final List<X509Certificate> trustedCertificates;
 
-    public PwmHttpClientRequest(
-            final HttpMethod method,
-            final String url,
-            final String body,
-            final Map<String, String> headers
-    )
+    public String toDebugString( final PwmHttpClient pwmHttpClient )
     {
-        this.method = method;
-        this.url = url;
-        this.body = body;
-        this.headers = headers == null ? Collections.emptyMap() : Collections.unmodifiableMap( headers );
-        this.trustedCertificates = null;
-    }
-
-    public PwmHttpClientRequest(
-            final HttpMethod method,
-            final String url,
-            final String body,
-            final Map<String, String> headers,
-            final List<X509Certificate> trustedCertificates
-    )
-    {
-        this.method = method;
-        this.url = url;
-        this.body = body;
-        this.headers = headers == null ? Collections.emptyMap() : Collections.unmodifiableMap( headers );
-        this.trustedCertificates = trustedCertificates;
-    }
-
-    public HttpMethod getMethod( )
-    {
-        return method;
-    }
-
-    public String getUrl( )
-    {
-        return url;
-    }
-
-    public String getBody( )
-    {
-        return body;
-    }
-
-    public Map<String, String> getHeaders( )
-    {
-        return headers;
-    }
-
-    public List<X509Certificate> getTrustedCertificates( )
-    {
-        return trustedCertificates;
-    }
-
-    public String toDebugString( )
-    {
-        return PwmHttpClient.entityToDebugString( "HTTP " + method + " request to " + url, headers, body );
+        return pwmHttpClient.entityToDebugString( "HTTP " + method + " request to " + url, headers, body );
     }
 }
