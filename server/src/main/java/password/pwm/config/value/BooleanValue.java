@@ -71,7 +71,7 @@ public class BooleanValue implements StoredValue
     }
 
     @Override
-    public List<Element> toXmlValues( final String valueElementName )
+    public List<Element> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
     {
         final Element valueElement = new Element( valueElementName );
         valueElement.addContent( String.valueOf( value ) );

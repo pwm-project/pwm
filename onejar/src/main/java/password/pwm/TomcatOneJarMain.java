@@ -279,9 +279,10 @@ public class TomcatOneJarMain
 
     static void setupEnv( final TomcatConfig tomcatConfig )
     {
-        System.setProperty( "PWM_APPLICATIONPATH", tomcatConfig.getApplicationPath().getAbsolutePath() );
-        System.setProperty( "PWM_APPLICATIONFLAGS", "ManageHttps" );
-        System.setProperty( "PWM_APPLICATIONPARAMFILE", getPwmAppPropertiesFile( tomcatConfig ).getAbsolutePath() );
+        final String envVarPrefix = Resource.envVarPrefix.getValue();
+        System.setProperty( envVarPrefix + "_APPLICATIONPATH", tomcatConfig.getApplicationPath().getAbsolutePath() );
+        System.setProperty( envVarPrefix + "_APPLICATIONFLAGS", "ManageHttps" );
+        System.setProperty( envVarPrefix + "_APPLICATIONPARAMFILE", getPwmAppPropertiesFile( tomcatConfig ).getAbsolutePath() );
     }
 
     static void outputPwmAppProperties( final TomcatConfig tomcatConfig ) throws IOException

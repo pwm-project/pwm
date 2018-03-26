@@ -43,7 +43,7 @@
     <div id="centerbody">
         <h1 id="page-content-title" style="display: none;"><pwm:display key="Title_UserInformation" displayIfMissing="true"/></h1>
         <div class="tab-container" style="width: 100%; height: 100%;">
-            <input name="tabs" type="radio" id="tab-1" checked="checked" class="input"/>
+            <input name="tabs" type="radio" id="tab-1" checked="checked" class="input" <pwm:autofocus/> tabindex="5"/>
             <label for="tab-1" class="label"><pwm:display key="Title_UserInformation"/></label>
             <div class="tab-content-pane" id="UserInformation" title="<pwm:display key="Title_UserInformation"/>" class="tabContent">
                 <table class="nomargin">

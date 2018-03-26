@@ -39,6 +39,7 @@ import com.nulabinc.zxcvbn.Zxcvbn;
 import password.pwm.AppProperty;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.PasswordStatus;
@@ -61,13 +62,13 @@ import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.ldap.UserInfo;
-import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.svc.cache.CacheKey;
 import password.pwm.svc.cache.CachePolicy;
@@ -308,7 +309,7 @@ public class PasswordUtility
 
         final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
 
-        setPassword( pwmApplication, pwmSession.getLabel(), provider, userInfo.getUserIdentity(), setPasswordWithoutOld ? null : oldPassword, newPassword );
+        setPassword( pwmApplication, pwmSession.getLabel(), provider, userInfo, setPasswordWithoutOld ? null : oldPassword, newPassword );
 
         // update the session state bean's password modified flag
         pwmSession.getSessionStateBean().setPasswordModified( true );
@@ -371,15 +372,47 @@ public class PasswordUtility
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
             final ChaiProvider chaiProvider,
-            final UserIdentity userIdentity,
+            final UserInfo userInfo,
             final PasswordData oldPassword,
             final PasswordData newPassword
     )
             throws PwmUnrecoverableException, PwmOperationalException
     {
+        final UserIdentity userIdentity = userInfo.getUserIdentity();
         final Instant startTime = Instant.now();
         final boolean bindIsSelf;
         final String bindDN;
+
+        try
+        {
+
+            final ChaiUser theUser = chaiProvider.getEntryFactory().newChaiUser( userIdentity.getUserDN() );
+            final Locale locale = PwmConstants.DEFAULT_LOCALE;
+
+            final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(
+                    pwmApplication,
+                    sessionLabel,
+                    userIdentity,
+                    theUser,
+                    locale
+            );
+
+            final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator(
+                    pwmApplication,
+                    passwordPolicy
+            );
+
+            pwmPasswordRuleValidator.testPassword( newPassword, null, userInfo, theUser );
+        }
+        catch ( ChaiUnavailableException e )
+        {
+            throw PwmUnrecoverableException.fromChaiException( e );
+        }
+        catch ( PwmException e )
+        {
+            throw new PwmUnrecoverableException( e.getErrorInformation() );
+        }
+
 
         try
         {
@@ -450,13 +483,14 @@ public class PasswordUtility
     public static void helpdeskSetUserPassword(
             final PwmSession pwmSession,
             final ChaiUser chaiUser,
-            final UserIdentity userIdentity,
+            final UserInfo userInfo,
             final PwmApplication pwmApplication,
             final PasswordData newPassword
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
     {
         final SessionLabel sessionLabel = pwmSession.getLabel();
+        final UserIdentity userIdentity = userInfo.getUserIdentity();
 
         if ( !pwmSession.isAuthenticated() )
         {
@@ -473,7 +507,7 @@ public class PasswordUtility
             throw new PwmOperationalException( errorInformation );
         }
 
-        setPassword( pwmApplication, pwmSession.getLabel(), chaiUser.getChaiProvider(), userIdentity, null, newPassword );
+        setPassword( pwmApplication, pwmSession.getLabel(), chaiUser.getChaiProvider(), userInfo, null, newPassword );
 
         // create a proxy user object for pwm to update/read the user.
         final ChaiUser proxiedUser = pwmApplication.getProxiedChaiUser( userIdentity );
@@ -493,15 +527,6 @@ public class PasswordUtility
 
         // update statistics
         pwmApplication.getStatisticsManager().incrementValue( Statistic.HELPDESK_PASSWORD_SET );
-
-        // create a uib for end user
-        final UserInfo userInfo = UserInfoFactory.newUserInfo(
-                pwmApplication,
-                pwmSession.getLabel(),
-                pwmSession.getSessionStateBean().getLocale(),
-                userIdentity,
-                proxiedUser.getChaiProvider()
-        );
 
         {
             // execute configured actions

@@ -62,6 +62,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.X509Utils;
@@ -183,7 +184,7 @@ public class PwmHttpClient
         return clientBuilder.build();
     }
 
-    static String entityToDebugString(
+    String entityToDebugString(
             final String topLine,
             final Map<String, String> headers,
             final String body
@@ -191,7 +192,7 @@ public class PwmHttpClient
     {
         final StringBuilder msg = new StringBuilder();
         msg.append( topLine );
-        if ( body == null || body.isEmpty() )
+        if ( StringUtil.isEmpty( body ) )
         {
             msg.append( " (no body)" );
         }
@@ -221,9 +222,20 @@ public class PwmHttpClient
             }
             msg.append( "\n" );
         }
-        if ( body != null && !body.isEmpty() )
+
+        if ( !StringUtil.isEmpty( body ) )
         {
-            msg.append( "  body: " ).append( body );
+            msg.append( "  body: " );
+
+            final boolean alwaysOutput = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_CLIENT_ALWAYS_LOG_ENTITIES ) );
+            if ( alwaysOutput || !pwmHttpClientConfiguration.isMaskBodyDebugOutput() )
+            {
+                msg.append( body );
+            }
+            else
+            {
+                msg.append( PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT );
+            }
         }
 
         return msg.toString();
@@ -247,7 +259,8 @@ public class PwmHttpClient
         final Instant startTime = Instant.now();
         final int counter = classCounter++;
 
-        LOGGER.trace( sessionLabel, "preparing to send (id=" + counter + ") " + clientRequest.toDebugString() );
+        LOGGER.trace( sessionLabel, "preparing to send (id=" + counter + ") "
+                + clientRequest.toDebugString( this ) );
 
         final HttpResponse httpResponse = executeRequest( clientRequest );
         final String responseBody = EntityUtils.toString( httpResponse.getEntity() );
@@ -268,7 +281,9 @@ public class PwmHttpClient
         );
 
         final TimeDuration duration = TimeDuration.fromCurrent( startTime );
-        LOGGER.trace( sessionLabel, "received response (id=" + counter + ") in " + duration.asCompactString() + ": " + httpClientResponse.toDebugString() );
+        LOGGER.trace( sessionLabel, "received response (id=" + counter + ") in "
+                + duration.asCompactString() + ": "
+                + httpClientResponse.toDebugString( this ) );
         return httpClientResponse;
     }
 
@@ -363,7 +378,6 @@ public class PwmHttpClient
             final PwmHttpClientRequest pwmHttpClientRequest = new PwmHttpClientRequest(
                     HttpMethod.GET,
                     inputUrl,
-                    null,
                     null,
                     null
             );
