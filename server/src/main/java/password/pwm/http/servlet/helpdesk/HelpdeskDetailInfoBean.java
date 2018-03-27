@@ -390,11 +390,10 @@ public class HelpdeskDetailInfoBean implements Serializable
         final List<ButtonInfo> buttons = new ArrayList<>();
         if ( actions != null )
         {
-            int count = 0;
             for ( final ActionConfiguration action : actions )
             {
                 buttons.add( new ButtonInfo(
-                        "custom_" + count++,
+                        action.getId(),
                         action.getName(),
                         action.getDescription()
                 ) );

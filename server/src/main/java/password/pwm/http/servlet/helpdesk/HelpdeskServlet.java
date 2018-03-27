@@ -295,7 +295,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         ActionConfiguration action = null;
         for ( final ActionConfiguration loopAction : actionConfigurations )
         {
-            if ( requestedName != null && requestedName.equals( loopAction.getName() ) )
+            if ( requestedName != null && requestedName.equals( loopAction.getId() ) )
             {
                 action = loopAction;
                 break;

@@ -23,6 +23,8 @@
 package password.pwm.config.value;
 
 import com.google.gson.reflect.TypeToken;
+
+import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Element;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
@@ -45,6 +47,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 public class ActionValue extends AbstractValue implements StoredValue
@@ -159,14 +162,29 @@ public class ActionValue extends AbstractValue implements StoredValue
             }
         }
 
-        final Set<String> seenNames = new HashSet<>();
+        final Set<String> seenIds = new HashSet<>();
         for ( final ActionConfiguration actionConfiguration : values )
         {
-            if ( seenNames.contains( actionConfiguration.getName().toLowerCase() ) )
+            if ( StringUtils.isEmpty( actionConfiguration.getId() ) )
             {
-                return Collections.singletonList( "each action name must be unique: " + actionConfiguration.getName() );
+                actionConfiguration.setId( generateRandomId() );
             }
-            seenNames.add( actionConfiguration.getName().toLowerCase() );
+
+            int maxAttempts = 5;
+            while ( seenIds.contains( actionConfiguration.getId() ) && maxAttempts >= 0 )
+            {
+                if ( maxAttempts == 0 )
+                {
+                    return Collections.singletonList( "cannot generate a unique id for action: " + actionConfiguration.getName() );
+                }
+                else
+                {
+                    actionConfiguration.setId( generateRandomId() );
+                }
+                maxAttempts--;
+            }
+
+            seenIds.add( actionConfiguration.getId() );
         }
 
 
@@ -183,6 +201,26 @@ public class ActionValue extends AbstractValue implements StoredValue
         }
 
         return Collections.emptyList();
+    }
+
+    protected String generateRandomId()
+    {
+        final int idLength = 4;
+        final String prefixAllowedChars = "abcdefghijklmnopqrstuvwxyz";
+        final String allowedChars = "abcdefghijklmnopqrstuvwxyz0123456789";
+        final Random rand = new Random();
+        final StringBuilder idBuilder = new StringBuilder( idLength );
+
+        int idx = rand.nextInt( prefixAllowedChars.length() );
+        idBuilder.append( prefixAllowedChars.substring( idx, idx + 1 ) );
+
+        for ( int i = 1; i < idLength; i++ )
+        {
+            idx = rand.nextInt( allowedChars.length() );
+            idBuilder.append( allowedChars.substring( idx, idx + 1 ) );
+        }
+
+        return idBuilder.toString();
     }
 
     @Override

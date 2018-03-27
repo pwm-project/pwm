@@ -54,6 +54,7 @@ public class ActionConfiguration implements Serializable
         replace, add, remove
     }
 
+    private String id;
     private String name;
     private String description;
 
