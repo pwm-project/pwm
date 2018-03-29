@@ -721,6 +721,11 @@ class NewUserUtils
     )
             throws PwmUnrecoverableException
     {
+        if ( !newUserBean.isFormPassed() )
+        {
+            return null;
+        }
+
         final List<FormConfiguration> formFields = newUserProfile.readSettingAsForm( PwmSetting.NEWUSER_FORM );
         final LdapProfile defaultLDAPProfile = pwmRequest.getConfig().getDefaultLdapProfile();
 

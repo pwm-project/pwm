@@ -182,13 +182,16 @@ public class TokenUtil
                     }
                 }
 
-                final String currentTokenDest = tokenDestinationItem.getValue();
-                final String payloadTokenDest = tokenPayload.getDestination();
-                if ( !StringUtil.nullSafeEquals( currentTokenDest, payloadTokenDest ) )
+                if ( tokenDestinationItem != null )
                 {
-                    final String errorMsg = "token is for destination '" + currentTokenDest
-                            + "', but the current expected destination is '" + payloadTokenDest + "'";
-                    throw PwmUnrecoverableException.newException( PwmError.ERROR_TOKEN_INCORRECT, errorMsg );
+                    final String currentTokenDest = tokenDestinationItem.getValue();
+                    final TokenDestinationItem payloadTokenDest = tokenPayload.getDestination();
+                    if ( payloadTokenDest != null && !StringUtil.nullSafeEquals( currentTokenDest, payloadTokenDest.getValue() ) )
+                    {
+                        final String errorMsg = "token is for destination '" + currentTokenDest
+                                + "', but the current expected destination is '" + payloadTokenDest + "'";
+                        throw PwmUnrecoverableException.newException( PwmError.ERROR_TOKEN_INCORRECT, errorMsg );
+                    }
                 }
             }
 
@@ -257,7 +260,7 @@ public class TokenUtil
                     new TimeDuration( config.readSettingAsLong( PwmSetting.TOKEN_LIFETIME ), TimeUnit.SECONDS ),
                     tokenMapData,
                     userIdentity,
-                    tokenDestinationItem.getValue()
+                    tokenDestinationItem
             );
             tokenKey = pwmRequest.getPwmApplication().getTokenService().generateNewToken( tokenPayload, pwmRequest.getSessionLabel() );
         }

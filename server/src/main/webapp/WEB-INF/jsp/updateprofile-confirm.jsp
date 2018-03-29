@@ -21,11 +21,9 @@
 --%>
 
 <%@ page import="password.pwm.config.value.data.FormConfiguration" %>
-<%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
-<%@ page import="password.pwm.util.LocaleHelper" %>
+<%@ page import="password.pwm.http.servlet.updateprofile.UpdateProfileServlet" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
 <%@ page import="java.util.Map" %>
-<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -77,15 +75,27 @@
                 <input type="hidden" name="processAction" value="confirm"/>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>
-            <form style="display: inline" action="<pwm:current-url/>" method="post" name="confirm" enctype="application/x-www-form-urlencoded"
+            <form style="display: inline" action="<pwm:current-url/>" method="post" name="unconfirm" enctype="application/x-www-form-urlencoded"
                   class="pwm-form">
                 <button id="gobackBtn" type="submit" class="btn" name="button">
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-backward"></span></pwm:if>
                     <pwm:display key="Button_GoBack"/>
                 </button>
-                <input type="hidden" name="processAction" value="unConfirm"/>
+                <input type="hidden" name="<%=PwmConstants.PARAM_ACTION_REQUEST%>" value="<%=UpdateProfileServlet.UpdateProfileAction.reset%>"/>
+                <input type="hidden" name="<%=PwmConstants.PARAM_RESET_TYPE%>" value="<%=UpdateProfileServlet.ResetAction.unConfirm%>"/>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>
+            <pwm:if test="<%=PwmIfTest.showCancel%>">
+                <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="search" class="pwm-form" autocomplete="off">
+                    <button type="submit" name="button" class="btn" id="button-sendReset">
+                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-times"></span></pwm:if>
+                        <pwm:display key="Button_Cancel"/>
+                    </button>
+                    <input type="hidden" name="<%=PwmConstants.PARAM_ACTION_REQUEST%>" value="<%=UpdateProfileServlet.UpdateProfileAction.reset%>"/>
+                    <input type="hidden" name="<%=PwmConstants.PARAM_RESET_TYPE%>" value="<%=UpdateProfileServlet.ResetAction.exitProfileUpdate%>"/>
+                    <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+                </form>
+            </pwm:if>
         </div>
     </div>
     <div class="push"></div>

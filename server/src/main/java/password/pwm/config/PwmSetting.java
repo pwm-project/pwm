@@ -117,6 +117,8 @@ public enum PwmSetting
             "display.maskTokenFields", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UI_FEATURES ),
     DISPLAY_CANCEL_BUTTON(
             "display.showCancelButton", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UI_FEATURES ),
+    DISPLAY_TOKEN_SUCCESS_BUTTON(
+            "display.tokenSuccessPage", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UI_FEATURES ),
     DISPLAY_SUCCESS_PAGES(
             "display.showSuccessPage", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UI_FEATURES ),
     DISPLAY_LOGIN_PAGE_OPTIONS(
