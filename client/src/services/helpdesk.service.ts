@@ -190,10 +190,10 @@ export default class HelpDeskService implements IHelpDeskService {
 
     getPersonCard(userKey: string): IPromise<any> {
         let url = this.pwmService.getServerUrl('card');
-        let data = { userKey: userKey };
+        url += `&userKey=${userKey}`;
 
         return this.pwmService
-            .httpRequest(url, { data: data })
+            .httpRequest(url, {})
             .then((result: any) => {
                 return this.$q.resolve(result.data);
             });
