@@ -28,6 +28,7 @@ import {IPerson} from '../../models/person.model';
 import {IHelpDeskConfigService} from '../../services/helpdesk-config.service';
 import LocalStorageService from '../../services/local-storage.service';
 import PromiseService from '../../services/promise.service';
+import {IHelpDeskService} from '../../services/helpdesk.service';
 
 let verificationsDialogTemplateUrl = require('./verifications-dialog.template.html');
 let recentVerificationsDialogTemplateUrl = require('./recent-verifications-dialog.template.html');
@@ -50,9 +51,9 @@ export default abstract class HelpDeskSearchBaseComponent {
                 protected $stateParams: angular.ui.IStateParamsService,
                 protected $translate: angular.translate.ITranslateService,
                 protected configService: IHelpDeskConfigService,
+                protected helpDeskService: IHelpDeskService,
                 protected IasDialogService: any,
                 protected localStorageService: LocalStorageService,
-                protected peopleService: IPeopleService,
                 protected promiseService: PromiseService) {
         this.searchTextLocalStorageKey = this.localStorageService.keys.HELPDESK_SEARCH_TEXT;
         this.searchViewLocalStorageKey = this.localStorageService.keys.HELPDESK_SEARCH_VIEW;
@@ -106,7 +107,7 @@ export default abstract class HelpDeskSearchBaseComponent {
             return null;
         }
 
-        let promise = this.peopleService.search(this.query);
+        let promise = this.helpDeskService.search(this.query);
         this.pendingRequests.push(promise);
 
         return promise

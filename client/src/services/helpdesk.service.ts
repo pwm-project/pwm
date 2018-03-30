@@ -25,6 +25,8 @@ import {IPwmService} from './pwm.service';
 import {ILogService, IPromise, IQService, IWindowService} from 'angular';
 import LocalStorageService from './local-storage.service';
 import ObjectService from './object.service';
+import SearchResult from '../models/search-result.model';
+import {IPerson} from '../models/person.model';
 
 const VERIFICATION_PROCESS_ACTIONS = {
     ATTRIBUTES: 'validateAttributes',
@@ -42,8 +44,10 @@ export interface IHelpDeskService {
     customAction(actionName: string, userKey: string): IPromise<ISuccessResponse>;
     deleteUser(userKey: string): IPromise<ISuccessResponse>;
     getPerson(userKey: string): IPromise<any>;
+    getPersonCard(userKey: string): IPromise<any>;
     getRandomPassword(userKey: string): IPromise<IRandomPasswordResponse>;
     getRecentVerifications(): IPromise<IRecentVerifications>;
+    search(query: string): IPromise<SearchResult>;
     sendVerificationToken(userKey: string, choice: string): IPromise<IVerificationTokenResponse>;
     setPassword(userKey: string, random: boolean, password?: string): IPromise<ISuccessResponse>;
     unlockIntruder(userKey: string): IPromise<ISuccessResponse>;
@@ -184,6 +188,17 @@ export default class HelpDeskService implements IHelpDeskService {
             });
     }
 
+    getPersonCard(userKey: string): IPromise<any> {
+        let url = this.pwmService.getServerUrl('card');
+        let data = { userKey: userKey };
+
+        return this.pwmService
+            .httpRequest(url, { data: data })
+            .then((result: any) => {
+                return this.$q.resolve(result.data);
+            });
+    }
+
     getRandomPassword(userKey: string): IPromise<IRandomPasswordResponse> {
         let url: string = this.pwmService.getServerUrl('randomPassword');
         let data = {
@@ -212,6 +227,27 @@ export default class HelpDeskService implements IHelpDeskService {
             .httpRequest(url, { data: data })
             .then((result: any) => {
                 return this.$q.resolve(result.data.records);
+            });
+    }
+
+    search(query: string): IPromise<SearchResult> {
+        let formID: string = encodeURIComponent('&pwmFormID=' + this.PWM_GLOBAL['pwmFormID']);
+        let url: string = this.pwmService.getServerUrl('search')
+            + '&pwmFormID=' + this.PWM_GLOBAL['pwmFormID'];
+
+        let data = {
+            username: query,
+            pwmFormID: formID
+        };
+        return this.pwmService
+            .httpRequest(url, {
+                data: data,
+                preventCache: true
+            })
+            .then((result: any) => {
+                let receivedData: any = result.data;
+                let searchResult: SearchResult = new SearchResult(receivedData);
+                return this.$q.resolve(searchResult);
             });
     }
 

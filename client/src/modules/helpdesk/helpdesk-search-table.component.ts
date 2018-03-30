@@ -29,6 +29,7 @@ import {IPeopleService} from '../../services/people.service';
 import {IHelpDeskConfigService} from '../../services/helpdesk-config.service';
 import LocalStorageService from '../../services/local-storage.service';
 import PromiseService from '../../services/promise.service';
+import {IHelpDeskService} from '../../services/helpdesk.service';
 
 @Component({
     stylesheetUrl: require('modules/helpdesk/helpdesk-search.component.scss'),
@@ -44,9 +45,9 @@ export default class HelpDeskSearchTableComponent extends HelpDeskSearchBaseComp
         '$stateParams',
         '$translate',
         'ConfigService',
+        'HelpDeskService',
         'IasDialogService',
         'LocalStorageService',
-        'PeopleService',
         'PromiseService'
     ];
     constructor($q: IQService,
@@ -55,12 +56,12 @@ export default class HelpDeskSearchTableComponent extends HelpDeskSearchBaseComp
                 $stateParams: angular.ui.IStateParamsService,
                 $translate: angular.translate.ITranslateService,
                 configService: IHelpDeskConfigService,
+                helpDeskService: IHelpDeskService,
                 IasDialogService: any,
                 localStorageService: LocalStorageService,
-                peopleService: IPeopleService,
-                 promiseService: PromiseService) {
-        super($q, $scope, $stateParams, $translate, configService, IasDialogService, localStorageService,
-            peopleService, promiseService);
+                promiseService: PromiseService) {
+        super($q, $scope, $stateParams, $translate, configService, helpDeskService, IasDialogService,
+              localStorageService, promiseService);
     }
 
     $onInit() {
