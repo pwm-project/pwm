@@ -73,7 +73,7 @@ public class NumericArrayValue extends AbstractValue implements StoredValue
     }
 
     @Override
-    public List<Element> toXmlValues( final String valueElementName )
+    public List<Element> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
     {
         final List<Element> returnList = new ArrayList<>();
         for ( final Long value : this.values )

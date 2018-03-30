@@ -23,6 +23,7 @@
 package password.pwm.http.servlet.activation;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.LocalSessionStateBean;
@@ -329,7 +330,6 @@ public class ActivateUserServlet extends ControlledPwmServlet
         final ActivateUserBean activateUserBean = pwmApplication.getSessionStateService().getBean( pwmRequest, ActivateUserBean.class );
         final String userEnteredCode = pwmRequest.readParameterAsString( PwmConstants.PARAM_TOKEN );
 
-
         ErrorInformation errorInformation = null;
         try
         {
@@ -345,6 +345,14 @@ public class ActivateUserServlet extends ControlledPwmServlet
             activateUserBean.setUserIdentity( tokenPayload.getUserIdentity() );
             activateUserBean.setTokenPassed( true );
             activateUserBean.setFormValidated( true );
+            activateUserBean.setTokenDestination( tokenPayload.getDestination() );
+
+            if ( pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.DISPLAY_TOKEN_SUCCESS_BUTTON ) )
+            {
+                pwmRequest.setAttribute( PwmRequestAttribute.TokenDestItems, tokenPayload.getDestination() );
+                pwmRequest.forwardToJsp( JspUrl.ACTIVATE_USER_TOKEN_SUCCESS );
+                return ProcessStatus.Halt;
+            }
         }
         catch ( PwmUnrecoverableException e )
         {
@@ -420,11 +428,12 @@ public class ActivateUserServlet extends ControlledPwmServlet
 
             if ( activateUserBean.getTokenDestination() == null )
             {
-                if ( tokenDestinationItems.size() == 1 )
+                final boolean autoSelect = Boolean.parseBoolean( pwmRequest.getConfig().readAppProperty( AppProperty.ACTIVATE_USER_TOKEN_AUTO_SELECT_DEST ) );
+                if ( tokenDestinationItems.size() == 1 && autoSelect )
                 {
                     activateUserBean.setTokenDestination( tokenDestinationItems.iterator().next() );
                 }
-                else if ( tokenDestinationItems.size() > 1 )
+                else
                 {
                     forwardToTokenChoiceJsp( pwmRequest, tokenDestinationItems );
                     return;
@@ -446,8 +455,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
 
             if ( !activateUserBean.isTokenPassed() )
             {
-                pwmRequest.setAttribute( PwmRequestAttribute.ShowGoBackButton, tokenDestinationItems.size() > 1 );
-                pwmRequest.forwardToJsp( JspUrl.ACTIVATE_USER_ENTER_CODE );
+                forwardToEnterCodeJsp( pwmRequest, tokenDestinationItems );
                 return;
             }
         }
@@ -476,12 +484,26 @@ public class ActivateUserServlet extends ControlledPwmServlet
         }
     }
 
+    private static void forwardToEnterCodeJsp( final PwmRequest pwmRequest, final List<TokenDestinationItem> tokenDestinationItems )
+            throws ServletException, PwmUnrecoverableException, IOException
+    {
+        final boolean autoSelect = Boolean.parseBoolean( pwmRequest.getConfig().readAppProperty( AppProperty.ACTIVATE_USER_TOKEN_AUTO_SELECT_DEST ) );
+        final ResetType goBackAction = tokenDestinationItems.size() > 1 || !autoSelect
+                ? ResetType.clearTokenDestination
+                : null;
 
-    private void forwardToTokenChoiceJsp( final PwmRequest pwmRequest, final List<TokenDestinationItem> tokenDestinationItems )
+        if ( goBackAction != null )
+        {
+            pwmRequest.setAttribute( PwmRequestAttribute.GoBackAction, goBackAction.name() );
+        }
+        pwmRequest.forwardToJsp( JspUrl.ACTIVATE_USER_ENTER_CODE );
+    }
+
+    private static void forwardToTokenChoiceJsp( final PwmRequest pwmRequest, final List<TokenDestinationItem> tokenDestinationItems )
             throws ServletException, PwmUnrecoverableException, IOException
     {
         pwmRequest.setAttribute( PwmRequestAttribute.TokenDestItems, new ArrayList<>( tokenDestinationItems ) );
-        pwmRequest.forwardToJsp( JspUrl.RECOVER_PASSWORD_TOKEN_CHOICE );
+        pwmRequest.forwardToJsp( JspUrl.ACTIVATE_USER_TOKEN_CHOICE );
     }
 
 }

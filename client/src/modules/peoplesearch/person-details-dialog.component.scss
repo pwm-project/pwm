@@ -50,6 +50,10 @@
   padding: 15px;
 }
 
+[data-browserType=ie] .person-details-dialog-header > .ias-header > h2 {
+  width: 185px;
+}
+
 .person-details-content {
   padding: 15px;
 }

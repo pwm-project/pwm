@@ -77,6 +77,13 @@ public abstract class JspUtility
         return pwmRequest.getAttribute( requestAttr );
     }
 
+    public static boolean getBooleanAttribute( final PageContext pageContext, final PwmRequestAttribute requestAttr )
+    {
+        final PwmRequest pwmRequest = forRequest( pageContext.getRequest() );
+        final Object value = pwmRequest.getAttribute( requestAttr );
+        return value != null && Boolean.parseBoolean( value.toString() );
+    }
+
     public static void setFlag( final PageContext pageContext, final PwmRequestFlag flag )
     {
         setFlag( pageContext, flag, true );

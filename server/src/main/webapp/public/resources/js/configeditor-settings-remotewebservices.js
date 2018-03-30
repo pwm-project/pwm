@@ -26,6 +26,8 @@ RemoteWebServiceHandler.defaultValue = {
     method:"get",
     url:"",
     body:"",
+    username:"",
+    password:"",
     headers:{}
 };
 RemoteWebServiceHandler.httpMethodOptions = [
@@ -182,7 +184,11 @@ RemoteWebServiceHandler.showOptionsDialog = function(keyName, iteration) {
     bodyText += '</tr><tr>';
     bodyText += '<td class="key">HTTP Headers</td><td><button id="button-' + inputID + '-headers"><span class="btn-icon pwm-icon pwm-icon-list-ul"/> Edit</button></td>';
     bodyText += '</tr><tr>';
-    bodyText += '<td class="key">URL</td><td><input  pattern="^(http|https)://.+$" type="text" class="configstringinput" style="width:400px" placeholder="http://www.example.com/service"  id="input-' + inputID + '-url' + '" value="' + value['url'] + '"/></td>';
+    bodyText += '<td class="key">URL</td><td><input pattern="^(http|https)://.+$" type="text" class="configstringinput" style="width:400px" placeholder="http://www.example.com/service" disabled id="input-' + inputID + '-url' + '"/></td>';
+    bodyText += '</tr><tr>';
+    bodyText += '<td class="key">Basic Auth Username</td><td><input type="text" class="configstringinput" style="width:350px" placeholder="Username" disabled id="input-' + inputID + '-username' + '"/></td>';
+    bodyText += '</tr><tr>';
+    bodyText += '<td class="key">Basic Auth Password</td><td><input type="password" class="configstringinput" style="width:350px" disabled id="input-' + inputID + '-password' + '"/></td>';
     bodyText += '</tr>';
     if (showBody) {
         bodyText += '<tr><td class="key">Body</td><td><textarea style="max-width:400px; height:100px; max-height:100px" class="configStringInput" id="input-' + inputID + '-body' + '"/>' + value['body'] + '</textarea></td></tr>';
@@ -201,7 +207,7 @@ RemoteWebServiceHandler.showOptionsDialog = function(keyName, iteration) {
     if (!PWM_MAIN.JSLibrary.isEmpty(value['certificateInfos'])) {
         bodyText += '<button class="btn" id="button-' + inputID + '-clearCertificates"><span class="btn-icon pwm-icon pwm-icon-trash"></span>Clear Certificates</button>'
     } else {
-        bodyText += '<button class="btn" id="button-' + inputID + '-importCertificates"><span class="btn-icon pwm-icon pwm-icon-download"></span>Import From Server</button>'
+        bodyText += '<button class="btn" id="button-' + inputID + '-importCertificates"><span class="btn-icon pwm-icon pwm-icon-download"></span>Import Certificates</button>'
     }
 
     PWM_MAIN.showDialog({
@@ -223,10 +229,27 @@ RemoteWebServiceHandler.showOptionsDialog = function(keyName, iteration) {
                 value['method'] = methodValue;
                 RemoteWebServiceHandler.write(keyName, function(){ RemoteWebServiceHandler.showOptionsDialog(keyName,iteration)});
             });
+            PWM_MAIN.getObject('input-' + inputID + '-url').value = value['url'] ? value['url'] : '';
+            PWM_MAIN.getObject('input-' + inputID + '-url').disabled = false;
             PWM_MAIN.addEventHandler('input-' + inputID + '-url','input',function(){
                 value['url'] = PWM_MAIN.getObject('input-' + inputID + '-url').value;
                 RemoteWebServiceHandler.write(keyName);
             });
+
+            PWM_MAIN.getObject('input-' + inputID + '-username').value = value['username'] ? value['username'] : '';
+            PWM_MAIN.getObject('input-' + inputID + '-username').disabled = false;
+            PWM_MAIN.addEventHandler('input-' + inputID + '-username','input',function(){
+                value['username'] = PWM_MAIN.getObject('input-' + inputID + '-username').value;
+                ActionHandler.write(keyName);
+            });
+
+            PWM_MAIN.getObject('input-' + inputID + '-password').value = value['password'] ? value['password'] : '';
+            PWM_MAIN.getObject('input-' + inputID + '-password').disabled = false;
+            PWM_MAIN.addEventHandler('input-' + inputID + '-password','input',function(){
+                value['password'] = PWM_MAIN.getObject('input-' + inputID + '-password').value;
+                ActionHandler.write(keyName);
+            });
+
             PWM_MAIN.addEventHandler('input-' + inputID + '-body','input',function(){
                 value['body'] = PWM_MAIN.getObject('input-' + inputID + '-body').value;
                 RemoteWebServiceHandler.write(keyName);

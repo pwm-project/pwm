@@ -26,6 +26,7 @@
 
 <!DOCTYPE html>
 <% List<TokenDestinationItem> tokenDestinationItems = (List)JspUtility.getAttribute(pageContext, PwmRequestAttribute.TokenDestItems ); %>
+<% boolean singleItem = tokenDestinationItems.size() == 1; %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
@@ -33,12 +34,19 @@
 <body class="nihilo">
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
-        <jsp:param name="pwm.PageName" value="Title_ForgottenPassword"/>
+        <jsp:param name="pwm.PageName" value="Title_ActivateUser"/>
     </jsp:include>
     <div id="centerbody">
-        <h1 id="page-content-title"><pwm:display key="Title_ForgottenPassword" displayIfMissing="true"/></h1>
+        <h1 id="page-content-title"><pwm:display key="Title_ActivateUser" displayIfMissing="true"/></h1>
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-        <p><pwm:display key="Display_RecoverTokenSendChoices"/></p>
+        <p>
+            <% if (singleItem) { %>
+            <pwm:display key="Display_RecoverTokenSendOneChoice" value1="<%=tokenDestinationItems.iterator().next().getDisplay()%>"/>
+            <% } else { %>
+            <pwm:display key="Display_RecoverTokenSendChoices"/>
+            <% } %>
+        </p>
+        <% if (!singleItem) { %>
         <table class="noborder">
             <% for (final TokenDestinationItem item : tokenDestinationItems) { %>
             <tr>
@@ -82,17 +90,20 @@
             </pwm:if>
             <% } %>
         </table>
+        <% } %>
         <div>
             <div class="buttonbar">
-                <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="search" class="pwm-form" autocomplete="off">
-                    <button type="submit" id="button-goBack" name="button-goBack" class="btn">
-                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-backward"></span></pwm:if>
-                        <pwm:display key="Button_GoBack"/>
+                <% if (singleItem) { %>
+                <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="search" class="pwm-form">
+                    <button type="submit" id="button-continue" name="button-continue" class="btn">
+                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
+                        <pwm:display key="Button_Continue"/>
                     </button>
-                    <input type="hidden" name="<%=PwmConstants.PARAM_ACTION_REQUEST%>" value="<%=ActivateUserServlet.ActivateUserAction.reset%>"/>
-                    <input type="hidden" name="<%=PwmConstants.PARAM_RESET_TYPE%>" value="<%=ActivateUserServlet.ResetType.clearTokenDestination%>"/>
+                    <input type="hidden" name="choice" value="<%=tokenDestinationItems.iterator().next().getId()%>"/>
+                    <input type="hidden" name="processAction" value="<%=ActivateUserServlet.ActivateUserAction.tokenChoice%>"/>
                     <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                 </form>
+                <% } %>
                 <pwm:if test="<%=PwmIfTest.showCancel%>">
                     <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="search" class="pwm-form" autocomplete="off">
                         <button type="submit" name="button" class="btn" id="button-sendReset">

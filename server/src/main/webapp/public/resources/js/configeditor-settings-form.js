@@ -80,85 +80,83 @@ FormTableHandler.redraw = function(keyName) {
 };
 
 FormTableHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
-    require(["dojo/json"], function(JSON){
-        var itemCount = PWM_MAIN.JSLibrary.itemCount(PWM_VAR['clientSettingCache'][settingKey]);
-        var inputID = 'value_' + settingKey + '_' + iteration + "_";
-        var options = PWM_SETTINGS['settings'][settingKey]['options'];
-        var properties = PWM_SETTINGS['settings'][settingKey]['properties'];
+    var itemCount = PWM_MAIN.JSLibrary.itemCount(PWM_VAR['clientSettingCache'][settingKey]);
+    var inputID = 'value_' + settingKey + '_' + iteration + "_";
+    var options = PWM_SETTINGS['settings'][settingKey]['options'];
+    var properties = PWM_SETTINGS['settings'][settingKey]['properties'];
 
-        var newTableRow = document.createElement("tr");
-        newTableRow.setAttribute("style", "border-width: 0");
+    var newTableRow = document.createElement("tr");
+    newTableRow.setAttribute("style", "border-width: 0");
 
-        var htmlRow = '';
-        htmlRow += '<td style="background: #f6f9f8; border:1px solid #dae1e1; width:180px"><div class="noWrapTextBox" id="panel-name-' + inputID + '" ></div></td>';
-        htmlRow += '<td style="width:1px" id="icon-editLabel-' + inputID + '"><span class="btn-icon pwm-icon pwm-icon-edit"></span></td>';
-        htmlRow += '<td style="background: #f6f9f8; border:1px solid #dae1e1; width:170px"><div style="" class="noWrapTextBox " id="' + inputID + 'label"><span>' + value['labels'][''] + '</span></div></td>';
+    var htmlRow = '';
+    htmlRow += '<td style="background: #f6f9f8; border:1px solid #dae1e1; width:180px"><div class="noWrapTextBox" id="panel-name-' + inputID + '" ></div></td>';
+    htmlRow += '<td style="width:1px" id="icon-editLabel-' + inputID + '"><span class="btn-icon pwm-icon pwm-icon-edit"></span></td>';
+    htmlRow += '<td style="background: #f6f9f8; border:1px solid #dae1e1; width:170px"><div style="" class="noWrapTextBox " id="' + inputID + 'label"><span>' + value['labels'][''] + '</span></div></td>';
 
-        var userDNtypeAllowed = options['type-userDN'] === 'show';
-        if (!PWM_MAIN.JSLibrary.isEmpty(options)) {
-            htmlRow += '<td style="width:15px;">';
-            htmlRow += '<select id="' + inputID + 'type">';
-            for (var optionItem in options) {
-                //if (optionList[optionItem] !== 'userDN' || userDNtypeAllowed) {
-                var optionName = options[optionItem];
-                var selected = (optionName === PWM_VAR['clientSettingCache'][settingKey][iteration]['type']);
-                htmlRow += '<option value="' + optionName + '"' + (selected ? " selected" : "") + '>' + optionName + '</option>';
-                //}
-            }
-            htmlRow += '</select>';
-            htmlRow += '</td>';
+    var userDNtypeAllowed = options['type-userDN'] === 'show';
+    if (!PWM_MAIN.JSLibrary.isEmpty(options)) {
+        htmlRow += '<td style="width:15px;">';
+        htmlRow += '<select id="' + inputID + 'type">';
+        for (var optionItem in options) {
+            //if (optionList[optionItem] !== 'userDN' || userDNtypeAllowed) {
+            var optionName = options[optionItem];
+            var selected = (optionName === PWM_VAR['clientSettingCache'][settingKey][iteration]['type']);
+            htmlRow += '<option value="' + optionName + '"' + (selected ? " selected" : "") + '>' + optionName + '</option>';
+            //}
         }
-
-        var hideOptions = PWM_MAIN.JSLibrary.arrayContains(PWM_SETTINGS['settings'][settingKey]['flags'], 'Form_HideOptions');
-        if (!hideOptions) {
-            htmlRow += '<td class="noborder" style="min-width:90px;"><button id="' + inputID + 'optionsButton"><span class="btn-icon pwm-icon pwm-icon-sliders"/> Options</button></td>';
-        }
-
-        htmlRow += '<td style="width:10px">';
-        if (itemCount > 1 && iteration !== (itemCount -1)) {
-            htmlRow += '<span id="' + inputID + '-moveDown" class="action-icon pwm-icon pwm-icon-chevron-down"></span>';
-        }
+        htmlRow += '</select>';
         htmlRow += '</td>';
+    }
 
-        htmlRow += '<td style="width:10px">';
-        if (itemCount > 1 && iteration !== 0) {
-            htmlRow += '<span id="' + inputID + '-moveUp" class="action-icon pwm-icon pwm-icon-chevron-up"></span>';
-        }
-        htmlRow += '</td>';
-        htmlRow += '<td style="width:10px"><span class="delete-row-icon action-icon pwm-icon pwm-icon-times" id="' + inputID + '-deleteRowButton"></span></td>';
+    var hideOptions = PWM_MAIN.JSLibrary.arrayContains(PWM_SETTINGS['settings'][settingKey]['flags'], 'Form_HideOptions');
+    if (!hideOptions) {
+        htmlRow += '<td class="noborder" style="min-width:90px;"><button id="' + inputID + 'optionsButton"><span class="btn-icon pwm-icon pwm-icon-sliders"/> Options</button></td>';
+    }
 
-        newTableRow.innerHTML = htmlRow;
-        var parentDivElement = PWM_MAIN.getObject(parentDiv);
-        parentDivElement.appendChild(newTableRow);
+    htmlRow += '<td style="width:10px">';
+    if (itemCount > 1 && iteration !== (itemCount -1)) {
+        htmlRow += '<span id="' + inputID + '-moveDown" class="action-icon pwm-icon pwm-icon-chevron-down"></span>';
+    }
+    htmlRow += '</td>';
 
-        UILibrary.addTextValueToElement("panel-name-" + inputID,value['name']);
+    htmlRow += '<td style="width:10px">';
+    if (itemCount > 1 && iteration !== 0) {
+        htmlRow += '<span id="' + inputID + '-moveUp" class="action-icon pwm-icon pwm-icon-chevron-up"></span>';
+    }
+    htmlRow += '</td>';
+    htmlRow += '<td style="width:10px"><span class="delete-row-icon action-icon pwm-icon pwm-icon-times" id="' + inputID + '-deleteRowButton"></span></td>';
 
-        PWM_MAIN.addEventHandler(inputID + "-moveUp", 'click', function () {
-            FormTableHandler.move(settingKey, true, iteration);
-        });
-        PWM_MAIN.addEventHandler(inputID + "-moveDown", 'click', function () {
-            FormTableHandler.move(settingKey, false, iteration);
-        });
-        PWM_MAIN.addEventHandler(inputID + "-deleteRowButton", 'click', function () {
-            FormTableHandler.removeRow(settingKey, iteration);
-        });
-        PWM_MAIN.addEventHandler(inputID + "label", 'click, keypress', function () {
-            FormTableHandler.showLabelDialog(settingKey, iteration);
-        });
-        PWM_MAIN.addEventHandler("icon-editLabel-" + inputID, 'click, keypress', function () {
-            FormTableHandler.showLabelDialog(settingKey, iteration);
-        });
-        PWM_MAIN.addEventHandler(inputID + "optionsButton", 'click', function () {
-            FormTableHandler.showOptionsDialog(settingKey, iteration);
-        });
-        PWM_MAIN.addEventHandler(inputID + "name", 'input', function () {
-            PWM_VAR['clientSettingCache'][settingKey][iteration]['name'] = PWM_MAIN.getObject(inputID + "name").value;
-            FormTableHandler.write(settingKey);
-        });
-        PWM_MAIN.addEventHandler(inputID + "type", 'click', function () {
-            PWM_VAR['clientSettingCache'][settingKey][iteration]['type'] = PWM_MAIN.getObject(inputID + "type").value;
-            FormTableHandler.write(settingKey);
-        });
+    newTableRow.innerHTML = htmlRow;
+    var parentDivElement = PWM_MAIN.getObject(parentDiv);
+    parentDivElement.appendChild(newTableRow);
+
+    UILibrary.addTextValueToElement("panel-name-" + inputID,value['name']);
+
+    PWM_MAIN.addEventHandler(inputID + "-moveUp", 'click', function () {
+        FormTableHandler.move(settingKey, true, iteration);
+    });
+    PWM_MAIN.addEventHandler(inputID + "-moveDown", 'click', function () {
+        FormTableHandler.move(settingKey, false, iteration);
+    });
+    PWM_MAIN.addEventHandler(inputID + "-deleteRowButton", 'click', function () {
+        FormTableHandler.removeRow(settingKey, iteration);
+    });
+    PWM_MAIN.addEventHandler(inputID + "label", 'click, keypress', function () {
+        FormTableHandler.showLabelDialog(settingKey, iteration);
+    });
+    PWM_MAIN.addEventHandler("icon-editLabel-" + inputID, 'click, keypress', function () {
+        FormTableHandler.showLabelDialog(settingKey, iteration);
+    });
+    PWM_MAIN.addEventHandler(inputID + "optionsButton", 'click', function () {
+        FormTableHandler.showOptionsDialog(settingKey, iteration);
+    });
+    PWM_MAIN.addEventHandler(inputID + "name", 'input', function () {
+        PWM_VAR['clientSettingCache'][settingKey][iteration]['name'] = PWM_MAIN.getObject(inputID + "name").value;
+        FormTableHandler.write(settingKey);
+    });
+    PWM_MAIN.addEventHandler(inputID + "type", 'click', function () {
+        PWM_VAR['clientSettingCache'][settingKey][iteration]['type'] = PWM_MAIN.getObject(inputID + "type").value;
+        FormTableHandler.write(settingKey);
     });
 };
 
@@ -224,11 +222,10 @@ FormTableHandler.addRow = function(keyName) {
 FormTableHandler.showOptionsDialog = function(keyName, iteration) {
     var type = PWM_VAR['clientSettingCache'][keyName][iteration]['type'];
     var settings = PWM_SETTINGS['settings'][keyName];
-    var options = 'options' in PWM_SETTINGS['settings'][keyName] ? PWM_SETTINGS['settings'][keyName]['options'] : {};
     var currentValue = PWM_VAR['clientSettingCache'][keyName][iteration];
 
     var hideStandardOptions = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_HideStandardOptions');
-    var showRequired = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_ShowRequiredOption') && (type !== 'checkbox');
+    var showRequired = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_ShowRequiredOption');
     var showUnique = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_ShowUniqueOption');
     var showReadOnly = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_ShowReadOnlyOption');
     var showMultiValue = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_ShowMultiValueOption');
@@ -240,9 +237,8 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
     var bodyText = '<div style="max-height: 500px; overflow-y: auto"><table class="noborder">';
     if (!hideStandardOptions) {
         bodyText += '<tr>';
-        var descriptionValue = currentValue['description'][''];
         bodyText += '<td id="' + inputID + '-label-description" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_Description') + '">Description</td><td>';
-        bodyText += '<div class="noWrapTextBox" id="' + inputID + 'description"><span class="btn-icon pwm-icon pwm-icon-edit"></span><span>' + descriptionValue + '...</span></div>';
+        bodyText += '<div class="noWrapTextBox" id="' + inputID + 'description"><span class="btn-icon pwm-icon pwm-icon-edit"></span><span id="' + inputID + '-value"></span></div>';
         bodyText += '</td>';
     }
 
@@ -289,7 +285,7 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
         bodyText += '<td id="' + inputID + '-label-js" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_Javascript') + '">JavaScript (Depreciated)</td><td><input type="text" class="configStringInput" style="width:300px" id="' + inputID + 'javascript' + '"/></td>';
         bodyText += '</tr><tr>';
         if (currentValue['type'] === 'select') {
-            bodyText += '<td class="key">Select Options</td><td><button id="' + inputID + 'editOptionsButton"><span class="btn-icon pwm-icon pwm-icon-list-ul"/> Edit</button></td>';
+            bodyText += '<td class="key">Select Options</td><td><button class="btn" id="' + inputID + 'editOptionsButton"><span class="btn-icon pwm-icon pwm-icon-list-ul"/> Edit</button></td>';
             bodyText += '</tr>';
         }
     }
@@ -307,6 +303,7 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
     var initFormElements = function() {
         var currentValue = PWM_VAR['clientSettingCache'][keyName][iteration];
 
+
         PWM_MAIN.addEventHandler(inputID + 'editOptionsButton', 'click', function(){
             FormTableHandler.showSelectOptionsDialog(keyName,iteration);
         });
@@ -314,6 +311,9 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
         PWM_MAIN.addEventHandler(inputID + 'description','click',function(){
             FormTableHandler.showDescriptionDialog(keyName, iteration);
         });
+
+        var descriptionValue = currentValue['description'][''];
+        UILibrary.addTextValueToElement(inputID + '-value', descriptionValue ? descriptionValue : "Edit");
 
         if (showRequired) {
             PWM_MAIN.getObject(inputID + "required").checked = currentValue['required'];
@@ -368,7 +368,7 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
                 FormTableHandler.write(keyName)
             });
 
-            PWM_MAIN.getObject(inputID + "regex").value = currentValue['regex'];
+            PWM_MAIN.getObject(inputID + "regex").value = currentValue['regex'] ? currentValue['regex'] : '';
             PWM_MAIN.addEventHandler(inputID + "regex", "change", function(){
                 currentValue['regex'] = PWM_MAIN.getObject(inputID + "regex").value;
                 FormTableHandler.write(keyName)
@@ -378,13 +378,13 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
                 FormTableHandler.showRegexErrorsDialog(keyName, iteration);
             });
 
-            PWM_MAIN.getObject(inputID + "placeholder").value = currentValue['placeholder'];
+            PWM_MAIN.getObject(inputID + "placeholder").value = currentValue['placeholder'] ? currentValue['placeholder'] : '';
             PWM_MAIN.addEventHandler(inputID + "placeholder", "change", function(){
                 currentValue['placeholder'] = PWM_MAIN.getObject(inputID + "placeholder").value;
                 FormTableHandler.write(keyName)
             });
 
-            PWM_MAIN.getObject(inputID + "javascript").value = currentValue['javascript'];
+            PWM_MAIN.getObject(inputID + "javascript").value = currentValue['javascript'] ? currentValue['javascript'] : '';
             PWM_MAIN.addEventHandler(inputID + "javascript", "change", function(){
                 currentValue['javascript'] = PWM_MAIN.getObject(inputID + "javascript").value;
                 FormTableHandler.write(keyName)
@@ -419,56 +419,55 @@ FormTableHandler.showLabelDialog = function(keyName, iteration) {
 };
 
 FormTableHandler.multiLocaleStringDialog = function(keyName, iteration, settingType, finishAction, titleText) {
-    require(["dijit/Dialog","dijit/form/Textarea","dijit/form/CheckBox"],function(){
-        var inputID = 'value_' + keyName + '_' + iteration + "_" + "label_";
-        var bodyText = '<table class="noborder" id="' + inputID + 'table">';
-        bodyText += '<tr>';
-        for (var localeName in PWM_VAR['clientSettingCache'][keyName][iteration][settingType]) {
-            var value = PWM_VAR['clientSettingCache'][keyName][iteration][settingType][localeName];
-            var localeID = inputID + localeName;
-            bodyText += '<td>' + localeName + '</td>';
-            bodyText += '<td><input style="width:420px" class="configStringInput" type="text" value="' + value + '" id="' + localeID + '-input"></input></td>';
-            if (localeName !== '') {
-                bodyText += '<td><span class="delete-row-icon action-icon pwm-icon pwm-icon-times" id="' + localeID + '-removeLocaleButton"></span></td>';
-            }
-            bodyText += '</tr><tr>';
+    var inputID = 'value_' + keyName + '_' + iteration + "_" + "label_";
+    var bodyText = '<table class="noborder" id="' + inputID + 'table">';
+    bodyText += '<tr>';
+    for (var localeName in PWM_VAR['clientSettingCache'][keyName][iteration][settingType]) {
+        var localeID = inputID + localeName;
+        bodyText += '<td>' + localeName + '</td>';
+        bodyText += '<td><input style="width:420px" class="configStringInput" type="text" id="' + localeID + '-input"></input></td>';
+        if (localeName !== '') {
+            bodyText += '<td><span class="delete-row-icon action-icon pwm-icon pwm-icon-times" id="' + localeID + '-removeLocaleButton"></span></td>';
         }
-        bodyText += '</tr></table>';
+        bodyText += '</tr><tr>';
+    }
+    bodyText += '</tr></table>';
 
-        PWM_MAIN.showDialog({
-            title: titleText,
-            text: bodyText,
-            okAction:function(){
-                finishAction();
-            },
-            loadFunction:function(){
-                for (var iter in PWM_VAR['clientSettingCache'][keyName][iteration][settingType]) {
-                    (function(localeName) {
-                        var localeID = inputID + localeName;
-                        PWM_MAIN.addEventHandler(localeID + '-input', 'input', function () {
-                            var inputElement = PWM_MAIN.getObject(localeID + '-input');
-                            var value = inputElement.value;
-                            PWM_VAR['clientSettingCache'][keyName][iteration][settingType][localeName] = value;
-                            FormTableHandler.write(keyName);
-                        });
-                        PWM_MAIN.addEventHandler(localeID + '-removeLocaleButton', 'click', function () {
-                            delete PWM_VAR['clientSettingCache'][keyName][iteration][settingType][localeName];
-                            FormTableHandler.write(keyName);
-                            FormTableHandler.multiLocaleStringDialog(keyName, iteration, settingType, finishAction, titleText);
-                        });
-                    }(iter));
-                }
-                UILibrary.addAddLocaleButtonRow(inputID + 'table', inputID, function(localeName){
-                    if (localeName in PWM_VAR['clientSettingCache'][keyName][iteration][settingType]) {
-                        alert('Locale is already present');
-                    } else {
-                        PWM_VAR['clientSettingCache'][keyName][iteration][settingType][localeName] = '';
+    PWM_MAIN.showDialog({
+        title: titleText,
+        text: bodyText,
+        okAction:function(){
+            finishAction();
+        },
+        loadFunction:function(){
+            for (var iter in PWM_VAR['clientSettingCache'][keyName][iteration][settingType]) {
+                (function(localeName) {
+                    var value = PWM_VAR['clientSettingCache'][keyName][iteration][settingType][localeName];
+                    var localeID = inputID + localeName;
+                    PWM_MAIN.getObject(localeID + '-input').value = value;
+                    PWM_MAIN.addEventHandler(localeID + '-input', 'input', function () {
+                        var inputElement = PWM_MAIN.getObject(localeID + '-input');
+                        var value = inputElement.value;
+                        PWM_VAR['clientSettingCache'][keyName][iteration][settingType][localeName] = value;
+                        FormTableHandler.write(keyName);
+                    });
+                    PWM_MAIN.addEventHandler(localeID + '-removeLocaleButton', 'click', function () {
+                        delete PWM_VAR['clientSettingCache'][keyName][iteration][settingType][localeName];
                         FormTableHandler.write(keyName);
                         FormTableHandler.multiLocaleStringDialog(keyName, iteration, settingType, finishAction, titleText);
-                    }
-                }, Object.keys(PWM_VAR['clientSettingCache'][keyName][iteration][settingType]));
+                    });
+                }(iter));
             }
-        });
+            UILibrary.addAddLocaleButtonRow(inputID + 'table', inputID, function(localeName){
+                if (localeName in PWM_VAR['clientSettingCache'][keyName][iteration][settingType]) {
+                    alert('Locale is already present');
+                } else {
+                    PWM_VAR['clientSettingCache'][keyName][iteration][settingType][localeName] = '';
+                    FormTableHandler.write(keyName);
+                    FormTableHandler.multiLocaleStringDialog(keyName, iteration, settingType, finishAction, titleText);
+                }
+            }, Object.keys(PWM_VAR['clientSettingCache'][keyName][iteration][settingType]));
+        }
     });
 };
 
@@ -513,7 +512,6 @@ FormTableHandler.showSelectOptionsDialog = function(keyName, iteration) {
     for (var optionName in PWM_VAR['clientSettingCache'][keyName][iteration]['selectOptions']) {
         var loopID = inputID + optionName;
         var optionID = inputID + optionName;
-        PWM_MAIN.clearDijitWidget(loopID);
         PWM_MAIN.addEventHandler(optionID + '-removeButton','click',function(){
             FormTableHandler.removeSelectOptionsOption(keyName,iteration,optionName);
         });

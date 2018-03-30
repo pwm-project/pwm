@@ -24,6 +24,7 @@ package password.pwm.config.value;
 
 import com.google.gson.reflect.TypeToken;
 import org.jdom2.Element;
+import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.StoredValue;
@@ -31,9 +32,12 @@ import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.util.secure.X509Utils;
 
+import java.io.Serializable;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,6 +49,8 @@ import java.util.Set;
 
 public class ActionValue extends AbstractValue implements StoredValue
 {
+    private static final PwmLogger LOGGER = PwmLogger.forClass( ActionValue.class );
+
     final List<ActionConfiguration> values;
 
     public ActionValue( final List<ActionConfiguration> values )
@@ -82,7 +88,7 @@ public class ActionValue extends AbstractValue implements StoredValue
 
             public ActionValue fromXmlElement(
                     final Element settingElement,
-                    final PwmSecurityKey input
+                    final PwmSecurityKey pwmSecurityKey
             )
                     throws PwmOperationalException
             {
@@ -105,7 +111,9 @@ public class ActionValue extends AbstractValue implements StoredValue
                         }
                         else
                         {
-                            values.add( JsonUtil.deserialize( value, ActionConfiguration.class ) );
+                            final ActionConfiguration parsedAc = JsonUtil.deserialize( value, ActionConfiguration.class );
+                            parsedAc.setPassword( decryptPwValue( parsedAc.getPassword(), pwmSecurityKey ) );
+                            values.add( parsedAc );
                         }
                     }
                 }
@@ -114,13 +122,23 @@ public class ActionValue extends AbstractValue implements StoredValue
         };
     }
 
-    public List<Element> toXmlValues( final String valueElementName )
+    public List<Element> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
     {
         final List<Element> returnList = new ArrayList<>();
         for ( final ActionConfiguration value : values )
         {
             final Element valueElement = new Element( valueElementName );
-            valueElement.addContent( JsonUtil.serialize( value ) );
+            final ActionConfiguration clonedValue = JsonUtil.cloneUsingJson( value, ActionConfiguration.class );
+            try
+            {
+                clonedValue.setPassword( encryptPwValue( clonedValue.getPassword(), pwmSecurityKey ) );
+            }
+            catch ( PwmOperationalException e )
+            {
+                LOGGER.warn( "error decoding stored pw value: " + e.getMessage() );
+            }
+
+            valueElement.addContent( JsonUtil.serialize( clonedValue ) );
             returnList.add( valueElement );
         }
         return returnList;
@@ -167,6 +185,22 @@ public class ActionValue extends AbstractValue implements StoredValue
         return Collections.emptyList();
     }
 
+    @Override
+    public Serializable toDebugJsonObject( final Locale locale )
+    {
+        final ArrayList<ActionConfiguration> output = new ArrayList<>();
+        for ( final ActionConfiguration actionConfiguration : values )
+        {
+            final ActionConfiguration clone = JsonUtil.cloneUsingJson( actionConfiguration, ActionConfiguration.class );
+            if ( !StringUtil.isEmpty( clone.getPassword() ) )
+            {
+                clone.setPassword( PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT );
+            }
+            output.add( clone );
+        }
+        return output;
+    }
+
     public String toDebugString( final Locale locale )
     {
         final StringBuilder sb = new StringBuilder();
@@ -189,6 +223,12 @@ public class ActionValue extends AbstractValue implements StoredValue
                     sb.append( "method=" ).append( actionConfiguration.getMethod() );
                     sb.append( " url=" ).append( actionConfiguration.getUrl() );
                     sb.append( " headers=" ).append( JsonUtil.serializeMap( actionConfiguration.getHeaders() ) );
+                    sb.append( " username=" ).append( actionConfiguration.getUsername() );
+                    sb.append( " password=" ).append(
+                            StringUtil.isEmpty( actionConfiguration.getPassword() )
+                                    ? ""
+                                    : PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT
+                    );
                     sb.append( " body=" ).append( actionConfiguration.getBody() );
                 }
                 break;
@@ -249,5 +289,6 @@ public class ActionValue extends AbstractValue implements StoredValue
         }
         return null;
     }
+
 
 }

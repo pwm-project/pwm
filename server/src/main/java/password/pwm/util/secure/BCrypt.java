@@ -26,6 +26,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.bouncycastle.crypto.generators.OpenBSDBCrypt;
 import password.pwm.AppProperty;
 import password.pwm.config.Configuration;
+import password.pwm.util.logging.PwmLogger;
 
 import java.io.UnsupportedEncodingException;
 import java.security.SecureRandom;
@@ -33,6 +34,8 @@ import java.security.SecureRandom;
 @SuppressWarnings( "all" )
 public class BCrypt
 {
+    private static final PwmLogger LOGGER = PwmLogger.forClass(BCrypt.class);
+
     public static String hashPassword( final String password )
     {
         final int bcryptRounds = 10;
@@ -52,7 +55,15 @@ public class BCrypt
             {
                 // legacy check, older jbcrypt library used previously incorrectly encoded some characters
                 // including special ascii characters.
-                return JBCrypt.checkpw( password, hashedPassword );
+                try
+                {
+                    return JBCrypt.checkpw(password, hashedPassword);
+                }
+                catch (Exception e)
+                {
+                    LOGGER.debug( "error while checking bcypt password: " + e.getMessage() );
+                    return false;
+                }
             }
         }
         return bsdCryptPass;

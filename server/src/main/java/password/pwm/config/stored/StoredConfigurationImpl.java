@@ -997,7 +997,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
             }
             else
             {
-                settingElement.addContent( value.toXmlValues( "value" ) );
+                settingElement.addContent( value.toXmlValues( "value", getKey() ) );
             }
 
 

@@ -87,7 +87,7 @@
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-check"></span></pwm:if>
                     <pwm:display key="Button_CheckCode"/>
                 </button>
-                <% if ("true".equals(JspUtility.getAttribute(pageContext, PwmRequestAttribute.ForgottenPasswordOptionalPageView))) { %>
+                <% if (JspUtility.getAttribute(pageContext, PwmRequestAttribute.GoBackAction) != null) { %>
                 <button type="submit" id="button-goBack" name="button-goBack" class="btn" form="form-goBack">
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-backward"></span></pwm:if>
                     <pwm:display key="Button_GoBack"/>
@@ -110,7 +110,7 @@
 <form id="form-goBack" action="<pwm:current-url/>" method="post">
     <input type="hidden" name="processAction" value="<%=ForgottenPasswordServlet.ForgottenPasswordAction.reset%>"/>
     <input type="hidden" name="<%=PwmConstants.PARAM_ACTION_REQUEST%>" value="<%=ForgottenPasswordServlet.ForgottenPasswordAction.reset%>"/>
-    <input type="hidden" name="<%=PwmConstants.PARAM_RESET_TYPE%>" value="<%=ForgottenPasswordServlet.ResetType.clearTokenDestination%>"/>
+    <input type="hidden" name="<%=PwmConstants.PARAM_RESET_TYPE%>" value="<%=JspUtility.getAttribute(pageContext, PwmRequestAttribute.GoBackAction)%>"/>
     <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
 </form>
 <form id="form-cancel" action="<pwm:current-url/>" method="post">
