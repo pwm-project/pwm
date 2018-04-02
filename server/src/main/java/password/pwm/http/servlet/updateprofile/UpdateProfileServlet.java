@@ -54,6 +54,7 @@ import password.pwm.svc.token.TokenService;
 import password.pwm.svc.token.TokenType;
 import password.pwm.svc.token.TokenUtil;
 import password.pwm.util.form.FormUtility;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -98,7 +99,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
         updateProfile( HttpMethod.POST ),
         agree( HttpMethod.POST ),
         confirm( HttpMethod.POST ),
-        unConfirm( HttpMethod.POST ),
+        reset( HttpMethod.POST ),
         validate( HttpMethod.POST ),
         enterCode( HttpMethod.POST ),;
 
@@ -114,6 +115,13 @@ public class UpdateProfileServlet extends ControlledPwmServlet
             return Collections.singletonList( method );
         }
     }
+
+    public enum ResetAction
+    {
+        unConfirm,
+        exitProfileUpdate,
+    }
+
 
     @Override
     public Class<? extends ProcessAction> getProcessActionsClass( )
@@ -180,6 +188,13 @@ public class UpdateProfileServlet extends ControlledPwmServlet
         updateProfileBean.setTokenSent( false );
         updateProfileBean.setCurrentTokenField( null );
 
+        if ( pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.DISPLAY_TOKEN_SUCCESS_BUTTON ) )
+        {
+            pwmRequest.setAttribute( PwmRequestAttribute.TokenDestItems, tokenDestinationItem );
+            pwmRequest.forwardToJsp( JspUrl.UPDATE_ATTRIBUTES_TOKEN_SUCCESS );
+            return ProcessStatus.Halt;
+        }
+
         return ProcessStatus.Continue;
     }
 
@@ -218,22 +233,39 @@ public class UpdateProfileServlet extends ControlledPwmServlet
         return ProcessStatus.Halt;
     }
 
-    @ActionHandler( action = "unConfirm" )
-    ProcessStatus handleUnconfirm(
-            final PwmRequest pwmRequest
-    )
-            throws PwmUnrecoverableException
+    @ActionHandler( action = "reset" )
+    private ProcessStatus processReset( final PwmRequest pwmRequest )
+            throws IOException, PwmUnrecoverableException
     {
-        final UpdateProfileBean updateProfileBean = getBean( pwmRequest );
+        final ResetAction resetType = pwmRequest.readParameterAsEnum( PwmConstants.PARAM_RESET_TYPE, ResetAction.class, ResetAction.exitProfileUpdate );
 
-        updateProfileBean.setFormSubmitted( false );
-        updateProfileBean.setConfirmationPassed( false );
-        updateProfileBean.getCompletedTokenFields().clear();
-        updateProfileBean.setTokenSent( false );
-        updateProfileBean.setCurrentTokenField( null );
+        switch ( resetType )
+        {
+            case unConfirm:
+                final UpdateProfileBean updateProfileBean = getBean( pwmRequest );
+                updateProfileBean.setFormSubmitted( false );
+                updateProfileBean.setConfirmationPassed( false );
+                updateProfileBean.getCompletedTokenFields().clear();
+                updateProfileBean.setTokenSent( false );
+                updateProfileBean.setCurrentTokenField( null );
+                break;
+
+            case exitProfileUpdate:
+                pwmRequest.getPwmApplication().getSessionStateService().clearBean( pwmRequest, UpdateProfileBean.class );
+                pwmRequest.sendRedirectToContinue();
+                return ProcessStatus.Halt;
+
+            default:
+                JavaHelper.unhandledSwitchStatement( resetType );
+
+        }
 
         return ProcessStatus.Continue;
     }
+
+
+
+
 
     @ActionHandler( action = "agree" )
     ProcessStatus handleAgreeRequest( final PwmRequest pwmRequest )

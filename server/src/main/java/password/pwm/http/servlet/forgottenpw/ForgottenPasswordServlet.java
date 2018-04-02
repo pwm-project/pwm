@@ -540,6 +540,13 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
             }
             forgottenPasswordBean.getProgress().getSatisfiedMethods().add( IdentityVerificationMethod.TOKEN );
             StatisticsManager.incrementStat( pwmRequest.getPwmApplication(), Statistic.RECOVERY_TOKENS_PASSED );
+
+            if ( pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.DISPLAY_TOKEN_SUCCESS_BUTTON ) )
+            {
+                pwmRequest.setAttribute( PwmRequestAttribute.TokenDestItems, tokenPayload.getDestination() );
+                pwmRequest.forwardToJsp( JspUrl.RECOVER_PASSWORD_TOKEN_SUCCESS );
+                return ProcessStatus.Halt;
+            }
         }
         catch ( PwmUnrecoverableException e )
         {

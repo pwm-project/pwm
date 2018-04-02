@@ -27,6 +27,7 @@
 <%@ page import="password.pwm.svc.token.TokenPayload" %>
 <%@ page import="password.pwm.util.java.JavaHelper" %>
 <%@ page import="java.util.Iterator" %>
+<%@ page import="password.pwm.util.java.JsonUtil" %>
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -122,7 +123,7 @@
                     Destination(s)
                 </td>
                 <td>
-                    <%=JspUtility.freindlyWrite(pageContext, tokenPayload.getDestination())%>
+                    <%=JspUtility.freindlyWrite(pageContext, JsonUtil.serialize( tokenPayload.getDestination() ) )%>
                 </td>
             </tr>
             <tr>

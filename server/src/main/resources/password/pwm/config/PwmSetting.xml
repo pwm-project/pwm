@@ -223,6 +223,11 @@
             <value>true</value>
         </default>
     </setting>
+    <setting hidden="false" key="display.tokenSuccessPage" level="1" required="true">
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
     <setting hidden="false" key="display.showSuccessPage" level="1" required="true">
         <default>
             <value>true</value>

@@ -127,6 +127,7 @@ public class CaptchaUtility
                 final boolean success = topObject.get( "success" ).getAsBoolean();
                 if ( success )
                 {
+                    writeCaptchaSkipCookie( pwmRequest );
                     return true;
                 }
 
@@ -141,9 +142,6 @@ public class CaptchaUtility
                     LOGGER.debug( pwmRequest, "recaptcha error codes: " + JsonUtil.serializeCollection( errorCodes ) );
                 }
             }
-
-            writeCaptchaSkipCookie( pwmRequest );
-
         }
         catch ( Exception e )
         {

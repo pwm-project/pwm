@@ -69,7 +69,6 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.secure.PwmRandom;
-import password.pwm.util.secure.SecureService;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -125,32 +124,12 @@ public class TokenService implements PwmService
             final TimeDuration lifetime,
             final Map<String, String> data,
             final UserIdentity userIdentity,
-            final String destination
+            final TokenDestinationItem destination
     )
     {
-        final long count = counter.getAndUpdate( operand ->
-        {
-            operand++;
-            if ( operand <= 0 )
-            {
-                operand = 0;
-            }
-            return operand;
-        } );
-        final StringBuilder guid = new StringBuilder();
-        try
-        {
-            final SecureService secureService = pwmApplication.getSecureService();
-            guid.append( secureService.hash( pwmApplication.getInstanceID() + pwmApplication.getStartupTime().toString() ) );
-            guid.append( "-" );
-            guid.append( count );
-        }
-        catch ( Exception e )
-        {
-            LOGGER.error( "error making payload guid: " + e.getMessage(), e );
-        }
+        final String guid = PwmRandom.getInstance().randomUUID().toString();
         final Instant expiration = lifetime.incrementFromInstant( Instant.now() );
-        return new TokenPayload( name.name(), expiration, data, userIdentity, destination, guid.toString() );
+        return new TokenPayload( name.name(), expiration, data, userIdentity, destination, guid );
     }
 
     public void init( final PwmApplication pwmApplication )
@@ -588,9 +567,9 @@ public class TokenService implements PwmService
                     tokenType,
                     userEnteredCode
             );
-            if ( !StringUtil.isEmpty( tokenPayload.getDestination() ) )
+            if ( tokenPayload.getDestination() != null && !StringUtil.isEmpty( tokenPayload.getDestination().getValue() ) )
             {
-                pwmApplication.getIntruderManager().clear( RecordType.TOKEN_DEST, tokenPayload.getDestination() );
+                pwmApplication.getIntruderManager().clear( RecordType.TOKEN_DEST, tokenPayload.getDestination().getValue() );
             }
             markTokenAsClaimed( tokenMachine.keyFromKey( userEnteredCode ), pwmSession, tokenPayload );
             return tokenPayload;
