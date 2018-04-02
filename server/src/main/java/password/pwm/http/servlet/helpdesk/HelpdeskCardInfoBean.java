@@ -61,7 +61,7 @@ public class HelpdeskCardInfoBean implements Serializable
 
     private String userKey;
     private List<String> displayNames;
-    private String photoUrl;
+    private String photoURL;
 
     static HelpdeskCardInfoBean makeHelpdeskCardInfo(
             final PwmRequest pwmRequest,
@@ -92,7 +92,7 @@ public class HelpdeskCardInfoBean implements Serializable
 
         builder.userKey( userIdentity.toObfuscatedKey( pwmRequest.getPwmApplication() ) );
 
-        builder.photoUrl( figurePhotoURL( pwmRequest, helpdeskProfile, theUser, macroMachine, userIdentity ) );
+        builder.photoURL( figurePhotoURL( pwmRequest, helpdeskProfile, theUser, macroMachine, userIdentity ) );
 
         builder.displayNames( figureDisplayNames( pwmRequest.getPwmApplication(), helpdeskProfile, pwmRequest.getSessionLabel(), userInfo ) );
 
