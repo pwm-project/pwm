@@ -55,7 +55,6 @@ public class HelpdeskClientDataBean implements Serializable
     private Map<String, ActionInformation> actions;
     private Map<String, Collection<IdentityVerificationMethod>> verificationMethods;
     private List<FormInformation> verificationForm;
-    private boolean enablePhotos;
 
     @Value
     public static class ActionInformation implements Serializable
@@ -93,6 +92,7 @@ public class HelpdeskClientDataBean implements Serializable
             builder.clearResponses( helpdeskProfile.readSettingAsEnum( PwmSetting.HELPDESK_CLEAR_RESPONSES, HelpdeskClearResponseMode.class ) );
             builder.pwUiMode( helpdeskProfile.readSettingAsEnum( PwmSetting.HELPDESK_SET_PASSWORD_MODE, HelpdeskUIMode.class ) );
             builder.tokenSendMethod( helpdeskProfile.readSettingAsEnum( PwmSetting.HELPDESK_TOKEN_SEND_METHOD, MessageSendMethod.class ) );
+            builder.enablePhoto( helpdeskProfile.readSettingAsBoolean( PwmSetting.HELPDESK_ENABLE_PHOTOS ) );
         }
         {
             // actions
@@ -131,6 +131,7 @@ public class HelpdeskClientDataBean implements Serializable
             }
             builder.verificationForm( formInformations );
         }
+
 
         return builder.build();
     }

@@ -143,7 +143,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         checkPassword( HttpMethod.POST ),
         setPassword( HttpMethod.POST ),
         randomPassword( HttpMethod.POST ),
-        photo( HttpMethod.POST ),
+        photo( HttpMethod.GET ),
         card( HttpMethod.POST ),;
 
         private final HttpMethod method;
