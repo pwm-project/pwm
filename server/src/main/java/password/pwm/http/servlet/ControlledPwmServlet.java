@@ -136,7 +136,7 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
                 LOGGER.error( pwmRequest, msg, e.getCause() );
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, msg ) );
             }
-            LOGGER.error( "uncaused invocation error: " + e.getMessage(), e );
+            LOGGER.error( "uncased invocation error: " + e.getMessage(), e );
         }
         catch ( Throwable e )
         {

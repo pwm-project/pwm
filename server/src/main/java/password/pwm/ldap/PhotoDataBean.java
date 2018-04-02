@@ -20,26 +20,26 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.http.servlet.peoplesearch;
+package password.pwm.ldap;
 
-class PhotoDataBean
+import lombok.Value;
+
+import java.util.Arrays;
+
+@Value
+public class PhotoDataBean
 {
-    private final String mimeType;
+    private String mimeType;
     private byte[] contents;
 
-    PhotoDataBean( final String mimeType, final byte[] contents )
+    public PhotoDataBean( final String mimeType, final byte[] contents )
     {
         this.mimeType = mimeType;
-        this.contents = contents;
-    }
-
-    public String getMimeType( )
-    {
-        return mimeType;
+        this.contents = contents == null ? null : Arrays.copyOf( contents, contents.length );
     }
 
     public byte[] getContents( )
     {
-        return contents;
+        return contents == null ? null : Arrays.copyOf( contents, contents.length );
     }
 }

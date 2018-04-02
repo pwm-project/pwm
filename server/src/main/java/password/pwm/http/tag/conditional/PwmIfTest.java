@@ -477,7 +477,7 @@ public enum PwmIfTest
                 return false;
             }
 
-            return PeopleSearchConfiguration.fromConfiguration( pwmRequest.getConfig() ).isOrgChartEnabled();
+            return PeopleSearchConfiguration.fromConfiguration( pwmRequest.getPwmApplication() ).isOrgChartEnabled();
         }
     }
 

@@ -55,16 +55,14 @@ export default class HelpDeskDetailComponent {
         '$stateParams',
         'ConfigService',
         'HelpDeskService',
-        'IasDialogService',
-        'PeopleService'
+        'IasDialogService'
     ];
 
     constructor(private $state: ui.IStateService,
                 private $stateParams: ui.IStateParamsService,
                 private configService: IHelpDeskConfigService,
                 private helpDeskService: IHelpDeskService,
-                private IasDialogService: any,
-                private peopleService: IPeopleService) {
+                private IasDialogService: any) {
     }
 
     $onInit(): void {
@@ -353,7 +351,7 @@ export default class HelpDeskDetailComponent {
             this.photosEnabled = photosEnabled;
         }); // TODO: always necessary?
 
-        this.peopleService.getPerson(personId).then((personCard: IPerson) => {
+        this.helpDeskService.getPersonCard(personId).then((personCard: IPerson) => {
             this.personCard = personCard;
         });
 

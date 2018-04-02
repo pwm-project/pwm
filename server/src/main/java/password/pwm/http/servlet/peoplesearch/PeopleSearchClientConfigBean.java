@@ -24,9 +24,13 @@ package password.pwm.http.servlet.peoplesearch;
 
 import lombok.Getter;
 import lombok.Setter;
+import password.pwm.PwmApplication;
+import password.pwm.bean.SessionLabel;
+import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.value.data.FormConfiguration;
+import password.pwm.error.PwmUnrecoverableException;
 
 import java.io.Serializable;
 import java.util.LinkedHashMap;
@@ -38,25 +42,23 @@ import java.util.Map;
 @Setter
 public class PeopleSearchClientConfigBean implements Serializable
 {
-    @SuppressWarnings( "checkstyle:MemberName" )
-    private Map<String, String> peoplesearch_search_columns;
-
-    @SuppressWarnings( "checkstyle:MemberName" )
-    private boolean peoplesearch_enablePhoto;
-
-    @SuppressWarnings( "checkstyle:MemberName" )
-    private boolean peoplesearch_orgChartEnabled;
-
+    private Map<String, String> searchColumns;
+    private boolean enablePhoto;
+    private boolean orgChartEnabled;
     private boolean orgChartShowChildCount;
     private int orgChartMaxParents;
 
 
     static PeopleSearchClientConfigBean fromConfig(
-            final Configuration configuration,
+            final PwmApplication pwmApplication,
             final PeopleSearchConfiguration peopleSearchConfiguration,
-            final Locale locale
+            final Locale locale,
+            final UserIdentity userIdentity,
+            final SessionLabel sessionLabel
     )
+            throws PwmUnrecoverableException
     {
+        final Configuration configuration = pwmApplication.getConfig();
         final Map<String, String> searchColumns = new LinkedHashMap<>();
         final List<FormConfiguration> searchForm = configuration.readSettingAsForm( PwmSetting.PEOPLE_SEARCH_RESULT_FORM );
         for ( final FormConfiguration formConfiguration : searchForm )
@@ -66,9 +68,10 @@ public class PeopleSearchClientConfigBean implements Serializable
         }
 
         final PeopleSearchClientConfigBean peopleSearchClientConfigBean = new PeopleSearchClientConfigBean();
-        peopleSearchClientConfigBean.setPeoplesearch_search_columns( searchColumns );
-        peopleSearchClientConfigBean.setPeoplesearch_enablePhoto( peopleSearchConfiguration.isPhotosEnabled() );
-        peopleSearchClientConfigBean.setPeoplesearch_orgChartEnabled( peopleSearchConfiguration.isOrgChartEnabled() );
+        peopleSearchClientConfigBean.setSearchColumns( searchColumns );
+
+        peopleSearchClientConfigBean.setEnablePhoto( peopleSearchConfiguration.isPhotosEnabled( userIdentity, sessionLabel ) );
+        peopleSearchClientConfigBean.setOrgChartEnabled( peopleSearchConfiguration.isOrgChartEnabled() );
         peopleSearchClientConfigBean.setOrgChartShowChildCount( peopleSearchConfiguration.isOrgChartShowChildCount() );
         peopleSearchClientConfigBean.setOrgChartMaxParents( peopleSearchConfiguration.getOrgChartMaxParents() );
 

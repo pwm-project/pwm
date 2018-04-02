@@ -158,7 +158,7 @@ export default class PeopleService implements IPeopleService {
         let httpTimeout = this.$q.defer();
 
         let request = this.$http
-            .get(this.pwmService.getPeopleSearchServerUrl('detail'), {
+            .get(this.pwmService.getServerUrl('detail'), {
                 cache: true,
                 params: {userKey: id},
                 timeout: httpTimeout.promise

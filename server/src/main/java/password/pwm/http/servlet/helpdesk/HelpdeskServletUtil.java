@@ -36,10 +36,8 @@ import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.JspUrl;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.PwmRequest;
-import password.pwm.http.PwmRequestAttribute;
 import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
@@ -51,8 +49,6 @@ import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
-import javax.servlet.ServletException;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
@@ -130,36 +126,6 @@ class HelpdeskServletUtil
                     "requested userDN is not available within configured search filter" )
             );
         }
-    }
-
-    static void processShowDetailRequest(
-            final PwmRequest pwmRequest,
-            final HelpdeskProfile helpdeskProfile,
-            final UserIdentity userIdentity
-    )
-            throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
-    {
-        final HelpdeskDetailInfoBean helpdeskDetailInfoBean;
-        try
-        {
-            helpdeskDetailInfoBean = processDetailRequestImpl( pwmRequest, helpdeskProfile, userIdentity );
-        }
-        catch ( PwmUnrecoverableException e )
-        {
-            LOGGER.debug( pwmRequest, e.getErrorInformation() );
-            pwmRequest.respondWithError( e.getErrorInformation(), false );
-            return;
-        }
-
-        if ( helpdeskDetailInfoBean != null )
-        {
-            final String obfuscatedDN = userIdentity.toObfuscatedKey( pwmRequest.getPwmApplication() );
-            pwmRequest.setAttribute( PwmRequestAttribute.HelpdeskObfuscatedDN, obfuscatedDN );
-        }
-
-        pwmRequest.setAttribute( PwmRequestAttribute.HelpdeskDetail, helpdeskDetailInfoBean );
-        pwmRequest.setAttribute( PwmRequestAttribute.HelpdeskVerificationEnabled, !helpdeskProfile.readOptionalVerificationMethods().isEmpty() );
-        pwmRequest.forwardToJsp( JspUrl.HELPDESK_DETAIL );
     }
 
     static HelpdeskDetailInfoBean processDetailRequestImpl(
