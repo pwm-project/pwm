@@ -86,7 +86,7 @@ PWM_PS.convertDetailResultToHtml = function(data) {
 
     htmlBody += '<div class="panel-peoplesearch-person" id="panel-orgChart-person-' + data['userKey'] + '">';
 
-    if (PWM_VAR['peoplesearch_enablePhoto']) {
+    if (PWM_VAR['enablePhoto']) {
         htmlBody += '<div class="panel-peoplesearch-userDetailPhoto" id="panel-userPhoto-' + data['userKey'] + '">';
         htmlBody += '<img class="img-peoplesearch-userDetailPhoto" src="' + blankSrc + '">';
         htmlBody += '</div>';
@@ -259,7 +259,7 @@ PWM_PS.convertOrgChartDataToOrgChartHtml = function(data) {
         if (userReference['hasMoreNodes']) {
             output += '<a id="link-' + userKey + '"><span class="icon-orgChart-' + direction + ' pwm-icon pwm-icon-arrow-' + direction + '"/> </a>';
         }
-        if (PWM_VAR['peoplesearch_enablePhoto']) {
+        if (PWM_VAR['enablePhoto']) {
             var blankSrc = PWM_MAIN.addPwmFormIDtoURL(PWM_GLOBAL['url-resources'] + '/UserPhoto.png');
             output += '<div class="panel-orgChart-userPhoto" id="panel-userPhoto-' + userKey + '">';
             output += '<img class="img-orgChart-userPhoto" src="' + blankSrc + '">';

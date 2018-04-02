@@ -102,7 +102,7 @@ PWM_HELPDESK.doPasswordChange = function(password, random) {
                 bodyText += '</br></br>';
                 bodyText += PWM_MAIN.showString('Field_NewPassword');
 
-                if (PWM_VAR['helpdesk_setting_maskPasswords']) {
+                if (PWM_VAR['maskPasswords']) {
                     bodyText += '<button id="button-password-display" class="btn"><span class="btn-icon pwm-icon pwm-icon-eye"></span>' + PWM_MAIN.showString('Button_Show') + '</button>';
                     bodyText += ' <input id="panel-password-display" style="display:none" class="inputfield" value="' + password + '" readonly/>';
                 } else {
@@ -113,7 +113,7 @@ PWM_HELPDESK.doPasswordChange = function(password, random) {
             }
             bodyText += '<br/><br/><button class="btn" id="button-continue">'
                 + '<span class="btn-icon pwm-icon pwm-icon-forward"></span>' + PWM_MAIN.showString('Button_OK') + '</button>';
-            if (PWM_VAR['helpdesk_setting_clearResponses'] === 'ask') {
+            if (PWM_VAR['clearResponses'] === 'ask') {
                 bodyText += '<span style="padding-left: 10px">&nbsp;</span>';
                 bodyText += '<button class="btn" id="button-clearResponses">';
                 bodyText += '<span class="btn-icon pwm-icon pwm-icon-eraser"></span>' + PWM_MAIN.showString('Button_ClearResponses') + '</button>';
@@ -130,7 +130,7 @@ PWM_HELPDESK.doPasswordChange = function(password, random) {
                     PWM_MAIN.addEventHandler('button-continue','click',function(){ PWM_HELPDESK.refreshDetailPage(); });
                     PWM_MAIN.addEventHandler('button-clearResponses','click',function(){ PWM_HELPDESK.doResponseClear(); });
 
-                    if (PWM_VAR['helpdesk_setting_maskPasswords']) {
+                    if (PWM_VAR['maskPasswords']) {
                         PWM_MAIN.addEventHandler('button-password-display','click',function(){
                             var buttonElement = PWM_MAIN.getObject('button-password-display');
                             buttonElement.parentNode.removeChild(buttonElement);
@@ -163,7 +163,7 @@ PWM_HELPDESK.changePasswordPopup = function() {
     var bodyText = '';
     bodyText += '<span id="message" class="message message-info" style="width: 400px">' + PWM_MAIN.showString('Display_PasswordPrompt') + '</span>';
     bodyText += '<table class="noborder"><tr class="noborder"><td class="noborder">';
-    if (PWM_VAR['helpdesk_setting_maskPasswords']) {
+    if (PWM_VAR['maskPasswords']) {
         bodyText += '<input type="password" name="password1" id="password1" class="passwordfield" style="width: 260px" autocomplete="off"/>';
     } else {
         bodyText += '<input type="text" name="password1" id="password1" class="inputfield" style="width: 260px" autocomplete="off"/>';
@@ -178,7 +178,7 @@ PWM_HELPDESK.changePasswordPopup = function() {
     bodyText += '</tr><tr class="noborder">';
 
     bodyText += '<td class="noborder">';
-    if (PWM_VAR['helpdesk_setting_maskPasswords']) {
+    if (PWM_VAR['maskPasswords']) {
         bodyText += '<input type="password" name="password2" id="password2" class="passwordfield" style="width: 260px" autocomplete="off"/>';
     } else {
         bodyText += '<input type="text" name="password2" id="password2" class="inputfield" style="width: 260px" autocomplete="off"/>';
@@ -192,7 +192,7 @@ PWM_HELPDESK.changePasswordPopup = function() {
 
     bodyText += '</tr></table><br/>';
     bodyText += '<button name="change" class="btn" id="password_button" disabled="true"><span class="btn-icon pwm-icon pwm-icon-key"></span>' + PWM_MAIN.showString('Button_ChangePassword') + '</button>';
-    if (PWM_VAR['helpdesk_setting_PwUiMode'] === 'both') {
+    if (PWM_VAR['pwUiMode'] === 'both') {
         bodyText += '<button name="random" class="btn" id="button-autoGeneratePassword"><span class="btn-icon pwm-icon pwm-icon-retweet"></span>' + PWM_MAIN.showString('Title_RandomPasswords') + '</button>';
     }
 
@@ -212,7 +212,7 @@ PWM_HELPDESK.changePasswordPopup = function() {
             PWM_MAIN.addEventHandler('password2','input',function(){
                 PWM_CHANGEPW.validatePasswords(PWM_VAR['helpdesk_obfuscatedDN']);
             });
-            if (PWM_VAR['helpdesk_setting_maskPasswords']) {
+            if (PWM_VAR['maskPasswords']) {
                 ShowHidePasswordHandler.init('password1');
                 ShowHidePasswordHandler.init('password2');
             }
@@ -229,9 +229,9 @@ PWM_HELPDESK.changePasswordPopup = function() {
 };
 
 PWM_HELPDESK.initiateChangePasswordDialog = function() {
-    if (PWM_VAR['helpdesk_setting_PwUiMode'] === 'autogen') {
+    if (PWM_VAR['pwUiMode'] === 'autogen') {
         PWM_HELPDESK.generatePasswordPopup();
-    } else if (PWM_VAR['helpdesk_setting_PwUiMode'] === 'random') {
+    } else if (PWM_VAR['pwUiMode'] === 'random') {
         PWM_HELPDESK.setRandomPasswordPopup();
     } else {
         PWM_HELPDESK.changePasswordPopup();
@@ -518,7 +518,7 @@ PWM_HELPDESK.validateCode = function(options) {
 };
 
 PWM_HELPDESK.sendVerificationToken = function(userKey, methods) {
-    var sendMethodSetting = PWM_VAR["helpdesk_setting_tokenSendMethod"];
+    var sendMethodSetting = PWM_VAR["tokenSendMethod"];
     var tokenChoiceFlag = sendMethodSetting === 'CHOICE_SMS_EMAIL';
 
     var sendTokenAction = function(choice) {

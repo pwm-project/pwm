@@ -29,7 +29,6 @@ export interface IHttpRequestOptions {
 }
 
 export interface IPwmService {
-    getPeopleSearchServerUrl(processAction: string, additionalParameters?: any): string;
     getServerUrl(processAction: string, additionalParameters?: any): string;
     httpRequest<T>(url: string, options: IHttpRequestOptions): IPromise<T>;
     ajaxTypingWait: number;
@@ -69,24 +68,11 @@ export default class PwmService implements IPwmService {
         }
     }
 
-    private getApiPathname(route: string) {
-        return this.urlContext + route;
-    }
-
-    private getEndpointServerUrl(pathname: string, processAction: string, additionalParameters?: any): string {
-        let url: string = pathname + '?processAction=' + processAction;
+    getServerUrl(processAction: string, additionalParameters?: any): string {
+        let url: string = window.location.pathname + '?processAction=' + processAction;
         url = this.addParameters(url, additionalParameters);
 
         return url;
-    }
-
-    getPeopleSearchServerUrl(processAction: string, additionalParameters?: any): string {
-        let pathname: string = this.getApiPathname('/private/peoplesearch');
-        return this.getEndpointServerUrl(pathname, processAction, additionalParameters);
-    }
-
-    getServerUrl(processAction: string, additionalParameters?: any): string {
-        return this.getEndpointServerUrl(window.location.pathname, processAction, additionalParameters);
     }
 
     private handlePwmError(response): IPromise<any> {

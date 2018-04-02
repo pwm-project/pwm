@@ -23,7 +23,7 @@
 import {IHttpService, ILogService, IPromise, IQService} from 'angular';
 import {IPwmService} from './pwm.service';
 
-const PHOTO_ENABLED = 'peoplesearch_enablePhoto';
+const PHOTO_ENABLED = 'enablePhoto';
 
 export interface IConfigService {
     getColumnConfig(): IPromise<any>;
@@ -53,11 +53,6 @@ export abstract class ConfigBaseService implements IConfigService {
             }, this.handleHttpError);
     }
 
-    private getPeopleSearchValue(key: string): IPromise<any> {
-        let endpoint: string = this.pwmService.getPeopleSearchServerUrl('clientData');
-        return this.getEndpointValue(endpoint, key);
-    }
-
     getValue(key: string): IPromise<any> {
         let endpoint: string = this.pwmService.getServerUrl('clientData');
         return this.getEndpointValue(endpoint, key);
@@ -75,7 +70,7 @@ export abstract class ConfigBaseService implements IConfigService {
     }
 
     photosEnabled(): IPromise<boolean> {
-        return this.getPeopleSearchValue(PHOTO_ENABLED)
+        return this.getValue(PHOTO_ENABLED)
             .then(null, () => { return this.$q.resolve(true); }); // On error use default
     }
 }

@@ -161,6 +161,8 @@ public abstract class PwmConstants
     public static final String PARAM_FILE_UPLOAD = "fileUpload";
     public static final String PARAM_RECOVERY_OAUTH_RESULT = "roauthResults";
     public static final String PARAM_SIGNED_FORM = "signedForm";
+    public static final String PARAM_USERKEY = "userKey";
+
 
     public static final String COOKIE_PERSISTENT_CONFIG_LOGIN = "persistentConfigLogin";
 

@@ -25,17 +25,17 @@ export const helpdeskProcessAction_clientData = {
     "error": false,
     "errorCode": 0,
     "data": {
-        "helpdesk_search_columns": {
+        "searchColumns": {
             "cn": "Username",
             "givenName": "First Name",
             "sn": "Last Name",
             "mail": "Email",
             "workforceID": "Workforce ID"
         },
-        "helpdesk_setting_maskPasswords": false,
-        "helpdesk_setting_clearResponses": "ask",
-        "helpdesk_setting_PwUiMode": "autogen",
-        "helpdesk_setting_tokenSendMethod": "EMAILONLY",
+        "maskPasswords": false,
+        "clearResponses": "ask",
+        "pwUiMode": "autogen",
+        "tokenSendMethod": "EMAILONLY",
         "actions": {},
         "verificationMethods": {
             "optional": [

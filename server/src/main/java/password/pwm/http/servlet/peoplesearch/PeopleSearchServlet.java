@@ -37,6 +37,7 @@ import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestFlag;
 import password.pwm.http.servlet.ControlledPwmServlet;
+import password.pwm.ldap.PhotoDataBean;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.java.JsonUtil;
@@ -114,12 +115,14 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
     {
-        final PeopleSearchConfiguration peopleSearchConfiguration = PeopleSearchConfiguration.fromConfiguration( pwmRequest.getConfig() );
+        final PeopleSearchConfiguration peopleSearchConfiguration = PeopleSearchConfiguration.fromConfiguration( pwmRequest.getPwmApplication() );
 
         final PeopleSearchClientConfigBean peopleSearchClientConfigBean = PeopleSearchClientConfigBean.fromConfig(
-                pwmRequest.getConfig(),
+                pwmRequest.getPwmApplication(),
                 peopleSearchConfiguration,
-                pwmRequest.getLocale()
+                pwmRequest.getLocale(),
+                pwmRequest.getUserInfoIfLoggedIn(),
+                pwmRequest.getSessionLabel()
         );
 
         final RestResultBean restResultBean = RestResultBean.withData( peopleSearchClientConfigBean );
@@ -159,7 +162,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
     )
             throws IOException, PwmUnrecoverableException, ServletException
     {
-        final PeopleSearchConfiguration peopleSearchConfiguration = PeopleSearchConfiguration.fromConfiguration( pwmRequest.getConfig() );
+        final PeopleSearchConfiguration peopleSearchConfiguration = PeopleSearchConfiguration.fromConfiguration( pwmRequest.getPwmApplication() );
 
         if ( !peopleSearchConfiguration.isOrgChartEnabled() )
         {
