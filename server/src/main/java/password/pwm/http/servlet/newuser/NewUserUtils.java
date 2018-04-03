@@ -693,15 +693,21 @@ class NewUserUtils
                             newUserBean.getNewUserForm(),
                             tokenDestinationItem );
 
+                    final TimeDuration tokenLifetime = figureTokenLifetime( pwmRequest.getConfig(), newUserProfile, tokenDestinationItem );
+
+
                     TokenUtil.initializeAndSendToken(
                             pwmRequest,
-                            null,
-                            tokenDestinationItem,
-                            PwmSetting.EMAIL_NEWUSER_VERIFICATION,
-                            TokenType.NEWUSER,
-                            PwmSetting.SMS_NEWUSER_TOKEN_TEXT,
-                            tokenPayloadMap,
-                            macroMachine
+                            TokenUtil.TokenInitAndSendRequest.builder()
+                                    .userInfo(  null )
+                                    .tokenDestinationItem( tokenDestinationItem )
+                                    .emailToSend( PwmSetting.EMAIL_NEWUSER_VERIFICATION )
+                                    .tokenType( TokenType.NEWUSER )
+                                    .smsToSend( PwmSetting.SMS_NEWUSER_TOKEN_TEXT )
+                                    .inputTokenData( tokenPayloadMap )
+                                    .macroMachine( macroMachine )
+                                    .tokenLifetime( tokenLifetime )
+                                    .build()
                     );
                     newUserBean.setTokenSent( true );
                 }
@@ -742,5 +748,26 @@ class NewUserUtils
                 .value( value )
                 .type( type )
                 .build();
+    }
+
+    static TimeDuration figureTokenLifetime(
+            final Configuration configuration,
+            final NewUserProfile newUserProfile,
+            final TokenDestinationItem tokenDestinationItem
+    )
+    {
+        switch ( tokenDestinationItem.getType() )
+        {
+            case email:
+                return newUserProfile.getTokenDurationEmail( configuration );
+
+            case sms:
+                return newUserProfile.getTokenDurationSMS( configuration );
+
+            default:
+                JavaHelper.unhandledSwitchStatement( tokenDestinationItem );
+        }
+
+        return null;
     }
 }

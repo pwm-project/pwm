@@ -79,7 +79,6 @@ import java.util.TimerTask;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * This PWM service is responsible for reading/writing tokens used for forgotten password,
@@ -99,7 +98,6 @@ public class TokenService implements PwmService
     private Configuration configuration;
     private TokenStorageMethod storageMethod;
     private TokenMachine tokenMachine;
-    private AtomicLong counter = new AtomicLong();
 
     private ServiceInfoBean serviceInfo = new ServiceInfoBean( Collections.emptyList() );
     private STATUS status = STATUS.NEW;
@@ -119,7 +117,7 @@ public class TokenService implements PwmService
     {
     }
 
-    public synchronized TokenPayload createTokenPayload(
+    public TokenPayload createTokenPayload(
             final TokenType name,
             final TimeDuration lifetime,
             final Map<String, String> data,
@@ -209,17 +207,6 @@ public class TokenService implements PwmService
             final TimeDuration cleanerFrequency = new TimeDuration( cleanerFrequencySeconds, TimeUnit.SECONDS );
             executorService.scheduleAtFixedRate( cleanerTask, 10, cleanerFrequencySeconds, TimeUnit.SECONDS );
             LOGGER.trace( "token cleanup will occur every " + cleanerFrequency.asCompactString() );
-        }
-
-        final String counterString = pwmApplication.readAppAttribute( PwmApplication.AppAttribute.TOKEN_COUNTER, String.class );
-        try
-        {
-            final long storedCounter = Long.parseLong( counterString );
-            counter = new AtomicLong( storedCounter );
-        }
-        catch ( Exception e )
-        {
-            LOGGER.trace( "can not parse stored last counter position, setting issue counter at 0" );
         }
 
         verifyPwModifyTime = Boolean.parseBoolean( configuration.readAppProperty( AppProperty.TOKEN_VERIFY_PW_MODIFY_TIME ) );
@@ -703,9 +690,7 @@ public class TokenService implements PwmService
         private UserInfo userInfo;
         private MacroMachine macroMachine;
         private EmailItemBean configuredEmailSetting;
-        private MessageSendMethod tokenSendMethod;
-        private String emailAddress;
-        private String smsNumber;
+        private TokenDestinationItem tokenDestinationItem;
         private String smsMessage;
         private String tokenKey;
         private SessionLabel sessionLabel;
@@ -713,31 +698,24 @@ public class TokenService implements PwmService
 
     public static class TokenSender
     {
-        public static List<TokenDestinationItem.Type> sendToken(
+        public static void sendToken(
                 final TokenSendInfo tokenSendInfo
         )
                 throws PwmUnrecoverableException
         {
             final boolean success;
 
-            final List<TokenDestinationItem.Type> sentTypes = new ArrayList<>();
-
-            switch ( tokenSendInfo.getTokenSendMethod() )
+            switch ( tokenSendInfo.getTokenDestinationItem().getType() )
             {
-                case NONE:
-                    // should never read here
-                    LOGGER.error( "attempt to send token to destination type 'NONE'" );
-                    throw new PwmUnrecoverableException( PwmError.ERROR_UNKNOWN );
-                case SMSONLY:
+                case sms:
                     // Only try SMS
                     success = sendSmsToken( tokenSendInfo );
-                    sentTypes.add( TokenDestinationItem.Type.sms );
+
                     break;
-                case EMAILONLY:
+                case email:
                 default:
                     // Only try email
                     success = sendEmailToken( tokenSendInfo );
-                    sentTypes.add( TokenDestinationItem.Type.email );
                     break;
             }
 
@@ -748,16 +726,14 @@ public class TokenService implements PwmService
 
             final PwmApplication pwmApplication = tokenSendInfo.getPwmApplication();
             pwmApplication.getStatisticsManager().incrementValue( Statistic.TOKENS_SENT );
-
-            return sentTypes;
         }
 
-        public static boolean sendEmailToken(
+        private static boolean sendEmailToken(
                 final TokenSendInfo tokenSendInfo
         )
                 throws PwmUnrecoverableException
         {
-            final String toAddress = tokenSendInfo.getEmailAddress();
+            final String toAddress = tokenSendInfo.getTokenDestinationItem().getValue();
             if ( StringUtil.isEmpty( toAddress ) )
             {
                 return false;
@@ -778,12 +754,12 @@ public class TokenService implements PwmService
             return true;
         }
 
-        public static boolean sendSmsToken(
+        private static boolean sendSmsToken(
                 final TokenSendInfo tokenSendInfo
         )
                 throws PwmUnrecoverableException
         {
-            final String smsNumber = tokenSendInfo.getSmsNumber();
+            final String smsNumber = tokenSendInfo.getTokenDestinationItem().getValue();
             if ( StringUtil.isEmpty( smsNumber ) )
             {
                 return false;
@@ -799,34 +775,7 @@ public class TokenService implements PwmService
             LOGGER.debug( "token SMS added to send queue for " + smsNumber );
             return true;
         }
-
-        public static String figureDisplayString(
-                final Configuration configuration,
-                final List<TokenDestinationItem.Type> sentTypes,
-                final String email,
-                final String sms
-        )
-        {
-            final TokenDestinationDisplayMasker tokenDestinationDisplayMasker = new TokenDestinationDisplayMasker( configuration );
-            final StringBuilder displayDestAddress = new StringBuilder();
-            {
-                if ( sentTypes.contains( TokenDestinationItem.Type.email ) )
-                {
-                    displayDestAddress.append( tokenDestinationDisplayMasker.maskEmail( email ) );
-                }
-
-                if ( sentTypes.contains( TokenDestinationItem.Type.sms ) )
-                {
-                    if ( displayDestAddress.length() > 0 )
-                    {
-                        displayDestAddress.append( " & " );
-                    }
-                    displayDestAddress.append( tokenDestinationDisplayMasker.maskPhone( sms ) );
-                }
-            }
-            return displayDestAddress.toString();
         }
-    }
 
     static TimeDuration maxTokenAge( final Configuration configuration )
     {

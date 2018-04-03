@@ -417,11 +417,13 @@ public class ForgottenPasswordUtil
     {
         TokenUtil.initializeAndSendToken(
                 pwmRequest,
-                userInfo,
-                tokenDestinationItem,
-                PwmSetting.EMAIL_CHALLENGE_TOKEN,
-                TokenType.FORGOTTEN_PW,
-                PwmSetting.SMS_CHALLENGE_TOKEN_TEXT
+                TokenUtil.TokenInitAndSendRequest.builder()
+                        .userInfo( userInfo )
+                        .tokenDestinationItem( tokenDestinationItem )
+                        .emailToSend( PwmSetting.EMAIL_CHALLENGE_TOKEN )
+                        .tokenType( TokenType.FORGOTTEN_PW )
+                        .smsToSend( PwmSetting.SMS_CHALLENGE_TOKEN_TEXT )
+                        .build()
         );
 
         StatisticsManager.incrementStat( pwmRequest, Statistic.RECOVERY_TOKENS_SENT );

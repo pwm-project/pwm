@@ -51,6 +51,7 @@ import password.pwm.svc.token.TokenUtil;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.ActionExecutor;
@@ -313,14 +314,20 @@ public class UpdateProfileUtil
                 if ( !updateProfileBean.isTokenSent() )
                 {
                     final TokenDestinationItem tokenDestinationItem = tokenDestinationItemForCurrentValidation( pwmRequest, updateProfileBean, updateProfileProfile );
+                    final TimeDuration tokenLifetime = tokenDestinationItem.getType() == TokenDestinationItem.Type.email
+                            ? updateProfileProfile.getTokenDurationEmail( pwmRequest.getConfig() )
+                            : updateProfileProfile.getTokenDurationSMS( pwmRequest.getConfig() );
 
                     TokenUtil.initializeAndSendToken(
                             pwmRequest,
-                            pwmRequest.getPwmSession().getUserInfo(),
-                            tokenDestinationItem,
-                            PwmSetting.EMAIL_UPDATEPROFILE_VERIFICATION,
-                            TokenType.UPDATE,
-                            PwmSetting.SMS_UPDATE_PROFILE_TOKEN_TEXT
+                            TokenUtil.TokenInitAndSendRequest.builder()
+                                    .userInfo( pwmRequest.getPwmSession().getUserInfo() )
+                                    .tokenDestinationItem( tokenDestinationItem )
+                                    .emailToSend( PwmSetting.EMAIL_UPDATEPROFILE_VERIFICATION )
+                                    .tokenType( TokenType.UPDATE )
+                                    .smsToSend( PwmSetting.SMS_UPDATE_PROFILE_TOKEN_TEXT )
+                                    .tokenLifetime( tokenLifetime )
+                                    .build()
                     );
                     updateProfileBean.setTokenSent( true );
 

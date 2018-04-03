@@ -445,11 +445,13 @@ public class ActivateUserServlet extends ControlledPwmServlet
 
                 TokenUtil.initializeAndSendToken(
                         pwmRequest,
-                        userInfo,
-                        activateUserBean.getTokenDestination(),
-                        PwmSetting.EMAIL_ACTIVATION_VERIFICATION,
-                        TokenType.ACTIVATION,
-                        PwmSetting.SMS_ACTIVATION_VERIFICATION_TEXT
+                        TokenUtil.TokenInitAndSendRequest.builder()
+                                .userInfo( userInfo )
+                                .tokenDestinationItem( activateUserBean.getTokenDestination() )
+                                .emailToSend( PwmSetting.EMAIL_ACTIVATION_VERIFICATION )
+                                .tokenType( TokenType.ACTIVATION )
+                                .smsToSend( PwmSetting.SMS_ACTIVATION_VERIFICATION_TEXT )
+                                .build()
                 );
             }
 

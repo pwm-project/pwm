@@ -49,6 +49,7 @@ public class TokenPayload implements Serializable
     @SerializedName( "n" )
     private final String name;
 
+    @SerializedName( "p" )
     private final Map<String, String> data;
 
     @SerializedName( "user" )

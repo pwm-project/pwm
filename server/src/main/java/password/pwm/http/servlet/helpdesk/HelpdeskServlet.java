@@ -33,6 +33,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
+import password.pwm.bean.TokenDestinationItem;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -58,9 +59,9 @@ import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.ControlledPwmServlet;
-import password.pwm.ldap.PhotoDataBean;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapOperationsHelper;
+import password.pwm.ldap.PhotoDataBean;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.search.SearchConfiguration;
@@ -678,40 +679,70 @@ public class HelpdeskServlet extends ControlledPwmServlet
         final Instant startTime = Instant.now();
         final Configuration config = pwmRequest.getConfig();
         final Map<String, String> bodyParams = pwmRequest.readBodyAsJsonStringMap();
-        MessageSendMethod tokenSendMethod = helpdeskProfile.readSettingAsEnum( PwmSetting.HELPDESK_TOKEN_SEND_METHOD, MessageSendMethod.class );
-        if ( tokenSendMethod == MessageSendMethod.CHOICE_SMS_EMAIL )
-        {
-            final String methodParamName = "method";
-            if ( bodyParams != null && bodyParams.containsKey( methodParamName ) )
-            {
-                final String methodParam = bodyParams.getOrDefault( methodParamName, "" );
-                switch ( methodParam )
-                {
-                    case "sms":
-                        tokenSendMethod = MessageSendMethod.SMSONLY;
-                        break;
-
-                    case "email":
-                        tokenSendMethod = MessageSendMethod.EMAILONLY;
-                        break;
-
-                    default:
-                        throw new UnsupportedOperationException( "unknown tokenSendMethod: " + methodParam );
-                }
-            }
-            if ( tokenSendMethod == MessageSendMethod.CHOICE_SMS_EMAIL )
-            {
-                final ErrorInformation errorInformation = new ErrorInformation(
-                        PwmError.ERROR_TOKEN_MISSING_CONTACT,
-                        "unable to determine appropriate send method, missing method parameter indication from operator"
-                );
-                LOGGER.error( pwmRequest, errorInformation );
-                pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
-                return ProcessStatus.Halt;
-            }
-        }
 
         final UserIdentity userIdentity = UserIdentity.fromKey( bodyParams.get( PwmConstants.PARAM_USERKEY ), pwmRequest.getPwmApplication() );
+        final UserInfo userInfo = UserInfoFactory.newUserInfo(
+                pwmRequest.getPwmApplication(),
+                pwmRequest.getSessionLabel(),
+                pwmRequest.getLocale(),
+                userIdentity,
+                getChaiUser( pwmRequest, helpdeskProfile, userIdentity ).getChaiProvider()
+        );
+
+        final TokenDestinationItem tokenDestinationItem;
+        {
+            final MessageSendMethod effectiveSendMethod;
+            {
+                final MessageSendMethod configuredSendMethod = helpdeskProfile.readSettingAsEnum( PwmSetting.HELPDESK_TOKEN_SEND_METHOD, MessageSendMethod.class );
+                if ( configuredSendMethod == MessageSendMethod.CHOICE_SMS_EMAIL )
+                {
+                    final String methodParamName = "method";
+                    final String methodParam = bodyParams.getOrDefault( methodParamName, "" );
+                    switch ( methodParam )
+                    {
+                        case "sms":
+                            effectiveSendMethod = MessageSendMethod.SMSONLY;
+                            break;
+
+                        case "email":
+                            effectiveSendMethod = MessageSendMethod.EMAILONLY;
+                            break;
+
+                        default:
+                            throw new UnsupportedOperationException( "unknown tokenSendMethod: " + methodParam );
+                    }
+                }
+                else
+                {
+                    effectiveSendMethod = configuredSendMethod;
+                }
+            }
+
+            switch ( effectiveSendMethod )
+            {
+                case SMSONLY:
+                    tokenDestinationItem = TokenDestinationItem.builder()
+                            .id( "0" )
+                            .display( userInfo.getUserSmsNumber() )
+                            .value( userInfo.getUserSmsNumber() )
+                            .type( TokenDestinationItem.Type.sms )
+                            .build();
+                    break;
+
+                case EMAILONLY:
+                    tokenDestinationItem = TokenDestinationItem.builder()
+                            .id( "0" )
+                            .display( userInfo.getUserEmailAddress() )
+                            .value( userInfo.getUserEmailAddress() )
+                            .type( TokenDestinationItem.Type.email )
+                            .build();
+                    break;
+
+                default:
+                    throw new UnsupportedOperationException( "unknown tokenSendMethod: " + effectiveSendMethod );
+
+            }
+        }
 
         final HelpdeskDetailInfoBean helpdeskDetailInfoBean = HelpdeskDetailInfoBean.makeHelpdeskDetailInfo( pwmRequest, helpdeskProfile, userIdentity );
         if ( helpdeskDetailInfoBean == null )
@@ -721,38 +752,10 @@ public class HelpdeskServlet extends ControlledPwmServlet
             pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
             return ProcessStatus.Halt;
         }
-        final UserInfo userInfo = UserInfoFactory.newUserInfo(
-                pwmRequest.getPwmApplication(),
-                pwmRequest.getSessionLabel(),
-                pwmRequest.getLocale(),
-                userIdentity,
-                getChaiUser( pwmRequest, helpdeskProfile, userIdentity ).getChaiProvider()
-        );
         final MacroMachine macroMachine = MacroMachine.forUser( pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), userInfo, null );
         final String configuredTokenString = config.readAppProperty( AppProperty.HELPDESK_TOKEN_VALUE );
         final String tokenKey = macroMachine.expandMacros( configuredTokenString );
         final EmailItemBean emailItemBean = config.readSettingAsEmail( PwmSetting.EMAIL_HELPDESK_TOKEN, pwmRequest.getLocale() );
-
-        final String destEmailAddress = macroMachine.expandMacros( emailItemBean.getTo() );
-        final StringBuilder destDisplayString = new StringBuilder();
-        if ( destEmailAddress != null && !destEmailAddress.isEmpty() )
-        {
-            if ( tokenSendMethod == MessageSendMethod.EMAILONLY )
-            {
-                destDisplayString.append( destEmailAddress );
-            }
-        }
-        if ( userInfo.getUserSmsNumber() != null && !userInfo.getUserSmsNumber().isEmpty() )
-        {
-            if ( tokenSendMethod == MessageSendMethod.SMSONLY )
-            {
-                if ( destDisplayString.length() > 0 )
-                {
-                    destDisplayString.append( ", " );
-                }
-                destDisplayString.append( userInfo.getUserSmsNumber() );
-            }
-        }
 
         LOGGER.debug( pwmRequest, "generated token code for " + userIdentity.toDelimitedKey() );
 
@@ -766,9 +769,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
                             .userInfo( userInfo )
                             .macroMachine( macroMachine )
                             .configuredEmailSetting( emailItemBean )
-                            .tokenSendMethod( tokenSendMethod )
-                            .emailAddress( destEmailAddress )
-                            .smsNumber( userInfo.getUserSmsNumber() )
+                            .tokenDestinationItem( tokenDestinationItem )
                             .smsMessage( smsMessage )
                             .tokenKey( tokenKey )
                             .sessionLabel( pwmRequest.getSessionLabel() )
@@ -784,7 +785,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
 
         StatisticsManager.incrementStat( pwmRequest, Statistic.HELPDESK_TOKENS_SENT );
         final HelpdeskVerificationRequestBean helpdeskVerificationRequestBean = new HelpdeskVerificationRequestBean();
-        helpdeskVerificationRequestBean.setDestination( destDisplayString.toString() );
+        helpdeskVerificationRequestBean.setDestination( tokenDestinationItem.getDisplay() );
         helpdeskVerificationRequestBean.setUserKey( bodyParams.get( PwmConstants.PARAM_USERKEY ) );
 
         final HelpdeskVerificationRequestBean.TokenData tokenData = new HelpdeskVerificationRequestBean.TokenData();
@@ -801,7 +802,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
                 + " issued token for verification against user "
                 + userIdentity.toDisplayString()
                 + " sent to destination(s) "
-                + destDisplayString
+                + tokenDestinationItem.getDisplay()
                 + " (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
         return ProcessStatus.Halt;
     }
