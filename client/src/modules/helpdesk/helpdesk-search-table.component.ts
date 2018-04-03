@@ -25,11 +25,11 @@ import {IQService, IScope, ITimeoutService} from 'angular';
 import HelpDeskSearchBaseComponent from './helpdesk-search-base.component';
 import {Component} from '../../component';
 import SearchResult from '../../models/search-result.model';
-import {IPeopleService} from '../../services/people.service';
 import {IHelpDeskConfigService} from '../../services/helpdesk-config.service';
 import LocalStorageService from '../../services/local-storage.service';
 import PromiseService from '../../services/promise.service';
 import {IHelpDeskService} from '../../services/helpdesk.service';
+import IPwmService from '../../services/pwm.service';
 
 @Component({
     stylesheetUrl: require('modules/helpdesk/helpdesk-search.component.scss'),
@@ -49,7 +49,8 @@ export default class HelpDeskSearchTableComponent extends HelpDeskSearchBaseComp
         'HelpDeskService',
         'IasDialogService',
         'LocalStorageService',
-        'PromiseService'
+        'PromiseService',
+        'PwmService'
     ];
     constructor($q: IQService,
                 $scope: IScope,
@@ -61,9 +62,10 @@ export default class HelpDeskSearchTableComponent extends HelpDeskSearchBaseComp
                 helpDeskService: IHelpDeskService,
                 IasDialogService: any,
                 localStorageService: LocalStorageService,
-                promiseService: PromiseService) {
+                promiseService: PromiseService,
+                pwmService: IPwmService) {
         super($q, $scope, $stateParams, $timeout, $translate, configService, helpDeskService, IasDialogService,
-              localStorageService, promiseService);
+              localStorageService, promiseService, pwmService);
     }
 
     $onInit() {
