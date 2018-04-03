@@ -23,7 +23,7 @@
 <div class="ias-header">
     <h2 id="page-content-title" translate="Title_HelpDesk">Help Desk</h2>
     <ias-search-box ng-model="$ctrl.query" ng-model-options="{debounce: $ctrl.inputDebounce}"
-                    placeholder="{{'Placeholder_Search' | translate}}" auto-focus>
+                    placeholder="{{'Placeholder_Search' | translate}}">
     </ias-search-box>
     <ias-button class="verifications-button ias-cta" ng-if="$ctrl.verificationsEnabled"
                 ng-click="$ctrl.showVerifications()">{{ 'Button_Verifications' | translate }}</ias-button>

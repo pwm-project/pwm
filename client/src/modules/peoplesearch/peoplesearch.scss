@@ -106,3 +106,12 @@ body {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+@media (min-width: 768px) {
+  .ias-dialog {
+    .ias-dialog-container {
+      max-width: 100%;
+      width: 375px;
+    }
+  }
+}

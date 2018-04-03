@@ -25,7 +25,7 @@ import { Component } from '../../component';
 import { IPeopleSearchConfigService } from '../../services/peoplesearch-config.service';
 import IPeopleService from '../../services/people.service';
 import IPwmService from '../../services/pwm.service';
-import { IQService, IScope } from 'angular';
+import {IQService, IScope, ITimeoutService} from 'angular';
 import LocalStorageService from '../../services/local-storage.service';
 import PeopleSearchBaseComponent from './peoplesearch-base.component';
 import PromiseService from '../../services/promise.service';
@@ -43,6 +43,7 @@ export default class PeopleSearchTableComponent extends PeopleSearchBaseComponen
         '$scope',
         '$state',
         '$stateParams',
+        '$timeout',
         '$translate',
         'ConfigService',
         'LocalStorageService',
@@ -54,6 +55,7 @@ export default class PeopleSearchTableComponent extends PeopleSearchBaseComponen
                 $scope: IScope,
                 $state: angular.ui.IStateService,
                 $stateParams: angular.ui.IStateParamsService,
+                $timeout: ITimeoutService,
                 $translate: angular.translate.ITranslateService,
                 configService: IPeopleSearchConfigService,
                 localStorageService: LocalStorageService,
@@ -64,6 +66,7 @@ export default class PeopleSearchTableComponent extends PeopleSearchBaseComponen
             $scope,
             $state,
             $stateParams,
+            $timeout,
             $translate,
             configService,
             localStorageService,

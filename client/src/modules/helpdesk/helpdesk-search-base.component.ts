@@ -23,7 +23,7 @@
 
 import {IPeopleService} from '../../services/people.service';
 import SearchResult from '../../models/search-result.model';
-import {isArray, isString, IPromise, IQService, IScope} from 'angular';
+import {isArray, isString, IPromise, IQService, IScope, ITimeoutService} from 'angular';
 import {IPerson} from '../../models/person.model';
 import {IHelpDeskConfigService} from '../../services/helpdesk-config.service';
 import LocalStorageService from '../../services/local-storage.service';
@@ -49,6 +49,7 @@ export default abstract class HelpDeskSearchBaseComponent {
     constructor(protected $q: IQService,
                 protected $scope: IScope,
                 protected $stateParams: angular.ui.IStateParamsService,
+                protected $timeout: ITimeoutService,
                 protected $translate: angular.translate.ITranslateService,
                 protected configService: IHelpDeskConfigService,
                 protected helpDeskService: IHelpDeskService,
@@ -68,6 +69,11 @@ export default abstract class HelpDeskSearchBaseComponent {
 
         this.configService.verificationsEnabled().then((verificationsEnabled: boolean) => {
             this.verificationsEnabled = verificationsEnabled;
+        });
+
+        // Once <ias-search-box> from ng-ias allows the autofocus attribute, we can remove this code
+        this.$timeout(() => {
+            document.getElementsByTagName('input')[0].focus();
         });
     }
 

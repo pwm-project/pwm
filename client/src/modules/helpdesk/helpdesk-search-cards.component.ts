@@ -22,7 +22,7 @@
 
 
 import {Component} from '../../component';
-import {IQService, IScope} from 'angular';
+import {IQService, IScope, ITimeoutService} from 'angular';
 import {IHelpDeskConfigService} from '../../services/helpdesk-config.service';
 import LocalStorageService from '../../services/local-storage.service';
 import HelpDeskSearchBaseComponent from './helpdesk-search-base.component';
@@ -41,6 +41,7 @@ export default class HelpDeskSearchCardsComponent extends HelpDeskSearchBaseComp
         '$scope',
         '$state',
         '$stateParams',
+        '$timeout',
         '$translate',
         'ConfigService',
         'HelpDeskService',
@@ -52,13 +53,14 @@ export default class HelpDeskSearchCardsComponent extends HelpDeskSearchBaseComp
                 $scope: IScope,
                 private $state: angular.ui.IStateService,
                 $stateParams: angular.ui.IStateParamsService,
+                $timeout: ITimeoutService,
                 $translate: angular.translate.ITranslateService,
                 configService: IHelpDeskConfigService,
                 helpDeskService: IHelpDeskService,
                 IasDialogService: any,
                 localStorageService: LocalStorageService,
                 promiseService: PromiseService) {
-        super($q, $scope, $stateParams, $translate, configService, helpDeskService, IasDialogService,
+        super($q, $scope, $stateParams, $timeout, $translate, configService, helpDeskService, IasDialogService,
             localStorageService, promiseService);
     }
 
