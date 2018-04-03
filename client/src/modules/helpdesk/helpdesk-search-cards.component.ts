@@ -30,6 +30,7 @@ import SearchResult from '../../models/search-result.model';
 import {IPerson} from '../../models/person.model';
 import PromiseService from '../../services/promise.service';
 import {IHelpDeskService} from '../../services/helpdesk.service';
+import IPwmService from '../../services/pwm.service';
 
 @Component({
     stylesheetUrl: require('modules/helpdesk/helpdesk-search.component.scss'),
@@ -47,7 +48,8 @@ export default class HelpDeskSearchCardsComponent extends HelpDeskSearchBaseComp
         'HelpDeskService',
         'IasDialogService',
         'LocalStorageService',
-        'PromiseService'
+        'PromiseService',
+        'PwmService'
     ];
     constructor($q: IQService,
                 $scope: IScope,
@@ -59,9 +61,10 @@ export default class HelpDeskSearchCardsComponent extends HelpDeskSearchBaseComp
                 helpDeskService: IHelpDeskService,
                 IasDialogService: any,
                 localStorageService: LocalStorageService,
-                promiseService: PromiseService) {
+                promiseService: PromiseService,
+                pwmService: IPwmService) {
         super($q, $scope, $stateParams, $timeout, $translate, configService, helpDeskService, IasDialogService,
-            localStorageService, promiseService);
+            localStorageService, promiseService, pwmService);
     }
 
     $onInit() {
