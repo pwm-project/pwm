@@ -915,7 +915,7 @@ public class LdapOperationsHelper
             throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
     {
         final LdapProfile ldapProfile = userIdentity.getLdapProfile( configuration );
-        final String attribute = ldapProfile.readSettingAsString( PwmSetting.PEOPLE_SEARCH_PHOTO_ATTRIBUTE );
+        final String attribute = ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_PHOTO );
         if ( attribute == null || attribute.isEmpty() )
         {
             throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "ldap photo attribute is not configured" ) );

@@ -79,10 +79,10 @@ class PeopleSearchDataReader
     private final PwmRequest pwmRequest;
     private final PeopleSearchConfiguration peopleSearchConfiguration;
 
-    PeopleSearchDataReader( final PwmRequest pwmRequest )
+    PeopleSearchDataReader( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
         this.pwmRequest = pwmRequest;
-        this.peopleSearchConfiguration = PeopleSearchConfiguration.fromConfiguration( pwmRequest.getPwmApplication() );
+        this.peopleSearchConfiguration = PeopleSearchConfiguration.forRequest( pwmRequest );
     }
 
     SearchResultBean makeSearchResultBean(
