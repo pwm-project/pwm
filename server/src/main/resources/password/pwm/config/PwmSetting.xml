@@ -3411,7 +3411,7 @@
     </setting>
     <setting hidden="false" key="helpdesk.result.limit" level="2" required="true">
         <default>
-            <value>500</value>
+            <value>200</value>
         </default>
         <properties>
             <property key="Minimum">1</property>
