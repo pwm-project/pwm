@@ -40,6 +40,7 @@ let verificationsDialogTemplateUrl = require('./verifications-dialog.template.ht
 const STATUS_WAIT = 'wait';
 const STATUS_CONFIRM = 'confirm';
 const STATUS_SUCCESS = 'success';
+const PROFILE_TAB_NAME = 'profileTab';
 
 @Component({
     stylesheetUrl: require('modules/helpdesk/helpdesk-detail.component.scss'),
@@ -55,14 +56,16 @@ export default class HelpDeskDetailComponent {
         '$stateParams',
         'ConfigService',
         'HelpDeskService',
-        'IasDialogService'
+        'IasDialogService',
+        'IasToggleService'
     ];
 
     constructor(private $state: ui.IStateService,
                 private $stateParams: ui.IStateParamsService,
                 private configService: IHelpDeskConfigService,
                 private helpDeskService: IHelpDeskService,
-                private IasDialogService: any) {
+                private IasDialogService: any,
+                private toggleService: { showComponent: (componentName: string) => null }) {
     }
 
     $onInit(): void {
@@ -130,15 +133,16 @@ export default class HelpDeskDetailComponent {
                     '$scope',
                     'HelpDeskService',
                     'translateFilter',
-                    function ($scope: IScope | any,
-                              helpDeskService: IHelpDeskService,
-                              translateFilter: (id: string) => string) {
+                    ($scope: IScope | any,
+                     helpDeskService: IHelpDeskService,
+                     translateFilter: (id: string) => string) => {
                         $scope.status = STATUS_WAIT;
                         $scope.title = translateFilter('Button_ClearResponses');
                         helpDeskService.clearResponses(userKey).then((data: ISuccessResponse) => {
                             // TODO - error dialog?
                             $scope.status = STATUS_SUCCESS;
                             $scope.text = data.successMessage;
+                            this.refresh();
                         });
                     }
                 ],
@@ -169,7 +173,7 @@ export default class HelpDeskDetailComponent {
                     personUserKey: this.getUserKey()
                 }
             })
-            .then(this.changePasswordClearResponses.bind(this), noop);
+            .then(this.changePasswordClearResponses.bind(this), this.refresh.bind(this));
     }
 
     changePasswordType() {
@@ -180,7 +184,7 @@ export default class HelpDeskDetailComponent {
                 locals: {
                     personUserKey: this.getUserKey()
                 }
-            })          // TODO: right data type?
+            })
             // If the operator clicked "Random Passwords" or the password was changed, the promise resolves.
             .then((data: IChangePasswordSuccess & { autogenPasswords: boolean }) => {
                 // If the operator clicked "Random Passwords", data.autogenPasswords will be true
@@ -272,9 +276,9 @@ export default class HelpDeskDetailComponent {
                     '$scope',
                     'HelpDeskService',
                     'translateFilter',
-                    function ($scope: IScope | any,
-                              helpDeskService: IHelpDeskService,
-                              translateFilter: (id: string) => string) {
+                    ($scope: IScope | any,
+                     helpDeskService: IHelpDeskService,
+                     translateFilter: (id: string) => string) => {
                         $scope.status = STATUS_CONFIRM;
                         $scope.title = translateFilter('Button_Confirm') + ' ' + button.label;
                         $scope.text = button.description;
@@ -287,6 +291,7 @@ export default class HelpDeskDetailComponent {
                                 $scope.title = translateFilter('Title_Success');
                                 $scope.secondaryText = null;
                                 $scope.text = data.successMessage;
+                                this.refresh();
                             });
                         };
                     }
@@ -300,7 +305,6 @@ export default class HelpDeskDetailComponent {
             return;
         }
 
-        let self = this;
         let userKey = this.getUserKey();
 
         this.IasDialogService
@@ -310,10 +314,10 @@ export default class HelpDeskDetailComponent {
                     'HelpDeskService',
                     'IasDialogService',
                     'translateFilter',
-                    function ($scope: IScope | any,
-                              helpDeskService: IHelpDeskService,
-                              IasDialogService: any,
-                              translateFilter: (id: string) => string) {
+                    ($scope: IScope | any,
+                     helpDeskService: IHelpDeskService,
+                     IasDialogService: any,
+                     translateFilter: (id: string) => string) => {
                         $scope.status = STATUS_CONFIRM;
                         $scope.title = translateFilter('Button_Confirm');
                         $scope.text = translateFilter('Confirm_DeleteUser');
@@ -326,7 +330,7 @@ export default class HelpDeskDetailComponent {
                                 $scope.text = data.successMessage;
                                 $scope.close = () => {
                                     IasDialogService.close();
-                                    self.gotoSearch();
+                                    this.gotoSearch();
                                 };
                             });
                         };
@@ -354,6 +358,8 @@ export default class HelpDeskDetailComponent {
         this.helpDeskService.getPersonCard(personId).then((personCard: IPerson) => {
             this.personCard = personCard;
         });
+
+        this.toggleService.showComponent(PROFILE_TAB_NAME);
 
         this.helpDeskService
             .getPerson(personId)
