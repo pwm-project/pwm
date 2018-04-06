@@ -190,6 +190,11 @@ public class PwNotifyService implements PwmService
     @Override
     public List<HealthRecord> healthCheck( )
     {
+        if ( status != STATUS.OPEN )
+        {
+            return Collections.emptyList();
+        }
+
         try
         {
             final StoredJobState storedJobState = readStoredJobState();

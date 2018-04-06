@@ -705,6 +705,28 @@ public class UserInfoReader implements UserInfo
     }
 
     @Override
+    public byte[] readBinaryAttribute(
+            final String attribute
+    )
+            throws PwmUnrecoverableException
+    {
+        try
+        {
+            final byte[][] value = chaiUser.readMultiByteAttribute( attribute );
+            if ( value != null && value.length > 0 )
+            {
+                return value[0];
+            }
+        }
+        catch ( ChaiException e )
+        {
+            throw PwmUnrecoverableException.fromChaiException( e );
+        }
+
+        return null;
+    }
+
+    @Override
     public Instant readDateAttribute( final String attribute )
             throws PwmUnrecoverableException
     {

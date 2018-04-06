@@ -246,7 +246,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
             final Instant expirationDate = readExpirationFromRequest( pwmRequest );
 
             // Update user attributes
-            LdapOperationsHelper.writeFormValuesToLdap( pwmApplication, pwmSession.getSessionManager().getMacroMachine( pwmApplication ), theGuest, formValues, false );
+            LdapOperationsHelper.writeFormValuesToLdap( theGuest, formValues, pwmSession.getSessionManager().getMacroMachine( pwmApplication ), false );
 
             // Write expirationDate
             if ( expirationDate != null )

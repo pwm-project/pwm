@@ -299,6 +299,10 @@ public enum PwmError
             5089, "Error_PasswordOnlyBad", null ),
     ERROR_RECOVERY_SEQUENCE_INCOMPLETE(
             5090, "Error_RecoverySequenceIncomplete", null ),
+    ERROR_FILE_TYPE_INCORRECT(
+            5091, "Error_FileTypeIncorrect", null ),
+    ERROR_FILE_TOO_LARGE(
+            5092, "Error_FileTooLarge", null ),
 
     ERROR_REMOTE_ERROR_VALUE(
             6000, "Error_RemoteErrorValue", null, ErrorFlag.Permanent ),

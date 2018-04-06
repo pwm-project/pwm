@@ -58,6 +58,13 @@
                     <label class="checkboxWrapper">
                         <input id="<%=formConfiguration.getName()%>" name="<%=formConfiguration.getName()%>" disabled type="checkbox" <%=(Boolean.parseBoolean(value))?"checked":""%>/>
                     </label>
+                    <% } else if (formConfiguration.getType() == FormConfiguration.Type.photo) { %>
+                    <% if (StringUtil.isEmpty( value) ) { %>
+                    <div class="formfield-photo-missing">
+                    </div>
+                    <% } else { %>
+                    <img class="formfield-photo" src="<pwm:current-url/>?processAction=readPhoto&field=<%=formConfiguration.getName()%>"/>
+                    <% } %>
                     <% } else { %>
                     <%=StringUtil.escapeHtml(formConfiguration.displayValue(value, JspUtility.locale(request), JspUtility.getPwmRequest(pageContext).getConfig()))%>
                     <% } %>

@@ -106,11 +106,13 @@ public class UpdateProfileUtil
             }
             else
             {
-                newFormValueMap.put( formConfiguration, formValueMap.get( formConfiguration ) );
+                if ( formConfiguration.getType() != FormConfiguration.Type.photo )
+                {
+                    newFormValueMap.put( formConfiguration, formValueMap.get( formConfiguration ) );
+                }
             }
         }
 
-        updateProfileBean.getFormData().clear();
         updateProfileBean.getFormData().putAll( FormUtility.asStringMap( newFormValueMap ) );
 
         return newFormValueMap;
@@ -363,7 +365,7 @@ public class UpdateProfileUtil
         // write values.
         LOGGER.info( "updating profile for " + userInfo.getUserIdentity() );
 
-        LdapOperationsHelper.writeFormValuesToLdap( pwmApplication, macroMachine, theUser, formMap, false );
+        LdapOperationsHelper.writeFormValuesToLdap( theUser, formMap, macroMachine, false );
 
         final UserIdentity userIdentity = userInfo.getUserIdentity();
 

@@ -3032,6 +3032,7 @@
             <option value="url">url</option>
             <option value="select">select</option>
             <option value="checkbox">checkbox</option>
+            <option value="photo">photo</option>
         </options>
     </setting>
     <setting hidden="true" key="updateAttributes.check.queryMatch" level="3">

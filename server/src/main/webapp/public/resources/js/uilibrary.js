@@ -179,8 +179,8 @@ UILibrary.editLdapDN = function(nextFunction, options) {
                 body += '<br/><div>' + data['errorDetail'] + '</div>';
             }
             PWM_MAIN.showDialog({title:'Error',text:body,okAction:function(){
-                UILibrary.stringEditorDialog({value:currentDN,completeFunction:nextFunction});
-            }});
+                    UILibrary.stringEditorDialog({value:currentDN,completeFunction:nextFunction});
+                }});
             return;
         }
 
@@ -242,71 +242,70 @@ UILibrary.editLdapDN = function(nextFunction, options) {
         body += '<button class="btn" id="button-clearDN"><span class="btn-icon pwm-icon pwm-icon-times"></span>Clear Value</button></div>';
 
         PWM_MAIN.showDialog({title:'LDAP Browser',dialogClass:'auto',showOk:false,showClose:true,text:body,loadFunction:function(){
-            PWM_MAIN.addEventHandler('button-editDN','click',function(){
-                UILibrary.stringEditorDialog({value:currentDN,completeFunction:nextFunction});
-            });
-            PWM_MAIN.addEventHandler('button-refresh','click',function(){
-                UILibrary.editLdapDN(nextFunction,{profile:profile,currentDN:currentDN});
-            });
-            PWM_MAIN.addEventHandler('button-clearDN','click',function(){
-                nextFunction('');
-                PWM_MAIN.closeWaitDialog();
-            });
-
-            PWM_MAIN.doQuery(".selectableDN",function(element){
-                var dnValue = element.getAttribute("data-dn");
-                PWM_MAIN.addEventHandler(element,'click',function(){
-                    var ldapProfileID = "default";
-                    if (document.getElementById("select-profileList")) {
-                        ldapProfileID = document.getElementById("select-profileList").value;
-                    }
-
-                    nextFunction(dnValue, ldapProfileID);
+                PWM_MAIN.addEventHandler('button-editDN','click',function(){
+                    UILibrary.stringEditorDialog({value:currentDN,completeFunction:nextFunction});
+                });
+                PWM_MAIN.addEventHandler('button-refresh','click',function(){
+                    UILibrary.editLdapDN(nextFunction,{profile:profile,currentDN:currentDN});
+                });
+                PWM_MAIN.addEventHandler('button-clearDN','click',function(){
+                    nextFunction('');
                     PWM_MAIN.closeWaitDialog();
                 });
-            });
 
-            PWM_MAIN.doQuery(".navigableDN",function(element){
-                var dnValue = element.getAttribute("data-dn");
-                PWM_MAIN.addEventHandler(element,'click',function(){
-                    UILibrary.editLdapDN(nextFunction,{profile:profile,currentDN:dnValue});
-                });
-            });
-
-            if (!PWM_MAIN.JSLibrary.isEmpty(data['data']['profileList'])) {
-                var profileList = data['data']['profileList'];
-                var profileSelect = PWM_MAIN.getObject('select-profileList');
-                for (var i in profileList) {
-                    (function(loopProfile) {
-                        var optionElement = document.createElement('option');
-                        optionElement.innerHTML = loopProfile;
-                        optionElement.value = loopProfile;
-                        if (loopProfile === profile) {
-                            optionElement.selected = true;
+                PWM_MAIN.doQuery(".selectableDN",function(element){
+                    var dnValue = element.getAttribute("data-dn");
+                    PWM_MAIN.addEventHandler(element,'click',function(){
+                        var ldapProfileID = "default";
+                        if (document.getElementById("select-profileList")) {
+                            ldapProfileID = document.getElementById("select-profileList").value;
                         }
-                        profileSelect.appendChild(optionElement);
-                    })(profileList[i]);
-                }
-                PWM_MAIN.addEventHandler('select-profileList','change',function(){
-                    var value = profileSelect.options[profileSelect.selectedIndex].value;
-                    UILibrary.editLdapDN(nextFunction,{profile:value,currentDN:''});
+
+                        nextFunction(dnValue, ldapProfileID);
+                        PWM_MAIN.closeWaitDialog();
+                    });
                 });
-            }
-        }});
+
+                PWM_MAIN.doQuery(".navigableDN",function(element){
+                    var dnValue = element.getAttribute("data-dn");
+                    PWM_MAIN.addEventHandler(element,'click',function(){
+                        UILibrary.editLdapDN(nextFunction,{profile:profile,currentDN:dnValue});
+                    });
+                });
+
+                if (!PWM_MAIN.JSLibrary.isEmpty(data['data']['profileList'])) {
+                    var profileList = data['data']['profileList'];
+                    var profileSelect = PWM_MAIN.getObject('select-profileList');
+                    for (var i in profileList) {
+                        (function(loopProfile) {
+                            var optionElement = document.createElement('option');
+                            optionElement.innerHTML = loopProfile;
+                            optionElement.value = loopProfile;
+                            if (loopProfile === profile) {
+                                optionElement.selected = true;
+                            }
+                            profileSelect.appendChild(optionElement);
+                        })(profileList[i]);
+                    }
+                    PWM_MAIN.addEventHandler('select-profileList','change',function(){
+                        var value = profileSelect.options[profileSelect.selectedIndex].value;
+                        UILibrary.editLdapDN(nextFunction,{profile:value,currentDN:''});
+                    });
+                }
+            }});
     };
 
     PWM_MAIN.showWaitDialog({loadFunction:function(){
-        var content = {};
-        content['profile'] = profile;
-        content['dn'] = currentDN;
-        var url = window.location.pathname + "?processAction=browseLdap";
-        PWM_MAIN.ajaxRequest(url,processResults,{content:content});
-    }});
+            var content = {};
+            content['profile'] = profile;
+            content['dn'] = currentDN;
+            var url = window.location.pathname + "?processAction=browseLdap";
+            PWM_MAIN.ajaxRequest(url,processResults,{content:content});
+        }});
 };
 
 UILibrary.uploadFileDialog = function(options) {
     options = options === undefined ? {} : options;
-
     var body = '';
 
     if ('text' in options) {
@@ -317,7 +316,7 @@ UILibrary.uploadFileDialog = function(options) {
     body += '<div id="fileList"></div>';
     body += '<input style="width:80%" class="btn" name="uploadFile" type="file" label="Select File" id="uploadFile"/>';
     body += '<div class="buttonbar">';
-    body += '<button class="btn" type="submit" id="uploadButton" name="Upload"><span class="pwm-icon pwm-icon-upload"></span> Upload</button>';
+    body += '<button class="btn" type="button" id="uploadButton" name="Upload" disabled><span class="pwm-icon pwm-icon-upload"></span> Upload</button>';
     body += '</div></div>';
 
     var currentUrl = window.location.pathname;
@@ -328,8 +327,8 @@ UILibrary.uploadFileDialog = function(options) {
 
     var nextFunction = 'nextFunction' in options ? options['nextFunction'] : function(data){
         PWM_MAIN.showDialog({title: PWM_MAIN.showString("Title_Success"), text: data['successMessage'],okAction:function(){
-            PWM_MAIN.goto(currentUrl)
-        }});
+                PWM_MAIN.goto(currentUrl)
+            }});
     };
 
 
@@ -338,8 +337,8 @@ UILibrary.uploadFileDialog = function(options) {
         if (data['error'] === true) {
             var errorText = 'The file upload has failed.  Please try again or check the server logs for error information.';
             PWM_MAIN.showErrorDialog(data,{text:errorText,okAction:function(){
-                location.reload();
-            }});
+                    location.reload();
+                }});
         } else {
             nextFunction(data);
         }
@@ -419,9 +418,6 @@ UILibrary.uploadFileDialog = function(options) {
         xhr.send(fd);
         PWM_GLOBAL['inhibitHealthUpdate'] = true;
         PWM_MAIN.IdleTimeoutHandler.cancelCountDownTimer();
-        if (PWM_MAIN.getObject('centerbody')) {
-            PWM_MAIN.getObject('centerbody').innerHTML = 'Upload in progress...';
-        }
         PWM_MAIN.showWaitDialog({title:'Uploading...'});
     };
 
@@ -445,7 +441,7 @@ UILibrary.uploadFileDialog = function(options) {
 
         return supportFileAPI() && supportAjaxUploadProgressEvents() && supportFormData();
     };
-    
+
     if(!supportAjaxUploadWithProgress()){
         PWM_MAIN.showDialog('This browser does not support HTML5 file uploads.');
         return;
@@ -458,6 +454,12 @@ UILibrary.uploadFileDialog = function(options) {
         text:body,
         loadFunction:function(){
             PWM_MAIN.addEventHandler('uploadButton','click',uploadFunction);
+            PWM_MAIN.addEventHandler('uploadFile','change',function(){
+                var btn = PWM_MAIN.getObject('uploadButton');
+                console.log('value=' + btn.value);
+                btn.disabled = btn.value ? true : false;
+            });
+
         }
     });
 };
@@ -525,8 +527,8 @@ UILibrary.passwordDialogPopup = function(options, state) {
         };
 
         PWM_MAIN.showWaitDialog({loadFunction:function(){
-            PWM_MAIN.ajaxRequest(url,loadFunction,{content:postData});
-        }});
+                PWM_MAIN.ajaxRequest(url,loadFunction,{content:postData});
+            }});
     };
 
 

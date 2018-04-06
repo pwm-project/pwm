@@ -99,7 +99,7 @@ public class FormUtility
             final String keyName = formItem.getName();
             final String value = inputMap.get( keyName );
 
-            if ( formItem.isRequired() && !formItem.isReadonly() )
+            if ( formItem.isRequired() && !formItem.isReadonly() && formItem.getType() != FormConfiguration.Type.photo )
             {
                 if ( StringUtil.isEmpty( value ) )
                 {
@@ -536,6 +536,15 @@ public class FormUtility
                             dataFromLdap.put( attribute, values );
                         }
                     }
+                    else if ( formConfiguration.getType() == FormConfiguration.Type.photo )
+                    {
+                        final byte[] byteValue = userInfo.readBinaryAttribute( attribute );
+                        if ( byteValue != null && byteValue.length > 0 )
+                        {
+                            final String b64value = StringUtil.base64Encode( byteValue );
+                            dataFromLdap.put( attribute, Collections.singletonList( b64value ) );
+                        }
+                    }
                     else
                     {
                         final String value = userInfo.readStringAttribute( attribute );
@@ -623,5 +632,15 @@ public class FormUtility
         }
 
         return returnObj;
+    }
+
+    public static Map<String, FormConfiguration> asFormNameMap( final List<FormConfiguration> formConfigurations )
+    {
+        final Map<String, FormConfiguration> returnMap = new LinkedHashMap<>();
+        for ( final FormConfiguration formConfiguration : formConfigurations )
+        {
+            returnMap.put( formConfiguration.getName(), formConfiguration );
+        }
+        return returnMap;
     }
 }

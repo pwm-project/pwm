@@ -69,6 +69,6 @@ public class UpdateProfileBean extends PwmSessionBean
     @Override
     public Set<SessionBeanMode> supportedModes( )
     {
-        return Collections.unmodifiableSet( new HashSet<>( Arrays.asList( SessionBeanMode.LOCAL, SessionBeanMode.CRYPTCOOKIE ) ) );
+        return Collections.unmodifiableSet( new HashSet<>( Arrays.asList( SessionBeanMode.LOCAL ) ) );
     }
 }
