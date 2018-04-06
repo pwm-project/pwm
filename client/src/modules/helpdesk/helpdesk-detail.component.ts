@@ -365,9 +365,7 @@ export default class HelpDeskDetailComponent {
             .getPerson(personId)
             .then((person: any) => {
                 this.person = person;
-            }, (error) => {
-                // TODO: Handle error. NOOP for now will not assign person
-            });
+            }, this.gotoSearch.bind(this));
     }
 
     refresh(): void {
