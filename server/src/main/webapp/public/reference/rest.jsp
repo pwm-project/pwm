@@ -37,9 +37,9 @@
 <body class="nihilo">
 <style nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>" type="text/css">
     .exampleTD {
-        overflow: auto; 
-        display: block; 
-        max-width:400px; 
+        overflow: auto;
+        display: block;
+        max-width:400px;
         max-height:400px;
         background-color: black;
         color: white;
@@ -59,6 +59,7 @@
         <li><a href="#rest-health">Rest Service - health</a></li>
         <li><a href="#rest-profile">Rest Service - profile</a></li>
         <li><a href="#rest-randompassword">Rest Service - randompassword</a></li>
+        <li><a href="#rest-setpassword">Rest Service - setpassword</a></li>
         <li><a href="#rest-signing-form">Rest Service - signing/form</a></li>
         <li><a href="#rest-statistics">Rest Service - statistics</a></li>
         <li><a href="#rest-status">Rest Service - status</a></li>
