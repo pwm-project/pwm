@@ -61,6 +61,9 @@ import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.secure.X509Utils;
 
 import javax.net.ssl.X509TrustManager;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.net.URLConnection;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.Arrays;
@@ -903,4 +906,38 @@ public class LdapOperationsHelper
         }
         return null;
     }
+
+    public static PhotoDataBean readPhotoDataFromLdap(
+            final Configuration configuration,
+            final ChaiUser chaiUser,
+            final UserIdentity userIdentity
+    )
+            throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
+    {
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( configuration );
+        final String attribute = ldapProfile.readSettingAsString( PwmSetting.PEOPLE_SEARCH_PHOTO_ATTRIBUTE );
+        if ( attribute == null || attribute.isEmpty() )
+        {
+            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "ldap photo attribute is not configured" ) );
+        }
+
+        final byte[] photoData;
+        final String mimeType;
+        try
+        {
+            final byte[][] photoAttributeData = chaiUser.readMultiByteAttribute( attribute );
+            if ( photoAttributeData == null || photoAttributeData.length == 0 || photoAttributeData[ 0 ].length == 0 )
+            {
+                throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "user has no photo data stored in LDAP attribute" ) );
+            }
+            photoData = photoAttributeData[ 0 ];
+            mimeType = URLConnection.guessContentTypeFromStream( new ByteArrayInputStream( photoData ) );
+        }
+        catch ( IOException | ChaiOperationException e )
+        {
+            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_UNKNOWN, "error reading user photo ldap attribute: " + e.getMessage() ) );
+        }
+        return new PhotoDataBean( mimeType, photoData );
+    }
+
 }

@@ -25,7 +25,7 @@ import { Component } from '../../component';
 import { IPeopleSearchConfigService } from '../../services/peoplesearch-config.service';
 import { IPeopleService } from '../../services/people.service';
 import IPwmService from '../../services/pwm.service';
-import { isArray, isString, IPromise, IQService, IScope } from 'angular';
+import {isArray, isString, IPromise, IQService, IScope, ITimeoutService} from 'angular';
 import LocalStorageService from '../../services/local-storage.service';
 import IOrgChartData from '../../models/orgchart-data.model';
 import { IPerson } from '../../models/person.model';
@@ -48,6 +48,7 @@ export default class OrgChartSearchComponent {
     static $inject = [
         '$state',
         '$stateParams',
+        '$timeout',
         'ConfigService',
         'LocalStorageService',
         'PeopleService',
@@ -55,6 +56,7 @@ export default class OrgChartSearchComponent {
     ];
     constructor(private $state: angular.ui.IStateService,
                 private $stateParams: angular.ui.IStateParamsService,
+                private $timeout: ITimeoutService,
                 private configService: IPeopleSearchConfigService,
                 private localStorageService: LocalStorageService,
                 private peopleService: IPeopleService,
@@ -120,6 +122,11 @@ export default class OrgChartSearchComponent {
             (error) => {
                 // TODO: handle error
             });
+
+        // Once <ias-search-box> from ng-ias allows the autofocus attribute, we can remove this code
+        this.$timeout(() => {
+            document.getElementsByTagName('input')[0].focus();
+        });
     }
 
     autoCompleteSearch(query: string): IPromise<IPerson[]> {

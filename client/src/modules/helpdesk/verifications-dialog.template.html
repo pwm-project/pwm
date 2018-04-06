@@ -57,7 +57,8 @@
                     <div ng-switch-when="ATTRIBUTES">
                         <div class="ias-input-container" ng-repeat="input in $ctrl.inputs">
                             <label ng-attr-for="{{input.name}}" ng-bind="input.label"></label>
-                            <input autocomplete="off"
+                            <input autofocus
+                                   autocomplete="off"
                                    ng-attr-id="{{input.name}}"
                                    type="text"
                                    ng-model="$ctrl.formData[input.name]">
@@ -70,7 +71,7 @@
                         </div>
                         <div class="ias-input-container">
                             <label>Token</label>
-                            <input autocomplete="off" id="token" type="text" ng-model="$ctrl.formData.code">
+                            <input autofocus autocomplete="off" id="token" type="text" ng-model="$ctrl.formData.code">
                         </div>
 
                     </div>
@@ -78,7 +79,7 @@
                         <p ng-bind="'Display_HelpdeskOtpValidation' | translate"></p>
                         <div class="ias-input-container">
                             <label>Code</label>
-                            <input autocomplete="off" id="code" type="text" ng-model="$ctrl.formData.code">
+                            <input autofocus autocomplete="off" id="code" type="text" ng-model="$ctrl.formData.code">
                         </div>
                     </div>
 
@@ -90,18 +91,15 @@
                         <ias-icon icon="status_ok_thick" style="color:#37c26a;" class="ias-success" ng-if="$ctrl.verificationStatus==='passed'"></ias-icon>
                         <ias-icon icon="status_error_thick" style="color:#e50000;" class="ias-error" ng-if="$ctrl.verificationStatus==='failed'"></ias-icon>
                     </div>
-                    <p ng-if="$ctrl.verificationStatus==='failed'">
-                        Viewing details only available after a user has been successfully verified
-                    </p>
+                    <p ng-bind="'Display_InvalidVerification' | translate" ng-if="$ctrl.verificationStatus==='failed'"></p>
                 </form>
             </div>
 
             <div class="ias-actions">
-                <ias-button ng-disabled="$ctrl.verificationStatus!=='passed'"
-                           ng-click="$ctrl.viewDetails()"
-                           ng-if="!$ctrl.isDetailsView">
-                    View Details
-                </ias-button>
+                <ias-button ng-bind="'Display_ViewDetails' | translate"
+                            ng-disabled="$ctrl.verificationStatus!=='passed'"
+                            ng-click="$ctrl.viewDetails()"
+                            ng-if="!$ctrl.isDetailsView"></ias-button>
                 <ias-button ng-disabled="$ctrl.verificationStatus!=='passed'"
                            ng-click="$ctrl.clickOkButton()"
                            ng-if="$ctrl.isDetailsView">

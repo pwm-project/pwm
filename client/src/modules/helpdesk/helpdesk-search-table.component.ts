@@ -21,14 +21,15 @@
  */
 
 
-import {IQService, IScope} from 'angular';
+import {IQService, IScope, ITimeoutService} from 'angular';
 import HelpDeskSearchBaseComponent from './helpdesk-search-base.component';
 import {Component} from '../../component';
 import SearchResult from '../../models/search-result.model';
-import {IPeopleService} from '../../services/people.service';
 import {IHelpDeskConfigService} from '../../services/helpdesk-config.service';
 import LocalStorageService from '../../services/local-storage.service';
 import PromiseService from '../../services/promise.service';
+import {IHelpDeskService} from '../../services/helpdesk.service';
+import IPwmService from '../../services/pwm.service';
 
 @Component({
     stylesheetUrl: require('modules/helpdesk/helpdesk-search.component.scss'),
@@ -42,25 +43,29 @@ export default class HelpDeskSearchTableComponent extends HelpDeskSearchBaseComp
         '$scope',
         '$state',
         '$stateParams',
+        '$timeout',
         '$translate',
         'ConfigService',
+        'HelpDeskService',
         'IasDialogService',
         'LocalStorageService',
-        'PeopleService',
-        'PromiseService'
+        'PromiseService',
+        'PwmService'
     ];
     constructor($q: IQService,
                 $scope: IScope,
                 private $state: angular.ui.IStateService,
                 $stateParams: angular.ui.IStateParamsService,
+                $timeout: ITimeoutService,
                 $translate: angular.translate.ITranslateService,
                 configService: IHelpDeskConfigService,
+                helpDeskService: IHelpDeskService,
                 IasDialogService: any,
                 localStorageService: LocalStorageService,
-                peopleService: IPeopleService,
-                 promiseService: PromiseService) {
-        super($q, $scope, $stateParams, $translate, configService, IasDialogService, localStorageService,
-            peopleService, promiseService);
+                promiseService: PromiseService,
+                pwmService: IPwmService) {
+        super($q, $scope, $stateParams, $timeout, $translate, configService, helpDeskService, IasDialogService,
+              localStorageService, promiseService, pwmService);
     }
 
     $onInit() {

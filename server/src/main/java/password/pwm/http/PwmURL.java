@@ -294,23 +294,34 @@ public class PwmURL
             final Map<String, String> parameters
     )
     {
-        final StringBuilder output = new StringBuilder();
-        output.append( inputUrl == null ? "" : inputUrl );
+        String output = inputUrl == null ? "" : inputUrl;
 
         if ( parameters != null )
         {
-            parameters.forEach( ( key, value ) ->
+            for ( final Map.Entry<String, String> entry : parameters.entrySet() )
             {
-                final String encodedValue = value == null
-                        ? ""
-                        : StringUtil.urlEncode( value );
-
-                output.append( output.toString().contains( "?" ) ? "&" : "?" );
-                output.append( key );
-                output.append( "=" );
-                output.append( encodedValue );
-            } );
+                output = appendAndEncodeUrlParameters( output, entry.getKey(), entry.getValue() );
+            }
         }
+
+        return output;
+    }
+
+    public static String appendAndEncodeUrlParameters(
+            final String inputUrl,
+            final String paramName,
+            final String value
+    )
+    {
+        final StringBuilder output = new StringBuilder( inputUrl );
+        final String encodedValue = value == null
+                ? ""
+                : StringUtil.urlEncode( value );
+
+        output.append( output.toString().contains( "?" ) ? "&" : "?" );
+        output.append( paramName );
+        output.append( "=" );
+        output.append( encodedValue );
 
         if ( output.charAt( 0 ) == '?' || output.charAt( 0 ) == '&' )
         {

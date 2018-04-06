@@ -330,7 +330,6 @@ public class ActivateUserServlet extends ControlledPwmServlet
         final ActivateUserBean activateUserBean = pwmApplication.getSessionStateService().getBean( pwmRequest, ActivateUserBean.class );
         final String userEnteredCode = pwmRequest.readParameterAsString( PwmConstants.PARAM_TOKEN );
 
-
         ErrorInformation errorInformation = null;
         try
         {
@@ -346,6 +345,14 @@ public class ActivateUserServlet extends ControlledPwmServlet
             activateUserBean.setUserIdentity( tokenPayload.getUserIdentity() );
             activateUserBean.setTokenPassed( true );
             activateUserBean.setFormValidated( true );
+            activateUserBean.setTokenDestination( tokenPayload.getDestination() );
+
+            if ( pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.DISPLAY_TOKEN_SUCCESS_BUTTON ) )
+            {
+                pwmRequest.setAttribute( PwmRequestAttribute.TokenDestItems, tokenPayload.getDestination() );
+                pwmRequest.forwardToJsp( JspUrl.ACTIVATE_USER_TOKEN_SUCCESS );
+                return ProcessStatus.Halt;
+            }
         }
         catch ( PwmUnrecoverableException e )
         {
@@ -438,11 +445,13 @@ public class ActivateUserServlet extends ControlledPwmServlet
 
                 TokenUtil.initializeAndSendToken(
                         pwmRequest,
-                        userInfo,
-                        activateUserBean.getTokenDestination(),
-                        PwmSetting.EMAIL_ACTIVATION_VERIFICATION,
-                        TokenType.ACTIVATION,
-                        PwmSetting.SMS_ACTIVATION_VERIFICATION_TEXT
+                        TokenUtil.TokenInitAndSendRequest.builder()
+                                .userInfo( userInfo )
+                                .tokenDestinationItem( activateUserBean.getTokenDestination() )
+                                .emailToSend( PwmSetting.EMAIL_ACTIVATION_VERIFICATION )
+                                .tokenType( TokenType.ACTIVATION )
+                                .smsToSend( PwmSetting.SMS_ACTIVATION_VERIFICATION_TEXT )
+                                .build()
                 );
             }
 

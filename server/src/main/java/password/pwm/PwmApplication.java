@@ -115,7 +115,7 @@ public class PwmApplication
         INSTALL_DATE( "DB_KEY_INSTALL_DATE" ),
         CONFIG_HASH( "configurationSettingHash" ),
         LAST_LDAP_ERROR( "lastLdapError" ),
-        TOKEN_COUNTER( "tokenCounter" ),
+        // TOKEN_COUNTER( "tokenCounter" ), deprecated
         REPORT_STATUS( "reporting.status" ),
         // REPORT_CLEAN_FLAG("reporting.cleanFlag"), deprecated
         SMS_ITEM_COUNTER( "smsQueue.itemCount" ),

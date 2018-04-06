@@ -26,11 +26,11 @@ import IPwmService from './pwm.service';
 import PwmService from './pwm.service';
 import {ConfigBaseService, IConfigService} from './base-config.service';
 
-const CLEAR_RESPONSES_CONFIG = 'helpdesk_setting_clearResponses';
-const COLUMN_CONFIG = 'helpdesk_search_columns';
-const MASK_PASSWORDS_CONFIG = 'helpdesk_setting_maskPasswords';
-const PASSWORD_UI_MODE_CONFIG = 'helpdesk_setting_PwUiMode';
-const TOKEN_SEND_METHOD_CONFIG = 'helpdesk_setting_tokenSendMethod';
+const CLEAR_RESPONSES_CONFIG = 'clearResponses';
+const COLUMN_CONFIG = 'searchColumns';
+const MASK_PASSWORDS_CONFIG = 'maskPasswords';
+const PASSWORD_UI_MODE_CONFIG = 'PwUiMode';
+const TOKEN_SEND_METHOD_CONFIG = 'tokenSendMethod';
 const TOKEN_VERIFICATION_METHOD = 'TOKEN';
 const TOKEN_SMS_ONLY = 'SMSONLY';
 const TOKEN_EMAIL_ONLY = 'EMAILONLY';

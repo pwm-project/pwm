@@ -1241,9 +1241,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
                     final Element settingElement = ( Element ) xp.evaluateFirst( document );
                     if ( settingElement != null )
                     {
-                        LOGGER.info( "moving setting " + setting.getKey() + " without profile attribute to profile \"" + NEW_PROFILE_NAME + "\"." );
-                        // change setting to "default" profile.
-                        settingElement.setAttribute( XML_ATTRIBUTE_PROFILE, NEW_PROFILE_NAME );
+                        settingElement.detach();
 
                         final PwmSetting profileSetting = setting.getCategory().getProfileSetting();
                         final List<String> profileStringDefinitions = new ArrayList<>();
@@ -1258,10 +1256,20 @@ public class StoredConfigurationImpl implements StoredConfiguration
                             }
                         }
 
-                        if ( !profileStringDefinitions.contains( NEW_PROFILE_NAME ) )
-                        {
+                        if (profileStringDefinitions.isEmpty()) {
                             profileStringDefinitions.add( NEW_PROFILE_NAME );
-                            storedConfiguration.writeSetting( profileSetting, new StringArrayValue( profileStringDefinitions ), null );
+                        }
+
+                        final UserIdentity userIdentity = settingElement.getAttribute( XML_ATTRIBUTE_MODIFY_USER ) != null
+                                ? UserIdentity.fromDelimitedKey( settingElement.getAttribute(  XML_ATTRIBUTE_MODIFY_USER ).getValue() )
+                                : null;
+
+                        for ( final String destProfile : profileStringDefinitions )
+                        {
+                            LOGGER.info( "moving setting " + setting.getKey() + " without profile attribute to profile \"" + destProfile + "\"." );
+                            {
+                                storedConfiguration.writeSetting( profileSetting, new StringArrayValue( profileStringDefinitions ), userIdentity );
+                            }
                         }
                     }
                 }

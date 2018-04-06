@@ -275,7 +275,7 @@ public class UserSearchEngine implements PwmService
             final List<FormConfiguration> formItem,
             final SessionLabel sessionLabel
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
+            throws PwmUnrecoverableException, PwmOperationalException
     {
         final Map<String, String> attributeHeaderMap = UserSearchResults.fromFormConfiguration( formItem, locale );
         final Map<UserIdentity, Map<String, String>> searchResults = performMultiUserSearch(

@@ -21,13 +21,14 @@
  */
 
 
-import {IPeopleService} from '../../services/people.service';
 import SearchResult from '../../models/search-result.model';
-import {isArray, isString, IPromise, IQService, IScope} from 'angular';
+import {isArray, isString, IPromise, IQService, IScope, ITimeoutService} from 'angular';
 import {IPerson} from '../../models/person.model';
 import {IHelpDeskConfigService} from '../../services/helpdesk-config.service';
 import LocalStorageService from '../../services/local-storage.service';
 import PromiseService from '../../services/promise.service';
+import {IHelpDeskService} from '../../services/helpdesk.service';
+import IPwmService from '../../services/pwm.service';
 
 let verificationsDialogTemplateUrl = require('./verifications-dialog.template.html');
 let recentVerificationsDialogTemplateUrl = require('./recent-verifications-dialog.template.html');
@@ -35,6 +36,7 @@ let recentVerificationsDialogTemplateUrl = require('./recent-verifications-dialo
 export default abstract class HelpDeskSearchBaseComponent {
     columnConfiguration: any;
     errorMessage: string;
+    inputDebounce: number;
     protected pendingRequests: IPromise<any>[] = [];
     photosEnabled: boolean;
     query: string;
@@ -48,14 +50,18 @@ export default abstract class HelpDeskSearchBaseComponent {
     constructor(protected $q: IQService,
                 protected $scope: IScope,
                 protected $stateParams: angular.ui.IStateParamsService,
+                protected $timeout: ITimeoutService,
                 protected $translate: angular.translate.ITranslateService,
                 protected configService: IHelpDeskConfigService,
+                protected helpDeskService: IHelpDeskService,
                 protected IasDialogService: any,
                 protected localStorageService: LocalStorageService,
-                protected peopleService: IPeopleService,
-                protected promiseService: PromiseService) {
+                protected promiseService: PromiseService,
+                protected pwmService: IPwmService) {
         this.searchTextLocalStorageKey = this.localStorageService.keys.HELPDESK_SEARCH_TEXT;
         this.searchViewLocalStorageKey = this.localStorageService.keys.HELPDESK_SEARCH_VIEW;
+
+        this.inputDebounce = this.pwmService.ajaxTypingWait;
 
         $scope.$watch('$ctrl.query', (newValue: string, oldValue: string) => {
             this.onSearchTextChange(newValue, oldValue);
@@ -67,6 +73,11 @@ export default abstract class HelpDeskSearchBaseComponent {
 
         this.configService.verificationsEnabled().then((verificationsEnabled: boolean) => {
             this.verificationsEnabled = verificationsEnabled;
+        });
+
+        // Once <ias-search-box> from ng-ias allows the autofocus attribute, we can remove this code
+        this.$timeout(() => {
+            document.getElementsByTagName('input')[0].focus();
         });
     }
 
@@ -106,7 +117,7 @@ export default abstract class HelpDeskSearchBaseComponent {
             return null;
         }
 
-        let promise = this.peopleService.search(this.query);
+        let promise = this.helpDeskService.search(this.query);
         this.pendingRequests.push(promise);
 
         return promise

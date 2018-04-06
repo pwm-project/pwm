@@ -41,6 +41,7 @@ public enum JspUrl
     ACTIVATE_USER_AGREEMENT( "activateuser-agreement.jsp" ),
     ACTIVATE_USER_TOKEN_CHOICE( "activateuser-tokenchoice.jsp" ),
     ACTIVATE_USER_ENTER_CODE( "activateuser-entercode.jsp" ),
+    ACTIVATE_USER_TOKEN_SUCCESS( "activateuser-tokensuccess.jsp" ),
     LOGIN( "login.jsp" ),
     LOGIN_PW_ONLY( "login-passwordonly.jsp" ),
     LOGOUT( "logout.jsp" ),
@@ -57,6 +58,7 @@ public enum JspUrl
     RECOVER_PASSWORD_ACTION_CHOICE( "forgottenpassword-actionchoice.jsp" ),
     RECOVER_PASSWORD_METHOD_CHOICE( "forgottenpassword-method.jsp" ),
     RECOVER_PASSWORD_TOKEN_CHOICE( "forgottenpassword-tokenchoice.jsp" ),
+    RECOVER_PASSWORD_TOKEN_SUCCESS( "forgottenpassword-tokensuccess.jsp" ),
     RECOVER_PASSWORD_ENTER_TOKEN( "forgottenpassword-entertoken.jsp" ),
     RECOVER_PASSWORD_ENTER_OTP( "forgottenpassword-enterotp.jsp" ),
     RECOVER_PASSWORD_REMOTE( "forgottenpassword-remote.jsp" ),
@@ -75,9 +77,11 @@ public enum JspUrl
     UPDATE_ATTRIBUTES( "updateprofile.jsp" ),
     UPDATE_ATTRIBUTES_AGREEMENT( "updateprofile-agreement.jsp" ),
     UPDATE_ATTRIBUTES_ENTER_CODE( "updateprofile-entercode.jsp" ),
+    UPDATE_ATTRIBUTES_TOKEN_SUCCESS( "updateprofile-tokensuccess.jsp" ),
     UPDATE_ATTRIBUTES_CONFIRM( "updateprofile-confirm.jsp" ),
     NEW_USER( "newuser.jsp" ),
     NEW_USER_ENTER_CODE( "newuser-entercode.jsp" ),
+    NEW_USER_TOKEN_SUCCESS( "newuser-tokensuccess.jsp" ),
     NEW_USER_WAIT( "newuser-wait.jsp" ),
     NEW_USER_PROFILE_CHOICE( "newuser-profilechoice.jsp" ),
     NEW_USER_AGREEMENT( "newuser-agreement.jsp" ),
@@ -95,8 +99,7 @@ public enum JspUrl
     CONFIG_MANAGER_CERTIFICATES( "configmanager-certificates.jsp" ),
     CONFIG_MANAGER_LOCALDB( "configmanager-localdb.jsp" ),
     CONFIG_MANAGER_LOGIN( "configmanager-login.jsp" ),
-    HELPDESK_SEARCH( "helpdesk.jsp" ),
-    HELPDESK_DETAIL( "helpdesk-detail.jsp" ),;
+    HELPDESK_SEARCH( "helpdesk.jsp" ),;
 
     private String path;
     private static final String JSP_ROOT_URL = "/WEB-INF/jsp/";

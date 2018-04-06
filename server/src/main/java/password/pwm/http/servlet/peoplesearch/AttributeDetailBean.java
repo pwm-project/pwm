@@ -28,7 +28,7 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 
-class AttributeDetailBean implements Serializable
+public class AttributeDetailBean implements Serializable
 {
     private String name;
     private String label;

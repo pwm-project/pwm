@@ -23,14 +23,14 @@
 package password.pwm.http.servlet.newuser;
 
 import com.google.gson.annotations.SerializedName;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
 
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
-@Getter
-@AllArgsConstructor
+@Data
 class NewUserTokenData implements Serializable
 {
 
@@ -43,13 +43,9 @@ class NewUserTokenData implements Serializable
     @SerializedName( "i" )
     private Map<String, String> injectionData;
 
-    public String getProfileID( )
-    {
-        return profileID;
-    }
+    @SerializedName( "ct" )
+    private String currentTokenField;
 
-    public NewUserForm getFormData( )
-    {
-        return formData;
-    }
+    @SerializedName( "ft" )
+    private Set<String> completedTokenFields = new HashSet<>();
 }

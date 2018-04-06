@@ -22,14 +22,15 @@
 
 
 import {Component} from '../../component';
-import {IPeopleService} from '../../services/people.service';
-import {IQService, IScope} from 'angular';
+import {IQService, IScope, ITimeoutService} from 'angular';
 import {IHelpDeskConfigService} from '../../services/helpdesk-config.service';
 import LocalStorageService from '../../services/local-storage.service';
 import HelpDeskSearchBaseComponent from './helpdesk-search-base.component';
 import SearchResult from '../../models/search-result.model';
 import {IPerson} from '../../models/person.model';
 import PromiseService from '../../services/promise.service';
+import {IHelpDeskService} from '../../services/helpdesk.service';
+import IPwmService from '../../services/pwm.service';
 
 @Component({
     stylesheetUrl: require('modules/helpdesk/helpdesk-search.component.scss'),
@@ -41,25 +42,29 @@ export default class HelpDeskSearchCardsComponent extends HelpDeskSearchBaseComp
         '$scope',
         '$state',
         '$stateParams',
+        '$timeout',
         '$translate',
         'ConfigService',
+        'HelpDeskService',
         'IasDialogService',
         'LocalStorageService',
-        'PeopleService',
-        'PromiseService'
+        'PromiseService',
+        'PwmService'
     ];
     constructor($q: IQService,
                 $scope: IScope,
                 private $state: angular.ui.IStateService,
                 $stateParams: angular.ui.IStateParamsService,
+                $timeout: ITimeoutService,
                 $translate: angular.translate.ITranslateService,
                 configService: IHelpDeskConfigService,
+                helpDeskService: IHelpDeskService,
                 IasDialogService: any,
                 localStorageService: LocalStorageService,
-                peopleService: IPeopleService,
-                promiseService: PromiseService) {
-        super($q, $scope, $stateParams, $translate, configService, IasDialogService, localStorageService,
-            peopleService, promiseService);
+                promiseService: PromiseService,
+                pwmService: IPwmService) {
+        super($q, $scope, $stateParams, $timeout, $translate, configService, helpDeskService, IasDialogService,
+            localStorageService, promiseService, pwmService);
     }
 
     $onInit() {
@@ -96,7 +101,7 @@ export default class HelpDeskSearchCardsComponent extends HelpDeskSearchBaseComp
         this.pendingRequests = searchResult.people.map(
             (person: IPerson) => {
                 // Store this promise because it is abortable
-                let promise = this.peopleService.getPerson(person.userKey);
+                let promise = this.helpDeskService.getPersonCard(person.userKey);
 
                 promise
                     .then(function(person: IPerson) {
@@ -106,7 +111,7 @@ export default class HelpDeskSearchCardsComponent extends HelpDeskSearchBaseComp
                             }
 
                             // searchResult may be overwritten by ESC->[LETTER] typed in after a search
-                            // has started but before all calls to peopleService.getPerson have resolved
+                            // has started but before all calls to helpdeskService.getPersonCard have resolved
                             if (this.searchResult) {
                                 this.searchResult.people.push(person);
                             }

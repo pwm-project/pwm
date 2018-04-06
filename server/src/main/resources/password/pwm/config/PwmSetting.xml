@@ -223,6 +223,11 @@
             <value>true</value>
         </default>
     </setting>
+    <setting hidden="false" key="display.tokenSuccessPage" level="1" required="true">
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
     <setting hidden="false" key="display.showSuccessPage" level="1" required="true">
         <default>
             <value>true</value>
@@ -3535,6 +3540,18 @@
             <value>@LDAP:givenName@ @LDAP:sn@ - @User:ID@ - @User:Email@</value>
         </default>
     </setting>
+    <setting hidden="false" key="helpdesk.displayName.cardLabels" level="1">
+        <flag>MacroSupport</flag>
+        <default>
+            <value>@LDAP:givenName@ @LDAP:sn@</value>
+            <value>@LDAP:title@</value>
+            <value>@LDAP:mail@</value>
+            <value>@LDAP:telephoneNumber@</value>
+        </default>
+        <properties>
+            <property key="Maximum">4</property>
+        </properties>
+    </setting>
     <setting hidden="false" key="helpdesk.enable" level="1" required="true">
         <default>
             <value>false</value>
@@ -3593,6 +3610,11 @@
     <setting hidden="false" key="helpdesk.setPassword.maskValue" level="1">
         <default>
             <value>false</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="helpdesk.enablePhotos" level="1">
+        <default>
+            <value>true</value>
         </default>
     </setting>
     <setting hidden="false" key="helpdesk.verificationMethods" level="1">

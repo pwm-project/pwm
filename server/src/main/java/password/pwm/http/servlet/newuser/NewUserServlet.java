@@ -488,15 +488,19 @@ public class NewUserServlet extends ControlledPwmServlet
                 newUserBean.setProfileID( newUserTokenData.getProfileID() );
                 final NewUserForm newUserFormFromToken = newUserTokenData.getFormData();
 
-                if ( tokenDestinationItem.getType() == TokenDestinationItem.Type.email )
-                {
+                final TokenDestinationItem.Type tokenType = tokenPayload.getDestination().getType();
 
+                if ( tokenType == TokenDestinationItem.Type.email )
+                {
                     try
                     {
                         verifyForm( pwmRequest, newUserFormFromToken, false );
                         newUserBean.setRemoteInputData( newUserTokenData.getInjectionData() );
                         newUserBean.setNewUserForm( newUserFormFromToken );
+                        newUserBean.setProfileID( newUserTokenData.getProfileID() );
                         newUserBean.setFormPassed( true );
+                        newUserBean.getCompletedTokenFields().addAll( newUserTokenData.getCompletedTokenFields() );
+                        newUserBean.setCurrentTokenField( newUserTokenData.getCurrentTokenField() );
                     }
                     catch ( PwmUnrecoverableException | PwmOperationalException e )
                     {
@@ -504,7 +508,7 @@ public class NewUserServlet extends ControlledPwmServlet
                         errorInformation = e.getErrorInformation();
                     }
                 }
-                else if ( tokenDestinationItem.getType() == TokenDestinationItem.Type.sms )
+                else if ( tokenType == TokenDestinationItem.Type.sms )
                 {
                     if ( newUserBean.getNewUserForm() == null || !newUserBean.getNewUserForm().isConsistentWith( newUserFormFromToken ) )
                     {
@@ -531,6 +535,14 @@ public class NewUserServlet extends ControlledPwmServlet
         newUserBean.getCompletedTokenFields().add( newUserBean.getCurrentTokenField() );
         newUserBean.setTokenSent( false );
         newUserBean.setCurrentTokenField( null );
+
+        if ( pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.DISPLAY_TOKEN_SUCCESS_BUTTON ) )
+        {
+            pwmRequest.setAttribute( PwmRequestAttribute.TokenDestItems, tokenPayload.getDestination() );
+            pwmRequest.forwardToJsp( JspUrl.NEW_USER_TOKEN_SUCCESS );
+            return ProcessStatus.Halt;
+        }
+
         return ProcessStatus.Continue;
     }
 
