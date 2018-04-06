@@ -1693,3 +1693,17 @@ table.ias-table, table.ias-table td {
 .ias-fill {
     display: inline-block;
 }
+
+#analysis-topLevelTab .dgrid-resize-header-container {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+#analysis-topLevelTab .dgrid-scroller {
+    margin-top: 23px !important;
+}
+
+#certDebugGrid .dgrid-hider-toggle {
+    z-index: 900;
+}
