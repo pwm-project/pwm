@@ -71,7 +71,7 @@
                     <%=statistic.getLabel(userLocale)%>
                 </td>
                 <td>
-                    <%=statistic.getKey()%>
+                    <%=statistic.name()%>
                 </td>
                 <td>
                     <%=statistic.getDescription(userLocale)%>
