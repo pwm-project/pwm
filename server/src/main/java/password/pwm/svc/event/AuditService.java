@@ -205,6 +205,12 @@ public class AuditService implements PwmService
         {
             syslogManager.close();
         }
+
+        if ( auditVault != null )
+        {
+            auditVault.close();
+        }
+
         this.status = STATUS.CLOSED;
     }
 

@@ -115,7 +115,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
     {
-        final PeopleSearchConfiguration peopleSearchConfiguration = PeopleSearchConfiguration.fromConfiguration( pwmRequest.getPwmApplication() );
+        final PeopleSearchConfiguration peopleSearchConfiguration = PeopleSearchConfiguration.forRequest( pwmRequest );
 
         final PeopleSearchClientConfigBean peopleSearchClientConfigBean = PeopleSearchClientConfigBean.fromConfig(
                 pwmRequest.getPwmApplication(),
@@ -162,7 +162,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
     )
             throws IOException, PwmUnrecoverableException, ServletException
     {
-        final PeopleSearchConfiguration peopleSearchConfiguration = PeopleSearchConfiguration.fromConfiguration( pwmRequest.getPwmApplication() );
+        final PeopleSearchConfiguration peopleSearchConfiguration = PeopleSearchConfiguration.forRequest( pwmRequest );
 
         if ( !peopleSearchConfiguration.isOrgChartEnabled() )
         {

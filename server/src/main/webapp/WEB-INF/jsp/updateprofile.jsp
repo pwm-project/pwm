@@ -20,6 +20,7 @@
  ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 --%>
 
+<%@ page import="password.pwm.http.servlet.updateprofile.UpdateProfileServlet" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html" %>
@@ -49,21 +50,35 @@
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
                     <pwm:display key="Button_Update"/>
                 </button>
-                <%@ include file="/WEB-INF/jsp/fragment/cancel-button.jsp" %>
+                <pwm:if test="<%=PwmIfTest.showCancel%>">
+                    <button type="submit" name="button-cancel" class="btn" id="button-cancel" form="form-hidden-cancel">
+                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-times"></span></pwm:if>
+                        <pwm:display key="Button_Cancel"/>
+                    </button>
+                </pwm:if>
             </div>
         </form>
     </div>
     <div class="push"></div>
 </div>
+<form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" id="form-hidden-cancel" name="form-hidden-cancel" class="pwm-form" autocomplete="off">
+    <button type="submit" name="button" class="btn" id="button-sendReset">
+        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-times"></span></pwm:if>
+        <pwm:display key="Button_Cancel"/>
+    </button>
+    <input type="hidden" name="<%=PwmConstants.PARAM_ACTION_REQUEST%>" value="<%=UpdateProfileServlet.UpdateProfileAction.reset%>"/>
+    <input type="hidden" name="<%=PwmConstants.PARAM_RESET_TYPE%>" value="<%=UpdateProfileServlet.ResetAction.exitProfileUpdate%>"/>
+    <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+</form>
 <pwm:script>
-<script type="text/javascript">
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        PWM_MAIN.addEventHandler('updateProfileForm','input',function(){PWM_UPDATE.validateForm()});
-    });
-</script>
+    <script type="text/javascript">
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            PWM_MAIN.addEventHandler('updateProfileForm','input',function(){PWM_UPDATE.validateForm()});
+        });
+    </script>
 </pwm:script>
+<pwm:script-ref url="/public/resources/js/uilibrary.js"/>
 <pwm:script-ref url="/public/resources/js/updateprofile.js"/>
-<%@ include file="/WEB-INF/jsp/fragment/cancel-form.jsp" %>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

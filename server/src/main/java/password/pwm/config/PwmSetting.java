@@ -266,13 +266,18 @@ public enum PwmSetting
             "webservice.userAttributes", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.LDAP_ATTRIBUTES ),
     OTP_SECRET_LDAP_ATTRIBUTE(
             "otp.secret.ldap.attribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
-    PEOPLE_SEARCH_PHOTO_ATTRIBUTE(
+    LDAP_ATTRIBUTE_PHOTO(
             "peopleSearch.photo.ldapAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
-    PEOPLE_SEARCH_PHOTO_URL_OVERRIDE(
+    LDAP_ATTRIBUTE_PHOTO_URL_OVERRIDE(
             "peopleSearch.photo.urlOverride", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
+    LDAP_ATTRIBUTE_ORGCHART_PARENT(
+            "peopleSearch.orgChart.parentAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
+    LDAP_ATTRIBUTE_ORGCHARD_CHILD(
+            "peopleSearch.orgChart.childAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
+    LDAP_ATTRIBUTE_ORGCHART_ASSISTANT(
+            "peopleSearch.orgChart.assistantAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
     AUTO_ADD_OBJECT_CLASSES(
             "ldap.addObjectClasses", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.LDAP_ATTRIBUTES ),
-
 
 
     // ldap global settings
@@ -956,14 +961,10 @@ public enum PwmSetting
             "peopleSearch.searchBase", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.PEOPLE_SEARCH ),
     PEOPLE_SEARCH_ENABLE_PUBLIC(
             "peopleSearch.enablePublic", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH ),
+    PEOPLE_SEARCH_ENABLE_ORGCHART(
+            "peopleSearch.enableOrgChart", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH ),
     PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS(
             "peopleSearch.idleTimeout", PwmSettingSyntax.DURATION, PwmSettingCategory.PEOPLE_SEARCH ),
-    PEOPLE_SEARCH_ORGCHART_PARENT_ATTRIBUTE(
-            "peopleSearch.orgChart.parentAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.PEOPLE_SEARCH ),
-    PEOPLE_SEARCH_ORGCHART_CHILD_ATTRIBUTE(
-            "peopleSearch.orgChart.childAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.PEOPLE_SEARCH ),
-    PEOPLE_SEARCH_ORGCHART_ASSISTANT_ATTRIBUTE(
-            "peopleSearch.orgChart.assistantAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.PEOPLE_SEARCH ),
 
 
     // edirectory settings

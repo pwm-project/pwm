@@ -21,7 +21,6 @@
  */
 
 
-import {IPeopleService} from '../../services/people.service';
 import SearchResult from '../../models/search-result.model';
 import {isArray, isString, IPromise, IQService, IScope, ITimeoutService} from 'angular';
 import {IPerson} from '../../models/person.model';
@@ -29,6 +28,7 @@ import {IHelpDeskConfigService} from '../../services/helpdesk-config.service';
 import LocalStorageService from '../../services/local-storage.service';
 import PromiseService from '../../services/promise.service';
 import {IHelpDeskService} from '../../services/helpdesk.service';
+import IPwmService from '../../services/pwm.service';
 
 let verificationsDialogTemplateUrl = require('./verifications-dialog.template.html');
 let recentVerificationsDialogTemplateUrl = require('./recent-verifications-dialog.template.html');
@@ -36,6 +36,7 @@ let recentVerificationsDialogTemplateUrl = require('./recent-verifications-dialo
 export default abstract class HelpDeskSearchBaseComponent {
     columnConfiguration: any;
     errorMessage: string;
+    inputDebounce: number;
     protected pendingRequests: IPromise<any>[] = [];
     photosEnabled: boolean;
     query: string;
@@ -55,9 +56,12 @@ export default abstract class HelpDeskSearchBaseComponent {
                 protected helpDeskService: IHelpDeskService,
                 protected IasDialogService: any,
                 protected localStorageService: LocalStorageService,
-                protected promiseService: PromiseService) {
+                protected promiseService: PromiseService,
+                protected pwmService: IPwmService) {
         this.searchTextLocalStorageKey = this.localStorageService.keys.HELPDESK_SEARCH_TEXT;
         this.searchViewLocalStorageKey = this.localStorageService.keys.HELPDESK_SEARCH_VIEW;
+
+        this.inputDebounce = this.pwmService.ajaxTypingWait;
 
         $scope.$watch('$ctrl.query', (newValue: string, oldValue: string) => {
             this.onSearchTextChange(newValue, oldValue);

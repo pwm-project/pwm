@@ -316,7 +316,7 @@ public class JavaHelper
     {
         final int bufferSize = 4 * 1024;
         final byte[] buffer = new byte[ bufferSize ];
-        return IOUtils.copyLarge( input, output, 0, bufferSize, buffer );
+        return IOUtils.copyLarge( input, output, 0, -1, buffer );
     }
 
     public static long copyWhilePredicate( final InputStream input, final OutputStream output, final Predicate predicate )
@@ -333,7 +333,7 @@ public class JavaHelper
             {
                 totalCopied += bytesCopied;
             }
-            if ( !predicate.test( null ) )
+            if ( !predicate.test( bytesCopied ) )
             {
                 return totalCopied;
             }

@@ -163,7 +163,7 @@ public class HelpdeskCardInfoBean implements Serializable
 
         final LdapProfile ldapProfile = userIdentity.getLdapProfile(  pwmApplication.getConfig() );
 
-        final String overrideURL = ldapProfile.readSettingAsString( PwmSetting.PEOPLE_SEARCH_PHOTO_URL_OVERRIDE );
+        final String overrideURL = ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_PHOTO_URL_OVERRIDE );
         try
         {
             if ( !StringUtil.isEmpty( overrideURL ) )

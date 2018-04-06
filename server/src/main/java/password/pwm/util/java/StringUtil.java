@@ -396,6 +396,11 @@ public abstract class StringUtil
         return chunks.toArray( new String[ numOfChunks ] );
     }
 
+    public static String collectionToString( final Collection collection )
+    {
+        return collectionToString( collection, "," );
+    }
+
     public static String collectionToString( final Collection collection, final String recordSeparator )
     {
         final StringBuilder sb = new StringBuilder();
@@ -425,10 +430,12 @@ public abstract class StringUtil
     public static String mapToString( final Map map, final String keyValueSeparator, final String recordSeparator )
     {
         final StringBuilder sb = new StringBuilder();
-        for ( final Iterator iterator = map.keySet().iterator(); iterator.hasNext(); )
+        for ( final Iterator iterator = map.entrySet().iterator(); iterator.hasNext(); )
         {
-            final String key = iterator.next().toString();
-            final String value = map.get( key ) == null ? "" : map.get( key ).toString();
+            final Map.Entry entrySet = ( Map.Entry ) iterator.next();
+            final String key = entrySet.getKey().toString();
+            final String value = entrySet.getValue() == null ? "" : entrySet.getValue().toString();
+
             if ( key != null && value != null && !key.trim().isEmpty() && !value.trim().isEmpty() )
             {
                 sb.append( key.trim() );

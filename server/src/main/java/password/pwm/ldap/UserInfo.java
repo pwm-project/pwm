@@ -100,6 +100,8 @@ public interface UserInfo
 
     String readStringAttribute( String attribute ) throws PwmUnrecoverableException;
 
+    byte[] readBinaryAttribute( String attribute ) throws PwmUnrecoverableException;
+
     Instant readDateAttribute( String attribute ) throws PwmUnrecoverableException;
 
     List<String> readMultiStringAttribute( String attribute ) throws PwmUnrecoverableException;

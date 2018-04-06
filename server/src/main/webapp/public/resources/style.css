@@ -1693,3 +1693,30 @@ table.ias-table, table.ias-table td {
 .ias-fill {
     display: inline-block;
 }
+
+#analysis-topLevelTab .dgrid-resize-header-container {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+#analysis-topLevelTab .dgrid-scroller {
+    margin-top: 23px !important;
+}
+
+#certDebugGrid .dgrid-hider-toggle {
+    z-index: 900;
+}
+
+.formfield-photo {
+    border: solid 1px;
+    width: auto;
+    height: 80px;
+}
+
+.formfield-photo-missing {
+    background-image: url("UserPhoto.png");
+    background-repeat: no-repeat;
+    background-size: 100px 100px;
+    width: auto;
+    height: 80px;
