@@ -22,7 +22,7 @@
 
 
 import {IComponentOptions, module} from 'angular';
-import { DateFilter } from './date.filters';
+import DateFilter from './date.filters';
 import HelpDeskDetailComponent from './helpdesk-detail.component';
 import HelpDeskSearchTableComponent from './helpdesk-search-table.component';
 import HelpDeskSearchCardsComponent from './helpdesk-search-cards.component';

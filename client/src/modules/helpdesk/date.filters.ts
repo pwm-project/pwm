@@ -20,11 +20,19 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+import {IWindowService} from 'angular';
 
-// Convert ISO8601 date to human-readable format
-export function DateFilter(): (isoDate: string) => string {
-    return (isoDate: string): string => {
-        let date = new Date(isoDate);
-        return date.toString();
-    };
-}
+// Date filter - converts ISO8601 date to human-readable format
+export default ['$window',
+    function($window: IWindowService): (isoDate: string) => string {
+        return (isoDate: string): string => {
+            let date = new Date(isoDate);
+            if ($window['PWM_MAIN']) {
+                return $window['PWM_MAIN'].TimestampHandler.formatDate(date);
+            }
+            else {
+                return date.toString();
+            }
+        };
+    }
+];
