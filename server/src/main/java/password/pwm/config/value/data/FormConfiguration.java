@@ -42,6 +42,7 @@ import password.pwm.util.java.StringUtil;
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -79,6 +80,7 @@ public class FormConfiguration implements Serializable
         select,
         userDN,
         checkbox,
+        photo,
     }
 
     public enum Source
@@ -92,10 +94,10 @@ public class FormConfiguration implements Serializable
     private String name = "";
 
     @Builder.Default
-    private int minimumLength;
+    private int minimumLength = 0;
 
     @Builder.Default
-    private int maximumLength;
+    private int maximumLength = 255;
 
     @Builder.Default
     private Type type = Type.text;
@@ -130,6 +132,17 @@ public class FormConfiguration implements Serializable
     @Builder.Default
     private Map<String, String> selectOptions = Collections.emptyMap();
 
+    @Builder.Default
+    private List<String> mimeTypes = Arrays.asList(
+            "image/gif",
+            "image/png",
+            "image/jpeg",
+            "image/bmp",
+            "image/webp"
+    );
+
+    @Builder.Default
+    private int maximumSize = 65000;
 
     public static FormConfiguration parseOldConfigString( final String config )
             throws PwmOperationalException
@@ -364,37 +377,46 @@ public class FormConfiguration implements Serializable
                 break;
         }
 
-        if ( value != null && ( this.getMinimumLength() > 0 ) && ( value.length() > 0 ) && ( value.length() < this.getMinimumLength() ) )
+        if ( type != Type.photo )
         {
-            final ErrorInformation error = new ErrorInformation( PwmError.ERROR_FIELD_TOO_SHORT, null, new String[] {
-                    getLabel( locale ),
-            } );
-            throw new PwmDataValidationException( error );
-        }
-
-        if ( value != null && value.length() > this.getMaximumLength() )
-        {
-            final ErrorInformation error = new ErrorInformation( PwmError.ERROR_FIELD_TOO_LONG, null, new String[] {
-                    getLabel( locale ),
-            } );
-            throw new PwmDataValidationException( error );
-        }
-
-        if ( value != null && value.length() > 0 && this.getRegex() != null && this.getRegex().length() > 0 )
-        {
-            if ( !value.matches( this.getRegex() ) )
+            if ( value != null && ( this.getMinimumLength() > 0 ) && ( value.length() > 0 ) && ( value.length() < this.getMinimumLength() ) )
             {
-                final String configuredErrorMessage = this.getRegexError( locale );
-                final ErrorInformation error = new ErrorInformation(
-                        PwmError.ERROR_FIELD_REGEX_NOMATCH,
-                        null,
-                        configuredErrorMessage,
-                        new String[]
-                                {
-                                        getLabel( locale ),
-                                }
-                );
+                final ErrorInformation error = new ErrorInformation( PwmError.ERROR_FIELD_TOO_SHORT, null, new String[] {
+                        getLabel( locale ),
+                } );
                 throw new PwmDataValidationException( error );
+            }
+        }
+
+        if ( type != Type.photo )
+        {
+            if ( value != null && value.length() > this.getMaximumLength() )
+            {
+                final ErrorInformation error = new ErrorInformation( PwmError.ERROR_FIELD_TOO_LONG, null, new String[] {
+                        getLabel( locale ),
+                } );
+                throw new PwmDataValidationException( error );
+            }
+        }
+
+        if ( type != Type.photo )
+        {
+            if ( value != null && value.length() > 0 && this.getRegex() != null && this.getRegex().length() > 0 )
+            {
+                if ( !value.matches( this.getRegex() ) )
+                {
+                    final String configuredErrorMessage = this.getRegexError( locale );
+                    final ErrorInformation error = new ErrorInformation(
+                            PwmError.ERROR_FIELD_REGEX_NOMATCH,
+                            null,
+                            configuredErrorMessage,
+                            new String[]
+                                    {
+                                            getLabel( locale ),
+                                    }
+                    );
+                    throw new PwmDataValidationException( error );
+                }
             }
         }
     }

@@ -34,7 +34,9 @@ FormTableHandler.newRowValue = {
     placeholder:'',
     javascript:'',
     regex:'',
-    source:'ldap'
+    source:'ldap',
+    mimeTypes:['image/gif','image/png','image/jpeg','image/bmp','image/webp'],
+    maximumSize:65000
 };
 
 FormTableHandler.init = function(keyName) {
@@ -224,18 +226,18 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
     var settings = PWM_SETTINGS['settings'][keyName];
     var currentValue = PWM_VAR['clientSettingCache'][keyName][iteration];
 
-    var hideStandardOptions = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_HideStandardOptions');
+    var hideStandardOptions = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_HideStandardOptions') || type === 'photo';
     var showRequired = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_ShowRequiredOption');
-    var showUnique = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_ShowUniqueOption');
+    var showUnique = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_ShowUniqueOption') && type !== 'photo';
     var showReadOnly = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_ShowReadOnlyOption');
     var showMultiValue = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_ShowMultiValueOption');
-    var showConfirmation = type !== 'checkbox' && type !== 'select' && !hideStandardOptions;
+    var showConfirmation = type !== 'checkbox' && type !== 'select' && type != 'photo' && !hideStandardOptions;
     var showSource = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_ShowSource');
 
 
     var inputID = 'value_' + keyName + '_' + iteration + "_";
     var bodyText = '<div style="max-height: 500px; overflow-y: auto"><table class="noborder">';
-    if (!hideStandardOptions) {
+    if (!hideStandardOptions || type === 'photo') {
         bodyText += '<tr>';
         bodyText += '<td id="' + inputID + '-label-description" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_Description') + '">Description</td><td>';
         bodyText += '<div class="noWrapTextBox" id="' + inputID + 'description"><span class="btn-icon pwm-icon pwm-icon-edit"></span><span id="' + inputID + '-value"></span></div>';
@@ -298,6 +300,14 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
             + '</select></td></tr><tr>';
     }
 
+    if (currentValue['type'] === 'photo') {
+        bodyText += '<td class="key">MimeTypes</td><td><button class="btn" id="' + inputID + 'editMimeTypesButton"><span class="btn-icon pwm-icon pwm-icon-list-ul"/> Edit</button></td>';
+        bodyText += '</tr>';
+
+        bodyText += '<td class="key">Maximum Size (bytes)</td><td><input min="0" pattern="[0-9]{1,10}" max="10000000" style="width: 90px" type="number" id="' + inputID + 'maximumSize' + '"/></td>';
+        bodyText += '</tr><tr>';
+    }
+
     bodyText += '</table></div>';
 
     var initFormElements = function() {
@@ -306,6 +316,10 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
 
         PWM_MAIN.addEventHandler(inputID + 'editOptionsButton', 'click', function(){
             FormTableHandler.showSelectOptionsDialog(keyName,iteration);
+        });
+
+        PWM_MAIN.addEventHandler(inputID + 'editMimeTypesButton', 'click', function(){
+            FormTableHandler.showMimeTypesDialog(keyName,iteration);
         });
 
         PWM_MAIN.addEventHandler(inputID + 'description','click',function(){
@@ -351,6 +365,14 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
             PWM_MAIN.getObject(inputID + "multivalue").checked = currentValue['multivalue'];
             PWM_MAIN.addEventHandler(inputID + "multivalue", "change", function () {
                 currentValue['multivalue'] = PWM_MAIN.getObject(inputID + "multivalue").checked;
+                FormTableHandler.write(keyName)
+            });
+        }
+
+        if (PWM_MAIN.getObject(inputID + "maximumSize")) {
+            PWM_MAIN.getObject(inputID + "maximumSize").value = currentValue['maximumSize'];
+            PWM_MAIN.addEventHandler(inputID + "maximumSize", "change", function(){
+                currentValue['maximumSize'] = PWM_MAIN.getObject(inputID + "maximumSize").value;
                 FormTableHandler.write(keyName)
             });
         }
@@ -487,13 +509,15 @@ FormTableHandler.showSelectOptionsDialog = function(keyName, iteration) {
     bodyText += '<td><b>Value</b></td><td><b>Display Name</b></td>';
     bodyText += '</tr><tr>';
     for (var optionName in PWM_VAR['clientSettingCache'][keyName][iteration]['selectOptions']) {
-        var value = PWM_VAR['clientSettingCache'][keyName][iteration]['selectOptions'][optionName];
-        var optionID = inputID + optionName;
-        bodyText += '<td>' + optionName + '</td><td>' + value + '</td>';
-        bodyText += '<td class="noborder" style="width:15px">';
-        bodyText += '<span id="' + optionID + '-removeButton" class="delete-row-icon action-icon pwm-icon pwm-icon-times"></span>';
-        bodyText += '</td>';
-        bodyText += '</tr><tr>';
+        (function(counter) {
+            var value = PWM_VAR['clientSettingCache'][keyName][iteration]['selectOptions'][counter];
+            var optionID = inputID + counter;
+            bodyText += '<td>' + counter + '</td><td>' + value + '</td>';
+            bodyText += '<td class="noborder" style="width:15px">';
+            bodyText += '<span id="' + optionID + '-removeButton" class="delete-row-icon action-icon pwm-icon pwm-icon-times"></span>';
+            bodyText += '</td>';
+            bodyText += '</tr><tr>';
+        }(optionName));
     }
     bodyText += '</tr></table>';
     bodyText += '<br/><br/><br/>';
@@ -501,27 +525,32 @@ FormTableHandler.showSelectOptionsDialog = function(keyName, iteration) {
     bodyText += '<input class="configStringInput" style="width:200px" type="text" placeholder="Display Name" required id="addSelectOptionValue"/>';
     bodyText += '<button id="addSelectOptionButton"><span class="btn-icon pwm-icon pwm-icon-plus-square"/> Add</button>';
 
+    var initFormFields = function() {
+        for (var optionName in PWM_VAR['clientSettingCache'][keyName][iteration]['selectOptions']) {
+            (function(counter) {
+                var optionID = inputID + counter;
+                PWM_MAIN.addEventHandler(optionID + '-removeButton','click',function(){
+                    FormTableHandler.removeSelectOptionsOption(keyName,iteration,counter);
+                });
+            }(optionName));
+        }
+
+        PWM_MAIN.addEventHandler('addSelectOptionButton','click',function(){
+            var value = PWM_MAIN.getObject('addSelectOptionName').value;
+            var display = PWM_MAIN.getObject('addSelectOptionValue').value;
+            FormTableHandler.addSelectOptionsOption(keyName, iteration, value, display);
+        });
+    };
+
     PWM_MAIN.showDialog({
         title: 'Select Options for ' + PWM_VAR['clientSettingCache'][keyName][iteration]['name'],
         text: bodyText,
+        loadFunction: initFormFields,
         okAction: function(){
             FormTableHandler.showOptionsDialog(keyName,iteration);
         }
     });
 
-    for (var optionName in PWM_VAR['clientSettingCache'][keyName][iteration]['selectOptions']) {
-        var loopID = inputID + optionName;
-        var optionID = inputID + optionName;
-        PWM_MAIN.addEventHandler(optionID + '-removeButton','click',function(){
-            FormTableHandler.removeSelectOptionsOption(keyName,iteration,optionName);
-        });
-    }
-
-    PWM_MAIN.addEventHandler('addSelectOptionButton','click',function(){
-        var value = PWM_MAIN.getObject('addSelectOptionName').value;
-        var display = PWM_MAIN.getObject('addSelectOptionValue').value;
-        FormTableHandler.addSelectOptionsOption(keyName, iteration, value, display);
-    });
 };
 
 FormTableHandler.addSelectOptionsOption = function(keyName, iteration, optionName, optionValue) {
@@ -550,4 +579,59 @@ FormTableHandler.showDescriptionDialog = function(keyName, iteration) {
     var finishAction = function(){ FormTableHandler.showOptionsDialog(keyName, iteration); };
     var title = 'Description for ' + PWM_VAR['clientSettingCache'][keyName][iteration]['name'];
     FormTableHandler.multiLocaleStringDialog(keyName, iteration, 'description', finishAction, title);
+};
+
+FormTableHandler.showMimeTypesDialog = function(keyName, iteration) {
+    var inputID = 'value_' + keyName + '_' + iteration + "_" + "selectOptions_";
+    var bodyText = '';
+    bodyText += '<table class="noborder" id="' + inputID + 'table"">';
+    bodyText += '<tr>';
+    bodyText += '</tr><tr>';
+    for (var optionName in PWM_VAR['clientSettingCache'][keyName][iteration]['mimeTypes']) {
+        (function(optionName) {
+            var value = PWM_VAR['clientSettingCache'][keyName][iteration]['mimeTypes'][optionName];
+            var optionID = inputID + optionName;
+            bodyText += '<td><div class="noWrapTextBox">' + value + '</div></td>';
+            bodyText += '<td class="noborder" style="">';
+            bodyText += '<span id="' + optionID + '-removeButton" class="delete-row-icon action-icon pwm-icon pwm-icon-times"></span>';
+            bodyText += '</td>';
+            bodyText += '</tr><tr>';
+        }(optionName));
+    }
+    bodyText += '</tr></table>';
+    bodyText += '<br/><br/><br/>';
+    bodyText += '<input class="configStringInput" pattern=".*/.*" style="width:200px" type="text" placeholder="Value" required id="addValue"/>';
+    bodyText += '<button id="addItemButton"><span class="btn-icon pwm-icon pwm-icon-plus-square"/> Add</button>';
+
+    PWM_MAIN.showDialog({
+        title: 'Mime Types - ' + PWM_VAR['clientSettingCache'][keyName][iteration]['name'],
+        text: bodyText,
+        okAction: function(){
+            FormTableHandler.showOptionsDialog(keyName,iteration);
+        }
+    });
+
+    for (var optionName in PWM_VAR['clientSettingCache'][keyName][iteration]['mimeTypes']) {
+        (function(optionName) {
+            var optionID = inputID + optionName;
+            PWM_MAIN.addEventHandler(optionID + '-removeButton','click',function(){
+                delete PWM_VAR['clientSettingCache'][keyName][iteration]['mimeTypes'][optionName];
+                FormTableHandler.write(keyName);
+                FormTableHandler.showMimeTypesDialog(keyName, iteration);
+            });
+        }(optionName));
+    }
+
+    PWM_MAIN.addEventHandler('addItemButton','click',function(){
+        var value = PWM_MAIN.getObject('addValue').value;
+
+        if (value === null || value.length < 1) {
+            alert('Value field is required');
+            return;
+        }
+
+        PWM_VAR['clientSettingCache'][keyName][iteration]['mimeTypes'].push(value);
+        FormTableHandler.write(keyName);
+        FormTableHandler.showMimeTypesDialog(keyName, iteration);
+    });
 };

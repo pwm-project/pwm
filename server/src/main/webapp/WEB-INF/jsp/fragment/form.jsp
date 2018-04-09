@@ -21,24 +21,24 @@
 --%>
 
 <%@ page import="password.pwm.PwmApplication" %>
-<%@ page import="password.pwm.config.value.data.FormConfiguration" %>
-<%@ page import="password.pwm.util.form.FormUtility" %>
+<%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
+<%@ page import="password.pwm.config.value.data.FormConfiguration" %>
 <%@ page import="password.pwm.error.PwmError" %>
 <%@ page import="password.pwm.http.ContextManager" %>
 <%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.http.PwmRequest" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
+<%@ page import="password.pwm.http.servlet.updateprofile.UpdateProfileServlet" %>
+<%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
+<%@ page import="password.pwm.http.tag.value.PwmValue" %>
 <%@ page import="password.pwm.i18n.Display" %>
+<%@ page import="password.pwm.util.form.FormUtility" %>
+<%@ page import="password.pwm.util.java.JavaHelper" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Locale" %>
 <%@ page import="java.util.Map" %>
-<%@ page import="password.pwm.http.tag.value.PwmValue" %>
-<%@ page import="password.pwm.http.PwmRequestAttribute" %>
-<%@ page import="java.util.Collections" %>
-<%@ page import="password.pwm.config.CustomLinkConfiguration" %>
-<%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
-<%@ page import="password.pwm.util.java.JavaHelper" %>
 
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final PwmRequest formPwmRequest = PwmRequest.forRequest(request,response); %>
@@ -88,7 +88,7 @@
     <p><%=loopConfiguration.getDescription(formLocale)%></p>
     <% } %>
     <% final boolean readonly = loopConfiguration.isReadonly() || forceReadOnly; %>
-    <% if (readonly) { %>
+    <% if (readonly && loopConfiguration.getType() != FormConfiguration.Type.photo) { %>
     <span id="<%=loopConfiguration.getName()%>">
         <span class="pwm-icon pwm-icon-chevron-circle-right"></span>
         <%= currentValue %>
@@ -101,12 +101,54 @@
         </option>
         <% } %>
     </select>
+    <% } else if (loopConfiguration.getType() == FormConfiguration.Type.photo ) { %>
+    <% if (StringUtil.isEmpty( currentValue) ) { %>
+    <div class="formfield-photo-missing">
+    </div>
+    <% } else { %>
+    <img class="formfield-photo" src="<pwm:current-url/>?processAction=readPhoto&field=<%=loopConfiguration.getName()%>"/>
+    <% } %>
+    <br/>
+    <% if (!readonly) { %>
+    <a id="button-uploadPhoto-<%=loopConfiguration.getName()%>" name="<%=loopConfiguration.getName()%>" class="btn" title="<pwm:display key="Button_Upload"/>">
+        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-upload"></span></pwm:if>
+        <pwm:display key="Button_Upload"/>
+    </a>
+    <pwm:script>
+        <script type="application/javascript">
+            PWM_GLOBAL['startupFunctions'].push(function(){
+                PWM_MAIN.addEventHandler('button-uploadPhoto-<%=loopConfiguration.getName()%>',"click",function(){
+                    var accept = '<%=StringUtil.collectionToString(loopConfiguration.getMimeTypes())%>';
+                    PWM_UPDATE.uploadPhoto('<%=loopConfiguration.getName()%>',{accept:accept});
+                });
+            });
+        </script>
+    </pwm:script>
+    <% if (!StringUtil.isEmpty( currentValue) ) { %>
+    <button type="submit" id="button-deletePhoto-<%=loopConfiguration.getName()%>" name="<%=loopConfiguration.getName()%>" class="btn" title="<pwm:display key="Button_Upload"/>" form="form-deletePhoto-<%=loopConfiguration.getName()%>">
+        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-times"></span></pwm:if>
+        <pwm:display key="Button_Delete"/>
+    </button>
+    <pwm:script>
+        <script type="application/javascript">
+            PWM_GLOBAL['startupFunctions'].push(function(){
+                PWM_MAIN.addEventHandler('button-deletePhoto-<%=loopConfiguration.getName()%>',"click",function(){
+                    PWM_MAIN.showConfirmDialog({okAction:function(){
+                            PWM_MAIN.submitPostAction(window.location.pathname, 'deletePhoto', {field:'<%=loopConfiguration.getName()%>'});
+                        }
+                    })
+                });
+            });
+        </script>
+    </pwm:script>
+    <% } %>
+    <% } %>
     <% } else { %>
     <input id="<%=loopConfiguration.getName()%>" type="<%=loopConfiguration.getType()%>" class="inputfield"
            name="<%=loopConfiguration.getName()%>" value="<%= currentValue %>"
-        <pwm:if test="<%=PwmIfTest.clientFormShowRegexEnabled%>">
+    <pwm:if test="<%=PwmIfTest.clientFormShowRegexEnabled%>">
             <%if (!StringUtil.isEmpty(loopConfiguration.getRegex())) {%> pattern="<%=loopConfiguration.getRegex()%>"<%}%>
-        </pwm:if>
+    </pwm:if>
         <%if(loopConfiguration.getPlaceholder()!=null){%> placeholder="<%=loopConfiguration.getPlaceholder()%>"<%}%>
         <%if(loopConfiguration.isRequired()){%> required="required"<%}%>
     <pwm:autofocus/> maxlength="<%=loopConfiguration.getMaximumLength()%>">
@@ -149,20 +191,20 @@
     </pwm:script>
     <% } %>
     <pwm:if test="<%=PwmIfTest.clientFormShowRegexEnabled%>">
-    <% if (loopConfiguration.getRegexError(formLocale) != null && loopConfiguration.getRegexError(formLocale).length() > 0) { %>
-    <pwm:script>
-        <script type="text/javascript">
-            PWM_GLOBAL['startupFunctions'].push(function(){
-                PWM_MAIN.addEventHandler('<%=loopConfiguration.getName()%>', 'input', function (event) {
-                    event.target.setCustomValidity("");
+        <% if (loopConfiguration.getRegexError(formLocale) != null && loopConfiguration.getRegexError(formLocale).length() > 0) { %>
+        <pwm:script>
+            <script type="text/javascript">
+                PWM_GLOBAL['startupFunctions'].push(function(){
+                    PWM_MAIN.addEventHandler('<%=loopConfiguration.getName()%>', 'input', function (event) {
+                        event.target.setCustomValidity("");
+                    });
+                    PWM_MAIN.addEventHandler('<%=loopConfiguration.getName()%>', 'invalid', function (event) {
+                        event.target.setCustomValidity('<%=StringUtil.escapeJS(loopConfiguration.getRegexError(formLocale))%>');
+                    });
                 });
-                PWM_MAIN.addEventHandler('<%=loopConfiguration.getName()%>', 'invalid', function (event) {
-                    event.target.setCustomValidity('<%=StringUtil.escapeJS(loopConfiguration.getRegexError(formLocale))%>');
-                });
-            });
-        </script>
-    </pwm:script>
-    <% } %>
+            </script>
+        </pwm:script>
+        <% } %>
     </pwm:if>
     <pwm:script>
         <script type="text/javascript">

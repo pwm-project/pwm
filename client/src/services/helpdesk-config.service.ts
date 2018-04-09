@@ -29,7 +29,7 @@ import {ConfigBaseService, IConfigService} from './base-config.service';
 const CLEAR_RESPONSES_CONFIG = 'clearResponses';
 const COLUMN_CONFIG = 'searchColumns';
 const MASK_PASSWORDS_CONFIG = 'maskPasswords';
-const PASSWORD_UI_MODE_CONFIG = 'PwUiMode';
+const PASSWORD_UI_MODE_CONFIG = 'pwUiMode';
 const TOKEN_SEND_METHOD_CONFIG = 'tokenSendMethod';
 const TOKEN_VERIFICATION_METHOD = 'TOKEN';
 const TOKEN_SMS_ONLY = 'SMSONLY';

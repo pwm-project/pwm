@@ -55,3 +55,22 @@ PWM_UPDATE.validateForm = function() {
     PWM_MAIN.pwmFormValidator(validationProps);
 };
 
+
+PWM_UPDATE.uploadPhoto=function(fieldName,options) {
+    var url = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction', 'uploadPhoto');
+    url = PWM_MAIN.addParamToUrl(url, 'field', fieldName);
+
+
+    var uploadOptions = options === undefined ? {} : options;
+    uploadOptions['url'] = url;
+
+    uploadOptions['title'] = 'Upload Photo';
+    uploadOptions['nextFunction'] = function () {
+        PWM_MAIN.showWaitDialog({
+            title: 'Upload complete...', loadFunction: function () {
+                PWM_MAIN.goto(window.location.pathname);
+            }
+        });
+    };
+    UILibrary.uploadFileDialog(uploadOptions);
+};

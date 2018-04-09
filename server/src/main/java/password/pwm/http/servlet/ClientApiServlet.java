@@ -33,7 +33,6 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.SelectableContextMode;
 import password.pwm.config.value.data.ActionConfiguration;
-import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -383,16 +382,6 @@ public class ClientApiServlet extends ControlledPwmServlet
             final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine( pwmApplication );
             passwordGuideText = macroMachine.expandMacros( passwordGuideText );
             settingMap.put( "passwordGuideText", passwordGuideText );
-        }
-
-
-        {
-            final List<String> formTypeOptions = new ArrayList<>();
-            for ( final FormConfiguration.Type type : FormConfiguration.Type.values() )
-            {
-                formTypeOptions.add( type.toString() );
-            }
-            settingMap.put( "formTypeOptions", formTypeOptions );
         }
 
         {

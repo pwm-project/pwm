@@ -128,6 +128,12 @@ public class UserInfoBean implements UserInfo
     }
 
     @Override
+    public byte[] readBinaryAttribute( final String attribute ) throws PwmUnrecoverableException
+    {
+        throw new UnsupportedOperationException( "method not implemented" );
+    }
+
+    @Override
     public Map<String, String> readStringAttributes( final Collection<String> attributes ) throws PwmUnrecoverableException
     {
         final Map<String, String> returnObj = new LinkedHashMap<>();
@@ -140,5 +146,6 @@ public class UserInfoBean implements UserInfo
         }
         return Collections.unmodifiableMap( returnObj );
     }
+
 }
 

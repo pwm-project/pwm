@@ -68,7 +68,6 @@ import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -254,40 +253,6 @@ public class LdapOperationsHelper
     }
 
     /**
-     * Writes a Map of form values to ldap onto the supplied user object.
-     * The map key must be a string of attribute names.
-     * <p/>
-     * Any ldap operation exceptions are not reported (but logged).
-     *
-     * @param theUser    User to write to
-     * @param formValues A map with {@link FormConfiguration} keys and String values.
-     * @throws ChaiUnavailableException if the directory is unavailable
-     * @throws PwmOperationalException  if their is an unexpected ldap problem
-     */
-    public static void writeFormValuesToLdap(
-            final PwmApplication pwmApplication,
-            final MacroMachine macroMachine,
-            final ChaiUser theUser,
-            final Map<FormConfiguration, String> formValues,
-            final boolean expandMacros
-    )
-            throws ChaiUnavailableException, PwmOperationalException, PwmUnrecoverableException
-    {
-        final Map<String, String> tempMap = new HashMap<>();
-
-        for ( final Map.Entry<FormConfiguration, String> entry : formValues.entrySet() )
-        {
-            final FormConfiguration formItem = entry.getKey();
-            if ( !formItem.isReadonly() )
-            {
-                tempMap.put( formItem.getName(), entry.getValue() );
-            }
-        }
-
-        writeMapToLdap( theUser, tempMap, macroMachine, expandMacros );
-    }
-
-    /**
      * Writes a Map of values to ldap onto the supplied user object.
      * The map key must be a string of attribute names.
      * <p/>
@@ -298,82 +263,155 @@ public class LdapOperationsHelper
      * @throws ChaiUnavailableException if the directory is unavailable
      * @throws PwmOperationalException  if their is an unexpected ldap problem
      */
-    public static void writeMapToLdap(
+    public static void writeFormValuesToLdap(
             final ChaiUser theUser,
-            final Map<String, String> valueMap,
+            final Map<FormConfiguration, String> valueMap,
             final MacroMachine macroMachine,
             final boolean expandMacros
     )
-            throws PwmOperationalException, ChaiUnavailableException
+            throws PwmUnrecoverableException, ChaiUnavailableException
     {
-        final Map<String, String> currentValues;
-        try
+        for ( final Map.Entry<FormConfiguration, String> entry : valueMap.entrySet() )
         {
-            currentValues = theUser.readStringAttributes( valueMap.keySet() );
-        }
-        catch ( ChaiOperationException e )
-        {
-            final String errorMsg = "error reading existing values on user " + theUser.getEntryDN() + " prior to replacing values, error: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
-            final PwmOperationalException newException = new PwmOperationalException( errorInformation );
-            newException.initCause( e );
-            throw newException;
-        }
-
-        for ( final Map.Entry<String, String> entry : valueMap.entrySet() )
-        {
-            final String attrName = entry.getKey();
-            final String value = entry.getValue();
-            String attrValue = value != null
-                    ? value
-                    : "";
-
-            if ( expandMacros )
+            final FormConfiguration formItem = entry.getKey();
+            if ( !formItem.isReadonly() )
             {
-                attrValue = macroMachine.expandMacros( attrValue );
-            }
-
-            if ( !attrValue.equals( currentValues.get( attrName ) ) )
-            {
-                if ( attrValue.length() > 0 )
+                final String attrName = formItem.getName();
+                if ( formItem.getType() == FormConfiguration.Type.photo )
                 {
+                    final String sValue = entry.getValue();
+                    final byte[] newBytes;
                     try
                     {
-                        theUser.writeStringAttribute( attrName, attrValue );
-                        LOGGER.info( "set attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + attrValue + ")" );
+                        newBytes = StringUtil.base64Decode( sValue );
                     }
-                    catch ( ChaiOperationException e )
+                    catch ( IOException e )
                     {
-                        final String errorMsg = "error setting '" + attrName + "' attribute on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
-                        final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
-                        final PwmOperationalException newException = new PwmOperationalException( errorInformation );
-                        newException.initCause( e );
-                        throw newException;
+                        throw PwmUnrecoverableException.newException( PwmError.ERROR_UNKNOWN, "error processing binary form value: " + e.getMessage() );
                     }
-                }
-                else
-                {
-                    if ( currentValues.get( attrName ) != null && currentValues.get( attrName ).length() > 0 )
+
+                    final byte[] existingBytes;
+                    {
+                        final byte[][] existingMultiByte;
+                        try
+                        {
+                            existingMultiByte = theUser.readMultiByteAttribute( attrName );
+                            if ( existingMultiByte != null && existingMultiByte.length > 0 )
+                            {
+                                existingBytes = existingMultiByte[ 0 ];
+                            }
+                            else
+                            {
+                                existingBytes = null;
+                            }
+                        }
+                        catch ( ChaiOperationException e )
+                        {
+                            final String errorMsg = "error reading existing values on user " + theUser.getEntryDN()
+                                    + " prior to replacing values, error: " + e.getMessage();
+                            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_LDAP_DATA_ERROR, errorMsg );
+                            throw new PwmUnrecoverableException( errorInformation );
+                        }
+                    }
+
+                    if ( !StringUtil.isEmpty( sValue ) )
+                    {
+                        if ( !Arrays.equals( existingBytes, newBytes ) )
+                        {
+                            if ( newBytes.length > 0 )
+                            {
+                                try
+                                {
+                                    theUser.writeBinaryAttribute( attrName, newBytes );
+                                }
+                                catch ( ChaiOperationException e )
+                                {
+                                    final String errorMsg = "error setting '" + attrName + "' attribute on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
+                                    final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_LDAP_DATA_ERROR, errorMsg );
+                                    throw new PwmUnrecoverableException( errorInformation );
+                                }
+                                LOGGER.info( "set attribute on user " + theUser.getEntryDN() + " (" + formItem + "=[base64]" + sValue + ")" );
+                            }
+                        }
+                    }
+                    else if ( existingBytes != null && existingBytes.length > 0 )
                     {
                         try
                         {
                             theUser.deleteAttribute( attrName, null );
-                            LOGGER.info( "deleted attribute value on user " + theUser.getEntryDN() + " (" + attrName + ")" );
+                            LOGGER.info( "deleted binary attribute value on user " + theUser.getEntryDN() + " (" + attrName + ")" );
                         }
                         catch ( ChaiOperationException e )
                         {
                             final String errorMsg = "error removing '" + attrName + "' attribute value on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
-                            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
-                            final PwmOperationalException newException = new PwmOperationalException( errorInformation );
-                            newException.initCause( e );
-                            throw newException;
+                            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_LDAP_DATA_ERROR, errorMsg );
+                            throw new PwmUnrecoverableException( errorInformation );
                         }
                     }
                 }
-            }
-            else
-            {
-                LOGGER.debug( "skipping attribute modify for attribute '" + attrName + "', no change in value" );
+                else
+                {
+                    final String value = entry.getValue();
+                    String attrValue = value != null
+                            ? value
+                            : "";
+
+                    if ( expandMacros )
+                    {
+                        attrValue = macroMachine.expandMacros( attrValue );
+                    }
+
+                    final String currentValue;
+                    try
+                    {
+                        currentValue = theUser.readStringAttribute( attrName );
+                    }
+                    catch ( ChaiOperationException e )
+                    {
+                        final String errorMsg = "error reading existing values on user " + theUser.getEntryDN() + " prior to replacing values, error: " + e.getMessage();
+                        final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_LDAP_DATA_ERROR, errorMsg );
+                        throw new PwmUnrecoverableException( errorInformation );
+                    }
+
+                    if ( !attrValue.equals( currentValue ) )
+                    {
+                        if ( attrValue.length() > 0 )
+                        {
+                            try
+                            {
+                                theUser.writeStringAttribute( attrName, attrValue );
+                                LOGGER.info( "set attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + attrValue + ")" );
+                            }
+                            catch ( ChaiOperationException e )
+                            {
+                                final String errorMsg = "error setting '" + attrName + "' attribute on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
+                                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_LDAP_DATA_ERROR, errorMsg );
+                                throw new PwmUnrecoverableException( errorInformation );
+                            }
+                        }
+                        else
+                        {
+                            if ( currentValue != null && currentValue.length() > 0 )
+                            {
+                                try
+                                {
+                                    theUser.deleteAttribute( attrName, null );
+                                    LOGGER.info( "deleted attribute value on user " + theUser.getEntryDN() + " (" + attrName + ")" );
+                                }
+                                catch ( ChaiOperationException e )
+                                {
+                                    final String errorMsg = "error removing '" + attrName + "' attribute value on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
+                                    final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_LDAP_DATA_ERROR, errorMsg );
+                                    throw new PwmUnrecoverableException( errorInformation );
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        LOGGER.debug( "skipping attribute modify for attribute '" + attrName + "', no change in value" );
+                    }
+                }
             }
         }
     }
@@ -915,7 +953,7 @@ public class LdapOperationsHelper
             throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
     {
         final LdapProfile ldapProfile = userIdentity.getLdapProfile( configuration );
-        final String attribute = ldapProfile.readSettingAsString( PwmSetting.PEOPLE_SEARCH_PHOTO_ATTRIBUTE );
+        final String attribute = ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_PHOTO );
         if ( attribute == null || attribute.isEmpty() )
         {
             throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "ldap photo attribute is not configured" ) );

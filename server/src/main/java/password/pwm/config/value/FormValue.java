@@ -29,6 +29,7 @@ import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.StoredValue;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.PwmOperationalException;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.secure.PwmSecurityKey;
@@ -182,7 +183,7 @@ public class FormValue extends AbstractValue implements StoredValue
                 sb.append( "\n" );
                 sb.append( " Label:" ).append( JsonUtil.serializeMap( formRow.getLabels() ) ).append( "\n" );
                 sb.append( " Description:" ).append( JsonUtil.serializeMap( formRow.getDescription() ) ).append( "\n" );
-                if ( formRow.getSelectOptions() != null && !formRow.getSelectOptions().isEmpty() )
+                if ( formRow.getType() == FormConfiguration.Type.select && JavaHelper.isEmpty( formRow.getSelectOptions() ) )
                 {
                     sb.append( " Select Options: " ).append( JsonUtil.serializeMap( formRow.getSelectOptions() ) ).append( "\n" );
                 }
@@ -191,6 +192,11 @@ public class FormValue extends AbstractValue implements StoredValue
                     sb.append( " Regex:" ).append( formRow.getRegex() )
                             .append( " Regex Error:" ).append( JsonUtil.serializeMap( formRow.getRegexErrors() ) )
                             .append( "\n" );
+                }
+                if ( formRow.getType() == FormConfiguration.Type.photo )
+                {
+                    sb.append( " MimeTypes: " ).append( StringUtil.collectionToString( formRow.getMimeTypes() ) ).append( "\n" );
+                    sb.append( " MaxSize: " ).append( formRow.getMaximumSize() ).append( "\n" );
                 }
 
             }
