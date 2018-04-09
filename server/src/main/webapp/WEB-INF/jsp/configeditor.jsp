@@ -154,13 +154,13 @@
 <pwm:script-ref url="/public/resources/js/admin.js"/>
 <pwm:script-ref url="/public/resources/js/configmanager.js"/>
 <pwm:script-ref url="/public/resources/js/uilibrary.js"/>
-<pwm:script-ref url="/public/resources/js/configeditor.js"/>
 <pwm:script-ref url="/public/resources/js/configeditor-settings.js"/>
 <pwm:script-ref url="/public/resources/js/configeditor-settings-action.js"/>
 <pwm:script-ref url="/public/resources/js/configeditor-settings-form.js"/>
 <pwm:script-ref url="/public/resources/js/configeditor-settings-challenges.js"/>
 <pwm:script-ref url="/public/resources/js/configeditor-settings-customlink.js"/>
 <pwm:script-ref url="/public/resources/js/configeditor-settings-remotewebservices.js"/>
+<pwm:script-ref url="/public/resources/js/configeditor.js"/>
 <pwm:script-ref url="/public/resources/js/admin.js"/>
 
 <%--Add support for angular--%>

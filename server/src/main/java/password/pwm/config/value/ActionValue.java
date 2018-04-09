@@ -28,7 +28,9 @@ import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.StoredValue;
+import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.value.data.ActionConfiguration;
+import password.pwm.config.value.data.ActionConfigurationOldVersion1;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -50,6 +52,7 @@ import java.util.Set;
 public class ActionValue extends AbstractValue implements StoredValue
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ActionValue.class );
+    private static final int CURRENT_SYNTAX_VERSION = 2;
 
     final List<ActionConfiguration> values;
 
@@ -57,7 +60,6 @@ public class ActionValue extends AbstractValue implements StoredValue
     {
         this.values = Collections.unmodifiableList( values );
     }
-
 
     public static StoredValueFactory factory( )
     {
@@ -92,31 +94,62 @@ public class ActionValue extends AbstractValue implements StoredValue
             )
                     throws PwmOperationalException
             {
+                final int syntaxVersion = figureCurrentStoredSyntax( settingElement );
+                final List<ActionConfiguration> values = new ArrayList<>();
+
                 final boolean oldType = PwmSettingSyntax.STRING_ARRAY.toString().equals(
                         settingElement.getAttributeValue( "syntax" ) );
-                final List valueElements = settingElement.getChildren( "value" );
-                final List<ActionConfiguration> values = new ArrayList<>();
-                for ( final Object loopValue : valueElements )
+                final List<Element> valueElements = settingElement.getChildren( "value" );
+                for ( final Element loopValueElement : valueElements )
                 {
-                    final Element loopValueElement = ( Element ) loopValue;
-                    final String value = loopValueElement.getText();
-                    if ( value != null && value.length() > 0 )
+                    final String stringValue = loopValueElement.getText();
+                    if ( !StringUtil.isEmpty( stringValue ) )
                     {
-                        if ( oldType )
+                        if ( syntaxVersion < 2 )
                         {
-                            if ( loopValueElement.getAttribute( "locale" ) == null )
+                            if ( oldType )
                             {
-                                values.add( ActionConfiguration.parseOldConfigString( value ) );
+                                if ( loopValueElement.getAttribute( "locale" ) == null )
+                                {
+                                    final ActionConfigurationOldVersion1 oldVersion1 = ActionConfigurationOldVersion1.parseOldConfigString( stringValue );
+                                    values.add( convertOldVersion1Values( oldVersion1 ) );
+                                }
                             }
+                            else
+                            {
+                                final ActionConfigurationOldVersion1 parsedAc = JsonUtil.deserialize( stringValue, ActionConfigurationOldVersion1.class );
+                                parsedAc.setPassword( decryptPwValue( parsedAc.getPassword(), pwmSecurityKey ) );
+                                values.add( convertOldVersion1Values( parsedAc ) );
+                            }
+                        }
+                        else if ( syntaxVersion == 2 )
+                        {
+                            final ActionConfiguration value = JsonUtil.deserialize( stringValue, ActionConfiguration.class );
+                            final List<ActionConfiguration.WebAction> clonedWebActions = new ArrayList<>();
+                            for ( final ActionConfiguration.WebAction webAction : value.getWebActions() )
+                            {
+                                try
+                                {
+                                    clonedWebActions.add( webAction.toBuilder()
+                                            .password( decryptPwValue( webAction.getPassword(), pwmSecurityKey ) )
+                                            .build() );
+                                }
+                                catch ( PwmOperationalException e )
+                                {
+                                    LOGGER.warn( "error decoding stored pw value: " + e.getMessage() );
+                                }
+                            }
+
+                            final ActionConfiguration clonedAction = value.toBuilder().webActions( clonedWebActions ).build();
+                            values.add( clonedAction );
                         }
                         else
                         {
-                            final ActionConfiguration parsedAc = JsonUtil.deserialize( value, ActionConfiguration.class );
-                            parsedAc.setPassword( decryptPwValue( parsedAc.getPassword(), pwmSecurityKey ) );
-                            values.add( parsedAc );
+                            throw new IllegalStateException( "unexpected syntax type " + syntaxVersion );
                         }
                     }
                 }
+
                 return new ActionValue( values );
             }
         };
@@ -127,18 +160,27 @@ public class ActionValue extends AbstractValue implements StoredValue
         final List<Element> returnList = new ArrayList<>();
         for ( final ActionConfiguration value : values )
         {
-            final Element valueElement = new Element( valueElementName );
-            final ActionConfiguration clonedValue = JsonUtil.cloneUsingJson( value, ActionConfiguration.class );
-            try
+            final List<ActionConfiguration.WebAction> clonedWebActions = new ArrayList<>();
+            for ( final ActionConfiguration.WebAction webAction : value.getWebActions() )
             {
-                clonedValue.setPassword( encryptPwValue( clonedValue.getPassword(), pwmSecurityKey ) );
-            }
-            catch ( PwmOperationalException e )
-            {
-                LOGGER.warn( "error decoding stored pw value: " + e.getMessage() );
+                try
+                {
+                    clonedWebActions.add( webAction.toBuilder()
+                            .password( encryptPwValue( webAction.getPassword(), pwmSecurityKey ) )
+                            .build() );
+                }
+                catch ( PwmOperationalException e )
+                {
+                    LOGGER.warn( "error encoding stored pw value: " + e.getMessage() );
+                }
             }
 
-            valueElement.addContent( JsonUtil.serialize( clonedValue ) );
+            final ActionConfiguration clonedAction = value.toBuilder().webActions( clonedWebActions ).build();
+
+
+            final Element valueElement = new Element( valueElementName );
+
+            valueElement.addContent( JsonUtil.serialize( clonedAction ) );
             returnList.add( valueElement );
         }
         return returnList;
@@ -191,12 +233,20 @@ public class ActionValue extends AbstractValue implements StoredValue
         final ArrayList<ActionConfiguration> output = new ArrayList<>();
         for ( final ActionConfiguration actionConfiguration : values )
         {
-            final ActionConfiguration clone = JsonUtil.cloneUsingJson( actionConfiguration, ActionConfiguration.class );
-            if ( !StringUtil.isEmpty( clone.getPassword() ) )
+            final List<ActionConfiguration.WebAction> clonedWebActions = new ArrayList<>();
+            for ( final ActionConfiguration.WebAction webAction : actionConfiguration.getWebActions() )
             {
-                clone.setPassword( PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT );
+                final String debugPwdValue = !StringUtil.isEmpty( webAction.getPassword() )
+                        ? PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT
+                        : null;
+
+                clonedWebActions.add( webAction.toBuilder()
+                        .password( debugPwdValue )
+                        .build() );
             }
-            output.add( clone );
+
+            final ActionConfiguration clonedAction = actionConfiguration.toBuilder().webActions( clonedWebActions ).build();
+            output.add( clonedAction );
         }
         return output;
     }
@@ -207,45 +257,36 @@ public class ActionValue extends AbstractValue implements StoredValue
         int counter = 0;
         for ( final ActionConfiguration actionConfiguration : values )
         {
-            sb.append( "Action" );
-            if ( values.size() > 1 )
-            {
-                sb.append( counter );
-            }
-            sb.append( "-" );
-            sb.append( actionConfiguration.getType() == null ? ActionConfiguration.Type.ldap.toString() : actionConfiguration.getType().toString() );
-            sb.append( ": [" );
-            switch ( actionConfiguration.getType() )
-            {
-                case webservice:
-                {
-                    sb.append( "WebService: " );
-                    sb.append( "method=" ).append( actionConfiguration.getMethod() );
-                    sb.append( " url=" ).append( actionConfiguration.getUrl() );
-                    sb.append( " headers=" ).append( JsonUtil.serializeMap( actionConfiguration.getHeaders() ) );
-                    sb.append( " username=" ).append( actionConfiguration.getUsername() );
-                    sb.append( " password=" ).append(
-                            StringUtil.isEmpty( actionConfiguration.getPassword() )
-                                    ? ""
-                                    : PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT
-                    );
-                    sb.append( " body=" ).append( actionConfiguration.getBody() );
-                }
-                break;
+            sb.append( "Action name=" );
+            sb.append( actionConfiguration.getName() );
+            sb.append( " description=" );
+            sb.append( actionConfiguration.getDescription() );
 
-                case ldap:
+            for ( final ActionConfiguration.WebAction webAction : actionConfiguration.getWebActions() )
+            {
+                sb.append( "\n   WebServiceAction: " );
+                sb.append( "method=" ).append( webAction.getMethod() );
+                sb.append( " url=" ).append( webAction.getUrl() );
+                sb.append( " headers=" ).append( JsonUtil.serializeMap( webAction.getHeaders() ) );
+                sb.append( " username=" ).append( webAction.getUsername() );
+                sb.append( " password=" ).append(
+                        StringUtil.isEmpty( webAction.getPassword() )
+                                ? ""
+                                : PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT
+                );
+                if ( StringUtil.isEmpty( webAction.getBody() ) )
                 {
-                    sb.append( "LDAP: " );
-                    sb.append( "method=" ).append( actionConfiguration.getLdapMethod() );
-                    sb.append( " attribute=" ).append( actionConfiguration.getAttributeName() );
-                    sb.append( " value=" ).append( actionConfiguration.getAttributeValue() );
+                    sb.append( " body=" ).append( webAction.getBody() );
                 }
-                break;
-
-                default:
-                    JavaHelper.unhandledSwitchStatement( actionConfiguration.getType() );
             }
-            sb.append( "]" );
+
+            for ( final ActionConfiguration.LdapAction ldapAction : actionConfiguration.getLdapActions() )
+            {
+                sb.append( "\n   LdapAction: " );
+                sb.append( "method=" ).append( ldapAction.getLdapMethod() );
+                sb.append( " attribute=" ).append( ldapAction.getAttributeName() );
+                sb.append( " value=" ).append( ldapAction.getAttributeValue() );
+            }
             counter++;
             if ( counter != values.size() )
             {
@@ -256,25 +297,41 @@ public class ActionValue extends AbstractValue implements StoredValue
     }
 
 
+    /**
+     * Convert to json map where the certificate values are replaced with debug info for display in the config editor.
+     * @return
+     */
     public List<Map<String, Object>> toInfoMap( )
     {
         final String originalJson = JsonUtil.serializeCollection( values );
         final List<Map<String, Object>> tempObj = JsonUtil.deserialize( originalJson, new TypeToken<List<Map<String, Object>>>()
         {
         } );
-        for ( final Map<String, Object> mapObj : tempObj )
+
+        int actionConfigurationCounter = 0;
+        for ( final ActionConfiguration actionConfiguration : values )
         {
-            final ActionConfiguration actionConfiguration = forName( ( String ) mapObj.get( "name" ) );
-            if ( actionConfiguration != null && actionConfiguration.getCertificates() != null )
+            final Map actionConfigurationMap = tempObj.get( actionConfigurationCounter );
+            int webActionCounter = 0;
+            for ( final ActionConfiguration.WebAction webAction : actionConfiguration.getWebActions() )
             {
-                final List<Map<String, String>> certificateInfos = new ArrayList<>();
-                for ( final X509Certificate certificate : actionConfiguration.getCertificates() )
+                final List webActionsList = (List) actionConfigurationMap.get( "webActions" );
+                if ( !JavaHelper.isEmpty( webAction.getCertificates() ) )
                 {
-                    certificateInfos.add( X509Utils.makeDebugInfoMap( certificate, X509Utils.DebugInfoFlag.IncludeCertificateDetail ) );
+                    final Map webActionMap = (Map) webActionsList.get( webActionCounter );
+                    final List<Map<String, String>> certificateInfos = new ArrayList<>();
+                    for ( final X509Certificate certificate : webAction.getCertificates() )
+                    {
+                        certificateInfos.add( X509Utils.makeDebugInfoMap( certificate, X509Utils.DebugInfoFlag.IncludeCertificateDetail ) );
+                    }
+                    webActionMap.put( "certificateInfos", certificateInfos );
                 }
-                mapObj.put( "certificateInfos", certificateInfos );
+                webActionCounter++;
             }
+            actionConfigurationCounter++;
         }
+
+
         return tempObj;
     }
 
@@ -290,5 +347,71 @@ public class ActionValue extends AbstractValue implements StoredValue
         return null;
     }
 
+    @Override
+    public int currentSyntaxVersion( )
+    {
+        return CURRENT_SYNTAX_VERSION;
+    }
 
+    private static int figureCurrentStoredSyntax( final Element settingElement )
+    {
+        final String storedSyntaxVersionString = settingElement.getAttributeValue( StoredConfiguration.XML_ATTRIBUTE_SYNTAX_VERSION );
+        if ( !StringUtil.isEmpty( storedSyntaxVersionString ) )
+        {
+            try
+            {
+                return Integer.parseInt( storedSyntaxVersionString );
+            }
+            catch ( NumberFormatException e )
+            {
+                LOGGER.debug( "unable to parse syntax version for setting " + e.getMessage() );
+            }
+        }
+        return 0;
+    }
+
+    private static ActionConfiguration convertOldVersion1Values( final ActionConfigurationOldVersion1 oldAction )
+    {
+        final ActionConfiguration.ActionConfigurationBuilder builder = ActionConfiguration.builder();
+        builder.name( oldAction.getName() );
+        builder.description( oldAction.getDescription() );
+        switch ( oldAction.getType() )
+        {
+            case ldap:
+            {
+                final ActionConfiguration.LdapAction ldapAction = ActionConfiguration.LdapAction.builder()
+                        .attributeName( oldAction.getAttributeName() )
+                        .attributeValue( oldAction.getAttributeValue() )
+                        .ldapMethod( oldAction.getLdapMethod().getNewMethod() )
+                        .build();
+
+                builder.ldapActions( Collections.singletonList( ldapAction ) );
+            }
+            break;
+
+            case webservice:
+            {
+                final ActionConfiguration.WebAction webAction = ActionConfiguration.WebAction.builder()
+                        .username( oldAction.getUsername() )
+                        .password( oldAction.getPassword() )
+                        .body( oldAction.getBody() )
+                        .certificates( oldAction.getCertificates() )
+                        .headers( oldAction.getHeaders() )
+                        .url( oldAction.getUrl() )
+                        .method( oldAction.getMethod().getNewMethod() )
+                        .build();
+
+                builder.webActions( Collections.singletonList( webAction ) );
+
+            }
+            break;
+
+            default:
+                JavaHelper.unhandledSwitchStatement( oldAction.getType() );
+
+        }
+
+
+        return builder.build();
+    }
 }

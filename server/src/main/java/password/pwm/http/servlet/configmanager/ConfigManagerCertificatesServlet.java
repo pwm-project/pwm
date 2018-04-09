@@ -154,8 +154,11 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet
                     final List<ActionConfiguration> actionConfigurations = ( List ) storedValue.toNativeObject();
                     for ( final ActionConfiguration actionConfiguration : actionConfigurations )
                     {
-                        final List<X509Certificate> certificates = actionConfiguration.getCertificates();
-                        certificateDebugDataItems.addAll( makeItems( pwmSetting, ref.getProfileID(), certificates ) );
+                        for ( final ActionConfiguration.WebAction webAction : actionConfiguration.getWebActions() )
+                        {
+                            final List<X509Certificate> certificates = webAction.getCertificates();
+                            certificateDebugDataItems.addAll( makeItems( pwmSetting, ref.getProfileID(), certificates ) );
+                        }
                     }
                 }
             }

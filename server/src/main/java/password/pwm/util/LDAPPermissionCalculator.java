@@ -168,9 +168,9 @@ public class LDAPPermissionCalculator implements Serializable
                     {
                         for ( final ActionConfiguration actionConfiguration : actionItems )
                         {
-                            if ( actionConfiguration.getType() == ActionConfiguration.Type.ldap )
+                            for ( final ActionConfiguration.LdapAction ldapMethod : actionConfiguration.getLdapActions() )
                             {
-                                final String attrName = actionConfiguration.getAttributeName();
+                                final String attrName = ldapMethod.getAttributeName();
                                 if ( attrName != null && !attrName.trim().isEmpty() )
                                 {
                                     permissionRecords.add( new PermissionRecord( attrName, pwmSetting, profile, permissionInfo.getAccess(), permissionInfo.getActor() ) );

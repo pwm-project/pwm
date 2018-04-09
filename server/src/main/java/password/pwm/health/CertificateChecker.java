@@ -108,8 +108,11 @@ public class CertificateChecker implements HealthChecker
                     final ActionValue value = ( ActionValue ) storedConfiguration.readSetting( pwmSetting, storedConfigReference.getProfileID() );
                     for ( final ActionConfiguration actionConfiguration : value.toNativeObject() )
                     {
-                        final List<X509Certificate> certificates = actionConfiguration.getCertificates();
-                        returnList.addAll( doHealthCheck( configuration, pwmSetting, storedConfigReference.getProfileID(), certificates ) );
+                        for ( final ActionConfiguration.WebAction webAction : actionConfiguration.getWebActions()  )
+                        {
+                            final List<X509Certificate> certificates = webAction.getCertificates();
+                            returnList.addAll( doHealthCheck( configuration, pwmSetting, storedConfigReference.getProfileID(), certificates ) );
+                        }
                     }
                 }
             }

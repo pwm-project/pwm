@@ -22,27 +22,23 @@
 
 package password.pwm.config.value.data;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Builder;
+import lombok.Value;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 
 import java.io.Serializable;
 import java.security.cert.X509Certificate;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-@Getter
-@Setter
+@Value
+@Builder( toBuilder = true )
 public class ActionConfiguration implements Serializable
 {
-
-    public enum Type
-    {
-        webservice, ldap
-    }
 
     public enum WebMethod
     {
@@ -54,41 +50,58 @@ public class ActionConfiguration implements Serializable
         replace, add, remove
     }
 
+    @Value
+    @Builder( toBuilder = true )
+    public static class WebAction implements Serializable
+    {
+        @Builder.Default
+        private ActionConfiguration.WebMethod method = ActionConfiguration.WebMethod.get;
+
+        @Builder.Default
+        private Map<String, String> headers = Collections.emptyMap();
+
+        @Builder.Default
+        private String url = "";
+
+        @Builder.Default
+        private String body = "";
+
+        @Builder.Default
+        private String username = "";
+
+        @Builder.Default
+        private String password = "";
+
+        @Builder.Default
+        private List<X509Certificate> certificates = Collections.emptyList();
+    }
+
+    @Value
+    @Builder
+    public static class LdapAction implements Serializable
+    {
+        @Builder.Default
+        private ActionConfiguration.LdapMethod ldapMethod = ActionConfiguration.LdapMethod.replace;
+
+        @Builder.Default
+        private String attributeName = "";
+
+        @Builder.Default
+        private String attributeValue = "";
+    }
+
     private String name;
     private String description;
 
-    private Type type = Type.webservice;
+    @Builder.Default
+    private List<ActionConfiguration.WebAction> webActions = Collections.emptyList();
 
-    private WebMethod method = WebMethod.get;
-    private Map<String, String> headers;
-    private String url;
-    private String body;
-    private String username;
-    private String password;
-    private List<X509Certificate> certificates;
-
-
-    private LdapMethod ldapMethod = LdapMethod.replace;
-    private String attributeName;
-    private String attributeValue;
-
-    public static ActionConfiguration parseOldConfigString( final String value )
-    {
-        final String[] splitString = value.split( "=" );
-        final String attributeName = splitString[ 0 ];
-        final String attributeValue = splitString[ 1 ];
-        final ActionConfiguration actionConfiguration = new ActionConfiguration();
-        actionConfiguration.name = attributeName;
-        actionConfiguration.description = attributeName;
-        actionConfiguration.type = Type.ldap;
-        actionConfiguration.attributeName = attributeName;
-        actionConfiguration.attributeValue = attributeValue;
-        return actionConfiguration;
-    }
+    @Builder.Default
+    private List<ActionConfiguration.LdapAction> ldapActions = Collections.emptyList();
 
     public void validate( ) throws PwmOperationalException
     {
-        if ( this.getName() == null || this.getName().length() < 1 )
+        if ( StringUtil.isEmpty( this.getName() ) )
         {
             throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
                     {
@@ -97,18 +110,9 @@ public class ActionConfiguration implements Serializable
             ) );
         }
 
-        if ( this.getType() == null )
+        for ( final ActionConfiguration.WebAction webAction : webActions )
         {
-            throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
-                    {
-                            " type is required for field " + this.getName(),
-                    }
-            ) );
-        }
-
-        if ( this.getType() == Type.webservice )
-        {
-            if ( this.getMethod() == null )
+            if ( webAction.getMethod() == null )
             {
                 throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
                         {
@@ -116,39 +120,6 @@ public class ActionConfiguration implements Serializable
                         }
                 ) );
             }
-            if ( this.getUrl() == null || this.getUrl().length() < 1 )
-            {
-                throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
-                        {
-                                " url for webservice action " + this.getName() + " is required",
-                        } ) );
-            }
         }
-        else if ( this.getType() == Type.ldap )
-        {
-            if ( this.getAttributeName() == null || this.getAttributeName().length() < 1 )
-            {
-                throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
-                        {
-                                " attribute name for ldap action " + this.getName() + " is required",
-                        }
-                        ) );
-            }
-            if ( this.getAttributeValue() == null || this.getAttributeValue().length() < 1 )
-            {
-                throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
-                        {
-                                " attribute value for ldap action " + this.getName() + " is required",
-                        }
-                ) );
-            }
-        }
-    }
-
-    public ActionConfiguration copyWithNewCertificate( final List<X509Certificate> certificates )
-    {
-        final ActionConfiguration clone = JsonUtil.cloneUsingJson( this, ActionConfiguration.class );
-        clone.certificates = certificates;
-        return clone;
     }
 }
