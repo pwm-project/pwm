@@ -114,7 +114,7 @@ public class MainOptions implements Serializable
                     {
                         if ( arg.length() < OPT_DEBUG_LEVEL.length() + 2 )
                         {
-                            out( debugWriter, OPT_DEBUG_LEVEL + " option must include level (example: " + OPT_DEBUG_LEVEL + "=TRACE" );
+                            out( debugWriter, OPT_DEBUG_LEVEL + " option must include level (example: " + OPT_DEBUG_LEVEL + "=TRACE)" );
                             System.exit( -1 );
                         }
                         else
@@ -135,7 +135,7 @@ public class MainOptions implements Serializable
                     {
                         if ( arg.length() < OPT_APP_PATH.length() + 2 )
                         {
-                            out( debugWriter, OPT_APP_PATH + " option must include value (example: " + OPT_APP_PATH + "=/tmp/applicationPath" );
+                            out( debugWriter, OPT_APP_PATH + " option must include value (example: " + OPT_APP_PATH + "=/tmp/applicationPath)" );
                             System.exit( -1 );
                         }
                         else
@@ -152,7 +152,7 @@ public class MainOptions implements Serializable
                     {
                         if ( arg.length() < OPT_APP_FLAGS.length() + 2 )
                         {
-                            out( debugWriter, OPT_APP_FLAGS + " option must include value (example: " + OPT_APP_FLAGS + "=Flag1,Flag2" );
+                            out( debugWriter, OPT_APP_FLAGS + " option must include value (example: " + OPT_APP_FLAGS + "=Flag1,Flag2)" );
                             System.exit( -1 );
                         }
                         else
