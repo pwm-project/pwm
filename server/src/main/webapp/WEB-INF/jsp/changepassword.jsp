@@ -40,7 +40,7 @@
         <pwm:if test="<%=PwmIfTest.passwordExpired%>">
         <h1><pwm:display key="Display_PasswordExpired"/></h1><br/>
         </pwm:if>
-        <pwm:display key="Display_ChangePassword"/>
+        <p><pwm:display key="Display_ChangePassword"/></p>
         <div id="PasswordRequirements">
             <ul>
                 <pwm:DisplayPasswordRequirements separator="</li>" prepend="<li>"/>
