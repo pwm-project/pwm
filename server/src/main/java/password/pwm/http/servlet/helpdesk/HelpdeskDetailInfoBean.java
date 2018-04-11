@@ -37,7 +37,6 @@ import password.pwm.config.option.HelpdeskUIMode;
 import password.pwm.config.option.ViewStatusFields;
 import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.config.profile.PwmPasswordRule;
-import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
@@ -90,16 +89,7 @@ public class HelpdeskDetailInfoBean implements Serializable
 
     private Set<StandardButton> visibleButtons;
     private Set<StandardButton> enabledButtons;
-    private List<ButtonInfo> customButtons;
-
-    @Value
-    public static class ButtonInfo implements Serializable
-    {
-        private String name;
-        private String label;
-        private String description;
-    }
-
+    
     public enum StandardButton
     {
         back,
@@ -231,7 +221,6 @@ public class HelpdeskDetailInfoBean implements Serializable
             final Set<HelpdeskDetailInfoBean.StandardButton> visibleButtons = determineVisibleButtons( helpdeskProfile );
             builder.visibleButtons( visibleButtons );
             builder.enabledButtons( determineEnabledButtons( visibleButtons, userInfo ) );
-            builder.customButtons( determineCustomButtons( helpdeskProfile ) );
         }
 
         final HelpdeskDetailInfoBean helpdeskDetailInfoBean = builder.build();
@@ -327,30 +316,6 @@ public class HelpdeskDetailInfoBean implements Serializable
         }
 
         return Collections.unmodifiableSet( buttons );
-    }
-
-    static List<ButtonInfo> determineCustomButtons(
-            final HelpdeskProfile helpdeskProfile
-    )
-    {
-        final List<ActionConfiguration> actions = helpdeskProfile.readSettingAsAction( PwmSetting.HELPDESK_ACTIONS );
-
-        final List<ButtonInfo> buttons = new ArrayList<>();
-        if ( actions != null )
-        {
-            int count = 0;
-            for ( final ActionConfiguration action : actions )
-            {
-                buttons.add( new ButtonInfo(
-                        "custom_" + count++,
-                        action.getName(),
-                        action.getDescription()
-                ) );
-            }
-        }
-
-        return Collections.unmodifiableList( buttons );
-
     }
 
 
