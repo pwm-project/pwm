@@ -26,7 +26,6 @@ import {ILogService, IPromise, IQService, IWindowService} from 'angular';
 import LocalStorageService from './local-storage.service';
 import ObjectService from './object.service';
 import SearchResult from '../models/search-result.model';
-import {IPerson} from '../models/person.model';
 
 const VERIFICATION_PROCESS_ACTIONS = {
     ATTRIBUTES: 'validateAttributes',
@@ -53,12 +52,6 @@ export interface IHelpDeskService {
     unlockIntruder(userKey: string): IPromise<ISuccessResponse>;
     validateVerificationData(userKey: string, formData: any, tokenData: any): IPromise<IVerificationStatus>;
     showStrengthMeter: boolean;
-}
-
-export interface IButtonInfo {
-    description: string;
-    label: string;
-    name: string;
 }
 
 export type IRecentVerifications = IRecentVerification[];
