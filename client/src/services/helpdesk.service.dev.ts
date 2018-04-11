@@ -54,10 +54,10 @@ export default class HelpDeskService implements IHelpDeskService {
     }
 
     customAction(actionName: string, userKey: string): IPromise<ISuccessResponse> {
-        if (actionName === 'custom_0') {
+        if (actionName === 'Clone User') {
             return this.simulateResponse({ successMessage: 'User successfully cloned.' });
         }
-        else if (actionName === 'custom_1') {
+        else if (actionName === 'Merge User') {
             return this.simulateResponse({ successMessage: 'User successfully merged.' });
         }
         else {
@@ -416,18 +416,6 @@ export default class HelpDeskService implements IHelpDeskService {
                 'verification',
                 'deleteUser'
             ],
-            'customButtons': [
-                {
-                    'name': 'custom_0',
-                    'label': 'Clone User',
-                    'description': 'Clones the current user'
-                },
-                {
-                    'name': 'custom_1',
-                    'label': 'Merge User',
-                    'description': 'Merges the current user with another user'
-                }
-            ]
         });
     }
 

@@ -22,11 +22,10 @@
 
 
 import {Component} from '../../component';
-import {IButtonInfo, IHelpDeskService, ISuccessResponse} from '../../services/helpdesk.service';
+import {IHelpDeskService, ISuccessResponse} from '../../services/helpdesk.service';
 import {IScope, ui} from 'angular';
 import {noop} from 'angular';
-import {IHelpDeskConfigService, PASSWORD_UI_MODES} from '../../services/helpdesk-config.service';
-import {IPeopleService} from '../../services/people.service';
+import {IButtonInfo, IHelpDeskConfigService, PASSWORD_UI_MODES} from '../../services/helpdesk-config.service';
 import {IPerson} from '../../models/person.model';
 import {IChangePasswordSuccess} from '../../components/changepassword/success-change-password.controller';
 
@@ -47,6 +46,7 @@ const PROFILE_TAB_NAME = 'profileTab';
     templateUrl: require('modules/helpdesk/helpdesk-detail.component.html')
 })
 export default class HelpDeskDetailComponent {
+    customButtons: {[key: string]: IButtonInfo};
     person: any;
     personCard: IPerson;
     photosEnabled: boolean;
@@ -280,7 +280,7 @@ export default class HelpDeskDetailComponent {
                      helpDeskService: IHelpDeskService,
                      translateFilter: (id: string) => string) => {
                         $scope.status = STATUS_CONFIRM;
-                        $scope.title = translateFilter('Button_Confirm') + ' ' + button.label;
+                        $scope.title = translateFilter('Button_Confirm') + ' ' + button.name;
                         $scope.text = button.description;
                         $scope.secondaryText = translateFilter('Confirm');
                         $scope.confirm = () => {
@@ -354,6 +354,10 @@ export default class HelpDeskDetailComponent {
         this.configService.photosEnabled().then((photosEnabled: boolean) => {
             this.photosEnabled = photosEnabled;
         }); // TODO: always necessary?
+
+        this.configService.getCustomButtons().then((customButtons: {[key: string]: IButtonInfo}) => {
+            this.customButtons = customButtons;
+        });
 
         this.helpDeskService.getPersonCard(personId).then((personCard: IPerson) => {
             this.personCard = personCard;
