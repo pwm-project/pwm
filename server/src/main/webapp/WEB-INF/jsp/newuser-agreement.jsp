@@ -48,6 +48,7 @@
                     <input type="checkbox" id="agreeCheckBox"/>
                     <pwm:display key="Button_Agree"/>
                 </label>
+                <br/><br/>
                 <input type="hidden" name="processAction" value="agree"/>
                 <button type="submit" name="button" class="btn" id="submitBtn">
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
@@ -55,8 +56,6 @@
                 </button>
                 <input type="hidden" name="pwmFormID" id="pwmFormID" value="<pwm:FormID/>"/>
             </form>
-        </div>
-        <div style="text-align: center">
             <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded">
                 <input type="hidden" name="processAction" value="reset"/>
                 <button type="submit" name="button" class="btn" id="button_reset">
