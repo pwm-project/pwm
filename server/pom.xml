@@ -307,6 +307,7 @@
                                     <directory>src/main/resources</directory>
                                     <includes>
                                         <include>password/pwm/BuildInformation.properties</include>
+                                        <include>password/pwm/PwmConstants.properties</include>
                                     </includes>
                                 </resource>
                             </resources>
