@@ -45,7 +45,7 @@
 <% final Locale formLocale = formPwmRequest.getLocale(); %>
 <% final List<FormConfiguration> formConfigurationList = (List<FormConfiguration>)JspUtility.getAttribute(pageContext, PwmRequestAttribute.FormConfiguration); %>
 <% if (JavaHelper.isEmpty(formConfigurationList)) { %>
-[ form definition is not available ]
+<!-- [ form definition is not available ] -->
 <% } else { %>
 <%
     final boolean forceReadOnly = (Boolean)JspUtility.getAttribute(pageContext, PwmRequestAttribute.FormReadOnly);
