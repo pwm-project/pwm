@@ -45,26 +45,41 @@ import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-public abstract class PwmHttpRequestWrapper
+public class PwmHttpRequestWrapper
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmHttpRequestWrapper.class );
 
     private final HttpServletRequest httpServletRequest;
     private final Configuration configuration;
 
+    private static final Set<String> HTTP_PARAM_DEBUG_STRIP_VALUES =
+            Collections.unmodifiableSet( new HashSet<>( Arrays.asList(
+                    "password",
+                    PwmConstants.PARAM_TOKEN,
+                    PwmConstants.PARAM_RESPONSE_PREFIX ) )
+            );
+
+    private static final Set<String> HTTP_HEADER_DEBUG_STRIP_VALUES =
+            Collections.unmodifiableSet( new HashSet<>( Arrays.asList(
+                    HttpHeader.Authorization.getHttpName() ) )
+            );
+
     public enum Flag
     {
         BypassValidation
     }
 
-    protected PwmHttpRequestWrapper( final HttpServletRequest request, final Configuration configuration )
+    public PwmHttpRequestWrapper( final HttpServletRequest request, final Configuration configuration )
     {
         this.httpServletRequest = request;
         this.configuration = configuration;
@@ -457,5 +472,116 @@ public abstract class PwmHttpRequestWrapper
         return configuration;
     }
 
+    public String getURLwithoutQueryString( )
+    {
+        final HttpServletRequest req = this.getHttpServletRequest();
+        final String requestUri = ( String ) req.getAttribute( "javax.servlet.forward.request_uri" );
+        return ( requestUri == null ) ? req.getRequestURI() : requestUri;
+    }
+
+    public String debugHttpHeaders( )
+    {
+        final String lineSeparator = "\n";
+        final StringBuilder sb = new StringBuilder();
+
+
+        sb.append( "http" ).append( getHttpServletRequest().isSecure() ? "s " : " non-" ).append( "secure request headers: " );
+        sb.append( lineSeparator );
+
+        sb.append( debugOutputMapToString( readHeaderValuesMap(), HTTP_HEADER_DEBUG_STRIP_VALUES ) );
+
+        return sb.toString();
+    }
+
+    private static String debugOutputMapToString(
+            final Map<String, List<String>> input,
+            final Collection<String> stripValues
+    )
+    {
+        final String lineSeparator = "\n";
+
+        final StringBuilder sb = new StringBuilder();
+        for ( final Map.Entry<String, List<String>> entry : input.entrySet() )
+        {
+            final String paramName = entry.getKey();
+            for ( final String paramValue : entry.getValue() )
+            {
+                sb.append( "  " ).append( paramName ).append( "=" );
+                boolean strip = false;
+                for ( final String stripValue : stripValues )
+                {
+                    if ( paramName.toLowerCase().contains( stripValue.toLowerCase() ) )
+                    {
+                        strip = true;
+                    }
+                }
+                if ( strip )
+                {
+                    sb.append( PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT );
+                }
+                else
+                {
+                    sb.append( "'" );
+                    sb.append( paramValue );
+                    sb.append( "'" );
+                }
+
+                sb.append( lineSeparator );
+            }
+        }
+
+        if ( sb.length() > 0 )
+        {
+            if ( lineSeparator.equals( sb.substring( sb.length() - lineSeparator.length(), sb.length() ) ) )
+            {
+                sb.delete( sb.length() - lineSeparator.length(), sb.length() );
+            }
+        }
+
+        return sb.toString();
+    }
+
+    public String debugHttpRequestToString( final String extraText, final boolean includeHeaders )
+            throws PwmUnrecoverableException
+    {
+
+        final StringBuilder sb = new StringBuilder();
+        final HttpServletRequest req = this.getHttpServletRequest();
+
+        sb.append( req.getMethod() );
+        sb.append( " request for: " );
+        sb.append( getURLwithoutQueryString() );
+
+        if ( includeHeaders )
+        {
+            sb.append( "\n " );
+            sb.append( debugHttpHeaders() );
+            sb.append( "\n" );
+            sb.append( " parameters:" );
+        }
+
+        if ( req.getParameterMap().isEmpty() )
+        {
+            sb.append( " (no params)" );
+            if ( extraText != null )
+            {
+                sb.append( " " );
+                sb.append( extraText );
+            }
+        }
+        else
+        {
+            if ( extraText != null )
+            {
+                sb.append( " " );
+                sb.append( extraText );
+            }
+            sb.append( "\n" );
+
+            sb.append( debugOutputMapToString( this.readMultiParametersAsMap(), HTTP_PARAM_DEBUG_STRIP_VALUES ) );
+        }
+
+        return sb.toString();
+    }
 }
 

@@ -28,6 +28,7 @@ import {ConfigBaseService, IConfigService} from './base-config.service';
 
 const CLEAR_RESPONSES_CONFIG = 'clearResponses';
 const COLUMN_CONFIG = 'searchColumns';
+const CUSTOM_BUTTON_CONFIG = 'actions';
 const MASK_PASSWORDS_CONFIG = 'maskPasswords';
 const PASSWORD_UI_MODE_CONFIG = 'pwUiMode';
 const TOKEN_SEND_METHOD_CONFIG = 'tokenSendMethod';
@@ -71,8 +72,14 @@ interface IVerificationResponse {
 
 export type IVerificationMap = {name: string, label: string}[];
 
+export interface IButtonInfo {
+    description: string;
+    name: string;
+}
+
 export interface IHelpDeskConfigService extends IConfigService {
     getClearResponsesSetting(): IPromise<string>;
+    getCustomButtons(): IPromise<{[key: string]: IButtonInfo}>;
     getPasswordUiMode(): IPromise<string>;
     getTokenSendMethod(): IPromise<string>;
     getVerificationAttributes(): IPromise<IVerificationMap>;
@@ -94,6 +101,10 @@ export default class HelpDeskConfigService extends ConfigBaseService implements 
 
     getColumnConfig(): IPromise<any> {
         return this.getValue(COLUMN_CONFIG);
+    }
+
+    getCustomButtons(): IPromise<{[key: string]: IButtonInfo}> {
+        return this.getValue(CUSTOM_BUTTON_CONFIG);
     }
 
     getPasswordUiMode(): IPromise<string> {

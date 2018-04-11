@@ -897,12 +897,11 @@ PWM_MAIN.showEula = function(requireAgreement, agreeFunction) {
     var displayEula = function (data) {
         PWM_GLOBAL['dialog_agreeAction'] = agreeFunction ? agreeFunction : function(){};
 
-        var bodyText = '<div style="height: 400px; overflow: auto"><pre>' + data + '</pre></div>';
+        var bodyText = '<div style="height: 400px; overflow: auto" class="eulaText">' + data + '</div>';
 
         var dialogOptions = {};
         dialogOptions['text'] = bodyText;
         dialogOptions['title'] = 'End User License Agreement';
-        dialogOptions['dialogClass'] = 'wide';
 
         if (requireAgreement) {
             dialogOptions['showCancel'] = true;

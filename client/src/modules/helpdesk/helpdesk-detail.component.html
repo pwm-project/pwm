@@ -68,8 +68,8 @@
                     ng-if="$ctrl.buttonVisible('deleteUser')">{{ 'Button_Delete' | translate }}
         </ias-button>
         <ias-button ng-click="$ctrl.clickCustomButton(button)"
-                    ng-repeat="button in $ctrl.person.customButtons"
-                    ng-attr-title="{{button.description}}">{{ button.label }}
+                    ng-repeat="(label, button) in $ctrl.customButtons"
+                    ng-attr-title="{{button.description}}">{{ button.name }}
         </ias-button>
     </div>
 
