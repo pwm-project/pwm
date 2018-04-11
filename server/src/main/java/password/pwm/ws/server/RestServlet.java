@@ -40,6 +40,7 @@ import password.pwm.http.ContextManager;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
+import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.filter.RequestInitializationFilter;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
@@ -74,7 +75,7 @@ public abstract class RestServlet extends HttpServlet
     {
         final Instant startTime = Instant.now();
 
-        RestResultBean restResultBean = RestResultBean.fromError( new ErrorInformation( PwmError.ERROR_APP_UNAVAILABLE ), false );
+        RestResultBean restResultBean = RestResultBean.fromError( new ErrorInformation( PwmError.ERROR_APP_UNAVAILABLE ), true );
 
         final PwmApplication pwmApplication;
         try
@@ -116,7 +117,16 @@ public abstract class RestServlet extends HttpServlet
             outputRestResultBean( restResultBean, req, resp );
             return;
         }
-        LOGGER.trace( sessionLabel, "beginning rest service invocation" );
+
+        try
+        {
+            final PwmHttpRequestWrapper httpRequestWrapper = new PwmHttpRequestWrapper( req, pwmApplication.getConfig() );
+            LOGGER.trace( sessionLabel, "incoming HTTP REST request: " +  httpRequestWrapper.debugHttpRequestToString( null, true ) );
+        }
+        catch ( PwmUnrecoverableException e )
+        {
+            LOGGER.error( "error while trying to log HTTP request data " + e.getMessage(), e );
+        }
 
         if ( pwmApplication.getApplicationMode() != PwmApplicationMode.RUNNING )
         {

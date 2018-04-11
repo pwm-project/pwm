@@ -40,8 +40,10 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public abstract class StringUtil
 {
@@ -362,6 +364,20 @@ public abstract class StringUtil
         }
 
         return sb.toString();
+    }
+
+    public static List<String> splitAndTrim( final String input, final String seperator )
+    {
+        if ( StringUtil.isEmpty( input ) )
+        {
+            return Collections.emptyList();
+        }
+
+        final String[] splitValues = StringUtils.split( input, seperator );
+
+        return Arrays.stream( splitValues )
+                .map( String::trim )
+                .collect( Collectors.toList() );
     }
 
     public static Collection<String> whitespaceSplit( final String input )

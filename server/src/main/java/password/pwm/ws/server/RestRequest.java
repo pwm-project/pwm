@@ -81,7 +81,7 @@ public class RestRequest extends PwmHttpRequestWrapper
 
     public HttpContentType readContentType( )
     {
-        return HttpContentType.fromContentTypeHeader( readHeaderValueAsString( HttpHeader.Content_Type ) );
+        return HttpContentType.fromContentTypeHeader( readHeaderValueAsString( HttpHeader.Content_Type ), null );
     }
 
     public HttpContentType readAcceptType( )
@@ -93,12 +93,7 @@ public class RestRequest extends PwmHttpRequestWrapper
     static HttpContentType readAcceptType( final HttpServletRequest request )
     {
         final String acceptHeaderValue = request.getHeader( HttpHeader.Accept.getHttpName() );
-        final boolean anyValue = "*".equals( acceptHeaderValue )
-                || "*/*".equals( acceptHeaderValue );
-        return anyValue
-                ? HttpContentType.json
-                : HttpContentType.fromContentTypeHeader( acceptHeaderValue );
-
+        return HttpContentType.fromContentTypeHeader( acceptHeaderValue, HttpContentType.json );
     }
 
     public Locale getLocale( )
