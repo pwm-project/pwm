@@ -25,11 +25,10 @@ import { IPromise, IQService } from 'angular';
 import {ConfigBaseService} from './base-config.service.dev';
 import {IConfigService} from './base-config.service';
 import {
-    IActionButtons,
+    IButtonInfo,
     IHelpDeskConfigService, IVerificationMap, PASSWORD_UI_MODES, TOKEN_CHOICE, VERIFICATION_METHOD_LABELS,
     VERIFICATION_METHOD_NAMES
 } from './helpdesk-config.service';
-
 
 export default class HelpDeskConfigService extends ConfigBaseService implements IConfigService, IHelpDeskConfigService {
     static $inject = [ '$q' ];
@@ -49,6 +48,19 @@ export default class HelpDeskConfigService extends ConfigBaseService implements 
             mail: 'Email',
             telephoneNumber: 'Telephone',
             workforceId: 'Workforce ID'
+        });
+    }
+
+    getCustomButtons(): IPromise<{[key: string]: IButtonInfo}> {
+        return this.$q.resolve({
+            'Clone User': {
+                name: 'Clone User',
+                description: 'Clones the current user'
+            },
+            'Merge User': {
+                name: 'Merge User',
+                description: 'Merges the current user with another user'
+            }
         });
     }
 
