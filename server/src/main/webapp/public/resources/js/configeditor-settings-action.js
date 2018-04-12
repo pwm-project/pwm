@@ -288,7 +288,7 @@ ActionHandler.showActionsDialog = function(keyName, iteration) {
                     title: 'Attribute Name',
                     completeFunction: function (newValue) {
                         var currentSize = PWM_MAIN.JSLibrary.itemCount(value['ldapActions']);
-                        value['ldapActions'].push( ActionHandler.defaultLdapValue);
+                        value['ldapActions'].push(JSON.parse(JSON.stringify(ActionHandler.defaultLdapValue)));
                         value['ldapActions'][currentSize]['attributeName'] = newValue;
                         ActionHandler.write(keyName,function(){
                             ActionHandler.addOrEditLdapAction(keyName,iteration,currentSize);
@@ -302,7 +302,7 @@ ActionHandler.showActionsDialog = function(keyName, iteration) {
                     title: 'URL',
                     completeFunction: function (newValue) {
                         var currentSize = PWM_MAIN.JSLibrary.itemCount(value['webActions']);
-                        value['webActions'].push( ActionHandler.defaultWebValue );
+                        value['webActions'].push(JSON.parse(JSON.stringify(ActionHandler.defaultWebValue)));
                         value['webActions'][currentSize]['url'] = newValue;
                         ActionHandler.write(keyName,function(){
                             ActionHandler.addOrEditWebAction(keyName,iteration,currentSize);
