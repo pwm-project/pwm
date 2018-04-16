@@ -70,10 +70,10 @@ export default class PeopleService implements IPeopleService {
                 people = people.sort((person1, person2) => person1._displayName.localeCompare(person2._displayName));
 
                 if (people && people.length > 10) {
-                    return this.$q.resolve(people.slice(0, 10));
+                    return people.slice(0, 10);
                 }
 
-                return this.$q.resolve(people);
+                return people;
             });
     }
 
@@ -119,7 +119,7 @@ export default class PeopleService implements IPeopleService {
     getNumberOfDirectReports(personId: string): IPromise<number> {
         return this.getDirectReports(personId)
             .then((directReports: IPerson[]) => {
-                return this.$q.resolve(directReports.length);
+                return directReports.length;
             });
     }
 

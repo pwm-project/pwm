@@ -27,7 +27,6 @@ import PwmService from './pwm.service';
 import {ConfigBaseService, IConfigService} from './base-config.service';
 
 const CLEAR_RESPONSES_CONFIG = 'clearResponses';
-const COLUMN_CONFIG = 'searchColumns';
 const CUSTOM_BUTTON_CONFIG = 'actions';
 const MASK_PASSWORDS_CONFIG = 'maskPasswords';
 const PASSWORD_UI_MODE_CONFIG = 'pwUiMode';
@@ -61,10 +60,6 @@ export const VERIFICATION_METHOD_LABELS = {
     OTP: 'Button_OTP'
 };
 
-export interface IActionButtons {
-    [key: string]: {name: string, description: string};
-}
-
 interface IVerificationResponse {
     optional: string[];
     required: string[];
@@ -72,14 +67,14 @@ interface IVerificationResponse {
 
 export type IVerificationMap = {name: string, label: string}[];
 
-export interface IButtonInfo {
+export interface IActionButton {
     description: string;
     name: string;
 }
 
 export interface IHelpDeskConfigService extends IConfigService {
     getClearResponsesSetting(): IPromise<string>;
-    getCustomButtons(): IPromise<{[key: string]: IButtonInfo}>;
+    getCustomButtons(): IPromise<{[key: string]: IActionButton}>;
     getPasswordUiMode(): IPromise<string>;
     getTokenSendMethod(): IPromise<string>;
     getVerificationAttributes(): IPromise<IVerificationMap>;
@@ -99,11 +94,7 @@ export default class HelpDeskConfigService extends ConfigBaseService implements 
         return this.getValue(CLEAR_RESPONSES_CONFIG);
     }
 
-    getColumnConfig(): IPromise<any> {
-        return this.getValue(COLUMN_CONFIG);
-    }
-
-    getCustomButtons(): IPromise<{[key: string]: IButtonInfo}> {
+    getCustomButtons(): IPromise<{[key: string]: IActionButton}> {
         return this.getValue(CUSTOM_BUTTON_CONFIG);
     }
 
@@ -133,9 +124,12 @@ export default class HelpDeskConfigService extends ConfigBaseService implements 
         ]);
 
         return promise.then((result) => {
-            let availableMethods: string[] = result[0].required;
+            let availableMethods: string[];
             if (options && options.includeOptional) {
-                availableMethods = Array.from(new Set([].concat(result[0].required, result[0].optional)));
+                availableMethods = result[0].optional;
+            }
+            else {
+                availableMethods = result[0].required;
             }
 
             let tokenSendMethod: string = result[1];

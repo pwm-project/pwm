@@ -51,10 +51,17 @@
                     ng-disabled="$ctrl.buttonDisabled('unlock')"
                     ng-if="$ctrl.buttonVisible('unlock')">{{ 'Button_Unlock' | translate }}
         </ias-button>
+
         <ias-button ng-click="$ctrl.clearResponses()"
-                    ng-disabled="$ctrl.buttonDisabled('clearResponses')"
-                    ng-if="$ctrl.buttonVisible('clearResponses')">{{ 'Button_ClearResponses' | translate }}
+                    ng-if="$ctrl.buttonVisible('clearResponses') && !$ctrl.buttonDisabled('clearResponses')">
+            {{ 'Button_ClearResponses' | translate }}
         </ias-button>
+        <ias-button disabled
+                    ng-attr-title="{{ 'Display_NoResponses' | translate }}"
+                    ng-if="$ctrl.buttonVisible('clearResponses') && $ctrl.buttonDisabled('clearResponses')">
+            {{ 'Button_ClearResponses' | translate }}
+        </ias-button>
+
         <ias-button ng-click="$ctrl.clearOtpSecret()"
                     ng-disabled="$ctrl.buttonDisabled('clearOtpSecret')"
                     ng-if="$ctrl.buttonVisible('clearOtpSecret')">{{ 'Button_HelpdeskClearOtpSecret' | translate }}

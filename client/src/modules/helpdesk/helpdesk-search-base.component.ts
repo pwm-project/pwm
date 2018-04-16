@@ -141,7 +141,7 @@ export default abstract class HelpDeskSearchBaseComponent {
                         this.setSearchMessage('Display_SearchResultsNone');
                     }
 
-                    return this.$q.resolve(searchResult);
+                    return searchResult;
                 }.bind(this),
                 function(error) {
                     this.setErrorMessage(error);
