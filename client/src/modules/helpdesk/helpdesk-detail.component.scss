@@ -146,6 +146,7 @@ help-desk-detail {
     }
 
     > .help-desk-content {
+      flex: 1 1px;
       flex-wrap: nowrap;
       height: 100%;
       margin-top: 15px;
@@ -160,6 +161,7 @@ help-desk-detail {
         flex-shrink: 0;
         height: 100%;
         overflow: auto;
+        padding-right: 17px;
       }
 
       > .tabset-container {
@@ -173,6 +175,7 @@ help-desk-detail {
         }
 
         .tab-panes {
+          flex: 1 1px;
           overflow: auto;
 
           > .ias-tab-pane {
@@ -218,8 +221,43 @@ help-desk-detail {
       }
     }
   }
+
+  @media (min-width: 1050px) {
+    help-desk-detail {
+      > .help-desk-content {
+        > .help-desk-buttons {
+          padding-left: 17px;
+          padding-right: 0;
+        }
+      }
+    }
+  }
+}
+
+// Unlike IE, Edge, and Firefox, Chrome and Safari do not need extra space for the button scrollbar when the buttons
+// extend below the bottom of the page
+@media (min-width: 1050px) {
+  [data-browsertype=webkit] {
+    help-desk-detail {
+      > .help-desk-content {
+        > .help-desk-buttons {
+          padding-right: 0;
+        }
+      }
+    }
+
+    &[dir="rtl"] {
+      help-desk-detail {
+        > .help-desk-content {
+          > .help-desk-buttons {
+            padding-left: 0;
+          }
+        }
+      }
+    }
+  }
 }
 
 .ias-tab-pane.ias-open {
-  display: block;
+  display: block;   // Can remove once https://github.com/MicroFocus/ux-ias/issues/18 (2nd comment) is resolved
 }
