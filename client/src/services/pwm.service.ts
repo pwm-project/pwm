@@ -116,7 +116,7 @@ export default class PwmService implements IPwmService {
 
                 // Since we can't make assumptions about the structure, we just need to return the whole response.data
                 // payload:
-                return this.$q.resolve(response.data);
+                return <T>response.data;
             });
 
         return promise;

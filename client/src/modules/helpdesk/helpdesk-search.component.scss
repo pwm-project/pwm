@@ -21,10 +21,6 @@
  */
 
 
-.verifications-button {
-  margin: 5px 5px 5px 0;
-}
-
 help-desk-search-cards,
 help-desk-search-table {
   display: flex;
@@ -33,6 +29,14 @@ help-desk-search-table {
 
   #page-content-title {
     margin-bottom: 0;
+  }
+
+  .ias-search {
+    margin-right: 10px;
+  }
+
+  .verifications-button {
+    margin: 5px 5px 5px 0;
   }
 
   > .people-search-component-content {
@@ -58,4 +62,25 @@ help-desk-search-table {
   display: inline-block;
   height: 25px;
   width: 25px;
+}
+
+[dir="rtl"] {
+  help-desk-search-cards,
+  help-desk-search-table {
+    .ias-search {
+      margin-left: 10px;
+      margin-right: 0;
+    }
+
+    .verifications-button {
+      margin: 5px 0 5px 5px;
+    }
+  }
+
+  .aligned-input {
+    .ias-button {
+      margin-left: 5px;
+      margin-right: 0;
+    }
+  }
 }

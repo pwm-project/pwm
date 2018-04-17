@@ -26,7 +26,6 @@ import IPwmService from './pwm.service';
 import PwmService from './pwm.service';
 import {ConfigBaseService, IConfigService} from './base-config.service';
 
-const COLUMN_CONFIG = 'searchColumns';
 const ORGCHART_ENABLED = 'orgChartEnabled';
 const ORGCHART_MAX_PARENTS = 'orgChartMaxParents';
 const ORGCHART_SHOW_CHILD_COUNT = 'orgChartShowChildCount';
@@ -46,17 +45,13 @@ export default class PeopleSearchConfigService
         super($http, $log, $q, pwmService);
     }
 
-    getColumnConfig(): IPromise<any> {
-        return this.getValue(COLUMN_CONFIG);
-    }
-
     getOrgChartMaxParents(): IPromise<number> {
         return this.getValue(ORGCHART_MAX_PARENTS);
     }
 
     orgChartEnabled(): IPromise<boolean> {
         return this.getValue(ORGCHART_ENABLED)
-            .then(null, () => { return this.$q.resolve(true); }); // On error use default
+            .then(null, () => { return true; }); // On error use default
     }
 
     orgChartShowChildCount(): IPromise<boolean> {

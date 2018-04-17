@@ -186,7 +186,7 @@ abstract class PeopleSearchBaseComponent {
                         self.setSearchMessage('Display_SearchResultsNone');
                     }
 
-                    return this.$q.resolve(searchResult);
+                    return searchResult;
                 },
                 (error) => {
                     self.setErrorMessage(error);

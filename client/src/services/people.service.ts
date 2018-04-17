@@ -69,10 +69,10 @@ export default class PeopleService implements IPeopleService {
                 let people = searchResult.people;
 
                 if (people && people.length > 10) {
-                    return this.$q.resolve(people.slice(0, 10));
+                    return people.slice(0, 10);
                 }
 
-                return this.$q.resolve(people);
+                return people;
             });
     }
 
@@ -85,13 +85,13 @@ export default class PeopleService implements IPeopleService {
                 people.push(person);
             }
 
-            return this.$q.resolve(people);
+            return people;
         });
     }
 
     getNumberOfDirectReports(id: string): IPromise<number> {
         return this.getDirectReports(id).then((people: IPerson[]) => {
-            return this.$q.resolve(people.length);
+            return people.length;
         });
     }
 
@@ -109,7 +109,7 @@ export default class PeopleService implements IPeopleService {
                     return this.getManagerRecursive(orgChartData.manager.userKey, people, managementChainLimit);
                 }
 
-                return this.$q.resolve(people);
+                return people;
             });
     }
 
@@ -143,12 +143,12 @@ export default class PeopleService implements IPeopleService {
                     const children = responseData['children'].map((child: any) => <IPerson>(child));
                     const self = <IPerson>(responseData['self']);
 
-                    return this.$q.resolve({
+                    return {
                         manager: manager,
                         children: children,
                         self: self,
                         assistant: assistant
-                    });
+                    };
                 },
                 this.handleHttpError.bind(this));
     }
@@ -171,7 +171,7 @@ export default class PeopleService implements IPeopleService {
                 }
 
                 let person: IPerson = <IPerson>(response.data['data']);
-                return this.$q.resolve(person);
+                return person;
             },
             this.handleHttpError.bind(this));
 
@@ -206,7 +206,7 @@ export default class PeopleService implements IPeopleService {
                 let receivedData: any = response.data['data'];
                 let searchResult: SearchResult = new SearchResult(receivedData);
 
-                return this.$q.resolve(searchResult);
+                return searchResult;
             },
             this.handleHttpError.bind(this));
 

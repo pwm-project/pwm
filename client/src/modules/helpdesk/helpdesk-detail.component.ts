@@ -25,7 +25,7 @@ import {Component} from '../../component';
 import {IHelpDeskService, ISuccessResponse} from '../../services/helpdesk.service';
 import {IScope, ui} from 'angular';
 import {noop} from 'angular';
-import {IButtonInfo, IHelpDeskConfigService, PASSWORD_UI_MODES} from '../../services/helpdesk-config.service';
+import {IActionButton, IHelpDeskConfigService, PASSWORD_UI_MODES} from '../../services/helpdesk-config.service';
 import {IPerson} from '../../models/person.model';
 import {IChangePasswordSuccess} from '../../components/changepassword/success-change-password.controller';
 
@@ -46,7 +46,7 @@ const PROFILE_TAB_NAME = 'profileTab';
     templateUrl: require('modules/helpdesk/helpdesk-detail.component.html')
 })
 export default class HelpDeskDetailComponent {
-    customButtons: {[key: string]: IButtonInfo};
+    customButtons: {[key: string]: IActionButton};
     person: any;
     personCard: IPerson;
     photosEnabled: boolean;
@@ -69,6 +69,14 @@ export default class HelpDeskDetailComponent {
     }
 
     $onInit(): void {
+        this.configService.getCustomButtons().then((customButtons: {[key: string]: IActionButton}) => {
+            this.customButtons = customButtons;
+        });
+
+        this.configService.photosEnabled().then((photosEnabled: boolean) => {
+            this.photosEnabled = photosEnabled;
+        });
+
         this.initialize();
     }
 
@@ -265,7 +273,7 @@ export default class HelpDeskDetailComponent {
             });
     }
 
-    clickCustomButton(button: IButtonInfo): void {
+    clickCustomButton(button: IActionButton): void {
         // Custom buttons are never disabled
 
         let userKey = this.getUserKey();
@@ -350,14 +358,6 @@ export default class HelpDeskDetailComponent {
 
     initialize(): void {
         const personId = this.getUserKey();
-
-        this.configService.photosEnabled().then((photosEnabled: boolean) => {
-            this.photosEnabled = photosEnabled;
-        }); // TODO: always necessary?
-
-        this.configService.getCustomButtons().then((customButtons: {[key: string]: IButtonInfo}) => {
-            this.customButtons = customButtons;
-        });
 
         this.helpDeskService.getPersonCard(personId).then((personCard: IPerson) => {
             this.personCard = personCard;
