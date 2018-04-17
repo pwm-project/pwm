@@ -81,7 +81,7 @@
                     <pwm:if test="<%=PwmIfTest.forgottenPasswordEnabled%>">
                         <tr>
                             <td class="menubutton_key">
-                                <a class="menubutton" id="Title_ForgottenPassword" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ForgottenPassword.servletUrl()%>'/>">
+                                <a class="menubutton" tabindex="0" id="Title_ForgottenPassword" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ForgottenPassword.servletUrl()%>'/>">
                                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-unlock"></span></pwm:if>
                                     <pwm:display key="Title_ForgottenPassword"/>
                                 </a>
@@ -94,7 +94,7 @@
                     <pwm:if test="<%=PwmIfTest.forgottenUsernameEnabled%>">
                         <tr>
                             <td class="menubutton_key">
-                                <a class="menubutton" id="forgotten-username" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ForgottenUsername.servletUrl()%>'/>">
+                                <a class="menubutton" tabindex="0" id="forgotten-username" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ForgottenUsername.servletUrl()%>'/>">
                                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-unlock"></span></pwm:if>
                                     <pwm:display key="Title_ForgottenUsername"/>
                                 </a>
@@ -107,7 +107,7 @@
                     <pwm:if test="<%=PwmIfTest.activateUserEnabled%>">
                         <tr>
                             <td class="menubutton_key">
-                                <a class="menubutton" id="activate-user" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ActivateUser.servletUrl()%>'/>">
+                                <a class="menubutton" tabindex="0" id="activate-user" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ActivateUser.servletUrl()%>'/>">
                                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-graduation-cap"></span></pwm:if>
                                     <pwm:display key="Title_ActivateUser"/>
                                 </a>
@@ -120,7 +120,7 @@
                     <pwm:if test="<%=PwmIfTest.newUserRegistrationEnabled%>">
                         <tr>
                             <td class="menubutton_key">
-                                <a class="menubutton" id="new-user" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.NewUser.servletUrl()%>'/>">
+                                <a class="menubutton" tabindex="0" id="new-user" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.NewUser.servletUrl()%>'/>">
                                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-file-text-o"></span></pwm:if>
                                     <pwm:display key="Title_NewUser"/>
                                 </a>
@@ -140,7 +140,7 @@
                 </tr>
                 <tr>
                     <td class="menubutton_key">
-                        <a class="menubutton" id="button-configmanager" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ConfigManager.servletUrl()%>'/>">
+                        <a class="menubutton" tabindex="0" id="button-configmanager" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ConfigManager.servletUrl()%>'/>">
                             <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-file-text-o"></span></pwm:if>
                             Configuration Manager
                         </a>
@@ -151,7 +151,7 @@
                 </tr>
                 <tr>
                     <td class="menubutton_key">
-                        <a class="menubutton" id="button-configeditor" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ConfigEditor.servletUrl()%>'/>">
+                        <a class="menubutton" tabindex="0" id="button-configeditor" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ConfigEditor.servletUrl()%>'/>">
                             <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-file-text-o"></span></pwm:if>
                             Configuration Editor
                         </a>
