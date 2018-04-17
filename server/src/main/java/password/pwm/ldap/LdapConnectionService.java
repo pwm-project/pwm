@@ -56,7 +56,7 @@ public class LdapConnectionService implements PwmService
     private PwmApplication pwmApplication;
     private STATUS status = STATUS.NEW;
     private AtomicLoopIntIncrementer slotIncrementer;
-    private final ThreadLocal<Map<LdapProfile, ChaiProvider>> threadLocalProvider = new ThreadLocal<>();
+    //private final ThreadLocal<Map<LdapProfile, ChaiProvider>> threadLocalProvider = new ThreadLocal<>();
     private ChaiProviderFactory chaiProviderFactory;
 
     public STATUS status( )
@@ -135,18 +135,22 @@ public class LdapConnectionService implements PwmService
                 ? pwmApplication.getConfig().getDefaultLdapProfile()
                 : ldapProfile;
 
+        /*
         if ( threadLocalProvider.get() != null && threadLocalProvider.get().containsKey( effectiveProfile ) )
         {
             return threadLocalProvider.get().get( effectiveProfile );
         }
+        */
 
         final ChaiProvider chaiProvider = getNewProxyChaiProvider( effectiveProfile );
 
+        /*
         if ( threadLocalProvider.get() == null )
         {
             threadLocalProvider.set( new ConcurrentHashMap<>() );
         }
         threadLocalProvider.get().put( effectiveProfile, chaiProvider );
+        */
 
         return chaiProvider;
     }

@@ -387,6 +387,11 @@ public class PwmLogger
         doLogEvent( PwmLogLevel.ERROR, sessionLabel, convertErrorInformation( errorInformation ), null );
     }
 
+    public void error( final SessionLabel sessionLabel, final ErrorInformation errorInformation, final Throwable exception )
+    {
+        doLogEvent( PwmLogLevel.ERROR, sessionLabel, convertErrorInformation( errorInformation ), exception );
+    }
+
     public void error( final CharSequence message, final Throwable exception )
     {
         doLogEvent( PwmLogLevel.ERROR, null, message, exception );

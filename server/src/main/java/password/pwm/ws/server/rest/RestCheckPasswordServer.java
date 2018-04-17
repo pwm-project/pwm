@@ -133,6 +133,9 @@ public class RestCheckPasswordServer extends RestServlet
 
         final JsonInput jsonInput;
         {
+
+
+
             final JsonInput jsonBody = RestUtility.deserializeJsonBody( restRequest, JsonInput.class, RestUtility.Flag.AllowNullReturn );
 
             jsonInput = new JsonInput(
@@ -149,7 +152,8 @@ public class RestCheckPasswordServer extends RestServlet
                     RestUtility.readValueFromJsonAndParam(
                             jsonBody == null ? null : jsonBody.getUsername(),
                             restRequest.readParameterAsString( FIELD_USERNAME ),
-                            FIELD_USERNAME
+                            FIELD_USERNAME,
+                            RestUtility.ReadValueFlag.optional
                     )
             );
         }

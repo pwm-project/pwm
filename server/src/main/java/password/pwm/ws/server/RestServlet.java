@@ -172,7 +172,7 @@ public abstract class RestServlet extends HttpServlet
             final String errorMsg = "internal error during rest service invocation: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
             restResultBean = RestResultBean.fromError( errorInformation, pwmApplication, locale, pwmApplication.getConfig(), pwmApplication.determineIfDetailErrorMsgShown() );
-            LOGGER.error( sessionLabel, errorInformation );
+            LOGGER.error( sessionLabel, errorInformation, e );
         }
 
         outputRestResultBean( restResultBean, req, resp );

@@ -26,18 +26,32 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmApplication;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
+import password.pwm.util.logging.PwmLogger;
+
+import java.util.Arrays;
+import java.util.Collection;
 
 public class SimpleLdapAuthenticator
 {
+    private static final PwmLogger LOGGER = PwmLogger.forClass( SimpleLdapAuthenticator.class );
+
+    private static final Collection ACCEPTABLE_AUTH_TYPES = Arrays.asList(
+                    AuthenticationType.AUTHENTICATED,
+                    AuthenticationType.AUTH_BIND_INHIBIT
+            );
+
     public static AuthenticationResult authenticateUser(
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity,
             final PasswordData password
-    ) throws PwmUnrecoverableException
+    )
+            throws PwmUnrecoverableException
     {
         final AuthenticationRequest authEngine = LDAPAuthenticationRequest.createLDAPAuthenticationRequest(
                 pwmApplication,
@@ -61,11 +75,16 @@ public class SimpleLdapAuthenticator
             throw new PwmUnrecoverableException( e.getErrorInformation() );
         }
 
-        if ( authResult.getAuthenticationType() == AuthenticationType.AUTHENTICATED )
+        if ( ACCEPTABLE_AUTH_TYPES.contains( authResult.getAuthenticationType() ) )
         {
             return authResult;
         }
 
-        return null;
+        final ErrorInformation errorInformation = new ErrorInformation(
+                PwmError.ERROR_UNKNOWN,
+                "auth with unexpected auth type: " + authResult.getAuthenticationType()
+        );
+        LOGGER.error( errorInformation );
+        throw new PwmUnrecoverableException( errorInformation );
     }
 }
