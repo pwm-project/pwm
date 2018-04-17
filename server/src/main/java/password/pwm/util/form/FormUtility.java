@@ -237,7 +237,6 @@ public class FormUtility
             throws PwmDataValidationException, PwmUnrecoverableException
     {
         final boolean allowResultCaching = JavaHelper.enumArrayContainsValue( validationFlags, ValidationFlag.allowResultCaching );
-        final boolean checkReadOnlyAndHidden = JavaHelper.enumArrayContainsValue( validationFlags, ValidationFlag.checkReadOnlyAndHidden );
 
         final Map<String, String> filterClauses = new HashMap<>();
         final Map<String, String> labelMap = new HashMap<>();
@@ -246,16 +245,17 @@ public class FormUtility
             final FormConfiguration formItem = entry.getKey();
             if ( formItem.isUnique() )
             {
-                if ( checkReadOnlyAndHidden || formItem.isReadonly() )
+                final boolean checkReadOnlyAndHidden = JavaHelper.enumArrayContainsValue( validationFlags, ValidationFlag.checkReadOnlyAndHidden );
+                final boolean itemIsReadOnly = formItem.isReadonly();
+                final boolean itemIsHidden = formItem.getType() == FormConfiguration.Type.hidden;
+
+                if ( ( !itemIsHidden && !itemIsReadOnly ) || checkReadOnlyAndHidden )
                 {
-                    if ( checkReadOnlyAndHidden || ( formItem.getType() != FormConfiguration.Type.hidden ) )
+                    final String value = formValues.get( formItem );
+                    if ( !StringUtil.isEmpty( value ) )
                     {
-                        final String value = entry.getValue();
-                        if ( value != null && value.length() > 0 )
-                        {
-                            filterClauses.put( formItem.getName(), value );
-                            labelMap.put( formItem.getName(), formItem.getLabel( locale ) );
-                        }
+                        filterClauses.put( formItem.getName(), value );
+                        labelMap.put( formItem.getName(), formItem.getLabel( locale ) );
                     }
                 }
             }
