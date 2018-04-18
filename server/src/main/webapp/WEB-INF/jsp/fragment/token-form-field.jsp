@@ -27,8 +27,8 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <h2><label for="<%=PwmConstants.PARAM_TOKEN%>"><pwm:display key="Field_Code"/></label></h2>
 <pwm:if test="<%=PwmIfTest.maskTokenInput%>">
-    <input type="password" class="inputfield passwordfield" id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" required="required" <pwm:autofocus/> ></textarea>
+    <input type="password" class="inputfield passwordfield" id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" <pwm:autofocus/> ></textarea>
 </pwm:if>
 <pwm:if test="<%=PwmIfTest.maskTokenInput%>" negate="true">
-    <textarea id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" class="tokenInput" required="required" <pwm:autofocus/> ></textarea>
+    <textarea id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" class="tokenInput" <pwm:autofocus/> ></textarea>
 </pwm:if>

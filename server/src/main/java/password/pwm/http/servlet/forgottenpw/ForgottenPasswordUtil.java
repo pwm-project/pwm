@@ -76,6 +76,7 @@ import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -856,24 +857,42 @@ public class ForgottenPasswordUtil
         );
     }
 
-    static boolean hasOtherMethodChoices( final ForgottenPasswordBean forgottenPasswordBean, final IdentityVerificationMethod thisMethod )
+    static boolean hasOtherMethodChoices(
+            final PwmRequest pwmRequest,
+            final ForgottenPasswordBean forgottenPasswordBean,
+            final IdentityVerificationMethod thisMethod
+    )
     {
         if ( forgottenPasswordBean.getRecoveryFlags().getRequiredAuthMethods().contains( thisMethod )  )
         {
             return false;
         }
 
-        if ( forgottenPasswordBean.getRecoveryFlags().getMinimumOptionalAuthMethods() > 0 )
         {
-            final Set<IdentityVerificationMethod> satisfiedOptionalMethods = figureSatisfiedOptionalAuthMethods(
-                    forgottenPasswordBean.getRecoveryFlags(), forgottenPasswordBean.getProgress()
-            );
-
-            if ( satisfiedOptionalMethods.size() < forgottenPasswordBean.getRecoveryFlags().getMinimumOptionalAuthMethods() )
+            // check if has previously satisfied any other optional methods.
+            final Set<IdentityVerificationMethod> optionalAuthMethods = forgottenPasswordBean.getRecoveryFlags().getOptionalAuthMethods();
+            final Set<IdentityVerificationMethod> satisfiedMethods = forgottenPasswordBean.getProgress().getSatisfiedMethods();
+            final boolean disJoint = Collections.disjoint( optionalAuthMethods, satisfiedMethods );
+            if ( !disJoint )
             {
                 return true;
             }
         }
+
+        {
+            final Set<IdentityVerificationMethod> remainingAvailableOptionalMethods = ForgottenPasswordUtil.figureRemainingAvailableOptionalAuthMethods(
+                    pwmRequest,
+                    forgottenPasswordBean
+            );
+            final Set<IdentityVerificationMethod> otherOptionalMethodChoices = new HashSet<>( remainingAvailableOptionalMethods );
+            otherOptionalMethodChoices.remove( thisMethod );
+
+            if ( !otherOptionalMethodChoices.isEmpty() )
+            {
+                return true;
+            }
+        }
+
         return false;
     }
 }

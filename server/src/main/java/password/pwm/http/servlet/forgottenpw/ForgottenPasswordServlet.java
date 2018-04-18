@@ -1525,7 +1525,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
         final List<TokenDestinationItem> destItems = ForgottenPasswordUtil.figureAvailableTokenDestinations( pwmRequest, forgottenPasswordBean );
         pwmRequest.setAttribute( PwmRequestAttribute.TokenDestItems, new ArrayList<>( destItems ) );
 
-        if ( ForgottenPasswordUtil.hasOtherMethodChoices( forgottenPasswordBean, IdentityVerificationMethod.TOKEN ) )
+        if ( ForgottenPasswordUtil.hasOtherMethodChoices( pwmRequest, forgottenPasswordBean, IdentityVerificationMethod.TOKEN ) )
         {
             pwmRequest.setAttribute( PwmRequestAttribute.GoBackAction, ResetAction.clearActionChoice.name() );
         }
@@ -1551,7 +1551,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
         {
             goBackAction = ResetAction.clearTokenDestination;
         }
-        else if ( ForgottenPasswordUtil.hasOtherMethodChoices( forgottenPasswordBean, IdentityVerificationMethod.TOKEN ) )
+        else if ( ForgottenPasswordUtil.hasOtherMethodChoices( pwmRequest, forgottenPasswordBean, IdentityVerificationMethod.TOKEN ) )
         {
             goBackAction = ResetAction.clearActionChoice;
         }

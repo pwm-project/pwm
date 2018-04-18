@@ -59,7 +59,7 @@
         currentValue = StringUtil.escapeHtml(currentValue);
 
 %>
-<div class="formFieldWrapper">
+<div class="formFieldWrapper" id="formFieldWrapper-<%=loopConfiguration.getName()%>">
     <% if (loopConfiguration.getType().equals(FormConfiguration.Type.hidden)) { %>
     <input id="<%=loopConfiguration.getName()%>" type="hidden" class="inputfield"
            name="<%=loopConfiguration.getName()%>" value="<%= currentValue %>"/>
@@ -102,47 +102,52 @@
         <% } %>
     </select>
     <% } else if (loopConfiguration.getType() == FormConfiguration.Type.photo ) { %>
-    <% if (StringUtil.isEmpty( currentValue) ) { %>
-    <div class="formfield-photo-missing">
+    <div class="formfield-photo-wrapper">
+        <% if (StringUtil.isEmpty( currentValue) ) { %>
+        <div id="<%=loopConfiguration.getName()%>" class="formfield-photo-missing">
+        </div>
+        <% } else { %>
+        <div class="formfield-photo-image-wrapper">
+            <img class="formfield-photo" src="<pwm:current-url/>?processAction=readPhoto&field=<%=loopConfiguration.getName()%>"/>
+        </div>
+        <% } %>
+        <% if (!readonly) { %>
+        <div class="formfield-photo-controls-wrapper">
+            <button type="button" id="button-uploadPhoto-<%=loopConfiguration.getName()%>" name="<%=loopConfiguration.getName()%>" class="btn" title="<pwm:display key="Button_Upload"/>">
+                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-upload"></span></pwm:if>
+                <pwm:display key="Button_Upload"/>
+            </button>
+            <pwm:script>
+                <script type="application/javascript">
+                    PWM_GLOBAL['startupFunctions'].push(function(){
+                        PWM_MAIN.addEventHandler('button-uploadPhoto-<%=loopConfiguration.getName()%>',"click",function(){
+                            var accept = '<%=StringUtil.collectionToString(loopConfiguration.getMimeTypes())%>';
+                            PWM_UPDATE.uploadPhoto('<%=loopConfiguration.getName()%>',{accept:accept});
+                        });
+                    });
+                </script>
+            </pwm:script>
+            <% if (!StringUtil.isEmpty( currentValue) ) { %>
+            <button type="submit" id="button-deletePhoto-<%=loopConfiguration.getName()%>" name="<%=loopConfiguration.getName()%>" class="btn" title="<pwm:display key="Button_Upload"/>" form="form-deletePhoto-<%=loopConfiguration.getName()%>">
+                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-times"></span></pwm:if>
+                <pwm:display key="Button_Delete"/>
+            </button>
+            <pwm:script>
+                <script type="application/javascript">
+                    PWM_GLOBAL['startupFunctions'].push(function(){
+                        PWM_MAIN.addEventHandler('button-deletePhoto-<%=loopConfiguration.getName()%>',"click",function(){
+                            PWM_MAIN.showConfirmDialog({okAction:function(){
+                                    PWM_MAIN.submitPostAction(window.location.pathname, 'deletePhoto', {field:'<%=loopConfiguration.getName()%>'});
+                                }
+                            })
+                        });
+                    });
+                </script>
+            </pwm:script>
+            <% } %>
+        </div>
+        <% } %>
     </div>
-    <% } else { %>
-    <img class="formfield-photo" src="<pwm:current-url/>?processAction=readPhoto&field=<%=loopConfiguration.getName()%>"/>
-    <% } %>
-    <br/>
-    <% if (!readonly) { %>
-    <a id="button-uploadPhoto-<%=loopConfiguration.getName()%>" name="<%=loopConfiguration.getName()%>" class="btn" title="<pwm:display key="Button_Upload"/>">
-        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-upload"></span></pwm:if>
-        <pwm:display key="Button_Upload"/>
-    </a>
-    <pwm:script>
-        <script type="application/javascript">
-            PWM_GLOBAL['startupFunctions'].push(function(){
-                PWM_MAIN.addEventHandler('button-uploadPhoto-<%=loopConfiguration.getName()%>',"click",function(){
-                    var accept = '<%=StringUtil.collectionToString(loopConfiguration.getMimeTypes())%>';
-                    PWM_UPDATE.uploadPhoto('<%=loopConfiguration.getName()%>',{accept:accept});
-                });
-            });
-        </script>
-    </pwm:script>
-    <% if (!StringUtil.isEmpty( currentValue) ) { %>
-    <button type="submit" id="button-deletePhoto-<%=loopConfiguration.getName()%>" name="<%=loopConfiguration.getName()%>" class="btn" title="<pwm:display key="Button_Upload"/>" form="form-deletePhoto-<%=loopConfiguration.getName()%>">
-        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-times"></span></pwm:if>
-        <pwm:display key="Button_Delete"/>
-    </button>
-    <pwm:script>
-        <script type="application/javascript">
-            PWM_GLOBAL['startupFunctions'].push(function(){
-                PWM_MAIN.addEventHandler('button-deletePhoto-<%=loopConfiguration.getName()%>',"click",function(){
-                    PWM_MAIN.showConfirmDialog({okAction:function(){
-                            PWM_MAIN.submitPostAction(window.location.pathname, 'deletePhoto', {field:'<%=loopConfiguration.getName()%>'});
-                        }
-                    })
-                });
-            });
-        </script>
-    </pwm:script>
-    <% } %>
-    <% } %>
     <% } else { %>
     <input id="<%=loopConfiguration.getName()%>" type="<%=loopConfiguration.getType()%>" class="inputfield"
            name="<%=loopConfiguration.getName()%>" value="<%= currentValue %>"
