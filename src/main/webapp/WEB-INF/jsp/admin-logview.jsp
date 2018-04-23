@@ -32,6 +32,7 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
@@ -97,14 +98,16 @@
                     <td class="key" style="border: 0">
                         Username
                         <br/>
+                        <c:set var="username"><%=pwmRequest.readParameterAsString("username")%></c:set>
                         <input name="username" type="text"
-                               value="<%=pwmRequest.readParameterAsString("username")%>"/>
+                               value="<c:out value='${username}'/>"/>
                     </td>
                     <td class="key" style="border: 0">
                         Containing text
                         <br/>
+                        <c:set var="containedText"><%=pwmRequest.readParameterAsString("text")%></c:set>
                         <input name="text" type="text"
-                               value="<%=pwmRequest.readParameterAsString("text")%>"/>
+                               value="<c:out value='${containedText}'/>"/>
                     </td>
                     <td class="key" style="border: 0">
                         Max Count
