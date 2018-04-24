@@ -21,14 +21,14 @@
  */
 
 var webpack = require('webpack');
-var webpackConfig = require('./webpack.test.js');
+var webpackConfig = require('../webpack.test.js');
 var path = require("path");
 var os = require('os');
 
 module.exports = function (config) {
     config.set({
         // base path that will be used to resolve all patterns (eg. files, exclude)
-        basePath: '',
+        basePath: '..',
 
         // frameworks to use
         // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
@@ -36,7 +36,7 @@ module.exports = function (config) {
 
         // list of files / patterns to load in the browser
         files: [
-            'test/karma-test-suite.ts'
+            'karma-test-suite.ts'
         ],
 
         exclude: [],

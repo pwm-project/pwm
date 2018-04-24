@@ -28,7 +28,7 @@ import {IPromise, IQService, ITimeoutService, IWindowService} from 'angular';
 import {IPerson} from '../models/person.model';
 import SearchResult from '../models/search-result.model';
 
-const peopleData = require('./people.data');
+const peopleData = require('./people.data.json');
 
 const MAX_RESULTS = 10;
 const SIMULATED_RESPONSE_TIME = 300;
