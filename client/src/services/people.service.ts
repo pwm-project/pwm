@@ -28,7 +28,14 @@ import IOrgChartData from '../models/orgchart-data.model';
 import SearchResult from '../models/search-result.model';
 import {IPeopleSearchConfigService} from './peoplesearch-config.service';
 
+export interface IQuery {
+ name: string;
+ value: string;
+}
+
 export interface IPeopleService {
+    advancedSearch(queries: IQuery[]): IPromise<SearchResult>;
+
     autoComplete(query: string): IPromise<IPerson[]>;
 
     getDirectReports(personId: string): IPromise<IPerson[]>;
@@ -61,6 +68,10 @@ export default class PeopleService implements IPeopleService {
         else {
             this.$log.warn('PWM_GLOBAL is not defined on window');
         }
+    }
+
+    advancedSearch(queries: IQuery[]): IPromise<SearchResult> {
+        return null;
     }
 
     autoComplete(query: string): IPromise<IPerson[]> {

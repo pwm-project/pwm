@@ -30,9 +30,21 @@ import { IPerson } from '../../models/person.model';
 import PromiseService from '../../services/promise.service';
 import SearchResult from '../../models/search-result.model';
 
-const SEARCH_TEXT_LOCAL_STORAGE_KEY = 'searchText';
-
 abstract class PeopleSearchBaseComponent {
+    advancedSearch = false;
+    advancedSearchTags = [
+        { id: 'userKey', label: 'User ID' },
+        { id: 'givenName', label: 'First Name' },
+        { id: 'sn', label: 'Last Name' },
+        { id: 'mail', label: 'Email' },
+        { id: 'telephoneNumber', label: 'Telephone Number' },
+        { id: 'title', label: 'Title' },
+        { id: 'workforceId', label: 'Workforce ID' },
+        { id: 'managerId', label: 'Manager User ID' },
+        { id: '_displayName', label: 'Display Name' },
+        { id: 'displayNames', label: 'Display Names' },
+        { id: 'detail', label: 'Detail' }
+    ];
     errorMessage: string;
     inputDebounce: number;
     orgChartEnabled: boolean;
@@ -40,6 +52,7 @@ abstract class PeopleSearchBaseComponent {
     searchMessage: string;
     searchResult: SearchResult;
     query: string;
+    queries = [{name: null, value: ''}];
     searchTextLocalStorageKey: string;
     searchViewLocalStorageKey: string;
 
@@ -76,15 +89,26 @@ abstract class PeopleSearchBaseComponent {
         this.$state.go(state, { query: this.query });
     }
 
+    private initiateSearch() {
+        this.clearSearchMessage();
+        this.clearErrorMessage();
+        this.fetchData();
+    }
+
     private onSearchTextChange(newValue: string, oldValue: string): void {
         if (newValue === oldValue) {
             return;
         }
 
         this.storeSearchText();
-        this.clearSearchMessage();
-        this.clearErrorMessage();
-        this.fetchData();
+        this.initiateSearch();
+    }
+
+    removeSearchTag(tagIndex: number): void {
+        this.queries.splice(tagIndex, 1);
+    }
+    addSearchTag(): void {
+        this.queries.push({name: null, value: ''});
     }
 
     selectPerson(person: IPerson): void {
@@ -161,7 +185,14 @@ abstract class PeopleSearchBaseComponent {
 
         const self = this;
 
-        let promise = this.peopleService.search(this.query);
+        let promise;
+
+        if (this.advancedSearch) {
+            promise = this.peopleService.advancedSearch(this.queries);
+        }
+        else {
+            promise = this.peopleService.search(this.query);
+        }
 
         this.pendingRequests.push(promise);
 
@@ -226,6 +257,10 @@ abstract class PeopleSearchBaseComponent {
 
     protected storeSearchText(): void {
         this.localStorageService.setItem(this.searchTextLocalStorageKey, this.query || '');
+    }
+
+    toggleAdvancedSearch(): void {
+        this.advancedSearch = !this.advancedSearch;
     }
 
     protected toggleView(state: string): void {

@@ -21,26 +21,65 @@
   -->
 
 <div class="ias-header">
-    <h2 id="page-content-title" translate="Title_PeopleSearch">People Search</h2>
-    <ias-search-box id="input" ng-model="$ctrl.query" ng-model-options="{debounce: $ctrl.inputDebounce}"
+    <h2 id="page-content-title" ng-if="!$ctrl.advancedSearch" translate="Title_PeopleSearch">People Search</h2>
+    <h2 id="page-content-title" ng-if="$ctrl.advancedSearch">People Search Advanced Search</h2>
+    <ias-search-box id="input" ng-model="$ctrl.query"
+                    ng-if="!$ctrl.advancedSearch"
+                    ng-model-options="{debounce: $ctrl.inputDebounce}"
                     placeholder="{{'Placeholder_Search' | translate}}" auto-focus>
     </ias-search-box>
+
+    <ias-button id="advanced-search-icon" class="ias-icon-button" ng-click="$ctrl.toggleAdvancedSearch()"
+                ng-if="!$ctrl.advancedSearch"
+                ng-attr-title="{{ 'Title_AdvancedSearch' | translate }}">
+        <ias-icon class="ias-selected" icon="search_advanced"></ias-icon>
+    </ias-button>
+    <ias-button id="close-advanced-search-icon" class="ias-icon-button" ng-click="$ctrl.toggleAdvancedSearch()"
+                ng-if="$ctrl.advancedSearch" ng-attr-title="{{ 'Button_Close' | translate }}">
+        <ias-icon class="ias-selected" icon="close_thin"></ias-icon>
+    </ias-button>
 
     <span class="ias-fill"></span>
 
     <ias-button id="view-tile-icon" class="ias-icon-button ias-selected" ng-disabled="true"
                 ng-attr-title="{{ 'Title_PeopleSearchCard' | translate }}">
-        <ias-icon class="ias-selected" icon="view_tile_thin"></ias-icon>
+        <ias-icon icon="view_tile_thin"></ias-icon>
     </ias-button>
     <ias-button id="view-list-icon" class="ias-icon-button" ng-click="$ctrl.gotoTableView()"
                 ng-attr-title="{{ 'Title_PeopleSearchTable' | translate }}">
-        <ias-icon class="ias-selected" icon="view_list_thin"></ias-icon>
+        <ias-icon icon="view_list_thin"></ias-icon>
     </ias-button>
     <div class="icon-divider vertical" ng-if="$ctrl.orgChartEnabled"></div>
     <ias-button id="orgchart-icon" class="ias-icon-button" ng-click="$ctrl.gotoOrgchart()" ng-if="$ctrl.orgChartEnabled"
                 ng-attr-title="{{ 'Title_OrgChart' | translate }}">
-        <ias-icon class="ias-selected" icon="orgchart_thin"></ias-icon>
+        <ias-icon icon="orgchart_thin"></ias-icon>
     </ias-button>
+</div>
+
+<div ng-if="$ctrl.advancedSearch">
+    <div ng-repeat="query in $ctrl.queries">
+        <select ng-model="query.name">
+            <option value="" selected disabled>{{ 'Display_SelectAttribute' | translate }}</option>
+            <option ng-repeat="tag in $ctrl.advancedSearchTags" ng-attr-value="{{tag.id}}">{{tag.label}}</option>
+        </select>
+        <input ng-model="query.value" autocomplete="off">
+        <ias-button class="ias-icon-button" ng-click="$ctrl.removeSearchTag($index)" ng-if="$index > 0"
+                    ng-attr-title="{{ 'Button_Remove' | translate }}">
+            <ias-icon icon="close_thin"></ias-icon>
+        </ias-button>
+    </div>
+
+    <br>
+    <ias-button id="advanced-search-icon" class="ias-icon-button" ng-click="$ctrl.addSearchTag()"
+                ng-attr-title="{{ 'Button_AddSearchAttribute' | translate }}">
+        <ias-icon icon="new_thin"></ias-icon>
+    </ias-button>
+
+    <br><br>
+    <ias-button id="advanced-search-button" ng-click="$ctrl.initiateSearch()"
+                ng-bind="'Placeholder_Search' | translate">
+    </ias-button>
+
 </div>
 
 <div class="search-info-container">
