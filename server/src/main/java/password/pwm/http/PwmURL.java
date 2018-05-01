@@ -331,6 +331,28 @@ public class PwmURL
         return output.toString();
     }
 
+    public static String encodeParametersToFormBody( final Map<String, String> parameters )
+    {
+        final StringBuilder output = new StringBuilder( );
+
+        for ( final Map.Entry<String, String> entry : parameters.entrySet() )
+        {
+            final String paramName = entry.getKey();
+            final String value = entry.getValue();
+            final String encodedValue = value == null
+                    ? ""
+                    : StringUtil.urlEncode( value );
+
+            output.append( output.length() > 0 ? "&" : "" );
+            output.append( paramName );
+            output.append( "=" );
+            output.append( encodedValue );
+        }
+
+        return output.toString();
+    }
+
+
     public static int portForUriSchema( final URI uri )
     {
         final int port = uri.getPort();

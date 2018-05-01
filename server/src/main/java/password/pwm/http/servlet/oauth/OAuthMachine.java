@@ -245,7 +245,7 @@ public class OAuthMachine
     )
             throws PwmUnrecoverableException
     {
-        final String requestBody = PwmURL.appendAndEncodeUrlParameters( "", requestParams );
+        final String requestBody = PwmURL.encodeParametersToFormBody( requestParams );
         final List<X509Certificate> certs = settings.getCertificates();
 
         final PwmHttpClientRequest pwmHttpClientRequest;

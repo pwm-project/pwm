@@ -53,10 +53,12 @@ public class LdapConnectionService implements PwmService
 
     private final Map<LdapProfile, Map<Integer, ChaiProvider>> proxyChaiProviders = new ConcurrentHashMap<>();
     private final Map<LdapProfile, ErrorInformation> lastLdapErrors = new ConcurrentHashMap<>();
+
+    private boolean useThreadLocal;
     private PwmApplication pwmApplication;
     private STATUS status = STATUS.NEW;
     private AtomicLoopIntIncrementer slotIncrementer;
-    //private final ThreadLocal<Map<LdapProfile, ChaiProvider>> threadLocalProvider = new ThreadLocal<>();
+    private final ThreadLocal<Map<LdapProfile, ChaiProvider>> threadLocalProvider = new ThreadLocal<>();
     private ChaiProviderFactory chaiProviderFactory;
 
     public STATUS status( )
@@ -70,6 +72,8 @@ public class LdapConnectionService implements PwmService
         this.pwmApplication = pwmApplication;
 
         chaiProviderFactory = ChaiProviderFactory.newProviderFactory();
+
+        useThreadLocal = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.LDAP_PROXY_USE_THREAD_LOCAL ) );
 
         // read the lastLoginTime
         this.lastLdapErrors.putAll( readLastLdapFailure( pwmApplication ) );
@@ -135,22 +139,24 @@ public class LdapConnectionService implements PwmService
                 ? pwmApplication.getConfig().getDefaultLdapProfile()
                 : ldapProfile;
 
-        /*
-        if ( threadLocalProvider.get() != null && threadLocalProvider.get().containsKey( effectiveProfile ) )
+        if ( useThreadLocal )
         {
-            return threadLocalProvider.get().get( effectiveProfile );
+            if ( threadLocalProvider.get() != null && threadLocalProvider.get().containsKey( effectiveProfile ) )
+            {
+                return threadLocalProvider.get().get( effectiveProfile );
+            }
         }
-        */
 
         final ChaiProvider chaiProvider = getNewProxyChaiProvider( effectiveProfile );
 
-        /*
-        if ( threadLocalProvider.get() == null )
+        if ( useThreadLocal )
         {
-            threadLocalProvider.set( new ConcurrentHashMap<>() );
+            if ( threadLocalProvider.get() == null )
+            {
+                threadLocalProvider.set( new ConcurrentHashMap<>() );
+            }
+            threadLocalProvider.get().put( effectiveProfile, chaiProvider );
         }
-        threadLocalProvider.get().put( effectiveProfile, chaiProvider );
-        */
 
         return chaiProvider;
     }

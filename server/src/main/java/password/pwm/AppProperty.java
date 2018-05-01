@@ -196,6 +196,7 @@ public enum AppProperty
     LDAP_CHAI_SETTINGS                              ( "ldap.chaiSettings" ),
     LDAP_PROXY_CONNECTION_PER_PROFILE               ( "ldap.proxy.connectionsPerProfile" ),
     LDAP_PROXY_MAX_CONNECTIONS                      ( "ldap.proxy.maxConnections" ),
+    LDAP_PROXY_USE_THREAD_LOCAL                     ( "ldap.proxy.useThreadLocal" ),
     LDAP_EXTENSIONS_NMAS_ENABLE                     ( "ldap.extensions.nmas.enable" ),
     LDAP_CONNECTION_TIMEOUT                         ( "ldap.connection.timeoutMS" ),
     LDAP_PROFILE_RETRY_DELAY                        ( "ldap.profile.retryDelayMS" ),
