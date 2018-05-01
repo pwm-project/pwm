@@ -32,8 +32,8 @@ import {IHelpDeskService} from '../../services/helpdesk.service';
 import IPwmService from '../../services/pwm.service';
 
 @Component({
-    stylesheetUrl: require('modules/helpdesk/helpdesk-search.component.scss'),
-    templateUrl: require('modules/helpdesk/helpdesk-search-table.component.html')
+    stylesheetUrl: require('./helpdesk-search.component.scss'),
+    templateUrl: require('./helpdesk-search-table.component.html')
 })
 export default class HelpDeskSearchTableComponent extends HelpDeskSearchBaseComponent {
     columnConfiguration: any;

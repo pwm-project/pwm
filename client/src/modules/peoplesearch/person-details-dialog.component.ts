@@ -28,8 +28,8 @@ import { IAugmentedJQuery, ITimeoutService } from 'angular';
 import { IPerson } from '../../models/person.model';
 
 @Component({
-    stylesheetUrl: require('modules/peoplesearch/person-details-dialog.component.scss'),
-    templateUrl: require('modules/peoplesearch/person-details-dialog.component.html')
+    stylesheetUrl: require('./person-details-dialog.component.scss'),
+    templateUrl: require('./person-details-dialog.component.html')
 })
 export default class PersonDetailsDialogComponent {
     person: IPerson;

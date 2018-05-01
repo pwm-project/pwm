@@ -8,31 +8,33 @@
         "npm": ">=3.9"
     },
     "scripts": {
-        "build": "webpack --config=webpack.build.js --mode=production",
+        "build": "webpack --mode=production",
         "clean": "rimraf dist/",
-        "test": "karma start --mode=development",
-        "test-single-run": "karma start --mode=development --singleRun --no-auto-watch",
-        "start": "webpack-dev-server --config=webpack.dev.js --mode=development --colors",
-        "sync": "webpack --config=webpack.build.js --mode=production --output-path=../server/target/pwm-1.8.0-SNAPSHOT/public/resources/webjars/pwm-client --watch --progress --colors"
+        "test": "karma start test/karma.conf.js --mode=development",
+        "test-single-run": "karma start test/karma.conf.js --mode=development --singleRun --no-auto-watch",
+        "start": "webpack-dev-server --mode=development --port 4000 --history-api-fallback --colors",
+        "sync": "webpack --mode=production --output-path=../server/target/pwm-1.8.0-SNAPSHOT/public/resources/webjars/pwm-client --watch --progress --colors"
     },
     "author": "",
     "license": "ISC",
-    "dependencies": {},
-    "devDependencies": {
+    "dependencies": {
         "@microfocus/ias-icons": "1.0.0-alpha",
         "@microfocus/ng-ias": "1.0.0-alpha.2",
         "@microfocus/ux-ias": "1.0.0-alpha.1",
+        "@uirouter/angularjs": "1.0.15",
+        "angular": "1.6.9",
+        "angular-aria": "1.6.9",
+        "angular-translate": "2.17.0",
+        "textangular": "1.5.16"
+    },
+    "devDependencies": {
         "@types/angular": "1.6.43",
         "@types/angular-mocks": "1.5.11",
         "@types/angular-translate": "2.15.2",
         "@types/angular-ui-router": "1.1.40",
         "@types/jasmine": "2.8.6",
         "@types/node": "9.4.7",
-        "@uirouter/angularjs": "1.0.15",
-        "angular": "1.6.9",
-        "angular-aria": "1.6.9",
         "angular-mocks": "1.6.9",
-        "angular-translate": "2.17.0",
         "autoprefixer": "8.1.0",
         "copy-webpack-plugin": "4.5.1",
         "css-loader": "0.28.10",
@@ -40,6 +42,7 @@
         "html-loader": "0.5.5",
         "html-webpack-plugin": "3.0.6",
         "ignore-loader": "0.1.2",
+        "imports-loader": "0.8.0",
         "jasmine": "3.1.0",
         "jasmine-core": "3.1.0",
         "jshint": "2.9.5",

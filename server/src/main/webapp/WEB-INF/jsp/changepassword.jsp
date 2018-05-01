@@ -135,11 +135,8 @@
     </script>
 </pwm:script>
 
-<pwm:script-ref url="/public/resources/webjars/angular/angular.min.js" />
-<pwm:script-ref url="/public/resources/webjars/angular-ui-router/release/angular-ui-router.min.js" />
-<pwm:script-ref url="/public/resources/webjars/angular-translate/angular-translate.min.js" />
-
 <pwm:script-ref url="/public/resources/js/changepassword.js"/>
+<pwm:script-ref url="/public/resources/webjars/pwm-client/vendor.js" />
 <pwm:script-ref url="/public/resources/webjars/pwm-client/changepassword.ng.js" />
 
 <%@ include file="fragment/footer.jsp" %>

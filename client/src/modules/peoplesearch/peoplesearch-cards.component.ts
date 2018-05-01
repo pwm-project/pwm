@@ -40,8 +40,8 @@ export enum PeopleSearchCardsSize {
 }
 
 @Component({
-    stylesheetUrl: require('modules/peoplesearch/peoplesearch-cards.component.scss'),
-    templateUrl: require('modules/peoplesearch/peoplesearch-cards.component.html')
+    stylesheetUrl: require('./peoplesearch-cards.component.scss'),
+    templateUrl: require('./peoplesearch-cards.component.html')
 })
 export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponent {
     photosEnabled: boolean;

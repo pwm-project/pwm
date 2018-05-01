@@ -25,7 +25,7 @@ import {IAugmentedJQuery} from 'angular';
 import { IPerson } from '../../models/person.model';
 import { IPeopleService } from '../../services/people.service';
 
-const templateUrl = require('modules/peoplesearch/person-card.component.html');
+const templateUrl = require('./person-card.component.html');
 
 class PersonCardController {
     private details: any[]; // For large style cards

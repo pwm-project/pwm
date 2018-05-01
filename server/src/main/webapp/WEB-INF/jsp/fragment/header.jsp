@@ -65,8 +65,9 @@
             var PWM_GLOBAL = PWM_GLOBAL || {}; PWM_GLOBAL['startupFunctions'] = [];
         </script>
     </pwm:script>
+
     <% if (JspUtility.getPwmRequest(pageContext).isFlag(PwmRequestFlag.INCLUDE_IAS_ANGULAR) || JspUtility.getPwmRequest(pageContext).isFlag(PwmRequestFlag.INCLUDE_IAS_CSS)) { %>
-        <link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/webjars/pwm-client/vendor/ias-icons.css' addContext="true"/>"/>
-        <link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/webjars/pwm-client/vendor/ux-ias.css' addContext="true"/>"/>
+        <link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/webjars/pwm-client/vendor/ux-ias/ias-icons.css' addContext="true"/>"/>
+        <link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/webjars/pwm-client/vendor/ux-ias/ux-ias.css' addContext="true"/>"/>
     <% } %>
 </head>

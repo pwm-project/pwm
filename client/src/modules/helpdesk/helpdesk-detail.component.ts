@@ -29,11 +29,11 @@ import {IActionButton, IHelpDeskConfigService, PASSWORD_UI_MODES} from '../../se
 import {IPerson} from '../../models/person.model';
 import {IChangePasswordSuccess} from '../../components/changepassword/success-change-password.controller';
 
-let autogenChangePasswordTemplateUrl = require('components/changepassword/autogen-change-password.component.html');
+let autogenChangePasswordTemplateUrl = require('../../components/changepassword/autogen-change-password.component.html');
 let helpdeskDetailDialogTemplateUrl = require('./helpdesk-detail-dialog.template.html');
-let randomChangePasswordTemplateUrl = require('components/changepassword/random-change-password.component.html');
-let successChangePasswordTemplateUrl = require('components/changepassword/success-change-password.component.html');
-let typeChangePasswordTemplateUrl = require('components/changepassword/type-change-password.component.html');
+let randomChangePasswordTemplateUrl = require('../../components/changepassword/random-change-password.component.html');
+let successChangePasswordTemplateUrl = require('../../components/changepassword/success-change-password.component.html');
+let typeChangePasswordTemplateUrl = require('../../components/changepassword/type-change-password.component.html');
 let verificationsDialogTemplateUrl = require('./verifications-dialog.template.html');
 
 const STATUS_WAIT = 'wait';
@@ -42,8 +42,8 @@ const STATUS_SUCCESS = 'success';
 const PROFILE_TAB_NAME = 'profileTab';
 
 @Component({
-    stylesheetUrl: require('modules/helpdesk/helpdesk-detail.component.scss'),
-    templateUrl: require('modules/helpdesk/helpdesk-detail.component.html')
+    stylesheetUrl: require('./helpdesk-detail.component.scss'),
+    templateUrl: require('./helpdesk-detail.component.html')
 })
 export default class HelpDeskDetailComponent {
     customButtons: {[key: string]: IActionButton};

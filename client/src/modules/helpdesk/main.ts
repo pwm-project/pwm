@@ -20,6 +20,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+import 'angular';
+import 'angular-translate';
+import '@microfocus/ng-ias/dist/ng-ias';
+
 import { bootstrap, module } from 'angular';
 import helpDeskModule from './helpdesk.module';
 import PeopleService from '../../services/people.service';
@@ -43,7 +47,7 @@ module('app', [
         '$translateProvider',
         ($translateProvider: angular.translate.ITranslateProvider) => {
             $translateProvider
-                .translations('fallback', require('i18n/translations_en.json'))
+                .translations('fallback', require('../../i18n/translations_en.json'))
                 .useLoader('translationsLoader')
                 .useSanitizeValueStrategy('escapeParameters')
                 .preferredLanguage('en')
