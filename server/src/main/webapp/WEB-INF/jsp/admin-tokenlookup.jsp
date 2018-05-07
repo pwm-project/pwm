@@ -123,7 +123,7 @@
                     Destination(s)
                 </td>
                 <td>
-                    <%=JspUtility.freindlyWrite(pageContext, JsonUtil.serialize( tokenPayload.getDestination() ) )%>
+                    <%=JspUtility.friendlyWrite(pageContext, JsonUtil.serialize( tokenPayload.getDestination() ) )%>
                 </td>
             </tr>
             <tr>

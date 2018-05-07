@@ -32,6 +32,7 @@ public enum HttpContentType
 {
     json( "application/json", PwmConstants.DEFAULT_CHARSET ),
     zip( "application/zip" ),
+    gzip( "application/gzip" ),
     xml( "text/xml", PwmConstants.DEFAULT_CHARSET ),
     csv( "text/csv", PwmConstants.DEFAULT_CHARSET ),
     javascript( "text/javascript", PwmConstants.DEFAULT_CHARSET ),

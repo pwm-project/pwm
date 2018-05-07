@@ -1720,3 +1720,21 @@ table.ias-table, table.ias-table td {
     background-size: 100px 100px;
     width: auto;
     height: 80px;
+}
+
+.hidden {
+   display: none;
+}
+
+.logViewer {
+    border: 0;
+    background-color: #DDDDDD;
+    border-radius: 7px;
+    padding: 10px;
+    height: auto;
+    min-height: 100px;
+    max-height: 50vh;
+    overflow: auto;
+    font-family: monospace;
+    white-space: pre;
+}

@@ -24,19 +24,27 @@ package password.pwm.svc.sessiontrack;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import org.apache.commons.csv.CSVPrinter;
 import password.pwm.PwmApplication;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.pub.SessionStateInfoBean;
+import password.pwm.config.Configuration;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmSession;
+import password.pwm.i18n.Admin;
 import password.pwm.ldap.UserInfo;
 import password.pwm.svc.PwmService;
+import password.pwm.util.LocaleHelper;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -44,6 +52,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -189,6 +198,53 @@ public class SessionTrackService implements PwmService
                 return null;
             }
         };
+    }
+
+    public void outputToCsv(
+            final Locale locale,
+            final Configuration config,
+            final OutputStream outputStream
+            )
+            throws IOException
+    {
+        final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter( outputStream );
+        {
+            final List<String> headerRow = new ArrayList<>();
+            headerRow.add( LocaleHelper.getLocalizedMessage( locale, Admin.Field_Session_Label, config ) );
+            headerRow.add( LocaleHelper.getLocalizedMessage( locale, Admin.Field_Session_CreateTime, config ) );
+            headerRow.add( LocaleHelper.getLocalizedMessage( locale, Admin.Field_Session_LastTime, config ) );
+            headerRow.add( LocaleHelper.getLocalizedMessage( locale, Admin.Field_Session_Idle, config ) );
+            headerRow.add( LocaleHelper.getLocalizedMessage( locale, Admin.Field_Session_SrcAddress, config ) );
+            headerRow.add( LocaleHelper.getLocalizedMessage( locale, Admin.Field_Session_SrcHost, config ) );
+            headerRow.add( LocaleHelper.getLocalizedMessage( locale, Admin.Field_Session_LdapProfile, config ) );
+            headerRow.add( LocaleHelper.getLocalizedMessage( locale, Admin.Field_Session_UserID, config ) );
+            headerRow.add( LocaleHelper.getLocalizedMessage( locale, Admin.Field_Session_UserDN, config ) );
+            headerRow.add( LocaleHelper.getLocalizedMessage( locale, Admin.Field_Session_Locale, config ) );
+            headerRow.add( LocaleHelper.getLocalizedMessage( locale, Admin.Field_Session_LastURL, config ) );
+            headerRow.add( LocaleHelper.getLocalizedMessage( locale, Admin.Field_Session_IntruderAttempts, config ) );
+            csvPrinter.printComment( StringUtil.join( headerRow, "," ) );
+        }
+
+        final Iterator<SessionStateInfoBean> debugInfos = getSessionInfoIterator();
+        while ( debugInfos.hasNext() )
+        {
+            final SessionStateInfoBean info = debugInfos.next();
+            final List<String> dataRow = new ArrayList<>();
+            dataRow.add( info.getLabel() );
+            dataRow.add( JavaHelper.toIsoDate( info.getCreateTime() ) );
+            dataRow.add( JavaHelper.toIsoDate( info.getLastTime() ) );
+            dataRow.add( info.getIdle() );
+            dataRow.add( info.getSrcAddress() );
+            dataRow.add( info.getSrcHost() );
+            dataRow.add( info.getLdapProfile() );
+            dataRow.add( info.getUserID() );
+            dataRow.add( info.getUserDN() );
+            dataRow.add( info.getLocale() != null ? info.getLocale().toLanguageTag() : "" );
+            dataRow.add( info.getLastUrl() );
+            dataRow.add( String.valueOf( info.getIntruderAttempts() ) );
+            csvPrinter.printRecord( dataRow );
+        }
+        csvPrinter.flush();
     }
 
 

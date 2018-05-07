@@ -66,11 +66,9 @@
                     <pwm:display key="Title_Admin"/>
                 </a>
                 <pwm:if test="<%=PwmIfTest.forcedPageView%>" negate="true">
-                    <a class="header-warning-button" id="header_openLogViewerButton">
+                    <a class="header-warning-button" id="header_openLogViewerButton" href="<pwm:url url="/private/admin/logs"/>">
                         <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-list-alt"></span></pwm:if>
                         <pwm:display key="MenuItem_ViewLog" bundle="Config"/>
-                        &nbsp;
-                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-external-link"></span></pwm:if>
                     </a>
                 </pwm:if>
             </pwm:if>

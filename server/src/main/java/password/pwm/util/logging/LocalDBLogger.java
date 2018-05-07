@@ -73,7 +73,7 @@ public class LocalDBLogger implements PwmService
     private volatile STATUS status = STATUS.NEW;
     private boolean hasShownReadError = false;
 
-    private static final String STORAGE_FORMAT_VERSION = "2";
+    private static final String STORAGE_FORMAT_VERSION = "3";
 
     public LocalDBLogger( final PwmApplication pwmApplication, final LocalDB localDB, final LocalDBLoggerSettings settings )
             throws LocalDBException

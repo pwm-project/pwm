@@ -79,6 +79,14 @@
                             });
                         </script>
                     </pwm:script>
+                    <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" id="download-sessions" name="download-sessions">
+                        <button type="submit" class="btn">
+                            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-download"></span></pwm:if>
+                            <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
+                        </button>
+                        <input type="hidden" name="processAction" value="<%=AdminServlet.AdminAction.downloadSessionsCsv%>"/>
+                        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+                    </form>
                 </div>
             </div>
             <input name="tabs" type="radio" id="tab-2" class="input"/>
@@ -124,7 +132,7 @@
                                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-download"></span></pwm:if>
                                     <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
                                 </button>
-                                <input type="hidden" name="processAction" value="downloadAuditLogCsv"/>
+                                <input type="hidden" name="processAction" value="<%=AdminServlet.AdminAction.downloadAuditLogCsv%>"/>
                                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                             </form>
                         </div>

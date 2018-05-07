@@ -88,6 +88,7 @@ public enum AppProperty
     DB_INIT_HALT_ON_INDEX_CREATE_ERROR              ( "db.init.haltOnIndexCreateError" ),
     DB_SCHEMA_KEY_LENGTH                            ( "db.schema.keyLength" ),
     DOWNLOAD_FILENAME_STATISTICS_CSV                ( "download.filename.statistics.csv" ),
+    DOWNLOAD_FILENAME_SESSIONS_CSV                  ( "download.filename.sessions.csv" ),
     DOWNLOAD_FILENAME_USER_REPORT_SUMMARY_CSV       ( "download.filename.reportSummary.csv" ),
     DOWNLOAD_FILENAME_USER_REPORT_RECORDS_CSV       ( "download.filename.reportRecords.csv" ),
     DOWNLOAD_FILENAME_AUDIT_RECORDS_CSV             ( "download.filename.auditRecords.csv" ),

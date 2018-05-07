@@ -37,6 +37,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.PageContext;
 import java.io.Serializable;
+import java.text.NumberFormat;
 import java.time.Instant;
 import java.util.Locale;
 
@@ -167,7 +168,7 @@ public abstract class JspUtility
         return forRequest( pageContext.getRequest() );
     }
 
-    public static String freindlyWrite( final PageContext pageContext, final boolean value )
+    public static String friendlyWrite( final PageContext pageContext, final boolean value )
     {
         final PwmRequest pwmRequest = forRequest( pageContext.getRequest() );
         return value
@@ -175,7 +176,14 @@ public abstract class JspUtility
                 : LocaleHelper.getLocalizedMessage( Display.Value_False, pwmRequest );
     }
 
-    public static String freindlyWrite( final PageContext pageContext, final String input )
+    public static String friendlyWrite( final PageContext pageContext, final long value )
+    {
+        final PwmRequest pwmRequest = forRequest( pageContext.getRequest() );
+        final NumberFormat numberFormat = NumberFormat.getInstance( pwmRequest.getLocale() );
+        return numberFormat.format( value );
+    }
+
+    public static String friendlyWrite( final PageContext pageContext, final String input )
     {
         final PwmRequest pwmRequest = forRequest( pageContext.getRequest() );
         if ( StringUtil.isEmpty( input ) )
@@ -185,7 +193,7 @@ public abstract class JspUtility
         return StringUtil.escapeHtml( input );
     }
 
-    public static String freindlyWrite( final PageContext pageContext, final Instant instant )
+    public static String friendlyWrite( final PageContext pageContext, final Instant instant )
     {
         final PwmRequest pwmRequest = forRequest( pageContext.getRequest() );
         if ( instant == null )

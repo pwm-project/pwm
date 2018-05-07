@@ -22,58 +22,18 @@
 
 package password.pwm.util.logging;
 
+import lombok.Builder;
+import lombok.Value;
+import password.pwm.util.java.TimeDuration;
+
+@Value
+@Builder
 public class LocalDBSearchQuery
 {
-    private final PwmLogLevel minimumLevel;
-    private final int maxEvents;
-    private final String username;
-    private final String text;
-    private final long maxQueryTime;
-    private final LocalDBLogger.EventType eventType;
-
-    public LocalDBSearchQuery(
-            final PwmLogLevel minimumLevel,
-            final int count,
-            final String username,
-            final String text,
-            final long maxQueryTime,
-            final LocalDBLogger.EventType eventType )
-    {
-        this.eventType = eventType;
-        this.maxQueryTime = maxQueryTime;
-        this.text = text;
-        this.username = username;
-        this.maxEvents = count;
-        this.minimumLevel = minimumLevel;
-    }
-
-    public PwmLogLevel getMinimumLevel( )
-    {
-        return minimumLevel;
-    }
-
-    public int getMaxEvents( )
-    {
-        return maxEvents;
-    }
-
-    public String getUsername( )
-    {
-        return username;
-    }
-
-    public String getText( )
-    {
-        return text;
-    }
-
-    public long getMaxQueryTime( )
-    {
-        return maxQueryTime;
-    }
-
-    public LocalDBLogger.EventType getEventType( )
-    {
-        return eventType;
-    }
+    private PwmLogLevel minimumLevel;
+    private int maxEvents;
+    private String username;
+    private String text;
+    private TimeDuration maxQueryTime;
+    private LocalDBLogger.EventType eventType;
 }
