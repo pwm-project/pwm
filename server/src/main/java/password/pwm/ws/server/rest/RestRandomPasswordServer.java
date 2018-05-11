@@ -90,6 +90,17 @@ public class RestRandomPasswordServer extends RestServlet
     public RestResultBean doPostRandomPasswordForm( final RestRequest restRequest )
             throws PwmUnrecoverableException
     {
+        /* Check for parameter conflicts. */
+        if ( restRequest.hasParameter( "username" )
+             && ( restRequest.hasParameter( "strength" ) || restRequest.hasParameter( "minLength" ) || restRequest.hasParameter( "chars" ) ) )
+        {
+            LOGGER.error( restRequest.getSessionLabel(),
+              "REST parameter conflict.  The username parameter cannot be specified if strength, minLength or chars parameters are specified." );
+            final String errorMessage = "REST parameter conflict.  The username parameter cannot be specified if strength, minLength or chars parameters are specified.";
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_REST_PARAMETER_CONFLICT, errorMessage );
+            return RestResultBean.fromError( restRequest, errorInformation );
+        }
+
         final JsonInput jsonInput = new JsonInput();
         jsonInput.username = restRequest.readParameterAsString( "username", PwmHttpRequestWrapper.Flag.BypassValidation );
         jsonInput.strength = restRequest.readParameterAsInt( "strength", 0 );
@@ -122,6 +133,17 @@ public class RestRandomPasswordServer extends RestServlet
     public RestResultBean doPlainRandomPassword( final RestRequest restRequest )
             throws PwmUnrecoverableException
     {
+        /* Check for parameter conflicts. */
+        if ( restRequest.hasParameter( "username" )
+             && ( restRequest.hasParameter( "strength" ) || restRequest.hasParameter( "minLength" ) || restRequest.hasParameter( "chars" ) ) )
+        {
+            LOGGER.error( restRequest.getSessionLabel(),
+              "REST parameter conflict.  The username parameter cannot be specified if strength, minLength or chars parameters are specified." );
+            final String errorMessage = "REST parameter conflict.  The username parameter cannot be specified if strength, minLength or chars parameters are specified.";
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_REST_PARAMETER_CONFLICT, errorMessage );
+            return RestResultBean.fromError( restRequest, errorInformation );
+        }
+
         final JsonInput jsonInput = new JsonInput();
         jsonInput.username = restRequest.readParameterAsString( "username", PwmHttpRequestWrapper.Flag.BypassValidation );
         jsonInput.strength = restRequest.readParameterAsInt( "strength", 0 );
