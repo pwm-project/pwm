@@ -26,6 +26,7 @@ import lombok.Data;
 import password.pwm.PwmConstants;
 import password.pwm.config.option.WebServiceUsage;
 import password.pwm.config.profile.PwmPasswordPolicy;
+import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -51,7 +52,10 @@ import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
 
 @WebServlet(
         urlPatterns = {
@@ -90,17 +94,6 @@ public class RestRandomPasswordServer extends RestServlet
     public RestResultBean doPostRandomPasswordForm( final RestRequest restRequest )
             throws PwmUnrecoverableException
     {
-        /* Check for parameter conflicts. */
-        if ( restRequest.hasParameter( "username" )
-             && ( restRequest.hasParameter( "strength" ) || restRequest.hasParameter( "minLength" ) || restRequest.hasParameter( "chars" ) ) )
-        {
-            LOGGER.error( restRequest.getSessionLabel(),
-              "REST parameter conflict.  The username parameter cannot be specified if strength, minLength or chars parameters are specified." );
-            final String errorMessage = "REST parameter conflict.  The username parameter cannot be specified if strength, minLength or chars parameters are specified.";
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_REST_PARAMETER_CONFLICT, errorMessage );
-            return RestResultBean.fromError( restRequest, errorInformation );
-        }
-
         final JsonInput jsonInput = new JsonInput();
         jsonInput.username = restRequest.readParameterAsString( "username", PwmHttpRequestWrapper.Flag.BypassValidation );
         jsonInput.strength = restRequest.readParameterAsInt( "strength", 0 );
@@ -133,17 +126,6 @@ public class RestRandomPasswordServer extends RestServlet
     public RestResultBean doPlainRandomPassword( final RestRequest restRequest )
             throws PwmUnrecoverableException
     {
-        /* Check for parameter conflicts. */
-        if ( restRequest.hasParameter( "username" )
-             && ( restRequest.hasParameter( "strength" ) || restRequest.hasParameter( "minLength" ) || restRequest.hasParameter( "chars" ) ) )
-        {
-            LOGGER.error( restRequest.getSessionLabel(),
-              "REST parameter conflict.  The username parameter cannot be specified if strength, minLength or chars parameters are specified." );
-            final String errorMessage = "REST parameter conflict.  The username parameter cannot be specified if strength, minLength or chars parameters are specified.";
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_REST_PARAMETER_CONFLICT, errorMessage );
-            return RestResultBean.fromError( restRequest, errorInformation );
-        }
-
         final JsonInput jsonInput = new JsonInput();
         jsonInput.username = restRequest.readParameterAsString( "username", PwmHttpRequestWrapper.Flag.BypassValidation );
         jsonInput.strength = restRequest.readParameterAsInt( "strength", 0 );
@@ -200,9 +182,27 @@ public class RestRandomPasswordServer extends RestServlet
     {
         final PwmPasswordPolicy pwmPasswordPolicy;
 
+        /* Check for parameter conflicts. */
+        if ( restRequest.hasParameter( "username" )
+                && ( restRequest.hasParameter( "strength" ) || restRequest.hasParameter( "minLength" ) || restRequest.hasParameter( "chars" ) ) )
+        {
+            final String msg = "The username parameter cannot be specified if strength, minLength or chars parameters are specified.";
+            LOGGER.error( restRequest.getSessionLabel(), msg );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_REST_PARAMETER_CONFLICT, msg );
+            throw new PwmUnrecoverableException( errorInformation );
+        }
+
         if ( jsonInput.isNoUser() || StringUtil.isEmpty( jsonInput.getUsername() ) )
         {
-            pwmPasswordPolicy = PwmPasswordPolicy.defaultPolicy();
+            final Map<String, String> policyRules = new HashMap<>( );
+            policyRules.put( PwmPasswordRule.MinimumLength.getKey(), String.valueOf( jsonInput.getMinLength() ) );
+            policyRules.put( PwmPasswordRule.MaximumLength.getKey(), String.valueOf( jsonInput.getMaxLength() ) );
+            policyRules.put( PwmPasswordRule.MinimumStrength.getKey(), String.valueOf( jsonInput.getStrength() ) );
+            final String regexChars = !StringUtil.isEmpty( jsonInput.getChars() )
+                    ? "^[" + Pattern.quote( jsonInput.getChars() ) +  "]*$"
+                    : "";
+            policyRules.put( PwmPasswordRule.RegExMatch.getKey(), regexChars );
+            pwmPasswordPolicy = PwmPasswordPolicy.createPwmPasswordPolicy( policyRules );
         }
         else
         {
@@ -217,7 +217,7 @@ public class RestRandomPasswordServer extends RestServlet
         }
 
         final RandomPasswordGenerator.RandomGeneratorConfig randomConfig = jsonInputToRandomConfig( jsonInput, pwmPasswordPolicy );
-        final PasswordData randomPassword = RandomPasswordGenerator.createRandomPassword( restRequest.getSessionLabel(), randomConfig, restRequest.getPwmApplication(), false );
+        final PasswordData randomPassword = RandomPasswordGenerator.createRandomPassword( restRequest.getSessionLabel(), randomConfig, restRequest.getPwmApplication() );
         final JsonOutput outputMap = new JsonOutput();
         outputMap.password = randomPassword.getStringValue();
 
