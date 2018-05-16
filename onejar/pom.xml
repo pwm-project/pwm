@@ -16,7 +16,7 @@
     <name>PWM Password Self Service: Executable Jar</name>
 
     <properties>
-        <tomcat.version>9.0.7</tomcat.version>
+        <tomcat.version>9.0.8</tomcat.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <warArtifactID>pwm-${project.version}.war</warArtifactID>
@@ -88,6 +88,7 @@
                             <Implementation-Vendor>${project.organization.name}</Implementation-Vendor>
                             <Implementation-URL>${project.organization.url}</Implementation-URL>
                             <Implementation-Build>${build.number}</Implementation-Build>
+                            <Implementation-Build-Timestamp>${timestamp.iso}</Implementation-Build-Timestamp>
                             <Implementation-Revision>${build.revision}</Implementation-Revision>
                             <Implementation-Version-Display>v${project.version} b${build.number} r${build.revision}</Implementation-Version-Display>
                         </manifestEntries>

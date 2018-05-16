@@ -24,18 +24,22 @@ package password.pwm;
 
 import org.apache.commons.csv.CSVFormat;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.secure.PwmHashAlgorithm;
 
+import java.net.URL;
 import java.nio.charset.Charset;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.TimeZone;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 
 /**
  * Constant values used throughout the servlet.
@@ -45,14 +49,12 @@ import java.util.TimeZone;
 public abstract class PwmConstants
 {
 
-    public static final String BUILD_TIME = readBuildInfoBundle( "build.time", Instant.now().toString() );
-    public static final String BUILD_NUMBER = readBuildInfoBundle( "build.number", "0" );
-    public static final String BUILD_TYPE = readBuildInfoBundle( "build.type", "" );
-    public static final String BUILD_USER = readBuildInfoBundle( "build.user", System.getProperty( "user.name" ) );
-    public static final String BUILD_REVISION = readBuildInfoBundle( "build.revision", "0" );
-    public static final String BUILD_JAVA_VENDOR = readBuildInfoBundle( "build.java.vendor" );
-    public static final String BUILD_JAVA_VERSION = readBuildInfoBundle( "build.java.version" );
-    public static final String BUILD_VERSION = readBuildInfoBundle( "build.version", "" );
+    public static final String BUILD_TIME = readBuildInfoBundle( "Implementation-Build-Timestamp", "n/a" );
+    public static final String BUILD_NUMBER = readBuildInfoBundle( "Implementation-Build", "0" );
+    public static final String BUILD_REVISION = readBuildInfoBundle( "Implementation-Revision", "0" );
+    public static final String BUILD_JAVA_VENDOR = readBuildInfoBundle( "Implementation-Build-Java-Vendor" );
+    public static final String BUILD_JAVA_VERSION = readBuildInfoBundle( "Implementation-Build-Java-Version" );
+    public static final String BUILD_VERSION = readBuildInfoBundle( "Implementation-Version", "" );
 
     private static final String MISSING_VERSION_STRING = readPwmConstantsBundle( "missingVersionString" );
     public static final String SERVLET_VERSION;
@@ -62,8 +64,7 @@ public abstract class PwmConstants
         final String servletVersion =
                 ( BUILD_VERSION.length() > 0 ? "v" + BUILD_VERSION : "" )
                         + ( BUILD_NUMBER.length() > 0 ? " b" + BUILD_NUMBER : "" )
-                        + ( BUILD_REVISION.length() > 0 ? " r" + BUILD_REVISION : "" )
-                        + ( BUILD_TYPE.length() > 0 ? " (" + BUILD_TYPE + ")" : "" ).trim();
+                        + ( BUILD_REVISION.length() > 0 ? " r" + BUILD_REVISION : "" ).trim();
 
         SERVLET_VERSION = servletVersion.isEmpty()
                 ? MISSING_VERSION_STRING
@@ -243,13 +244,66 @@ public abstract class PwmConstants
 
     private static String readBuildInfoBundle( final String key, final String defaultValue )
     {
-        final ResourceBundle resourceBundle = ResourceBundle.getBundle( "password.pwm.BuildInformation" );
-        if ( resourceBundle.containsKey( key ) )
+
+        try
         {
-            return resourceBundle.getString( key );
+            final Enumeration<URL> resources = PwmConstants.class.getClassLoader().getResources( "META-INF/MANIFEST.MF" );
+            while ( resources.hasMoreElements() )
+            {
+                final Manifest manifest = new Manifest( resources.nextElement().openStream() );
+                final Attributes attributes = manifest.getMainAttributes();
+                final String archiveName = attributes.getValue( "Implementation-Archive-Name" );
+                try
+                {
+                    if ( "pwm.jar".equals( archiveName ) || "pwm.war".equals( archiveName ) )
+                    {
+                        final String value = attributes.getValue( key );
+                        if ( !StringUtil.isEmpty( value ) )
+                        {
+                            return value;
+                        }
+                    }
+                }
+                catch ( Throwable t )
+                {
+                    System.out.println( t );
+                }
+            }
+        }
+        catch ( Throwable t )
+        {
+            System.out.println( t );
         }
 
         return defaultValue;
+
+        /*
+        try
+        {
+            final Class clazz = PwmConstants.class;
+            final String className = clazz.getSimpleName() + ".class";
+            final String classPath = clazz.getResource( className ).toString();
+            if ( !classPath.startsWith( "jar" ) )
+            {
+                // Class not from JAR
+                return defaultValue;
+            }
+            final String manifestPath = classPath.substring( 0, classPath.lastIndexOf( "!" ) + 1 ) + "/META-INF/MANIFEST.MF";
+            final Manifest manifest = new Manifest( new URL( manifestPath ).openStream() );
+            final Attributes attributes = manifest.getMainAttributes();
+            final String value = attributes.getValue( key );
+            if ( !StringUtil.isEmpty( value ) )
+            {
+                return value;
+            }
+        }
+        catch ( Throwable t )
+        {
+            System.out.println( t );
+        }
+
+        return defaultValue;
+        */
     }
 
     public enum AcceptValue

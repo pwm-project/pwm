@@ -131,6 +131,7 @@
                             <Implementation-Vendor>${project.organization.name}</Implementation-Vendor>
                             <Implementation-URL>${project.organization.url}</Implementation-URL>
                             <Implementation-Build>${build.number}</Implementation-Build>
+                            <Implementation-Build-Timestamp>${timestamp.iso}</Implementation-Build-Timestamp>
                             <Implementation-Revision>${build.revision}</Implementation-Revision>
                             <Implementation-Version-Display>v${project.version} b${build.number} r${build.revision}</Implementation-Version-Display>
                         </manifestEntries>

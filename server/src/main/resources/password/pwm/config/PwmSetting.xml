@@ -1012,6 +1012,7 @@
             <value><![CDATA[ZEROS]]></value>
         </default>
         <options>
+            <option value="RAW">Raw -  Use the raw value that is read from the directory with no changes</option>
             <option value="PLAIN">Plain - country code (e.g. 1 for USA) plus subscriber number (e.g. 12312345): 112312345</option>
             <option value="PLUS">Plus - Same as plain, but with a plus sign as a prefix: +112312345</option>
             <option value="ZEROS">Zeros -  Same as plain, but prefixed with a double zero: 00112312345</option>

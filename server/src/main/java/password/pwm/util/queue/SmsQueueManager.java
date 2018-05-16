@@ -75,6 +75,7 @@ public class SmsQueueManager implements PwmService
 
     public enum SmsNumberFormat
     {
+        RAW,
         PLAIN,
         PLUS,
         ZEROS
@@ -406,6 +407,13 @@ public class SmsQueueManager implements PwmService
 
     static String formatSmsNumber( final Configuration config, final String smsNumber )
     {
+        final SmsNumberFormat format = config.readSettingAsEnum( PwmSetting.SMS_PHONE_NUMBER_FORMAT, SmsNumberFormat.class );
+
+        if ( format == SmsNumberFormat.RAW )
+        {
+            return smsNumber;
+        }
+
         final long ccLong = config.readSettingAsLong( PwmSetting.SMS_DEFAULT_COUNTRY_CODE );
         String countryCodeNumber = "";
         if ( ccLong > 0 )
@@ -413,7 +421,6 @@ public class SmsQueueManager implements PwmService
             countryCodeNumber = String.valueOf( ccLong );
         }
 
-        final SmsNumberFormat format = config.readSettingAsEnum( PwmSetting.SMS_PHONE_NUMBER_FORMAT, SmsNumberFormat.class );
         String returnValue = smsNumber;
 
         // Remove (0)
