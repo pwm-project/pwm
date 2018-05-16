@@ -343,7 +343,11 @@ public enum PwmError
             5300, "Error_HTTP_404", null ),
 
     ERROR_REST_INVOCATION_ERROR(
-            7000, "Error_RestInvocationError", null ),;
+            7000, "Error_RestInvocationError", null ),
+    ERROR_REST_PARAMETER_CONFLICT(
+            7001, "Error_RestParameterConflict", null ),
+
+    /* End of list*/;
 
     enum ErrorFlag
     {
