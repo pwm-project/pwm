@@ -137,7 +137,7 @@ public class RestStatisticsServer extends RestServlet
         final Map<String, Object> outputValueMap = new TreeMap<>();
         for ( final Statistic stat : Statistic.values() )
         {
-            outputValueMap.put( stat.getKey(), statisticsBundle.getStatistic( stat ) );
+            outputValueMap.put( stat.name(), statisticsBundle.getStatistic( stat ) );
         }
 
         return outputValueMap;
