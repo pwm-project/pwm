@@ -27,6 +27,7 @@
         <build.revision>0</build.revision>  <!-- default in case not set on command line -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <pwm.minimum.maven.version>3.2</pwm.minimum.maven.version>
+        <timestamp.iso>${maven.build.timestamp}</timestamp.iso>
     </properties>
 
     <modules>

@@ -1166,7 +1166,6 @@ public class StoredConfigurationImpl implements StoredConfiguration
 
             rootElement.setAttribute( "pwmVersion", PwmConstants.BUILD_VERSION );
             rootElement.setAttribute( "pwmBuild", PwmConstants.BUILD_NUMBER );
-            rootElement.setAttribute( "pwmBuildType", PwmConstants.BUILD_TYPE );
             rootElement.setAttribute( "xmlVersion", XML_FORMAT_VERSION );
 
             { // migrate old properties
