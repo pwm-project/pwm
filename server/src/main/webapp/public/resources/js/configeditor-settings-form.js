@@ -29,6 +29,7 @@ FormTableHandler.newRowValue = {
     labels:{'':''},
     regexErrors:{'':''},
     selectOptions:{},
+    defaultValue:'',
     description:{'':''},
     type:'text',
     placeholder:'',
@@ -288,6 +289,10 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
         bodyText += '</tr><tr>';
         if (currentValue['type'] === 'select') {
             bodyText += '<td class="key">Select Options</td><td><button class="btn" id="' + inputID + 'editOptionsButton"><span class="btn-icon pwm-icon pwm-icon-list-ul"/> Edit</button></td>';
+            bodyText += '</tr><tr>';
+        }
+        if (currentValue['type'] === 'select') { // temporary condition
+            bodyText += '<td id="' + inputID + '-label-defaultValue" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_DefaultValue') + '">Default Value</td><td><input type="text" class="configStringInput" style="width:70px" id="' + inputID + 'defaultValue' + '"/></td>';
             bodyText += '</tr>';
         }
     }
@@ -409,6 +414,12 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
             PWM_MAIN.getObject(inputID + "javascript").value = currentValue['javascript'] ? currentValue['javascript'] : '';
             PWM_MAIN.addEventHandler(inputID + "javascript", "change", function(){
                 currentValue['javascript'] = PWM_MAIN.getObject(inputID + "javascript").value;
+                FormTableHandler.write(keyName)
+            });
+
+            PWM_MAIN.getObject(inputID + "defaultValue").value = currentValue['defaultValue'] ? currentValue['defaultValue'] : '';
+            PWM_MAIN.addEventHandler(inputID + "defaultValue", "change", function(){
+                currentValue['defaultValue'] = PWM_MAIN.getObject(inputID + "defaultValue").value;
                 FormTableHandler.write(keyName)
             });
         }

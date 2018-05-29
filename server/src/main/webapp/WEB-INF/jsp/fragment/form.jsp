@@ -96,7 +96,16 @@
     <% } else if (loopConfiguration.getType() == FormConfiguration.Type.select) { %>
     <select id="<%=loopConfiguration.getName()%>" name="<%=loopConfiguration.getName()%>" class="inputfield selectfield" <pwm:autofocus/> >
         <% for (final String optionName : loopConfiguration.getSelectOptions().keySet()) {%>
-        <option value="<%=optionName%>" <%if(optionName.equals(currentValue)){%>selected="selected"<%}%>>
+        <option value="<%=optionName%>" <%
+            if (StringUtil.isEmpty(currentValue)) {
+                if (optionName.equals(loopConfiguration.getDefaultValue())) {
+                    out.write("selected=\"selected\"");
+                }
+            } else {
+                if (optionName.equals(currentValue)) {
+                    out.write("selected=\"selected\"");
+                }
+            } %>>
             <%=loopConfiguration.getSelectOptions().get(optionName)%>
         </option>
         <% } %>
