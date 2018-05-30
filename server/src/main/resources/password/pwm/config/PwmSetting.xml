@@ -496,7 +496,7 @@
     <setting hidden="false" key="ldap.rootContexts" level="0">
         <flag>ldapDNsyntax</flag>
         <example>ou=users,o=example</example>
-        <example template="AD">cn=users,dc=site,dc=example,dc=net</example>
+        <example template="AD">CN=users,DC=site,DC=example,DC=net</example>
         <default/>
     </setting>
     <setting hidden="false" key="ldap.selectableContexts" level="2">

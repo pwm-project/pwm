@@ -114,7 +114,11 @@ class ZipReader implements AutoCloseable, Closeable
         do
         {
             line = reader.readLine();
-            nextZipEntry();
+
+            if ( line == null )
+            {
+                nextZipEntry();
+            }
         }
         while ( line == null && zipEntry != null );
 
@@ -124,7 +128,6 @@ class ZipReader implements AutoCloseable, Closeable
             lineCounter++;
         }
 
-        //crazy debug line: LOGGER.trace("read line " + fileStats.getLines() + " '" + line + "' from " +   currentZipName());
         return line;
     }
 }

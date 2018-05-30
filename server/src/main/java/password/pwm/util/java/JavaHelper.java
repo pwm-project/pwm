@@ -319,7 +319,7 @@ public class JavaHelper
         return IOUtils.copyLarge( input, output, 0, -1, buffer );
     }
 
-    public static long copyWhilePredicate( final InputStream input, final OutputStream output, final Predicate predicate )
+    public static long copyWhilePredicate( final InputStream input, final OutputStream output, final Predicate<Long> predicate )
             throws IOException
     {
         final int bufferSize = 4 * 1024;
