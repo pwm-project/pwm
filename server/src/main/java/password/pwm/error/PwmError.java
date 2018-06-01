@@ -124,6 +124,8 @@ public enum PwmError
             4042, "Password_NotEnoughGroups", null ),
     PASSWORD_TOO_MANY_CONSECUTIVE(
             4043, "Password_TooManyConsecutive", null ),
+    PASSWORD_GENERATION_TOO_COMPLEX(
+            4044, "PasswordGenerationTooComplex", null ),
 
     ERROR_WRONGPASSWORD(
             5001, "Error_WrongPassword", Collections.singleton( ChaiError.FAILED_AUTHENTICATION ) ),

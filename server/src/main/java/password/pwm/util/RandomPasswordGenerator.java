@@ -248,6 +248,10 @@ public class RandomPasswordGenerator
                 sb.append( "failed random password generation after " ).append( td.asCompactString() ).append( " after " ).append( tryCount ).append( " tries. " );
                 sb.append( "(errors=" ).append( errors.size() ).append( ", judgeLevel=" ).append( judgeLevel );
                 LOGGER.error( sessionLabel, sb.toString() );
+                throw new PwmUnrecoverableException( new ErrorInformation(
+                        PwmError.PASSWORD_GENERATION_TOO_COMPLEX,
+                        "Password generation parameters are too complex."
+                ) );
             }
         }
 
