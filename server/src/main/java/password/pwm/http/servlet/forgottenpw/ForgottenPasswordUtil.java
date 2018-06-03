@@ -451,9 +451,16 @@ public class ForgottenPasswordUtil
 
         try
         {
-            // try unlocking user
-            theUser.unlockPassword();
-            LOGGER.trace( pwmRequest, "unlock account succeeded" );
+            if ( theUser.isPasswordLocked() )
+            {
+                // try unlocking user
+                theUser.unlockPassword();
+                LOGGER.trace( pwmRequest, "unlock account succeeded" );
+            }
+            else
+            {
+                LOGGER.debug( pwmRequest, "account is not locked, continuing" );
+            }
         }
         catch ( ChaiOperationException e )
         {
