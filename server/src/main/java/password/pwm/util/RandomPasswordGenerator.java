@@ -249,7 +249,10 @@ public class RandomPasswordGenerator
                 sb.append( "(errors=" ).append( errors.size() ).append( ", judgeLevel=" ).append( judgeLevel );
                 LOGGER.error( sessionLabel, sb.toString() );
 
-                throw new ImpossiblePasswordPolicyException( ImpossiblePasswordPolicyException.ErrorEnum.PASSWORD_TOO_COMPLEX_TO_GENERATE );
+                if ( !randomGeneratorConfig.bestGuess )
+                {
+                    throw new ImpossiblePasswordPolicyException( ImpossiblePasswordPolicyException.ErrorEnum.PASSWORD_TOO_COMPLEX_TO_GENERATE );
+                }
             }
         }
 
@@ -634,6 +637,7 @@ public class RandomPasswordGenerator
         private static final int DEFAULT_MINIMUM_LENGTH = 6;
         private static final int DEFAULT_MAXIMUM_LENGTH = 16;
         private static final int DEFAULT_DESIRED_STRENGTH = 45;
+        private static final boolean DEFAULT_BEST_GUESS = true;
 
         private static final int MINIMUM_STRENGTH = 0;
         private static final int MAXIMUM_STRENGTH = 100;
@@ -665,6 +669,17 @@ public class RandomPasswordGenerator
         @Builder.Default
         private PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.defaultPolicy();
 
+        /**
+         * @param bestGuess Have the RandomGenerator return a best guess password when it
+         *          is unable to create a password to meet the requirements of the policy.
+         */
+        @Builder.Default
+        private boolean bestGuess = DEFAULT_BEST_GUESS;
+
+        public void bestGuessOff( )
+        {
+            this.bestGuess = false;
+        }
 
         public int getMaximumLength( )
         {

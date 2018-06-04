@@ -22,6 +22,7 @@
 
 package password.pwm.ws.server.rest;
 
+import com.novell.ldapchai.exception.ImpossiblePasswordPolicyException;
 import lombok.Data;
 import password.pwm.PwmConstants;
 import password.pwm.config.option.WebServiceUsage;
@@ -30,6 +31,7 @@ import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
+import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
@@ -178,7 +180,7 @@ public class RestRandomPasswordServer extends RestServlet
             final RestRequest restRequest,
             final JsonInput jsonInput
     )
-            throws PwmUnrecoverableException
+            throws PwmUnrecoverableException, PwmOperationalException
     {
         final PwmPasswordPolicy pwmPasswordPolicy;
 
@@ -217,7 +219,20 @@ public class RestRandomPasswordServer extends RestServlet
         }
 
         final RandomPasswordGenerator.RandomGeneratorConfig randomConfig = jsonInputToRandomConfig( jsonInput, pwmPasswordPolicy );
-        final PasswordData randomPassword = RandomPasswordGenerator.createRandomPassword( restRequest.getSessionLabel(), randomConfig, restRequest.getPwmApplication() );
+        final PasswordData randomPassword;
+        try
+        {
+        randomConfig.bestGuessOff();
+        randomPassword = RandomPasswordGenerator.createRandomPassword( restRequest.getSessionLabel(), randomConfig, restRequest.getPwmApplication() );
+        }
+        catch ( ImpossiblePasswordPolicyException e )
+        {
+            final String errorMsg = "Password generation parameters are too complex. " + e.getMessage();
+            final ErrorInformation info = new ErrorInformation( PwmError.PASSWORD_GENERATION_TOO_COMPLEX, errorMsg );
+            LOGGER.error( restRequest.getSessionLabel(), info, e );
+            throw new PwmOperationalException( info );
+        }
+
         final JsonOutput outputMap = new JsonOutput();
         outputMap.password = randomPassword.getStringValue();
 
