@@ -281,19 +281,19 @@ PWM_MAIN.applyFormAttributes = function() {
     });
 
     // handle html5 form attribute in JS in case browser (IE) doesn't support it.
-    if(dojo.isIE) {
-        PWM_MAIN.doQuery("button[type=submit][form]", function (element) {
-            /*
-            console.log('added event handler for submit button with form attribute ' + element.id);
-            PWM_MAIN.addEventHandler(element,'click',function(e){
-                PWM_MAIN.stopEvent(e);
-                PWM_VAR['dirtyPageLeaveFlag'] = false;
-                var formID = element.getAttribute('form');
-                PWM_MAIN.handleFormSubmit(PWM_MAIN.getObject(formID));
+    require(["dojo"], function (dojo) {
+        if(dojo.isIE){
+            PWM_MAIN.doQuery("button[type=submit][form]",function(element){
+                console.log('added event handler for submit button with form attribute ' + element.id);
+                PWM_MAIN.addEventHandler(element,'click',function(e){
+                    PWM_MAIN.stopEvent(e);
+                    PWM_VAR['dirtyPageLeaveFlag'] = false;
+                    var formID = element.getAttribute('form');
+                    PWM_MAIN.handleFormSubmit(PWM_MAIN.getObject(formID));
+                });
             });
-            */
-        });
-    }
+        }
+    });
 };
 
 PWM_MAIN.preloadAll = function(nextFunction) {
