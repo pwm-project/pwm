@@ -2069,13 +2069,15 @@ NamedSecretHandler.init = function(settingKey) {
             });
 
             for (var key in data) {
-                var id = settingKey + '_' + key;
-                PWM_MAIN.addEventHandler('button-deleteRow-' + id,'click',function(){
-                    NamedSecretHandler.deletePassword(settingKey, key);
-                });
-                PWM_MAIN.addEventHandler('button-usage-' + id,'click',function(){
-                    NamedSecretHandler.usagePopup(settingKey, key);
-                });
+                (function (loopKey) {
+                    var id = settingKey + '_' + loopKey;
+                    PWM_MAIN.addEventHandler('button-deleteRow-' + id,'click',function(){
+                        NamedSecretHandler.deletePassword(settingKey, loopKey);
+                    });
+                    PWM_MAIN.addEventHandler('button-usage-' + id,'click',function(){
+                        NamedSecretHandler.usagePopup(settingKey, loopKey);
+                    });
+                })(key);
             }
         });
     }
