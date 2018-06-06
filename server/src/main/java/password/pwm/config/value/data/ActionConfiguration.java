@@ -74,6 +74,9 @@ public class ActionConfiguration implements Serializable
 
         @Builder.Default
         private List<X509Certificate> certificates = Collections.emptyList();
+
+        @Builder.Default
+        private List<Integer> successStatus = Collections.singletonList( 200 );
     }
 
     @Value
