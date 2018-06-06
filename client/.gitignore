@@ -1,14 +1,12 @@
 # NPM
 /node_modules
+.node
 
 # Generated Javascript files
 /src/**/*.js
 
 # Build output
 /dist
-
-# IDEA personal files
-/.idea/workspace.xml
 
 # Generated log files
 *.log

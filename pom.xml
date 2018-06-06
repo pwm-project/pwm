@@ -23,6 +23,7 @@
     </organization>
 
     <properties>
+        <warArtifactID>pwm-${project.version}.war</warArtifactID>
         <build.number>0</build.number>  <!-- default in case not set on command line -->
         <build.revision>0</build.revision>  <!-- default in case not set on command line -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -34,6 +35,7 @@
         <module>client</module>
         <module>server</module>
         <module>onejar</module>
+        <module>docker</module>
     </modules>
 
     <build>

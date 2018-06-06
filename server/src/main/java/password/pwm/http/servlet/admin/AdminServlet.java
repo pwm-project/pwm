@@ -57,7 +57,6 @@ import password.pwm.svc.event.AuditRecord;
 import password.pwm.svc.intruder.RecordType;
 import password.pwm.svc.pwnotify.PwNotifyService;
 import password.pwm.svc.pwnotify.StoredJobState;
-import password.pwm.svc.report.ReportColumnFilter;
 import password.pwm.svc.report.ReportCsvUtility;
 import password.pwm.svc.report.ReportService;
 import password.pwm.svc.report.UserCacheRecord;
@@ -69,14 +68,12 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
-import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.LocalDBLogger;
 import password.pwm.util.logging.LocalDBSearchQuery;
 import password.pwm.util.logging.LocalDBSearchResults;
 import password.pwm.util.logging.PwmLogEvent;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.reports.ReportUtils;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.rest.RestStatisticsServer;
 
@@ -243,11 +240,8 @@ public class AdminServlet extends ControlledPwmServlet
         final OutputStream outputStream = pwmRequest.getPwmResponse().getOutputStream();
         try
         {
-            final String selectedColumns = pwmRequest.readParameterAsString( "selectedColumns", "" );
-
-            final ReportColumnFilter columnFilter = ReportUtils.toReportColumnFilter( selectedColumns );
             final ReportCsvUtility reportCsvUtility = new ReportCsvUtility( pwmApplication );
-            reportCsvUtility.outputToCsv( outputStream, true, pwmRequest.getLocale(), columnFilter );
+            reportCsvUtility.outputToCsv( outputStream, true, pwmRequest.getLocale() );
         }
         catch ( Exception e )
         {
@@ -387,27 +381,20 @@ public class AdminServlet extends ControlledPwmServlet
 
     @ActionHandler( action = "reportStatus" )
     private ProcessStatus processReportStatus( final PwmRequest pwmRequest )
-            throws ChaiUnavailableException, PwmUnrecoverableException, IOException
+            throws IOException
     {
-        try
-        {
-            final ReportStatusBean returnMap = ReportStatusBean.makeReportStatusData(
-                    pwmRequest.getPwmApplication().getReportService(),
-                    pwmRequest.getPwmSession().getSessionStateBean().getLocale()
-            );
-            final RestResultBean restResultBean = RestResultBean.withData( returnMap );
-            pwmRequest.outputJsonResult( restResultBean );
-        }
-        catch ( LocalDBException e )
-        {
-            throw new PwmUnrecoverableException( e.getErrorInformation() );
-        }
+        final ReportStatusBean returnMap = ReportStatusBean.makeReportStatusData(
+                pwmRequest.getPwmApplication().getReportService(),
+                pwmRequest.getPwmSession().getSessionStateBean().getLocale()
+        );
+        final RestResultBean restResultBean = RestResultBean.withData( returnMap );
+        pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
     }
 
     @ActionHandler( action = "reportSummary" )
     private ProcessStatus processReportSummary( final PwmRequest pwmRequest )
-            throws ChaiUnavailableException, PwmUnrecoverableException, IOException
+            throws IOException
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final LinkedHashMap<String, Object> returnMap = new LinkedHashMap<>();
@@ -430,10 +417,9 @@ public class AdminServlet extends ControlledPwmServlet
 
         final ReportService reportService = pwmRequest.getPwmApplication().getReportService();
         final ArrayList<UserCacheRecord> reportData = new ArrayList<>();
-        ClosableIterator<UserCacheRecord> cacheBeanIterator = null;
-        try
+
+        try ( ClosableIterator<UserCacheRecord> cacheBeanIterator = reportService.iterator() )
         {
-            cacheBeanIterator = reportService.iterator();
             while ( cacheBeanIterator.hasNext() && reportData.size() < maximum )
             {
                 final UserCacheRecord userCacheRecord = cacheBeanIterator.next();
@@ -441,13 +427,6 @@ public class AdminServlet extends ControlledPwmServlet
                 {
                     reportData.add( userCacheRecord );
                 }
-            }
-        }
-        finally
-        {
-            if ( cacheBeanIterator != null )
-            {
-                cacheBeanIterator.close();
             }
         }
 

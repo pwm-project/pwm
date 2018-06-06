@@ -78,6 +78,40 @@
 
     <build>
         <plugins>
+            <!--
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-pmd-plugin</artifactId>
+                <version>3.9.0</version>
+                <executions>
+                    <execution>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>check</goal>
+                            <goal>cpd-check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <language>jsp</language>
+                    <rulesets>
+                        <ruleset>/category/jsp/bestpractices.xml</ruleset>
+                        <ruleset>/category/jsp/codestyle.xml</ruleset>
+                        <ruleset>/category/jsp/design.xml</ruleset>
+                        <ruleset>/category/jsp/errorprone.xml</ruleset>
+                        <ruleset>/category/jsp/security.xml</ruleset>
+                    </rulesets>
+                    <includes>
+                        <include>**/*.jsp</include>
+                    </includes>
+                    <compileSourceRoots>
+                        <compileSourceRoot>${basedir}/src/main/webapp</compileSourceRoot>
+                    </compileSourceRoots>
+                    <skip>false</skip>
+                </configuration>
+            </plugin>
+            -->
+
             <plugin>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
@@ -561,7 +595,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.16.22</version>
+            <version>1.18.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -644,7 +678,7 @@
         <dependency>
             <groupId>com.github.ldapchai</groupId>
             <artifactId>ldapchai</artifactId>
-            <version>0.7.2</version>
+            <version>0.7.3</version>
         </dependency>
         <dependency>
             <groupId>commons-net</groupId>
