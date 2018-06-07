@@ -399,6 +399,26 @@ public class SessionFilter extends AbstractPwmFilter
             sb.append( verificationParamName ).append( "=" ).append( validationKey );
         }
 
+        // use HTTPS protocol if X-Forwarded-Proto header is "https"
+        if ( "http:".equals( sb.substring( 0, 5 ) ) )
+        {
+            String proto = req.getHeader( "X-Forwarded-Proto" );
+            if ( proto == null )
+            {
+                // try lowercase (e.g. HTTP/2 via AWS ELB)
+                proto = req.getHeader( "x-forwarded-proto" );
+            }
+            if ( "https".equals( proto ) )
+            {
+                // change "http" to "https"
+                sb.insert( 4, "s" );
+            }
+            else
+            {
+                LOGGER.warn( "Insecure (unencrypted) validation URL:  " + sb.toString() );
+            }
+        }
+
         return sb.toString();
     }
 
