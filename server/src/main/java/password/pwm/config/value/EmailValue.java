@@ -124,6 +124,8 @@ public class EmailValue extends AbstractValue implements StoredValue
 
     public List<String> validateValue( final PwmSetting pwmSetting )
     {
+        final int maxBodyChars = 500_000;
+
         if ( pwmSetting.isRequired() )
         {
             if ( values == null || values.isEmpty() || values.values().iterator().next() == null )
@@ -150,6 +152,18 @@ public class EmailValue extends AbstractValue implements StoredValue
             if ( emailItemBean.getBodyPlain() == null || emailItemBean.getBodyPlain().length() < 1 )
             {
                 return Collections.singletonList( "plain body field is required" + ( loopLocale.length() > 0 ? " for locale " + loopLocale : "" ) );
+            }
+
+            if ( emailItemBean.getBodyPlain() == null || emailItemBean.getBodyPlain().length() > maxBodyChars )
+            {
+                return Collections.singletonList( "plain body field is too large" + ( loopLocale.length() > 0 ? " for locale " + loopLocale : "" )
+                        + ", chars=" + emailItemBean.getBodyPlain().length() + ", max=" + maxBodyChars );
+            }
+
+            if ( emailItemBean.getBodyHtml() == null || emailItemBean.getBodyHtml().length() > maxBodyChars )
+            {
+                return Collections.singletonList( "html body field is too large" + ( loopLocale.length() > 0 ? " for locale " + loopLocale : "" )
+                        + ", chars=" + emailItemBean.getBodyHtml().length() + ", max=" + maxBodyChars );
             }
         }
 

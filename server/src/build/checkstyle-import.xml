@@ -74,6 +74,7 @@
     <allow pkg="javax.net"/>
     <allow pkg="javax.crypto"/>
     <allow pkg="javax.mail"/>
+    <allow class="com.sun.mail.smtp.SMTPSendFailedException"/>
     <allow pkg="org.xeustechnologies"/>
     <allow pkg="net.glxn"/>
     <allow pkg="org.webjars"/>
