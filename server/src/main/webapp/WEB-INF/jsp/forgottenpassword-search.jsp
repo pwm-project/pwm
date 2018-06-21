@@ -52,10 +52,7 @@
                     <pwm:display key="Button_Search"/>
                 </button>
                 <pwm:if test="showCancel">
-                    <button type="submit" name="button" class="btn" id="button-cancelButton" form="form-cancelButton">
-                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-times"></span></pwm:if>
-                        <pwm:display key="Button_Cancel"/>
-                    </button>
+                    <%@ include file="/WEB-INF/jsp/fragment/cancel-button.jsp" %>
                 </pwm:if>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                 <input type="hidden" name="skipCaptcha" value="${param.skipCaptcha}"/>
@@ -68,6 +65,7 @@
     <input type="hidden" name="processAction" value="<%=ForgottenPasswordServlet.ForgottenPasswordAction.reset%>"/>
     <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
 </form>
+<%@ include file="/WEB-INF/jsp/fragment/cancel-form.jsp" %>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>
