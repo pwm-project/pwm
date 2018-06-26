@@ -162,7 +162,7 @@ public class ClientApiServlet extends ControlledPwmServlet
 
         pwmRequest.getPwmResponse().setHeader( HttpHeader.ETag, eTagValue );
         pwmRequest.getPwmResponse().setHeader( HttpHeader.Expires, String.valueOf( System.currentTimeMillis() + ( maxCacheAgeSeconds * 1000 ) ) );
-        pwmRequest.getPwmResponse().setHeader( HttpHeader.Cache_Control, "public, max-age=" + maxCacheAgeSeconds );
+        pwmRequest.getPwmResponse().setHeader( HttpHeader.CacheControl, "public, max-age=" + maxCacheAgeSeconds );
 
         final AppData appData = makeAppData(
                 pwmRequest.getPwmApplication(),
@@ -188,7 +188,7 @@ public class ClientApiServlet extends ControlledPwmServlet
 
         pwmRequest.getPwmResponse().setHeader( HttpHeader.ETag, eTagValue );
         pwmRequest.getPwmResponse().setHeader( HttpHeader.Expires, String.valueOf( System.currentTimeMillis() + ( maxCacheAgeSeconds * 1000 ) ) );
-        pwmRequest.getPwmResponse().setHeader( HttpHeader.Cache_Control, "public, max-age=" + maxCacheAgeSeconds );
+        pwmRequest.getPwmResponse().setHeader( HttpHeader.CacheControl, "public, max-age=" + maxCacheAgeSeconds );
 
         try
         {

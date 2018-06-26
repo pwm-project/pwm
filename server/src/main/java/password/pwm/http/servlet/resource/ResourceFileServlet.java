@@ -226,7 +226,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
         {
             if ( contentType.startsWith( "text" ) || contentType.contains( "javascript" ) )
             {
-                final String acceptEncoding = pwmRequest.readHeaderValueAsString( HttpHeader.Accept_Encoding );
+                final String acceptEncoding = pwmRequest.readHeaderValueAsString( HttpHeader.AcceptEncoding );
                 acceptsGzip = acceptEncoding != null && accepts( acceptEncoding, "gzip" );
                 contentType += ";charset=UTF-8";
             }
@@ -254,7 +254,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
 
         // Initialize response.
         addExpirationHeaders( resourceConfiguration, response );
-        response.setHeader( "ETag", resourceConfiguration.getNonceValue() );
+        response.setHeader(  HttpHeader.ETag.getHttpName(), resourceConfiguration.getNonceValue() );
         response.setContentType( contentType );
 
         try
@@ -345,7 +345,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
                 if ( acceptsGzip )
                 {
                     final GZIPOutputStream gzipOutputStream = new GZIPOutputStream( tempOutputStream );
-                    headers.put( "Content-Encoding", "gzip" );
+                    headers.put( HttpHeader.ContentEncoding.getHttpName(), "gzip" );
                     copy( input, gzipOutputStream );
                     close( gzipOutputStream );
                 }
@@ -361,7 +361,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
             }
 
             final byte[] entity = tempOutputStream.toByteArray();
-            headers.put( "Content-Length", String.valueOf( entity.length ) );
+            headers.put( HttpHeader.ContentLength.getHttpName(), String.valueOf( entity.length ) );
             cacheEntry = new CacheEntry( entity, headers );
         }
         else
@@ -407,7 +407,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
             if ( acceptsGzip )
             {
                 // The browser accepts GZIP, so GZIP the content.
-                response.setHeader( "Content-Encoding", "gzip" );
+                response.setHeader( HttpHeader.ContentEncoding.getHttpName(), "gzip" );
                 output = new GZIPOutputStream( output );
             }
             else
@@ -416,7 +416,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
                 // So only add it if there is no means of GZIP, else browser will hang.
                 if ( file.length() > 0 )
                 {
-                    response.setHeader( "Content-Length", String.valueOf( file.length() ) );
+                    response.setHeader( HttpHeader.ContentLength.getHttpName(), String.valueOf( file.length() ) );
                 }
             }
 

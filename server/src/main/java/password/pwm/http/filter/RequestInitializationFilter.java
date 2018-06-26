@@ -369,7 +369,7 @@ public class RequestInitializationFilter implements Filter
         final boolean includeContentLanguage = Boolean.parseBoolean( config.readAppProperty( AppProperty.HTTP_HEADER_SEND_CONTENT_LANGUAGE ) );
         if ( includeContentLanguage )
         {
-            resp.setHeader( HttpHeader.Content_Language, pwmRequest.getLocale().toLanguageTag() );
+            resp.setHeader( HttpHeader.ContentLanguage, pwmRequest.getLocale().toLanguageTag() );
         }
 
         addStaticResponseHeaders( pwmApplication, resp.getHttpServletResponse() );
@@ -454,7 +454,7 @@ public class RequestInitializationFilter implements Filter
             ) );
         }
 
-        resp.setHeader( HttpHeader.Cache_Control.getHttpName(), "no-cache, no-store, must-revalidate, proxy-revalidate" );
+        resp.setHeader( HttpHeader.CacheControl.getHttpName(), "no-cache, no-store, must-revalidate, proxy-revalidate" );
     }
 
 

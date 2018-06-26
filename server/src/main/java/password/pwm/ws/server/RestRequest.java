@@ -81,7 +81,7 @@ public class RestRequest extends PwmHttpRequestWrapper
 
     public HttpContentType readContentType( )
     {
-        return HttpContentType.fromContentTypeHeader( readHeaderValueAsString( HttpHeader.Content_Type ), null );
+        return HttpContentType.fromContentTypeHeader( readHeaderValueAsString( HttpHeader.ContentType ), null );
     }
 
     public HttpContentType readAcceptType( )

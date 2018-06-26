@@ -253,7 +253,7 @@ public class OAuthMachine
             final Map<String, String> headers = new HashMap<>( );
             headers.put( HttpHeader.Authorization.getHttpName(),
                     new BasicAuthInfo( settings.getClientID(), settings.getSecret() ).toAuthHeader() );
-            headers.put( HttpHeader.Content_Type.getHttpName(), HttpContentType.form.getHeaderValue() );
+            headers.put( HttpHeader.ContentType.getHttpName(), HttpContentType.form.getHeaderValue() );
 
             pwmHttpClientRequest = new PwmHttpClientRequest( HttpMethod.POST, requestUrl, requestBody, headers );
         }

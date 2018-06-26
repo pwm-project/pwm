@@ -83,10 +83,10 @@ public class RestFormDataClient
     {
         final Map<String, String> httpHeaders = new LinkedHashMap<>();
         httpHeaders.put( HttpHeader.Accept.getHttpName(), PwmConstants.AcceptValue.json.getHeaderValue() );
-        httpHeaders.put( HttpHeader.Content_Type.getHttpName(), HttpContentType.json.getHeaderValue() );
+        httpHeaders.put( HttpHeader.ContentType.getHttpName(), HttpContentType.json.getHeaderValue() );
         if ( locale != null )
         {
-            httpHeaders.put( HttpHeader.Accept_Language.getHttpName(), locale.toString() );
+            httpHeaders.put( HttpHeader.AcceptLanguage.getHttpName(), locale.toString() );
         }
 
         {
