@@ -20,28 +20,12 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm;
+package password.pwm.onejar;
 
-import java.util.ResourceBundle;
-
-enum Resource
+public class TomcatOneJarException extends Exception
 {
-    envVarPrefix,
-    defaultContext,
-    defaultWorkPathName,
-    defaultPort,
-    defaultLocalAddress,
-    defaultWarFileName,;
-
-    String getValue()
+    public TomcatOneJarException( final String msg )
     {
-        return readResource( this );
+        super( msg );
     }
-
-    private static String readResource( final Resource resource )
-    {
-        final ResourceBundle bundle = ResourceBundle.getBundle( Resource.class.getName() );
-        return bundle.getString( resource.name() );
-    }
-
 }
