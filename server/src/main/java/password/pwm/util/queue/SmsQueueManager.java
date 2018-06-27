@@ -591,7 +591,7 @@ public class SmsQueueManager implements PwmService
 
                 if ( !StringUtil.isEmpty( contentType ) && httpMethod == HttpMethod.POST )
                 {
-                    headers.put( HttpHeader.Content_Type.getHttpName(), contentType );
+                    headers.put( HttpHeader.ContentType.getHttpName(), contentType );
                 }
 
                 if ( extraHeaders != null )

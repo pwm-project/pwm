@@ -32,7 +32,9 @@ import javax.annotation.meta.When;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
+import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -555,6 +557,15 @@ public class TimeDuration implements Comparable, Serializable
         return pause( this.getTotalMilliseconds() );
     }
 
+    public Duration asDuration()
+    {
+        return Duration.of( this.ms, ChronoUnit.MILLIS );
+    }
+
+    public static TimeDuration fromDuration( final Duration duration )
+    {
+        return new TimeDuration( duration.get( ChronoUnit.MILLIS ) );
+    }
 
     private static class TimeDetail implements Serializable
     {

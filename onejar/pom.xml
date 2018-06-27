@@ -81,7 +81,7 @@
                     </descriptors>
                     <archive>
                         <manifestEntries>
-                            <Main-Class>password.pwm.TomcatOneJarMain</Main-Class>
+                            <Main-Class>password.pwm.onejar.TomcatOneJarMain</Main-Class>
                             <Implementation-Title>${project.name}</Implementation-Title>
                             <Implementation-Version>${project.version}</Implementation-Version>
                             <Implementation-Vendor>${project.organization.name}</Implementation-Vendor>
