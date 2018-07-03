@@ -34,9 +34,13 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.logging.PwmLogger;
 
+import java.io.Serializable;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CacheService implements PwmService
 {
@@ -108,6 +112,16 @@ public class CacheService implements PwmService
     public ServiceInfoBean serviceInfo( )
     {
         return new ServiceInfoBean( Collections.emptyList() );
+    }
+
+    public Map<String, Serializable> debugInfo( )
+    {
+        final Map<String, Serializable> debugInfo = new LinkedHashMap<>( );
+        debugInfo.put( "memory-statistics", memoryCacheStore.getCacheStoreInfo() );
+        debugInfo.put( "memory-items", new ArrayList<Serializable>( memoryCacheStore.getCacheDebugItems() ) );
+        debugInfo.put( "localdb-statistics", localDBCacheStore.getCacheStoreInfo() );
+        debugInfo.put( "localdb-items", new ArrayList<Serializable>( localDBCacheStore.getCacheDebugItems() ) );
+        return Collections.unmodifiableMap( debugInfo );
     }
 
     public void put( final CacheKey cacheKey, final CachePolicy cachePolicy, final String payload )

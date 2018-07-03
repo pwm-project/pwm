@@ -22,20 +22,14 @@
 
 package password.pwm.svc.cache;
 
-import password.pwm.error.PwmUnrecoverableException;
+import lombok.Value;
 
-import java.time.Instant;
-import java.util.List;
+import java.io.Serializable;
 
-public interface CacheStore
+@Value
+class CacheDebugItem implements Serializable
 {
-    void store( CacheKey cacheKey, Instant expirationDate, String data ) throws PwmUnrecoverableException;
-
-    String read( CacheKey cacheKey ) throws PwmUnrecoverableException;
-
-    CacheStoreInfo getCacheStoreInfo( );
-
-    int itemCount( );
-
-    List<CacheDebugItem> getCacheDebugItems( );
+    private String key;
+    private String age;
+    private int chars;
 }
