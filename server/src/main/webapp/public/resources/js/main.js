@@ -1218,8 +1218,8 @@ PWM_MAIN.pwmFormValidator = function(validationProps, reentrant) {
 
     // check if data is in cache, if it is just process it.
     var formData = readDataFunction();
-    var formKey = "";
-    for (var key in formData) {formKey += formData[key] + "-";}
+    var formDataString = JSON.stringify(formData) ;
+    var formKey = formDataString;
 
     {
         var cachedResult = PWM_VAR['validationCache'][formKey];
@@ -1262,8 +1262,6 @@ PWM_MAIN.pwmFormValidator = function(validationProps, reentrant) {
             }
         }, 5);
     }
-
-    var formDataString = JSON.stringify(formData) ;
 
     if (CONSOLE_DEBUG) console.log('FormValidator: sending form data to server... ' + formDataString);
     var loadFunction = function(data) {
