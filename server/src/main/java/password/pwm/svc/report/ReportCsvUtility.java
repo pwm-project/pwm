@@ -74,19 +74,11 @@ public class ReportCsvUtility
             throws IOException, ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException, PwmOperationalException
     {
         final Configuration config = pwmApplication.getConfig();
-        final ReportColumnFilter columnFilter = new ReportColumnFilter();
 
-        outputToCsv( outputStream, includeHeader, locale, config, columnFilter );
+        outputToCsv( outputStream, includeHeader, locale, config );
     }
 
-    public void outputToCsv( final OutputStream outputStream, final boolean includeHeader, final Locale locale, final ReportColumnFilter columnFilter )
-            throws IOException, ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException, PwmOperationalException
-    {
-        final Configuration config = pwmApplication.getConfig();
-        outputToCsv( outputStream, includeHeader, locale, config, columnFilter );
-    }
-
-    public void outputToCsv( final OutputStream outputStream, final boolean includeHeader, final Locale locale, final Configuration config, final ReportColumnFilter columnFilter )
+    public void outputToCsv( final OutputStream outputStream, final boolean includeHeader, final Locale locale, final Configuration config )
             throws IOException, ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException, PwmOperationalException
     {
         final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter( outputStream );
@@ -95,94 +87,28 @@ public class ReportCsvUtility
         {
             final List<String> headerRow = new ArrayList<>();
 
-            if ( columnFilter.isUsernameVisible() )
-            {
-                headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_Username", config, localeClass ) );
-            }
-            if ( columnFilter.isUserDnVisible() )
-            {
-                headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_UserDN", config, localeClass ) );
-            }
-            if ( columnFilter.isLdapProfileVisible() )
-            {
-                headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_LDAP_Profile", config, localeClass ) );
-            }
-            if ( columnFilter.isEmailVisible() )
-            {
-                headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_Email", config, localeClass ) );
-            }
-            if ( columnFilter.isUserGuidVisible() )
-            {
-                headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_UserGuid", config, localeClass ) );
-            }
-            if ( columnFilter.isAccountExpirationTimeVisible() )
-            {
-                headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_AccountExpireTime", config, localeClass ) );
-            }
-            if ( columnFilter.isPasswordExpirationTimeVisible() )
-            {
-                headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_PwdExpireTime", config, localeClass ) );
-            }
-            if ( columnFilter.isPasswordChangeTimeVisible() )
-            {
-                headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_PwdChangeTime", config, localeClass ) );
-            }
-            if ( columnFilter.isResponseSetTimeVisible() )
-            {
-                headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_ResponseSaveTime", config, localeClass ) );
-            }
-            if ( columnFilter.isLastLoginTimeVisible() )
-            {
-                headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_LastLogin", config, localeClass ) );
-            }
-            if ( columnFilter.isHasResponsesVisible() )
-            {
-                headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_HasResponses", config, localeClass ) );
-            }
-            if ( columnFilter.isHasHelpdeskResponsesVisible() )
-            {
-                headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_HasHelpdeskResponses", config, localeClass ) );
-            }
-            if ( columnFilter.isResponseStorageMethodVisible() )
-            {
-                headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_ResponseStorageMethod", config, localeClass ) );
-            }
-            if ( columnFilter.isResponseFormatTypeVisible() )
-            {
-                headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_ResponseFormatType", config, localeClass ) );
-            }
-            if ( columnFilter.isPasswordStatusExpiredVisible() )
-            {
-                headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_PwdExpired", config, localeClass ) );
-            }
-            if ( columnFilter.isPasswordStatusPreExpiredVisible() )
-            {
-                headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_PwdPreExpired", config, localeClass ) );
-            }
-            if ( columnFilter.isPasswordStatusViolatesPolicyVisible() )
-            {
-                headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_PwdViolatesPolicy", config, localeClass ) );
-            }
-            if ( columnFilter.isPasswordStatusWarnPeriodVisible() )
-            {
-                headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_PwdWarnPeriod", config, localeClass ) );
-            }
-            if ( columnFilter.isRequiresPasswordUpdateVisible() )
-            {
-                headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_RequiresPasswordUpdate", config, localeClass ) );
-            }
-            if ( columnFilter.isRequiresResponseUpdateVisible() )
-            {
-                headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_RequiresResponseUpdate", config, localeClass ) );
-            }
-            if ( columnFilter.isRequiresProfileUpdateVisible() )
-            {
-                headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_RequiresProfileUpdate", config, localeClass ) );
-            }
-            if ( columnFilter.isCacheTimestampVisible() )
-            {
-                headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_RecordCacheTime", config, localeClass ) );
-            }
+            headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_Username", config, localeClass ) );
+            headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_UserDN", config, localeClass ) );
+            headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_LDAP_Profile", config, localeClass ) );
+            headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_Email", config, localeClass ) );
+            headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_UserGuid", config, localeClass ) );
+            headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_AccountExpireTime", config, localeClass ) );
+            headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_PwdExpireTime", config, localeClass ) );
+            headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_PwdChangeTime", config, localeClass ) );
+            headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_ResponseSaveTime", config, localeClass ) );
+            headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_LastLogin", config, localeClass ) );
+            headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_HasResponses", config, localeClass ) );
+            headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_HasHelpdeskResponses", config, localeClass ) );
+            headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_ResponseStorageMethod", config, localeClass ) );
+            headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_ResponseFormatType", config, localeClass ) );
+            headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_PwdExpired", config, localeClass ) );
+            headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_PwdPreExpired", config, localeClass ) );
+            headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_PwdViolatesPolicy", config, localeClass ) );
+            headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_PwdWarnPeriod", config, localeClass ) );
+            headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_RequiresPasswordUpdate", config, localeClass ) );
+            headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_RequiresResponseUpdate", config, localeClass ) );
+            headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_RequiresProfileUpdate", config, localeClass ) );
+            headerRow.add( LocaleHelper.getLocalizedMessage( locale, "Field_Report_RecordCacheTime", config, localeClass ) );
 
 
             csvPrinter.printRecord( headerRow );
@@ -195,7 +121,7 @@ public class ReportCsvUtility
             while ( cacheBeanIterator.hasNext() )
             {
                 final UserCacheRecord userCacheRecord = cacheBeanIterator.next();
-                outputRecordRow( config, locale, userCacheRecord, csvPrinter, columnFilter );
+                outputRecordRow( config, locale, userCacheRecord, csvPrinter );
             }
         }
         finally
@@ -213,8 +139,7 @@ public class ReportCsvUtility
             final Configuration config,
             final Locale locale,
             final UserCacheRecord userCacheRecord,
-            final CSVPrinter csvPrinter,
-            final ReportColumnFilter columnFilter
+            final CSVPrinter csvPrinter
     )
             throws IOException
     {
@@ -222,119 +147,44 @@ public class ReportCsvUtility
         final String falseField = Display.getLocalizedMessage( locale, Display.Value_False, config );
         final String naField = Display.getLocalizedMessage( locale, Display.Value_NotApplicable, config );
         final List<String> csvRow = new ArrayList<>();
-        if ( columnFilter.isUsernameVisible() )
-        {
-            csvRow.add( userCacheRecord.getUsername() );
-        }
-        if ( columnFilter.isUserDnVisible() )
-        {
-            csvRow.add( userCacheRecord.getUserDN() );
-        }
-        if ( columnFilter.isLdapProfileVisible() )
-        {
-            csvRow.add( userCacheRecord.getLdapProfile() );
-        }
-        if ( columnFilter.isEmailVisible() )
-        {
-            csvRow.add( userCacheRecord.getEmail() );
-        }
-        if ( columnFilter.isUserGuidVisible() )
-        {
-            csvRow.add( userCacheRecord.getUserGUID() );
-        }
-        if ( columnFilter.isAccountExpirationTimeVisible() )
-        {
-            csvRow.add( userCacheRecord.getAccountExpirationTime() == null
-                    ? naField
-                    : JavaHelper.toIsoDate( userCacheRecord.getAccountExpirationTime() ) );
-        }
-
-        if ( columnFilter.isPasswordExpirationTimeVisible() )
-        {
-            csvRow.add( userCacheRecord.getPasswordExpirationTime() == null
-                    ? naField
-                    : JavaHelper.toIsoDate( userCacheRecord.getPasswordExpirationTime() ) );
-        }
-
-        if ( columnFilter.isPasswordChangeTimeVisible() )
-        {
-            csvRow.add( userCacheRecord.getPasswordChangeTime() == null
-                    ? naField
-                    : JavaHelper.toIsoDate( userCacheRecord.getPasswordChangeTime() ) );
-        }
-
-        if ( columnFilter.isResponseSetTimeVisible() )
-        {
-            csvRow.add( userCacheRecord.getResponseSetTime() == null
-                    ? naField
-                    : JavaHelper.toIsoDate( userCacheRecord.getResponseSetTime() ) );
-        }
-
-        if ( columnFilter.isLastLoginTimeVisible() )
-        {
-            csvRow.add( userCacheRecord.getLastLoginTime() == null
-                    ? naField
-                    : JavaHelper.toIsoDate( userCacheRecord.getLastLoginTime() ) );
-        }
-
-        if ( columnFilter.isHasResponsesVisible() )
-        {
-            csvRow.add( userCacheRecord.isHasResponses() ? trueField : falseField );
-        }
-        if ( columnFilter.isHasHelpdeskResponsesVisible() )
-        {
-            csvRow.add( userCacheRecord.isHasHelpdeskResponses() ? trueField : falseField );
-        }
-
-        if ( columnFilter.isResponseStorageMethodVisible() )
-        {
-            csvRow.add( userCacheRecord.getResponseStorageMethod() == null
-                    ? naField
-                    : userCacheRecord.getResponseStorageMethod().toString() );
-        }
-
-        if ( columnFilter.isResponseFormatTypeVisible() )
-        {
-            csvRow.add( userCacheRecord.getResponseFormatType() == null
-                    ? naField
-                    : userCacheRecord.getResponseFormatType().toString() );
-        }
-
-        if ( columnFilter.isPasswordStatusExpiredVisible() )
-        {
-            csvRow.add( userCacheRecord.getPasswordStatus().isExpired() ? trueField : falseField );
-        }
-        if ( columnFilter.isPasswordStatusPreExpiredVisible() )
-        {
-            csvRow.add( userCacheRecord.getPasswordStatus().isPreExpired() ? trueField : falseField );
-        }
-        if ( columnFilter.isPasswordStatusViolatesPolicyVisible() )
-        {
-            csvRow.add( userCacheRecord.getPasswordStatus().isViolatesPolicy() ? trueField : falseField );
-        }
-        if ( columnFilter.isPasswordStatusWarnPeriodVisible() )
-        {
-            csvRow.add( userCacheRecord.getPasswordStatus().isWarnPeriod() ? trueField : falseField );
-        }
-        if ( columnFilter.isRequiresPasswordUpdateVisible() )
-        {
-            csvRow.add( userCacheRecord.isRequiresPasswordUpdate() ? trueField : falseField );
-        }
-        if ( columnFilter.isRequiresResponseUpdateVisible() )
-        {
-            csvRow.add( userCacheRecord.isRequiresResponseUpdate() ? trueField : falseField );
-        }
-        if ( columnFilter.isRequiresProfileUpdateVisible() )
-        {
-            csvRow.add( userCacheRecord.isRequiresProfileUpdate() ? trueField : falseField );
-        }
-
-        if ( columnFilter.isCacheTimestampVisible() )
-        {
-            csvRow.add( userCacheRecord.getCacheTimestamp() == null
-                    ? naField
-                    : JavaHelper.toIsoDate( userCacheRecord.getCacheTimestamp() ) );
-        }
+        csvRow.add( userCacheRecord.getUsername() );
+        csvRow.add( userCacheRecord.getUserDN() );
+        csvRow.add( userCacheRecord.getLdapProfile() );
+        csvRow.add( userCacheRecord.getEmail() );
+        csvRow.add( userCacheRecord.getUserGUID() );
+        csvRow.add( userCacheRecord.getAccountExpirationTime() == null
+                ? naField
+                : JavaHelper.toIsoDate( userCacheRecord.getAccountExpirationTime() ) );
+        csvRow.add( userCacheRecord.getPasswordExpirationTime() == null
+                ? naField
+                : JavaHelper.toIsoDate( userCacheRecord.getPasswordExpirationTime() ) );
+        csvRow.add( userCacheRecord.getPasswordChangeTime() == null
+                ? naField
+                : JavaHelper.toIsoDate( userCacheRecord.getPasswordChangeTime() ) );
+        csvRow.add( userCacheRecord.getResponseSetTime() == null
+                ? naField
+                : JavaHelper.toIsoDate( userCacheRecord.getResponseSetTime() ) );
+        csvRow.add( userCacheRecord.getLastLoginTime() == null
+                ? naField
+                : JavaHelper.toIsoDate( userCacheRecord.getLastLoginTime() ) );
+        csvRow.add( userCacheRecord.isHasResponses() ? trueField : falseField );
+        csvRow.add( userCacheRecord.isHasHelpdeskResponses() ? trueField : falseField );
+        csvRow.add( userCacheRecord.getResponseStorageMethod() == null
+                ? naField
+                : userCacheRecord.getResponseStorageMethod().toString() );
+        csvRow.add( userCacheRecord.getResponseFormatType() == null
+                ? naField
+                : userCacheRecord.getResponseFormatType().toString() );
+        csvRow.add( userCacheRecord.getPasswordStatus().isExpired() ? trueField : falseField );
+        csvRow.add( userCacheRecord.getPasswordStatus().isPreExpired() ? trueField : falseField );
+        csvRow.add( userCacheRecord.getPasswordStatus().isViolatesPolicy() ? trueField : falseField );
+        csvRow.add( userCacheRecord.getPasswordStatus().isWarnPeriod() ? trueField : falseField );
+        csvRow.add( userCacheRecord.isRequiresPasswordUpdate() ? trueField : falseField );
+        csvRow.add( userCacheRecord.isRequiresResponseUpdate() ? trueField : falseField );
+        csvRow.add( userCacheRecord.isRequiresProfileUpdate() ? trueField : falseField );
+        csvRow.add( userCacheRecord.getCacheTimestamp() == null
+                ? naField
+                : JavaHelper.toIsoDate( userCacheRecord.getCacheTimestamp() ) );
 
         csvPrinter.printRecord( csvRow );
     }

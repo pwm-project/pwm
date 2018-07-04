@@ -946,7 +946,7 @@ EmailTableHandler.instrumentRow = function(settingKey, localeName) {
     var editor = function(drawTextArea, type, instructions){
         UILibrary.stringEditorDialog({
             title:'Edit Value - ' + settingData['label'],
-            instructions: instructions,
+            instructions: instructions ? instructions : '',
             textarea:drawTextArea,
             value:PWM_VAR['clientSettingCache'][settingKey][localeName][type],
             completeFunction:function(value){
@@ -2069,13 +2069,15 @@ NamedSecretHandler.init = function(settingKey) {
             });
 
             for (var key in data) {
-                var id = settingKey + '_' + key;
-                PWM_MAIN.addEventHandler('button-deleteRow-' + id,'click',function(){
-                    NamedSecretHandler.deletePassword(settingKey, key);
-                });
-                PWM_MAIN.addEventHandler('button-usage-' + id,'click',function(){
-                    NamedSecretHandler.usagePopup(settingKey, key);
-                });
+                (function (loopKey) {
+                    var id = settingKey + '_' + loopKey;
+                    PWM_MAIN.addEventHandler('button-deleteRow-' + id,'click',function(){
+                        NamedSecretHandler.deletePassword(settingKey, loopKey);
+                    });
+                    PWM_MAIN.addEventHandler('button-usage-' + id,'click',function(){
+                        NamedSecretHandler.usagePopup(settingKey, loopKey);
+                    });
+                })(key);
             }
         });
     }

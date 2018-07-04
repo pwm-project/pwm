@@ -192,12 +192,6 @@ PWM_CONFIG.showString=function (key, options) {
 
 };
 
-PWM_CONFIG.openLogViewer=function(level) {
-    var windowUrl = PWM_GLOBAL['url-context'] + '/private/admin/Administration?processAction=viewLogWindow' + ((level) ? '&level=' + level : '');
-    var windowName = 'logViewer';
-    PWM_MAIN.newWindowOpen(windowUrl,windowName);
-};
-
 PWM_CONFIG.showHeaderHealth = function() {
     var refreshUrl = PWM_GLOBAL['url-context'] + "/public/api?processAction=health";
     var parentDiv = PWM_MAIN.getObject('panel-header-healthData');
@@ -332,9 +326,6 @@ PWM_CONFIG.heartbeatCheck = function() {
 };
 
 PWM_CONFIG.initConfigHeader = function() {
-    PWM_MAIN.addEventHandler('header_openLogViewerButton', 'click', function () {
-        PWM_CONFIG.openLogViewer(null)
-    });
     PWM_MAIN.addEventHandler('panel-header-healthData','click',function(){
         PWM_MAIN.goto('/private/config/manager');
     });

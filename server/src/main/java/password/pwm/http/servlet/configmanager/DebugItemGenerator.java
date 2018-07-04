@@ -28,7 +28,6 @@ import password.pwm.PwmAboutProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.pub.SessionStateInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.error.PwmUnrecoverableException;
@@ -39,6 +38,8 @@ import password.pwm.http.servlet.admin.UserDebugDataBean;
 import password.pwm.http.servlet.admin.UserDebugDataReader;
 import password.pwm.ldap.LdapDebugDataGenerator;
 import password.pwm.svc.PwmService;
+import password.pwm.svc.cache.CacheService;
+import password.pwm.svc.cluster.ClusterService;
 import password.pwm.util.LDAPPermissionCalculator;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
@@ -68,7 +69,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -76,6 +76,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -99,7 +100,9 @@ public class DebugItemGenerator
             LDAPPermissionItemGenerator.class,
             LocalDBDebugGenerator.class,
             SessionDataGenerator.class,
-            LdapRecentUserDebugGenerator.class
+            LdapRecentUserDebugGenerator.class,
+            ClusterInfoDebugGenerator.class,
+            CacheServiceDebugItemGenerator.class
     ) );
 
     static void outputZipDebugFile(
@@ -512,14 +515,12 @@ public class DebugItemGenerator
 
             final int maxCount = Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.CONFIG_MANAGER_ZIPDEBUG_MAXLOGLINES ) );
             final int maxSeconds = Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.CONFIG_MANAGER_ZIPDEBUG_MAXLOGSECONDS ) );
-            final LocalDBSearchQuery searchParameters = new LocalDBSearchQuery(
-                    PwmLogLevel.TRACE,
-                    maxCount,
-                    null,
-                    null,
-                    ( maxSeconds * 1000 ),
-                    null
-            );
+            final LocalDBSearchQuery searchParameters = LocalDBSearchQuery.builder()
+                    .minimumLevel( PwmLogLevel.TRACE )
+                    .maxEvents( maxCount )
+                    .maxQueryTime( new TimeDuration( maxSeconds, TimeUnit.SECONDS ) )
+                    .build();
+
             final LocalDBSearchResults searchResults = pwmApplication.getLocalDBLogger().readStoredEvents(
                     searchParameters );
             int counter = 0;
@@ -616,46 +617,10 @@ public class DebugItemGenerator
                 final PwmApplication pwmApplication,
                 final PwmRequest pwmRequest,
                 final OutputStream outputStream
-        ) throws Exception
+        )
+                throws Exception
         {
-
-
-            final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter( outputStream );
-            {
-                final List<String> headerRow = new ArrayList<>();
-                headerRow.add( "Label" );
-                headerRow.add( "Create Time" );
-                headerRow.add( "Last Time" );
-                headerRow.add( "Idle" );
-                headerRow.add( "Source Address" );
-                headerRow.add( "Source Host" );
-                headerRow.add( "LDAP Profile" );
-                headerRow.add( "UserID" );
-                headerRow.add( "UserDN" );
-                headerRow.add( "Locale" );
-                headerRow.add( "Last URL" );
-                csvPrinter.printComment( StringUtil.join( headerRow, "," ) );
-            }
-
-            final Iterator<SessionStateInfoBean> debugInfos = pwmApplication.getSessionTrackService().getSessionInfoIterator();
-            while ( debugInfos.hasNext() )
-            {
-                final SessionStateInfoBean info = debugInfos.next();
-                final List<String> dataRow = new ArrayList<>();
-                dataRow.add( info.getLabel() );
-                dataRow.add( JavaHelper.toIsoDate( info.getCreateTime() ) );
-                dataRow.add( JavaHelper.toIsoDate( info.getLastTime() ) );
-                dataRow.add( info.getIdle() );
-                dataRow.add( info.getSrcAddress() );
-                dataRow.add( info.getSrcHost() );
-                dataRow.add( info.getLdapProfile() );
-                dataRow.add( info.getUserID() );
-                dataRow.add( info.getUserDN() );
-                dataRow.add( info.getLocale() != null ? info.getLocale().toLanguageTag() : "" );
-                dataRow.add( info.getLastUrl() );
-                csvPrinter.printRecord( dataRow );
-            }
-            csvPrinter.flush();
+            pwmApplication.getSessionTrackService().outputToCsv( pwmRequest.getLocale(), pwmRequest.getConfig(), outputStream );
         }
     }
 
@@ -692,6 +657,62 @@ public class DebugItemGenerator
             outputStream.write( JsonUtil.serializeCollection( recentDebugBeans, JsonUtil.Flag.PrettyPrint ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
         }
     }
+
+    static class ClusterInfoDebugGenerator implements Generator
+    {
+        @Override
+        public String getFilename( )
+        {
+            return "cluster-info.json";
+        }
+
+        @Override
+        public void outputItem(
+                final PwmApplication pwmApplication,
+                final PwmRequest pwmRequest,
+                final OutputStream outputStream
+        )
+                throws Exception
+        {
+            final ClusterService clusterService = pwmApplication.getClusterService();
+
+            final Map<String, Serializable> debugOutput = new LinkedHashMap<>();
+            debugOutput.put( "status", clusterService.status() );
+
+            if ( clusterService.status() == PwmService.STATUS.OPEN )
+            {
+                debugOutput.put( "isMaster", clusterService.isMaster() );
+                debugOutput.put( "nodes", new ArrayList<>( clusterService.nodes() ) );
+            }
+
+            outputStream.write( JsonUtil.serializeMap( debugOutput, JsonUtil.Flag.PrettyPrint ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
+        }
+    }
+
+    static class CacheServiceDebugItemGenerator implements Generator
+    {
+        @Override
+        public String getFilename( )
+        {
+            return "cache-service-info.json";
+        }
+
+        @Override
+        public void outputItem(
+                final PwmApplication pwmApplication,
+                final PwmRequest pwmRequest,
+                final OutputStream outputStream
+        )
+                throws Exception
+        {
+            final CacheService cacheService = pwmApplication.getCacheService();
+
+            final Map<String, Serializable> debugOutput = new LinkedHashMap<>( cacheService.debugInfo() );
+            outputStream.write( JsonUtil.serializeMap( debugOutput, JsonUtil.Flag.PrettyPrint ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
+        }
+
+    }
+
 
     interface Generator
     {

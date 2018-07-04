@@ -46,6 +46,7 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -212,8 +213,15 @@ public class ActionExecutor
             }
             final PwmHttpClientResponse clientResponse = client.makeRequest( clientRequest );
 
-            if ( clientResponse.getStatusCode() != 200 )
+            final List<Integer> successStatus = webAction.getSuccessStatus() == null
+                    ? Collections.emptyList()
+                    : webAction.getSuccessStatus();
+
+            if ( !successStatus.contains( clientResponse.getStatusCode() ) )
             {
+                LOGGER.trace( "response status code " + clientResponse.getStatusCode() + " is not one of the configured success status codes: "
+                        + StringUtil.collectionToString( successStatus ) );
+
                 throw new PwmOperationalException( new ErrorInformation(
                         PwmError.ERROR_SERVICE_UNREACHABLE,
                         "unexpected HTTP status code while calling external web service: "

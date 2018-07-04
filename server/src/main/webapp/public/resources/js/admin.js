@@ -217,13 +217,17 @@ PWM_ADMIN.refreshReportDataStatus=function() {
         if (data['data'] && data['data']['presentable']) {
             var fields = data['data']['presentable'];
             var htmlTable = '';
-            for (var field in fields) {
-                htmlTable += '<tr><td>' + field + '</td><td id="report_status_' + field + '">' + fields[field] + '</tr>';
-            }
-            PWM_MAIN.getObject('statusTable').innerHTML = htmlTable;
             for (var field in fields) {(function(field){
-                PWM_MAIN.TimestampHandler.initElement(PWM_MAIN.getObject("report_status_" + field));
-                console.log('called + ' + field);
+                var fieldData = fields[field];
+                htmlTable += '<tr><td>' + fieldData['label'] + '</td><td><span id="report_status_' + fieldData['key']  + '"</tr>';
+            }(field)); }
+            PWM_MAIN.getObject('statusTable').innerHTML = htmlTable;
+            for (var field in fields) {(function(field) {
+                var fieldData = fields[field];
+                PWM_MAIN.getObject('report_status_' + fieldData['key']).innerHTML = fieldData['value'];
+                if (fieldData['type'] === 'timestamp') {
+                    PWM_MAIN.TimestampHandler.initElement(PWM_MAIN.getObject("report_status_" + fieldData['key']));
+                }
             }(field)); }
         }
 
@@ -438,13 +442,129 @@ PWM_ADMIN.auditSystemHeaders = function() {
     ];
 };
 
-PWM_ADMIN.makeGrid = function() {
+PWM_ADMIN.logHeaders = function() {
+    return [
+        {field:"d",label:PWM_ADMIN.showString('Field_Logs_Timestamp')},
+        {field:"l",label:PWM_ADMIN.showString('Field_Logs_Level')},
+        {field:"s",label:PWM_ADMIN.showString('Field_Logs_Source'),hidden:true},
+        {field:"b",label:PWM_ADMIN.showString('Field_Logs_Label')},
+        {field:"a",label:PWM_ADMIN.showString('Field_Logs_User'),hidden:true},
+        {field:"t",label:PWM_ADMIN.showString('Field_Logs_Component'),hidden:true},
+        {field:"m",label:PWM_ADMIN.showString('Field_Logs_Detail')},
+        {field:"e",label:PWM_ADMIN.showString('Field_Logs_Error'),hidden:true}
+    ];
+};
+
+PWM_ADMIN.initLogGrid=function() {
     require(["dojo","dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dgrid/extensions/DijitRegistry"],
         function(dojo, declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider, DijitRegistry){
-            return declare([ Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider, DijitRegistry ]);
+            // Create a new constructor by mixing in the components
+            var CustomGrid = declare([ Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider, DijitRegistry ]);
+
+            // Now, create an instance of our custom userGrid
+            PWM_VAR['logViewerGrid'] = new CustomGrid({columns: PWM_ADMIN.logHeaders()}, "logViewerGrid");
+            PWM_VAR['logViewerGrid'].on(".dgrid-row:click", function(evt){
+                PWM_ADMIN.detailView(evt, PWM_ADMIN.logHeaders(), PWM_VAR['logViewerGrid']);
+            });
         }
     );
+
+    var saveSettings = function() {
+        var logSettings = PWM_ADMIN.readLogFormData();
+        PWM_MAIN.Preferences.writeSessionStorage('logSettings',logSettings);
+    };
+
+    PWM_MAIN.addEventHandler('form-loadLog','change', saveSettings);
+    PWM_MAIN.addEventHandler('form-downloadLog','change', saveSettings);
+
+    var loadSettings = function () {
+        var settings = PWM_MAIN.Preferences.readSessionStorage('logSettings');
+        if (settings) {
+            PWM_MAIN.getObject('username').value = settings['username'];
+            PWM_MAIN.getObject('text').value = settings['text'];
+            PWM_MAIN.getObject('count').value = settings['count'];
+            PWM_MAIN.getObject('maxTime').value = settings['maxTime'];
+            PWM_MAIN.JSLibrary.setValueOfSelectElement('type',settings['type']);
+            PWM_MAIN.JSLibrary.setValueOfSelectElement('level',settings['level']);
+            PWM_MAIN.JSLibrary.setValueOfSelectElement('displayType', settings['displayType']);
+            if (PWM_MAIN.getObject('form-downloadLog')) {
+                PWM_MAIN.JSLibrary.setValueOfSelectElement('downloadType', settings['downloadType']);
+                PWM_MAIN.JSLibrary.setValueOfSelectElement('compressionType', settings['compressionType']);
+            }
+        }
+    };
+    loadSettings();
 };
+
+PWM_ADMIN.readLogFormData = function() {
+    var settings = {};
+    settings['username'] = PWM_MAIN.getObject('username').value;
+    settings['text'] = PWM_MAIN.getObject('text').value;
+    settings['count'] = PWM_MAIN.getObject('count').value;
+    settings['maxTime'] = PWM_MAIN.getObject('maxTime').value;
+    settings['type'] = PWM_MAIN.JSLibrary.readValueOfSelectElement('type');
+    settings['level'] = PWM_MAIN.JSLibrary.readValueOfSelectElement('level');
+    settings['displayType'] = PWM_MAIN.JSLibrary.readValueOfSelectElement('displayType');
+    if (PWM_MAIN.getObject('form-downloadLog')) {
+        settings['downloadType'] = PWM_MAIN.JSLibrary.readValueOfSelectElement('downloadType');
+        settings['compressionType'] = PWM_MAIN.JSLibrary.readValueOfSelectElement('compressionType');
+    }
+    return settings;
+};
+
+PWM_ADMIN.refreshLogData = function() {
+    PWM_MAIN.getObject('button-search').disabled = true;
+    var logSettings = PWM_ADMIN.readLogFormData();
+
+    var processFunction = function(data) {
+        console.time('someFunction');
+
+        var records = data['data']['records'];
+        if (PWM_MAIN.JSLibrary.isEmpty(records)) {
+            PWM_MAIN.removeCssClass('div-noResultsMessage', 'hidden');
+            PWM_MAIN.addCssClass('wrapper-logViewerGrid', 'hidden');
+            PWM_MAIN.addCssClass('wrapper-lineViewer', 'hidden');
+
+        } else {
+            if (data['data']['display'] === 'grid') {
+                PWM_MAIN.addCssClass('div-noResultsMessage', 'hidden');
+                PWM_MAIN.removeCssClass('wrapper-logViewerGrid', 'hidden');
+                PWM_MAIN.addCssClass('wrapper-lineViewer', 'hidden');
+                var grid = PWM_VAR['logViewerGrid'];
+                grid.refresh();
+                grid.renderArray(records);
+                grid.set("timestamp", { attribute : 'createTime', ascending: false, descending: true });
+            } else {
+                PWM_MAIN.addCssClass('div-noResultsMessage', 'hidden');
+                PWM_MAIN.addCssClass('wrapper-logViewerGrid', 'hidden');
+                PWM_MAIN.removeCssClass('wrapper-lineViewer', 'hidden');
+                var textOutput = '';
+
+                for (var iterator in records) {
+                    (function(record) {
+                        textOutput += records[record];
+                        textOutput += "\n";
+                    }(iterator));
+                }
+                PWM_MAIN.getObject('lineViewer').textContent = textOutput;
+            }
+        }
+        console.timeEnd('someFunction');
+
+        PWM_MAIN.getObject('button-search').disabled = false;
+        PWM_MAIN.closeWaitDialog();
+    };
+
+    var url = PWM_MAIN.addParamToUrl(PWM_GLOBAL['url-context'] + '/private/admin',  'processAction', 'readLogData');
+    var options = {};
+    options.content = logSettings;
+
+    PWM_MAIN.showWaitDialog({loadFunction:function(){
+            PWM_MAIN.ajaxRequest(url,processFunction,options);
+        }
+    });
+};
+
 
 PWM_ADMIN.initAuditGrid=function() {
     require(["dojo","dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dgrid/extensions/DijitRegistry"],

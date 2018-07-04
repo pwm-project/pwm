@@ -450,7 +450,7 @@ public class AppDashboardData implements Serializable
             final PwmNumberFormat numberFormat = PwmNumberFormat.forLocale( locale );
 
             final String display = numberFormat.format( pwmApplication.getResourceServletService().itemsInCache() )
-                    + "items (" + numberFormat.format( pwmApplication.getResourceServletService().bytesInCache() ) + " bytes)";
+                    + " items (" + numberFormat.format( pwmApplication.getResourceServletService().bytesInCache() ) + " bytes)";
 
             javaInfo.add( new DisplayElement(
                     "resourceFileServletCacheSize",

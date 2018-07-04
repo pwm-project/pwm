@@ -216,15 +216,6 @@ public final class ViewableUserInfoDisplayReader
             }
         }
 
-        if ( userInfo.getResponseInfoBean() != null )
-        {
-            maker.add(
-                    ViewStatusFields.ResponsesTimestamp,
-                    Display.Field_ResponsesTimestamp,
-                    userInfo.getResponseInfoBean().getTimestamp()
-            );
-        }
-
         {
             maker.add(
                     ViewStatusFields.OTPStored,

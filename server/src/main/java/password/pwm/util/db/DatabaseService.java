@@ -23,7 +23,6 @@
 package password.pwm.util.db;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmAboutProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
@@ -87,9 +86,17 @@ public class DatabaseService implements PwmService
 
     private ScheduledExecutorService executorService;
 
-    private final Map<PwmAboutProperty, String> debugInfo = new LinkedHashMap<>();
+    private final Map<DatabaseAboutProperty, String> debugInfo = new LinkedHashMap<>();
 
     private volatile boolean initialized = false;
+
+    public enum DatabaseAboutProperty
+    {
+        driverName,
+        driverVersion,
+        databaseProductName,
+        databaseProductVersion,
+    }
 
 
     @Override
@@ -296,10 +303,10 @@ public class DatabaseService implements PwmService
     public ServiceInfoBean serviceInfo( )
     {
         final Map<String, String> debugProperties = new LinkedHashMap<>();
-        for ( final Map.Entry<PwmAboutProperty, String> entry : debugInfo.entrySet() )
+        for ( final Map.Entry<DatabaseAboutProperty, String> entry : debugInfo.entrySet() )
         {
-            final PwmAboutProperty pwmAboutProperty = entry.getKey();
-            debugProperties.put( pwmAboutProperty.name(), entry.getValue() );
+            final DatabaseAboutProperty databaseAboutProperty = entry.getKey();
+            debugProperties.put( databaseAboutProperty.name(), entry.getValue() );
         }
         if ( status() == STATUS.OPEN )
         {
@@ -390,7 +397,7 @@ public class DatabaseService implements PwmService
         }
     }
 
-    public Map<PwmAboutProperty, String> getConnectionDebugProperties( )
+    public Map<DatabaseAboutProperty, String> getConnectionDebugProperties( )
     {
         return Collections.unmodifiableMap( debugInfo );
     }
@@ -401,12 +408,12 @@ public class DatabaseService implements PwmService
         {
             try
             {
-                final Map<PwmAboutProperty, String> returnObj = new LinkedHashMap<>();
+                final Map<DatabaseAboutProperty, String> returnObj = new LinkedHashMap<>();
                 final DatabaseMetaData databaseMetaData = connection.getMetaData();
-                returnObj.put( PwmAboutProperty.database_driverName, databaseMetaData.getDriverName() );
-                returnObj.put( PwmAboutProperty.database_driverVersion, databaseMetaData.getDriverVersion() );
-                returnObj.put( PwmAboutProperty.database_databaseProductName, databaseMetaData.getDatabaseProductName() );
-                returnObj.put( PwmAboutProperty.database_databaseProductVersion, databaseMetaData.getDatabaseProductVersion() );
+                returnObj.put( DatabaseAboutProperty.driverName, databaseMetaData.getDriverName() );
+                returnObj.put( DatabaseAboutProperty.driverVersion, databaseMetaData.getDriverVersion() );
+                returnObj.put( DatabaseAboutProperty.databaseProductName, databaseMetaData.getDatabaseProductName() );
+                returnObj.put( DatabaseAboutProperty.databaseProductVersion, databaseMetaData.getDatabaseProductVersion() );
                 debugInfo.clear();
                 debugInfo.putAll( Collections.unmodifiableMap( returnObj ) );
             }

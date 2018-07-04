@@ -496,7 +496,7 @@
     <setting hidden="false" key="ldap.rootContexts" level="0">
         <flag>ldapDNsyntax</flag>
         <example>ou=users,o=example</example>
-        <example template="AD">cn=users,dc=site,dc=example,dc=net</example>
+        <example template="AD">CN=users,DC=site,DC=example,DC=net</example>
         <default/>
     </setting>
     <setting hidden="false" key="ldap.selectableContexts" level="2">
@@ -1012,6 +1012,7 @@
             <value><![CDATA[ZEROS]]></value>
         </default>
         <options>
+            <option value="RAW">Raw -  Use the raw value that is read from the directory with no changes</option>
             <option value="PLAIN">Plain - country code (e.g. 1 for USA) plus subscriber number (e.g. 12312345): 112312345</option>
             <option value="PLUS">Plus - Same as plain, but with a plus sign as a prefix: +112312345</option>
             <option value="ZEROS">Zeros -  Same as plain, but prefixed with a double zero: 00112312345</option>
@@ -1600,7 +1601,7 @@
     <setting hidden="false" key="security.cspHeader" level="2">
         <default>
             <!--<value><![CDATA[]]></value>-->
-            <value><![CDATA[default-src 'self'; object-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ 'self' 'unsafe-eval' 'unsafe-inline' 'nonce-%NONCE%' ; frame-src https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; report-uri /sspr/public/command/cspReport]]></value>
+            <value><![CDATA[default-src 'self'; form-action 'self'; object-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ 'self' 'unsafe-eval' 'unsafe-inline' 'nonce-%NONCE%' ; frame-src https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; report-uri /sspr/public/command/cspReport]]></value>
             <!-- 'unsafe-inline' on script-src is included for backward compatibility of CSP Level1 browsers.  CSP2 and future ignore it when the nonce is specified -->
         </default>
     </setting>

@@ -24,6 +24,7 @@ package password.pwm.http.bean;
 
 import com.google.gson.annotations.SerializedName;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import password.pwm.config.option.SessionBeanMode;
 
 import java.util.Arrays;
@@ -34,6 +35,7 @@ import java.util.Map;
 import java.util.Set;
 
 @Data
+@EqualsAndHashCode( callSuper = false )
 public class UpdateProfileBean extends PwmSessionBean
 {
 

@@ -57,7 +57,6 @@ import password.pwm.svc.event.AuditRecord;
 import password.pwm.svc.intruder.RecordType;
 import password.pwm.svc.pwnotify.PwNotifyService;
 import password.pwm.svc.pwnotify.StoredJobState;
-import password.pwm.svc.report.ReportColumnFilter;
 import password.pwm.svc.report.ReportCsvUtility;
 import password.pwm.svc.report.ReportService;
 import password.pwm.svc.report.UserCacheRecord;
@@ -69,9 +68,12 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
-import password.pwm.util.localdb.LocalDBException;
+import password.pwm.util.logging.LocalDBLogger;
+import password.pwm.util.logging.LocalDBSearchQuery;
+import password.pwm.util.logging.LocalDBSearchResults;
+import password.pwm.util.logging.PwmLogEvent;
+import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.reports.ReportUtils;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.rest.RestStatisticsServer;
 
@@ -79,6 +81,7 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.Serializable;
 import java.io.Writer;
 import java.lang.management.ManagementFactory;
@@ -93,8 +96,12 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
+import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @WebServlet(
         name = "AdminServlet",
@@ -116,6 +123,7 @@ public class AdminServlet extends ControlledPwmServlet
         downloadUserReportCsv( HttpMethod.POST ),
         downloadUserSummaryCsv( HttpMethod.POST ),
         downloadStatisticsLogCsv( HttpMethod.POST ),
+        downloadSessionsCsv( HttpMethod.POST ),
         clearIntruderTable( HttpMethod.POST ),
         reportCommand( HttpMethod.POST ),
         reportStatus( HttpMethod.GET ),
@@ -128,7 +136,9 @@ public class AdminServlet extends ControlledPwmServlet
         statistics( HttpMethod.GET ),
         startPwNotifyJob( HttpMethod.POST ),
         readPwNotifyStatus( HttpMethod.POST ),
-        readPwNotifyLog( HttpMethod.POST ),;
+        readPwNotifyLog( HttpMethod.POST ),
+        readLogData( HttpMethod.POST ),
+        downloadLogData( HttpMethod.POST ),;
 
         private final Collection<HttpMethod> method;
 
@@ -230,11 +240,8 @@ public class AdminServlet extends ControlledPwmServlet
         final OutputStream outputStream = pwmRequest.getPwmResponse().getOutputStream();
         try
         {
-            final String selectedColumns = pwmRequest.readParameterAsString( "selectedColumns", "" );
-
-            final ReportColumnFilter columnFilter = ReportUtils.toReportColumnFilter( selectedColumns );
             final ReportCsvUtility reportCsvUtility = new ReportCsvUtility( pwmApplication );
-            reportCsvUtility.outputToCsv( outputStream, true, pwmRequest.getLocale(), columnFilter );
+            reportCsvUtility.outputToCsv( outputStream, true, pwmRequest.getLocale() );
         }
         catch ( Exception e )
         {
@@ -308,6 +315,34 @@ public class AdminServlet extends ControlledPwmServlet
         return ProcessStatus.Halt;
     }
 
+    @ActionHandler( action = "downloadSessionsCsv" )
+    private ProcessStatus downloadSessionsCsv( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
+    {
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+
+        pwmRequest.getPwmResponse().markAsDownload(
+                HttpContentType.csv,
+                pwmRequest.getPwmApplication().getConfig().readAppProperty( AppProperty.DOWNLOAD_FILENAME_SESSIONS_CSV )
+        );
+
+        final OutputStream outputStream = pwmRequest.getPwmResponse().getOutputStream();
+        try
+        {
+            pwmApplication.getSessionTrackService().outputToCsv( pwmRequest.getLocale(), pwmRequest.getConfig(), outputStream );
+        }
+        catch ( Exception e )
+        {
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, e.getMessage() );
+            pwmRequest.respondWithError( errorInformation );
+        }
+        finally
+        {
+            outputStream.close();
+        }
+        return ProcessStatus.Halt;
+    }
+
     @ActionHandler( action = "clearIntruderTable" )
     private ProcessStatus processClearIntruderTable(
             final PwmRequest pwmRequest
@@ -346,27 +381,20 @@ public class AdminServlet extends ControlledPwmServlet
 
     @ActionHandler( action = "reportStatus" )
     private ProcessStatus processReportStatus( final PwmRequest pwmRequest )
-            throws ChaiUnavailableException, PwmUnrecoverableException, IOException
+            throws IOException
     {
-        try
-        {
-            final ReportStatusBean returnMap = ReportStatusBean.makeReportStatusData(
-                    pwmRequest.getPwmApplication().getReportService(),
-                    pwmRequest.getPwmSession().getSessionStateBean().getLocale()
-            );
-            final RestResultBean restResultBean = RestResultBean.withData( returnMap );
-            pwmRequest.outputJsonResult( restResultBean );
-        }
-        catch ( LocalDBException e )
-        {
-            throw new PwmUnrecoverableException( e.getErrorInformation() );
-        }
+        final ReportStatusBean returnMap = ReportStatusBean.makeReportStatusData(
+                pwmRequest.getPwmApplication().getReportService(),
+                pwmRequest.getPwmSession().getSessionStateBean().getLocale()
+        );
+        final RestResultBean restResultBean = RestResultBean.withData( returnMap );
+        pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
     }
 
     @ActionHandler( action = "reportSummary" )
     private ProcessStatus processReportSummary( final PwmRequest pwmRequest )
-            throws ChaiUnavailableException, PwmUnrecoverableException, IOException
+            throws IOException
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final LinkedHashMap<String, Object> returnMap = new LinkedHashMap<>();
@@ -389,10 +417,9 @@ public class AdminServlet extends ControlledPwmServlet
 
         final ReportService reportService = pwmRequest.getPwmApplication().getReportService();
         final ArrayList<UserCacheRecord> reportData = new ArrayList<>();
-        ClosableIterator<UserCacheRecord> cacheBeanIterator = null;
-        try
+
+        try ( ClosableIterator<UserCacheRecord> cacheBeanIterator = reportService.iterator() )
         {
-            cacheBeanIterator = reportService.iterator();
             while ( cacheBeanIterator.hasNext() && reportData.size() < maximum )
             {
                 final UserCacheRecord userCacheRecord = cacheBeanIterator.next();
@@ -400,13 +427,6 @@ public class AdminServlet extends ControlledPwmServlet
                 {
                     reportData.add( userCacheRecord );
                 }
-            }
-        }
-        finally
-        {
-            if ( cacheBeanIterator != null )
-            {
-                cacheBeanIterator.close();
             }
         }
 
@@ -703,7 +723,7 @@ public class AdminServlet extends ControlledPwmServlet
         {
             final DisplayElement displayElement = new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.string, "Status",
                     "Password Notification Feature is not enabled.  See setting: "
-                    + PwmSetting.PW_EXPY_NOTIFY_ENABLE.toMenuLocationDebug( null, pwmRequest.getLocale() ) );
+                            + PwmSetting.PW_EXPY_NOTIFY_ENABLE.toMenuLocationDebug( null, pwmRequest.getLocale() ) );
             pwmRequest.outputJsonResult( RestResultBean.withData( new PwNotifyStatusBean( Collections.singletonList( displayElement ), false ) ) );
             return ProcessStatus.Halt;
         }
@@ -796,6 +816,168 @@ public class AdminServlet extends ControlledPwmServlet
     {
         pwmRequest.getPwmApplication().getPwNotifyService().executeJob();
         pwmRequest.outputJsonResult( RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown ) );
+        return ProcessStatus.Halt;
+    }
+
+    public enum LogDisplayType
+    {
+        grid,
+        lines,
+    }
+
+    @ActionHandler( action = "readLogData" )
+    public ProcessStatus readLogData( final PwmRequest pwmRequest ) throws IOException, PwmUnrecoverableException
+    {
+        final LocalDBLogger localDBLogger = pwmRequest.getPwmApplication().getLocalDBLogger();
+
+        final LogDisplayType logDisplayType;
+        final LocalDBSearchQuery searchParameters;
+        {
+            final Map<String, String> inputMap = pwmRequest.readBodyAsJsonStringMap( PwmHttpRequestWrapper.Flag.BypassValidation );
+            final int eventCount = Integer.parseInt( inputMap.getOrDefault( "count", "0" ) );
+            final TimeDuration maxTimeSeconds = new TimeDuration( Integer.parseInt( inputMap.getOrDefault( "maxTime", "5" ) ), TimeUnit.SECONDS );
+            final String username = inputMap.getOrDefault( "username", "" );
+            final String text = inputMap.getOrDefault( "text", "" );
+            final PwmLogLevel logLevel = JavaHelper.readEnumFromString( PwmLogLevel.class, PwmLogLevel.TRACE, inputMap.get( "level" ) );
+            final LocalDBLogger.EventType logType = JavaHelper.readEnumFromString( LocalDBLogger.EventType.class, LocalDBLogger.EventType.Both, inputMap.get( "type" ) );
+            logDisplayType = JavaHelper.readEnumFromString( LogDisplayType.class, LogDisplayType.grid, inputMap.get( "displayType" ) );
+
+            searchParameters = LocalDBSearchQuery.builder()
+                    .minimumLevel( logLevel )
+                    .maxEvents( eventCount )
+                    .username( username )
+                    .text( text )
+                    .maxQueryTime( maxTimeSeconds )
+                    .eventType( logType )
+                    .build();
+        }
+
+        final LocalDBSearchResults searchResults = localDBLogger.readStoredEvents( searchParameters );
+
+        final LinkedHashMap<String, Object> returnData = new LinkedHashMap<>(  );
+        if ( logDisplayType == LogDisplayType.grid )
+        {
+            final ArrayList<PwmLogEvent> pwmLogEvents = new ArrayList<>();
+            while ( searchResults.hasNext() )
+            {
+                pwmLogEvents.add( searchResults.next() );
+            }
+            returnData.put( "records", pwmLogEvents );
+        }
+        else if ( logDisplayType == LogDisplayType.lines )
+        {
+            final ArrayList<String> pwmLogEvents = new ArrayList<>();
+            while ( searchResults.hasNext() )
+            {
+                pwmLogEvents.add( searchResults.next().toLogString() );
+            }
+            returnData.put( "records", pwmLogEvents );
+        }
+        returnData.put( "display", logDisplayType );
+        returnData.put( "size", searchResults.getReturnedEvents() );
+        returnData.put( "duration", searchResults.getSearchTime() );
+        pwmRequest.outputJsonResult( RestResultBean.withData( returnData ) );
+
+        return ProcessStatus.Halt;
+    }
+
+    public enum LogDownloadType
+    {
+        plain,
+        csv,
+    }
+
+    public enum LogDownloadCompression
+    {
+        none,
+        zip,
+        gzip,
+    }
+
+    @ActionHandler( action = "downloadLogData" )
+    public ProcessStatus downloadLogData( final PwmRequest pwmRequest ) throws IOException, PwmUnrecoverableException
+    {
+        final LocalDBLogger localDBLogger = pwmRequest.getPwmApplication().getLocalDBLogger();
+
+        final LogDownloadType logDownloadType = JavaHelper.readEnumFromString( LogDownloadType.class, LogDownloadType.plain, pwmRequest.readParameterAsString( "downloadType" ) );
+
+        final LocalDBSearchQuery searchParameters = LocalDBSearchQuery.builder()
+                .minimumLevel( PwmLogLevel.TRACE )
+                .eventType( LocalDBLogger.EventType.Both )
+                .build();
+
+        final LocalDBSearchResults searchResults = localDBLogger.readStoredEvents( searchParameters );
+
+        final String compressFileNameSuffix;
+        final HttpContentType compressedContentType;
+        final Writer writer;
+        {
+            final LogDownloadCompression logDownloadCompression = JavaHelper.readEnumFromString(
+                    LogDownloadCompression.class,
+                    AdminServlet.LogDownloadCompression.none,
+                    pwmRequest.readParameterAsString( "compressionType" ) );
+
+            final OutputStream compressedStream;
+
+            switch ( logDownloadCompression )
+            {
+                case zip:
+                    final ZipOutputStream zipOutputStream = new ZipOutputStream( pwmRequest.getPwmResponse().getOutputStream() );
+                    zipOutputStream.putNextEntry( new ZipEntry( "debug.txt"  ) );
+                    compressedStream = zipOutputStream;
+                    compressFileNameSuffix = ".zip";
+                    compressedContentType = HttpContentType.zip;
+                    break;
+
+                case gzip:
+                    compressedStream = new GZIPOutputStream( pwmRequest.getPwmResponse().getOutputStream() );
+                    compressFileNameSuffix = ".gz";
+                    compressedContentType = HttpContentType.gzip;
+                    break;
+
+                default:
+                    compressedStream = pwmRequest.getPwmResponse().getOutputStream();
+                    compressFileNameSuffix = "";
+                    compressedContentType = null;
+            }
+            writer = new OutputStreamWriter( compressedStream, PwmConstants.DEFAULT_CHARSET );
+        }
+        
+        switch ( logDownloadType )
+        {
+            case plain:
+            {
+                while ( searchResults.hasNext() )
+                {
+                    writer.write( searchResults.next().toLogString( true ) );
+                    writer.write( "\n" );
+                    pwmRequest.getPwmResponse().markAsDownload(
+                            compressedContentType != null ? compressedContentType : HttpContentType.plain,
+                            "debug.txt" + compressFileNameSuffix );
+                }
+            }
+            break;
+
+            case csv:
+            {
+                pwmRequest.getPwmResponse().markAsDownload(
+                        compressedContentType != null ? compressedContentType : HttpContentType.csv,
+                        "debug.csv" + compressFileNameSuffix );
+                while ( searchResults.hasNext() )
+                {
+                    writer.write( searchResults.next().toCsvLine( ) );
+                    writer.write( "\n" );
+                }
+            }
+            break;
+
+            default:
+                JavaHelper.unhandledSwitchStatement( logDownloadType );
+
+        }
+
+        writer.close();
+
         return ProcessStatus.Halt;
     }
 

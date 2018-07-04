@@ -145,7 +145,6 @@
                                                 width: 350
                                             });
 
-                                            PWM_ADMIN.initDownloadUserReportCsvForm();
                                         });
                                     </script>
                                 </pwm:script>

@@ -36,6 +36,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
+import password.pwm.http.PwmHttpResponseWrapper;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmURL;
@@ -170,7 +171,8 @@ public class CaptchaUtility
             pwmRequest.getPwmResponse().writeCookie(
                     captchaSkipCookieName,
                     cookieValue,
-                    captchaSkipCookieLifetimeSeconds
+                    captchaSkipCookieLifetimeSeconds,
+                    PwmHttpResponseWrapper.CookiePath.Application
             );
         }
     }

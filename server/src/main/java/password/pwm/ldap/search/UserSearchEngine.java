@@ -888,10 +888,20 @@ public class UserSearchEngine implements PwmService
             final FormConfiguration formItem = entry.getKey();
             final String attrName = "%" + formItem.getName() + "%";
             String value = entry.getValue();
+
             if ( enableValueEscaping )
             {
                 value = StringUtil.escapeLdapFilter( value );
             }
+
+            if ( !formItem.isRequired() )
+            {
+                if ( StringUtil.isEmpty( value ) )
+                {
+                    value = "*";
+                }
+            }
+
             newSearchFilter = newSearchFilter.replace( attrName, value );
         }
 

@@ -77,19 +77,19 @@
             </tr>
             <tr>
                 <td class="key">UserDN</td>
-                <td><%=JspUtility.freindlyWrite(pageContext, userInfo.getUserDN())%></td>
+                <td><%=JspUtility.friendlyWrite(pageContext, userInfo.getUserDN())%></td>
             </tr>
             <tr>
                 <td class="key">Ldap Profile</td>
-                <td><%=JspUtility.freindlyWrite(pageContext, userInfo.getLdapProfile())%></td>
+                <td><%=JspUtility.friendlyWrite(pageContext, userInfo.getLdapProfile())%></td>
             </tr>
             <tr>
                 <td class="key">Username</td>
-                <td><%=JspUtility.freindlyWrite(pageContext, userInfo.getUserID())%></td>
+                <td><%=JspUtility.friendlyWrite(pageContext, userInfo.getUserID())%></td>
             </tr>
             <tr>
                 <td class="key"><%=PwmConstants.PWM_APP_NAME%> GUID</td>
-                <td><%=JspUtility.freindlyWrite(pageContext, userInfo.getUserGUID())%></td>
+                <td><%=JspUtility.friendlyWrite(pageContext, userInfo.getUserGUID())%></td>
             </tr>
         </table>
         <br/>
@@ -100,7 +100,7 @@
             <tr>
                 <td class="key">Last Login Time</td>
                 <td>
-                    <%=JspUtility.freindlyWrite(pageContext, userInfo.getPasswordLastModifiedTime())%>
+                    <%=JspUtility.friendlyWrite(pageContext, userInfo.getPasswordLastModifiedTime())%>
                     <% if ( userInfo.getPasswordLastModifiedTime() != null ) { %>
                     ( <%=TimeDuration.fromCurrent(userInfo.getPasswordLastModifiedTime()).asCompactString()%> )
                     <% } %>
@@ -109,7 +109,7 @@
             <tr>
                 <td class="key">Account Expiration Time</td>
                 <td>
-                    <%=JspUtility.freindlyWrite(pageContext, userInfo.getAccountExpirationTime())%>
+                    <%=JspUtility.friendlyWrite(pageContext, userInfo.getAccountExpirationTime())%>
                     <% if ( userInfo.getAccountExpirationTime() != null ) { %>
                     ( <%=TimeDuration.fromCurrent(userInfo.getAccountExpirationTime()).asCompactString()%> )
                     <% } %>
@@ -118,7 +118,7 @@
             <tr>
                 <td class="key">Password Expiration</td>
                 <td>
-                    <%=JspUtility.freindlyWrite(pageContext, userInfo.getPasswordExpirationTime())%>
+                    <%=JspUtility.friendlyWrite(pageContext, userInfo.getPasswordExpirationTime())%>
                     <% if ( userInfo.getPasswordExpirationTime() != null ) { %>
                     ( <%=TimeDuration.fromCurrent(userInfo.getPasswordExpirationTime()).asCompactString()%> )
                     <% } %>
@@ -127,7 +127,7 @@
             <tr>
                 <td class="key">Password Last Modified</td>
                 <td>
-                    <%=JspUtility.freindlyWrite(pageContext, userInfo.getPasswordLastModifiedTime())%>
+                    <%=JspUtility.friendlyWrite(pageContext, userInfo.getPasswordLastModifiedTime())%>
                     <% if ( userInfo.getPasswordLastModifiedTime() != null ) { %>
                     ( <%=TimeDuration.fromCurrent(userInfo.getPasswordLastModifiedTime()).asCompactString()%> )
                     <% } %>
@@ -135,38 +135,38 @@
             </tr>
             <tr>
                 <td class="key">Email Address 1</td>
-                <td><%=JspUtility.freindlyWrite(pageContext, userInfo.getUserEmailAddress())%></td>
+                <td><%=JspUtility.friendlyWrite(pageContext, userInfo.getUserEmailAddress())%></td>
             </tr>
             <tr>
                 <td class="key">Email Address 2</td>
-                <td><%=JspUtility.freindlyWrite(pageContext, userInfo.getUserEmailAddress2())%></td>
+                <td><%=JspUtility.friendlyWrite(pageContext, userInfo.getUserEmailAddress2())%></td>
             </tr>
             <tr>
                 <td class="key">Email Address 3</td>
-                <td><%=JspUtility.freindlyWrite(pageContext, userInfo.getUserEmailAddress3())%></td>
+                <td><%=JspUtility.friendlyWrite(pageContext, userInfo.getUserEmailAddress3())%></td>
             </tr>
             <tr>
                 <td class="key">Phone Number 1</td>
-                <td><%=JspUtility.freindlyWrite(pageContext, userDebugDataBean.getUserInfo().getUserSmsNumber())%></td>
+                <td><%=JspUtility.friendlyWrite(pageContext, userDebugDataBean.getUserInfo().getUserSmsNumber())%></td>
             </tr>
             <tr>
                 <td class="key">Phone Number 2</td>
-                <td><%=JspUtility.freindlyWrite(pageContext, userDebugDataBean.getUserInfo().getUserSmsNumber2())%></td>
+                <td><%=JspUtility.friendlyWrite(pageContext, userDebugDataBean.getUserInfo().getUserSmsNumber2())%></td>
             </tr>
             <tr>
                 <td class="key">Phone Number 3</td>
-                <td><%=JspUtility.freindlyWrite(pageContext, userDebugDataBean.getUserInfo().getUserSmsNumber3())%></td>
+                <td><%=JspUtility.friendlyWrite(pageContext, userDebugDataBean.getUserInfo().getUserSmsNumber3())%></td>
             </tr>
             <tr>
                 <td class="key">Username</td>
-                <td><%=JspUtility.freindlyWrite(pageContext, userInfo.getUserID())%></td>
+                <td><%=JspUtility.friendlyWrite(pageContext, userInfo.getUserID())%></td>
             </tr>
             <tr>
                 <td class="key">
                     <pwm:display key="Field_PasswordExpired"/>
                 </td>
                 <td id="PasswordExpired">
-                    <%= JspUtility.freindlyWrite(pageContext, userInfo.getPasswordStatus().isExpired()) %>
+                    <%= JspUtility.friendlyWrite(pageContext, userInfo.getPasswordStatus().isExpired()) %>
                 </td>
             </tr>
             <tr>
@@ -174,7 +174,7 @@
                     <pwm:display key="Field_PasswordPreExpired"/>
                 </td>
                 <td id="PasswordPreExpired">
-                    <%= JspUtility.freindlyWrite(pageContext, userInfo.getPasswordStatus().isPreExpired()) %>
+                    <%= JspUtility.friendlyWrite(pageContext, userInfo.getPasswordStatus().isPreExpired()) %>
                 </td>
             </tr>
             <tr>
@@ -182,7 +182,7 @@
                     <pwm:display key="Field_PasswordWithinWarningPeriod"/>
                 </td>
                 <td id="PasswordWithinWarningPeriod">
-                    <%= JspUtility.freindlyWrite(pageContext, userInfo.getPasswordStatus().isWarnPeriod()) %>
+                    <%= JspUtility.friendlyWrite(pageContext, userInfo.getPasswordStatus().isWarnPeriod()) %>
                 </td>
             </tr>
             <tr>
@@ -190,7 +190,7 @@
                     <pwm:display key="Field_PasswordViolatesPolicy"/>
                 </td>
                 <td id="PasswordViolatesPolicy">
-                    <%= JspUtility.freindlyWrite(pageContext, userInfo.getPasswordStatus().isViolatesPolicy()) %>
+                    <%= JspUtility.friendlyWrite(pageContext, userInfo.getPasswordStatus().isViolatesPolicy()) %>
                 </td>
             </tr>
             <tr>
@@ -198,7 +198,7 @@
                     Password Readable From LDAP
                 </td>
                 <td>
-                    <%= JspUtility.freindlyWrite(pageContext, userDebugDataBean.isPasswordReadable()) %>
+                    <%= JspUtility.friendlyWrite(pageContext, userDebugDataBean.isPasswordReadable()) %>
                 </td>
             </tr>
             <tr>
@@ -206,7 +206,7 @@
                     Requires New Password
                 </td>
                 <td>
-                    <%= JspUtility.freindlyWrite(pageContext, userInfo.isRequiresNewPassword()) %>
+                    <%= JspUtility.friendlyWrite(pageContext, userInfo.isRequiresNewPassword()) %>
                 </td>
             </tr>
             <tr>
@@ -214,7 +214,7 @@
                     Requires Response Setup
                 </td>
                 <td>
-                    <%= JspUtility.freindlyWrite(pageContext, userInfo.isRequiresResponseConfig()) %>
+                    <%= JspUtility.friendlyWrite(pageContext, userInfo.isRequiresResponseConfig()) %>
                 </td>
             </tr>
             <tr>
@@ -222,7 +222,7 @@
                     Requires OTP Setup
                 </td>
                 <td>
-                    <%= JspUtility.freindlyWrite(pageContext, userInfo.isRequiresOtpConfig()) %>
+                    <%= JspUtility.friendlyWrite(pageContext, userInfo.isRequiresOtpConfig()) %>
                 </td>
             </tr>
             <tr>
@@ -230,7 +230,7 @@
                     Requires Profile Update
                 </td>
                 <td>
-                    <%= JspUtility.freindlyWrite(pageContext, userInfo.isRequiresUpdateProfile()) %>
+                    <%= JspUtility.friendlyWrite(pageContext, userInfo.isRequiresUpdateProfile()) %>
                 </td>
             </tr>
             <tr>
@@ -238,7 +238,7 @@
                     Password is Within Minimum Lifetime
                 </td>
                 <td>
-                    <%= JspUtility.freindlyWrite(pageContext, userDebugDataBean.isPasswordWithinMinimumLifetime()) %>
+                    <%= JspUtility.friendlyWrite(pageContext, userDebugDataBean.isPasswordWithinMinimumLifetime()) %>
                 </td>
             </tr>
         </table>
@@ -258,7 +258,7 @@
                         <% for (final ProfileType profileType : userDebugDataBean.getProfiles().keySet()) { %>
                         <tr>
                             <td><%=profileType%></td>
-                            <td><%=JspUtility.freindlyWrite(pageContext, userDebugDataBean.getProfiles().get(profileType))%></td>
+                            <td><%=JspUtility.friendlyWrite(pageContext, userDebugDataBean.getProfiles().get(profileType))%></td>
                         </tr>
                         <% } %>
                     </table>
@@ -275,7 +275,7 @@
                         <% for (final Permission permission : userDebugDataBean.getPermissions().keySet()) { %>
                         <tr>
                             <td><%=permission%></td>
-                            <td><%=JspUtility.freindlyWrite(pageContext, userDebugDataBean.getPermissions().get(permission))%></td>
+                            <td><%=JspUtility.friendlyWrite(pageContext, userDebugDataBean.getPermissions().get(permission))%></td>
                         </tr>
                         <% } %>
                     </table>
@@ -304,24 +304,24 @@
                         <tr>
                             <td>ID</td>
                             <td><pwm:display key="<%=Display.Value_NotApplicable.toString()%>"/></td>
-                            <td><%=JspUtility.freindlyWrite(pageContext, configPolicy.getIdentifier())%></td>
-                            <td><%=JspUtility.freindlyWrite(pageContext, ldapPolicy.getIdentifier())%></td>
-                            <td><%=JspUtility.freindlyWrite(pageContext, userPolicy.getIdentifier())%></td>
+                            <td><%=JspUtility.friendlyWrite(pageContext, configPolicy.getIdentifier())%></td>
+                            <td><%=JspUtility.friendlyWrite(pageContext, ldapPolicy.getIdentifier())%></td>
+                            <td><%=JspUtility.friendlyWrite(pageContext, userPolicy.getIdentifier())%></td>
                         </tr>
                         <tr>
                             <td>Display Name</td>
                             <td><pwm:display key="<%=Display.Value_NotApplicable.toString()%>"/></td>
-                            <td><%=JspUtility.freindlyWrite(pageContext, configPolicy.getDisplayName(JspUtility.locale(request)))%></td>
-                            <td><%=JspUtility.freindlyWrite(pageContext, ldapPolicy.getDisplayName(JspUtility.locale(request)))%></td>
-                            <td><%=JspUtility.freindlyWrite(pageContext, userPolicy.getDisplayName(JspUtility.locale(request)))%></td>
+                            <td><%=JspUtility.friendlyWrite(pageContext, configPolicy.getDisplayName(JspUtility.locale(request)))%></td>
+                            <td><%=JspUtility.friendlyWrite(pageContext, ldapPolicy.getDisplayName(JspUtility.locale(request)))%></td>
+                            <td><%=JspUtility.friendlyWrite(pageContext, userPolicy.getDisplayName(JspUtility.locale(request)))%></td>
                         </tr>
                         <% for (final PwmPasswordRule rule : PwmPasswordRule.values()) { %>
                         <tr>
                             <td><span title="<%=rule.getKey()%>"><%=rule.getLabel(JspUtility.locale(request), JspUtility.getPwmRequest(pageContext).getConfig())%></span></td>
                             <td><%=rule.getRuleType()%></td>
-                            <td><%=JspUtility.freindlyWrite(pageContext, configPolicy.getValue(rule))%></td>
-                            <td><%=JspUtility.freindlyWrite(pageContext, ldapPolicy.getValue(rule))%></td>
-                            <td><%=JspUtility.freindlyWrite(pageContext, userPolicy.getValue(rule))%></td>
+                            <td><%=JspUtility.friendlyWrite(pageContext, configPolicy.getValue(rule))%></td>
+                            <td><%=JspUtility.friendlyWrite(pageContext, ldapPolicy.getValue(rule))%></td>
+                            <td><%=JspUtility.friendlyWrite(pageContext, userPolicy.getValue(rule))%></td>
                         </tr>
                         <% } %>
                     </table>
@@ -359,7 +359,7 @@
             </tr>
             <tr>
                 <td>Storage Timestamp</td>
-                <td><%=JspUtility.freindlyWrite(pageContext, responseInfoBean.getTimestamp())%></td>
+                <td><%=JspUtility.friendlyWrite(pageContext, responseInfoBean.getTimestamp())%></td>
             </tr>
             <tr>
                 <td>Answered Challenges</td>
@@ -382,10 +382,10 @@
                                 <%= challenge.isAdminDefined() ? "Admin Defined" : "User Defined" %>
                             </td>
                             <td>
-                                <%= JspUtility.freindlyWrite(pageContext, challenge.isRequired())%>
+                                <%= JspUtility.friendlyWrite(pageContext, challenge.isRequired())%>
                             </td>
                             <td>
-                                <%= JspUtility.freindlyWrite(pageContext, challenge.getChallengeText())%>
+                                <%= JspUtility.friendlyWrite(pageContext, challenge.getChallengeText())%>
                             </td>
                         </tr>
                         <% } %>
@@ -411,7 +411,7 @@
                 <% } else { %>
                 <td>
                     <% for (final Challenge challenge : helpdeskCrMap.keySet()) { %>
-                    <%= JspUtility.freindlyWrite(pageContext, challenge.getChallengeText())%><br/>
+                    <%= JspUtility.friendlyWrite(pageContext, challenge.getChallengeText())%><br/>
                     <% } %>
                 </td>
                 <% } %>
@@ -461,10 +461,10 @@
                                 <%= challenge.isAdminDefined() ? "Admin Defined" : "User Defined" %>
                             </td>
                             <td>
-                                <%= JspUtility.freindlyWrite(pageContext, challenge.getChallengeText())%>
+                                <%= JspUtility.friendlyWrite(pageContext, challenge.getChallengeText())%>
                             </td>
                             <td>
-                                <%= JspUtility.freindlyWrite(pageContext, challenge.isRequired())%>
+                                <%= JspUtility.friendlyWrite(pageContext, challenge.isRequired())%>
                             </td>
                             <td>
                                 <%= challenge.getMinLength() %>
@@ -473,7 +473,7 @@
                                 <%= challenge.getMaxLength() %>
                             </td>
                             <td>
-                                <%= JspUtility.freindlyWrite(pageContext, challenge.isEnforceWordlist())%>
+                                <%= JspUtility.friendlyWrite(pageContext, challenge.isEnforceWordlist())%>
                             </td>
                             <td>
                                 <%= challenge.getMaxQuestionCharsInAnswer() %>

@@ -43,6 +43,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.security.GeneralSecurityException;
@@ -289,9 +290,13 @@ public class SecureEngine
 
             while ( fileChannel.read( byteBuffer ) > 0 )
             {
-                byteBuffer.flip();
+                // redundant cast to buffer to solve jdk8/9 inter-op issue
+                ( ( Buffer ) byteBuffer ).flip();
+
                 messageDigest.update( byteBuffer );
-                byteBuffer.clear();
+
+                // redundant cast to buffer to solve jdk8/9 inter-op issue
+                ( ( Buffer ) byteBuffer ).clear();
             }
 
             return JavaHelper.byteArrayToHexString( messageDigest.digest() );

@@ -21,15 +21,6 @@
 --%>
 
 <%@ page import="password.pwm.http.JspUtility" %>
-<%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
-<%@ page import="password.pwm.util.java.StringUtil" %>
-<%@ page import="password.pwm.util.logging.LocalDBLogger" %>
-<%@ page import="password.pwm.util.logging.PwmLogEvent" %>
-<%@ page import="password.pwm.util.logging.PwmLogLevel" %>
-<%@ page import="java.util.Date" %>
-<%@ page import="java.time.Instant" %>
-<%@ page import="password.pwm.util.logging.LocalDBSearchQuery" %>
-<%@ page import="password.pwm.util.logging.LocalDBSearchResults" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -38,68 +29,12 @@
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.NO_IDLE_TIMEOUT); %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
-<% final PwmRequest pwmRequest = JspUtility.getPwmRequest(pageContext); %>
-<% final LocalDBLogger localDBLogger = pwmRequest.getPwmApplication().getLocalDBLogger(); %>
-<% final String selectedLevel = pwmRequest.readParameterAsString("level", 255);%>
-<% final PwmLogLevel configuredLevel = pwmRequest.getConfig().readSettingAsEnum(PwmSetting.EVENTS_LOCALDB_LOG_LEVEL,PwmLogLevel.class); %>
 <body class="nihilo">
-<% if ("".equals(selectedLevel)) { %>
-<div style="text-align: center;"><pwm:display key="Display_PleaseWait"/></div>
-<pwm:script>
-    <script type="text/javascript">
-        PWM_GLOBAL['startupFunctions'].push(function(){
-            PWM_MAIN.showWaitDialog({loadFunction:function() {
-                PWM_CONFIG.openLogViewer('INFO');
-            }});
-        });
-    </script>
-</pwm:script>
-<% } else { %>
-<div style="width: 100%; text-align:center; background-color: #eeeeee" id="headerDiv">
-    <span class="timestamp"><%=Instant.now().toString()%></span>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    <select name="level" style="width: auto;" id="select-level">
-        <% for (final PwmLogLevel level : PwmLogLevel.values()) { %>
-        <% final boolean selected = level.toString().equals(selectedLevel); %>
-        <% final boolean disabled = level.compareTo(configuredLevel) < 0; %>
-        <option value="<%=level%>" <%=selected ?" selected": ""%><%=disabled ? " disabled" : ""%>  ><%=level%></option>
-        <% } %>
-    </select>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    <button class="btn" id="button-refresh">
-        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-refresh"></span></pwm:if>
-        <pwm:display key="Button_Refresh" bundle="Admin"/>
-    </button>
+<div>
+    <jsp:include page="/WEB-INF/jsp/fragment/log-viewer.jsp"/>
 </div>
-<%
-    PwmLogLevel logLevel; try { logLevel=PwmLogLevel.valueOf(selectedLevel); } catch (Exception e) { logLevel=PwmLogLevel.INFO; }
-    final LocalDBLogger.EventType logType = LocalDBLogger.EventType.Both;
-    final int eventCount = 1000;
-    final long maxTime = 10000;
-    final LocalDBSearchQuery searchParameters = new LocalDBSearchQuery(logLevel, eventCount, "", "", maxTime, logType);
-    final LocalDBSearchResults searchResults = localDBLogger.readStoredEvents(searchParameters);
-%>
-<pre><% while (searchResults.hasNext()) { %>
-    <% final PwmLogEvent logEvent = searchResults.next(); %>
-    <span class="timestamp"><%=logEvent.getDate().toString()%></span>, <%=StringUtil.escapeHtml(logEvent.toLogString(false)) %><%="\n"%>
-    <% } %></pre>
-<% } %>
-<%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 <pwm:script-ref url="/public/resources/js/configmanager.js"/>
-<pwm:script>
-    <script type="text/javascript">
-        PWM_GLOBAL['startupFunctions'].push(function(){
-            var refreshFunction = function(){
-                var levelSelectElement = PWM_MAIN.getObject('select-level');
-                var level=levelSelectElement.options[levelSelectElement.selectedIndex].value;
-                PWM_MAIN.showWaitDialog({loadFunction:function(){PWM_CONFIG.openLogViewer(level)}});
-            };
-            PWM_MAIN.addEventHandler('button-refresh','click',function(){
-                refreshFunction();
-            });
-            document.title = "Log Viewer";
-        });
-    </script>
-</pwm:script>
+<pwm:script-ref url="/public/resources/js/admin.js"/>
+<%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>

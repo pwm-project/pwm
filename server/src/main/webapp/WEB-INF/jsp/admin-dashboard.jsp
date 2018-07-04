@@ -37,8 +37,7 @@
 <%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <%@ page import="password.pwm.http.bean.DisplayElement" %>
 <!DOCTYPE html>
-<%@ page language="java" session="true" isThreadSafe="true"
-         contentType="text/html" %>
+<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final AppDashboardData appDashboardData = (AppDashboardData)JspUtility.getAttribute(pageContext, PwmRequestAttribute.AppDashboardData); %>
 <% final PwmRequest dashboard_pwmRequest = JspUtility.getPwmRequest(pageContext); %>
@@ -431,7 +430,7 @@
                                 <%= nodeData.getState() %>
                             </td>
                             <td>
-                                <%= JspUtility.freindlyWrite(pageContext, nodeData.isConfigMatch())%>
+                                <%= JspUtility.friendlyWrite(pageContext, nodeData.isConfigMatch())%>
                             </td>
                         </tr>
                         <% } %>

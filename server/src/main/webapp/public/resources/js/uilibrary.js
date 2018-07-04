@@ -95,6 +95,144 @@ UILibrary.stringEditorDialog = function(options){
     });
 };
 
+UILibrary.stringArrayEditorDialog = function(options){
+    options = options === undefined ? {} : options;
+    var title = 'title' in options ? options['title'] : 'Edit Value';
+    var instructions = 'instructions' in options ? options['instructions'] : null;
+    var completeFunction = 'completeFunction' in options ? options['completeFunction'] : function() {alert('no string array editor dialog complete function')};
+    var regexString = 'regex' in options && options['regex'] ? options['regex'] : '.+';
+    var initialValues = 'value' in options ? options['value'] : [];
+    var placeholder = 'placeholder' in options ? options['placeholder'] : '';
+    var maxvalues = 'maxValues' in options ? options['maxValues'] : 10;
+
+    var regexObject = new RegExp(regexString);
+    var text = '';
+    text += '<div style="visibility: hidden;" id="panel-valueWarning"><span class="pwm-icon pwm-icon-warning message-error"></span>&nbsp;' + PWM_CONFIG.showString('Warning_ValueIncorrectFormat') + '</div>';
+    text += '<br/>';
+
+    if (instructions !== null) {
+        text += '<div style="margin-left: 10px" id="panel-valueInstructions">' + options['instructions'] + '</div>';
+        text += '<br/>';
+    }
+
+    text += '<table class="noborder">';
+    for (var i in initialValues) {
+        text += '<tr class="noborder"><td>';
+        text += '<input style="width: 400px" class="configStringInput" pattern="' + regexString + '" autofocus id="value_' + i + '"/></td>';
+        if (PWM_MAIN.JSLibrary.itemCount(initialValues) > 1) {
+            text += '<td style="width:10px"><span class="delete-row-icon action-icon pwm-icon pwm-icon-times" id="button-value_' + i + '-deleteRow"></span></td>';
+        }
+        text += '</tr>';
+    }
+    text += '</table>';
+
+    if (PWM_MAIN.JSLibrary.itemCount(initialValues) < maxvalues) {
+        text += '<br/>';
+        text += '<button class="btn" id="button-addRow"><span class="btn-icon pwm-icon pwm-icon-plus-square"></span>Add Row</button></td>';
+    }
+
+    var readCurrentValues = function() {
+        var output = [];
+        for (var i in initialValues) {
+            var value = PWM_MAIN.getObject('value_' + i).value;
+            output.push(value);
+        }
+        return output;
+    };
+
+    var inputFunction = function() {
+        PWM_MAIN.getObject('dialog_ok_button').disabled = true;
+        if (PWM_MAIN.JSLibrary.itemCount(initialValues) < maxvalues) {
+            PWM_MAIN.getObject('button-addRow').disabled = true;
+        }
+
+        PWM_MAIN.getObject('panel-valueWarning').style.visibility = 'hidden';
+
+        var passed = true;
+        var allHaveValues = true;
+
+        for (var i in initialValues) {
+            (function(iter) {
+                var value = PWM_MAIN.getObject('value_'+ iter).value;
+                if (value.length > 0) {
+                    var passedRegex = regexObject  !== null && regexObject.test(value);
+                    if (!passedRegex) {
+                        passed = false;
+                    }
+                } else {
+                    allHaveValues = false;
+                }
+            })(i);
+        }
+
+        if (passed && allHaveValues) {
+            PWM_MAIN.getObject('dialog_ok_button').disabled = false;
+            if (PWM_MAIN.JSLibrary.itemCount(initialValues) < maxvalues) {
+                PWM_MAIN.getObject('button-addRow').disabled = false;
+            }
+        } else if (!passed) {
+            PWM_MAIN.getObject('panel-valueWarning').style.visibility = 'visible';
+        }
+
+        PWM_VAR['temp-dialogInputValue'] = readCurrentValues();
+    };
+
+    var okFunction = function() {
+        var value =  PWM_VAR['temp-dialogInputValue'];
+        completeFunction(value);
+    };
+
+    var deleteRow = function(i) {
+        var values = readCurrentValues();
+        values.splice(i,1);
+        options['value'] = values;
+        UILibrary.stringArrayEditorDialog(options);
+    };
+
+    PWM_MAIN.showDialog({
+        title:title,
+        text:text,
+        okAction:okFunction,
+        showCancel:true,
+        showClose: true,
+        allowMove: true,
+        dialogClass: 'auto',
+        loadFunction:function(){
+            for (var i in initialValues) {
+                (function(iter) {
+                    var loopValue = initialValues[iter];
+                    PWM_MAIN.getObject('value_' + i).value = loopValue;
+
+                    if (regexString && regexString.length > 1) {
+                        PWM_MAIN.getObject('value_' + i).setAttribute('pattern',regexString);
+                    }
+                    if (placeholder && placeholder.length > 1) {
+                        PWM_MAIN.getObject('value_' + i).setAttribute('placeholder',placeholder);
+                    }
+                    PWM_MAIN.addEventHandler('value_' + i,'input',function(){
+                        inputFunction();
+                    });
+
+                    PWM_MAIN.addEventHandler('button-value_' + i + '-deleteRow','click',function(){
+                        deleteRow(i);
+                    });
+                })(i);
+            }
+
+            if (PWM_MAIN.JSLibrary.itemCount(initialValues) < maxvalues) {
+                PWM_MAIN.addEventHandler('button-addRow','click',function(){
+                    var values = readCurrentValues();
+                    values.push('');
+                    options['value'] = values;
+                    UILibrary.stringArrayEditorDialog(options);
+                });
+            }
+
+            inputFunction();
+        }
+    });
+};
+
 UILibrary.addTextValueToElement = function(elementID, input) {
     var element = PWM_MAIN.getObject(elementID);
     if (element) {

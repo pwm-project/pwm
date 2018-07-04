@@ -57,6 +57,7 @@ import java.util.GregorianCalendar;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.TimeZone;
 import java.util.TreeSet;
@@ -319,7 +320,7 @@ public class JavaHelper
         return IOUtils.copyLarge( input, output, 0, -1, buffer );
     }
 
-    public static long copyWhilePredicate( final InputStream input, final OutputStream output, final Predicate predicate )
+    public static long copyWhilePredicate( final InputStream input, final OutputStream output, final Predicate<Long> predicate )
             throws IOException
     {
         final int bufferSize = 4 * 1024;
@@ -593,5 +594,31 @@ public class JavaHelper
             returnValue = max;
         }
         return returnValue;
+    }
+
+    public static <T> Optional<T> extractNestedExceptionType( final Exception inputException, final Class<T> exceptionType )
+    {
+        if ( inputException == null )
+        {
+            return Optional.empty();
+        }
+
+        if ( inputException.getClass().isInstance( exceptionType ) )
+        {
+            return Optional.of( ( T ) inputException );
+        }
+
+        Throwable nextException = inputException.getCause();
+        while ( nextException != null )
+        {
+            if ( nextException.getClass().isInstance( exceptionType ) )
+            {
+                return Optional.of( ( T ) inputException );
+            }
+
+            nextException = nextException.getCause();
+        }
+
+        return Optional.empty();
     }
 }

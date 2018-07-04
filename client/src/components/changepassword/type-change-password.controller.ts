@@ -28,7 +28,7 @@ import {IChangePasswordSuccess} from './success-change-password.controller';
 import {IPasswordService, IValidatePasswordData} from '../../services/password.service';
 import IPwmService from '../../services/pwm.service';
 
-require('components/changepassword/type-change-password.component.scss');
+require('./type-change-password.component.scss');
 
 const EMPTY_MATCH_STATUS = 'EMPTY';
 const IN_PROGRESS_MESSAGE_WAIT_MS = 5;

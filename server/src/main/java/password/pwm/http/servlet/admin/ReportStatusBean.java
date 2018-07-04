@@ -22,69 +22,78 @@
 
 package password.pwm.http.servlet.admin;
 
+import lombok.Builder;
+import lombok.Value;
+import password.pwm.http.bean.DisplayElement;
 import password.pwm.svc.report.ReportService;
 import password.pwm.svc.report.ReportStatusInfo;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.PwmNumberFormat;
 import password.pwm.util.java.TimeDuration;
-import password.pwm.util.localdb.LocalDBException;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 
+@Value
+@Builder
 public class ReportStatusBean implements Serializable
 {
-    private Map<String, Object> presentable = new LinkedHashMap<>();
-    private ReportStatusInfo raw;
-    private boolean controllable;
-    private Set<ReportService.ReportCommand> availableCommands;
+    private final List<DisplayElement> presentable;
+    private final ReportStatusInfo raw;
+    private final boolean controllable;
+    private final Set<ReportService.ReportCommand> availableCommands;
 
-    public static ReportStatusBean makeReportStatusData( final ReportService reportService, final Locale locale )
-            throws LocalDBException
+    static ReportStatusBean makeReportStatusData( final ReportService reportService, final Locale locale )
     {
         final PwmNumberFormat numberFormat = PwmNumberFormat.forLocale( locale );
-
-        final ReportStatusBean returnMap = new ReportStatusBean();
         final ReportStatusInfo reportInfo = reportService.getReportStatusInfo();
-        final LinkedHashMap<String, Object> presentableMap = new LinkedHashMap<>();
+        final List<DisplayElement> presentableMap = new ArrayList<>();
         final Set<ReportService.ReportCommand> availableCommands = new HashSet<>();
 
-        presentableMap.put( "Job Engine", reportInfo.getCurrentProcess().getLabel() );
+        presentableMap.add( new DisplayElement( "jobEngine", DisplayElement.Type.string, "Job Engine", reportInfo.getCurrentProcess().getLabel() ) );
 
         switch ( reportInfo.getCurrentProcess() )
         {
             case RollOver:
             {
-                presentableMap.put( "Users Processed",
+                presentableMap.add( new DisplayElement( "usersProcessed", DisplayElement.Type.string, "Users Processed",
                         numberFormat.format( reportService.getSummaryData().getTotalUsers() )
-                                + " of " + numberFormat.format( reportService.getTotalRecords() ) );
+                                + " of " + numberFormat.format( reportService.getTotalRecords() ) ) );
                 availableCommands.add( ReportService.ReportCommand.Stop );
             }
             break;
 
             case ReadData:
             {
-                presentableMap.put( "Users Processed", numberFormat.format( reportInfo.getCount() ) );
-                presentableMap.put( "Users Remaining", numberFormat.format( reportService.getWorkQueueSize() ) );
+                presentableMap.add( new DisplayElement( "usersProcessed", DisplayElement.Type.string, "Users Processed",
+                        numberFormat.format( reportInfo.getCount() ) ) );
+                presentableMap.add( new DisplayElement( "usersRemaining", DisplayElement.Type.string, "Users Remaining",
+                        numberFormat.format( reportService.getWorkQueueSize() ) ) );
                 if ( reportInfo.getJobDuration() != null )
                 {
-                    presentableMap.put( "Job Time", reportInfo.getJobDuration().asLongString( locale ) );
+                    presentableMap.add( new DisplayElement( "jobTime", DisplayElement.Type.string, "Job Time",
+                            reportInfo.getJobDuration().asLongString( locale ) ) );
                 }
                 if ( reportInfo.getCount() > 0 )
                 {
                     final BigDecimal eventRate = reportService.getEventRate().setScale( 2, RoundingMode.UP );
-                    presentableMap.put( "Users/Second", eventRate );
-                    if ( !eventRate.equals( BigDecimal.ZERO ) )
+                    if ( eventRate != null )
+                    {
+                        presentableMap.add( new DisplayElement( "usersPerSecond", DisplayElement.Type.number, "Users/Second", eventRate.toString() ) );
+                    }
+                    if ( !BigDecimal.ZERO.equals( eventRate ) )
                     {
                         final int usersRemaining = reportService.getWorkQueueSize();
                         final float secondsRemaining = usersRemaining / eventRate.floatValue();
                         final TimeDuration remainingDuration = new TimeDuration( ( ( int ) secondsRemaining ) * 1000 );
-                        presentableMap.put( "Estimated Time Remaining", remainingDuration.asLongString( locale ) );
+                        presentableMap.add( new DisplayElement( "timeRemaining", DisplayElement.Type.string, "Estimated Time Remaining",
+                                remainingDuration.asLongString( locale ) ) );
                     }
                 }
                 availableCommands.add( ReportService.ReportCommand.Stop );
@@ -95,7 +104,8 @@ public class ReportStatusBean implements Serializable
             {
                 if ( reportInfo.getFinishDate() != null )
                 {
-                    presentableMap.put( "Last Job Completed", reportInfo.getFinishDate() );
+                    presentableMap.add( new DisplayElement( "lastCompleted", DisplayElement.Type.timestamp,  "Last Job Completed",
+                            JavaHelper.toIsoDate( reportInfo.getFinishDate() ) ) );
                 }
                 availableCommands.add( ReportService.ReportCommand.Start );
                 if ( reportService.getTotalRecords() > 0 )
@@ -114,65 +124,26 @@ public class ReportStatusBean implements Serializable
         {
             if ( reportInfo.getErrors() > 0 )
             {
-                presentableMap.put( "Error Count", numberFormat.format( reportInfo.getErrors() ) );
+                presentableMap.add( new DisplayElement( "errorCount", DisplayElement.Type.number, "Error Count", numberFormat.format( reportInfo.getErrors() ) ) );
             }
             if ( reportInfo.getLastError() != null )
             {
-                presentableMap.put( "Last Error", reportInfo.getLastError().toDebugStr() );
+                presentableMap.add( new DisplayElement( "lastError", DisplayElement.Type.string, "Last Error", reportInfo.getLastError().toDebugStr() ) );
             }
             final int totalRecords = reportService.getTotalRecords();
-            presentableMap.put( "Records in Cache", numberFormat.format( totalRecords ) );
+            presentableMap.add( new DisplayElement( "recordsInCache", DisplayElement.Type.string, "Records in Cache", numberFormat.format( totalRecords ) ) );
             if ( totalRecords > 0 )
             {
-                presentableMap.put( "Mean Record Cache Time", reportService.getSummaryData().getMeanCacheTime() );
+                presentableMap.add( new DisplayElement( "meanRecordCacheTime", DisplayElement.Type.timestamp, "Mean Record Cache Time",
+                        JavaHelper.toIsoDate( reportService.getSummaryData().getMeanCacheTime() ) ) );
             }
         }
 
-
-        returnMap.setControllable( true );
-        returnMap.setRaw( reportInfo );
-        returnMap.setPresentable( presentableMap );
-        returnMap.setAvailableCommands( availableCommands );
-        return returnMap;
-    }
-
-    public Map<String, Object> getPresentable( )
-    {
-        return presentable;
-    }
-
-    public void setPresentable( final Map<String, Object> presentable )
-    {
-        this.presentable = presentable;
-    }
-
-    public ReportStatusInfo getRaw( )
-    {
-        return raw;
-    }
-
-    public void setRaw( final ReportStatusInfo raw )
-    {
-        this.raw = raw;
-    }
-
-    public boolean isControllable( )
-    {
-        return controllable;
-    }
-
-    public void setControllable( final boolean controllable )
-    {
-        this.controllable = controllable;
-    }
-
-    public Set<ReportService.ReportCommand> getAvailableCommands( )
-    {
-        return availableCommands;
-    }
-
-    public void setAvailableCommands( final Set<ReportService.ReportCommand> availableCommands )
-    {
-        this.availableCommands = availableCommands;
+        return ReportStatusBean.builder()
+                .controllable( true )
+                .raw( reportInfo )
+                .presentable( presentableMap )
+                .availableCommands( availableCommands )
+                .build();
     }
 }

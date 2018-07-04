@@ -128,10 +128,17 @@ public class ActionValue extends AbstractValue implements StoredValue
                             final List<ActionConfiguration.WebAction> clonedWebActions = new ArrayList<>();
                             for ( final ActionConfiguration.WebAction webAction : value.getWebActions() )
                             {
+                                // add success status if empty list
+                                final List<Integer> successStatus = JavaHelper.isEmpty( webAction.getSuccessStatus() )
+                                        ? Collections.singletonList( 200 )
+                                        : webAction.getSuccessStatus();
+
+                                // decrypt pw
                                 try
                                 {
                                     clonedWebActions.add( webAction.toBuilder()
                                             .password( decryptPwValue( webAction.getPassword(), pwmSecurityKey ) )
+                                            .successStatus( successStatus )
                                             .build() );
                                 }
                                 catch ( PwmOperationalException e )
@@ -265,27 +272,31 @@ public class ActionValue extends AbstractValue implements StoredValue
             for ( final ActionConfiguration.WebAction webAction : actionConfiguration.getWebActions() )
             {
                 sb.append( "\n   WebServiceAction: " );
-                sb.append( "method=" ).append( webAction.getMethod() );
-                sb.append( " url=" ).append( webAction.getUrl() );
-                sb.append( " headers=" ).append( JsonUtil.serializeMap( webAction.getHeaders() ) );
-                sb.append( " username=" ).append( webAction.getUsername() );
-                sb.append( " password=" ).append(
+                sb.append( "\n    method=" ).append( webAction.getMethod() );
+                sb.append( "\n    url=" ).append( webAction.getUrl() );
+                sb.append( "\n    headers=" ).append( JsonUtil.serializeMap( webAction.getHeaders() ) );
+                sb.append( "\n    username=" ).append( webAction.getUsername() );
+                sb.append( "\n    password=" ).append(
                         StringUtil.isEmpty( webAction.getPassword() )
                                 ? ""
                                 : PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT
                 );
+                if ( !JavaHelper.isEmpty( webAction.getSuccessStatus() ) )
+                {
+                    sb.append( "\n    successStatus=" ).append( StringUtil.collectionToString( webAction.getSuccessStatus() ) );
+                }
                 if ( StringUtil.isEmpty( webAction.getBody() ) )
                 {
-                    sb.append( " body=" ).append( webAction.getBody() );
+                    sb.append( "\n    body=" ).append( webAction.getBody() );
                 }
             }
 
             for ( final ActionConfiguration.LdapAction ldapAction : actionConfiguration.getLdapActions() )
             {
                 sb.append( "\n   LdapAction: " );
-                sb.append( "method=" ).append( ldapAction.getLdapMethod() );
-                sb.append( " attribute=" ).append( ldapAction.getAttributeName() );
-                sb.append( " value=" ).append( ldapAction.getAttributeValue() );
+                sb.append( "\n    method=" ).append( ldapAction.getLdapMethod() );
+                sb.append( "\n    attribute=" ).append( ldapAction.getAttributeName() );
+                sb.append( "\n    value=" ).append( ldapAction.getAttributeValue() );
             }
             counter++;
             if ( counter != values.size() )

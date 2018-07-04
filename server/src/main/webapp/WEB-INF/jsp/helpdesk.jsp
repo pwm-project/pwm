@@ -47,6 +47,7 @@
 
 <jsp:include page="/WEB-INF/jsp/fragment/footer.jsp"/>
 
+<pwm:script-ref url="/public/resources/webjars/pwm-client/vendor.js" />
 <pwm:script-ref url="/public/resources/webjars/pwm-client/helpdesk.ng.js" />
 
 </body>

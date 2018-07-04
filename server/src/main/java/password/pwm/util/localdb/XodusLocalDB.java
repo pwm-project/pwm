@@ -465,17 +465,32 @@ public class XodusLocalDB implements LocalDBProvider
     @Override
     public Map<String, Serializable> debugInfo( )
     {
-        final Statistics statistics = environment.getStatistics();
         final Map<String, Serializable> outputStats = new LinkedHashMap<>();
-        for ( final EnvironmentStatistics.Type type : EnvironmentStatistics.Type.values() )
         {
-            final String name = type.name();
-            final StatisticsItem item = statistics.getStatisticsItem( name );
-            if ( item != null )
+            final Statistics statistics = environment.getStatistics();
+            for ( final EnvironmentStatistics.Type type : EnvironmentStatistics.Type.values() )
             {
-                outputStats.put( name, String.valueOf( item.getTotal() ) );
+                final String name = type.name();
+                final StatisticsItem item = statistics.getStatisticsItem( name );
+                if ( item != null )
+                {
+                    outputStats.put( name, String.valueOf( item.getTotal() ) );
+                }
             }
         }
+
+        try
+        {
+            for ( final LocalDB.DB db : LocalDB.DB.values() )
+            {
+                outputStats.put( "size." + db.name(), this.size( db ) );
+            }
+        }
+        catch ( LocalDBException e )
+        {
+            LOGGER.debug( "error while calculating sizes for localDB debug output: "  + e.getMessage() );
+        }
+
         return outputStats;
     }
 

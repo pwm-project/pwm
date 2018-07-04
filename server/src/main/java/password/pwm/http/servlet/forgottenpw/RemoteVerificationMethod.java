@@ -143,8 +143,8 @@ public class RemoteVerificationMethod implements VerificationMethodSystem
         lastResponse = null;
 
         final Map<String, String> headers = new LinkedHashMap<>();
-        headers.put( HttpHeader.Content_Type.getHttpName(), HttpContentType.json.getHeaderValue() );
-        headers.put( HttpHeader.Accept_Language.getHttpName(), locale.toLanguageTag() );
+        headers.put( HttpHeader.ContentType.getHttpName(), HttpContentType.json.getHeaderValue() );
+        headers.put( HttpHeader.AcceptLanguage.getHttpName(), locale.toLanguageTag() );
 
         final RemoteVerificationRequestBean remoteVerificationRequestBean = new RemoteVerificationRequestBean();
         remoteVerificationRequestBean.setResponseSessionID( this.remoteSessionID );

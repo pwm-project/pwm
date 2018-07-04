@@ -1,0 +1,94 @@
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <parent>
+        <groupId>org.pwm-project</groupId>
+        <artifactId>pwm-parent</artifactId>
+        <version>1.8.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <packaging>pom</packaging>
+
+    <artifactId>pwm-docker</artifactId>
+
+    <name>PWM Password Self Service: Docker Image</name>
+
+    <properties>
+        <skipDocker>false</skipDocker>
+    </properties>
+
+    <profiles>
+        <profile>
+            <id>skip-docker</id>
+            <properties>
+                <skipDocker>true</skipDocker>
+            </properties>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+    </profiles>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>0.26.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>build</goal>
+                            <goal>save</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <skip>${skipDocker}</skip>
+                    <saveFile>${project.build.directory}/pwm-server-docker-${project.version}.tar.gz</saveFile>
+                    <images>
+                        <image>
+                            <name>pwm-server:${project.version}</name>
+                            <build>
+                                <tags>
+                                    <tag>pwm-server</tag>
+                                </tags>
+                                <dockerFileDir>${project.basedir}/src/main/docker</dockerFileDir>
+                                <assembly>
+                                    <name>onejar</name>
+                                    <inline>
+                                        <files>
+                                            <file>
+                                                <source>..${file.separator}onejar${file.separator}target${file.separator}pwm-onejar-${project.version}.jar</source>
+                                                <destName>pwm-onejar.jar</destName>
+                                            </file>
+                                        </files>
+                                    </inline>
+                                </assembly>
+                            </build>
+                        </image>
+                    </images>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+
+        <!--
+        This is included via the assembly plugin descriptor, so its not really required here but keeps
+        the module build order correct.
+        -->
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>pwm-onejar</artifactId>
+            <version>${project.version}</version>
+            <type>jar</type>
+            <scope>provided</scope>
+        </dependency>
+
+    </dependencies>
+</project>
