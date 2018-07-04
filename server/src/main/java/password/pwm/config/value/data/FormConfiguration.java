@@ -133,6 +133,9 @@ public class FormConfiguration implements Serializable
     private Map<String, String> selectOptions = Collections.emptyMap();
 
     @Builder.Default
+    private String defaultValue = "";
+
+    @Builder.Default
     private List<String> mimeTypes = Arrays.asList(
             "image/gif",
             "image/png",
