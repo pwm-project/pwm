@@ -32,9 +32,11 @@ import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.value.data.FormConfiguration;
+import password.pwm.http.servlet.peoplesearch.PeopleSearchClientConfigBean;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -55,6 +57,10 @@ public class HelpdeskClientDataBean implements Serializable
     private Map<String, ActionInformation> actions;
     private Map<String, Collection<IdentityVerificationMethod>> verificationMethods;
     private List<FormInformation> verificationForm;
+    private int maxAdvancedSearchAttributes;
+    private List<PeopleSearchClientConfigBean.SearchAttribute> advancedSearchAttributes;
+    private boolean enableAdvancedSearch;
+
 
     @Value
     public static class ActionInformation implements Serializable
@@ -69,6 +75,15 @@ public class HelpdeskClientDataBean implements Serializable
         private String name;
         private String label;
     }
+
+    @Value
+    @Builder
+    public static class SearchAttribute implements Serializable
+    {
+        private String id;
+        private String attribute;
+    }
+
 
     static HelpdeskClientDataBean fromConfig(
             final HelpdeskProfile helpdeskProfile,
@@ -130,6 +145,17 @@ public class HelpdeskClientDataBean implements Serializable
                 }
             }
             builder.verificationForm( formInformations );
+        }
+        {
+            final List<PeopleSearchClientConfigBean.SearchAttribute> searchAttributes = Arrays.asList(
+                    PeopleSearchClientConfigBean.SearchAttribute.builder().attribute( "Title" ).id( "title" ).build(),
+                    PeopleSearchClientConfigBean.SearchAttribute.builder().attribute( "Given Name" ).id( "givenName" ).build(),
+                    PeopleSearchClientConfigBean.SearchAttribute.builder().attribute( "First Name" ).id( "sn" ).build()
+            );
+
+                    builder.enableAdvancedSearch( true );
+                    builder.maxAdvancedSearchAttributes( 3 );
+                    builder.advancedSearchAttributes( searchAttributes );
         }
 
 

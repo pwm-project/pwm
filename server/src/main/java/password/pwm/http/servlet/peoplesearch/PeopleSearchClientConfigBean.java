@@ -22,8 +22,8 @@
 
 package password.pwm.http.servlet.peoplesearch;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Builder;
+import lombok.Value;
 import password.pwm.PwmApplication;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
@@ -33,20 +33,33 @@ import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.PwmUnrecoverableException;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-@Getter
-@Setter
+@Value
+@Builder
 public class PeopleSearchClientConfigBean implements Serializable
 {
     private Map<String, String> searchColumns;
+    private boolean enableAdvancedSearch;
     private boolean enablePhoto;
     private boolean orgChartEnabled;
     private boolean orgChartShowChildCount;
     private int orgChartMaxParents;
+    private int maxAdvancedSearchAttributes;
+    private List<SearchAttribute> advancedSearchAttributes;
+
+    @Value
+    @Builder
+    public static class SearchAttribute implements Serializable
+    {
+        private String id;
+        private String attribute;
+    }
+
 
 
     static PeopleSearchClientConfigBean fromConfig(
@@ -67,14 +80,22 @@ public class PeopleSearchClientConfigBean implements Serializable
                     formConfiguration.getLabel( locale ) );
         }
 
-        final PeopleSearchClientConfigBean peopleSearchClientConfigBean = new PeopleSearchClientConfigBean();
-        peopleSearchClientConfigBean.setSearchColumns( searchColumns );
+        final List<SearchAttribute> searchAttributes = Arrays.asList(
+                SearchAttribute.builder().attribute( "Title" ).id( "title" ).build(),
+                SearchAttribute.builder().attribute( "Given Name" ).id( "givenName" ).build(),
+                SearchAttribute.builder().attribute( "First Name" ).id( "sn" ).build()
+        );
 
-        peopleSearchClientConfigBean.setEnablePhoto( peopleSearchConfiguration.isPhotosEnabled( userIdentity, sessionLabel ) );
-        peopleSearchClientConfigBean.setOrgChartEnabled( peopleSearchConfiguration.isOrgChartEnabled() );
-        peopleSearchClientConfigBean.setOrgChartShowChildCount( peopleSearchConfiguration.isOrgChartShowChildCount() );
-        peopleSearchClientConfigBean.setOrgChartMaxParents( peopleSearchConfiguration.getOrgChartMaxParents() );
+        return PeopleSearchClientConfigBean.builder()
+                .searchColumns( searchColumns )
+                .enablePhoto( peopleSearchConfiguration.isPhotosEnabled( userIdentity, sessionLabel ) )
+                .orgChartEnabled( peopleSearchConfiguration.isOrgChartEnabled() )
+                .orgChartShowChildCount( peopleSearchConfiguration.isOrgChartShowChildCount() )
+                .orgChartMaxParents( peopleSearchConfiguration.getOrgChartMaxParents() )
 
-        return peopleSearchClientConfigBean;
+                .enableAdvancedSearch( true )
+                .maxAdvancedSearchAttributes( 3 )
+                .advancedSearchAttributes( searchAttributes )
+                .build();
     }
 }
