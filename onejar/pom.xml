@@ -16,7 +16,7 @@
     <name>PWM Password Self Service: Executable Jar</name>
 
     <properties>
-        <tomcat.version>9.0.8</tomcat.version>
+        <tomcat.version>9.0.10</tomcat.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
