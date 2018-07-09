@@ -22,17 +22,6 @@
 
 package password.pwm.svc.cache;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
-import java.io.Serializable;
-import java.time.Instant;
-
-@Getter
-@AllArgsConstructor
-class CacheValueWrapper implements Serializable
+public enum CacheValueType
 {
-    private final CacheKey cacheKey;
-    private final Instant expirationDate;
-    private final String payload;
 }

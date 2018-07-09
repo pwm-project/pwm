@@ -24,20 +24,24 @@ package password.pwm.svc.cache;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 
+import java.io.Serializable;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 class MemoryCacheStore implements CacheStore
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( MemoryCacheStore.class );
-    private final Cache<String, CacheValueWrapper> memoryStore;
+    private final Cache<CacheKey, CacheValueWrapper> memoryStore;
     private final CacheStoreInfo cacheStoreInfo = new CacheStoreInfo();
 
     MemoryCacheStore( final int maxItems )
@@ -48,19 +52,18 @@ class MemoryCacheStore implements CacheStore
     }
 
     @Override
-    public void store( final CacheKey cacheKey, final Instant expirationDate, final String data )
+    public void store( final CacheKey cacheKey, final Instant expirationDate, final Serializable data )
             throws PwmUnrecoverableException
     {
-        cacheStoreInfo.getStoreCount();
-        memoryStore.put( cacheKey.getHash(), new CacheValueWrapper( cacheKey, expirationDate, data ) );
+        cacheStoreInfo.incrementStoreCount();
+        memoryStore.put( cacheKey, new CacheValueWrapper( cacheKey, expirationDate, data ) );
     }
 
     @Override
-    public String read( final CacheKey cacheKey )
-            throws PwmUnrecoverableException
+    public <T> T read( final CacheKey cacheKey, final Class<T> classOfT )
     {
-        cacheStoreInfo.getReadCount();
-        final CacheValueWrapper valueWrapper = memoryStore.getIfPresent( cacheKey.getHash() );
+        cacheStoreInfo.incrementReadCount();
+        final CacheValueWrapper valueWrapper = memoryStore.getIfPresent( cacheKey );
         if ( valueWrapper != null )
         {
             if ( cacheKey.equals( valueWrapper.getCacheKey() ) )
@@ -68,11 +71,11 @@ class MemoryCacheStore implements CacheStore
                 if ( valueWrapper.getExpirationDate().isAfter( Instant.now() ) )
                 {
                     cacheStoreInfo.incrementHitCount();
-                    return valueWrapper.getPayload();
+                    return (T) valueWrapper.getPayload();
                 }
             }
         }
-        memoryStore.invalidate( cacheKey.getHash() );
+        memoryStore.invalidate( cacheKey );
         cacheStoreInfo.incrementMissCount();
         return null;
     }
@@ -93,17 +96,25 @@ class MemoryCacheStore implements CacheStore
     public List<CacheDebugItem> getCacheDebugItems( )
     {
         final List<CacheDebugItem> items = new ArrayList<>();
-        final Iterator<CacheValueWrapper> iter = memoryStore.asMap().values().iterator();
-        while ( iter.hasNext() )
+        for ( Map.Entry<CacheKey, CacheValueWrapper> entry : memoryStore.asMap().entrySet() )
         {
-            final CacheValueWrapper valueWrapper = iter.next();
-            final String hash = valueWrapper.getCacheKey().getStorageValue();
-            final int chars = valueWrapper.getPayload().length();
-            final Instant storeDate = valueWrapper.getExpirationDate();
+            final CacheKey cacheKey = entry.getKey();
+            final CacheValueWrapper cacheValueWrapper = entry.getValue();
+            final Instant storeDate = cacheValueWrapper.getExpirationDate();
             final String age = Duration.between( storeDate, Instant.now() ).toString();
-            final CacheDebugItem cacheDebugItem = new CacheDebugItem( hash, age, chars );
+            final int chars = JsonUtil.serialize( cacheValueWrapper.getPayload() ).length();
+            final CacheDebugItem cacheDebugItem = new CacheDebugItem( cacheKey, age, chars );
             items.add( cacheDebugItem );
         }
         return Collections.unmodifiableList( items );
+    }
+
+    @Getter
+    @AllArgsConstructor
+    static class CacheValueWrapper implements Serializable
+    {
+        private final CacheKey cacheKey;
+        private final Instant expirationDate;
+        private final Serializable payload;
     }
 }

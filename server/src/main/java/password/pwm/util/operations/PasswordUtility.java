@@ -1020,7 +1020,7 @@ public class PasswordUtility
         {
             final CacheService cacheService = pwmApplication.getCacheService();
             final CacheKey cacheKey = user != null && userInfo.getUserIdentity() != null
-                    ? CacheKey.makeCacheKey(
+                    ? CacheKey.newKey(
                     PasswordUtility.class,
                     userInfo.getUserIdentity(),
                     user.getEntryDN() + ":" + password.hash() )
@@ -1033,7 +1033,7 @@ public class PasswordUtility
             {
                 if ( cacheService != null && cacheKey != null )
                 {
-                    final String cachedValue = cacheService.get( cacheKey );
+                    final String cachedValue = cacheService.get( cacheKey, String.class );
                     if ( cachedValue != null )
                     {
                         if ( NEGATIVE_CACHE_HIT.equals( cachedValue ) )

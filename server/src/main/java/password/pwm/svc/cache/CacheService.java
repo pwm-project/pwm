@@ -31,7 +31,6 @@ import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
-import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
@@ -47,7 +46,6 @@ public class CacheService implements PwmService
     private static final PwmLogger LOGGER = PwmLogger.forClass( CacheService.class );
 
     private MemoryCacheStore memoryCacheStore;
-    private LocalDBCacheStore localDBCacheStore;
 
     private STATUS status = STATUS.NEW;
 
@@ -87,10 +85,6 @@ public class CacheService implements PwmService
 
         status = STATUS.OPENING;
         final int maxMemItems = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.CACHE_MEMORY_MAX_ITEMS ) );
-        if ( pwmApplication.getLocalDB() != null && pwmApplication.getLocalDB().status() == LocalDB.Status.OPEN )
-        {
-            localDBCacheStore = new LocalDBCacheStore( pwmApplication );
-        }
         memoryCacheStore = new MemoryCacheStore( maxMemItems );
         status = STATUS.OPEN;
     }
@@ -99,7 +93,6 @@ public class CacheService implements PwmService
     public void close( )
     {
         status = STATUS.CLOSED;
-        localDBCacheStore = null;
     }
 
     @Override
@@ -119,12 +112,10 @@ public class CacheService implements PwmService
         final Map<String, Serializable> debugInfo = new LinkedHashMap<>( );
         debugInfo.put( "memory-statistics", memoryCacheStore.getCacheStoreInfo() );
         debugInfo.put( "memory-items", new ArrayList<Serializable>( memoryCacheStore.getCacheDebugItems() ) );
-        debugInfo.put( "localdb-statistics", localDBCacheStore.getCacheStoreInfo() );
-        debugInfo.put( "localdb-items", new ArrayList<Serializable>( localDBCacheStore.getCacheDebugItems() ) );
         return Collections.unmodifiableMap( debugInfo );
     }
 
-    public void put( final CacheKey cacheKey, final CachePolicy cachePolicy, final String payload )
+    public void put( final CacheKey cacheKey, final CachePolicy cachePolicy, final Serializable payload )
             throws PwmUnrecoverableException
     {
         if ( status != STATUS.OPEN )
@@ -145,14 +136,10 @@ public class CacheService implements PwmService
         }
         final Instant expirationDate = cachePolicy.getExpiration();
         memoryCacheStore.store( cacheKey, expirationDate, payload );
-        if ( localDBCacheStore != null )
-        {
-            localDBCacheStore.store( cacheKey, expirationDate, payload );
-        }
         outputTraceInfo();
     }
 
-    public String get( final CacheKey cacheKey )
+    public <T> T get( final CacheKey cacheKey, final Class<T> classOfT  )
             throws PwmUnrecoverableException
     {
         if ( cacheKey == null )
@@ -165,20 +152,15 @@ public class CacheService implements PwmService
             return null;
         }
 
-        String payload = null;
+        Object payload = null;
         if ( memoryCacheStore != null )
         {
-            payload = memoryCacheStore.read( cacheKey );
-        }
-
-        if ( payload == null && localDBCacheStore != null )
-        {
-            payload = localDBCacheStore.read( cacheKey );
+            payload = memoryCacheStore.read( cacheKey, classOfT );
         }
 
         outputTraceInfo();
 
-        return payload;
+        return (T) payload;
     }
 
     private void outputTraceInfo( )
@@ -197,12 +179,6 @@ public class CacheService implements PwmService
         {
             final CacheStoreInfo info = memoryCacheStore.getCacheStoreInfo();
             traceOutput.append( ", memCache=" );
-            traceOutput.append( JsonUtil.serialize( info ) );
-        }
-        if ( localDBCacheStore != null )
-        {
-            final CacheStoreInfo info = localDBCacheStore.getCacheStoreInfo();
-            traceOutput.append( ", localDbCache=" );
             traceOutput.append( JsonUtil.serialize( info ) );
         }
         LOGGER.trace( traceOutput );

@@ -294,12 +294,12 @@ public class FormUtility
         }
 
         final CacheService cacheService = pwmApplication.getCacheService();
-        final CacheKey cacheKey = CacheKey.makeCacheKey(
+        final CacheKey cacheKey = CacheKey.newKey(
                 Validator.class, null, "attr_unique_check_" + filter.toString()
         );
         if ( allowResultCaching && cacheService != null )
         {
-            final String cacheValue = cacheService.get( cacheKey );
+            final String cacheValue = cacheService.get( cacheKey, String.class );
             if ( cacheValue != null )
             {
                 if ( NEGATIVE_CACHE_HIT.equals( cacheValue ) )

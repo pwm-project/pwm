@@ -203,11 +203,11 @@ public class LdapOperationsHelper
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
         final boolean enableCache = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.LDAP_CACHE_USER_GUID_ENABLE ) );
-        final CacheKey cacheKey = CacheKey.makeCacheKey( LdapOperationsHelper.class, null, "guidValue-" + userIdentity.toDelimitedKey() );
+        final CacheKey cacheKey = CacheKey.newKey( LdapOperationsHelper.class, userIdentity, "guidValue" );
 
         if ( enableCache )
         {
-            final String cachedValue = pwmApplication.getCacheService().get( cacheKey );
+            final String cachedValue = pwmApplication.getCacheService().get( cacheKey, String.class );
             if ( cachedValue != null )
             {
                 return NULL_CACHE_GUID.equals( cachedValue )

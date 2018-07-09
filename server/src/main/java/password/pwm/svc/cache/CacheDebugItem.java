@@ -29,7 +29,7 @@ import java.io.Serializable;
 @Value
 class CacheDebugItem implements Serializable
 {
-    private String key;
+    private CacheKey cacheKey;
     private String age;
     private int chars;
 }

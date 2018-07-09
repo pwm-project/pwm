@@ -146,10 +146,10 @@ public class LdapProfile extends AbstractProfile implements Profile
         final boolean enableCanonicalCache = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.LDAP_CACHE_CANONICAL_ENABLE ) );
 
         String canonicalValue = null;
-        final CacheKey cacheKey = CacheKey.makeCacheKey( LdapPermissionTester.class, null, "canonicalDN-" + this.getIdentifier() + "-" + dnValue );
+        final CacheKey cacheKey = CacheKey.newKey( LdapPermissionTester.class, null, "canonicalDN-" + this.getIdentifier() + "-" + dnValue );
         if ( enableCanonicalCache )
         {
-            final String cachedDN = pwmApplication.getCacheService().get( cacheKey );
+            final String cachedDN = pwmApplication.getCacheService().get( cacheKey, String.class );
             if ( cachedDN != null )
             {
                 canonicalValue = cachedDN;
