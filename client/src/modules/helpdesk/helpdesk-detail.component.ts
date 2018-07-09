@@ -30,10 +30,12 @@ import {IPerson} from '../../models/person.model';
 import {IChangePasswordSuccess} from '../../components/changepassword/success-change-password.controller';
 import LocalStorageService from '../../services/local-storage.service';
 
-let autogenChangePasswordTemplateUrl = require('../../components/changepassword/autogen-change-password.component.html');
+let autogenChangePasswordTemplateUrl =
+    require('../../components/changepassword/autogen-change-password.component.html');
 let helpdeskDetailDialogTemplateUrl = require('./helpdesk-detail-dialog.template.html');
 let randomChangePasswordTemplateUrl = require('../../components/changepassword/random-change-password.component.html');
-let successChangePasswordTemplateUrl = require('../../components/changepassword/success-change-password.component.html');
+let successChangePasswordTemplateUrl =
+    require('../../components/changepassword/success-change-password.component.html');
 let typeChangePasswordTemplateUrl = require('../../components/changepassword/type-change-password.component.html');
 let verificationsDialogTemplateUrl = require('./verifications-dialog.template.html');
 
