@@ -23,6 +23,7 @@
 package password.pwm.http.bean;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import password.pwm.config.option.SessionBeanMode;
 import password.pwm.config.value.FileValue;
 import password.pwm.http.servlet.configguide.ConfigGuideForm;
@@ -37,6 +38,7 @@ import java.util.Map;
 import java.util.Set;
 
 @Data
+@EqualsAndHashCode( callSuper = false )
 public class ConfigGuideBean extends PwmSessionBean
 {
 

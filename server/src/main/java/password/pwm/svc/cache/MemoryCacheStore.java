@@ -25,11 +25,18 @@ package password.pwm.svc.cache;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.logging.PwmLogger;
 
+import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 
 class MemoryCacheStore implements CacheStore
 {
+    private static final PwmLogger LOGGER = PwmLogger.forClass( MemoryCacheStore.class );
     private final Cache<String, CacheValueWrapper> memoryStore;
     private final CacheStoreInfo cacheStoreInfo = new CacheStoreInfo();
 
@@ -80,5 +87,23 @@ class MemoryCacheStore implements CacheStore
     public int itemCount( )
     {
         return ( int ) memoryStore.estimatedSize();
+    }
+
+    @Override
+    public List<CacheDebugItem> getCacheDebugItems( )
+    {
+        final List<CacheDebugItem> items = new ArrayList<>();
+        final Iterator<CacheValueWrapper> iter = memoryStore.asMap().values().iterator();
+        while ( iter.hasNext() )
+        {
+            final CacheValueWrapper valueWrapper = iter.next();
+            final String hash = valueWrapper.getCacheKey().getStorageValue();
+            final int chars = valueWrapper.getPayload().length();
+            final Instant storeDate = valueWrapper.getExpirationDate();
+            final String age = Duration.between( storeDate, Instant.now() ).toString();
+            final CacheDebugItem cacheDebugItem = new CacheDebugItem( hash, age, chars );
+            items.add( cacheDebugItem );
+        }
+        return Collections.unmodifiableList( items );
     }
 }

@@ -30,8 +30,10 @@ import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
@@ -225,5 +227,34 @@ public class LocalDBCacheStore implements CacheStore
             LOGGER.error( "unexpected error reading size from localDB: " + e.getMessage(), e );
         }
         return 0;
+    }
+
+    @Override
+    public List<CacheDebugItem> getCacheDebugItems( )
+    {
+        final List<CacheDebugItem> items = new ArrayList<>();
+        try ( LocalDB.LocalDBIterator<String> iter = localDB.iterator( DB ) )
+        {
+            while ( iter.hasNext() )
+            {
+                final String nextKey = iter.next();
+                final String storedValue = localDB.get( DB, nextKey );
+                if ( storedValue != null )
+                {
+                    final CacheValueWrapper valueWrapper = JsonUtil.deserialize( storedValue, CacheValueWrapper.class );
+                    final String hash = valueWrapper.getCacheKey().getStorageValue();
+                    final int chars = valueWrapper.getPayload().length();
+                    final Instant storeDate = valueWrapper.getExpirationDate();
+                    final String age = Duration.between( storeDate, Instant.now() ).toString();
+                    final CacheDebugItem cacheDebugItem = new CacheDebugItem( hash, age, chars );
+                    items.add( cacheDebugItem );
+                }
+            }
+        }
+        catch ( LocalDBException e )
+        {
+            LOGGER.error( "unexpected error reading debug items: " + e.getMessage(), e );
+        }
+        return Collections.unmodifiableList( items );
     }
 }

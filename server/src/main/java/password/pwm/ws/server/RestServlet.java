@@ -274,11 +274,11 @@ public abstract class RestServlet extends HttpServlet
         }
         else if ( reqContent == null && !anyMatch.isContentMatch() )
         {
-            errorMsg = HttpHeader.Content_Type.getHttpName() + " header is required";
+            errorMsg = HttpHeader.ContentType.getHttpName() + " header is required";
         }
         else if ( !anyMatch.isContentMatch() )
         {
-            errorMsg = HttpHeader.Content_Type.getHttpName() + " header value does not match an available processor";
+            errorMsg = HttpHeader.ContentType.getHttpName() + " header value does not match an available processor";
         }
         else
         {
@@ -318,7 +318,7 @@ public abstract class RestServlet extends HttpServlet
         {
             if ( restRequest.readContentType() == null )
             {
-                final String message = restRequest.getMethod() + " method requires " + HttpHeader.Content_Type.getHttpName() + " header";
+                final String message = restRequest.getMethod() + " method requires " + HttpHeader.ContentType.getHttpName() + " header";
                 throw PwmUnrecoverableException.newException( PwmError.ERROR_UNAUTHORIZED, message );
             }
         }
@@ -342,7 +342,7 @@ public abstract class RestServlet extends HttpServlet
             {
                 case json:
                 {
-                    resp.setHeader( HttpHeader.Content_Type.getHttpName(), HttpContentType.json.getHeaderValue() );
+                    resp.setHeader( HttpHeader.ContentType.getHttpName(), HttpContentType.json.getHeaderValue() );
                     try ( PrintWriter pw = resp.getWriter() )
                     {
                         pw.write( restResultBean.toJson() );
@@ -352,7 +352,7 @@ public abstract class RestServlet extends HttpServlet
 
                 case plain:
                 {
-                    resp.setHeader( HttpHeader.Content_Type.getHttpName(), HttpContentType.plain.getHeaderValue() );
+                    resp.setHeader( HttpHeader.ContentType.getHttpName(), HttpContentType.plain.getHeaderValue() );
                     if ( restResultBean.isError() )
                     {
                         resp.sendError( HttpServletResponse.SC_INTERNAL_SERVER_ERROR, restResultBean.getErrorMessage() );
@@ -396,7 +396,7 @@ public abstract class RestServlet extends HttpServlet
     private static void outputLastHopeError( final String msg, final HttpServletResponse response ) throws IOException
     {
         response.setStatus( HttpServletResponse.SC_INTERNAL_SERVER_ERROR );
-        response.setHeader( HttpHeader.Content_Type.getHttpName(), HttpContentType.json.getHeaderValue() );
+        response.setHeader( HttpHeader.ContentType.getHttpName(), HttpContentType.json.getHeaderValue() );
         try ( PrintWriter pw = response.getWriter() )
         {
             pw.write( "Error: " );

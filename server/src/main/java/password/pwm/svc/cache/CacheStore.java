@@ -25,6 +25,7 @@ package password.pwm.svc.cache;
 import password.pwm.error.PwmUnrecoverableException;
 
 import java.time.Instant;
+import java.util.List;
 
 public interface CacheStore
 {
@@ -35,4 +36,6 @@ public interface CacheStore
     CacheStoreInfo getCacheStoreInfo( );
 
     int itemCount( );
+
+    List<CacheDebugItem> getCacheDebugItems( );
 }

@@ -57,6 +57,7 @@ import java.util.GregorianCalendar;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.TimeZone;
 import java.util.TreeSet;
@@ -593,5 +594,31 @@ public class JavaHelper
             returnValue = max;
         }
         return returnValue;
+    }
+
+    public static <T> Optional<T> extractNestedExceptionType( final Exception inputException, final Class<T> exceptionType )
+    {
+        if ( inputException == null )
+        {
+            return Optional.empty();
+        }
+
+        if ( inputException.getClass().isInstance( exceptionType ) )
+        {
+            return Optional.of( ( T ) inputException );
+        }
+
+        Throwable nextException = inputException.getCause();
+        while ( nextException != null )
+        {
+            if ( nextException.getClass().isInstance( exceptionType ) )
+            {
+                return Optional.of( ( T ) inputException );
+            }
+
+            nextException = nextException.getCause();
+        }
+
+        return Optional.empty();
     }
 }

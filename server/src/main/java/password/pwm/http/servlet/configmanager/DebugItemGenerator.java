@@ -38,6 +38,7 @@ import password.pwm.http.servlet.admin.UserDebugDataBean;
 import password.pwm.http.servlet.admin.UserDebugDataReader;
 import password.pwm.ldap.LdapDebugDataGenerator;
 import password.pwm.svc.PwmService;
+import password.pwm.svc.cache.CacheService;
 import password.pwm.svc.cluster.ClusterService;
 import password.pwm.util.LDAPPermissionCalculator;
 import password.pwm.util.java.FileSystemUtility;
@@ -100,7 +101,8 @@ public class DebugItemGenerator
             LocalDBDebugGenerator.class,
             SessionDataGenerator.class,
             LdapRecentUserDebugGenerator.class,
-            ClusterInfoDebugGenerator.class
+            ClusterInfoDebugGenerator.class,
+            CacheServiceDebugItemGenerator.class
     ) );
 
     static void outputZipDebugFile(
@@ -685,6 +687,30 @@ public class DebugItemGenerator
 
             outputStream.write( JsonUtil.serializeMap( debugOutput, JsonUtil.Flag.PrettyPrint ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
         }
+    }
+
+    static class CacheServiceDebugItemGenerator implements Generator
+    {
+        @Override
+        public String getFilename( )
+        {
+            return "cache-service-info.json";
+        }
+
+        @Override
+        public void outputItem(
+                final PwmApplication pwmApplication,
+                final PwmRequest pwmRequest,
+                final OutputStream outputStream
+        )
+                throws Exception
+        {
+            final CacheService cacheService = pwmApplication.getCacheService();
+
+            final Map<String, Serializable> debugOutput = new LinkedHashMap<>( cacheService.debugInfo() );
+            outputStream.write( JsonUtil.serializeMap( debugOutput, JsonUtil.Flag.PrettyPrint ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
+        }
+
     }
 
 

@@ -67,7 +67,7 @@ public class HttpTelemetrySender implements TelemetrySender
         final PwmHttpClient pwmHttpClient = new PwmHttpClient( pwmApplication, SessionLabel.TELEMETRY_SESSION_LABEL, pwmHttpClientConfiguration );
         final String body = JsonUtil.serialize( statsPublishBean );
         final Map<String, String> headers = new HashMap<>();
-        headers.put( HttpHeader.Content_Type.getHttpName(), HttpContentType.json.getHeaderValue() );
+        headers.put( HttpHeader.ContentType.getHttpName(), HttpContentType.json.getHeaderValue() );
         headers.put( HttpHeader.Accept.getHttpName(), PwmConstants.AcceptValue.json.getHeaderValue() );
         final PwmHttpClientRequest pwmHttpClientRequest = new PwmHttpClientRequest(
                 HttpMethod.POST,

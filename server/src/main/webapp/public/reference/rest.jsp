@@ -94,7 +94,7 @@
             <td class="title" style="font-size: smaller">type</td>
             <td class="title" style="font-size: smaller">description</td>
         </tr>
-        <tr><td>error</td><td>boolean</td><td>true if the operation was successfull</td></tr>
+        <tr><td>error</td><td>boolean</td><td>false if the operation was successfull</td></tr>
         <tr><td>errorCode</td><td>four-digit number</td><td>application error code</td></tr>
         <tr><td>errorMessage</td><td>string</td><td>Localized error message string</td></tr>
         <tr><td>errorDetail</td><td>string</td><td>Error Number, Error ID and debugging detail message if any, English only</td></tr>

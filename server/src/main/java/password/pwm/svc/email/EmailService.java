@@ -26,6 +26,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.bean.EmailItemBean;
+import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.ErrorInformation;
@@ -56,10 +57,12 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -77,10 +80,18 @@ public class EmailService implements PwmService
     private final List<EmailServer> servers = new ArrayList<>( );
     private WorkQueueProcessor<EmailItemBean> workQueueProcessor;
     private AtomicLoopIntIncrementer serverIncrementer;
+    private Set<Integer> retryableStatusResponses = Collections.emptySet();
 
     private PwmService.STATUS status = STATUS.NEW;
 
     private final ThreadLocal<EmailConnection> threadLocalTransport = new ThreadLocal<>();
+
+    enum SendFailureMode
+    {
+        RESEND,
+        REQUEUE,
+        DISCARD,
+    }
 
     public void init( final PwmApplication pwmApplication )
             throws PwmException
@@ -113,6 +124,10 @@ public class EmailService implements PwmService
         final LocalDBStoredQueue localDBStoredQueue = LocalDBStoredQueue.createLocalDBStoredQueue( pwmApplication, pwmApplication.getLocalDB(), LocalDB.DB.EMAIL_QUEUE );
 
         workQueueProcessor = new WorkQueueProcessor<>( pwmApplication, localDBStoredQueue, settings, new EmailItemProcessor(), this.getClass() );
+
+        retryableStatusResponses = readRetryableStatusCodes( pwmApplication.getConfig() );
+
+
         status = STATUS.OPEN;
     }
 
@@ -409,7 +424,7 @@ public class EmailService implements PwmService
             }
             LOGGER.error( errorInformation );
 
-            if ( EmailServerUtil.sendIsRetryable( e ) )
+            if ( EmailServerUtil.examineSendFailure( e, retryableStatusResponses ) )
             {
                 LOGGER.error( "error sending email (" + e.getMessage() + ") " + emailItemBean.toDebugString() + ", will retry" );
                 StatisticsManager.incrementStat( pwmApplication, Statistic.EMAIL_SEND_FAILURES );
@@ -457,5 +472,21 @@ public class EmailService implements PwmService
         throw PwmUnrecoverableException.newException( PwmError.ERROR_SERVICE_UNREACHABLE, "unable to reach any configured email server" );
     }
 
+    private static Set<Integer> readRetryableStatusCodes( final Configuration configuration )
+    {
+        final String rawAppProp = configuration.readAppProperty( AppProperty.SMTP_RETRYABLE_SEND_RESPONSE_STATUSES );
+        if ( StringUtil.isEmpty( rawAppProp ) )
+        {
+            return Collections.emptySet();
+        }
+
+        final Set<Integer> returnData = new HashSet<>();
+        for ( final String loopString : rawAppProp.split( "," ) )
+        {
+            final Integer loopInt = Integer.parseInt( loopString );
+            returnData.add( loopInt );
+        }
+        return Collections.unmodifiableSet( returnData );
+    }
 }
 

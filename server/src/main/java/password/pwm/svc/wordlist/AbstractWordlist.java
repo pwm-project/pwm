@@ -78,7 +78,6 @@ abstract class AbstractWordlist implements Wordlist, PwmService
     protected PwmLogger logger = PwmLogger.forClass( AbstractWordlist.class );
     protected String debugLabel = "Generic Word List";
 
-    protected int storedSize = 0;
     protected boolean debugTrace;
 
     private ErrorInformation lastError;
@@ -173,8 +172,6 @@ abstract class AbstractWordlist implements Wordlist, PwmService
             return;
         }
 
-        //read stored size
-        storedSize = readMetadata().getSize();
         wlStatus = STATUS.OPEN;
     }
 
@@ -259,7 +256,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
             return 0;
         }
 
-        return storedSize;
+        return readMetadata().getSize();
     }
 
     public synchronized void close( )

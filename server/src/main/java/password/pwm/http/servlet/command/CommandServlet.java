@@ -125,7 +125,7 @@ public abstract class CommandServlet extends ControlledPwmServlet
         pwmRequest.validatePwmFormID();
         if ( !pwmRequest.getPwmResponse().isCommitted() )
         {
-            pwmRequest.getPwmResponse().setHeader( HttpHeader.Cache_Control, "no-cache, no-store, must-revalidate" );
+            pwmRequest.getPwmResponse().setHeader( HttpHeader.CacheControl, "no-cache, no-store, must-revalidate" );
             pwmRequest.getPwmResponse().setContentType( HttpContentType.plain );
         }
         return ProcessStatus.Halt;
@@ -173,7 +173,7 @@ public abstract class CommandServlet extends ControlledPwmServlet
         LOGGER.debug( "pageLeaveNotice indicated at " + pageLeaveNoticeTime.toString() + ", referer=" + referrer );
         if ( !pwmRequest.getPwmResponse().isCommitted() )
         {
-            pwmRequest.getPwmResponse().setHeader( HttpHeader.Cache_Control, "no-cache, no-store, must-revalidate" );
+            pwmRequest.getPwmResponse().setHeader( HttpHeader.CacheControl, "no-cache, no-store, must-revalidate" );
             pwmRequest.getPwmResponse().setContentType( HttpContentType.plain );
         }
         return ProcessStatus.Halt;

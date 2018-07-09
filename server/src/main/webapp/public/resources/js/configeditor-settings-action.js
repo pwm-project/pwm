@@ -34,6 +34,7 @@ ActionHandler.defaultWebValue = {
     headers:{},
     url:"",
     body:"",
+    successStatus:[200],
     username:"",
     password:""
 };
@@ -390,6 +391,9 @@ ActionHandler.addOrEditWebAction = function(keyName, iteration, webActionIter) {
     if (showBody) {
         bodyText += '<tr><td class="key">Body</td><td><textarea style="max-width:400px; height:100px; max-height:100px" class="configStringInput" disabled id="input-' + inputID + '-body' + '"/></textarea></td></tr>';
     }
+    bodyText += '<td class="key">Success Status Codes</td><td><input type="text" class="configstringinput" style="width:300px" disabled id="input-' + inputID + '-successStatus' + '"/>';
+    bodyText += '<button style="margin-left: 15px" id="button-' + inputID + '-successStatus"><span class="btn-icon pwm-icon pwm-icon-list-ul"/> Edit</button>';
+    bodyText += '</td></tr>';
     if (!PWM_MAIN.JSLibrary.isEmpty(value['certificateInfos'])) {
         bodyText += '<tr><td class="key">Certificates</td><td><a id="button-' + inputID + '-certDetail">View Certificates</a></td>';
         bodyText += '</tr>';
@@ -446,6 +450,23 @@ ActionHandler.addOrEditWebAction = function(keyName, iteration, webActionIter) {
                 ActionHandler.write(keyName);
             });
 
+            PWM_MAIN.getObject('input-' + inputID + '-successStatus').value = value['successStatus'] ? value['successStatus'].join() : '';
+            PWM_MAIN.addEventHandler('button-' + inputID + '-successStatus', 'click', function(){
+                var options = {};
+                options['regex'] = '[0-9]{3}';
+                options['title'] = 'Success Status Codes';
+                options['instructions'] = 'Enter the three digit HTTP status codes that will be considered a success if returned by the remote web service.';
+                options['completeFunction'] = function(values){
+                    values.sort();
+                    value['successStatus'] = values;
+                    ActionHandler.write(keyName);
+                    ActionHandler.addOrEditWebAction(keyName, iteration, webActionIter)
+                };
+                var values = 'successStatus' in value ? value['successStatus'] : [];
+                values.sort();
+                options['value'] = values;
+                UILibrary.stringArrayEditorDialog(options);
+            });
 
             if (showBody) {
                 UILibrary.addTextValueToElement('input-' + inputID + '-body', value['body']);
