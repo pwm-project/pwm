@@ -440,7 +440,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
                 }
             }
 
-            if ( !activateUserBean.isTokenSent() && activateUserBean.getTokenDestination() != null )
+            if ( !activateUserBean.isTokenSent() && activateUserBean.getTokenDestination() != null && !activateUserBean.isTokenPassed())
             {
 
                 TokenUtil.initializeAndSendToken(
