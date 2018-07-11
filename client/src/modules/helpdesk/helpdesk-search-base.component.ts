@@ -45,10 +45,10 @@ export default abstract class HelpDeskSearchBaseComponent {
     searchTextLocalStorageKey: string;
     searchViewLocalStorageKey: string;
     verificationsEnabled: boolean;
-    view: string;
 
     constructor(protected $q: IQService,
                 protected $scope: IScope,
+                protected $state: angular.ui.IStateService,
                 protected $stateParams: angular.ui.IStateParamsService,
                 protected $timeout: ITimeoutService,
                 protected $translate: angular.translate.ITranslateService,
@@ -152,6 +152,10 @@ export default abstract class HelpDeskSearchBaseComponent {
             }.bind(this));
     }
 
+    private gotoState(state: string): void {
+        this.$state.go(state, { query: this.query });
+    }
+
     private onSearchTextChange(newValue: string, oldValue: string): void {
         if (newValue === oldValue) {
             return;
@@ -229,5 +233,15 @@ export default abstract class HelpDeskSearchBaseComponent {
 
     protected storeSearchText(): void {
         this.localStorageService.setItem(this.searchTextLocalStorageKey, this.query || '');
+    }
+
+    protected toggleView(state: string): void {
+        this.storeSearchView(state);
+        this.storeSearchText();
+        this.gotoState(state);
+    }
+
+    private storeSearchView(state: string) {
+        this.localStorageService.setItem(this.searchViewLocalStorageKey, state);
     }
 }
