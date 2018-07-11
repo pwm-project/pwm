@@ -120,7 +120,9 @@
                         <td ng-bind="item.label"></td>
                         <td ng-bind="item.value | dateFilter" ng-if="item.type==='timestamp'"></td>
                         <td ng-bind="item.value" ng-if="item.type==='string' || item.type==='number'"></td>
-                        <td ng-bind="value" ng-if="item.type==='multiString'" ng-repeat="value in item.values"></td>
+                        <td ng-if="item.type==='multiString'">
+                            <div ng-bind="value" ng-repeat="value in item.values"></div>
+                        </td>
                     </tr>
                     </tbody>
                 </table>
@@ -132,7 +134,9 @@
                         <td ng-bind="item.label"></td>
                         <td ng-bind="item.value | dateFilter" ng-if="item.type==='timestamp'"></td>
                         <td ng-bind="item.value" ng-if="item.type==='string' || item.type==='number'"></td>
-                        <td ng-bind="value" ng-if="item.type==='multiString'" ng-repeat="value in item.values"></td>
+                        <td ng-if="item.type==='multiString'">
+                            <div ng-bind="value" ng-repeat="value in item.values"></div>
+                        </td>
                     </tr>
                     </tbody>
                 </table>
@@ -180,7 +184,9 @@
                         <td ng-bind="item.label"></td>
                         <td ng-bind="item.value | dateFilter" ng-if="item.type==='timestamp'"></td>
                         <td ng-bind="item.value" ng-if="item.type==='string' || item.type==='number'"></td>
-                        <td ng-bind="value" ng-if="item.type==='multiString'" ng-repeat="value in item.values"></td>
+                        <td ng-if="item.type==='multiString'">
+                            <div ng-bind="value" ng-repeat="value in item.values"></div>
+                        </td>
                     </tr>
                     </tbody>
                 </table>

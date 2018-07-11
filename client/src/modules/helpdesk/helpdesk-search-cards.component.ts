@@ -53,7 +53,7 @@ export default class HelpDeskSearchCardsComponent extends HelpDeskSearchBaseComp
     ];
     constructor($q: IQService,
                 $scope: IScope,
-                private $state: angular.ui.IStateService,
+                $state: angular.ui.IStateService,
                 $stateParams: angular.ui.IStateParamsService,
                 $timeout: ITimeoutService,
                 $translate: angular.translate.ITranslateService,
@@ -63,7 +63,7 @@ export default class HelpDeskSearchCardsComponent extends HelpDeskSearchBaseComp
                 localStorageService: LocalStorageService,
                 promiseService: PromiseService,
                 pwmService: IPwmService) {
-        super($q, $scope, $stateParams, $timeout, $translate, configService, helpDeskService, IasDialogService,
+        super($q, $scope, $state, $stateParams, $timeout, $translate, configService, helpDeskService, IasDialogService,
             localStorageService, promiseService, pwmService);
     }
 
@@ -84,7 +84,7 @@ export default class HelpDeskSearchCardsComponent extends HelpDeskSearchBaseComp
     }
 
     gotoTableView(): void {
-        this.$state.go('search.table', {query: this.query});
+        this.toggleView('search.table');
     }
 
     private onSearchResult(searchResult: SearchResult): void {
