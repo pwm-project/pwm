@@ -25,13 +25,12 @@ package password.pwm.config;
 import org.jdom2.Attribute;
 import org.jdom2.Element;
 import password.pwm.i18n.Config;
-import password.pwm.i18n.PwmSetting;
 import password.pwm.util.LocaleHelper;
+import password.pwm.util.java.JavaHelper;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -181,12 +180,15 @@ public enum PwmSettingCategory
 
     INTERNAL( SETTINGS ),;
 
-    private final PwmSettingCategory parent;
-    private static final Map<PwmSettingCategory, password.pwm.config.PwmSetting> CACHE_PROFILE_SETTING = new HashMap<>();
+
     private static List<PwmSettingCategory> cachedSortedSettings;
 
-    private Integer level;
-    private Boolean hidden;
+    private final PwmSettingCategory parent;
+
+    private JavaHelper.SimpleReference<PwmSetting> profileSetting;
+    private JavaHelper.SimpleReference<Integer> level;
+    private JavaHelper.SimpleReference<Boolean> hidden;
+    private JavaHelper.SimpleReference<Boolean> isTopLevelProfile;
 
 
     PwmSettingCategory( final PwmSettingCategory parent )
@@ -206,11 +208,12 @@ public enum PwmSettingCategory
 
     public password.pwm.config.PwmSetting getProfileSetting( )
     {
-        if ( !CACHE_PROFILE_SETTING.containsKey( this ) )
+        if ( profileSetting == null )
         {
-            CACHE_PROFILE_SETTING.put( this, readProfileSettingFromXml( true ) );
+            final PwmSetting setting = readProfileSettingFromXml( true );
+            profileSetting = new JavaHelper.SimpleReference<>( setting );
         }
-        return CACHE_PROFILE_SETTING.get( this );
+        return profileSetting.get();
     }
 
     public boolean hasProfiles( )
@@ -220,19 +223,23 @@ public enum PwmSettingCategory
 
     public boolean isTopLevelProfile( )
     {
-        return readProfileSettingFromXml( false ) != null;
+        if ( isTopLevelProfile == null )
+        {
+            isTopLevelProfile = new JavaHelper.SimpleReference<>( readProfileSettingFromXml( false ) != null );
+        }
+        return isTopLevelProfile.get();
     }
 
     public String getLabel( final Locale locale )
     {
-        final String key = PwmSetting.CATEGORY_LABEL_PREFIX + this.getKey();
-        return LocaleHelper.getLocalizedMessage( locale, key, null, PwmSetting.class );
+        final String key = password.pwm.i18n.PwmSetting.CATEGORY_LABEL_PREFIX + this.getKey();
+        return LocaleHelper.getLocalizedMessage( locale, key, null, password.pwm.i18n.PwmSetting.class );
     }
 
     public String getDescription( final Locale locale )
     {
-        final String key = PwmSetting.CATEGORY_DESCRIPTION_PREFIX + this.getKey();
-        return LocaleHelper.getLocalizedMessage( locale, key, null, PwmSetting.class );
+        final String key = password.pwm.i18n.PwmSetting.CATEGORY_DESCRIPTION_PREFIX + this.getKey();
+        return LocaleHelper.getLocalizedMessage( locale, key, null, password.pwm.i18n.PwmSetting.class );
     }
 
     public int getLevel( )
@@ -241,9 +248,9 @@ public enum PwmSettingCategory
         {
             final Element settingElement = PwmSettingXml.readCategoryXml( this );
             final Attribute levelAttribute = settingElement.getAttribute( "level" );
-            level = levelAttribute != null ? Integer.parseInt( levelAttribute.getValue() ) : 0;
+            level = new JavaHelper.SimpleReference<>( levelAttribute != null ? Integer.parseInt( levelAttribute.getValue() ) : 0 );
         }
-        return level;
+        return level.get();
     }
 
     public boolean isHidden( )
@@ -254,7 +261,7 @@ public enum PwmSettingCategory
             final Attribute hiddenElement = settingElement.getAttribute( "hidden" );
             if ( hiddenElement != null && "true".equalsIgnoreCase( hiddenElement.getValue() ) )
             {
-                hidden = true;
+                hidden = new JavaHelper.SimpleReference<>( true );
             }
             else
             {
@@ -262,16 +269,16 @@ public enum PwmSettingCategory
                 {
                     if ( parentCategory.isHidden() )
                     {
-                        hidden = true;
+                        hidden = new JavaHelper.SimpleReference<>( true );
                     }
                 }
             }
             if ( hidden == null )
             {
-                hidden = false;
+                hidden = new JavaHelper.SimpleReference<>( false );
             }
         }
-        return hidden;
+        return hidden.get();
     }
 
     public boolean isTopCategory( )
@@ -297,19 +304,6 @@ public enum PwmSettingCategory
         for ( final PwmSettingCategory category : values() )
         {
             if ( this == category.getParent() )
-            {
-                returnObj.add( category );
-            }
-        }
-        return returnObj;
-    }
-
-    public static Collection<PwmSettingCategory> topCategories( )
-    {
-        final ArrayList<PwmSettingCategory> returnObj = new ArrayList<>();
-        for ( final PwmSettingCategory category : values() )
-        {
-            if ( category.isTopCategory() )
             {
                 returnObj.add( category );
             }
@@ -345,7 +339,7 @@ public enum PwmSettingCategory
         return null;
     }
 
-    public List<password.pwm.config.PwmSetting> getSettings( )
+    public List<PwmSetting> getSettings( )
     {
         final List<password.pwm.config.PwmSetting> returnList = new ArrayList<>();
         for ( final password.pwm.config.PwmSetting setting : password.pwm.config.PwmSetting.values() )
@@ -456,4 +450,5 @@ public enum PwmSettingCategory
 
         return Collections.unmodifiableCollection( returnValues );
     }
+
 }

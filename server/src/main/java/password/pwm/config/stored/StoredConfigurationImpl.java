@@ -411,16 +411,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
 
     private static StoredValue defaultValue( final PwmSetting pwmSetting, final PwmSettingTemplateSet template )
     {
-        try
-        {
-            return pwmSetting.getDefaultValue( template );
-        }
-        catch ( PwmException e )
-        {
-            final String errorMsg = "error reading default value for setting " + pwmSetting.toString() + ", error: " + e.getErrorInformation().toDebugStr();
-            LOGGER.error( errorMsg, e );
-            throw new IllegalStateException( errorMsg );
-        }
+        return pwmSetting.getDefaultValue( template );
     }
 
     public PwmSettingTemplateSet getTemplateSet( )

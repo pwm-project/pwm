@@ -621,4 +621,19 @@ public class JavaHelper
 
         return Optional.empty();
     }
+
+    public static class SimpleReference<T>
+    {
+        T reference;
+
+        public SimpleReference( final T reference )
+        {
+            this.reference = reference;
+        }
+
+        public T get( )
+        {
+            return reference;
+        }
+    }
 }
