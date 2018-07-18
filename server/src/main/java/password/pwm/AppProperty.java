@@ -183,6 +183,7 @@ public enum AppProperty
     HEALTHCHECK_MAX_FORCE_WAIT                      ( "healthCheck.maximumForceCheckWaitSeconds" ),
     HEALTH_CERTIFICATE_WARN_SECONDS                 ( "health.certificate.warnSeconds" ),
     HEALTH_LDAP_CAUTION_DURATION_MS                 ( "health.ldap.cautionDurationMS" ),
+    HEALTH_LDAP_PROXY_WARN_PW_EXPIRE_SECONDS        ( "health.ldap.proxy.pwExpireWarnSeconds" ),
     HEALTH_JAVA_MAX_THREADS                         ( "health.java.maxThreads" ),
     HEALTH_JAVA_MIN_HEAP_BYTES                      ( "health.java.minHeapBytes" ),
     HELPDESK_TOKEN_MAX_AGE                          ( "helpdesk.token.maxAgeSeconds" ),

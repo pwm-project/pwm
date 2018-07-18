@@ -567,6 +567,11 @@ public class TimeDuration implements Comparable, Serializable
         return new TimeDuration( duration.get( ChronoUnit.MILLIS ) );
     }
 
+    public static TimeDuration of ( final long value, final TimeUnit timeUnit )
+    {
+        return new TimeDuration( value, timeUnit );
+    }
+
     private static class TimeDetail implements Serializable
     {
         private final long milliseconds;

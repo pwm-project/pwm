@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -1214,16 +1215,16 @@ public enum PwmSetting
     private final PwmSettingCategory category;
 
     // cached values read from XML file
-    private JavaHelper.SimpleReference<List<TemplateSetAssociation>> defaultValues;
-    private JavaHelper.SimpleReference<List<TemplateSetAssociation>> examples;
-    private JavaHelper.SimpleReference<Map<String, String>> options;
-    private JavaHelper.SimpleReference<Collection<PwmSettingFlag>> flags;
-    private JavaHelper.SimpleReference<Map<PwmSettingProperty, String>> properties;
-    private JavaHelper.SimpleReference<Collection<LDAPPermissionInfo>> ldapPermissionInfos;
-    private JavaHelper.SimpleReference<Boolean> required;
-    private JavaHelper.SimpleReference<Boolean> hidden;
-    private JavaHelper.SimpleReference<Integer> level;
-    private JavaHelper.SimpleReference<Pattern> pattern;
+    private transient Supplier<List<TemplateSetAssociation>> defaultValues;
+    private transient Supplier<List<TemplateSetAssociation>> examples;
+    private transient Supplier<Map<String, String>> options;
+    private transient Supplier<Collection<PwmSettingFlag>> flags;
+    private transient Supplier<Map<PwmSettingProperty, String>> properties;
+    private transient Supplier<Collection<LDAPPermissionInfo>> ldapPermissionInfo;
+    private transient Supplier<Boolean> required;
+    private transient Supplier<Boolean> hidden;
+    private transient Supplier<Integer> level;
+    private transient Supplier<Pattern> pattern;
 
     PwmSetting(
             final String key,
@@ -1280,7 +1281,8 @@ public enum PwmSetting
             {
                 throw new IllegalStateException( "no default value for setting " + this.getKey() );
             }
-            defaultValues = new JavaHelper.SimpleReference<>( Collections.unmodifiableList( returnObj ) );
+            final List<TemplateSetAssociation> finalObj = Collections.unmodifiableList( returnObj );
+            defaultValues = ( ) -> finalObj;
         }
         return defaultValues.get();
     }
@@ -1326,7 +1328,8 @@ public enum PwmSetting
                     }
                 }
             }
-            options = new JavaHelper.SimpleReference<>( Collections.unmodifiableMap( returnList ) );
+            final Map<String, String> finalList = Collections.unmodifiableMap( returnList );
+            options = ( ) -> Collections.unmodifiableMap( finalList );
         }
 
         return options.get( );
@@ -1359,7 +1362,8 @@ public enum PwmSetting
                     }
                 }
             }
-            properties = new JavaHelper.SimpleReference<>( Collections.unmodifiableMap( newProps ) );
+            final Map<PwmSettingProperty, String> finalProps = Collections.unmodifiableMap( newProps );
+            properties = ( ) -> finalProps;
         }
 
         return properties.get();
@@ -1387,14 +1391,15 @@ public enum PwmSetting
                 }
 
             }
-            flags = new JavaHelper.SimpleReference<>( Collections.unmodifiableCollection( returnObj ) );
+            final Collection<PwmSettingFlag> finalObj = Collections.unmodifiableCollection( returnObj );
+            flags = ( ) -> finalObj;
         }
         return flags.get();
     }
 
     public Collection<LDAPPermissionInfo> getLDAPPermissionInfo( )
     {
-        if ( ldapPermissionInfos == null )
+        if ( ldapPermissionInfo == null )
         {
             final Element settingElement = PwmSettingXml.readSettingXml( this );
             final List<Element> permissionElements = settingElement.getChildren( PwmSettingXml.XML_ELEMENT_LDAP_PERMISSION );
@@ -1420,10 +1425,11 @@ public enum PwmSetting
                     }
                 }
             }
-            ldapPermissionInfos = new JavaHelper.SimpleReference<>( Collections.unmodifiableList( returnObj ) );
+            final List<LDAPPermissionInfo> finalObj = Collections.unmodifiableList( returnObj );
+            ldapPermissionInfo = ( ) -> finalObj;
         }
 
-        return ldapPermissionInfos.get();
+        return ldapPermissionInfo.get();
     }
 
     public String getLabel( final Locale locale )
@@ -1458,7 +1464,8 @@ public enum PwmSetting
             {
                 returnObj.add( new TemplateSetAssociation( "", Collections.emptySet() ) );
             }
-            examples = new JavaHelper.SimpleReference<>( Collections.unmodifiableList( returnObj ) );
+            final List<TemplateSetAssociation> exampleOutput = Collections.unmodifiableList( returnObj );
+            examples = ( ) -> exampleOutput;
         }
 
         return ( String ) associationForTempleSet( examples.get(), template ).getObject();
@@ -1470,7 +1477,8 @@ public enum PwmSetting
         {
             final Element settingElement = PwmSettingXml.readSettingXml( this );
             final Attribute requiredAttribute = settingElement.getAttribute( "required" );
-            required = new JavaHelper.SimpleReference<>( requiredAttribute != null && "true".equalsIgnoreCase( requiredAttribute.getValue() ) );
+            final boolean requiredOutput = requiredAttribute != null && "true".equalsIgnoreCase( requiredAttribute.getValue() );
+            required = ( ) -> requiredOutput;
         }
         return required.get();
     }
@@ -1481,8 +1489,8 @@ public enum PwmSetting
         {
             final Element settingElement = PwmSettingXml.readSettingXml( this );
             final Attribute requiredAttribute = settingElement.getAttribute( "hidden" );
-            final boolean hidden = requiredAttribute != null && "true".equalsIgnoreCase( requiredAttribute.getValue() ) || this.getCategory().isHidden();
-            this.hidden = new JavaHelper.SimpleReference<>( hidden );
+            final boolean outputHidden = requiredAttribute != null && "true".equalsIgnoreCase( requiredAttribute.getValue() ) || this.getCategory().isHidden();
+            hidden = ( ) -> outputHidden;
         }
         return hidden.get();
     }
@@ -1493,7 +1501,8 @@ public enum PwmSetting
         {
             final Element settingElement = PwmSettingXml.readSettingXml( this );
             final Attribute levelAttribute = settingElement.getAttribute( "level" );
-            level = new JavaHelper.SimpleReference<>( levelAttribute != null ? Integer.parseInt( levelAttribute.getValue() ) : 0 );
+            final int outputLevel = levelAttribute != null ? Integer.parseInt( levelAttribute.getValue() ) : 0;
+            level = ( ) -> outputLevel;
         }
         return level.get();
     }
@@ -1508,7 +1517,8 @@ public enum PwmSetting
             {
                 try
                 {
-                    pattern = new JavaHelper.SimpleReference<>( Pattern.compile( regexNode.getText() ) );
+                    final Pattern output = Pattern.compile( regexNode.getText() );
+                    pattern = ( ) -> output;
                 }
                 catch ( PatternSyntaxException e )
                 {
@@ -1519,7 +1529,8 @@ public enum PwmSetting
             }
             if ( pattern == null )
             {
-                pattern = new JavaHelper.SimpleReference<>( Pattern.compile( ".*", Pattern.DOTALL ) );
+                final Pattern output = Pattern.compile( ".*", Pattern.DOTALL );
+                pattern = ( ) -> output;
             }
         }
 

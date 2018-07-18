@@ -93,7 +93,12 @@ public class HttpsServerCertificateManager
     }
 
 
-    public static KeyStore keyStoreForApplication( final PwmApplication pwmApplication, final PasswordData passwordData, final String alias ) throws PwmUnrecoverableException
+    public static KeyStore keyStoreForApplication(
+            final PwmApplication pwmApplication,
+            final PasswordData passwordData,
+            final String alias
+    )
+            throws PwmUnrecoverableException
     {
         KeyStore keyStore = null;
         keyStore = exportKey( pwmApplication.getConfig(), KeyStoreFormat.JKS, passwordData, alias );

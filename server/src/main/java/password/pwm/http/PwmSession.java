@@ -40,14 +40,12 @@ import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.LocaleHelper;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.time.Instant;
@@ -357,17 +355,6 @@ public class PwmSession implements Serializable
 
     public int size( )
     {
-        try ( ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream() )
-        {
-            final ObjectOutputStream out = new ObjectOutputStream( byteArrayOutputStream );
-            out.writeObject( this );
-            out.flush();
-            return byteArrayOutputStream.toByteArray().length;
-        }
-        catch ( IOException e )
-        {
-            LOGGER.debug( this, "exception while estimating session size: " + e.getMessage() );
-            return 0;
-        }
+        return ( int ) JavaHelper.sizeof( this );
     }
 }

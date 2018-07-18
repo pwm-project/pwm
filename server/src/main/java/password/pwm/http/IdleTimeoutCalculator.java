@@ -88,7 +88,8 @@ public class IdleTimeoutCalculator
         else
         {
             final UserInfo userInfo = pwmSession.getUserInfo();
-            final boolean userIsAdmin = pwmSession.getSessionManager().checkPermission( pwmApplication, Permission.PWMADMIN );
+            final boolean userIsAdmin = pwmSession.isAuthenticated()
+                    && pwmSession.getSessionManager().checkPermission( pwmApplication, Permission.PWMADMIN );
             final Set<MaxIdleTimeoutResult> loggedInResults = figureMaxAuthUserTimeout( configuration, userInfo, userIsAdmin );
             results.addAll( loggedInResults );
         }
