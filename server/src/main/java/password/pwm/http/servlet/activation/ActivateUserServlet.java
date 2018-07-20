@@ -453,6 +453,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
                                 .smsToSend( PwmSetting.SMS_ACTIVATION_VERIFICATION_TEXT )
                                 .build()
                 );
+                activateUserBean.setTokenSent( true );
             }
 
             if ( !activateUserBean.isTokenPassed() )
