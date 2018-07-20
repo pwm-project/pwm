@@ -36,11 +36,13 @@ import password.pwm.util.secure.SecureService;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Value
 @Builder
@@ -144,5 +146,26 @@ public class TokenDestinationItem implements Serializable
         }
 
         return Collections.unmodifiableList( new ArrayList<>( results.values() ) );
+    }
+
+    public static Optional<TokenDestinationItem> tokenDestinationItemForID(
+            final Collection<TokenDestinationItem> tokenDestinationItems,
+            final String requestedID
+    )
+    {
+        if ( tokenDestinationItems == null || requestedID == null )
+        {
+            return Optional.empty();
+        }
+
+        for ( final TokenDestinationItem item : tokenDestinationItems )
+        {
+            if ( requestedID.equals( item.getId() ) )
+            {
+                return Optional.of( item );
+            }
+        }
+
+        return Optional.empty();
     }
 }

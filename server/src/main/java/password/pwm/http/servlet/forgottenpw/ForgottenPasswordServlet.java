@@ -84,7 +84,6 @@ import password.pwm.util.PostChangePasswordAction;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
-import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.operations.PasswordUtility;
@@ -107,6 +106,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -332,15 +332,10 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
 
         final String requestedID = pwmRequest.readParameterAsString( "choice", PwmHttpRequestWrapper.Flag.BypassValidation );
 
-        if ( !StringUtil.isEmpty( requestedID ) )
+        final Optional<TokenDestinationItem> tokenDestinationItem = TokenDestinationItem.tokenDestinationItemForID( items, requestedID );
+        if ( tokenDestinationItem.isPresent() )
         {
-            for ( final TokenDestinationItem item : items )
-            {
-                if ( requestedID.equals( item.getId() ) )
-                {
-                    forgottenPasswordBean.getProgress().setTokenDestination( item );
-                }
-            }
+            forgottenPasswordBean.getProgress().setTokenDestination( tokenDestinationItem.get() );
         }
 
         return ProcessStatus.Continue;
