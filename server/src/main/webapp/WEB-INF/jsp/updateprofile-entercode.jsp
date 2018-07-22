@@ -26,6 +26,7 @@
 <%@ page import="password.pwm.http.bean.UpdateProfileBean" %>
 <%@ page import="password.pwm.config.profile.UpdateProfileProfile" %>
 <%@ page import="password.pwm.bean.TokenDestinationItem" %>
+<%@ page import="password.pwm.http.servlet.updateprofile.UpdateProfileServlet" %>
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
@@ -62,9 +63,10 @@
                 </button>
             </div>
         </form>
-        <form id="form-reset" name="form-reset" method="post" name="form-cancel" enctype="application/x-www-form-urlencoded"
+        <form id="form-reset" name="form-reset" method="post" enctype="application/x-www-form-urlencoded"
               class="pwm-form">
-            <input type="hidden" name="processAction" value="unConfirm"/>
+            <input type="hidden" name="<%=PwmConstants.PARAM_RESET_TYPE%>" value="<%=UpdateProfileServlet.ResetAction.unConfirm%>"/>
+            <input type="hidden" name="<%=PwmConstants.PARAM_ACTION_REQUEST%>" value="<%=UpdateProfileServlet.UpdateProfileAction.reset%>"/>
             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
         </form>
     </div>
