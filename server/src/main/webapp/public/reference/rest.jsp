@@ -585,7 +585,7 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
                 <td class="key">Request</td>
         <td class="exampleTD">
 <pre>
-DELETE <pwm:context/>/public/rest/challenges HTTP/1.1
+DELETE <pwm:context/>/public/rest/challenges?username=user1234 HTTP/1.1
 Accept-Language: en
 Accept: application/json
 Content-Type: application/json
