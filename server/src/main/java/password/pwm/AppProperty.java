@@ -334,6 +334,8 @@ public enum AppProperty
     WORDLIST_CHAR_LENGTH_MIN                        ( "wordlist.minCharLength" ),
     WS_REST_CLIENT_PWRULE_HALTONERROR               ( "ws.restClient.pwRule.haltOnError" ),
     WS_REST_SERVER_SIGNING_FORM_TIMEOUT_SECONDS     ( "ws.restServer.signing.form.timeoutSeconds" ),
+    WS_REST_SERVER_STATISTICS_DEFAULT_HISTORY       ( "ws.restServer.statistics.defaultHistoryDays" ),
+    WS_REST_SERVER_STATISTICS_DEFAULT_VERSION       ( "ws.restServer.statistics.defaultVersion" ),
     ALLOW_MACRO_IN_REGEX_SETTING                    ( "password.policy.allowMacroInRegexSetting" ),;
 
     public static final String VALUE_SEPARATOR = ";;;";

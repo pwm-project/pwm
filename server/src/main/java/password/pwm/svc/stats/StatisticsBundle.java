@@ -89,7 +89,7 @@ public class StatisticsBundle
 
     public synchronized void incrementValue( final Statistic statistic )
     {
-        if ( Statistic.Type.INCREMENTOR != statistic.getType() )
+        if ( Statistic.Type.INCREMENTER != statistic.getType() )
         {
             LOGGER.error( "attempt to increment non-counter/incremental stat " + statistic );
             return;
@@ -146,7 +146,7 @@ public class StatisticsBundle
     {
         switch ( statistic.getType() )
         {
-            case INCREMENTOR:
+            case INCREMENTER:
                 return valueMap.containsKey( statistic ) ? valueMap.get( statistic ) : "0";
 
             case AVERAGE:

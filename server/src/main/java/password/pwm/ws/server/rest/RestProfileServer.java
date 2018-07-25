@@ -23,7 +23,6 @@
 package password.pwm.ws.server.rest;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import jetbrains.exodus.core.dataStructures.hash.LinkedHashSet;
 import lombok.Data;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;

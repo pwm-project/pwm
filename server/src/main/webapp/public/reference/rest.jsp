@@ -39,47 +39,47 @@
     .exampleTD {
         overflow: auto;
         display: block;
-        max-width:400px;
+        width:500px;
         max-height:400px;
         background-color: black;
         color: white;
     }
 </style>
 <div id="wrapper">
-<jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
-    <jsp:param name="pwm.PageName" value="REST Services Reference"/>
-</jsp:include>
-<div id="centerbody" class="wide">
-    <%@ include file="reference-nav.jsp"%>
+    <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
+        <jsp:param name="pwm.PageName" value="REST Services Reference"/>
+    </jsp:include>
+    <div id="centerbody" class="wide">
+        <%@ include file="reference-nav.jsp"%>
 
-    <ol>
-        <li><a href="#introduction">Introduction</a></li>
-        <li><a href="#rest-challenges">Rest Service - challenges</a></li>
-        <li><a href="#rest-checkpassword">Rest Service - checkpassword</a></li>
-        <li><a href="#rest-health">Rest Service - health</a></li>
-        <li><a href="#rest-profile">Rest Service - profile</a></li>
-        <li><a href="#rest-randompassword">Rest Service - randompassword</a></li>
-        <li><a href="#rest-setpassword">Rest Service - setpassword</a></li>
-        <li><a href="#rest-signing-form">Rest Service - signing/form</a></li>
-        <li><a href="#rest-statistics">Rest Service - statistics</a></li>
-        <li><a href="#rest-status">Rest Service - status</a></li>
-        <li><a href="#rest-verifyotp">Rest Service - verifyotp</a></li>
-        <li><a href="#rest-verifyresponses">Rest Service - verifyresponses</a></li>
-    </ol>
+        <ol>
+            <li><a href="#introduction">Introduction</a></li>
+            <li><a href="#rest-challenges">Rest Service - challenges</a></li>
+            <li><a href="#rest-checkpassword">Rest Service - checkpassword</a></li>
+            <li><a href="#rest-health">Rest Service - health</a></li>
+            <li><a href="#rest-profile">Rest Service - profile</a></li>
+            <li><a href="#rest-randompassword">Rest Service - randompassword</a></li>
+            <li><a href="#rest-setpassword">Rest Service - setpassword</a></li>
+            <li><a href="#rest-signing-form">Rest Service - signing/form</a></li>
+            <li><a href="#rest-statistics">Rest Service - statistics</a></li>
+            <li><a href="#rest-status">Rest Service - status</a></li>
+            <li><a href="#rest-verifyotp">Rest Service - verifyotp</a></li>
+            <li><a href="#rest-verifyresponses">Rest Service - verifyresponses</a></li>
+        </ol>
 
-    <br/><br/>
+        <br/><br/>
 
-    <br/>
-    <h1><a id="introduction">Introduction</a></h1>
-    <p>This system has a set of <a href="https://en.wikipedia.org/wiki/Representational_state_transfer#RESTful_web_APIs">RESTful web APIs</a> to facilitate 3rd party application development.</p>
-    <h2>Authentication</h2>
-    <p>All web services are authenticated using <a href="http://en.wikipedia.org/wiki/Basic_access_authentication">basic access authentication</a> utilizing the standard <i>Authorization</i> header.</p>
-    <p>The username portion of the authentication can either be a fully qualified LDAP DN of the user, or a username string value which the application will search for the user</p>
-    <p>Additionally, the application must be configured in such away to allow web service calls.  Not all functions may be enabled.  Some operations which involve a third party (other then the authenticated user) may require additional permissions configured within the application.</p>
-    <h2>Standard JSON Response</h2>
-    All JSON encoded responses are presented using a standard JSON object:
-    Example:
-<pre>
+        <br/>
+        <h1><a id="introduction">Introduction</a></h1>
+        <p>This system has a set of <a href="https://en.wikipedia.org/wiki/Representational_state_transfer#RESTful_web_APIs">RESTful web APIs</a> to facilitate 3rd party application development.</p>
+        <h2>Authentication</h2>
+        <p>All web services are authenticated using <a href="http://en.wikipedia.org/wiki/Basic_access_authentication">basic access authentication</a> utilizing the standard <i>Authorization</i> header.</p>
+        <p>The username portion of the authentication can either be a fully qualified LDAP DN of the user, or a username string value which the application will search for the user</p>
+        <p>Additionally, the application must be configured in such away to allow web service calls.  Not all functions may be enabled.  Some operations which involve a third party (other then the authenticated user) may require additional permissions configured within the application.</p>
+        <h2>Standard JSON Response</h2>
+        All JSON encoded responses are presented using a standard JSON object:
+        Example:
+        <pre>
 {
    "error": true,
    "errorCode": 5004,
@@ -88,106 +88,106 @@
    "data": {}
 }
 </pre>
-    <table>
-        <tr>
-            <td class="title" style="font-size: smaller">field</td>
-            <td class="title" style="font-size: smaller">type</td>
-            <td class="title" style="font-size: smaller">description</td>
-        </tr>
-        <tr><td>error</td><td>boolean</td><td>false if the operation was successfull</td></tr>
-        <tr><td>errorCode</td><td>four-digit number</td><td>application error code</td></tr>
-        <tr><td>errorMessage</td><td>string</td><td>Localized error message string</td></tr>
-        <tr><td>errorDetail</td><td>string</td><td>Error Number, Error ID and debugging detail message if any, English only</td></tr>
-        <tr><td>successMessage</td><td>string</td><td>Localized success message string</td></tr>
-        <tr><td>data</td><td>object</td><td>Requested data</td></tr>
-    </table>
-    <br/>
-    <h1><a id="rest-challenges">Rest Service - challenges</a></h1>
-<table >
-<tr>
-    <td class="key" style="width:50px">url</td>
-    <td><a href="<pwm:context/>/public/rest/challenges"><pwm:context/>/public/rest/challenges</a></td>
-</tr>
-<tr>
-<td class="key" style="width:50px">GET Method</td>
-<td>
-<table>
-    <tr>
-        <td class="key">Description</td>
-        <td>Retrieve users stored challenges.  Location of read responses is determined by the application configuration.
-            This interface cannot be used to read NMAS stored responses.</td>
+        <table>
+            <tr>
+                <td class="title" style="font-size: smaller">field</td>
+                <td class="title" style="font-size: smaller">type</td>
+                <td class="title" style="font-size: smaller">description</td>
+            </tr>
+            <tr><td>error</td><td>boolean</td><td>false if the operation was successfull</td></tr>
+            <tr><td>errorCode</td><td>four-digit number</td><td>application error code</td></tr>
+            <tr><td>errorMessage</td><td>string</td><td>Localized error message string</td></tr>
+            <tr><td>errorDetail</td><td>string</td><td>Error Number, Error ID and debugging detail message if any, English only</td></tr>
+            <tr><td>successMessage</td><td>string</td><td>Localized success message string</td></tr>
+            <tr><td>data</td><td>object</td><td>Requested data</td></tr>
+        </table>
+        <br/>
+        <h1><a id="rest-challenges">Rest Service - challenges</a></h1>
+        <table >
+            <tr>
+                <td class="key" style="width:50px">url</td>
+                <td><a href="<pwm:context/>/public/rest/challenges"><pwm:context/>/public/rest/challenges</a></td>
+            </tr>
+            <tr>
+                <td class="key" style="width:50px">GET Method</td>
+                <td>
+                    <table>
+                        <tr>
+                            <td class="key">Description</td>
+                            <td>Retrieve users stored challenges.  Location of read responses is determined by the application configuration.
+                                This interface cannot be used to read NMAS stored responses.</td>
 
-    </tr>
-    <tr>
-        <td class="key">Authentication</td>
-        <td>Required</td>
-    </tr>
-    <tr>
-        <td class="key">Accept-Language Header</td>
-        <td>en
-            <br/>
-            <i>The request will be processed in the context of the specified language</i>
-        </td>
-    </tr>
-    <tr>
-        <td class="key">Accept Header</td>
-        <td>application/json</td>
-    </tr>
-    <tr>
-        <td class="key">Parameter answers</td>
-        <td>
-            <table>
-                <tr><td>Name</td><td>answers</td></tr>
-                <tr><td>Required</td><td>Optional</td></tr>
-                <tr><td>Location</td><td>query string</td></tr>
-                <tr><td>Value</td><td>Boolean indicating if answers (in whatever format stored) should be returned in the result.</td></tr>
-                <tr><td>Default</td><td>false</td></tr>
-            </table>
-        </td>
-    </tr>
-    <tr>
-        <td class="key">Parameter helpdesk</td>
-        <td>
-            <table>
-                <tr><td>Name</td><td>helpdesk</td></tr>
-                <tr><td>Required</td><td>Optional</td></tr>
-                <tr><td>Location</td><td>query string</td></tr>
-                <tr><td>Value</td><td>Boolean indicating if helpdesk answers should be returned in the result.</td></tr>
-                <tr><td>Default</td><td>false</td></tr>
-            </table>
-        </td>
-    </tr>
-    <tr>
-        <td class="key">Parameter username</td>
-        <td>
-            <table>
-                <tr><td>Name</td><td>username</td></tr>
-                <tr><td>Required</td><td>Optional</td></tr>
-                <tr><td>Location</td><td>query string</td></tr>
-                <tr><td>Value</td><td>Optional username or ldap DN of a user on which to perform the operation</td></tr>
-                <tr><td>Default</td><td>Authenticating user (if LDAP)</td></tr>
-            </table>
-        </td>
-    </tr>
-</table>
-<table style="max-width: 100%">
-    <tr>
-        <td class="title" style="font-size: smaller" colspan="2">Example 1</td>
-    </tr>
-    <tr>
-        <td class="key">Request</td>
-<td class="exampleTD">
+                        </tr>
+                        <tr>
+                            <td class="key">Authentication</td>
+                            <td>Required</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Accept-Language Header</td>
+                            <td>en
+                                <br/>
+                                <i>The request will be processed in the context of the specified language</i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Accept Header</td>
+                            <td>application/json</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Parameter answers</td>
+                            <td>
+                                <table>
+                                    <tr><td>Name</td><td>answers</td></tr>
+                                    <tr><td>Required</td><td>Optional</td></tr>
+                                    <tr><td>Location</td><td>query string</td></tr>
+                                    <tr><td>Value</td><td>Boolean indicating if answers (in whatever format stored) should be returned in the result.</td></tr>
+                                    <tr><td>Default</td><td>false</td></tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Parameter helpdesk</td>
+                            <td>
+                                <table>
+                                    <tr><td>Name</td><td>helpdesk</td></tr>
+                                    <tr><td>Required</td><td>Optional</td></tr>
+                                    <tr><td>Location</td><td>query string</td></tr>
+                                    <tr><td>Value</td><td>Boolean indicating if helpdesk answers should be returned in the result.</td></tr>
+                                    <tr><td>Default</td><td>false</td></tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Parameter username</td>
+                            <td>
+                                <table>
+                                    <tr><td>Name</td><td>username</td></tr>
+                                    <tr><td>Required</td><td>Optional</td></tr>
+                                    <tr><td>Location</td><td>query string</td></tr>
+                                    <tr><td>Value</td><td>Optional username or ldap DN of a user on which to perform the operation</td></tr>
+                                    <tr><td>Default</td><td>Authenticating user (if LDAP)</td></tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                    <table style="max-width: 100%">
+                        <tr>
+                            <td class="title" style="font-size: smaller" colspan="2">Example 1</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Request</td>
+                            <td class="exampleTD">
 <pre>
 GET <pwm:context/>/public/rest/challenges HTTP/1.1
 Accept: application/json
 Location: en
 Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
 </pre>
-        </td>
-    </tr>
-    <tr>
-        <td class="key">Response</td>
-<td class="exampleTD">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Response</td>
+                            <td class="exampleTD">
 <pre>
 {
   "error": false,
@@ -227,27 +227,27 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
   }
 }
 </pre>
-        </td>
-    </tr>
-</table>
-<table style="max-width: 100%">
-    <tr>
-        <td class="title" style="font-size: smaller" colspan="2">Example 2</td>
-    </tr>
-    <tr>
-        <td class="key">Request</td>
-<td class="exampleTD">
+                            </td>
+                        </tr>
+                    </table>
+                    <table style="max-width: 100%">
+                        <tr>
+                            <td class="title" style="font-size: smaller" colspan="2">Example 2</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Request</td>
+                            <td class="exampleTD">
 <pre>
 GET <pwm:context/>/public/rest/challenges?answers=true&helpdesk=true HTTP/1.1
 Accept: application/json
 Accept-Language: en
 Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
 </pre>
-        </td>
-    </tr>
-    <tr>
-        <td class="key">Response</td>
-<td class="exampleTD">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Response</td>
+                            <td class="exampleTD">
 <pre>
 {
   "error": false,
@@ -343,73 +343,73 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
   }
 }
 </pre>
-        </td>
-    </tr>
-</table>
-</td>
-</tr>
-<tr>
-    <td class="key" style="width:50px">POST Method</td>
-    <td>
-        <table>
-            <tr>
-                <td class="key">Description</td>
-                <td>Set users stored challenge/response set</td>
-            </tr>
-            <tr>
-                <td class="key">Authentication</td>
-                <td>Required</td>
-            </tr>
-            <tr>
-                <td class="key">Accept-Language Header</td>
-                <td>en
-                    <br/>
-                    <i>The request will be processed in the context of the specified language</i>
-                </td>
-            </tr>
-            <tr>
-                <td class="key">Accept Header</td>
-                <td>application/json</td>
-            </tr>
-            <tr>
-                <td class="key">Content-Type Header</td>
-                <td>application/json</td>
-            </tr>
-            <tr>
-                <td class="key">Parameter username</td>
-                <td>
-                    <table>
-                        <tr><td>Name</td><td>username</td></tr>
-                        <tr><td>Required</td><td>Optional</td></tr>
-                        <tr><td>Location</td><td>query string or json body</td></tr>
-                        <tr><td>Value</td><td>Optional username or ldap DN of a user on which to perform the operation</td></tr>
-                        <tr><td>Default</td><td>Authenticating user (if LDAP)</td></tr>
+                            </td>
+                        </tr>
                     </table>
                 </td>
             </tr>
             <tr>
-                <td class="key">Parameter challenges</td>
+                <td class="key" style="width:50px">POST Method</td>
                 <td>
                     <table>
-                        <tr><td>Name</td><td>challenges</td></tr>
-                        <tr><td>Required</td><td>Required</td></tr>
-                        <tr><td>Location</td><td>json body</td></tr>
-                        <tr><td>Value</td><td>List of challenge objects including answers with an answerText property.  Retrieve challenge objects using
-                            the challenges service to discover the proper object formatting.  The question object data must match
-                            precisely the question object received from the challenges service so that the answer can be applied to
-                            the correct corresponding question.  This includes each parameter of the question object.</td></tr>
-                        <tr><td>Default</td><td>n/a</td></tr>
+                        <tr>
+                            <td class="key">Description</td>
+                            <td>Set users stored challenge/response set</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Authentication</td>
+                            <td>Required</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Accept-Language Header</td>
+                            <td>en
+                                <br/>
+                                <i>The request will be processed in the context of the specified language</i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Accept Header</td>
+                            <td>application/json</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Content-Type Header</td>
+                            <td>application/json</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Parameter username</td>
+                            <td>
+                                <table>
+                                    <tr><td>Name</td><td>username</td></tr>
+                                    <tr><td>Required</td><td>Optional</td></tr>
+                                    <tr><td>Location</td><td>query string or json body</td></tr>
+                                    <tr><td>Value</td><td>Optional username or ldap DN of a user on which to perform the operation</td></tr>
+                                    <tr><td>Default</td><td>Authenticating user (if LDAP)</td></tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Parameter challenges</td>
+                            <td>
+                                <table>
+                                    <tr><td>Name</td><td>challenges</td></tr>
+                                    <tr><td>Required</td><td>Required</td></tr>
+                                    <tr><td>Location</td><td>json body</td></tr>
+                                    <tr><td>Value</td><td>List of challenge objects including answers with an answerText property.  Retrieve challenge objects using
+                                        the challenges service to discover the proper object formatting.  The question object data must match
+                                        precisely the question object received from the challenges service so that the answer can be applied to
+                                        the correct corresponding question.  This includes each parameter of the question object.</td></tr>
+                                    <tr><td>Default</td><td>n/a</td></tr>
+                                </table>
+                            </td>
+                        </tr>
                     </table>
-                </td>
-            </tr>
-        </table>
-        <table style="max-width: 100%">
-            <tr>
-                <td class="title" style="font-size: smaller" colspan="2">Example 1</td>
-            </tr>
-            <tr>
-                <td class="key">Request</td>
-        <td class="exampleTD">
+                    <table style="max-width: 100%">
+                        <tr>
+                            <td class="title" style="font-size: smaller" colspan="2">Example 1</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Request</td>
+                            <td class="exampleTD">
 <pre>
 Accept-Language: en
 POST <pwm:context/>/public/rest/challenges HTTP/1.1
@@ -485,11 +485,11 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
    "minimumRandoms":2
 }
 </pre>
-                </td>
-            </tr>
-            <tr>
-                <td class="key">Response</td>
-        <td class="exampleTD">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Response</td>
+                            <td class="exampleTD">
 <pre>
 {
   "error": false,
@@ -497,16 +497,16 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
   "successMessage": "Your secret questions and answers have been successfully saved.  If you ever forget your password, you can use the answers to these questions to reset your password."
 }
 </pre>
-                </td>
-            </tr>
-        </table>
-        <table style="max-width: 100%">
-            <tr>
-                <td class="title" style="font-size: smaller" colspan="2">Example 2</td>
-            </tr>
-            <tr>
-                <td class="key">Request</td>
-        <td class="exampleTD">
+                            </td>
+                        </tr>
+                    </table>
+                    <table style="max-width: 100%">
+                        <tr>
+                            <td class="title" style="font-size: smaller" colspan="2">Example 2</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Request</td>
+                            <td class="exampleTD">
 <pre>
 POST <pwm:context/>/public/rest/challenges HTTP/1.1
 Accept-Language: en
@@ -531,11 +531,11 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
    "username":"otherUser",
 }
 </pre>
-                </td>
-            </tr>
-            <tr>
-                <td class="key">Response</td>
-        <td class="exampleTD">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Response</td>
+                            <td class="exampleTD">
 <pre>
 {
   "error": false,
@@ -543,47 +543,47 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
   "successMessage": "Your secret questions and answers have been successfully saved.  If you ever forget your password, you can use the answers to these questions to reset your password."
 }
 </pre>
-                </td>
-            </tr>
-        </table>
-    </td>
-</tr>
-<tr>
-    <td class="key" style="width:50px">DELETE Method</td>
-    <td>
-        <table>
-            <tr>
-                <td class="key">Description</td>
-                <td>Clear users saved responses</td>
-            </tr>
-            <tr>
-                <td class="key">Authentication</td>
-                <td>Required</td>
-            </tr>
-            <tr>
-                <td class="key">Accept Header</td>
-                <td>application/json</td>
-            </tr>
-            <tr>
-                <td class="key">Parameter username</td>
-                <td>
-                    <table>
-                        <tr><td>Name</td><td>username</td></tr>
-                        <tr><td>Required</td><td>Optional</td></tr>
-                        <tr><td>Location</td><td>query string</td></tr>
-                        <tr><td>Value</td><td>Optional username or ldap DN of a user on which to perform the operation</td></tr>
-                        <tr><td>Default</td><td>Authenticating user (if LDAP)</td></tr>
+                            </td>
+                        </tr>
                     </table>
                 </td>
             </tr>
-        </table>
-        <table style="max-width: 100%">
             <tr>
-                <td class="title" style="font-size: smaller" colspan="2">Example 1</td>
-            </tr>
-            <tr>
-                <td class="key">Request</td>
-        <td class="exampleTD">
+                <td class="key" style="width:50px">DELETE Method</td>
+                <td>
+                    <table>
+                        <tr>
+                            <td class="key">Description</td>
+                            <td>Clear users saved responses</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Authentication</td>
+                            <td>Required</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Accept Header</td>
+                            <td>application/json</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Parameter username</td>
+                            <td>
+                                <table>
+                                    <tr><td>Name</td><td>username</td></tr>
+                                    <tr><td>Required</td><td>Optional</td></tr>
+                                    <tr><td>Location</td><td>query string</td></tr>
+                                    <tr><td>Value</td><td>Optional username or ldap DN of a user on which to perform the operation</td></tr>
+                                    <tr><td>Default</td><td>Authenticating user (if LDAP)</td></tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                    <table style="max-width: 100%">
+                        <tr>
+                            <td class="title" style="font-size: smaller" colspan="2">Example 1</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Request</td>
+                            <td class="exampleTD">
 <pre>
 DELETE <pwm:context/>/public/rest/challenges?username=user1234 HTTP/1.1
 Accept-Language: en
@@ -591,11 +591,11 @@ Accept: application/json
 Content-Type: application/json
 Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
 </pre>
-                </td>
-            </tr>
-            <tr>
-                <td class="key">Response</td>
-        <td class="exampleTD">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Response</td>
+                            <td class="exampleTD">
  <pre>
  {
    "error": false,
@@ -603,97 +603,97 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
    "successMessage": "Your secret questions and answers have been successfully saved.  If you ever forget your password, you can use the answers to these questions to reset your password."
  }
  </pre>
+                            </td>
+                        </tr>
+                    </table>
                 </td>
             </tr>
         </table>
-    </td>
-</tr>
-</table>
-    <br/>
-    <h1><a id="rest-checkpassword">Rest Service - checkpassword</a></h1>
-    <table >
-        <tr>
-            <td class="key" style="width:50px">url</td>
-            <td><a href="<pwm:context/>/public/rest/checkpassword"><pwm:context/>/public/rest/checkpassword</a></td>
-        </tr>
-        <tr>
-        </tr>
-        <tr>
-            <td class="key" style="width:50px">POST Method</td>
-            <td>
-                <table>
-                    <tr>
-                        <td class="key">Description</td>
-                        <td>Check a password value(s) against user policy</td>
-                    </tr>
-                    <tr>
-                        <td class="key">Authentication</td>
-                        <td>Required</td>
-                    </tr>
-                    <tr>
-                        <td class="key">Accept-Language Header</td>
-                        <td>en
-                            <br/>
-                            <i>The request will be processed in the context of the specified language</i>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Accept Header</td>
-                        <td>application/json</td>
-                    </tr>
-                    <tr>
-                        <td class="key">Content-Type Header</td>
-                        <td>
-                            application/json
-                            <br/>
-                            application/x-www-form-urlencoded
-                        </td>
+        <br/>
+        <h1><a id="rest-checkpassword">Rest Service - checkpassword</a></h1>
+        <table >
+            <tr>
+                <td class="key" style="width:50px">url</td>
+                <td><a href="<pwm:context/>/public/rest/checkpassword"><pwm:context/>/public/rest/checkpassword</a></td>
+            </tr>
+            <tr>
+            </tr>
+            <tr>
+                <td class="key" style="width:50px">POST Method</td>
+                <td>
+                    <table>
+                        <tr>
+                            <td class="key">Description</td>
+                            <td>Check a password value(s) against user policy</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Authentication</td>
+                            <td>Required</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Accept-Language Header</td>
+                            <td>en
+                                <br/>
+                                <i>The request will be processed in the context of the specified language</i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Accept Header</td>
+                            <td>application/json</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Content-Type Header</td>
+                            <td>
+                                application/json
+                                <br/>
+                                application/x-www-form-urlencoded
+                            </td>
 
-                    </tr>
-                    <tr>
-                        <td class="key">Parameter password1</td>
-                        <td>
-                            <table>
-                                <tr><td>Name</td><td>password1</td></tr>
-                                <tr><td>Required</td><td>Required</td></tr>
-                                <tr><td>Location</td><td>query string, json body, or form body</td></tr>
-                                <tr><td>Value</td><td>Password value</td></tr>
-                                <tr><td>Default</td><td>n/a</td></tr>
-                            </table>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Parameter password2</td>
-                        <td>
-                            <table>
-                                <tr><td>Name</td><td>password2</td></tr>
-                                <tr><td>Required</td><td>Required</td></tr>
-                                <tr><td>Location</td><td>query string, json body, or form body</td></tr>
-                                <tr><td>Value</td><td>Password confirmation value</td></tr>
-                                <tr><td>Default</td><td>n/a</td></tr>
-                            </table>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Parameter username</td>
-                        <td>
-                            <table>
-                                <tr><td>Name</td><td>username</td></tr>
-                                <tr><td>Required</td><td>Optional</td></tr>
-                                <tr><td>Location</td><td>query string, json body, or form body</td></tr>
-                                <tr><td>Value</td><td>Optional username or ldap DN of a user on which to perform the operation</td></tr>
-                                <tr><td>Default</td><td>Authenticating user (if LDAP)</td></tr>
-                            </table>
-                        </td>
-                    </tr>
-                </table>
-                <table style="max-width: 100%">
-                    <tr>
-                        <td class="title" style="font-size: smaller" colspan="2">Example 1</td>
-                    </tr>
-                    <tr>
-                        <td class="key">Request</td>
-                <td class="exampleTD">
+                        </tr>
+                        <tr>
+                            <td class="key">Parameter password1</td>
+                            <td>
+                                <table>
+                                    <tr><td>Name</td><td>password1</td></tr>
+                                    <tr><td>Required</td><td>Required</td></tr>
+                                    <tr><td>Location</td><td>query string, json body, or form body</td></tr>
+                                    <tr><td>Value</td><td>Password value</td></tr>
+                                    <tr><td>Default</td><td>n/a</td></tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Parameter password2</td>
+                            <td>
+                                <table>
+                                    <tr><td>Name</td><td>password2</td></tr>
+                                    <tr><td>Required</td><td>Required</td></tr>
+                                    <tr><td>Location</td><td>query string, json body, or form body</td></tr>
+                                    <tr><td>Value</td><td>Password confirmation value</td></tr>
+                                    <tr><td>Default</td><td>n/a</td></tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Parameter username</td>
+                            <td>
+                                <table>
+                                    <tr><td>Name</td><td>username</td></tr>
+                                    <tr><td>Required</td><td>Optional</td></tr>
+                                    <tr><td>Location</td><td>query string, json body, or form body</td></tr>
+                                    <tr><td>Value</td><td>Optional username or ldap DN of a user on which to perform the operation</td></tr>
+                                    <tr><td>Default</td><td>Authenticating user (if LDAP)</td></tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                    <table style="max-width: 100%">
+                        <tr>
+                            <td class="title" style="font-size: smaller" colspan="2">Example 1</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Request</td>
+                            <td class="exampleTD">
 <pre>
 POST <pwm:context/>/public/rest/checkpassword HTTP/1.1
 Accept-Language: en
@@ -706,11 +706,11 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
    "password2":"newPasswOrd"
 }
 </pre>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Response</td>
-                <td class="exampleTD">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Response</td>
+                            <td class="exampleTD">
 <pre>
 {
   "error": false,
@@ -725,16 +725,16 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
   }
 }
 </pre>
-                        </td>
-                    </tr>
-                </table>
-                <table style="max-width: 100%">
-                    <tr>
-                        <td class="title" style="font-size: smaller" colspan="2">Example 2</td>
-                    </tr>
-                    <tr>
-                        <td class="key">Request</td>
-                <td class="exampleTD">
+                            </td>
+                        </tr>
+                    </table>
+                    <table style="max-width: 100%">
+                        <tr>
+                            <td class="title" style="font-size: smaller" colspan="2">Example 2</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Request</td>
+                            <td class="exampleTD">
 <pre>
 POST <pwm:context/>/public/rest/checkpassword HTTP/1.1
 Accept-Language: en
@@ -744,11 +744,11 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
 
 password1=dsa32!dabed&password2=dsa32!dabed&username=user1234
 </pre>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Response</td>
-                <td class="exampleTD">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Response</td>
+                            <td class="exampleTD">
 <pre>
 {
    "error":false,
@@ -763,74 +763,74 @@ password1=dsa32!dabed&password2=dsa32!dabed&username=user1234
    }
 }
 </pre>
-                        </td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
-    <br/>
-    <h1><a id="rest-health">Rest Service - health</a></h1>
-    <table >
-        <tr>
-            <td class="key" style="width:50px">url</td>
-            <td><a href="<pwm:context/>/public/rest/health"><pwm:context/>/public/rest/health</a></td>
-        </tr>
-        <tr>
-        </tr>
-        <tr>
-            <td class="key" style="width:50px">GET Method</td>
-            <td>
-                <table>
-                    <tr>
-                        <td class="key">Description</td>
-                        <td>Read the health of the application</td>
-                    </tr>
-                    <tr>
-                        <td class="key">Authentication</td>
-                        <td>Not Required</td>
-                    </tr>
-                    <tr>
-                        <td class="key">Accept-Language Header</td>
-                        <td>en
-                            <br/>
-                            <i>The request will be processed in the context of the specified language</i>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Accept Header</td>
-                        <td>
-                            application/json
-                            <br/>
-                            text/plain
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Parameter refreshImmediate</td>
-                        <td>
-                            refreshImmediate=true
-                            <br/>
-                            <i>Indicates if the server should refresh the health status before calling this service.  Only available if logged in with administrative rights.</i>
-                        </td>
-                    </tr>
-                </table>
-                <table style="max-width: 100%">
-                    <tr>
-                        <td class="title" style="font-size: smaller" colspan="2">Example 1</td>
-                    </tr>
-                    <tr>
-                        <td class="key">Request</td>
-                <td class="exampleTD">
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+        <br/>
+        <h1><a id="rest-health">Rest Service - health</a></h1>
+        <table >
+            <tr>
+                <td class="key" style="width:50px">url</td>
+                <td><a href="<pwm:context/>/public/rest/health"><pwm:context/>/public/rest/health</a></td>
+            </tr>
+            <tr>
+            </tr>
+            <tr>
+                <td class="key" style="width:50px">GET Method</td>
+                <td>
+                    <table>
+                        <tr>
+                            <td class="key">Description</td>
+                            <td>Read the health of the application</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Authentication</td>
+                            <td>Not Required</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Accept-Language Header</td>
+                            <td>en
+                                <br/>
+                                <i>The request will be processed in the context of the specified language</i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Accept Header</td>
+                            <td>
+                                application/json
+                                <br/>
+                                text/plain
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Parameter refreshImmediate</td>
+                            <td>
+                                refreshImmediate=true
+                                <br/>
+                                <i>Indicates if the server should refresh the health status before calling this service.  Only available if logged in with administrative rights.</i>
+                            </td>
+                        </tr>
+                    </table>
+                    <table style="max-width: 100%">
+                        <tr>
+                            <td class="title" style="font-size: smaller" colspan="2">Example 1</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Request</td>
+                            <td class="exampleTD">
 <pre>
 GET <pwm:context/>/public/rest/health HTTP/1.1
 Accept-Language: en
 Accept: application/json
 </pre>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Response</td>
-                <td class="exampleTD">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Response</td>
+                            <td class="exampleTD">
 <pre>
 {
    "error":false,
@@ -878,84 +878,84 @@ Accept: application/json
    }
 }
 </pre>
-                        </td>
-                    </tr>
-                </table>
-                <table style="max-width: 100%">
-                    <tr>
-                        <td class="title" style="font-size: smaller" colspan="2">Example 2</td>
-                    </tr>
-                    <tr>
-                        <td class="key">Request</td>
-                <td class="exampleTD">
+                            </td>
+                        </tr>
+                    </table>
+                    <table style="max-width: 100%">
+                        <tr>
+                            <td class="title" style="font-size: smaller" colspan="2">Example 2</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Request</td>
+                            <td class="exampleTD">
 <pre>
 GET <pwm:context/>/public/rest/health&refreshImmediate=true HTTP/1.1
 Accept-Language: en
 Accept: text/plain
 </pre>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Response</td>
-                <td class="exampleTD">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Response</td>
+                            <td class="exampleTD">
 <pre>
 GOOD
 </pre>
-                        </td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
-    <br/>
-    <h1><a id="rest-profile">Rest Service - profile</a></h1>
-    <table >
-        <tr>
-            <td class="key" style="width:50px">url</td>
-            <td><a href="<pwm:context/>/public/rest/profile"><pwm:context/>/public/rest/profile</a></td>
-        </tr>
-        <tr>
-            <td class="key" style="width:50px">GET Method</td>
-            <td>
-                <table>
-                    <tr>
-                        <td class="key">Description</td>
-                        <td>Retrieve users profile data</td>
-                    </tr>
-                    <tr>
-                        <td class="key">Authentication</td>
-                        <td>Required</td>
-                    </tr>
-                    <tr>
-                        <td class="key">Accept-Language Header</td>
-                        <td>en
-                            <br/>
-                            <i>The request will be processed in the context of the specified language</i>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Accept Header</td>
-                        <td>application/json</td>
-                    </tr>
-                </table>
-                <table style="max-width: 100%">
-                    <tr>
-                        <td class="title" style="font-size: smaller" colspan="2">Example 1</td>
-                    </tr>
-                    <tr>
-                        <td class="key">Request</td>
-                <td class="exampleTD">
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+        <br/>
+        <h1><a id="rest-profile">Rest Service - profile</a></h1>
+        <table >
+            <tr>
+                <td class="key" style="width:50px">url</td>
+                <td><a href="<pwm:context/>/public/rest/profile"><pwm:context/>/public/rest/profile</a></td>
+            </tr>
+            <tr>
+                <td class="key" style="width:50px">GET Method</td>
+                <td>
+                    <table>
+                        <tr>
+                            <td class="key">Description</td>
+                            <td>Retrieve users profile data</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Authentication</td>
+                            <td>Required</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Accept-Language Header</td>
+                            <td>en
+                                <br/>
+                                <i>The request will be processed in the context of the specified language</i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Accept Header</td>
+                            <td>application/json</td>
+                        </tr>
+                    </table>
+                    <table style="max-width: 100%">
+                        <tr>
+                            <td class="title" style="font-size: smaller" colspan="2">Example 1</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Request</td>
+                            <td class="exampleTD">
 <pre>
 GET <pwm:context/>/public/rest/profile HTTP/1.1
 Accept: application/json
 Accept-Language: en
 Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
 </pre>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Response</td>
-                <td class="exampleTD">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Response</td>
+                            <td class="exampleTD">
 <pre>
 {
   "error": false,
@@ -1034,46 +1034,46 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
   }
 }
 </pre>
-                        </td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-        <tr>
-            <td class="key" style="width:50px">POST Method</td>
-            <td>
-                <table>
-                    <tr>
-                        <td class="key">Description</td>
-                        <td>Set profile data</td>
-                    </tr>
-                    <tr>
-                        <td class="key">Authentication</td>
-                        <td>Required</td>
-                    </tr>
-                    <tr>
-                        <td class="key">Accept-Language Header</td>
-                        <td>en
-                            <br/>
-                            <i>The request will be processed in the context of the specified language</i>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Accept Header</td>
-                        <td>application/json</td>
-                    </tr>
-                    <tr>
-                        <td class="key">Content-Type Header</td>
-                        <td>application/json</td>
-                    </tr>
-                </table>
-                <table style="max-width: 100%">
-                    <tr>
-                        <td class="title" style="font-size: smaller" colspan="2">Example 1</td>
-                    </tr>
-                    <tr>
-                        <td class="key">Request</td>
-                <td class="exampleTD">
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td class="key" style="width:50px">POST Method</td>
+                <td>
+                    <table>
+                        <tr>
+                            <td class="key">Description</td>
+                            <td>Set profile data</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Authentication</td>
+                            <td>Required</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Accept-Language Header</td>
+                            <td>en
+                                <br/>
+                                <i>The request will be processed in the context of the specified language</i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Accept Header</td>
+                            <td>application/json</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Content-Type Header</td>
+                            <td>application/json</td>
+                        </tr>
+                    </table>
+                    <table style="max-width: 100%">
+                        <tr>
+                            <td class="title" style="font-size: smaller" colspan="2">Example 1</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Request</td>
+                            <td class="exampleTD">
 <pre>
 POST <pwm:context/>/public/rest/profile HTTP/1.1
 Accept-Language: en
@@ -1089,11 +1089,11 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
    }
 }
 </pre>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Response</td>
-                <td class="exampleTD">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Response</td>
+                            <td class="exampleTD">
 <pre>
 {
    "error":false,
@@ -1101,175 +1101,175 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
    "successMessage":"Your user information has been successfully updated."
 }
 </pre>
-                        </td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
-    <br/>
-    <h1><a id="rest-randompassword">Rest Service - randompassword</a></h1>
-    <table>
-        <tr>
-            <td class="key" style="width:50px">url</td>
-            <td><a href="<pwm:context/>/public/rest/randompassword"><pwm:context/>/public/rest/randompassword</a></td>
-        </tr>
-        <tr>
-        </tr>
-        <tr>
-            <td class="key" style="width:50px">GET Method</td>
-            <td>
-                <table>
-                    <tr>
-                        <td class="key">Description</td>
-                        <td>Read a single random password value</td>
-                    </tr>
-                    <tr>
-                        <td class="key">Authentication</td>
-                        <td>Optional</td>
-                    </tr>
-                    <tr>
-                        <td class="key">Accept-Language Header</td>
-                        <td>en
-                            <br/>
-                            <i>The request will be processed in the context of the specified language</i>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Accept Header</td>
-                        <td>
-                            text/plain
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Parameter username</td>
-                        <td>
-                            username=user1234
-                            <br/>
-                            <i>Optional username or ldap DN of a user on which to base the random password generation on.  The user's policies will be applied to the random generation.</i>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Parameter strength</td>
-                        <td>
-                            strength=50
-                            <br/>
-                            <i>Optional number (0-100) specifying the minimum strength of the generated password.</i>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Parameter minLength</td>
-                        <td>
-                            minLength=5
-                            <br/>
-                            <i>Optional number specifying the minimum length of the generated password.</i>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Parameter chars</td>
-                        <td>
-                            chars=ABCDEFG12345690
-                            <br/>
-                            <i>Optional list of charachters to use for generating the password.</i>
-                        </td>
-                    </tr>
-                </table>
-                <table style="max-width: 100%">
-                    <tr>
-                        <td class="title" style="font-size: smaller" colspan="2">Example 1</td>
-                    </tr>
-                    <tr>
-                        <td class="key">Request</td>
-                <td class="exampleTD">
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+        <br/>
+        <h1><a id="rest-randompassword">Rest Service - randompassword</a></h1>
+        <table>
+            <tr>
+                <td class="key" style="width:50px">url</td>
+                <td><a href="<pwm:context/>/public/rest/randompassword"><pwm:context/>/public/rest/randompassword</a></td>
+            </tr>
+            <tr>
+            </tr>
+            <tr>
+                <td class="key" style="width:50px">GET Method</td>
+                <td>
+                    <table>
+                        <tr>
+                            <td class="key">Description</td>
+                            <td>Read a single random password value</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Authentication</td>
+                            <td>Optional</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Accept-Language Header</td>
+                            <td>en
+                                <br/>
+                                <i>The request will be processed in the context of the specified language</i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Accept Header</td>
+                            <td>
+                                text/plain
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Parameter username</td>
+                            <td>
+                                username=user1234
+                                <br/>
+                                <i>Optional username or ldap DN of a user on which to base the random password generation on.  The user's policies will be applied to the random generation.</i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Parameter strength</td>
+                            <td>
+                                strength=50
+                                <br/>
+                                <i>Optional number (0-100) specifying the minimum strength of the generated password.</i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Parameter minLength</td>
+                            <td>
+                                minLength=5
+                                <br/>
+                                <i>Optional number specifying the minimum length of the generated password.</i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Parameter chars</td>
+                            <td>
+                                chars=ABCDEFG12345690
+                                <br/>
+                                <i>Optional list of charachters to use for generating the password.</i>
+                            </td>
+                        </tr>
+                    </table>
+                    <table style="max-width: 100%">
+                        <tr>
+                            <td class="title" style="font-size: smaller" colspan="2">Example 1</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Request</td>
+                            <td class="exampleTD">
 <pre>
 GET <pwm:context/>/public/rest/randompassword HTTP/1.1
 Accept-Language: en
 Accept: text/plain
 </pre>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Response</td>
-                <td class="exampleTD">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Response</td>
+                            <td class="exampleTD">
 <pre>
 cLi2mbers
 </pre>
-                        </td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-        <tr>
-            <td class="key" style="width:50px">POST Method</td>
-            <td>
-                <table>
-                    <tr>
-                        <td class="key">Description</td>
-                        <td>Read a single random password value</td>
-                    </tr>
-                    <tr>
-                        <td class="key">Authentication</td>
-                        <td>Optional</td>
-                    </tr>
-                    <tr>
-                        <td class="key">Accept-Language Header</td>
-                        <td>en
-                            <br/>
-                            <i>The request will be processed in the context of the specified language</i>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Accept Header</td>
-                        <td>
-                            application/json
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Content-Type Header</td>
-                        <td>
-                            application/json
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Parameter username</td>
-                        <td>
-                            username=user1234
-                            <br/>
-                            <i>Optional username or ldap DN of a user on which to base the random password generation on.  The user's policies will be applied to the random generation.</i>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Parameter strength</td>
-                        <td>
-                            strength=50
-                            <br/>
-                            <i>Optional number (0-100) specifying the minimum strength of the generated password.</i>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Parameter minLength</td>
-                        <td>
-                            minLength=5
-                            <br/>
-                            <i>Optional number specifying the minimum length of the generated password.</i>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Parameter chars</td>
-                        <td>
-                            chars=ABCDEFG12345690
-                            <br/>
-                            <i>Optional list of charachters to use for generating the password.</i>
-                        </td>
-                    </tr>
-                </table>
-                <table style="max-width: 100%">
-                    <tr>
-                        <td class="title" style="font-size: smaller" colspan="2">Example 1</td>
-                    </tr>
-                    <tr>
-                        <td class="key">Request</td>
-                <td class="exampleTD">
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td class="key" style="width:50px">POST Method</td>
+                <td>
+                    <table>
+                        <tr>
+                            <td class="key">Description</td>
+                            <td>Read a single random password value</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Authentication</td>
+                            <td>Optional</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Accept-Language Header</td>
+                            <td>en
+                                <br/>
+                                <i>The request will be processed in the context of the specified language</i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Accept Header</td>
+                            <td>
+                                application/json
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Content-Type Header</td>
+                            <td>
+                                application/json
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Parameter username</td>
+                            <td>
+                                username=user1234
+                                <br/>
+                                <i>Optional username or ldap DN of a user on which to base the random password generation on.  The user's policies will be applied to the random generation.</i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Parameter strength</td>
+                            <td>
+                                strength=50
+                                <br/>
+                                <i>Optional number (0-100) specifying the minimum strength of the generated password.</i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Parameter minLength</td>
+                            <td>
+                                minLength=5
+                                <br/>
+                                <i>Optional number specifying the minimum length of the generated password.</i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Parameter chars</td>
+                            <td>
+                                chars=ABCDEFG12345690
+                                <br/>
+                                <i>Optional list of charachters to use for generating the password.</i>
+                            </td>
+                        </tr>
+                    </table>
+                    <table style="max-width: 100%">
+                        <tr>
+                            <td class="title" style="font-size: smaller" colspan="2">Example 1</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Request</td>
+                            <td class="exampleTD">
 <pre>
 GET <pwm:context/>/public/rest/randompassword HTTP/1.1
 Accept-Language: en
@@ -1281,11 +1281,11 @@ Content-Type: application/json
     "strength":5
 }
 </pre>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Response</td>
-                <td class="exampleTD">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Response</td>
+                            <td class="exampleTD">
 <pre>
 {
    "error":false,
@@ -1295,86 +1295,86 @@ Content-Type: application/json
    }
 }
 </pre>
-                        </td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
-    <br/>
-    <h1><a id="rest-setpassword">Rest Service - setpassword</a></h1>
-    <table>
-        <tr>
-            <td class="key" style="width:50px">url</td>
-            <td><a href="<pwm:context/>/public/rest/setpassword"><pwm:context/>/public/rest/setpassword</a></td>
-        </tr>
-        <tr>
-        </tr>
-        <tr>
-            <td class="key" style="width:50px">POST Method</td>
-            <td>
-                <table>
-                    <tr>
-                        <td class="key">Description</td>
-                        <td>Set a user's password value</td>
-                    </tr>
-                    <tr>
-                        <td class="key">Authentication</td>
-                        <td>Required</td>
-                    </tr>
-                    <tr>
-                        <td class="key">Accept-Language Header</td>
-                        <td>en
-                            <br/>
-                            <i>The request will be processed in the context of the specified language</i>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Accept Header</td>
-                        <td>
-                            application/json
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Content-Type Header</td>
-                        <td>
-                            application/json
-                            <br/>
-                            application/x-www-form-urlencoded
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Parameter username</td>
-                        <td>
-                            username=user1234
-                            <br/>
-                            <i>Optional username or ldap DN of a user on which to set the password.</i>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Parameter password</td>
-                        <td>
-                            password=newPassword
-                            <br/>
-                            <i>Required value of new password.</i>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Parameter random</td>
-                        <td>
-                            random=true
-                            <br/>
-                            <i>Generate a random password (when random=true, no value for 'password' should be supplied.</i>
-                        </td>
-                    </tr>
-                </table>
-                <table style="max-width: 100%">
-                    <tr>
-                        <td class="title" style="font-size: smaller" colspan="2">Example 1</td>
-                    </tr>
-                    <tr>
-                        <td class="key">Request</td>
-                <td class="exampleTD">
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+        <br/>
+        <h1><a id="rest-setpassword">Rest Service - setpassword</a></h1>
+        <table>
+            <tr>
+                <td class="key" style="width:50px">url</td>
+                <td><a href="<pwm:context/>/public/rest/setpassword"><pwm:context/>/public/rest/setpassword</a></td>
+            </tr>
+            <tr>
+            </tr>
+            <tr>
+                <td class="key" style="width:50px">POST Method</td>
+                <td>
+                    <table>
+                        <tr>
+                            <td class="key">Description</td>
+                            <td>Set a user's password value</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Authentication</td>
+                            <td>Required</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Accept-Language Header</td>
+                            <td>en
+                                <br/>
+                                <i>The request will be processed in the context of the specified language</i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Accept Header</td>
+                            <td>
+                                application/json
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Content-Type Header</td>
+                            <td>
+                                application/json
+                                <br/>
+                                application/x-www-form-urlencoded
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Parameter username</td>
+                            <td>
+                                username=user1234
+                                <br/>
+                                <i>Optional username or ldap DN of a user on which to set the password.</i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Parameter password</td>
+                            <td>
+                                password=newPassword
+                                <br/>
+                                <i>Required value of new password.</i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Parameter random</td>
+                            <td>
+                                random=true
+                                <br/>
+                                <i>Generate a random password (when random=true, no value for 'password' should be supplied.</i>
+                            </td>
+                        </tr>
+                    </table>
+                    <table style="max-width: 100%">
+                        <tr>
+                            <td class="title" style="font-size: smaller" colspan="2">Example 1</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Request</td>
+                            <td class="exampleTD">
 <pre>
 POST <pwm:context/>/public/rest/setpassword HTTP/1.1
 Accept-Language: en
@@ -1386,22 +1386,22 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
    "password": "newPassword"
 }
 </pre>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Response</td>
-                <td class="exampleTD">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Response</td>
+                            <td class="exampleTD">
 <pre>
 cLi2mbers
 </pre>
-                        </td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
-    <br/>
-    <h1><a id="rest-signing-form">Rest Service - signing/form</a></h1>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+        <br/>
+        <h1><a id="rest-signing-form">Rest Service - signing/form</a></h1>
         <table>
             <tr>
                 <td class="key" style="width:50px">url</td>
@@ -1491,198 +1491,212 @@ Authorization: Basic c2VjcmV0MTpwYXNzd29yZA==
                 </td>
             </tr>
         </table>
-    <br/>
-    <h1><a id="rest-statistics">Rest Service - statistics</a></h1>
-    <table>
-        <tr>
-            <td class="key" style="width:50px">url</td>
-            <td><a href="<pwm:context/>/public/rest/statistics"><pwm:context/>/public/rest/statistics</a></td>
-        </tr>
-        <tr>
-        </tr>
-        <tr>
-            <td class="key" style="width:50px">GET Method</td>
-            <td>
-                <table>
-                    <tr>
-                        <td class="key">Description</td>
-                        <td>Read system statistics</td>
-                    </tr>
-                    <tr>
-                        <td class="key">Authentication</td>
-                        <td>Not Required</td>
-                    </tr>
-                    <tr>
-                        <td class="key">Accept-Language Header</td>
-                        <td>en
-                            <br/>
-                            <i>The request will be processed in the context of the specified language</i>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Accept Header</td>
-                        <td>
-                            application/json
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Content-Type Header</td>
-                        <td>
-                            application/json
-                            <br/>
-                            application/x-www-form-urlencoded
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Parameter statKey</td>
-                        <td>
-                            <br/>
-                            <i>Statistic key to return</i>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Parameter statName</td>
-                        <td>
-                            <br/>
-                            <i>Name of statistic to retrieve.</i>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Parameter days</td>
-                        <td>
-                            days=20
-                            <br/>
-                            <i>Number of days to return statistics for.</i>
-                        </td>
-                    </tr>
-                </table>
-                <table style="max-width: 100%">
-                    <tr>
-                        <td class="title" style="font-size: smaller" colspan="2">Example 1</td>
-                    </tr>
-                    <tr>
-                        <td class="key">Request</td>
-                <td class="exampleTD">
+        <br/>
+        <h1><a id="rest-statistics">Rest Service - statistics</a></h1>
+        <table>
+            <tr>
+                <td class="key" style="width:50px">url</td>
+                <td><a href="<pwm:context/>/public/rest/statistics"><pwm:context/>/public/rest/statistics</a></td>
+            </tr>
+            <tr>
+            </tr>
+            <tr>
+                <td class="key" style="width:50px">GET Method</td>
+                <td>
+                    <table>
+                        <tr>
+                            <td class="key">Description</td>
+                            <td>Read system statistics</td>
+
+                        </tr>
+                        <tr>
+                            <td class="key">Authentication</td>
+                            <td>Required unless otherwise configured</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Accept-Language Header</td>
+                            <td>en
+                                <br/>
+                                <i>The request will be processed in the context of the specified language</i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Accept Header</td>
+                            <td>application/json</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Content-Type Header</td>
+                            <td>
+                                application/json
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Parameter days</td>
+                            <td>
+                                <table>
+                                    <tr><td>Name</td><td>days</td></tr>
+                                    <tr><td>Required</td><td>Optional</td></tr>
+                                    <tr><td>Location</td><td>query string</td></tr>
+                                    <tr><td>Value</td><td>Number of history days to return in result.</td></tr>
+                                    <tr><td>Default</td><td>7</td></tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Parameter version</td>
+                            <td>
+                                <table>
+                                    <tr><td>Name</td><td>helpdesk</td></tr>
+                                    <tr><td>Required</td><td>Optional</td></tr>
+                                    <tr><td>Location</td><td>query string</td></tr>
+                                    <tr><td>Value</td><td>Number indicating API version to use.</td></tr>
+                                    <tr><td>Default</td><td>2</td></tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                    <table style="max-width: 100%">
+                        <tr>
+                            <td class="title" style="font-size: smaller" colspan="2">Example 1</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Request</td>
+                            <td class="exampleTD">
 <pre>
-GET <pwm:context/>/public/rest/statistics?days=14&statName=PASSWORD_CHANGES HTTP/1.1
+GET <pwm:context/>/public/rest/statistics?days=30 HTTP/1.1
 Accept-Language: en
 Accept: application/json
 Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
 </pre>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Response</td>
-                <td class="exampleTD">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Response</td>
+                            <td>
+                                <div class="exampleTD">
 <pre>
 {
    "error":false,
    "errorCode":0,
    "data":{
-      "EPS":{
-         "AUTHENTICATION_DAY":"0.000",
-         "AUTHENTICATION_HOUR":"0.000",
-         "AUTHENTICATION_MINUTE":"0.000",
-         "AUTHENTICATION_TOP":"100",
-         "INTRUDER_ATTEMPTS_DAY":"0.000",
-         "INTRUDER_ATTEMPTS_HOUR":"0.000",
-         "INTRUDER_ATTEMPTS_MINUTE":"0.000",
-         "INTRUDER_ATTEMPTS_TOP":"100",
-         "PASSWORD_CHANGES_DAY":"0.000",
-         "PASSWORD_CHANGES_HOUR":"0.000",
-         "PASSWORD_CHANGES_MINUTE":"0.000",
-         "PASSWORD_CHANGES_TOP":"100",
-         "PWMDB_READS_DAY":"0.001",
-         "PWMDB_READS_HOUR":"0.020",
-         "PWMDB_READS_MINUTE":"0.492",
-         "PWMDB_READS_TOP":"1800",
-         "PWMDB_WRITES_DAY":"0.004",
-         "PWMDB_WRITES_HOUR":"0.083",
-         "PWMDB_WRITES_MINUTE":"2.152",
-         "PWMDB_WRITES_TOP":"7800"
-      },
-      "nameData":{
-         "Mar 19":"0",
-         "Mar 17":"0",
-         "Mar 18":"0",
-         "Mar 20":"0",
-         "Mar 21":"1",
-         "Mar 22":"0",
-         "Mar 23":"0",
-         "Mar 15":"0",
-         "Mar 24":"0",
-         "Mar 16":"0",
-         "Mar 25":"0",
-         "Mar 26":"2",
-         "Mar 14":"0",
-         "Mar 27":"4"
-      }
+     "error": false,
+     "errorCode": 0,
+     "data": {
+       "labels": [
+         {
+           "name": "ACTIVATED_USERS",
+           "label": "Activated Users",
+           "type": "INCREMENTER",
+           "description": "Number of users that have successfully completed the user activation process."
+         }
+       ],
+       "eventRates": [
+         {
+           "name": "AUTHENTICATION_DAY",
+           "value": "3.000"
+         }
+       ],
+       "current": [
+         {
+           "name": "ACTIVATED_USERS",
+           "value": "0"
+         }
+       ],
+       "cumulative": [
+         {
+           "name": "ACTIVATED_USERS",
+           "value": "15"
+         }
+       ],
+       "history": [
+         {
+           "name": "DAILY_2018_206",
+           "date": "2018-07-25",
+           "year": 2018,
+           "month": 6,
+           "day": 25,
+           "daysAgo": 0,
+           "data": [
+             {
+               "name": "ACTIVATED_USERS",
+               "value": "0"
+             }
+           ]
+         }
+       ]
+     }
    }
 }
 </pre>
-                        </td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
-    <br/>
-    <h1><a id="rest-status">Rest Service - status</a></h1>
-    <table >
-        <tr>
-            <td class="key" style="width:50px">url</td>
-            <td><a href="<pwm:context/>/public/rest/status"><pwm:context/>/public/rest/status</a></td>
-        </tr>
-        <tr>
-            <td class="key" style="width:50px">GET Method</td>
-            <td>
-                <table>
-                    <tr>
-                        <td class="key">Description</td>
-                        <td>Read users status data</td>
-                    </tr>
-                    <tr>
-                        <td class="key">Authentication</td>
-                        <td>Required</td>
-                    </tr>
-                    <tr>
-                        <td class="key">Accept-Language Header</td>
-                        <td>en
-                            <br/>
-                            <i>The request will be processed in the context of the specified language</i>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Accept Header</td>
-                        <td>application/json</td>
-                    </tr>
-                    <tr>
-                        <td class="key">Parameter username</td>
-                        <td>
-                            username=user1234
-                            <br/>
-                            <i>Optional username or ldap DN of a user of which to read the status.</i>
-                        </td>
-                    </tr>
-                </table>
-                <table style="max-width: 100%">
-                    <tr>
-                        <td class="title" style="font-size: smaller" colspan="2">Example 1</td>
-                    </tr>
-                    <tr>
-                        <td class="key">Request</td>
-                <td class="exampleTD">
+                                </div>
+                                <div>
+                            <span class="footnote">
+                                Actual response is much larger, this example is truncated to show only
+                                one instance of each data element.
+                            </span></div>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+        <br/>
+        <h1><a id="rest-status">Rest Service - status</a></h1>
+        <table >
+            <tr>
+                <td class="key" style="width:50px">url</td>
+                <td><a href="<pwm:context/>/public/rest/status"><pwm:context/>/public/rest/status</a></td>
+            </tr>
+            <tr>
+                <td class="key" style="width:50px">GET Method</td>
+                <td>
+                    <table>
+                        <tr>
+                            <td class="key">Description</td>
+                            <td>Read users status data</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Authentication</td>
+                            <td>Required</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Accept-Language Header</td>
+                            <td>en
+                                <br/>
+                                <i>The request will be processed in the context of the specified language</i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Accept Header</td>
+                            <td>application/json</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Parameter username</td>
+                            <td>
+                                username=user1234
+                                <br/>
+                                <i>Optional username or ldap DN of a user of which to read the status.</i>
+                            </td>
+                        </tr>
+                    </table>
+                    <table style="max-width: 100%">
+                        <tr>
+                            <td class="title" style="font-size: smaller" colspan="2">Example 1</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Request</td>
+                            <td class="exampleTD">
 <pre>
 GET <pwm:context/>/public/rest/status HTTP/1.1
 Accept: application/json
 Accept-Language: fr
 Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
 </pre>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Response</td>
-                <td class="exampleTD">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Response</td>
+                            <td class="exampleTD">
 <pre>
 {
   "error": false,
@@ -1744,69 +1758,69 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
   }
 }
 </pre>
-                        </td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
-    <br/>
-    <h1><a id="rest-verifyotp">Rest Service - verifyotp</a></h1>
-    <table>
-        <tr>
-            <td class="key" style="width:50px">url</td>
-            <td><a href="<pwm:context/>/public/rest/verifyotp"><pwm:context/>/public/rest/verifyotp</a></td>
-        </tr>
-        <tr>
-        </tr>
-        <tr>
-            <td class="key" style="width:50px">POST Method</td>
-            <td>
-                <table>
-                    <tr>
-                        <td class="key">Description</td>
-                        <td>Validate supplied one time password against a user's stored secret.</td>
-                    </tr>
-                    <tr>
-                        <td class="key">Authentication</td>
-                        <td>Required</td>
-                    </tr>
-                    <tr>
-                        <td class="key">Accept Header</td>
-                        <td>
-                            application/json
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Content-Type Header</td>
-                        <td>
-                            application/json
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Parameter username</td>
-                        <td>
-                            username=user1234
-                            <br/>
-                            <i>Optional username or ldap DN of a user on which to verify the one time password.</i>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Parameter token</td>
-                        <td>
-                            token=123456
-                            <br/>
-                            <i>One time password to be verified.</i>
-                        </td>
-                    </tr>
-                </table>
-                <table style="max-width: 100%">
-                    <tr>
-                        <td class="title" style="font-size: smaller" colspan="2">Example 1</td>
-                    </tr>
-                    <tr>
-                        <td class="key">Request</td>
-                <td class="exampleTD">
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+        <br/>
+        <h1><a id="rest-verifyotp">Rest Service - verifyotp</a></h1>
+        <table>
+            <tr>
+                <td class="key" style="width:50px">url</td>
+                <td><a href="<pwm:context/>/public/rest/verifyotp"><pwm:context/>/public/rest/verifyotp</a></td>
+            </tr>
+            <tr>
+            </tr>
+            <tr>
+                <td class="key" style="width:50px">POST Method</td>
+                <td>
+                    <table>
+                        <tr>
+                            <td class="key">Description</td>
+                            <td>Validate supplied one time password against a user's stored secret.</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Authentication</td>
+                            <td>Required</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Accept Header</td>
+                            <td>
+                                application/json
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Content-Type Header</td>
+                            <td>
+                                application/json
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Parameter username</td>
+                            <td>
+                                username=user1234
+                                <br/>
+                                <i>Optional username or ldap DN of a user on which to verify the one time password.</i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Parameter token</td>
+                            <td>
+                                token=123456
+                                <br/>
+                                <i>One time password to be verified.</i>
+                            </td>
+                        </tr>
+                    </table>
+                    <table style="max-width: 100%">
+                        <tr>
+                            <td class="title" style="font-size: smaller" colspan="2">Example 1</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Request</td>
+                            <td class="exampleTD">
 <pre>
 POST <pwm:context/>/public/rest/verifyotp HTTP/1.1
 Accept-Language: en
@@ -1818,11 +1832,11 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
    "token": 123456
 }
 </pre>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Response</td>
-                <td class="exampleTD">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Response</td>
+                            <td class="exampleTD">
 <pre>
 {
     "error": false,
@@ -1831,88 +1845,88 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
     "data": false
 }
 </pre>
-                        </td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
-    <br/>
-    <h1><a id="rest-verifyresponses">Rest Service - verifyresponses</a></h1>
-    <table>
-        <tr>
-            <td class="key" style="width:50px">url</td>
-            <td><a href="<pwm:context/>/public/rest/verifyresponses"><pwm:context/>/public/rest/verifyresponses</a></td>
-        </tr>
-        <tr>
-        </tr>
-        <tr>
-            <td class="key" style="width:50px">POST Method</td>
-            <td>
-                <table>
-                    <tr>
-                        <td class="key">Description</td>
-                        <td>Validate supplied challenge response answers against a user's stored responses.  <i>Note this service will
-                            not work properly if the user's responses are stored only in the NMAS repository.</i></td>
-                    </tr>
-                    <tr>
-                        <td class="key">Authentication</td>
-                        <td>Required</td>
-                    </tr>
-                    <tr>
-                        <td class="key">Accept-Language Header</td>
-                        <td>en
-                            <br/>
-                            <i>The request will be processed in the context of the specified language</i>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Accept Header</td>
-                        <td>
-                            application/json
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Content-Type Header</td>
-                        <td>
-                            application/json
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Parameter username</td>
-                        <td>
-                            <table>
-                                <tr><td>Name</td><td>username</td></tr>
-                                <tr><td>Required</td><td>Optional</td></tr>
-                                <tr><td>Location</td><td>query string or json body</td></tr>
-                                <tr><td>Value</td><td>Optional username or ldap DN of a user on which to verify the responses</td></tr>
-                                <tr><td>Default</td><td>Authenticating user (if LDAP)</td></tr>
-                            </table>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Parameter challenges</td>
-                        <td>
-                            <table>
-                                <tr><td>Name</td><td>challenges</td></tr>
-                                <tr><td>Required</td><td>Required</td></tr>
-                                <tr><td>Location</td><td>json body</td></tr>
-                                <tr><td>Value</td><td>List of challenge objects including answers with an answerText property.  Retrieve challenge objects using
-                                    the challenges service to discover the proper object formatting.  The question object data must match
-                                    precisely the question object received from the challenges service so that the answer can be applied to
-                                    the correct corresponding question.  This includes each parameter of the question object.</td></tr>
-                                <tr><td>Default</td><td>n/a</td></tr>
-                            </table>
-                        </td>
-                    </tr>
-                </table>
-                <table style="max-width: 100%">
-                    <tr>
-                        <td class="title" style="font-size: smaller" colspan="2">Example 1</td>
-                    </tr>
-                    <tr>
-                        <td class="key">Request</td>
-                <td class="exampleTD">
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+        <br/>
+        <h1><a id="rest-verifyresponses">Rest Service - verifyresponses</a></h1>
+        <table>
+            <tr>
+                <td class="key" style="width:50px">url</td>
+                <td><a href="<pwm:context/>/public/rest/verifyresponses"><pwm:context/>/public/rest/verifyresponses</a></td>
+            </tr>
+            <tr>
+            </tr>
+            <tr>
+                <td class="key" style="width:50px">POST Method</td>
+                <td>
+                    <table>
+                        <tr>
+                            <td class="key">Description</td>
+                            <td>Validate supplied challenge response answers against a user's stored responses.  <i>Note this service will
+                                not work properly if the user's responses are stored only in the NMAS repository.</i></td>
+                        </tr>
+                        <tr>
+                            <td class="key">Authentication</td>
+                            <td>Required</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Accept-Language Header</td>
+                            <td>en
+                                <br/>
+                                <i>The request will be processed in the context of the specified language</i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Accept Header</td>
+                            <td>
+                                application/json
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Content-Type Header</td>
+                            <td>
+                                application/json
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Parameter username</td>
+                            <td>
+                                <table>
+                                    <tr><td>Name</td><td>username</td></tr>
+                                    <tr><td>Required</td><td>Optional</td></tr>
+                                    <tr><td>Location</td><td>query string or json body</td></tr>
+                                    <tr><td>Value</td><td>Optional username or ldap DN of a user on which to verify the responses</td></tr>
+                                    <tr><td>Default</td><td>Authenticating user (if LDAP)</td></tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Parameter challenges</td>
+                            <td>
+                                <table>
+                                    <tr><td>Name</td><td>challenges</td></tr>
+                                    <tr><td>Required</td><td>Required</td></tr>
+                                    <tr><td>Location</td><td>json body</td></tr>
+                                    <tr><td>Value</td><td>List of challenge objects including answers with an answerText property.  Retrieve challenge objects using
+                                        the challenges service to discover the proper object formatting.  The question object data must match
+                                        precisely the question object received from the challenges service so that the answer can be applied to
+                                        the correct corresponding question.  This includes each parameter of the question object.</td></tr>
+                                    <tr><td>Default</td><td>n/a</td></tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                    <table style="max-width: 100%">
+                        <tr>
+                            <td class="title" style="font-size: smaller" colspan="2">Example 1</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Request</td>
+                            <td class="exampleTD">
 <pre>
 POST <pwm:context/>/public/rest/verifyresponses HTTP/1.1
 Accept-Language: en
@@ -1946,11 +1960,11 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
    ]
 }
 </pre>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">Response</td>
-                <td class="exampleTD">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">Response</td>
+                            <td class="exampleTD">
 <pre>
 {
     "error": false,
@@ -1959,13 +1973,13 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
     "data": true
 }
 </pre>
-                        </td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
-</div>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </div>
 </div>
 <div class="push"></div>
 </div>
