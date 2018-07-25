@@ -9,10 +9,10 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>pwm</artifactId>
-    <packaging>war</packaging>
+    <artifactId>pwm-server</artifactId>
+    <packaging>jar</packaging>
 
-    <name>PWM Password Self Service: Server</name>
+    <name>PWM Password Self Service: Server JAR</name>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -57,7 +57,7 @@
                         <version>2.6</version>
                         <configuration>
                             <descriptors>
-                                <descriptor>src/build/assembly/release-bundle.xml</descriptor>
+                                <descriptor>../webapp/src/build/assembly/release-bundle.xml</descriptor>
                             </descriptors>
                             <finalName>${project.build.finalName}-${timestamp.iso}</finalName>
                         </configuration>
@@ -120,12 +120,12 @@
                     <dependency>
                         <groupId>com.github.spotbugs</groupId>
                         <artifactId>spotbugs</artifactId>
-                        <version>3.1.5</version>
+                        <version>3.1.6</version>
                     </dependency>
                 </dependencies>
                 <configuration>
                     <fork>false</fork>
-                    <excludeFilterFile>src/build/spotbugs-exclude.xml</excludeFilterFile>
+                    <excludeFilterFile>../build/spotbugs-exclude.xml</excludeFilterFile>
                     <includeTests>false</includeTests>
                     <skip>${skipSpotbugs}</skip>
                 </configuration>
@@ -155,41 +155,6 @@
                                 </requireMavenVersion>
                             </rules>
                         </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.6</version>
-                <executions>
-                    <execution>
-                        <id>make-ldif-schema-zip</id>
-                        <phase>prepare-package</phase>
-                        <configuration>
-                            <finalName>${project.build.finalName}/public/reference/ldif-schema</finalName>
-                            <appendAssemblyId>false</appendAssemblyId>
-                            <descriptors>
-                                <descriptor>src/build/assembly/ldif-schema-zip.xml</descriptor>
-                            </descriptors>
-                        </configuration>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>make-source-reference-zip</id>
-                        <phase>prepare-package</phase>
-                        <configuration>
-                            <finalName>${project.build.finalName}/public/reference/source</finalName>
-                            <appendAssemblyId>false</appendAssemblyId>
-                            <descriptors>
-                                <descriptor>src/build/assembly/source-reference.xml</descriptor>
-                            </descriptors>
-                        </configuration>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
                     </execution>
                 </executions>
             </plugin>
@@ -260,30 +225,6 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
-                <version>2.6</version>
-                <configuration>
-                    <archiveClasses>true</archiveClasses>
-                    <packagingExcludes>WEB-INF/classes</packagingExcludes>
-                    <archive>
-                        <manifestEntries>
-                            <Implementation-Archive-Name>pwm.war</Implementation-Archive-Name>
-                            <Implementation-Title>${project.name}</Implementation-Title>
-                            <Implementation-Version>${project.version}</Implementation-Version>
-                            <Implementation-Vendor>${project.organization.name}</Implementation-Vendor>
-                            <Implementation-URL>${project.organization.url}</Implementation-URL>
-                            <Implementation-Build-Java-Vendor>${java.vendor}</Implementation-Build-Java-Vendor>
-                            <Implementation-Build-Java-Version>${java.version}</Implementation-Build-Java-Version>
-                            <Implementation-Build>${build.number}</Implementation-Build>
-                            <Implementation-Build-Timestamp>${timestamp.iso}</Implementation-Build-Timestamp>
-                            <Implementation-Revision>${build.revision}</Implementation-Revision>
-                            <Implementation-Version-Display>v${project.version} b${build.number} r${build.revision}</Implementation-Version-Display>
-                        </manifestEntries>
-                    </archive>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <version>3.0.0</version>
                 <dependencies>
@@ -299,7 +240,7 @@
                         <phase>validate</phase>
                         <configuration>
                             <propertyExpansion>basedir=${basedir}</propertyExpansion>
-                            <configLocation>src/build/checkstyle.xml</configLocation>
+                            <configLocation>../build/checkstyle.xml</configLocation>
                             <encoding>UTF-8</encoding>
                             <consoleOutput>true</consoleOutput>
                             <includeTestResources>false</includeTestResources>
@@ -338,24 +279,6 @@
                                     </includes>
                                 </resource>
                             </resources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <!-- verifies jsp pages compile, but does not include the compiled versions in the WAR -->
-                <groupId>io.leonard.maven.plugins</groupId>
-                <artifactId>jspc-maven-plugin</artifactId>
-                <version>2.4.2</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                        <phase>compile</phase>
-                        <configuration>
-                            <compilerVersion>${maven.compiler.source}</compilerVersion>
-                            <keepSources>false</keepSources>
                         </configuration>
                     </execution>
                 </executions>
@@ -497,37 +420,6 @@
                         </manifestEntries>
                     </archive>
                 </configuration>
-                <executions>
-                    <execution>
-                        <id>make-a-jar</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-install-plugin</artifactId>
-                <version>2.5.2</version>
-                <executions>
-                    <execution>
-                        <phase>install</phase>
-                        <goals>
-                            <goal>install-file</goal>
-                        </goals>
-                        <configuration>
-                            <packaging>jar</packaging>
-                            <artifactId>${project.artifactId}</artifactId>
-                            <groupId>${project.groupId}</groupId>
-                            <version>${project.version}</version>
-                            <file>
-                                ${project.build.directory}/${project.artifactId}-${project.version}.jar
-                            </file>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -583,7 +475,7 @@
         <dependency>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs-annotations</artifactId>
-            <version>3.1.5</version>
+            <version>3.1.6</version>
             <scope>provided</scope>
         </dependency>
 
@@ -808,51 +700,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
-
-
-        <!-- client webjar dependencies -->
-        <!-- changes in client dependencies require updating AppProperty.properties:http.resources.webjarMappings -->
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>pwm-client</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.webjars.bower</groupId>
-            <artifactId>dojo</artifactId>
-            <version>1.13.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.webjars.bower</groupId>
-            <artifactId>dijit</artifactId>
-            <version>1.13.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.webjars.bower</groupId>
-            <artifactId>dojox</artifactId>
-            <version>1.13.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.webjars.bower</groupId>
-            <artifactId>dgrid</artifactId>
-            <version>1.2.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.webjars.bower</groupId>
-            <artifactId>dstore</artifactId>
-            <version>1.1.2</version>
-        </dependency>
-        <dependency>
-            <groupId>org.webjars.bower</groupId>
-            <artifactId>font-awesome</artifactId>
-            <version>4.7.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.webjars.bower</groupId>
-            <artifactId>famfamfam-flags</artifactId>
-            <version>1.0.0</version>
-        </dependency>
     </dependencies>
 
     <repositories>
@@ -867,7 +714,7 @@
         <repository>
             <id>project.local</id>
             <name>project</name>
-            <url>file:///${project.basedir}/local-maven-repo</url>
+            <url>file:///${project.basedir}/../build/local-maven-repo</url>
         </repository>
     </repositories>
     <pluginRepositories>

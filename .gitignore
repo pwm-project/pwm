@@ -6,8 +6,8 @@
 /.classpath
 
 # IntelliJ Project Files
-.idea/
-*.iml
+**/.idea/
+**/*.iml
 */.idea/
 */*.iml
 

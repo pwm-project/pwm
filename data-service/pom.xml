@@ -41,16 +41,6 @@
 
     <profiles>
         <profile>
-            <id>skip-all</id>
-            <properties>
-                <maven.javadoc.skip>true</maven.javadoc.skip>
-                <source.skip>true</source.skip>
-                <skipTests>true</skipTests>
-                <checkstyle.skip>true</checkstyle.skip>
-                <skip.npm>true</skip.npm>
-            </properties>
-        </profile>
-        <profile>
             <id>skip-tests</id>
             <properties>
                 <skipTests>true</skipTests>
@@ -173,7 +163,7 @@
                     <dependency>
                         <groupId>com.puppycrawl.tools</groupId>
                         <artifactId>checkstyle</artifactId>
-                        <version>8.10.1</version>
+                        <version>8.11</version>
                     </dependency>
                 </dependencies>
                 <executions>
@@ -181,11 +171,16 @@
                         <id>validate</id>
                         <phase>validate</phase>
                         <configuration>
+                            <propertyExpansion>basedir=${basedir}</propertyExpansion>
+                            <configLocation>../build/checkstyle.xml</configLocation>
                             <encoding>UTF-8</encoding>
                             <consoleOutput>true</consoleOutput>
                             <includeTestResources>false</includeTestResources>
                             <failsOnError>true</failsOnError>
-                            <configLocation>checkstyle.xml</configLocation>
+                            <includes>**/*.java,**/*.jsp,**/*.properties,**/*.xml,**/*.css,**/*.svg</includes>
+                            <sourceDirectories>
+                                <directory>src/main</directory>
+                            </sourceDirectories>
                         </configuration>
                         <goals>
                             <goal>check</goal>
@@ -226,7 +221,7 @@
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>pwm</artifactId>
+            <artifactId>pwm-server</artifactId>
             <version>${project.version}</version>
             <type>jar</type>
         </dependency>
@@ -277,7 +272,7 @@
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
-            <version>4.5.5</version>
+            <version>4.5.6</version>
         </dependency>
         <dependency>
             <groupId>log4j</groupId>
@@ -309,27 +304,5 @@
             <artifactId>webjars-locator-core</artifactId>
             <version>0.35</version>
         </dependency>
-
-
-
     </dependencies>
-
-    <repositories>
-        <repository>
-            <id>central</id>
-            <url>https://repo1.maven.org/maven2</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
-    <pluginRepositories>
-        <pluginRepository>
-            <id>central</id>
-            <url>https://repo1.maven.org/maven2</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </pluginRepository>
-    </pluginRepositories>
 </project>

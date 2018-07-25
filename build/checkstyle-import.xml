@@ -83,6 +83,7 @@
 
     <allow pkg="edu.umd.cs.findbugs.annotations"/>
     <allow pkg="com.nulabinc.zxcvbn" />
+    <allow pkg="jetbrains.exodus"/>
 
     <subpackage name="password.pwm.util">
         <allow pkg="sun.management"/>
@@ -125,7 +126,6 @@
     </subpackage>
 
     <subpackage name="util.localdb">
-        <allow pkg="jetbrains.exodus"/>
         <allow pkg="java.sql"/>
     </subpackage>
 

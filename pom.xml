@@ -34,7 +34,10 @@
     <modules>
         <module>client</module>
         <module>server</module>
+        <module>webapp</module>
         <module>onejar</module>
+        <module>data-service</module>
+        <module>rest-test-service</module>
         <module>docker</module>
     </modules>
 

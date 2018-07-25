@@ -4,7 +4,7 @@
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2016 The PWM Project
+  ~ Copyright (c) 2009-2018 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -31,13 +31,34 @@
 
 <module name="Checker">
 
+    <module name="Header">
+        <property name="headerFile" value="${basedir}/../build/license-header-jsp.txt"/>
+        <property name="fileExtensions" value="jsp"/>
+    </module>
+    <module name="Header">
+        <property name="headerFile" value="${basedir}/../build/license-header-java.txt"/>
+        <property name="fileExtensions" value="java,css"/>
+    </module>
+    <module name="Header">
+        <property name="headerFile" value="${basedir}/../build/license-header-xml.txt"/>
+        <property name="fileExtensions" value="xml,svg"/>
+    </module>
+    <module name="Header">
+        <property name="headerFile" value="${basedir}/../build/license-header-properties.txt"/>
+        <property name="fileExtensions" value="properties"/>
+    </module>
+
+
     <!-- Checks that each Java package has a Javadoc file used for commenting. -->
     <!-- See http://checkstyle.sf.net/config_javadoc.html#JavadocPackage       -->
     <!--module name="JavadocPackage">
       <property name="allowLegacy" value="true"/>
     </module-->
 
-    <module name="FileLength"/>
+    <module name="FileLength">
+        <property name="max" value="2000"/>
+        <property name="fileExtensions" value="jsp,java"/>
+    </module>
 
     <!-- Checks for Headers                              -->
     <!-- See http://checkstyle.sf.net/config_header.html -->
@@ -51,10 +72,11 @@
     <module name="FileTabCharacter">
         <property name="eachLine" value="true"/>
     </module>
-    <module name="NewlineAtEndOfFile"/>
+    <module name="NewlineAtEndOfFile">
+        <property name="lineSeparator" value="lf_cr_crlf" />
+    </module>
 
     <module name="TreeWalker">
-
         <property name="cacheFile" value="target/checkstyle.cache"/>
 
         <!-- required for SuppressWarningsFilter (and other Suppress* rules not used here) -->
@@ -73,40 +95,23 @@
             <property name="allowNonPrintableEscapes" value="true"/>
         </module>
 
-        <!--
         <module name="LineLength">
-            <property name="max" value="200" />
+            <property name="max" value="180" />
             <property name="ignorePattern" value="@version|@see|@todo|TODO"/>
         </module>
-        -->
-        <!-- required for SuppressionCommentFilter -->
-        <!-- see http://checkstyle.sourceforge.net/config.html#SuppressionCommentFilter -->
-        <!--
-        <module name="FileContentsHolder"/>
-
-
-        -->
 
         <module name="EmptyBlock">
             <property name="option" value="TEXT"/>
             <property name="tokens" value="LITERAL_TRY, LITERAL_FINALLY, LITERAL_IF, LITERAL_ELSE, LITERAL_SWITCH"/>
         </module>
-        <!--
+
         <module name="LeftCurly">
             <property name="option" value="nl"/>
-            <property name="maxLineLength" value="100"/>
         </module>
-        -->
 
-        <module name="RightCurly"/>
         <module name="RightCurly">
             <property name="option" value="alone"/>
-            <property name="tokens" value="CLASS_DEF, METHOD_DEF, CTOR_DEF, LITERAL_FOR, LITERAL_WHILE, STATIC_INIT, INSTANCE_INIT"/>
         </module>
-
-        <!--
-        <module name="MemberName" />
-        -->
 
         <!-- Checks for Javadoc comments.                     -->
         <!-- See http://checkstyle.sf.net/config_javadoc.html -->
@@ -133,11 +138,11 @@
         <!-- Checks for Naming Conventions.                  -->
         <!-- See http://checkstyle.sf.net/config_naming.html -->
         <!--
+        -->
         <module name="MemberName">
             <property name="format" value="^[a-z][a-z0-9][a-zA-Z0-9]*$"/>
         </module>
-        <module name="TypeName">
-        -->
+        <module name="TypeName"/>
         <module name="ConstantName"/>
         <module name="PackageName">
             <property name="format" value="^[a-z]+(\.[a-z][a-z0-9]*)*$"/>
@@ -158,15 +163,13 @@
         <module name="InterfaceTypeParameterName">
             <property name="format" value="(^[A-Z][0-9]?)$|([A-Z][a-zA-Z0-9]*[T]$)"/>
         </module>
-        <!--
         <module name="LocalFinalVariableName"/>
-        <module name="LocalVariableName"/>
+
         <module name="MethodName"/>
-        <module name="PackageName"/>
         <module name="ParameterName"/>
-        <module name="StaticVariableName"/>
-        <module name="TypeName"/>
+        <!--
         -->
+        <module name="StaticVariableName"/>
 
         <!-- Checks for imports                              -->
         <!-- See http://checkstyle.sf.net/config_import.html -->
@@ -175,15 +178,15 @@
         <module name="IllegalImport"/>
         <module name="RedundantImport"/>
         <module name="UnusedImports"/>
+        <module name="ImportControl">
+            <property name="file" value="${basedir}/../build/checkstyle-import.xml"/>
+        </module>
 
 
         <!-- Checks for Size Violations.                    -->
         <!-- See http://checkstyle.sf.net/config_sizes.html -->
-        <!--
         <module name="MethodLength"/>
         <module name="ParameterNumber"/>
-        -->
-
 
         <!-- Checks for whitespace                               -->
         <!-- See http://checkstyle.sf.net/config_whitespace.html -->
@@ -192,18 +195,16 @@
         </module>
         <module name="EmptyForInitializerPad"/>
         <module name="NeedBraces"/>
-        <!--
-        -->
-        <!-- module name="NoWhitespaceAfter"/ -->
-        <!-- module name="NoWhitespaceBefore"/ -->
-        <!--
+        <module name="NoWhitespaceAfter"/>
+        <module name="NoWhitespaceBefore"/>
+
         <module name="OperatorWrap"/>
         <module name="ParenPad">
             <property name="option" value="space" />
         </module>
+
         <module name="WhitespaceAfter"/>
         <module name="WhitespaceAround"/>
-        -->
         <!-- module name="MethodParamPad"/ -->
         <module name="GenericWhitespace"/>
         <module name="EmptyLineSeparator">
@@ -225,21 +226,26 @@
         <!--
         <module name="AvoidNestedBlocks"/>
         -->
+        <module name="EmptyBlock">
+            <property name="option" value="TEXT"/>
+            <property name="tokens" value="LITERAL_TRY, LITERAL_FINALLY, LITERAL_IF, LITERAL_ELSE, LITERAL_SWITCH"/>
+        </module>
 
+
+
+        <module name="IllegalInstantiation"/>
 
         <!-- Checks for common coding problems               -->
         <!-- See http://checkstyle.sf.net/config_coding.html -->
         <!-- module name="AvoidInlineConditionals"/ -->
         <!--
         <module name="EmptyStatement"/>
-        <module name="EqualsHashCode"/>
         <module name="HiddenField">
             <property name="severity" value="warning"/>
             <property name="ignoreSetter" value="true"/>
             <property name="ignoreConstructorParameter" value="true"/>
         </module>
         <module name="IllegalInstantiation"/>
-        <module name="InnerAssignment"/>
         -->
         <!--
         <module name="MagicNumber">
@@ -263,16 +269,19 @@
 
         <!-- future enabled checks -->
         <!--
-        <module name="TrailingComment"/>
-        <module name="NPathComplexity"/>
-        <module name="EnumTrailingCommaCheck"/> //doesnt yet exist as of checkstyle 2.17
+        <module name="EnumTrailingCommaCheck"/>         //doesnt yet exist as of checkstyle 2.17
         <module name="MultipleStringLiterals"/>
-        <module name="InnerAssignment"/>
+        <module name="NPathComplexity"/>
         <module name="MagicNumber">
             <property name="ignoreNumbers" value="-4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 31, 32, 37, 64, 100, 128, 256, 512, 1000, 1024"/>
         </module>
-        <module name="SimplifyBooleanExpression"/>
+
         -->
+
+        <module name="InnerAssignment"/>
+        <module name="SimplifyBooleanExpression"/>
+        <module name="TrailingComment"/>
+
 
         <!-- coding -->
         <module name="FallThrough"/>
@@ -294,6 +303,7 @@
         <module name="EqualsAvoidNull"/>
 
         <module name="MutableException"/>
+        <module name="OuterTypeFilename"/>
         <module name="TodoComment"/>
         <module name="NoLineWrap"/>
         <module name="OneTopLevelClass"/>
@@ -302,6 +312,14 @@
         <module name="UpperEll"/>
         <module name="PackageDeclaration"/>
         <module name="NoClone"/>
+
+        <!-- javadoc -->
+        <module name="JavadocParagraph"/>
+        <module name="AtclauseOrder"/>
+        <module name="JavadocStyle"/>
+        <module name="JavadocTagContinuationIndentation"/>
+        <module name="NonEmptyAtclauseDescription"/>
+        <module name="SingleLineJavadoc"/>
     </module>
 
     <!-- Support @SuppressWarnings (added in Checkstyle 5.7) -->
