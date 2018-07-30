@@ -405,21 +405,11 @@ PWM_CONFIG.initConfigManagerWordlistPage = function() {
         clearWordlist('SEEDLIST', 'Seedlist');
     });
 
-    setInterval(refreshWordlistInfoTables, 5000);
-    refreshWordlistInfoTables();
-
     function refreshWordlistInfoTables() {
         var makeTableData = function (tableData, title) {
             var outputHtml = '';
             outputHtml += '<tr><td colspan="2" class="title">' + title + '</td></tr>';
-            for (var iter in tableData) {
-                (function (label) {
-                    var value = tableData[label];
-                    outputHtml += '<tr><td class="key">' + label + '</td><td class="';
-                    PWM_MAIN.TimestampHandler.testIfStringIsTimestamp(value,function(){outputHtml += 'timestamp'});
-                    outputHtml += '">' + value + '</td></tr>';
-                })(iter);
-            }
+            outputHtml += UILibrary.displayElementsToTableContents(tableData);
             return outputHtml;
         };
         var updateWordlistActionButtons = function (data) {
@@ -437,15 +427,18 @@ PWM_CONFIG.initConfigManagerWordlistPage = function() {
             PWM_MAIN.setStyle('MenuItem_ClearSeedlist','visibility', disabled ? 'hidden' : 'visible');
         };
         var dataHandler = function (data) {
+            var wordlistData = data['data']['WORDLIST']['presentableData'];
             PWM_MAIN.getObject('table-wordlistInfo').innerHTML = makeTableData(
-                data['data']['WORDLIST']['presentableData'],
+                wordlistData,
                 PWM_CONFIG.showString('Label_Wordlist')
             );
+            UILibrary.initElementsToTableContents(wordlistData);
+            var seedlistData = data['data']['SEEDLIST']['presentableData'];
             PWM_MAIN.getObject('table-seedlistInfo').innerHTML = makeTableData(
-                data['data']['SEEDLIST']['presentableData'],
+                seedlistData,
                 PWM_CONFIG.showString('Label_Seedlist')
             );
-            PWM_MAIN.TimestampHandler.initAllElements();
+            UILibrary.initElementsToTableContents(seedlistData);
             updateWordlistActionButtons(data['data']);
         };
         var errorHandler = function(data) {
@@ -453,6 +446,9 @@ PWM_CONFIG.initConfigManagerWordlistPage = function() {
         };
         PWM_MAIN.ajaxRequest('wordlists?processAction=readWordlistData', dataHandler,{errorFunction:errorHandler});
     }
+
+    setInterval(refreshWordlistInfoTables, 5000);
+    refreshWordlistInfoTables();
 };
 
 

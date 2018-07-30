@@ -216,19 +216,9 @@ PWM_ADMIN.refreshReportDataStatus=function() {
     var loadFunction = function(data) {
         if (data['data'] && data['data']['presentable']) {
             var fields = data['data']['presentable'];
-            var htmlTable = '';
-            for (var field in fields) {(function(field){
-                var fieldData = fields[field];
-                htmlTable += '<tr><td>' + fieldData['label'] + '</td><td><span id="report_status_' + fieldData['key']  + '"</tr>';
-            }(field)); }
+            var htmlTable = UILibrary.displayElementsToTableContents(fields);
             PWM_MAIN.getObject('statusTable').innerHTML = htmlTable;
-            for (var field in fields) {(function(field) {
-                var fieldData = fields[field];
-                PWM_MAIN.getObject('report_status_' + fieldData['key']).innerHTML = fieldData['value'];
-                if (fieldData['type'] === 'timestamp') {
-                    PWM_MAIN.TimestampHandler.initElement(PWM_MAIN.getObject("report_status_" + fieldData['key']));
-                }
-            }(field)); }
+            UILibrary.initElementsToTableContents(fields);
         }
 
         var availableCommands = data['data']['availableCommands'];

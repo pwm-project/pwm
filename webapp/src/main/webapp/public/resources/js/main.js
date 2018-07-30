@@ -2114,5 +2114,15 @@ PWM_MAIN.copyObject = function(input) {
     return JSON.parse(JSON.stringify(input));
 };
 
+PWM_MAIN.numberFormat = function (number) {
+    try {
+        return new Number(number).toLocaleString();
+    } catch (t) {
+        console.log('error localizing number value "' + number + '", error: ' + t);
+    }
+
+    return number;
+};
+
 PWM_MAIN.pageLoadHandler();
 

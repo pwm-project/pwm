@@ -791,3 +791,26 @@ UILibrary.passwordDialogPopup = function(options, state) {
 
 };
 
+UILibrary.displayElementsToTableContents = function(fields) {
+    var htmlTable = '';
+    for (var field in fields) {(function(field){
+        var fieldData = fields[field];
+        htmlTable += '<tr><td>' + fieldData['label'] + '</td><td><span id="report_status_' + fieldData['key']  + '"</tr>';
+    }(field)); }
+    return htmlTable;
+};
+
+UILibrary.initElementsToTableContents = function(fields) {
+    for (var field in fields) {(function(field) {
+        var fieldData = fields[field];
+        var value = fieldData['value'];
+        if (fieldData['type'] === 'number') {
+            value = PWM_MAIN.numberFormat(value);
+        }
+        PWM_MAIN.getObject('report_status_' + fieldData['key']).innerHTML = value;
+        if (fieldData['type'] === 'timestamp') {
+            PWM_MAIN.TimestampHandler.initElement(PWM_MAIN.getObject("report_status_" + fieldData['key']));
+        }
+    }(field)); }
+};
+

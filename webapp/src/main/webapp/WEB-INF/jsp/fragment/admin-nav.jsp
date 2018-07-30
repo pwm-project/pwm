@@ -27,6 +27,7 @@
 
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final AdminServlet.Page currentPage = AdminServlet.Page.forUrl(JspUtility.getPwmRequest(pageContext).getURL()); %>
+<pwm:script-ref url="/public/resources/js/uilibrary.js"/>
 <pwm:script-ref url="/public/resources/js/admin.js"/>
 <pwm:script>
     <script type="text/javascript">
