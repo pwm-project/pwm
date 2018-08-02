@@ -25,7 +25,7 @@ package password.pwm.onejar;
 import java.io.File;
 import java.io.InputStream;
 
-class TomcatConfig
+class OnejarConfig
 {
     private int port;
     private File applicationPath;

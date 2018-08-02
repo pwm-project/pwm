@@ -45,7 +45,7 @@ public class ArgumentParser
 {
     private static final String ALPHABET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-    public TomcatConfig parseArguments( final String[] args )
+    public OnejarConfig parseArguments( final String[] args )
             throws ArgumentParserException, TomcatOneJarException
     {
         if ( args == null || args.length == 0 )
@@ -91,16 +91,16 @@ public class ArgumentParser
                 {
                     argumentMap = mapFromCommandLine( commandLine );
                 }
-                final TomcatConfig tomcatConfig;
+                final OnejarConfig onejarConfig;
                 try
                 {
-                    tomcatConfig = makeTomcatConfig( argumentMap );
+                    onejarConfig = makeTomcatConfig( argumentMap );
                 }
                 catch ( IOException e )
                 {
                     throw new ArgumentParserException( "error while reading input: " + e.getMessage() );
                 }
-                return tomcatConfig;
+                return onejarConfig;
             }
         }
 
@@ -154,13 +154,13 @@ public class ArgumentParser
     }
 
 
-    private TomcatConfig makeTomcatConfig( final Map<Argument, String> argumentMap ) throws IOException, ArgumentParserException
+    private OnejarConfig makeTomcatConfig( final Map<Argument, String> argumentMap ) throws IOException, ArgumentParserException
     {
-        final TomcatConfig tomcatConfig = new TomcatConfig();
-        tomcatConfig.setKeystorePass( genRandomString( 32 ) );
-        tomcatConfig.setApplicationPath( parseFileOption( argumentMap, Argument.applicationPath ) );
+        final OnejarConfig onejarConfig = new OnejarConfig();
+        onejarConfig.setKeystorePass( genRandomString( 32 ) );
+        onejarConfig.setApplicationPath( parseFileOption( argumentMap, Argument.applicationPath ) );
 
-        tomcatConfig.setContext( argumentMap.getOrDefault( Argument.context, Resource.defaultContext.getValue() ) );
+        onejarConfig.setContext( argumentMap.getOrDefault( Argument.context, Resource.defaultContext.getValue() ) );
 
         if ( argumentMap.containsKey( Argument.war ) )
         {
@@ -171,19 +171,19 @@ public class ArgumentParser
                 System.exit( -1 );
                 return null;
             }
-            tomcatConfig.setWar( new FileInputStream( inputWarFile ) );
+            onejarConfig.setWar( new FileInputStream( inputWarFile ) );
         }
         else
         {
-            tomcatConfig.setWar( getEmbeddedWar() );
+            onejarConfig.setWar( getEmbeddedWar() );
         }
 
-        tomcatConfig.setPort( Integer.parseInt( Resource.defaultPort.getValue() ) );
+        onejarConfig.setPort( Integer.parseInt( Resource.defaultPort.getValue() ) );
         if ( argumentMap.containsKey( Argument.port ) )
         {
             try
             {
-                tomcatConfig.setPort( Integer.parseInt( argumentMap.get( Argument.port ) ) );
+                onejarConfig.setPort( Integer.parseInt( argumentMap.get( Argument.port ) ) );
             }
             catch ( NumberFormatException e )
             {
@@ -192,11 +192,11 @@ public class ArgumentParser
             }
         }
 
-        tomcatConfig.setLocalAddress( argumentMap.getOrDefault( Argument.localAddress, Resource.defaultLocalAddress.getValue() ) );
+        onejarConfig.setLocalAddress( argumentMap.getOrDefault( Argument.localAddress, Resource.defaultLocalAddress.getValue() ) );
 
         try
         {
-            final ServerSocket socket = new ServerSocket( tomcatConfig.getPort(), 100, InetAddress.getByName( tomcatConfig.getLocalAddress() ) );
+            final ServerSocket socket = new ServerSocket( onejarConfig.getPort(), 100, InetAddress.getByName( onejarConfig.getLocalAddress() ) );
             socket.close();
         }
         catch ( Exception e )
@@ -206,14 +206,14 @@ public class ArgumentParser
 
         if ( argumentMap.containsKey( Argument.workPath ) )
         {
-            tomcatConfig.setWorkingPath( parseFileOption( argumentMap, Argument.workPath ) );
+            onejarConfig.setWorkingPath( parseFileOption( argumentMap, Argument.workPath ) );
         }
         else
         {
-            tomcatConfig.setWorkingPath( figureDefaultWorkPath( tomcatConfig ) );
+            onejarConfig.setWorkingPath( figureDefaultWorkPath( onejarConfig ) );
         }
 
-        return tomcatConfig;
+        return onejarConfig;
     }
 
 
@@ -249,7 +249,7 @@ public class ArgumentParser
         return file;
     }
 
-    private static File figureDefaultWorkPath( final TomcatConfig tomcatConfig ) throws ArgumentParserException
+    private static File figureDefaultWorkPath( final OnejarConfig onejarConfig ) throws ArgumentParserException
     {
         final String userHomePath = System.getProperty( "user.home" );
         if ( userHomePath != null && !userHomePath.isEmpty() )
@@ -262,13 +262,13 @@ public class ArgumentParser
             {
                 String workPathStr = basePath.getPath() + File.separator + "work"
                         + "-"
-                        + escapeFilename( tomcatConfig.getContext() )
+                        + escapeFilename( onejarConfig.getContext() )
                         + "-"
-                        + escapeFilename( Integer.toString( tomcatConfig.getPort() ) );
+                        + escapeFilename( Integer.toString( onejarConfig.getPort() ) );
 
-                if ( tomcatConfig.getLocalAddress() != null && !tomcatConfig.getLocalAddress().isEmpty() )
+                if ( onejarConfig.getLocalAddress() != null && !onejarConfig.getLocalAddress().isEmpty() )
                 {
-                    workPathStr += "-" + escapeFilename( tomcatConfig.getLocalAddress() );
+                    workPathStr += "-" + escapeFilename( onejarConfig.getLocalAddress() );
 
                 }
                 workPath = workPathStr;
