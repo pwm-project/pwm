@@ -24,6 +24,7 @@ package password.pwm.http.client;
 
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
+import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.auth.AuthScope;
@@ -40,6 +41,8 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
@@ -48,6 +51,7 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.ProxyAuthenticationStrategy;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
+import org.apache.http.protocol.HttpContext;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.util.EntityUtils;
@@ -62,6 +66,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
+import password.pwm.http.PwmURL;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -82,6 +87,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class PwmHttpClient
@@ -111,10 +117,14 @@ public class PwmHttpClient
     public static HttpClient getHttpClient( final Configuration configuration )
             throws PwmUnrecoverableException
     {
-        return getHttpClient( configuration, PwmHttpClientConfiguration.builder().certificates( null ).build() );
+        return getHttpClient( configuration, PwmHttpClientConfiguration.builder().certificates( null ).build(), null );
     }
 
-    public static HttpClient getHttpClient( final Configuration configuration, final PwmHttpClientConfiguration pwmHttpClientConfiguration )
+    public static HttpClient getHttpClient(
+            final Configuration configuration,
+            final PwmHttpClientConfiguration pwmHttpClientConfiguration,
+            final SessionLabel sessionLabel
+    )
             throws PwmUnrecoverableException
     {
         final HttpClientBuilder clientBuilder = HttpClientBuilder.create();
@@ -155,10 +165,12 @@ public class PwmHttpClient
         if ( proxyUrl != null && proxyUrl.length() > 0 )
         {
             final URI proxyURI = URI.create( proxyUrl );
+
             final String host = proxyURI.getHost();
             final int port = proxyURI.getPort();
+            final HttpHost proxyHost = new HttpHost( host, port );
 
-            clientBuilder.setProxy( new HttpHost( host, port ) );
+            clientBuilder.setProxy( proxyHost );
 
             final String userInfo = proxyURI.getUserInfo();
             if ( userInfo != null && userInfo.length() > 0 )
@@ -173,6 +185,8 @@ public class PwmHttpClient
                 clientBuilder.setDefaultCredentialsProvider( credsProvider );
                 clientBuilder.setProxyAuthenticationStrategy( new ProxyAuthenticationStrategy() );
             }
+
+            clientBuilder.setRoutePlanner( new ProxyRoutePlanner( proxyHost, configuration, sessionLabel ) );
         }
 
         clientBuilder.setDefaultRequestConfig( RequestConfig.copy( RequestConfig.DEFAULT )
@@ -349,7 +363,7 @@ public class PwmHttpClient
             }
         }
 
-        final HttpClient httpClient = getHttpClient( pwmApplication.getConfig(), pwmHttpClientConfiguration );
+        final HttpClient httpClient = getHttpClient( pwmApplication.getConfig(), pwmHttpClientConfiguration, sessionLabel );
         return httpClient.execute( httpRequest );
     }
 
@@ -394,6 +408,41 @@ public class PwmHttpClient
         }
 
         throw new IllegalArgumentException( "unknown protocol type: " + url.getProtocol() );
+    }
+
+
+
+    private static class ProxyRoutePlanner implements HttpRoutePlanner
+    {
+        private final HttpHost proxyServer;
+        private final Configuration configuration;
+        private final SessionLabel sessionLabel;
+
+
+        ProxyRoutePlanner( final HttpHost proxyServer, final Configuration configuration, final SessionLabel sessionLabel )
+        {
+            this.proxyServer = proxyServer;
+            this.configuration = configuration;
+            this.sessionLabel = sessionLabel;
+        }
+
+        public HttpRoute determineRoute(
+                final HttpHost target,
+                final HttpRequest request,
+                final HttpContext context
+        )
+        {
+            final String targetUri = target.toURI();
+
+            final List<String> proxyExceptionUrls = configuration.readSettingAsStringArray( PwmSetting.HTTP_PROXY_EXCEPTIONS );
+
+            if ( PwmURL.testIfUrlMatchesAllowedPattern( targetUri, proxyExceptionUrls, sessionLabel ) )
+            {
+                return new HttpRoute( target );
+            }
+
+            return new HttpRoute( target, proxyServer );
+        }
     }
 }
 

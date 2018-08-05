@@ -157,7 +157,7 @@ public class PwmHttpClientTest {
                 .certificates(getWireMockSelfSignedCertificate())
                 .build();
 
-        HttpClient httpClient = PwmHttpClient.getHttpClient(configuration, pwmHttpClientConfiguration);
+        HttpClient httpClient = PwmHttpClient.getHttpClient(configuration, pwmHttpClientConfiguration, null);
 
         HttpGet httpGet = new HttpGet(String.format("https://localhost:%d/simpleHello", wm.httpsPort()));
         HttpResponse response = httpClient.execute(httpGet);

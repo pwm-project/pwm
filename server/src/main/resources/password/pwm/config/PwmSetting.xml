@@ -3775,9 +3775,10 @@
         </options>
     </setting>
     <setting hidden="false" key="http.proxy.url" level="1">
-        <default>
-            <value />
-        </default>
+        <default/>
+    </setting>
+    <setting hidden="false" key="http.proxy.exceptions" level="1">
+        <default/>
     </setting>
     <setting hidden="false" key="cas.clearPassUrl" level="2">
         <default>

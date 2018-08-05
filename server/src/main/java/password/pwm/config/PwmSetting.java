@@ -93,6 +93,9 @@ public enum PwmSetting
             "locale.cookie.age", PwmSettingSyntax.DURATION, PwmSettingCategory.LOCALIZATION ),
     HTTP_PROXY_URL(
             "http.proxy.url", PwmSettingSyntax.STRING, PwmSettingCategory.GENERAL ),
+    HTTP_PROXY_EXCEPTIONS(
+            "http.proxy.exceptions", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.GENERAL ),
+
     APP_PROPERTY_OVERRIDES(
             "pwm.appProperty.overrides", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.GENERAL ),
 
