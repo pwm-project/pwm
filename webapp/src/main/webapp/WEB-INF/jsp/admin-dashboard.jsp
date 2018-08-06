@@ -487,12 +487,12 @@
 
             PWM_MAIN.addEventHandler('button-showLocalDBCounts','click',function(){
                 PWM_MAIN.showWaitDialog({loadFunction:function(){
-                        PWM_MAIN.goto('dashboard?showLocalDBCounts=true');
+                        PWM_MAIN.gotoUrl('dashboard?showLocalDBCounts=true');
                     }})
             });
             PWM_MAIN.addEventHandler('button-showThreadDetails','click',function(){
                 PWM_MAIN.showWaitDialog({loadFunction:function(){
-                        PWM_MAIN.goto('dashboard?showThreadDetails=true');
+                        PWM_MAIN.gotoUrl('dashboard?showThreadDetails=true');
                     }})
             });
             <% for (final AppDashboardData.ServiceData loopService : appDashboardData.getServices()) { %>

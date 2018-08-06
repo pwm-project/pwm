@@ -54,7 +54,7 @@ PWM_CONFIG.waitForRestart=function(options) {
     var restartFunction = function() {
         var redirectUrl = 'location' in options ? options['location'] : '/';
         console.log("application appears to be restarted, redirecting to context url: " + redirectUrl);
-        PWM_MAIN.goto(redirectUrl);
+        PWM_MAIN.gotoUrl(redirectUrl);
     };
 
     options = options === undefined ? {} : options;
@@ -229,7 +229,7 @@ PWM_CONFIG.downloadLocalDB = function () {
         okAction:function(){
             PWM_MAIN.showWaitDialog({
                 loadFunction:function(){
-                    PWM_MAIN.goto('localdb?processAction=exportLocalDB',{addFormID:true,hideDialog:true});
+                    PWM_MAIN.gotoUrl('localdb?processAction=exportLocalDB',{addFormID:true,hideDialog:true});
                     setTimeout(function(){PWM_MAIN.closeWaitDialog()},5000);
                 }
             });
@@ -244,7 +244,7 @@ PWM_CONFIG.downloadConfig = function () {
         okAction:function(){
             PWM_MAIN.showWaitDialog({
                 loadFunction:function(){
-                    PWM_MAIN.goto('ConfigManager?processAction=downloadConfig',{addFormID:true,hideDialog:true});
+                    PWM_MAIN.gotoUrl('ConfigManager?processAction=downloadConfig',{addFormID:true,hideDialog:true});
                     setTimeout(function(){PWM_MAIN.closeWaitDialog()},5000);
                 }
             });
@@ -266,7 +266,7 @@ PWM_CONFIG.downloadSupportBundle = function() {
         okAction:function(){
             PWM_MAIN.showWaitDialog({
                 loadFunction: function () {
-                    PWM_MAIN.goto('ConfigManager?processAction=generateSupportZip', {
+                    PWM_MAIN.gotoUrl('ConfigManager?processAction=generateSupportZip', {
                         addFormID: true,
                         hideDialog: true
                     });
@@ -327,7 +327,7 @@ PWM_CONFIG.heartbeatCheck = function() {
 
 PWM_CONFIG.initConfigHeader = function() {
     PWM_MAIN.addEventHandler('panel-header-healthData','click',function(){
-        PWM_MAIN.goto('/private/config/manager');
+        PWM_MAIN.gotoUrl('/private/config/manager');
     });
     PWM_MAIN.addEventHandler('button-closeHeader','click',function(){
         PWM_CONFIG.closeHeaderWarningPanel();
@@ -340,7 +340,7 @@ PWM_CONFIG.initConfigHeader = function() {
     });
 
     require(["dojo/dom-construct", "dojo/_base/window", "dojo/dom", "dijit/place", "dojo/on"], function(domConstruct, win, dom, place, on){
-        domConstruct.create("div", { id: "header-warning-backdrop", class:"nodisplay" }, win.body());
+        domConstruct.create("div", { id: "header-warning-backdrop", "class":"nodisplay" }, win.body());
 
         PWM_CONFIG.headerResizeListener = on.pausable(window, "resize", function () {
             place.around(dom.byId("header-warning"), dom.byId("header-username-caret"), ["below-alt"], false);
@@ -362,7 +362,7 @@ PWM_CONFIG.initConfigManagerWordlistPage = function() {
         uploadOptions['nextFunction'] = function () {
             PWM_MAIN.showDialog({
                 title: 'Finished', text: 'Upload Completed', okAction: function () {
-                    PWM_MAIN.goto('wordlists');
+                    PWM_MAIN.gotoUrl('wordlists');
                 }
             });
         };
@@ -380,7 +380,7 @@ PWM_CONFIG.initConfigManagerWordlistPage = function() {
                                 text: data['successMessage'], okAction: function () {
                                     PWM_MAIN.showWaitDialog({
                                         loadFunction: function(){
-                                            PWM_MAIN.goto('wordlists');
+                                            PWM_MAIN.gotoUrl('wordlists');
                                         }
                                     });
                                 }

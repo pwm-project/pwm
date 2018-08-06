@@ -273,7 +273,7 @@ PWM_MAIN.applyFormAttributes = function() {
             PWM_MAIN.addEventHandler(linkElement, "click", function (event) {
                 event.preventDefault();
                 PWM_MAIN.showWaitDialog({loadFunction: function () {
-                        PWM_MAIN.goto(hrefValue);
+                        PWM_MAIN.gotoUrl(hrefValue);
                     }});
             });
             linkElement.removeAttribute('href');
@@ -336,7 +336,7 @@ PWM_MAIN.addEventHandler = function(nodeId,eventType,functionToAdd) {
 };
 
 
-PWM_MAIN.goto = function(url,options) {
+PWM_MAIN.gotoUrl = function(url, options) {
     PWM_VAR['dirtyPageLeaveFlag'] = false;
     options = options === undefined ? {} : options;
     if (!('noContext' in options) && url.indexOf(PWM_GLOBAL['url-context']) !== 0) {
@@ -400,7 +400,7 @@ PWM_MAIN.handleLoginFormSubmit = function(form, event) {
                     console.log('authentication success');
                     var nextURL = data['data']['nextURL'];
                     if (nextURL) {
-                        PWM_MAIN.goto(nextURL, {noContext: true});
+                        PWM_MAIN.gotoUrl(nextURL, {noContext: true});
                     }
                 };
                 PWM_MAIN.ajaxRequest(url,loadFunction,options);
@@ -664,7 +664,7 @@ PWM_MAIN.initLocaleSelectorMenu = function(attachNode) {
                 } else {
                     nextUrl = PWM_MAIN.addParamToUrl(nextUrl, 'locale', localeKey)
                 }
-                PWM_MAIN.goto(nextUrl);
+                PWM_MAIN.gotoUrl(nextUrl);
             });
         });
     });
@@ -711,7 +711,7 @@ PWM_MAIN.showErrorDialog = function(error, options) {
     options['okAction'] =  function() {
         if (forceReload) { // incorrect page sequence;
             var newURL = window.location.pathname;
-            PWM_MAIN.goto(newURL);
+            PWM_MAIN.gotoUrl(newURL);
             PWM_MAIN.showWaitDialog();
         } else {
             previousOkAction();
@@ -1606,7 +1606,7 @@ PWM_MAIN.IdleTimeoutHandler.pollActivity = function() {
             PWM_VAR['dirtyPageLeaveFlag'] = false;
             PWM_GLOBAL['idle_suspendTimeout'] = true;
             var url = PWM_GLOBAL['url-logout'] + '?idle=true&url=' + encodeURIComponent(window.location.pathname);
-            PWM_MAIN.goto(url);
+            PWM_MAIN.gotoUrl(url);
         } else {
             try { PWM_MAIN.getObject('idle_wrapper').style.visibility = 'none'; } catch(e) { /* noop */ }
         }

@@ -215,7 +215,7 @@
             uploadOptions['url'] = 'config-guide?processAction=uploadJDBCDriver';
             uploadOptions['title'] = 'Upload JDBC Driver';
             uploadOptions['nextFunction'] = function() {
-                PWM_MAIN.goto('config-guide');
+                PWM_MAIN.gotoUrl('config-guide');
             };
             PWM_MAIN.IdleTimeoutHandler.cancelCountDownTimer();
             UILibrary.uploadFileDialog(uploadOptions);

@@ -247,7 +247,7 @@ ChallengeSettingHandler.editLocale = function(keyName, localeKey) {
                 };
                 var okAction = function() {
                     switchAllValues(settingType,PWM_VAR['tempValue']);
-                    delete 'tempValue' in PWM_VAR;
+                    PWM_MAIN.JSLibrary.removeFromArray(PWM_VAR, 'tempValue');
                     ChallengeSettingHandler.editLocale(keyName, localeKey);
                 };
                 PWM_MAIN.showConfirmDialog({text:dialogText,loadFunction:loadFunction, okAction:okAction});

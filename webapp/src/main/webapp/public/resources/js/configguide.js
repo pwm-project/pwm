@@ -82,7 +82,7 @@ PWM_GUIDE.gotoStep = function(step) {
                         return;
                     }
                 }
-                PWM_MAIN.goto('config-guide');
+                PWM_MAIN.gotoUrl('config-guide');
             };
             PWM_MAIN.ajaxRequest(url,loadFunction);
         });

@@ -465,7 +465,7 @@ UILibrary.uploadFileDialog = function(options) {
 
     var nextFunction = 'nextFunction' in options ? options['nextFunction'] : function(data){
         PWM_MAIN.showDialog({title: PWM_MAIN.showString("Title_Success"), text: data['successMessage'],okAction:function(){
-                PWM_MAIN.goto(currentUrl)
+                PWM_MAIN.gotoUrl(currentUrl)
             }});
     };
 

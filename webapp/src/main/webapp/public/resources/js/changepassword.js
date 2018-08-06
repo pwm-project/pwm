@@ -490,7 +490,7 @@ PWM_CHANGEPW.refreshCreateStatus=function(refreshInterval) {
             }
 
             if (data['data']['complete'] === true) {
-                PWM_MAIN.goto(completedUrl,{delay:1000})
+                PWM_MAIN.gotoUrl(completedUrl,{delay:1000})
             } else {
                 setTimeout(function(){
                     PWM_CHANGEPW.refreshCreateStatus(refreshInterval);

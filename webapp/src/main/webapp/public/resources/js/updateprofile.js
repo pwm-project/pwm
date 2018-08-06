@@ -68,7 +68,7 @@ PWM_UPDATE.uploadPhoto=function(fieldName,options) {
     uploadOptions['nextFunction'] = function () {
         PWM_MAIN.showWaitDialog({
             title: 'Upload complete...', loadFunction: function () {
-                PWM_MAIN.goto(window.location.pathname);
+                PWM_MAIN.gotoUrl(window.location.pathname);
             }
         });
     };

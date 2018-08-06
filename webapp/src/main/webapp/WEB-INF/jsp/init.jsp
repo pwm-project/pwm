@@ -61,7 +61,7 @@
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
             PWM_MAIN.preloadAll(function(){
-                PWM_MAIN.goto('<%=StringUtil.escapeJS(nextURL)%>');
+                PWM_MAIN.gotoUrl('<%=StringUtil.escapeJS(nextURL)%>');
             });
         });
     </script>

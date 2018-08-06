@@ -552,17 +552,17 @@ PWM_CFGEDIT.gotoSetting = function(category,settingKey,profile) {
     }
 
     if (!settingKey && !category) {
-        console.log('unable to goto setting: settingKey and category parameter are not specified');
+        console.log('unable to gotoUrl setting: settingKey and category parameter are not specified');
         return;
     }
 
     if (settingKey && !(settingKey in PWM_SETTINGS['settings'])) {
-        console.log('unable to goto setting: settingKey parameter "' + settingKey + '" is not valid');
+        console.log('unable to gotoUrl setting: settingKey parameter "' + settingKey + '" is not valid');
         return;
     }
 
     if (!(category in PWM_SETTINGS['categories'])) {
-        console.log('unable to goto setting: category parameter "' + category + '" is not valid');
+        console.log('unable to gotoUrl setting: category parameter "' + category + '" is not valid');
         return;
     }
 
@@ -620,13 +620,13 @@ PWM_CFGEDIT.cancelEditing = function() {
                                 function () {
                                     PWM_MAIN.showWaitDialog({loadFunction: function () {
                                             PWM_MAIN.ajaxRequest('editor?processAction=cancelEditing',function(){
-                                                PWM_MAIN.goto('manager', {addFormID: true});
+                                                PWM_MAIN.gotoUrl('manager', {addFormID: true});
                                             });
                                         }});
                                 }
                         });
                     } else {
-                        PWM_MAIN.goto('manager', {addFormID: true});
+                        PWM_MAIN.gotoUrl('manager', {addFormID: true});
                     }
                 }
             };
@@ -788,7 +788,7 @@ PWM_CFGEDIT.selectTemplate = function(newTemplate) {
         okAction: function () {
             PWM_MAIN.showWaitDialog({loadFunction: function () {
                     var url = "editor?processAction=setOption&template=" + newTemplate;
-                    PWM_MAIN.ajaxRequest(url, function(){ PWM_MAIN.goto('editor'); });
+                    PWM_MAIN.ajaxRequest(url, function(){ PWM_MAIN.gotoUrl('editor'); });
                 }});
         }
     });

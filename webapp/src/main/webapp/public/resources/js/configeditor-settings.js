@@ -327,7 +327,7 @@ StringArrayValueHandler.drawRow = function(settingKey, iteration, value, itemCou
                     if (data['error']) {
                         PWM_MAIN.showErrorDialog(data);
                     } else {
-                        PWM_MAIN.goto('editor');
+                        PWM_MAIN.gotoUrl('editor');
                     }
                 };
                 PWM_MAIN.showWaitDialog({loadFunction:function(){
@@ -416,7 +416,7 @@ StringArrayValueHandler.writeSetting = function(settingKey, reload) {
     var syntax = PWM_SETTINGS['settings'][settingKey]['syntax'];
     var nextFunction = function() {
         if (syntax === 'PROFILE') {
-            PWM_MAIN.goto('editor');
+            PWM_MAIN.gotoUrl('editor');
         }
         if (reload) {
             StringArrayValueHandler.init(settingKey);

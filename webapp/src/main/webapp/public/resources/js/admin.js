@@ -34,28 +34,28 @@ PWM_ADMIN.initAdminNavMenu = function() {
                     label: PWM_ADMIN.showString('Title_LogViewer'),
                     id: 'eventLog_dropitem',
                     onClick: function() {
-                        PWM_MAIN.goto(PWM_GLOBAL['url-context'] + '/private/admin/logs');
+                        PWM_MAIN.gotoUrl(PWM_GLOBAL['url-context'] + '/private/admin/logs');
                     }
                 }));
                 pMenu.addChild(new MenuItem({
                     label: PWM_ADMIN.showString('Title_TokenLookup'),
                     id: 'tokenLookup_dropitem',
                     onClick: function() {
-                        PWM_MAIN.goto(PWM_GLOBAL['url-context'] + '/private/admin/tokens');
+                        PWM_MAIN.gotoUrl(PWM_GLOBAL['url-context'] + '/private/admin/tokens');
                     }
                 }));
                 pMenu.addChild(new MenuItem({
                     label: PWM_ADMIN.showString('Title_URLReference'),
                     id: 'urlReference_dropitem',
                     onClick: function() {
-                        PWM_MAIN.goto(PWM_GLOBAL['url-context'] + '/private/admin/urls');
+                        PWM_MAIN.gotoUrl(PWM_GLOBAL['url-context'] + '/private/admin/urls');
                     }
                 }));
                 pMenu.addChild(new MenuItem({
                     label: 'User Debug',
                     id: 'userDebug_dropitem',
                     onClick: function() {
-                        PWM_MAIN.goto(PWM_GLOBAL['url-context'] + '/private/admin/userdebug');
+                        PWM_MAIN.gotoUrl(PWM_GLOBAL['url-context'] + '/private/admin/userdebug');
                     }
                 }));
                 pMenu.addChild(new MenuSeparator());
@@ -63,7 +63,7 @@ PWM_ADMIN.initAdminNavMenu = function() {
                     label: 'Full Page Health Status',
                     id: 'fullPageHealthStatus_dropitem',
                     onClick: function() {
-                        PWM_MAIN.goto(PWM_GLOBAL['url-context'] + '/public/health.jsp');
+                        PWM_MAIN.gotoUrl(PWM_GLOBAL['url-context'] + '/public/health.jsp');
                     }
                 }));
                 pMenu.addChild(new MenuSeparator());
@@ -88,14 +88,14 @@ PWM_ADMIN.initAdminNavMenu = function() {
                     label: 'Configuration Manager',
                     id: 'configurationManager_dropitem',
                     onClick: function() {
-                        PWM_MAIN.goto(PWM_GLOBAL['url-context'] + '/private/config/manager');
+                        PWM_MAIN.gotoUrl(PWM_GLOBAL['url-context'] + '/private/config/manager');
                     }
                 }));
                 pMenu.addChild(new MenuItem({
                     label: 'Configuration Editor',
                     id: 'configurationEditor_dropitem',
                     onClick: function() {
-                        PWM_MAIN.goto(PWM_GLOBAL['url-context'] + '/private/config/editor');
+                        PWM_MAIN.gotoUrl(PWM_GLOBAL['url-context'] + '/private/config/editor');
                     }
                 }));
 
