@@ -27,7 +27,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
-<% boolean passwordResetInhibit = (boolean)JspUtility.getAttribute( pageContext, PwmRequestAttribute.ForgottenPasswordInhibitPasswordReset ); %>
+<% boolean passwordResetInhibit = (Boolean)JspUtility.getAttribute( pageContext, PwmRequestAttribute.ForgottenPasswordInhibitPasswordReset ); %>
 <body class="nihilo">
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
