@@ -201,7 +201,7 @@ public class TomcatOneJarMain
         final File redirBase = new File( onejarConfig.getWorkingPath().getAbsoluteFile() + File.separator + "redirectBase" );
         redirBase.mkdirs();
         {
-            new File (redirBase.getAbsolutePath() + File.separator + "WEB-INF" ).mkdirs();
+            new File ( redirBase.getAbsolutePath() + File.separator + "WEB-INF" ).mkdirs();
             copyFileAndReplace(
                     srcRootWebXml,
                     redirBase.getPath() + File.separator + "WEB-INF" + File.separator + "web.xml",
@@ -332,8 +332,8 @@ public class TomcatOneJarMain
             throws IOException
     {
         final InputStream inputStream = TomcatOneJarMain.class.getClassLoader().getResourceAsStream( srcPath );
-        String contents = new BufferedReader(new InputStreamReader(inputStream)).lines().collect( Collectors.joining("\n"));
+        String contents = new BufferedReader( new InputStreamReader( inputStream ) ).lines().collect( Collectors.joining( "\n" ) );
         contents = contents.replace( "[[[ROOT_CONTEXT]]]", rootcontext );
-        Files.write( Paths.get( destPath ), contents.getBytes());
+        Files.write( Paths.get( destPath ), contents.getBytes() );
     }
 }

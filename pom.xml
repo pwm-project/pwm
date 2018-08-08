@@ -31,6 +31,7 @@
         <timestamp.iso>${maven.build.timestamp}</timestamp.iso>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
+        <project.root.basedir>${project.basedir}</project.root.basedir>
     </properties>
 
     <modules>
@@ -42,6 +43,15 @@
         <module>rest-test-service</module>
         <module>docker</module>
     </modules>
+
+    <profiles>
+        <profile>
+            <id>skip-checkstyle</id>
+            <properties>
+                <checkstyle.skip>true</checkstyle.skip>
+            </properties>
+        </profile>
+    </profiles>
 
     <build>
         <plugins>
@@ -73,6 +83,39 @@
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>3.0.0</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.puppycrawl.tools</groupId>
+                        <artifactId>checkstyle</artifactId>
+                        <version>8.11</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <id>validate</id>
+                        <phase>validate</phase>
+                        <configuration>
+                            <propertyExpansion>basedir=${project.root.basedir}</propertyExpansion>
+                            <configLocation>${project.root.basedir}/build/checkstyle.xml</configLocation>
+                            <encoding>UTF-8</encoding>
+                            <consoleOutput>true</consoleOutput>
+                            <includeTestResources>false</includeTestResources>
+                            <failsOnError>true</failsOnError>
+                            <includes>**/*.java,**/*.jsp,**/*.properties,**/*.xml,**/*.css,**/*.svg</includes>
+                            <sourceDirectories>
+                                <directory>src/main</directory>
+                            </sourceDirectories>
+                        </configuration>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

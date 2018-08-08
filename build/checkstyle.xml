@@ -32,19 +32,19 @@
 <module name="Checker">
 
     <module name="Header">
-        <property name="headerFile" value="${basedir}/../build/license-header-jsp.txt"/>
+        <property name="headerFile" value="${basedir}/build/license-header-jsp.txt"/>
         <property name="fileExtensions" value="jsp"/>
     </module>
     <module name="Header">
-        <property name="headerFile" value="${basedir}/../build/license-header-java.txt"/>
+        <property name="headerFile" value="${basedir}/build/license-header-java.txt"/>
         <property name="fileExtensions" value="java,css"/>
     </module>
     <module name="Header">
-        <property name="headerFile" value="${basedir}/../build/license-header-xml.txt"/>
+        <property name="headerFile" value="${basedir}/build/license-header-xml.txt"/>
         <property name="fileExtensions" value="xml,svg"/>
     </module>
     <module name="Header">
-        <property name="headerFile" value="${basedir}/../build/license-header-properties.txt"/>
+        <property name="headerFile" value="${basedir}/build/license-header-properties.txt"/>
         <property name="fileExtensions" value="properties"/>
     </module>
 
@@ -179,7 +179,7 @@
         <module name="RedundantImport"/>
         <module name="UnusedImports"/>
         <module name="ImportControl">
-            <property name="file" value="${basedir}/../build/checkstyle-import.xml"/>
+            <property name="file" value="${basedir}/build/checkstyle-import.xml"/>
         </module>
 
 

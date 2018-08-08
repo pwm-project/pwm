@@ -17,6 +17,7 @@
 
     <properties>
         <skipDocker>false</skipDocker>
+        <project.root.basedir>${project.basedir}/..</project.root.basedir>
     </properties>
 
     <profiles>
