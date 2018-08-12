@@ -110,9 +110,9 @@ public class ArgumentParser
     private Map<Argument, String> mapFromProperties( final String filename ) throws ArgumentParserException
     {
         final Properties props = new Properties();
-        try
+        try ( InputStream is = new FileInputStream( new File( filename ) ) )
         {
-            props.load( new FileInputStream( new File( filename ) ) );
+            props.load( is );
         }
         catch ( IOException e )
         {
@@ -167,9 +167,9 @@ public class ArgumentParser
             final File inputWarFile = new File( argumentMap.get( Argument.war ) );
             if ( !inputWarFile.exists() )
             {
-                System.out.println( "output war file " + inputWarFile.getAbsolutePath() + "does not exist" );
-                System.exit( -1 );
-                return null;
+                final String msg = "output war file " + inputWarFile.getAbsolutePath() + "does not exist";
+                System.out.println( msg );
+                throw new IllegalStateException( msg );
             }
             onejarConfig.setWar( new FileInputStream( inputWarFile ) );
         }
@@ -187,8 +187,9 @@ public class ArgumentParser
             }
             catch ( NumberFormatException e )
             {
-                System.out.println( Argument.port.name() + " argument must be numeric" );
-                System.exit( -1 );
+                final String msg = Argument.port.name() + " argument must be numeric";
+                System.out.println( msg );
+                throw new IllegalStateException( msg );
             }
         }
 
@@ -249,14 +250,16 @@ public class ArgumentParser
         return file;
     }
 
-    private static File figureDefaultWorkPath( final OnejarConfig onejarConfig ) throws ArgumentParserException
+    private static File figureDefaultWorkPath( final OnejarConfig onejarConfig )
+            throws ArgumentParserException, IOException
     {
         final String userHomePath = System.getProperty( "user.home" );
         if ( userHomePath != null && !userHomePath.isEmpty() )
         {
             final File basePath = new File( userHomePath + File.separator
                     + Resource.defaultWorkPathName.getValue() );
-            basePath.mkdir();
+
+            mkdirs( basePath );
 
             final String workPath;
             {
@@ -274,7 +277,7 @@ public class ArgumentParser
                 workPath = workPathStr;
             }
             final File workFile = new File( workPath );
-            workFile.mkdirs();
+            mkdirs( workFile );
             TomcatOneJarMain.out( "using work directory: " + workPath );
             return workFile;
         }
@@ -310,5 +313,13 @@ public class ArgumentParser
             stringBuilder.append( ALPHABET.charAt( secureRandom.nextInt( ALPHABET.length() ) ) );
         }
         return stringBuilder.toString();
+    }
+
+    static void mkdirs( final File file ) throws IOException
+    {
+        if ( !file.mkdirs() && !file.exists() )
+        {
+            throw new IOException( "unable to create path " + file.getAbsolutePath() );
+        }
     }
 }

@@ -15,28 +15,15 @@
     <name>PWM Password Self Service: Server WAR</name>
 
     <properties>
-        <skipTests>false</skipTests>
-        <skipSpotbugs>false</skipSpotbugs>
+        <skipSpotbugs>true</skipSpotbugs>
         <project.root.basedir>${project.basedir}/..</project.root.basedir>
     </properties>
 
     <profiles>
         <profile>
-            <id>skip-tests</id>
-            <properties>
-                <skipTests>true</skipTests>
-            </properties>
-        </profile>
-        <profile>
             <id>skip-javadoc</id>
             <properties>
                 <maven.javadoc.skip>true</maven.javadoc.skip>
-            </properties>
-        </profile>
-        <profile>
-            <id>skip-spotbugs</id>
-            <properties>
-                <skipSpotbugs>true</skipSpotbugs>
             </properties>
         </profile>
         <profile>
