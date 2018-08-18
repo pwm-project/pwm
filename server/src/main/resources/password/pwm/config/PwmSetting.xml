@@ -34,6 +34,7 @@
             <option value="NOVL">NetIQ eDirectory</option>
             <option value="NOVL_IDM">NetIQ IDM / OAuth Integration</option>
             <option value="OPEN_LDAP">OpenLDAP</option>
+            <option value="FREEIPA">FreeIPA</option>
             <option value="DEFAULT">Others</option>
         </options>
         <properties>
@@ -489,6 +490,7 @@
         <example template="AD">CN=@PwmAppName@-Proxy,CN=Users,DC=ad,DC=site,DC=example,DC=com</example>
         <example template="ORACLE_DS">cn=@PwmAppName@-Proxy,cn=Administrators,cn=config</example>
         <example template="OPEN_LDAP">cn=@PwmAppName@-Proxy,dc=example,dc=com</example>
+        <example template="FREEIPA">uid=@PwmAppName@-Proxy,cn=users,cn=accounts,dc=example,dc=com</example>
         <default/>
     </setting>
     <setting hidden="false" key="ldap.proxy.password" level="0">
@@ -497,6 +499,7 @@
         <flag>ldapDNsyntax</flag>
         <example>ou=users,o=example</example>
         <example template="AD">CN=users,DC=site,DC=example,DC=net</example>
+        <example template="FREEIPA">cn=users,cn=accounts,dc=example,dc=com</example>
         <default/>
     </setting>
     <setting hidden="false" key="ldap.selectableContexts" level="2">
@@ -509,6 +512,7 @@
         <example template="AD">CN=@PwmAppName@-Testuser,CN=Users,DC=ad,DC=site,DC=example,DC=com</example>
         <example template="ORACLE_DS">cn=@PwmAppName@-Testuser,cn=Administrators,cn=config</example>
         <example template="OPEN_LDAP">cn=@PwmAppName@-Testuser,dc=example,dc=com</example>
+        <example template="FREEIPA">uid=@PwmAppName@-Testuser,cn=users,cn=accounts,dc=example,dc=com</example>
         <default>
             <value />
         </default>
@@ -519,6 +523,7 @@
         <example template="AD">CN=@PwmAppName@-Administrators,CN=Builtin,DC=site,DC=example,DC=net</example>
         <example template="ORACLE_DS">cn=@PwmAppName@-Admins,OU=Groups,DC=ad,DC=site,DC=example,DC=net</example>
         <example template="OPEN_LDAP">cn=@PwmAppName@-Admins,dc=example,dc=com</example>
+        <example template="FREEIPA">uid=@PwmAppName@-Admins,cn=users,cn=accounts,dc=example,dc=com</example>
         <default>
             <value/>
         </default>
@@ -531,6 +536,9 @@
             <value><![CDATA[(&(objectClass=person)(|(sAMAccountName=%USERNAME%)(cn=%USERNAME%)(mail=%USERNAME%)))]]></value>
         </default>
         <default template="ORACLE_DS">
+            <value><![CDATA[(&(objectClass=person)(uid=%USERNAME%))]]></value>
+        </default>
+        <default template="FREEIPA">
             <value><![CDATA[(&(objectClass=person)(uid=%USERNAME%))]]></value>
         </default>
     </setting>
@@ -576,6 +584,9 @@
         <default template="OPEN_LDAP">
             <value>memberof</value>
         </default>
+        <default template="FREEIPA">
+            <value>memberof</value>
+        </default>
     </setting>
     <setting hidden="true" key="ldap.group.label.attribute" level="2">
         <default>
@@ -602,6 +613,9 @@
         <default template="OPEN_LDAP">
             <value><![CDATA[entryuuid]]></value>
         </default>
+        <default template="FREEIPA">
+            <value><![CDATA[ipaUniqueID]]></value>
+        </default>
     </setting>
     <setting hidden="false" key="ldap.namingAttribute" level="1" required="true">
         <ldapPermission actor="proxy" access="read"/>
@@ -610,6 +624,9 @@
             <value><![CDATA[cn]]></value>
         </default>
         <default template="ORACLE_DS">
+            <value><![CDATA[uid]]></value>
+        </default>
+        <default template="FREEIPA">
             <value><![CDATA[uid]]></value>
         </default>
     </setting>
@@ -667,6 +684,9 @@
         </default>
         <default template="AD">
             <value><![CDATA[sAMAccountName]]></value>
+        </default>
+        <default template="FREEIPA">
+            <value><![CDATA[uid]]></value>
         </default>
     </setting>
     <setting hidden="false" key="ldap.followReferrals" level="2" required="true">
@@ -1293,6 +1313,11 @@
         <regex>^[a-zA-Z][a-zA-Z0-9-]*(:[0-9]+)*$</regex>
         <default>
             <value><![CDATA[cn]]></value>
+            <value><![CDATA[givenName]]></value>
+            <value><![CDATA[sn]]></value>
+        </default>
+        <default template="FREEIPA">
+            <value><![CDATA[uid]]></value>
             <value><![CDATA[givenName]]></value>
             <value><![CDATA[sn]]></value>
         </default>
@@ -2683,6 +2708,9 @@
     </setting>
     <setting hidden="false" key="newUser.createContext" level="1" required="true">
         <flag>ldapDNsyntax</flag>
+        <default template="FREEIPA">
+            <value><![CDATA[cn=users,cn=accounts,dc=example,dc=com]]></value>
+        </default>
         <default>
             <value><![CDATA[ou=users,o=example]]></value>
         </default>
@@ -2697,6 +2725,12 @@
         <flag>Form_ShowRequiredOption</flag>
         <flag>Form_ShowReadOnlyOption</flag>
         <flag>Form_ShowSource</flag>
+        <default template="FREEIPA">
+            <value>{"name":"uid","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"unique":true,"labels":{"":"Username"},"regexErrors":{"":"Username has invalid characters"},"description":{"":""},"placeholder":"username","selectOptions":{},regex:"^[a-zA-Z0-9 .,'@]*$"}</value>
+            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"unique":true,"labels":{"":"Email Address"},"regexErrors":{"":"Email Address has invalid characters"},"description":{"":""},"placeholder":"username@example.com","selectOptions":{},regex:"^[a-zA-Z0-9 .,'@]*$"}</value>
+            <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{},regex:"^[a-zA-Z0-9 .,'@]*$"}</value>
+            <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{},regex:"^[a-zA-Z0-9 .,'@]*$"}</value>
+        </default>
         <default>
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"unique":true,"labels":{"":"Email Address"},"regexErrors":{"":"Email Address has invalid characters"},"description":{"":""},"placeholder":"username@example.com","selectOptions":{},regex:"^[a-zA-Z0-9 .,'@]*$"}</value>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{},regex:"^[a-zA-Z0-9 .,'@]*$"}</value>
@@ -2806,6 +2840,13 @@
         <ldapPermission actor="guestManager" access="write"/>
         <flag>Form_ShowUniqueOption</flag>
         <flag>Form_ShowRequiredOption</flag>
+        <default template="FREEIPA">
+            <value>{"name":"uid","minimumLength":2,"maximumLength":32,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"unique":true,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"unique":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"telephoneNumber","minimumLength":1,"maximumLength":64,"type":"tel","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Telephone Number"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+        </default>
         <default>
             <value>{"name":"cn","minimumLength":2,"maximumLength":32,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"unique":true,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2834,6 +2875,13 @@
         <ldapPermission actor="guestManager" access="write"/>
         <flag>Form_ShowUniqueOption</flag>
         <flag>Form_ShowRequiredOption</flag>
+        <default template="FREEIPA">
+            <value>{"name":"uid","minimumLength":2,"maximumLength":32,"type":"text","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"unique":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"telephoneNumber","minimumLength":1,"maximumLength":64,"type":"tel","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Telephone Number"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+        </default>
         <default>
             <value>{"name":"cn","minimumLength":2,"maximumLength":32,"type":"text","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2860,6 +2908,10 @@
     </setting>
     <setting hidden="false" key="guest.creationUniqueAttributes" level="1">
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
+        <default template="FREEIPA">
+            <value><![CDATA[uid]]></value>
+            <value><![CDATA[mail]]></value>
+        </default>
         <default>
             <value><![CDATA[cn]]></value>
             <value><![CDATA[mail]]></value>
@@ -2922,6 +2974,9 @@
             <value>{"name":"sAMAccountName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
         <default template="ORACLE_DS">
+            <value>{"name":"uid","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+        </default>
+        <default template="FREEIPA">
             <value>{"name":"uid","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
         <options>
@@ -3362,6 +3417,13 @@
         <ldapPermission actor="helpdesk" access="read"/>
         <default>
             <value>{"name":"cn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"workforceID","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Workforce ID"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+        </default>
+        <default template="FREEIPA">
+            <value>{"name":"uid","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
