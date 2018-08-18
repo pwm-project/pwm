@@ -523,7 +523,7 @@
         <example template="AD">CN=@PwmAppName@-Administrators,CN=Builtin,DC=site,DC=example,DC=net</example>
         <example template="ORACLE_DS">cn=@PwmAppName@-Admins,OU=Groups,DC=ad,DC=site,DC=example,DC=net</example>
         <example template="OPEN_LDAP">cn=@PwmAppName@-Admins,dc=example,dc=com</example>
-        <example template="FREEIPA">uid=@PwmAppName@-Admins,cn=users,cn=accounts,dc=example,dc=com</example>
+        <example template="FREEIPA">cn=@PwmAppName@-Admins,cn=groups,cn=accounts,dc=example,dc=com</example>
         <default>
             <value/>
         </default>
