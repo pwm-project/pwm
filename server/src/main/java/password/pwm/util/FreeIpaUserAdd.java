@@ -20,9 +20,23 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-import org.apache.http.Header
-import org.apache.http.client.methods.CloseableHttpResponse
-import org.apache.http.client.methods.HttpPost
+package password.pwm.util;
+
+import org.apache.http.Header;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.ssl.SSLContexts;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.ssl.TrustStrategy;
+import org.apache.http.util.EntityUtils;
 
 public class FreeIpaUserAdd
 {
@@ -71,7 +85,7 @@ public class FreeIpaUserAdd
                 builder.build());
         httpclient = HttpClients.custom().setSSLSocketFactory(
                 sslsf).build();
-
+        cookieStore = new BasicCookieStore();
     }
 
     private String getURL(final String urlSuffix) {
@@ -113,13 +127,12 @@ public class FreeIpaUserAdd
     }
 
     private int authUser() {
-        cookieStore = new BasicCookieStore();
-
         HttpPost authPost = getPost(getURL(IPA_SESSION_AUTH_PAGE));
-        authPost.setEntity(new UrlEncodedFormEntity( [new BasicNameValuePair("user", username),
-                new BasicNameValuePair("password", password)
-        ] ) );
-    authPost.setHeader("Referer", getURL(IPA_REFERRAL_PAGE));
+	List<NameValuePair> params = new ArrayList<NameValuePair>();
+	params.add(new BasicNameValuePair("user", username));
+	params.add(new BasicNameValuePair("password", password));
+        authPost.setEntity(new UrlEncodedFormEntity( params ) );
+	authPost.setHeader("Referer", getURL(IPA_REFERRAL_PAGE));
         authPost.setHeader("Content-Type", "application/x-www-form-urlencoded");
         authPost.setHeader("Accept", "text/plain");
 
