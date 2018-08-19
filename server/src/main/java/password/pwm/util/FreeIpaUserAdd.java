@@ -198,14 +198,14 @@ public class FreeIpaUserAdd
     }
     
     StringEntity userRequest = new StringEntity(
-    JSON_STRING,
+    jsonRequest,
     ContentType.APPLICATION_JSON );
 
     HttpPost userPost = getPost( getURL( IPA_SESSION_JSON_PAGE ) );
-    userPost.setEntity(userRequest);
-    userPost.setHeader("Referer", getURL( IPA_REFERRAL_PAGE ) );
-    userPost.setHeader("Content-Type", "application/json" );
-    userPost.setHeader("Accept", "applicaton/json" );
+    userPost.setEntity( userRequest);
+    userPost.setHeader( "Referer", getURL( IPA_REFERRAL_PAGE ) );
+    userPost.setHeader( "Content-Type", "application/json" );
+    userPost.setHeader( "Accept", "applicaton/json" );
 
     CloseableHttpResponse userResponse = httpclient.execute( userPost, cookieStore );
     
