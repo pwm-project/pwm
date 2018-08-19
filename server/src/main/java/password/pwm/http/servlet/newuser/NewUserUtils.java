@@ -66,6 +66,7 @@ import password.pwm.svc.token.TokenUtil;
 import password.pwm.util.PasswordData;
 import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.form.FormUtility;
+import password.pwm.util.FreeIpaUserAdd;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
@@ -167,21 +168,31 @@ class NewUserUtils
             final LdapProfile defaultLDAPProfile = pwmApplication.getConfig().getDefaultLdapProfile();
             createObjectClasses.addAll( defaultLDAPProfile.readSettingAsStringArray( PwmSetting.AUTO_ADD_OBJECT_CLASSES ) );
         }
-
-        final ChaiProvider chaiProvider = pwmApplication.getConfig().getDefaultLdapProfile().getProxyChaiProvider( pwmApplication );
-        try
+        if (pwmApplication.getConfig().readSettingAsString( PwmSetting.TEMPLATE_LDAP ) == "FreeIPA" )
         {
-            // create the ldap entry
-            chaiProvider.createEntry( newUserDN, createObjectClasses, createAttributes );
-
-            NewUserUtils.LOGGER.info( pwmSession, "created user entry: " + newUserDN );
+            final String username = pwmApplication.getConfig().readSettingAsString( PwmSetting.LDAP_PROXY_USER_DN );
+            final String password = pwmApplication.getConfig().readSettingAsString( PwmSetting.LDAP_PROXY_USER_PASSWORD );
+            final String[] hostname = pwmApplication.getConfig().readSettingAsString( PwmSetting.LDAP_SERVER_URLS );
+            final FreeIpaUserAdd userCreate = new FreeIpaUserAdd(username,password,hostname[0], createAttributes);
+            userCreate.createUser();
         }
-        catch ( ChaiOperationException e )
+        else
         {
-            final String userMessage = "unexpected ldap error creating user entry: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_NEW_USER_FAILURE,
-                    userMessage );
-            throw new PwmOperationalException( errorInformation );
+            final ChaiProvider chaiProvider = pwmApplication.getConfig().getDefaultLdapProfile().getProxyChaiProvider( pwmApplication );
+            try
+            {
+                // create the ldap entry
+                chaiProvider.createEntry( newUserDN, createObjectClasses, createAttributes );
+ 
+                NewUserUtils.LOGGER.info( pwmSession, "created user entry: " + newUserDN );
+            }
+            catch ( ChaiOperationException e )
+            {
+                final String userMessage = "unexpected ldap error creating user entry: " + e.getMessage();
+                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_NEW_USER_FAILURE,
+                        userMessage );
+                throw new PwmOperationalException( errorInformation );
+            }
         }
 
         final ChaiUser theUser = chaiProvider.getEntryFactory().newChaiUser( newUserDN );
