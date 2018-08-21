@@ -264,19 +264,19 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.webjars.bower</groupId>
+            <groupId>org.webjars.npm</groupId>
             <artifactId>dojo</artifactId>
-            <version>1.13.0</version>
+            <version>1.14.0</version>
         </dependency>
         <dependency>
-            <groupId>org.webjars.bower</groupId>
+            <groupId>org.webjars.npm</groupId>
             <artifactId>dijit</artifactId>
-            <version>1.13.0</version>
+            <version>1.14.0</version>
         </dependency>
         <dependency>
-            <groupId>org.webjars.bower</groupId>
+            <groupId>org.webjars.npm</groupId>
             <artifactId>dojox</artifactId>
-            <version>1.13.0</version>
+            <version>1.14.0</version>
         </dependency>
         <dependency>
             <groupId>org.webjars.bower</groupId>

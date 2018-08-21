@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Password Management Servlets (PWM)
+  ~ Copyright (c) 2006-2009 Novell, Inc.
+  ~ Copyright (c) 2009-2018 The PWM Project
+  ~
+  ~ This program is free software; you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation; either version 2 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program; if not, write to the Free Software
+  ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  -->
+
+<ResponseSet minRandomRequired="2" locale="en" version="2" chaiVersion="0.6.9-SNAPSHOT" caseInsensitive="true" challengeSetID="SSPR-defined [Version Missing]" time="2016-08-23 08:48:15 +0000">
+    <response adminDefined="true" required="false" minLength="4" maxLength="200">
+        <challenge>What is the name of the main character in your favorite book?</challenge>
+        <answer salt="WHc5dJydH8xBHoqpS1fsnEhHtETdjblt" format="PBKDF2" hashcount="100000">OYfp1MdBrysBfaYHu+KSOhieagPilStxSMMVSuIz8DgtygXI2yHWdHEh42FMhdRUjHRUS0PbdPpGhuptgXCBXQ==</answer>
+    </response>
+    <response adminDefined="true" required="false" minLength="4" maxLength="200">
+        <challenge>What is the name of your favorite teacher?</challenge>
+        <answer salt="vA4aGz6KhNKRcnMj2nSLzWgHgXw0LcRr" format="SHA1_SALT" hashcount="100000">B:Hm9U8bh2oXzqFnPif8wChoVosss=</answer>
+    </response>
+    <response adminDefined="true" required="false" minLength="4" maxLength="200">
+        <challenge>What was the name of your childhood best friend?</challenge>
+        <answer salt="hUOJI16WDk1bCrVtAhuURmQl5NhIn7XV" format="PBKDF2" hashcount="100000">FhZELpheB9JSAju8vpxwmEik7dvlV38d/iXPpalSw1g3i2lqZAgGt2ntv24K7OklzcR3HfoKHNMqIhKlwljovg==</answer>
+    </response>
+    <response adminDefined="true" required="false" minLength="4" maxLength="200">
+        <challenge>What was your favorite show as a child?</challenge>
+        <answer salt="hd0vlgkhBOJZizCpAm4Ip1gNO5JvZTcO" format="PBKDF2" hashcount="100000">OYs6l6CH8E0fhyNlp8cfzO1YATgFygsimw37ah+LJevNdCRpDe9eKrDlCXQEFDgqumrTOwHGTa56/PTEwptXpQ==</answer>
+    </response>
+    <helpdesk-response adminDefined="true" required="false" minLength="4" maxLength="200">
+        <challenge>Question 1</challenge>
+        <answer format="HELPDESK">H4sIAAAAAAAAAIvx-82rNP_i_ouVZwNn50a-BwBCsGs2EAAAAA==</answer>
+    </helpdesk-response>
+    <helpdesk-response adminDefined="true" required="false" minLength="4" maxLength="200">
+        <challenge>Question 2</challenge>
+        <answer format="HELPDESK">H4sIAAAAAAAAAIuQYQ59M3HZ5VvFk6_dNZjsAAAQvpfpEAAAAA==</answer>
+    </helpdesk-response>
+</ResponseSet>

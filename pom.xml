@@ -36,6 +36,7 @@
 
     <modules>
         <module>client</module>
+        <module>pwm-cr</module>
         <module>server</module>
         <module>webapp</module>
         <module>onejar</module>
