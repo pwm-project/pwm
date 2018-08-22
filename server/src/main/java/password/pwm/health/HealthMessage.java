@@ -50,6 +50,7 @@ public enum HealthMessage
     Appliance_PendingUpdates( HealthStatus.CAUTION, HealthTopic.Appliance ),
     Appliance_UpdatesNotEnabled( HealthStatus.CAUTION, HealthTopic.Appliance ),
     Appliance_UpdateServiceNotConfigured( HealthStatus.WARN, HealthTopic.Appliance ),
+    Cluster_Error( HealthStatus.CAUTION, HealthTopic.Application ),
     Config_MissingProxyDN( HealthStatus.CONFIG, HealthTopic.Configuration ),
     Config_MissingProxyPassword( HealthStatus.CONFIG, HealthTopic.Configuration ),
     Config_NoSiteURL( HealthStatus.WARN, HealthTopic.Configuration ),

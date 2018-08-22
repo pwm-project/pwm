@@ -101,11 +101,6 @@
             <option value="/public">/public</option>
         </options>
     </setting>
-    <setting hidden="false" key="pwmInstanceName" level="2">
-        <default>
-            <value />
-        </default>
-    </setting>
     <setting hidden="false" key="idleTimeoutSeconds" level="1" required="true">
         <properties>
             <property key="Minimum">60</property>
@@ -985,9 +980,7 @@
     </setting>
     <setting hidden="false" key="sms.httpRequestHeaders" level="2">
         <regex>^[A-Za-z0-9_\.-]+:.*</regex>
-        <default>
-            <value />
-        </default>
+        <default/>
     </setting>
     <setting hidden="false" key="sms.maxTextLength" level="2" required="true">
         <default>
@@ -1566,6 +1559,18 @@
         <default>
             <value>28800</value>
         </default>
+    </setting>
+    <setting hidden="false" key="cluster.storageMode" level="2">
+        <default>
+            <value>LDAP</value>
+        </default>
+        <default template="DB">
+            <value>DB</value>
+        </default>
+        <options>
+            <option value="LDAP">LDAP Directory</option>
+            <option value="DB">Remote Database</option>
+        </options>
     </setting>
     <setting hidden="false" key="security.loginSession.mode" level="2">
         <default>

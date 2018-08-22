@@ -22,15 +22,15 @@
 
 package password.pwm.svc.cluster;
 
-import password.pwm.error.PwmUnrecoverableException;
+import lombok.Value;
 
-import java.util.List;
+import java.io.Serializable;
+import java.util.concurrent.atomic.AtomicInteger;
 
-public interface ClusterProvider
+@Value
+public class ClusterStatistics implements Serializable
 {
-    void close( );
-
-    boolean isMaster( );
-
-    List<NodeInfo> nodes( ) throws PwmUnrecoverableException;
+    private final AtomicInteger clusterWrites = new AtomicInteger( 0 );
+    private final AtomicInteger clusterReads = new AtomicInteger( 0 );
+    private final AtomicInteger nodePurges = new AtomicInteger( 0 );
 }

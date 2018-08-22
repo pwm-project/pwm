@@ -136,23 +136,31 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>3.0.1</version>
-                <configuration>
-                    <archive>
-                        <manifestEntries>
-                            <Implementation-Archive-Name>pwm.javadoc</Implementation-Archive-Name>
-                            <Implementation-Title>${project.name}</Implementation-Title>
-                            <Implementation-Version>${project.version}</Implementation-Version>
-                            <Implementation-Vendor>${project.organization.name}</Implementation-Vendor>
-                            <Implementation-URL>${project.organization.url}</Implementation-URL>
-                            <Implementation-Build-Java-Vendor>${java.vendor}</Implementation-Build-Java-Vendor>
-                            <Implementation-Build-Java-Version>${java.version}</Implementation-Build-Java-Version>
-                            <Implementation-Build>${build.number}</Implementation-Build>
-                            <Implementation-Build-Timestamp>${timestamp.iso}</Implementation-Build-Timestamp>
-                            <Implementation-Revision>${build.revision}</Implementation-Revision>
-                            <Implementation-Version-Display>v${project.version} b${build.number} r${build.revision}</Implementation-Version-Display>
-                        </manifestEntries>
-                    </archive>
-                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <additionalOptions>-Xdoclint:none</additionalOptions>
+                            <archive>
+                                <manifestEntries>
+                                    <Implementation-Archive-Name>pwm.javadoc</Implementation-Archive-Name>
+                                    <Implementation-Title>${project.name}</Implementation-Title>
+                                    <Implementation-Version>${project.version}</Implementation-Version>
+                                    <Implementation-Vendor>${project.organization.name}</Implementation-Vendor>
+                                    <Implementation-URL>${project.organization.url}</Implementation-URL>
+                                    <Implementation-Build-Java-Vendor>${java.vendor}</Implementation-Build-Java-Vendor>
+                                    <Implementation-Build-Java-Version>${java.version}</Implementation-Build-Java-Version>
+                                    <Implementation-Build>${build.number}</Implementation-Build>
+                                    <Implementation-Build-Timestamp>${timestamp.iso}</Implementation-Build-Timestamp>
+                                    <Implementation-Revision>${build.revision}</Implementation-Revision>
+                                    <Implementation-Version-Display>v${project.version} b${build.number} r${build.revision}</Implementation-Version-Display>
+                                </manifestEntries>
+                            </archive>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
@@ -547,7 +555,7 @@
         <dependency>
             <groupId>com.blueconic</groupId>
             <artifactId>browscap-java</artifactId>
-            <version>1.2.3</version>
+            <version>1.2.4</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.xodus</groupId>
