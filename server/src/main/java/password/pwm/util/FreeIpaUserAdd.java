@@ -22,24 +22,35 @@
 
 package password.pwm.util;
 
+import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.util.Map;
+import java.util.ArrayList;
 import org.apache.http.Header;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.CookieStore;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.ssl.SSLContexts;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.cookie.Cookie;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.ssl.SSLContextBuilder;
-import org.apache.http.ssl.TrustStrategy;
-import org.apache.http.util.EntityUtils;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.TrustAllStrategy;
 
 public class FreeIpaUserAdd
 {
+
     public static final int RESULT_ATTRIBUTES_PARSE = -1;
     public static final int RESULT_INSUFFICIENT_ATTRIBUTES = 0;
     public static final int RESULT_USER_CREATED = 1;
@@ -58,149 +69,218 @@ public class FreeIpaUserAdd
     private static final String IPA_SESSION_AUTH_PAGE = "/ipa/session/login_password";
     private static final String IPA_SESSION_JSON_PAGE = "/ipa/session/json";
 
-    private static final String createUserJsonHead = "{\"method\":\"user_add\",\"params\":[[\"";
-    private static final String createUserJsonMid = "\"],{";
-    private static final String createUserJsonTail = " }],\"id\":0}";
-    private static final String createUserJsonAttribFront = " \"";
-    private static final String createUserJsonAttribMid = "\": \"";
-    private static final String createUserJsonAttribEnd = "\",";
+    private static final String CREATE_USER_JSON_HEAD = "{\"method\":\"user_add\",\"params\":[[\"";
+    private static final String CREATE_USER_JSON_MID = "\"],{";
+    private static final String CREATE_USER_JSON_TAIL = " }],\"id\":0}";
+    private static final String CREATE_USER_JSON_ATTRIB_FRONT = " \"";
+    private static final String CREATE_USER_JSON_ATTRIB_MID = "\": \"";
+    private static final String CREATE_USER_JSON_ATTRIB_END = "\",";
 
-    private String username;
-    private String password;
-    private String hostname;
-    private String json_request;
-    private CookieStore cookieStore;
-    private Map<String, String> createAttributes;
-    private CloseableHttpClient httpclient;
+    private final String username;
+    private final String password;
+    private final String hostname;
+    private String jsonRequest;
+    private final CookieStore cookieStore;
+    private final Map<String, String> createAttributes;
+    private CloseableHttpClient httpClient = null;
 
-    public FreeIpaUserAdd(final String username, final String password, final String hostname, final Map<String, String> createAttributes) {
+    public FreeIpaUserAdd( final String username, final String password,
+            final String hostname, final Map<String, String> createAttributes )
+            throws KeyManagementException, NoSuchAlgorithmException,
+            KeyStoreException
+    {
         this.username = username;
         this.password = password;
         this.hostname = hostname;
         this.createAttributes = createAttributes;
-
-        SSLContextBuilder builder = new SSLContextBuilder();
-        builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
-        SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
-                builder.build());
-        httpclient = HttpClients.custom().setSSLSocketFactory(
-                sslsf).build();
         cookieStore = new BasicCookieStore();
+        jsonRequest = "";
+
+        try
+        {
+            httpClient = HttpClients.custom().setSSLContext(
+                    new SSLContextBuilder().loadTrustMaterial( null,
+                            TrustAllStrategy.INSTANCE ).build() ).
+                    setSSLHostnameVerifier( NoopHostnameVerifier.INSTANCE ).
+                    build();
+            authUser();
+
+        }
+        catch ( KeyManagementException | KeyStoreException | NoSuchAlgorithmException e )
+        {
+
+        }
     }
 
-    private String getURL(final String urlSuffix) {
-        return "https://" + hostname + urlSuffix;
+    private String getURL( final String urlSuffix )
+    {
+        return ( "https://" + hostname + urlSuffix );
     }
 
-    private int makeJSON() {
+    private int makeJSON()
+    {
         boolean hasUID = false;
         boolean hasSN = false;
         boolean hasGivenName = false;
         String jsonTempFront = "";
         String jsonTempEnd = "";
 
-        for (Map<String, String> attribute
-                : createAttributes.entrySet()) {
-            String key = attribute.getKey();
-            String value = attribute.getValue();
+        for ( Map.Entry<String, String> attribute
+                : createAttributes.entrySet() )
+        {
+            final String key = attribute.getKey().toLowerCase();
+            final String value = attribute.getValue();
 
-            if (key.equalsIgnoreCase(IPA_REQUIRED_UID)) {
+            if ( key.equalsIgnoreCase( IPA_REQUIRED_UID ) )
+            {
                 hasUID = true;
-                jsonTempFront = createUserJsonHead + value + createUserJsonMid;
-            } else {
-                if (key.equalsIgnoreCase(IPA_REQUIRED_SN)) {
+                jsonTempFront = CREATE_USER_JSON_HEAD + value + CREATE_USER_JSON_MID;
+            }
+            else
+            {
+                if ( key.equalsIgnoreCase( IPA_REQUIRED_SN ) )
+                {
                     hasSN = true;
                 }
-                if (key.equalsIgnoreCase(IPA_REQUIRED_GIVENNAME)) {
+                if ( key.equalsIgnoreCase( IPA_REQUIRED_GIVENNAME ) )
+                {
                     hasGivenName = true;
                 }
-                jsonTempEnd += createUserJsonAttribFront + key + createUserJsonAttribMid + value + createUserJsonAttribEnd;
+
+                final String tempString = new StringBuffer().
+                        append( jsonTempEnd ).append(
+                        CREATE_USER_JSON_ATTRIB_FRONT ).append( key ).append(
+                        CREATE_USER_JSON_ATTRIB_MID ).append( value ).append(
+                        CREATE_USER_JSON_ATTRIB_END ).toString();
+                jsonTempEnd = tempString;
             }
         }
-        if (hasUID && hasSN && hasGivenName) {
-            if (jsonTempEnd != null && jsonTempEnd.length() > 0 && jsonTempEnd.charAt(jsonTempEnd.length() - 1) == ',') {
-                json_request = jsonTempFront + jsonTempEnd.substring(0, jsonTempEnd.length() - 1) + createUserJsonTail;
-                return RESULT_ATTRIBUTES_PARSE;
+        if ( hasUID && hasSN && hasGivenName )
+        {
+            if ( jsonTempEnd.length() > 0 )
+            {
+                if ( jsonTempEnd.charAt( jsonTempEnd.
+                        length() - 1 ) == ',' )
+                {
+                    jsonRequest = jsonTempFront + jsonTempEnd.substring( 0,
+                            jsonTempEnd.length() - 1 ) + CREATE_USER_JSON_TAIL;
+                    return RESULT_ATTRIBUTES_PARSE;
+                }
             }
         }
         return RESULT_INSUFFICIENT_ATTRIBUTES;
     }
 
-    private int authUser() {
-        HttpPost authPost = getPost(getURL(IPA_SESSION_AUTH_PAGE));
-	List<NameValuePair> params = new ArrayList<NameValuePair>();
-	params.add(new BasicNameValuePair("user", username));
-	params.add(new BasicNameValuePair("password", password));
-        authPost.setEntity(new UrlEncodedFormEntity( params ) );
-	authPost.setHeader("Referer", getURL(IPA_REFERRAL_PAGE));
-        authPost.setHeader("Content-Type", "application/x-www-form-urlencoded");
-        authPost.setHeader("Accept", "text/plain");
+    private int authUser()
+    {
+        final HttpPost authPost = new HttpPost( getURL( IPA_SESSION_AUTH_PAGE ) );
+        final ArrayList<NameValuePair> params = new ArrayList();
+        params.add( new BasicNameValuePair( "user", username ) );
+        params.add( new BasicNameValuePair( "password", password ) );
+        try
+        {
+            authPost.setEntity( new UrlEncodedFormEntity( params ) );
+            authPost.setHeader( "referer", getURL( IPA_REFERRAL_PAGE ) );
+            authPost.setHeader( "Content-Type",
+                    "application/x-www-form-urlencoded" );
+            authPost.setHeader( "Accept", "text/plain" );
 
-        CloseableHttpResponse authResponse = httpclient.execute(authPost, cookieStore);
+            final HttpContext httpContext = new BasicHttpContext();
+            httpContext.setAttribute( HttpClientContext.COOKIE_STORE,
+                    cookieStore );
+            final CloseableHttpResponse authResponse = httpClient.execute(
+                    authPost, httpContext );
 
-        if (authResponse.getStatusLine().statusCode == 200) {
-            Cookie[] cookies = authResponse.getCookies();
-            authResponse.close();
+            if ( authResponse.getStatusLine().getStatusCode() == 200 )
+            {
+                authResponse.close();
 
-            if (cookies != null) {
-                for (Cookie cookie : cookies) {
-                    if (cookie.getName().equals("ipa_session")) {
-                        return RESULT_AUTH_SUCCESS;
+                if ( cookieStore != null )
+                {
+                    for ( Cookie cookie : cookieStore.getCookies() )
+                    {
+                        if ( cookie.getName().equals( "ipa_session" ) )
+                        {
+                            return RESULT_AUTH_SUCCESS;
+                        }
+                    }
+                }
+            }
+
+            if ( authResponse.getStatusLine().getStatusCode() == 401 )
+            {
+                final Header[] failReason = authResponse.getHeaders(
+                        "X-IPA-Rejection-Reason" );
+                authResponse.close();
+                if ( failReason.length > 0 )
+                {
+                    if ( failReason[ 0 ].getValue().equals( "password-expired" ) )
+                    {
+                        return RESULT_AUTH_EXPIRED;
+                    }
+
+                    if ( failReason[ 0 ].getValue().equals( "invalid-password" ) )
+                    {
+                        return RESULT_AUTH_INVALID;
+                    }
+
+                    if ( failReason[ 0 ].getValue().equals( "denied" ) )
+                    {
+                        return RESULT_AUTH_DENIED;
                     }
                 }
             }
         }
-
-        if (authResponse.getStatusLine().statusCode == 401) {
-            Header[] failReason = response.getHeaders("X-IPA-Rejection-Reason");
-            authResponse.close();
-            if (failReason.size() > 0) {
-                if (failReason[0].value == "password-expired") {
-                    return RESULT_AUTH_EXPIRED;
-                }
-
-                if (failReason[0].value == "invalid-password") {
-                    return RESULT_AUTH_INVALID;
-                }
-
-                if (failReason[0].value == "denied") {
-                    return RESULT_AUTH_DENIED;
-                }
-            }
+        catch ( IOException e )
+        {
+            return RESULT_AUTH_UNKNOWN_ERROR;
         }
-
         return RESULT_AUTH_UNKNOWN_ERROR;
     }
 
-    public int createUser() {
-        if (makeJSON() == RESULT_INSUFFICIENT_ATTRIBUTES) {
+    public int createUser()
+    {
+        if ( makeJSON() == RESULT_INSUFFICIENT_ATTRIBUTES )
+        {
             return RESULT_INSUFFICIENT_ATTRIBUTES;
         }
 
-        if (cookieStore == null) {
-            int authResult = authUser();
-            if (authResult != RESULT_AUTH_SUCCESS) {
-                return authResult;
-            }
-        }
+//        final int authResult = authUser();
+//        if ( authResult != RESULT_AUTH_SUCCESS )
+//        {
+//            return authResult;
+//        }
 
-        StringEntity userRequest = new StringEntity(
+        final StringEntity userRequest = new StringEntity(
                 jsonRequest,
-                ContentType.APPLICATION_JSON);
+                ContentType.APPLICATION_JSON );
 
-        HttpPost userPost = getPost(getURL(IPA_SESSION_JSON_PAGE));
-        userPost.setEntity(userRequest);
-        userPost.setHeader("Referer", getURL(IPA_REFERRAL_PAGE));
-        userPost.setHeader("Content-Type", "application/json");
-        userPost.setHeader("Accept", "applicaton/json");
+        final HttpPost userPost = new HttpPost( getURL( IPA_SESSION_JSON_PAGE ) );
+        try
+        {
+            final HttpContext httpContext = new BasicHttpContext();
+            httpContext.setAttribute( HttpClientContext.COOKIE_STORE,
+                    cookieStore );
+            userPost.setEntity( userRequest );
+            userPost.setHeader( "Referer", getURL( IPA_REFERRAL_PAGE ) );
+            userPost.setHeader( "Content-Type", "application/json" );
+            userPost.setHeader( "Accept", "applicaton/json" );
 
-        CloseableHttpResponse userResponse = httpclient.execute(userPost, cookieStore);
+            final CloseableHttpResponse userResponse = httpClient.execute(
+                    userPost, httpContext );
 
-        if (userResponse.getStatusLine().statusCode == 200) {
+            if ( userResponse.getStatusLine().getStatusCode() == 200 )
+            {
+                userResponse.close();
+                return RESULT_USER_CREATED;
+            }
             userResponse.close();
-            return RESULT_USER_CREATED;
+            return RESULT_CREATE_FAILED;
         }
-        userResponse.close();
-        return RESULT_CREATE_FAILED;
+        catch ( IOException e )
+        {
+            return RESULT_CREATE_FAILED;
+        }
     }
+
 }
