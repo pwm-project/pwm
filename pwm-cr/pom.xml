@@ -91,58 +91,6 @@
                     </archive>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>3.0.1</version>
-                <configuration>
-                    <includePom>true</includePom>
-                    <archive>
-                        <manifestEntries>
-                            <Implementation-Archive-Name>pwm.source</Implementation-Archive-Name>
-                            <Implementation-Title>${project.name}</Implementation-Title>
-                            <Implementation-Version>${project.version}</Implementation-Version>
-                            <Implementation-Vendor>${project.organization.name}</Implementation-Vendor>
-                            <Implementation-URL>${project.organization.url}</Implementation-URL>
-                            <Implementation-Build-Java-Vendor>${java.vendor}</Implementation-Build-Java-Vendor>
-                            <Implementation-Build-Java-Version>${java.version}</Implementation-Build-Java-Version>
-                            <Implementation-Build>${build.number}</Implementation-Build>
-                            <Implementation-Build-Timestamp>${timestamp.iso}</Implementation-Build-Timestamp>
-                            <Implementation-Revision>${build.revision}</Implementation-Revision>
-                            <Implementation-Version-Display>v${project.version} b${build.number} r${build.revision}</Implementation-Version-Display>
-                        </manifestEntries>
-                    </archive>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.0.1</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                        <configuration>
-                            <archive>
-                                <manifestEntries>
-                                    <Implementation-Archive-Name>pwm.javadoc</Implementation-Archive-Name>
-                                    <Implementation-Title>${project.name}</Implementation-Title>
-                                    <Implementation-Version>${project.version}</Implementation-Version>
-                                    <Implementation-Vendor>${project.organization.name}</Implementation-Vendor>
-                                    <Implementation-URL>${project.organization.url}</Implementation-URL>
-                                    <Implementation-Build-Java-Vendor>${java.vendor}</Implementation-Build-Java-Vendor>
-                                    <Implementation-Build-Java-Version>${java.version}</Implementation-Build-Java-Version>
-                                    <Implementation-Build>${build.number}</Implementation-Build>
-                                    <Implementation-Build-Timestamp>${timestamp.iso}</Implementation-Build-Timestamp>
-                                    <Implementation-Revision>${build.revision}</Implementation-Revision>
-                                    <Implementation-Version-Display>v${project.version} b${build.number} r${build.revision}</Implementation-Version-Display>
-                                </manifestEntries>
-                            </archive>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
     </build>
 
