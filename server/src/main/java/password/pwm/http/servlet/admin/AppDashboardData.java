@@ -298,7 +298,7 @@ public class AppDashboardData implements Serializable
             localDbInfo.add( new DisplayElement(
                     "oldestSharedHistory",
                     DisplayElement.Type.string,
-                    "OldestShared Password Entry",
+                    "Oldest Shared Password Entry",
                     display
             ) );
         }

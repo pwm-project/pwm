@@ -29,6 +29,7 @@ import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
+import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -40,11 +41,13 @@ import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.LocaleHelper;
+import password.pwm.util.PasswordData;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
+import password.pwm.util.secure.PwmSecurityKey;
 
 import java.io.Serializable;
 import java.math.BigInteger;
@@ -72,6 +75,7 @@ public class PwmSession implements Serializable
     private static final Object CREATION_LOCK = new Object();
 
     private transient SessionManager sessionManager;
+    private transient PwmSecurityKey sessionSecurityKey;
 
     public static PwmSession createPwmSession( final PwmApplication pwmApplication )
             throws PwmUnrecoverableException
@@ -358,5 +362,20 @@ public class PwmSession implements Serializable
     public int size( )
     {
         return ( int ) JavaHelper.sizeof( this );
+    }
+
+    synchronized PwmSecurityKey getSecurityKey( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException
+    {
+        if ( sessionSecurityKey == null )
+        {
+            final PasswordData configSecret = pwmRequest.getConfig().readSettingAsPassword( PwmSetting.PWM_SECURITY_KEY );
+            final String sessionKey = pwmRequest.getHttpServletRequest().getSession().getId();
+            final String concatValue = configSecret.getStringValue() + sessionKey;
+            final String hashValue = pwmRequest.getPwmApplication().getSecureService().hash( concatValue );
+            sessionSecurityKey = new PwmSecurityKey( hashValue );
+        }
+
+        return sessionSecurityKey;
     }
 }

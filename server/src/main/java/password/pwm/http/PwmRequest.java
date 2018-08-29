@@ -49,6 +49,7 @@ import password.pwm.util.Validator;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
+import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
@@ -494,7 +495,8 @@ public class PwmRequest extends PwmHttpRequestWrapper
 
         if ( strValue != null && !strValue.isEmpty() )
         {
-            return pwmApplication.getSecureService().decryptObject( strValue, returnClass );
+            final PwmSecurityKey pwmSecurityKey = pwmSession.getSecurityKey( this );
+            return pwmApplication.getSecureService().decryptObject( strValue, pwmSecurityKey, returnClass );
         }
 
         return null;

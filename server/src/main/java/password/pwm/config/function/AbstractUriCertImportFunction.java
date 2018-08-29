@@ -58,7 +58,15 @@ abstract class AbstractUriCertImportFunction implements SettingUIFunction
         final String urlString = getUri( storedConfiguration, setting, profile, extraData );
         try
         {
-            certs = X509Utils.readRemoteCertificates( URI.create( urlString ) );
+            final URI uri = URI.create( urlString );
+            if ( "https".equalsIgnoreCase( uri.getScheme() ) )
+            {
+                certs = X509Utils.readRemoteHttpCertificates( pwmRequest.getPwmApplication(), pwmSession.getLabel(), uri );
+            }
+            else
+            {
+                certs = X509Utils.readRemoteCertificates( URI.create( urlString ) );
+            }
         }
         catch ( Exception e )
         {

@@ -34,6 +34,7 @@ import password.pwm.i18n.Message;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletContext;
@@ -237,7 +238,8 @@ public class PwmResponse extends PwmHttpResponseWrapper
             throws PwmUnrecoverableException
     {
         final String jsonValue = JsonUtil.serialize( cookieValue );
-        final String encryptedValue = pwmRequest.getPwmApplication().getSecureService().encryptToString( jsonValue );
+        final PwmSecurityKey pwmSecurityKey = pwmRequest.getPwmSession().getSecurityKey( pwmRequest );
+        final String encryptedValue = pwmRequest.getPwmApplication().getSecureService().encryptToString( jsonValue, pwmSecurityKey );
         writeCookie( cookieName, encryptedValue, seconds, path, PwmHttpResponseWrapper.Flag.BypassSanitation );
     }
 

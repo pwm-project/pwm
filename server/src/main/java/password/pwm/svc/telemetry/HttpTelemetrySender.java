@@ -37,6 +37,7 @@ import password.pwm.http.client.PwmHttpClientConfiguration;
 import password.pwm.http.client.PwmHttpClientRequest;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.X509Utils;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -62,7 +63,7 @@ public class HttpTelemetrySender implements TelemetrySender
             throws PwmUnrecoverableException
     {
         final PwmHttpClientConfiguration pwmHttpClientConfiguration = PwmHttpClientConfiguration.builder()
-                .promiscuous( true )
+                .trustManager( new X509Utils.PromiscuousTrustManager() )
                 .build();
         final PwmHttpClient pwmHttpClient = new PwmHttpClient( pwmApplication, SessionLabel.TELEMETRY_SESSION_LABEL, pwmHttpClientConfiguration );
         final String body = JsonUtil.serialize( statsPublishBean );

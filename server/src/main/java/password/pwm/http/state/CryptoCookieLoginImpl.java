@@ -101,8 +101,8 @@ class CryptoCookieLoginImpl implements SessionLoginProvider
         catch ( PwmUnrecoverableException e )
         {
             final String errorMsg = "unexpected error reading login cookie, will clear and ignore; error: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
-            LOGGER.error( pwmRequest, errorInformation );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );
+            LOGGER.trace( pwmRequest, errorInformation.toDebugStr() );
             clearLoginSession( pwmRequest );
             return;
         }

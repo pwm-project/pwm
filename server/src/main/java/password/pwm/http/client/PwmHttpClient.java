@@ -122,7 +122,7 @@ public class PwmHttpClient
         return getHttpClient( configuration, PwmHttpClientConfiguration.builder().certificates( null ).build(), null );
     }
 
-    public static HttpClient getHttpClient(
+    static HttpClient getHttpClient(
             final Configuration configuration,
             final PwmHttpClientConfiguration pwmHttpClientConfiguration,
             final SessionLabel sessionLabel
@@ -130,21 +130,25 @@ public class PwmHttpClient
             throws PwmUnrecoverableException
     {
         final HttpClientBuilder clientBuilder = HttpClientBuilder.create();
-        clientBuilder.useSystemProperties();
         clientBuilder.setUserAgent( PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION );
-        final boolean httpClientPromiscuousEnable = Boolean.parseBoolean( configuration.readAppProperty( AppProperty.SECURITY_HTTP_PROMISCUOUS_ENABLE ) );
+        final boolean configPromiscuousEnabled = Boolean.parseBoolean( configuration.readAppProperty( AppProperty.SECURITY_HTTP_PROMISCUOUS_ENABLE ) );
+        final boolean promiscuousTrustMgrSet = pwmHttpClientConfiguration != null
+                && pwmHttpClientConfiguration.getTrustManager() != null
+                && X509Utils.PromiscuousTrustManager.class.equals( pwmHttpClientConfiguration.getTrustManager().getClass() );
 
         try
         {
-            if ( httpClientPromiscuousEnable || ( pwmHttpClientConfiguration != null && pwmHttpClientConfiguration.isPromiscuous() ) )
+            if ( configPromiscuousEnabled || promiscuousTrustMgrSet )
             {
                 clientBuilder.setSSLContext( promiscuousSSLContext() );
                 clientBuilder.setSSLHostnameVerifier( NoopHostnameVerifier.INSTANCE );
             }
-            else if ( pwmHttpClientConfiguration != null && pwmHttpClientConfiguration.getCertificates() != null )
+            else if ( pwmHttpClientConfiguration != null && ( pwmHttpClientConfiguration.getCertificates() != null || pwmHttpClientConfiguration.getTrustManager() != null ) )
             {
-                final SSLContext sslContext = SSLContext.getInstance( "SSL" );
-                final TrustManager trustManager = new X509Utils.CertMatchingTrustManager( configuration, pwmHttpClientConfiguration.getCertificates() );
+                final SSLContext sslContext = SSLContext.getInstance( "TLS" );
+                final TrustManager trustManager = pwmHttpClientConfiguration.getTrustManager() != null
+                        ? pwmHttpClientConfiguration.getTrustManager()
+                        : new X509Utils.CertMatchingTrustManager( configuration, pwmHttpClientConfiguration.getCertificates() );
                 sslContext.init( null, new TrustManager[]
                                 {
                                         trustManager,
@@ -157,7 +161,7 @@ public class PwmHttpClient
                         .register( "http", PlainConnectionSocketFactory.INSTANCE )
                         .build();
                 final HttpClientConnectionManager ccm = new BasicHttpClientConnectionManager( registry );
-
+                clientBuilder.setSSLContext( sslContext );
                 clientBuilder.setSSLSocketFactory( sslConnectionFactory );
                 clientBuilder.setConnectionManager( ccm );
             }
@@ -175,8 +179,6 @@ public class PwmHttpClient
             final String host = proxyURI.getHost();
             final int port = proxyURI.getPort();
             final HttpHost proxyHost = new HttpHost( host, port );
-
-            clientBuilder.setProxy( proxyHost );
 
             final String userInfo = proxyURI.getUserInfo();
             if ( userInfo != null && userInfo.length() > 0 )
@@ -416,8 +418,6 @@ public class PwmHttpClient
         throw new IllegalArgumentException( "unknown protocol type: " + url.getProtocol() );
     }
 
-
-
     private static class ProxyRoutePlanner implements HttpRoutePlanner
     {
         private final HttpHost proxyServer;
@@ -447,7 +447,8 @@ public class PwmHttpClient
                 return new HttpRoute( target );
             }
 
-            return new HttpRoute( target, proxyServer );
+            final boolean secure = "https".equalsIgnoreCase( target.getSchemeName() );
+            return new HttpRoute( target, null, proxyServer, secure );
         }
     }
 }
