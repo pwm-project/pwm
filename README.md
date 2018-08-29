@@ -10,7 +10,7 @@ Official project page is at [https://github.com/pwm-project/pwm/](https://github
 * [Current Builds](https://www.pwm-project.org/artifacts/pwm/) - Current downloads built from recent github project commits
 * [PWM Reference](https://www.pwm-project.org/pwm/public/reference/) - Reference documentation built into PWM.
 
-Features
+# Features
 * Web based configuration manager with over 400 configurable settings
 * Configurable display values for every user-facing text string
 * Localized for Chinese (中文), Czech (ceština), Dutch (Nederlands), English, Finnish (suomi), French (français), German (Deutsch), Hebrew (עברית), Italian (italiano), Japanese (日本語), Korean (한국어), Polish (polski), Portuguese (português), Slovak (Slovenčina), Spanish (español), Thai (ไทย) and Turkish (Türkçe)
@@ -47,3 +47,34 @@ Features
   * OpenLDAP
 
 [NetIQ SSPR](https://www.netiq.com/products/self-service-password-reset/) is a commercial, supported self service password reset product based on PWM.
+
+# Build Information
+
+Build pre-requisites:
+* Java 1.8 JDK or newer
+* Maven 3.2 or newer
+
+Build execution:
+* Set `JAVA_HOME` environment variable to JDK home  
+* Run `mvn clean package` in base directory
+
+A WAR file suitable for deployment on Apache Tomcat is created in `webapp/target` directory.  Rename to `pwm.war` and copy into `tomcat/webapp` directory.
+
+Alternatively, an executable JAR file is created in `onejar\target`.  This JAR file is self-contained single executable with embedded Apache Tomcat runtime. To execute use a command similar to:   
+
+`java -jar pwm-onejar.jar`
+
+The executable will show additional options that may be required.
+
+A docker image is created in `docker/target` as jib-image.tar.  You can import this docker image using a command similar to:
+
+`docker load --input=jib-image.tar`
+
+Create docker container and run using:
+`docker run -d --name <container name> -p 8443:8443 pwm/pwm-webapp`
+
+This will expose the https port to 8443.  If you want the configuration to persist to you can also exposed configuration volume of `/config` using the docker `-v` option during the container
+creation and map it to a directory on the docker host or use a docker volume container.  
+The PWM docker container will place all of it's configuration and runtime data in the `/config` volume.
+
+
