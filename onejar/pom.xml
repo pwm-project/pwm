@@ -17,7 +17,7 @@
 
     <properties>
         <project.root.basedir>${project.basedir}/..</project.root.basedir>
-        <tomcat.version>9.0.10</tomcat.version>
+        <tomcat.version>9.0.11</tomcat.version>
         <jetty-version>9.4.11.v20180605</jetty-version>
     </properties>
 

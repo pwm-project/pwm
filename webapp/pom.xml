@@ -157,10 +157,10 @@
 
     <reporting>
         <plugins>
-            <plugin> <!-- checks owsp vulnerability database -->
+            <plugin> <!-- checks owasp vulnerability database -->
                 <groupId>org.owasp</groupId>
                 <artifactId>dependency-check-maven</artifactId>
-                <version>3.1.2</version>
+                <version>3.3.1</version>
                 <reportSets>
                     <reportSet>
                         <reports>
@@ -184,13 +184,11 @@
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
-            <version>4.0.1</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>javax.servlet.jsp</groupId>
-            <artifactId>jsp-api</artifactId>
-            <version>2.2.1-b03</version>
+            <artifactId>javax.servlet.jsp-api</artifactId>
             <scope>provided</scope>
         </dependency>
         <!-- / container dependencies -->
