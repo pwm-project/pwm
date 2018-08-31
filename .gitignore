@@ -17,6 +17,6 @@
 .DS_Store?
 
 # Maven Output
+target
 */target
-
 
