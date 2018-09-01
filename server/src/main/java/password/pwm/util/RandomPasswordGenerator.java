@@ -114,18 +114,19 @@ public class RandomPasswordGenerator
 
 
     /**
-     * Creates a new password that satisfies the password rules.  All rules are checked for.  If for some
-     * reason the RANDOM algorithm can not generate a valid password, null will be returned.
-     * <p/>
-     * If there is an identifiable reason the password can not be created (such as mis-configured rules) then
-     * an {@link com.novell.ldapchai.exception.ImpossiblePasswordPolicyException} will be thrown.
+     * <p>Creates a new password that satisfies the password rules.  All rules are checked for.  If for some
+     * reason the RANDOM algorithm can not generate a valid password, null will be returned.</p>
+     *
+     * <p>If there is an identifiable reason the password can not be created (such as mis-configured rules) then
+     * an {@link com.novell.ldapchai.exception.ImpossiblePasswordPolicyException} will be thrown.</p>
      *
      * @param sessionLabel          A valid pwmSession
      * @param randomGeneratorConfig Policy to be used during generation
      * @param pwmApplication        Used to read configuration, seedmanager and other services.
      * @return A randomly generated password value that meets the requirements of this {@code PasswordPolicy}
-     * @throws com.novell.ldapchai.exception.ImpossiblePasswordPolicyException If there is no way to create a password using the configured rules and
-     *                                                                         default seed phrase
+     * @throws ImpossiblePasswordPolicyException If there is no way to create a password using the configured rules and
+     *                                        default seed phrase
+     * @throws PwmUnrecoverableException if the operation can not be completed
      */
     public static PasswordData createRandomPassword(
             final SessionLabel sessionLabel,

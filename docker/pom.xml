@@ -17,6 +17,7 @@
 
     <properties>
         <skipDocker>false</skipDocker>
+        <project.root.basedir>${project.basedir}/..</project.root.basedir>
     </properties>
 
     <profiles>
@@ -36,7 +37,7 @@
             <plugin>
                 <groupId>com.google.cloud.tools</groupId>
                 <artifactId>jib-maven-plugin</artifactId>
-                <version>0.9.8</version>
+                <version>0.9.9</version>
                 <executions>
                     <execution>
                         <id>make-docker-image</id>
@@ -62,6 +63,7 @@
                                 <ports>8443</ports>
                             </container>
                             <useCurrentTimestamp>true</useCurrentTimestamp>
+                            <allowInsecureRegistries>true</allowInsecureRegistries>
                         </configuration>
                     </execution>
                 </executions>

@@ -60,11 +60,11 @@ public class Storage
             throw new IOException( "data path '" + dataPath + "' does not exist" );
         }
 
-        final File stoagePath = new File( dataPath.getAbsolutePath() + File.separator + "storage" );
-        stoagePath.mkdir();
+        final File storagePath = new File( dataPath.getAbsolutePath() + File.separator + "storage" );
+        mkdirs( storagePath );
 
         final EnvironmentConfig environmentConfig = new EnvironmentConfig();
-        environment = Environments.newInstance( stoagePath.getAbsolutePath(), environmentConfig );
+        environment = Environments.newInstance( storagePath.getAbsolutePath(), environmentConfig );
 
         environment.executeInTransaction( txn -> store
                 = environment.openStore( "store1", StoreConfig.WITHOUT_DUPLICATES, txn ) );
@@ -213,6 +213,14 @@ public class Storage
         public void remove( )
         {
             throw new UnsupportedOperationException( "remove not supported" );
+        }
+    }
+
+    static void mkdirs( final File file ) throws IOException
+    {
+        if ( !file.mkdirs() )
+        {
+            throw new IOException( "unable to create path " + file.getAbsolutePath() );
         }
     }
 

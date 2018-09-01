@@ -64,11 +64,11 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * This session filter (invoked by the container through the web.xml descriptor) wraps all calls to the
- * servlets in the container.
- * <p/>
- * It is responsible for managing some aspects of the user session and also for enforcing security
- * functionality such as intruder lockout.
+ * <p>This session filter (invoked by the container through the web.xml descriptor) wraps all calls to the
+ * servlets in the container.</p>
+ *
+ * <p>It is responsible for managing some aspects of the user session and also for enforcing security
+ * functionality such as intruder lockout.</p>
  *
  * @author Jason D. Rivard
  */

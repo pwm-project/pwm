@@ -30,14 +30,17 @@ import org.apache.catalina.util.ServerInfo;
 import javax.servlet.ServletException;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -105,7 +108,8 @@ public class TomcatOneJarMain
         final InputStream warSource = onejarConfig.getWar();
         final ZipInputStream zipInputStream = new ZipInputStream( warSource );
         final File outputFolder = getWarFolder( onejarConfig );
-        outputFolder.mkdir();
+
+        ArgumentParser.mkdirs( outputFolder );
 
         ZipEntry zipEntry = zipInputStream.getNextEntry();
 
@@ -116,7 +120,7 @@ public class TomcatOneJarMain
 
             if ( !zipEntry.isDirectory() )
             {
-                newFile.getParentFile().mkdirs();
+                ArgumentParser.mkdirs( newFile.getParentFile() );
                 Files.copy( zipInputStream, newFile.toPath() );
             }
             zipEntry = zipInputStream.getNextEntry();
@@ -151,18 +155,18 @@ public class TomcatOneJarMain
 
         {
             final File basePath = new File( onejarConfig.getWorkingPath().getPath() + File.separator + "b" );
-            basePath.mkdir();
+            ArgumentParser.mkdirs( basePath );
             tomcat.setBaseDir( basePath.getAbsolutePath() );
         }
         {
             final File basePath = new File( onejarConfig.getWorkingPath().getPath() + File.separator + "a" );
-            basePath.mkdir();
+            ArgumentParser.mkdirs( basePath );
             tomcat.getServer().setCatalinaBase( basePath );
             tomcat.getServer().setCatalinaHome( basePath );
         }
         {
             final File workPath = new File( onejarConfig.getWorkingPath().getPath() + File.separator + "w" );
-            workPath.mkdir();
+            ArgumentParser.mkdirs( workPath );
             tomcat.getHost().setAppBase( workPath.getAbsolutePath() );
         }
 
@@ -199,9 +203,9 @@ public class TomcatOneJarMain
         final String srcRootIndex = "ROOT-redirect-webapp/WEB-INF/index.jsp";
 
         final File redirBase = new File( onejarConfig.getWorkingPath().getAbsoluteFile() + File.separator + "redirectBase" );
-        redirBase.mkdirs();
+        ArgumentParser.mkdirs( redirBase );
         {
-            new File (redirBase.getAbsolutePath() + File.separator + "WEB-INF" ).mkdirs();
+            ArgumentParser.mkdirs( new File ( redirBase.getAbsolutePath() + File.separator + "WEB-INF" ) );
             copyFileAndReplace(
                     srcRootWebXml,
                     redirBase.getPath() + File.separator + "WEB-INF" + File.separator + "web.xml",
@@ -287,9 +291,12 @@ public class TomcatOneJarMain
         final File webInfPath = new File( warPath.getAbsolutePath() + File.separator + "WEB-INF" + File.separator + "lib" );
         final File[] jarFiles = webInfPath.listFiles();
         final List<URL> jarURLList = new ArrayList<>();
-        for ( final File jarFile : jarFiles )
+        if ( jarFiles != null )
         {
-            jarURLList.add( jarFile.toURI().toURL() );
+            for ( final File jarFile : jarFiles )
+            {
+                jarURLList.add( jarFile.toURI().toURL() );
+            }
         }
         final URLClassLoader classLoader = URLClassLoader.newInstance( jarURLList.toArray( new URL[ jarURLList.size() ] ) );
         final Class pwmMainClass = classLoader.loadClass( "password.pwm.util.cli.MainClass" );
@@ -321,7 +328,10 @@ public class TomcatOneJarMain
         properties.setProperty( "AutoExportHttpsKeyStorePassword", onejarConfig.getKeystorePass() );
         properties.setProperty( "AutoExportHttpsKeyStoreAlias", KEYSTORE_ALIAS );
         final File propFile = getPwmAppPropertiesFile( onejarConfig );
-        properties.store( new FileWriter( propFile ), "auto-generated file" );
+        try ( Writer writer = new OutputStreamWriter( new FileOutputStream( propFile ), StandardCharsets.UTF_8 ) )
+        {
+            properties.store( writer, "auto-generated file" );
+        }
     }
 
     static void copyFileAndReplace(
@@ -331,9 +341,14 @@ public class TomcatOneJarMain
     )
             throws IOException
     {
-        final InputStream inputStream = TomcatOneJarMain.class.getClassLoader().getResourceAsStream( srcPath );
-        String contents = new BufferedReader(new InputStreamReader(inputStream)).lines().collect( Collectors.joining("\n"));
-        contents = contents.replace( "[[[ROOT_CONTEXT]]]", rootcontext );
-        Files.write( Paths.get( destPath ), contents.getBytes());
+        try ( InputStream inputStream = TomcatOneJarMain.class.getClassLoader().getResourceAsStream( srcPath ) )
+        {
+            try ( BufferedReader reader = new BufferedReader( new InputStreamReader( inputStream, "UTF8" ) ) )
+            {
+                String contents = reader.lines().collect( Collectors.joining( "\n" ) );
+                contents = contents.replace( "[[[ROOT_CONTEXT]]]", rootcontext );
+                Files.write( Paths.get( destPath ), contents.getBytes( "UTF8" ) );
+            }
+        }
     }
 }

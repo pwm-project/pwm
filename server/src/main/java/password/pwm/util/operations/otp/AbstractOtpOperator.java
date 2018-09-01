@@ -30,7 +30,6 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.option.OTPStorageFormat;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -53,6 +52,7 @@ public abstract class AbstractOtpOperator implements OtpOperator
      *
      * @param otpUserRecord input user record
      * @return A string formatted record
+     * @throws PwmUnrecoverableException if the operation fails
      */
     public String composeOtpAttribute( final OTPUserRecord otpUserRecord )
             throws PwmUnrecoverableException
@@ -87,8 +87,14 @@ public abstract class AbstractOtpOperator implements OtpOperator
 
     /**
      * Encrypt the given string using the PWM encryption key.
+     *
+     * @param unencrypted raw value to be encrypted
+     *
+     * @return the encrypted value
+     * @throws PwmUnrecoverableException if the operation can't be completed
      */
-    public String encryptAttributeValue( final String unencrypted ) throws PwmUnrecoverableException, PwmOperationalException
+    public String encryptAttributeValue( final String unencrypted )
+            throws PwmUnrecoverableException
     {
         final PwmBlockAlgorithm pwmBlockAlgorithm = figureBlockAlg();
         final PwmSecurityKey pwmSecurityKey = pwmApplication.getConfig().getSecurityKey();
@@ -103,9 +109,14 @@ public abstract class AbstractOtpOperator implements OtpOperator
 
     /**
      * Decrypt the given string using the PWM encryption key.
+     *
+     * @param encrypted value to be encrypted
+     *
+     * @return the decrypted value
+     * @throws PwmUnrecoverableException if the operation can't be completed
      */
     public String decryptAttributeValue( final String encrypted )
-            throws PwmUnrecoverableException, PwmOperationalException
+            throws PwmUnrecoverableException
     {
         final PwmBlockAlgorithm pwmBlockAlgorithm = figureBlockAlg();
         final PwmSecurityKey pwmSecurityKey = pwmApplication.getConfig().getSecurityKey();

@@ -472,6 +472,8 @@ public class JavaHelper
 
     /**
      * Copy of {@link ThreadInfo#toString()} but with the MAX_FRAMES changed from 8 to 256.
+     * @param threadInfo thread information
+     * @return a stacktrace string with newline formatting
      */
     public static String threadInfoToString( final ThreadInfo threadInfo )
     {

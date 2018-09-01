@@ -76,7 +76,8 @@ public class PwmEnvironment
         AutoWriteTomcatConfOutputFile,
         AppliancePort,
         ApplianceHostnameFile,
-        ApplianceTokenFile,;
+        ApplianceTokenFile,
+        InstanceID,;
 
         public static ApplicationParameter forString( final String input )
         {

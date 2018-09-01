@@ -253,15 +253,17 @@ public class LdapOperationsHelper
     }
 
     /**
-     * Writes a Map of values to ldap onto the supplied user object.
-     * The map key must be a string of attribute names.
-     * <p/>
-     * Any ldap operation exceptions are not reported (but logged).
+     * <p>Writes a Map of values to ldap onto the supplied user object.
+     * The map key must be a string of attribute names.</p>
      *
-     * @param theUser  User to write to
+     * <p>Any ldap operation exceptions are not reported (but logged).</p>
+     *
+     * @param theUser User to write to.
      * @param valueMap A map with String keys and String values.
+     * @param macroMachine used to resolve macros before values are written.
+     * @param expandMacros a boolean to indicate if value macros should be expanded.
      * @throws ChaiUnavailableException if the directory is unavailable
-     * @throws PwmOperationalException  if their is an unexpected ldap problem
+     * @throws PwmUnrecoverableException if their is an unexpected ldap problem
      */
     public static void writeFormValuesToLdap(
             final ChaiUser theUser,
@@ -772,10 +774,12 @@ public class LdapOperationsHelper
      * Update the user's "lastUpdated" attribute. By default this is
      * "pwmLastUpdate" attribute
      *
+     * @param pwmApplication a reference to the application
+     * @param sessionLabel for debugging
      * @param userIdentity ldap user to operate on
      * @return true if successful;
-     * @throws com.novell.ldapchai.exception.ChaiUnavailableException if the
-     *                                                                directory is unavailable
+     * @throws ChaiUnavailableException if the directory is unavailable
+     * @throws PwmUnrecoverableException if the operation fails
      */
     public static boolean updateLastPasswordUpdateAttribute(
             final PwmApplication pwmApplication,

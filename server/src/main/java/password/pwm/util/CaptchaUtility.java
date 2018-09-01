@@ -69,7 +69,11 @@ public class CaptchaUtility
 
     /**
      * Verify a reCaptcha request.  The reCaptcha request API is documented at
-     * <a href="http://recaptcha.net/apidocs/captcha/"/>reCaptcha API.
+     * <a href="http://recaptcha.net/apidocs/captcha/">reCaptcha API</a>.
+     *
+     * @param pwmRequest request object
+     * @return true if captcha passes
+     * @throws PwmUnrecoverableException if the operation fails.
      */
     public static boolean verifyReCaptcha(
             final PwmRequest pwmRequest

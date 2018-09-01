@@ -481,9 +481,16 @@ public class RequestInitializationFilter implements Filter
      * Returns the IP address of the user.  If there is an X-Forwarded-For header in the request, that address will
      * be used.  Otherwise, the source address of the request is used.
      *
+     * @param request the http request object
+     * @param config the application configuration
      * @return String containing the textual representation of the source IP address, or null if the request is invalid.
+     * @throws PwmUnrecoverableException if unable to read the network address
      */
-    public static String readUserIPAddress( final HttpServletRequest request, final Configuration config ) throws PwmUnrecoverableException
+    public static String readUserIPAddress(
+            final HttpServletRequest request,
+            final Configuration config
+    )
+            throws PwmUnrecoverableException
     {
         final boolean useXForwardedFor = config != null && config.readSettingAsBoolean( PwmSetting.USE_X_FORWARDED_FOR_HEADER );
 
@@ -713,7 +720,7 @@ public class RequestInitializationFilter implements Filter
                 performCsrfHeaderChecks
                         && !pwmRequest.getMethod().isIdempotent()
                         && !pwmRequest.getURL().isRestService()
-                )
+        )
         {
             final String originValue = pwmRequest.readHeaderValueAsString( HttpHeader.Origin );
             final String referrerValue = pwmRequest.readHeaderValueAsString( HttpHeader.Referer );
@@ -814,7 +821,7 @@ public class RequestInitializationFilter implements Filter
                         HttpHeader.Referer,
                         HttpHeader.Origin,
                 }
-                )
+        )
         {
             values.put( header.getHttpName(), pwmRequest.readHeaderValueAsString( header ) );
         }
