@@ -19,37 +19,6 @@
         <skipTests>false</skipTests>
     </properties>
 
-    <profiles>
-        <profile>
-            <!-- Builds a zip file containing the built war file, along with the supplemental directory -->
-            <id>release</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-assembly-plugin</artifactId>
-                        <version>2.6</version>
-                        <configuration>
-                            <descriptors>
-                                <descriptor>../webapp/src/build/assembly/release-bundle.xml</descriptor>
-                            </descriptors>
-                            <finalName>${project.build.finalName}-${timestamp.iso}</finalName>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>make-release-bundle</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>single</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
-
     <build>
         <plugins>
             <!--
@@ -393,7 +362,7 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.7</version>
+            <version>3.8</version>
         </dependency>
         <dependency>
             <groupId>commons-validator</groupId>
@@ -403,7 +372,7 @@
         <dependency>
             <groupId>com.sun.mail</groupId>
             <artifactId>javax.mail</artifactId>
-            <version>1.6.1</version>
+            <version>1.6.2</version>
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>

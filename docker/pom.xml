@@ -20,18 +20,6 @@
         <project.root.basedir>${project.basedir}/..</project.root.basedir>
     </properties>
 
-    <profiles>
-        <profile>
-            <id>skip-docker</id>
-            <properties>
-                <skipDocker>true</skipDocker>
-            </properties>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-        </profile>
-    </profiles>
-
     <build>
         <plugins>
             <plugin>
