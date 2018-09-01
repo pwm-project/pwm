@@ -100,9 +100,9 @@
             <tr>
                 <td class="key">Last Login Time</td>
                 <td>
-                    <%=JspUtility.friendlyWrite(pageContext, userInfo.getPasswordLastModifiedTime())%>
-                    <% if ( userInfo.getPasswordLastModifiedTime() != null ) { %>
-                    ( <%=TimeDuration.fromCurrent(userInfo.getPasswordLastModifiedTime()).asCompactString()%> )
+                    <%=JspUtility.friendlyWrite(pageContext, userInfo.getLastLoginTime())%>
+                    <% if ( userInfo.getLastLoginTime() != null ) { %>
+                    ( <%=TimeDuration.fromCurrent(userInfo.getLastLoginTime()).asCompactString()%> )
                     <% } %>
                 </td>
             </tr>
