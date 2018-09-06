@@ -20,17 +20,29 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.svc.cluster;
 
-import password.pwm.error.PwmUnrecoverableException;
+package password.pwm.cr;
 
-import java.util.List;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.util.TimeZone;
 
-public interface ClusterProvider
+public class CrUtils
 {
-    void close( );
+    static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss Z";
 
-    boolean isMaster( );
+    static Instant parseDateString( final String input ) throws ParseException
+    {
+        final SimpleDateFormat dateFormatter = new SimpleDateFormat( DATE_FORMAT );
+        dateFormatter.setTimeZone( TimeZone.getTimeZone( "Zulu" ) );
+        return dateFormatter.parse( input ).toInstant();
+    }
 
-    List<NodeInfo> nodes( ) throws PwmUnrecoverableException;
+    static String formatDateString( final Instant input )
+    {
+        final SimpleDateFormat dateFormatter = new SimpleDateFormat( DATE_FORMAT );
+        dateFormatter.setTimeZone( TimeZone.getTimeZone( "Zulu" ) );
+        return dateFormatter.format( input );
+    }
 }

@@ -414,6 +414,9 @@ public class FormUtility
      * and checks to make sure the ParamConfig value meets the requirements of the ParamConfig itself.
      *
      * @param formValues - a Map containing String keys of parameter names and ParamConfigs as values
+     * @param locale used for error messages
+     * @param configuration current application configuration
+     *
      * @throws password.pwm.error.PwmDataValidationException - If there is a problem with any of the fields
      * @throws password.pwm.error.PwmUnrecoverableException  if an unexpected error occurs
      */

@@ -36,6 +36,7 @@ import jetbrains.exodus.env.StoreConfig;
 import jetbrains.exodus.env.Transaction;
 import jetbrains.exodus.management.Statistics;
 import jetbrains.exodus.management.StatisticsItem;
+import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.util.java.ConditionalTaskExecutor;
@@ -48,6 +49,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
@@ -55,6 +58,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.Deflater;
@@ -67,6 +71,9 @@ public class XodusLocalDB implements LocalDBProvider
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( XodusLocalDB.class );
     private static final TimeDuration STATS_OUTPUT_INTERVAL = new TimeDuration( 24, TimeUnit.HOURS );
+
+    private static final String FILE_SUB_PATH = "xodus";
+    private static final String README_FILENAME = "README.TXT";
 
     private Environment environment;
     private File fileLocation;
@@ -131,7 +138,7 @@ public class XodusLocalDB implements LocalDBProvider
         readOnly = parameters.containsKey( Parameter.readOnly ) && Boolean.parseBoolean( parameters.get( Parameter.readOnly ) );
 
         LOGGER.trace( "preparing to open with configuration " + JsonUtil.serializeMap( environmentConfig.getSettings() ) );
-        environment = Environments.newInstance( dbDirectory.getAbsolutePath() + File.separator + "xodus", environmentConfig );
+        environment = Environments.newInstance( dbDirectory.getAbsolutePath() + File.separator + FILE_SUB_PATH, environmentConfig );
         LOGGER.trace( "environment open (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
 
         environment.executeInTransaction( txn ->
@@ -149,6 +156,8 @@ public class XodusLocalDB implements LocalDBProvider
         {
             LOGGER.trace( "opened " + db + " with " + this.size( db ) + " records" );
         }
+
+        outputReadme( new File( dbDirectory.getPath() + File.separator + FILE_SUB_PATH + File.separator + README_FILENAME ) );
     }
 
     @Override
@@ -597,5 +606,20 @@ public class XodusLocalDB implements LocalDBProvider
     public Set<Flag> flags( )
     {
         return Collections.emptySet();
+    }
+
+    private static void outputReadme( final File xodusPath )
+    {
+        try
+        {
+            final ResourceBundle resourceBundle = ResourceBundle.getBundle( XodusLocalDB.class.getName() );
+            final String contents = resourceBundle.getString( "ReadmeContents" );
+            final byte[] byteContents = contents.getBytes( PwmConstants.DEFAULT_CHARSET );
+            Files.write( xodusPath.toPath(), byteContents, StandardOpenOption.TRUNCATE_EXISTING );
+        }
+        catch ( IOException e )
+        {
+            LOGGER.error( "error writing LocalDB readme file: " + e.getMessage() );
+        }
     }
 }

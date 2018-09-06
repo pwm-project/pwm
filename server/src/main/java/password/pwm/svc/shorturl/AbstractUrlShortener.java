@@ -34,7 +34,10 @@ public interface AbstractUrlShortener
      *
      * @param input   the URL to be shortened
      * @param context the PwmApplication, used to retrieve configuration
+     * @return the shortened uri
+     * @throws PwmUnrecoverableException if the operation fails
      */
 
-    String shorten( String input, PwmApplication context ) throws PwmUnrecoverableException;
+    String shorten( String input, PwmApplication context )
+            throws PwmUnrecoverableException;
 }

@@ -35,7 +35,6 @@ import password.pwm.config.StoredValue;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.svc.cache.CacheKey;
 import password.pwm.svc.cache.CachePolicy;
 import password.pwm.util.java.StringUtil;
@@ -146,7 +145,7 @@ public class LdapProfile extends AbstractProfile implements Profile
         final boolean enableCanonicalCache = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.LDAP_CACHE_CANONICAL_ENABLE ) );
 
         String canonicalValue = null;
-        final CacheKey cacheKey = CacheKey.newKey( LdapPermissionTester.class, null, "canonicalDN-" + this.getIdentifier() + "-" + dnValue );
+        final CacheKey cacheKey = CacheKey.newKey( LdapProfile.class, null, "canonicalDN-" + this.getIdentifier() + "-" + dnValue );
         if ( enableCanonicalCache )
         {
             final String cachedDN = pwmApplication.getCacheService().get( cacheKey, String.class );

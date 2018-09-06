@@ -235,6 +235,8 @@ public class PwmSession implements Serializable
 
     /**
      * Unauthenticate the pwmSession.
+     *
+     * @param pwmRequest current request of the user
      */
     public void unauthenticateUser( final PwmRequest pwmRequest )
     {

@@ -44,6 +44,7 @@ import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.StringEntity;
@@ -89,12 +90,13 @@ import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class PwmHttpClient
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmHttpClient.class );
 
-    private static int classCounter = 0;
+    private static final AtomicInteger REQUEST_COUNTER = new AtomicInteger( 0 );
 
     private final PwmApplication pwmApplication;
     private final SessionLabel sessionLabel;
@@ -128,6 +130,7 @@ public class PwmHttpClient
             throws PwmUnrecoverableException
     {
         final HttpClientBuilder clientBuilder = HttpClientBuilder.create();
+        clientBuilder.useSystemProperties();
         clientBuilder.setUserAgent( PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION );
         final boolean httpClientPromiscuousEnable = Boolean.parseBoolean( configuration.readAppProperty( AppProperty.SECURITY_HTTP_PROMISCUOUS_ENABLE ) );
 
@@ -149,7 +152,10 @@ public class PwmHttpClient
                         new SecureRandom() );
 
                 final SSLConnectionSocketFactory sslConnectionFactory = new SSLConnectionSocketFactory( sslContext, NoopHostnameVerifier.INSTANCE );
-                final Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create().register( "https", sslConnectionFactory ).build();
+                final Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
+                        .register( "https", sslConnectionFactory )
+                        .register( "http", PlainConnectionSocketFactory.INSTANCE )
+                        .build();
                 final HttpClientConnectionManager ccm = new BasicHttpClientConnectionManager( registry );
 
                 clientBuilder.setSSLSocketFactory( sslConnectionFactory );
@@ -271,7 +277,7 @@ public class PwmHttpClient
             throws IOException, URISyntaxException, PwmUnrecoverableException
     {
         final Instant startTime = Instant.now();
-        final int counter = classCounter++;
+        final int counter = REQUEST_COUNTER.getAndIncrement();
 
         LOGGER.trace( sessionLabel, "preparing to send (id=" + counter + ") "
                 + clientRequest.toDebugString( this ) );

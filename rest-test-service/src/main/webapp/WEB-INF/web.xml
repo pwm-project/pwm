@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Password Management Servlets (PWM)
-  ~ Copyright (c) 2006-2018 Novell, Inc.
+  ~ Copyright (c) 2006-2009 Novell, Inc.
+  ~ Copyright (c) 2009-2018 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -22,9 +23,9 @@
          xmlns="http://java.sun.com/xml/ns/javaee"
          xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
          id="PWM-rest-test-servlet" version="3.0">
-    <display-name>PWM REST Test Server</display-name>
+    <display-name>PWM Web Service Test Server</display-name>
     <!-- <distributable/> Clustering/Session replication is not supported -->
-    <description>PWM REST Test Server</description>
+    <description>PWM Web Service Test Server</description>
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>

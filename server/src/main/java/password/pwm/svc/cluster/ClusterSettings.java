@@ -24,29 +24,36 @@ package password.pwm.svc.cluster;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.config.Configuration;
 import password.pwm.util.java.TimeDuration;
 
 import java.util.concurrent.TimeUnit;
 
-@Getter
+@Value
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
-class DatabaseClusterSettings
+class ClusterSettings
 {
-    private final boolean enable;
     private final TimeDuration heartbeatInterval;
     private final TimeDuration nodeTimeout;
     private final TimeDuration nodePurgeInterval;
 
-    static DatabaseClusterSettings fromConfig( final Configuration configuration )
+    static ClusterSettings fromConfigForDB( final Configuration configuration )
     {
-        return new DatabaseClusterSettings(
-                Boolean.parseBoolean( configuration.readAppProperty( AppProperty.CLUSTER_DB_ENABLE ) ),
+        return new ClusterSettings(
                 new TimeDuration( Integer.parseInt( configuration.readAppProperty( AppProperty.CLUSTER_DB_HEARTBEAT_SECONDS ) ), TimeUnit.SECONDS ),
                 new TimeDuration( Integer.parseInt( configuration.readAppProperty( AppProperty.CLUSTER_DB_NODE_TIMEOUT_SECONDS ) ), TimeUnit.SECONDS ),
                 new TimeDuration( Integer.parseInt( configuration.readAppProperty( AppProperty.CLUSTER_DB_NODE_PURGE_SECONDS ) ), TimeUnit.SECONDS )
+        );
+    }
+
+    static ClusterSettings fromConfigForLDAP( final Configuration configuration )
+    {
+        return new ClusterSettings(
+                new TimeDuration( Integer.parseInt( configuration.readAppProperty( AppProperty.CLUSTER_LDAP_HEARTBEAT_SECONDS ) ), TimeUnit.SECONDS ),
+                new TimeDuration( Integer.parseInt( configuration.readAppProperty( AppProperty.CLUSTER_LDAP_NODE_TIMEOUT_SECONDS ) ), TimeUnit.SECONDS ),
+                new TimeDuration( Integer.parseInt( configuration.readAppProperty( AppProperty.CLUSTER_LDAP_NODE_PURGE_SECONDS ) ), TimeUnit.SECONDS )
         );
     }
 }

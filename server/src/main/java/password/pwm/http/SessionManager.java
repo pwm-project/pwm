@@ -51,7 +51,6 @@ import java.util.List;
 /**
  * Wraps an <i>HttpSession</i> to provide additional PWM-related session
  * management activities.
- * <p/>
  *
  * @author Jason D. Rivard
  */

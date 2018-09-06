@@ -42,11 +42,11 @@ import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 /**
- * An immutable class representing a time period.  The internal value of the time period is
- * stored as milliseconds.
- * <p/>
- * Negative time durations are not permitted.  Operations that would result in a negative value
- * are negated and will instead result in positive values.
+ * <p>An immutable class representing a time period.  The internal value of the time period is
+ * stored as milliseconds.</p>
+ *
+ * <p>Negative time durations are not permitted.  Operations that would result in a negative value
+ * are negated and will instead result in positive values.</p>
  *
  * @author Jason D. Rivard
  */

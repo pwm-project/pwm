@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Password Management Servlets (PWM)
-  ~ Copyright (c) 2006-2018 Novell, Inc.
+  ~ Copyright (c) 2006-2009 Novell, Inc.
+  ~ Copyright (c) 2009-2018 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -100,11 +101,6 @@
             <option value="/private">/private</option>
             <option value="/public">/public</option>
         </options>
-    </setting>
-    <setting hidden="false" key="pwmInstanceName" level="2">
-        <default>
-            <value />
-        </default>
     </setting>
     <setting hidden="false" key="idleTimeoutSeconds" level="1" required="true">
         <properties>
@@ -1004,9 +1000,7 @@
     </setting>
     <setting hidden="false" key="sms.httpRequestHeaders" level="2">
         <regex>^[A-Za-z0-9_\.-]+:.*</regex>
-        <default>
-            <value />
-        </default>
+        <default/>
     </setting>
     <setting hidden="false" key="sms.maxTextLength" level="2" required="true">
         <default>
@@ -1590,6 +1584,18 @@
         <default>
             <value>28800</value>
         </default>
+    </setting>
+    <setting hidden="false" key="cluster.storageMode" level="2">
+        <default>
+            <value>LDAP</value>
+        </default>
+        <default template="DB">
+            <value>DB</value>
+        </default>
+        <options>
+            <option value="LDAP">LDAP Directory</option>
+            <option value="DB">Remote Database</option>
+        </options>
     </setting>
     <setting hidden="false" key="security.loginSession.mode" level="2">
         <default>

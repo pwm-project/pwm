@@ -81,8 +81,6 @@ public enum PwmSetting
             "pwm.homeURL", PwmSettingSyntax.STRING, PwmSettingCategory.GENERAL ),
     URL_INTRO(
             "pwm.introURL", PwmSettingSyntax.SELECT, PwmSettingCategory.GENERAL ),
-    PWM_INSTANCE_NAME(
-            "pwmInstanceName", PwmSettingSyntax.STRING, PwmSettingCategory.GENERAL ),
     IDLE_TIMEOUT_SECONDS(
             "idleTimeoutSeconds", PwmSettingSyntax.DURATION, PwmSettingCategory.GENERAL ),
     HIDE_CONFIGURATION_HEALTH_WARNINGS(
@@ -95,11 +93,12 @@ public enum PwmSetting
             "http.proxy.url", PwmSettingSyntax.STRING, PwmSettingCategory.GENERAL ),
     HTTP_PROXY_EXCEPTIONS(
             "http.proxy.exceptions", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.GENERAL ),
-
     APP_PROPERTY_OVERRIDES(
             "pwm.appProperty.overrides", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.GENERAL ),
 
     // clustering
+    CLUSTER_STORAGE_MODE(
+            "cluster.storageMode", PwmSettingSyntax.SELECT, PwmSettingCategory.CLUSTERING ),
     SECURITY_LOGIN_SESSION_MODE(
             "security.loginSession.mode", PwmSettingSyntax.SELECT, PwmSettingCategory.CLUSTERING ),
     SECURITY_MODULE_SESSION_MODE(
