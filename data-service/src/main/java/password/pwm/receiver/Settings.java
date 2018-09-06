@@ -25,8 +25,12 @@ package password.pwm.receiver;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 
-import java.io.FileReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -74,14 +78,17 @@ public class Settings
     static Settings readFromFile( final String filename ) throws IOException
     {
         final Properties properties = new Properties();
-        properties.load( new FileReader( filename ) );
-        final Map<Setting, String> returnMap = new HashMap<>();
-        for ( final Setting setting : Setting.values() )
+        try ( Reader reader = new InputStreamReader( new FileInputStream( new File( filename ) ), StandardCharsets.UTF_8 ) )
         {
-            final String value = properties.getProperty( setting.name(), setting.getDefaultValue() );
-            returnMap.put( setting, value );
+            properties.load( reader );
+            final Map<Setting, String> returnMap = new HashMap<>();
+            for ( final Setting setting : Setting.values() )
+            {
+                final String value = properties.getProperty( setting.name(), setting.getDefaultValue() );
+                returnMap.put( setting, value );
+            }
+            return new Settings( Collections.unmodifiableMap( returnMap ) );
         }
-        return new Settings( Collections.unmodifiableMap( returnMap ) );
     }
 
     public String getSetting( final Setting setting )

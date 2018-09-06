@@ -51,6 +51,7 @@ public class BasicAuthInfo implements Serializable
     /**
      * Extracts the basic auth info from the header.
      *
+     * @param pwmApplication a reference to the application
      * @param pwmRequest http servlet request
      * @return a BasicAuthInfo object containing username/password, or null if the "Authorization" header doesn't exist or is malformed
      */

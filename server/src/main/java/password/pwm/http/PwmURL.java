@@ -64,6 +64,10 @@ public class PwmURL
     /**
      * Compare two uri strings for equality of 'base'.  Specifically, the schema, host and port
      * are compared for equality.
+     *
+     * @param uri1 uri to compare
+     * @param uri2 uri to compare
+     * @return true if scheama, host and port of uri1 and uri2 are equal.
      */
     public static boolean compareUriBase( final String uri1, final String uri2 )
     {

@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 class MemoryCacheStore implements CacheStore
 {
@@ -103,7 +104,18 @@ class MemoryCacheStore implements CacheStore
             final Instant storeDate = cacheValueWrapper.getExpirationDate();
             final String age = Duration.between( storeDate, Instant.now() ).toString();
             final int chars = JsonUtil.serialize( cacheValueWrapper.getPayload() ).length();
-            final CacheDebugItem cacheDebugItem = new CacheDebugItem( cacheKey, age, chars );
+            final String keyClass = cacheKey.getSrcClass() == null ? "null" : cacheKey.getSrcClass().getName();
+            final String keyUserID = cacheKey.getUserIdentity() == null ? "null" : cacheKey.getUserIdentity().toDisplayString();
+            final String keyValue = cacheKey.getValueID() == null ? "null" : cacheKey.getValueID();
+
+            final CacheDebugItem cacheDebugItem = CacheDebugItem.builder()
+                    .srcClass( keyClass )
+                    .userIdentity( keyUserID )
+                    .valueID( keyValue )
+                    .age( age )
+                    .chars( chars )
+                    .build();
+
             items.add( cacheDebugItem );
         }
         return Collections.unmodifiableList( items );
@@ -116,5 +128,19 @@ class MemoryCacheStore implements CacheStore
         private final CacheKey cacheKey;
         private final Instant expirationDate;
         private final Serializable payload;
+    }
+
+    Map<String, Integer> storedClassHistogram( final String prefix )
+    {
+        final Map<String, Integer> output = new TreeMap<>(  );
+        for ( final CacheKey cacheKey : memoryStore.asMap().keySet() )
+        {
+            final String className = cacheKey.getSrcClass() == null ? "n/a" : cacheKey.getSrcClass().getSimpleName();
+            final String key = prefix + className;
+            final Integer currentValue = output.getOrDefault( key, 0 );
+            final Integer newValue = currentValue + 1;
+            output.put( key, newValue );
+        }
+        return output;
     }
 }

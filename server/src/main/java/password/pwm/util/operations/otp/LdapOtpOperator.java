@@ -34,7 +34,6 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
 import password.pwm.util.logging.PwmLogger;
@@ -97,12 +96,6 @@ public class LdapOtpOperator extends AbstractOtpOperator
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
             throw new PwmUnrecoverableException( errorInformation );
         }
-        catch ( PwmOperationalException e )
-        {
-            final String errorMsg = "unexpected error reading responses: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
-            throw new PwmUnrecoverableException( errorInformation );
-        }
         return otp;
     }
 
@@ -156,13 +149,6 @@ public class LdapOtpOperator extends AbstractOtpOperator
                 errorMsg = "error writing OTP secret to ldap attribute '" + ldapStorageAttribute + "': " + ex.getMessage();
             }
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_WRITING_OTP_SECRET, errorMsg );
-            final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException( errorInfo );
-            pwmOE.initCause( ex );
-            throw pwmOE;
-        }
-        catch ( PwmOperationalException ex )
-        {
-            final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_WRITING_OTP_SECRET, ex.getMessage() );
             final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException( errorInfo );
             pwmOE.initCause( ex );
             throw pwmOE;

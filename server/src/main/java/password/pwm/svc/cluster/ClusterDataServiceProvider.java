@@ -22,34 +22,17 @@
 
 package password.pwm.svc.cluster;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import password.pwm.PwmApplication;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.java.TimeDuration;
 
-import java.io.Serializable;
-import java.time.Instant;
+import java.util.Map;
 
-@Getter
-@AllArgsConstructor( access = AccessLevel.PRIVATE )
-class DatabaseStoredNodeData implements Serializable
+public interface ClusterDataServiceProvider
 {
-    private Instant timestamp;
-    private Instant startupTimestamp;
-    private String instanceID;
-    private String guid;
-    private String configHash;
+    Map<String, StoredNodeData> readStoredData( ) throws PwmUnrecoverableException;
 
-    static DatabaseStoredNodeData makeNew( final PwmApplication pwmApplication )
-            throws PwmUnrecoverableException
-    {
-        return new DatabaseStoredNodeData(
-                Instant.now(),
-                pwmApplication.getStartupTime(),
-                pwmApplication.getInstanceID(),
-                pwmApplication.getRuntimeNonce(),
-                pwmApplication.getConfig().configurationHash()
-        );
-    }
+    void writeNodeStatus( StoredNodeData storedNodeData ) throws PwmUnrecoverableException;
+
+    int purgeOutdatedNodes( TimeDuration maxNodeAge )
+            throws PwmUnrecoverableException;
 }

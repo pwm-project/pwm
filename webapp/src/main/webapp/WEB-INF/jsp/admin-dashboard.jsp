@@ -272,7 +272,7 @@
                             </td>
                             <td>
                                 <% for (final DataStorageMethod loopMethod : loopService.getStorageMethod()) { %>
-                                <%=loopMethod.toString()%>
+                                <%=loopMethod == null ? "" : loopMethod.toString()%>
                                 <br/>
                                 <% } %>
                             </td>

@@ -310,7 +310,8 @@ public class ActionValue extends AbstractValue implements StoredValue
 
     /**
      * Convert to json map where the certificate values are replaced with debug info for display in the config editor.
-     * @return
+     *
+     * @return a map suitable for json serialization for debug purposes
      */
     public List<Map<String, Object>> toInfoMap( )
     {

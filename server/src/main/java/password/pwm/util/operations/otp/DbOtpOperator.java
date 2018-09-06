@@ -33,13 +33,13 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
 import password.pwm.util.db.DatabaseAccessor;
 import password.pwm.util.db.DatabaseException;
 import password.pwm.util.db.DatabaseTable;
-import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
 
 /**
@@ -85,17 +85,9 @@ public class DbOtpOperator extends AbstractOtpOperator
                 }
             }
         }
-        catch ( LocalDBException e )
+        catch ( PwmException e )
         {
-            final String errorMsg = "unexpected LocalDB error reading responses: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
-            throw new PwmUnrecoverableException( errorInformation );
-        }
-        catch ( PwmOperationalException e )
-        {
-            final String errorMsg = "unexpected error reading responses: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
-            throw new PwmUnrecoverableException( errorInformation );
+            throw new PwmUnrecoverableException( e.getErrorInformation() );
         }
         return otpConfig;
     }

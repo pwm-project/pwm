@@ -16,10 +16,9 @@
     <name>PWM Password Self Service: Executable JAR</name>
 
     <properties>
+        <project.root.basedir>${project.basedir}/..</project.root.basedir>
         <tomcat.version>9.0.10</tomcat.version>
         <jetty-version>9.4.11.v20180605</jetty-version>
-
-
     </properties>
 
     <build>
@@ -89,29 +88,7 @@
             <type>war</type>
             <scope>provided</scope>
         </dependency>
-        <!--
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-server</artifactId>
-            <version>${jetty-version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-servlet</artifactId>
-            <version>${jetty-version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-webapp</artifactId>
-            <version>${jetty-version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>apache-jsp</artifactId>
-            <version>${jetty-version}</version>
-            <type>jar</type>
-        </dependency>
-        -->
+
         <!-- embedded tomcat -->
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>

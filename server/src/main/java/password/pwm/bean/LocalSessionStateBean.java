@@ -31,11 +31,11 @@ import java.time.Instant;
 import java.util.Locale;
 
 /**
- * Only information that is particular to the http session is stored in the
- * session bean.  Information more topical to the user is stored in {@link UserInfoBean}.
- * <p/>
- * For any given HTTP session using PWM, one and only one {@link LocalSessionStateBean} will be
- * created.
+ * <p>Only information that is particular to the http session is stored in the
+ * session bean.  Information more topical to the user is stored in {@link UserInfoBean}.</p>
+ *
+ * <p>For any given HTTP session using PWM, one and only one {@link LocalSessionStateBean} will be
+ * created.</p>
  *
  * @author Jason D. Rivard
  */

@@ -31,23 +31,6 @@
 
 <module name="Checker">
 
-    <module name="Header">
-        <property name="headerFile" value="${basedir}/../build/license-header-jsp.txt"/>
-        <property name="fileExtensions" value="jsp"/>
-    </module>
-    <module name="Header">
-        <property name="headerFile" value="${basedir}/../build/license-header-java.txt"/>
-        <property name="fileExtensions" value="java,css"/>
-    </module>
-    <module name="Header">
-        <property name="headerFile" value="${basedir}/../build/license-header-xml.txt"/>
-        <property name="fileExtensions" value="xml,svg"/>
-    </module>
-    <module name="Header">
-        <property name="headerFile" value="${basedir}/../build/license-header-properties.txt"/>
-        <property name="fileExtensions" value="properties"/>
-    </module>
-
 
     <!-- Checks that each Java package has a Javadoc file used for commenting. -->
     <!-- See http://checkstyle.sf.net/config_javadoc.html#JavadocPackage       -->
@@ -76,7 +59,7 @@
         <property name="lineSeparator" value="lf_cr_crlf" />
     </module>
 
-    <module name="TreeWalker">
+    <module name="TreeWalker" >
         <property name="cacheFile" value="target/checkstyle.cache"/>
 
         <!-- required for SuppressWarningsFilter (and other Suppress* rules not used here) -->
@@ -179,7 +162,7 @@
         <module name="RedundantImport"/>
         <module name="UnusedImports"/>
         <module name="ImportControl">
-            <property name="file" value="${basedir}/../build/checkstyle-import.xml"/>
+            <property name="file" value="${basedir}/build/checkstyle-import.xml"/>
         </module>
 
 

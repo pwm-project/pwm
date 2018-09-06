@@ -227,12 +227,13 @@ public class PasswordUtility
     }
 
     /**
-     * This is the entry point under which all password changes are managed.
-     * The following is the general procedure when this method is invoked.
+     * <p>This is the entry point under which all password changes are managed.
+     * The following is the general procedure when this method is invoked.</p>
      * <ul>
-     * <li> password is checked against PWM password requirement </li>
-     * <li> ldap password set is attempted<br/>
-     * <br/>if successful:
+     * <li> password is checked against application password policy</li>
+     * <li> ldap password set is attempted</li>
+     * </ul>
+     * if successful:
      * <ul>
      * <li> uiBean is updated with old and new passwords </li>
      * <li> uiBean's password expire flag is set to false </li>
@@ -240,18 +241,18 @@ public class PasswordUtility
      * <li> user email notification is sent </li>
      * <li> return true </li>
      * </ul>
-     * <br/>if unsuccessful
+     * if unsuccessful
      * <ul>
      * <li> ssBean is updated with appropriate error </li>
      * <li> return false </li>
      * </ul>
-     * </li>
-     * </ul>
      *
      * @param newPassword the new password that is being set.
      * @param pwmSession  beanmanager for config and user info lookup
-     * @throws com.novell.ldapchai.exception.ChaiUnavailableException if the ldap directory is not unavailable
-     * @throws password.pwm.error.PwmUnrecoverableException           if user is not authenticated
+     * @param pwmApplication the application reference
+     * @throws ChaiUnavailableException if the ldap directory is not unavailable
+     * @throws PwmUnrecoverableException  if user is not authenticated
+     * @throws PwmOperationalException if operation fails
      */
     public static void setActorPassword(
             final PwmSession pwmSession,

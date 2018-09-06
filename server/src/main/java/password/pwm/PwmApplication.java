@@ -660,7 +660,7 @@ public class PwmApplication
 
     private String fetchInstanceID( final LocalDB localDB, final PwmApplication pwmApplication )
     {
-        String newInstanceID = pwmApplication.getConfig().readSettingAsString( PwmSetting.PWM_INSTANCE_NAME );
+        String newInstanceID = pwmApplication.getPwmEnvironment().getParameters().get( PwmEnvironment.ApplicationParameter.InstanceID );
 
         if ( newInstanceID != null && newInstanceID.trim().length() > 0 )
         {
