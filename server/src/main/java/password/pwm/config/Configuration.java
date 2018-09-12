@@ -72,7 +72,6 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.PasswordData;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
@@ -124,12 +123,21 @@ public class Configuration implements SettingReader
         }
     }
 
-    public String toDebugString( )
+    public void outputToLog( )
     {
-        final StringBuilder outputText = new StringBuilder();
-        outputText.append( "  " );
-        outputText.append( JsonUtil.serialize( StoredConfigurationUtil.toJsonDebugObject( storedConfiguration ), JsonUtil.Flag.PrettyPrint ) );
-        return outputText.toString().replaceAll( "\n", "\n  " );
+        final Map<String, String> debugStrings = storedConfiguration.getModifiedSettingDebugValues( PwmConstants.DEFAULT_LOCALE, true );
+        final List<String> outputStrings = new ArrayList<>();
+
+        for ( final Map.Entry<String, String> entry : debugStrings.entrySet() )
+        {
+            final String spacedValue = entry.getValue().replace( "\n", "\n   " );
+            final String output = " " + entry.getKey() + "\n   " + spacedValue + "\n";
+            outputStrings.add( output );
+        }
+
+        LOGGER.trace( "--begin current configuration output--" );
+        outputStrings.forEach( LOGGER::trace );
+        LOGGER.trace( "--end current configuration output--" );
     }
 
     public List<FormConfiguration> readSettingAsForm( final PwmSetting setting )

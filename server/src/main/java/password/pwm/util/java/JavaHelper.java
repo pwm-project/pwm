@@ -159,7 +159,7 @@ public class JavaHelper
             }
             catch ( InterruptedException e )
             {
-                //who cares
+                // ignore
             }
         }
         while ( ( System.currentTimeMillis() - startTime ) < sleepTimeMS );
@@ -174,7 +174,7 @@ public class JavaHelper
     )
     {
         final long startTime = System.currentTimeMillis();
-        final long pauseTime = Math.max( sleepTimeMS, predicateCheckIntervalMS );
+        final long pauseTime = Math.min( sleepTimeMS, predicateCheckIntervalMS );
         while ( ( System.currentTimeMillis() - startTime ) < sleepTimeMS )
         {
             JavaHelper.pause( pauseTime );

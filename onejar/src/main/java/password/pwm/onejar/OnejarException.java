@@ -22,9 +22,9 @@
 
 package password.pwm.onejar;
 
-public class TomcatOneJarException extends Exception
+public class OnejarException extends Exception
 {
-    public TomcatOneJarException( final String msg )
+    public OnejarException( final String msg )
     {
         super( msg );
     }

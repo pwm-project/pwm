@@ -455,7 +455,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
 
     public Map<String, String> getModifiedSettingDebugValues( final Locale locale, final boolean prettyPrint )
     {
-        final Map<String, String> returnObj = new LinkedHashMap<>();
+        final Map<String, String> returnObj = new TreeMap<>();
         for ( final SettingValueRecord record : this.modifiedSettings() )
         {
             final String label = record.getSetting().toMenuLocationDebug( record.getProfile(), locale );

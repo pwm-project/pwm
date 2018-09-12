@@ -1074,7 +1074,7 @@ PWM_CFGEDIT.drawNavigationMenu = function() {
                 // Create the Tree.
                 var tree = new Tree({
                     model: model,
-                    persist: true,
+                    persist: false,
                     getIconClass: function(/*dojo.store.Item*/ item, /*Boolean*/ opened){
                         return 'tree-noicon';
                     },
@@ -1083,17 +1083,24 @@ PWM_CFGEDIT.drawNavigationMenu = function() {
                     id: 'navigationTree',
                     onClick: function(item){
                         PWM_MAIN.Preferences.writeSessionStorage('configEditor-lastSelected',item);
+                        var path = tree.get('paths');
+                        PWM_MAIN.Preferences.writeSessionStorage('configEditor-path',JSON.stringify(path));
                         PWM_CFGEDIT.dispatchNavigationItem(item);
                     }
                 });
 
+                var storedPath = PWM_MAIN.Preferences.readSessionStorage('configEditor-path');
+                if (storedPath) {
+                    var path = JSON.parse(storedPath);
+                    tree.set('paths', path);
+                }
 
                 PWM_MAIN.getObject('navigationTree').innerHTML = '';
                 tree.placeAt(PWM_MAIN.getObject('navigationTree'));
                 tree.startup();
                 PWM_MAIN.setStyle('navigationTreeWrapper','display','inherit');
                 PWM_VAR['navigationTree'] = tree; // used for expand/collapse button events;
-                console.log('completed menu tree drawing')
+                console.log('completed menu tree drawing');
             }
         );
     };

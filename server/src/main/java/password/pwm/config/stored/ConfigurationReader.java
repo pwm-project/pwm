@@ -22,7 +22,6 @@
 
 package password.pwm.config.stored;
 
-import org.apache.commons.io.FileUtils;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
@@ -35,10 +34,10 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -137,8 +136,7 @@ public class ConfigurationReader
         final InputStream theFileData;
         try
         {
-            final byte[] contents = FileUtils.readFileToByteArray( configFile );
-            theFileData = new ByteArrayInputStream( contents );
+            theFileData = Files.newInputStream( configFile.toPath() );
         }
         catch ( Exception e )
         {
@@ -193,7 +191,9 @@ public class ConfigurationReader
             this.configMode = PwmApplicationMode.RUNNING;
         }
 
-        LOGGER.debug( "configuration reading/parsing complete in " + TimeDuration.fromCurrent( startTime ).asLongString() );
+        final String fileSize = StringUtil.formatDiskSize( configFile.length() );
+        final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
+        LOGGER.debug( "configuration reading/parsing of " + fileSize + " complete in " + timeDuration.asLongString() );
 
         return storedConfiguration;
     }

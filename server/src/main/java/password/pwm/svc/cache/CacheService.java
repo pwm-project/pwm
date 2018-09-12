@@ -180,7 +180,7 @@ public class CacheService implements PwmService
         if ( memoryCacheStore != null )
         {
             final CacheStoreInfo info = memoryCacheStore.getCacheStoreInfo();
-            traceOutput.append( ", memCache=" );
+            traceOutput.append( "memCache=" );
             traceOutput.append( JsonUtil.serialize( info ) );
             traceOutput.append( ", histogram=" );
             traceOutput.append( JsonUtil.serializeMap( memoryCacheStore.storedClassHistogram( "" ) ) );

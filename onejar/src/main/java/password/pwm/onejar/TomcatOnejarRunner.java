@@ -57,57 +57,20 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-public class TomcatOneJarMain
+public class TomcatOnejarRunner
 {
-    //private static final String TEMP_WAR_FILE_NAME = "embed.war";
-    private static final String KEYSTORE_ALIAS = "https";
+    final OnejarMain onejarMain;
 
-    public static void main( final String[] args )
+    public TomcatOnejarRunner( final OnejarMain onejarMain )
     {
-        final ArgumentParser argumentParser = new ArgumentParser();
-        OnejarConfig onejarConfig = null;
-        try
-        {
-            onejarConfig = argumentParser.parseArguments( args );
-        }
-        catch ( ArgumentParserException | TomcatOneJarException e )
-        {
-            out( "error parsing command line: " + e.getMessage() );
-        }
-        if ( onejarConfig != null )
-        {
-            try
-            {
-                startTomcat( onejarConfig );
-            }
-            catch ( TomcatOneJarException | ServletException | IOException e )
-            {
-                out( "error starting tomcat: " + e.getMessage() );
-            }
-        }
+        this.onejarMain = onejarMain;
     }
 
-    private static File getWarFolder( final OnejarConfig onejarConfig ) throws IOException
-    {
-        return new File( onejarConfig.getWorkingPath().getAbsoluteFile() + File.separator + "war" );
-    }
-
-    private static File getKeystoreFile( final OnejarConfig onejarConfig )
-    {
-        return new File( onejarConfig.getWorkingPath().getAbsoluteFile() + File.separator + "keystore" );
-    }
-
-    private static File getPwmAppPropertiesFile( final OnejarConfig onejarConfig )
-    {
-        return new File( onejarConfig.getWorkingPath().getAbsoluteFile() + File.separator + "application.properties" );
-    }
-
-
-    private static void explodeWar( final OnejarConfig onejarConfig ) throws IOException
+    private void explodeWar( final OnejarConfig onejarConfig ) throws IOException
     {
         final InputStream warSource = onejarConfig.getWar();
         final ZipInputStream zipInputStream = new ZipInputStream( warSource );
-        final File outputFolder = getWarFolder( onejarConfig );
+        final File outputFolder = onejarConfig.getWarFolder( );
 
         ArgumentParser.mkdirs( outputFolder );
 
@@ -128,7 +91,8 @@ public class TomcatOneJarMain
 
     }
 
-    private static void startTomcat( final OnejarConfig onejarConfig ) throws ServletException, IOException, TomcatOneJarException
+    void startTomcat( final OnejarConfig onejarConfig )
+            throws ServletException, IOException, OnejarException
     {
         final Instant startTime = Instant.now();
 
@@ -144,7 +108,7 @@ public class TomcatOneJarMain
         }
         catch ( Exception e )
         {
-            throw new TomcatOneJarException( "error generating keystore: " + e.getMessage() );
+            throw new OnejarException( "error generating keystore: " + e.getMessage() );
         }
 
         outputPwmAppProperties( onejarConfig );
@@ -175,7 +139,7 @@ public class TomcatOneJarMain
 
         deployRedirectConnector( tomcat, onejarConfig );
 
-        final String warPath = getWarFolder( onejarConfig ).getAbsolutePath();
+        final String warPath = onejarConfig.getWarFolder().getAbsolutePath();
         tomcat.addWebapp( "/" + onejarConfig.getContext(), warPath );
 
 
@@ -189,14 +153,14 @@ public class TomcatOneJarMain
         }
         catch ( LifecycleException e )
         {
-            throw new TomcatOneJarException( "unable to start tomcat: " + e.getMessage() );
+            throw new OnejarException( "unable to start tomcat: " + e.getMessage() );
         }
         tomcat.getServer().await();
 
-        System.out.println( "\n" );
+        System.out.println( "\nexiting..." );
     }
 
-    private static void deployRedirectConnector( final Tomcat tomcat, final OnejarConfig onejarConfig )
+    private void deployRedirectConnector( final Tomcat tomcat, final OnejarConfig onejarConfig )
             throws IOException, ServletException
     {
         final String srcRootWebXml = "ROOT-redirect-webapp/WEB-INF/web.xml";
@@ -220,7 +184,7 @@ public class TomcatOneJarMain
     }
 
 
-    private static Connector makeConnector( final OnejarConfig onejarConfig )
+    private Connector makeConnector( final OnejarConfig onejarConfig )
     {
         final Connector connector = new Connector( "HTTP/1.1" );
         connector.setPort( onejarConfig.getPort() );
@@ -232,19 +196,19 @@ public class TomcatOneJarMain
         connector.setSecure( true );
         connector.setScheme( "https" );
         connector.setAttribute( "SSLEnabled", "true" );
-        connector.setAttribute( "keystoreFile", getKeystoreFile( onejarConfig ).getAbsolutePath() );
+        connector.setAttribute( "keystoreFile", onejarConfig.getKeystoreFile().getAbsolutePath() );
         connector.setAttribute( "keystorePass", onejarConfig.getKeystorePass() );
-        connector.setAttribute( "keyAlias", KEYSTORE_ALIAS );
+        connector.setAttribute( "keyAlias", OnejarMain.KEYSTORE_ALIAS );
         connector.setAttribute( "clientAuth", "false" );
 
         return connector;
     }
 
-    static String getVersion( ) throws TomcatOneJarException
+     static String getVersion( ) throws OnejarException
     {
         try
         {
-            final Class clazz = TomcatOneJarMain.class;
+            final Class clazz = TomcatOnejarRunner.class;
             final String className = clazz.getSimpleName() + ".class";
             final String classPath = clazz.getResource( className ).toString();
             if ( !classPath.startsWith( "jar" ) )
@@ -261,11 +225,11 @@ public class TomcatOneJarMain
         }
         catch ( IOException e )
         {
-            throw new TomcatOneJarException( "error reading internal version info: " + e.getMessage() );
+            throw new OnejarException( "error reading internal version info: " + e.getMessage() );
         }
     }
 
-    private static void purgeDirectory( final Path rootPath )
+    private void purgeDirectory( final Path rootPath )
             throws IOException
     {
         System.out.println( "purging work directory: " + rootPath );
@@ -277,17 +241,17 @@ public class TomcatOneJarMain
     }
 
 
-    static void out( final String output )
+    void out( final String output )
     {
-        System.out.println( output );
+        onejarMain.out( output );
     }
 
 
-    static void generatePwmKeystore( final OnejarConfig onejarConfig )
+    void generatePwmKeystore( final OnejarConfig onejarConfig )
             throws IOException, ClassNotFoundException, IllegalAccessException, NoSuchMethodException, InvocationTargetException
     {
-        final File warPath = getWarFolder( onejarConfig );
-        final String keystoreFile = getKeystoreFile( onejarConfig ).getAbsolutePath();
+        final File warPath = onejarConfig.getWarFolder();
+        final String keystoreFile = onejarConfig.getKeystoreFile().getAbsolutePath();
         final File webInfPath = new File( warPath.getAbsolutePath() + File.separator + "WEB-INF" + File.separator + "lib" );
         final File[] jarFiles = webInfPath.listFiles();
         final List<URL> jarURLList = new ArrayList<>();
@@ -305,7 +269,7 @@ public class TomcatOneJarMain
                 "-applicationPath=" + onejarConfig.getApplicationPath().getAbsolutePath(),
                 "ExportHttpsKeyStore",
                 keystoreFile,
-                KEYSTORE_ALIAS,
+                OnejarMain.KEYSTORE_ALIAS,
                 onejarConfig.getKeystorePass(),
         };
 
@@ -313,35 +277,35 @@ public class TomcatOneJarMain
         classLoader.close();
     }
 
-    static void setupEnv( final OnejarConfig onejarConfig )
+    void setupEnv( final OnejarConfig onejarConfig )
     {
         final String envVarPrefix = Resource.envVarPrefix.getValue();
         System.setProperty( envVarPrefix + "_APPLICATIONPATH", onejarConfig.getApplicationPath().getAbsolutePath() );
         System.setProperty( envVarPrefix + "_APPLICATIONFLAGS", "ManageHttps" );
-        System.setProperty( envVarPrefix + "_APPLICATIONPARAMFILE", getPwmAppPropertiesFile( onejarConfig ).getAbsolutePath() );
+        System.setProperty( envVarPrefix + "_APPLICATIONPARAMFILE", onejarConfig.getPwmAppPropertiesFile().getAbsolutePath() );
     }
 
-    static void outputPwmAppProperties( final OnejarConfig onejarConfig ) throws IOException
+    void outputPwmAppProperties( final OnejarConfig onejarConfig ) throws IOException
     {
         final Properties properties = new Properties();
-        properties.setProperty( "AutoExportHttpsKeyStoreFile", getKeystoreFile( onejarConfig ).getAbsolutePath() );
+        properties.setProperty( "AutoExportHttpsKeyStoreFile", onejarConfig.getKeystoreFile().getAbsolutePath() );
         properties.setProperty( "AutoExportHttpsKeyStorePassword", onejarConfig.getKeystorePass() );
-        properties.setProperty( "AutoExportHttpsKeyStoreAlias", KEYSTORE_ALIAS );
-        final File propFile = getPwmAppPropertiesFile( onejarConfig );
+        properties.setProperty( "AutoExportHttpsKeyStoreAlias", OnejarMain.KEYSTORE_ALIAS );
+        final File propFile = onejarConfig.getPwmAppPropertiesFile( );
         try ( Writer writer = new OutputStreamWriter( new FileOutputStream( propFile ), StandardCharsets.UTF_8 ) )
         {
             properties.store( writer, "auto-generated file" );
         }
     }
 
-    static void copyFileAndReplace(
+    void copyFileAndReplace(
             final String srcPath,
             final String destPath,
             final String rootcontext
     )
             throws IOException
     {
-        try ( InputStream inputStream = TomcatOneJarMain.class.getClassLoader().getResourceAsStream( srcPath ) )
+        try ( InputStream inputStream = TomcatOnejarRunner.class.getClassLoader().getResourceAsStream( srcPath ) )
         {
             try ( BufferedReader reader = new BufferedReader( new InputStreamReader( inputStream, "UTF8" ) ) )
             {

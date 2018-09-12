@@ -46,7 +46,7 @@ public class ArgumentParser
     private static final String ALPHABET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
     public OnejarConfig parseArguments( final String[] args )
-            throws ArgumentParserException, TomcatOneJarException
+            throws ArgumentParserException, OnejarException
     {
         if ( args == null || args.length == 0 )
         {
@@ -67,7 +67,7 @@ public class ArgumentParser
 
             if ( commandLine.hasOption( Argument.version.name() ) )
             {
-                TomcatOneJarMain.out( TomcatOneJarMain.getVersion() );
+                OnejarMain.output( TomcatOnejarRunner.getVersion() );
                 return null;
             }
             else if ( commandLine.hasOption( Argument.help.name() ) )
@@ -154,13 +154,15 @@ public class ArgumentParser
     }
 
 
-    private OnejarConfig makeTomcatConfig( final Map<Argument, String> argumentMap ) throws IOException, ArgumentParserException
+    private OnejarConfig makeTomcatConfig( final Map<Argument, String> argumentMap )
+            throws IOException, ArgumentParserException
     {
-        final OnejarConfig onejarConfig = new OnejarConfig();
-        onejarConfig.setKeystorePass( genRandomString( 32 ) );
-        onejarConfig.setApplicationPath( parseFileOption( argumentMap, Argument.applicationPath ) );
+        final OnejarConfig.OnejarConfigBuilder onejarConfig = OnejarConfig.builder();
+        onejarConfig.keystorePass( genRandomString( 32 ) );
+        onejarConfig.applicationPath( parseFileOption( argumentMap, Argument.applicationPath ) );
 
-        onejarConfig.setContext( argumentMap.getOrDefault( Argument.context, Resource.defaultContext.getValue() ) );
+        final String context = argumentMap.getOrDefault( Argument.context, Resource.defaultContext.getValue() );
+        onejarConfig.context( context );
 
         if ( argumentMap.containsKey( Argument.war ) )
         {
@@ -171,33 +173,43 @@ public class ArgumentParser
                 System.out.println( msg );
                 throw new IllegalStateException( msg );
             }
-            onejarConfig.setWar( new FileInputStream( inputWarFile ) );
+            onejarConfig.war( new FileInputStream( inputWarFile ) );
         }
         else
         {
-            onejarConfig.setWar( getEmbeddedWar() );
+            onejarConfig.war( getEmbeddedWar() );
         }
 
-        onejarConfig.setPort( Integer.parseInt( Resource.defaultPort.getValue() ) );
-        if ( argumentMap.containsKey( Argument.port ) )
+        final int port;
         {
-            try
+            final int defaultPort = Integer.parseInt( Resource.defaultPort.getValue() );
+            if ( argumentMap.containsKey( Argument.port ) )
             {
-                onejarConfig.setPort( Integer.parseInt( argumentMap.get( Argument.port ) ) );
+                try
+                {
+                    port = Integer.parseInt( argumentMap.get( Argument.port ) );
+                    onejarConfig.port( port );
+                }
+                catch ( NumberFormatException e )
+                {
+                    final String msg = Argument.port.name() + " argument must be numeric";
+                    System.out.println( msg );
+                    throw new IllegalStateException( msg );
+                }
             }
-            catch ( NumberFormatException e )
+            else
             {
-                final String msg = Argument.port.name() + " argument must be numeric";
-                System.out.println( msg );
-                throw new IllegalStateException( msg );
+                port = defaultPort;
             }
         }
+        onejarConfig.port( port );
 
-        onejarConfig.setLocalAddress( argumentMap.getOrDefault( Argument.localAddress, Resource.defaultLocalAddress.getValue() ) );
+        final String localAddress = argumentMap.getOrDefault( Argument.localAddress, Resource.defaultLocalAddress.getValue() );
+        onejarConfig.localAddress( localAddress );
 
         try
         {
-            final ServerSocket socket = new ServerSocket( onejarConfig.getPort(), 100, InetAddress.getByName( onejarConfig.getLocalAddress() ) );
+            final ServerSocket socket = new ServerSocket( port, 100, InetAddress.getByName( localAddress ) );
             socket.close();
         }
         catch ( Exception e )
@@ -207,21 +219,21 @@ public class ArgumentParser
 
         if ( argumentMap.containsKey( Argument.workPath ) )
         {
-            onejarConfig.setWorkingPath( parseFileOption( argumentMap, Argument.workPath ) );
+            onejarConfig.workingPath( parseFileOption( argumentMap, Argument.workPath ) );
         }
         else
         {
-            onejarConfig.setWorkingPath( figureDefaultWorkPath( onejarConfig ) );
+            onejarConfig.workingPath( figureDefaultWorkPath( localAddress, context, port ) );
         }
 
-        return onejarConfig;
+        return onejarConfig.build();
     }
 
 
-    private static void outputHelp( ) throws TomcatOneJarException
+    private static void outputHelp( ) throws OnejarException
     {
         final HelpFormatter formatter = new HelpFormatter();
-        System.out.println( TomcatOneJarMain.getVersion() );
+        System.out.println( TomcatOnejarRunner.getVersion() );
         System.out.println( "usage:" );
         formatter.printOptions(
                 System.console().writer(),
@@ -250,7 +262,11 @@ public class ArgumentParser
         return file;
     }
 
-    private static File figureDefaultWorkPath( final OnejarConfig onejarConfig )
+    private static File figureDefaultWorkPath(
+            final String localAddress,
+            final String context,
+            final int port
+    )
             throws ArgumentParserException, IOException
     {
         final String userHomePath = System.getProperty( "user.home" );
@@ -265,20 +281,20 @@ public class ArgumentParser
             {
                 String workPathStr = basePath.getPath() + File.separator + "work"
                         + "-"
-                        + escapeFilename( onejarConfig.getContext() )
+                        + escapeFilename( context )
                         + "-"
-                        + escapeFilename( Integer.toString( onejarConfig.getPort() ) );
+                        + escapeFilename( Integer.toString( port ) );
 
-                if ( onejarConfig.getLocalAddress() != null && !onejarConfig.getLocalAddress().isEmpty() )
+                if ( localAddress != null && !localAddress.isEmpty() )
                 {
-                    workPathStr += "-" + escapeFilename( onejarConfig.getLocalAddress() );
+                    workPathStr += "-" + escapeFilename( localAddress );
 
                 }
                 workPath = workPathStr;
             }
             final File workFile = new File( workPath );
             mkdirs( workFile );
-            TomcatOneJarMain.out( "using work directory: " + workPath );
+            OnejarMain.output( "using work directory: " + workPath );
             return workFile;
         }
 
@@ -287,7 +303,7 @@ public class ArgumentParser
 
     private static InputStream getEmbeddedWar( ) throws IOException, ArgumentParserException
     {
-        final Class clazz = TomcatOneJarMain.class;
+        final Class clazz = TomcatOnejarRunner.class;
         final String className = clazz.getSimpleName() + ".class";
         final String classPath = clazz.getResource( className ).toString();
         if ( !classPath.startsWith( "jar" ) )

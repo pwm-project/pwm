@@ -75,7 +75,6 @@ public class PwmSession implements Serializable
     private static final Object CREATION_LOCK = new Object();
 
     private transient SessionManager sessionManager;
-    private transient PwmSecurityKey sessionSecurityKey;
 
     public static PwmSession createPwmSession( final PwmApplication pwmApplication )
             throws PwmUnrecoverableException
@@ -367,15 +366,28 @@ public class PwmSession implements Serializable
     synchronized PwmSecurityKey getSecurityKey( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
-        if ( sessionSecurityKey == null )
+        final int length = Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_NONCE_LENGTH ) );
+        final String cookieName =  pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_NONCE_NAME );
+
+        String nonce = (String) pwmRequest.getAttribute( PwmRequestAttribute.CookieNonce );
+        if ( nonce == null || nonce.length() != length )
         {
-            final PasswordData configSecret = pwmRequest.getConfig().readSettingAsPassword( PwmSetting.PWM_SECURITY_KEY );
-            final String sessionKey = pwmRequest.getHttpServletRequest().getSession().getId();
-            final String concatValue = configSecret.getStringValue() + sessionKey;
-            final String hashValue = pwmRequest.getPwmApplication().getSecureService().hash( concatValue );
-            sessionSecurityKey = new PwmSecurityKey( hashValue );
+            nonce = pwmRequest.readCookie( cookieName );
         }
 
-        return sessionSecurityKey;
+        if ( nonce == null || nonce.length() != length )
+        {
+            nonce = pwmRequest.getPwmApplication().getSecureService().pwmRandom().alphaNumericString( length );
+        }
+
+        final PasswordData configSecret = pwmRequest.getConfig().readSettingAsPassword( PwmSetting.PWM_SECURITY_KEY );
+        final String concatValue = configSecret.getStringValue() + nonce;
+        final String hashValue = pwmRequest.getPwmApplication().getSecureService().hash( concatValue );
+        final PwmSecurityKey pwmSecurityKey = new PwmSecurityKey( hashValue );
+
+        pwmRequest.setAttribute( PwmRequestAttribute.CookieNonce, nonce );
+        pwmRequest.getPwmResponse().writeCookie( cookieName, nonce, -1, PwmHttpResponseWrapper.CookiePath.Application );
+
+        return pwmSecurityKey;
     }
 }

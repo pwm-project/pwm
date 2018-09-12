@@ -22,9 +22,15 @@
 
 package password.pwm.onejar;
 
+import lombok.Builder;
+import lombok.Value;
+
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 
+@Value
+@Builder
 class OnejarConfig
 {
     private int port;
@@ -35,73 +41,18 @@ class OnejarConfig
     private String localAddress;
     private String keystorePass;
 
-    public int getPort( )
+    File getWarFolder( ) throws IOException
     {
-        return port;
+        return new File( this.getWorkingPath().getAbsoluteFile() + File.separator + "war" );
     }
 
-    public void setPort( final int port )
+    File getKeystoreFile( )
     {
-        this.port = port;
+        return new File( this.getWorkingPath().getAbsoluteFile() + File.separator + "keystore" );
     }
 
-    public File getApplicationPath( )
+    File getPwmAppPropertiesFile( )
     {
-        return applicationPath;
-    }
-
-    public void setApplicationPath( final File applicationPath )
-    {
-        this.applicationPath = applicationPath;
-    }
-
-    public File getWorkingPath( )
-    {
-        return workingPath;
-    }
-
-    public void setWorkingPath( final File workingPath )
-    {
-        this.workingPath = workingPath;
-    }
-
-    public InputStream getWar( )
-    {
-        return war;
-    }
-
-    public void setWar( final InputStream war )
-    {
-        this.war = war;
-    }
-
-    public String getContext( )
-    {
-        return context;
-    }
-
-    public void setContext( final String context )
-    {
-        this.context = context;
-    }
-
-    public String getLocalAddress( )
-    {
-        return localAddress;
-    }
-
-    public void setLocalAddress( final String localAddress )
-    {
-        this.localAddress = localAddress;
-    }
-
-    public String getKeystorePass( )
-    {
-        return keystorePass;
-    }
-
-    public void setKeystorePass( final String keystorePass )
-    {
-        this.keystorePass = keystorePass;
+        return new File( this.getWorkingPath().getAbsoluteFile() + File.separator + "application.properties" );
     }
 }

@@ -36,6 +36,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 
@@ -45,12 +46,16 @@ import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ContextManager implements Serializable
 {
@@ -58,14 +63,13 @@ public class ContextManager implements Serializable
     private static final PwmLogger LOGGER = PwmLogger.forClass( ContextManager.class );
 
     private transient ServletContext servletContext;
-    private transient Timer taskMaster;
+    private transient ScheduledExecutorService taskMaster;
 
     private transient PwmApplication pwmApplication;
     private transient ConfigurationReader configReader;
     private ErrorInformation startupErrorInformation;
 
-    private volatile boolean restartRequestedFlag = false;
-    private int restartCount = 0;
+    private AtomicInteger restartCount = new AtomicInteger( 0 );
     private final String instanceGuid;
 
     private String contextPath;
@@ -215,9 +219,11 @@ public class ContextManager implements Serializable
             handleStartupError( "unable to initialize application: ", e );
         }
 
-        final String threadName = JavaHelper.makeThreadName( pwmApplication, this.getClass() ) + " timer";
-        taskMaster = new Timer( threadName, true );
-        taskMaster.schedule( new RestartFlagWatcher(), 1031, 1031 );
+        taskMaster = Executors.newSingleThreadScheduledExecutor(
+                JavaHelper.makePwmThreadFactory(
+                        JavaHelper.makeThreadName( pwmApplication, this.getClass() ) + "-",
+                        true
+                ) );
 
         boolean reloadOnChange = true;
         long fileScanFrequencyMs = 5000;
@@ -229,7 +235,7 @@ public class ContextManager implements Serializable
             }
             if ( reloadOnChange )
             {
-                taskMaster.schedule( new ConfigFileWatcher(), fileScanFrequencyMs, fileScanFrequencyMs );
+                taskMaster.scheduleWithFixedDelay( new ConfigFileWatcher(), fileScanFrequencyMs, fileScanFrequencyMs, TimeUnit.MILLISECONDS );
             }
 
             checkConfigForSaveOnRestart( configReader, pwmApplication );
@@ -261,7 +267,7 @@ public class ContextManager implements Serializable
             final StoredConfigurationImpl newConfig = StoredConfigurationImpl.copy( configReader.getStoredConfiguration() );
             newConfig.writeConfigProperty( ConfigurationProperty.CONFIG_ON_START, "false" );
             configReader.saveConfiguration( newConfig, pwmApplication, null );
-            restartRequestedFlag = true;
+            requestPwmApplicationRestart();
         }
         catch ( Exception e )
         {
@@ -315,7 +321,7 @@ public class ContextManager implements Serializable
                 LOGGER.error( "unexpected error attempting to close application: " + e.getMessage() );
             }
         }
-        taskMaster.cancel();
+        taskMaster.shutdown();
 
 
         this.pwmApplication = null;
@@ -324,15 +330,8 @@ public class ContextManager implements Serializable
 
     public void requestPwmApplicationRestart( )
     {
-        restartRequestedFlag = true;
-        try
-        {
-            taskMaster.schedule( new ConfigFileWatcher(), 0 );
-        }
-        catch ( IllegalStateException e )
-        {
-            LOGGER.debug( "could not schedule config file watcher, timer is in illegal state: " + e.getMessage() );
-        }
+        LOGGER.debug( "immediate restart requested" );
+        taskMaster.schedule( new RestartFlagWatcher(), 0, TimeUnit.MILLISECONDS );
     }
 
     public ConfigurationReader getConfigReader( )
@@ -350,32 +349,37 @@ public class ContextManager implements Serializable
                 if ( configReader.modifiedSinceLoad() )
                 {
                     LOGGER.info( "configuration file modification has been detected" );
-                    restartRequestedFlag = true;
+                    requestPwmApplicationRestart();
                 }
             }
         }
     }
 
-    private class RestartFlagWatcher extends TimerTask
+    private class RestartFlagWatcher implements Runnable
     {
 
         public void run( )
         {
-            if ( restartRequestedFlag )
-            {
-                doReinitialize();
-            }
+            doReinitialize();
         }
 
         private void doReinitialize( )
         {
+            final Instant startTime = Instant.now();
+
             if ( configReader != null && configReader.isSaveInProgress() )
             {
-                LOGGER.info( "delaying restart request due to in progress file save" );
+                final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
+                LOGGER.info( "delaying restart request due to in progress file save (" + timeDuration.asCompactString() + ")" );
+                taskMaster.schedule( new RestartFlagWatcher(), 1, TimeUnit.SECONDS );
                 return;
             }
 
-            LOGGER.info( "beginning application restart" );
+            {
+                final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
+                LOGGER.info( "beginning application restart (" + timeDuration.asCompactString() + "), restart count=" + restartCount.incrementAndGet() );
+            }
+
             try
             {
                 shutdown();
@@ -385,12 +389,17 @@ public class ContextManager implements Serializable
                 LOGGER.fatal( "unexpected error during shutdown: " + e.getMessage(), e );
             }
 
-            LOGGER.info( "application restart; shutdown completed, now starting new application instance" );
-            restartCount++;
+            {
+                final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
+                LOGGER.info( "application restart; shutdown completed, now starting new application instance ("
+                        + timeDuration.asCompactString() + ")" );
+            }
             initialize();
 
-            LOGGER.info( "application restart completed" );
-            restartRequestedFlag = false;
+            {
+                final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
+                LOGGER.info( "application restart completed (" + timeDuration.asCompactString() + ")" );
+            }
         }
     }
 
@@ -401,7 +410,7 @@ public class ContextManager implements Serializable
 
     public int getRestartCount( )
     {
-        return restartCount;
+        return restartCount.get();
     }
 
     public File locateConfigurationFile( final File applicationPath )

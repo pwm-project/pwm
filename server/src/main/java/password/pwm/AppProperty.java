@@ -117,6 +117,8 @@ public enum AppProperty
     HTTP_COOKIE_CAPTCHA_SKIP_NAME                   ( "http.cookie.captchaSkip.name" ),
     HTTP_COOKIE_CAPTCHA_SKIP_AGE                    ( "http.cookie.captchaSkip.age" ),
     HTTP_COOKIE_LOGIN_NAME                          ( "http.cookie.login.name" ),
+    HTTP_COOKIE_NONCE_NAME                          ( "http.cookie.nonce.name" ),
+    HTTP_COOKIE_NONCE_LENGTH                        ( "http.cookie.nonce.length" ),
     HTTP_BASIC_AUTH_CHARSET                         ( "http.basicAuth.charset" ),
     HTTP_BODY_MAXREAD_LENGTH                        ( "http.body.maxReadLength" ),
     HTTP_CLIENT_ALWAYS_LOG_ENTITIES                 ( "http.client.alwaysLogEntities" ),

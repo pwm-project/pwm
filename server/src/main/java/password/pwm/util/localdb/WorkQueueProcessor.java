@@ -161,21 +161,28 @@ public final class WorkQueueProcessor<W extends Serializable>
         final WorkerThread localWorkerThread = workerThread;
         workerThread = null;
 
+        final Instant startTime = Instant.now();
+        logger.debug( "attempting to flush queue prior to shutdown, items in queue=" + queueSize() );
+
         localWorkerThread.flushQueueAndClose();
-        final Instant shutdownStartTime = Instant.now();
 
-        if ( queueSize() > 0 )
+        if ( localWorkerThread.isRunning() )
         {
-            logger.debug( "attempting to flush queue prior to shutdown, items in queue=" + queueSize() );
-        }
-        while ( localWorkerThread.isRunning() && TimeDuration.fromCurrent( shutdownStartTime ).isLongerThan( settings.getMaxShutdownWaitTime() ) )
-        {
-            JavaHelper.pause( CLOSE_RETRY_CYCLE_INTERVAL.getTotalMilliseconds() );
+            JavaHelper.pause(
+                    settings.getMaxShutdownWaitTime().getMilliseconds(),
+                    CLOSE_RETRY_CYCLE_INTERVAL.getTotalMilliseconds(),
+                    o -> !localWorkerThread.isRunning() );
         }
 
+        final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
+        final String msg = "shutting down with " + queue.size() + " items remaining in work queue (" + timeDuration.asCompactString() + ")";
         if ( !queue.isEmpty() )
         {
-            logger.warn( "shutting down with " + queue.size() + " items remaining in work queue" );
+            logger.warn( msg );
+        }
+        else
+        {
+            logger.debug( msg );
         }
     }
 
@@ -352,7 +359,10 @@ public final class WorkQueueProcessor<W extends Serializable>
             notifyWorkPending();
 
             // rest until not running for up to 3 seconds....
-            JavaHelper.pause( 3000, 50, o -> !running.get() );
+            if ( running.get() )
+            {
+                JavaHelper.pause( 3000, 10, o -> !running.get() );
+            }
         }
 
         void notifyWorkPending( )

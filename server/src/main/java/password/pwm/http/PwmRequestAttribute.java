@@ -89,6 +89,7 @@ public enum PwmRequestAttribute
     NewUser_VisibleProfiles,
 
     CookieBeanStorage,
+    CookieNonce,
 
     ShortcutItems,
     NextUrl,

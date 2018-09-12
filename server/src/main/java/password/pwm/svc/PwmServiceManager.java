@@ -131,6 +131,10 @@ public class PwmServiceManager
             return;
         }
 
+        LOGGER.trace( "beginning to close all services" );
+        final Instant startTime = Instant.now();
+
+
         final List<Class<? extends PwmService>> reverseServiceList = new ArrayList<>( PwmServiceEnum.allClasses() );
         Collections.reverse( reverseServiceList );
         for ( final Class<? extends PwmService> serviceClass : reverseServiceList )
@@ -141,16 +145,23 @@ public class PwmServiceManager
             }
         }
         initialized = false;
+
+        final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
+        LOGGER.trace( "closed all services in " + timeDuration.asCompactString() );
+
     }
 
     private void shutDownService( final Class<? extends PwmService> serviceClass )
     {
+
         LOGGER.trace( "closing service " + serviceClass.getName() );
         final PwmService loopService = runningServices.get( serviceClass );
-        LOGGER.trace( "successfully closed service " + serviceClass.getName() );
         try
         {
+            final Instant startTime = Instant.now();
             loopService.close();
+            final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
+            LOGGER.trace( "successfully closed service " + serviceClass.getName() + " (" + timeDuration.asCompactString() + ")" );
         }
         catch ( Exception e )
         {

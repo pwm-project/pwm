@@ -296,7 +296,7 @@ public class PwmApplication
     {
         final Instant startTime = Instant.now();
 
-        LOGGER.debug( "loaded configuration: " + pwmEnvironment.getConfig().toDebugString() );
+        pwmEnvironment.getConfig().outputToLog();
 
         // detect if config has been modified since previous startup
         try
