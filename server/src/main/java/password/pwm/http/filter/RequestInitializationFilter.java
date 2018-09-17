@@ -396,7 +396,11 @@ public class RequestInitializationFilter implements Filter
         }
     }
 
-    public static void addStaticResponseHeaders( final PwmApplication pwmApplication, final HttpServletResponse resp ) throws PwmUnrecoverableException
+    public static void addStaticResponseHeaders(
+            final PwmApplication pwmApplication,
+            final HttpServletResponse resp
+    )
+            throws PwmUnrecoverableException
     {
         final Configuration config = pwmApplication.getConfig();
 
@@ -409,7 +413,7 @@ public class RequestInitializationFilter implements Filter
         final boolean includeXAmb = Boolean.parseBoolean( config.readAppProperty( AppProperty.HTTP_HEADER_SEND_XAMB ) );
 
         {
-            final String noiseHeader = makeNoiseHeader( config );
+            final String noiseHeader = makeNoiseHeader( pwmApplication, config );
             if ( noiseHeader != null )
             {
                 resp.setHeader( HttpHeader.XNoise.getHttpName(), noiseHeader );
@@ -450,7 +454,7 @@ public class RequestInitializationFilter implements Filter
         if ( includeXAmb )
         {
             resp.setHeader( HttpHeader.XAmb.getHttpName(), PwmConstants.X_AMB_HEADER.get(
-                    PwmRandom.getInstance().nextInt( PwmConstants.X_AMB_HEADER.size() )
+                    pwmApplication.getSecureService().pwmRandom().nextInt( PwmConstants.X_AMB_HEADER.size() )
             ) );
         }
 
@@ -830,14 +834,15 @@ public class RequestInitializationFilter implements Filter
         return StringUtil.mapToString( values );
     }
 
-    private static String makeNoiseHeader( final Configuration configuration )
+    private static String makeNoiseHeader( final PwmApplication pwmApplication, final Configuration configuration )
     {
         final boolean sendNoise = Boolean.parseBoolean( configuration.readAppProperty( AppProperty.HTTP_HEADER_SEND_XNOISE ) );
 
         if ( sendNoise )
         {
             final int noiseLength = Integer.parseInt( configuration.readAppProperty( AppProperty.HTTP_HEADER_NOISE_LENGTH ) );
-            return PwmRandom.getInstance().alphaNumericString( PwmRandom.getInstance().nextInt( noiseLength ) + 11 );
+            final PwmRandom pwmRandom = pwmApplication.getSecureService().pwmRandom();
+            return pwmRandom.alphaNumericString( pwmRandom.nextInt( noiseLength ) + 11 );
         }
 
         return null;

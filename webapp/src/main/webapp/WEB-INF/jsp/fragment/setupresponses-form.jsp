@@ -58,7 +58,7 @@
 <% } %>
 <% } %>
 <% } %>
-<%---------------------- display fields for RANDOM challenges using SIMPLE mode ----------------------------------------%>
+<%---------------------- display fields for pwmRandom challenges using SIMPLE mode ----------------------------------------%>
 <% if (setupData.isSimpleMode()) {  %>
 <% // need to output all the random options for the javascript functions.
     final List<String> questionTexts = new ArrayList<String>();
@@ -96,7 +96,7 @@
 </script>
 </pwm:script>
 <% } else { %>
-<%---------------------- display fields for RANDOM challenges using non-SIMPLE mode ----------------------------------------%>
+<%---------------------- display fields for pwmRandom challenges using non-SIMPLE mode ----------------------------------------%>
 <% if (!setupData.getChallengeSet().getRandomChallenges().isEmpty()) { %>
 <p><pwm:display key="Display_SetupRandomResponses" value1="<%= String.valueOf(setupData.getChallengeSet().getMinRandomRequired()) %>"/></p>
 <%

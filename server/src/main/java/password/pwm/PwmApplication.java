@@ -671,7 +671,7 @@ public class PwmApplication
 
         if ( newInstanceID == null || newInstanceID.length() < 1 )
         {
-            newInstanceID = Long.toHexString( PwmRandom.getInstance().nextLong() ).toUpperCase();
+            newInstanceID = Long.toHexString( pwmApplication.getSecureService().pwmRandom().nextLong() ).toUpperCase();
             LOGGER.info( "generated new random instanceID " + newInstanceID );
 
             if ( localDB != null )

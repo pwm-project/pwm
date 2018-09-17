@@ -29,7 +29,6 @@ import password.pwm.util.db.DatabaseService;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.PwmRandom;
 
 import java.lang.management.ManagementFactory;
 import java.nio.charset.Charset;
@@ -94,7 +93,7 @@ public enum PwmAboutProperty
     java_osName( "Java OS Name", pwmApplication -> System.getProperty( "os.name" ) ),
     java_osVersion( "Java OS Version", pwmApplication -> System.getProperty( "os.version" ) ),
     java_osArch( "Java OS Architecture", pwmApplication -> System.getProperty( "os.arch" ) ),
-    java_randomAlgorithm( null, pwmApplication -> PwmRandom.getInstance().getAlgorithm() ),
+    java_randomAlgorithm( null, pwmApplication -> pwmApplication.getSecureService().pwmRandom().getAlgorithm() ),
     java_defaultCharset( null, pwmApplication -> Charset.defaultCharset().name() ),
     java_appServerInfo( "Java AppServer Info", pwmApplication -> pwmApplication.getPwmEnvironment().getContextManager().getServerInfo() ),
 

@@ -89,7 +89,6 @@ import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.operations.cr.NMASCrOperator;
 import password.pwm.util.operations.otp.OTPUserRecord;
-import password.pwm.util.secure.PwmRandom;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
@@ -860,7 +859,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
             final FormConfiguration formConfiguration = forgottenPasswordBean.getAttributeForm().iterator().next();
 
             // add a bit of jitter to pretend like we're checking a data source
-            JavaHelper.pause( 300 + PwmRandom.getInstance().nextInt( 700 ) );
+            JavaHelper.pause( 300 + pwmRequest.getPwmApplication().getSecureService().pwmRandom().nextInt( 700 ) );
 
             if ( forgottenPasswordBean.getUserSearchValues() != null )
             {

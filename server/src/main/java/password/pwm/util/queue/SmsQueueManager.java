@@ -554,9 +554,10 @@ public class SmsQueueManager implements PwmService
 
             if ( requestData.contains( TOKEN_REQUESTID ) )
             {
+                final PwmRandom pwmRandom = pwmApplication.getSecureService().pwmRandom();
                 final String chars = config.readSettingAsString( PwmSetting.SMS_REQUESTID_CHARS );
                 final int idLength = Long.valueOf( config.readSettingAsLong( PwmSetting.SMS_REQUESTID_LENGTH ) ).intValue();
-                final String requestId = PwmRandom.getInstance().alphaNumericString( chars, idLength );
+                final String requestId = pwmRandom.alphaNumericString( chars, idLength );
                 requestData = requestData.replaceAll( TOKEN_REQUESTID, smsDataEncode( requestId, encoding ) );
             }
 

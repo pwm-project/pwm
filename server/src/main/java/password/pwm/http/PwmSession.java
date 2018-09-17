@@ -96,7 +96,7 @@ public class PwmSession implements Serializable
 
         final int sessionValidationKeyLength = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_SESSION_VALIDATION_KEY_LENGTH ) );
         sessionStateBean = new LocalSessionStateBean( sessionValidationKeyLength );
-        sessionStateBean.regenerateSessionVerificationKey();
+        sessionStateBean.regenerateSessionVerificationKey( pwmApplication );
         this.sessionStateBean.setSessionID( null );
 
         final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();

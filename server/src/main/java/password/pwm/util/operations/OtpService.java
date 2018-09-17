@@ -185,6 +185,8 @@ public class OtpService implements PwmService
     )
             throws IOException, PwmUnrecoverableException
     {
+        final PwmRandom pwmRandom = pwmApplication.getSecureService().pwmRandom();
+
         otpUserRecord.setIdentifier( identifier );
 
         final byte[] rawSecret = generateSecret();
@@ -194,7 +196,7 @@ public class OtpService implements PwmService
         switch ( settings.getOtpType() )
         {
             case HOTP:
-                otpUserRecord.setAttemptCount( PwmRandom.getInstance().nextLong() );
+                otpUserRecord.setAttemptCount( pwmRandom.nextLong() );
                 otpUserRecord.setType( OTPUserRecord.Type.HOTP );
                 break;
 
@@ -216,7 +218,7 @@ public class OtpService implements PwmService
             {
                 LOGGER.trace( sessionLabel, "hashing the recovery codes" );
                 final int saltCharLength = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.OTP_SALT_CHARLENGTH ) );
-                recoveryInfo.setSalt( PwmRandom.getInstance().alphaNumericString( saltCharLength ) );
+                recoveryInfo.setSalt( pwmRandom.alphaNumericString( saltCharLength ) );
                 recoveryInfo.setHashCount( settings.getRecoveryHashIterations() );
                 recoveryInfo.setHashMethod( settings.getRecoveryHashMethod() );
             }
@@ -253,10 +255,11 @@ public class OtpService implements PwmService
         return rawRecoveryCodes;
     }
 
-    private static byte[] generateSecret( )
+    private byte[] generateSecret( )
     {
+        final PwmRandom pwmRandom = pwmApplication.getSecureService().pwmRandom();
         final byte[] secArray = new byte[ 10 ];
-        PwmRandom.getInstance().nextBytes( secArray );
+        pwmRandom.nextBytes( secArray );
         return secArray;
     }
 

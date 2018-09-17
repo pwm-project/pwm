@@ -23,8 +23,8 @@
 package password.pwm.bean;
 
 import lombok.Data;
+import password.pwm.PwmApplication;
 import password.pwm.ldap.UserInfoBean;
-import password.pwm.util.secure.PwmRandom;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -86,9 +86,9 @@ public class LocalSessionStateBean implements Serializable
         intruderAttempts = 0;
     }
 
-    public void regenerateSessionVerificationKey( )
+    public void regenerateSessionVerificationKey( final PwmApplication pwmApplication )
     {
-        sessionVerificationKey = PwmRandom.getInstance().alphaNumericString( sessionVerificationKeyLength ) + Long.toHexString( System.currentTimeMillis() );
+        sessionVerificationKey = pwmApplication.getSecureService().pwmRandom().alphaNumericString( sessionVerificationKeyLength ) + Long.toHexString( System.currentTimeMillis() );
     }
 }
 
