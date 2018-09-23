@@ -42,7 +42,7 @@
                                     <jvmFlag>-Xms1g</jvmFlag>
                                     <jvmFlag>-Xmx1g</jvmFlag>
                                 </jvmFlags>
-                                <mainClass>password.pwm.onejar.TomcatOnejarRunner</mainClass>
+                                <mainClass>password.pwm.onejar.OnejarMain</mainClass>
                                 <args>
                                     <arg>-applicationPath</arg>
                                     <arg>/config</arg>
