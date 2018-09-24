@@ -1152,6 +1152,8 @@ public enum PwmSetting
     // administration
     QUERY_MATCH_PWM_ADMIN(
             "pwmAdmin.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.ADMINISTRATION ),
+    ADMIN_ALLOW_SKIP_FORCED_ACTIVITIES(
+            "pwmAdmin.allowSkipForcedActivities", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.ADMINISTRATION ),
 
 
     ENABLE_EXTERNAL_WEBSERVICES(

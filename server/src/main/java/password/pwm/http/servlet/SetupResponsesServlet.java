@@ -35,6 +35,7 @@ import lombok.Value;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.ChallengeProfile;
@@ -97,7 +98,8 @@ public class SetupResponsesServlet extends ControlledPwmServlet
         setHelpdeskResponses( HttpMethod.POST ),
         confirmResponses( HttpMethod.POST ),
         clearExisting( HttpMethod.POST ),
-        changeResponses( HttpMethod.POST ),;
+        changeResponses( HttpMethod.POST ),
+        skip ( HttpMethod.POST ),;
 
         private final HttpMethod method;
 
@@ -228,6 +230,26 @@ public class SetupResponsesServlet extends ControlledPwmServlet
         return ProcessStatus.Continue;
     }
 
+    @ActionHandler( action = "skip" )
+    private ProcessStatus handleSkip(
+            final PwmRequest pwmRequest
+    )
+            throws PwmUnrecoverableException, ChaiUnavailableException, IOException
+    {
+        LOGGER.trace( pwmRequest, "request for skip received" );
+
+        final boolean allowSkip = checkIfAllowSkipCr( pwmRequest );
+
+        if ( allowSkip )
+        {
+            pwmRequest.getPwmSession().getLoginInfoBean().getLoginFlags().add( LoginInfoBean.LoginFlag.skipSetupCr );
+            pwmRequest.sendRedirectToContinue();
+            return ProcessStatus.Halt;
+        }
+
+        return ProcessStatus.Continue;
+    }
+
     @ActionHandler( action = "validateResponses" )
     private ProcessStatus restValidateResponses(
             final PwmRequest pwmRequest
@@ -305,6 +327,8 @@ public class SetupResponsesServlet extends ControlledPwmServlet
 
         if ( !setupResponsesBean.isResponsesSatisfied() )
         {
+            final boolean allowskip = checkIfAllowSkipCr( pwmRequest );
+            pwmRequest.setAttribute( PwmRequestAttribute.SetupResponses_AllowSkip, allowskip );
             pwmRequest.forwardToJsp( JspUrl.SETUP_RESPONSES );
             return;
         }
@@ -683,6 +707,26 @@ public class SetupResponsesServlet extends ControlledPwmServlet
     {
         private String message;
         private boolean success;
+    }
+
+    private static boolean checkIfAllowSkipCr( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException
+    {
+        if ( pwmRequest.isForcedPageView() )
+        {
+            final boolean admin = pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmApplication(), Permission.PWMADMIN );
+            if ( admin )
+            {
+                if ( pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.ADMIN_ALLOW_SKIP_FORCED_ACTIVITIES ) )
+                {
+                    LOGGER.trace( pwmRequest, "allowing c/r answer setup skipping due to user being admin and setting "
+                            + PwmSetting.ADMIN_ALLOW_SKIP_FORCED_ACTIVITIES.toMenuLocationDebug( null, pwmRequest.getLocale() ) );
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }
 

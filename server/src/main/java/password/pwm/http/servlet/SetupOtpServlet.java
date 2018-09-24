@@ -25,6 +25,7 @@ package password.pwm.http.servlet;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import net.glxn.qrgen.QRCode;
 import password.pwm.AppProperty;
+import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.LoginInfoBean;
@@ -232,7 +233,10 @@ public class SetupOtpServlet extends ControlledPwmServlet
         }
         else
         {
+            final boolean allowSkip = checkIfAllowedToSkipSetup( pwmRequest );
             final String qrCodeValue = makeQrCodeDataImageUrl( pwmRequest, otpBean.getOtpUserRecord() );
+            pwmRequest.setAttribute(  PwmRequestAttribute.SetupOtp_UserRecord, otpBean.getOtpUserRecord() );
+            pwmRequest.setAttribute( PwmRequestAttribute.SetupOtp_AllowSkip, allowSkip );
             pwmRequest.setAttribute( PwmRequestAttribute.SetupOtp_QrCodeValue, qrCodeValue );
             pwmRequest.forwardToJsp( JspUrl.SETUP_OTP_SECRET );
         }
@@ -245,21 +249,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
     )
             throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException
     {
-
-        boolean allowSkip = false;
-        if ( !pwmRequest.isForcedPageView() )
-        {
-            allowSkip = true;
-        }
-        else
-        {
-            final SetupOtpProfile setupOtpProfile = getSetupOtpProfile( pwmRequest );
-            final ForceSetupPolicy policy = setupOtpProfile.readSettingAsEnum( PwmSetting.OTP_FORCE_SETUP, ForceSetupPolicy.class );
-            if ( policy == ForceSetupPolicy.FORCE_ALLOW_SKIP )
-            {
-                allowSkip = true;
-            }
-        }
+        final boolean allowSkip = checkIfAllowedToSkipSetup( pwmRequest );
 
         if ( allowSkip )
         {
@@ -525,5 +515,35 @@ public class SetupOtpServlet extends ControlledPwmServlet
         }
 
         return "data:image/png;base64," + StringUtil.base64Encode( imageBytes );
+    }
+
+    private static boolean checkIfAllowedToSkipSetup( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException
+    {
+        if ( pwmRequest.isForcedPageView() )
+        {
+            final SetupOtpProfile setupOtpProfile = getSetupOtpProfile( pwmRequest );
+            final ForceSetupPolicy policy = setupOtpProfile.readSettingAsEnum( PwmSetting.OTP_FORCE_SETUP, ForceSetupPolicy.class );
+
+            if ( policy == ForceSetupPolicy.FORCE_ALLOW_SKIP )
+            {
+                LOGGER.trace( pwmRequest, "allowing setup skipping due to setting "
+                        + PwmSetting.OTP_FORCE_SETUP.toMenuLocationDebug( setupOtpProfile.getIdentifier(), pwmRequest.getLocale() ) );
+                return true;
+            }
+
+            final boolean admin = pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmApplication(), Permission.PWMADMIN );
+            if ( admin )
+            {
+                if ( pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.ADMIN_ALLOW_SKIP_FORCED_ACTIVITIES ) )
+                {
+                    LOGGER.trace( pwmRequest, "allowing OTP setup skipping due to user being admin and setting "
+                            + PwmSetting.ADMIN_ALLOW_SKIP_FORCED_ACTIVITIES.toMenuLocationDebug( null, pwmRequest.getLocale() ) );
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

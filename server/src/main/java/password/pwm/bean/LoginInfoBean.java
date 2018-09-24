@@ -55,6 +55,7 @@ public class LoginInfoBean implements Serializable
     {
         skipOtp,
         skipNewPw,
+        skipSetupCr,
 
         // bypass sso
         noSso,

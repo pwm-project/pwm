@@ -519,6 +519,11 @@
             <value/>
         </default>
     </setting>
+    <setting hidden="false" key="pwmAdmin.allowSkipForcedActivities" level="0" required="true">
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
     <setting hidden="false" key="ldap.usernameSearchFilter" level="1" required="true">
         <default>
             <value><![CDATA[(&(objectClass=person)(cn=%USERNAME%))]]></value>
