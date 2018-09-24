@@ -527,7 +527,7 @@ public class RandomPasswordGenerator
             if ( numChars == null )
             {
                 final StringBuilder sb = new StringBuilder();
-                for ( final Character c : allChars.toCharArray() )
+                for ( final Character c : getAllChars().toCharArray() )
                 {
                     if ( Character.isDigit( c ) )
                     {
@@ -545,7 +545,7 @@ public class RandomPasswordGenerator
             if ( specialChars == null )
             {
                 final StringBuilder sb = new StringBuilder();
-                for ( final Character c : allChars.toCharArray() )
+                for ( final Character c : getAllChars().toCharArray() )
                 {
                     if ( !Character.isLetterOrDigit( c ) )
                     {
@@ -563,7 +563,7 @@ public class RandomPasswordGenerator
             if ( upperChars == null )
             {
                 final StringBuilder sb = new StringBuilder();
-                for ( final Character c : allChars.toCharArray() )
+                for ( final Character c : getAllChars().toCharArray() )
                 {
                     if ( Character.isUpperCase( c ) )
                     {
@@ -580,7 +580,7 @@ public class RandomPasswordGenerator
             if ( lowerChars == null )
             {
                 final StringBuilder sb = new StringBuilder();
-                for ( final Character c : allChars.toCharArray() )
+                for ( final Character c : getAllChars().toCharArray() )
                 {
                     if ( Character.isLowerCase( c ) )
                     {
