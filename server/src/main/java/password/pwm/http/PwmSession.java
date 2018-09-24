@@ -377,7 +377,13 @@ public class PwmSession implements Serializable
 
         if ( nonce == null || nonce.length() != length )
         {
-            nonce = pwmRequest.getPwmApplication().getSecureService().pwmRandom().alphaNumericString( length );
+            // random value
+            final String random = pwmRequest.getPwmApplication().getSecureService().pwmRandom().alphaNumericString( length );
+
+            // timestamp component for uniqueness
+            final String prefix = Long.toString( System.currentTimeMillis(), Character.MAX_RADIX );
+
+            nonce = random + prefix;
         }
 
         final PasswordData configSecret = pwmRequest.getConfig().readSettingAsPassword( PwmSetting.PWM_SECURITY_KEY );

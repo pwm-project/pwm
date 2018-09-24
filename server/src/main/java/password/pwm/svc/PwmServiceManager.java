@@ -61,9 +61,12 @@ public class PwmServiceManager
     public void initAllServices( )
             throws PwmUnrecoverableException
     {
+        final Instant startTime = Instant.now();
 
         final boolean internalRuntimeInstance = pwmApplication.getPwmEnvironment().isInternalRuntimeInstance()
                 || pwmApplication.getPwmEnvironment().getFlags().contains( PwmEnvironment.ApplicationFlag.CommandLineInstance );
+
+        int serviceCounter = 0;
 
         for ( final PwmServiceEnum serviceClassEnum : PwmServiceEnum.values() )
         {
@@ -77,9 +80,14 @@ public class PwmServiceManager
                 final Class<? extends PwmService> serviceClass = serviceClassEnum.getPwmServiceClass();
                 final PwmService newServiceInstance = initService( serviceClass );
                 runningServices.put( serviceClass, newServiceInstance );
+                serviceCounter++;
             }
         }
+
         initialized = true;
+
+        final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
+        LOGGER.trace( "started " + serviceCounter + " services in " + timeDuration.asCompactString() );
     }
 
     private PwmService initService( final Class<? extends PwmService> serviceClass )

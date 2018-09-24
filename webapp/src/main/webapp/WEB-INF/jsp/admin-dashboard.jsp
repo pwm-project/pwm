@@ -69,10 +69,21 @@
                         </td>
                         <td class="key">
                             <pwm:display key="Title_LDAPConnections" bundle="Admin"/>
-
                         </td>
                         <td id="LDAPConnectionCount">
                             <%= appDashboardData.getLdapConnectionCount() %>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="key">
+                            <pwm:display key="Title_RequestsInProgress" bundle="Admin"/>
+                        </td>
+                        <td id="RequestsInProgress">
+                            <%= appDashboardData.getRequestsInProgress() %>
+                        </td>
+                        <td>
+                        </td>
+                        <td>
                         </td>
                     </tr>
                 </table>
