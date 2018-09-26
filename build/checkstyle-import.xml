@@ -60,6 +60,8 @@
     <!-- gson -->
     <allow pkg="com.google.gson"/>
 
+    <allow pkg="javax.management"/>
+
     <!-- to be removed/scoped -->
     <allow pkg="org.apache.http"/>
     <allow pkg="org.apache.commons"/>

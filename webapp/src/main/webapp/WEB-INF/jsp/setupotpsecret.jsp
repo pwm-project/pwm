@@ -20,33 +20,15 @@
  ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 --%>
 
-<%@page import="password.pwm.config.option.ForceSetupPolicy"%>
-<%@page import="password.pwm.http.bean.SetupOtpBean"%>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ page import="password.pwm.util.operations.otp.OTPUserRecord" %>
 <%@ page import="password.pwm.http.PwmRequestAttribute" %>
-<%@ page import="password.pwm.config.profile.SetupOtpProfile" %>
-<%@ page import="password.pwm.http.servlet.SetupOtpServlet" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<%
-    OTPUserRecord otpUserRecord = null;
-    boolean allowSkip = false;
-    boolean forcedPageView = false;
-    try {
-        final PwmRequest pwmRequest = JspUtility.getPwmRequest( pageContext );
-        final SetupOtpBean setupOtpBean = JspUtility.getSessionBean(pageContext, SetupOtpBean.class);
-        final SetupOtpProfile setupOtpProfile = SetupOtpServlet.getSetupOtpProfile( pwmRequest );
-        otpUserRecord = setupOtpBean.getOtpUserRecord();
-        allowSkip = setupOtpProfile.readSettingAsEnum(PwmSetting.OTP_FORCE_SETUP, ForceSetupPolicy.class) == ForceSetupPolicy.FORCE_ALLOW_SKIP;
-        forcedPageView = pwmRequest.isForcedPageView();
-    } catch (PwmUnrecoverableException e) {
-        /* application must be unavailable */
-    }
-
-%>
+<% OTPUserRecord otpUserRecord = (OTPUserRecord) JspUtility.getAttribute( pageContext, PwmRequestAttribute.SetupOtp_UserRecord ); %>
+<% boolean allowSkip = JspUtility.getBooleanAttribute( pageContext, PwmRequestAttribute.SetupOtp_AllowSkip ); %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
@@ -107,14 +89,12 @@
             <form action="<pwm:current-url/>" method="post" name="setupOtpSecret-skip" enctype="application/x-www-form-urlencoded" id="setupOtpSecret-skip" class="pwm-form">
                 <input type="hidden" name="processAction" value="skip"/>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-                <% if (forcedPageView) { %>
                 <% if (allowSkip) { %>
                 <button type="submit" name="continue" class="btn" id="skipbutton">
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-fighter-jet"></span></pwm:if>
                     <pwm:display key="Button_Skip"/>
                 </button>
                 <% } %>
-                <% } else { %>
                 <pwm:if test="<%=PwmIfTest.showCancel%>">
                     <pwm:if test="<%=PwmIfTest.forcedPageView%>" negate="true">
                         <button type="submit" name="button" class="btn" id="button-cancel">
@@ -123,7 +103,6 @@
                         </button>
                     </pwm:if>
                 </pwm:if>
-                <% } %>
             </form>
         </div>
     </div>

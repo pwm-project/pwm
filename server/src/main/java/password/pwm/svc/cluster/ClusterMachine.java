@@ -72,7 +72,7 @@ class ClusterMachine
 
         this.executorService.scheduleAtFixedRate(
                 new HeartbeatProcess(),
-                1,
+                intervalSeconds,
                 intervalSeconds,
                 TimeUnit.SECONDS
         );

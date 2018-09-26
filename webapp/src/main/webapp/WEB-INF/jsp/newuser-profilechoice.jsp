@@ -31,7 +31,7 @@
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
-    final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
+    final PwmRequest pwmRequest = JspUtility.getPwmRequest( pageContext );
     final Map<String,String> newUserProfiles = (Map)pwmRequest.getAttribute(PwmRequestAttribute.NewUser_VisibleProfiles);
 %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
@@ -70,7 +70,7 @@
         </table>
         <br/>
         <div class="buttonbar">
-            <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
+            <% if (JspUtility.getPwmRequest( pageContext ).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
             <form action="<pwm:url url='<%=PwmServletDefinition.PublicCommand.servletUrl()%>' addContext="true"/>" method="get"
                   enctype="application/x-www-form-urlencoded" name="search" class="pwm-form">
                 <button class="btn" type="submit" name="submitBtn">

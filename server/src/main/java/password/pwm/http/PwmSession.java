@@ -29,7 +29,6 @@ import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -41,7 +40,6 @@ import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.LocaleHelper;
-import password.pwm.util.PasswordData;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
@@ -377,12 +375,16 @@ public class PwmSession implements Serializable
 
         if ( nonce == null || nonce.length() != length )
         {
-            nonce = pwmRequest.getPwmApplication().getSecureService().pwmRandom().alphaNumericString( length );
+            // random value
+            final String random = pwmRequest.getPwmApplication().getSecureService().pwmRandom().alphaNumericString( length );
+
+            // timestamp component for uniqueness
+            final String prefix = Long.toString( System.currentTimeMillis(), Character.MAX_RADIX );
+
+            nonce = random + prefix;
         }
 
-        final PasswordData configSecret = pwmRequest.getConfig().readSettingAsPassword( PwmSetting.PWM_SECURITY_KEY );
-        final String concatValue = configSecret.getStringValue() + nonce;
-        final String hashValue = pwmRequest.getPwmApplication().getSecureService().hash( concatValue );
+        final String hashValue = pwmRequest.getPwmApplication().getSecureService().hash( nonce );
         final PwmSecurityKey pwmSecurityKey = new PwmSecurityKey( hashValue );
 
         pwmRequest.setAttribute( PwmRequestAttribute.CookieNonce, nonce );

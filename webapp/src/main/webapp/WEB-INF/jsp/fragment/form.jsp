@@ -253,7 +253,7 @@
             <input type="<pwm:value name="passwordFieldType"/>" name="password1" id="password1" class="changepasswordfield passwordfield" style="margin-left:5px"/>
         </td>
         <td class="noborder">
-            <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHOW_STRENGTH_METER)) { %>
+            <% if (JspUtility.getPwmRequest( pageContext ).getConfig() != null && JspUtility.getPwmRequest( pageContext ).getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHOW_STRENGTH_METER)) { %>
             <div id="strengthBox" style="visibility:hidden;">
                 <div id="strengthLabel">
                     <pwm:display key="Display_StrengthMeter"/>

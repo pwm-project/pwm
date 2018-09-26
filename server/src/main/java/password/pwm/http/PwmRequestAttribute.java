@@ -49,8 +49,11 @@ public enum PwmRequestAttribute
     AccountInfo,
 
     SetupResponses_ResponseInfo,
+    SetupResponses_AllowSkip,
 
     SetupOtp_QrCodeValue,
+    SetupOtp_AllowSkip,
+    SetupOtp_UserRecord,
 
     HelpdeskDetail,
     HelpdeskObfuscatedDN,
@@ -99,5 +102,5 @@ public enum PwmRequestAttribute
 
     TokenDestItems,
 
-    GoBackAction,
+    GoBackAction,;
 }

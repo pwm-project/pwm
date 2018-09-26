@@ -35,6 +35,8 @@ public enum AppProperty
     ACTIVATE_USER_TOKEN_AUTO_SELECT_DEST            ( "activateUser.token.autoSelectSingleDestination" ),
     APPLICATION_FILELOCK_FILENAME                   ( "application.fileLock.filename" ),
     APPLICATION_FILELOCK_WAIT_SECONDS               ( "application.fileLock.waitSeconds" ),
+    APPLICATION_READ_APP_LOCK_MAX_WAIT_MS           ( "application.readAppLock.maxWaitMs" ),
+    APPLICATION_RESTART_MAX_REQUEST_WAIT_MS         ( "application.restart.maxRequestWaitMs" ),
     APPLICATION_WORDLIST_RETRY_SECONDS              ( "application.wordlistRetryImportSeconds" ),
     AUDIT_EVENTS_EMAILFROM                          ( "audit.events.emailFrom" ),
     AUDIT_EVENTS_EMAILSUBJECT                       ( "audit.events.emailSubject" ),

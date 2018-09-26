@@ -120,49 +120,67 @@ public class RequestInitializationFilter implements Filter
             }
         }
 
-        if ( testPwmApplicationLoad == null && pwmURL.isResourceURL() )
+        try
         {
-            filterChain.doFilter( req, resp );
-        }
-        else if ( pwmURL.isRestService() )
-        {
-            filterChain.doFilter( req, resp );
-        }
-        else
-        {
-            if ( mode == PwmApplicationMode.ERROR )
+            if ( testPwmApplicationLoad == null && pwmURL.isResourceURL() )
             {
-                try
-                {
-                    final ContextManager contextManager = ContextManager.getContextManager( req.getServletContext() );
-                    if ( contextManager != null )
-                    {
-                        final ErrorInformation startupError = contextManager.getStartupErrorInformation();
-                        servletRequest.setAttribute( PwmRequestAttribute.PwmErrorInfo.toString(), startupError );
-                    }
-                }
-                catch ( Exception e )
-                {
-                    if ( pwmURL.isResourceURL() )
-                    {
-                        filterChain.doFilter( servletRequest, servletResponse );
-                        return;
-                    }
+                filterChain.doFilter( req, resp );
+                return;
+            }
 
-                    LOGGER.error( "error while trying to detect application status: " + e.getMessage() );
-                }
+            if ( testPwmApplicationLoad != null )
+            {
+                testPwmApplicationLoad.getInprogressRequests().incrementAndGet();
+            }
 
-                LOGGER.error( "unable to satisfy incoming request, application is not available" );
-                resp.setStatus( 500 );
-                final String url = JspUrl.APP_UNAVAILABLE.getPath();
-                servletRequest.getServletContext().getRequestDispatcher( url ).forward( servletRequest, servletResponse );
+            if ( pwmURL.isRestService() )
+            {
+                filterChain.doFilter( req, resp );
             }
             else
             {
-                initializeServletRequest( req, resp, filterChain );
+                if ( mode == PwmApplicationMode.ERROR )
+                {
+                    try
+                    {
+                        final ContextManager contextManager = ContextManager.getContextManager( req.getServletContext() );
+                        if ( contextManager != null )
+                        {
+                            final ErrorInformation startupError = contextManager.getStartupErrorInformation();
+                            servletRequest.setAttribute( PwmRequestAttribute.PwmErrorInfo.toString(), startupError );
+                        }
+                    }
+                    catch ( Exception e )
+                    {
+                        if ( pwmURL.isResourceURL() )
+                        {
+                            filterChain.doFilter( servletRequest, servletResponse );
+                            return;
+                        }
+
+                        LOGGER.error( "error while trying to detect application status: " + e.getMessage() );
+                    }
+
+                    LOGGER.error( "unable to satisfy incoming request, application is not available" );
+                    resp.setStatus( 500 );
+                    final String url = JspUrl.APP_UNAVAILABLE.getPath();
+                    servletRequest.getServletContext().getRequestDispatcher( url ).forward( servletRequest, servletResponse );
+                }
+                else
+                {
+                    initializeServletRequest( req, resp, filterChain );
+                }
+            }
+        }
+        finally
+        {
+            if ( testPwmApplicationLoad != null )
+            {
+                testPwmApplicationLoad.getInprogressRequests().decrementAndGet();
             }
         }
     }
+
 
 
     private void initializeServletRequest(

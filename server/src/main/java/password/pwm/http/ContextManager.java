@@ -41,7 +41,7 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 
 import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletRequest;
+import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.InputStream;
@@ -56,6 +56,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class ContextManager implements Serializable
 {
@@ -70,7 +72,9 @@ public class ContextManager implements Serializable
     private ErrorInformation startupErrorInformation;
 
     private AtomicInteger restartCount = new AtomicInteger( 0 );
+    private TimeDuration readApplicationLockMaxWait = new TimeDuration( 5, TimeUnit.SECONDS );
     private final String instanceGuid;
+    private final Lock reloadLock = new ReentrantLock();
 
     private String contextPath;
 
@@ -84,9 +88,19 @@ public class ContextManager implements Serializable
     }
 
 
-    public static PwmApplication getPwmApplication( final HttpServletRequest request ) throws PwmUnrecoverableException
+    public static PwmApplication getPwmApplication( final ServletRequest request ) throws PwmUnrecoverableException
     {
-        return getPwmApplication( request.getServletContext() );
+        final PwmApplication appInRequest = ( PwmApplication ) request.getAttribute( PwmConstants.REQUEST_ATTR_PWM_APPLICATION );
+        if ( appInRequest != null )
+        {
+            return appInRequest;
+        }
+
+        final PwmApplication pwmApplication = getPwmApplication( request.getServletContext() );
+        request.setAttribute( PwmConstants.REQUEST_ATTR_PWM_APPLICATION, pwmApplication );
+        return pwmApplication;
+
+
     }
 
     public static PwmApplication getPwmApplication( final HttpSession session ) throws PwmUnrecoverableException
@@ -126,20 +140,37 @@ public class ContextManager implements Serializable
     public PwmApplication getPwmApplication( )
             throws PwmUnrecoverableException
     {
-        if ( pwmApplication == null )
+        if ( pwmApplication != null )
         {
-            final ErrorInformation errorInformation;
-            if ( startupErrorInformation != null )
+            try
             {
-                errorInformation = startupErrorInformation;
+                final boolean hasLock = reloadLock.tryLock( readApplicationLockMaxWait.getTotalMilliseconds(), TimeUnit.MICROSECONDS );
+                if ( hasLock )
+                {
+                    return pwmApplication;
+                }
             }
-            else
+            catch ( InterruptedException e )
             {
-                errorInformation = new ErrorInformation( PwmError.ERROR_APP_UNAVAILABLE, "application is not yet available, please try again in a moment." );
+                LOGGER.warn( "getPwmApplication restartLock unexpectedly interrupted" );
             }
-            throw new PwmUnrecoverableException( errorInformation );
+            finally
+            {
+                reloadLock.unlock();
+            }
         }
-        return pwmApplication;
+
+        final ErrorInformation errorInformation;
+        if ( startupErrorInformation != null )
+        {
+            errorInformation = startupErrorInformation;
+        }
+        else
+        {
+            final String msg = "application is not yet available, please try again in a moment.";
+            errorInformation = new ErrorInformation( PwmError.ERROR_APP_UNAVAILABLE, msg );
+        }
+        throw new PwmUnrecoverableException( errorInformation );
     }
 
     public void initialize( )
@@ -232,6 +263,11 @@ public class ContextManager implements Serializable
             {
                 reloadOnChange = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.CONFIG_RELOAD_ON_CHANGE ) );
                 fileScanFrequencyMs = Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.CONFIG_FILE_SCAN_FREQUENCY ) );
+
+                this.readApplicationLockMaxWait = new TimeDuration(
+                        Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.APPLICATION_READ_APP_LOCK_MAX_WAIT_MS ) ),
+                        TimeUnit.MILLISECONDS
+                );
             }
             if ( reloadOnChange )
             {
@@ -375,31 +411,73 @@ public class ContextManager implements Serializable
                 return;
             }
 
-            {
-                final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-                LOGGER.info( "beginning application restart (" + timeDuration.asCompactString() + "), restart count=" + restartCount.incrementAndGet() );
-            }
-
+            reloadLock.lock();
             try
             {
-                shutdown();
+
+                waitForRequestsToComplete( pwmApplication );
+
+                {
+                    final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
+                    LOGGER.info( "beginning application restart (" + timeDuration.asCompactString() + "), restart count=" + restartCount.incrementAndGet() );
+                }
+
+                final Instant shutdownStartTime = Instant.now();
+                try
+                {
+                    shutdown();
+                }
+                catch ( Exception e )
+                {
+                    LOGGER.fatal( "unexpected error during shutdown: " + e.getMessage(), e );
+                }
+
+                {
+                    final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
+                    final TimeDuration shutdownDuration = TimeDuration.fromCurrent( shutdownStartTime );
+                    LOGGER.info( "application restart; shutdown completed, ("
+                            + shutdownDuration.asCompactString()
+                            + ") now starting new application instance ("
+                            + timeDuration.asCompactString() + ")" );
+                }
+                initialize();
+
+                {
+                    final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
+                    LOGGER.info( "application restart completed (" + timeDuration.asCompactString() + ")" );
+                }
             }
-            catch ( Exception e )
+            finally
             {
-                LOGGER.fatal( "unexpected error during shutdown: " + e.getMessage(), e );
+                reloadLock.unlock();
+            }
+        }
+
+        private void waitForRequestsToComplete( final PwmApplication pwmApplication )
+        {
+            final Instant startTime = Instant.now();
+            final TimeDuration maxRequestWaitTime = TimeDuration.of(
+                    Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.APPLICATION_RESTART_MAX_REQUEST_WAIT_MS ) ),
+                    TimeUnit.SECONDS );
+            final int startingRequetsInProgress = pwmApplication.getInprogressRequests().get();
+
+            if ( startingRequetsInProgress == 0 )
+            {
+                return;
             }
 
-            {
-                final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-                LOGGER.info( "application restart; shutdown completed, now starting new application instance ("
-                        + timeDuration.asCompactString() + ")" );
-            }
-            initialize();
+            LOGGER.trace( "waiting up to " + maxRequestWaitTime.asCompactString()
+                    + " for " + startingRequetsInProgress  + " requests to complete." );
+            JavaHelper.pause(
+                    maxRequestWaitTime.getTotalMilliseconds(),
+                    10,
+                    o -> pwmApplication.getInprogressRequests().get() == 0
+            );
 
-            {
-                final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-                LOGGER.info( "application restart completed (" + timeDuration.asCompactString() + ")" );
-            }
+            final int requestsInPrgoress = pwmApplication.getInprogressRequests().get();
+            final TimeDuration waitTime = TimeDuration.fromCurrent( startTime  );
+            LOGGER.trace( "after " + waitTime.asCompactString() + ", " + requestsInPrgoress
+                    + " requests in progress, proceeding with restart" );
         }
     }
 

@@ -31,14 +31,15 @@ import java.util.stream.LongStream;
 public class PwmRandom extends SecureRandom
 {
 
-    private final SecureRandom internalRand = new SecureRandom();
+    private final SecureRandom internalRand;
 
-    private static final PwmRandom SINGLETON = new PwmRandom();
+    private static final PwmRandom SINGLETON = new PwmRandom( new SecureRandom( ) );
 
     private static final String ALPHANUMERIC_STRING = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-    private PwmRandom( )
+    public PwmRandom( final SecureRandom internalRand )
     {
+        this.internalRand = internalRand;
     }
 
     public static PwmRandom getInstance( )
