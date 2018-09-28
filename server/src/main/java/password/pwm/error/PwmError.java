@@ -303,6 +303,8 @@ public enum PwmError
             5091, "Error_FileTypeIncorrect", null ),
     ERROR_FILE_TOO_LARGE(
             5092, "Error_FileTooLarge", null ),
+    ERROR_CLUSTER_SERVICE_ERROR(
+            5093, "Error_ClusterServiceError", null ),
 
     ERROR_REMOTE_ERROR_VALUE(
             6000, "Error_RemoteErrorValue", null, ErrorFlag.Permanent ),

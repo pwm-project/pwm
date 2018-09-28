@@ -46,12 +46,24 @@ public interface CrOperator
 {
     /**
      * Read a response set suitable for use in forgotten password scenarios.
+     *
+     * @param theUser chaiUser to examine
+     * @param userIdentity identify of the user
+     * @param userGUID user's guid
+     * @return a responseSet instance suitable for use with forgotten password.
+     * @throws PwmUnrecoverableException if the operation fails
      */
     ResponseSet readResponseSet( ChaiUser theUser, UserIdentity userIdentity, String userGUID )
             throws PwmUnrecoverableException;
 
     /**
      * Read a response info bean suitable for examining the user's stored response data, but not for use during forgotten password.
+     *
+     * @param theUser chaiUser to examine
+     * @param userIdentity identify of the user
+     * @param userGUID user's guid
+     * @return a bean with the users stored response data.
+     * @throws PwmUnrecoverableException if the operation fails
      */
     ResponseInfoBean readResponseInfo( ChaiUser theUser, UserIdentity userIdentity, String userGUID )
             throws PwmUnrecoverableException;

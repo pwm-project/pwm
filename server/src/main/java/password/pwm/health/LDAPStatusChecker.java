@@ -79,6 +79,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 public class LDAPStatusChecker implements HealthChecker
 {
@@ -313,12 +314,12 @@ public class LDAPStatusChecker implements HealthChecker
 
                         {
                             final boolean withinMinLifetime = PasswordUtility.isPasswordWithinMinimumLifetimeImpl(
-                                            theUser,
-                                            SessionLabel.HEALTH_SESSION_LABEL,
-                                            passwordPolicy,
-                                            pwdLastModified,
-                                            passwordStatus
-                                    );
+                                    theUser,
+                                    SessionLabel.HEALTH_SESSION_LABEL,
+                                    passwordPolicy,
+                                    pwdLastModified,
+                                    passwordStatus
+                            );
                             if ( withinMinLifetime )
                             {
                                 LOGGER.trace( SessionLabel.HEALTH_SESSION_LABEL, "skipping test user password set due to password being within minimum lifetime" );
@@ -485,9 +486,27 @@ public class LDAPStatusChecker implements HealthChecker
                     return Collections.singletonList( new HealthRecord( HealthStatus.WARN, HealthTopic.LDAP, "Missing Proxy User Password" ) );
                 }
                 chaiProvider = LdapOperationsHelper.createChaiProvider( pwmApplication, SessionLabel.HEALTH_SESSION_LABEL, ldapProfile, config, proxyDN, proxyPW );
-                final ChaiEntry adminEntry = chaiProvider.getEntryFactory().newChaiEntry( proxyDN );
+                final ChaiUser adminEntry = chaiProvider.getEntryFactory().newChaiUser( proxyDN );
                 adminEntry.exists();
                 directoryVendor = chaiProvider.getDirectoryVendor();
+
+                if ( adminEntry.isPasswordExpired() )
+                {
+                    final Instant passwordExpireDate = adminEntry.readPasswordExpirationDate();
+                    final TimeDuration maxPwExpireTime = TimeDuration.of(
+                            Integer.parseInt( config.readAppProperty( AppProperty.HEALTH_LDAP_PROXY_WARN_PW_EXPIRE_SECONDS ) ),
+                            TimeUnit.SECONDS );
+                    final TimeDuration expirationDuration = TimeDuration.fromCurrent( passwordExpireDate  );
+                    if ( maxPwExpireTime.isLongerThan( expirationDuration ) )
+                    {
+                        return Collections.singletonList( HealthRecord.forMessage(
+                                HealthMessage.LDAP_ProxyUserPwExpired,
+                                adminEntry.getEntryDN(),
+                                expirationDuration.asLongString( PwmConstants.DEFAULT_LOCALE )
+                        ) );
+                    }
+                }
+
             }
             catch ( ChaiException e )
             {

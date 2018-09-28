@@ -28,6 +28,7 @@ const KEYS = {
     SEARCH_TEXT: 'searchText',
     HELPDESK_SEARCH_TEXT: 'helpdeskSearchText',
     SEARCH_VIEW: 'searchView',
+    HELPDESK_SEARCH_VIEW: 'helpdeskSearchView',
     VERIFICATION_STATE: 'verificationState'
 };
 

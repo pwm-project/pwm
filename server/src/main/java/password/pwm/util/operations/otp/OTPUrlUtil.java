@@ -39,6 +39,9 @@ public class OTPUrlUtil
 
     /**
      * Convert a OTPUserRecord object into an otpauth:// url.
+     * @param otp a valid otp user record
+     *
+     * @return a valid otp url string.
      */
     public static String composeOtpUrl( final OTPUserRecord otp )
     {
@@ -51,6 +54,9 @@ public class OTPUrlUtil
 
     /**
      * Read a string with an otpauth:// url and convert to an OTPUserRecord object.
+     *
+     * @param otpInfo otp input url string.
+     * @return a user recorded generated from the input string.
      */
     public static OTPUserRecord decomposeOtpUrl( final String otpInfo )
     {

@@ -1077,7 +1077,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
             final AtomicInteger examinedRecords = new AtomicInteger( 0 );
 
             final ConditionalTaskExecutor conditionalTaskExecutor = new ConditionalTaskExecutor(
-                    new Runnable()
+                     new Runnable()
                     {
                         @Override
                         public void run( )

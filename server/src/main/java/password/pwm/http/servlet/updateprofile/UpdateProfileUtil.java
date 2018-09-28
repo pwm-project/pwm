@@ -63,6 +63,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -246,7 +247,7 @@ public class UpdateProfileUtil
                 formFields
         ) );
 
-        final Set<TokenDestinationItem.Type> interestedTypes = new HashSet<>(  );
+        final Set<TokenDestinationItem.Type> interestedTypes = new LinkedHashSet<>(  );
         if ( updateProfileProfile.readSettingAsBoolean( PwmSetting.UPDATE_PROFILE_EMAIL_VERIFICATION ) )
         {
             interestedTypes.add( TokenDestinationItem.Type.email );

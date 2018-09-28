@@ -46,6 +46,7 @@ public class SecureService implements PwmService
     private PwmSecurityKey pwmSecurityKey;
     private PwmBlockAlgorithm defaultBlockAlgorithm;
     private PwmHashAlgorithm defaultHashAlgorithm;
+    private PwmRandom pwmRandom;
 
     @Override
     public STATUS status( )
@@ -173,5 +174,14 @@ public class SecureService implements PwmService
             throws IOException, PwmUnrecoverableException
     {
         return SecureEngine.hash( file, defaultHashAlgorithm );
+    }
+
+    public PwmRandom pwmRandom()
+    {
+        if ( pwmRandom == null )
+        {
+            pwmRandom = PwmRandom.getInstance();
+        }
+        return pwmRandom;
     }
 }

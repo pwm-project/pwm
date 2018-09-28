@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
  */
 
 package password.pwm.receiver;
@@ -44,33 +43,39 @@ import java.io.Reader;
 import java.io.StringWriter;
 
 @WebServlet(
-        name="TelemetryRestReceiver",
-        urlPatterns={
+        name = "TelemetryRestReceiver",
+        urlPatterns = {
                 "/telemetry",
         }
 )
 
-public class TelemetryRestReceiver extends HttpServlet {
+public class TelemetryRestReceiver extends HttpServlet
+{
     @Override
-    protected void doPost(final HttpServletRequest req, final HttpServletResponse resp)
+    protected void doPost( final HttpServletRequest req, final HttpServletResponse resp )
             throws ServletException, IOException
     {
-        try {
-            resp.setHeader("Content","application/json");
-            final String input = readRequestBodyAsString(req, 1024 * 1024);
-            final TelemetryPublishBean telemetryPublishBean = JsonUtil.deserialize(input, TelemetryPublishBean.class);
-            final Storage stoage = ContextManager.getContextManager(this.getServletContext()).getApp().getStorage();
-            stoage.store(telemetryPublishBean);
-            resp.getWriter().print(RestResultBean.forSuccessMessage(null, null, null, Message.Success_Unknown).toJson());
-        } catch (PwmUnrecoverableException e) {
-            resp.getWriter().print(RestResultBean.fromError(e.getErrorInformation()).toJson());
-        } catch (Exception e) {
-            final RestResultBean restResultBean = RestResultBean.fromError(new ErrorInformation(PwmError.ERROR_UNKNOWN, e.getMessage()));
-            resp.getWriter().print(restResultBean.toJson());
+        try
+        {
+            resp.setHeader( "Content", "application/json" );
+            final String input = readRequestBodyAsString( req, 1024 * 1024 );
+            final TelemetryPublishBean telemetryPublishBean = JsonUtil.deserialize( input, TelemetryPublishBean.class );
+            final Storage stoage = ContextManager.getContextManager( this.getServletContext() ).getApp().getStorage();
+            stoage.store( telemetryPublishBean );
+            resp.getWriter().print( RestResultBean.forSuccessMessage( null, null, null, Message.Success_Unknown ).toJson() );
+        }
+        catch ( PwmUnrecoverableException e )
+        {
+            resp.getWriter().print( RestResultBean.fromError( e.getErrorInformation() ).toJson() );
+        }
+        catch ( Exception e )
+        {
+            final RestResultBean restResultBean = RestResultBean.fromError( new ErrorInformation( PwmError.ERROR_UNKNOWN, e.getMessage() ) );
+            resp.getWriter().print( restResultBean.toJson() );
         }
     }
 
-    private static String readRequestBodyAsString(final HttpServletRequest req, final int maxChars)
+    private static String readRequestBodyAsString( final HttpServletRequest req, final int maxChars )
             throws IOException, PwmUnrecoverableException
     {
         final StringWriter stringWriter = new StringWriter();
@@ -79,18 +84,25 @@ public class TelemetryRestReceiver extends HttpServlet {
                 PwmConstants.DEFAULT_CHARSET
         );
 
-        try {
-            IOUtils.copy(readerStream, stringWriter);
-        } catch (Exception e) {
+        try
+        {
+            IOUtils.copy( readerStream, stringWriter );
+        }
+        catch ( Exception e )
+        {
             final String errorMsg = "error reading request body stream: " + e.getMessage();
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg));
-        } finally {
-            IOUtils.closeQuietly(readerStream);
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg ) );
+        }
+        finally
+        {
+            IOUtils.closeQuietly( readerStream );
         }
 
         final String stringValue = stringWriter.toString();
-        if (stringValue.length() > maxChars) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"input request body is to big, size=" + stringValue.length() + ", max=" + maxChars));
+        if ( stringValue.length() > maxChars )
+        {
+            final String msg = "input request body is to big, size=" + stringValue.length() + ", max=" + maxChars;
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, msg ) );
         }
         return stringValue;
     }

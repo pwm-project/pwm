@@ -78,7 +78,10 @@ export default class TypeChangePasswordController {
         this.password1 = '';
         this.password2 = '';
         this.passwordAcceptable = false;
-        this.passwordSuggestions = Array<string>(20).fill('');
+        this.passwordSuggestions = [];
+        for (let i = 0; i < 20; i++) {
+            this.passwordSuggestions.push('');
+        }
         this.pendingValidation = false;
         this.showStrengthMeter = HelpDeskService.showStrengthMeter;
         this.strength = 0;

@@ -103,8 +103,8 @@ public class UserIdentity implements Serializable, Comparable
 
         // check app cache.  This is used primarily so that keys are static over some meaningful lifetime, allowing browser caching based on keys.
         final CacheService cacheService = pwmApplication.getCacheService();
-        final CacheKey cacheKey = CacheKey.makeCacheKey( this.getClass(), null, "userKey" + "|" + this.toDelimitedKey() );
-        final String cachedValue = cacheService.get( cacheKey );
+        final CacheKey cacheKey = CacheKey.newKey( this.getClass(), this, "obfuscatedKey" );
+        final String cachedValue = cacheService.get( cacheKey, String.class );
 
         if ( !StringUtil.isEmpty( cachedValue ) )
         {

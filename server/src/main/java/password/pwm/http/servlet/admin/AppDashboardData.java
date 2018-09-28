@@ -115,9 +115,10 @@ public class AppDashboardData implements Serializable
     private String nodeSummary;
     private int ldapConnectionCount;
     private int sessionCount;
+    private int requestsInProgress;
 
 
-    static AppDashboardData makeDashboardData(
+    public static AppDashboardData makeDashboardData(
             final PwmApplication pwmApplication,
             final ContextManager contextManager,
             final Locale locale,
@@ -157,6 +158,7 @@ public class AppDashboardData implements Serializable
 
         builder.ldapConnectionCount( ldapConnectionCount( pwmApplication ) );
         builder.sessionCount( pwmApplication.getSessionTrackService().sessionCount() );
+        builder.requestsInProgress( pwmApplication.getInprogressRequests().get() );
 
         LOGGER.trace( "AppDashboardData bean created in " + TimeDuration.compactFromCurrent( startTime ) );
         return builder.build();
@@ -298,7 +300,7 @@ public class AppDashboardData implements Serializable
             localDbInfo.add( new DisplayElement(
                     "oldestSharedHistory",
                     DisplayElement.Type.string,
-                    "OldestShared Password Entry",
+                    "Oldest Shared Password Entry",
                     display
             ) );
         }

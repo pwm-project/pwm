@@ -72,13 +72,28 @@ public class RestFormSigningServer extends RestServlet
         }
     }
 
-    @RestMethodHandler( method = HttpMethod.POST, produces = HttpContentType.json )
+    @RestMethodHandler( method = HttpMethod.POST, produces = HttpContentType.json, consumes = HttpContentType.json )
     private RestResultBean handleRestJsonPostRequest( final RestRequest restRequest )
             throws IOException, PwmUnrecoverableException
     {
-
         final Map<String, String> inputFormData = restRequest.readBodyAsJsonStringMap( PwmHttpRequestWrapper.Flag.BypassValidation );
+        return handleRestPostRequest( restRequest, inputFormData );
+    }
 
+    @RestMethodHandler( method = HttpMethod.POST, produces = HttpContentType.json, consumes = HttpContentType.form )
+    private RestResultBean handleRestFormPostRequest( final RestRequest restRequest )
+            throws IOException, PwmUnrecoverableException
+    {
+        final Map<String, String> inputFormData = restRequest.readParametersAsMap();
+        return handleRestPostRequest( restRequest, inputFormData );
+    }
+
+    private RestResultBean handleRestPostRequest(
+            final RestRequest restRequest,
+            final Map<String, String> inputFormData
+    )
+            throws PwmUnrecoverableException
+    {
         if ( !restRequest.getRestAuthentication().getUsages().contains( WebServiceUsage.SigningForm ) )
         {
             final String errorMsg = "request is not authenticated with permission for " + WebServiceUsage.SigningForm;

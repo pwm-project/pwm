@@ -51,7 +51,6 @@ import java.util.List;
 /**
  * Wraps an <i>HttpSession</i> to provide additional PWM-related session
  * management activities.
- * <p/>
  *
  * @author Jason D. Rivard
  */
@@ -220,9 +219,14 @@ public class SessionManager
             final boolean result = LdapPermissionTester.testUserPermissions( pwmApplication, pwmSession.getLabel(), pwmSession.getUserInfo().getUserIdentity(), userPermission );
             status = result ? Permission.PermissionStatus.GRANTED : Permission.PermissionStatus.DENIED;
             pwmSession.getUserSessionDataCacheBean().setPermission( permission, status );
-            LOGGER.debug( pwmSession.getLabel(), String.format( "permission %s for user %s is %s",
-                    permission.toString(), pwmSession.getUserInfo().getUserIdentity().toDelimitedKey(),
-                    status.toString() ) );
+
+            LOGGER.debug( pwmSession.getLabel(),
+                    String.format( "permission %s for user %s is %s",
+                            permission.toString(),
+                            pwmSession.isAuthenticated()
+                                    ? pwmSession.getUserInfo().getUserIdentity().toDelimitedKey()
+                                    : "[unauthenticated]",
+                            status.toString() ) );
         }
         return status == Permission.PermissionStatus.GRANTED;
     }

@@ -40,13 +40,6 @@ public class CachePolicy implements Serializable
         return expiration;
     }
 
-    public static CachePolicy makePolicy( final Instant date )
-    {
-        final CachePolicy policy = new CachePolicy();
-        policy.expiration = date;
-        return policy;
-    }
-
     public static CachePolicy makePolicyWithExpirationMS( final long expirationMs )
     {
         final CachePolicy policy = new CachePolicy();

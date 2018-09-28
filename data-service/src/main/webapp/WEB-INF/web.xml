@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Password Management Servlets (PWM)
-  ~ http://www.pwm-project.org
-  ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2017 The PWM Project
+  ~ Copyright (c) 2009-2018 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -19,23 +17,15 @@
   ~ You should have received a copy of the GNU General Public License
   ~ along with this program; if not, write to the Free Software
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-  ~
   -->
 
 <web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns="http://java.sun.com/xml/ns/javaee"
          xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
          id="PWM" version="3.0">
-    <display-name>PWM Receiver</display-name>
+    <display-name>PWM Data Service</display-name>
     <!-- <distributable/> Clustering/Session replication is not supported -->
-    <description>Password Management Servlet</description>
-    <context-param>
-        <description>
-            Explicit location of application path working directory or the literal value "unspecified".  See the environment documentation at /public/reference/environment.jsp for more information.
-        </description>
-        <param-name>applicationPath</param-name>
-        <param-value>unspecified</param-value>
-    </context-param>
+    <description>Password Management Servlet - Data Service</description>
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>

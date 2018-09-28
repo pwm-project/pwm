@@ -42,7 +42,7 @@ import java.util.Set;
 
 
 /**
- * <p>This bean is synchronized across application sessions by {@link password.pwm.http.state.SessionLoginProvider}.</p>
+ * <p>This bean is synchronized across application sessions by {@code SessionLoginProvider}.</p>
  *
  * <p>Short serialized names are used to shrink the effective size of the login cookie.</p>
  */
@@ -55,6 +55,7 @@ public class LoginInfoBean implements Serializable
     {
         skipOtp,
         skipNewPw,
+        skipSetupCr,
 
         // bypass sso
         noSso,

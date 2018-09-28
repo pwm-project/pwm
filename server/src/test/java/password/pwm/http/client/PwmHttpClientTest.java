@@ -75,7 +75,7 @@ public class PwmHttpClientTest {
         wm.stubFor(get(urlEqualTo("/simpleHello"))
             .willReturn(aResponse()
                 .withHeader("Content-Type", "text/plain")
-                .withBody("Hello from the local mock server")));
+                .withBody("PwmAbout from the local mock server")));
 
         // Obtain the HTTP client from PWM
         HttpClient httpClient = PwmHttpClient.getHttpClient(configuration);
@@ -89,7 +89,7 @@ public class PwmHttpClientTest {
         assertThat(responseStatusCode).isEqualTo(200);
 
         String responseContent = IOUtils.toString(response.getEntity().getContent());
-        assertThat(responseContent).startsWith("Hello");
+        assertThat(responseContent).startsWith("PwmAbout");
 
         // Verify the HTTP server got called as expected
         wm.verify(getRequestedFor(urlEqualTo("/simpleHello"))
@@ -105,7 +105,7 @@ public class PwmHttpClientTest {
         wm.stubFor(get(urlEqualTo("/simpleHello"))
             .willReturn(aResponse()
                 .withHeader("Content-Type", "text/plain")
-                .withBody("Hello from the local mock server")));
+                .withBody("PwmAbout from the local mock server")));
 
         HttpClient httpClient = PwmHttpClient.getHttpClient(configuration);
 
@@ -124,7 +124,7 @@ public class PwmHttpClientTest {
         wm.stubFor(get(urlEqualTo("/simpleHello"))
             .willReturn(aResponse()
                 .withHeader("Content-Type", "text/plain")
-                .withBody("Hello from the local mock server")));
+                .withBody("PwmAbout from the local mock server")));
 
         // Stub out some mock object behavior
         when(configuration.readAppProperty(AppProperty.SECURITY_HTTP_PROMISCUOUS_ENABLE)).thenReturn("true");
@@ -139,7 +139,7 @@ public class PwmHttpClientTest {
         assertThat(responseStatusCode).isEqualTo(200);
 
         String responseContent = IOUtils.toString(response.getEntity().getContent());
-        assertThat(responseContent).startsWith("Hello");
+        assertThat(responseContent).startsWith("PwmAbout");
     }
 
     /**
@@ -151,13 +151,13 @@ public class PwmHttpClientTest {
         wm.stubFor(get(urlEqualTo("/simpleHello"))
             .willReturn(aResponse()
                 .withHeader("Content-Type", "text/plain")
-                .withBody("Hello from the local mock server")));
+                .withBody("PwmAbout from the local mock server")));
 
         PwmHttpClientConfiguration pwmHttpClientConfiguration = PwmHttpClientConfiguration.builder()
                 .certificates(getWireMockSelfSignedCertificate())
                 .build();
 
-        HttpClient httpClient = PwmHttpClient.getHttpClient(configuration, pwmHttpClientConfiguration);
+        HttpClient httpClient = PwmHttpClient.getHttpClient(configuration, pwmHttpClientConfiguration, null);
 
         HttpGet httpGet = new HttpGet(String.format("https://localhost:%d/simpleHello", wm.httpsPort()));
         HttpResponse response = httpClient.execute(httpGet);
@@ -167,7 +167,7 @@ public class PwmHttpClientTest {
         assertThat(responseStatusCode).isEqualTo(200);
 
         String responseContent = IOUtils.toString(response.getEntity().getContent());
-        assertThat(responseContent).startsWith("Hello");
+        assertThat(responseContent).startsWith("PwmAbout");
     }
 
     /**
@@ -179,7 +179,7 @@ public class PwmHttpClientTest {
         wm.stubFor(get(urlEqualTo("/simpleHello"))
             .willReturn(aResponse()
                 .withHeader("Content-Type", "text/plain")
-                .withBody("Hello from the local mock server")));
+                .withBody("PwmAbout from the local mock server")));
 
         // Stub out some mock object behavior
         when(configuration.readSettingAsString(PwmSetting.HTTP_PROXY_URL)).thenReturn(String.format("http://localhost:%d/simpleHello", wm.port()));
@@ -195,7 +195,7 @@ public class PwmHttpClientTest {
         assertThat(responseStatusCode).isEqualTo(200);
 
         String responseContent = IOUtils.toString(response.getEntity().getContent());
-        assertThat(responseContent).startsWith("Hello");
+        assertThat(responseContent).startsWith("PwmAbout");
     }
 
     private List<X509Certificate> getWireMockSelfSignedCertificate() {

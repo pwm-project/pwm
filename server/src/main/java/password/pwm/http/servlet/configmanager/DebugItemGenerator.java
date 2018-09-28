@@ -33,7 +33,9 @@ import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMonitor;
 import password.pwm.health.HealthRecord;
+import password.pwm.http.ContextManager;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.servlet.admin.AppDashboardData;
 import password.pwm.http.servlet.admin.UserDebugDataBean;
 import password.pwm.http.servlet.admin.UserDebugDataReader;
 import password.pwm.ldap.LdapDebugDataGenerator;
@@ -89,6 +91,7 @@ public class DebugItemGenerator
             ConfigurationDebugJsonItemGenerator.class,
             ConfigurationDebugTextItemGenerator.class,
             AboutItemGenerator.class,
+            DashboardDataDebugItemGenerator.class,
             SystemEnvironmentItemGenerator.class,
             AppPropertiesItemGenerator.class,
             ServicesDebugItemGenerator.class,
@@ -710,9 +713,34 @@ public class DebugItemGenerator
             final Map<String, Serializable> debugOutput = new LinkedHashMap<>( cacheService.debugInfo() );
             outputStream.write( JsonUtil.serializeMap( debugOutput, JsonUtil.Flag.PrettyPrint ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
         }
-
     }
 
+    static class DashboardDataDebugItemGenerator implements Generator
+    {
+        @Override
+        public String getFilename( )
+        {
+            return "dashboard-data.json";
+        }
+
+        @Override
+        public void outputItem(
+                final PwmApplication pwmApplication,
+                final PwmRequest pwmRequest,
+                final OutputStream outputStream
+        )
+                throws Exception
+        {
+            final ContextManager contextManager = ContextManager.getContextManager( pwmRequest );
+            final AppDashboardData appDashboardData = AppDashboardData.makeDashboardData(
+                    pwmApplication,
+                    contextManager,
+                    pwmRequest.getLocale()
+            );
+
+            outputStream.write( JsonUtil.serialize( appDashboardData, JsonUtil.Flag.PrettyPrint ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
+        }
+    }
 
     interface Generator
     {

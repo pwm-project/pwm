@@ -26,6 +26,7 @@ import lombok.Value;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.input.SAXBuilder;
+import org.jdom2.input.sax.XMLReaders;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 import password.pwm.error.ErrorInformation;
@@ -82,18 +83,10 @@ public class XmlUtil
         format.setEncoding( STORAGE_CHARSET.toString() );
         final XMLOutputter outputter = new XMLOutputter();
         outputter.setFormat( format );
-        Writer writer = null;
-        try
+
+        try ( Writer writer = new OutputStreamWriter( outputStream, STORAGE_CHARSET ) )
         {
-            writer = new OutputStreamWriter( outputStream, STORAGE_CHARSET );
             outputter.output( document, writer );
-        }
-        finally
-        {
-            if ( writer != null )
-            {
-                writer.close();
-            }
         }
     }
 
@@ -101,7 +94,7 @@ public class XmlUtil
     {
         final SAXBuilder builder = new SAXBuilder();
         builder.setExpandEntities( false );
-        builder.setValidation( false );
+        builder.setXMLReaderFactory( XMLReaders.NONVALIDATING );
         builder.setFeature( "http://xml.org/sax/features/resolve-dtd-uris", false );
         return builder;
     }

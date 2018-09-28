@@ -62,14 +62,13 @@ import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.regex.Pattern;
 
 /**
- * This session filter (invoked by the container through the web.xml descriptor) wraps all calls to the
- * servlets in the container.
- * <p/>
- * It is responsible for managing some aspects of the user session and also for enforcing security
- * functionality such as intruder lockout.
+ * <p>This session filter (invoked by the container through the web.xml descriptor) wraps all calls to the
+ * servlets in the container.</p>
+ *
+ * <p>It is responsible for managing some aspects of the user session and also for enforcing security
+ * functionality such as intruder lockout.</p>
  *
  * @author Jason D. Rivard
  */
@@ -588,44 +587,11 @@ public class SessionFilter extends AbstractPwmFilter
         final String testURI = sb.toString();
         LOGGER.trace( sessionLabel, "preparing to whitelist test parsed and decoded URL: " + testURI );
 
-        final String regexPrefix = "regex:";
         final List<String> whiteList = pwmApplication.getConfig().readSettingAsStringArray( PwmSetting.SECURITY_REDIRECT_WHITELIST );
-        for ( final String loopFragment : whiteList )
-        {
-            if ( loopFragment.startsWith( regexPrefix ) )
-            {
-                try
-                {
-                    final String strPattern = loopFragment.substring( regexPrefix.length(), loopFragment.length() );
-                    final Pattern pattern = Pattern.compile( strPattern );
-                    if ( pattern.matcher( testURI ).matches() )
-                    {
-                        LOGGER.debug( sessionLabel, "positive URL match for regex pattern: " + strPattern );
-                        return;
-                    }
-                    else
-                    {
-                        LOGGER.trace( sessionLabel, "negative URL match for regex pattern: " + strPattern );
-                    }
-                }
-                catch ( Exception e )
-                {
-                    LOGGER.error( sessionLabel, "error while testing URL match for regex pattern: '" + loopFragment + "', error: " + e.getMessage() );
-                }
 
-            }
-            else
-            {
-                if ( testURI.startsWith( loopFragment ) )
-                {
-                    LOGGER.debug( sessionLabel, "positive URL match for pattern: " + loopFragment );
-                    return;
-                }
-                else
-                {
-                    LOGGER.trace( sessionLabel, "negative URL match for pattern: " + loopFragment );
-                }
-            }
+        if ( PwmURL.testIfUrlMatchesAllowedPattern( testURI, whiteList, sessionLabel ) )
+        {
+            return;
         }
 
         final String errorMsg = testURI + " is not a match for any configured redirect whitelist, see setting: "

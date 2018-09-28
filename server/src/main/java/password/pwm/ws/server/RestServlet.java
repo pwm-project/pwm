@@ -343,9 +343,17 @@ public abstract class RestServlet extends HttpServlet
                 case json:
                 {
                     resp.setHeader( HttpHeader.ContentType.getHttpName(), HttpContentType.json.getHeaderValue() );
+                    final String formatParameter = request.getParameter( "format" );
                     try ( PrintWriter pw = resp.getWriter() )
                     {
-                        pw.write( restResultBean.toJson() );
+                        if ( "pretty".equalsIgnoreCase( formatParameter ) )
+                        {
+                            pw.write( JsonUtil.serialize( restResultBean, JsonUtil.Flag.PrettyPrint ) );
+                        }
+                        else
+                        {
+                            pw.write( restResultBean.toJson() );
+                        }
                     }
                 }
                 break;

@@ -220,9 +220,9 @@ public abstract class StringUtil
 
     public static boolean nullSafeEqualsIgnoreCase( final String value1, final String value2 )
     {
-        return value1 == null
-                ? value2 == null
-                : value1.equalsIgnoreCase( value2 );
+        final String compare1 = value1 == null ? "" : value1;
+        final String compare2 = value2 == null ? "" : value2;
+        return compare1.equalsIgnoreCase( compare2 );
     }
 
     public static boolean nullSafeEquals( final String value1, final String value2 )

@@ -23,14 +23,24 @@
 package password.pwm.svc.cluster;
 
 import password.pwm.PwmApplication;
+import password.pwm.bean.UserIdentity;
+import password.pwm.config.PwmSetting;
+import password.pwm.config.option.DataStorageMethod;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ClusterService implements PwmService
 {
@@ -39,7 +49,10 @@ public class ClusterService implements PwmService
 
     private PwmApplication pwmApplication;
     private STATUS status = STATUS.NEW;
-    private ClusterProvider clusterProvider;
+    private ClusterMachine clusterMachine;
+    private DataStorageMethod dataStore;
+    private ErrorInformation startupError;
+
 
     @Override
     public STATUS status( )
@@ -53,52 +66,103 @@ public class ClusterService implements PwmService
         status = STATUS.OPENING;
         this.pwmApplication = pwmApplication;
 
+
         try
         {
-            if ( this.pwmApplication.getConfig().hasDbConfigured() )
+            final ClusterSettings clusterSettings;
+            final ClusterDataServiceProvider clusterDataServiceProvider;
+            dataStore = figureDataStorageMethod( pwmApplication );
+
+            if ( dataStore != null )
             {
-                clusterProvider = new DatabaseClusterProvider( pwmApplication );
+                switch ( dataStore )
+                {
+                    case DB:
+                    {
+                        LOGGER.trace( "starting database-backed cluster provider" );
+                        clusterSettings = ClusterSettings.fromConfigForDB( pwmApplication.getConfig() );
+                        clusterDataServiceProvider = new DatabaseClusterDataService( pwmApplication );
+                    }
+                    break;
+
+                    case LDAP:
+                    {
+                        LOGGER.trace( "starting ldap-backed cluster provider" );
+                        clusterSettings = ClusterSettings.fromConfigForLDAP( pwmApplication.getConfig() );
+                        clusterDataServiceProvider = new LDAPClusterDataService( pwmApplication );
+                    }
+                    break;
+
+                    default:
+                        LOGGER.debug( "no suitable storage method configured " );
+                        JavaHelper.unhandledSwitchStatement( dataStore );
+                        return;
+
+                }
+
+                clusterMachine = new ClusterMachine( pwmApplication, clusterDataServiceProvider, clusterSettings );
+                status = STATUS.OPEN;
+                return;
             }
         }
-        catch ( PwmException e )
+        catch ( Exception e )
         {
-            LOGGER.error( "error starting up cluster provider service: " + e.getMessage() );
-            status = STATUS.CLOSED;
-            return;
+            LOGGER.error( "error starting up cluster service: " + e.getMessage() );
         }
 
-        status = STATUS.OPEN;
+        status = STATUS.CLOSED;
     }
 
     @Override
     public void close( )
     {
-        if ( clusterProvider != null )
+        if ( clusterMachine != null )
         {
-            clusterProvider.close();
-            clusterProvider = null;
+            clusterMachine.close();
+            clusterMachine = null;
         }
-        clusterProvider = null;
         status = STATUS.CLOSED;
     }
 
     @Override
     public List<HealthRecord> healthCheck( )
     {
+        if ( clusterMachine != null )
+        {
+            final ErrorInformation errorInformation = clusterMachine.getLastError();
+            if ( errorInformation != null )
+            {
+                final HealthRecord healthRecord = HealthRecord.forMessage( HealthMessage.Cluster_Error, errorInformation.getDetailedErrorMsg() );
+                return Collections.singletonList( healthRecord );
+            }
+        }
+
+        if ( startupError != null )
+        {
+            final HealthRecord healthRecord = HealthRecord.forMessage( HealthMessage.Cluster_Error, startupError.getDetailedErrorMsg() );
+            return Collections.singletonList( healthRecord );
+        }
+
         return null;
     }
 
     @Override
     public ServiceInfoBean serviceInfo( )
     {
-        return null;
+        final Map<String, String> props = new HashMap<>();
+
+        if ( clusterMachine != null )
+        {
+            props.putAll( JsonUtil.deserializeStringMap( JsonUtil.serialize( clusterMachine.getClusterStatistics() ) ) );
+        }
+        return new ServiceInfoBean( Collections.singleton( dataStore ), props );
     }
 
     public boolean isMaster( )
     {
-        if ( clusterProvider != null )
+        if ( status == STATUS.OPEN && clusterMachine != null )
         {
-            return clusterProvider.isMaster();
+            return clusterMachine.isMaster();
         }
 
         return false;
@@ -106,10 +170,40 @@ public class ClusterService implements PwmService
 
     public List<NodeInfo> nodes( ) throws PwmUnrecoverableException
     {
-        if ( status == STATUS.OPEN && clusterProvider != null )
+        if ( status == STATUS.OPEN && clusterMachine != null )
         {
-            return clusterProvider.nodes();
+            return clusterMachine.nodes();
         }
         return Collections.emptyList();
+    }
+
+    private DataStorageMethod figureDataStorageMethod( final PwmApplication pwmApplication )
+            throws PwmUnrecoverableException
+    {
+        final DataStorageMethod method = pwmApplication.getConfig().readSettingAsEnum( PwmSetting.CLUSTER_STORAGE_MODE, DataStorageMethod.class );
+        if ( method == DataStorageMethod.LDAP )
+        {
+            final UserIdentity userIdentity = pwmApplication.getConfig().getDefaultLdapProfile().getTestUser( pwmApplication );
+            if ( userIdentity == null )
+            {
+                final String msg = "LDAP storage type selected, but LDAP test user not defined.";
+                LOGGER.debug( msg );
+                startupError = new ErrorInformation( PwmError.ERROR_CLUSTER_SERVICE_ERROR, msg );
+                return null;
+            }
+        }
+
+        if ( method == DataStorageMethod.DB )
+        {
+            if ( !pwmApplication.getConfig().hasDbConfigured() )
+            {
+                final String msg = "DB storage type selected, but remote DB is not configured.";
+                LOGGER.debug( msg );
+                startupError = new ErrorInformation( PwmError.ERROR_CLUSTER_SERVICE_ERROR, msg );
+                return null;
+            }
+        }
+
+        return method;
     }
 }

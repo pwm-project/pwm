@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
  */
 
 package password.pwm.receiver;
@@ -42,102 +41,126 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-class FtpDataIngestor {
+class FtpDataIngestor
+{
 
-    private static final PwmReceiverLogger LOGGER = PwmReceiverLogger.forClass(FtpDataIngestor.class);
+    private static final PwmReceiverLogger LOGGER = PwmReceiverLogger.forClass( FtpDataIngestor.class );
 
     private final Settings settings;
     private final PwmReceiverApp app;
 
-    FtpDataIngestor(final PwmReceiverApp app, final Settings telemetrySettings) {
+    FtpDataIngestor( final PwmReceiverApp app, final Settings telemetrySettings )
+    {
         this.app = app;
         this.settings = telemetrySettings;
     }
 
-    void readData(final Storage storage) {
-        app.getStatus().setLastFtpStatus("beginning ftp ingestion");
+    void readData( final Storage storage )
+    {
+        app.getStatus().setLastFtpStatus( "beginning ftp ingestion" );
         LOGGER.debug( "beginning ftp ingestion" );
-        app.getStatus().setLastFtpIngest(Instant.now());
-        try {
+        app.getStatus().setLastFtpIngest( Instant.now() );
+        try
+        {
             final FTPClient ftpClient = getFtpClient();
-            final List<String> files = getFiles(ftpClient);
+            final List<String> files = getFiles( ftpClient );
             LOGGER.debug( "beginning ftp ingestion, listed " + files.size() + " files from server" );
-            for (final String fileName : files) {
-                if (fileName != null && fileName.endsWith(".zip")) {
-                    app.getStatus().setLastFtpIngest(Instant.now());
-                    app.getStatus().setLastFtpStatus("reading file " + fileName);
+            for ( final String fileName : files )
+            {
+                if ( fileName != null && fileName.endsWith( ".zip" ) )
+                {
+                    app.getStatus().setLastFtpIngest( Instant.now() );
+                    app.getStatus().setLastFtpStatus( "reading file " + fileName );
                     LOGGER.debug( "read file " + fileName );
-                    try {
+                    try
+                    {
                         readFile( ftpClient, fileName, storage );
-                    } catch (Exception e) {
-                        app.getStatus().setLastFtpIngest(Instant.now());
+                    }
+                    catch ( Exception e )
+                    {
+                        app.getStatus().setLastFtpIngest( Instant.now() );
                         final String msg = "error while reading ftp file '" + fileName + "': " + e.getMessage();
-                        app.getStatus().setLastFtpStatus(msg);
+                        app.getStatus().setLastFtpStatus( msg );
                         LOGGER.error( msg );
                     }
-                } else {
-                    LOGGER.info("skipping ftp file " + fileName);
+                }
+                else
+                {
+                    LOGGER.info( "skipping ftp file " + fileName );
                 }
             }
             ftpClient.disconnect();
-            LOGGER.info("completed ftp ingestion");
-            app.getStatus().setLastFtpStatus("completed successfully");
-            app.getStatus().setLastFtpIngest(Instant.now());
+            LOGGER.info( "completed ftp ingestion" );
+            app.getStatus().setLastFtpStatus( "completed successfully" );
+            app.getStatus().setLastFtpIngest( Instant.now() );
             app.getStatus().setLastFtpFilesRead( files.size() );
-        } catch (Exception e) {
-            app.getStatus().setLastFtpIngest(Instant.now());
-            app.getStatus().setLastFtpStatus("error during ftp scan: " + e.getMessage());
+        }
+        catch ( Exception e )
+        {
+            app.getStatus().setLastFtpIngest( Instant.now() );
+            app.getStatus().setLastFtpStatus( "error during ftp scan: " + e.getMessage() );
         }
     }
 
-    private void readFile(final FTPClient ftpClient, final String fileName, final Storage storage) throws Exception {
+    private void readFile( final FTPClient ftpClient, final String fileName, final Storage storage ) throws Exception
+    {
         final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        ftpClient.retrieveFile(fileName, byteArrayOutputStream);
-        final ByteArrayInputStream inputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
-        readZippedByteStream(inputStream, fileName, storage);
+        ftpClient.retrieveFile( fileName, byteArrayOutputStream );
+        final ByteArrayInputStream inputStream = new ByteArrayInputStream( byteArrayOutputStream.toByteArray() );
+        readZippedByteStream( inputStream, fileName, storage );
     }
 
-    private void readZippedByteStream(final InputStream inputStream, final String fileName, final Storage storage) throws Exception {
-        try {
-            final ZipInputStream zipInputStream = new ZipInputStream(inputStream);
+    private void readZippedByteStream( final InputStream inputStream, final String fileName, final Storage storage ) throws Exception
+    {
+        try
+        {
+            final ZipInputStream zipInputStream = new ZipInputStream( inputStream );
             final ZipEntry zipEntry = zipInputStream.getNextEntry();
             final String zipEntryName = zipEntry.getName();
-            if (zipEntryName != null && zipEntryName.endsWith(".json")) {
-                LOGGER.info("reading ftp file " + fileName + ":" + zipEntryName);
+            if ( zipEntryName != null && zipEntryName.endsWith( ".json" ) )
+            {
+                LOGGER.info( "reading ftp file " + fileName + ":" + zipEntryName );
                 final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                final byte[] buffer = new byte[1024];
+                final byte[] buffer = new byte[ 1024 ];
                 int len;
-                while ((len = zipInputStream.read(buffer)) > 0) {
-                    byteArrayOutputStream.write(buffer, 0, len);
+                while ( ( len = zipInputStream.read( buffer ) ) > 0 )
+                {
+                    byteArrayOutputStream.write( buffer, 0, len );
                 }
-                final String resultsStr = byteArrayOutputStream.toString(PwmConstants.DEFAULT_CHARSET.name());
-                final TelemetryPublishBean bean = JsonUtil.deserialize(resultsStr, TelemetryPublishBean.class);
-                storage.store(bean);
+                final String resultsStr = byteArrayOutputStream.toString( PwmConstants.DEFAULT_CHARSET.name() );
+                final TelemetryPublishBean bean = JsonUtil.deserialize( resultsStr, TelemetryPublishBean.class );
+                storage.store( bean );
             }
-        } catch (Exception e) {
+        }
+        catch ( Exception e )
+        {
             final String msg = "error reading ftp file '" + fileName + "', error: " + e.getMessage();
-            LOGGER.info(msg);
-            throw new Exception(e);
+            LOGGER.info( msg );
+            throw new Exception( e );
         }
     }
 
-    private List<String> getFiles(final FTPClient ftpClient) throws IOException {
+    private List<String> getFiles( final FTPClient ftpClient ) throws IOException
+    {
         final String pathname = settings.getSetting( Settings.Setting.ftpReadPath );
-        final FTPFile[] files = ftpClient.listFiles(pathname);
+        final FTPFile[] files = ftpClient.listFiles( pathname );
         final List<String> returnFiles = new ArrayList<>();
-        for (final FTPFile ftpFile : files) {
+        for ( final FTPFile ftpFile : files )
+        {
             final String name = ftpFile.getName();
             final String fullPath = pathname + "/" + name;
-            returnFiles.add(fullPath);
+            returnFiles.add( fullPath );
         }
 
-        return Collections.unmodifiableList(returnFiles);
+        return Collections.unmodifiableList( returnFiles );
     }
 
-    private FTPClient getFtpClient() throws IOException {
+    private FTPClient getFtpClient( ) throws IOException
+    {
         final FTPClient ftpClient;
         final Settings.FtpMode ftpMode = Settings.FtpMode.valueOf( settings.getSetting( Settings.Setting.ftpMode ) );
-        switch ( ftpMode ) {
+        switch ( ftpMode )
+        {
             case ftp:
                 ftpClient = new FTPClient();
                 break;
@@ -147,14 +170,15 @@ class FtpDataIngestor {
                 break;
 
             default:
-                throw new IllegalArgumentException("unexpected ftp mode");
+                throw new IllegalArgumentException( "unexpected ftp mode" );
         }
 
-        ftpClient.connect( settings.getSetting( Settings.Setting.ftpSite ));
-        LOGGER.info("ftp connect complete");
-        if (!StringUtil.isEmpty(settings.getSetting(Settings.Setting.ftpUser)) && !StringUtil.isEmpty(settings.getSetting( Settings.Setting.ftpPassword ))) {
-            final boolean loggedInSuccess = ftpClient.login( settings.getSetting(Settings.Setting.ftpUser), settings.getSetting( Settings.Setting.ftpPassword ));
-            LOGGER.info("ftp login complete, success=" + loggedInSuccess);
+        ftpClient.connect( settings.getSetting( Settings.Setting.ftpSite ) );
+        LOGGER.info( "ftp connect complete" );
+        if ( !StringUtil.isEmpty( settings.getSetting( Settings.Setting.ftpUser ) ) && !StringUtil.isEmpty( settings.getSetting( Settings.Setting.ftpPassword ) ) )
+        {
+            final boolean loggedInSuccess = ftpClient.login( settings.getSetting( Settings.Setting.ftpUser ), settings.getSetting( Settings.Setting.ftpPassword ) );
+            LOGGER.info( "ftp login complete, success=" + loggedInSuccess );
         }
         ftpClient.enterLocalPassiveMode();
         return ftpClient;

@@ -38,6 +38,7 @@ import password.pwm.http.client.PwmHttpClientResponse;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.X509Utils;
 
 import java.io.File;
 import java.io.IOException;
@@ -90,7 +91,7 @@ public class ApplianceStatusChecker implements HealthChecker
         final Map<String, String> requestHeaders = Collections.singletonMap( "sspr-authorization-token", getApplianceAccessToken( pwmApplication ) );
 
         final PwmHttpClientConfiguration pwmHttpClientConfiguration = PwmHttpClientConfiguration.builder()
-                .promiscuous( true )
+                .trustManager( new X509Utils.PromiscuousTrustManager() )
                 .build();
 
         final PwmHttpClient pwmHttpClient = new PwmHttpClient( pwmApplication, SessionLabel.HEALTH_SESSION_LABEL, pwmHttpClientConfiguration );

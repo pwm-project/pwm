@@ -52,7 +52,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -76,11 +75,6 @@ public class RandomPasswordGenerator
             "2", "3", "4", "5", "6", "7", "8", "9",
             "@", "&", "!", "?", "%", "$", "#", "^", ")", "(", "+", "-", "=", ".", ",", "/", "\\"
     ) ) );
-
-
-    private static final SeedMachine DEFAULT_SEED_MACHINE = new SeedMachine( DEFAULT_SEED_PHRASES );
-
-    private static final PwmRandom RANDOM = PwmRandom.getInstance();
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( RandomPasswordGenerator.class );
 
@@ -114,18 +108,19 @@ public class RandomPasswordGenerator
 
 
     /**
-     * Creates a new password that satisfies the password rules.  All rules are checked for.  If for some
-     * reason the RANDOM algorithm can not generate a valid password, null will be returned.
-     * <p/>
-     * If there is an identifiable reason the password can not be created (such as mis-configured rules) then
-     * an {@link com.novell.ldapchai.exception.ImpossiblePasswordPolicyException} will be thrown.
+     * <p>Creates a new password that satisfies the password rules.  All rules are checked for.  If for some
+     * reason the pwmRandom algorithm can not generate a valid password, null will be returned.</p>
+     *
+     * <p>If there is an identifiable reason the password can not be created (such as mis-configured rules) then
+     * an {@link com.novell.ldapchai.exception.ImpossiblePasswordPolicyException} will be thrown.</p>
      *
      * @param sessionLabel          A valid pwmSession
      * @param randomGeneratorConfig Policy to be used during generation
      * @param pwmApplication        Used to read configuration, seedmanager and other services.
      * @return A randomly generated password value that meets the requirements of this {@code PasswordPolicy}
-     * @throws com.novell.ldapchai.exception.ImpossiblePasswordPolicyException If there is no way to create a password using the configured rules and
-     *                                                                         default seed phrase
+     * @throws ImpossiblePasswordPolicyException If there is no way to create a password using the configured rules and
+     *                                        default seed phrase
+     * @throws PwmUnrecoverableException if the operation can not be completed
      */
     public static PasswordData createRandomPassword(
             final SessionLabel sessionLabel,
@@ -135,6 +130,7 @@ public class RandomPasswordGenerator
             throws PwmUnrecoverableException
     {
         final Instant startTimeMS = Instant.now();
+        final PwmRandom pwmRandom = pwmApplication.getSecureService().pwmRandom();
 
         randomGeneratorConfig.validateSettings( pwmApplication );
 
@@ -169,7 +165,7 @@ public class RandomPasswordGenerator
             }
         }
 
-        final SeedMachine seedMachine = new SeedMachine( normalizeSeeds( effectiveConfig.getSeedlistPhrases() ) );
+        final SeedMachine seedMachine = new SeedMachine( pwmRandom, normalizeSeeds( effectiveConfig.getSeedlistPhrases() ) );
 
         int tryCount = 0;
         final StringBuilder password = new StringBuilder();
@@ -198,7 +194,7 @@ public class RandomPasswordGenerator
         }
 
         // initial creation
-        password.append( generateNewPassword( seedMachine, effectiveConfig.getMinimumLength() ) );
+        password.append( generateNewPassword( pwmRandom, seedMachine, effectiveConfig.getMinimumLength() ) );
 
         // read a rule validator
         final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator( pwmApplication, randomGenPolicy );
@@ -215,7 +211,7 @@ public class RandomPasswordGenerator
             if ( tryCount % jitterCount == 0 )
             {
                 password.delete( 0, password.length() );
-                password.append( generateNewPassword( seedMachine, effectiveConfig.getMinimumLength() ) );
+                password.append( generateNewPassword( pwmRandom, seedMachine, effectiveConfig.getMinimumLength() ) );
             }
 
             final List<ErrorInformation> errors = pwmPasswordRuleValidator.internalPwmPolicyValidator(
@@ -223,13 +219,13 @@ public class RandomPasswordGenerator
             if ( errors != null && !errors.isEmpty() )
             {
                 validPassword = false;
-                modifyPasswordBasedOnErrors( password, errors, seedMachine );
+                modifyPasswordBasedOnErrors( pwmRandom, password, errors, seedMachine );
             }
             else if ( checkPasswordAgainstDisallowedHttpValues( pwmApplication.getConfig(), password.toString() ) )
             {
                 validPassword = false;
                 password.delete( 0, password.length() );
-                password.append( generateNewPassword( seedMachine, effectiveConfig.getMinimumLength() ) );
+                password.append( generateNewPassword( pwmRandom, seedMachine, effectiveConfig.getMinimumLength() ) );
             }
         }
 
@@ -261,6 +257,7 @@ public class RandomPasswordGenerator
     }
 
     private static void modifyPasswordBasedOnErrors(
+            final PwmRandom pwmRandom,
             final StringBuilder password,
             final List<ErrorInformation> errors,
             final SeedMachine seedMachine
@@ -281,13 +278,13 @@ public class RandomPasswordGenerator
 
         if ( errorMessages.contains( PwmError.PASSWORD_TOO_SHORT ) )
         {
-            addRandChar( password, seedMachine.getAllChars() );
+            addRandChar( pwmRandom, password, seedMachine.getAllChars() );
             touched = true;
         }
 
         if ( errorMessages.contains( PwmError.PASSWORD_TOO_LONG ) )
         {
-            password.deleteCharAt( RANDOM.nextInt( password.length() ) );
+            password.deleteCharAt( pwmRandom.nextInt( password.length() ) );
             touched = true;
         }
 
@@ -305,70 +302,74 @@ public class RandomPasswordGenerator
 
         if ( errorMessages.contains( PwmError.PASSWORD_NOT_ENOUGH_NUM ) )
         {
-            addRandChar( password, seedMachine.getNumChars() );
+            addRandChar( pwmRandom, password, seedMachine.getNumChars() );
             touched = true;
         }
 
         if ( errorMessages.contains( PwmError.PASSWORD_NOT_ENOUGH_SPECIAL ) )
         {
-            addRandChar( password, seedMachine.getSpecialChars() );
+            addRandChar( pwmRandom, password, seedMachine.getSpecialChars() );
             touched = true;
         }
 
         if ( errorMessages.contains( PwmError.PASSWORD_NOT_ENOUGH_UPPER ) )
         {
-            addRandChar( password, seedMachine.getUpperChars() );
+            addRandChar( pwmRandom, password, seedMachine.getUpperChars() );
             touched = true;
         }
 
         if ( errorMessages.contains( PwmError.PASSWORD_NOT_ENOUGH_LOWER ) )
         {
-            addRandChar( password, seedMachine.getLowerChars() );
+            addRandChar( pwmRandom, password, seedMachine.getLowerChars() );
             touched = true;
         }
 
         PasswordCharCounter passwordCharCounter = new PasswordCharCounter( password.toString() );
         if ( errorMessages.contains( PwmError.PASSWORD_TOO_MANY_NUMERIC ) && passwordCharCounter.getNumericCharCount() > 0 )
         {
-            deleteRandChar( password, passwordCharCounter.getNumericChars() );
+            deleteRandChar( pwmRandom, password, passwordCharCounter.getNumericChars() );
             touched = true;
             passwordCharCounter = new PasswordCharCounter( password.toString() );
         }
 
         if ( errorMessages.contains( PwmError.PASSWORD_TOO_MANY_SPECIAL ) && passwordCharCounter.getSpecialCharsCount() > 0 )
         {
-            deleteRandChar( password, passwordCharCounter.getSpecialChars() );
+            deleteRandChar( pwmRandom, password, passwordCharCounter.getSpecialChars() );
             touched = true;
             passwordCharCounter = new PasswordCharCounter( password.toString() );
         }
 
         if ( errorMessages.contains( PwmError.PASSWORD_TOO_MANY_UPPER ) && passwordCharCounter.getUpperCharCount() > 0 )
         {
-            deleteRandChar( password, passwordCharCounter.getUpperChars() );
+            deleteRandChar( pwmRandom, password, passwordCharCounter.getUpperChars() );
             touched = true;
             passwordCharCounter = new PasswordCharCounter( password.toString() );
         }
 
         if ( errorMessages.contains( PwmError.PASSWORD_TOO_MANY_LOWER ) && passwordCharCounter.getLowerCharCount() > 0 )
         {
-            deleteRandChar( password, passwordCharCounter.getLowerChars() );
+            deleteRandChar( pwmRandom, password, passwordCharCounter.getLowerChars() );
             touched = true;
         }
 
         if ( errorMessages.contains( PwmError.PASSWORD_TOO_WEAK ) )
         {
-            randomPasswordModifier( password, seedMachine );
+            randomPasswordModifier( pwmRandom, password, seedMachine );
             touched = true;
         }
 
         if ( !touched )
         {
-            // dunno whats wrong, try just deleting a RANDOM char, and hope a re-insert will add another.
-            randomPasswordModifier( password, seedMachine );
+            // dunno whats wrong, try just deleting a pwmRandom char, and hope a re-insert will add another.
+            randomPasswordModifier( pwmRandom, password, seedMachine );
         }
     }
 
-    private static void deleteRandChar( final StringBuilder password, final String charsToRemove )
+    private static void deleteRandChar(
+            final PwmRandom pwmRandom,
+            final StringBuilder password,
+            final String charsToRemove
+    )
             throws ImpossiblePasswordPolicyException
     {
         final List<Integer> removePossibilities = new ArrayList<>();
@@ -385,39 +386,46 @@ public class RandomPasswordGenerator
         {
             throw new ImpossiblePasswordPolicyException( ImpossiblePasswordPolicyException.ErrorEnum.UNEXPECTED_ERROR );
         }
-        final Integer charToDelete = removePossibilities.get( RANDOM.nextInt( removePossibilities.size() ) );
+        final Integer charToDelete = removePossibilities.get( pwmRandom.nextInt( removePossibilities.size() ) );
         password.deleteCharAt( charToDelete );
     }
 
-    private static void randomPasswordModifier( final StringBuilder password, final SeedMachine seedMachine )
+    private static void randomPasswordModifier(
+            final PwmRandom pwmRandom,
+            final StringBuilder password,
+            final SeedMachine seedMachine
+    )
     {
-        switch ( RANDOM.nextInt( 6 ) )
+        switch ( pwmRandom.nextInt( 6 ) )
         {
             case 0:
             case 1:
-                addRandChar( password, seedMachine.getSpecialChars() );
+                addRandChar( pwmRandom, password, seedMachine.getSpecialChars() );
                 break;
             case 2:
             case 3:
-                addRandChar( password, seedMachine.getNumChars() );
+                addRandChar( pwmRandom, password, seedMachine.getNumChars() );
                 break;
             case 4:
-                addRandChar( password, seedMachine.getUpperChars() );
+                addRandChar( pwmRandom, password, seedMachine.getUpperChars() );
                 break;
             case 5:
-                addRandChar( password, seedMachine.getLowerChars() );
+                addRandChar( pwmRandom, password, seedMachine.getLowerChars() );
                 break;
             default:
-                switchRandomCase( password );
+                switchRandomCase( pwmRandom, password );
                 break;
         }
     }
 
-    private static void switchRandomCase( final StringBuilder password )
+    private static void switchRandomCase(
+            final PwmRandom pwmRandom,
+            final StringBuilder password
+    )
     {
         for ( int i = 0; i < password.length(); i++ )
         {
-            final int randspot = RANDOM.nextInt( password.length() );
+            final int randspot = pwmRandom.nextInt( password.length() );
             final char oldChar = password.charAt( randspot );
             if ( Character.isLetter( oldChar ) )
             {
@@ -429,14 +437,14 @@ public class RandomPasswordGenerator
         }
     }
 
-    private static void addRandChar( final StringBuilder password, final String allowedChars )
+    private static void addRandChar( final PwmRandom pwmRandom, final StringBuilder password, final String allowedChars )
             throws ImpossiblePasswordPolicyException
     {
-        final int insertPosition = RANDOM.nextInt( password.length() );
-        addRandChar( password, allowedChars, insertPosition );
+        final int insertPosition = pwmRandom.nextInt( password.length() );
+        addRandChar( pwmRandom, password, allowedChars, insertPosition );
     }
 
-    private static void addRandChar( final StringBuilder password, final String allowedChars, final int insertPosition )
+    private static void addRandChar( final PwmRandom pwmRandom, final StringBuilder password, final String allowedChars, final int insertPosition )
             throws ImpossiblePasswordPolicyException
     {
         if ( allowedChars.length() < 1 )
@@ -445,7 +453,7 @@ public class RandomPasswordGenerator
         }
         else
         {
-            final int newCharPosition = RANDOM.nextInt( allowedChars.length() );
+            final int newCharPosition = pwmRandom.nextInt( allowedChars.length() );
             final char charToAdd = allowedChars.charAt( newCharPosition );
             password.insert( insertPosition, charToAdd );
         }
@@ -474,16 +482,28 @@ public class RandomPasswordGenerator
     protected static class SeedMachine
     {
         private final Collection<String> seeds;
-        private final String allChars;
-        private final String numChars;
-        private final String specialChars;
-        private final String upperChars;
-        private final String lowerChars;
+        private final PwmRandom pwmRandom;
 
-        public SeedMachine( final Collection<String> seeds )
+        private String allChars;
+        private String numChars;
+        private String specialChars;
+        private String upperChars;
+        private String lowerChars;
+
+        public SeedMachine( final PwmRandom pwmRandom, final Collection<String> seeds )
         {
+            this.pwmRandom = pwmRandom;
             this.seeds = seeds;
+        }
 
+        public String getRandomSeed( )
+        {
+            return new ArrayList<>( seeds ).get( pwmRandom.nextInt( seeds.size() ) );
+        }
+
+        public String getAllChars( )
+        {
+            if ( allChars == null )
             {
                 final StringBuilder sb = new StringBuilder();
                 for ( final String s : seeds )
@@ -496,90 +516,85 @@ public class RandomPasswordGenerator
                         }
                     }
                 }
-                allChars = sb.length() > 2 ? sb.toString() : ( new SeedMachine( DEFAULT_SEED_PHRASES ) ).getAllChars();
+                allChars = sb.length() > 2 ? sb.toString() : ( new SeedMachine( pwmRandom, DEFAULT_SEED_PHRASES ) ).getAllChars();
             }
 
+            return allChars;
+        }
+
+        public String getNumChars( )
+        {
+            if ( numChars == null )
             {
                 final StringBuilder sb = new StringBuilder();
-                for ( final Character c : allChars.toCharArray() )
+                for ( final Character c : getAllChars().toCharArray() )
                 {
                     if ( Character.isDigit( c ) )
                     {
                         sb.append( c );
                     }
                 }
-                numChars = sb.length() > 2 ? sb.toString() : ( new SeedMachine( DEFAULT_SEED_PHRASES ) ).getNumChars();
+                numChars = sb.length() > 2 ? sb.toString() : ( new SeedMachine( pwmRandom, DEFAULT_SEED_PHRASES ) ).getNumChars();
             }
 
+            return numChars;
+        }
+
+        public String getSpecialChars( )
+        {
+            if ( specialChars == null )
             {
                 final StringBuilder sb = new StringBuilder();
-                for ( final Character c : allChars.toCharArray() )
+                for ( final Character c : getAllChars().toCharArray() )
                 {
                     if ( !Character.isLetterOrDigit( c ) )
                     {
                         sb.append( c );
                     }
                 }
-                specialChars = sb.length() > 2 ? sb.toString() : ( new SeedMachine( DEFAULT_SEED_PHRASES ) ).getSpecialChars();
+                specialChars = sb.length() > 2 ? sb.toString() : ( new SeedMachine( pwmRandom, DEFAULT_SEED_PHRASES ) ).getSpecialChars();
             }
 
-            {
-                final StringBuilder sb = new StringBuilder();
-                for ( final Character c : allChars.toCharArray() )
-                {
-                    if ( Character.isLowerCase( c ) )
-                    {
-                        sb.append( c );
-                    }
-                }
-                lowerChars = sb.length() > 0 ? sb.toString() : ( new SeedMachine( DEFAULT_SEED_PHRASES ) ).getLowerChars();
-            }
+            return specialChars;
+        }
 
+        public String getUpperChars( )
+        {
+            if ( upperChars == null )
             {
                 final StringBuilder sb = new StringBuilder();
-                for ( final Character c : allChars.toCharArray() )
+                for ( final Character c : getAllChars().toCharArray() )
                 {
                     if ( Character.isUpperCase( c ) )
                     {
                         sb.append( c );
                     }
                 }
-                upperChars = sb.length() > 0 ? sb.toString() : ( new SeedMachine( DEFAULT_SEED_PHRASES ) ).getUpperChars();
+                upperChars = sb.length() > 0 ? sb.toString() : ( new SeedMachine( pwmRandom, DEFAULT_SEED_PHRASES ) ).getUpperChars();
             }
-        }
-
-        public String getRandomSeed( )
-        {
-            return new ArrayList<>( seeds ).get( RANDOM.nextInt( seeds.size() ) );
-        }
-
-        public String getAllChars( )
-        {
-            return allChars;
-        }
-
-        public String getNumChars( )
-        {
-            return numChars;
-        }
-
-        public String getSpecialChars( )
-        {
-            return specialChars;
-        }
-
-        public String getUpperChars( )
-        {
             return upperChars;
         }
 
         public String getLowerChars( )
         {
+            if ( lowerChars == null )
+            {
+                final StringBuilder sb = new StringBuilder();
+                for ( final Character c : getAllChars().toCharArray() )
+                {
+                    if ( Character.isLowerCase( c ) )
+                    {
+                        sb.append( c );
+                    }
+                }
+                lowerChars = sb.length() > 0 ? sb.toString() : ( new SeedMachine( pwmRandom, DEFAULT_SEED_PHRASES ) ).getLowerChars();
+            }
+
             return lowerChars;
         }
     }
 
-    private static String generateNewPassword( final SeedMachine seedMachine, final int desiredLength )
+    private static String generateNewPassword( final PwmRandom pwmRandom, final SeedMachine seedMachine, final int desiredLength )
     {
         final StringBuilder password = new StringBuilder();
 
@@ -589,14 +604,15 @@ public class RandomPasswordGenerator
             password.append( seedMachine.getRandomSeed() );
         }
 
-        if ( RANDOM.nextInt( 3 ) == 0 )
+        if ( pwmRandom.nextInt( 3 ) == 0 )
         {
-            addRandChar( password, DEFAULT_SEED_MACHINE.getNumChars(), RANDOM.nextInt( password.length() ) );
+            final SeedMachine defaultSeedMachine = new SeedMachine( pwmRandom, DEFAULT_SEED_PHRASES );
+            addRandChar( pwmRandom, password, defaultSeedMachine.getNumChars(), pwmRandom.nextInt( password.length() ) );
         }
 
-        if ( RANDOM.nextBoolean() )
+        if ( pwmRandom.nextBoolean() )
         {
-            switchRandomCase( password );
+            switchRandomCase( pwmRandom, password );
         }
 
         return password.toString();
@@ -604,23 +620,13 @@ public class RandomPasswordGenerator
 
     private static Collection<String> normalizeSeeds( final Collection<String> inputSeeds )
     {
-
         if ( inputSeeds == null )
         {
             return DEFAULT_SEED_PHRASES;
         }
 
-        final Collection<String> newSeeds = new HashSet<>();
-        newSeeds.addAll( inputSeeds );
-
-        for ( final Iterator<String> iter = newSeeds.iterator(); iter.hasNext(); )
-        {
-            final String s = iter.next();
-            if ( s == null || s.length() < 1 )
-            {
-                iter.remove();
-            }
-        }
+        final Collection<String> newSeeds = new HashSet<>( inputSeeds );
+        newSeeds.removeIf( s -> s == null || s.length() < 1 );
 
         return newSeeds.isEmpty() ? DEFAULT_SEED_PHRASES : newSeeds;
     }
@@ -637,7 +643,7 @@ public class RandomPasswordGenerator
         private static final int MAXIMUM_STRENGTH = 100;
 
         /**
-         * A set of phrases (Strings) used to generate the RANDOM passwords.  There must be enough
+         * A set of phrases (Strings) used to generate the pwmRandom passwords.  There must be enough
          * values in the phrases to build a random password that meets rule requirements
          */
         @Builder.Default

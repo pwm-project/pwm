@@ -495,8 +495,7 @@ public class MainClass
 
         if ( runningMode != mode )
         {
-            out( "unable to start application in required state '" + mode + "', current state: " + runningMode );
-            System.exit( -1 );
+            out( "application is in non running state: " + runningMode );
         }
 
         return pwmApplication;

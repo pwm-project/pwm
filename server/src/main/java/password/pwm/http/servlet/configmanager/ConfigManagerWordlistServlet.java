@@ -23,6 +23,8 @@
 package password.pwm.http.servlet.configmanager;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import lombok.Builder;
+import lombok.Value;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -32,6 +34,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.JspUrl;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.bean.DisplayElement;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.i18n.Message;
 import password.pwm.svc.wordlist.StoredWordlistDataBean;
@@ -48,11 +51,11 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.List;
 
 @WebServlet(
         name = "ConfigManagerWordlistServlet",
@@ -199,7 +202,6 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
             throws IOException
     {
         final LinkedHashMap<WordlistType, WordlistDataBean> outputData = new LinkedHashMap<>();
-        final NumberFormat numberFormat = NumberFormat.getInstance( pwmRequest.getLocale() );
 
         for ( final WordlistType wordlistType : WordlistType.values() )
         {
@@ -207,81 +209,91 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
             final StoredWordlistDataBean storedWordlistDataBean = wordlist.readMetadata();
             final WordlistConfiguration wordlistConfiguration = wordlistType.forType( pwmRequest.getPwmApplication() ).getConfiguration();
 
-            final WordlistDataBean wordlistDataBean = new WordlistDataBean();
+            final WordlistDataBean.WordlistDataBeanBuilder builder = WordlistDataBean.builder();
             {
-                final Map<String, String> presentableValues = new LinkedHashMap<>();
-                presentableValues.put( "Population Status", storedWordlistDataBean.isCompleted() ? "Completed" : "In-Progress" );
-                presentableValues.put( "List Source", storedWordlistDataBean.getSource() == null
-                        ? StoredWordlistDataBean.Source.BuiltIn.getLabel()
-                        : storedWordlistDataBean.getSource().getLabel() );
+                final List<DisplayElement> presentableValues = new ArrayList<>();
+                presentableValues.add( new DisplayElement(
+                        wordlistType.name() + "_populationStatus",
+                        DisplayElement.Type.string,
+                        "Population Status",
+                        storedWordlistDataBean.isCompleted() ? "Completed" : "In-Progress" ) );
+                presentableValues.add( new DisplayElement(
+                        wordlistType.name() + "_listSource",
+                        DisplayElement.Type.string, "List Source",
+                        storedWordlistDataBean.getSource() == null
+                                ? StoredWordlistDataBean.Source.BuiltIn.getLabel()
+                                : storedWordlistDataBean.getSource().getLabel() ) );
                 if ( wordlistConfiguration.getAutoImportUrl() != null )
                 {
-                    presentableValues.put( "Configured Source URL", wordlistConfiguration.getAutoImportUrl() );
+                    presentableValues.add( new DisplayElement(
+                            wordlistType.name() + "_sourceURL",
+                            DisplayElement.Type.string,
+                            "Configured Source URL",
+                            wordlistConfiguration.getAutoImportUrl() ) );
                 }
+
+                presentableValues.add( new DisplayElement(
+                        wordlistType.name() + "_wordCount",
+                        DisplayElement.Type.number,
+                        "Word Count",
+                        Integer.toString( storedWordlistDataBean.getSize() ) ) );
 
                 if ( storedWordlistDataBean.isCompleted() )
                 {
-                    presentableValues.put( "Word Count", numberFormat.format( storedWordlistDataBean.getSize() ) );
+
                     if ( StoredWordlistDataBean.Source.BuiltIn != storedWordlistDataBean.getSource() )
                     {
-                        presentableValues.put( "Population Timestamp", JavaHelper.toIsoDate( storedWordlistDataBean.getStoreDate() ) );
+                        presentableValues.add( new DisplayElement(
+                                wordlistType.name() + "_populationTimestamp",
+                                DisplayElement.Type.string,
+                                "Population Timestamp",
+                                JavaHelper.toIsoDate( storedWordlistDataBean.getStoreDate() ) ) );
                     }
-                    presentableValues.put( "SHA1 Checksum Hash", storedWordlistDataBean.getSha1hash() );
+                    presentableValues.add( new DisplayElement(
+                            wordlistType.name() + "_sha1Hash",
+                            DisplayElement.Type.string,
+                            "SHA1 Checksum Hash",
+                            storedWordlistDataBean.getSha1hash() ) );
                 }
                 if ( wordlist.getAutoImportError() != null )
                 {
-                    presentableValues.put( "Error During Import", wordlist.getAutoImportError().getDetailedErrorMsg() );
-                    presentableValues.put( "Last Import Attempt", JavaHelper.toIsoDate( wordlist.getAutoImportError().getDate() ) );
+                    presentableValues.add( new DisplayElement(
+                            wordlistType.name() + "_lastImportError",
+                            DisplayElement.Type.string,
+                            "Error During Import",
+                            wordlist.getAutoImportError().getDetailedErrorMsg() ) );
+                    presentableValues.add( new DisplayElement(
+                            wordlistType.name() + "_lastImportAttempt",
+                            DisplayElement.Type.string,
+                            "Last Import Attempt",
+                            JavaHelper.toIsoDate( wordlist.getAutoImportError().getDate() ) ) );
                 }
-                wordlistDataBean.getPresentableData().putAll( presentableValues );
+                builder.presentableData( Collections.unmodifiableList( presentableValues ) );
             }
 
             if ( storedWordlistDataBean.isCompleted() )
             {
                 if ( wordlistConfiguration.getAutoImportUrl() == null )
                 {
-                    wordlistDataBean.setAllowUpload( true );
+                    builder.allowUpload( true );
                 }
                 if ( wordlistConfiguration.getAutoImportUrl() != null || storedWordlistDataBean.getSource() != StoredWordlistDataBean.Source.BuiltIn )
                 {
-                    wordlistDataBean.setAllowClear( true );
+                    builder.allowClear( true );
                 }
             }
-            outputData.put( wordlistType, wordlistDataBean );
+            outputData.put( wordlistType, builder.build() );
         }
         pwmRequest.outputJsonResult( RestResultBean.withData( outputData ) );
     }
 
+    @Value
+    @Builder
     public static class WordlistDataBean implements Serializable
     {
-        private Map<String, String> presentableData = new LinkedHashMap<>();
+        private List<DisplayElement> presentableData;
         private boolean allowUpload;
         private boolean allowClear;
-
-        public Map<String, String> getPresentableData( )
-        {
-            return presentableData;
-        }
-
-        public boolean isAllowUpload( )
-        {
-            return allowUpload;
-        }
-
-        public void setAllowUpload( final boolean allowUpload )
-        {
-            this.allowUpload = allowUpload;
-        }
-
-        public boolean isAllowClear( )
-        {
-            return allowClear;
-        }
-
-        public void setAllowClear( final boolean allowClear )
-        {
-            this.allowClear = allowClear;
-        }
     }
 }
 

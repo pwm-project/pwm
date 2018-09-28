@@ -555,16 +555,16 @@ public class AdminServlet extends ControlledPwmServlet
         final String days = pwmRequest.readParameterAsString( "days" );
 
         final StatisticsManager statisticsManager = pwmRequest.getPwmApplication().getStatisticsManager();
-        final RestStatisticsServer.JsonOutput jsonOutput = new RestStatisticsServer.JsonOutput();
-        jsonOutput.EPS = RestStatisticsServer.addEpsStats( statisticsManager );
+        final RestStatisticsServer.OutputVersion1.JsonOutput jsonOutput = new RestStatisticsServer.OutputVersion1.JsonOutput();
+        jsonOutput.EPS = RestStatisticsServer.OutputVersion1.addEpsStats( statisticsManager );
 
         if ( statName != null && statName.length() > 0 )
         {
-            jsonOutput.nameData = RestStatisticsServer.doNameStat( statisticsManager, statName, days );
+            jsonOutput.nameData = RestStatisticsServer.OutputVersion1.doNameStat( statisticsManager, statName, days );
         }
         else
         {
-            jsonOutput.keyData = RestStatisticsServer.doKeyStat( statisticsManager, statKey );
+            jsonOutput.keyData = RestStatisticsServer.OutputVersion1.doKeyStat( statisticsManager, statKey );
         }
 
         final RestResultBean restResultBean = RestResultBean.withData( jsonOutput );
@@ -589,12 +589,7 @@ public class AdminServlet extends ControlledPwmServlet
             final AdminBean adminBean = pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, AdminBean.class );
             adminBean.setLastUserDebug( userIdentity );
         }
-        catch ( PwmUnrecoverableException e )
-        {
-            setLastError( pwmRequest, e.getErrorInformation() );
-            return;
-        }
-        catch ( PwmOperationalException e )
+        catch ( PwmUnrecoverableException | PwmOperationalException e )
         {
             setLastError( pwmRequest, e.getErrorInformation() );
             return;

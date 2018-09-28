@@ -34,9 +34,11 @@ import javax.annotation.CheckReturnValue;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.io.StringWriter;
 import java.lang.management.LockInfo;
 import java.lang.management.MonitorInfo;
@@ -157,7 +159,7 @@ public class JavaHelper
             }
             catch ( InterruptedException e )
             {
-                //who cares
+                // ignore
             }
         }
         while ( ( System.currentTimeMillis() - startTime ) < sleepTimeMS );
@@ -172,7 +174,7 @@ public class JavaHelper
     )
     {
         final long startTime = System.currentTimeMillis();
-        final long pauseTime = Math.max( sleepTimeMS, predicateCheckIntervalMS );
+        final long pauseTime = Math.min( sleepTimeMS, predicateCheckIntervalMS );
         while ( ( System.currentTimeMillis() - startTime ) < sleepTimeMS )
         {
             JavaHelper.pause( pauseTime );
@@ -470,6 +472,8 @@ public class JavaHelper
 
     /**
      * Copy of {@link ThreadInfo#toString()} but with the MAX_FRAMES changed from 8 to 256.
+     * @param threadInfo thread information
+     * @return a stacktrace string with newline formatting
      */
     public static String threadInfoToString( final ThreadInfo threadInfo )
     {
@@ -620,5 +624,27 @@ public class JavaHelper
         }
 
         return Optional.empty();
+    }
+
+    /**
+     * Very naive implementation to get a rough order estimate of object memory size, used for debug
+     * purposes only.
+     * @param object object to be analyzed
+     * @return size of object (very rough estimate)
+     */
+    public static long sizeof( final Serializable object )
+    {
+        try ( ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream() )
+        {
+            final ObjectOutputStream out = new ObjectOutputStream( byteArrayOutputStream );
+            out.writeObject( object );
+            out.flush();
+            return byteArrayOutputStream.toByteArray().length;
+        }
+        catch ( IOException e )
+        {
+            LOGGER.debug( "exception while estimating session size: " + e.getMessage() );
+            return 0;
+        }
     }
 }

@@ -62,7 +62,7 @@ public class HttpEventManager implements
             final PwmApplication pwmApplication = contextManager.getPwmApplication();
             httpSession.setAttribute( PwmConstants.SESSION_ATTR_PWM_APP_NONCE, pwmApplication.getRuntimeNonce() );
 
-            if ( pwmApplication != null && pwmApplication.getStatisticsManager() != null )
+            if ( pwmApplication.getStatisticsManager() != null )
             {
                 pwmApplication.getStatisticsManager().updateEps( EpsStatistic.SESSIONS, 1 );
             }
@@ -87,7 +87,7 @@ public class HttpEventManager implements
                 {
                     pwmSession.unauthenticateUser( null );
                 }
-                final PwmApplication pwmApplication = ContextManager.getPwmApplication( httpSession );
+                final PwmApplication pwmApplication = ContextManager.getPwmApplication( httpSession.getServletContext() );
                 if ( pwmApplication != null )
                 {
                     pwmApplication.getSessionTrackService().removeSessionData( pwmSession );
@@ -169,7 +169,7 @@ public class HttpEventManager implements
             final HttpSession httpSession = event.getSession();
             final PwmSession pwmSession = PwmSessionWrapper.readPwmSession( httpSession );
             LOGGER.trace( pwmSession.getLabel(), "activating (de-passivating) session" );
-            final PwmApplication pwmApplication = ContextManager.getPwmApplication( httpSession );
+            final PwmApplication pwmApplication = ContextManager.getPwmApplication( httpSession.getServletContext() );
             if ( pwmApplication != null )
             {
                 pwmApplication.getSessionTrackService().addSessionData( pwmSession );

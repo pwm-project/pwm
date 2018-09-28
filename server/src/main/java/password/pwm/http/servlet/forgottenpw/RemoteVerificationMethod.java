@@ -44,7 +44,6 @@ import password.pwm.ldap.UserInfo;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
-import password.pwm.util.secure.PwmRandom;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -58,7 +57,7 @@ public class RemoteVerificationMethod implements VerificationMethodSystem
     private static final PwmLogger LOGGER = PwmLogger.forClass( RemoteVerificationMethod.class );
 
 
-    private String remoteSessionID = PwmRandom.getInstance().randomUUID().toString();
+    private String remoteSessionID;
 
     private RemoteVerificationResponseBean lastResponse;
     private PwmHttpClient pwmHttpClient;
@@ -120,6 +119,7 @@ public class RemoteVerificationMethod implements VerificationMethodSystem
     public void init( final PwmApplication pwmApplication, final UserInfo userInfo, final SessionLabel sessionLabel, final Locale locale ) throws PwmUnrecoverableException
     {
         pwmHttpClient = new PwmHttpClient( pwmApplication, sessionLabel );
+        this.remoteSessionID = pwmApplication.getSecureService().pwmRandom().randomUUID().toString();
         this.userInfo = userInfo;
         this.sessionLabel = sessionLabel;
         this.locale = locale;

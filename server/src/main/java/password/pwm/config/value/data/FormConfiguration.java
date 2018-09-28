@@ -437,6 +437,11 @@ public class FormConfiguration implements Serializable
 
     /**
      * Return false if an invalid email address is issued.
+     *
+     * @param config application configuration
+     * @param address the email address value to test.
+     *
+     * @return true if the email address is valid.
      */
     public static boolean testEmailAddress( final Configuration config, final String address )
     {

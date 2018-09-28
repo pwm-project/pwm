@@ -23,19 +23,19 @@
 package password.pwm.bean;
 
 import lombok.Data;
+import password.pwm.PwmApplication;
 import password.pwm.ldap.UserInfoBean;
-import password.pwm.util.secure.PwmRandom;
 
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.Locale;
 
 /**
- * Only information that is particular to the http session is stored in the
- * session bean.  Information more topical to the user is stored in {@link UserInfoBean}.
- * <p/>
- * For any given HTTP session using PWM, one and only one {@link LocalSessionStateBean} will be
- * created.
+ * <p>Only information that is particular to the http session is stored in the
+ * session bean.  Information more topical to the user is stored in {@link UserInfoBean}.</p>
+ *
+ * <p>For any given HTTP session using PWM, one and only one {@link LocalSessionStateBean} will be
+ * created.</p>
  *
  * @author Jason D. Rivard
  */
@@ -86,9 +86,9 @@ public class LocalSessionStateBean implements Serializable
         intruderAttempts = 0;
     }
 
-    public void regenerateSessionVerificationKey( )
+    public void regenerateSessionVerificationKey( final PwmApplication pwmApplication )
     {
-        sessionVerificationKey = PwmRandom.getInstance().alphaNumericString( sessionVerificationKeyLength ) + Long.toHexString( System.currentTimeMillis() );
+        sessionVerificationKey = pwmApplication.getSecureService().pwmRandom().alphaNumericString( sessionVerificationKeyLength ) + Long.toHexString( System.currentTimeMillis() );
     }
 }
 

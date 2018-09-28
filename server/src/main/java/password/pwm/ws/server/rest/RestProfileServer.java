@@ -61,8 +61,10 @@ import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @WebServlet(
         urlPatterns = {
@@ -72,6 +74,8 @@ import java.util.Map;
 @RestWebServer( webService = WebServiceUsage.RandomPassword, requireAuthentication = false )
 public class RestProfileServer extends RestServlet
 {
+
+    private static final String FIELD_USERNAME = "username";
 
     @Data
     public static class JsonProfileData implements Serializable
@@ -191,7 +195,13 @@ public class RestProfileServer extends RestServlet
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
     {
-        final TargetUserIdentity targetUserIdentity = RestUtility.resolveRequestedUsername( restRequest, jsonInput.getUsername() );
+        final String username = RestUtility.readValueFromJsonAndParam(
+                jsonInput.getUsername(),
+                restRequest.readParameterAsString( FIELD_USERNAME ),
+                FIELD_USERNAME, RestUtility.ReadValueFlag.optional
+        );
+
+        final TargetUserIdentity targetUserIdentity = RestUtility.resolveRequestedUsername( restRequest, username );
 
         final String updateProfileID = ProfileUtility.discoverProfileIDforUser(
                 restRequest.getPwmApplication(),
@@ -225,13 +235,20 @@ public class RestProfileServer extends RestServlet
 
         final FormMap inputFormData = new FormMap( jsonInput.profile );
         final List<FormConfiguration> profileForm = updateProfileProfile.readSettingAsForm( PwmSetting.UPDATE_PROFILE_FORM );
+        final Set<String> attributesInRequest = new HashSet<>( inputFormData.keySet() );
         final Map<FormConfiguration, String> profileFormData = new HashMap<>();
         for ( final FormConfiguration formConfiguration : profileForm )
         {
             if ( !formConfiguration.isReadonly() && inputFormData.containsKey( formConfiguration.getName() ) )
             {
                 profileFormData.put( formConfiguration, inputFormData.get( formConfiguration.getName() ) );
+                attributesInRequest.remove( formConfiguration.getName() );
             }
+        }
+
+        if ( !attributesInRequest.isEmpty() )
+        {
+            throw new PwmUnrecoverableException( PwmError.ERROR_REST_INVOCATION_ERROR, "unknown profile data field '" + attributesInRequest.iterator().next() + "'" );
         }
 
         final UserInfo userInfo = UserInfoFactory.newUserInfo(

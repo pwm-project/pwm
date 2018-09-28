@@ -30,12 +30,12 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.svc.stats.EventRateMeter;
+import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.PwmRandom;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -71,7 +71,7 @@ public final class WorkQueueProcessor<W extends Serializable>
 
     private volatile WorkerThread workerThread;
 
-    private IDGenerator idGenerator = new IDGenerator();
+    private final AtomicLoopIntIncrementer idGenerator = new AtomicLoopIntIncrementer( 0 );
     private Instant eldestItem = null;
 
     private ThreadPoolExecutor executorService;
@@ -90,22 +90,6 @@ public final class WorkQueueProcessor<W extends Serializable>
         FAILED,
         RETRY,
         NOOP,
-    }
-
-    private static class IDGenerator
-    {
-        private int currentID;
-
-        IDGenerator( )
-        {
-            currentID = PwmRandom.getInstance().nextInt();
-        }
-
-        synchronized String nextID( )
-        {
-            currentID += 1;
-            return Integer.toString( Math.abs( currentID ), 36 );
-        }
     }
 
     public WorkQueueProcessor(
@@ -161,34 +145,41 @@ public final class WorkQueueProcessor<W extends Serializable>
         final WorkerThread localWorkerThread = workerThread;
         workerThread = null;
 
+        final Instant startTime = Instant.now();
+        logger.debug( "attempting to flush queue prior to shutdown, items in queue=" + queueSize() );
+
         localWorkerThread.flushQueueAndClose();
-        final Instant shutdownStartTime = Instant.now();
 
-        if ( queueSize() > 0 )
+        if ( localWorkerThread.isRunning() )
         {
-            logger.debug( "attempting to flush queue prior to shutdown, items in queue=" + queueSize() );
-        }
-        while ( localWorkerThread.isRunning() && TimeDuration.fromCurrent( shutdownStartTime ).isLongerThan( settings.getMaxShutdownWaitTime() ) )
-        {
-            JavaHelper.pause( CLOSE_RETRY_CYCLE_INTERVAL.getTotalMilliseconds() );
+            JavaHelper.pause(
+                    settings.getMaxShutdownWaitTime().getMilliseconds(),
+                    CLOSE_RETRY_CYCLE_INTERVAL.getTotalMilliseconds(),
+                    o -> !localWorkerThread.isRunning() );
         }
 
+        final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
+        final String msg = "shutting down with " + queue.size() + " items remaining in work queue (" + timeDuration.asCompactString() + ")";
         if ( !queue.isEmpty() )
         {
-            logger.warn( "shutting down with " + queue.size() + " items remaining in work queue" );
+            logger.warn( msg );
+        }
+        else
+        {
+            logger.debug( msg );
         }
     }
 
     public void submitImmediate( final W workItem )
     {
-        final ItemWrapper<W> itemWrapper = new ItemWrapper<>( Instant.now(), workItem, idGenerator.nextID() );
+        final ItemWrapper<W> itemWrapper = new ItemWrapper<>( Instant.now(), workItem, String.valueOf( idGenerator.next() ) );
         sendAndQueueIfNecessary( itemWrapper );
     }
 
     public void submit( final W workItem )
             throws PwmOperationalException
     {
-        final ItemWrapper<W> itemWrapper = new ItemWrapper<>( Instant.now(), workItem, idGenerator.nextID() );
+        final ItemWrapper<W> itemWrapper = new ItemWrapper<>( Instant.now(), workItem, String.valueOf( idGenerator.next() ) );
 
         if ( settings.getPreThreads() < 0 )
         {
@@ -352,7 +343,10 @@ public final class WorkQueueProcessor<W extends Serializable>
             notifyWorkPending();
 
             // rest until not running for up to 3 seconds....
-            JavaHelper.pause( 3000, 50, o -> !running.get() );
+            if ( running.get() )
+            {
+                JavaHelper.pause( 3000, 10, o -> !running.get() );
+            }
         }
 
         void notifyWorkPending( )

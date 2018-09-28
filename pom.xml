@@ -24,26 +24,137 @@
 
     <properties>
         <warArtifactID>pwm-${project.version}.war</warArtifactID>
+        <dockerImageTag>pwm/pwm-webapp</dockerImageTag>
+
         <build.number>0</build.number>  <!-- default in case not set on command line -->
         <build.revision>0</build.revision>  <!-- default in case not set on command line -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
         <pwm.minimum.maven.version>3.2</pwm.minimum.maven.version>
         <timestamp.iso>${maven.build.timestamp}</timestamp.iso>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <project.root.basedir>${project.basedir}</project.root.basedir>
+
+        <skipTests>false</skipTests>
+        <skipSpotbugs>false</skipSpotbugs>
     </properties>
 
     <modules>
         <module>client</module>
+        <module>pwm-cr</module>
         <module>server</module>
+        <module>webapp</module>
         <module>onejar</module>
+        <module>data-service</module>
+        <module>rest-test-service</module>
         <module>docker</module>
     </modules>
+
+    <profiles>
+        <profile>
+            <id>skip-checkstyle</id>
+            <properties>
+                <checkstyle.skip>true</checkstyle.skip>
+            </properties>
+        </profile>
+        <profile>
+            <id>skip-spotbugs</id>
+            <properties>
+                <skipSpotbugs>true</skipSpotbugs>
+            </properties>
+        </profile>
+        <profile>
+            <id>skip-tests</id>
+            <properties>
+                <skipTests>true</skipTests>
+            </properties>
+        </profile>
+        <profile>
+            <id>skip-javadoc</id>
+            <properties>
+                <maven.javadoc.skip>true</maven.javadoc.skip>
+            </properties>
+        </profile>
+    </profiles>
 
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.0</version>
+                <configuration>
+                    <skipTests>${skipTests}</skipTests>
+                    <excludes>
+                        <exclude>**/password.pwm.manual.*</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.0.1</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <archive>
+                                <manifestEntries>
+                                    <Implementation-Archive-Name>pwm.javadoc</Implementation-Archive-Name>
+                                    <Implementation-Title>${project.name}</Implementation-Title>
+                                    <Implementation-Version>${project.version}</Implementation-Version>
+                                    <Implementation-Vendor>${project.organization.name}</Implementation-Vendor>
+                                    <Implementation-URL>${project.organization.url}</Implementation-URL>
+                                    <Implementation-Build-Java-Vendor>${java.vendor}</Implementation-Build-Java-Vendor>
+                                    <Implementation-Build-Java-Version>${java.version}</Implementation-Build-Java-Version>
+                                    <Implementation-Build>${build.number}</Implementation-Build>
+                                    <Implementation-Build-Timestamp>${timestamp.iso}</Implementation-Build-Timestamp>
+                                    <Implementation-Revision>${build.revision}</Implementation-Revision>
+                                    <Implementation-Version-Display>v${project.version} b${build.number} r${build.revision}</Implementation-Version-Display>
+                                </manifestEntries>
+                            </archive>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.0.1</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <includePom>true</includePom>
+                            <attach>true</attach>
+                            <archive>
+                                <manifestEntries>
+                                    <Implementation-Archive-Name>pwm.source</Implementation-Archive-Name>
+                                    <Implementation-Title>${project.name}</Implementation-Title>
+                                    <Implementation-Version>${project.version}</Implementation-Version>
+                                    <Implementation-Vendor>${project.organization.name}</Implementation-Vendor>
+                                    <Implementation-URL>${project.organization.url}</Implementation-URL>
+                                    <Implementation-Build-Java-Vendor>${java.vendor}</Implementation-Build-Java-Vendor>
+                                    <Implementation-Build-Java-Version>${java.version}</Implementation-Build-Java-Version>
+                                    <Implementation-Build>${build.number}</Implementation-Build>
+                                    <Implementation-Build-Timestamp>${timestamp.iso}</Implementation-Build-Timestamp>
+                                    <Implementation-Revision>${build.revision}</Implementation-Revision>
+                                    <Implementation-Version-Display>v${project.version} b${build.number} r${build.revision}</Implementation-Version-Display>
+                                </manifestEntries>
+                            </archive>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
-                <version>3.0.0-M1</version>
+                <version>3.0.0-M2</version>
                 <executions>
                     <execution>
                         <id>enforce-maven</id>
@@ -60,6 +171,127 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.0</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>3.0.0</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.puppycrawl.tools</groupId>
+                        <artifactId>checkstyle</artifactId>
+                        <version>8.12</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <id>checkstyle</id>
+                        <phase>validate</phase>
+                        <configuration>
+                            <propertyExpansion>basedir=${project.root.basedir}</propertyExpansion>
+                            <configLocation>${project.root.basedir}/build/checkstyle.xml</configLocation>
+                            <encoding>UTF-8</encoding>
+                            <consoleOutput>true</consoleOutput>
+                            <includeTestResources>false</includeTestResources>
+                            <failsOnError>true</failsOnError>
+                            <includes>**/*.java,**/*.jsp,**/*.properties,**/*.xml,**/*.css,**/*.svg</includes>
+                            <sourceDirectories>
+                                <directory>src/main</directory>
+                            </sourceDirectories>
+                        </configuration>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>checkstyle-header</id>
+                        <phase>validate</phase>
+                        <configuration>
+                            <propertyExpansion>basedir=${project.root.basedir}</propertyExpansion>
+                            <configLocation>${project.root.basedir}/build/checkstyle-header.xml</configLocation>
+                            <encoding>UTF-8</encoding>
+                            <consoleOutput>true</consoleOutput>
+                            <includeTestResources>false</includeTestResources>
+                            <failsOnError>true</failsOnError>
+                            <includes>**/**</includes>
+                            <sourceDirectories>
+                                <directory>src</directory>
+                            </sourceDirectories>
+                        </configuration>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.github.spotbugs</groupId>
+                <artifactId>spotbugs-maven-plugin</artifactId>
+                <version>3.1.6</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.github.spotbugs</groupId>
+                        <artifactId>spotbugs</artifactId>
+                        <version>3.1.7</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <fork>false</fork>
+                    <excludeFilterFile>${project.root.basedir}/build/spotbugs-exclude.xml</excludeFilterFile>
+                    <includeTests>false</includeTests>
+                    <skip>${skipSpotbugs}</skip>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
+
+    <reporting>
+        <plugins>
+            <plugin> <!-- checks owsp vulnerability database -->
+                <groupId>org.owasp</groupId>
+                <artifactId>dependency-check-maven</artifactId>
+                <version>3.3.2</version>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>aggregate</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+        </plugins>
+    </reporting>
+
+    <!-- common dependencies -->
+    <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.2</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.spotbugs</groupId>
+            <artifactId>spotbugs-annotations</artifactId>
+            <version>3.1.7</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
 </project>

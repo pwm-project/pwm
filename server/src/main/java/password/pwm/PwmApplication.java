@@ -60,6 +60,7 @@ import password.pwm.svc.token.TokenService;
 import password.pwm.svc.wordlist.SeedlistManager;
 import password.pwm.svc.wordlist.SharedHistoryManager;
 import password.pwm.svc.wordlist.WordlistManager;
+import password.pwm.util.MBeanUtility;
 import password.pwm.util.PasswordData;
 import password.pwm.util.cli.commands.ExportHttpsTomcatConfigCommand;
 import password.pwm.util.db.DatabaseAccessor;
@@ -96,6 +97,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A repository for objects common to the servlet context.  A singleton
@@ -152,6 +154,7 @@ public class PwmApplication
     private final Instant startupTime = Instant.now();
     private Instant installTime = Instant.now();
     private ErrorInformation lastLocalDBFailure;
+    private final AtomicInteger inprogressRequests = new AtomicInteger( 0 );
 
     private final PwmEnvironment pwmEnvironment;
 
@@ -296,7 +299,7 @@ public class PwmApplication
     {
         final Instant startTime = Instant.now();
 
-        LOGGER.debug( "loaded configuration: " + pwmEnvironment.getConfig().toDebugString() );
+        pwmEnvironment.getConfig().outputToLog();
 
         // detect if config has been modified since previous startup
         try
@@ -395,6 +398,8 @@ public class PwmApplication
                 LOGGER.debug( "error while generating tomcat conf output: " + e.getMessage() );
             }
         }
+
+        MBeanUtility.registerMBean( this );
 
         LOGGER.trace( "completed post init tasks in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
     }
@@ -660,7 +665,7 @@ public class PwmApplication
 
     private String fetchInstanceID( final LocalDB localDB, final PwmApplication pwmApplication )
     {
-        String newInstanceID = pwmApplication.getConfig().readSettingAsString( PwmSetting.PWM_INSTANCE_NAME );
+        String newInstanceID = pwmApplication.getPwmEnvironment().getParameters().get( PwmEnvironment.ApplicationParameter.InstanceID );
 
         if ( newInstanceID != null && newInstanceID.trim().length() > 0 )
         {
@@ -671,7 +676,9 @@ public class PwmApplication
 
         if ( newInstanceID == null || newInstanceID.length() < 1 )
         {
-            newInstanceID = Long.toHexString( PwmRandom.getInstance().nextLong() ).toUpperCase();
+            final PwmRandom pwmRandom = PwmRandom.getInstance();
+            newInstanceID = Long.toHexString( pwmRandom.nextLong() ).toUpperCase();
+
             LOGGER.info( "generated new random instanceID " + newInstanceID );
 
             if ( localDB != null )
@@ -774,6 +781,8 @@ public class PwmApplication
                 LOGGER.warn( "unable to submit shutdown alert event " + e.getMessage() );
             }
         }
+
+        MBeanUtility.unregisterMBean( this );
 
         pwmServiceManager.shutdownAllServices();
 
@@ -983,6 +992,11 @@ public class PwmApplication
             }
         }
         return false;
+    }
+
+    public AtomicInteger getInprogressRequests( )
+    {
+        return inprogressRequests;
     }
 }
 

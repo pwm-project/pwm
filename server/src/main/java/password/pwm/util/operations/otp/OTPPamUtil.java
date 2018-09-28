@@ -40,6 +40,10 @@ public class OTPPamUtil
 
     /**
      * Split the string in lines; separate by CR, LF or CRLF.
+     *
+     * @param text string containing line separators.
+     *
+     * @return a list of split lines
      */
     public static List<String> splitLines( final String text )
     {

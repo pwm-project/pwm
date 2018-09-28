@@ -1,6 +1,6 @@
 /*
  * Password Management Servlets (PWM)
-  htt://www.pwm-project.org
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
  * Copyright (c) 2009-2018 The PWM Project
@@ -20,7 +20,6 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-
 import {Component} from '../../component';
 import {IHelpDeskService, ISuccessResponse} from '../../services/helpdesk.service';
 import {IScope, ui} from 'angular';
@@ -28,11 +27,14 @@ import {noop} from 'angular';
 import {IActionButton, IHelpDeskConfigService, PASSWORD_UI_MODES} from '../../services/helpdesk-config.service';
 import {IPerson} from '../../models/person.model';
 import {IChangePasswordSuccess} from '../../components/changepassword/success-change-password.controller';
+import LocalStorageService from '../../services/local-storage.service';
 
-let autogenChangePasswordTemplateUrl = require('../../components/changepassword/autogen-change-password.component.html');
+let autogenChangePasswordTemplateUrl =
+    require('../../components/changepassword/autogen-change-password.component.html');
 let helpdeskDetailDialogTemplateUrl = require('./helpdesk-detail-dialog.template.html');
 let randomChangePasswordTemplateUrl = require('../../components/changepassword/random-change-password.component.html');
-let successChangePasswordTemplateUrl = require('../../components/changepassword/success-change-password.component.html');
+let successChangePasswordTemplateUrl =
+    require('../../components/changepassword/success-change-password.component.html');
 let typeChangePasswordTemplateUrl = require('../../components/changepassword/type-change-password.component.html');
 let verificationsDialogTemplateUrl = require('./verifications-dialog.template.html');
 
@@ -50,6 +52,7 @@ export default class HelpDeskDetailComponent {
     person: any;
     personCard: IPerson;
     photosEnabled: boolean;
+    searchViewLocalStorageKey: string;
 
     static $inject = [
         '$state',
@@ -57,7 +60,8 @@ export default class HelpDeskDetailComponent {
         'ConfigService',
         'HelpDeskService',
         'IasDialogService',
-        'IasToggleService'
+        'IasToggleService',
+        'LocalStorageService'
     ];
 
     constructor(private $state: ui.IStateService,
@@ -65,7 +69,9 @@ export default class HelpDeskDetailComponent {
                 private configService: IHelpDeskConfigService,
                 private helpDeskService: IHelpDeskService,
                 private IasDialogService: any,
-                private toggleService: { showComponent: (componentName: string) => null }) {
+                private toggleService: { showComponent: (componentName: string) => null },
+                private localStorageService: LocalStorageService) {
+        this.searchViewLocalStorageKey = this.localStorageService.keys.HELPDESK_SEARCH_VIEW;
     }
 
     $onInit(): void {
@@ -353,7 +359,13 @@ export default class HelpDeskDetailComponent {
     }
 
     gotoSearch(): void {
-        this.$state.go('search.cards');
+        let view = this.localStorageService.getItem(this.searchViewLocalStorageKey);
+        if (view) {
+            this.$state.go(view);
+        }
+        else {
+            this.$state.go('search.cards');
+        }
     }
 
     initialize(): void {

@@ -95,13 +95,12 @@ class PeopleSearchDataReader
 
         {
             // try to serve from cache first
-            final String cachedOutput = pwmRequest.getPwmApplication().getCacheService().get( cacheKey );
-            if ( cachedOutput != null )
+            final SearchResultBean cachedResult = pwmRequest.getPwmApplication().getCacheService().get( cacheKey, SearchResultBean.class );
+            if ( cachedResult != null )
             {
-                final SearchResultBean searchResultBean = JsonUtil.deserialize( cachedOutput, SearchResultBean.class );
-                searchResultBean.setFromCache( true );
+                cachedResult.setFromCache( true );
                 StatisticsManager.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_CACHE_HITS );
-                return searchResultBean;
+                return cachedResult;
             }
             else
             {
@@ -134,12 +133,12 @@ class PeopleSearchDataReader
 
         {
             // if value is cached then return;
-            final String cachedOutput = pwmRequest.getPwmApplication().getCacheService().get( cacheKey );
+            final OrgChartDataBean cachedOutput = pwmRequest.getPwmApplication().getCacheService().get( cacheKey, OrgChartDataBean.class );
             if ( cachedOutput != null )
             {
                 StatisticsManager.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_CACHE_HITS );
                 LOGGER.trace( pwmRequest, "completed makeOrgChartData of " + userIdentity.toDisplayString() + " from cache" );
-                return JsonUtil.deserialize( cachedOutput, OrgChartDataBean.class );
+                return cachedOutput;
             }
             else
             {
@@ -218,11 +217,11 @@ class PeopleSearchDataReader
 
         final CacheKey cacheKey = makeCacheKey( UserDetailBean.class.getSimpleName(), userIdentity.toDelimitedKey() );
         {
-            final String cachedOutput = pwmRequest.getPwmApplication().getCacheService().get( cacheKey );
+            final UserDetailBean cachedOutput = pwmRequest.getPwmApplication().getCacheService().get( cacheKey, UserDetailBean.class );
             if ( cachedOutput != null )
             {
                 StatisticsManager.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_CACHE_HITS );
-                return JsonUtil.deserialize( cachedOutput, UserDetailBean.class );
+                return cachedOutput;
             }
             else
             {
@@ -354,7 +353,7 @@ class PeopleSearchDataReader
             userIdentity = null;
         }
         final String keyString = operationIdentifier + "|" + pwmRequest.getPwmApplication().getSecureService().hash( dataIdentifier );
-        return CacheKey.makeCacheKey(
+        return CacheKey.newKey(
                 this.getClass(),
                 userIdentity,
                 keyString );
@@ -449,7 +448,7 @@ class PeopleSearchDataReader
         if ( maxCacheSeconds > 0 )
         {
             final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpirationMS( maxCacheSeconds * 1000 );
-            pwmApplication.getCacheService().put( cacheKey, cachePolicy, JsonUtil.serialize( data ) );
+            pwmApplication.getCacheService().put( cacheKey, cachePolicy, data );
         }
     }
 

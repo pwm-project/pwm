@@ -40,14 +40,13 @@ import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.LocaleHelper;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
+import password.pwm.util.secure.PwmSecurityKey;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.time.Instant;
@@ -95,7 +94,7 @@ public class PwmSession implements Serializable
 
         final int sessionValidationKeyLength = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_SESSION_VALIDATION_KEY_LENGTH ) );
         sessionStateBean = new LocalSessionStateBean( sessionValidationKeyLength );
-        sessionStateBean.regenerateSessionVerificationKey();
+        sessionStateBean.regenerateSessionVerificationKey( pwmApplication );
         this.sessionStateBean.setSessionID( null );
 
         final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
@@ -237,6 +236,8 @@ public class PwmSession implements Serializable
 
     /**
      * Unauthenticate the pwmSession.
+     *
+     * @param pwmRequest current request of the user
      */
     public void unauthenticateUser( final PwmRequest pwmRequest )
     {
@@ -357,17 +358,40 @@ public class PwmSession implements Serializable
 
     public int size( )
     {
-        try ( ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream() )
+        return ( int ) JavaHelper.sizeof( this );
+    }
+
+    synchronized PwmSecurityKey getSecurityKey( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException
+    {
+        final int length = Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_NONCE_LENGTH ) );
+        final String cookieName =  pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_NONCE_NAME );
+
+        String nonce = (String) pwmRequest.getAttribute( PwmRequestAttribute.CookieNonce );
+        if ( nonce == null || nonce.length() < length )
         {
-            final ObjectOutputStream out = new ObjectOutputStream( byteArrayOutputStream );
-            out.writeObject( this );
-            out.flush();
-            return byteArrayOutputStream.toByteArray().length;
+            nonce = pwmRequest.readCookie( cookieName );
         }
-        catch ( IOException e )
+
+        if ( nonce == null || nonce.length() < length )
         {
-            LOGGER.debug( this, "exception while estimating session size: " + e.getMessage() );
-            return 0;
+            // random value
+            final String random = pwmRequest.getPwmApplication().getSecureService().pwmRandom().alphaNumericString( length );
+
+            // timestamp component for uniqueness
+            final String prefix = Long.toString( System.currentTimeMillis(), Character.MAX_RADIX );
+
+            nonce = random + prefix;
         }
+
+        final PwmSecurityKey securityKey = pwmRequest.getConfig().getSecurityKey();
+        final String concatValue = securityKey.keyHash( pwmRequest.getPwmApplication().getSecureService() ) + nonce;
+        final String hashValue = pwmRequest.getPwmApplication().getSecureService().hash( concatValue );
+        final PwmSecurityKey pwmSecurityKey = new PwmSecurityKey( hashValue );
+
+        pwmRequest.setAttribute( PwmRequestAttribute.CookieNonce, nonce );
+        pwmRequest.getPwmResponse().writeCookie( cookieName, nonce, -1, PwmHttpResponseWrapper.CookiePath.Application );
+
+        return pwmSecurityKey;
     }
 }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2017 The PWM Project
+ * Copyright (c) 2009-2018 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
  */
 
 package password.pwm.receiver;
@@ -35,37 +34,39 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 @WebServlet(
-        name="TelemetryViewer",
-        urlPatterns={
+        name = "TelemetryViewer",
+        urlPatterns = {
                 "/viewer",
         }
 )
-public class TelemetryViewerServlet extends HttpServlet {
+public class TelemetryViewerServlet extends HttpServlet
+{
     private static final String PARAM_DAYS = "days";
 
-    public static String SUMMARY_ATTR = "SummaryBean";
+    public static final String SUMMARY_ATTR = "SummaryBean";
 
     @Override
-    protected void doGet(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException
+    protected void doGet( final HttpServletRequest req, final HttpServletResponse resp ) throws ServletException, IOException
     {
         final String daysString = req.getParameter( PARAM_DAYS );
         final int days = StringUtil.isEmpty( daysString ) ? 30 : Integer.parseInt( daysString );
-        final ContextManager contextManager = ContextManager.getContextManager(req.getServletContext());
+        final ContextManager contextManager = ContextManager.getContextManager( req.getServletContext() );
         final PwmReceiverApp app = contextManager.getApp();
 
         {
             final String errorState = app.getStatus().getErrorState();
-            if (!StringUtil.isEmpty(errorState)) {
-                resp.sendError(500, errorState);
+            if ( !StringUtil.isEmpty( errorState ) )
+            {
+                resp.sendError( 500, errorState );
                 final String htmlBody = "<html>Error: " + errorState + "</html>";
-                resp.getWriter().print(htmlBody);
+                resp.getWriter().print( htmlBody );
                 return;
             }
         }
 
         final Storage storage = app.getStorage();
-        final SummaryBean summaryBean = SummaryBean.fromStorage(storage, new TimeDuration(days, TimeUnit.DAYS ) );
-        req.setAttribute(SUMMARY_ATTR, summaryBean);
-        req.getServletContext().getRequestDispatcher("/WEB-INF/jsp/telemetry-viewer.jsp").forward(req,resp);
+        final SummaryBean summaryBean = SummaryBean.fromStorage( storage, new TimeDuration( days, TimeUnit.DAYS ) );
+        req.setAttribute( SUMMARY_ATTR, summaryBean );
+        req.getServletContext().getRequestDispatcher( "/WEB-INF/jsp/telemetry-viewer.jsp" ).forward( req, resp );
     }
 }

@@ -28,7 +28,8 @@ import org.jdom2.JDOMException;
 import org.jdom2.input.SAXBuilder;
 import org.jdom2.xpath.XPathExpression;
 import org.jdom2.xpath.XPathFactory;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.TimeDuration;
+import password.pwm.util.logging.PwmLogger;
 
 import javax.xml.XMLConstants;
 import javax.xml.transform.stream.StreamSource;
@@ -37,9 +38,11 @@ import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class PwmSettingXml
 {
@@ -54,8 +57,10 @@ public class PwmSettingXml
     public static final String XML_ATTRIBUTE_PERMISSION_ACCESS = "access";
     public static final String XML_ATTRIBUTE_TEMPLATE = "template";
 
+    private static final PwmLogger LOGGER = PwmLogger.forClass( PwmSettingXml.class );
 
     private static Document xmlDocCache;
+    private static final AtomicInteger LOAD_COUNTER = new AtomicInteger( 0 );
 
     private static Document readXml( )
     {
@@ -67,16 +72,28 @@ public class PwmSettingXml
             final SAXBuilder builder = new SAXBuilder();
             try
             {
+                final Instant startTime = Instant.now();
                 final Document newDoc = builder.build( inputStream );
+                final TimeDuration parseDuration = TimeDuration.fromCurrent( startTime );
+                LOGGER.trace( "parsed PwmSettingXml in " + parseDuration.toString() + ", loads=" + LOAD_COUNTER.getAndIncrement() );
+
                 xmlDocCache = newDoc;
 
                 // clear cached dom after 30 seconds.
-                final Thread t = new Thread( "PwmSettingXml static cache clear thread" )
+                final Thread t = new Thread( "PwmSettingXml static cache thread" )
                 {
                     @Override
                     public void run( )
                     {
-                        JavaHelper.pause( 30 * 1000 );
+                        try
+                        {
+                            Thread.sleep( 30_000 );
+                        }
+                        catch ( InterruptedException e )
+                        {
+                            //ignored
+                        }
+                        LOGGER.trace( "cached PwmSettingXml discarded" );
                         xmlDocCache = null;
                     }
                 };

@@ -34,7 +34,6 @@ import password.pwm.config.StoredValue;
 import password.pwm.config.value.ChallengeValue;
 import password.pwm.config.value.StringArrayValue;
 import password.pwm.config.value.data.ChallengeItemConfiguration;
-import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
@@ -602,19 +601,13 @@ public class LocaleHelper
         private static List<Locale> knownLocales( )
         {
             final List<Locale> knownLocales = new ArrayList<>();
-            try
+
+            final StringArrayValue stringArrayValue = ( StringArrayValue ) PwmSetting.KNOWN_LOCALES.getDefaultValue( PwmSettingTemplateSet.getDefault() );
+            final List<String> rawValues = stringArrayValue.toNativeObject();
+            final Map<String, String> localeFlagMap = StringUtil.convertStringListToNameValuePair( rawValues, "::" );
+            for ( final String rawValue : localeFlagMap.keySet() )
             {
-                final StringArrayValue stringArrayValue = ( StringArrayValue ) PwmSetting.KNOWN_LOCALES.getDefaultValue( PwmSettingTemplateSet.getDefault() );
-                final List<String> rawValues = stringArrayValue.toNativeObject();
-                final Map<String, String> localeFlagMap = StringUtil.convertStringListToNameValuePair( rawValues, "::" );
-                for ( final String rawValue : localeFlagMap.keySet() )
-                {
-                    knownLocales.add( LocaleHelper.parseLocaleString( rawValue ) );
-                }
-            }
-            catch ( PwmException e )
-            {
-                throw new IllegalStateException( "error reading default locale list", e );
+                knownLocales.add( LocaleHelper.parseLocaleString( rawValue ) );
             }
 
             final Map<String, Locale> returnMap = new TreeMap<>();

@@ -114,19 +114,15 @@ public class ConfigurationChecker implements HealthChecker
 
         final String siteUrl = config.readSettingAsString( PwmSetting.PWM_SITE_URL );
         final String separator = LocaleHelper.getLocalizedMessage( locale, Config.Display_SettingNavigationSeparator, null );
-        try
+
+        if ( siteUrl == null || siteUrl.isEmpty() || siteUrl.equals(
+                PwmSetting.PWM_SITE_URL.getDefaultValue( config.getTemplate() ).toNativeObject() ) )
         {
-            if ( siteUrl == null || siteUrl.isEmpty() || siteUrl.equals(
-                    PwmSetting.PWM_SITE_URL.getDefaultValue( config.getTemplate() ).toNativeObject() ) )
-            {
-                records.add(
-                        HealthRecord.forMessage( HealthMessage.Config_NoSiteURL, PwmSetting.PWM_SITE_URL.toMenuLocationDebug( null, locale ) ) );
-            }
+            records.add(
+                    HealthRecord.forMessage( HealthMessage.Config_NoSiteURL, PwmSetting.PWM_SITE_URL.toMenuLocationDebug( null, locale ) ) );
         }
-        catch ( PwmException e )
-        {
-            LOGGER.error( SessionLabel.HEALTH_SESSION_LABEL, "error while inspecting site URL setting: " + e.getMessage() );
-        }
+
+
 
         if ( config.readSettingAsBoolean( PwmSetting.LDAP_ENABLE_WIRE_TRACE ) )
         {

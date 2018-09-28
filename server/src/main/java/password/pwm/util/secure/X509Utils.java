@@ -23,14 +23,22 @@
 package password.pwm.util.secure;
 
 import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.Configuration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmURL;
+import password.pwm.http.client.PwmHttpClient;
+import password.pwm.http.client.PwmHttpClientConfiguration;
+import password.pwm.http.client.PwmHttpClientRequest;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
@@ -69,6 +77,46 @@ public abstract class X509Utils
         return readRemoteCertificates( host, port );
     }
 
+    public static List<X509Certificate> readRemoteHttpCertificates(
+            final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
+            final URI uri
+    )
+            throws PwmUnrecoverableException
+    {
+        final CertReaderTrustManager certReaderTrustManager = new CertReaderTrustManager();
+        final PwmHttpClientConfiguration pwmHttpClientConfiguration = PwmHttpClientConfiguration.builder()
+                .trustManager( certReaderTrustManager )
+                .build();
+        final PwmHttpClient pwmHttpClient = new PwmHttpClient( pwmApplication, sessionLabel, pwmHttpClientConfiguration );
+        final PwmHttpClientRequest request = new PwmHttpClientRequest( HttpMethod.GET, uri.toString(), "", Collections.emptyMap() );
+
+        LOGGER.debug( sessionLabel, "beginning attempt to import certificates via httpclient" );
+
+        ErrorInformation requestError = null;
+        try
+        {
+            pwmHttpClient.makeRequest( request );
+        }
+        catch ( PwmException e )
+        {
+            requestError = e.getErrorInformation();
+        }
+
+        if ( certReaderTrustManager.getCertificates() != null )
+        {
+            return Arrays.asList( certReaderTrustManager.getCertificates() );
+        }
+        LOGGER.debug( sessionLabel, "unable to read certificates from remote server via httpclient, error: " + requestError );
+
+        if ( requestError == null )
+        {
+            final String msg = "unable to read certificates via httpclient; check log files for more details";
+            throw PwmUnrecoverableException.newException( PwmError.ERROR_CERTIFICATE_ERROR, msg );
+        }
+
+        throw new PwmUnrecoverableException( requestError );
+    }
 
     public static List<X509Certificate> readRemoteCertificates( final String host, final int port )
             throws PwmOperationalException
@@ -164,6 +212,7 @@ public abstract class X509Utils
         public void checkClientTrusted( final X509Certificate[] chain, final String authType )
                 throws CertificateException
         {
+            LOGGER.debug( "clientCheckTrusted invoked in CertReaderTrustManager" );
         }
 
         public X509Certificate[] getAcceptedIssuers( )
@@ -175,6 +224,9 @@ public abstract class X509Utils
                 throws CertificateException
         {
             certificates = chain;
+            final List<Map<String, String>> certDebugInfo = X509Utils.makeDebugInfoMap( Arrays.asList( certificates ) );
+            LOGGER.debug( "read certificates from remote server via httpclient: "
+                    + JsonUtil.serialize( new ArrayList<>( certDebugInfo ) ) );
         }
 
         public X509Certificate[] getCertificates( )

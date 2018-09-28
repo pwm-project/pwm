@@ -23,7 +23,7 @@
 
 import {IHelpDeskService } from '../../services/helpdesk.service';
 import {IQService} from 'angular';
-import {IHelpDeskConfigService} from '../../services/helpdesk-config.service';
+import {IHelpDeskConfigService, PASSWORD_UI_MODES} from '../../services/helpdesk-config.service';
 
 export interface IChangePasswordSuccess {
     password: string;
@@ -36,6 +36,7 @@ export default class SuccessChangePasswordController {
     password: string;
     passwordMasked: boolean;
     successMessage: string;
+    displayNewPassword: boolean;
 
     static $inject = [
         '$q',
@@ -58,12 +59,16 @@ export default class SuccessChangePasswordController {
 
         let promise = this.$q.all([
             this.configService.getClearResponsesSetting(),
-            this.configService.maskPasswordsEnabled()
+            this.configService.maskPasswordsEnabled(),
+            this.configService.getPasswordUiMode()
         ]);
         promise.then((result) => {
             this.clearResponsesSetting = result[0];
             this.maskPasswords = result[1];
             this.passwordMasked = this.maskPasswords;
+
+            // If it's random, don't display the new password
+            this.displayNewPassword = (result[2] !== PASSWORD_UI_MODES.RANDOM);
         });
     }
 

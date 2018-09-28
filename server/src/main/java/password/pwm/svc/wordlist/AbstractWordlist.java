@@ -50,6 +50,7 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.ChecksumInputStream;
 import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.SecureEngine;
+import password.pwm.util.secure.X509Utils;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -669,7 +670,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         {
             final boolean promiscuous = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_CLIENT_PROMISCUOUS_WORDLIST_ENABLE ) );
             final PwmHttpClientConfiguration pwmHttpClientConfiguration = PwmHttpClientConfiguration.builder()
-                    .promiscuous( promiscuous )
+                    .trustManager( promiscuous ? new X509Utils.PromiscuousTrustManager() : null )
                     .build();
             final PwmHttpClient client = new PwmHttpClient( pwmApplication, null, pwmHttpClientConfiguration );
             return client.streamForUrl( wordlistConfiguration.getAutoImportUrl() );

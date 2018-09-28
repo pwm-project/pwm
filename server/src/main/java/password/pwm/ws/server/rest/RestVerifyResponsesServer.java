@@ -124,7 +124,7 @@ public class RestVerifyResponsesServer extends RestServlet
                     targetUserIdentity.getChaiUser()
             );
 
-            final boolean verified = responseSet.test( jsonInput.toCrMap() );
+            final boolean verified = responseSet != null && responseSet.test( jsonInput.toCrMap() );
 
             final RestResultBean restResultBean = RestResultBean.forSuccessMessage( verified, restRequest, Message.Success_Unknown );
 

@@ -452,7 +452,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
         }
 
 
-        if ( userInfo.isRequiresResponseConfig() )
+        if ( userInfo.isRequiresResponseConfig() && !pwmSession.getLoginInfoBean().isLoginFlag( LoginInfoBean.LoginFlag.skipSetupCr ) )
         {
             if ( !pwmURL.isSetupResponsesURL() )
             {

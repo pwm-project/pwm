@@ -84,13 +84,11 @@ import password.pwm.util.PostChangePasswordAction;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
-import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.operations.cr.NMASCrOperator;
 import password.pwm.util.operations.otp.OTPUserRecord;
-import password.pwm.util.secure.PwmRandom;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
@@ -107,6 +105,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -332,15 +331,10 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
 
         final String requestedID = pwmRequest.readParameterAsString( "choice", PwmHttpRequestWrapper.Flag.BypassValidation );
 
-        if ( !StringUtil.isEmpty( requestedID ) )
+        final Optional<TokenDestinationItem> tokenDestinationItem = TokenDestinationItem.tokenDestinationItemForID( items, requestedID );
+        if ( tokenDestinationItem.isPresent() )
         {
-            for ( final TokenDestinationItem item : items )
-            {
-                if ( requestedID.equals( item.getId() ) )
-                {
-                    forgottenPasswordBean.getProgress().setTokenDestination( item );
-                }
-            }
+            forgottenPasswordBean.getProgress().setTokenDestination( tokenDestinationItem.get() );
         }
 
         return ProcessStatus.Continue;
@@ -865,7 +859,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
             final FormConfiguration formConfiguration = forgottenPasswordBean.getAttributeForm().iterator().next();
 
             // add a bit of jitter to pretend like we're checking a data source
-            JavaHelper.pause( 300 + PwmRandom.getInstance().nextInt( 700 ) );
+            JavaHelper.pause( 300 + pwmRequest.getPwmApplication().getSecureService().pwmRandom().nextInt( 700 ) );
 
             if ( forgottenPasswordBean.getUserSearchValues() != null )
             {
