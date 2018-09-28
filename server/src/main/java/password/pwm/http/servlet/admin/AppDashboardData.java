@@ -113,6 +113,7 @@ public class AppDashboardData implements Serializable
     private Map<LocalDB.DB, String> localDbSizes;
     private List<NodeData> nodeData;
     private String nodeSummary;
+    private DataStorageMethod nodeStorageMethod;
     private int ldapConnectionCount;
     private int sessionCount;
     private int requestsInProgress;
@@ -155,6 +156,13 @@ public class AppDashboardData implements Serializable
         builder.nodeSummary = pwmApplication.getClusterService().isMaster()
                 ? "This node is the current master"
                 : "This node is not the current master";
+        {
+            final Collection<DataStorageMethod> dataStorageMethods = pwmApplication.getClusterService().serviceInfo().getUsedStorageMethods();
+            if ( !JavaHelper.isEmpty( dataStorageMethods ) )
+            {
+                builder.nodeStorageMethod = dataStorageMethods.iterator().next();
+            }
+        }
 
         builder.ldapConnectionCount( ldapConnectionCount( pwmApplication ) );
         builder.sessionCount( pwmApplication.getSessionTrackService().sessionCount() );

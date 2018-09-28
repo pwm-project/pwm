@@ -401,10 +401,10 @@
                 <% } %>
             </div>
 
-            <% if (!JavaHelper.isEmpty(appDashboardData.getNodeData())) { %>
             <input name="tabs" type="radio" id="tab-7" class="input"/>
             <label for="tab-7" class="label">Nodes</label>
             <div id="Status" class="tab-content-pane" title="Nodes">
+                <% if (!JavaHelper.isEmpty(appDashboardData.getNodeData())) { %>
                 <div style="max-height: 400px; overflow: auto;">
                     <table class="nomargin">
                         <tr>
@@ -450,9 +450,16 @@
                     <div class="footnote">
                         <%=appDashboardData.getNodeSummary()%>
                     </div>
+                    <% if ( appDashboardData.getNodeStorageMethod() != null ) { %>
+                    <p><div class="footnote">
+                    Node communication method: <%= appDashboardData.getNodeStorageMethod() %>
+                    </div></p>
+                    <% } %>
                 </div>
+                <% } else { %>
+                <div class="footnote">Node data is not yet available.</div>
+                <% } %>
             </div>
-            <% } %>
 
             <pwm:if test="<%=PwmIfTest.booleanSetting%>" setting="<%=PwmSetting.PW_EXPY_NOTIFY_ENABLE%>">
             <input name="tabs" type="radio" id="tab-8" class="input"/>
