@@ -57,7 +57,7 @@
 
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
-                <version>2.7</version>
+                <version>3.1.0</version>
                 <executions>
                     <execution>
                         <id>replace-build-properties</id>
@@ -201,7 +201,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>3.0.2</version>
+                <version>3.1.0</version>
                 <configuration>
                     <archive>
                         <manifestEntries>
@@ -245,23 +245,6 @@
         </plugins>
     </build>
 
-    <reporting>
-        <plugins>
-            <plugin> <!-- checks owsp vulnerability database -->
-                <groupId>org.owasp</groupId>
-                <artifactId>dependency-check-maven</artifactId>
-                <version>3.3.1</version>
-                <reportSets>
-                    <reportSet>
-                        <reports>
-                            <report>aggregate</report>
-                        </reports>
-                    </reportSet>
-                </reportSets>
-            </plugin>
-        </plugins>
-    </reporting>
-
     <dependencies>
 
         <!-- Test dependencies -->
@@ -286,7 +269,7 @@
         <dependency>
             <groupId>com.github.tomakehurst</groupId>
             <artifactId>wiremock</artifactId>
-            <version>2.18.0</version>
+            <version>2.19.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -352,7 +335,7 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-csv</artifactId>
-            <version>1.5</version>
+            <version>1.6</version>
         </dependency>
         <dependency>
             <groupId>commons-fileupload</groupId>
@@ -362,7 +345,7 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.8</version>
+            <version>3.8.1</version>
         </dependency>
         <dependency>
             <groupId>commons-validator</groupId>
@@ -447,7 +430,7 @@
         <dependency>
             <groupId>com.blueconic</groupId>
             <artifactId>browscap-java</artifactId>
-            <version>1.2.4</version>
+            <version>1.2.5</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.xodus</groupId>

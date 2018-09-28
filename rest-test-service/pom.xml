@@ -32,7 +32,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
-                <version>2.6</version>
+                <version>3.2.2</version>
                 <configuration>
                     <archiveClasses>true</archiveClasses>
                     <packagingExcludes>WEB-INF/classes</packagingExcludes>
@@ -81,7 +81,7 @@
         <dependency>
             <groupId>com.github.tomakehurst</groupId>
             <artifactId>wiremock</artifactId>
-            <version>2.18.0</version>
+            <version>2.19.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>

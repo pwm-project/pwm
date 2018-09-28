@@ -7,4 +7,8 @@
         <!-- due to bug https://github.com/spotbugs/spotbugs/issues/493 in spotbugs 3.1.3 -->
         <Bug pattern="OBL_UNSATISFIED_OBLIGATION"/>
     </Match>
+    <Match>
+        <!-- due to bug with java 11 -->
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE"/>
+    </Match>
 </FindBugsFilter>

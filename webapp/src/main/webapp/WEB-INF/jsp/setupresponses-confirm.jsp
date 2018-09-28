@@ -22,8 +22,8 @@
 
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
 <%@ page import="password.pwm.http.bean.SetupResponsesBean" %>
+<%@ page import="password.pwm.http.servlet.SetupResponsesServlet" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
-<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
@@ -74,8 +74,8 @@
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-check"></span></pwm:if>
                     <pwm:display key="Button_ConfirmResponses"/>
                 </button>
-                <input type="hidden" name="processAction" value="confirmResponses"/>
-                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+                <input type="hidden" name="<%=PwmConstants.PARAM_ACTION_REQUEST%>" value="<%=SetupResponsesServlet.SetupResponsesAction.confirmResponses%>"/>
+                <input type="hidden" name="<%=PwmConstants.PARAM_FORM_ID%>" value="<pwm:FormID/>"/>
             </form>
             <form style="display: inline" action="<pwm:current-url/>" method="post" name="confirmResponses"
                   enctype="application/x-www-form-urlencoded" class="pwm-form">
@@ -83,9 +83,9 @@
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-backward"></span></pwm:if>
                     <pwm:display key="Button_GoBack"/>
                 </button>
-                <input type="hidden" name="processAction" value="changeResponses"/>
+                <input type="hidden" name="<%=PwmConstants.PARAM_ACTION_REQUEST%>" value="<%=SetupResponsesServlet.SetupResponsesAction.changeResponses%>"/>
+                <input type="hidden" name="<%=PwmConstants.PARAM_FORM_ID%>" value="<pwm:FormID/>"/>
                 <%@ include file="/WEB-INF/jsp/fragment/cancel-button.jsp" %>
-                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>
         </div>
     </div>

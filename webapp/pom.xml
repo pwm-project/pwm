@@ -34,7 +34,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-assembly-plugin</artifactId>
-                        <version>2.6</version>
+                        <version>3.1.0</version>
                         <configuration>
                             <descriptors>
                                 <descriptor>src/build/assembly/release-bundle.xml</descriptor>
@@ -61,7 +61,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.6</version>
+                <version>3.1.0</version>
                 <executions>
                     <execution>
                         <id>make-ldif-schema-zip</id>
@@ -96,7 +96,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
-                <version>2.6</version>
+                <version>3.2.2</version>
                 <configuration>
                     <archiveClasses>true</archiveClasses>
                     <packagingExcludes>WEB-INF/classes</packagingExcludes>
@@ -159,23 +159,6 @@
         </plugins>
     </build>
 
-    <reporting>
-        <plugins>
-            <plugin> <!-- checks owsp vulnerability database -->
-                <groupId>org.owasp</groupId>
-                <artifactId>dependency-check-maven</artifactId>
-                <version>3.1.2</version>
-                <reportSets>
-                    <reportSet>
-                        <reports>
-                            <report>aggregate</report>
-                        </reports>
-                    </reportSet>
-                </reportSets>
-            </plugin>
-        </plugins>
-    </reporting>
-
     <dependencies>
         <!-- main jar -->
         <dependency>
@@ -210,17 +193,17 @@
         <dependency>
             <groupId>org.webjars.npm</groupId>
             <artifactId>dojo</artifactId>
-            <version>1.14.0</version>
+            <version>1.14.1</version>
         </dependency>
         <dependency>
             <groupId>org.webjars.npm</groupId>
             <artifactId>dijit</artifactId>
-            <version>1.14.0</version>
+            <version>1.14.1</version>
         </dependency>
         <dependency>
             <groupId>org.webjars.npm</groupId>
             <artifactId>dojox</artifactId>
-            <version>1.14.0</version>
+            <version>1.14.1</version>
         </dependency>
         <dependency>
             <groupId>org.webjars.bower</groupId>

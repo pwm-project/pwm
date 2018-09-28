@@ -368,12 +368,12 @@ public class PwmSession implements Serializable
         final String cookieName =  pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_NONCE_NAME );
 
         String nonce = (String) pwmRequest.getAttribute( PwmRequestAttribute.CookieNonce );
-        if ( nonce == null || nonce.length() != length )
+        if ( nonce == null || nonce.length() < length )
         {
             nonce = pwmRequest.readCookie( cookieName );
         }
 
-        if ( nonce == null || nonce.length() != length )
+        if ( nonce == null || nonce.length() < length )
         {
             // random value
             final String random = pwmRequest.getPwmApplication().getSecureService().pwmRandom().alphaNumericString( length );
@@ -384,7 +384,9 @@ public class PwmSession implements Serializable
             nonce = random + prefix;
         }
 
-        final String hashValue = pwmRequest.getPwmApplication().getSecureService().hash( nonce );
+        final PwmSecurityKey securityKey = pwmRequest.getConfig().getSecurityKey();
+        final String concatValue = securityKey.keyHash( pwmRequest.getPwmApplication().getSecureService() ) + nonce;
+        final String hashValue = pwmRequest.getPwmApplication().getSecureService().hash( concatValue );
         final PwmSecurityKey pwmSecurityKey = new PwmSecurityKey( hashValue );
 
         pwmRequest.setAttribute( PwmRequestAttribute.CookieNonce, nonce );

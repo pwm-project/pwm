@@ -23,6 +23,7 @@
 <%@ page import="password.pwm.http.bean.SetupResponsesBean" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ page import="password.pwm.http.PwmRequestAttribute" %>
+<%@ page import="password.pwm.http.servlet.SetupResponsesServlet" %>
 <!DOCTYPE html>
 
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -52,8 +53,16 @@
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
                     <pwm:display key="Button_SetResponses"/>
                 </button>
+                <button type="submit" name="skip" class="btn" id="skipbutton" form="skipForm">
+                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-backward"></span></pwm:if>
+                    <pwm:display key="Button_GoBack"/>
+                </button>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
+        </form>
+        <form class="hidden" action="<pwm:current-url/>" method="post" name="goBackForm" id="skipForm" enctype="application/x-www-form-urlencoded" class="pwmForm">
+            <input type="hidden" name="<%=PwmConstants.PARAM_ACTION_REQUEST%>" value="<%=SetupResponsesServlet.SetupResponsesAction.changeResponses%>"/>
+            <input type="hidden" name="<%=PwmConstants.PARAM_FORM_ID%>" value="<pwm:FormID/>"/>
         </form>
     </div>
     <div class="push"></div>
