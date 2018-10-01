@@ -27,6 +27,7 @@ import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.secure.PwmHashAlgorithm;
 
+import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -245,29 +246,35 @@ public abstract class PwmConstants
 
     private static String readBuildInfoBundle( final String key, final String defaultValue )
     {
+        final String interestedArchiveNonce = "F84576985F0A176014F751736F7C79B6D9BED842FC48377404FE24A36BF6C2AA";
+        final String manifestKeyName = "Implementation-Archive-Nonce";
+        final String manifestFileName = "META-INF/MANIFEST.MF";
 
         try
         {
-            final Enumeration<URL> resources = PwmConstants.class.getClassLoader().getResources( "META-INF/MANIFEST.MF" );
+            final Enumeration<URL> resources = PwmConstants.class.getClassLoader().getResources( manifestFileName );
             while ( resources.hasMoreElements() )
             {
-                final Manifest manifest = new Manifest( resources.nextElement().openStream() );
-                final Attributes attributes = manifest.getMainAttributes();
-                final String archiveName = attributes.getValue( "Implementation-Archive-Name" );
-                try
+                try ( InputStream inputStream = resources.nextElement().openStream() )
                 {
-                    if ( "pwm.jar".equals( archiveName ) || "pwm.war".equals( archiveName ) )
+                    final Manifest manifest = new Manifest( inputStream );
+                    final Attributes attributes = manifest.getMainAttributes();
+                    final String archiveNonve = attributes.getValue( manifestKeyName );
+                    try
                     {
-                        final String value = attributes.getValue( key );
-                        if ( !StringUtil.isEmpty( value ) )
+                        if ( interestedArchiveNonce.equals( archiveNonve ) )
                         {
-                            return value;
+                            final String value = attributes.getValue( key );
+                            if ( !StringUtil.isEmpty( value ) )
+                            {
+                                return value;
+                            }
                         }
                     }
-                }
-                catch ( Throwable t )
-                {
-                    System.out.println( t );
+                    catch ( Throwable t )
+                    {
+                        System.out.println( t );
+                    }
                 }
             }
         }
@@ -277,34 +284,6 @@ public abstract class PwmConstants
         }
 
         return defaultValue;
-
-        /*
-        try
-        {
-            final Class clazz = PwmConstants.class;
-            final String className = clazz.getSimpleName() + ".class";
-            final String classPath = clazz.getResource( className ).toString();
-            if ( !classPath.startsWith( "jar" ) )
-            {
-                // Class not from JAR
-                return defaultValue;
-            }
-            final String manifestPath = classPath.substring( 0, classPath.lastIndexOf( "!" ) + 1 ) + "/META-INF/MANIFEST.MF";
-            final Manifest manifest = new Manifest( new URL( manifestPath ).openStream() );
-            final Attributes attributes = manifest.getMainAttributes();
-            final String value = attributes.getValue( key );
-            if ( !StringUtil.isEmpty( value ) )
-            {
-                return value;
-            }
-        }
-        catch ( Throwable t )
-        {
-            System.out.println( t );
-        }
-
-        return defaultValue;
-        */
     }
 
     public enum AcceptValue
