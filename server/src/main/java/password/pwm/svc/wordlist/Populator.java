@@ -40,10 +40,8 @@ import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.time.Instant;
-import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author Jason D. Rivard
@@ -55,7 +53,7 @@ class Populator
     // words truncated to this length, prevents massive words if the input
     private static final int MAX_LINE_LENGTH = 64;
 
-    private static final TimeDuration DEBUG_OUTPUT_FREQUENCY = new TimeDuration( 3, TimeUnit.MINUTES );
+    private static final TimeDuration DEBUG_OUTPUT_FREQUENCY = TimeDuration.of( 3, TimeDuration.Unit.MINUTES );
 
     // words tarting with this prefix are ignored.
     private static final String COMMENT_PREFIX = "!#comment:";
@@ -72,7 +70,7 @@ class Populator
     private PopulationStats perReportStats = new PopulationStats();
     private TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(
             new TransactionSizeCalculator.SettingsBuilder()
-                    .setDurationGoal( new TimeDuration( 600, TimeUnit.MILLISECONDS ) )
+                    .setDurationGoal( TimeDuration.of( 600, TimeDuration.Unit.MILLISECONDS ) )
                     .setMinTransactions( 10 )
                     .setMaxTransactions( 350 * 1000 )
                     .createSettings()
@@ -151,7 +149,7 @@ class Populator
             running = true;
             init();
 
-            long lastReportTime = System.currentTimeMillis() - ( long ) ( DEBUG_OUTPUT_FREQUENCY.getTotalMilliseconds() * 0.33 );
+            long lastReportTime = System.currentTimeMillis() - ( long ) ( DEBUG_OUTPUT_FREQUENCY.asMillis() * 0.33 );
 
             String line;
 
@@ -164,7 +162,7 @@ class Populator
                 addLine( line );
                 loopLines++;
 
-                if ( TimeDuration.fromCurrent( lastReportTime ).isLongerThan( DEBUG_OUTPUT_FREQUENCY.getTotalMilliseconds() ) )
+                if ( TimeDuration.fromCurrent( lastReportTime ).isLongerThan( DEBUG_OUTPUT_FREQUENCY.asMillis() ) )
                 {
                     LOGGER.info( makeStatString() );
                     lastReportTime = System.currentTimeMillis();
@@ -236,7 +234,7 @@ class Populator
             sb.append( "read " ).append( loopLines ).append( ", " );
             sb.append( "saved " );
             sb.append( bufferedWords.size() ).append( " words" );
-            sb.append( " (" ).append( new TimeDuration( commitTime ).asCompactString() ).append( ")" );
+            sb.append( " (" ).append( TimeDuration.of( commitTime, TimeDuration.Unit.MILLISECONDS ).asCompactString() ).append( ")" );
 
             LOGGER.trace( sb.toString() );
         }
@@ -261,7 +259,7 @@ class Populator
         final StringBuilder sb = new StringBuilder();
         sb.append( rootWordlist.debugLabel );
         sb.append( " population complete, added " ).append( wordlistSize );
-        sb.append( " total words in " ).append( new TimeDuration( overallStats.getElapsedSeconds() * 1000 ).asCompactString() );
+        sb.append( " total words in " ).append( TimeDuration.of( overallStats.getElapsedSeconds() * 1000, TimeDuration.Unit.MILLISECONDS ).asCompactString() );
         {
             final StoredWordlistDataBean storedWordlistDataBean = StoredWordlistDataBean.builder()
                     .sha1hash( JavaHelper.binaryArrayToHex( checksumInputStream.closeAndFinalChecksum() ) )
@@ -281,7 +279,7 @@ class Populator
         abortFlag = true;
 
         final int maxWaitMs = 1000 * 30;
-        final Date startWaitTime = new Date();
+        final Instant startWaitTime = Instant.now();
         while ( isRunning() && TimeDuration.fromCurrent( startWaitTime ).isShorterThan( maxWaitMs ) )
         {
             JavaHelper.pause( 1000 );

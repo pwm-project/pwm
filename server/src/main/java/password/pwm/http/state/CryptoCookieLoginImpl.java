@@ -45,7 +45,6 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.time.Instant;
-import java.util.concurrent.TimeUnit;
 
 class CryptoCookieLoginImpl implements SessionLoginProvider
 {
@@ -226,7 +225,7 @@ class CryptoCookieLoginImpl implements SessionLoginProvider
         {
             final long sessionMaxSeconds = pwmRequest.getConfig().readSettingAsLong( PwmSetting.SESSION_MAX_SECONDS );
             final TimeDuration sessionTotalAge = TimeDuration.fromCurrent( loginInfoBean.getAuthTime() );
-            final TimeDuration sessionMaxAge = new TimeDuration( sessionMaxSeconds, TimeUnit.SECONDS );
+            final TimeDuration sessionMaxAge = TimeDuration.of( sessionMaxSeconds, TimeDuration.Unit.SECONDS );
             if ( sessionTotalAge.isLongerThan( sessionMaxAge ) )
             {
                 final String errorMsg = "decrypted login cookie age ("

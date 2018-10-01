@@ -49,7 +49,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
 
 public class PwmEnvironment
 {
@@ -565,9 +564,9 @@ public class PwmEnvironment
                 ? 1
                 : Integer.parseInt( getConfig().readAppProperty( AppProperty.APPLICATION_FILELOCK_WAIT_SECONDS ) );
         final Instant startTime = Instant.now();
-        final TimeDuration attemptInterval = new TimeDuration( 5021, TimeUnit.MILLISECONDS );
+        final TimeDuration attemptInterval = TimeDuration.of( 5021, TimeDuration.Unit.MILLISECONDS );
 
-        while ( !this.isFileLocked() && TimeDuration.fromCurrent( startTime ).isShorterThan( maxWaitSeconds, TimeUnit.SECONDS ) )
+        while ( !this.isFileLocked() && TimeDuration.fromCurrent( startTime ).isShorterThan( maxWaitSeconds, TimeDuration.Unit.SECONDS ) )
         {
             attemptFileLock();
 

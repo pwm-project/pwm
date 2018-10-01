@@ -45,7 +45,6 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.concurrent.TimeUnit;
 
 public class IdleTimeoutCalculator
 {
@@ -60,7 +59,7 @@ public class IdleTimeoutCalculator
             final long idleSetting = configuration.readSettingAsLong( PwmSetting.IDLE_TIMEOUT_SECONDS );
             results.add( new MaxIdleTimeoutResult(
                     MaxIdleTimeoutResult.reasonFor( PwmSetting.IDLE_TIMEOUT_SECONDS, null ),
-                    new TimeDuration( idleSetting, TimeUnit.SECONDS ) ) );
+                    TimeDuration.of( idleSetting, TimeDuration.Unit.SECONDS ) ) );
         }
 
         if ( !pwmSession.isAuthenticated() )
@@ -70,7 +69,7 @@ public class IdleTimeoutCalculator
                 final long configGuideIdleTimeout = Long.parseLong( configuration.readAppProperty( AppProperty.CONFIG_GUIDE_IDLE_TIMEOUT ) );
                 results.add( new MaxIdleTimeoutResult(
                         "Configuration Guide Idle Timeout",
-                        new TimeDuration( configGuideIdleTimeout, TimeUnit.SECONDS ) ) );
+                        TimeDuration.of( configGuideIdleTimeout, TimeDuration.Unit.SECONDS ) ) );
             }
 
             if ( configuration.readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE_PUBLIC ) )
@@ -80,7 +79,7 @@ public class IdleTimeoutCalculator
                 {
                     results.add( new MaxIdleTimeoutResult(
                             MaxIdleTimeoutResult.reasonFor( PwmSetting.PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS, null ),
-                            new TimeDuration( peopleSearchIdleTimeout, TimeUnit.SECONDS ) ) );
+                            TimeDuration.of( peopleSearchIdleTimeout, TimeDuration.Unit.SECONDS ) ) );
                 }
             }
 
@@ -106,10 +105,10 @@ public class IdleTimeoutCalculator
     {
         final Set<MaxIdleTimeoutResult> results = new TreeSet<>();
         {
-            final long idleSetting = configuration.readSettingAsLong( PwmSetting.IDLE_TIMEOUT_SECONDS );
+            final long idleSecondsSetting = configuration.readSettingAsLong( PwmSetting.IDLE_TIMEOUT_SECONDS );
             results.add( new MaxIdleTimeoutResult(
                     MaxIdleTimeoutResult.reasonFor( PwmSetting.IDLE_TIMEOUT_SECONDS, null ),
-                    new TimeDuration( idleSetting, TimeUnit.SECONDS ) ) );
+                    TimeDuration.of( idleSecondsSetting, TimeDuration.Unit.SECONDS ) ) );
         }
 
         if ( configuration.readSettingAsBoolean( PwmSetting.HELPDESK_ENABLE ) )
@@ -121,7 +120,7 @@ public class IdleTimeoutCalculator
                 final long helpdeskIdleTimeout = helpdeskProfile.readSettingAsLong( PwmSetting.HELPDESK_IDLE_TIMEOUT_SECONDS );
                 results.add( new MaxIdleTimeoutResult(
                         MaxIdleTimeoutResult.reasonFor( PwmSetting.HELPDESK_IDLE_TIMEOUT_SECONDS, helpdeskProfileID ),
-                        new TimeDuration( helpdeskIdleTimeout, TimeUnit.SECONDS ) ) );
+                        TimeDuration.of( helpdeskIdleTimeout, TimeDuration.Unit.SECONDS ) ) );
             }
         }
 
@@ -132,7 +131,7 @@ public class IdleTimeoutCalculator
             {
                 results.add( new MaxIdleTimeoutResult(
                         MaxIdleTimeoutResult.reasonFor( PwmSetting.PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS, null ),
-                        new TimeDuration( peopleSearchIdleTimeout, TimeUnit.SECONDS ) ) );
+                        TimeDuration.of( peopleSearchIdleTimeout, TimeDuration.Unit.SECONDS ) ) );
             }
         }
 
@@ -141,7 +140,7 @@ public class IdleTimeoutCalculator
             final long configEditorIdleTimeout = Long.parseLong( configuration.readAppProperty( AppProperty.CONFIG_EDITOR_IDLE_TIMEOUT ) );
             results.add( new MaxIdleTimeoutResult(
                     "Config Editor Idle Timeout",
-                    new TimeDuration( configEditorIdleTimeout, TimeUnit.SECONDS ) ) );
+                    TimeDuration.of( configEditorIdleTimeout, TimeDuration.Unit.SECONDS ) ) );
         }
 
         return Collections.unmodifiableSet( results );
@@ -190,7 +189,7 @@ public class IdleTimeoutCalculator
                     final long helpdeskIdleTimeout = helpdeskProfile.readSettingAsLong( PwmSetting.HELPDESK_IDLE_TIMEOUT_SECONDS );
                     if ( helpdeskIdleTimeout > 0 )
                     {
-                        return new TimeDuration( helpdeskIdleTimeout, TimeUnit.SECONDS );
+                        return TimeDuration.of( helpdeskIdleTimeout, TimeDuration.Unit.SECONDS );
                     }
                 }
             }
@@ -209,7 +208,7 @@ public class IdleTimeoutCalculator
                 final long peopleSearchIdleTimeout = config.readSettingAsLong( PwmSetting.PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS );
                 if ( peopleSearchIdleTimeout > 0 )
                 {
-                    return new TimeDuration( peopleSearchIdleTimeout, TimeUnit.SECONDS );
+                    return TimeDuration.of( peopleSearchIdleTimeout, TimeDuration.Unit.SECONDS );
                 }
             }
         }
@@ -223,7 +222,7 @@ public class IdleTimeoutCalculator
                     final long configEditorIdleTimeout = Long.parseLong( config.readAppProperty( AppProperty.CONFIG_EDITOR_IDLE_TIMEOUT ) );
                     if ( configEditorIdleTimeout > 0 )
                     {
-                        return new TimeDuration( configEditorIdleTimeout, TimeUnit.SECONDS );
+                        return TimeDuration.of( configEditorIdleTimeout, TimeDuration.Unit.SECONDS );
                     }
                 }
             }
@@ -240,12 +239,12 @@ public class IdleTimeoutCalculator
                 final long configGuideIdleTimeout = Long.parseLong( config.readAppProperty( AppProperty.CONFIG_GUIDE_IDLE_TIMEOUT ) );
                 if ( configGuideIdleTimeout > 0 )
                 {
-                    return new TimeDuration( configGuideIdleTimeout, TimeUnit.SECONDS );
+                    return TimeDuration.of( configGuideIdleTimeout, TimeDuration.Unit.SECONDS );
                 }
             }
         }
 
         final long idleTimeout = config.readSettingAsLong( PwmSetting.IDLE_TIMEOUT_SECONDS );
-        return new TimeDuration( idleTimeout, TimeUnit.SECONDS );
+        return TimeDuration.of( idleTimeout, TimeDuration.Unit.SECONDS );
     }
 }

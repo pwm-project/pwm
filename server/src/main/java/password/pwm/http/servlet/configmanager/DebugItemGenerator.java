@@ -78,7 +78,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -521,7 +520,7 @@ public class DebugItemGenerator
             final LocalDBSearchQuery searchParameters = LocalDBSearchQuery.builder()
                     .minimumLevel( PwmLogLevel.TRACE )
                     .maxEvents( maxCount )
-                    .maxQueryTime( new TimeDuration( maxSeconds, TimeUnit.SECONDS ) )
+                    .maxQueryTime( TimeDuration.of( maxSeconds, TimeDuration.Unit.SECONDS ) )
                     .build();
 
             final LocalDBSearchResults searchResults = pwmApplication.getLocalDBLogger().readStoredEvents(

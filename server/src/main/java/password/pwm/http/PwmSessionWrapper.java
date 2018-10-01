@@ -27,6 +27,7 @@ import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
@@ -83,9 +84,9 @@ public class PwmSessionWrapper
             throws PwmUnrecoverableException
     {
         final IdleTimeoutCalculator.MaxIdleTimeoutResult result = IdleTimeoutCalculator.figureMaxSessionTimeout( pwmApplication, pwmSession );
-        if ( httpSession.getMaxInactiveInterval() != result.getIdleTimeout().getTotalSeconds() )
+        if ( httpSession.getMaxInactiveInterval() != result.getIdleTimeout().as( TimeDuration.Unit.SECONDS ) )
         {
-            httpSession.setMaxInactiveInterval( ( int ) result.getIdleTimeout().getTotalSeconds() );
+            httpSession.setMaxInactiveInterval( ( int ) result.getIdleTimeout().as( TimeDuration.Unit.SECONDS ) );
             LOGGER.trace( pwmSession, "setting java servlet session timeout to " + result.getIdleTimeout().asCompactString()
                     + " due to " + result.getReason() );
         }

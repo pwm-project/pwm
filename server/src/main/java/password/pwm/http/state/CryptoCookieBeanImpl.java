@@ -37,7 +37,6 @@ import password.pwm.util.secure.PwmSecurityKey;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 class CryptoCookieBeanImpl implements SessionBeanProvider
 {
@@ -113,7 +112,7 @@ class CryptoCookieBeanImpl implements SessionBeanProvider
 
             final TimeDuration cookieLifeDuration = TimeDuration.fromCurrent( cookieBean.getTimestamp() );
             final long maxIdleSeconds = pwmRequest.getConfig().readSettingAsLong( PwmSetting.IDLE_TIMEOUT_SECONDS );
-            if ( cookieLifeDuration.isLongerThan( maxIdleSeconds, TimeUnit.SECONDS ) )
+            if ( cookieLifeDuration.isLongerThan( maxIdleSeconds, TimeDuration.Unit.SECONDS ) )
             {
                 LOGGER.trace( pwmRequest, "disregarded existing " + cookieName + " cookie bean due to outdated timestamp (" + cookieLifeDuration.asCompactString() + ")" );
                 return false;

@@ -63,10 +63,10 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.List;
@@ -323,7 +323,7 @@ public class OtpService implements PwmService
     {
         OTPUserRecord otpConfig = null;
         final Configuration config = pwmApplication.getConfig();
-        final Date methodStartTime = new Date();
+        final Instant methodStartTime = Instant.now();
 
         final List<DataStorageMethod> otpSecretStorageLocations = config.getOtpSecretStorageLocations(
                 PwmSetting.OTP_SECRET_READ_PREFERENCE );

@@ -31,7 +31,6 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 public class LocalDBLoggerSettings implements Serializable
 {
@@ -106,9 +105,12 @@ public class LocalDBLoggerSettings implements Serializable
         }
         final int maxEvents = ( int ) configuration.readSettingAsLong( PwmSetting.EVENTS_PWMDB_MAX_EVENTS );
         final long maxAgeMS = 1000 * configuration.readSettingAsLong( PwmSetting.EVENTS_PWMDB_MAX_AGE );
-        final TimeDuration maxAge = new TimeDuration( maxAgeMS );
+        final TimeDuration maxAge = TimeDuration.of( maxAgeMS, TimeDuration.Unit.MILLISECONDS );
         final int maxBufferSize = Integer.parseInt( configuration.readAppProperty( AppProperty.LOCALDB_LOGWRITER_BUFFER_SIZE ) );
-        final TimeDuration maxBufferWaitTime = new TimeDuration( Long.parseLong( configuration.readAppProperty( AppProperty.LOCALDB_LOGWRITER_MAX_BUFFER_WAIT_MS ) ) );
+        final TimeDuration maxBufferWaitTime = TimeDuration.of(
+                Long.parseLong( configuration.readAppProperty( AppProperty.LOCALDB_LOGWRITER_MAX_BUFFER_WAIT_MS ) ),
+                TimeDuration.Unit.MILLISECONDS
+        );
         final int maxTrimSize = Integer.parseInt( configuration.readAppProperty( AppProperty.LOCALDB_LOGWRITER_MAX_TRIM_SIZE ) );
 
         return new Builder()
@@ -124,10 +126,10 @@ public class LocalDBLoggerSettings implements Serializable
     public static class Builder
     {
         private int maxEvents = 1 * 1000 * 1000;
-        private TimeDuration maxAge = new TimeDuration( 7, TimeUnit.DAYS );
+        private TimeDuration maxAge = TimeDuration.of( 7, TimeDuration.Unit.DAYS );
         private Set<Flag> flags = Collections.emptySet();
         private int maxBufferSize = 1000;
-        private TimeDuration maxBufferWaitTime = new TimeDuration( 1, TimeUnit.MINUTES );
+        private TimeDuration maxBufferWaitTime = TimeDuration.of( 1, TimeDuration.Unit.MINUTES );
         private int maxTrimSize = 501;
 
         public Builder setMaxEvents( final int maxEvents )

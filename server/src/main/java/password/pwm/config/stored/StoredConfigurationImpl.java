@@ -75,7 +75,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -1003,7 +1002,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
     public String settingChecksum( )
             throws PwmUnrecoverableException
     {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
 
         final List<SettingValueRecord> modifiedSettings = modifiedSettings();
         final StringBuilder sb = new StringBuilder();

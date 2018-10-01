@@ -192,7 +192,7 @@ public class SharedHistoryManager implements PwmService
     private void init( final PwmApplication pwmApplication, final long maxAgeMs )
     {
         status = STATUS.OPENING;
-        final long startTime = System.currentTimeMillis();
+        final Instant startTime = Instant.now();
 
         try
         {
@@ -232,9 +232,9 @@ public class SharedHistoryManager implements PwmService
             final int size = localDB.size( WORDS_DB );
             final StringBuilder sb = new StringBuilder();
             sb.append( "open with " ).append( size ).append( " words (" );
-            sb.append( new TimeDuration( System.currentTimeMillis(), startTime ).asCompactString() ).append( ")" );
-            sb.append( ", maxAgeMs=" ).append( new TimeDuration( maxAgeMs ).asCompactString() );
-            sb.append( ", oldestEntry=" ).append( new TimeDuration( System.currentTimeMillis(), oldestEntry ).asCompactString() );
+            sb.append( TimeDuration.compactFromCurrent( startTime ) ).append( ")" );
+            sb.append( ", maxAgeMs=" ).append( TimeDuration.of( maxAgeMs, TimeDuration.Unit.MILLISECONDS ).asCompactString() );
+            sb.append( ", oldestEntry=" ).append( TimeDuration.fromCurrent( oldestEntry ).asCompactString() );
             LOGGER.info( sb.toString() );
         }
         catch ( LocalDBException e )
@@ -252,7 +252,7 @@ public class SharedHistoryManager implements PwmService
             long frequencyMs = maxAgeMs > MAX_CLEANER_FREQUENCY ? MAX_CLEANER_FREQUENCY : maxAgeMs;
             frequencyMs = frequencyMs < MIN_CLEANER_FREQUENCY ? MIN_CLEANER_FREQUENCY : frequencyMs;
 
-            LOGGER.debug( "scheduling cleaner task to run once every " + new TimeDuration( frequencyMs ).asCompactString() );
+            LOGGER.debug( "scheduling cleaner task to run once every " + TimeDuration.of( frequencyMs, TimeDuration.Unit.MILLISECONDS ).asCompactString() );
             final String threadName = JavaHelper.makeThreadName( pwmApplication, this.getClass() ) + " timer";
             cleanerTimer = new Timer( threadName, true );
             cleanerTimer.schedule( new CleanerTask(), 1000, frequencyMs );
@@ -293,7 +293,7 @@ public class SharedHistoryManager implements PwmService
             return;
         }
 
-        final long startTime = System.currentTimeMillis();
+        final Instant startTime = Instant.now();
 
         try
         {
@@ -305,7 +305,7 @@ public class SharedHistoryManager implements PwmService
             {
                 final StringBuilder logOutput = new StringBuilder();
                 logOutput.append( preExisting ? "updated" : "added" ).append( " word" );
-                logOutput.append( " (" ).append( new TimeDuration( System.currentTimeMillis(), startTime ).asCompactString() ).append( ")" );
+                logOutput.append( " (" ).append( TimeDuration.compactFromCurrent( startTime ) ).append( ")" );
                 logOutput.append( " (" ).append( this.size() ).append( " total words)" );
                 LOGGER.trace( logOutput.toString() );
             }

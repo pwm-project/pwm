@@ -101,7 +101,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -790,7 +789,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
 
         final HelpdeskVerificationRequestBean.TokenData tokenData = new HelpdeskVerificationRequestBean.TokenData();
         tokenData.setToken( tokenKey );
-        tokenData.setIssueDate( new Date() );
+        tokenData.setIssueDate( Instant.now() );
 
         final SecureService secureService = pwmRequest.getPwmApplication().getSecureService();
         helpdeskVerificationRequestBean.setTokenData( secureService.encryptObjectToString( tokenData ) );
@@ -834,9 +833,12 @@ public class HelpdeskServlet extends ControlledPwmServlet
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_TOKEN_INCORRECT, errorMsg ) );
         }
 
-        final TimeDuration maxTokenAge = new TimeDuration( Long.parseLong( pwmRequest.getConfig().readAppProperty( AppProperty.HELPDESK_TOKEN_MAX_AGE ) ) * 1000 );
-        final Date maxTokenAgeTimestamp = new Date( System.currentTimeMillis() - maxTokenAge.getTotalMilliseconds() );
-        if ( tokenData.getIssueDate().before( maxTokenAgeTimestamp ) )
+        final TimeDuration maxTokenAge = TimeDuration.of(
+                Long.parseLong( pwmRequest.getConfig().readAppProperty( AppProperty.HELPDESK_TOKEN_MAX_AGE ) ),
+                TimeDuration.Unit.SECONDS
+        );
+        final Instant maxTokenAgeTimestamp = Instant.ofEpochMilli( System.currentTimeMillis() - maxTokenAge.asMillis() );
+        if ( tokenData.getIssueDate().isBefore( maxTokenAgeTimestamp ) )
         {
             final String errorMsg = "token is older than maximum issue time (" + maxTokenAge.asCompactString() + ")";
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_TOKEN_EXPIRED, errorMsg ) );

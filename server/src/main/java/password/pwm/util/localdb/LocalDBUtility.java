@@ -55,7 +55,6 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.TreeMap;
-import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -235,7 +234,7 @@ public class LocalDBUtility
         final Instant startTime = Instant.now();
         final TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(
                 new TransactionSizeCalculator.SettingsBuilder()
-                        .setDurationGoal( new TimeDuration( 100, TimeUnit.MILLISECONDS ) )
+                        .setDurationGoal( TimeDuration.of( 100, TimeDuration.Unit.MILLISECONDS ) )
                         .setMinTransactions( 50 )
                         .setMaxTransactions( 5 * 1000 )
                         .createSettings()

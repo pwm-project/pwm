@@ -366,7 +366,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
                 final TimeDuration totalTime = TimeDuration.fromCurrent( progressTracker.getBeginTime() );
                 try
                 {
-                    pwmRequest.getPwmApplication().getStatisticsManager().updateAverageValue( Statistic.AVG_PASSWORD_SYNC_TIME, totalTime.getTotalMilliseconds() );
+                    pwmRequest.getPwmApplication().getStatisticsManager().updateAverageValue( Statistic.AVG_PASSWORD_SYNC_TIME, totalTime.asMillis() );
                     LOGGER.trace( pwmRequest, "password sync process marked completed (" + totalTime.asCompactString() + ")" );
                 }
                 catch ( Exception e )
@@ -503,7 +503,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
         final Instant maxCompleteTime = changePasswordBean.getChangePasswordMaxCompletion();
         pwmRequest.setAttribute(
                 PwmRequestAttribute.ChangePassword_MaxWaitSeconds,
-                maxCompleteTime == null ? 30 : TimeDuration.fromCurrent( maxCompleteTime ).getTotalSeconds()
+                maxCompleteTime == null ? 30 : TimeDuration.fromCurrent( maxCompleteTime ).as( TimeDuration.Unit.SECONDS )
         );
 
         pwmRequest.setAttribute(

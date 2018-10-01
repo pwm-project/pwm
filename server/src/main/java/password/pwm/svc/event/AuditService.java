@@ -169,7 +169,7 @@ public class AuditService implements PwmService
             serviceInfo = new ServiceInfoBean( Collections.singletonList( storageMethodUsed ) );
         }
         {
-            final TimeDuration maxRecordAge = new TimeDuration( pwmApplication.getConfig().readSettingAsLong( PwmSetting.EVENTS_AUDIT_MAX_AGE ) * 1000 );
+            final TimeDuration maxRecordAge = TimeDuration.of( pwmApplication.getConfig().readSettingAsLong( PwmSetting.EVENTS_AUDIT_MAX_AGE ), TimeDuration.Unit.SECONDS );
             final long maxRecords = pwmApplication.getConfig().readSettingAsLong( PwmSetting.EVENTS_AUDIT_MAX_EVENTS );
             final AuditVault.Settings settings = new AuditVault.Settings(
                     maxRecords,

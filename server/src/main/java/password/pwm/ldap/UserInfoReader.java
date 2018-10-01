@@ -280,7 +280,7 @@ public class UserInfoReader implements UserInfo
 
             // now check to see if the user's expire time is within the 'preExpireTime' setting.
             final long preExpireMs = config.readSettingAsLong( PwmSetting.PASSWORD_EXPIRE_PRE_TIME ) * 1000;
-            if ( diff.getTotalMilliseconds() > 0 && diff.getTotalMilliseconds() < preExpireMs )
+            if ( diff.asMillis() > 0 && diff.asMillis() < preExpireMs )
             {
                 LOGGER.debug( sessionLabel, "user " + userDN + " password will expire within "
                         + diff.asCompactString()
@@ -300,7 +300,7 @@ public class UserInfoReader implements UserInfo
             {
                 if ( !( preWarnMs == 0 || preWarnMs < preExpireMs ) )
                 {
-                    if ( diff.getTotalMilliseconds() > 0 && diff.getTotalMilliseconds() < preWarnMs )
+                    if ( diff.asMillis() > 0 && diff.asMillis() < preWarnMs )
                     {
                         LOGGER.debug( sessionLabel,
                                 "user " + userDN + " password will expire within "

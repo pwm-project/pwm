@@ -25,8 +25,6 @@ package password.pwm.util;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
 
-import java.util.concurrent.TimeUnit;
-
 public class TransactionSizeCalculator
 {
 
@@ -44,24 +42,24 @@ public class TransactionSizeCalculator
     public void reset( )
     {
         transactionSize = settings.getMinTransactions();
-        lastDuration = settings.getDurationGoal().getTotalMilliseconds();
+        lastDuration = settings.getDurationGoal().asMillis();
     }
 
     public void recordLastTransactionDuration( final long duration )
     {
-        recordLastTransactionDuration( new TimeDuration( duration ) );
+        recordLastTransactionDuration( TimeDuration.of( duration, TimeDuration.Unit.MILLISECONDS ) );
     }
 
     public void pause( )
     {
-        JavaHelper.pause( Math.min( lastDuration, settings.getDurationGoal().getTotalMilliseconds() * 2 ) );
+        JavaHelper.pause( Math.min( lastDuration, settings.getDurationGoal().asMillis() * 2 ) );
     }
 
     public void recordLastTransactionDuration( final TimeDuration duration )
     {
-        lastDuration = duration.getTotalMilliseconds();
-        final long durationGoalMs = settings.getDurationGoal().getTotalMilliseconds();
-        final long difference = Math.abs( duration.getTotalMilliseconds() - durationGoalMs );
+        lastDuration = duration.asMillis();
+        final long durationGoalMs = settings.getDurationGoal().asMillis();
+        final long difference = Math.abs( duration.asMillis() - durationGoalMs );
         final int closeThreshold = ( int ) ( durationGoalMs * .15f );
 
         int newTransactionSize;
@@ -142,7 +140,7 @@ public class TransactionSizeCalculator
                 throw new IllegalArgumentException( "durationGoal must not be null" );
             }
 
-            if ( durationGoal.getTotalMilliseconds() < 1 )
+            if ( durationGoal.asMillis() < 1 )
             {
                 throw new IllegalArgumentException( "durationGoal must be greater than 0ms" );
             }
@@ -167,7 +165,7 @@ public class TransactionSizeCalculator
 
     public static class SettingsBuilder
     {
-        private TimeDuration durationGoal = new TimeDuration( 100, TimeUnit.MILLISECONDS );
+        private TimeDuration durationGoal = TimeDuration.of( 100, TimeDuration.Unit.MILLISECONDS );
         private int maxTransactions = 5003;
         private int minTransactions = 3;
 

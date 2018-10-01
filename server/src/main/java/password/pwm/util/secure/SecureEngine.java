@@ -512,7 +512,7 @@ public class SecureEngine
                 final TimeDuration executionDuration = TimeDuration.fromCurrent( startTime );
                 outputData.write( "processed " + testIterations + " iterations using "
                         + alg.toString() + " (" + alg.getLabel() + ") in "
-                        + executionDuration.getTotalMilliseconds() + "ms" );
+                        + executionDuration.asMillis() + "ms" );
                 outputData.write( "\n" );
             }
         }

@@ -471,7 +471,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
                 if ( autoImportError != null )
                 {
                     final int retrySeconds = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.APPLICATION_WORDLIST_RETRY_SECONDS ) );
-                    logger.error( "auto-import of remote wordlist failed, will retry in " + ( new TimeDuration( retrySeconds, TimeUnit.SECONDS ).asCompactString() ) );
+                    logger.error( "auto-import of remote wordlist failed, will retry in " + ( TimeDuration.of( retrySeconds, TimeDuration.Unit.SECONDS ).asCompactString() ) );
                     executorService.schedule( ( ) ->
                     {
                         try

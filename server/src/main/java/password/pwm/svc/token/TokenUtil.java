@@ -53,7 +53,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class TokenUtil
@@ -252,7 +251,7 @@ public class TokenUtil
         {
 
             final TimeDuration tokenLifetime = tokenInitAndSendRequest.getTokenLifetime() == null
-                    ? new TimeDuration( config.readSettingAsLong( PwmSetting.TOKEN_LIFETIME ), TimeUnit.SECONDS )
+                    ? TimeDuration.of( config.readSettingAsLong( PwmSetting.TOKEN_LIFETIME ), TimeDuration.Unit.SECONDS )
                     : tokenInitAndSendRequest.getTokenLifetime();
 
             try

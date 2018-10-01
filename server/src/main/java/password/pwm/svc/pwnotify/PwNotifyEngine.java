@@ -59,7 +59,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.TimeUnit;
 
 public class PwNotifyEngine
 {
@@ -75,10 +74,10 @@ public class PwNotifyEngine
 
     private final ConditionalTaskExecutor debugOutputTask = new ConditionalTaskExecutor(
             this::periodicDebugOutput,
-            new ConditionalTaskExecutor.TimeDurationPredicate( 1, TimeUnit.MINUTES )
+            new ConditionalTaskExecutor.TimeDurationPredicate( 1, TimeDuration.Unit.MINUTES )
     );
 
-    private EventRateMeter eventRateMeter = new EventRateMeter( new TimeDuration( 5, TimeUnit.MINUTES ) );
+    private EventRateMeter eventRateMeter = new EventRateMeter( TimeDuration.of( 5, TimeDuration.Unit.MINUTES ) );
 
     private int examinedCount = 0;
     private int noticeCount = 0;
@@ -184,9 +183,9 @@ public class PwNotifyEngine
                 noticeCount += processBatch( batch );
                 eventRateMeter.markEvents( batchSize );
                 final TimeDuration batchTime = TimeDuration.fromCurrent( startBatch );
-                final TimeDuration pauseTime = new TimeDuration(
-                        settings.getBatchTimeMultiplier().multiply( new BigDecimal( batchTime.getTotalMilliseconds() ) ).longValue(),
-                        TimeUnit.MILLISECONDS );
+                final TimeDuration pauseTime = TimeDuration.of(
+                        settings.getBatchTimeMultiplier().multiply( new BigDecimal( batchTime.asMillis() ) ).longValue(),
+                        TimeDuration.Unit.MILLISECONDS );
                 pauseTime.pause();
 
                 debugOutputTask.conditionallyExecuteTask();
@@ -266,7 +265,7 @@ public class PwNotifyEngine
             final Instant passwordExpirationTime
     )
     {
-        final long maxSecondsAfterExpiration = TimeDuration.DAY.getTotalSeconds();
+        final long maxSecondsAfterExpiration = TimeDuration.DAY.as( TimeDuration.Unit.SECONDS );
         int nextDayInterval = -1;
         for ( final int configuredDayInterval : settings.getNotificationIntervals() )
         {

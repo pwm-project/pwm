@@ -24,6 +24,7 @@ package password.pwm.util.localdb;
 
 import password.pwm.PwmApplication;
 import password.pwm.util.java.ConditionalTaskExecutor;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.math.BigInteger;
@@ -40,7 +41,6 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -1097,7 +1097,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
                             }
                         }
                     },
-                    new ConditionalTaskExecutor.TimeDurationPredicate( 30, TimeUnit.SECONDS )
+                    new ConditionalTaskExecutor.TimeDurationPredicate( 30, TimeDuration.Unit.SECONDS )
             );
 
             // trim the top.

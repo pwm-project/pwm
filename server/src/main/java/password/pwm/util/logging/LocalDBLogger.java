@@ -458,7 +458,7 @@ public class LocalDBLogger implements PwmService
                         final Instant startTime = Instant.now();
                         localDBListQueue.removeLast( cleanupCount );
                         final TimeDuration purgeTime = TimeDuration.fromCurrent( startTime );
-                        final TimeDuration pauseTime = new TimeDuration( JavaHelper.rangeCheck( 20, 2000, ( int ) purgeTime.getTotalMilliseconds() ) );
+                        final TimeDuration pauseTime = TimeDuration.of( JavaHelper.rangeCheck( 20, 2000, ( int ) purgeTime.asMillis() ), TimeDuration.Unit.MILLISECONDS );
                         pauseTime.pause();
                     }
                 }

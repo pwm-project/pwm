@@ -35,7 +35,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
 
 public class Settings
 {
@@ -47,7 +46,7 @@ public class Settings
         ftpPassword( null ),
         ftpReadPath( null ),
         storagePath( null ),
-        maxInstanceSeconds( Long.toString( new TimeDuration( 14, TimeUnit.DAYS ).getTotalSeconds() ) ),;
+        maxInstanceSeconds( Long.toString( TimeDuration.of( 14, TimeDuration.Unit.DAYS ).as( TimeDuration.Unit.SECONDS ) ) ),;
 
         private final String defaultValue;
 

@@ -54,13 +54,11 @@ import java.nio.file.StandardOpenOption;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.Inflater;
@@ -70,7 +68,7 @@ import java.util.zip.InflaterOutputStream;
 public class XodusLocalDB implements LocalDBProvider
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( XodusLocalDB.class );
-    private static final TimeDuration STATS_OUTPUT_INTERVAL = new TimeDuration( 24, TimeUnit.HOURS );
+    private static final TimeDuration STATS_OUTPUT_INTERVAL = TimeDuration.DAY;
 
     private static final String FILE_SUB_PATH = "xodus";
     private static final String README_FILENAME = "README.TXT";
@@ -102,7 +100,7 @@ public class XodusLocalDB implements LocalDBProvider
     private final Map<LocalDB.DB, Store> cachedStoreObjects = new HashMap<>();
 
     private final ConditionalTaskExecutor outputLogExecutor = new ConditionalTaskExecutor(
-            ( ) -> outputStats(), new ConditionalTaskExecutor.TimeDurationPredicate( STATS_OUTPUT_INTERVAL ).setNextTimeFromNow( 1, TimeUnit.MINUTES )
+            ( ) -> outputStats(), new ConditionalTaskExecutor.TimeDurationPredicate( STATS_OUTPUT_INTERVAL ).setNextTimeFromNow( 1, TimeDuration.Unit.MINUTES )
     );
 
     private BindMachine bindMachine = new BindMachine( BindMachine.DEFAULT_ENABLE_COMPRESSION, BindMachine.DEFAULT_MIN_COMPRESSION_LENGTH );
@@ -414,7 +412,7 @@ public class XodusLocalDB implements LocalDBProvider
         checkStatus( true );
 
         LOGGER.trace( "begin truncate of " + db.toString() + ", size=" + this.size( db ) );
-        final Date startDate = new Date();
+        final Instant startDate = Instant.now();
 
         environment.executeInTransaction( transaction ->
         {

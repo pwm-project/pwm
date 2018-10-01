@@ -35,7 +35,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -160,7 +159,7 @@ public class HealthMonitor implements PwmService
                 ) );
 
 
-        executorService.scheduleAtFixedRate( new ScheduledUpdater(), 0, settings.getNominalCheckInterval().getTotalMilliseconds(), TimeUnit.MILLISECONDS );
+        executorService.scheduleAtFixedRate( new ScheduledUpdater(), 0, settings.getNominalCheckInterval().asMillis(), TimeUnit.MILLISECONDS );
 
         status = STATUS.OPEN;
     }
@@ -179,7 +178,7 @@ public class HealthMonitor implements PwmService
             if ( timeliness == CheckTimeliness.Immediate || ( timeliness == CheckTimeliness.CurrentButNotAncient && recordsAreStale ) )
             {
                 final ScheduledFuture updateTask = executorService.schedule( new ImmediateUpdater(), 0, TimeUnit.NANOSECONDS );
-                final Date beginWaitTime = new Date();
+                final Instant beginWaitTime = Instant.now();
                 while ( !updateTask.isDone() && TimeDuration.fromCurrent( beginWaitTime ).isShorterThan( settings.getMaximumForceCheckWait() ) )
                 {
                     JavaHelper.pause( 500 );
@@ -219,7 +218,7 @@ public class HealthMonitor implements PwmService
         }
 
         final TimeDuration timeSinceLastUpdate = TimeDuration.fromCurrent( lastHealthCheckTime );
-        if ( timeSinceLastUpdate.isShorterThan( settings.getMinimumCheckInterval().getTotalMilliseconds(), TimeUnit.MILLISECONDS ) )
+        if ( timeSinceLastUpdate.isShorterThan( settings.getMinimumCheckInterval().asMillis(), TimeDuration.Unit.MILLISECONDS ) )
         {
             return;
         }
@@ -285,7 +284,7 @@ public class HealthMonitor implements PwmService
         public void run( )
         {
             final TimeDuration timeSinceLastRequest = TimeDuration.fromCurrent( lastRequestedUpdateTime );
-            if ( timeSinceLastRequest.isShorterThan( settings.getNominalCheckInterval().getTotalMilliseconds() + 1000, TimeUnit.MILLISECONDS ) )
+            if ( timeSinceLastRequest.isShorterThan( settings.getNominalCheckInterval().asMillis() + 1000, TimeDuration.Unit.MILLISECONDS ) )
             {
                 try
                 {
@@ -306,7 +305,7 @@ public class HealthMonitor implements PwmService
         public void run( )
         {
             final TimeDuration timeSinceLastUpdate = TimeDuration.fromCurrent( lastHealthCheckTime );
-            if ( timeSinceLastUpdate.isLongerThan( settings.getMinimumCheckInterval().getTotalMilliseconds(), TimeUnit.MILLISECONDS ) )
+            if ( timeSinceLastUpdate.isLongerThan( settings.getMinimumCheckInterval().asMillis(), TimeDuration.Unit.MILLISECONDS ) )
             {
                 try
                 {

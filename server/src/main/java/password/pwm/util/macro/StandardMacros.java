@@ -415,7 +415,7 @@ public abstract class StandardMacros
             {
                 final Instant pwdExpirationTime = userInfo.getPasswordExpirationTime();
                 final TimeDuration timeUntilExpiration = TimeDuration.fromCurrent( pwdExpirationTime );
-                final long daysUntilExpiration = timeUntilExpiration.getDays();
+                final long daysUntilExpiration = timeUntilExpiration.as( TimeDuration.Unit.DAYS );
                 return String.valueOf( daysUntilExpiration );
             }
             catch ( PwmUnrecoverableException e )

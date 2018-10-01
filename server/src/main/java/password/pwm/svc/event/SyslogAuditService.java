@@ -140,8 +140,8 @@ public class SyslogAuditService
 
         final WorkQueueProcessor.Settings settings = WorkQueueProcessor.Settings.builder()
                 .maxEvents( Integer.parseInt( configuration.readAppProperty( AppProperty.QUEUE_SYSLOG_MAX_COUNT ) ) )
-                .retryDiscardAge( new TimeDuration( Long.parseLong( configuration.readAppProperty( AppProperty.QUEUE_SYSLOG_MAX_AGE_MS ) ) ) )
-                .retryInterval( new TimeDuration( Long.parseLong( configuration.readAppProperty( AppProperty.QUEUE_SYSLOG_RETRY_TIMEOUT_MS ) ) ) )
+                .retryDiscardAge( TimeDuration.of( Long.parseLong( configuration.readAppProperty( AppProperty.QUEUE_SYSLOG_MAX_AGE_MS ) ), TimeDuration.Unit.MILLISECONDS ) )
+                .retryInterval( TimeDuration.of( Long.parseLong( configuration.readAppProperty( AppProperty.QUEUE_SYSLOG_RETRY_TIMEOUT_MS ) ), TimeDuration.Unit.MILLISECONDS ) )
                 .build();
 
         final LocalDBStoredQueue localDBStoredQueue = LocalDBStoredQueue.createLocalDBStoredQueue( pwmApplication, pwmApplication.getLocalDB(), LocalDB.DB.SYSLOG_QUEUE );

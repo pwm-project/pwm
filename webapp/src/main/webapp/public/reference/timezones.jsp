@@ -35,11 +35,11 @@
     <tbody>
     <% for (final String tzID : TimeZone.getAvailableIDs()) { %>
     <% final TimeZone tz = TimeZone.getTimeZone(tzID); %>
-    <% final TimeDuration offset = new TimeDuration(0,tz.getOffset(System.currentTimeMillis())); %>
+    <% final TimeDuration offset = TimeDuration.of(tz.getOffset(System.currentTimeMillis()), TimeDuration.Unit.MILLISECONDS); %>
     <tr>
         <td><%=tzID%></td>
         <td><%=tz.getDisplayName()%></td>
-        <td><%=offset.getHours()%>h <%=offset.getMinutes()%>m <%=offset.getSeconds()%>s</td>
+        <td><%=offset.as( TimeDuration.Unit.HOURS)%>h <%=offset.as( TimeDuration.Unit.MINUTES)%>m <%=offset.as( TimeDuration.Unit.SECONDS)%>s</td>
     </tr>
     <% } %>
     </tbody>
