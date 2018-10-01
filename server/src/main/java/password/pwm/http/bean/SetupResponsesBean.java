@@ -25,6 +25,7 @@ package password.pwm.http.bean;
 import com.novell.ldapchai.cr.Challenge;
 import com.novell.ldapchai.cr.ChallengeSet;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import password.pwm.config.option.SessionBeanMode;
 
 import java.io.Serializable;
@@ -34,6 +35,7 @@ import java.util.Map;
 import java.util.Set;
 
 @Data
+@EqualsAndHashCode( callSuper = false )
 public class SetupResponsesBean extends PwmSessionBean
 {
     private boolean hasExistingResponses;
@@ -50,6 +52,7 @@ public class SetupResponsesBean extends PwmSessionBean
     }
 
     @Data
+    @EqualsAndHashCode( callSuper = false )
     public static class SetupData implements Serializable
     {
         private ChallengeSet challengeSet;

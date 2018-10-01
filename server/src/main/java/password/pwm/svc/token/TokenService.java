@@ -204,7 +204,7 @@ public class TokenService implements PwmService
 
         {
             final int cleanerFrequencySeconds = Integer.parseInt( configuration.readAppProperty( AppProperty.TOKEN_CLEANER_INTERVAL_SECONDS ) );
-            final TimeDuration cleanerFrequency = new TimeDuration( cleanerFrequencySeconds, TimeUnit.SECONDS );
+            final TimeDuration cleanerFrequency = TimeDuration.of( cleanerFrequencySeconds, TimeDuration.Unit.SECONDS );
             executorService.scheduleAtFixedRate( cleanerTask, 10, cleanerFrequencySeconds, TimeUnit.SECONDS );
             LOGGER.trace( "token cleanup will occur every " + cleanerFrequency.asCompactString() );
         }
@@ -787,6 +787,6 @@ public class TokenService implements PwmService
             maxValue = Math.max( maxValue, newUserProfile.readSettingAsLong( PwmSetting.NEWUSER_TOKEN_LIFETIME_EMAIL ) );
             maxValue = Math.max( maxValue, newUserProfile.readSettingAsLong( PwmSetting.NEWUSER_TOKEN_LIFETIME_SMS ) );
         }
-        return new TimeDuration( maxValue, TimeUnit.SECONDS );
+        return TimeDuration.of( maxValue, TimeDuration.Unit.SECONDS );
     }
 }

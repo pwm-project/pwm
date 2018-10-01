@@ -75,7 +75,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 public class LdapOperationsHelper
 {
@@ -242,7 +241,7 @@ public class LdapOperationsHelper
         if ( enableCache )
         {
             final long cacheSeconds = Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.LDAP_CACHE_USER_GUID_SECONDS ) );
-            final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpiration( new TimeDuration( cacheSeconds, TimeUnit.SECONDS ) );
+            final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpiration( TimeDuration.of( cacheSeconds, TimeDuration.Unit.SECONDS ) );
             final String cacheValue = existingValue == null
                     ? NULL_CACHE_GUID
                     : existingValue;

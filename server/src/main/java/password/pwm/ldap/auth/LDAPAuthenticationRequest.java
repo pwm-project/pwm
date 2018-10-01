@@ -67,7 +67,6 @@ import password.pwm.util.operations.PasswordUtility;
 
 import java.time.Instant;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -84,10 +83,10 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
 
     private ChaiProvider userProvider;
     private AuthenticationStrategy strategy = AuthenticationStrategy.BIND;
-    private Date startTime;
+    private Instant startTime;
 
     private static final AtomicLoopIntIncrementer OPERATION_COUNTER = new AtomicLoopIntIncrementer( 0 );
-    private int operationNumber = 0;
+    private final int operationNumber;
 
 
     LDAPAuthenticationRequest(
@@ -190,7 +189,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
     {
         if ( startTime == null )
         {
-            startTime = new Date();
+            startTime = Instant.now();
         }
 
         log( PwmLogLevel.DEBUG, "preparing to authenticate user using authenticationType=" + this.requestedAuthType + " using strategy " + this.strategy );
@@ -277,7 +276,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
         statisticsManager.incrementValue( Statistic.AUTHENTICATIONS );
         statisticsManager.updateEps( EpsStatistic.AUTHENTICATION, 1 );
         statisticsManager.updateAverageValue( Statistic.AVG_AUTHENTICATION_TIME,
-                TimeDuration.fromCurrent( startTime ).getTotalMilliseconds() );
+                TimeDuration.fromCurrent( startTime ).asMillis() );
 
         final AuthenticationType returnAuthType;
         if ( !allowBindAsUser )
@@ -339,7 +338,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
         {
             throw new IllegalStateException( "AuthenticationRequest can not be used more than once" );
         }
-        startTime = new Date();
+        startTime = Instant.now();
     }
 
     private void testCredentials(

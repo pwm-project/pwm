@@ -43,7 +43,6 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 public class NewUserProfile extends AbstractProfile
 {
@@ -160,9 +159,9 @@ public class NewUserProfile extends AbstractProfile
         if ( newUserDuration < 1 )
         {
             final long defaultDuration = configuration.readSettingAsLong( PwmSetting.TOKEN_LIFETIME );
-            return new TimeDuration( defaultDuration, TimeUnit.SECONDS );
+            return TimeDuration.of( defaultDuration, TimeDuration.Unit.SECONDS );
         }
-        return new TimeDuration( newUserDuration, TimeUnit.SECONDS );
+        return TimeDuration.of( newUserDuration, TimeDuration.Unit.SECONDS );
     }
 
     public TimeDuration getTokenDurationSMS( final Configuration configuration )
@@ -171,8 +170,8 @@ public class NewUserProfile extends AbstractProfile
         if ( newUserDuration < 1 )
         {
             final long defaultDuration = configuration.readSettingAsLong( PwmSetting.TOKEN_LIFETIME );
-            return new TimeDuration( defaultDuration, TimeUnit.SECONDS );
+            return TimeDuration.of( defaultDuration, TimeDuration.Unit.SECONDS );
         }
-        return new TimeDuration( newUserDuration, TimeUnit.SECONDS );
+        return TimeDuration.of( newUserDuration, TimeDuration.Unit.SECONDS );
     }
 }

@@ -205,7 +205,7 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Implementation-Archive-Name>pwm.jar</Implementation-Archive-Name>
+                            <Implementation-Archive-Nonce>F84576985F0A176014F751736F7C79B6D9BED842FC48377404FE24A36BF6C2AA</Implementation-Archive-Nonce>
                             <Implementation-Title>${project.name}</Implementation-Title>
                             <Implementation-Version>${project.version}</Implementation-Version>
                             <Implementation-Vendor>${project.organization.name}</Implementation-Vendor>

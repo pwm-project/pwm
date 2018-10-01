@@ -95,7 +95,7 @@ public class UserSearchEngine implements PwmService
 
     private final ConditionalTaskExecutor debugOutputTask = new ConditionalTaskExecutor(
             ( ) -> periodicDebugOutput(),
-            new ConditionalTaskExecutor.TimeDurationPredicate( 1, TimeUnit.MINUTES )
+            new ConditionalTaskExecutor.TimeDurationPredicate( 1, TimeDuration.Unit.MINUTES )
     );
 
     public UserSearchEngine( )
@@ -532,7 +532,7 @@ public class UserSearchEngine implements PwmService
 
         if ( pwmApplication.getStatisticsManager() != null && pwmApplication.getStatisticsManager().status() == PwmService.STATUS.OPEN )
         {
-            pwmApplication.getStatisticsManager().updateAverageValue( Statistic.AVG_LDAP_SEARCH_TIME, searchDuration.getTotalMilliseconds() );
+            pwmApplication.getStatisticsManager().updateAverageValue( Statistic.AVG_LDAP_SEARCH_TIME, searchDuration.asMillis() );
         }
 
         if ( results.isEmpty() )

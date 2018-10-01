@@ -227,7 +227,7 @@ public class LocalDbAuditVault implements AuditVault
         // keep transaction duration around 100ms if possible.
         final TransactionSizeCalculator transactionSizeCalculator = new TransactionSizeCalculator(
                 new TransactionSizeCalculator.SettingsBuilder()
-                        .setDurationGoal( new TimeDuration( 101, TimeUnit.MILLISECONDS ) )
+                        .setDurationGoal( TimeDuration.of( 101, TimeDuration.Unit.MILLISECONDS ) )
                         .setMaxTransactions( 5003 )
                         .setMinTransactions( 3 )
                         .createSettings()

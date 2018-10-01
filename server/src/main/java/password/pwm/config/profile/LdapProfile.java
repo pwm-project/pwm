@@ -47,7 +47,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 public class LdapProfile extends AbstractProfile implements Profile
 {
@@ -166,7 +165,7 @@ public class LdapProfile extends AbstractProfile implements Profile
                 if ( enableCanonicalCache )
                 {
                     final long cacheSeconds = Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.LDAP_CACHE_CANONICAL_SECONDS ) );
-                    final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpiration( new TimeDuration( cacheSeconds, TimeUnit.SECONDS ) );
+                    final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpiration( TimeDuration.of( cacheSeconds, TimeDuration.Unit.SECONDS ) );
                     pwmApplication.getCacheService().put( cacheKey, cachePolicy, canonicalValue );
                 }
 

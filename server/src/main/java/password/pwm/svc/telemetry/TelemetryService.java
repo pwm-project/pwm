@@ -217,7 +217,7 @@ public class TelemetryService implements PwmService
         final TimeDuration durationUntilNextPublish = durationUntilNextPublish();
         executorService.schedule(
                 new PublishJob(),
-                durationUntilNextPublish.getTotalMilliseconds(),
+                durationUntilNextPublish.asMillis(),
                 TimeUnit.MILLISECONDS );
         LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "next publish time: " + durationUntilNextPublish().asCompactString() );
     }
@@ -370,7 +370,7 @@ public class TelemetryService implements PwmService
         {
             return Settings.builder()
                     .minimumAuthentications( Integer.parseInt( config.readAppProperty( AppProperty.TELEMETRY_MIN_AUTHENTICATIONS ) ) )
-                    .publishFrequency( new TimeDuration( Integer.parseInt( config.readAppProperty( AppProperty.TELEMETRY_SEND_FREQUENCY_SECONDS ) ), TimeUnit.SECONDS ) )
+                    .publishFrequency( TimeDuration.of( Integer.parseInt( config.readAppProperty( AppProperty.TELEMETRY_SEND_FREQUENCY_SECONDS ) ), TimeDuration.Unit.SECONDS ) )
                     .senderImplementation( config.readAppProperty( AppProperty.TELEMETRY_SENDER_IMPLEMENTATION ) )
                     .senderSettings( config.readAppProperty( AppProperty.TELEMETRY_SENDER_SETTINGS ) )
                     .build();

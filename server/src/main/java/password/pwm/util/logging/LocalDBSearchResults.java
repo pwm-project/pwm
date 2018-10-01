@@ -125,6 +125,6 @@ public class LocalDBSearchResults implements Iterator<PwmLogEvent>
 
     public TimeDuration getSearchTime( )
     {
-        return finishTime == null ? TimeDuration.fromCurrent( startTime ) : new TimeDuration( startTime, finishTime );
+        return finishTime == null ? TimeDuration.fromCurrent( startTime ) : TimeDuration.between( startTime, finishTime );
     }
 }

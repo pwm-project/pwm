@@ -163,14 +163,14 @@ public class PwNotifyService implements PwmService
             }
 
             // more than 24hr ago.
-            if ( Duration.between( Instant.now(), storedJobState.getLastCompletion() ).abs().getSeconds() > settings.getMaximumSkipWindow().getTotalSeconds() )
+            if ( Duration.between( Instant.now(), storedJobState.getLastCompletion() ).abs().getSeconds() > settings.getMaximumSkipWindow().as( TimeDuration.Unit.SECONDS ) )
             {
                 return Instant.now();
             }
         }
 
         final Instant nextZuluZeroTime = JavaHelper.nextZuluZeroTime();
-        final Instant adjustedNextZuluZeroTime = nextZuluZeroTime.plus( settings.getZuluOffset().getTotalSeconds(), ChronoUnit.SECONDS );
+        final Instant adjustedNextZuluZeroTime = nextZuluZeroTime.plus( settings.getZuluOffset().as( TimeDuration.Unit.SECONDS ), ChronoUnit.SECONDS );
         final Instant previousAdjustedZuluZeroTime = adjustedNextZuluZeroTime.minus( 1, ChronoUnit.DAYS );
 
         if ( previousAdjustedZuluZeroTime.isAfter( Instant.now() ) )
@@ -184,7 +184,7 @@ public class PwNotifyService implements PwmService
     public void close( )
     {
         status = STATUS.CLOSED;
-        JavaHelper.closeAndWaitExecutor( executorService, new TimeDuration( 5, TimeUnit.SECONDS ) );
+        JavaHelper.closeAndWaitExecutor( executorService, TimeDuration.of( 5, TimeDuration.Unit.SECONDS ) );
     }
 
     @Override

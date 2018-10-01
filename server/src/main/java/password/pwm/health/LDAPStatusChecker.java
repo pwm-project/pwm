@@ -79,7 +79,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 public class LDAPStatusChecker implements HealthChecker
 {
@@ -495,7 +494,7 @@ public class LDAPStatusChecker implements HealthChecker
                     final Instant passwordExpireDate = adminEntry.readPasswordExpirationDate();
                     final TimeDuration maxPwExpireTime = TimeDuration.of(
                             Integer.parseInt( config.readAppProperty( AppProperty.HEALTH_LDAP_PROXY_WARN_PW_EXPIRE_SECONDS ) ),
-                            TimeUnit.SECONDS );
+                            TimeDuration.Unit.SECONDS );
                     final TimeDuration expirationDuration = TimeDuration.fromCurrent( passwordExpireDate  );
                     if ( maxPwExpireTime.isLongerThan( expirationDuration ) )
                     {

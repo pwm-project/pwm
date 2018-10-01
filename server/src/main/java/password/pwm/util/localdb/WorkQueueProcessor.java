@@ -60,8 +60,8 @@ import java.util.concurrent.locks.LockSupport;
 public final class WorkQueueProcessor<W extends Serializable>
 {
 
-    private static final TimeDuration SUBMIT_QUEUE_FULL_RETRY_CYCLE_INTERVAL = new TimeDuration( 100, TimeUnit.MILLISECONDS );
-    private static final TimeDuration CLOSE_RETRY_CYCLE_INTERVAL = new TimeDuration( 100, TimeUnit.MILLISECONDS );
+    private static final TimeDuration SUBMIT_QUEUE_FULL_RETRY_CYCLE_INTERVAL = TimeDuration.of( 100, TimeDuration.Unit.MILLISECONDS );
+    private static final TimeDuration CLOSE_RETRY_CYCLE_INTERVAL = TimeDuration.of( 100, TimeDuration.Unit.MILLISECONDS );
 
     private final Deque<String> queue;
     private final Settings settings;
@@ -77,7 +77,7 @@ public final class WorkQueueProcessor<W extends Serializable>
     private ThreadPoolExecutor executorService;
 
     private final EventRateMeter.MovingAverage avgLagTime = new EventRateMeter.MovingAverage( 60 * 60 * 1000 );
-    private final EventRateMeter sendRate = new EventRateMeter( new TimeDuration( 1, TimeUnit.HOURS ) );
+    private final EventRateMeter sendRate = new EventRateMeter( TimeDuration.HOUR );
 
     private final AtomicInteger preQueueSubmit = new AtomicInteger( 0 );
     private final AtomicInteger preQueueBypass = new AtomicInteger( 0 );
@@ -153,8 +153,8 @@ public final class WorkQueueProcessor<W extends Serializable>
         if ( localWorkerThread.isRunning() )
         {
             JavaHelper.pause(
-                    settings.getMaxShutdownWaitTime().getMilliseconds(),
-                    CLOSE_RETRY_CYCLE_INTERVAL.getTotalMilliseconds(),
+                    settings.getMaxShutdownWaitTime().asMillis(),
+                    CLOSE_RETRY_CYCLE_INTERVAL.asMillis(),
                     o -> !localWorkerThread.isRunning() );
         }
 
@@ -255,7 +255,7 @@ public final class WorkQueueProcessor<W extends Serializable>
                             + ", item=" + itemProcessor.convertToDebugString( itemWrapper.getWorkItem() );
                     throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg ) );
                 }
-                JavaHelper.pause( SUBMIT_QUEUE_FULL_RETRY_CYCLE_INTERVAL.getTotalMilliseconds() );
+                JavaHelper.pause( SUBMIT_QUEUE_FULL_RETRY_CYCLE_INTERVAL.asMillis() );
             }
 
             eldestItem = itemWrapper.getDate();
@@ -434,7 +434,7 @@ public final class WorkQueueProcessor<W extends Serializable>
 
                         case RETRY:
                         {
-                            retryWakeupTime = Instant.ofEpochMilli( System.currentTimeMillis() + settings.getRetryInterval().getTotalMilliseconds() );
+                            retryWakeupTime = Instant.ofEpochMilli( System.currentTimeMillis() + settings.getRetryInterval().asMillis() );
                             logger.debug( "will retry item after failure, item=" + makeDebugText( itemWrapper ) );
                         }
                         break;
@@ -550,24 +550,23 @@ public final class WorkQueueProcessor<W extends Serializable>
         private int preThreads = 0;
 
         @Builder.Default
-        private TimeDuration maxSubmitWaitTime = new TimeDuration( 5, TimeUnit.SECONDS );
+        private TimeDuration maxSubmitWaitTime = TimeDuration.of( 5, TimeDuration.Unit.SECONDS );
 
         @Builder.Default
-
-        private TimeDuration retryInterval = new TimeDuration( 30, TimeUnit.SECONDS );
-        @Builder.Default
-
-        private TimeDuration retryDiscardAge = new TimeDuration( 1, TimeUnit.HOURS );
+        private TimeDuration retryInterval = TimeDuration.of( 30, TimeDuration.Unit.SECONDS );
 
         @Builder.Default
-        private TimeDuration maxShutdownWaitTime = new TimeDuration( 30, TimeUnit.SECONDS );
+        private TimeDuration retryDiscardAge = TimeDuration.of( 1, TimeDuration.Unit.HOURS );
+
+        @Builder.Default
+        private TimeDuration maxShutdownWaitTime = TimeDuration.of( 30, TimeDuration.Unit.SECONDS );
     }
 
     private void logAndStatUpdateForSuccess( final ItemWrapper<W> itemWrapper )
             throws PwmOperationalException
     {
         final TimeDuration lagTime = TimeDuration.fromCurrent( itemWrapper.getDate() );
-        avgLagTime.update( lagTime.getTotalMilliseconds() );
+        avgLagTime.update( lagTime.asMillis() );
         sendRate.markEvents( 1 );
         logger.trace( "successfully processed item=" + makeDebugText( itemWrapper ) + "; lagTime=" + lagTime.asCompactString()
                 + "; " + StringUtil.mapToString( debugInfo() ) );
@@ -576,7 +575,7 @@ public final class WorkQueueProcessor<W extends Serializable>
     public Map<String, String> debugInfo( )
     {
         final Map<String, String> output = new HashMap<>();
-        output.put( "avgLagTime", new TimeDuration( ( long ) avgLagTime.getAverage() ).asCompactString() );
+        output.put( "avgLagTime", TimeDuration.of( ( long ) avgLagTime.getAverage(), TimeDuration.Unit.MILLISECONDS ).asCompactString() );
         output.put( "sendRate", sendRate.readEventRate().setScale( 2, BigDecimal.ROUND_DOWN ) + "/s" );
         output.put( "preQueueSubmit", String.valueOf( preQueueSubmit.get() ) );
         output.put( "preQueueBypass", String.valueOf( preQueueBypass.get() ) );

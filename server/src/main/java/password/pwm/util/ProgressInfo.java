@@ -57,7 +57,7 @@ public class ProgressInfo implements Serializable
 
     public TimeDuration elapsed( )
     {
-        return new TimeDuration( startTime, nowTime );
+        return TimeDuration.between( startTime, nowTime );
     }
 
     public long itemsRemaining( )
@@ -67,7 +67,7 @@ public class ProgressInfo implements Serializable
 
     public float itemsPerMs( )
     {
-        final long elapsedMs = elapsed().getTotalMilliseconds();
+        final long elapsedMs = elapsed().asMillis();
         if ( elapsedMs <= 0 )
         {
             return 0;
@@ -84,13 +84,13 @@ public class ProgressInfo implements Serializable
             return TimeDuration.ZERO;
         }
         final BigDecimal remainingMs = new BigDecimal( itemsRemaining() ).divide( new BigDecimal( itemsPerMs ), MathContext.DECIMAL32 );
-        return new TimeDuration( remainingMs.longValue() );
+        return TimeDuration.of( remainingMs.longValue(), TimeDuration.Unit.MILLISECONDS );
     }
 
     public Instant estimatedCompletion( )
     {
         final TimeDuration remainingDuration = remainingDuration();
-        return Instant.ofEpochMilli( System.currentTimeMillis() + remainingDuration.getTotalMilliseconds() );
+        return Instant.ofEpochMilli( System.currentTimeMillis() + remainingDuration.asMillis() );
     }
 
     public String debugOutput( )

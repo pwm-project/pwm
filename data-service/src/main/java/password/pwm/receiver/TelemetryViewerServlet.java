@@ -31,7 +31,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 @WebServlet(
         name = "TelemetryViewer",
@@ -65,7 +64,7 @@ public class TelemetryViewerServlet extends HttpServlet
         }
 
         final Storage storage = app.getStorage();
-        final SummaryBean summaryBean = SummaryBean.fromStorage( storage, new TimeDuration( days, TimeUnit.DAYS ) );
+        final SummaryBean summaryBean = SummaryBean.fromStorage( storage, TimeDuration.of( days, TimeDuration.Unit.DAYS ) );
         req.setAttribute( SUMMARY_ATTR, summaryBean );
         req.getServletContext().getRequestDispatcher( "/WEB-INF/jsp/telemetry-viewer.jsp" ).forward( req, resp );
     }

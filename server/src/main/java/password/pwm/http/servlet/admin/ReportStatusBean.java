@@ -91,7 +91,7 @@ public class ReportStatusBean implements Serializable
                     {
                         final int usersRemaining = reportService.getWorkQueueSize();
                         final float secondsRemaining = usersRemaining / eventRate.floatValue();
-                        final TimeDuration remainingDuration = new TimeDuration( ( ( int ) secondsRemaining ) * 1000 );
+                        final TimeDuration remainingDuration = TimeDuration.of( ( int ) secondsRemaining, TimeDuration.Unit.SECONDS );
                         presentableMap.add( new DisplayElement( "timeRemaining", DisplayElement.Type.string, "Estimated Time Remaining",
                                 remainingDuration.asLongString( locale ) ) );
                     }

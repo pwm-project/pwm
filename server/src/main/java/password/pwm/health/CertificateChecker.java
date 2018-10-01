@@ -44,9 +44,9 @@ import password.pwm.util.logging.PwmLogger;
 
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 public class CertificateChecker implements HealthChecker
@@ -181,7 +181,7 @@ public class CertificateChecker implements HealthChecker
             throw new PwmOperationalException( errorInformation );
         }
 
-        final Date expireDate = certificate.getNotAfter();
+        final Instant expireDate = certificate.getNotAfter().toInstant();
         final TimeDuration durationUntilExpire = TimeDuration.fromCurrent( expireDate );
         if ( durationUntilExpire.isShorterThan( warnDurationMs ) )
         {

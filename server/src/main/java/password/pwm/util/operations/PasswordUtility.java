@@ -98,7 +98,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author Jason D. Rivard
@@ -1286,10 +1285,10 @@ public class PasswordUtility
                 return;
             }
 
-            minimumLifetime = new TimeDuration( minimumLifetimeSeconds, TimeUnit.SECONDS );
+            minimumLifetime = TimeDuration.of( minimumLifetimeSeconds, TimeDuration.Unit.SECONDS );
 
         }
-        final Instant allowedChangeDate = Instant.ofEpochMilli( lastModified.toEpochMilli() + minimumLifetime.getTotalMilliseconds() );
+        final Instant allowedChangeDate = Instant.ofEpochMilli( lastModified.toEpochMilli() + minimumLifetime.asMillis() );
         final TimeDuration passwordAge = TimeDuration.fromCurrent( lastModified );
         final String msg = "last password change was at "
                 + JavaHelper.toIsoDate( lastModified )
@@ -1350,7 +1349,7 @@ public class PasswordUtility
                 return false;
             }
 
-            minimumLifetime = new TimeDuration( minimumLifetimeSeconds, TimeUnit.SECONDS );
+            minimumLifetime = TimeDuration.of( minimumLifetimeSeconds, TimeDuration.Unit.SECONDS );
         }
 
         final TimeDuration passwordAge = TimeDuration.fromCurrent( lastModified );

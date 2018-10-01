@@ -651,7 +651,8 @@ public class RequestInitializationFilter implements Filter
             {
                 final Long maxSessionSeconds = pwmRequest.getConfig().readSettingAsLong( PwmSetting.SESSION_MAX_SECONDS );
                 final TimeDuration sessionAge = TimeDuration.fromCurrent( ssBean.getSessionCreationTime() );
-                if ( sessionAge.getTotalSeconds() > maxSessionSeconds )
+                final int sessionSecondAge = (int) sessionAge.as( TimeDuration.Unit.SECONDS );
+                if ( sessionSecondAge > maxSessionSeconds )
                 {
                     final String errorMsg = "session age (" + sessionAge.asCompactString() + ") is longer than maximum permitted age";
                     final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SECURITY_VIOLATION, errorMsg );

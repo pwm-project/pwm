@@ -353,7 +353,7 @@ public class ClientApiServlet extends ControlledPwmServlet
                 {
                     final PwmURL pwmURL = new PwmURL( new URI( pageUrl ), request.getContextPath() );
                     final TimeDuration maxIdleTime = IdleTimeoutCalculator.idleTimeoutForRequest( pwmURL, pwmApplication, pwmSession );
-                    idleSeconds = maxIdleTime.getTotalSeconds();
+                    idleSeconds = maxIdleTime.as( TimeDuration.Unit.SECONDS );
                 }
                 catch ( Exception e )
                 {

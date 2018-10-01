@@ -68,7 +68,7 @@ class ClusterMachine
 
         this.executorService = JavaHelper.makeSingleThreadExecutorService( pwmApplication, ClusterMachine.class );
 
-        final long intervalSeconds = settings.getHeartbeatInterval().getTotalSeconds();
+        final long intervalSeconds = settings.getHeartbeatInterval().as( TimeDuration.Unit.SECONDS );
 
         this.executorService.scheduleAtFixedRate(
                 new HeartbeatProcess(),
@@ -80,7 +80,7 @@ class ClusterMachine
 
     public void close( )
     {
-        JavaHelper.closeAndWaitExecutor( executorService, new TimeDuration( 1, TimeUnit.SECONDS ) );
+        JavaHelper.closeAndWaitExecutor( executorService, TimeDuration.SECOND );
     }
 
 

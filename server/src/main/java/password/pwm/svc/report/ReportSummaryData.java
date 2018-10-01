@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
 
 public class ReportSummaryData
 {
-    private static final long MS_DAY = TimeDuration.DAY.getTotalMilliseconds();
+    private static final long MS_DAY = TimeDuration.DAY.asMillis();
     private static final BigInteger TWO = new BigInteger( "2" );
 
     private Instant meanCacheTime;
@@ -339,7 +339,7 @@ public class ReportSummaryData
             return 0;
         }
 
-        final TimeDuration timeBoundary = new TimeDuration( 0, timeWindow );
+        final TimeDuration timeBoundary = TimeDuration.of( timeWindow, TimeDuration.Unit.MILLISECONDS );
         final TimeDuration eventDifference = TimeDuration.fromCurrent( eventDate );
 
         if ( timeWindow >= 0 && eventDate.isAfter( Instant.now() ) && eventDifference.isShorterThan( timeBoundary ) )

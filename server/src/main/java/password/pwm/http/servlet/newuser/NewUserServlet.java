@@ -637,7 +637,7 @@ public class NewUserServlet extends ControlledPwmServlet
         {
             final TimeDuration elapsedTime = TimeDuration.fromCurrent( startTime );
             complete = false;
-            percentComplete = new Percent( elapsedTime.getTotalMilliseconds(), minWaitTime ).asBigDecimal();
+            percentComplete = new Percent( elapsedTime.asMillis(), minWaitTime ).asBigDecimal();
         }
 
         final LinkedHashMap<String, Object> outputMap = new LinkedHashMap<>();

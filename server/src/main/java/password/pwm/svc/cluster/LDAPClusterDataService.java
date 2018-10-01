@@ -25,6 +25,7 @@ package password.pwm.svc.cluster;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiException;
 import lombok.Value;
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
@@ -32,6 +33,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -158,6 +160,7 @@ public class LDAPClusterDataService implements ClusterDataServiceProvider
             this.pwmApplication = pwmApplication;
 
             userIdentity = pwmApplication.getConfig().getDefaultLdapProfile().getTestUser( pwmApplication );
+
             if ( userIdentity == null )
             {
                 final String ldapProfileID = pwmApplication.getConfig().getDefaultLdapProfile().getIdentifier();
@@ -165,8 +168,17 @@ public class LDAPClusterDataService implements ClusterDataServiceProvider
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, errorMsg );
                 throw new PwmUnrecoverableException( errorInformation );
             }
+
             chaiUser = pwmApplication.getProxiedChaiUser( userIdentity );
-            attr = userIdentity.getLdapProfile( pwmApplication.getConfig() ).readSettingAsString( PwmSetting.CHALLENGE_USER_ATTRIBUTE );
+
+            {
+                String ldapAttribute = pwmApplication.getConfig().readAppProperty( AppProperty.CLUSTER_LDAP_ATTRIBUTES );
+                if ( StringUtil.isEmpty( ldapAttribute ) )
+                {
+                    ldapAttribute = userIdentity.getLdapProfile( pwmApplication.getConfig() ).readSettingAsString( PwmSetting.CHALLENGE_USER_ATTRIBUTE );
+                }
+                attr = ldapAttribute;
+            }
 
         }
 

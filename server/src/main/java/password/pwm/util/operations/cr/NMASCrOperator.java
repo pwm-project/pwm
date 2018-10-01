@@ -154,7 +154,7 @@ public class NMASCrOperator implements CrOperator
         {
             maxNmasIdleSeconds = minSeconds;
         }
-        maxThreadIdleTime = new TimeDuration( maxNmasIdleSeconds * 1000 );
+        maxThreadIdleTime = TimeDuration.of( maxNmasIdleSeconds, TimeDuration.Unit.SECONDS );
 
         registerSaslProvider();
     }
@@ -771,7 +771,7 @@ public class NMASCrOperator implements CrOperator
             {
                 final Instant startTime = Instant.now();
                 boolean done = this.isNmasDone();
-                Date lastLogTime = new Date();
+                Instant lastLogTime = Instant.now();
                 while ( !done && TimeDuration.fromCurrent( startTime ).isShorterThan( maxThreadIdleTime ) )
                 {
                     LOGGER.trace( "attempt to read return code, but isNmasDone=false, will await completion" );
@@ -788,7 +788,7 @@ public class NMASCrOperator implements CrOperator
                     {
                         LOGGER.trace( "waiting for return code: " + TimeDuration.fromCurrent( startTime ).asCompactString()
                                 + " unsupportedCallbackHasOccurred=" + unsupportedCallbackHasOccurred );
-                        lastLogTime = new Date();
+                        lastLogTime = Instant.now();
                     }
                 }
                 LOGGER.debug( "read return code in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
@@ -804,7 +804,7 @@ public class NMASCrOperator implements CrOperator
 
     private class NMASSessionThread extends Thread
     {
-        private volatile Date lastActivityTimestamp = new Date();
+        private volatile Instant lastActivityTimestamp = Instant.now();
         private volatile NMASThreadState loginState = NMASThreadState.NEW;
         private volatile boolean loginResultReady = false;
         private volatile com.novell.security.nmas.client.NMASLoginResult loginResult = null;
@@ -832,7 +832,7 @@ public class NMASCrOperator implements CrOperator
             return this.loginState;
         }
 
-        public Date getLastActivityTimestamp( )
+        public Instant getLastActivityTimestamp( )
         {
             return lastActivityTimestamp;
         }
@@ -841,7 +841,7 @@ public class NMASCrOperator implements CrOperator
         {
             this.loginResult = paramNMASLoginResult;
             this.loginResultReady = true;
-            this.lastActivityTimestamp = new Date();
+            this.lastActivityTimestamp = Instant.now();
         }
 
         public final synchronized com.novell.security.nmas.client.NMASLoginResult getLoginResult( )
@@ -858,7 +858,7 @@ public class NMASCrOperator implements CrOperator
                 }
             }
 
-            lastActivityTimestamp = new Date();
+            lastActivityTimestamp = Instant.now();
             return this.loginResult;
         }
 
@@ -882,7 +882,7 @@ public class NMASCrOperator implements CrOperator
             setLoginState( NMASThreadState.NEW );
             setDaemon( true );
             setName( PwmConstants.PWM_APP_NAME + "-NMASSessionThread thread id=" + threadID );
-            lastActivityTimestamp = new Date();
+            lastActivityTimestamp = Instant.now();
             start();
         }
 
@@ -909,19 +909,19 @@ public class NMASCrOperator implements CrOperator
             {
                 return;
             }
-            lastActivityTimestamp = new Date();
+            lastActivityTimestamp = Instant.now();
             if ( this.ldapConn == null )
             {
                 setLoginState( NMASThreadState.COMPLETED );
                 setLoginResult( new com.novell.security.nmas.client.NMASLoginResult( -1681 ) );
-                lastActivityTimestamp = new Date();
+                lastActivityTimestamp = Instant.now();
                 return;
             }
 
             try
             {
                 setLoginState( NMASThreadState.BIND );
-                lastActivityTimestamp = new Date();
+                lastActivityTimestamp = Instant.now();
                 try
                 {
                     this.ldapConn.bind(
@@ -950,9 +950,9 @@ public class NMASCrOperator implements CrOperator
                 }
 
                 setLoginState( NMASThreadState.COMPLETED );
-                lastActivityTimestamp = new Date();
+                lastActivityTimestamp = Instant.now();
                 setLoginResult( new com.novell.security.nmas.client.NMASLoginResult( this.callbackHandler.awaitRetCode(), this.ldapConn ) );
-                lastActivityTimestamp = new Date();
+                lastActivityTimestamp = Instant.now();
             }
             catch ( LDAPException e )
             {
@@ -974,7 +974,7 @@ public class NMASCrOperator implements CrOperator
                         = new com.novell.security.nmas.client.NMASLoginResult( this.callbackHandler.awaitRetCode(), e );
                 setLoginResult( localNMASLoginResult );
             }
-            lastActivityTimestamp = new Date();
+            lastActivityTimestamp = Instant.now();
         }
 
         public void abort( )

@@ -383,7 +383,7 @@ public class JavaHelper
         executor.shutdown();
         try
         {
-            return executor.awaitTermination( timeDuration.getTotalMilliseconds(), TimeUnit.MILLISECONDS );
+            return executor.awaitTermination( timeDuration.asMillis(), TimeUnit.MILLISECONDS );
         }
         catch ( InterruptedException e )
         {

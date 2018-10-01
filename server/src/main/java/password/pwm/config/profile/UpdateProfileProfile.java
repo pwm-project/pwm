@@ -30,7 +30,6 @@ import password.pwm.util.java.TimeDuration;
 
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 public class UpdateProfileProfile extends AbstractProfile implements Profile
 {
@@ -67,9 +66,9 @@ public class UpdateProfileProfile extends AbstractProfile implements Profile
         if ( duration < 1 )
         {
             final long defaultDuration = configuration.readSettingAsLong( PwmSetting.TOKEN_LIFETIME );
-            return new TimeDuration( defaultDuration, TimeUnit.SECONDS );
+            return TimeDuration.of( defaultDuration, TimeDuration.Unit.SECONDS );
         }
-        return new TimeDuration( duration, TimeUnit.SECONDS );
+        return TimeDuration.of( duration, TimeDuration.Unit.SECONDS );
     }
 
     public TimeDuration getTokenDurationSMS( final Configuration configuration )
@@ -78,8 +77,8 @@ public class UpdateProfileProfile extends AbstractProfile implements Profile
         if ( duration < 1 )
         {
             final long defaultDuration = configuration.readSettingAsLong( PwmSetting.TOKEN_LIFETIME );
-            return new TimeDuration( defaultDuration, TimeUnit.SECONDS );
+            return TimeDuration.of( defaultDuration, TimeDuration.Unit.SECONDS );
         }
-        return new TimeDuration( duration, TimeUnit.SECONDS );
+        return TimeDuration.of( duration, TimeDuration.Unit.SECONDS );
     }
 }

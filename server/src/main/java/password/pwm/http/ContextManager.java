@@ -72,7 +72,7 @@ public class ContextManager implements Serializable
     private ErrorInformation startupErrorInformation;
 
     private AtomicInteger restartCount = new AtomicInteger( 0 );
-    private TimeDuration readApplicationLockMaxWait = new TimeDuration( 5, TimeUnit.SECONDS );
+    private TimeDuration readApplicationLockMaxWait = TimeDuration.of( 5, TimeDuration.Unit.SECONDS );
     private final String instanceGuid;
     private final Lock reloadLock = new ReentrantLock();
 
@@ -144,7 +144,7 @@ public class ContextManager implements Serializable
         {
             try
             {
-                final boolean hasLock = reloadLock.tryLock( readApplicationLockMaxWait.getTotalMilliseconds(), TimeUnit.MICROSECONDS );
+                final boolean hasLock = reloadLock.tryLock( readApplicationLockMaxWait.asMillis(), TimeUnit.MILLISECONDS );
                 if ( hasLock )
                 {
                     return pwmApplication;
@@ -264,9 +264,9 @@ public class ContextManager implements Serializable
                 reloadOnChange = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.CONFIG_RELOAD_ON_CHANGE ) );
                 fileScanFrequencyMs = Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.CONFIG_FILE_SCAN_FREQUENCY ) );
 
-                this.readApplicationLockMaxWait = new TimeDuration(
+                this.readApplicationLockMaxWait = TimeDuration.of(
                         Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.APPLICATION_READ_APP_LOCK_MAX_WAIT_MS ) ),
-                        TimeUnit.MILLISECONDS
+                        TimeDuration.Unit.MILLISECONDS
                 );
             }
             if ( reloadOnChange )
@@ -458,7 +458,7 @@ public class ContextManager implements Serializable
             final Instant startTime = Instant.now();
             final TimeDuration maxRequestWaitTime = TimeDuration.of(
                     Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.APPLICATION_RESTART_MAX_REQUEST_WAIT_MS ) ),
-                    TimeUnit.SECONDS );
+                    TimeDuration.Unit.SECONDS );
             final int startingRequetsInProgress = pwmApplication.getInprogressRequests().get();
 
             if ( startingRequetsInProgress == 0 )
@@ -469,7 +469,7 @@ public class ContextManager implements Serializable
             LOGGER.trace( "waiting up to " + maxRequestWaitTime.asCompactString()
                     + " for " + startingRequetsInProgress  + " requests to complete." );
             JavaHelper.pause(
-                    maxRequestWaitTime.getTotalMilliseconds(),
+                    maxRequestWaitTime.asMillis(),
                     10,
                     o -> pwmApplication.getInprogressRequests().get() == 0
             );

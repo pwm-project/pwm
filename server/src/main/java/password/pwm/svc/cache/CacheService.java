@@ -31,6 +31,7 @@ import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
@@ -42,7 +43,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.concurrent.TimeUnit;
 
 public class CacheService implements PwmService
 {
@@ -91,7 +91,7 @@ public class CacheService implements PwmService
         memoryCacheStore = new MemoryCacheStore( maxMemItems );
         this.traceDebugOutputter = new ConditionalTaskExecutor(
                 ( ) -> outputTraceInfo(),
-                new ConditionalTaskExecutor.TimeDurationPredicate( 1, TimeUnit.MINUTES )
+                new ConditionalTaskExecutor.TimeDurationPredicate( 1, TimeDuration.Unit.MINUTES )
         );
         status = STATUS.OPEN;
     }

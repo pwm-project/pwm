@@ -98,7 +98,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -474,7 +473,7 @@ public class AdminServlet extends ControlledPwmServlet
             throws PwmUnrecoverableException, IOException
     {
         final Instant startTime = Instant.now();
-        final TimeDuration maxSearchTime = new TimeDuration( 10, TimeUnit.SECONDS );
+        final TimeDuration maxSearchTime = TimeDuration.SECONDS_10;
         final int max = readMaxParameter( pwmRequest, 100, 10 * 1000 );
         final AuditEvent.Type auditDataType = AuditEvent.Type.valueOf( pwmRequest.readParameterAsString( "type", AuditEvent.Type.USER.name() ) );
         final ArrayList<AuditRecord> records = new ArrayList<>();
@@ -830,7 +829,7 @@ public class AdminServlet extends ControlledPwmServlet
         {
             final Map<String, String> inputMap = pwmRequest.readBodyAsJsonStringMap( PwmHttpRequestWrapper.Flag.BypassValidation );
             final int eventCount = Integer.parseInt( inputMap.getOrDefault( "count", "0" ) );
-            final TimeDuration maxTimeSeconds = new TimeDuration( Integer.parseInt( inputMap.getOrDefault( "maxTime", "5" ) ), TimeUnit.SECONDS );
+            final TimeDuration maxTimeSeconds = TimeDuration.of( Integer.parseInt( inputMap.getOrDefault( "maxTime", "5" ) ), TimeDuration.Unit.SECONDS );
             final String username = inputMap.getOrDefault( "username", "" );
             final String text = inputMap.getOrDefault( "text", "" );
             final PwmLogLevel logLevel = JavaHelper.readEnumFromString( PwmLogLevel.class, PwmLogLevel.TRACE, inputMap.get( "level" ) );

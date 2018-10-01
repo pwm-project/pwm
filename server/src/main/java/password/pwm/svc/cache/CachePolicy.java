@@ -49,7 +49,7 @@ public class CachePolicy implements Serializable
 
     public static CachePolicy makePolicyWithExpiration( final TimeDuration timeDuration )
     {
-        return makePolicyWithExpirationMS( timeDuration.getTotalMilliseconds() );
+        return makePolicyWithExpirationMS( timeDuration.asMillis() );
     }
 
 }

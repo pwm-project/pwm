@@ -562,12 +562,12 @@ public class ReportService implements PwmService
                             reportStatus.setCount( reportStatus.getCount() + 1 );
                             eventRateMeter.markEvents( 1 );
                             final TimeDuration totalUpdateTime = TimeDuration.fromCurrent( startUpdateTime );
-                            avgTracker.addSample( totalUpdateTime.getTotalMilliseconds() );
+                            avgTracker.addSample( totalUpdateTime.asMillis() );
 
                             try
                             {
                                 updateTimeLock.lock();
-                                final TimeDuration scaledTime = new TimeDuration( totalUpdateTime.getTotalMilliseconds() / threadCount );
+                                final TimeDuration scaledTime = TimeDuration.of( totalUpdateTime.asMillis() / threadCount, TimeDuration.Unit.MILLISECONDS );
                                 reportStatus.setJobDuration( reportStatus.getJobDuration().add( scaledTime ) );
                             }
                             finally
@@ -691,7 +691,7 @@ public class ReportService implements PwmService
 
                     examinedRecords++;
 
-                    if ( TimeDuration.fromCurrent( lastLogOutputTime ).isLongerThan( 30, TimeUnit.SECONDS ) )
+                    if ( TimeDuration.fromCurrent( lastLogOutputTime ).isLongerThan( 30, TimeDuration.Unit.SECONDS ) )
                     {
                         final TimeDuration progressDuration = TimeDuration.fromCurrent( startTime );
                         LOGGER.trace( SessionLabel.REPORTING_SESSION_LABEL,
@@ -738,8 +738,8 @@ public class ReportService implements PwmService
             if ( reportingEnabled )
             {
                 final Instant nextZuluZeroTime = JavaHelper.nextZuluZeroTime();
-                final long secondsUntilNextDredge = settings.getJobOffsetSeconds() + TimeDuration.fromCurrent( nextZuluZeroTime ).getTotalSeconds();
-                executorService.scheduleAtFixedRate( new DailyJobExecuteTask(), secondsUntilNextDredge, TimeDuration.DAY.getTotalSeconds(), TimeUnit.SECONDS );
+                final long secondsUntilNextDredge = settings.getJobOffsetSeconds() + TimeDuration.fromCurrent( nextZuluZeroTime ).as( TimeDuration.Unit.SECONDS );
+                executorService.scheduleAtFixedRate( new DailyJobExecuteTask(), secondsUntilNextDredge, TimeDuration.DAY.as( TimeDuration.Unit.SECONDS ), TimeUnit.SECONDS );
                 LOGGER.debug( "scheduled daily execution, next task will be at " + nextZuluZeroTime.toString() );
             }
             executorService.submit( new RolloverTask() );

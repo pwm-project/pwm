@@ -184,8 +184,8 @@ public class PasswordChangeProgressChecker
 
         newItemProgress.putAll( figureItemProgresses( tracker ) );
         final Instant estimatedCompletion = figureEstimatedCompletion( tracker, newItemProgress.values() );
-        final long elapsedMs = TimeDuration.fromCurrent( tracker.beginTime ).getTotalMilliseconds();
-        final long remainingMs = TimeDuration.fromCurrent( estimatedCompletion ).getTotalMilliseconds();
+        final long elapsedMs = TimeDuration.fromCurrent( tracker.beginTime ).asMillis();
+        final long remainingMs = TimeDuration.fromCurrent( estimatedCompletion ).asMillis();
 
         final Percent percentage;
         if ( Instant.now().isAfter( estimatedCompletion ) )
@@ -194,7 +194,7 @@ public class PasswordChangeProgressChecker
         }
         else
         {
-            final long totalMs = new TimeDuration( tracker.beginTime, estimatedCompletion ).getTotalMilliseconds();
+            final long totalMs = TimeDuration.between( tracker.beginTime, estimatedCompletion ).asMillis();
             percentage = new Percent( elapsedMs, totalMs + 1 );
         }
         tracker.itemCompletions.putAll( newItemProgress );
@@ -202,8 +202,8 @@ public class PasswordChangeProgressChecker
                 percentage.isComplete(),
                 percentage.asBigDecimal( 2 ),
                 newItemProgress.values(),
-                new TimeDuration( elapsedMs ).asLongString( locale ),
-                new TimeDuration( remainingMs ).asLongString( locale )
+                TimeDuration.of( elapsedMs, TimeDuration.Unit.MILLISECONDS ).asLongString( locale ),
+                TimeDuration.of( remainingMs, TimeDuration.Unit.MILLISECONDS ).asLongString( locale )
         );
     }
 
@@ -228,7 +228,7 @@ public class PasswordChangeProgressChecker
             /*
             final long randMs = PwmRandom.getInstance().nextInt(90 * 1000) + 30 * 1000;
             //final long randMs = 75 * 1000;
-            final long elapsedMs = TimeDuration.fromCurrent(tracker.beginTime).getTotalMilliseconds();
+            final long elapsedMs = TimeDuration.fromCurrent(tracker.beginTime).asMillis();
             final Percent percent = new Percent(elapsedMs,randMs);
             final ProgressRecord record = new ProgressRecord();
             record.key = "randomItem";
@@ -247,14 +247,14 @@ public class PasswordChangeProgressChecker
 
     public Instant maxCompletionTime( final ProgressTracker tracker )
     {
-        final TimeDuration maxWait = new TimeDuration( pwmApplication.getConfig().readSettingAsLong( PwmSetting.PASSWORD_SYNC_MAX_WAIT_TIME ) * 1000 );
-        return Instant.ofEpochMilli( tracker.beginTime.toEpochMilli() + maxWait.getTotalMilliseconds() );
+        final TimeDuration maxWait = TimeDuration.of( pwmApplication.getConfig().readSettingAsLong( PwmSetting.PASSWORD_SYNC_MAX_WAIT_TIME ), TimeDuration.Unit.SECONDS );
+        return Instant.ofEpochMilli( tracker.beginTime.toEpochMilli() + maxWait.asMillis() );
     }
 
     private Instant minCompletionTime( final ProgressTracker tracker )
     {
-        final TimeDuration minWait = new TimeDuration( pwmApplication.getConfig().readSettingAsLong( PwmSetting.PASSWORD_SYNC_MIN_WAIT_TIME ) * 1000 );
-        return Instant.ofEpochMilli( tracker.beginTime.toEpochMilli() + minWait.getTotalMilliseconds() );
+        final TimeDuration minWait = TimeDuration.of( pwmApplication.getConfig().readSettingAsLong( PwmSetting.PASSWORD_SYNC_MIN_WAIT_TIME ), TimeDuration.Unit.SECONDS );
+        return Instant.ofEpochMilli( tracker.beginTime.toEpochMilli() + minWait.asMillis() );
     }
 
     private Instant figureEstimatedCompletion(
@@ -320,8 +320,8 @@ public class PasswordChangeProgressChecker
     {
         final long initDelayMs = Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.LDAP_PASSWORD_REPLICA_CHECK_INIT_DELAY_MS ) );
         final long cycleDelayMs = Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.LDAP_PASSWORD_REPLICA_CHECK_CYCLE_DELAY_MS ) );
-        final TimeDuration initialReplicaDelay = new TimeDuration( initDelayMs );
-        final TimeDuration cycleReplicaDelay = new TimeDuration( cycleDelayMs );
+        final TimeDuration initialReplicaDelay = TimeDuration.of( initDelayMs, TimeDuration.Unit.MILLISECONDS );
+        final TimeDuration cycleReplicaDelay = TimeDuration.of( cycleDelayMs, TimeDuration.Unit.MILLISECONDS );
 
         if ( passwordSyncCheckMode == PasswordSyncCheckMode.DISABLED )
         {

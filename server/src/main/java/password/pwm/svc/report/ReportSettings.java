@@ -41,7 +41,7 @@ class ReportSettings implements Serializable
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ReportSettings.class );
 
-    private TimeDuration maxCacheAge = new TimeDuration( TimeDuration.DAY.getTotalMilliseconds() * 90 );
+    private TimeDuration maxCacheAge = TimeDuration.of( TimeDuration.DAY.asMillis() * 90, TimeDuration.Unit.MILLISECONDS );
     private String searchFilter = null;
     private int jobOffsetSeconds;
     private int maxSearchSize = 100 * 1000;
@@ -59,7 +59,7 @@ class ReportSettings implements Serializable
     public static ReportSettings readSettingsFromConfig( final Configuration config )
     {
         final ReportSettings settings = new ReportSettings();
-        settings.maxCacheAge = new TimeDuration( config.readSettingAsLong( PwmSetting.REPORTING_MAX_CACHE_AGE ) * 1000 );
+        settings.maxCacheAge = TimeDuration.of( config.readSettingAsLong( PwmSetting.REPORTING_MAX_CACHE_AGE ), TimeDuration.Unit.SECONDS );
         settings.searchFilter = config.readSettingAsString( PwmSetting.REPORTING_SEARCH_FILTER );
         settings.maxSearchSize = ( int ) config.readSettingAsLong( PwmSetting.REPORTING_MAX_QUERY_SIZE );
 

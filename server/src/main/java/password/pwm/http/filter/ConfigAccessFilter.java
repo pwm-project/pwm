@@ -300,7 +300,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter
             throws ServletException, PwmUnrecoverableException, IOException
     {
         final int persistentSeconds = figureMaxLoginSeconds( pwmRequest );
-        final String time = new TimeDuration( persistentSeconds * 1000 ).asLongString( pwmRequest.getLocale() );
+        final String time = TimeDuration.of( persistentSeconds, TimeDuration.Unit.SECONDS ).asLongString( pwmRequest.getLocale() );
 
         final ConfigLoginHistory configLoginHistory = readConfigLoginHistory( pwmRequest );
 

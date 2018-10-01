@@ -417,7 +417,7 @@ public class SessionFilter extends AbstractPwmFilter
             return false;
         }
 
-        if ( TimeDuration.fromCurrent( currentPageLeaveNotice ).getTotalSeconds() <= configuredSeconds )
+        if ( TimeDuration.fromCurrent( currentPageLeaveNotice ).as( TimeDuration.Unit.SECONDS ) <= configuredSeconds )
         {
             return false;
         }

@@ -51,7 +51,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @WebServlet(
         urlPatterns = {
@@ -129,7 +128,7 @@ public class RestFormSigningServer extends RestServlet
     public static Map<String, String> readSignedFormValue( final PwmApplication pwmApplication, final String input ) throws PwmUnrecoverableException
     {
         final Integer maxAgeSeconds = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.WS_REST_SERVER_SIGNING_FORM_TIMEOUT_SECONDS ) );
-        final TimeDuration maxAge = new TimeDuration( maxAgeSeconds, TimeUnit.SECONDS );
+        final TimeDuration maxAge = TimeDuration.of( maxAgeSeconds, TimeDuration.Unit.SECONDS );
         final SignedFormData signedFormData = pwmApplication.getSecureService().decryptObject( input, SignedFormData.class );
         if ( signedFormData != null )
         {

@@ -83,7 +83,7 @@ public class LocalDBFactory
         final LocalDB localDB = new LocalDBAdaptor( dbProvider, pwmApplication );
 
         initInstance( dbProvider, dbDirectory, initParameters, className, parameters );
-        final TimeDuration openTime = new TimeDuration( System.currentTimeMillis() - startTime );
+        final TimeDuration openTime = TimeDuration.of( System.currentTimeMillis() - startTime, TimeDuration.Unit.MILLISECONDS );
 
         if ( !readonly )
         {
