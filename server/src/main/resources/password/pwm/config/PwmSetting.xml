@@ -3130,6 +3130,11 @@
             <value>true</value>
         </default>
     </setting>
+    <setting hidden="false" key="peopleSearch.enableExport" level="1">
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
     <setting hidden="false" key="peopleSearch.queryMatch" level="1" required="true">
         <ldapPermission actor="self_other" access="read"/>
         <default syntaxVersion="2">
@@ -3266,6 +3271,12 @@
         <ldapPermission actor="self_other" access="read"/>
         <default>
             <value>assistant</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="peopleSearch.orgChart.workforceIdAttribute" level="1">
+        <ldapPermission actor="self_other" access="read"/>
+        <default>
+            <value>workforceID</value>
         </default>
     </setting>
     <setting hidden="false" key="ldap.edirectory.storeNmasResponses" level="1" required="true">

@@ -42,6 +42,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 
 public class CacheService implements PwmService
@@ -173,6 +174,25 @@ public class CacheService implements PwmService
 
         return (T) payload;
     }
+
+    public <T extends Serializable> Optional<T> get( final CacheKey cacheKey, final CachePolicy cachePolicy, final Class<T> classOfT, final CacheLoader<T> cacheLoader )
+            throws PwmUnrecoverableException
+    {
+        final T cachedValue = get( cacheKey, classOfT );
+        if ( cachedValue != null )
+        {
+            return Optional.of( cachedValue );
+        }
+
+        final Optional<T> value = cacheLoader.read();
+        if ( value.isPresent() )
+        {
+            put( cacheKey, cachePolicy, value.get() );
+        }
+
+        return value;
+    }
+
 
     private void outputTraceInfo( )
     {
