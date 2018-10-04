@@ -24,8 +24,7 @@ package password.pwm.svc.cache;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Value;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -57,14 +56,34 @@ class MemoryCacheStore implements CacheStore
             throws PwmUnrecoverableException
     {
         cacheStoreInfo.incrementStoreCount();
-        memoryStore.put( cacheKey, new CacheValueWrapper( cacheKey, expirationDate, data ) );
+
+        final String jsonData = JsonUtil.serialize( data );
+        memoryStore.put( cacheKey, new CacheValueWrapper( cacheKey, expirationDate, jsonData ) );
     }
 
     @Override
-    public <T> T read( final CacheKey cacheKey, final Class<T> classOfT )
+    public <T extends Serializable> T readAndStore( final CacheKey cacheKey, final Instant expirationDate, final Class<T> classOfT, final CacheLoader<T> cacheLoader )
+            throws PwmUnrecoverableException
     {
         cacheStoreInfo.incrementReadCount();
-        final CacheValueWrapper valueWrapper = memoryStore.getIfPresent( cacheKey );
+        {
+            final CacheValueWrapper valueWrapper = memoryStore.getIfPresent( cacheKey );
+            final T extractedValue = extractValue( classOfT, valueWrapper, cacheKey );
+            if ( extractedValue != null )
+            {
+                return extractedValue;
+            }
+        }
+
+        final T data = cacheLoader.read();
+        final String jsonIfiedData = JsonUtil.serialize( data );
+        cacheStoreInfo.incrementMissCount();
+        memoryStore.put( cacheKey, new CacheValueWrapper( cacheKey, expirationDate, jsonIfiedData ) );
+        return data;
+    }
+
+    private <T extends Serializable> T extractValue( final Class<T> classOfT, final CacheValueWrapper valueWrapper, final CacheKey cacheKey )
+    {
         if ( valueWrapper != null )
         {
             if ( cacheKey.equals( valueWrapper.getCacheKey() ) )
@@ -72,10 +91,26 @@ class MemoryCacheStore implements CacheStore
                 if ( valueWrapper.getExpirationDate().isAfter( Instant.now() ) )
                 {
                     cacheStoreInfo.incrementHitCount();
-                    return (T) valueWrapper.getPayload();
+                    final String jsonValue  = valueWrapper.getPayload();
+                    return JsonUtil.deserialize( jsonValue, classOfT );
                 }
             }
         }
+
+        return null;
+    }
+
+    @Override
+    public <T extends Serializable> T read( final CacheKey cacheKey, final Class<T> classOfT )
+    {
+        cacheStoreInfo.incrementReadCount();
+        final CacheValueWrapper valueWrapper = memoryStore.getIfPresent( cacheKey );
+        final T extractedValue = extractValue( classOfT, valueWrapper, cacheKey );
+        if ( extractedValue != null )
+        {
+            return extractedValue;
+        }
+
         memoryStore.invalidate( cacheKey );
         cacheStoreInfo.incrementMissCount();
         return null;
@@ -121,13 +156,15 @@ class MemoryCacheStore implements CacheStore
         return Collections.unmodifiableList( items );
     }
 
-    @Getter
-    @AllArgsConstructor
-    static class CacheValueWrapper implements Serializable
+    @Value
+    private static class CacheValueWrapper implements Serializable
     {
         private final CacheKey cacheKey;
         private final Instant expirationDate;
-        private final Serializable payload;
+
+        // serialize to json even though stored in memory, this prevents object-reuse because we don't know
+        // if the object is immutable.  Thus an effective clone is made for each store/read.
+        private final String payload;
     }
 
     Map<String, Integer> storedClassHistogram( final String prefix )

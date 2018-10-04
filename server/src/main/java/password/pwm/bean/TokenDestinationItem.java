@@ -168,4 +168,22 @@ public class TokenDestinationItem implements Serializable
 
         return Optional.empty();
     }
+
+    public static List<TokenDestinationItem> stripValues( final List<TokenDestinationItem> input )
+    {
+        final List<TokenDestinationItem> returnList = new ArrayList<>();
+        if ( input != null )
+        {
+            for ( final TokenDestinationItem item : input )
+            {
+                final TokenDestinationItem newItem = TokenDestinationItem.builder()
+                        .display( item.display )
+                        .id( item.id )
+                        .type ( item.type )
+                        .build();
+                returnList.add( newItem );
+            }
+        }
+        return returnList;
+    }
 }

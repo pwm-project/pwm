@@ -27,6 +27,8 @@ import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
+import lombok.Value;
+import org.apache.commons.csv.CSVPrinter;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -50,16 +52,19 @@ import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.ldap.search.UserSearchResults;
 import password.pwm.svc.cache.CacheKey;
+import password.pwm.svc.cache.CacheLoader;
 import password.pwm.svc.cache.CachePolicy;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.LocaleHelper;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -71,6 +76,12 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 class PeopleSearchDataReader
 {
@@ -79,7 +90,14 @@ class PeopleSearchDataReader
     private final PwmRequest pwmRequest;
     private final PeopleSearchConfiguration peopleSearchConfiguration;
 
-    PeopleSearchDataReader( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
+    private enum CacheIdentifier
+    {
+        attributeRead,
+        checkIfViewable,
+        searchResultBean,
+    }
+
+    PeopleSearchDataReader( final PwmRequest pwmRequest )
     {
         this.pwmRequest = pwmRequest;
         this.peopleSearchConfiguration = PeopleSearchConfiguration.forRequest( pwmRequest );
@@ -89,7 +107,7 @@ class PeopleSearchDataReader
             final String searchData,
             final boolean includeDisplayName
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException
+            throws PwmUnrecoverableException
     {
         final CacheKey cacheKey = makeCacheKey( SearchResultBean.class.getSimpleName(), searchData + "|" + includeDisplayName );
 
@@ -98,9 +116,9 @@ class PeopleSearchDataReader
             final SearchResultBean cachedResult = pwmRequest.getPwmApplication().getCacheService().get( cacheKey, SearchResultBean.class );
             if ( cachedResult != null )
             {
-                cachedResult.setFromCache( true );
+                final SearchResultBean copyWithCacheSet = cachedResult.toBuilder().fromCache( true ).build();
                 StatisticsManager.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_CACHE_HITS );
-                return cachedResult;
+                return copyWithCacheSet;
             }
             else
             {
@@ -109,8 +127,9 @@ class PeopleSearchDataReader
         }
 
         // if not in cache, build results from ldap
-        final SearchResultBean searchResultBean = makeSearchResultsImpl( pwmRequest, searchData, includeDisplayName );
-        searchResultBean.setFromCache( false );
+        final SearchResultBean searchResultBean = makeSearchResultsImpl( pwmRequest, searchData, includeDisplayName )
+                .toBuilder().fromCache( false ).build();
+
         StatisticsManager.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_SEARCHES );
         storeDataInCache( pwmRequest.getPwmApplication(), cacheKey, searchResultBean );
         LOGGER.trace( pwmRequest, "returning " + searchResultBean.getSearchResults().size() + " results for search request '" + searchData + "'" );
@@ -153,7 +172,7 @@ class PeopleSearchDataReader
 
         {
             // make parent reference
-            final List<UserIdentity> parentIdentities = readUserDNAttributeValues( userIdentity, peopleSearchConfiguration.getOrgChartParentAttr() );
+            final List<UserIdentity> parentIdentities = readUserDNAttributeValues( userIdentity, peopleSearchConfiguration.getOrgChartParentAttr( userIdentity ) );
             if ( parentIdentities != null && !parentIdentities.isEmpty() )
             {
                 final UserIdentity parentIdentity = parentIdentities.iterator().next();
@@ -166,7 +185,7 @@ class PeopleSearchDataReader
         {
             // make children reference
             final Map<String, OrgChartReferenceBean> sortedChildren = new TreeMap<>();
-            final List<UserIdentity> childIdentities = readUserDNAttributeValues( userIdentity, peopleSearchConfiguration.getOrgChartChildAttr() );
+            final List<UserIdentity> childIdentities = readUserDNAttributeValues( userIdentity, peopleSearchConfiguration.getOrgChartChildAttr( userIdentity ) );
             for ( final UserIdentity childIdentity : childIdentities )
             {
                 final OrgChartReferenceBean childReference = makeOrgChartReferenceForIdentity( childIdentity );
@@ -187,9 +206,9 @@ class PeopleSearchDataReader
             orgChartData.setChildren( Collections.unmodifiableList( new ArrayList<>( sortedChildren.values() ) ) );
         }
 
-        if ( !StringUtil.isEmpty( peopleSearchConfiguration.getOrgChartAssistantAttr() ) )
+        if ( !StringUtil.isEmpty( peopleSearchConfiguration.getOrgChartAssistantAttr( userIdentity ) ) )
         {
-            final List<UserIdentity> assistantIdentities = readUserDNAttributeValues( userIdentity, peopleSearchConfiguration.getOrgChartAssistantAttr() );
+            final List<UserIdentity> assistantIdentities = readUserDNAttributeValues( userIdentity, peopleSearchConfiguration.getOrgChartAssistantAttr( userIdentity ) );
             if ( assistantIdentities != null && !assistantIdentities.isEmpty() )
             {
                 final UserIdentity assistantIdentity = assistantIdentities.iterator().next();
@@ -203,17 +222,16 @@ class PeopleSearchDataReader
 
         final TimeDuration totalTime = TimeDuration.fromCurrent( startTime );
         storeDataInCache( pwmRequest.getPwmApplication(), cacheKey, orgChartData );
-        LOGGER.trace( pwmRequest, "completed makeOrgChartData in " + totalTime.asCompactString() + " with " + childCount + " children" );
+        LOGGER.trace( pwmRequest, "completed makeOrgChartData of " + userIdentity.toDisplayString() + " in " + totalTime.asCompactString() + " with " + childCount + " children" );
         return orgChartData;
     }
 
     UserDetailBean makeUserDetailRequest(
-            final String userKey
+            final UserIdentity userIdentity
     )
-            throws PwmUnrecoverableException, PwmOperationalException, ChaiUnavailableException
+            throws PwmUnrecoverableException
     {
         final Instant startTime = Instant.now();
-        final UserIdentity userIdentity = UserIdentity.fromKey( userKey, pwmRequest.getPwmApplication() );
 
         final CacheKey cacheKey = makeCacheKey( UserDetailBean.class.getSimpleName(), userIdentity.toDelimitedKey() );
         {
@@ -229,21 +247,13 @@ class PeopleSearchDataReader
             }
         }
 
-        try
-        {
-            checkIfUserIdentityViewable( userIdentity );
-        }
-        catch ( PwmOperationalException e )
-        {
-            LOGGER.error( pwmRequest.getPwmSession(), "error during detail results request while checking if requested userIdentity is within search scope: " + e.getMessage() );
-            throw e;
-        }
+        checkIfUserIdentityViewable( userIdentity );
 
         final UserSearchResults detailResults = doDetailLookup( userIdentity );
         final Map<String, String> searchResults = detailResults.getResults().get( userIdentity );
 
         final UserDetailBean userDetailBean = new UserDetailBean();
-        userDetailBean.setUserKey( userKey );
+        userDetailBean.setUserKey( userIdentity.toObfuscatedKey( pwmRequest.getPwmApplication() ) );
         final List<FormConfiguration> detailFormConfig = pwmRequest.getConfig().readSettingAsForm( PwmSetting.PEOPLE_SEARCH_DETAIL_FORM );
         final Map<String, AttributeDetailBean> attributeBeans = convertResultMapToBeans( pwmRequest, userIdentity, detailFormConfig, searchResults );
 
@@ -415,18 +425,11 @@ class PeopleSearchDataReader
             final UserIdentity loopIdentity = new UserIdentity( userDN, userIdentity.getLdapProfileID() );
             if ( returnObj.size() < maxValues )
             {
-                try
+                if ( checkUserDNValues )
                 {
-                    if ( checkUserDNValues )
-                    {
-                        checkIfUserIdentityViewable( loopIdentity );
-                    }
-                    returnObj.add( loopIdentity );
+                    checkIfUserIdentityViewable( loopIdentity );
                 }
-                catch ( PwmOperationalException e )
-                {
-                    LOGGER.debug( pwmRequest, "discarding userDN " + userDN + " from attribute " + attributeName + " because it does not match search filter" );
-                }
+                returnObj.add( loopIdentity );
             }
             else
             {
@@ -450,6 +453,21 @@ class PeopleSearchDataReader
             final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpirationMS( maxCacheSeconds * 1000 );
             pwmApplication.getCacheService().put( cacheKey, cachePolicy, data );
         }
+    }
+
+    private <T extends Serializable> T storeDataInCache(
+            final CacheIdentifier operationIdentifier,
+            final String dataIdentifier,
+            final Class<T> classOfT,
+            final CacheLoader<T> cacheLoader
+    )
+            throws PwmUnrecoverableException
+    {
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final CacheKey cacheKey = makeCacheKey( operationIdentifier.name(), dataIdentifier );
+        final long maxCacheSeconds = pwmApplication.getConfig().readSettingAsLong( PwmSetting.PEOPLE_SEARCH_MAX_CACHE_SECONDS );
+        final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpirationMS( maxCacheSeconds * 1000 );
+        return pwmApplication.getCacheService().get( cacheKey, cachePolicy, classOfT, cacheLoader );
     }
 
     private String figurePhotoURL(
@@ -533,7 +551,7 @@ class PeopleSearchDataReader
             final List<FormConfiguration> detailForm,
             final Map<String, String> searchResults
     )
-            throws ChaiUnavailableException, PwmUnrecoverableException
+            throws PwmUnrecoverableException
     {
         final Set<String> searchAttributes = getSearchAttributes( pwmRequest.getConfig() );
         final Map<String, AttributeDetailBean> returnObj = new LinkedHashMap<>();
@@ -625,19 +643,34 @@ class PeopleSearchDataReader
     void checkIfUserIdentityViewable(
             final UserIdentity userIdentity
     )
-            throws PwmUnrecoverableException, PwmOperationalException
+            throws PwmUnrecoverableException
     {
-        final String filterSetting = getSearchFilter( pwmRequest.getConfig() );
-        String filterString = filterSetting.replace( PwmConstants.VALUE_REPLACEMENT_USERNAME, "*" );
-        while ( filterString.contains( "**" ) )
+        final Instant startTime = Instant.now();
+        final CacheLoader<Boolean> cacheLoader = () ->
         {
-            filterString = filterString.replace( "**", "*" );
-        }
+            final String filterSetting = getSearchFilter( pwmRequest.getConfig() );
+            String filterString = filterSetting.replace( PwmConstants.VALUE_REPLACEMENT_USERNAME, "*" );
+            while ( filterString.contains( "**" ) )
+            {
+                filterString = filterString.replace( "**", "*" );
+            }
 
-        final boolean match = LdapPermissionTester.testQueryMatch( pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), userIdentity, filterString );
-        if ( !match )
+            return LdapPermissionTester.testQueryMatch( pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), userIdentity, filterString );
+        };
+
+        final boolean result = storeDataInCache( CacheIdentifier.checkIfViewable, userIdentity.toDelimitedKey(), Boolean.class, cacheLoader );
+        try
         {
-            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "requested userDN is not available within configured search filter" ) );
+            if ( !result )
+            {
+                final String msg = "attempt to read data of out-of-scope userDN '" + userIdentity.toDisplayString() + "' by user " + userIdentity.toDisplayString();
+                LOGGER.warn( pwmRequest, msg );
+                throw PwmUnrecoverableException.newException( PwmError.ERROR_SERVICE_NOT_AVAILABLE, msg );
+            }
+        }
+        finally
+        {
+            LOGGER.trace( pwmRequest, "completed checkIfUserViewable for " + userIdentity.toDisplayString() + " in " + TimeDuration.compactFromCurrent( startTime ) );
         }
     }
 
@@ -696,12 +729,12 @@ class PeopleSearchDataReader
 
         if ( peopleSearchConfiguration.isOrgChartEnabled() )
         {
-            final String orgChartParentAttr = peopleSearchConfiguration.getOrgChartParentAttr();
+            final String orgChartParentAttr = peopleSearchConfiguration.getOrgChartParentAttr( userIdentity );
             if ( !attributeHeaderMap.containsKey( orgChartParentAttr ) )
             {
                 attributeHeaderMap.put( orgChartParentAttr, orgChartParentAttr );
             }
-            final String orgChartChildAttr = peopleSearchConfiguration.getOrgChartParentAttr();
+            final String orgChartChildAttr = peopleSearchConfiguration.getOrgChartParentAttr( userIdentity );
             if ( !attributeHeaderMap.containsKey( orgChartChildAttr ) )
             {
                 attributeHeaderMap.put( orgChartChildAttr, orgChartChildAttr );
@@ -743,13 +776,13 @@ class PeopleSearchDataReader
             final String username,
             final boolean includeDisplayName
     )
-            throws ChaiUnavailableException, PwmUnrecoverableException
+            throws PwmUnrecoverableException
     {
         final Instant startTime = Instant.now();
 
         if ( username == null || username.length() < 1 )
         {
-            return new SearchResultBean();
+            return SearchResultBean.builder().searchResults( Collections.emptyList() ).build();
         }
 
         final boolean useProxy = useProxy();
@@ -811,9 +844,7 @@ class PeopleSearchDataReader
         LOGGER.trace( pwmRequest.getPwmSession(), "finished rest peoplesearch search in "
                 + searchDuration.asCompactString() + " not using cache, size=" + results.getResults().size() );
 
-        final SearchResultBean searchResultBean = new SearchResultBean();
-        searchResultBean.setSearchResults( resultOutput );
-        searchResultBean.setSizeExceeded( sizeExceeded );
+
         final String aboutMessage = LocaleHelper.getLocalizedMessage(
                 pwmRequest.getLocale(),
                 Display.Display_SearchResultsInfo.getKey(),
@@ -824,7 +855,189 @@ class PeopleSearchDataReader
                                 String.valueOf( results.getResults().size() ), searchDuration.asLongString( pwmRequest.getLocale() ),
                         }
         );
-        searchResultBean.setAboutResultMessage( aboutMessage );
-        return searchResultBean;
+
+        return SearchResultBean.builder()
+                .sizeExceeded( sizeExceeded )
+                .searchResults( resultOutput )
+                .aboutResultMessage( aboutMessage )
+                .build();
     }
+
+    private String readUserAttribute(
+            final UserIdentity userIdentity,
+            final String attribute
+    )
+            throws PwmUnrecoverableException
+    {
+        final CacheLoader<String> cacheLoader = () ->
+        {
+            try
+            {
+                return getChaiUser( userIdentity ).readStringAttribute( attribute );
+            }
+            catch ( ChaiOperationException e )
+            {
+                LOGGER.trace( pwmRequest, "error reading attribute for user '" + userIdentity.toDisplayString() + "', error: " + e.getMessage() );
+                return null;
+            }
+            catch ( ChaiUnavailableException e )
+            {
+                throw PwmUnrecoverableException.fromChaiException( e );
+            }
+        };
+
+        return storeDataInCache( CacheIdentifier.attributeRead, userIdentity.toDelimitedKey() + "|" + attribute, String.class, cacheLoader );
+    }
+
+    void writeUserOrgChartDetailToCsv(
+            final CSVPrinter csvPrinter,
+            final UserIdentity userIdentity,
+            final int depth
+    )
+    {
+        final Instant startTime = Instant.now();
+        LOGGER.trace( pwmRequest, "beginning csv export starting with user " + userIdentity.toDisplayString() + " and depth of " + depth );
+
+
+        final int threadCount = peopleSearchConfiguration.getExportCsvMaxThreads();
+        final ThreadFactory threadFactory = JavaHelper.makePwmThreadFactory( JavaHelper.makeThreadName( pwmRequest.getPwmApplication(), OrgChartCsvRowOutputJob.class ), true );
+        final ThreadPoolExecutor executor = new ThreadPoolExecutor(
+                threadCount,
+                threadCount,
+                1,
+                TimeUnit.MINUTES,
+                new ArrayBlockingQueue<>( 5000 ),
+                threadFactory
+        );
+
+        final AtomicInteger rowCounter = new AtomicInteger( 0 );
+        final OrgChartExportState orgChartExportState = new OrgChartExportState(
+                executor,
+                csvPrinter,
+                rowCounter,
+                Collections.singleton( OrgChartExportState.IncludeData.displayForm )
+        );
+
+        final OrgChartCsvRowOutputJob job = new OrgChartCsvRowOutputJob( orgChartExportState, userIdentity, depth, null );
+        executor.execute( job );
+
+        final TimeDuration maxDuration = peopleSearchConfiguration.getExportCsvMaxDuration();
+        JavaHelper.pause( maxDuration.asMillis(), 1000, o -> ( executor.getQueue().size() + executor.getActiveCount() <= 0 ) );
+        executor.shutdown();
+
+        final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
+        LOGGER.trace( pwmRequest, "completed csv export of " + rowCounter.get() + " records in " + timeDuration.asCompactString() );
+    }
+
+    @Value
+    private static class OrgChartExportState
+    {
+        private final Executor executor;
+        private final CSVPrinter csvPrinter;
+        private final AtomicInteger rowCounter;
+        private final Set<IncludeData> includeData;
+
+        enum IncludeData
+        {
+            displayCard,
+            displayForm,
+        }
+    }
+
+    private class OrgChartCsvRowOutputJob implements Runnable
+    {
+        private final OrgChartExportState orgChartExportState;
+        private final UserIdentity userIdentity;
+        private final int depth;
+        private final String parentWorkforceID;
+
+        OrgChartCsvRowOutputJob(
+                final OrgChartExportState orgChartExportState,
+                final UserIdentity userIdentity,
+                final int depth,
+                final String parentWorkforceID
+        )
+        {
+            this.orgChartExportState = orgChartExportState;
+            this.userIdentity = userIdentity;
+            this.depth = depth;
+            this.parentWorkforceID = parentWorkforceID;
+        }
+
+        @Override
+        public void run()
+        {
+            try
+            {
+                doJob();
+            }
+            catch ( Exception e )
+            {
+                LOGGER.error( pwmRequest, "error exporting csv row data: " + e.getMessage() );
+            }
+        }
+
+        private void doJob()
+                throws PwmUnrecoverableException, IOException
+        {
+            final List<String> outputRowValues = new ArrayList<>( );
+            final String workforceIDattr = peopleSearchConfiguration.getOrgChartWorkforceIDAttr( userIdentity );
+
+            final String workforceID = readUserAttribute( userIdentity, workforceIDattr );
+            outputRowValues.add( workforceID == null ? "" : workforceID );
+            outputRowValues.add( parentWorkforceID == null ? "" : parentWorkforceID );
+
+            final OrgChartDataBean orgChartDataBean = makeOrgChartData( userIdentity, false );
+
+            // export display card
+            if ( orgChartExportState.getIncludeData().contains( OrgChartExportState.IncludeData.displayCard ) )
+            {
+                outputRowValues.addAll( orgChartDataBean.getSelf().displayNames );
+            }
+
+
+            // export form detail
+            if ( orgChartExportState.getIncludeData().contains( OrgChartExportState.IncludeData.displayForm ) )
+            {
+                final UserDetailBean userDetailBean = makeUserDetailRequest( userIdentity );
+                for ( final Map.Entry<String, AttributeDetailBean> entry : userDetailBean.getDetail().entrySet() )
+                {
+                    final List<String> values = entry.getValue().getValues();
+                    if ( JavaHelper.isEmpty( values ) )
+                    {
+                        outputRowValues.add( " " );
+                    }
+                    else if ( values.size() == 1 )
+                    {
+                        outputRowValues.add( values.iterator().next() );
+                    }
+                    else
+                    {
+                        final String row = StringUtil.collectionToString( values, " " );
+                        outputRowValues.add( row );
+                    }
+                }
+            }
+
+            orgChartExportState.getCsvPrinter().printRecord( outputRowValues );
+            orgChartExportState.getCsvPrinter().flush();
+
+            if ( depth > 0 && orgChartExportState.getRowCounter().get() < peopleSearchConfiguration.getExportCsvMaxItems() )
+            {
+                final List<OrgChartReferenceBean> children = orgChartDataBean.getChildren();
+                if ( !JavaHelper.isEmpty( children ) )
+                {
+                    for ( final OrgChartReferenceBean child : children )
+                    {
+                        final String childKey = child.getUserKey();
+                        final UserIdentity childIdentity = PeopleSearchServlet.readUserIdentityFromKey( pwmRequest, childKey );
+                        final OrgChartCsvRowOutputJob job = new OrgChartCsvRowOutputJob( orgChartExportState, childIdentity, depth - 1, workforceID );
+                        orgChartExportState.getExecutor().execute( job );
+                        orgChartExportState.getRowCounter().incrementAndGet();
+                    }
+                }
+            }
+        }
+    }
+
 }

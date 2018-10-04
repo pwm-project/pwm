@@ -42,6 +42,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TreeMap;
 
 public class CacheService implements PwmService
@@ -133,37 +134,28 @@ public class CacheService implements PwmService
         {
             return;
         }
-        if ( cacheKey == null )
-        {
-            throw new NullPointerException( "cacheKey can not be null" );
-        }
-        if ( cachePolicy == null )
-        {
-            throw new NullPointerException( "cachePolicy can not be null" );
-        }
-        if ( payload == null )
-        {
-            throw new NullPointerException( "payload can not be null" );
-        }
+
+        Objects.requireNonNull( cacheKey );
+        Objects.requireNonNull( cachePolicy );
+        Objects.requireNonNull( payload );
+
         final Instant expirationDate = cachePolicy.getExpiration();
         memoryCacheStore.store( cacheKey, expirationDate, payload );
 
         traceDebugOutputter.conditionallyExecuteTask();
     }
 
-    public <T> T get( final CacheKey cacheKey, final Class<T> classOfT  )
+    public <T extends Serializable> T get( final CacheKey cacheKey, final Class<T> classOfT  )
     {
-        if ( cacheKey == null )
-        {
-            return null;
-        }
+        Objects.requireNonNull( cacheKey );
+        Objects.requireNonNull( classOfT );
 
         if ( status != STATUS.OPEN )
         {
             return null;
         }
 
-        Object payload = null;
+        T payload = null;
         if ( memoryCacheStore != null )
         {
             payload = memoryCacheStore.read( cacheKey, classOfT );
@@ -171,7 +163,26 @@ public class CacheService implements PwmService
 
         traceDebugOutputter.conditionallyExecuteTask();
 
-        return (T) payload;
+        return payload;
+    }
+
+    public <T extends Serializable> T get( final CacheKey cacheKey, final CachePolicy cachePolicy, final Class<T> classOfT, final CacheLoader<T> cacheLoader )
+            throws PwmUnrecoverableException
+    {
+        Objects.requireNonNull( cacheKey );
+        Objects.requireNonNull( cachePolicy );
+        Objects.requireNonNull( classOfT );
+        Objects.requireNonNull( cacheLoader );
+
+        if ( status != STATUS.OPEN )
+        {
+            return cacheLoader.read();
+        }
+
+        traceDebugOutputter.conditionallyExecuteTask();
+
+        final Instant expirationDate = cachePolicy.getExpiration();
+        return memoryCacheStore.readAndStore( cacheKey, expirationDate, classOfT, cacheLoader );
     }
 
     private void outputTraceInfo( )
