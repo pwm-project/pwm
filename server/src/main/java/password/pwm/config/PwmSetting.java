@@ -272,10 +272,12 @@ public enum PwmSetting
             "peopleSearch.photo.urlOverride", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
     LDAP_ATTRIBUTE_ORGCHART_PARENT(
             "peopleSearch.orgChart.parentAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
-    LDAP_ATTRIBUTE_ORGCHARD_CHILD(
+    LDAP_ATTRIBUTE_ORGCHART_CHILD(
             "peopleSearch.orgChart.childAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
     LDAP_ATTRIBUTE_ORGCHART_ASSISTANT(
             "peopleSearch.orgChart.assistantAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
+    LDAP_ATTRIBUTE_ORGCHART_WORKFORCEID(
+            "peopleSearch.orgChart.workforceIdAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
     AUTO_ADD_OBJECT_CLASSES(
             "ldap.addObjectClasses", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.LDAP_ATTRIBUTES ),
 
@@ -963,6 +965,8 @@ public enum PwmSetting
             "peopleSearch.enablePublic", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH ),
     PEOPLE_SEARCH_ENABLE_ORGCHART(
             "peopleSearch.enableOrgChart", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH ),
+    PEOPLE_SEARCH_ENABLE_EXPORT(
+            "peopleSearch.enableExport", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH ),
     PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS(
             "peopleSearch.idleTimeout", PwmSettingSyntax.DURATION, PwmSettingCategory.PEOPLE_SEARCH ),
 
