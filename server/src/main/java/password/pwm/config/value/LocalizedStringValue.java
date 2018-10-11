@@ -69,7 +69,7 @@ public class LocalizedStringValue extends AbstractValue implements StoredValue
                 }
             }
 
-            public LocalizedStringValue fromXmlElement( final Element settingElement, final PwmSecurityKey key )
+            public LocalizedStringValue fromXmlElement( final PwmSetting pwmSetting, final Element settingElement, final PwmSecurityKey key )
             {
                 final List elements = settingElement.getChildren( "value" );
                 final Map<String, String> values = new TreeMap<>();

@@ -55,7 +55,7 @@ public class BooleanValue implements StoredValue
                 return new BooleanValue( JsonUtil.deserialize( value, Boolean.class ) );
             }
 
-            public BooleanValue fromXmlElement( final Element settingElement, final PwmSecurityKey input )
+            public BooleanValue fromXmlElement( final PwmSetting pwmSetting, final Element settingElement, final PwmSecurityKey input )
             {
                 final Element valueElement = settingElement.getChild( "value" );
                 final String value = valueElement.getText();

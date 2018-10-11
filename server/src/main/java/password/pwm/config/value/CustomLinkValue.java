@@ -71,7 +71,7 @@ public class CustomLinkValue extends AbstractValue implements StoredValue
                 }
             }
 
-            public CustomLinkValue fromXmlElement( final Element settingElement, final PwmSecurityKey key )
+            public CustomLinkValue fromXmlElement( final PwmSetting pwmSetting, final Element settingElement, final PwmSecurityKey key )
                     throws PwmOperationalException
             {
                 final List valueElements = settingElement.getChildren( "value" );

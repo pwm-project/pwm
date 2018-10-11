@@ -64,12 +64,12 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
                     Map<String, List<String>> srcMap = JsonUtil.deserialize( input, new TypeToken<Map<String, List<String>>>()
                     {
                     } );
-                    srcMap = srcMap == null ? Collections.<String, List<String>>emptyMap() : new TreeMap<>( srcMap );
+                    srcMap = srcMap == null ? Collections.emptyMap() : new TreeMap<>( srcMap );
                     return new LocalizedStringArrayValue( Collections.unmodifiableMap( srcMap ) );
                 }
             }
 
-            public LocalizedStringArrayValue fromXmlElement( final Element settingElement, final PwmSecurityKey key )
+            public LocalizedStringArrayValue fromXmlElement( final PwmSetting pwmSetting, final Element settingElement, final PwmSecurityKey key )
             {
                 final List valueElements = settingElement.getChildren( "value" );
                 final Map<String, List<String>> values = new TreeMap<>();

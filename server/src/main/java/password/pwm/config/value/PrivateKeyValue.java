@@ -59,7 +59,7 @@ public class PrivateKeyValue extends AbstractValue
     {
         return new StoredValue.StoredValueFactory()
         {
-            public PrivateKeyValue fromXmlElement( final Element settingElement, final PwmSecurityKey key )
+            public PrivateKeyValue fromXmlElement( final PwmSetting pwmSetting, final Element settingElement, final PwmSecurityKey key )
             {
                 if ( settingElement != null && settingElement.getChild( "value" ) != null )
                 {

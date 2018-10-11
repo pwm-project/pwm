@@ -15,7 +15,6 @@
     <name>PWM Password Self Service: Server WAR</name>
 
     <properties>
-        <skipSpotbugs>true</skipSpotbugs>
         <project.root.basedir>${project.basedir}/..</project.root.basedir>
     </properties>
 

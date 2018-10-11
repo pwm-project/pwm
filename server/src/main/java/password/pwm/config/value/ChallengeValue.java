@@ -61,7 +61,7 @@ public class ChallengeValue extends AbstractValue implements StoredValue
             {
                 if ( input == null )
                 {
-                    return new ChallengeValue( Collections.<String, List<ChallengeItemConfiguration>>emptyMap() );
+                    return new ChallengeValue( Collections.emptyMap() );
                 }
                 else
                 {
@@ -77,6 +77,7 @@ public class ChallengeValue extends AbstractValue implements StoredValue
             }
 
             public ChallengeValue fromXmlElement(
+                    final PwmSetting pwmSetting,
                     final Element settingElement,
                     final PwmSecurityKey input
             )
