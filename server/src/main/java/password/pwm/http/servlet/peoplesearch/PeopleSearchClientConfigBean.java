@@ -25,18 +25,17 @@ package password.pwm.http.servlet.peoplesearch;
 import lombok.Builder;
 import lombok.Value;
 import password.pwm.PwmApplication;
-import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.PwmRequest;
 
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 @Value
@@ -45,21 +44,14 @@ public class PeopleSearchClientConfigBean implements Serializable
 {
     private Map<String, String> searchColumns;
     private boolean enableAdvancedSearch;
-    private boolean enableAdvancedSearch;
     private boolean enablePhoto;
     private boolean orgChartEnabled;
     private boolean orgChartShowChildCount;
     private int orgChartMaxParents;
     private int maxAdvancedSearchAttributes;
     private List<SearchAttribute> advancedSearchAttributes;
-
-    @Value
-    @Builder
-    public static class SearchAttribute implements Serializable
-    {
-        private String id;
-        private String attribute;
-    }
+    private boolean enableExport;
+    private int exportMaxDepth;
 
 
     @Value
@@ -72,21 +64,20 @@ public class PeopleSearchClientConfigBean implements Serializable
 
 
     static PeopleSearchClientConfigBean fromConfig(
-            final PwmApplication pwmApplication,
+            final PwmRequest pwmRequest,
             final PeopleSearchConfiguration peopleSearchConfiguration,
-            final Locale locale,
-            final UserIdentity userIdentity,
-            final SessionLabel sessionLabel
+            final UserIdentity userIdentity
     )
             throws PwmUnrecoverableException
     {
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final Configuration configuration = pwmApplication.getConfig();
         final Map<String, String> searchColumns = new LinkedHashMap<>();
         final List<FormConfiguration> searchForm = configuration.readSettingAsForm( PwmSetting.PEOPLE_SEARCH_RESULT_FORM );
         for ( final FormConfiguration formConfiguration : searchForm )
         {
             searchColumns.put( formConfiguration.getName(),
-                    formConfiguration.getLabel( locale ) );
+                    formConfiguration.getLabel( pwmRequest.getLocale() ) );
         }
 
         final List<SearchAttribute> searchAttributes = Arrays.asList(
@@ -97,7 +88,7 @@ public class PeopleSearchClientConfigBean implements Serializable
 
         return PeopleSearchClientConfigBean.builder()
                 .searchColumns( searchColumns )
-                .enablePhoto( peopleSearchConfiguration.isPhotosEnabled( userIdentity, sessionLabel ) )
+                .enablePhoto( peopleSearchConfiguration.isPhotosEnabled( userIdentity, pwmRequest.getSessionLabel() ) )
                 .orgChartEnabled( peopleSearchConfiguration.isOrgChartEnabled() )
                 .orgChartShowChildCount( peopleSearchConfiguration.isOrgChartShowChildCount() )
                 .orgChartMaxParents( peopleSearchConfiguration.getOrgChartMaxParents() )
@@ -105,6 +96,10 @@ public class PeopleSearchClientConfigBean implements Serializable
                 .enableAdvancedSearch( true )
                 .maxAdvancedSearchAttributes( 3 )
                 .advancedSearchAttributes( searchAttributes )
+
+                .enableExport( peopleSearchConfiguration.isEnableExportCsv() )
+                .exportMaxDepth( peopleSearchConfiguration.getExportCsvMaxDepth() )
+
                 .build();
     }
 }
