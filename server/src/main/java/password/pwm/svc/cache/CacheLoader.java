@@ -20,14 +20,12 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.ldap;
 
-import lombok.Value;
-import password.pwm.http.bean.ImmutableByteArray;
+package password.pwm.svc.cache;
 
-@Value
-public class PhotoDataBean
+import password.pwm.error.PwmUnrecoverableException;
+
+public interface CacheLoader<T>
 {
-    private String mimeType;
-    private ImmutableByteArray contents;
+    T read() throws PwmUnrecoverableException;
 }

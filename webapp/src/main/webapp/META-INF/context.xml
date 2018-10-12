@@ -20,8 +20,6 @@
   -->
 
 <Context tldValidation="false" unloadDelay="30000" useHttpOnly="true" mapperContextRootRedirectEnabled="true">
-  <!--
   <Manager pathname=""/>
-  -->
   <!--pathname param prevents session persistence across restarts -->
 </Context>

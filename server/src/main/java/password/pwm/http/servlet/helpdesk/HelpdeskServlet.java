@@ -956,7 +956,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
             final HelpdeskProfile helpdeskProfile,
             final UserIdentity userIdentity
     )
-            throws ChaiUnavailableException, PwmUnrecoverableException
+            throws PwmUnrecoverableException
     {
         final boolean useProxy = helpdeskProfile.readSettingAsBoolean( PwmSetting.HELPDESK_USE_PROXY );
         return useProxy
@@ -979,8 +979,10 @@ public class HelpdeskServlet extends ControlledPwmServlet
         final String rawVerificationStr = bodyMap.get( HelpdeskVerificationStateBean.PARAMETER_VERIFICATION_STATE_KEY );
         final HelpdeskVerificationStateBean state = HelpdeskVerificationStateBean.fromClientString( pwmRequest, rawVerificationStr );
         final boolean passed = HelpdeskServletUtil.checkIfRequiredVerificationPassed( userIdentity, state, helpdeskProfile );
+        final HelpdeskVerificationOptionsBean optionsBean = HelpdeskVerificationOptionsBean.makeBean( pwmRequest, helpdeskProfile, userIdentity );
         final HashMap<String, Object> results = new HashMap<>();
         results.put( "passed", passed );
+        results.put( "verificationOptions", optionsBean );
         final RestResultBean restResultBean = RestResultBean.withData( results );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
@@ -1035,15 +1037,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
             }
 
             final Map<String, String> bodyMap = JsonUtil.deserializeStringMap( bodyString );
-            final ChaiUser chaiUser;
-            try
-            {
-                chaiUser = getChaiUser( pwmRequest, helpdeskProfile, userIdentity );
-            }
-            catch ( ChaiUnavailableException e )
-            {
-                throw new PwmUnrecoverableException( PwmError.forChaiError( e.getErrorCode() ) );
-            }
+            final ChaiUser chaiUser = getChaiUser( pwmRequest, helpdeskProfile, userIdentity );
 
             int successCount = 0;
             for ( final FormConfiguration formConfiguration : verificationForms )
@@ -1381,7 +1375,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
             final HttpServletResponse resp = pwmRequest.getPwmResponse().getHttpServletResponse();
             resp.setContentType( photoData.getMimeType() );
 
-            outputStream.write( photoData.getContents() );
+            outputStream.write( photoData.getContents().getBytes() );
         }
         return ProcessStatus.Halt;
     }

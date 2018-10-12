@@ -89,6 +89,7 @@ public class ActionValue extends AbstractValue implements StoredValue
             }
 
             public ActionValue fromXmlElement(
+                    final PwmSetting pwmSetting,
                     final Element settingElement,
                     final PwmSecurityKey pwmSecurityKey
             )

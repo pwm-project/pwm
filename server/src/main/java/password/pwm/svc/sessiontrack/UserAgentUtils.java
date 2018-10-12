@@ -60,6 +60,11 @@ public class UserAgentUtils
         return cachedParser;
     }
 
+    public static void initializeCache() throws PwmUnrecoverableException
+    {
+        getUserAgentParser();
+    }
+
     public static void checkIfPreIE11( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
         final String userAgentString = pwmRequest.readHeaderValueAsString( HttpHeader.UserAgent );

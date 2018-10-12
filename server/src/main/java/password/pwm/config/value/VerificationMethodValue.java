@@ -126,7 +126,7 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
                 }
             }
 
-            public VerificationMethodValue fromXmlElement( final Element settingElement, final PwmSecurityKey key )
+            public VerificationMethodValue fromXmlElement( final PwmSetting pwmSetting, final Element settingElement, final PwmSecurityKey key )
                     throws PwmOperationalException
             {
                 final Element valueElement = settingElement.getChild( "value" );

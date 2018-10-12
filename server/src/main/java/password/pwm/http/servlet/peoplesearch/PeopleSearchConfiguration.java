@@ -33,24 +33,20 @@ import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.ldap.LdapPermissionTester;
-import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.TimeDuration;
 
 import java.util.List;
 
 public class PeopleSearchConfiguration
 {
+    private final PwmRequest pwmRequest;
     private final PwmApplication pwmApplication;
 
-    private boolean orgChartEnabled;
-    private String orgChartParentAttr;
-    private String orgChartChildAttr;
-    private String orgChartAssistantAttr;
-    private boolean orgChartShowChildCount;
-    private int orgChartMaxParents;
 
-    private PeopleSearchConfiguration( final PwmApplication pwmApplication )
+    private PeopleSearchConfiguration( final PwmRequest pwmRequest )
     {
-        this.pwmApplication = pwmApplication;
+        this.pwmRequest = pwmRequest;
+        this.pwmApplication = pwmRequest.getPwmApplication();
     }
 
     public String getPhotoAttribute( final UserIdentity userIdentity )
@@ -59,13 +55,13 @@ public class PeopleSearchConfiguration
         return ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_PHOTO );
     }
 
-    public String getPhotoUrlOverride( final UserIdentity userIdentity )
+    String getPhotoUrlOverride( final UserIdentity userIdentity )
     {
         final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmApplication.getConfig() );
         return ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_PHOTO_URL_OVERRIDE );
     }
 
-    public boolean isPhotosEnabled( final UserIdentity actor, final SessionLabel sessionLabel )
+    boolean isPhotosEnabled( final UserIdentity actor, final SessionLabel sessionLabel )
             throws PwmUnrecoverableException
     {
         if ( actor == null )
@@ -75,61 +71,79 @@ public class PeopleSearchConfiguration
 
         final List<UserPermission> permissions =  pwmApplication.getConfig().readSettingAsUserPermission( PwmSetting.PEOPLE_SEARCH_PHOTO_QUERY_FILTER );
         return LdapPermissionTester.testUserPermissions( pwmApplication, sessionLabel, actor, permissions );
-
     }
 
-    public boolean isOrgChartEnabled( )
+    public boolean isOrgChartEnabled()
     {
-        return orgChartEnabled;
+        final Configuration config = pwmApplication.getConfig();
+        return config.readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE_ORGCHART );
     }
 
-    public String getOrgChartParentAttr( )
+    String getOrgChartParentAttr( final UserIdentity userIdentity )
     {
-        return orgChartParentAttr;
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmApplication.getConfig() );
+        return ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_ORGCHART_PARENT );
     }
 
-    public String getOrgChartChildAttr( )
+    String getOrgChartChildAttr( final UserIdentity userIdentity  )
     {
-        return orgChartChildAttr;
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmApplication.getConfig() );
+        return ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_ORGCHART_CHILD );
     }
 
-    public String getOrgChartAssistantAttr( )
+    String getOrgChartAssistantAttr( final UserIdentity userIdentity  )
     {
-        return orgChartAssistantAttr;
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmApplication.getConfig() );
+        return ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_ORGCHART_ASSISTANT );
     }
 
-    public boolean isOrgChartShowChildCount( )
+    String getOrgChartWorkforceIDAttr( final UserIdentity userIdentity  )
     {
-        return orgChartShowChildCount;
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmApplication.getConfig() );
+        return ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_ORGCHART_WORKFORCEID );
     }
 
-    public int getOrgChartMaxParents( )
+    boolean isOrgChartShowChildCount( )
     {
-        return orgChartMaxParents;
+        return Boolean.parseBoolean( pwmRequest.getConfig().readAppProperty( AppProperty.PEOPLESEARCH_ORGCHART_ENABLE_CHILD_COUNT ) );
+    }
+
+    int getOrgChartMaxParents( )
+    {
+        return Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.PEOPLESEARCH_ORGCHART_MAX_PARENTS ) );
+    }
+
+    boolean isEnableExportCsv( )
+    {
+        return pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE_EXPORT );
+    }
+
+    int getExportCsvMaxDepth( )
+    {
+        return Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.PEOPLESEARCH_EXPORT_CSV_MAX_DEPTH ) );
+    }
+
+    TimeDuration getExportCsvMaxDuration( )
+    {
+        final int seconds = Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.PEOPLESEARCH_EXPORT_CSV_MAX_SECONDS ) );
+        return TimeDuration.of( seconds, TimeDuration.Unit.SECONDS );
+    }
+
+    int getExportCsvMaxThreads( )
+    {
+        return Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.PEOPLESEARCH_EXPORT_CSV_MAX_THREADS ) );
+    }
+
+    int getExportCsvMaxItems( )
+    {
+        return Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.PEOPLESEARCH_EXPORT_CSV_MAX_ITEMS ) );
     }
 
     public static PeopleSearchConfiguration forRequest(
             final PwmRequest pwmRequest
     )
-            throws PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final LdapProfile ldapProfile = pwmRequest.isAuthenticated()
-                ? pwmRequest.getUserInfoIfLoggedIn().getLdapProfile( pwmRequest.getConfig() )
-                : pwmRequest.getConfig().getDefaultLdapProfile();
-
-        final Configuration configuration = pwmApplication.getConfig();
-        final PeopleSearchConfiguration config = new PeopleSearchConfiguration( pwmApplication );
-        config.orgChartAssistantAttr = ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_ORGCHART_ASSISTANT );
-        config.orgChartParentAttr = ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_ORGCHART_PARENT );
-        config.orgChartChildAttr = ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_ORGCHARD_CHILD );
-        config.orgChartEnabled = configuration.readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE_ORGCHART )
-                && !StringUtil.isEmpty( config.orgChartParentAttr )
-                && !StringUtil.isEmpty( config.orgChartChildAttr );
-
-        config.orgChartShowChildCount = Boolean.parseBoolean( configuration.readAppProperty( AppProperty.PEOPLESEARCH_ORGCHART_ENABLE_CHILD_COUNT ) );
-        config.orgChartMaxParents = Integer.parseInt( configuration.readAppProperty( AppProperty.PEOPLESEARCH_ORGCHART_MAX_PARENTS ) );
-
-        return config;
+        return new PeopleSearchConfiguration( pwmRequest );
     }
+
 }

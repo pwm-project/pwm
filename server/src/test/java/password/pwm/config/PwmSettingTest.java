@@ -111,4 +111,18 @@ public class PwmSettingTest {
             seenKeys.add(pwmSetting.getKey());
         }
     }
+
+    @Test
+    public void testMinMaxValueRanges()
+    {
+        for (PwmSetting pwmSetting : PwmSetting.values()) {
+            final long minValue = Long.parseLong( pwmSetting.getProperties().getOrDefault( PwmSettingProperty.Minimum, "0" ) );
+            final long maxValue = Long.parseLong( pwmSetting.getProperties().getOrDefault( PwmSettingProperty.Maximum, "0" ) );
+            if ( maxValue != 0 )
+            {
+                Assert.assertTrue( maxValue > minValue );
+            }
+        }
+
+    }
 }

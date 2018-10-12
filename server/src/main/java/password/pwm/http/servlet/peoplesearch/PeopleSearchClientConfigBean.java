@@ -45,6 +45,7 @@ public class PeopleSearchClientConfigBean implements Serializable
 {
     private Map<String, String> searchColumns;
     private boolean enableAdvancedSearch;
+    private boolean enableAdvancedSearch;
     private boolean enablePhoto;
     private boolean orgChartEnabled;
     private boolean orgChartShowChildCount;
@@ -60,6 +61,14 @@ public class PeopleSearchClientConfigBean implements Serializable
         private String attribute;
     }
 
+
+    @Value
+    @Builder
+    public static class SearchAttribute implements Serializable
+    {
+        private String id;
+        private String attribute;
+    }
 
 
     static PeopleSearchClientConfigBean fromConfig(

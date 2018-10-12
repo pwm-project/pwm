@@ -89,6 +89,8 @@ public class HelpdeskDetailInfoBean implements Serializable
 
     private Set<StandardButton> visibleButtons;
     private Set<StandardButton> enabledButtons;
+
+    private HelpdeskVerificationOptionsBean verificationOptions;
     
     public enum StandardButton
     {
@@ -222,6 +224,8 @@ public class HelpdeskDetailInfoBean implements Serializable
             builder.visibleButtons( visibleButtons );
             builder.enabledButtons( determineEnabledButtons( visibleButtons, userInfo ) );
         }
+
+        builder.verificationOptions( HelpdeskVerificationOptionsBean.makeBean( pwmRequest, helpdeskProfile, userIdentity ) );
 
         final HelpdeskDetailInfoBean helpdeskDetailInfoBean = builder.build();
 

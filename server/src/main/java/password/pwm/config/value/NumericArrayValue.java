@@ -57,7 +57,7 @@ public class NumericArrayValue extends AbstractValue implements StoredValue
                 return new NumericArrayValue( list );
             }
 
-            public NumericArrayValue fromXmlElement( final Element settingElement, final PwmSecurityKey input )
+            public NumericArrayValue fromXmlElement( final PwmSetting pwmSetting, final Element settingElement, final PwmSecurityKey input )
             {
                 final List<Long> returnList = new ArrayList<>(  );
                 final List<Element> valueElements = settingElement.getChildren( "value" );

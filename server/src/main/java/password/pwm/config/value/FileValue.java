@@ -125,7 +125,7 @@ public class FileValue extends AbstractValue implements StoredValue
         return new StoredValueFactory()
         {
 
-            public FileValue fromXmlElement( final Element settingElement, final PwmSecurityKey input )
+            public FileValue fromXmlElement( final PwmSetting pwmSetting, final Element settingElement, final PwmSecurityKey input )
                     throws PwmOperationalException
             {
                 final List valueElements = settingElement.getChildren( "value" );
