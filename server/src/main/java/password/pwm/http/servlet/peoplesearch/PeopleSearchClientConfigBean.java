@@ -33,9 +33,11 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 
 import java.io.Serializable;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 @Value
@@ -58,8 +60,10 @@ public class PeopleSearchClientConfigBean implements Serializable
     @Builder
     public static class SearchAttribute implements Serializable
     {
-        private String id;
         private String attribute;
+        private String label;
+        private FormConfiguration.Type type;
+        private Map<String, String> options;
     }
 
 
@@ -72,19 +76,37 @@ public class PeopleSearchClientConfigBean implements Serializable
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final Configuration configuration = pwmApplication.getConfig();
+        final Locale locale = pwmRequest.getLocale();
+
         final Map<String, String> searchColumns = new LinkedHashMap<>();
         final List<FormConfiguration> searchForm = configuration.readSettingAsForm( PwmSetting.PEOPLE_SEARCH_RESULT_FORM );
         for ( final FormConfiguration formConfiguration : searchForm )
         {
             searchColumns.put( formConfiguration.getName(),
-                    formConfiguration.getLabel( pwmRequest.getLocale() ) );
+                    formConfiguration.getLabel( locale ) );
         }
 
-        final List<SearchAttribute> searchAttributes = Arrays.asList(
-                SearchAttribute.builder().attribute( "Title" ).id( "title" ).build(),
-                SearchAttribute.builder().attribute( "Given Name" ).id( "givenName" ).build(),
-                SearchAttribute.builder().attribute( "First Name" ).id( "sn" ).build()
-        );
+
+        final List<SearchAttribute> searchAttributes;
+        {
+            final List<SearchAttribute> returnList = new ArrayList<>( );
+            for ( final FormConfiguration formConfiguration : peopleSearchConfiguration.getSearchForm() )
+            {
+                final String attribute = formConfiguration.getName();
+                final String label = formConfiguration.getLabel( locale );
+
+                final SearchAttribute searchAttribute = SearchAttribute.builder()
+                        .attribute( attribute )
+                        .type( formConfiguration.getType() )
+                        .label( label )
+                        .options( formConfiguration.getSelectOptions() )
+                        .build();
+
+                returnList.add( searchAttribute );
+            }
+            searchAttributes = Collections.unmodifiableList( returnList );
+        }
+
 
         return PeopleSearchClientConfigBean.builder()
                 .searchColumns( searchColumns )
@@ -93,7 +115,7 @@ public class PeopleSearchClientConfigBean implements Serializable
                 .orgChartShowChildCount( peopleSearchConfiguration.isOrgChartShowChildCount() )
                 .orgChartMaxParents( peopleSearchConfiguration.getOrgChartMaxParents() )
 
-                .enableAdvancedSearch( true )
+                .enableAdvancedSearch( peopleSearchConfiguration.isEnableAdvancedSearch() )
                 .maxAdvancedSearchAttributes( 3 )
                 .advancedSearchAttributes( searchAttributes )
 

@@ -41,12 +41,14 @@ import password.pwm.config.PwmSettingTemplate;
 import password.pwm.config.PwmSettingTemplateSet;
 import password.pwm.config.StoredValue;
 import password.pwm.config.option.ADPolicyComplexity;
+import password.pwm.config.value.FormValue;
 import password.pwm.config.value.NamedSecretValue;
 import password.pwm.config.value.PasswordValue;
 import password.pwm.config.value.PrivateKeyValue;
 import password.pwm.config.value.StringArrayValue;
 import password.pwm.config.value.StringValue;
 import password.pwm.config.value.ValueFactory;
+import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -1406,6 +1408,31 @@ public class StoredConfigurationImpl implements StoredConfiguration
                             : actor;
                     storedConfiguration.writeSetting( PwmSetting.RECOVERY_MINIMUM_PASSWORD_LIFETIME_OPTIONS, profileID, value, newActor );
                     storedConfiguration.resetSetting( PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME, profileID, actor );
+                }
+            }
+
+            {
+                if ( !storedConfiguration.isDefaultValue( PwmSetting.PEOPLE_SEARCH_SEARCH_ATTRIBUTES ) )
+                {
+                    final List<String> oldValues = ( List<String> ) storedConfiguration.readSetting( PwmSetting.PEOPLE_SEARCH_SEARCH_ATTRIBUTES ).toNativeObject();
+
+                    final List<FormConfiguration> newValues = new ArrayList<>();
+                    for ( final String attribute : oldValues )
+                    {
+                        final FormConfiguration formConfiguration = FormConfiguration.builder()
+                                .name( attribute )
+                                .labels( Collections.singletonMap( "", attribute ) )
+                                .build();
+                        newValues.add( formConfiguration );
+                    }
+
+                    final ValueMetaData existingData = storedConfiguration.readSettingMetadata( PwmSetting.PEOPLE_SEARCH_SEARCH_ATTRIBUTES, null );
+                    final UserIdentity newActor = existingData != null && existingData.getUserIdentity() != null
+                            ? existingData.getUserIdentity()
+                            : actor;
+
+                    storedConfiguration.writeSetting( PwmSetting.PEOPLE_SEARCH_SEARCH_FORM, null, new FormValue( newValues ), newActor );
+                    storedConfiguration.resetSetting( PwmSetting.PEOPLE_SEARCH_SEARCH_ATTRIBUTES, null, actor );
                 }
             }
         }
