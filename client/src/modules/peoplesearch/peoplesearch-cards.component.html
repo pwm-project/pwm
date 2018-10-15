@@ -30,7 +30,7 @@
     </ias-search-box>
 
     <ias-button id="advanced-search-icon" class="ias-icon-button" ng-click="$ctrl.toggleAdvancedSearch()"
-                ng-if="!$ctrl.advancedSearch"
+                ng-if="!$ctrl.advancedSearch && $ctrl.advancedSearchEnabled"
                 ng-attr-title="{{ 'Title_AdvancedSearch' | translate }}">
         <ias-icon class="ias-selected" icon="search_advanced"></ias-icon>
     </ias-button>
@@ -60,7 +60,7 @@
     <div ng-repeat="query in $ctrl.queries">
         <select ng-model="query.name">
             <option value="" selected disabled>{{ 'Display_SelectAttribute' | translate }}</option>
-            <option ng-repeat="tag in $ctrl.advancedSearchTags" ng-attr-value="{{tag.id}}">{{tag.label}}</option>
+            <option ng-repeat="tag in $ctrl.advancedSearchTags" ng-attr-value="{{tag.id}}">{{tag.attribute}}</option>
         </select>
         <input ng-model="query.value" autocomplete="off">
         <ias-button class="ias-icon-button" ng-click="$ctrl.removeSearchTag($index)" ng-if="$index > 0"
@@ -71,6 +71,7 @@
 
     <br>
     <ias-button id="advanced-search-icon" class="ias-icon-button" ng-click="$ctrl.addSearchTag()"
+                ng-if="$ctrl.queries.length < $ctrl.advancedSearchMaxRows"
                 ng-attr-title="{{ 'Button_AddSearchAttribute' | translate }}">
         <ias-icon icon="new_thin"></ias-icon>
     </ias-button>

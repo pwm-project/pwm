@@ -20,9 +20,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-
+import * as angular from 'angular';
 import {isArray, isString, IPromise, IQService, IScope, ITimeoutService} from 'angular';
-import { IPeopleSearchConfigService } from '../../services/peoplesearch-config.service';
+import {AdvancedSearchConfig, IPeopleSearchConfigService} from '../../services/peoplesearch-config.service';
 import { IPeopleService } from '../../services/people.service';
 import IPwmService from '../../services/pwm.service';
 import LocalStorageService from '../../services/local-storage.service';
@@ -32,19 +32,9 @@ import SearchResult from '../../models/search-result.model';
 
 abstract class PeopleSearchBaseComponent {
     advancedSearch = false;
-    advancedSearchTags = [
-        { id: 'userKey', label: 'User ID' },
-        { id: 'givenName', label: 'First Name' },
-        { id: 'sn', label: 'Last Name' },
-        { id: 'mail', label: 'Email' },
-        { id: 'telephoneNumber', label: 'Telephone Number' },
-        { id: 'title', label: 'Title' },
-        { id: 'workforceId', label: 'Workforce ID' },
-        { id: 'managerId', label: 'Manager User ID' },
-        { id: '_displayName', label: 'Display Name' },
-        { id: 'displayNames', label: 'Display Names' },
-        { id: 'detail', label: 'Detail' }
-    ];
+    advancedSearchTags = [];
+    advancedSearchEnabled: boolean;
+    advancedSearchMaxRows: number;
     errorMessage: string;
     inputDebounce: number;
     orgChartEnabled: boolean;
@@ -234,6 +224,12 @@ abstract class PeopleSearchBaseComponent {
             this.orgChartEnabled = orgChartEnabled;
         });
 
+        this.configService.advancedSearchConfig().then((advancedSearchConfig: AdvancedSearchConfig) => {
+            this.advancedSearchEnabled = advancedSearchConfig.enabled;
+            this.advancedSearchTags = advancedSearchConfig.attributes;
+            this.advancedSearchMaxRows = advancedSearchConfig.maxRows;
+        });
+
         this.query = this.getSearchText();
 
         // Once <ias-search-box> from ng-ias allows the autofocus attribute, we can remove this code
@@ -260,6 +256,7 @@ abstract class PeopleSearchBaseComponent {
     }
 
     toggleAdvancedSearch(): void {
+        this.query = '';
         this.advancedSearch = !this.advancedSearch;
     }
 

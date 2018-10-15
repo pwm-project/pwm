@@ -29,11 +29,24 @@ import {ConfigBaseService, IConfigService} from './base-config.service';
 const ORGCHART_ENABLED = 'orgChartEnabled';
 const ORGCHART_MAX_PARENTS = 'orgChartMaxParents';
 const ORGCHART_SHOW_CHILD_COUNT = 'orgChartShowChildCount';
+const ADVANCED_SEARCH_ENABLED = 'enableAdvancedSearch';
+const ADVANCED_SEARCH_MAX_ATTRIBUTES = 'maxAdvancedSearchAttributes';
+const ADVANCED_SEARCH_ATTRIBUTES = 'advancedSearchAttributes';
+
+export interface AdvancedSearchConfig {
+    enabled: boolean;
+    maxRows: number;
+    attributes: {
+        'id': string;
+        'attribute': string;
+    }[];
+}
 
 export interface IPeopleSearchConfigService extends IConfigService {
     getOrgChartMaxParents(): IPromise<number>;
     orgChartEnabled(): IPromise<boolean>;
     orgChartShowChildCount(): IPromise<boolean>;
+    advancedSearchConfig(): IPromise<AdvancedSearchConfig>;
 }
 
 export default class PeopleSearchConfigService
@@ -56,5 +69,19 @@ export default class PeopleSearchConfigService
 
     orgChartShowChildCount(): IPromise<boolean> {
         return this.getValue(ORGCHART_SHOW_CHILD_COUNT);
+    }
+
+    advancedSearchConfig(): IPromise<AdvancedSearchConfig> {
+        return this.$q.all([
+            this.getValue(ADVANCED_SEARCH_ENABLED),
+            this.getValue(ADVANCED_SEARCH_MAX_ATTRIBUTES),
+            this.getValue(ADVANCED_SEARCH_ATTRIBUTES)
+        ]).then((result) => {
+            return {
+                enabled: result[0],
+                maxRows: result[1],
+                attributes: result[2]
+            };
+        });
     }
 }
