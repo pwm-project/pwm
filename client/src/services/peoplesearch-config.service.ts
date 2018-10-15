@@ -37,8 +37,10 @@ export interface AdvancedSearchConfig {
     enabled: boolean;
     maxRows: number;
     attributes: {
-        'id': string;
-        'attribute': string;
+        attribute: string,
+        label: string,
+        type: string,
+        options: any
     }[];
 }
 

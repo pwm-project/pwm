@@ -60,7 +60,7 @@
     <div ng-repeat="query in $ctrl.queries">
         <select ng-model="query.name">
             <option value="" selected disabled>{{ 'Display_SelectAttribute' | translate }}</option>
-            <option ng-repeat="tag in $ctrl.advancedSearchTags" ng-attr-value="{{tag.id}}">{{tag.attribute}}</option>
+            <option ng-repeat="tag in $ctrl.advancedSearchTags" ng-attr-value="{{tag.attribute}}">{{tag.label}}</option>
         </select>
         <input ng-model="query.value" autocomplete="off">
         <ias-button class="ias-icon-button" ng-click="$ctrl.removeSearchTag($index)" ng-if="$index > 0"
