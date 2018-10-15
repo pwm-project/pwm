@@ -267,6 +267,11 @@ public class PwmSession implements Serializable
 
         if ( pwmRequest != null )
         {
+
+            final String nonceCookieName = pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_NONCE_NAME );
+            pwmRequest.setAttribute( PwmRequestAttribute.CookieNonce, null );
+            pwmRequest.getPwmResponse().removeCookie( nonceCookieName, PwmHttpResponseWrapper.CookiePath.Application );
+
             try
             {
                 pwmRequest.getPwmApplication().getSessionStateService().clearLoginSession( pwmRequest );
@@ -373,6 +378,7 @@ public class PwmSession implements Serializable
             nonce = pwmRequest.readCookie( cookieName );
         }
 
+        boolean newNonce = false;
         if ( nonce == null || nonce.length() < length )
         {
             // random value
@@ -382,6 +388,7 @@ public class PwmSession implements Serializable
             final String prefix = Long.toString( System.currentTimeMillis(), Character.MAX_RADIX );
 
             nonce = random + prefix;
+            newNonce = true;
         }
 
         final PwmSecurityKey securityKey = pwmRequest.getConfig().getSecurityKey();
@@ -389,8 +396,11 @@ public class PwmSession implements Serializable
         final String hashValue = pwmRequest.getPwmApplication().getSecureService().hash( concatValue );
         final PwmSecurityKey pwmSecurityKey = new PwmSecurityKey( hashValue );
 
-        pwmRequest.setAttribute( PwmRequestAttribute.CookieNonce, nonce );
-        pwmRequest.getPwmResponse().writeCookie( cookieName, nonce, -1, PwmHttpResponseWrapper.CookiePath.Application );
+        if ( newNonce )
+        {
+            pwmRequest.setAttribute( PwmRequestAttribute.CookieNonce, nonce );
+            pwmRequest.getPwmResponse().writeCookie( cookieName, nonce, -1, PwmHttpResponseWrapper.CookiePath.Application );
+        }
 
         return pwmSecurityKey;
     }
