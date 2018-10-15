@@ -148,9 +148,9 @@ public class HelpdeskClientDataBean implements Serializable
         }
         {
             final List<PeopleSearchClientConfigBean.SearchAttribute> searchAttributes = Arrays.asList(
-                    PeopleSearchClientConfigBean.SearchAttribute.builder().attribute( "Title" ).id( "title" ).build(),
-                    PeopleSearchClientConfigBean.SearchAttribute.builder().attribute( "Given Name" ).id( "givenName" ).build(),
-                    PeopleSearchClientConfigBean.SearchAttribute.builder().attribute( "First Name" ).id( "sn" ).build()
+                    PeopleSearchClientConfigBean.SearchAttribute.builder().type( FormConfiguration.Type.text ).label( "Title" ).attribute( "title" ).build(),
+                    PeopleSearchClientConfigBean.SearchAttribute.builder().type( FormConfiguration.Type.text ).label( "Given Name" ).attribute( "givenName" ).build(),
+                    PeopleSearchClientConfigBean.SearchAttribute.builder().type( FormConfiguration.Type.text ).label( "First Name" ).attribute( "sn" ).build()
             );
 
                     builder.enableAdvancedSearch( true );

@@ -267,6 +267,10 @@ public class PwmSession implements Serializable
 
         if ( pwmRequest != null )
         {
+            final String nonceCookieName = pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_NONCE_NAME );
+            pwmRequest.getPwmResponse().removeCookie( nonceCookieName, PwmHttpResponseWrapper.CookiePath.Application );
+            pwmRequest.setAttribute( PwmRequestAttribute.CookieNonce, null );
+
             try
             {
                 pwmRequest.getPwmApplication().getSessionStateService().clearLoginSession( pwmRequest );
