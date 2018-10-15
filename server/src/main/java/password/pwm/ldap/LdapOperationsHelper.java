@@ -46,6 +46,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.bean.ImmutableByteArray;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.cache.CacheKey;
@@ -978,7 +979,7 @@ public class LdapOperationsHelper
         {
             throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_UNKNOWN, "error reading user photo ldap attribute: " + e.getMessage() ) );
         }
-        return new PhotoDataBean( mimeType, photoData );
+        return new PhotoDataBean( mimeType, new ImmutableByteArray( photoData ) );
     }
 
 }

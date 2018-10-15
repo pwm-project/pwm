@@ -51,7 +51,7 @@ public interface StoredValue extends Serializable
     {
         StoredValue fromJson( String input );
 
-        StoredValue fromXmlElement( Element settingElement, PwmSecurityKey key )
+        StoredValue fromXmlElement( PwmSetting pwmSetting, Element settingElement, PwmSecurityKey key )
                 throws PwmException;
     }
 

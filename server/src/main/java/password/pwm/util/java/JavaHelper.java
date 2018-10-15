@@ -575,10 +575,15 @@ public class JavaHelper
 
     public static boolean isEmpty( final Map map )
     {
-        return map == null ? true : map.isEmpty();
+        return map == null || map.isEmpty();
     }
 
     public static int rangeCheck( final int min, final int max, final int value )
+    {
+        return (int) rangeCheck( (long) min, (long) max, (long) value );
+    }
+
+    public static long rangeCheck( final long min, final long max, final long value )
     {
         if ( min > max )
         {
@@ -588,7 +593,7 @@ public class JavaHelper
         {
             throw new IllegalArgumentException( "max range is less than min range" );
         }
-        int returnValue = value;
+        long returnValue = value;
         if ( value < min )
         {
             returnValue = min;

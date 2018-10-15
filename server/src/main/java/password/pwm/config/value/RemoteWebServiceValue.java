@@ -82,6 +82,7 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
             }
 
             public RemoteWebServiceValue fromXmlElement(
+                    final PwmSetting pwmSetting,
                     final Element settingElement,
                     final PwmSecurityKey pwmSecurityKey
             )

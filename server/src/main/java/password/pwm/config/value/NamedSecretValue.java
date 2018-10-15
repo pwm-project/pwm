@@ -87,6 +87,7 @@ public class NamedSecretValue implements StoredValue
             }
 
             public NamedSecretValue fromXmlElement(
+                    final PwmSetting pwmSetting,
                     final Element settingElement,
                     final PwmSecurityKey key
             )

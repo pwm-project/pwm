@@ -54,7 +54,7 @@ public class X509CertificateValue extends AbstractValue implements StoredValue
     {
         return new StoredValueFactory()
         {
-            public X509CertificateValue fromXmlElement( final Element settingElement, final PwmSecurityKey key )
+            public X509CertificateValue fromXmlElement( final PwmSetting pwmSetting, final Element settingElement, final PwmSecurityKey key )
             {
                 final List<X509Certificate> certificates = new ArrayList<>();
                 final List<Element> valueElements = settingElement.getChildren( "value" );

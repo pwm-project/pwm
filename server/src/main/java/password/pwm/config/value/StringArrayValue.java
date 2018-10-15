@@ -68,7 +68,7 @@ public class StringArrayValue extends AbstractValue implements StoredValue
                 }
             }
 
-            public StringArrayValue fromXmlElement( final Element settingElement, final PwmSecurityKey key )
+            public StringArrayValue fromXmlElement( final PwmSetting pwmSetting, final Element settingElement, final PwmSecurityKey key )
             {
                 final List valueElements = settingElement.getChildren( "value" );
                 final List<String> values = new ArrayList<>();

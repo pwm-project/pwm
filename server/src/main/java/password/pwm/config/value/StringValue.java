@@ -60,7 +60,7 @@ public class StringValue extends AbstractValue implements StoredValue
                 return new StringValue( newValue );
             }
 
-            public StringValue fromXmlElement( final Element settingElement, final PwmSecurityKey key )
+            public StringValue fromXmlElement( final PwmSetting pwmSetting, final Element settingElement, final PwmSecurityKey key )
             {
                 final Element valueElement = settingElement.getChild( "value" );
                 return new StringValue( valueElement == null ? "" : valueElement.getText() );

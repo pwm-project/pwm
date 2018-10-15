@@ -22,55 +22,19 @@
 
 package password.pwm.http.servlet.peoplesearch;
 
+import lombok.Builder;
+import lombok.Value;
+
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@Value
+@Builder( toBuilder = true )
 class SearchResultBean implements Serializable
 {
-    private List<Map<String, Object>> searchResults = new ArrayList<>();
+    private List<Map<String, Object>> searchResults;
     private boolean sizeExceeded;
     private String aboutResultMessage;
     private boolean fromCache;
-
-    public List<Map<String, Object>> getSearchResults( )
-    {
-        return searchResults;
-    }
-
-    public void setSearchResults( final List<Map<String, Object>> searchResults )
-    {
-        this.searchResults = searchResults;
-    }
-
-    public boolean isSizeExceeded( )
-    {
-        return sizeExceeded;
-    }
-
-    public void setSizeExceeded( final boolean sizeExceeded )
-    {
-        this.sizeExceeded = sizeExceeded;
-    }
-
-    public String getAboutResultMessage( )
-    {
-        return aboutResultMessage;
-    }
-
-    public void setAboutResultMessage( final String aboutResultMessage )
-    {
-        this.aboutResultMessage = aboutResultMessage;
-    }
-
-    public boolean isFromCache( )
-    {
-        return fromCache;
-    }
-
-    public void setFromCache( final boolean fromCache )
-    {
-        this.fromCache = fromCache;
-    }
 }

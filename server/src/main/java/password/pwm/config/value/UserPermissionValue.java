@@ -74,7 +74,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
                 }
             }
 
-            public UserPermissionValue fromXmlElement( final Element settingElement, final PwmSecurityKey key )
+            public UserPermissionValue fromXmlElement( final PwmSetting pwmSetting, final Element settingElement, final PwmSecurityKey key )
                     throws PwmOperationalException
             {
                 final boolean newType = "2".equals(

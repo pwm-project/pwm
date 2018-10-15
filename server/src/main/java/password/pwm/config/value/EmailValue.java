@@ -74,6 +74,7 @@ public class EmailValue extends AbstractValue implements StoredValue
             }
 
             public EmailValue fromXmlElement(
+                    final PwmSetting pwmSetting,
                     final Element settingElement,
                     final PwmSecurityKey input
             )

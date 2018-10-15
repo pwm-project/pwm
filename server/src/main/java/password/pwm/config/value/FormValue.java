@@ -76,7 +76,7 @@ public class FormValue extends AbstractValue implements StoredValue
                 }
             }
 
-            public FormValue fromXmlElement( final Element settingElement, final PwmSecurityKey key )
+            public FormValue fromXmlElement( final PwmSetting pwmSetting, final Element settingElement, final PwmSecurityKey key )
                     throws PwmOperationalException
             {
                 final boolean oldType = PwmSettingSyntax.LOCALIZED_STRING_ARRAY.toString().equals(

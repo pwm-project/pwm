@@ -62,7 +62,7 @@ public class ValueFactory
         try
         {
             final StoredValue.StoredValueFactory factory = setting.getSyntax().getStoredValueImpl();
-            return factory.fromXmlElement( settingElement, key );
+            return factory.fromXmlElement( setting, settingElement, key );
         }
         catch ( Exception e )
         {

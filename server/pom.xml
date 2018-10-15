@@ -21,40 +21,6 @@
 
     <build>
         <plugins>
-            <!--
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-pmd-plugin</artifactId>
-                <version>3.9.0</version>
-                <executions>
-                    <execution>
-                        <phase>test</phase>
-                        <goals>
-                            <goal>check</goal>
-                            <goal>cpd-check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <language>jsp</language>
-                    <rulesets>
-                        <ruleset>/category/jsp/bestpractices.xml</ruleset>
-                        <ruleset>/category/jsp/codestyle.xml</ruleset>
-                        <ruleset>/category/jsp/design.xml</ruleset>
-                        <ruleset>/category/jsp/errorprone.xml</ruleset>
-                        <ruleset>/category/jsp/security.xml</ruleset>
-                    </rulesets>
-                    <includes>
-                        <include>**/*.jsp</include>
-                    </includes>
-                    <compileSourceRoots>
-                        <compileSourceRoot>${basedir}/src/main/webapp</compileSourceRoot>
-                    </compileSourceRoots>
-                    <skip>false</skip>
-                </configuration>
-            </plugin>
-            -->
-
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
                 <version>3.1.0</version>

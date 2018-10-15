@@ -79,6 +79,7 @@ public class PasswordValue implements StoredValue
             }
 
             public PasswordValue fromXmlElement(
+                    final PwmSetting pwmSetting,
                     final Element settingElement,
                     final PwmSecurityKey key
             )
