@@ -77,6 +77,20 @@ people-search-cards {
       }
     }
   }
+
+  .advanced-search-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+
+    > * + * {
+      margin-top: 5px;
+    }
+
+    &+ div {
+      margin-top: 15px;
+    }
+  }
 }
 
 [dir="rtl"] {

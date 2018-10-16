@@ -13,7 +13,7 @@
         "test": "karma start test/karma.conf.js --mode=development",
         "test-single-run": "karma start test/karma.conf.js --mode=development --singleRun --no-auto-watch",
         "start": "webpack-dev-server --mode=development --port 4000 --history-api-fallback --colors",
-        "sync": "webpack --mode=production --output-path=../webapp/target/pwm-1.8.0-SNAPSHOT/public/resources/webjars/pwm-client --watch --progress --colors"
+        "sync": "webpack --env.disableMinimize=true --mode=production --output-path=../webapp/target/pwm-1.8.0-SNAPSHOT/public/resources/webjars/pwm-client --watch --progress --colors"
     },
     "author": "",
     "license": "ISC",

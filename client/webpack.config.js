@@ -11,6 +11,7 @@ const srcDir = path.resolve(__dirname, 'src');
 
 module.exports = function (env, argv) {
     const isProductionMode = (argv["mode"] === "production");
+    const disableMinimize = (env && env.disableMinimize) || false;
 
     const commonConfig = {
         devtool: 'source-map',
@@ -100,15 +101,18 @@ module.exports = function (env, argv) {
                 'peoplesearch.ng': './src/modules/peoplesearch/main',
                 'helpdesk.ng': './src/modules/helpdesk/main'
             },
-            plugins: [
-                new UglifyJsPlugin({
-                    sourceMap: true,
-                    uglifyOptions: {
-                        compress: {warnings: false},
-                        comments: false
-                    }
-                })
-            ]
+            optimization:{
+                minimize: !disableMinimize,
+                minimizer: [
+                    new UglifyJsPlugin({
+                        sourceMap: true,
+                        uglifyOptions: {
+                            compress: {warnings: false},
+                            comments: false
+                        }
+                    })
+                ]
+            }
         });
     }
     else {

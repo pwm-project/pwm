@@ -42,7 +42,7 @@ abstract class PeopleSearchBaseComponent {
     searchMessage: string;
     searchResult: SearchResult;
     query: string;
-    queries = [{name: null, value: ''}];
+    queries = [{key: null, value: ''}];
     searchTextLocalStorageKey: string;
     searchViewLocalStorageKey: string;
 
@@ -98,7 +98,7 @@ abstract class PeopleSearchBaseComponent {
         this.queries.splice(tagIndex, 1);
     }
     addSearchTag(): void {
-        this.queries.push({name: null, value: ''});
+        this.queries.push({key: null, value: ''});
     }
 
     selectPerson(person: IPerson): void {
@@ -152,6 +152,7 @@ abstract class PeopleSearchBaseComponent {
 
     protected clearSearch(): void {
         this.query = null;
+        this.queries = [{key: null, value: ''}];
         this.searchResult = null;
         this.clearErrorMessage();
         this.clearSearchMessage();
@@ -168,7 +169,7 @@ abstract class PeopleSearchBaseComponent {
         this.abortPendingRequests();
         this.searchResult = null;
 
-        if (!this.query) {
+        if (!this.query && !this.queries) {
             this.clearSearch();
             return null;
         }
@@ -256,7 +257,7 @@ abstract class PeopleSearchBaseComponent {
     }
 
     toggleAdvancedSearch(): void {
-        this.query = '';
+        this.clearSearch();
         this.advancedSearch = !this.advancedSearch;
     }
 
