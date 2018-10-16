@@ -30,6 +30,10 @@ people-search-table {
     flex-flow: column nowrap;
     height: 100%;
 
+    .ias-search {
+        margin-right: 10px;
+    }
+
     > .people-search-component-content {
         flex: 1 1;
         overflow: auto;
@@ -40,6 +44,20 @@ people-search-table {
             position: absolute;
             top: 0;
             right: 0;
+        }
+    }
+
+    .advanced-search-container {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+
+        > * + * {
+            margin-top: 5px;
+        }
+
+        &+ div {
+            margin-top: 15px;
         }
     }
 }
