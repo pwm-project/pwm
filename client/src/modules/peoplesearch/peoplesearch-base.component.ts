@@ -97,7 +97,13 @@ abstract class PeopleSearchBaseComponent {
 
     removeSearchTag(tagIndex: number): void {
         this.queries.splice(tagIndex, 1);
+
+        if (this.queries.length === 0) {
+            this.clearSearch();
+            this.advancedSearch = false;
+        }
     }
+
     addSearchTag(): void {
         this.queries.push({key: null, value: ''});
     }
@@ -261,9 +267,9 @@ abstract class PeopleSearchBaseComponent {
         this.localStorageService.setItem(this.searchTextLocalStorageKey, this.query || '');
     }
 
-    toggleAdvancedSearch(): void {
+    enableAdvancedSearch(): void {
         this.clearSearch();
-        this.advancedSearch = !this.advancedSearch;
+        this.advancedSearch = true;
     }
 
     protected toggleView(state: string): void {
