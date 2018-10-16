@@ -24,7 +24,13 @@
 import { IHttpService, ILogService, IPromise, IQService } from 'angular';
 import IPwmService from './pwm.service';
 import PwmService from './pwm.service';
-import {ConfigBaseService, IConfigService} from './base-config.service';
+import {ConfigBaseService,
+    IAdvancedSearchConfig,
+    IConfigService,
+    ADVANCED_SEARCH_ENABLED,
+    ADVANCED_SEARCH_MAX_ATTRIBUTES,
+    ADVANCED_SEARCH_ATTRIBUTES
+} from './base-config.service';
 
 const CLEAR_RESPONSES_CONFIG = 'clearResponses';
 const CUSTOM_BUTTON_CONFIG = 'actions';
@@ -81,6 +87,7 @@ export interface IHelpDeskConfigService extends IConfigService {
     getVerificationMethods(options?: {includeOptional: boolean}): IPromise<IVerificationMap>;
     maskPasswordsEnabled(): IPromise<boolean>;
     verificationsEnabled(): IPromise<boolean>;
+    advancedSearchConfig(): IPromise<IAdvancedSearchConfig>;
 }
 
 export default class HelpDeskConfigService extends ConfigBaseService implements IConfigService, IHelpDeskConfigService {
@@ -163,5 +170,19 @@ export default class HelpDeskConfigService extends ConfigBaseService implements 
             .then((result: IVerificationResponse) => {
                 return !!result.required.length;
             });
+    }
+
+    advancedSearchConfig(): IPromise<IAdvancedSearchConfig> {
+        return this.$q.all([
+            this.getValue(ADVANCED_SEARCH_ENABLED),
+            this.getValue(ADVANCED_SEARCH_MAX_ATTRIBUTES),
+            this.getValue(ADVANCED_SEARCH_ATTRIBUTES)
+        ]).then((result) => {
+            return {
+                enabled: result[0],
+                maxRows: result[1],
+                attributes: result[2]
+            };
+        });
     }
 }

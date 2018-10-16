@@ -22,13 +22,14 @@
 
 import * as angular from 'angular';
 import {isArray, isString, IPromise, IQService, IScope, ITimeoutService} from 'angular';
-import {AdvancedSearchConfig, IPeopleSearchConfigService} from '../../services/peoplesearch-config.service';
+import { IPeopleSearchConfigService } from '../../services/peoplesearch-config.service';
 import { IPeopleService } from '../../services/people.service';
 import IPwmService from '../../services/pwm.service';
 import LocalStorageService from '../../services/local-storage.service';
 import { IPerson } from '../../models/person.model';
 import PromiseService from '../../services/promise.service';
 import SearchResult from '../../models/search-result.model';
+import {IAdvancedSearchConfig} from '../../services/base-config.service';
 
 abstract class PeopleSearchBaseComponent {
     advancedSearch = false;
@@ -229,7 +230,7 @@ abstract class PeopleSearchBaseComponent {
             this.orgChartEnabled = orgChartEnabled;
         });
 
-        this.configService.advancedSearchConfig().then((advancedSearchConfig: AdvancedSearchConfig) => {
+        this.configService.advancedSearchConfig().then((advancedSearchConfig: IAdvancedSearchConfig) => {
             this.advancedSearchEnabled = advancedSearchConfig.enabled;
             this.advancedSearchTags = advancedSearchConfig.attributes;
             this.advancedSearchMaxRows = advancedSearchConfig.maxRows;

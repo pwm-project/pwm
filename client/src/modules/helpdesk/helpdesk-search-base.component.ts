@@ -29,17 +29,23 @@ import LocalStorageService from '../../services/local-storage.service';
 import PromiseService from '../../services/promise.service';
 import {IHelpDeskService} from '../../services/helpdesk.service';
 import IPwmService from '../../services/pwm.service';
+import {IAdvancedSearchConfig} from '../../services/base-config.service';
 
 let verificationsDialogTemplateUrl = require('./verifications-dialog.template.html');
 let recentVerificationsDialogTemplateUrl = require('./recent-verifications-dialog.template.html');
 
 export default abstract class HelpDeskSearchBaseComponent {
+    advancedSearch = false;
+    advancedSearchTags = [];
+    advancedSearchEnabled: boolean;
+    advancedSearchMaxRows: number;
     columnConfiguration: any;
     errorMessage: string;
     inputDebounce: number;
     protected pendingRequests: IPromise<any>[] = [];
     photosEnabled: boolean;
     query: string;
+    queries = [{key: null, value: ''}];
     searchMessage: string;
     searchResult: SearchResult;
     searchTextLocalStorageKey: string;
@@ -75,6 +81,12 @@ export default abstract class HelpDeskSearchBaseComponent {
             this.verificationsEnabled = verificationsEnabled;
         });
 
+        this.configService.advancedSearchConfig().then((advancedSearchConfig: IAdvancedSearchConfig) => {
+            this.advancedSearchEnabled = advancedSearchConfig.enabled;
+            this.advancedSearchTags = advancedSearchConfig.attributes;
+            this.advancedSearchMaxRows = advancedSearchConfig.maxRows;
+        });
+
         // Once <ias-search-box> from ng-ias allows the autofocus attribute, we can remove this code
         this.$timeout(() => {
             document.getElementsByTagName('input')[0].focus();
@@ -102,6 +114,7 @@ export default abstract class HelpDeskSearchBaseComponent {
 
     protected clearSearch(): void {
         this.query = null;
+        this.queries = [{key: null, value: ''}];
         this.searchResult = null;
         this.clearErrorMessage();
         this.clearSearchMessage();
@@ -111,13 +124,25 @@ export default abstract class HelpDeskSearchBaseComponent {
     protected fetchSearchData(): IPromise<void | SearchResult> {
         this.abortPendingRequests();
         this.searchResult = null;
+        let promise;
 
-        if (!this.query) {
-            this.clearSearch();
-            return null;
+        if (this.advancedSearch) {
+            if (!this.queries || (this.queries.length === 1 && !this.queries[0].key)) {
+                this.clearSearch();
+                return null;
+            }
+
+            promise = this.helpDeskService.advancedSearch(this.queries);
+        }
+        else {
+            if (!this.query) {
+                this.clearSearch();
+                return null;
+            }
+
+            promise = this.helpDeskService.search(this.query);
         }
 
-        let promise = this.helpDeskService.search(this.query);
         this.pendingRequests.push(promise);
 
         return promise
@@ -156,15 +181,19 @@ export default abstract class HelpDeskSearchBaseComponent {
         this.$state.go(state, { query: this.query });
     }
 
+    private initiateSearch() {
+        this.clearSearchMessage();
+        this.clearErrorMessage();
+        this.fetchData();
+    }
+
     private onSearchTextChange(newValue: string, oldValue: string): void {
         if (newValue === oldValue) {
             return;
         }
 
         this.storeSearchText();
-        this.clearSearchMessage();
-        this.clearErrorMessage();
-        this.fetchData();
+        this.initiateSearch();
     }
 
     protected abortPendingRequests() {
@@ -211,6 +240,13 @@ export default abstract class HelpDeskSearchBaseComponent {
         }
     }
 
+    removeSearchTag(tagIndex: number): void {
+        this.queries.splice(tagIndex, 1);
+    }
+    addSearchTag(): void {
+        this.queries.push({key: null, value: ''});
+    }
+
     protected selectPerson(person: IPerson): void {
         this.IasDialogService
             .open({
@@ -233,6 +269,11 @@ export default abstract class HelpDeskSearchBaseComponent {
 
     protected storeSearchText(): void {
         this.localStorageService.setItem(this.searchTextLocalStorageKey, this.query || '');
+    }
+
+    toggleAdvancedSearch(): void {
+        this.clearSearch();
+        this.advancedSearch = !this.advancedSearch;
     }
 
     protected toggleView(state: string): void {

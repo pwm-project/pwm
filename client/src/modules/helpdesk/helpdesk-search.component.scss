@@ -43,6 +43,20 @@ help-desk-search-table {
     flex: 1 1;
     overflow: auto;
   }
+
+  .advanced-search-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+
+    > * + * {
+      margin-top: 5px;
+    }
+
+    &+ div {
+      margin-top: 15px;
+    }
+  }
 }
 
 .aligned-input {

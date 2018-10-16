@@ -26,10 +26,25 @@ import {IPwmService} from './pwm.service';
 const COLUMN_CONFIG = 'searchColumns';
 const PHOTO_ENABLED = 'enablePhoto';
 
+export const ADVANCED_SEARCH_ENABLED = 'enableAdvancedSearch';
+export const ADVANCED_SEARCH_MAX_ATTRIBUTES = 'maxAdvancedSearchAttributes';
+export const ADVANCED_SEARCH_ATTRIBUTES = 'advancedSearchAttributes';
+
 export interface IConfigService {
     getColumnConfig(): IPromise<any>;
     getValue(key: string): IPromise<any>;
     photosEnabled(): IPromise<boolean>;
+}
+
+export interface IAdvancedSearchConfig {
+    enabled: boolean;
+    maxRows: number;
+    attributes: {
+        attribute: string,
+        label: string,
+        type: string,
+        options: any
+    }[];
 }
 
 export abstract class ConfigBaseService implements IConfigService {

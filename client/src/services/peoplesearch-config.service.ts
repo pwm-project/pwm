@@ -24,31 +24,24 @@
 import { IHttpService, ILogService, IPromise, IQService } from 'angular';
 import IPwmService from './pwm.service';
 import PwmService from './pwm.service';
-import {ConfigBaseService, IConfigService} from './base-config.service';
+import {
+    ConfigBaseService,
+    IConfigService,
+    IAdvancedSearchConfig,
+    ADVANCED_SEARCH_ENABLED,
+    ADVANCED_SEARCH_MAX_ATTRIBUTES,
+    ADVANCED_SEARCH_ATTRIBUTES
+} from './base-config.service';
 
 const ORGCHART_ENABLED = 'orgChartEnabled';
 const ORGCHART_MAX_PARENTS = 'orgChartMaxParents';
 const ORGCHART_SHOW_CHILD_COUNT = 'orgChartShowChildCount';
-const ADVANCED_SEARCH_ENABLED = 'enableAdvancedSearch';
-const ADVANCED_SEARCH_MAX_ATTRIBUTES = 'maxAdvancedSearchAttributes';
-const ADVANCED_SEARCH_ATTRIBUTES = 'advancedSearchAttributes';
-
-export interface AdvancedSearchConfig {
-    enabled: boolean;
-    maxRows: number;
-    attributes: {
-        attribute: string,
-        label: string,
-        type: string,
-        options: any
-    }[];
-}
 
 export interface IPeopleSearchConfigService extends IConfigService {
     getOrgChartMaxParents(): IPromise<number>;
     orgChartEnabled(): IPromise<boolean>;
     orgChartShowChildCount(): IPromise<boolean>;
-    advancedSearchConfig(): IPromise<AdvancedSearchConfig>;
+    advancedSearchConfig(): IPromise<IAdvancedSearchConfig>;
 }
 
 export default class PeopleSearchConfigService
@@ -73,7 +66,7 @@ export default class PeopleSearchConfigService
         return this.getValue(ORGCHART_SHOW_CHILD_COUNT);
     }
 
-    advancedSearchConfig(): IPromise<AdvancedSearchConfig> {
+    advancedSearchConfig(): IPromise<IAdvancedSearchConfig> {
         return this.$q.all([
             this.getValue(ADVANCED_SEARCH_ENABLED),
             this.getValue(ADVANCED_SEARCH_MAX_ATTRIBUTES),
