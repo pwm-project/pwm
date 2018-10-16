@@ -71,8 +71,6 @@ export default class PeopleService implements IPeopleService {
     }
 
     advancedSearch(queries: IQuery[]): IPromise<SearchResult> {
-        console.log('queries: %O', queries);
-
         // Deferred object used for aborting requests. See promise.service.ts for more information
         let httpTimeout = this.$q.defer();
 

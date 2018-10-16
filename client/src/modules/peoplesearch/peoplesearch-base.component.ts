@@ -169,19 +169,23 @@ abstract class PeopleSearchBaseComponent {
         this.abortPendingRequests();
         this.searchResult = null;
 
-        if (!this.query && !this.queries) {
-            this.clearSearch();
-            return null;
-        }
-
         const self = this;
-
         let promise;
 
         if (this.advancedSearch) {
+            if (!this.queries || (this.queries.length === 1 && !this.queries[0].key)) {
+                this.clearSearch();
+                return null;
+            }
+
             promise = this.peopleService.advancedSearch(this.queries);
         }
         else {
+            if (!this.query) {
+                this.clearSearch();
+                return null;
+            }
+
             promise = this.peopleService.search(this.query);
         }
 
