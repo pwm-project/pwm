@@ -28,14 +28,10 @@
                     ng-if="!$ctrl.advancedSearch"
                     placeholder="{{'Placeholder_Search' | translate}}">
     </ias-search-box>
-    <ias-button id="advanced-search-icon" class="ias-icon-button" ng-click="$ctrl.toggleAdvancedSearch()"
+    <ias-button id="advanced-search-icon" class="ias-icon-button" ng-click="$ctrl.enableAdvancedSearch()"
                 ng-if="!$ctrl.advancedSearch && $ctrl.advancedSearchEnabled"
                 ng-attr-title="{{ 'Title_AdvancedSearch' | translate }}">
         <ias-icon class="ias-selected" icon="search_advanced"></ias-icon>
-    </ias-button>
-    <ias-button id="close-advanced-search-icon" class="ias-icon-button" ng-click="$ctrl.toggleAdvancedSearch()"
-                ng-if="$ctrl.advancedSearch" ng-attr-title="{{ 'Button_Close' | translate }}">
-        <ias-icon class="ias-selected" icon="close_thin"></ias-icon>
     </ias-button>
     <ias-button class="verifications-button ias-cta" ng-if="$ctrl.verificationsEnabled"
                 ng-click="$ctrl.showVerifications()">{{ 'Button_Verifications' | translate }}</ias-button>
@@ -73,7 +69,7 @@
             <option ng-repeat="tag in $ctrl.advancedSearchTags" ng-attr-value="{{tag.attribute}}">{{tag.label}}</option>
         </select>
         <input ng-model="query.value" autocomplete="off">
-        <ias-button class="ias-icon-button" ng-click="$ctrl.removeSearchTag($index)" ng-if="$index > 0"
+        <ias-button class="ias-icon-button" ng-click="$ctrl.removeSearchTag($index)"
                     ng-attr-title="{{ 'Button_Remove' | translate }}">
             <ias-icon icon="close_thin"></ias-icon>
         </ias-button>
