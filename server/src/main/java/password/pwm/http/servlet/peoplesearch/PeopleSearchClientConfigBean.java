@@ -64,6 +64,30 @@ public class PeopleSearchClientConfigBean implements Serializable
         private String label;
         private FormConfiguration.Type type;
         private Map<String, String> options;
+
+        public static List<SearchAttribute> searchAttributesFromForm(
+                final Locale locale,
+                final List<FormConfiguration> formConfigurations
+        )
+        {
+            final List<SearchAttribute> returnList = new ArrayList<>( );
+            for ( final FormConfiguration formConfiguration : formConfigurations )
+            {
+                final String attribute = formConfiguration.getName();
+                final String label = formConfiguration.getLabel( locale );
+
+                final SearchAttribute searchAttribute = SearchAttribute.builder()
+                        .attribute( attribute )
+                        .type( formConfiguration.getType() )
+                        .label( label )
+                        .options( formConfiguration.getSelectOptions() )
+                        .build();
+
+                returnList.add( searchAttribute );
+            }
+
+            return Collections.unmodifiableList( returnList );
+        }
     }
 
 
@@ -87,26 +111,7 @@ public class PeopleSearchClientConfigBean implements Serializable
         }
 
 
-        final List<SearchAttribute> searchAttributes;
-        {
-            final List<SearchAttribute> returnList = new ArrayList<>( );
-            for ( final FormConfiguration formConfiguration : peopleSearchConfiguration.getSearchForm() )
-            {
-                final String attribute = formConfiguration.getName();
-                final String label = formConfiguration.getLabel( locale );
-
-                final SearchAttribute searchAttribute = SearchAttribute.builder()
-                        .attribute( attribute )
-                        .type( formConfiguration.getType() )
-                        .label( label )
-                        .options( formConfiguration.getSelectOptions() )
-                        .build();
-
-                returnList.add( searchAttribute );
-            }
-            searchAttributes = Collections.unmodifiableList( returnList );
-        }
-
+        final List<SearchAttribute> searchAttributes = SearchAttribute.searchAttributesFromForm( locale, peopleSearchConfiguration.getSearchForm() );
 
         return PeopleSearchClientConfigBean.builder()
                 .searchColumns( searchColumns )

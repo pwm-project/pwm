@@ -36,7 +36,6 @@ import password.pwm.http.servlet.peoplesearch.PeopleSearchClientConfigBean;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -76,14 +75,6 @@ public class HelpdeskClientDataBean implements Serializable
         private String label;
     }
 
-    @Value
-    @Builder
-    public static class SearchAttribute implements Serializable
-    {
-        private String id;
-        private String attribute;
-    }
-
 
     static HelpdeskClientDataBean fromConfig(
             final HelpdeskProfile helpdeskProfile,
@@ -93,7 +84,7 @@ public class HelpdeskClientDataBean implements Serializable
         final HelpdeskClientDataBean.HelpdeskClientDataBeanBuilder builder = HelpdeskClientDataBean.builder();
         {
             // search page
-            final List<FormConfiguration> searchForm = helpdeskProfile.readSettingAsForm( PwmSetting.HELPDESK_SEARCH_FORM );
+            final List<FormConfiguration> searchForm = helpdeskProfile.readSettingAsForm( PwmSetting.HELPDESK_SEARCH_RESULT_FORM );
             final Map<String, String> searchColumns = new LinkedHashMap<>();
             for ( final FormConfiguration formConfiguration : searchForm )
             {
@@ -147,13 +138,11 @@ public class HelpdeskClientDataBean implements Serializable
             builder.verificationForm( formInformations );
         }
         {
-            final List<PeopleSearchClientConfigBean.SearchAttribute> searchAttributes = Arrays.asList(
-                    PeopleSearchClientConfigBean.SearchAttribute.builder().type( FormConfiguration.Type.text ).label( "Title" ).attribute( "title" ).build(),
-                    PeopleSearchClientConfigBean.SearchAttribute.builder().type( FormConfiguration.Type.text ).label( "Given Name" ).attribute( "givenName" ).build(),
-                    PeopleSearchClientConfigBean.SearchAttribute.builder().type( FormConfiguration.Type.text ).label( "First Name" ).attribute( "sn" ).build()
-            );
+            final List<PeopleSearchClientConfigBean.SearchAttribute> searchAttributes = PeopleSearchClientConfigBean.SearchAttribute.searchAttributesFromForm(
+                    locale,
+                    helpdeskProfile.readSettingAsForm( PwmSetting.HELPDESK_SEARCH_FORM ) );
 
-                    builder.enableAdvancedSearch( true );
+                    builder.enableAdvancedSearch( helpdeskProfile.readSettingAsBoolean( PwmSetting.HELPDESK_ENABLE_ADVANCED_SEARCH ) );
                     builder.maxAdvancedSearchAttributes( 3 );
                     builder.advancedSearchAttributes( searchAttributes );
         }
