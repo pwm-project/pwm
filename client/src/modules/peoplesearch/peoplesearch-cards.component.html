@@ -37,7 +37,6 @@
     <div class="advanced-search-container" ng-if="$ctrl.advancedSearch">
         <div class="attribute-row" ng-repeat="query in $ctrl.queries">
             <select ng-model="query.key">
-                <option value="" selected disabled>{{ 'Display_SelectAttribute' | translate }}</option>
                 <option ng-repeat="tag in $ctrl.advancedSearchTags" ng-attr-value="{{tag.attribute}}">{{tag.label}}</option>
             </select>
             <input ng-model="query.value" autocomplete="off" ng-change="$ctrl.onAdvancedSearchValueChanged($event)"

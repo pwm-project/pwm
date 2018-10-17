@@ -36,7 +36,7 @@ let recentVerificationsDialogTemplateUrl = require('./recent-verifications-dialo
 
 export default abstract class HelpDeskSearchBaseComponent {
     advancedSearch = false;
-    advancedSearchTags = [];
+    advancedSearchTags: any[];
     advancedSearchEnabled: boolean;
     advancedSearchMaxRows: number;
     columnConfiguration: any;
@@ -45,7 +45,8 @@ export default abstract class HelpDeskSearchBaseComponent {
     protected pendingRequests: IPromise<any>[] = [];
     photosEnabled: boolean;
     query: string;
-    queries = [{key: null, value: ''}];
+    queries: any[];
+    initialQueryKey: string;
     searchMessage: string;
     searchResult: SearchResult;
     searchTextLocalStorageKey: string;
@@ -85,6 +86,11 @@ export default abstract class HelpDeskSearchBaseComponent {
             this.advancedSearchEnabled = advancedSearchConfig.enabled;
             this.advancedSearchTags = advancedSearchConfig.attributes;
             this.advancedSearchMaxRows = advancedSearchConfig.maxRows;
+
+            // Save the first attribute to use as the initial selection of new query rows
+            if (this.advancedSearchTags && this.advancedSearchTags.length > 0) {
+                this.initialQueryKey = this.advancedSearchTags[0].attribute;
+            }
         });
 
         // Once <ias-search-box> from ng-ias allows the autofocus attribute, we can remove this code
@@ -114,7 +120,7 @@ export default abstract class HelpDeskSearchBaseComponent {
 
     protected clearSearch(): void {
         this.query = null;
-        this.queries = [{key: null, value: ''}];
+        this.queries = [{key: this.initialQueryKey, value: ''}];
         this.searchResult = null;
         this.clearErrorMessage();
         this.clearSearchMessage();
@@ -257,7 +263,7 @@ export default abstract class HelpDeskSearchBaseComponent {
     }
 
     addSearchTag(): void {
-        this.queries.push({key: null, value: ''});
+        this.queries.push({key: this.initialQueryKey, value: ''});
     }
 
     protected selectPerson(person: IPerson): void {
