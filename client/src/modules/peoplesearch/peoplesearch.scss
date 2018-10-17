@@ -47,6 +47,36 @@ body {
     overflow: auto;
   }
 
+  .peoplesearch-header {
+    display: flex;
+    align-items: flex-start;
+
+    .basic-search-container {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+
+      > * + * {
+        margin-left: 10px;
+      }
+    }
+
+    .advanced-search-container {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      margin-bottom: 15px;
+
+      > * + * {
+        margin-top: 5px;
+      }
+
+      &+ div {
+        margin-top: 15px;
+      }
+    }
+  }
+
   .search-info-container {
     text-align: left;
 

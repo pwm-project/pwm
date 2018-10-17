@@ -20,53 +20,52 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   -->
 
-<div class="ias-header">
-    <h2 id="page-content-title" ng-if="!$ctrl.advancedSearch" translate="Title_Helpdesk">Help Desk</h2>
-    <h2 id="page-content-title" ng-if="$ctrl.advancedSearch">Help Desk Advanced Search</h2>
 
-    <ias-search-box ng-model="$ctrl.query" ng-model-options="{debounce: $ctrl.inputDebounce}"
-                    ng-if="!$ctrl.advancedSearch"
-                    placeholder="{{'Placeholder_Search' | translate}}">
-    </ias-search-box>
-    <ias-button id="advanced-search-icon" class="ias-icon-button" ng-click="$ctrl.enableAdvancedSearch()"
-                ng-if="!$ctrl.advancedSearch && $ctrl.advancedSearchEnabled"
-                ng-attr-title="{{ 'Title_AdvancedSearch' | translate }}">
-        <ias-icon class="ias-selected" icon="search_advanced"></ias-icon>
-    </ias-button>
-    <ias-button class="verifications-button ias-cta" ng-if="$ctrl.verificationsEnabled"
-                ng-click="$ctrl.showVerifications()">{{ 'Button_Verifications' | translate }}</ias-button>
+<div class="peoplesearch-header">
+    <div class="basic-search-container" ng-if="!$ctrl.advancedSearch">
+        <h2 id="page-content-title" ng-if="!$ctrl.advancedSearch" translate="Title_Helpdesk">Help Desk</h2>
+        <ias-search-box id="input" ng-model="$ctrl.query"
+                        ng-model-options="{debounce: $ctrl.inputDebounce}"
+                        placeholder="{{'Placeholder_Search' | translate}}" auto-focus>
+        </ias-search-box>
 
-    <span class="ias-fill"></span>
-
-    <ias-button id="view-tile-icon" class="ias-icon-button ias-selected"
-                ng-disabled="true"
-                ng-attr-title="{{ 'Title_HelpDeskCard' | translate }}">
-        <ias-icon icon="view_tile_thin"></ias-icon>
-    </ias-button>
-    <ias-button id="view-list-icon" class="ias-icon-button"
-                ng-click="$ctrl.gotoTableView()"
-                ng-attr-title="{{ 'Title_HelpDeskTable' | translate }}">
-        <ias-icon icon="view_list_thin"></ias-icon>
-    </ias-button>
-</div>
-
-<div class="advanced-search-container" ng-if="$ctrl.advancedSearch">
-    <div class="attribute-row" ng-repeat="query in $ctrl.queries">
-        <select ng-model="query.key">
-            <option value="" selected disabled>{{ 'Display_SelectAttribute' | translate }}</option>
-            <option ng-repeat="tag in $ctrl.advancedSearchTags" ng-attr-value="{{tag.attribute}}">{{tag.label}}</option>
-        </select>
-        <input ng-model="query.value" autocomplete="off" ng-change="$ctrl.onAdvancedSearchValueChanged($event)">
-        <ias-button class="ias-icon-button" ng-click="$ctrl.removeSearchTag($index)"
-                    ng-attr-title="{{ 'Button_Remove' | translate }}">
-            <ias-icon icon="close_thin"></ias-icon>
+        <ias-button id="advanced-search-icon" class="ias-icon-button" ng-click="$ctrl.enableAdvancedSearch()"
+                    ng-if="$ctrl.advancedSearchEnabled"
+                    ng-attr-title="{{ 'Title_AdvancedSearch' | translate }}">
+            <ias-icon class="ias-selected" icon="search_advanced"></ias-icon>
         </ias-button>
     </div>
-    <ias-button id="add-attribute-row" class="ias-icon-button" ng-click="$ctrl.addSearchTag()"
-                ng-if="$ctrl.queries.length < $ctrl.advancedSearchMaxRows"
-                ng-attr-title="{{ 'Button_AddSearchAttribute' | translate }}">
-        <ias-icon icon="new_thin"></ias-icon>
-    </ias-button>
+    <div class="advanced-search-container" ng-if="$ctrl.advancedSearch">
+        <div class="attribute-row" ng-repeat="query in $ctrl.queries">
+            <select ng-model="query.key">
+                <option value="" selected disabled>{{ 'Display_SelectAttribute' | translate }}</option>
+                <option ng-repeat="tag in $ctrl.advancedSearchTags" ng-attr-value="{{tag.attribute}}">{{tag.label}}</option>
+            </select>
+            <input ng-model="query.value" autocomplete="off" ng-change="$ctrl.onAdvancedSearchValueChanged($event)">
+            <ias-button class="ias-icon-button" ng-click="$ctrl.removeSearchTag($index)"
+                        ng-attr-title="{{ 'Button_Remove' | translate }}">
+                <ias-icon icon="close_thin"></ias-icon>
+            </ias-button>
+        </div>
+        <ias-button id="add-attribute-row" class="ias-icon-button" ng-click="$ctrl.addSearchTag()"
+                    ng-if="$ctrl.queries.length < $ctrl.advancedSearchMaxRows"
+                    ng-attr-title="{{ 'Button_AddSearchAttribute' | translate }}">
+            <ias-icon icon="new_thin"></ias-icon>
+        </ias-button>
+    </div>
+    <span class="ias-fill"></span>
+    <div class="ias-header">
+        <ias-button id="view-tile-icon" class="ias-icon-button ias-selected"
+                    ng-disabled="true"
+                    ng-attr-title="{{ 'Title_HelpDeskCard' | translate }}">
+            <ias-icon icon="view_tile_thin"></ias-icon>
+        </ias-button>
+        <ias-button id="view-list-icon" class="ias-icon-button"
+                    ng-click="$ctrl.gotoTableView()"
+                    ng-attr-title="{{ 'Title_HelpDeskTable' | translate }}">
+            <ias-icon icon="view_list_thin"></ias-icon>
+        </ias-button>
+    </div>
 </div>
 
 <div class="search-info-container">
