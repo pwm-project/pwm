@@ -41,7 +41,8 @@
                 <option value="" selected disabled>{{ 'Display_SelectAttribute' | translate }}</option>
                 <option ng-repeat="tag in $ctrl.advancedSearchTags" ng-attr-value="{{tag.attribute}}">{{tag.label}}</option>
             </select>
-            <input ng-model="query.value" autocomplete="off" ng-change="$ctrl.onAdvancedSearchValueChanged($event)">
+            <input ng-model="query.value" autocomplete="off" ng-change="$ctrl.onAdvancedSearchValueChanged($event)"
+                   ng-model-options="{debounce: $ctrl.inputDebounce}">
             <ias-button class="ias-icon-button" ng-click="$ctrl.removeSearchTag($index)"
                         ng-attr-title="{{ 'Button_Remove' | translate }}">
                 <ias-icon icon="close_thin"></ias-icon>
