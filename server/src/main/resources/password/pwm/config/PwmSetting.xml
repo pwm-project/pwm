@@ -3402,6 +3402,28 @@
     <setting hidden="false" key="helpdesk.filter" level="1">
         <default/>
     </setting>
+    <setting hidden="false" key="helpdesk.search.form" level="1" required="true">
+        <flag>Form_HideStandardOptions</flag>
+        <ldapPermission actor="helpdesk" access="read"/>
+        <default>
+            <value>{"name":"cn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"workforceID","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Workforce ID"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+        </default>
+        <default template="AD">
+            <value>{"name":"sAMAccountName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"userPrincipalName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"UPN"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+        </default>
+        <options>
+            <option value="text">text</option>
+            <option value="select">select</option>
+        </options>
+    </setting>
     <setting hidden="false" key="helpdesk.result.form" level="1" required="true">
         <flag>Form_HideOptions</flag>
         <ldapPermission actor="helpdesk" access="read"/>
@@ -3665,6 +3687,11 @@
         </default>
     </setting>
     <setting hidden="false" key="helpdesk.enablePhotos" level="1">
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="helpdesk.advancedSearch.enable" level="1">
         <default>
             <value>true</value>
         </default>

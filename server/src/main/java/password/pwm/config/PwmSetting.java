@@ -1017,6 +1017,8 @@ public enum PwmSetting
     HELPDESK_PROFILE_QUERY_MATCH(
             "helpdesk.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.HELPDESK_BASE ),
     HELPDESK_SEARCH_FORM(
+            "helpdesk.search.form", PwmSettingSyntax.FORM, PwmSettingCategory.HELPDESK_BASE ),
+    HELPDESK_SEARCH_RESULT_FORM(
             "helpdesk.result.form", PwmSettingSyntax.FORM, PwmSettingCategory.HELPDESK_BASE ),
     HELPDESK_SEARCH_FILTERS(
             "helpdesk.search.filters", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.HELPDESK_BASE ),
@@ -1067,6 +1069,9 @@ public enum PwmSetting
             "helpdesk.setPassword.maskValue", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_OPTIONS ),
     HELPDESK_ENABLE_PHOTOS(
             "helpdesk.enablePhotos", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_OPTIONS ),
+    HELPDESK_ENABLE_ADVANCED_SEARCH(
+            "helpdesk.advancedSearch.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_OPTIONS ),
+
 
     HELPDESK_VERIFICATION_METHODS(
             "helpdesk.verificationMethods", PwmSettingSyntax.VERIFICATION_METHOD, PwmSettingCategory.HELPDESK_VERIFICATION ),

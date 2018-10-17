@@ -24,6 +24,7 @@ package password.pwm.http.servlet.helpdesk;
 
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -138,70 +139,21 @@ class HelpdeskVerificationStateBean implements Serializable
         return Collections.unmodifiableList( new ArrayList<>( returnRecords.values() ) );
     }
 
-
+    @Value
     static class ViewableValidationRecord implements Serializable
     {
         private Instant timestamp;
         private String profile;
         private String username;
         private String method;
-
-        ViewableValidationRecord( final Instant timestamp, final String profile, final String username, final String method )
-        {
-            this.timestamp = timestamp;
-            this.profile = profile;
-            this.username = username;
-            this.method = method;
-        }
-
-        public Instant getTimestamp( )
-        {
-            return timestamp;
-        }
-
-        public String getProfile( )
-        {
-            return profile;
-        }
-
-        public String getUsername( )
-        {
-            return username;
-        }
-
-        public String getMethod( )
-        {
-            return method;
-        }
     }
 
+    @Value
     static class HelpdeskValidationRecord implements Serializable
     {
         private Instant timestamp;
         private UserIdentity identity;
         private IdentityVerificationMethod method;
-
-        HelpdeskValidationRecord( final Instant timestamp, final UserIdentity identity, final IdentityVerificationMethod method )
-        {
-            this.timestamp = timestamp;
-            this.identity = identity;
-            this.method = method;
-        }
-
-        public Instant getTimestamp( )
-        {
-            return timestamp;
-        }
-
-        public UserIdentity getIdentity( )
-        {
-            return identity;
-        }
-
-        public IdentityVerificationMethod getMethod( )
-        {
-            return method;
-        }
     }
 
     String toClientString( final PwmApplication pwmApplication ) throws PwmUnrecoverableException

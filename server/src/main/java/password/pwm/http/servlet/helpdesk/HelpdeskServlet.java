@@ -59,6 +59,7 @@ import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.ControlledPwmServlet;
+import password.pwm.http.servlet.peoplesearch.SearchRequestBean;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.PhotoDataBean;
@@ -78,6 +79,7 @@ import password.pwm.util.PasswordData;
 import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -98,10 +100,10 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -425,24 +427,67 @@ public class HelpdeskServlet extends ControlledPwmServlet
     private ProcessStatus restSearchRequest(
             final PwmRequest pwmRequest
     )
-            throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
+            throws PwmUnrecoverableException, IOException
     {
         final HelpdeskProfile helpdeskProfile = getHelpdeskProfile( pwmRequest );
-        final Map<String, String> valueMap = pwmRequest.readBodyAsJsonStringMap();
-        final String username = valueMap.get( "username" );
+        final HelpdeskSearchRequestBean searchRequest = JsonUtil.deserialize( pwmRequest.readRequestBodyAsString(), HelpdeskSearchRequestBean.class );
+        final HelpdeskSearchResultsBean searchResultsBean;
+
+        try
+        {
+            searchResultsBean = searchImpl( pwmRequest, helpdeskProfile, searchRequest );
+        }
+        catch ( PwmOperationalException e )
+        {
+            throw new PwmUnrecoverableException( e.getErrorInformation() );
+        }
+
+        final RestResultBean restResultBean = RestResultBean.withData( searchResultsBean );
+        pwmRequest.outputJsonResult( restResultBean );
+        return ProcessStatus.Halt;
+
+    }
+
+    private static HelpdeskSearchResultsBean searchImpl(
+            final PwmRequest pwmRequest,
+            final HelpdeskProfile helpdeskProfile,
+            final HelpdeskSearchRequestBean searchRequest
+    ) throws PwmUnrecoverableException, PwmOperationalException
+    {
 
         final boolean useProxy = helpdeskProfile.readSettingAsBoolean( PwmSetting.HELPDESK_USE_PROXY );
-        final List<FormConfiguration> searchForm = helpdeskProfile.readSettingAsForm( PwmSetting.HELPDESK_SEARCH_FORM );
+        final List<FormConfiguration> searchForm = helpdeskProfile.readSettingAsForm( PwmSetting.HELPDESK_SEARCH_RESULT_FORM );
         final int maxResults = ( int ) helpdeskProfile.readSettingAsLong( PwmSetting.HELPDESK_RESULT_LIMIT );
 
-        if ( username == null || username.isEmpty() )
+        final SearchRequestBean.SearchMode searchMode = searchRequest.getMode() == null
+                ? SearchRequestBean.SearchMode.simple
+                : searchRequest.getMode();
+
+
+
+        switch ( searchMode )
         {
-            final HelpdeskSearchResultsBean emptyResults = new HelpdeskSearchResultsBean();
-            emptyResults.setSearchResults( new ArrayList<>() );
-            emptyResults.setSizeExceeded( false );
-            final RestResultBean restResultBean = RestResultBean.withData( emptyResults );
-            pwmRequest.outputJsonResult( restResultBean );
-            return ProcessStatus.Halt;
+            case simple:
+            {
+                if ( StringUtil.isEmpty( searchRequest.getUsername() ) )
+                {
+                    return HelpdeskSearchResultsBean.emptyResult();
+                }
+            }
+            break;
+
+            case advanced:
+            {
+                if ( JavaHelper.isEmpty( searchRequest.getSearchValues() ) )
+                {
+                    return HelpdeskSearchResultsBean.emptyResult();
+                }
+            }
+            break;
+
+
+            default:
+                JavaHelper.unhandledSwitchStatement( searchMode );
         }
 
         final UserSearchEngine userSearchEngine = pwmRequest.getPwmApplication().getUserSearchEngine();
@@ -453,9 +498,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
             final SearchConfiguration.SearchConfigurationBuilder builder = SearchConfiguration.builder();
             builder.contexts( helpdeskProfile.readSettingAsStringArray( PwmSetting.HELPDESK_SEARCH_BASE ) );
             builder.enableContextValidation( false );
-            builder.username( username );
             builder.enableValueEscaping( false );
-            builder.filter( HelpdeskServletUtil.getSearchFilter( pwmRequest.getConfig(), helpdeskProfile ) );
             builder.enableSplitWhitespace( true );
 
             if ( !useProxy )
@@ -465,33 +508,56 @@ public class HelpdeskServlet extends ControlledPwmServlet
                 builder.chaiProvider( getChaiUser( pwmRequest, helpdeskProfile, loggedInUser ).getChaiProvider() );
             }
 
+            switch ( searchMode )
+            {
+                case simple:
+                {
+                    builder.username( searchRequest.getUsername() );
+                    builder.filter( HelpdeskServletUtil.makeAdvancedSearchFilter( pwmRequest.getConfig(), helpdeskProfile ) );
+                }
+                break;
+
+                case advanced:
+                {
+                    final Map<FormConfiguration, String> formValues = new LinkedHashMap<>();
+                    final Map<String, String> requestSearchValues = SearchRequestBean.searchValueToMap( searchRequest.getSearchValues() );
+                    for ( final FormConfiguration formConfiguration : helpdeskProfile.readSettingAsForm( PwmSetting.HELPDESK_SEARCH_FORM ) )
+                    {
+                        final String attribute = formConfiguration.getName();
+                        final String value = requestSearchValues.get( attribute );
+                        if ( !StringUtil.isEmpty( value ) )
+                        {
+                            formValues.put( formConfiguration, value );
+                        }
+                    }
+
+                    builder.formValues( formValues );
+                    builder.filter( HelpdeskServletUtil.makeAdvancedSearchFilter( pwmRequest.getConfig(), helpdeskProfile, requestSearchValues ) );
+
+                }
+                break;
+
+
+                default:
+                    JavaHelper.unhandledSwitchStatement( searchMode );
+            }
+
             searchConfiguration = builder.build();
         }
 
 
         final UserSearchResults results;
         final boolean sizeExceeded;
-        try
         {
             final Locale locale = pwmRequest.getLocale();
             results = userSearchEngine.performMultiUserSearchFromForm( locale, searchConfiguration, maxResults, searchForm, pwmRequest.getSessionLabel() );
             sizeExceeded = results.isSizeExceeded();
         }
-        catch ( PwmOperationalException e )
-        {
-            final ErrorInformation errorInformation = e.getErrorInformation();
-            LOGGER.error( pwmRequest, errorInformation );
-            final RestResultBean restResultBean = RestResultBean.fromError( errorInformation, pwmRequest );
-            pwmRequest.outputJsonResult( restResultBean );
-            return ProcessStatus.Halt;
-        }
 
-        final HelpdeskSearchResultsBean outputData = new HelpdeskSearchResultsBean();
-        outputData.setSearchResults( results.resultsAsJsonOutput( pwmRequest.getPwmApplication(), pwmRequest.getUserInfoIfLoggedIn() ) );
-        outputData.setSizeExceeded( sizeExceeded );
-        final RestResultBean restResultBean = RestResultBean.withData( outputData );
-        pwmRequest.outputJsonResult( restResultBean );
-        return ProcessStatus.Halt;
+        return HelpdeskSearchResultsBean.builder()
+                .searchResults( results.resultsAsJsonOutput( pwmRequest.getPwmApplication(), pwmRequest.getUserInfoIfLoggedIn() ) )
+                .sizeExceeded( sizeExceeded )
+                .build();
     }
 
     @ActionHandler( action = "unlockIntruder" )

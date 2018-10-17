@@ -20,48 +20,22 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.http.servlet.peoplesearch;
+package password.pwm.http.servlet.helpdesk;
 
 import lombok.Builder;
 import lombok.Value;
+import password.pwm.http.servlet.peoplesearch.SearchRequestBean;
 
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 @Value
 @Builder
-public class SearchRequestBean implements Serializable
+public class HelpdeskSearchRequestBean implements Serializable
 {
     @Builder.Default
-    private SearchMode mode = SearchMode.simple;
+    private SearchRequestBean.SearchMode mode = SearchRequestBean.SearchMode.simple;
 
     private String username;
-    private List<SearchValue> searchValues;
-    private boolean includeDisplayName;
-
-    public enum SearchMode
-    {
-        simple,
-        advanced,
-    }
-
-    @Value
-    public static class SearchValue implements Serializable
-    {
-        private String key;
-        private String value;
-    }
-
-    public static Map<String, String> searchValueToMap( final List<SearchValue> input )
-    {
-        final Map<String, String> returnMap = new LinkedHashMap<>();
-        for ( final SearchValue searchValue : input )
-        {
-            returnMap.put( searchValue.getKey(), searchValue.getValue() );
-        }
-        return Collections.unmodifiableMap( returnMap );
-    }
+    private List<SearchRequestBean.SearchValue> searchValues;
 }
