@@ -703,7 +703,7 @@ class PeopleSearchDataReader
         return filter.toString();
     }
 
-    private String makeAdvancedFilter( final Set<String> attributesInSearchRequest )
+    private String makeAdvancedFilter( final Map<String, String> attributesInSearchRequest )
     {
         final List<String> defaultObjectClasses = pwmRequest.getConfig().readSettingAsStringArray( PwmSetting.DEFAULT_OBJECT_CLASSES );
         final Set<String> searchAttributes = peopleSearchConfiguration.getSearchAttributes();
@@ -721,7 +721,8 @@ class PeopleSearchDataReader
 
         for ( final String searchAttribute : searchAttributes )
         {
-            if ( attributesInSearchRequest.contains( searchAttribute ) )
+            final String value = attributesInSearchRequest.get( searchAttribute );
+            if ( !StringUtil.isEmpty( value ) )
             {
                 filter.append( "(" ).append( searchAttribute ).append( "=*%" ).append( searchAttribute ).append( "%*)" );
             }
@@ -857,7 +858,7 @@ class PeopleSearchDataReader
                         }
                     }
 
-                    builder.filter( makeAdvancedFilter( requestSearchValues.keySet() ) );
+                    builder.filter( makeAdvancedFilter( requestSearchValues ) );
                     builder.formValues( formValues );
                 }
                 break;
