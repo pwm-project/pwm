@@ -240,10 +240,17 @@ export default abstract class HelpDeskSearchBaseComponent {
         }
     }
 
+    private onAdvancedSearchValueChanged() {
+        this.initiateSearch();
+    }
+
     removeSearchTag(tagIndex: number): void {
         this.queries.splice(tagIndex, 1);
 
-        if (this.queries.length === 0) {
+        if (this.queries.length > 0) {
+            this.initiateSearch();
+        }
+        else {
             this.clearSearch();
             this.advancedSearch = false;
         }

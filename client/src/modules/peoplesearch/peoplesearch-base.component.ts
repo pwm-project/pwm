@@ -86,6 +86,10 @@ abstract class PeopleSearchBaseComponent {
         this.fetchData();
     }
 
+    private onAdvancedSearchValueChanged() {
+        this.initiateSearch();
+    }
+
     private onSearchTextChange(newValue: string, oldValue: string): void {
         if (newValue === oldValue) {
             return;
@@ -98,7 +102,10 @@ abstract class PeopleSearchBaseComponent {
     removeSearchTag(tagIndex: number): void {
         this.queries.splice(tagIndex, 1);
 
-        if (this.queries.length === 0) {
+        if (this.queries.length > 0) {
+            this.initiateSearch();
+        }
+        else {
             this.clearSearch();
             this.advancedSearch = false;
         }

@@ -68,7 +68,7 @@
             <option value="" selected disabled>{{ 'Display_SelectAttribute' | translate }}</option>
             <option ng-repeat="tag in $ctrl.advancedSearchTags" ng-attr-value="{{tag.attribute}}">{{tag.label}}</option>
         </select>
-        <input ng-model="query.value" autocomplete="off">
+        <input ng-model="query.value" autocomplete="off" ng-change="$ctrl.onAdvancedSearchValueChanged($event)">
         <ias-button class="ias-icon-button" ng-click="$ctrl.removeSearchTag($index)"
                     ng-attr-title="{{ 'Button_Remove' | translate }}">
             <ias-icon icon="close_thin"></ias-icon>
@@ -78,9 +78,6 @@
                 ng-if="$ctrl.queries.length < $ctrl.advancedSearchMaxRows"
                 ng-attr-title="{{ 'Button_AddSearchAttribute' | translate }}">
         <ias-icon icon="new_thin"></ias-icon>
-    </ias-button>
-    <ias-button id="advanced-search-button" ng-click="$ctrl.initiateSearch()"
-                ng-bind="'Placeholder_Search' | translate">
     </ias-button>
 </div>
 
