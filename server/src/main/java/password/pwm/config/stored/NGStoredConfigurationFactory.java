@@ -31,7 +31,7 @@ import password.pwm.config.value.StringValue;
 import password.pwm.config.value.ValueFactory;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.XmlUtil;
+import password.pwm.util.java.XmlFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
 
@@ -66,7 +66,7 @@ public class NGStoredConfigurationFactory
             final Map<StoredConfigReference, StoredValue> values = new LinkedHashMap<>();
             final Map<StoredConfigReference, ValueMetaData> metaData = new LinkedHashMap<>();
 
-            final Document inputDocument = XmlUtil.parseXml( inputStream );
+            final Document inputDocument = XmlFactory.XmlFactoryJDOM.parseJDOMXml( inputStream );
             final Element rootElement = inputDocument.getRootElement();
 
             final PwmSecurityKey pwmSecurityKey = readSecurityKey( rootElement );
@@ -82,7 +82,7 @@ public class NGStoredConfigurationFactory
                         readInterestingElement( propertyElement, pwmSecurityKey, values, metaData );
                     }
                 }
-                else
+                else if ( StoredConfiguration.XML_ELEMENT_SETTING.equals( loopElement.getName() ) )
                 {
                     readInterestingElement( loopElement, pwmSecurityKey, values, metaData );
                 }
@@ -105,7 +105,10 @@ public class NGStoredConfigurationFactory
                     case SETTING:
                     {
                         final StoredValue storedValue = readSettingValue( reference, loopElement, pwmSecurityKey );
-                        values.put( reference, storedValue );
+                        if ( storedValue != null )
+                        {
+                            values.put( reference, storedValue );
+                        }
                     }
                     break;
 
@@ -149,7 +152,12 @@ public class NGStoredConfigurationFactory
             else
             {
                 LOGGER.trace( "parsing setting key=" + key + ", profile=" + storedConfigReference.getProfileID() );
-                if ( settingElement.getChild( StoredConfiguration.XML_ELEMENT_DEFAULT ) != null )
+                final Element defaultElement = settingElement.getChild( StoredConfiguration.XML_ELEMENT_DEFAULT );
+                if ( defaultElement != null )
+                {
+                    return null;
+                }
+
                 {
                     try
                     {

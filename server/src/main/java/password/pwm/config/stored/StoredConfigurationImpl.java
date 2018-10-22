@@ -60,7 +60,7 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
-import password.pwm.util.java.XmlUtil;
+import password.pwm.util.java.XmlFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.BCrypt;
 import password.pwm.util.secure.PwmRandom;
@@ -128,7 +128,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
         final Instant startTime = Instant.now();
         //validateXmlSchema(xmlData);
 
-        final Document inputDocument = XmlUtil.parseXml( xmlData );
+        final Document inputDocument = XmlFactory.XmlFactoryJDOM.parseJDOMXml( xmlData );
         final StoredConfigurationImpl newConfiguration = StoredConfigurationImpl.newStoredConfiguration();
 
         try
@@ -568,7 +568,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
             throws IOException, PwmUnrecoverableException
     {
         ConfigurationCleaner.updateMandatoryElements( document );
-        XmlUtil.outputDocument( document, outputStream );
+        XmlFactory.XmlFactoryJDOM.outputJDOMDocument( document, outputStream );
     }
 
     public List<String> profilesForSetting( final PwmSetting pwmSetting )

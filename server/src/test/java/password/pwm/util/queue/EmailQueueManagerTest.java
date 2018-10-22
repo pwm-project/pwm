@@ -22,8 +22,8 @@
 
 package password.pwm.util.queue;
 
-import junit.framework.Assert;
 import org.apache.commons.io.IOUtils;
+import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 import password.pwm.AppProperty;
@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Properties;
 
 public class EmailQueueManagerTest {
+
     @Test
     public void testConvertEmailItemToMessage() throws MessagingException, IOException {
         EmailService emailService = new EmailService();

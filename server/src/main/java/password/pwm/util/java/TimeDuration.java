@@ -147,6 +147,11 @@ public class TimeDuration implements Comparable, Serializable
         return ms;
     }
 
+    public String asIso()
+    {
+        return this.asDuration().toString();
+    }
+
     /**
      * Create a new TimeDuration using the absolute difference as the time
      * period between the two supplied timestamps.

@@ -19,18 +19,15 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+package password.pwm.util;
 
-package password.pwm.config.stored;
+import org.junit.Test;
 
-import lombok.Value;
-import password.pwm.bean.UserIdentity;
-
-import java.io.Serializable;
-import java.time.Instant;
-
-@Value
-public class ValueMetaData implements Serializable
+public class XmlElementTest
 {
-    private Instant modifyDate;
-    private UserIdentity userIdentity;
+    @Test
+    public void testLoadXml()
+    {
+
+    }
 }
