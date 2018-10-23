@@ -74,6 +74,10 @@ body {
       &+ div {
         margin-top: 15px;
       }
+
+      select.attribute-value {
+        min-width: 210px;
+      }
     }
   }
 

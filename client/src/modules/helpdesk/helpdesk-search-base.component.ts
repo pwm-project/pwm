@@ -29,14 +29,15 @@ import LocalStorageService from '../../services/local-storage.service';
 import PromiseService from '../../services/promise.service';
 import {IHelpDeskService} from '../../services/helpdesk.service';
 import IPwmService from '../../services/pwm.service';
-import {IAdvancedSearchConfig} from '../../services/base-config.service';
+import {IAdvancedSearchConfig, IAdvancedSearchQuery, IAttributeMetadata} from '../../services/base-config.service';
+
 
 let verificationsDialogTemplateUrl = require('./verifications-dialog.template.html');
 let recentVerificationsDialogTemplateUrl = require('./recent-verifications-dialog.template.html');
 
 export default abstract class HelpDeskSearchBaseComponent {
     advancedSearch = false;
-    advancedSearchTags: any[];
+    advancedSearchTags = {};
     advancedSearchEnabled: boolean;
     advancedSearchMaxRows: number;
     columnConfiguration: any;
@@ -45,8 +46,7 @@ export default abstract class HelpDeskSearchBaseComponent {
     protected pendingRequests: IPromise<any>[] = [];
     photosEnabled: boolean;
     query: string;
-    queries: any[];
-    initialQueryKey: string;
+    queries: IAdvancedSearchQuery[];
     searchMessage: string;
     searchResult: SearchResult;
     searchTextLocalStorageKey: string;
@@ -84,12 +84,10 @@ export default abstract class HelpDeskSearchBaseComponent {
 
         this.configService.advancedSearchConfig().then((advancedSearchConfig: IAdvancedSearchConfig) => {
             this.advancedSearchEnabled = advancedSearchConfig.enabled;
-            this.advancedSearchTags = advancedSearchConfig.attributes;
             this.advancedSearchMaxRows = advancedSearchConfig.maxRows;
 
-            // Save the first attribute to use as the initial selection of new query rows
-            if (this.advancedSearchTags && this.advancedSearchTags.length > 0) {
-                this.initialQueryKey = this.advancedSearchTags[0].attribute;
+            for (let advancedSearchTag of advancedSearchConfig.attributes) {
+                this.advancedSearchTags[advancedSearchTag.attribute] = advancedSearchTag;
             }
         });
 
@@ -120,7 +118,7 @@ export default abstract class HelpDeskSearchBaseComponent {
 
     protected clearSearch(): void {
         this.query = null;
-        this.queries = [{key: this.initialQueryKey, value: ''}];
+        this.queries = [];
         this.searchResult = null;
         this.clearErrorMessage();
         this.clearSearchMessage();
@@ -246,6 +244,20 @@ export default abstract class HelpDeskSearchBaseComponent {
         }
     }
 
+    private onAdvancedSearchAttributeChanged(query: IAdvancedSearchQuery) {
+        // Make sure we set the default value if the type is select
+        const attributeMetadata: IAttributeMetadata = this.advancedSearchTags[query.key];
+        if (attributeMetadata.type == 'select') {
+            query.value = this.getDefaultValue(attributeMetadata);
+        }
+
+        this.initiateSearch();
+    }
+
+    private onAdvancedSearchAttributeValueChanged() {
+        this.initiateSearch();
+    }
+
     private onAdvancedSearchValueChanged() {
         this.initiateSearch();
     }
@@ -263,7 +275,28 @@ export default abstract class HelpDeskSearchBaseComponent {
     }
 
     addSearchTag(): void {
-        this.queries.push({key: this.initialQueryKey, value: ''});
+        const firstTagName = Object.keys(this.advancedSearchTags)[0];
+        const attributeMetaData: IAttributeMetadata = this.advancedSearchTags[firstTagName];
+
+        const query: IAdvancedSearchQuery = {
+            key: attributeMetaData.attribute,
+            value: this.getDefaultValue(attributeMetaData),
+        };
+
+        this.queries.push(query);
+    }
+
+    private getDefaultValue(attributeMetaData: IAttributeMetadata) {
+        if (attributeMetaData) {
+            if (attributeMetaData.type === 'select') {
+                const keys: string[] = Object.keys(attributeMetaData.options);
+                if (keys && keys.length > 0) {
+                    return keys[0];
+                }
+            }
+        }
+
+        return '';
     }
 
     protected selectPerson(person: IPerson): void {
@@ -292,6 +325,7 @@ export default abstract class HelpDeskSearchBaseComponent {
 
     enableAdvancedSearch(): void {
         this.clearSearch();
+        this.addSearchTag();
         this.advancedSearch = true;
     }
 

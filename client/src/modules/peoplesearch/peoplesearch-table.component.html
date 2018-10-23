@@ -36,11 +36,22 @@
     </div>
     <div class="advanced-search-container" ng-if="$ctrl.advancedSearch">
         <div class="attribute-row" ng-repeat="query in $ctrl.queries">
-            <select ng-model="query.key" ng-change="$ctrl.onAdvancedSearchValueChanged($event)">
+            <select ng-model="query.key" ng-change="$ctrl.onAdvancedSearchAttributeChanged(query)">
                 <option ng-repeat="tag in $ctrl.advancedSearchTags" ng-attr-value="{{tag.attribute}}">{{tag.label}}</option>
             </select>
-            <input ng-model="query.value" autocomplete="off" ng-change="$ctrl.onAdvancedSearchValueChanged($event)"
-                   ng-model-options="{debounce: $ctrl.inputDebounce}">
+
+            <!--Show a drop-down if the attribute type is 'select'-->
+            <select ng-model="query.value" ng-if="$ctrl.advancedSearchTags[query.key].type === 'select'"
+                    ng-change="$ctrl.onAdvancedSearchValueChanged($event)" class="attribute-value">
+                <option ng-attr-value="{{name}}"
+                        ng-repeat="(name, label) in $ctrl.advancedSearchTags[query.key].options">{{label}}</option>
+            </select>
+
+            <!--Otherwise, just show a regular input field-->
+            <input ng-model="query.value" ng-if="$ctrl.advancedSearchTags[query.key].type !== 'select'"
+                   ng-change="$ctrl.onAdvancedSearchValueChanged($event)" class="attribute-value"
+                   autocomplete="off" ng-model-options="{debounce: $ctrl.inputDebounce}">
+
             <ias-button class="ias-icon-button" ng-click="$ctrl.removeSearchTag($index)"
                         ng-attr-title="{{ 'Button_Remove' | translate }}">
                 <ias-icon icon="close_thin"></ias-icon>

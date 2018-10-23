@@ -29,11 +29,11 @@ import LocalStorageService from '../../services/local-storage.service';
 import { IPerson } from '../../models/person.model';
 import PromiseService from '../../services/promise.service';
 import SearchResult from '../../models/search-result.model';
-import {IAdvancedSearchConfig} from '../../services/base-config.service';
+import {IAdvancedSearchConfig, IAdvancedSearchQuery, IAttributeMetadata} from '../../services/base-config.service';
 
 abstract class PeopleSearchBaseComponent {
     advancedSearch = false;
-    advancedSearchTags: any[];
+    advancedSearchTags = {};
     advancedSearchEnabled: boolean;
     advancedSearchMaxRows: number;
     errorMessage: string;
@@ -43,8 +43,7 @@ abstract class PeopleSearchBaseComponent {
     searchMessage: string;
     searchResult: SearchResult;
     query: string;
-    queries: any[];
-    initialQueryKey: string;
+    queries: IAdvancedSearchQuery[];
     searchTextLocalStorageKey: string;
     searchViewLocalStorageKey: string;
 
@@ -87,6 +86,20 @@ abstract class PeopleSearchBaseComponent {
         this.fetchData();
     }
 
+    private onAdvancedSearchAttributeChanged(query: IAdvancedSearchQuery) {
+        // Make sure we set the default value if the type is select
+        const attributeMetadata: IAttributeMetadata = this.advancedSearchTags[query.key];
+        if (attributeMetadata.type == 'select') {
+            query.value = this.getDefaultValue(attributeMetadata);
+        }
+
+        this.initiateSearch();
+    }
+
+    private onAdvancedSearchAttributeValueChanged() {
+        this.initiateSearch();
+    }
+
     private onAdvancedSearchValueChanged() {
         this.initiateSearch();
     }
@@ -113,7 +126,28 @@ abstract class PeopleSearchBaseComponent {
     }
 
     addSearchTag(): void {
-        this.queries.push({key: this.initialQueryKey, value: ''});
+        const firstTagName = Object.keys(this.advancedSearchTags)[0];
+        const attributeMetaData: IAttributeMetadata = this.advancedSearchTags[firstTagName];
+
+        const query: IAdvancedSearchQuery = {
+            key: attributeMetaData.attribute,
+            value: this.getDefaultValue(attributeMetaData),
+        };
+
+        this.queries.push(query);
+    }
+
+    private getDefaultValue(attributeMetaData: IAttributeMetadata) {
+        if (attributeMetaData) {
+            if (attributeMetaData.type === 'select') {
+                const keys: string[] = Object.keys(attributeMetaData.options);
+                if (keys && keys.length > 0) {
+                    return keys[0];
+                }
+            }
+        }
+
+        return '';
     }
 
     selectPerson(person: IPerson): void {
@@ -167,7 +201,7 @@ abstract class PeopleSearchBaseComponent {
 
     protected clearSearch(): void {
         this.query = null;
-        this.queries = [{key: this.initialQueryKey, value: ''}];
+        this.queries = [];
         this.searchResult = null;
         this.clearErrorMessage();
         this.clearSearchMessage();
@@ -246,12 +280,10 @@ abstract class PeopleSearchBaseComponent {
 
         this.configService.advancedSearchConfig().then((advancedSearchConfig: IAdvancedSearchConfig) => {
             this.advancedSearchEnabled = advancedSearchConfig.enabled;
-            this.advancedSearchTags = advancedSearchConfig.attributes;
             this.advancedSearchMaxRows = advancedSearchConfig.maxRows;
 
-            // Save the first attribute to use as the initial selection of new query rows
-            if (this.advancedSearchTags && this.advancedSearchTags.length > 0) {
-                this.initialQueryKey = this.advancedSearchTags[0].attribute;
+            for (let advancedSearchTag of advancedSearchConfig.attributes) {
+                this.advancedSearchTags[advancedSearchTag.attribute] = advancedSearchTag;
             }
         });
 
@@ -282,6 +314,7 @@ abstract class PeopleSearchBaseComponent {
 
     enableAdvancedSearch(): void {
         this.clearSearch();
+        this.addSearchTag();
         this.advancedSearch = true;
     }
 

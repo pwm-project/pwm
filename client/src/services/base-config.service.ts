@@ -36,15 +36,22 @@ export interface IConfigService {
     photosEnabled(): IPromise<boolean>;
 }
 
+export interface IAttributeMetadata {
+    attribute: string;
+    label: string;
+    type: string;
+    options: any;
+}
+
 export interface IAdvancedSearchConfig {
     enabled: boolean;
     maxRows: number;
-    attributes: {
-        attribute: string,
-        label: string,
-        type: string,
-        options: any
-    }[];
+    attributes: IAttributeMetadata[];
+}
+
+export interface IAdvancedSearchQuery {
+    key: string;
+    value: string;
 }
 
 export abstract class ConfigBaseService implements IConfigService {
