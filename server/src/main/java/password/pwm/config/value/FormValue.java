@@ -23,7 +23,6 @@
 package password.pwm.config.value;
 
 import com.google.gson.reflect.TypeToken;
-import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.StoredValue;
@@ -32,6 +31,8 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.XmlElement;
+import password.pwm.util.java.XmlFactory;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.ArrayList;
@@ -76,18 +77,17 @@ public class FormValue extends AbstractValue implements StoredValue
                 }
             }
 
-            public FormValue fromXmlElement( final PwmSetting pwmSetting, final Element settingElement, final PwmSecurityKey key )
+            public FormValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey key )
                     throws PwmOperationalException
             {
                 final boolean oldType = PwmSettingSyntax.LOCALIZED_STRING_ARRAY.toString().equals(
                         settingElement.getAttributeValue( "syntax" ) );
-                final List valueElements = settingElement.getChildren( "value" );
+                final List<XmlElement> valueElements = settingElement.getChildren( "value" );
                 final List<FormConfiguration> values = new ArrayList<>();
-                for ( final Object loopValue : valueElements )
+                for ( final XmlElement loopValueElement  : valueElements )
                 {
-                    final Element loopValueElement = ( Element ) loopValue;
                     final String value = loopValueElement.getText();
-                    if ( value != null && value.length() > 0 && loopValueElement.getAttribute( "locale" ) == null )
+                    if ( value != null && value.length() > 0 && loopValueElement.getAttributeValue( "locale" ) == null )
                     {
                         if ( oldType )
                         {
@@ -106,13 +106,13 @@ public class FormValue extends AbstractValue implements StoredValue
         };
     }
 
-    public List<Element> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
     {
-        final List<Element> returnList = new ArrayList<>();
+        final List<XmlElement> returnList = new ArrayList<>();
         for ( final FormConfiguration value : values )
         {
-            final Element valueElement = new Element( valueElementName );
-            valueElement.addContent( JsonUtil.serialize( value ) );
+            final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
+            valueElement.addText( JsonUtil.serialize( value ) );
             returnList.add( valueElement );
         }
         return returnList;

@@ -22,10 +22,15 @@
 
 package password.pwm.util.java;
 
+import org.jdom2.Comment;
+import org.jdom2.Content;
 import org.jdom2.Element;
+import org.jdom2.Text;
 import org.jdom2.input.DOMBuilder;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import javax.xml.parsers.DocumentBuilder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -46,6 +51,26 @@ public interface XmlElement
 
     org.jdom2.Element asJdomElement();
 
+    String getName();
+
+    void setAttribute( String name, String value );
+
+    void detach();
+
+    void removeContent();
+
+    void removeAttribute( String attributeName );
+
+    void addContent( XmlElement element );
+
+    void addContent( List<XmlElement> elements );
+
+    void addText( String text );
+
+    void setComment( List<String> textLines );
+
+    List<XmlElement> getChildren();
+
     class XmlElementJDOM implements XmlElement
     {
         private final Element element;
@@ -53,6 +78,12 @@ public interface XmlElement
         XmlElementJDOM( final Element element )
         {
             this.element = element;
+        }
+
+        @Override
+        public String getName()
+        {
+            return element.getName();
         }
 
         @Override
@@ -73,9 +104,18 @@ public interface XmlElement
         }
 
         @Override
+        public List<XmlElement> getChildren()
+        {
+            return getChildren( null );
+        }
+
+        @Override
         public List<XmlElement> getChildren( final String elementName )
         {
-            final List<Element> children = element.getChildren( elementName );
+
+            final List<Element> children = elementName == null
+                    ? element.getChildren()
+                    : element.getChildren( elementName );
             if ( children == null )
             {
                 return Collections.emptyList();
@@ -116,6 +156,71 @@ public interface XmlElement
         {
             return element;
         }
+
+        @Override
+        public void setAttribute( final String name, final String value )
+        {
+            element.setAttribute( name, value );
+        }
+
+        @Override
+        public void detach()
+        {
+            element.detach();
+        }
+
+        @Override
+        public void removeContent()
+        {
+            element.removeContent();
+        }
+
+        @Override
+        public void removeAttribute( final String attributeName )
+        {
+            element.removeAttribute( attributeName );
+        }
+
+        @Override
+        public void addContent( final XmlElement element )
+        {
+            this.element.addContent( ( ( XmlElementJDOM) element ).element );
+        }
+
+        public void addContent( final List<XmlElement> elements )
+        {
+            for ( final XmlElement loopElement : elements )
+            {
+                final Element jdomElement = ( ( XmlElementJDOM ) loopElement ).element;
+                this.element.addContent( jdomElement );
+            }
+        }
+
+        @Override
+        public void addText( final String text )
+        {
+            element.addContent( new Text( text ) );
+        }
+
+        @Override
+        public void setComment( final List<String> textLines )
+        {
+            final List<Content> contentList = new ArrayList<>( element.getContent() );
+            for ( final Content content : contentList )
+            {
+                if ( content instanceof Comment )
+                {
+                    content.detach();
+                }
+            }
+
+            final List<String> reversedList = new ArrayList<>( textLines );
+            Collections.reverse( reversedList );
+            for ( final String text : textLines )
+            {
+                element.addContent( 0, new Comment( text ) );
+            }
+        }
     }
 
     class XmlElementW3c implements XmlElement
@@ -125,6 +230,12 @@ public interface XmlElement
         XmlElementW3c( final org.w3c.dom.Element element )
         {
             this.element = element;
+        }
+
+        @Override
+        public String getName()
+        {
+            return element.getTagName();
         }
 
         @Override
@@ -143,6 +254,13 @@ public interface XmlElement
         {
             final String attrValue = element.getAttribute( attribute );
             return StringUtil.isEmpty( attrValue ) ? null : attrValue;
+        }
+
+        @Override
+        public List<XmlElement> getChildren()
+        {
+            final NodeList nodeList = element.getChildNodes();
+            return XmlFactory.XmlFactoryW3c.nodeListToElementList( nodeList );
         }
 
         @Override
@@ -182,6 +300,97 @@ public interface XmlElement
         {
             final DOMBuilder domBuilder = new DOMBuilder();
             return domBuilder.build( element );
+        }
+
+        @Override
+        public void setAttribute( final String name, final String value )
+        {
+            element.setAttribute( name, value );
+        }
+
+        @Override
+        public void detach()
+        {
+            element.getParentNode().removeChild( element );
+        }
+
+        @Override
+        public void removeContent()
+        {
+            final NodeList nodeList = element.getChildNodes();
+            for ( final XmlElement child : XmlFactory.XmlFactoryW3c.nodeListToElementList( nodeList ) )
+            {
+                element.removeChild( ( (XmlElementW3c) child ).element );
+            }
+        }
+
+        @Override
+        public void removeAttribute( final String attributeName )
+        {
+            element.removeAttribute( attributeName );
+        }
+
+        @Override
+        public void addContent( final XmlElement element )
+        {
+            final org.w3c.dom.Element w3cElement = ( ( XmlElementW3c ) element ).element;
+            this.element.getOwnerDocument().adoptNode( w3cElement );
+            this.element.appendChild( w3cElement );
+        }
+
+        public void addContent( final List<XmlElement> elements )
+        {
+            for ( final XmlElement element : elements )
+            {
+                final org.w3c.dom.Element w3cElement = ( ( XmlElementW3c ) element ).element;
+                this.element.getOwnerDocument().adoptNode( w3cElement );
+                this.element.appendChild( w3cElement );
+            }
+        }
+
+        @Override
+        public void addText( final String text )
+        {
+            final DocumentBuilder documentBuilder = XmlFactory.XmlFactoryW3c.getBuilder();
+            final org.w3c.dom.Document document = documentBuilder.newDocument();
+            final org.w3c.dom.Text textNode = document.createTextNode( text );
+            this.element.getOwnerDocument().adoptNode( textNode );
+            element.appendChild( textNode );
+        }
+
+        @Override
+        public void setComment( final List<String> textLines )
+        {
+            final NodeList nodeList = element.getChildNodes();
+            for ( int i = 0; i < nodeList.getLength(); i++ )
+            {
+                final Node node = nodeList.item( i );
+                if ( node.getNodeType() == Node.COMMENT_NODE )
+                {
+                    element.removeChild( node );
+                }
+            }
+
+            final DocumentBuilder documentBuilder = XmlFactory.XmlFactoryW3c.getBuilder();
+            final org.w3c.dom.Document document = documentBuilder.newDocument();
+
+            final List<String> reversedList = new ArrayList<>( textLines );
+            Collections.reverse( reversedList );
+            for ( final String text : reversedList )
+            {
+                final org.w3c.dom.Comment textNode = document.createComment( text );
+                this.element.getOwnerDocument().adoptNode( textNode );
+
+                if ( element.hasChildNodes() )
+                {
+                    element.insertBefore( textNode, element.getFirstChild() );
+                }
+                else
+                {
+                    element.appendChild( textNode );
+                }
+
+            }
         }
     }
 }

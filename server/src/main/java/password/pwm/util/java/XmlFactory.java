@@ -59,8 +59,13 @@ public interface XmlFactory
     void outputDocument( XmlDocument document, OutputStream outputStream )
                     throws IOException;
 
+    XmlDocument newDocument( String rootElementName );
+
+    XmlElement newElement( String name );
+
     static XmlFactory getFactory()
     {
+        //return new XmlFactoryW3c();
         return new XmlFactoryJDOM();
     }
 
@@ -70,13 +75,6 @@ public interface XmlFactory
 
         XmlFactoryJDOM()
         {
-        }
-
-        public static Document parseJDOMXml( final InputStream inputStream )
-                throws PwmUnrecoverableException
-        {
-            final XmlDocument xmlDocument = new XmlFactoryJDOM().parseXml( inputStream );
-                return ( ( XmlDocument.XmlDocumentJDOM ) xmlDocument ).document;
         }
 
         @Override
@@ -137,6 +135,19 @@ public interface XmlFactory
             return builder;
         }
 
+        @Override
+        public XmlDocument newDocument( final String rootElementName )
+        {
+            final org.jdom2.Element rootElement = new org.jdom2.Element( rootElementName );
+            final org.jdom2.Document newDoc = new org.jdom2.Document( rootElement );
+            return new XmlDocument.XmlDocumentJDOM( newDoc );
+        }
+
+        @Override
+        public XmlElement newElement( final String name )
+        {
+            return new XmlElement.XmlElementJDOM( new org.jdom2.Element ( name ) );
+        }
     }
 
     class XmlFactoryW3c implements XmlFactory
@@ -168,17 +179,22 @@ public interface XmlFactory
             return new XmlDocument.XmlDocumentW3c( inputDocument );
         }
 
-        private static DocumentBuilder getBuilder( )
-                throws ParserConfigurationException
+        static DocumentBuilder getBuilder()
         {
-            final DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-
-            dbFactory.setFeature( "http://apache.org/xml/features/disallow-doctype-decl", false );
-            dbFactory.setExpandEntityReferences( false );
-            dbFactory.setValidating( false );
-            dbFactory.setXIncludeAware( false );
-            dbFactory.setExpandEntityReferences( false );
-            return dbFactory.newDocumentBuilder();
+            try
+            {
+                final DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+                dbFactory.setFeature( "http://apache.org/xml/features/disallow-doctype-decl", false );
+                dbFactory.setExpandEntityReferences( false );
+                dbFactory.setValidating( false );
+                dbFactory.setXIncludeAware( false );
+                dbFactory.setExpandEntityReferences( false );
+                return dbFactory.newDocumentBuilder();
+            }
+            catch ( ParserConfigurationException e )
+            {
+                throw new IllegalArgumentException( "unable to generate dom xml builder: " + e.getMessage() );
+            }
         }
 
         @Override
@@ -213,6 +229,24 @@ public interface XmlFactory
             return null;
         }
 
+        @Override
+        public XmlDocument newDocument( final String rootElementName )
+        {
+            final DocumentBuilder documentBuilder = getBuilder();
+            final org.w3c.dom.Document document = documentBuilder.newDocument();
+            final org.w3c.dom.Element rootElement = document.createElement( rootElementName );
+            document.appendChild( rootElement );
+            return new XmlDocument.XmlDocumentW3c( document );
+        }
+
+        @Override
+        public XmlElement newElement( final String name )
+        {
+            final DocumentBuilder documentBuilder = getBuilder();
+            final org.w3c.dom.Document document = documentBuilder.newDocument();
+            final org.w3c.dom.Element element = document.createElement( name );
+            return new XmlElement.XmlElementW3c( element );
+        }
 
     }
 }

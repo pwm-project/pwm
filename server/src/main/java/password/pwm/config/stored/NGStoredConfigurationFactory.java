@@ -22,8 +22,6 @@
 
 package password.pwm.config.stored;
 
-import org.jdom2.Document;
-import org.jdom2.Element;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
@@ -31,6 +29,8 @@ import password.pwm.config.value.StringValue;
 import password.pwm.config.value.ValueFactory;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.XmlDocument;
+import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
@@ -66,18 +66,18 @@ public class NGStoredConfigurationFactory
             final Map<StoredConfigReference, StoredValue> values = new LinkedHashMap<>();
             final Map<StoredConfigReference, ValueMetaData> metaData = new LinkedHashMap<>();
 
-            final Document inputDocument = XmlFactory.XmlFactoryJDOM.parseJDOMXml( inputStream );
-            final Element rootElement = inputDocument.getRootElement();
+            final XmlDocument inputDocument = XmlFactory.getFactory().parseXml( inputStream );
+            final XmlElement rootElement = inputDocument.getRootElement();
 
             final PwmSecurityKey pwmSecurityKey = readSecurityKey( rootElement );
 
-            final Element settingsElement = rootElement.getChild( StoredConfiguration.XML_ELEMENT_SETTINGS );
+            final XmlElement settingsElement = rootElement.getChild( StoredConfiguration.XML_ELEMENT_SETTINGS );
 
-            for ( final Element loopElement : settingsElement.getChildren() )
+            for ( final XmlElement loopElement : settingsElement.getChildren() )
             {
                 if ( StoredConfiguration.XML_ELEMENT_PROPERTIES.equals( loopElement.getName() ) )
                 {
-                    for ( final Element propertyElement : loopElement.getChildren( StoredConfiguration.XML_ELEMENT_PROPERTY ) )
+                    for ( final XmlElement propertyElement : loopElement.getChildren( StoredConfiguration.XML_ELEMENT_PROPERTY ) )
                     {
                         readInterestingElement( propertyElement, pwmSecurityKey, values, metaData );
                     }
@@ -91,7 +91,7 @@ public class NGStoredConfigurationFactory
         }
 
         static void readInterestingElement(
-                final Element loopElement,
+                final XmlElement loopElement,
                 final PwmSecurityKey pwmSecurityKey,
                 final Map<StoredConfigReference, StoredValue> values,
                 final Map<StoredConfigReference, ValueMetaData> metaData
@@ -129,7 +129,7 @@ public class NGStoredConfigurationFactory
             }
         }
 
-        static PwmSecurityKey readSecurityKey( final Element rootElement )
+        static PwmSecurityKey readSecurityKey( final XmlElement rootElement )
                 throws PwmUnrecoverableException
         {
             final String createTime = rootElement.getAttributeValue( StoredConfiguration.XML_ATTRIBUTE_CREATE_TIME );
@@ -138,7 +138,7 @@ public class NGStoredConfigurationFactory
 
         static StoredValue readSettingValue(
                 final StoredConfigReference storedConfigReference,
-                final Element settingElement,
+                final XmlElement settingElement,
                 final PwmSecurityKey pwmSecurityKey
         )
         {
@@ -152,7 +152,7 @@ public class NGStoredConfigurationFactory
             else
             {
                 LOGGER.trace( "parsing setting key=" + key + ", profile=" + storedConfigReference.getProfileID() );
-                final Element defaultElement = settingElement.getChild( StoredConfiguration.XML_ELEMENT_DEFAULT );
+                final XmlElement defaultElement = settingElement.getChild( StoredConfiguration.XML_ELEMENT_DEFAULT );
                 if ( defaultElement != null )
                 {
                     return null;
@@ -174,7 +174,7 @@ public class NGStoredConfigurationFactory
 
         static StoredValue readPropertyValue(
                 final StoredConfigReference storedConfigReference,
-                final Element settingElement
+                final XmlElement settingElement
         )
         {
             final String key = storedConfigReference.getRecordID();
@@ -182,12 +182,12 @@ public class NGStoredConfigurationFactory
             LOGGER.trace( "parsing property key=" + key + ", profile=" + storedConfigReference.getProfileID() );
             if ( settingElement.getChild( StoredConfiguration.XML_ELEMENT_DEFAULT ) != null )
             {
-                return new StringValue( settingElement.getValue() );
+                return new StringValue( settingElement.getText() );
             }
             return null;
         }
 
-        static StoredConfigReference referenceForElement( final Element settingElement )
+        static StoredConfigReference referenceForElement( final XmlElement settingElement )
         {
             final String key = settingElement.getAttributeValue( StoredConfiguration.XML_ATTRIBUTE_KEY );
             final String profileID = readProfileID( settingElement );
@@ -219,13 +219,13 @@ public class NGStoredConfigurationFactory
             );
         }
 
-        static String readProfileID( final Element settingElement )
+        static String readProfileID( final XmlElement settingElement )
         {
             final String profileIDStr = settingElement.getAttributeValue( StoredConfiguration.XML_ATTRIBUTE_PROFILE );
             return profileIDStr != null && !profileIDStr.isEmpty() ? profileIDStr : null;
         }
 
-        static ValueMetaData readValueMetaData( final Element element )
+        static ValueMetaData readValueMetaData( final XmlElement element )
         {
             final String modifyDateStr = element.getAttributeValue( StoredConfiguration.XML_ATTRIBUTE_MODIFY_TIME );
             Instant modifyDate = null;

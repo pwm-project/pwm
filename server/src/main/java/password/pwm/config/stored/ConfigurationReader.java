@@ -160,6 +160,7 @@ public class ConfigurationReader
                     }
             );
             this.configMode = PwmApplicationMode.ERROR;
+            e.printStackTrace(  );
             throw new PwmUnrecoverableException( errorInformation );
         }
 

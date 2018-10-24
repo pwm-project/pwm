@@ -24,6 +24,7 @@ package password.pwm.util.java;
 
 import org.jdom2.Document;
 import org.jdom2.Element;
+import org.jdom2.filter.Filters;
 import org.jdom2.xpath.XPathExpression;
 import org.jdom2.xpath.XPathFactory;
 import org.w3c.dom.NodeList;
@@ -31,6 +32,8 @@ import org.w3c.dom.NodeList;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public interface XmlDocument
@@ -39,11 +42,15 @@ public interface XmlDocument
 
     XmlElement evaluateXpathToElement( String xpathExpression );
 
+    List<XmlElement> evaluateXpathToElements( String xpathExpression );
+
+    XmlDocument copy();
+
     class XmlDocumentJDOM implements XmlDocument
     {
         final Document document;
 
-        public XmlDocumentJDOM( final Document document )
+        XmlDocumentJDOM( final Document document )
         {
             this.document = document;
         }
@@ -60,11 +67,32 @@ public interface XmlDocument
         )
         {
             final XPathFactory xpfac = XPathFactory.instance();
-            final XPathExpression<Object> xp = xpfac.compile( xpathExpression );
-            final Element settingElement = ( Element ) xp.evaluateFirst( document );
-            return settingElement == null ? null : new XmlElement.XmlElementJDOM( settingElement );
+            final XPathExpression<Element> xp = xpfac.compile( xpathExpression, Filters.element() );
+            final Element element = xp.evaluateFirst( document );
+            return element == null ? null : new XmlElement.XmlElementJDOM( element );
         }
 
+        @Override
+        public List<XmlElement> evaluateXpathToElements(
+                final String xpathExpression
+        )
+        {
+            final List<XmlElement> returnList = new ArrayList<>(  );
+
+            final XPathFactory xpfac = XPathFactory.instance();
+            final XPathExpression<Element> xp = xpfac.compile( xpathExpression, Filters.element() );
+            for ( final Element element : xp.evaluate( document ) )
+            {
+                returnList.add( new XmlElement.XmlElementJDOM( element ) );
+            }
+            return Collections.unmodifiableList( returnList );
+        }
+
+        @Override
+        public XmlDocument copy()
+        {
+            return new XmlDocumentJDOM( document.clone() );
+        }
     }
 
     class XmlDocumentW3c implements XmlDocument
@@ -87,17 +115,25 @@ public interface XmlDocument
                 final String xpathExpression
         )
         {
+            final List<XmlElement> elements = evaluateXpathToElements( xpathExpression );
+            if ( JavaHelper.isEmpty( elements ) )
+            {
+                return null;
+            }
+            return elements.iterator().next();
+        }
+
+        @Override
+        public List<XmlElement> evaluateXpathToElements(
+                final String xpathExpression
+        )
+        {
             try
             {
                 final XPath xPath = javax.xml.xpath.XPathFactory.newInstance().newXPath();
                 final javax.xml.xpath.XPathExpression expression = xPath.compile( xpathExpression );
                 final NodeList nodeList = (NodeList) expression.evaluate( document, XPathConstants.NODESET );
-                final List<XmlElement> elementList = XmlFactory.XmlFactoryW3c.nodeListToElementList( nodeList );
-                if ( JavaHelper.isEmpty( elementList ) )
-                {
-                    return null;
-                }
-                return elementList.iterator().next();
+                return XmlFactory.XmlFactoryW3c.nodeListToElementList( nodeList );
             }
             catch ( XPathExpressionException e )
             {
@@ -105,5 +141,10 @@ public interface XmlDocument
             }
         }
 
+        @Override
+        public XmlDocument copy()
+        {
+            return new XmlDocumentW3c( ( org.w3c.dom.Document) document.cloneNode( true ) );
+        }
     }
 }

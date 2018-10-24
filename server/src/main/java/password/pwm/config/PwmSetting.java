@@ -1280,7 +1280,7 @@ public enum PwmSetting
                 for ( final XmlElement defaultElement : defaultElements )
                 {
                     final Set<PwmSettingTemplate> definedTemplates = PwmSettingXml.parseTemplateAttribute( defaultElement );
-                    final StoredValue storedValue = ValueFactory.fromXmlValues( this, defaultElement.asJdomElement(), null );
+                    final StoredValue storedValue = ValueFactory.fromXmlValues( this, defaultElement, null );
                     returnObj.add( new TemplateSetAssociation( storedValue, definedTemplates ) );
                 }
             }
