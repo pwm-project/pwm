@@ -155,6 +155,42 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <!-- creates the classes directory early in the build so the attribution plugin doesn't fail -->
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>generate-sources</id>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <tasks>
+                                <mkdir dir="${project.build.directory}/classes"/>
+                            </tasks>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <!-- builds xml file of dependencies and licenses for use in about page -->
+                <groupId>com.github.jinnovations</groupId>
+                <artifactId>attribution-maven-plugin</artifactId>
+                <version>0.9.5</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate-attribution-file</goal>
+                        </goals>
+                        <phase>generate-resources</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <outputFile>${project.build.directory}/classes/webapp-attribution.xml</outputFile>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
