@@ -24,8 +24,10 @@ package password.pwm.http.servlet.peoplesearch;
 
 import lombok.Builder;
 import lombok.Value;
+import password.pwm.util.java.StringUtil;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -63,5 +65,22 @@ public class SearchRequestBean implements Serializable
             returnMap.put( searchValue.getKey(), searchValue.getValue() );
         }
         return Collections.unmodifiableMap( returnMap );
+    }
+
+    public List<SearchValue> nonEmptySearchValues()
+    {
+        return filterNonEmptySearchValues( getSearchValues() );
+    }
+
+    public static List<SearchValue> filterNonEmptySearchValues( final List<SearchValue> input )
+    {
+        final List<SearchValue> returnList = input == null
+                ? new ArrayList<>()
+                : new ArrayList<>( input );
+
+        returnList.removeIf( searchValue -> StringUtil.isEmpty( searchValue.getKey() )
+                || StringUtil.isEmpty( searchValue.getValue() ) );
+
+        return Collections.unmodifiableList( returnList );
     }
 }

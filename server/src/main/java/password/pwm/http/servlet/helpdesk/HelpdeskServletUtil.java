@@ -55,7 +55,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-class HelpdeskServletUtil
+public class HelpdeskServletUtil
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( HelpdeskServletUtil.class );
 
@@ -106,7 +106,16 @@ class HelpdeskServletUtil
     )
     {
         final List<String> defaultObjectClasses = configuration.readSettingAsStringArray( PwmSetting.DEFAULT_OBJECT_CLASSES );
-        final List<FormConfiguration> searchAttributes = helpdeskProfile.readSettingAsForm( PwmSetting.HELPDESK_SEARCH_RESULT_FORM );
+        final List<FormConfiguration> searchAttributes = helpdeskProfile.readSettingAsForm( PwmSetting.HELPDESK_SEARCH_FORM );
+        return makeAdvancedSearchFilter( defaultObjectClasses, searchAttributes, attributesInSearchRequest );
+    }
+
+    public static String makeAdvancedSearchFilter(
+            final List<String> defaultObjectClasses,
+            final List<FormConfiguration> searchAttributes,
+            final Map<String, String> attributesInSearchRequest
+    )
+    {
         final StringBuilder filter = new StringBuilder();
 
         //open AND clause for objectclasses and attributes
@@ -128,7 +137,23 @@ class HelpdeskServletUtil
                 final String value = attributesInSearchRequest.get( searchAttribute );
                 if ( !StringUtil.isEmpty( value ) )
                 {
-                    filter.append( "(" ).append( searchAttribute ).append( "=*%" ).append( searchAttribute ).append( "%*)" );
+                    filter.append( "(" ).append( searchAttribute ).append( "=" );
+
+                    switch ( formConfiguration.getType() )
+                    {
+                        case select:
+                        {
+                            // value is specified by admin, so wildcards are not required
+                            filter.append( "%" ).append( searchAttribute ).append( "%)" );
+                        }
+                        break;
+
+                        default:
+                        {
+                            filter.append( "*%" ).append( searchAttribute ).append( "%*)" );
+                        }
+                        break;
+                    }
                 }
             }
         }
@@ -140,11 +165,6 @@ class HelpdeskServletUtil
         filter.append( ")" );
         return filter.toString();
     }
-
-
-
-
-
 
 
     static void checkIfUserIdentityViewable(

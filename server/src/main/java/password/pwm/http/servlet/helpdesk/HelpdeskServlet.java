@@ -478,7 +478,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
 
             case advanced:
             {
-                if ( JavaHelper.isEmpty( searchRequest.getSearchValues() ) )
+                if ( JavaHelper.isEmpty( searchRequest.nonEmptySearchValues() ) )
                 {
                     return HelpdeskSearchResultsBean.emptyResult();
                 }

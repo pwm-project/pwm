@@ -41,6 +41,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmURL;
+import password.pwm.http.servlet.helpdesk.HelpdeskServletUtil;
 import password.pwm.i18n.Display;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.LdapPermissionTester;
@@ -706,34 +707,9 @@ class PeopleSearchDataReader
     private String makeAdvancedFilter( final Map<String, String> attributesInSearchRequest )
     {
         final List<String> defaultObjectClasses = pwmRequest.getConfig().readSettingAsStringArray( PwmSetting.DEFAULT_OBJECT_CLASSES );
-        final Set<String> searchAttributes = peopleSearchConfiguration.getSearchAttributes();
-        final StringBuilder filter = new StringBuilder();
+        final List<FormConfiguration> searchAttributes = peopleSearchConfiguration.getSearchForm();
 
-        //open AND clause for objectclasses and attributes
-        filter.append( "(&" );
-        for ( final String objectClass : defaultObjectClasses )
-        {
-            filter.append( "(objectClass=" ).append( objectClass ).append( ")" );
-        }
-
-        // open AND clause for attributes
-        filter.append( "(&" );
-
-        for ( final String searchAttribute : searchAttributes )
-        {
-            final String value = attributesInSearchRequest.get( searchAttribute );
-            if ( !StringUtil.isEmpty( value ) )
-            {
-                filter.append( "(" ).append( searchAttribute ).append( "=*%" ).append( searchAttribute ).append( "%*)" );
-            }
-        }
-
-        // close attribute clause
-        filter.append( ")" );
-
-        // close AND clause
-        filter.append( ")" );
-        return filter.toString();
+        return HelpdeskServletUtil.makeAdvancedSearchFilter( defaultObjectClasses, searchAttributes, attributesInSearchRequest );
     }
 
     private boolean useProxy( )
@@ -841,7 +817,7 @@ class PeopleSearchDataReader
 
                 case advanced:
                 {
-                    if ( JavaHelper.isEmpty( searchRequest.getSearchValues() ) )
+                    if ( JavaHelper.isEmpty( searchRequest.nonEmptySearchValues() ) )
                     {
                         return SearchResultBean.builder().searchResults( Collections.emptyList() ).build();
                     }
