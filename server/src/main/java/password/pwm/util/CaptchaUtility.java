@@ -48,6 +48,7 @@ import password.pwm.svc.intruder.IntruderManager;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
@@ -66,6 +67,16 @@ public class CaptchaUtility
 
     private static final String COOKIE_SKIP_INSTANCE_VALUE = "INSTANCEID";
 
+    public enum CaptchaMode
+    {
+        V3,
+        V3_INVISIBLE,
+    }
+
+    public static CaptchaMode readCaptchaMode( final PwmRequest pwmRequest )
+    {
+        return pwmRequest.getConfig().readSettingAsEnum( PwmSetting.CAPTCHA_RECAPTCHA_MODE, CaptchaMode.class );
+    }
 
     /**
      * Verify a reCaptcha request.  The reCaptcha request API is documented at
@@ -93,6 +104,13 @@ public class CaptchaUtility
         if ( !captchaEnabledForRequest( pwmRequest ) )
         {
             return true;
+        }
+
+        if ( StringUtil.isEmpty( recaptchaResponse ) )
+        {
+            final String msg = "missing recaptcha validation response";
+            final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_CAPTCHA_API_ERROR, msg );
+            throw new PwmUnrecoverableException( errorInfo );
         }
 
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();

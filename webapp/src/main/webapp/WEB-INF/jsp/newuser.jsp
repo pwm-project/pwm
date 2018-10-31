@@ -42,7 +42,7 @@
         <%@ include file="fragment/message.jsp" %>
         <br/>
         <form action="<pwm:current-url/>" method="post" name="newUser" enctype="application/x-www-form-urlencoded" autocomplete="off"
-              id="newUserForm" class="pwm-form">
+              id="newUserForm" class="pwm-form pwm-form-captcha">
             <jsp:include page="fragment/form.jsp"/>
 
             <%@ include file="/WEB-INF/jsp/fragment/captcha-embed.jsp"%>

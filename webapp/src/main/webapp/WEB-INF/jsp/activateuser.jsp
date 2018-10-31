@@ -35,7 +35,7 @@
     <div id="centerbody">
         <h1 id="page-content-title"><pwm:display key="Title_ActivateUser" displayIfMissing="true"/></h1>
         <p><pwm:display key="Display_ActivateUser"/></p>
-        <form action="<pwm:current-url/>" method="post" name="activateUser" enctype="application/x-www-form-urlencoded" class="pwm-form">
+        <form action="<pwm:current-url/>" method="post" name="activateUser" enctype="application/x-www-form-urlencoded" class="pwm-form pwm-form-captcha">
             <%@ include file="fragment/message.jsp" %>
             <%@ include file="/WEB-INF/jsp/fragment/ldap-selector.jsp" %>
             <jsp:include page="fragment/form.jsp"/>

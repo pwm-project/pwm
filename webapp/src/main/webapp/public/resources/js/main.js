@@ -256,7 +256,7 @@ PWM_MAIN.applyFormAttributes = function() {
         formElement.setAttribute('autocorrect', 'off');
     });
 
-    PWM_MAIN.doQuery('.pwm-form',function(formElement) {
+    PWM_MAIN.doQuery('.pwm-form:not(.pwm-form-captcha)',function(formElement) {
         PWM_MAIN.addEventHandler(formElement, "submit", function(event){
             PWM_MAIN.handleFormSubmit(formElement, event);
         });
