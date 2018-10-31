@@ -922,7 +922,8 @@ public class HelpdeskServlet extends ControlledPwmServlet
         {
 
             final OtpService service = pwmRequest.getPwmApplication().getOtpService();
-            service.clearOTPUserConfiguration( pwmRequest.getPwmSession(), userIdentity );
+            final ChaiUser chaiUser = getChaiUser( pwmRequest, helpdeskProfile, userIdentity );
+            service.clearOTPUserConfiguration( pwmRequest.getPwmSession(), userIdentity, chaiUser );
             {
                 // mark the event log
                 final HelpdeskAuditRecord auditRecord = new AuditRecordFactory( pwmRequest ).createHelpdeskAuditRecord(

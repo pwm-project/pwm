@@ -330,7 +330,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
         final UserIdentity theUser = pwmSession.getUserInfo().getUserIdentity();
         try
         {
-            service.clearOTPUserConfiguration( pwmSession, theUser );
+            service.clearOTPUserConfiguration( pwmSession, theUser, pwmSession.getSessionManager().getActor( pwmApplication ) );
         }
         catch ( PwmOperationalException e )
         {
