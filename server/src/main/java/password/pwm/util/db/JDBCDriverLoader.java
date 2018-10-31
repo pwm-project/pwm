@@ -41,6 +41,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.sql.Driver;
 import java.util.ArrayList;
 import java.util.List;
@@ -149,6 +151,7 @@ public class JDBCDriverLoader
 
         private static final PwmLogger LOGGER = PwmLogger.forClass( XeusJarClassDriverLoader.class, true );
 
+
         @Override
         public Driver loadDriver( final PwmApplication pwmApplication, final DBConfiguration dbConfiguration )
                 throws DatabaseException
@@ -158,7 +161,11 @@ public class JDBCDriverLoader
             try
             {
                 LOGGER.debug( "loading JDBC database driver stored in configuration" );
-                final JarClassLoader jarClassLoader = new JarClassLoader();
+
+                final JarClassLoader jarClassLoader = AccessController.doPrivileged(
+                        ( PrivilegedAction<JarClassLoader> ) JarClassLoader::new
+                );
+
                 jarClassLoader.add( new ByteArrayInputStream( jdbcDriverBytes ) );
                 final JclObjectFactory jclObjectFactory = JclObjectFactory.getInstance( true );
 
