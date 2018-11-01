@@ -49,95 +49,6 @@
                 </executions>
             </plugin>
             <plugin>
-                <!-- creates the classes directory early in the build so the attribution plugin doesn't fail -->
-                <artifactId>maven-antrun-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>generate-sources</id>
-                        <phase>generate-sources</phase>
-                        <configuration>
-                            <tasks>
-                                <mkdir dir="${project.build.directory}/classes"/>
-                            </tasks>
-                        </configuration>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <!-- builds xml file of dependencies and licenses for use in about page -->
-                <groupId>com.github.jinnovations</groupId>
-                <artifactId>attribution-maven-plugin</artifactId>
-                <version>0.9.5</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>generate-attribution-file</goal>
-                        </goals>
-                        <phase>generate-resources</phase>
-                    </execution>
-                </executions>
-                <configuration>
-                    <outputFile>${project.build.directory}/classes/server-attribution.xml</outputFile>
-                    <dependencyOverrides>
-                        <dependencyOverride>
-                            <forDependency>jaxen:jaxen</forDependency>
-                            <license>
-                                <name>Custom</name>
-                                <url>http://jaxen.codehaus.org/license.html</url>
-                            </license>
-                        </dependencyOverride>
-                        <dependencyOverride>
-                            <forDependency>com.novell.security.nmas:ChallengeResponseLCM</forDependency>
-                            <projectUrl>https://www.novell.com/developer/ndk/novell_modular_authentication_service.html</projectUrl>
-                            <downloadUrl>ftp://sdk.provo.novell.com/ndk/nmas/builds/cross_platform/novell-nmas-devel-2009.11.11-cross_platform.zip</downloadUrl>
-                            <license>
-                                <name>Novell Developer License Agreement</name>
-                                <url>https://www.novell.com/developer/novell_developer_license_agreement.html</url>
-                            </license>
-                        </dependencyOverride>
-                        <dependencyOverride>
-                            <forDependency>com.novell.security.nmas:nmasclient</forDependency>
-                            <projectUrl>https://www.novell.com/developer/ndk/novell_modular_authentication_service.html</projectUrl>
-                            <downloadUrl>ftp://sdk.provo.novell.com/ndk/nmas/builds/cross_platform/novell-nmas-devel-2009.11.11-cross_platform.zip</downloadUrl>
-                            <license>
-                                <name>Novell Developer License Agreement</name>
-                                <url>https://www.novell.com/developer/novell_developer_license_agreement.html</url>
-                            </license>
-                        </dependencyOverride>
-                        <dependencyOverride>
-                            <forDependency>com.novell.security.nmas:NMASToolkit</forDependency>
-                            <projectUrl>https://www.novell.com/developer/ndk/novell_modular_authentication_service.html</projectUrl>
-                            <downloadUrl>ftp://sdk.provo.novell.com/ndk/nmas/builds/cross_platform/novell-nmas-devel-2009.11.11-cross_platform.zip</downloadUrl>
-                            <license>
-                                <name>Novell Developer License Agreement</name>
-                                <url>https://www.novell.com/developer/novell_developer_license_agreement.html</url>
-                            </license>
-                        </dependencyOverride>
-                        <dependencyOverride>
-                            <forDependency>com.novell.security.nmas:jsso</forDependency>
-                            <projectUrl>https://www.novell.com/developer/ndk/novell_secretstore_developer_kit_for_java.html</projectUrl>
-                            <downloadUrl>ftp://sdk.provo.novell.com/ndk/nssoj/builds/cross_platform/novell-nssoj-devel-2006.02.17-1cross_platform.zip</downloadUrl>
-                            <license>
-                                <name>Novell Developer License Agreement</name>
-                                <url>https://www.novell.com/developer/novell_developer_license_agreement.html</url>
-                            </license>
-                        </dependencyOverride>
-                        <dependencyOverride>
-                            <forDependency>com.novell.security.nmas:ldap</forDependency>
-                            <projectUrl>https://www.novell.com/developer/ndk/ldap_classes_for_java.html</projectUrl>
-                            <downloadUrl>https://www.novell.com/developer/ndk/ldap_classes_for_java/novell-jldap-devel-2013.08.30.1433-xplat.zip</downloadUrl>
-                            <license>
-                                <name>Novell Developer License Agreement</name>
-                                <url>https://www.novell.com/developer/novell_developer_license_agreement.html</url>
-                            </license>
-                        </dependencyOverride>
-                    </dependencyOverrides>
-                </configuration>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>3.1.0</version>
@@ -374,7 +285,7 @@
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>webjars-locator-core</artifactId>
-            <version>0.35</version>
+            <version>0.36</version>
         </dependency>
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>
