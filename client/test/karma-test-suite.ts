@@ -32,6 +32,6 @@ import 'angular-mocks';
 // var appContext = (require as any).context('../src', true, /\.test\.ts/);
 
 // To run a specific test, change the following regular expression and use this:
-var appContext = (require as any).context('../src', true, /orgchart.component.test.ts/);
+var appContext = (require as any).context('../src', true, /common-search.service.test.ts/);
 
 appContext.keys().forEach(appContext);

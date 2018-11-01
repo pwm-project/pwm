@@ -30,6 +30,7 @@ import PromiseService from '../../services/promise.service';
 import {IHelpDeskService} from '../../services/helpdesk.service';
 import IPwmService from '../../services/pwm.service';
 import {IAdvancedSearchConfig, IAdvancedSearchQuery, IAttributeMetadata} from '../../services/base-config.service';
+import CommonSearchService from '../../services/common-search.service';
 
 
 let verificationsDialogTemplateUrl = require('./verifications-dialog.template.html');
@@ -64,36 +65,45 @@ export default abstract class HelpDeskSearchBaseComponent {
                 protected IasDialogService: any,
                 protected localStorageService: LocalStorageService,
                 protected promiseService: PromiseService,
-                protected pwmService: IPwmService) {
+                protected pwmService: IPwmService,
+                protected commonSearchService: CommonSearchService) {
         this.searchTextLocalStorageKey = this.localStorageService.keys.HELPDESK_SEARCH_TEXT;
         this.searchViewLocalStorageKey = this.localStorageService.keys.HELPDESK_SEARCH_VIEW;
 
         this.inputDebounce = this.pwmService.ajaxTypingWait;
-
-        $scope.$watch('$ctrl.query', (newValue: string, oldValue: string) => {
-            this.onSearchTextChange(newValue, oldValue);
-        });
     }
 
-    protected initialize(): void {
-        this.query = this.getSearchText();
+    protected initialize(): IPromise<void> {
+        return this.$q.all(
+            [
+                this.configService.verificationsEnabled().then((verificationsEnabled: boolean) => {
+                    this.verificationsEnabled = verificationsEnabled;
+                }),
+                this.configService.advancedSearchConfig().then((advancedSearchConfig: IAdvancedSearchConfig) => {
+                    this.advancedSearchEnabled = advancedSearchConfig.enabled;
+                    this.advancedSearchMaxRows = advancedSearchConfig.maxRows;
 
-        this.configService.verificationsEnabled().then((verificationsEnabled: boolean) => {
-            this.verificationsEnabled = verificationsEnabled;
-        });
-
-        this.configService.advancedSearchConfig().then((advancedSearchConfig: IAdvancedSearchConfig) => {
-            this.advancedSearchEnabled = advancedSearchConfig.enabled;
-            this.advancedSearchMaxRows = advancedSearchConfig.maxRows;
-
-            for (let advancedSearchTag of advancedSearchConfig.attributes) {
-                this.advancedSearchTags[advancedSearchTag.attribute] = advancedSearchTag;
+                    for (let advancedSearchTag of advancedSearchConfig.attributes) {
+                        this.advancedSearchTags[advancedSearchTag.attribute] = advancedSearchTag;
+                    }
+                })
+            ]
+        ).then(result => {
+            this.query = this.getSearchText();
+            this.advancedSearch = this.commonSearchService.isHdAdvancedSearchActive();
+            this.queries = this.commonSearchService.getHdAdvSearchQueries();
+            if (this.queries.length === 0) {
+                this.addSearchTag();
             }
-        });
 
-        // Once <ias-search-box> from ng-ias allows the autofocus attribute, we can remove this code
-        this.$timeout(() => {
-            document.getElementsByTagName('input')[0].focus();
+            // Once <ias-search-box> from ng-ias allows the autofocus attribute, we can remove this code
+            this.$timeout(() => {
+                document.getElementsByTagName('input')[0].focus();
+            });
+
+            this.$scope.$watch('$ctrl.query', (newValue: string, oldValue: string) => {
+                this.onSearchTextChange(newValue, oldValue);
+            });
         });
     }
 
@@ -182,7 +192,7 @@ export default abstract class HelpDeskSearchBaseComponent {
     }
 
     private gotoState(state: string): void {
-        this.$state.go(state, { query: this.query });
+        this.$state.go(state);
     }
 
     private initiateSearch() {
@@ -248,22 +258,26 @@ export default abstract class HelpDeskSearchBaseComponent {
         // Make sure we set the default value if the type is select
         const attributeMetadata: IAttributeMetadata = this.advancedSearchTags[query.key];
         if (attributeMetadata.type == 'select') {
-            query.value = this.getDefaultValue(attributeMetadata);
+            query.value = this.commonSearchService.getDefaultValue(attributeMetadata);
         }
 
+        this.commonSearchService.setHdAdvSearchQueries(this.queries);
         this.initiateSearch();
     }
 
     private onAdvancedSearchAttributeValueChanged() {
+        this.commonSearchService.setHdAdvSearchQueries(this.queries);
         this.initiateSearch();
     }
 
     private onAdvancedSearchValueChanged() {
+        this.commonSearchService.setHdAdvSearchQueries(this.queries);
         this.initiateSearch();
     }
 
     removeSearchTag(tagIndex: number): void {
         this.queries.splice(tagIndex, 1);
+        this.commonSearchService.setHdAdvSearchQueries(this.queries);
 
         if (this.queries.length > 0) {
             this.initiateSearch();
@@ -271,6 +285,7 @@ export default abstract class HelpDeskSearchBaseComponent {
         else {
             this.clearSearch();
             this.advancedSearch = false;
+            this.commonSearchService.setHdAdvancedSearchActive(this.advancedSearch);
         }
     }
 
@@ -280,23 +295,10 @@ export default abstract class HelpDeskSearchBaseComponent {
 
         const query: IAdvancedSearchQuery = {
             key: attributeMetaData.attribute,
-            value: this.getDefaultValue(attributeMetaData),
+            value: this.commonSearchService.getDefaultValue(attributeMetaData),
         };
 
         this.queries.push(query);
-    }
-
-    private getDefaultValue(attributeMetaData: IAttributeMetadata) {
-        if (attributeMetaData) {
-            if (attributeMetaData.type === 'select') {
-                const keys: string[] = Object.keys(attributeMetaData.options);
-                if (keys && keys.length > 0) {
-                    return keys[0];
-                }
-            }
-        }
-
-        return '';
     }
 
     protected selectPerson(person: IPerson): void {
@@ -327,6 +329,7 @@ export default abstract class HelpDeskSearchBaseComponent {
         this.clearSearch();
         this.addSearchTag();
         this.advancedSearch = true;
+        this.commonSearchService.setHdAdvancedSearchActive(this.advancedSearch);
     }
 
     protected toggleView(state: string): void {

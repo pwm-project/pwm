@@ -31,6 +31,7 @@ import {IPerson} from '../../models/person.model';
 import PromiseService from '../../services/promise.service';
 import {IHelpDeskService} from '../../services/helpdesk.service';
 import IPwmService from '../../services/pwm.service';
+import CommonSearchService from '../../services/common-search.service';
 
 @Component({
     stylesheetUrl: require('./helpdesk-search.component.scss'),
@@ -49,7 +50,8 @@ export default class HelpDeskSearchCardsComponent extends HelpDeskSearchBaseComp
         'IasDialogService',
         'LocalStorageService',
         'PromiseService',
-        'PwmService'
+        'PwmService',
+        'CommonSearchService'
     ];
     constructor($q: IQService,
                 $scope: IScope,
@@ -62,14 +64,16 @@ export default class HelpDeskSearchCardsComponent extends HelpDeskSearchBaseComp
                 IasDialogService: any,
                 localStorageService: LocalStorageService,
                 promiseService: PromiseService,
-                pwmService: IPwmService) {
+                pwmService: IPwmService,
+                commonSearchService: CommonSearchService) {
         super($q, $scope, $state, $stateParams, $timeout, $translate, configService, helpDeskService, IasDialogService,
-            localStorageService, promiseService, pwmService);
+            localStorageService, promiseService, pwmService, commonSearchService);
     }
 
     $onInit() {
-        this.initialize();
-        this.fetchData();
+        this.initialize().then(() => {
+            this.fetchData();
+        });
 
         this.configService.photosEnabled().then((photosEnabled: boolean) => {
             this.photosEnabled = photosEnabled;
