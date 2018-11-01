@@ -28,6 +28,7 @@
 
 package password.pwm.util.operations.otp;
 
+import com.novell.ldapchai.ChaiUser;
 import password.pwm.PwmApplication;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
@@ -135,6 +136,7 @@ public class DbOtpOperator extends AbstractOtpOperator
     public void clearOtpUserConfiguration(
             final PwmSession pwmSession,
             final UserIdentity theUser,
+            final ChaiUser chaiUser,
             final String userGUID
     )
             throws PwmUnrecoverableException

@@ -37,7 +37,7 @@
         <h1 id="page-content-title"><pwm:display key="Title_ForgottenPassword" displayIfMissing="true"/></h1>
         <p><pwm:display key="Display_ForgottenPassword"/></p>
         <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" autocomplete="off"
-              name="searchForm" class="pwm-form" id="searchForm">
+              name="searchForm" class="pwm-form pwm-form-captcha" id="searchForm">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <%@ include file="/WEB-INF/jsp/fragment/ldap-selector.jsp" %>
             <br/>

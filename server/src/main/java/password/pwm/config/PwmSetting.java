@@ -581,6 +581,8 @@ public enum PwmSetting
             "captcha.skip.cookie", PwmSettingSyntax.STRING, PwmSettingCategory.CAPTCHA ),
     CAPTCHA_INTRUDER_COUNT_TRIGGER(
             "captcha.intruderAttemptTrigger", PwmSettingSyntax.NUMERIC, PwmSettingCategory.CAPTCHA ),
+    CAPTCHA_RECAPTCHA_MODE(
+            "captcha.recaptcha.mode", PwmSettingSyntax.SELECT, PwmSettingCategory.CAPTCHA ),
 
     // intruder detection
     INTRUDER_ENABLE(

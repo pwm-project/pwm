@@ -38,4 +38,10 @@ public class HelpdeskSearchRequestBean implements Serializable
 
     private String username;
     private List<SearchRequestBean.SearchValue> searchValues;
+
+    public List<SearchRequestBean.SearchValue> nonEmptySearchValues()
+    {
+        return SearchRequestBean.filterNonEmptySearchValues( getSearchValues() );
+    }
+
 }

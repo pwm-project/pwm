@@ -26,6 +26,9 @@ import org.jdom2.Attribute;
 import org.jdom2.Element;
 import password.pwm.util.java.JavaHelper;
 
+import java.util.EnumMap;
+import java.util.Map;
+
 public enum PwmSettingTemplate
 {
     NOVL( Type.LDAP_VENDOR ),
@@ -83,18 +86,15 @@ public enum PwmSettingTemplate
         STORAGE,
         DB_VENDOR,;
 
-        static
-        {
-            LDAP_VENDOR.defaultValue = DEFAULT;
-            STORAGE.defaultValue = LDAP;
-            DB_VENDOR.defaultValue = DB_OTHER;
-        }
-
-        private PwmSettingTemplate defaultValue;
-
+        // done using map instead of static values to avoid initialization circularity bug
         public PwmSettingTemplate getDefaultValue( )
         {
-            return defaultValue;
+            final Map<Type, PwmSettingTemplate> defaultValueMap = new EnumMap<>( Type.class );
+            defaultValueMap.put( LDAP_VENDOR, DEFAULT );
+            defaultValueMap.put( STORAGE, LDAP );
+            defaultValueMap.put( DB_VENDOR, DB_OTHER );
+
+            return defaultValueMap.get( this );
         }
     }
 }

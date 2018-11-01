@@ -22,6 +22,7 @@
 
 package password.pwm.util.operations;
 
+import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import lombok.Getter;
 import org.apache.commons.codec.binary.Base32;
@@ -425,7 +426,8 @@ public class OtpService implements PwmService
 
     public void clearOTPUserConfiguration(
             final PwmSession pwmSession,
-            final UserIdentity userIdentity
+            final UserIdentity userIdentity,
+            final ChaiUser chaiUser
     )
             throws PwmOperationalException, ChaiUnavailableException, PwmUnrecoverableException
     {
@@ -450,7 +452,7 @@ public class OtpService implements PwmService
                 {
                     try
                     {
-                        operator.clearOtpUserConfiguration( pwmSession, userIdentity, userGUID );
+                        operator.clearOtpUserConfiguration( pwmSession, userIdentity, chaiUser, userGUID );
                         successes++;
                     }
                     catch ( PwmUnrecoverableException e )
