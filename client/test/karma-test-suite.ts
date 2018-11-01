@@ -26,11 +26,12 @@ import 'angular';
 import 'angular-mocks';
 
 // This creates a single bundle with all test cases (*.test.ts), which improves performance
-// (i.e. we don't create a webpack bundle for each test):
-var appContext = (require as any).context('../src', true, /\.test\.ts/);
+// (i.e. we don't create a webpack bundle for each test)
 
-// If you want to run a specific test, comment out the general line above, and uncomment the specific one below:
-// var appContext = (require as any).context('../src', true, /helpdesk-config\.service\.test\.ts/);
-// var appContext = (require as any).context('../src', true, /helpdesk\.service\.test\.ts/);
+// To run all tests, use this:
+// var appContext = (require as any).context('../src', true, /\.test\.ts/);
+
+// To run a specific test, change the following regular expression and use this:
+var appContext = (require as any).context('../src', true, /orgchart.component.test.ts/);
 
 appContext.keys().forEach(appContext);
