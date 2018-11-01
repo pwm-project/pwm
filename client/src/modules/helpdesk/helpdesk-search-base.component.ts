@@ -89,11 +89,21 @@ export default abstract class HelpDeskSearchBaseComponent {
                 })
             ]
         ).then(result => {
-            this.query = this.getSearchText();
-            this.advancedSearch = this.commonSearchService.isHdAdvancedSearchActive();
-            this.queries = this.commonSearchService.getHdAdvSearchQueries();
-            if (this.queries.length === 0) {
-                this.addSearchTag();
+            const searchQuery = this.getSearchQuery();
+            if (searchQuery) {
+                // A search query has been passed in, disregard the current search state
+                this.query = searchQuery;
+                this.advancedSearch = false;
+                this.storeSearchText();
+                this.commonSearchService.setHdAdvancedSearchActive(this.advancedSearch);
+                this.commonSearchService.setHdAdvSearchQueries([]);
+            } else {
+                this.query = this.getSearchText();
+                this.advancedSearch = this.commonSearchService.isHdAdvancedSearchActive();
+                this.queries = this.commonSearchService.getHdAdvSearchQueries();
+                if (this.queries.length === 0) {
+                    this.addSearchTag();
+                }
             }
 
             // Once <ias-search-box> from ng-ias allows the autofocus attribute, we can remove this code
@@ -111,7 +121,7 @@ export default abstract class HelpDeskSearchBaseComponent {
         return this.errorMessage || this.searchMessage;
     }
 
-    private getSearchText(): string {
+    private getSearchQuery(): string {
         let param: string = this.$stateParams['query'];
         // If multiple query parameters are defined, use the first one
         if (isArray(param)) {
@@ -121,7 +131,11 @@ export default abstract class HelpDeskSearchBaseComponent {
             param = param.trim();
         }
 
-        return param || this.localStorageService.getItem(this.searchTextLocalStorageKey);
+        return param;
+    }
+
+    private getSearchText(): string {
+        return this.localStorageService.getItem(this.searchTextLocalStorageKey);
     }
 
     abstract fetchData(): void;
@@ -143,6 +157,16 @@ export default abstract class HelpDeskSearchBaseComponent {
         if (this.advancedSearch) {
             if (!this.queries || (this.queries.length === 1 && !this.queries[0].key)) {
                 this.clearSearch();
+                return null;
+            }
+
+            const keys = new Set();
+            for (let searchQuery of this.queries) {
+                keys.add(searchQuery.key);
+            }
+
+            if (keys.size < this.queries.length) {
+                this.searchMessage = 'Search attributes must be unique';
                 return null;
             }
 
