@@ -40,8 +40,14 @@
 <pwm:script>
     <script type="text/javascript">
         function onloadCallback() {
+            PWM_MAIN.doQuery('.pwm-btn-submit',function(submitButton) {
+                submitButton.disabled = true;
+            });
             var recaptchaCallback = function() {
                 console.log('captcha completed, passed');
+                PWM_MAIN.doQuery('.pwm-btn-submit',function(submitButton) {
+                    submitButton.disabled = false;
+                });
             };
 
             console.log('reached google recaptcha onload callback');
@@ -53,30 +59,34 @@
 <% } %>
 <% if ( captchaMode == CaptchaUtility.CaptchaMode.V3_INVISIBLE ) { %>
 <!-- captcha v3-invisible 1.0 -->
-<input type="hidden" name="g-recaptcha-response" id="g-recaptcha-response"/>
+<input type="hidden" name="<%=CaptchaUtility.PARAM_RECAPTCHA_FORM_NAME%>" id="<%=CaptchaUtility.PARAM_RECAPTCHA_FORM_NAME%>"/>
 <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function() {
             PWM_MAIN.doQuery('.pwm-form-captcha',function(formElement) {
                 PWM_MAIN.addEventHandler(formElement, "submit", function(event){
-                    console.log('entering handleCaptchaFormSubmit');
-
+                    PWM_MAIN.log('entering handleCaptchaFormSubmit');
                     PWM_VAR['captcha-form-element'] = formElement;
                     PWM_MAIN.cancelEvent(event);
 
-                    grecaptcha.execute();
+                    PWM_MAIN.showWaitDialog({loadFunction: function () {
+                            try {
+                                grecaptcha.execute();
+                            } catch (e) {
+                                PWM_MAIN.log('error executing invisible recaptcha: ' + e);
+                                PWM_FORM.handleFormSubmit(formElement);
+                            }
+                    }});
                 });
             });
-
-
         });
 
         var onloadCaptcha = function() {
-            console.log('entering onloadCaptcha');
+            PWM_MAIN.log('entering onloadCaptcha');
         };
 
         var postCaptchaFormSubmit = function(response) {
-            console.log('entering postCaptchaFormSubmit, response=' + response);
+            PWM_MAIN.log('entering postCaptchaFormSubmit, response=' + response);
             var form = PWM_VAR['captcha-form-element'];
             PWM_MAIN.getObject('g-recaptcha-response').value = response;
             PWM_MAIN.handleFormSubmit(form);

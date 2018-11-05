@@ -203,7 +203,6 @@ PWM_CONFIG.showHeaderHealth = function() {
         var loadFunction = function(data) {
             if (data['data'] && data['data']['overall']) {
                 var hasWarnTopics = data['data']['overall'] === 'WARN';
-                console.log('has health errors: ' + hasWarnTopics);
                 if (hasWarnTopics) {
                     PWM_MAIN.removeCssClass('header-menu-alert','display-none');
                     PWM_MAIN.removeCssClass('panel-header-healthData','display-none');

@@ -43,7 +43,7 @@
             <%@ include file="/WEB-INF/jsp/fragment/captcha-embed.jsp"%>
 
             <div class="buttonbar">
-                <button type="submit" name="button" class="btn" id="submitBtn">
+                <button type="submit" name="button" class="btn pwm-btn-submit" id="submitBtn">
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
                     <pwm:display key="Button_Activate"/>
                 </button>

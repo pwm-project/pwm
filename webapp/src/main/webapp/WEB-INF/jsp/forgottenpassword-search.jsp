@@ -47,7 +47,7 @@
 
             <div class="buttonbar">
                 <input type="hidden" name="processAction" value="<%=ForgottenPasswordServlet.ForgottenPasswordAction.search%>"/>
-                <button type="submit" class="btn" name="search" id="submitBtn">
+                <button type="submit" class="btn pwm-btn-submit" name="search" id="submitBtn">
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-search"></span></pwm:if>
                     <pwm:display key="Button_Search"/>
                 </button>

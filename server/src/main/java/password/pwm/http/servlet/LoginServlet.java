@@ -210,7 +210,7 @@ public class LoginServlet extends ControlledPwmServlet
                 : null;
         final String context = valueMap.get( PwmConstants.PARAM_CONTEXT );
         final String ldapProfile = valueMap.get( PwmConstants.PARAM_LDAP_PROFILE );
-        final String recaptchaResponse = valueMap.get( "g-recaptcha-response" );
+        final String recaptchaResponse = valueMap.get( CaptchaUtility.PARAM_RECAPTCHA_FORM_NAME );
 
 
         if ( !passwordOnly && ( username == null || username.isEmpty() ) )

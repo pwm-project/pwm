@@ -67,6 +67,8 @@ public class CaptchaUtility
 
     private static final String COOKIE_SKIP_INSTANCE_VALUE = "INSTANCEID";
 
+    public static final String PARAM_RECAPTCHA_FORM_NAME = "g-recaptcha-response";
+
     public enum CaptchaMode
     {
         V3,
@@ -91,7 +93,7 @@ public class CaptchaUtility
     )
             throws PwmUnrecoverableException
     {
-        final String recaptchaResponse = pwmRequest.readParameterAsString( "g-recaptcha-response" );
+        final String recaptchaResponse = pwmRequest.readParameterAsString( PARAM_RECAPTCHA_FORM_NAME );
         return verifyReCaptcha( pwmRequest, recaptchaResponse );
     }
 
@@ -116,19 +118,18 @@ public class CaptchaUtility
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PasswordData privateKey = pwmApplication.getConfig().readSettingAsPassword( PwmSetting.RECAPTCHA_KEY_PRIVATE );
 
-        final StringBuilder bodyText = new StringBuilder();
-        bodyText.append( "secret=" ).append( privateKey.getStringValue() );
-        bodyText.append( "&" );
-        bodyText.append( "remoteip=" ).append( pwmRequest.getSessionLabel().getSrcAddress() );
-        bodyText.append( "&" );
-        bodyText.append( "response=" ).append( recaptchaResponse );
+        final String bodyText = "secret=" + StringUtil.urlEncode( privateKey.getStringValue() )
+                        + "&"
+                        + "remoteip=" + StringUtil.urlEncode( pwmRequest.getSessionLabel().getSrcAddress() )
+                        + "&"
+                        + "response=" + StringUtil.urlEncode( recaptchaResponse );
 
         try
         {
             final PwmHttpClientRequest clientRequest = new PwmHttpClientRequest(
                     HttpMethod.POST,
                     pwmApplication.getConfig().readAppProperty( AppProperty.RECAPTCHA_VALIDATE_URL ),
-                    bodyText.toString(),
+                    bodyText,
                     Collections.singletonMap( "Content-Type", HttpContentType.form.getHeaderValue() )
             );
             LOGGER.debug( pwmRequest, "sending reCaptcha verification request" );
@@ -151,6 +152,7 @@ public class CaptchaUtility
                 if ( success )
                 {
                     writeCaptchaSkipCookie( pwmRequest );
+                    LOGGER.trace( pwmRequest, "captcha verification passed" );
                     return true;
                 }
 
@@ -176,6 +178,7 @@ public class CaptchaUtility
             throw pwmE;
         }
 
+        LOGGER.trace( pwmRequest, "captcha verification failed" );
         return false;
     }
 
