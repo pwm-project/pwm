@@ -188,7 +188,7 @@
                     <dependency>
                         <groupId>com.puppycrawl.tools</groupId>
                         <artifactId>checkstyle</artifactId>
-                        <version>8.13</version>
+                        <version>8.14</version>
                     </dependency>
                 </dependencies>
                 <executions>
@@ -283,7 +283,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.2</version>
+            <version>1.18.4</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
