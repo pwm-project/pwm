@@ -21,7 +21,7 @@
  */
 
 var webpack = require('webpack');
-var webpackConfig = require('../webpack.test.js');
+var webpackConfig = require('../webpack.config.js')({}, {});
 var path = require("path");
 var os = require('os');
 
@@ -36,7 +36,7 @@ module.exports = function (config) {
 
         // list of files / patterns to load in the browser
         files: [
-            'karma-test-suite.ts'
+            'test/karma-test-suite.ts'
         ],
 
         exclude: [],
@@ -53,15 +53,13 @@ module.exports = function (config) {
         },
 
         webpack: {
+            mode: 'development',
+            devtool: 'inline-source-map',
             resolve: webpackConfig.resolve,
             module: webpackConfig.module,
-            plugins: [
-                // Without this, we're not able to debug our tests in the browser:
-                new webpack.SourceMapDevToolPlugin({
-                    filename: null, // if no value is provided the sourcemap is inlined
-                    test: /\.(ts|js)($|\?)/i // process .js and .ts files only
-                })
-            ]
+            optimization: {
+                minimize: false
+            }
         },
 
         webpackMiddleware: {

@@ -225,6 +225,8 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
     var type = PWM_VAR['clientSettingCache'][keyName][iteration]['type'];
     var settings = PWM_SETTINGS['settings'][keyName];
     var currentValue = PWM_VAR['clientSettingCache'][keyName][iteration];
+    var options = PWM_SETTINGS['settings'][keyName]['options'];
+
 
     var hideStandardOptions = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_HideStandardOptions') || type === 'photo';
     var showRequired = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_ShowRequiredOption');
@@ -286,10 +288,11 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
         bodyText += '</tr><tr>';
         bodyText += '<td id="' + inputID + '-label-js" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_Javascript') + '">JavaScript (Depreciated)</td><td><input type="text" class="configStringInput" style="width:300px" id="' + inputID + 'javascript' + '"/></td>';
         bodyText += '</tr><tr>';
-        if (currentValue['type'] === 'select') {
-            bodyText += '<td class="key">Select Options</td><td><button class="btn" id="' + inputID + 'editOptionsButton"><span class="btn-icon pwm-icon pwm-icon-list-ul"/> Edit</button></td>';
-            bodyText += '</tr>';
-        }
+    }
+
+    if ('select' in options) {
+        bodyText += '<td class="key">Select Options</td><td><button class="btn" id="' + inputID + 'editOptionsButton"><span class="btn-icon pwm-icon pwm-icon-list-ul"/> Edit</button></td>';
+        bodyText += '</tr>';
     }
 
     if (showSource) {

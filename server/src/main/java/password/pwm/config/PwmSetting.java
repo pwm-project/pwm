@@ -941,8 +941,8 @@ public enum PwmSetting
             "peopleSearch.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH ),
     PEOPLE_SEARCH_QUERY_MATCH(
             "peopleSearch.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.PEOPLE_SEARCH ),
-    PEOPLE_SEARCH_SEARCH_ATTRIBUTES(
-            "peopleSearch.searchAttributes", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.PEOPLE_SEARCH ),
+    PEOPLE_SEARCH_SEARCH_FORM(
+            "peopleSearch.search.form", PwmSettingSyntax.FORM, PwmSettingCategory.PEOPLE_SEARCH ),
     PEOPLE_SEARCH_RESULT_FORM(
             "peopleSearch.result.form", PwmSettingSyntax.FORM, PwmSettingCategory.PEOPLE_SEARCH ),
     PEOPLE_SEARCH_DETAIL_FORM(
@@ -971,6 +971,9 @@ public enum PwmSetting
             "peopleSearch.enableExport", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH ),
     PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS(
             "peopleSearch.idleTimeout", PwmSettingSyntax.DURATION, PwmSettingCategory.PEOPLE_SEARCH ),
+    PEOPLE_SEARCH_ENABLE_ADVANCED_SEARCH(
+            "peopleSearch.advancedSearch.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH ),
+
 
 
     // edirectory settings
@@ -1016,6 +1019,8 @@ public enum PwmSetting
     HELPDESK_PROFILE_QUERY_MATCH(
             "helpdesk.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.HELPDESK_BASE ),
     HELPDESK_SEARCH_FORM(
+            "helpdesk.search.form", PwmSettingSyntax.FORM, PwmSettingCategory.HELPDESK_BASE ),
+    HELPDESK_SEARCH_RESULT_FORM(
             "helpdesk.result.form", PwmSettingSyntax.FORM, PwmSettingCategory.HELPDESK_BASE ),
     HELPDESK_SEARCH_FILTERS(
             "helpdesk.search.filters", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.HELPDESK_BASE ),
@@ -1066,6 +1071,9 @@ public enum PwmSetting
             "helpdesk.setPassword.maskValue", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_OPTIONS ),
     HELPDESK_ENABLE_PHOTOS(
             "helpdesk.enablePhotos", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_OPTIONS ),
+    HELPDESK_ENABLE_ADVANCED_SEARCH(
+            "helpdesk.advancedSearch.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_OPTIONS ),
+
 
     HELPDESK_VERIFICATION_METHODS(
             "helpdesk.verificationMethods", PwmSettingSyntax.VERIFICATION_METHOD, PwmSettingCategory.HELPDESK_VERIFICATION ),
@@ -1198,6 +1206,10 @@ public enum PwmSetting
 
 
     // deprecated.
+
+    // deprecated 2018-10-15
+    PEOPLE_SEARCH_SEARCH_ATTRIBUTES(
+            "peopleSearch.searchAttributes", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.PEOPLE_SEARCH ),
 
     // deprecated 2018-02-27
     RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME(

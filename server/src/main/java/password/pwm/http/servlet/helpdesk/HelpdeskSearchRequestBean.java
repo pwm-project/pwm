@@ -20,18 +20,28 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-Error.stackTraceLimit = Infinity;
+package password.pwm.http.servlet.helpdesk;
 
-import 'angular';
-import 'angular-mocks';
+import lombok.Builder;
+import lombok.Value;
+import password.pwm.http.servlet.peoplesearch.SearchRequestBean;
 
-// This creates a single bundle with all test cases (*.test.ts), which improves performance
-// (i.e. we don't create a webpack bundle for each test)
+import java.io.Serializable;
+import java.util.List;
 
-// To run all tests, use this:
-// var appContext = (require as any).context('../src', true, /\.test\.ts/);
+@Value
+@Builder
+public class HelpdeskSearchRequestBean implements Serializable
+{
+    @Builder.Default
+    private SearchRequestBean.SearchMode mode = SearchRequestBean.SearchMode.simple;
 
-// To run a specific test, change the following regular expression and use this:
-var appContext = (require as any).context('../src', true, /common-search.service.test.ts/);
+    private String username;
+    private List<SearchRequestBean.SearchValue> searchValues;
 
-appContext.keys().forEach(appContext);
+    public List<SearchRequestBean.SearchValue> nonEmptySearchValues()
+    {
+        return SearchRequestBean.filterNonEmptySearchValues( getSearchValues() );
+    }
+
+}

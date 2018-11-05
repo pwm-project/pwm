@@ -3150,7 +3150,7 @@
             <value>{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}</value>
         </default>
     </setting>
-    <setting hidden="false" key="peopleSearch.searchAttributes" level="1" required="false">
+    <setting hidden="true" key="peopleSearch.searchAttributes" level="1" required="false">
         <ldapPermission actor="self_other" access="read"/>
         <default>
             <value>givenName</value>
@@ -3158,6 +3158,20 @@
             <value>title</value>
             <value>mail</value>
         </default>
+    </setting>
+    <setting hidden="false" key="peopleSearch.search.form" level="1" required="true">
+        <flag>Form_HideStandardOptions</flag>
+        <ldapPermission actor="self_other" access="read"/>
+        <default>
+            <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"title","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Title"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+        </default>
+        <options>
+            <option value="text">text</option>
+            <option value="select">select</option>
+        </options>
     </setting>
     <setting hidden="false" key="peopleSearch.searchFilter" level="2" required="false">
         <default/>
@@ -3266,6 +3280,11 @@
     <setting hidden="false" key="peopleSearch.idleTimeout" level="1">
         <default>
             <value>0</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="peopleSearch.advancedSearch.enable" level="1">
+        <default>
+            <value>false</value>
         </default>
     </setting>
     <setting hidden="false" key="peopleSearch.orgChart.parentAttribute" level="1">
@@ -3391,6 +3410,28 @@
     </setting>
     <setting hidden="false" key="helpdesk.filter" level="1">
         <default/>
+    </setting>
+    <setting hidden="false" key="helpdesk.search.form" level="1" required="true">
+        <flag>Form_HideStandardOptions</flag>
+        <ldapPermission actor="helpdesk" access="read"/>
+        <default>
+            <value>{"name":"cn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"workforceID","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Workforce ID"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+        </default>
+        <default template="AD">
+            <value>{"name":"sAMAccountName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"userPrincipalName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"UPN"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+        </default>
+        <options>
+            <option value="text">text</option>
+            <option value="select">select</option>
+        </options>
     </setting>
     <setting hidden="false" key="helpdesk.result.form" level="1" required="true">
         <flag>Form_HideOptions</flag>
@@ -3655,6 +3696,11 @@
         </default>
     </setting>
     <setting hidden="false" key="helpdesk.enablePhotos" level="1">
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="helpdesk.advancedSearch.enable" level="1">
         <default>
             <value>true</value>
         </default>

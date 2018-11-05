@@ -24,7 +24,14 @@
 import { IHttpService, ILogService, IPromise, IQService } from 'angular';
 import IPwmService from './pwm.service';
 import PwmService from './pwm.service';
-import {ConfigBaseService, IConfigService} from './base-config.service';
+import {
+    ConfigBaseService,
+    IConfigService,
+    IAdvancedSearchConfig,
+    ADVANCED_SEARCH_ENABLED,
+    ADVANCED_SEARCH_MAX_ATTRIBUTES,
+    ADVANCED_SEARCH_ATTRIBUTES
+} from './base-config.service';
 
 const ORGCHART_ENABLED = 'orgChartEnabled';
 const ORGCHART_MAX_PARENTS = 'orgChartMaxParents';
@@ -34,6 +41,7 @@ export interface IPeopleSearchConfigService extends IConfigService {
     getOrgChartMaxParents(): IPromise<number>;
     orgChartEnabled(): IPromise<boolean>;
     orgChartShowChildCount(): IPromise<boolean>;
+    advancedSearchConfig(): IPromise<IAdvancedSearchConfig>;
 }
 
 export default class PeopleSearchConfigService
@@ -56,5 +64,19 @@ export default class PeopleSearchConfigService
 
     orgChartShowChildCount(): IPromise<boolean> {
         return this.getValue(ORGCHART_SHOW_CHILD_COUNT);
+    }
+
+    advancedSearchConfig(): IPromise<IAdvancedSearchConfig> {
+        return this.$q.all([
+            this.getValue(ADVANCED_SEARCH_ENABLED),
+            this.getValue(ADVANCED_SEARCH_MAX_ATTRIBUTES),
+            this.getValue(ADVANCED_SEARCH_ATTRIBUTES)
+        ]).then((result) => {
+            return {
+                enabled: result[0],
+                maxRows: result[1],
+                attributes: result[2]
+            };
+        });
     }
 }

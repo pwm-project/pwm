@@ -24,6 +24,7 @@ package password.pwm.http.servlet.peoplesearch;
 
 import lombok.Builder;
 import lombok.Value;
+import password.pwm.PwmApplication;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -32,8 +33,11 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 @Value
@@ -41,12 +45,50 @@ import java.util.Map;
 public class PeopleSearchClientConfigBean implements Serializable
 {
     private Map<String, String> searchColumns;
+    private boolean enableAdvancedSearch;
     private boolean enablePhoto;
     private boolean orgChartEnabled;
     private boolean orgChartShowChildCount;
     private int orgChartMaxParents;
+    private int maxAdvancedSearchAttributes;
+    private List<SearchAttribute> advancedSearchAttributes;
     private boolean enableExport;
     private int exportMaxDepth;
+
+
+    @Value
+    @Builder
+    public static class SearchAttribute implements Serializable
+    {
+        private String attribute;
+        private String label;
+        private FormConfiguration.Type type;
+        private Map<String, String> options;
+
+        public static List<SearchAttribute> searchAttributesFromForm(
+                final Locale locale,
+                final List<FormConfiguration> formConfigurations
+        )
+        {
+            final List<SearchAttribute> returnList = new ArrayList<>( );
+            for ( final FormConfiguration formConfiguration : formConfigurations )
+            {
+                final String attribute = formConfiguration.getName();
+                final String label = formConfiguration.getLabel( locale );
+
+                final SearchAttribute searchAttribute = SearchAttribute.builder()
+                        .attribute( attribute )
+                        .type( formConfiguration.getType() )
+                        .label( label )
+                        .options( formConfiguration.getSelectOptions() )
+                        .build();
+
+                returnList.add( searchAttribute );
+            }
+
+            return Collections.unmodifiableList( returnList );
+        }
+    }
 
 
     static PeopleSearchClientConfigBean fromConfig(
@@ -56,14 +98,20 @@ public class PeopleSearchClientConfigBean implements Serializable
     )
             throws PwmUnrecoverableException
     {
-        final Configuration configuration = pwmRequest.getConfig();
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final Configuration configuration = pwmApplication.getConfig();
+        final Locale locale = pwmRequest.getLocale();
+
         final Map<String, String> searchColumns = new LinkedHashMap<>();
         final List<FormConfiguration> searchForm = configuration.readSettingAsForm( PwmSetting.PEOPLE_SEARCH_RESULT_FORM );
         for ( final FormConfiguration formConfiguration : searchForm )
         {
             searchColumns.put( formConfiguration.getName(),
-                    formConfiguration.getLabel( pwmRequest.getLocale() ) );
+                    formConfiguration.getLabel( locale ) );
         }
+
+
+        final List<SearchAttribute> searchAttributes = SearchAttribute.searchAttributesFromForm( locale, peopleSearchConfiguration.getSearchForm() );
 
         return PeopleSearchClientConfigBean.builder()
                 .searchColumns( searchColumns )
@@ -71,8 +119,14 @@ public class PeopleSearchClientConfigBean implements Serializable
                 .orgChartEnabled( peopleSearchConfiguration.isOrgChartEnabled() )
                 .orgChartShowChildCount( peopleSearchConfiguration.isOrgChartShowChildCount() )
                 .orgChartMaxParents( peopleSearchConfiguration.getOrgChartMaxParents() )
+
+                .enableAdvancedSearch( peopleSearchConfiguration.isEnableAdvancedSearch() )
+                .maxAdvancedSearchAttributes( 3 )
+                .advancedSearchAttributes( searchAttributes )
+
                 .enableExport( peopleSearchConfiguration.isEnableExportCsv() )
                 .exportMaxDepth( peopleSearchConfiguration.getExportCsvMaxDepth() )
+
                 .build();
     }
 }
