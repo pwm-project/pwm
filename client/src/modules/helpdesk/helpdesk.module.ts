@@ -38,6 +38,7 @@ import AutogenChangePasswordController from '../../components/changepassword/aut
 import RandomChangePasswordController from '../../components/changepassword/random-change-password.controller';
 import SuccessChangePasswordController from '../../components/changepassword/success-change-password.controller';
 import TypeChangePasswordController from '../../components/changepassword/type-change-password.controller';
+import CommonSearchService from '../../services/common-search.service';
 
 require('../peoplesearch/peoplesearch.scss');
 
@@ -61,6 +62,7 @@ module(moduleName, [
     .filter('dateFilter', DateFilter)
     .service('ObjectService', ObjectService)
     .service('PromiseService', PromiseService)
-    .service('LocalStorageService', LocalStorageService);
+    .service('LocalStorageService', LocalStorageService)
+    .service('CommonSearchService', CommonSearchService);
 
 export default moduleName;

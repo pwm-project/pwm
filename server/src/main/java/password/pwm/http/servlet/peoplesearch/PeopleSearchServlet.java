@@ -55,7 +55,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Map;
 
 public abstract class PeopleSearchServlet extends ControlledPwmServlet
 {
@@ -120,7 +119,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
             final PwmRequest pwmRequest
 
     )
-            throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
+            throws PwmUnrecoverableException, IOException
     {
         final PeopleSearchConfiguration peopleSearchConfiguration = PeopleSearchConfiguration.forRequest( pwmRequest );
 
@@ -140,24 +139,19 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
     private ProcessStatus restSearchRequest(
             final PwmRequest pwmRequest
     )
-            throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
+            throws PwmUnrecoverableException, IOException
     {
-        final Map<String, Object> jsonBodyMap = pwmRequest.readBodyAsJsonMap( PwmHttpRequestWrapper.Flag.BypassValidation );
-        final String username = jsonBodyMap.get( "username" ) == null
-                ? null
-                : jsonBodyMap.get( "username" ).toString();
-
-        final boolean includeDisplayName = pwmRequest.readParameterAsBoolean( "includeDisplayName" );
+        final SearchRequestBean searchRequest = JsonUtil.deserialize( pwmRequest.readRequestBodyAsString(), SearchRequestBean.class );
 
         final PeopleSearchDataReader peopleSearchDataReader = new PeopleSearchDataReader( pwmRequest );
 
-        final SearchResultBean searchResultBean = peopleSearchDataReader.makeSearchResultBean( username, includeDisplayName );
+        final SearchResultBean searchResultBean = peopleSearchDataReader.makeSearchResultBean( searchRequest );
         final RestResultBean restResultBean = RestResultBean.withData( searchResultBean );
 
         addExpiresHeadersToResponse( pwmRequest );
         pwmRequest.outputJsonResult( restResultBean );
 
-        LOGGER.trace( pwmRequest, "returning " + searchResultBean.getSearchResults().size() + " results for search request '" + username + "'" );
+        LOGGER.trace( pwmRequest, "returning " + searchResultBean.getSearchResults().size() + " results for search request " + JsonUtil.serialize( searchRequest ) );
         return ProcessStatus.Halt;
     }
 

@@ -28,7 +28,14 @@ import IOrgChartData from '../models/orgchart-data.model';
 import SearchResult from '../models/search-result.model';
 import {IPeopleSearchConfigService} from './peoplesearch-config.service';
 
+export interface IQuery {
+ key: string;
+ value: string;
+}
+
 export interface IPeopleService {
+    advancedSearch(queries: IQuery[]): IPromise<SearchResult>;
+
     autoComplete(query: string): IPromise<IPerson[]>;
 
     getDirectReports(personId: string): IPromise<IPerson[]>;
@@ -61,6 +68,42 @@ export default class PeopleService implements IPeopleService {
         else {
             this.$log.warn('PWM_GLOBAL is not defined on window');
         }
+    }
+
+    advancedSearch(queries: IQuery[]): IPromise<SearchResult> {
+        // Deferred object used for aborting requests. See promise.service.ts for more information
+        let httpTimeout = this.$q.defer();
+
+        let formID: string = encodeURIComponent('&pwmFormID=' + this.PWM_GLOBAL['pwmFormID']);
+        let url: string = this.pwmService.getServerUrl('search')
+            + '&pwmFormID=' + this.PWM_GLOBAL['pwmFormID'];
+        let request = this.$http
+            .post(url, {
+                mode: 'advanced',
+                pwmFormID: formID,
+                searchValues: queries
+            }, {
+                cache: true,
+                timeout: httpTimeout.promise,
+                headers: {'Content-Type': 'multipart/form-data'},
+            });
+
+        let promise = request.then(
+            (response) => {
+                if (response.data['error']) {
+                    return this.handlePwmError(response);
+                }
+
+                let receivedData: any = response.data['data'];
+                let searchResult: SearchResult = new SearchResult(receivedData);
+
+                return searchResult;
+            },
+            this.handleHttpError.bind(this));
+
+        promise['_httpTimeout'] = httpTimeout;
+
+        return promise;
     }
 
     autoComplete(query: string): IPromise<IPerson[]> {
@@ -189,6 +232,7 @@ export default class PeopleService implements IPeopleService {
             + '&pwmFormID=' + this.PWM_GLOBAL['pwmFormID'];
         let request = this.$http
             .post(url, {
+                mode: 'simple',
                 username: query,
                 pwmFormID: formID
             }, {

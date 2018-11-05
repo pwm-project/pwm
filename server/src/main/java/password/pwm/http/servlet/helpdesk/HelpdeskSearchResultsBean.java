@@ -22,33 +22,26 @@
 
 package password.pwm.http.servlet.helpdesk;
 
+import lombok.Builder;
+import lombok.Value;
+
 import java.io.Serializable;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+@Value
+@Builder
 public class HelpdeskSearchResultsBean implements Serializable
 {
-    private List<Map<String, Object>> searchResults = new ArrayList<>();
+    private List<Map<String, Object>> searchResults;
     private boolean sizeExceeded;
 
-    public List<Map<String, Object>> getSearchResults( )
+    static HelpdeskSearchResultsBean emptyResult()
     {
-        return searchResults;
-    }
-
-    public void setSearchResults( final List<Map<String, Object>> searchResults )
-    {
-        this.searchResults = searchResults;
-    }
-
-    public boolean isSizeExceeded( )
-    {
-        return sizeExceeded;
-    }
-
-    public void setSizeExceeded( final boolean sizeExceeded )
-    {
-        this.sizeExceeded = sizeExceeded;
+        return HelpdeskSearchResultsBean.builder()
+            .searchResults( Collections.emptyList() )
+            .sizeExceeded( false )
+            .build();
     }
 }
