@@ -138,7 +138,7 @@ class MemoryCacheStore implements CacheStore
             final CacheValueWrapper cacheValueWrapper = entry.getValue();
             final Instant storeDate = cacheValueWrapper.getExpirationDate();
             final String age = Duration.between( storeDate, Instant.now() ).toString();
-            final int chars = JsonUtil.serialize( cacheValueWrapper.getPayload() ).length();
+            final int chars = cacheValueWrapper.getPayload().length();
             final String keyClass = cacheKey.getSrcClass() == null ? "null" : cacheKey.getSrcClass().getName();
             final String keyUserID = cacheKey.getUserIdentity() == null ? "null" : cacheKey.getUserIdentity().toDisplayString();
             final String keyValue = cacheKey.getValueID() == null ? "null" : cacheKey.getValueID();

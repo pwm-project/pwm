@@ -63,7 +63,7 @@ public class PwmSessionWrapper
         final PwmSession returnSession = ( PwmSession ) httpSession.getAttribute( PwmConstants.SESSION_ATTR_PWM_SESSION );
         if ( returnSession == null )
         {
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, "attempt to read PwmSession from HttpSession failed" ) );
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, "attempt to read PwmSession from HttpSession failed" ) );
         }
         return returnSession;
     }

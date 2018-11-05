@@ -132,7 +132,7 @@ public class ApplianceStatusChecker implements HealthChecker
         {
             final String msg = "unable to determine appliance token, token file environment param "
                     + PwmEnvironment.ApplicationParameter.ApplianceTokenFile.toString() + " is not set";
-            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_UNKNOWN, msg ) );
+            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, msg ) );
         }
         final String fileInput = readFileContents( tokenFile );
         if ( fileInput != null )
@@ -149,7 +149,7 @@ public class ApplianceStatusChecker implements HealthChecker
         {
             final String msg = "unable to determine appliance hostname, hostname file environment param "
                     + PwmEnvironment.ApplicationParameter.ApplianceHostnameFile.toString() + " is not set";
-            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_UNKNOWN, msg ) );
+            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, msg ) );
         }
 
         final String hostname = readFileContents( hostnameFile );
@@ -175,7 +175,7 @@ public class ApplianceStatusChecker implements HealthChecker
         catch ( IOException e )
         {
             final String msg = "unable to read contents of file '" + filename + "', error: " + e.getMessage();
-            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_UNKNOWN, msg ), e );
+            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, msg ), e );
         }
     }
 }

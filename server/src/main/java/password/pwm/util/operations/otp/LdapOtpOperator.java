@@ -87,13 +87,13 @@ public class LdapOtpOperator extends AbstractOtpOperator
         catch ( ChaiOperationException e )
         {
             final String errorMsg = "unexpected LDAP error reading responses: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             throw new PwmUnrecoverableException( errorInformation );
         }
         catch ( ChaiUnavailableException e )
         {
             final String errorMsg = "unexpected LDAP error reading responses: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             throw new PwmUnrecoverableException( errorInformation );
         }
         return otp;

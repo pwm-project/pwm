@@ -237,7 +237,7 @@ public class RequestInitializationFilter implements Filter
         catch ( Throwable e )
         {
             final String logMsg = "can't init request: " + e.getMessage();
-            if ( e instanceof PwmException && ( ( PwmException ) e ).getError() != PwmError.ERROR_UNKNOWN )
+            if ( e instanceof PwmException && ( ( PwmException ) e ).getError() != PwmError.ERROR_INTERNAL )
             {
                 LOGGER.error( logMsg );
             }

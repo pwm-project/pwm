@@ -125,7 +125,7 @@ class DataStoreRecordStore implements RecordStore
         }
         catch ( PwmDataStoreException e )
         {
-            throw new PwmOperationalException( PwmError.ERROR_UNKNOWN, "iterator unavailable:" + e.getMessage() );
+            throw new PwmOperationalException( PwmError.ERROR_INTERNAL, "iterator unavailable:" + e.getMessage() );
         }
     }
 

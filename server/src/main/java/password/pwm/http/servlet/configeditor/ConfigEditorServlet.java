@@ -221,7 +221,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
             }
             else
             {
-                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, "error performing user search: " + e.getMessage() );
+                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "error performing user search: " + e.getMessage() );
                 restResultBean = RestResultBean.fromError( errorInformation, pwmRequest );
             }
             pwmRequest.outputJsonResult( restResultBean );
@@ -286,7 +286,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         {
             final String errorStr = "readSettingAsString request for unknown key: " + key;
             LOGGER.warn( errorStr );
-            pwmRequest.outputJsonResult( RestResultBean.fromError( new ErrorInformation( PwmError.ERROR_UNKNOWN, errorStr ) ) );
+            pwmRequest.outputJsonResult( RestResultBean.fromError( new ErrorInformation( PwmError.ERROR_INTERNAL, errorStr ) ) );
             return ProcessStatus.Halt;
         }
         else

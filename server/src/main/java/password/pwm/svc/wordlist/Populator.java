@@ -253,7 +253,7 @@ class Populator
         final int wordlistSize = localDB.size( rootWordlist.getWordlistDB() );
         if ( wordlistSize < 1 )
         {
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, rootWordlist.debugLabel + " population completed, but no words stored" ) );
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, rootWordlist.debugLabel + " population completed, but no words stored" ) );
         }
 
         final StringBuilder sb = new StringBuilder();
@@ -286,7 +286,7 @@ class Populator
         }
         if ( isRunning() && TimeDuration.fromCurrent( startWaitTime ).isShorterThan( maxWaitMs ) )
         {
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, "unable to abort in progress population" ) );
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, "unable to abort in progress population" ) );
         }
 
     }

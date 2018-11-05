@@ -177,7 +177,7 @@ public class LdapOperationsHelper
             final StringBuilder errorMsg = new StringBuilder();
             errorMsg.append( "error connecting as proxy user: " );
             final PwmError pwmError = PwmError.forChaiError( e.getErrorCode() );
-            if ( pwmError != null && pwmError != PwmError.ERROR_UNKNOWN )
+            if ( pwmError != null && pwmError != PwmError.ERROR_INTERNAL )
             {
                 errorMsg.append( new ErrorInformation( pwmError, e.getMessage() ).toDebugStr() );
             }
@@ -289,7 +289,7 @@ public class LdapOperationsHelper
                     }
                     catch ( IOException e )
                     {
-                        throw PwmUnrecoverableException.newException( PwmError.ERROR_UNKNOWN, "error processing binary form value: " + e.getMessage() );
+                        throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, "error processing binary form value: " + e.getMessage() );
                     }
 
                     final byte[] existingBytes;
@@ -543,7 +543,7 @@ public class LdapOperationsHelper
             if ( newGuid == null )
             {
                 throw new PwmUnrecoverableException( new ErrorInformation(
-                        PwmError.ERROR_UNKNOWN,
+                        PwmError.ERROR_INTERNAL,
                         "unable to generate unique GUID value for user " + userIdentity )
                 );
             }
@@ -561,7 +561,7 @@ public class LdapOperationsHelper
             {
                 final String errorMsg = "unable to write GUID value to user attribute " + guidAttributeName + " : " + e.getMessage()
                         + ", cannot write GUID value to user " + userIdentity;
-                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
                 LOGGER.error( errorInformation.toDebugStr() );
                 throw new PwmUnrecoverableException( errorInformation );
             }
@@ -977,7 +977,7 @@ public class LdapOperationsHelper
         }
         catch ( IOException | ChaiOperationException e )
         {
-            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_UNKNOWN, "error reading user photo ldap attribute: " + e.getMessage() ) );
+            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, "error reading user photo ldap attribute: " + e.getMessage() ) );
         }
         return new PhotoDataBean( mimeType, new ImmutableByteArray( photoData ) );
     }

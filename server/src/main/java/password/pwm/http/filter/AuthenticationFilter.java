@@ -392,7 +392,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
                         }
                         else
                         {
-                            errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, e.getMessage() );
+                            errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
 
                         }
                         LOGGER.error( pwmRequest, errorInformation );

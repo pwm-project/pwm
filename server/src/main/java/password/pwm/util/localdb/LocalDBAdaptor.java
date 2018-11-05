@@ -450,14 +450,14 @@ public class LocalDBAdaptor implements LocalDB
                 throw new NullPointerException( "key cannot be null" );
             }
 
-            if ( key.length() < 0 )
+            if ( key.length() <= 0 )
             {
-                throw new LocalDBException( new ErrorInformation( PwmError.ERROR_UNKNOWN, "key length cannot be zero length" ) );
+                throw new LocalDBException( new ErrorInformation( PwmError.ERROR_INTERNAL, "key length cannot be zero length" ) );
             }
 
             if ( key.length() > LocalDB.MAX_KEY_LENGTH )
             {
-                throw new LocalDBException( new ErrorInformation( PwmError.ERROR_UNKNOWN, "key length " + key.length() + " is greater than max " + LocalDB.MAX_KEY_LENGTH ) );
+                throw new LocalDBException( new ErrorInformation( PwmError.ERROR_INTERNAL, "key length " + key.length() + " is greater than max " + LocalDB.MAX_KEY_LENGTH ) );
             }
         }
 
@@ -470,7 +470,8 @@ public class LocalDBAdaptor implements LocalDB
 
             if ( value.length() > LocalDB.MAX_VALUE_LENGTH )
             {
-                throw new LocalDBException( new ErrorInformation( PwmError.ERROR_UNKNOWN, "value length " + value.length() + " is greater than max " + LocalDB.MAX_VALUE_LENGTH ) );
+                final String errorMsg = "value length " + value.length() + " is greater than max " + LocalDB.MAX_VALUE_LENGTH;
+                throw new LocalDBException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
             }
         }
     }

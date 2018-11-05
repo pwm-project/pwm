@@ -310,7 +310,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
 
             final String errorMsg = "error during otp code validation: " + e.getMessage();
             LOGGER.error( pwmSession, errorMsg );
-            pwmRequest.outputJsonResult( RestResultBean.fromError( new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg ), pwmRequest ) );
+            pwmRequest.outputJsonResult( RestResultBean.fromError( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ), pwmRequest ) );
         }
 
         return ProcessStatus.Continue;
@@ -462,7 +462,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
             {
                 final String errorMsg = "error setting up new OTP secret: " + e.getMessage();
                 LOGGER.error( pwmSession, errorMsg );
-                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg ) );
+                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
             }
         }
     }
@@ -511,7 +511,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
         {
             final String errorMsg = "error generating qrcode image: " + e.getMessage() + ", payload length=" + qrCodeContent.length();
             LOGGER.error( pwmRequest, errorMsg, e );
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg ) );
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
         }
 
         return "data:image/png;base64," + StringUtil.base64Encode( imageBytes );

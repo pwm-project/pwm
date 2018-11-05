@@ -97,13 +97,13 @@ public class LocalDbOtpOperator extends AbstractOtpOperator
         catch ( LocalDBException e )
         {
             final String errorMsg = "unexpected LocalDB error reading otp: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             throw new PwmUnrecoverableException( errorInformation );
         }
         catch ( PwmOperationalException e )
         {
             final String errorMsg = "unexpected error reading otp: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             throw new PwmUnrecoverableException( errorInformation );
         }
         return otpConfig;

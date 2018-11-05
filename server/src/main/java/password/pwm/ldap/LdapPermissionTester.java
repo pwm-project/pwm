@@ -124,7 +124,7 @@ public class LdapPermissionTester
             }
 
             default:
-                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, "unknown permission type: " + userPermission.getType() ) );
+                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, "unknown permission type: " + userPermission.getType() ) );
         }
     }
 
@@ -278,7 +278,7 @@ public class LdapPermissionTester
 
                     default:
                         throw new PwmUnrecoverableException( new ErrorInformation(
-                                PwmError.ERROR_UNKNOWN,
+                                PwmError.ERROR_INTERNAL,
                                 "unknown permission type: " + userPermission.getType() )
                         );
                 }

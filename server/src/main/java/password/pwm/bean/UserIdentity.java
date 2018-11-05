@@ -123,7 +123,7 @@ public class UserIdentity implements Serializable, Comparable
         }
         catch ( Exception e )
         {
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, "unexpected error making obfuscated user key: " + e.getMessage() ) );
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, "unexpected error making obfuscated user key: " + e.getMessage() ) );
         }
     }
 
@@ -146,7 +146,7 @@ public class UserIdentity implements Serializable, Comparable
 
         if ( !key.startsWith( CRYPO_HEADER ) )
         {
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, "cannot reverse obfuscated user key: missing header; value=" + key ) );
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, "cannot reverse obfuscated user key: missing header; value=" + key ) );
         }
 
         try
@@ -157,7 +157,7 @@ public class UserIdentity implements Serializable, Comparable
         }
         catch ( Exception e )
         {
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, "unexpected error reversing obfuscated user key: " + e.getMessage() ) );
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, "unexpected error reversing obfuscated user key: " + e.getMessage() ) );
         }
     }
 
@@ -171,11 +171,11 @@ public class UserIdentity implements Serializable, Comparable
         final StringTokenizer st = new StringTokenizer( key, DELIM_SEPARATOR );
         if ( st.countTokens() < 2 )
         {
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, "not enough tokens while parsing delimited identity key" ) );
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, "not enough tokens while parsing delimited identity key" ) );
         }
         else if ( st.countTokens() > 2 )
         {
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, "too many string tokens while parsing delimited identity key" ) );
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, "too many string tokens while parsing delimited identity key" ) );
         }
         final String profileID = st.nextToken();
         final String userDN = st.nextToken();

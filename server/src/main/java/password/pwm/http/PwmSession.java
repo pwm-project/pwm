@@ -279,7 +279,7 @@ public class PwmSession implements Serializable
             catch ( PwmUnrecoverableException e )
             {
                 final String errorMsg = "unexpected error writing removing login cookie from response: " + e.getMessage();
-                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
                 LOGGER.error( pwmRequest, errorInformation );
             }
 

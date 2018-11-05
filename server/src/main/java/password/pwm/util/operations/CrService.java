@@ -229,7 +229,7 @@ public class CrService implements PwmService
         {
             final String errorMsg = "unexpected error applying policies to nmas challengeset: " + e.getMessage();
             LOGGER.error( errorMsg, e );
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg ) );
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
         }
     }
 

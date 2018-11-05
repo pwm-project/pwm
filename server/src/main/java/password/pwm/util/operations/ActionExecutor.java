@@ -118,7 +118,7 @@ public class ActionExecutor
             if ( settings.getUserIdentity() == null )
             {
                 final String errorMsg = "attempt to execute lap action but neither chaiUser or userIdentity is specified";
-                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
                 throw new PwmUnrecoverableException( errorInformation );
             }
             theUser = pwmApplication.getProxiedChaiUser( settings.getUserIdentity() );
@@ -128,7 +128,7 @@ public class ActionExecutor
         {
             if ( settings.getMacroMachine() == null )
             {
-                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, "executor specified macro expansion but did not supply macro machine" ) );
+                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, "executor specified macro expansion but did not supply macro machine" ) );
             }
             final MacroMachine macroMachine = settings.getMacroMachine();
 
@@ -168,7 +168,7 @@ public class ActionExecutor
             {
                 if ( settings.getMacroMachine() == null )
                 {
-                    throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, "executor specified macro expansion but did not supply macro machine" ) );
+                    throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, "executor specified macro expansion but did not supply macro machine" ) );
                 }
                 final MacroMachine macroMachine = settings.getMacroMachine();
 
@@ -239,7 +239,7 @@ public class ActionExecutor
 
             final String errorMsg = "unexpected error during API execution: " + e.getMessage();
             LOGGER.error( errorMsg );
-            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg ) );
+            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
         }
     }
 
@@ -275,7 +275,7 @@ public class ActionExecutor
                 catch ( ChaiOperationException e )
                 {
                     final String errorMsg = "error setting '" + attrName + "' attribute on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
-                    final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+                    final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
                     final PwmOperationalException newException = new PwmOperationalException( errorInformation );
                     newException.initCause( e );
                     throw newException;
@@ -293,7 +293,7 @@ public class ActionExecutor
                 catch ( ChaiOperationException e )
                 {
                     final String errorMsg = "error adding '" + attrName + "' attribute value from user " + theUser.getEntryDN() + ", error: " + e.getMessage();
-                    final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+                    final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
                     final PwmOperationalException newException = new PwmOperationalException( errorInformation );
                     newException.initCause( e );
                     throw newException;
@@ -312,7 +312,7 @@ public class ActionExecutor
                 catch ( ChaiOperationException e )
                 {
                     final String errorMsg = "error deletig '" + attrName + "' attribute value on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
-                    final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+                    final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
                     final PwmOperationalException newException = new PwmOperationalException( errorInformation );
                     newException.initCause( e );
                     throw newException;

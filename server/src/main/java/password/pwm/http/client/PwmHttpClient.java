@@ -168,7 +168,7 @@ public class PwmHttpClient
         }
         catch ( Exception e )
         {
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, "unexpected error creating promiscuous https client: " + e.getMessage() ) );
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, "unexpected error creating promiscuous https client: " + e.getMessage() ) );
         }
 
         final String proxyUrl = configuration.readSettingAsString( PwmSetting.HTTP_PROXY_URL );
@@ -329,7 +329,7 @@ public class PwmHttpClient
                 }
                 catch ( URISyntaxException e )
                 {
-                    throw PwmUnrecoverableException.newException( PwmError.ERROR_UNKNOWN, "malformed url: " + clientRequest.getUrl() + ", error: " + e.getMessage() );
+                    throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, "malformed url: " + clientRequest.getUrl() + ", error: " + e.getMessage() );
                 }
             }
             break;

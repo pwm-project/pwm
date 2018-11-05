@@ -226,7 +226,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
         catch ( PwmOperationalException e )
         {
             final ErrorInformation errorInfo;
-            errorInfo = e.getError() == PwmError.ERROR_UNKNOWN
+            errorInfo = e.getError() == PwmError.ERROR_INTERNAL
                     ? new ErrorInformation( PwmError.ERROR_CANT_MATCH_USER, e.getErrorInformation().getDetailedErrorMsg(),
                     e.getErrorInformation().getFieldValues() )
                     : e.getErrorInformation();
@@ -323,7 +323,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
         if ( toNumber == null || toNumber.length() < 1 )
         {
             final String errorMsg = String.format( "unable to send new password email for '%s'; no SMS number available in ldap", userInfo.getUserIdentity() );
-            return new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            return new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
         }
 
         final MacroMachine macroMachine = MacroMachine.forUser( pwmApplication, sessionLabel, userInfo, null );
@@ -343,7 +343,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
         if ( emailItemBean == null )
         {
             final String errorMsg = "emailItemBean is null";
-            return new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            return new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
         }
 
         final MacroMachine macroMachine = MacroMachine.forUser( pwmApplication, sessionLabel, userInfo, null );

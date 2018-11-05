@@ -240,7 +240,7 @@ public class ConfigurationReader
         {
             if ( !backupDirectory.mkdirs() )
             {
-                throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_UNKNOWN,
+                throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL,
                         "unable to create backup directory structure '" + backupDirectory.toString() + "'" ) );
             }
         }
@@ -272,7 +272,7 @@ public class ConfigurationReader
             {
                 final String errorMsg = "unable to rename temporary save file from " + tempWriteFile.getAbsolutePath()
                         + " to " + configFile.getAbsolutePath() + "; error: " + e.getMessage();
-                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg ) );
+                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
             }
 
             if ( backupDirectory != null )

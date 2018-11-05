@@ -65,7 +65,7 @@ public class ApplicationModeFilter extends AbstractPwmFilter
             }
             catch ( PwmUnrecoverableException e )
             {
-                if ( e.getError() == PwmError.ERROR_UNKNOWN )
+                if ( e.getError() == PwmError.ERROR_INTERNAL )
                 {
                     try
                     {

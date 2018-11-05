@@ -140,7 +140,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
 
         if ( wordlistType == null )
         {
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, "unknown wordlist type: " + wordlistTypeParam );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "unknown wordlist type: " + wordlistTypeParam );
             pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
             LOGGER.error( pwmRequest, "error during import: " + errorInformation.toDebugStr() );
             return;
@@ -148,7 +148,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
 
         if ( !ServletFileUpload.isMultipartContent( req ) )
         {
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, "no file found in upload" );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "no file found in upload" );
             pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
             LOGGER.error( pwmRequest, "error during import: " + errorInformation.toDebugStr() );
             return;
@@ -162,7 +162,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
         }
         catch ( PwmUnrecoverableException e )
         {
-            final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_UNKNOWN, e.getMessage() );
+            final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
             final RestResultBean restResultBean = RestResultBean.fromError( errorInfo, pwmRequest );
             LOGGER.debug( pwmRequest, errorInfo.toDebugStr() );
             pwmRequest.outputJsonResult( restResultBean );
@@ -180,7 +180,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
 
         if ( wordlistType == null )
         {
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, "unknown wordlist type: " + wordlistTypeParam );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "unknown wordlist type: " + wordlistTypeParam );
             pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
             LOGGER.error( pwmRequest, "error during clear: " + errorInformation.toDebugStr() );
             return;

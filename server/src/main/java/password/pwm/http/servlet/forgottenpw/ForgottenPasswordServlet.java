@@ -747,7 +747,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
         if ( responseSet == null )
         {
             final String errorMsg = "attempt to check responses, but responses are not loaded into session bean";
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             throw new PwmUnrecoverableException( errorInformation );
         }
 
@@ -1090,7 +1090,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
         final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo( pwmRequest, forgottenPasswordBean );
         if ( userInfo == null )
         {
-            throw PwmUnrecoverableException.newException( PwmError.ERROR_UNKNOWN, "unable to load userInfo while processing forgotten password controller" );
+            throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, "unable to load userInfo while processing forgotten password controller" );
         }
 
         // check if user's pw is within min lifetime window
@@ -1300,7 +1300,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
             catch ( PwmOperationalException e )
             {
                 final ErrorInformation info = new ErrorInformation(
-                        PwmError.ERROR_UNKNOWN,
+                        PwmError.ERROR_INTERNAL,
                         e.getErrorInformation().getDetailedErrorMsg(), e.getErrorInformation().getFieldValues()
                 );
                 final PwmUnrecoverableException newException = new PwmUnrecoverableException( info );
@@ -1380,7 +1380,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
         {
             clearForgottenPasswordBean( pwmRequest );
             final ErrorInformation errorInformation = new ErrorInformation(
-                    PwmError.ERROR_UNKNOWN,
+                    PwmError.ERROR_INTERNAL,
                     "unexpected error while re-loading user data due to locale change: " + e.getErrorInformation().toDebugStr()
             );
             LOGGER.error( pwmRequest, errorInformation.toDebugStr() );
@@ -1402,7 +1402,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
             case PREVIOUS_AUTH:
             {
                 throw new PwmUnrecoverableException( new ErrorInformation(
-                        PwmError.ERROR_UNKNOWN,
+                        PwmError.ERROR_INTERNAL,
                         "previous authentication is required, but user has not previously authenticated" )
                 );
             }

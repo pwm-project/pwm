@@ -277,7 +277,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
         }
         catch ( ChaiOperationException e )
         {
-            final ErrorInformation info = new ErrorInformation( PwmError.ERROR_UNKNOWN, "unexpected error writing to ldap: " + e.getMessage() );
+            final ErrorInformation info = new ErrorInformation( PwmError.ERROR_INTERNAL, "unexpected error writing to ldap: " + e.getMessage() );
             LOGGER.error( pwmSession, info );
             setLastError( pwmRequest, info );
         }
@@ -594,7 +594,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
             }
         }
         final String errorMsg = "unable to determine new user DN due to missing form value for naming attribute '" + namingAttribute + '"';
-        throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg ) );
+        throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
     }
 
     private void sendGuestUserEmailConfirmation(

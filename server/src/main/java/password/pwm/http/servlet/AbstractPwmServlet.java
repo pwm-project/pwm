@@ -214,7 +214,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
         final String errorMsg = "unexpected error processing request: " + JavaHelper.readHostileExceptionMessage( e ) + " [" + stackTraceHash + "]";
 
         LOGGER.error( pwmRequest, errorMsg, e );
-        return new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg ) );
+        return new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
     }
 
 
@@ -259,7 +259,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
                 break;
 
 
-            case ERROR_UNKNOWN:
+            case ERROR_INTERNAL:
             default:
                 LOGGER.fatal( pwmSession, "unexpected error: " + e.getErrorInformation().toDebugStr() );
                 try

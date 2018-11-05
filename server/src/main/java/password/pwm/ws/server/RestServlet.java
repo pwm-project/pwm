@@ -170,7 +170,7 @@ public abstract class RestServlet extends HttpServlet
         catch ( Throwable e )
         {
             final String errorMsg = "internal error during rest service invocation: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             restResultBean = RestResultBean.fromError( errorInformation, pwmApplication, locale, pwmApplication.getConfig(), pwmApplication.determineIfDetailErrorMsgShown() );
             LOGGER.error( sessionLabel, errorInformation, e );
         }
@@ -197,11 +197,11 @@ public abstract class RestServlet extends HttpServlet
                 {
                     throw ( PwmUnrecoverableException ) rootException;
                 }
-                throw PwmUnrecoverableException.newException( PwmError.ERROR_UNKNOWN, e.getMessage() );
+                throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, e.getMessage() );
             }
             catch ( IllegalAccessException e )
             {
-                throw PwmUnrecoverableException.newException( PwmError.ERROR_UNKNOWN, e.getMessage() );
+                throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, e.getMessage() );
             }
         }
         return null;
@@ -294,7 +294,7 @@ public abstract class RestServlet extends HttpServlet
         final RestWebServer classAnnotation = this.getClass().getDeclaredAnnotation( RestWebServer.class );
         if ( classAnnotation == null )
         {
-            throw PwmUnrecoverableException.newException( PwmError.ERROR_UNKNOWN, "class is missing " + RestWebServer.class.getSimpleName() + " annotation" );
+            throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, "class is missing " + RestWebServer.class.getSimpleName() + " annotation" );
         }
 
 

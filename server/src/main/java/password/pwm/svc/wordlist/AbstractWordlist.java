@@ -557,7 +557,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
                     }
                     if ( populator.isRunning() && TimeDuration.fromCurrent( startWaitTime ).isShorterThan( maxWaitMs ) )
                     {
-                        throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, "unable to abort populator" ) );
+                        throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, "unable to abort populator" ) );
                     }
                 }
 
@@ -577,7 +577,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
                 final ErrorInformation populationError;
                 populationError = e instanceof PwmException
                         ? ( ( PwmException ) e ).getErrorInformation()
-                        : new ErrorInformation( PwmError.ERROR_UNKNOWN, e.getMessage() );
+                        : new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
                 logger.error( "error during wordlist population: " + populationError.toDebugStr() );
                 throw new PwmUnrecoverableException( populationError );
             }
@@ -623,7 +623,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
             }
             catch ( Exception e )
             {
-                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, "error during remote wordlist import: " + e.getMessage() );
+                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "error during remote wordlist import: " + e.getMessage() );
                 logger.error( errorInformation );
                 autoImportError = errorInformation;
             }
@@ -653,7 +653,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
             catch ( Exception e )
             {
                 final ErrorInformation errorInformation = new ErrorInformation(
-                        PwmError.ERROR_UNKNOWN,
+                        PwmError.ERROR_INTERNAL,
                         "error reading from remote wordlist auto-import url: " + JavaHelper.readHostileExceptionMessage( e )
                 );
                 logger.error( errorInformation );

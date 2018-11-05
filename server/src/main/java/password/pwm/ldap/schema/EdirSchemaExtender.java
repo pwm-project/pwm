@@ -127,7 +127,7 @@ public class EdirSchemaExtender implements SchemaExtender
         }
         catch ( ChaiOperationException e )
         {
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, e.getMessage() ) );
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() ) );
         }
 
     }

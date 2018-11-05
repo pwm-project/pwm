@@ -213,7 +213,7 @@ public class AdminServlet extends ControlledPwmServlet
         }
         catch ( Exception e )
         {
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, e.getMessage() );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
             pwmRequest.respondWithError( errorInformation );
         }
         finally
@@ -244,7 +244,7 @@ public class AdminServlet extends ControlledPwmServlet
         }
         catch ( Exception e )
         {
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, e.getMessage() );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
             pwmRequest.respondWithError( errorInformation );
         }
         finally
@@ -275,7 +275,7 @@ public class AdminServlet extends ControlledPwmServlet
         }
         catch ( Exception e )
         {
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, e.getMessage() );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
             pwmRequest.respondWithError( errorInformation );
         }
         finally
@@ -304,7 +304,7 @@ public class AdminServlet extends ControlledPwmServlet
         }
         catch ( Exception e )
         {
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, e.getMessage() );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
             pwmRequest.respondWithError( errorInformation );
         }
         finally
@@ -332,7 +332,7 @@ public class AdminServlet extends ControlledPwmServlet
         }
         catch ( Exception e )
         {
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, e.getMessage() );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
             pwmRequest.respondWithError( errorInformation );
         }
         finally
@@ -462,7 +462,7 @@ public class AdminServlet extends ControlledPwmServlet
         }
         else
         {
-            pwmRequest.respondWithError( new ErrorInformation( PwmError.ERROR_UNKNOWN, "no previously searched user available for download" ) );
+            pwmRequest.respondWithError( new ErrorInformation( PwmError.ERROR_INTERNAL, "no previously searched user available for download" ) );
         }
 
         return ProcessStatus.Halt;
@@ -535,7 +535,7 @@ public class AdminServlet extends ControlledPwmServlet
         }
         catch ( PwmException e )
         {
-            final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_UNKNOWN, e.getMessage() );
+            final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
             LOGGER.debug( pwmRequest, errorInfo );
             pwmRequest.outputJsonResult( RestResultBean.fromError( errorInfo ) );
         }

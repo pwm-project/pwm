@@ -149,8 +149,8 @@ public enum PwmError
             5012, "Error_Missing_Challenge_Text", null ),
     ERROR_MISSING_PARAMETER(
             5013, "Error_MissingParameter", null ),
-    ERROR_UNKNOWN(
-            5015, "Error_Unknown", null, ErrorFlag.ForceLogout ),
+    ERROR_INTERNAL(
+            5015, "Error_Internal", null, ErrorFlag.ForceLogout ),
     ERROR_CANT_MATCH_USER(
             5016, "Error_CantMatchUser", null ),
     ERROR_DIRECTORY_UNAVAILABLE(

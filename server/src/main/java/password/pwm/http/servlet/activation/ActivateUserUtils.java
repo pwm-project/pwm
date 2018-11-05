@@ -191,7 +191,7 @@ class ActivateUserUtils
         }
         catch ( ImpossiblePasswordPolicyException e )
         {
-            final ErrorInformation info = new ErrorInformation( PwmError.ERROR_UNKNOWN, "unexpected ImpossiblePasswordPolicyException error while activating user" );
+            final ErrorInformation info = new ErrorInformation( PwmError.ERROR_INTERNAL, "unexpected ImpossiblePasswordPolicyException error while activating user" );
             LOGGER.warn( pwmSession, info, e );
             throw new PwmOperationalException( info );
         }

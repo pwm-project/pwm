@@ -157,7 +157,7 @@ public enum PwmServletDefinition
             }
         }
 
-        throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, "missing WebServlet annotation for class " + this.getClass().getName() ) );
+        throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, "missing WebServlet annotation for class " + this.getClass().getName() ) );
     }
 
 

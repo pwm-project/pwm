@@ -254,7 +254,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         if ( action == null )
         {
             final String errorMsg = "request to execute unknown action: " + requestedName;
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             LOGGER.debug( pwmRequest, errorInformation.toDebugStr() );
             final RestResultBean restResultBean = RestResultBean.fromError( errorInformation, pwmRequest );
             pwmRequest.outputJsonResult( restResultBean );
@@ -355,7 +355,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         catch ( ChaiOperationException e )
         {
             final String errorMsg = "error while attempting to delete user " + userIdentity.toString() + ", error: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             LOGGER.debug( pwmRequest, errorMsg );
             pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
             return ProcessStatus.Halt;
@@ -556,7 +556,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         }
         catch ( ChaiOperationException e )
         {
-            final PwmError returnMsg = PwmError.forChaiError( e.getErrorCode() ) == null ? PwmError.ERROR_UNKNOWN : PwmError.forChaiError( e.getErrorCode() );
+            final PwmError returnMsg = PwmError.forChaiError( e.getErrorCode() ) == null ? PwmError.ERROR_INTERNAL : PwmError.forChaiError( e.getErrorCode() );
             final ErrorInformation error = new ErrorInformation( returnMsg, e.getMessage() );
             pwmRequest.respondWithError( error );
             LOGGER.warn( pwmRequest, "error resetting password for user '" + userIdentity.toDisplayString() + "'' " + error.toDebugStr() + ", " + e.getMessage() );
