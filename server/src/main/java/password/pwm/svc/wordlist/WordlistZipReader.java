@@ -22,35 +22,44 @@
 
 package password.pwm.svc.wordlist;
 
+import org.apache.commons.io.input.CountingInputStream;
 import password.pwm.PwmConstants;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.ChecksumInputStream;
 
 import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 /**
  * @author Jason D. Rivard
  */
-class ZipReader implements AutoCloseable, Closeable
+class WordlistZipReader implements AutoCloseable, Closeable
 {
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass( ZipReader.class );
+    private static final PwmLogger LOGGER = PwmLogger.forClass( WordlistZipReader.class );
 
     private final ZipInputStream zipStream;
+    private final ChecksumInputStream checksumInputStream;
+    private final CountingInputStream countingInputStream;
+    private final AtomicLong lineCounter = new AtomicLong( 0 );
 
     private BufferedReader reader;
     private ZipEntry zipEntry;
-    private int lineCounter = 0;
 
-    ZipReader( final InputStream inputStream )
+    WordlistZipReader( final InputStream inputStream )
             throws Exception
     {
-        zipStream = new ZipInputStream( inputStream );
+        checksumInputStream = new ChecksumInputStream( AbstractWordlist.CHECKSUM_HASH_ALG, inputStream );
+        countingInputStream = new CountingInputStream( checksumInputStream );
+
+        zipStream = new ZipInputStream( countingInputStream );
         nextZipEntry();
         if ( zipEntry == null )
         {
@@ -61,11 +70,6 @@ class ZipReader implements AutoCloseable, Closeable
     private void nextZipEntry( )
             throws IOException
     {
-        if ( zipEntry != null )
-        {
-            LOGGER.trace( "finished reading " + zipEntry.getName() + ", lines=" + lineCounter );
-        }
-
         zipEntry = zipStream.getNextEntry();
 
         while ( zipEntry != null && zipEntry.isDirectory() )
@@ -75,7 +79,6 @@ class ZipReader implements AutoCloseable, Closeable
 
         if ( zipEntry != null )
         {
-            lineCounter = 0;
             reader = new BufferedReader( new InputStreamReader( zipStream, PwmConstants.DEFAULT_CHARSET ) );
         }
     }
@@ -125,9 +128,24 @@ class ZipReader implements AutoCloseable, Closeable
 
         if ( line != null )
         {
-            lineCounter++;
+            lineCounter.incrementAndGet();
         }
 
         return line;
+    }
+
+    long getLineCount()
+    {
+        return lineCounter.get();
+    }
+
+    long getByteCount()
+    {
+        return countingInputStream.getByteCount();
+    }
+
+    String getChecksum()
+    {
+        return JavaHelper.binaryArrayToHex( checksumInputStream.getInProgressChecksum() );
     }
 }

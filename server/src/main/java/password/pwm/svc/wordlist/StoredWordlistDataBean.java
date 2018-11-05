@@ -24,20 +24,23 @@ package password.pwm.svc.wordlist;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Value;
 
 import java.io.Serializable;
 import java.time.Instant;
 
-@Getter
-@Builder
+@Value
+@Builder( toBuilder = true )
 public class StoredWordlistDataBean implements Serializable
 {
     private boolean completed;
     private Source source;
     private Instant storeDate;
-    private String sha1hash;
+    private RemoteWordlistInfo remoteInfo;
+    private long bytes;
     private int size;
 
+    @Getter
     public enum Source
     {
         BuiltIn( "Built-In" ),
@@ -50,10 +53,12 @@ public class StoredWordlistDataBean implements Serializable
         {
             this.label = label;
         }
+    }
 
-        public String getLabel( )
-        {
-            return label;
-        }
+    @Value
+    public static class RemoteWordlistInfo implements Serializable
+    {
+        private String checksum;
+        private long bytes;
     }
 }

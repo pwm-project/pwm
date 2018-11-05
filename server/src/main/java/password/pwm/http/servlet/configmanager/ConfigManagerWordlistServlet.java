@@ -253,7 +253,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
                             wordlistType.name() + "_sha1Hash",
                             DisplayElement.Type.string,
                             "SHA1 Checksum Hash",
-                            storedWordlistDataBean.getSha1hash() ) );
+                            storedWordlistDataBean.getRemoteInfo().getChecksum() ) );
                 }
                 if ( wordlist.getAutoImportError() != null )
                 {
