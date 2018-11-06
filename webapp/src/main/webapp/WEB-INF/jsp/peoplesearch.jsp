@@ -26,7 +26,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
-<body class="nihilo">
+<body class="nihilo printable">
 <div id="wrapper" class="peoplesearch-wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_PeopleSearch"/>
