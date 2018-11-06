@@ -1,0 +1,17 @@
+/* Hide header and footer when printing */
+body.printable #header,
+body.printable #header-warning,
+body.printable-page #header-warning-backdrop,
+body.printable .ias-header,
+body.printable #footer
+{
+    display: none;
+}
+
+body.printable {
+    /* This tells Chrome and Safari to print background images and colors (even when the browser setting is turned off) */
+    -webkit-print-color-adjust: exact;
+
+    /* This tells Firefox to print background images and colors (even when the browser setting is turned off) */
+    color-adjust: exact;
+}
