@@ -24,6 +24,14 @@
   clear: both;
   margin-top: 15px;
   text-align: center;
+
+  > .ias-icon-text-button + .ias-icon-button {
+    margin-left: 20px;
+  }
+
+  > .ias-icon-button + .ias-icon-button {
+    margin-left: 10px;
+  }
 }
 
 .person-details-dialog {

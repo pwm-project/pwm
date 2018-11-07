@@ -24,8 +24,11 @@
 import { Component } from '../../component';
 import { IPeopleSearchConfigService } from '../../services/peoplesearch-config.service';
 import { IPeopleService } from '../../services/people.service';
-import { IAugmentedJQuery, ITimeoutService } from 'angular';
+import {IAugmentedJQuery, ITimeoutService, noop} from 'angular';
 import { IPerson } from '../../models/person.model';
+import {IChangePasswordSuccess} from '../../components/changepassword/success-change-password.controller';
+
+let orgchartExportTemplateUrl = require('./orgchart-export.controller.html');
 
 @Component({
     stylesheetUrl: require('./person-details-dialog.component.scss'),
@@ -36,14 +39,23 @@ export default class PersonDetailsDialogComponent {
     photosEnabled: boolean;
     orgChartEnabled: boolean;
 
-    static $inject = [ '$element', '$state', '$stateParams', '$timeout', 'ConfigService', 'PeopleService' ];
+    static $inject = [
+        '$element',
+        '$state',
+        '$stateParams',
+        '$timeout',
+        'ConfigService',
+        'PeopleService',
+        'IasDialogService'
+    ];
 
     constructor(private $element: IAugmentedJQuery,
                 private $state: angular.ui.IStateService,
                 private $stateParams: angular.ui.IStateParamsService,
                 private $timeout: ITimeoutService,
                 private configService: IPeopleSearchConfigService,
-                private peopleService: IPeopleService) {
+                private peopleService: IPeopleService,
+                private IasDialogService: any) {
     }
 
     $onInit(): void {
@@ -97,5 +109,19 @@ export default class PersonDetailsDialogComponent {
 
     searchText(text: string): void {
         this.$state.go('search.table', { query: text });
+    }
+
+    beginExport() {
+        this.IasDialogService
+            .open({
+                controller: 'OrgchartExportController as $ctrl',
+                templateUrl: orgchartExportTemplateUrl
+            });
+            // If the password was changed, the promise resolves. IasDialogService passes the data intact.
+            // .then(this.exportSuccess.bind(this), noop);
+    }
+
+    beginEmail() {
+        alert('Beginning email...');
     }
 }
