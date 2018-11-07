@@ -104,7 +104,7 @@ public class SyslogCertImportFunction implements SettingUIFunction
             {
                 throw new PwmOperationalException( ( ( PwmException ) exeception ).getErrorInformation() );
             }
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, "error importing certificates: " + exeception.getMessage() );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "error importing certificates: " + exeception.getMessage() );
             throw new PwmOperationalException( errorInformation );
         }
     }

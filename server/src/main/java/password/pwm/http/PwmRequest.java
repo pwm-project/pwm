@@ -259,7 +259,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
                     final long length = IOUtils.copyLarge( inputStream, baos, 0, maxFileSize + 1 );
                     if ( length > maxFileSize )
                     {
-                        final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, "upload file size limit exceeded" );
+                        final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "upload file size limit exceeded" );
                         LOGGER.error( this, errorInformation );
                         respondWithError( errorInformation );
                         return Collections.emptyMap();

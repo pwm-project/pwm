@@ -463,7 +463,7 @@ public class TokenService implements PwmService
 
         if ( tokenKey == null )
         {
-            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_UNKNOWN, "unable to generate a unique token key after " + attempts + " attempts" ) );
+            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, "unable to generate a unique token key after " + attempts + " attempts" ) );
         }
 
         LOGGER.trace( sessionLabel, "created new unique random token value after " + attempts + " attempts" );

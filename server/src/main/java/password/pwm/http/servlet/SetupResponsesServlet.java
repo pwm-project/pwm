@@ -602,7 +602,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
                 return new ErrorInformation( PwmError.ERROR_CHALLENGE_IN_RESPONSE, null, fieldNames );
 
             default:
-                return new ErrorInformation( PwmError.ERROR_UNKNOWN );
+                return new ErrorInformation( PwmError.ERROR_INTERNAL );
         }
     }
 

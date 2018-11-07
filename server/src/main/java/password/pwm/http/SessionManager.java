@@ -70,7 +70,7 @@ public class SessionManager
     }
 
     public ChaiProvider getChaiProvider( )
-            throws ChaiUnavailableException, PwmUnrecoverableException
+            throws PwmUnrecoverableException
     {
         if ( chaiProvider == null )
         {

@@ -208,7 +208,7 @@ public class PwmPasswordRuleValidator
         if ( passwordString == null )
         {
             return Collections.singletonList( new ErrorInformation(
-                    PwmError.ERROR_UNKNOWN,
+                    PwmError.ERROR_INTERNAL,
                     "empty (null) new password" ) );
         }
 

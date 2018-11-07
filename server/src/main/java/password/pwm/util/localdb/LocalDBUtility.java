@@ -80,7 +80,7 @@ public class LocalDBUtility
     {
         if ( outputStream == null )
         {
-            throw new PwmOperationalException( PwmError.ERROR_UNKNOWN, "outputFileStream for exportLocalDB cannot be null" );
+            throw new PwmOperationalException( PwmError.ERROR_INTERNAL, "outputFileStream for exportLocalDB cannot be null" );
         }
 
 
@@ -191,19 +191,19 @@ public class LocalDBUtility
     {
         if ( inputFile == null )
         {
-            throw new PwmOperationalException( PwmError.ERROR_UNKNOWN, "inputFile for importLocalDB cannot be null" );
+            throw new PwmOperationalException( PwmError.ERROR_INTERNAL, "inputFile for importLocalDB cannot be null" );
         }
 
         if ( !inputFile.exists() )
         {
-            throw new PwmOperationalException( PwmError.ERROR_UNKNOWN, "inputFile for importLocalDB does not exist" );
+            throw new PwmOperationalException( PwmError.ERROR_INTERNAL, "inputFile for importLocalDB does not exist" );
         }
 
         final long totalBytes = inputFile.length();
 
         if ( totalBytes <= 0 )
         {
-            throw new PwmOperationalException( PwmError.ERROR_UNKNOWN, "inputFile for importLocalDB is empty" );
+            throw new PwmOperationalException( PwmError.ERROR_INTERNAL, "inputFile for importLocalDB is empty" );
         }
 
         try ( InputStream inputStream = new FileInputStream( inputFile ) )

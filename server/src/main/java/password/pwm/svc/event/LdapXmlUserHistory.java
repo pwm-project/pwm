@@ -129,7 +129,7 @@ class LdapXmlUserHistory implements UserHistoryStore
         catch ( Exception e )
         {
             final String errorMsg = "error reading LDAP user event history for user " + userIdentity.toDisplayString() + ", error: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             LOGGER.error( errorInformation.toDebugStr(), e );
             throw new PwmUnrecoverableException( errorInformation, e );
         }

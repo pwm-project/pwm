@@ -277,7 +277,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
         }
         catch ( Exception e )
         {
-            final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_UNKNOWN, e.getMessage() );
+            final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
             final RestResultBean restResultBean = RestResultBean.fromError( errorInfo, pwmRequest );
             LOGGER.debug( pwmSession, errorInfo.toDebugStr() );
             pwmRequest.outputJsonResult( restResultBean );
@@ -469,7 +469,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
         }
         catch ( Exception e )
         {
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, e.getMessage() );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
             LOGGER.error( pwmRequest, errorInformation );
             pwmRequest.respondWithError( errorInformation );
         }

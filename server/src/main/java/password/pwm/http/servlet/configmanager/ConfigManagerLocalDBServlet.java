@@ -175,7 +175,7 @@ public class ConfigManagerLocalDBServlet extends AbstractPwmServlet
 
         if ( !ServletFileUpload.isMultipartContent( req ) )
         {
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, "no file found in upload" );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "no file found in upload" );
             pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
             LOGGER.error( pwmRequest, "error during database import: " + errorInformation.toDebugStr() );
             return;
@@ -202,7 +202,7 @@ public class ConfigManagerLocalDBServlet extends AbstractPwmServlet
         {
             final ErrorInformation errorInformation = e instanceof PwmException
                     ? ( ( PwmException ) e ).getErrorInformation()
-                    : new ErrorInformation( PwmError.ERROR_UNKNOWN, e.getMessage() );
+                    : new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
             pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
             LOGGER.error( pwmRequest, "error during LocalDB import: " + errorInformation.toDebugStr() );
             return;

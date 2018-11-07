@@ -239,7 +239,7 @@ public final class WorkQueueProcessor<W extends Serializable>
         if ( workerThread == null )
         {
             final String errorMsg = this.getClass().getName() + " has been closed, unable to submit new item";
-            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg ) );
+            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
         }
 
         final String asString = JsonUtil.serialize( itemWrapper );
@@ -253,7 +253,7 @@ public final class WorkQueueProcessor<W extends Serializable>
                 {
                     final String errorMsg = "unable to submit item to worker queue after " + settings.getMaxSubmitWaitTime().asCompactString()
                             + ", item=" + itemProcessor.convertToDebugString( itemWrapper.getWorkItem() );
-                    throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg ) );
+                    throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
                 }
                 JavaHelper.pause( SUBMIT_QUEUE_FULL_RETRY_CYCLE_INTERVAL.asMillis() );
             }
@@ -510,7 +510,7 @@ public final class WorkQueueProcessor<W extends Serializable>
             }
             catch ( Exception e )
             {
-                throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_UNKNOWN, "unexpected error deserializing work queue item: " + e.getMessage() ) );
+                throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, "unexpected error deserializing work queue item: " + e.getMessage() ) );
             }
         }
 

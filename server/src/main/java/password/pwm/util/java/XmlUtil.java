@@ -42,6 +42,7 @@ import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -119,40 +120,44 @@ public class XmlUtil
 
     public static List<DependencyInfo> getLicenseInfos( ) throws PwmUnrecoverableException
     {
+        final List<String> attributionFiles = Arrays.asList( "/attribution.xml" );
         final List<DependencyInfo> returnList = new ArrayList<>();
 
-        final InputStream attributionInputStream = XmlUtil.class.getResourceAsStream( "/attribution.xml" );
-
-        if ( attributionInputStream != null )
+        for ( final String attributionFile : attributionFiles )
         {
-            final Document document = XmlUtil.parseXml( attributionInputStream );
-            final Element dependencies = document.getRootElement().getChild( "dependencies" );
+            final InputStream attributionInputStream = XmlUtil.class.getResourceAsStream( attributionFile );
 
-            for ( final Element dependency : dependencies.getChildren( "dependency" ) )
+            if ( attributionInputStream != null )
             {
-                final String projectUrl = dependency.getChildText( "projectUrl" );
-                final String name = dependency.getChildText( "name" );
-                final String artifactId = dependency.getChildText( "artifactId" );
-                final String version = dependency.getChildText( "version" );
-                final String type = dependency.getChildText( "type" );
+                final Document document = XmlUtil.parseXml( attributionInputStream );
+                final Element dependencies = document.getRootElement().getChild( "dependencies" );
 
-                final List<LicenseInfo> licenseInfos = new ArrayList<>();
+                for ( final Element dependency : dependencies.getChildren( "dependency" ) )
                 {
-                    final Element licenses = dependency.getChild( "licenses" );
-                    final List<Element> licenseList = licenses.getChildren( "license" );
-                    for ( final Element license : licenseList )
+                    final String projectUrl = dependency.getChildText( "projectUrl" );
+                    final String name = dependency.getChildText( "name" );
+                    final String artifactId = dependency.getChildText( "artifactId" );
+                    final String version = dependency.getChildText( "version" );
+                    final String type = dependency.getChildText( "type" );
+
+                    final List<LicenseInfo> licenseInfos = new ArrayList<>();
                     {
-                        final String licenseUrl = license.getChildText( "url" );
-                        final String licenseName = license.getChildText( "name" );
-                        final LicenseInfo licenseInfo = new LicenseInfo( licenseUrl, licenseName );
-                        licenseInfos.add( licenseInfo );
+                        final Element licenses = dependency.getChild( "licenses" );
+                        final List<Element> licenseList = licenses.getChildren( "license" );
+                        for ( final Element license : licenseList )
+                        {
+                            final String licenseUrl = license.getChildText( "url" );
+                            final String licenseName = license.getChildText( "name" );
+                            final LicenseInfo licenseInfo = new LicenseInfo( licenseUrl, licenseName );
+                            licenseInfos.add( licenseInfo );
+                        }
                     }
+
+                    final DependencyInfo dependencyInfo = new DependencyInfo( projectUrl, name, artifactId, version, type,
+                            Collections.unmodifiableList( licenseInfos ) );
+
+                    returnList.add( dependencyInfo );
                 }
-
-                final DependencyInfo dependencyInfo = new DependencyInfo( projectUrl, name, artifactId, version, type,
-                        Collections.unmodifiableList( licenseInfos ) );
-
-                returnList.add( dependencyInfo );
             }
         }
         return Collections.unmodifiableList( returnList );

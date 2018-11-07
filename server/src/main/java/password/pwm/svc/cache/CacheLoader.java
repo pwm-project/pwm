@@ -25,9 +25,7 @@ package password.pwm.svc.cache;
 
 import password.pwm.error.PwmUnrecoverableException;
 
-import java.util.Optional;
-
 public interface CacheLoader<T>
 {
-    Optional<T> read() throws PwmUnrecoverableException;
+    T read() throws PwmUnrecoverableException;
 }

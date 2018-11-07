@@ -537,7 +537,7 @@ public class ForgottenPasswordUtil
         catch ( ChaiOperationException e )
         {
             final ErrorInformation errorInformation = new ErrorInformation(
-                    PwmError.ERROR_UNKNOWN,
+                    PwmError.ERROR_INTERNAL,
                     "unexpected ldap error while processing recovery action " + recoveryAction + ", error: " + e.getMessage()
             );
             LOGGER.warn( pwmRequest, errorInformation.toDebugStr() );
@@ -751,7 +751,7 @@ public class ForgottenPasswordUtil
             }
             catch ( ChaiOperationException e )
             {
-                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN,
+                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL,
                         "error checking user '" + userInfo.getUserIdentity() + "' ldap intruder lock status: " + e.getMessage() );
                 LOGGER.error( sessionLabel, errorInformation );
                 throw new PwmUnrecoverableException( errorInformation );

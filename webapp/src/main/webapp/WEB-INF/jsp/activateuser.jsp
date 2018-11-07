@@ -35,7 +35,7 @@
     <div id="centerbody">
         <h1 id="page-content-title"><pwm:display key="Title_ActivateUser" displayIfMissing="true"/></h1>
         <p><pwm:display key="Display_ActivateUser"/></p>
-        <form action="<pwm:current-url/>" method="post" name="activateUser" enctype="application/x-www-form-urlencoded" class="pwm-form">
+        <form action="<pwm:current-url/>" method="post" name="activateUser" enctype="application/x-www-form-urlencoded" class="pwm-form pwm-form-captcha">
             <%@ include file="fragment/message.jsp" %>
             <%@ include file="/WEB-INF/jsp/fragment/ldap-selector.jsp" %>
             <jsp:include page="fragment/form.jsp"/>
@@ -43,7 +43,7 @@
             <%@ include file="/WEB-INF/jsp/fragment/captcha-embed.jsp"%>
 
             <div class="buttonbar">
-                <button type="submit" name="button" class="btn" id="submitBtn">
+                <button type="submit" name="button" class="btn pwm-btn-submit" id="submitBtn">
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
                     <pwm:display key="Button_Activate"/>
                 </button>

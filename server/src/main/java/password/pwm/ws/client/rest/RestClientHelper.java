@@ -72,7 +72,7 @@ public class RestClientHelper
             {
                 final String errorMsg = "received non-200 response code (" + httpResponse.getStatusLine().getStatusCode() + ") when executing web-service";
                 LOGGER.error( errorMsg );
-                throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg ) );
+                throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
             }
             return responseBody;
         }
@@ -80,7 +80,7 @@ public class RestClientHelper
         {
             final String errorMsg = "http response error while executing external rest call, error: " + e.getMessage();
             LOGGER.error( errorMsg );
-            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg ), e );
+            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ), e );
         }
     }
 }

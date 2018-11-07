@@ -219,7 +219,7 @@ public class LDAPPermissionCalculator implements Serializable
 
                 default:
                     throw new PwmUnrecoverableException( new ErrorInformation(
-                            PwmError.ERROR_UNKNOWN,
+                            PwmError.ERROR_INTERNAL,
                             "no ldap permission record reader handler for setting " + pwmSetting.getKey() )
                     );
 

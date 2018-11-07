@@ -222,7 +222,7 @@ public class RestCheckPasswordServer extends RestServlet
         catch ( Exception e )
         {
             final String errorMessage = "unexpected error executing web service: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMessage );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMessage );
             LOGGER.error( restRequest.getSessionLabel(), errorInformation.toDebugStr(), e );
             return RestResultBean.fromError( restRequest, errorInformation );
         }

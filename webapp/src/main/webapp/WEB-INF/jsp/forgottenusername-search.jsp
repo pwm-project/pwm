@@ -37,7 +37,7 @@
         <p><pwm:display key="Display_ForgottenUsername"/></p>
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <br/>
-        <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="searchForm" class="pwm-form" id="searchForm" autocomplete="off">
+        <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="searchForm" class="pwm-form pwm-form-captcha" id="searchForm" autocomplete="off">
             <%@ include file="/WEB-INF/jsp/fragment/ldap-selector.jsp" %>
             <jsp:include page="fragment/form.jsp"/>
 
@@ -45,7 +45,7 @@
 
             <div class="buttonbar">
                 <input type="hidden" name="processAction" value="search"/>
-                <button type="submit" class="btn" name="search" id="submitBtn">
+                <button type="submit" class="btn pwm-btn-submit" name="search" id="submitBtn">
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-search"></span></pwm:if>
                     <pwm:display key="Button_Search"/>
                 </button>

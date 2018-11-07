@@ -346,6 +346,7 @@ public class JsonUtil
         gsonBuilder.registerTypeAdapter( X509Certificate.class, new X509CertificateAdapter() );
         gsonBuilder.registerTypeAdapter( byte[].class, new ByteArrayToBase64TypeAdapter() );
         gsonBuilder.registerTypeAdapter( PasswordData.class, new PasswordDataTypeAdapter() );
+        gsonBuilder.registerTypeAdapter( PwmLdapVendorTypeAdaptor.class, new PwmLdapVendorTypeAdaptor() );
         return gsonBuilder;
     }
 

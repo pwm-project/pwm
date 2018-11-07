@@ -161,7 +161,7 @@ public class IntruderManager implements PwmService
                     break;
 
                 default:
-                    startupError = new ErrorInformation( PwmError.ERROR_UNKNOWN, "unknown storageMethod selected: " + intruderStorageMethod );
+                    startupError = new ErrorInformation( PwmError.ERROR_INTERNAL, "unknown storageMethod selected: " + intruderStorageMethod );
                     status = STATUS.CLOSED;
                     return;
             }

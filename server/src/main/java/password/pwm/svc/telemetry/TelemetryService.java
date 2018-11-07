@@ -169,7 +169,7 @@ public class TelemetryService implements PwmService
         catch ( Exception e )
         {
             final String msg = "unable to load implementation class: " + e.getMessage();
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, msg ) );
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, msg ) );
         }
 
         try
@@ -180,7 +180,7 @@ public class TelemetryService implements PwmService
         catch ( Exception e )
         {
             final String msg = "unable to init implementation class: " + e.getMessage();
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, msg ) );
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, msg ) );
         }
         sender = telemetrySender;
     }

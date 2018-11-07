@@ -148,7 +148,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
             }
             if ( userPassword == null )
             {
-                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, "no available unknown-pw authentication method" ) );
+                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, "no available unknown-pw authentication method" ) );
             }
         }
 
@@ -170,7 +170,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
                 throw new PwmUnrecoverableException(
                         new ErrorInformation( PwmError.ERROR_BAD_SESSION_PASSWORD, errorStr ) );
             }
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, "unable to authenticate via authWithUnknownPw method: " + e.getMessage() ) );
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, "unable to authenticate via authWithUnknownPw method: " + e.getMessage() ) );
         }
     }
 
@@ -395,7 +395,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
             }
             final PwmError pwmError = PwmError.forChaiError( e.getErrorCode() );
             final ErrorInformation errorInformation;
-            if ( pwmError != null && PwmError.ERROR_UNKNOWN != pwmError )
+            if ( pwmError != null && PwmError.ERROR_INTERNAL != pwmError )
             {
                 errorInformation = new ErrorInformation( pwmError, e.getMessage() );
             }

@@ -134,7 +134,7 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
                         + this.getClass().getName()
                         + ":" + action + "', error: " + cause.getMessage();
                 LOGGER.error( pwmRequest, msg, e.getCause() );
-                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, msg ) );
+                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, msg ) );
             }
             LOGGER.error( "uncased invocation error: " + e.getMessage(), e );
         }
@@ -142,12 +142,12 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
         {
             final String msg = "unexpected error invoking action handler for '" + action + "', error: " + e.getMessage();
             LOGGER.error( msg, e );
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, msg ) );
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, msg ) );
         }
 
         final String msg = "missing action handler for '" + action + "'";
         LOGGER.error( msg );
-        throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, msg ) );
+        throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, msg ) );
     }
 
     protected void processAction( final PwmRequest pwmRequest )

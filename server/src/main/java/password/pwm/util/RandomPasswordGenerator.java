@@ -698,7 +698,7 @@ public class RandomPasswordGenerator
             if ( this.getMinimumLength() > maxLength )
             {
                 throw new PwmUnrecoverableException( new ErrorInformation(
-                        PwmError.ERROR_UNKNOWN,
+                        PwmError.ERROR_INTERNAL,
                         "minimum random generated password length exceeds preset random generator threshold"
                 ) );
             }
@@ -706,7 +706,7 @@ public class RandomPasswordGenerator
             if ( this.getMaximumLength() > maxLength )
             {
                 throw new PwmUnrecoverableException( new ErrorInformation(
-                        PwmError.ERROR_UNKNOWN,
+                        PwmError.ERROR_INTERNAL,
                         "maximum random generated password length exceeds preset random generator threshold"
                 ) );
             }
@@ -714,7 +714,7 @@ public class RandomPasswordGenerator
             if ( this.getMinimumStrength() > RandomGeneratorConfig.MAXIMUM_STRENGTH )
             {
                 throw new PwmUnrecoverableException( new ErrorInformation(
-                        PwmError.ERROR_UNKNOWN,
+                        PwmError.ERROR_INTERNAL,
                         "minimum random generated password strength exceeds maximum possible"
                 ) );
             }

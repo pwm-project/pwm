@@ -137,7 +137,7 @@ public class OAuthMachine
         catch ( PwmUnrecoverableException e )
         {
             final String errorMsg = "unexpected error redirecting user to oauth page: " + e.toString();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             throw new PwmUnrecoverableException( errorInformation );
         }
     }

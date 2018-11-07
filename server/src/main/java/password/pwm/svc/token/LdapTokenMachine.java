@@ -141,7 +141,7 @@ class LdapTokenMachine implements TokenMachine
         catch ( ChaiException e )
         {
             final String errorMsg = "unexpected ldap error saving token: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             throw new PwmOperationalException( errorInformation );
         }
     }
@@ -161,7 +161,7 @@ class LdapTokenMachine implements TokenMachine
             catch ( ChaiException e )
             {
                 final String errorMsg = "unexpected ldap error removing token: " + e.getMessage();
-                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
                 throw new PwmOperationalException( errorInformation );
             }
         }

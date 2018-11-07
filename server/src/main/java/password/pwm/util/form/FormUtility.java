@@ -566,7 +566,7 @@ public class FormUtility
             {
                 error = PwmError.forChaiError( ( ( ChaiException ) e ).getErrorCode() );
             }
-            if ( error == null || error == PwmError.ERROR_UNKNOWN )
+            if ( error == null || error == PwmError.ERROR_INTERNAL )
             {
                 error = PwmError.ERROR_LDAP_DATA_ERROR;
             }

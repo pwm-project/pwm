@@ -37,7 +37,7 @@
         <h1 id="page-content-title"><pwm:display key="Title_ForgottenPassword" displayIfMissing="true"/></h1>
         <p><pwm:display key="Display_ForgottenPassword"/></p>
         <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" autocomplete="off"
-              name="searchForm" class="pwm-form" id="searchForm">
+              name="searchForm" class="pwm-form pwm-form-captcha" id="searchForm">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <%@ include file="/WEB-INF/jsp/fragment/ldap-selector.jsp" %>
             <br/>
@@ -47,7 +47,7 @@
 
             <div class="buttonbar">
                 <input type="hidden" name="processAction" value="<%=ForgottenPasswordServlet.ForgottenPasswordAction.search%>"/>
-                <button type="submit" class="btn" name="search" id="submitBtn">
+                <button type="submit" class="btn pwm-btn-submit" name="search" id="submitBtn">
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-search"></span></pwm:if>
                     <pwm:display key="Button_Search"/>
                 </button>

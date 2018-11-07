@@ -48,7 +48,7 @@
         <p>
             <span class="panel-login-display-message"><pwm:display key="Display_Login"/></span>
         </p>
-        <form action="<pwm:current-url/>" method="post" name="login" enctype="application/x-www-form-urlencoded" id="login" autocomplete="off">
+        <form action="<pwm:current-url/>" method="post" name="login" enctype="application/x-www-form-urlencoded" id="login" autocomplete="off" class="pwm-form-captcha">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <div class="sign-in">
                 <%@ include file="/WEB-INF/jsp/fragment/ldap-selector.jsp" %>
@@ -62,7 +62,7 @@
                 </div>
                 <%@ include file="/WEB-INF/jsp/fragment/captcha-embed.jsp"%>
                 <div class="buttonbar">
-                    <button type="submit" class="btn" <pwm:autofocus/> name="button" id="submitBtn">
+                    <button type="submit" class="btn pwm-btn-submit" <pwm:autofocus/> name="button" id="submitBtn">
                         <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-sign-in"></span></pwm:if>
                         <pwm:display key="Button_Login"/>
                     </button>
@@ -168,7 +168,19 @@
 <pwm:if test="<%=PwmIfTest.forwardUrlDefined%>">
     <%@ include file="/WEB-INF/jsp/fragment/cancel-form.jsp" %>
 </pwm:if>
-<% if (!CaptchaUtility.captchaEnabledForRequest(JspUtility.getPwmRequest(pageContext))) { %>
+<% if (CaptchaUtility.captchaEnabledForRequest(JspUtility.getPwmRequest(pageContext))) { %>
+<% if (CaptchaUtility.readCaptchaMode( JspUtility.getPwmRequest( pageContext ) ) == CaptchaUtility.CaptchaMode.V3 ) { %>
+<pwm:script>
+    <script type="text/javascript">
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            PWM_MAIN.addEventHandler('login','submit',function(event){
+                PWM_MAIN.handleFormSubmit(PWM_MAIN.getObject('login'),event);
+            });
+        });
+    </script>
+</pwm:script>
+<% } %>
+<% } else { %>
 <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){

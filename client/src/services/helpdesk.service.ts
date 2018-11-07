@@ -26,6 +26,7 @@ import {ILogService, IPromise, IQService, IWindowService} from 'angular';
 import LocalStorageService from './local-storage.service';
 import ObjectService from './object.service';
 import SearchResult from '../models/search-result.model';
+import {IQuery} from './people.service';
 
 const VERIFICATION_PROCESS_ACTIONS = {
     ATTRIBUTES: 'validateAttributes',
@@ -47,6 +48,7 @@ export interface IHelpDeskService {
     getRandomPassword(userKey: string): IPromise<IRandomPasswordResponse>;
     getRecentVerifications(): IPromise<IRecentVerifications>;
     search(query: string): IPromise<SearchResult>;
+    advancedSearch(queries: IQuery[]): IPromise<SearchResult>;
     sendVerificationToken(userKey: string, choice: string): IPromise<IVerificationTokenResponse>;
     setPassword(userKey: string, random: boolean, password?: string): IPromise<ISuccessResponse>;
     unlockIntruder(userKey: string): IPromise<ISuccessResponse>;
@@ -229,8 +231,31 @@ export default class HelpDeskService implements IHelpDeskService {
             + '&pwmFormID=' + this.PWM_GLOBAL['pwmFormID'];
 
         let data = {
+            mode: 'simple',
             username: query,
             pwmFormID: formID
+        };
+        return this.pwmService
+            .httpRequest(url, {
+                data: data,
+                preventCache: true
+            })
+            .then((result: any) => {
+                let receivedData: any = result.data;
+                let searchResult: SearchResult = new SearchResult(receivedData);
+                return searchResult;
+            });
+    }
+
+    advancedSearch(queries: IQuery[]): IPromise<SearchResult> {
+        let formID: string = encodeURIComponent('&pwmFormID=' + this.PWM_GLOBAL['pwmFormID']);
+        let url: string = this.pwmService.getServerUrl('search')
+            + '&pwmFormID=' + this.PWM_GLOBAL['pwmFormID'];
+
+        let data = {
+            mode: 'advanced',
+            pwmFormID: formID,
+            searchValues: queries
         };
         return this.pwmService
             .httpRequest(url, {

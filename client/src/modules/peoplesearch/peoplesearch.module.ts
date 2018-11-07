@@ -34,6 +34,7 @@ import PersonDetailsDialogComponent from './person-details-dialog.component';
 import LocalStorageService from '../../services/local-storage.service';
 import PromiseService from '../../services/promise.service';
 import uxModule from '../../ux/ux.module';
+import CommonSearchService from '../../services/common-search.service';
 
 require('./peoplesearch.scss');
 
@@ -53,6 +54,7 @@ module(moduleName, [
     .component('peopleSearchCards', PeopleSearchCardsComponent as IComponentOptions)
     .component('personDetailsDialogComponent', PersonDetailsDialogComponent as IComponentOptions)
     .service('PromiseService', PromiseService)
-    .service('LocalStorageService', LocalStorageService);
+    .service('LocalStorageService', LocalStorageService)
+    .service('CommonSearchService', CommonSearchService);
 
 export default moduleName;

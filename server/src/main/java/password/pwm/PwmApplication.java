@@ -53,6 +53,7 @@ import password.pwm.svc.intruder.RecordType;
 import password.pwm.svc.pwnotify.PwNotifyService;
 import password.pwm.svc.report.ReportService;
 import password.pwm.svc.sessiontrack.SessionTrackService;
+import password.pwm.svc.sessiontrack.UserAgentUtils;
 import password.pwm.svc.shorturl.UrlShortenerService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
@@ -400,6 +401,15 @@ public class PwmApplication
         }
 
         MBeanUtility.registerMBean( this );
+
+        try
+        {
+            UserAgentUtils.initializeCache();
+        }
+        catch ( Exception e )
+        {
+            LOGGER.debug( "error initializing UserAgentUtils: " + e.getMessage() );
+        }
 
         LOGGER.trace( "completed post init tasks in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
     }

@@ -32,7 +32,10 @@ public interface CacheStore
 {
     void store( CacheKey cacheKey, Instant expirationDate, Serializable data ) throws PwmUnrecoverableException;
 
-    <T> T read( CacheKey cacheKey, Class<T> classOfT ) throws PwmUnrecoverableException;
+    <T extends Serializable> T readAndStore( CacheKey cacheKey, Instant expirationDate, Class<T> classOfT, CacheLoader<T> cacheLoader )
+            throws PwmUnrecoverableException;
+
+    <T extends Serializable> T read( CacheKey cacheKey, Class<T> classOfT ) throws PwmUnrecoverableException;
 
     CacheStoreInfo getCacheStoreInfo( );
 

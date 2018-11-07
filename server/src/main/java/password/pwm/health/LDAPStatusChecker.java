@@ -518,7 +518,7 @@ public class LDAPStatusChecker implements HealthChecker
                 {
                     errorString.append( " (" );
                     errorString.append( chaiError.toString() );
-                    if ( pwmError != null && pwmError != PwmError.ERROR_UNKNOWN )
+                    if ( pwmError != null && pwmError != PwmError.ERROR_INTERNAL )
                     {
                         errorString.append( " - " );
                         errorString.append( pwmError.getLocalizedMessage( PwmConstants.DEFAULT_LOCALE, pwmApplication.getConfig() ) );

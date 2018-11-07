@@ -560,7 +560,7 @@ public class UserSearchEngine implements PwmService
         final Map<String, String> selectableContexts = profile.getSelectableContexts( pwmApplication );
         if ( selectableContexts == null || selectableContexts.isEmpty() )
         {
-            throw new PwmOperationalException( PwmError.ERROR_UNKNOWN, "context specified, but no selectable contexts are configured" );
+            throw new PwmOperationalException( PwmError.ERROR_INTERNAL, "context specified, but no selectable contexts are configured" );
         }
 
         for ( final String loopContext : selectableContexts.keySet() )
@@ -571,7 +571,7 @@ public class UserSearchEngine implements PwmService
             }
         }
 
-        throw new PwmOperationalException( PwmError.ERROR_UNKNOWN, "context '" + context + "' is specified, but is not in configuration" );
+        throw new PwmOperationalException( PwmError.ERROR_INTERNAL, "context '" + context + "' is specified, but is not in configuration" );
     }
 
     private boolean checkIfStringIsDN(
@@ -723,7 +723,7 @@ public class UserSearchEngine implements PwmService
                     final String errorMsg = "unexpected interruption during search job execution: " + e.getMessage();
                     log( PwmLogLevel.WARN, sessionLabel, searchID, jobInfo.getJobID(), errorMsg );
                     LOGGER.error( sessionLabel, errorMsg, e );
-                    throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg ) );
+                    throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
                 }
                 catch ( ExecutionException e )
                 {
@@ -738,7 +738,7 @@ public class UserSearchEngine implements PwmService
                     }
                     else
                     {
-                        errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+                        errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
                     }
                     log( PwmLogLevel.WARN, sessionLabel, searchID, jobInfo.getJobID(), "error during user search: " + errorInformation.toDebugStr() );
                     throw new PwmUnrecoverableException( errorInformation );

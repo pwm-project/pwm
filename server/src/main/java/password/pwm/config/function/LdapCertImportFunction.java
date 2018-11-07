@@ -84,7 +84,7 @@ public class LdapCertImportFunction implements SettingUIFunction
             {
                 throw new PwmOperationalException( ( ( PwmException ) e ).getErrorInformation() );
             }
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, "error importing certificates: " + e.getMessage() );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "error importing certificates: " + e.getMessage() );
             throw new PwmOperationalException( errorInformation );
         }
 

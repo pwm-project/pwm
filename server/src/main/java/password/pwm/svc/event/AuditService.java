@@ -161,7 +161,7 @@ public class AuditService implements PwmService
                     break;
 
                 default:
-                    lastError = new ErrorInformation( PwmError.ERROR_UNKNOWN, "unknown storageMethod selected: " + userEventStorageMethod );
+                    lastError = new ErrorInformation( PwmError.ERROR_INTERNAL, "unknown storageMethod selected: " + userEventStorageMethod );
                     status = STATUS.CLOSED;
                     return;
             }

@@ -168,7 +168,7 @@ class RecordManagerImpl implements RecordManager
         }
         catch ( PwmUnrecoverableException e )
         {
-            throw new PwmOperationalException( PwmError.ERROR_UNKNOWN, "error generating md5sum for intruder record: " + e.getMessage() );
+            throw new PwmOperationalException( PwmError.ERROR_INTERNAL, "error generating md5sum for intruder record: " + e.getMessage() );
         }
         return hash + recordType.toString();
     }

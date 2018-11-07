@@ -322,6 +322,12 @@ public class AuthenticationFilter extends AbstractPwmFilter
             return;
         }
 
+        if ( pwmRequest.isJsonRequest() )
+        {
+            pwmRequest.respondWithError( new ErrorInformation( PwmError.ERROR_AUTHENTICATION_REQUIRED ) );
+            return;
+        }
+
         //user is not authenticated so forward to LoginPage.
         LOGGER.trace( pwmSession.getLabel(),
                 "user requested resource requiring authentication (" + req.getRequestURI()
@@ -386,7 +392,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
                         }
                         else
                         {
-                            errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, e.getMessage() );
+                            errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
 
                         }
                         LOGGER.error( pwmRequest, errorInformation );

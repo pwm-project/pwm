@@ -166,7 +166,7 @@ public class PasswordUtility
         if ( toNumber == null || toNumber.length() < 1 )
         {
             final String errorMsg = String.format( "unable to send new password email for '%s'; no SMS number available in ldap", userInfo.getUserIdentity() );
-            return new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            return new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
         }
 
         message = message.replace( "%TOKEN%", newPassword.getStringValue() );
@@ -192,7 +192,7 @@ public class PasswordUtility
         if ( configuredEmailSetting == null )
         {
             final String errorMsg = "send password email contents are not configured";
-            return new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            return new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
         }
 
         final EmailItemBean emailItemBean = new EmailItemBean(
@@ -450,7 +450,7 @@ public class PasswordUtility
         catch ( ChaiOperationException e )
         {
             final String errorMsg = "error setting password for user '" + userIdentity.toDisplayString() + "'' " + e.getMessage();
-            final PwmError pwmError = PwmError.forChaiError( e.getErrorCode() ) == null ? PwmError.ERROR_UNKNOWN : PwmError.forChaiError( e.getErrorCode() );
+            final PwmError pwmError = PwmError.forChaiError( e.getErrorCode() ) == null ? PwmError.ERROR_INTERNAL : PwmError.forChaiError( e.getErrorCode() );
             final ErrorInformation error = new ErrorInformation( pwmError, errorMsg );
             throw new PwmOperationalException( error );
         }
@@ -687,7 +687,7 @@ public class PasswordUtility
             catch ( Exception e )
             {
                 LOGGER.error( pwmSession, "unexpected error during post change password action '" + postChangePasswordAction.getLabel() + "' " + e.getMessage(), e );
-                final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_UNKNOWN, e.getMessage() );
+                final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
                 throw new PwmUnrecoverableException( errorInfo );
             }
         }

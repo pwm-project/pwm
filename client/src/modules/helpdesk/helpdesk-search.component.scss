@@ -31,10 +31,6 @@ help-desk-search-table {
     margin-bottom: 0;
   }
 
-  .ias-search {
-    margin-right: 10px;
-  }
-
   .verifications-button {
     margin: 5px 5px 5px 0;
   }
@@ -42,6 +38,36 @@ help-desk-search-table {
   > .people-search-component-content {
     flex: 1 1;
     overflow: auto;
+  }
+
+  .helpdesk-search-header {
+    display: flex;
+    align-items: flex-start;
+
+    .basic-search-container {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+
+      > * + * {
+        margin-left: 10px;
+      }
+    }
+
+    .advanced-search-container {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      margin-bottom: 15px;
+
+      > * + * {
+        margin-top: 5px;
+      }
+
+      &+ div {
+        margin-top: 15px;
+      }
+    }
   }
 }
 

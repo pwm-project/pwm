@@ -28,6 +28,7 @@
 
 package password.pwm.util.operations.otp;
 
+import com.novell.ldapchai.ChaiUser;
 import password.pwm.PwmApplication;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
@@ -96,13 +97,13 @@ public class LocalDbOtpOperator extends AbstractOtpOperator
         catch ( LocalDBException e )
         {
             final String errorMsg = "unexpected LocalDB error reading otp: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             throw new PwmUnrecoverableException( errorInformation );
         }
         catch ( PwmOperationalException e )
         {
             final String errorMsg = "unexpected error reading otp: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             throw new PwmUnrecoverableException( errorInformation );
         }
         return otpConfig;
@@ -163,6 +164,7 @@ public class LocalDbOtpOperator extends AbstractOtpOperator
     public void clearOtpUserConfiguration(
             final PwmSession pwmSession,
             final UserIdentity theUser,
+            final ChaiUser chaiUser,
             final String userGUID
     )
             throws PwmUnrecoverableException

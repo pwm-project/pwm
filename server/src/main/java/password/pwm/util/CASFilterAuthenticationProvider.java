@@ -117,7 +117,7 @@ public class CASFilterAuthenticationProvider implements PwmHttpFilterAuthenticat
         }
         catch ( UnsupportedEncodingException e )
         {
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, "error during CAS authentication: " + e.getMessage() ) );
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, "error during CAS authentication: " + e.getMessage() ) );
         }
     }
 

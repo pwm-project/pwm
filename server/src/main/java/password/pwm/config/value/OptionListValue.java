@@ -55,14 +55,14 @@ public class OptionListValue extends AbstractValue implements StoredValue
             {
                 if ( input == null )
                 {
-                    return new OptionListValue( Collections.<String>emptySet() );
+                    return new OptionListValue( Collections.emptySet() );
                 }
                 else
                 {
                     Set<String> srcList = JsonUtil.deserialize( input, new TypeToken<Set<String>>()
                     {
                     } );
-                    srcList = srcList == null ? Collections.<String>emptySet() : srcList;
+                    srcList = srcList == null ? Collections.emptySet() : srcList;
                     while ( srcList.contains( null ) )
                     {
                         srcList.remove( null );
@@ -71,7 +71,7 @@ public class OptionListValue extends AbstractValue implements StoredValue
                 }
             }
 
-            public OptionListValue fromXmlElement( final Element settingElement, final PwmSecurityKey key )
+            public OptionListValue fromXmlElement( final PwmSetting pwmSetting, final Element settingElement, final PwmSecurityKey key )
                     throws PwmOperationalException
             {
                 final List valueElements = settingElement.getChildren( "value" );

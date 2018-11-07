@@ -84,7 +84,7 @@ class CryptoCookieLoginImpl implements SessionLoginProvider
         catch ( PwmUnrecoverableException e )
         {
             final String errorMsg = "unexpected error writing login cookie to response: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             LOGGER.error( pwmRequest, errorInformation );
         }
     }
@@ -128,7 +128,7 @@ class CryptoCookieLoginImpl implements SessionLoginProvider
             catch ( Exception e )
             {
                 final String errorMsg = "unexpected error authenticating using crypto session cookie: " + e.getMessage();
-                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
                 LOGGER.error( pwmRequest, errorInformation );
                 throw new PwmUnrecoverableException( errorInformation );
             }
@@ -194,7 +194,7 @@ class CryptoCookieLoginImpl implements SessionLoginProvider
                 catch ( Exception e )
                 {
                     final String errorMsg = "unexpected error reading session cookie: " + e.getMessage();
-                    final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+                    final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
                     LOGGER.error( pwmRequest, errorInformation );
                     throw new PwmUnrecoverableException( errorInformation );
                 }

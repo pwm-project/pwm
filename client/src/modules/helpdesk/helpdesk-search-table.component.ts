@@ -30,6 +30,7 @@ import LocalStorageService from '../../services/local-storage.service';
 import PromiseService from '../../services/promise.service';
 import {IHelpDeskService} from '../../services/helpdesk.service';
 import IPwmService from '../../services/pwm.service';
+import CommonSearchService from '../../services/common-search.service';
 
 @Component({
     stylesheetUrl: require('./helpdesk-search.component.scss'),
@@ -50,7 +51,8 @@ export default class HelpDeskSearchTableComponent extends HelpDeskSearchBaseComp
         'IasDialogService',
         'LocalStorageService',
         'PromiseService',
-        'PwmService'
+        'PwmService',
+        'CommonSearchService'
     ];
     constructor($q: IQService,
                 $scope: IScope,
@@ -63,14 +65,16 @@ export default class HelpDeskSearchTableComponent extends HelpDeskSearchBaseComp
                 IasDialogService: any,
                 localStorageService: LocalStorageService,
                 promiseService: PromiseService,
-                pwmService: IPwmService) {
+                pwmService: IPwmService,
+                commonSearchService: CommonSearchService) {
         super($q, $scope, $state, $stateParams, $timeout, $translate, configService, helpDeskService, IasDialogService,
-              localStorageService, promiseService, pwmService);
+              localStorageService, promiseService, pwmService, commonSearchService);
     }
 
     $onInit() {
-        this.initialize();
-        this.fetchData();
+        this.initialize().then(() => {
+            this.fetchData();
+        });
 
         // The table columns are dynamic and configured via a service
         this.configService.getColumnConfig().then(

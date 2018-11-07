@@ -32,6 +32,7 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpContentType;
+import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.JspUrl;
 import password.pwm.http.ProcessStatus;
@@ -44,6 +45,7 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
 
@@ -53,7 +55,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Map;
 
 public abstract class PeopleSearchServlet extends ControlledPwmServlet
 {
@@ -70,7 +71,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
         photo( HttpMethod.GET ),
         clientData( HttpMethod.GET ),
         orgChartData( HttpMethod.GET ),
-        export ( HttpMethod.GET ),;
+        exportOrgChart ( HttpMethod.GET ),;
 
         private final HttpMethod method;
 
@@ -118,7 +119,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
             final PwmRequest pwmRequest
 
     )
-            throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
+            throws PwmUnrecoverableException, IOException
     {
         final PeopleSearchConfiguration peopleSearchConfiguration = PeopleSearchConfiguration.forRequest( pwmRequest );
 
@@ -138,24 +139,19 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
     private ProcessStatus restSearchRequest(
             final PwmRequest pwmRequest
     )
-            throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
+            throws PwmUnrecoverableException, IOException
     {
-        final Map<String, Object> jsonBodyMap = pwmRequest.readBodyAsJsonMap( PwmHttpRequestWrapper.Flag.BypassValidation );
-        final String username = jsonBodyMap.get( "username" ) == null
-                ? null
-                : jsonBodyMap.get( "username" ).toString();
-
-        final boolean includeDisplayName = pwmRequest.readParameterAsBoolean( "includeDisplayName" );
+        final SearchRequestBean searchRequest = JsonUtil.deserialize( pwmRequest.readRequestBodyAsString(), SearchRequestBean.class );
 
         final PeopleSearchDataReader peopleSearchDataReader = new PeopleSearchDataReader( pwmRequest );
 
-        final SearchResultBean searchResultBean = peopleSearchDataReader.makeSearchResultBean( username, includeDisplayName );
+        final SearchResultBean searchResultBean = peopleSearchDataReader.makeSearchResultBean( searchRequest );
         final RestResultBean restResultBean = RestResultBean.withData( searchResultBean );
 
         addExpiresHeadersToResponse( pwmRequest );
         pwmRequest.outputJsonResult( restResultBean );
 
-        LOGGER.trace( pwmRequest, "returning " + searchResultBean.getSearchResults().size() + " results for search request '" + username + "'" );
+        LOGGER.trace( pwmRequest, "returning " + searchResultBean.getSearchResults().size() + " results for search request " + JsonUtil.serialize( searchRequest ) );
         return ProcessStatus.Halt;
     }
 
@@ -269,7 +265,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
 
             if ( photoData.getContents() != null )
             {
-                outputStream.write( photoData.getContents() );
+                outputStream.write( photoData.getContents().getBytes() );
             }
         }
         return ProcessStatus.Halt;
@@ -278,14 +274,13 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
     private void addExpiresHeadersToResponse( final PwmRequest pwmRequest )
     {
         final long maxCacheSeconds = pwmRequest.getConfig().readSettingAsLong( PwmSetting.PEOPLE_SEARCH_MAX_CACHE_SECONDS );
-        final HttpServletResponse resp = pwmRequest.getPwmResponse().getHttpServletResponse();
-        resp.setDateHeader( "Expires", System.currentTimeMillis() + ( maxCacheSeconds * 1000L ) );
-        resp.setHeader( "Cache-Control", "private, max-age=" + maxCacheSeconds );
+        pwmRequest.getPwmResponse().getHttpServletResponse().setDateHeader( HttpHeader.Expires.getHttpName(), System.currentTimeMillis() + ( maxCacheSeconds * 1000L ) );
+        pwmRequest.getPwmResponse().setHeader( HttpHeader.CacheControl,  "private, max-age=" + maxCacheSeconds );
     }
 
-    @ActionHandler( action = "export" )
-    private ProcessStatus processExportRequest( final PwmRequest pwmRequest )
-            throws ChaiUnavailableException, PwmUnrecoverableException, IOException
+    @ActionHandler( action = "exportOrgChart" )
+    private ProcessStatus processExportOrgChartRequest( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException, IOException
     {
         final String userKey = pwmRequest.readParameterAsString( PARAM_USERKEY, PwmHttpRequestWrapper.Flag.BypassValidation );
         final int requestedDepth = pwmRequest.readParameterAsInt( PARAM_DEPTH, 1 );
@@ -303,13 +298,12 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
 
         final int effectiveDepth = Math.max( peopleSearchClientConfigBean.getExportMaxDepth(), requestedDepth );
 
-        final UserDetailBean detailData = peopleSearchDataReader.makeUserDetailRequest( userIdentity );
         pwmRequest.getPwmResponse().getHttpServletResponse().setBufferSize( 0 );
         pwmRequest.getPwmResponse().markAsDownload( HttpContentType.csv, "userData.csv" );
 
         try ( CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter( pwmRequest.getPwmResponse().getOutputStream() ) )
         {
-            peopleSearchDataReader.writeUserDetailToCsv( peopleSearchConfiguration, csvPrinter, userIdentity, detailData, effectiveDepth );
+            peopleSearchDataReader.writeUserOrgChartDetailToCsv( csvPrinter, userIdentity, effectiveDepth );
         }
 
         return ProcessStatus.Halt;
@@ -318,7 +312,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
     static UserIdentity readUserIdentityFromKey( final PwmRequest pwmRequest, final String userKey )
             throws PwmUnrecoverableException
     {
-        if ( userKey.length() < 1 )
+        if ( StringUtil.isEmpty( userKey ) )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_MISSING_PARAMETER, PARAM_USERKEY + " parameter is missing" );
             LOGGER.error( pwmRequest, errorInformation );

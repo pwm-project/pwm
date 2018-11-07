@@ -368,7 +368,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         }
         catch ( Exception e )
         {
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, "error while testing matches = " + e.getMessage() );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "error while testing matches = " + e.getMessage() );
             LOGGER.error( pwmRequest, errorInformation );
             pwmRequest.respondWithError( errorInformation );
         }
@@ -494,7 +494,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
             catch ( Exception e )
             {
                 final RestResultBean restResultBean = RestResultBean.fromError( new ErrorInformation(
-                        PwmError.ERROR_UNKNOWN,
+                        PwmError.ERROR_INTERNAL,
                         "error during save: " + e.getMessage()
                 ), pwmRequest );
                 pwmRequest.outputJsonResult( restResultBean );
@@ -528,7 +528,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         }
         catch ( Exception e )
         {
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, e.getMessage() );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
             pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
             LOGGER.error( pwmRequest, e.getMessage(), e );
         }

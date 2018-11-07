@@ -292,7 +292,7 @@ public class PwNotifyService implements PwmService
                 }
                 else
                 {
-                    errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, "error " + e.getMessage() );
+                    errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "error " + e.getMessage() );
                 }
 
                 final Instant finish = Instant.now();

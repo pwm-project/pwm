@@ -87,13 +87,13 @@ public class LdapOtpOperator extends AbstractOtpOperator
         catch ( ChaiOperationException e )
         {
             final String errorMsg = "unexpected LDAP error reading responses: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             throw new PwmUnrecoverableException( errorInformation );
         }
         catch ( ChaiUnavailableException e )
         {
             final String errorMsg = "unexpected LDAP error reading responses: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             throw new PwmUnrecoverableException( errorInformation );
         }
         return otp;
@@ -159,8 +159,10 @@ public class LdapOtpOperator extends AbstractOtpOperator
     public void clearOtpUserConfiguration(
             final PwmSession pwmSession,
             final UserIdentity userIdentity,
+            final ChaiUser chaiUser,
             final String userGuid
-    ) throws PwmUnrecoverableException
+    )
+            throws PwmUnrecoverableException
     {
         final Configuration config = pwmApplication.getConfig();
 
@@ -174,10 +176,7 @@ public class LdapOtpOperator extends AbstractOtpOperator
         }
         try
         {
-            final ChaiUser theUser = pwmSession == null
-                    ? pwmApplication.getProxiedChaiUser( userIdentity )
-                    : pwmSession.getSessionManager().getActor( pwmApplication, userIdentity );
-            theUser.deleteAttribute( ldapStorageAttribute, null );
+            chaiUser.deleteAttribute( ldapStorageAttribute, null );
             LOGGER.info( "cleared OTP secret for user to chai-ldap format" );
         }
         catch ( ChaiOperationException e )

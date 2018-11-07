@@ -86,13 +86,13 @@ public class LocalDbCrOperator implements CrOperator
         catch ( LocalDBException e )
         {
             final String errorMsg = "unexpected LocalDB error reading responses: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             throw new PwmUnrecoverableException( errorInformation );
         }
         catch ( ChaiException e )
         {
             final String errorMsg = "unexpected chai error reading responses from LocalDB: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             throw new PwmUnrecoverableException( errorInformation );
         }
         return null;
