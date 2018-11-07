@@ -29,6 +29,7 @@ import { IPerson } from '../../models/person.model';
 import {IChangePasswordSuccess} from '../../components/changepassword/success-change-password.controller';
 
 let orgchartExportTemplateUrl = require('./orgchart-export.controller.html');
+let orgchartEmailTemplateUrl = require('./orgchart-email.controller.html');
 
 @Component({
     stylesheetUrl: require('./person-details-dialog.component.scss'),
@@ -122,6 +123,12 @@ export default class PersonDetailsDialogComponent {
     }
 
     beginEmail() {
-        alert('Beginning email...');
+        this.IasDialogService
+            .open({
+                controller: 'OrgchartEmailController as $ctrl',
+                templateUrl: orgchartEmailTemplateUrl
+            });
+        // If the password was changed, the promise resolves. IasDialogService passes the data intact.
+        // .then(this.exportSuccess.bind(this), noop);
     }
 }

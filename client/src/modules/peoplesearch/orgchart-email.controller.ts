@@ -20,19 +20,22 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-require('./orgchart-export.controller.scss');
+require('./orgchart-email.controller.scss');
 
-export default class OrgchartExportController {
+export default class OrgchartEmailController {
 
     static $inject = [
+        '$window',
         'IasDialogService',
         'translateFilter'
     ];
-    constructor(private IasDialogService: any,
+    constructor(private $window: angular.IWindowService,
+                private IasDialogService: any,
                 private translateFilter: (id: string) => string) {
     }
 
-    exportOrgChart() {
+    emailOrgChart() {
+        this.$window.location.href = 'mailto:james.albright@microfocus.com';
         this.IasDialogService.close();
     }
 }
