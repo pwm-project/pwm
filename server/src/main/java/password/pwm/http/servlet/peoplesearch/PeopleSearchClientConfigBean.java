@@ -30,6 +30,7 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.PwmRequest;
 
 import java.io.Serializable;
 import java.util.ArrayList;
