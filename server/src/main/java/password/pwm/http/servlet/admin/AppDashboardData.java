@@ -288,12 +288,14 @@ public class AppDashboardData implements Serializable
                 "Word List Dictionary Size",
                 numberFormat.format( pwmApplication.getWordlistManager().size() )
         ) );
+
         localDbInfo.add( new DisplayElement(
                 "seedlistSize",
                 DisplayElement.Type.number,
                 "Seed List Dictionary Size",
                 numberFormat.format( pwmApplication.getSeedlistManager().size() )
         ) );
+
         localDbInfo.add( new DisplayElement(
                 "sharedHistorySize",
                 DisplayElement.Type.number,

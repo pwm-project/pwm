@@ -22,43 +22,33 @@
 
 package password.pwm.svc.wordlist;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Value;
+import password.pwm.PwmApplication;
+import password.pwm.error.PwmException;
+import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.logging.PwmLogger;
 
-import java.io.Serializable;
-import java.time.Instant;
-
-@Value
-@Builder( toBuilder = true )
-public class StoredWordlistDataBean implements Serializable
+public class SeedlistService extends AbstractWordlist implements Wordlist
 {
-    private boolean completed;
-    private Source source;
-    private Instant storeDate;
-    private RemoteWordlistInfo remoteInfo;
-    private long bytes;
-    private int size;
+    private static final PwmLogger LOGGER = PwmLogger.forClass( SeedlistService.class );
 
-    @Getter
-    public enum Source
+    public SeedlistService()
     {
-        BuiltIn( "Built-In" ),
-        AutoImport( "Import from configured URL" ),
-        User( "Uploaded" ),;
-
-        private final String label;
-
-        Source( final String label )
-        {
-            this.label = label;
-        }
     }
 
-    @Value
-    public static class RemoteWordlistInfo implements Serializable
+    public void init( final PwmApplication pwmApplication ) throws PwmException
     {
-        private String checksum;
-        private long bytes;
+        super.init( pwmApplication, WordlistType.SEEDLIST, SeedlistService.class );
+    }
+
+    @Override
+    PwmLogger getLogger()
+    {
+        return LOGGER;
+    }
+
+    @Override
+    public String randomSeed() throws PwmUnrecoverableException
+    {
+        return super.randomSeed();
     }
 }

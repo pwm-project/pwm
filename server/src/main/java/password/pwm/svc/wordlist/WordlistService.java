@@ -22,28 +22,37 @@
 
 package password.pwm.svc.wordlist;
 
-import password.pwm.error.ErrorInformation;
+import password.pwm.PwmApplication;
+import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.svc.PwmService;
-
-import java.io.IOException;
-import java.io.InputStream;
+import password.pwm.util.logging.PwmLogger;
 
 
-public interface Wordlist extends PwmService
+/**
+ * @author Jason D. Rivard
+ */
+public class WordlistService extends AbstractWordlist implements Wordlist
 {
+    private static final PwmLogger LOGGER = PwmLogger.forClass( WordlistService.class );
 
-    int size( );
+    public WordlistService( )
+    {
+    }
 
-    WordlistStatus readWordlistStatus( );
+    public void init( final PwmApplication pwmApplication ) throws PwmException
+    {
+        super.init( pwmApplication, WordlistType.WORDLIST, WordlistService.class );
+    }
 
-    void populate( InputStream inputStream )
-            throws IOException, PwmUnrecoverableException;
+    @Override
+    PwmLogger getLogger()
+    {
+        return LOGGER;
+    }
 
-    void clear( )
-            throws IOException, PwmUnrecoverableException;
-
-    WordlistConfiguration getConfiguration( );
-
-    ErrorInformation getAutoImportError( );
+    @Override
+    public boolean containsWord( final String word ) throws PwmUnrecoverableException
+    {
+        return super.containsWord( word );
+    }
 }

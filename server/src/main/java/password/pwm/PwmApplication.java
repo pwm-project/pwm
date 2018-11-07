@@ -58,9 +58,9 @@ import password.pwm.svc.shorturl.UrlShortenerService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.svc.token.TokenService;
-import password.pwm.svc.wordlist.SeedlistManager;
+import password.pwm.svc.wordlist.SeedlistService;
 import password.pwm.svc.wordlist.SharedHistoryManager;
-import password.pwm.svc.wordlist.WordlistManager;
+import password.pwm.svc.wordlist.WordlistService;
 import password.pwm.util.MBeanUtility;
 import password.pwm.util.PasswordData;
 import password.pwm.util.cli.commands.ExportHttpsTomcatConfigCommand;
@@ -551,14 +551,14 @@ public class PwmApplication
         return Collections.unmodifiableList( pwmServices );
     }
 
-    public WordlistManager getWordlistManager( )
+    public WordlistService getWordlistManager( )
     {
-        return ( WordlistManager ) pwmServiceManager.getService( WordlistManager.class );
+        return ( WordlistService ) pwmServiceManager.getService( WordlistService.class );
     }
 
-    public SeedlistManager getSeedlistManager( )
+    public SeedlistService getSeedlistManager( )
     {
-        return ( SeedlistManager ) pwmServiceManager.getService( SeedlistManager.class );
+        return ( SeedlistService ) pwmServiceManager.getService( SeedlistService.class );
     }
 
     public ReportService getReportService( )

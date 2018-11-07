@@ -22,28 +22,19 @@
 
 package password.pwm.svc.wordlist;
 
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.svc.PwmService;
+import lombok.Builder;
+import lombok.Value;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.Serializable;
+import java.time.Instant;
 
-
-public interface Wordlist extends PwmService
+@Value
+@Builder( toBuilder = true )
+public class WordlistStatus implements Serializable
 {
-
-    int size( );
-
-    WordlistStatus readWordlistStatus( );
-
-    void populate( InputStream inputStream )
-            throws IOException, PwmUnrecoverableException;
-
-    void clear( )
-            throws IOException, PwmUnrecoverableException;
-
-    WordlistConfiguration getConfiguration( );
-
-    ErrorInformation getAutoImportError( );
+    private boolean completed;
+    private WordlistSourceType sourceType;
+    private Instant storeDate;
+    private WordlistSourceInfo remoteInfo;
+    private long bytes;
 }
