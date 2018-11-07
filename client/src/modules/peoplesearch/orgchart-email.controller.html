@@ -1,0 +1,56 @@
+<!--
+  ~ Password Management Servlets (PWM)
+  ~ http://www.pwm-project.org
+  ~
+  ~ Copyright (c) 2006-2009 Novell, Inc.
+  ~ Copyright (c) 2009-2018 The PWM Project
+  ~
+  ~ This program is free software; you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation; either version 2 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program; if not, write to the Free Software
+  ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  -->
+
+<div class="ias-dialog">
+    <div class="ias-dialog-container">
+        <div class="ias-dialog-label">
+            <div class="ias-title" ng-bind="'Title_EmailOrgChart' | translate"></div>
+        </div>
+        <div class="ias-dialog-content">
+            <p ng-bind="'Instructions_EmailTeam1' | translate"></p>
+            <p ng-bind="'Instructions_EmailTeam2' | translate"></p>
+            <label for="depth" ng-bind="'Label_EmailLevelDepth' | translate"></label>
+            <div>
+                <!--<select ng-model="query.key" ng-change="$ctrl.onAdvancedSearchAttributeChanged(query)">-->
+                    <!--<option ng-repeat="tag in $ctrl.advancedSearchTags" ng-attr-value="{{tag.attribute}}">{{tag.label}}</option>-->
+                <!--</select>-->
+                <select id="depth">
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                    <option>4</option>
+                    <option>5</option>
+                    <option>6</option>
+                </select>
+            </div>
+        </div>
+        <div class="ias-actions">
+            <ias-button ng-click="$ctrl.emailOrgChart()">{{ 'Button_Email' | translate }}</ias-button>
+        </div>
+        <ias-button class="ias-icon-button ias-dialog-cancel-button"
+                    id="close-icon"
+                    ng-attr-title="{{ 'Button_CloseWindow' | translate }}"
+                    ng-click="close()">
+            <ias-icon icon="close_thick"></ias-icon>
+        </ias-button>
+    </div>
+</div>

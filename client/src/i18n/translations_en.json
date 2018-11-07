@@ -8,7 +8,10 @@
   "Button_CloseWindow": "Close Window",
   "Button_Confirm": "Confirm",
   "Button_Delete": "Delete",
+  "Button_EmailTeam": "Email Team",
+  "Button_Export": "Export",
   "Button_Email": "Email",
+  "Button_ExportOrgChart": "Export Organizational Chart",
   "Button_GoBack": "Go Back",
   "Button_HelpdeskClearOtpSecret": "Clear OTP Secret",
   "Button_More": "More",
@@ -48,6 +51,10 @@
   "Field_Profile": "Profile",
   "Field_Username": "User Name",
   "Long_Title_VerificationSend": "Before this user can be selected, the user's identity must be verified.  Please select a verification method.",
+  "Instructions_ExportOrgChart1": "After you export the organizational chart, you can import the data into a program like Visio so it can be formatted into a viewable form.",
+  "Instructions_ExportOrgChart2": "Choose the export level depth, and press the Export button below.",
+  "Instructions_EmailTeam1": "An email list will be generated based off the organizational chart starting at this point. Your default email program should automatically open, with the email addresses pre-filled.",
+  "Instructions_EmailTeam2": "Choose the team level depth, and press the Email button below.",
   "Placeholder_Search": "Search",
   "Title_AdvancedSearch": "Advanced Search",
   "Title_ChangePassword": "Change Password",
@@ -69,5 +76,9 @@
   "Title_Success": "Success",
   "Title_UserEventHistory": "Password History",
   "Title_ValidateCode": "Validate Code",
-  "Title_VerificationSend": "Select verification method"
+  "Title_VerificationSend": "Select verification method",
+  "Title_ExportOrgChart": "Export Organizational Chart",
+  "Title_EmailOrgChart": "Email Team",
+  "Label_ExportLevelDepth": "Export Level Depth",
+  "Label_EmailLevelDepth": "Team Level Depth"
 }

@@ -42,6 +42,16 @@
                         <ias-icon icon="orgchart_thin" id="orgchart-button"></ias-icon>
                         <span translate="Title_OrgChart">Organizational Chart</span>
                     </ias-button>
+                    <ias-button class="ias-icon-button ias-dialog-cancel-button"
+                                ng-attr-title="{{ 'Button_ExportOrgChart' | translate }}"
+                                ng-click="$ctrl.beginExport()">
+                        <ias-icon icon="download_thick"></ias-icon>
+                    </ias-button>
+                    <ias-button class="ias-icon-button ias-dialog-cancel-button"
+                                ng-attr-title="{{ 'Button_EmailTeam' | translate }}"
+                                ng-click="$ctrl.beginEmail()">
+                        <ias-icon icon="email_thick"></ias-icon>
+                    </ias-button>
                 </div>
             </div>
             <div class="person-details-content">

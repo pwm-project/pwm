@@ -35,6 +35,8 @@ import LocalStorageService from '../../services/local-storage.service';
 import PromiseService from '../../services/promise.service';
 import uxModule from '../../ux/ux.module';
 import CommonSearchService from '../../services/common-search.service';
+import OrgchartExportController from './orgchart-export.controller';
+import OrgchartEmailController from './orgchart-email.controller';
 
 require('./peoplesearch.scss');
 
@@ -53,6 +55,8 @@ module(moduleName, [
     .component('peopleSearchTable', PeopleSearchTableComponent as IComponentOptions)
     .component('peopleSearchCards', PeopleSearchCardsComponent as IComponentOptions)
     .component('personDetailsDialogComponent', PersonDetailsDialogComponent as IComponentOptions)
+    .controller('OrgchartExportController', OrgchartExportController)
+    .controller('OrgchartEmailController', OrgchartEmailController)
     .service('PromiseService', PromiseService)
     .service('LocalStorageService', LocalStorageService)
     .service('CommonSearchService', CommonSearchService);
