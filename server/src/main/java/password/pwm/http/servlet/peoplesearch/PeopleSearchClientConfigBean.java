@@ -125,12 +125,13 @@ public class PeopleSearchClientConfigBean implements Serializable
                 .orgChartMaxParents( peopleSearchConfiguration.getOrgChartMaxParents() )
 
                 .enableAdvancedSearch( peopleSearchConfiguration.isEnableAdvancedSearch() )
+                .enableOrgChartPrinting( true )
+
                 .maxAdvancedSearchAttributes( 3 )
                 .advancedSearchAttributes( searchAttributes )
 
-                .mailtoLinkMaxDepth( 3 )
-                .enableMailtoLinks( true )
-                .enableOrgChartPrinting( true )
+                .mailtoLinkMaxDepth( peopleSearchConfiguration.getMailtoLinksMaxDepth() )
+                .enableMailtoLinks( peopleSearchConfiguration.isEnableMailtoLinks() )
 
                 .enableExport( peopleSearchConfiguration.isEnableExportCsv() )
                 .exportMaxDepth( peopleSearchConfiguration.getExportCsvMaxDepth() )

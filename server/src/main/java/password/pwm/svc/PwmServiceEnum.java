@@ -55,6 +55,7 @@ public enum PwmServiceEnum
     SessionTrackService( password.pwm.svc.sessiontrack.SessionTrackService.class ),
     SessionStateSvc( password.pwm.http.state.SessionStateService.class ),
     UserSearchEngine( password.pwm.ldap.search.UserSearchEngine.class, Flag.StartDuringRuntimeInstance ),
+    PeopleSearchService( password.pwm.http.servlet.peoplesearch.PeopleSearchService.class ),
     TelemetryService( password.pwm.svc.telemetry.TelemetryService.class ),
     ClusterService( password.pwm.svc.cluster.ClusterService.class ),
     PwExpiryNotifyService( PwNotifyService.class ),;
