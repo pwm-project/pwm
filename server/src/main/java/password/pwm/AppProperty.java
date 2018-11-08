@@ -282,6 +282,7 @@ public enum AppProperty
     PEOPLESEARCH_MAX_VALUE_VERIFYUSERDN             ( "peoplesearch.values.verifyUserDN" ),
     PEOPLESEARCH_VALUE_MAXCOUNT                     ( "peoplesearch.values.maxCount" ),
     PEOPLESEARCH_VIEW_DETAIL_LINKS                  ( "peoplesearch.view.detail.links" ),
+    PEOPLESEARCH_MAILTO_MAX_DEPTH                   ( "peoplesearch.mailto.maxDepth" ),
     QUEUE_EMAIL_RETRY_TIMEOUT_MS                    ( "queue.email.retryTimeoutMs" ),
     QUEUE_EMAIL_MAX_COUNT                           ( "queue.email.maxCount" ),
     QUEUE_EMAIL_MAX_THREADS                         ( "queue.email.maxThreads" ),
