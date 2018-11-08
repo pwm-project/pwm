@@ -25,6 +25,7 @@ import {IPwmService} from './pwm.service';
 
 const COLUMN_CONFIG = 'searchColumns';
 const PHOTO_ENABLED = 'enablePhoto';
+const PRINTING_ENABLED = 'enableOrgChartPrinting';
 
 export const ADVANCED_SEARCH_ENABLED = 'enableAdvancedSearch';
 export const ADVANCED_SEARCH_MAX_ATTRIBUTES = 'maxAdvancedSearchAttributes';
@@ -34,6 +35,7 @@ export interface IConfigService {
     getColumnConfig(): IPromise<any>;
     getValue(key: string): IPromise<any>;
     photosEnabled(): IPromise<boolean>;
+    printingEnabled(): IPromise<boolean>;
 }
 
 export interface IAttributeMetadata {
@@ -96,6 +98,11 @@ export abstract class ConfigBaseService implements IConfigService {
 
     photosEnabled(): IPromise<boolean> {
         return this.getValue(PHOTO_ENABLED)
+            .then(null, () => { return true; }); // On error use default
+    }
+
+    printingEnabled(): IPromise<boolean> {
+        return this.getValue(PRINTING_ENABLED)
             .then(null, () => { return true; }); // On error use default
     }
 }
