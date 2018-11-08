@@ -1,3 +1,25 @@
+/*
+ * Password Management Servlets (PWM)
+ * http://www.pwm-project.org
+ *
+ * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2018 The PWM Project
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
 package password.pwm.svc.wordlist;
 
 import password.pwm.PwmApplication;
@@ -47,9 +69,7 @@ class PopulationWorker implements Runnable
 
         {
             final WordlistStatus existingStatus = abstractWordlist.readWordlistStatus();
-
-            getLogger().trace( "examining existing wordlist" );
-
+            
             if ( checkIfExistingOkay( existingStatus ) )
             {
                 return;
@@ -106,22 +126,29 @@ class PopulationWorker implements Runnable
 
     private boolean checkIfExistingOkay( final WordlistStatus wordlistStatus )
     {
+        if ( wordlistStatus.isCompleted() && wordlistStatus.getSourceType() == WordlistSourceType.BuiltIn )
+        {
+            return true;
+        }
+
+        final TimeDuration recheckDuration = TimeDuration.of( 3, TimeDuration.Unit.DAYS );
+        if ( wordlistStatus.isCompleted() )
+        {
+            final Instant storageTime = wordlistStatus.getStoreDate();
+            final TimeDuration timeSinceCompletion = TimeDuration.fromCurrent( storageTime );
+            if ( timeSinceCompletion.isShorterThan( recheckDuration ) )
+            {
+                getLogger().debug( "existing completed wordlist is "
+                        + timeSinceCompletion.asCompactString() + " old, which is less than recheck interval of "
+                        + recheckDuration.asCompactString() + ", skipping recheck" );
+                return true;
+            }
+        }
+
         if ( wordlistStatus.isCompleted() && wordlistStatus.getSourceType() == WordlistSourceType.User )
         {
             getLogger().debug( "existing user-imported wordlist will not be updated" );
             return true;
-        }
-
-
-        if ( wordlistStatus.isCompleted() && wordlistStatus.getSourceType() == WordlistSourceType.AutoImport )
-        {
-            final Instant storeDate = wordlistStatus.getStoreDate();
-            final TimeDuration recheckDuration = TimeDuration.of( 3, TimeDuration.Unit.DAYS );
-            if ( TimeDuration.fromCurrent( storeDate ).isLongerThan( recheckDuration ) )
-            {
-                getLogger().debug( "existing auto-imported wordlist is older than " + recheckDuration.asCompactString() + ", will ignore" );
-                return true;
-            }
         }
 
         return false;
@@ -133,28 +160,35 @@ class PopulationWorker implements Runnable
             final WordlistSourceInfo remoteInfo = source.readRemoteWordlistInfo( cancelFlag );
 
             boolean needsAutoImport = false;
-            if ( existingStatus.getSourceType() != WordlistSourceType.AutoImport )
+            if ( remoteInfo == null )
             {
-                getLogger().debug( "current stored wordlist is from " + existingStatus.getSourceType() + " and auto-import wordlist is configured, will import" );
-                needsAutoImport = true;
+                getLogger().warn( "can't read remote wordlist data from url " + abstractWordlist.getConfiguration().getAutoImportUrl() );
             }
             else
             {
-                if ( !remoteInfo.equals( existingStatus.getRemoteInfo() ) )
+                if ( existingStatus.getSourceType() != WordlistSourceType.AutoImport )
                 {
-                    getLogger().debug( "auto-import url remote hash does not equal currently stored hash, will start auto-import" );
+                    getLogger().debug( "current stored wordlist is from " + existingStatus.getSourceType() + " and auto-import wordlist is configured, will import" );
                     needsAutoImport = true;
                 }
-                else if ( remoteInfo.getBytes() > existingStatus.getBytes() || !existingStatus.isCompleted() )
+                else
                 {
-                    getLogger().debug( "auto-import did not previously complete, will continue previous import" );
-                    needsAutoImport = true;
+                    if ( !remoteInfo.equals( existingStatus.getRemoteInfo() ) )
+                    {
+                        getLogger().debug( "auto-import url remote hash does not equal currently stored hash, will start auto-import" );
+                        needsAutoImport = true;
+                    }
+                    else if ( remoteInfo.getBytes() > existingStatus.getBytes() || !existingStatus.isCompleted() )
+                    {
+                        getLogger().debug( "auto-import did not previously complete, will continue previous import" );
+                        needsAutoImport = true;
+                    }
                 }
-            }
 
-            if ( needsAutoImport )
-            {
-                populateAutoImport( remoteInfo );
+                if ( needsAutoImport )
+                {
+                    populateAutoImport( remoteInfo );
+                }
             }
     }
 

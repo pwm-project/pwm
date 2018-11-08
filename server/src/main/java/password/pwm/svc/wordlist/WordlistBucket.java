@@ -1,3 +1,25 @@
+/*
+ * Password Management Servlets (PWM)
+ * http://www.pwm-project.org
+ *
+ * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2018 The PWM Project
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
 package password.pwm.svc.wordlist;
 
 import password.pwm.PwmApplication;
@@ -17,17 +39,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.concurrent.atomic.AtomicInteger;
 
 class WordlistBucket
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( WordlistBucket.class );
+    private static final String KEY_LAST_ISSUED_KEY = "_______lastKey_";
 
     private final PwmApplication pwmApplication;
     private final WordlistConfiguration wordlistConfiguration;
     private final LocalDB.DB db;
     private final WordlistType type;
-    private final AtomicInteger populationCounter = new AtomicInteger(  );
+
 
     WordlistBucket(
             final PwmApplication pwmApplication,
@@ -40,8 +62,6 @@ class WordlistBucket
         this.wordlistConfiguration = wordlistConfiguration;
         this.db = wordlistConfiguration.getDb();
         this.type = type;
-
-        populationCounter.set( size() );
     }
 
     public boolean containsWord( final String word ) throws LocalDBException
@@ -126,16 +146,28 @@ class WordlistBucket
     void clear() throws LocalDBException
     {
         pwmApplication.getLocalDB().truncate( db );
-        populationCounter.set( 0 );
     }
 
-    private Map<String, String> getWriteTxnForValue( final String value )
+    private Map<String, String> getWriteTxnForValue( final String value ) throws LocalDBException
     {
         switch ( type )
         {
             case SEEDLIST:
             {
-                return Collections.singletonMap( String.valueOf( populationCounter.getAndIncrement() ), value );
+                final String normalizedValue = normalizeWord( value );
+                if ( StringUtil.isEmpty( normalizedValue ) )
+                {
+                    return Collections.emptyMap();
+                }
+                else
+                {
+                    final String currentKey = pwmApplication.getLocalDB().get( db, KEY_LAST_ISSUED_KEY );
+                    final String nextKey = StringUtil.isEmpty( currentKey )
+                            ? "0"
+                            : String.valueOf( Integer.valueOf( currentKey ) + 1 );
+                    pwmApplication.getLocalDB().put( db, KEY_LAST_ISSUED_KEY, nextKey );
+                    return Collections.singletonMap( String.valueOf( nextKey ), normalizedValue );
+                }
             }
 
             case WORDLIST:

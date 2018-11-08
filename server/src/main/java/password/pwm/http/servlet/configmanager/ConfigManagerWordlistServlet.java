@@ -220,7 +220,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
                         wordlistStatus.isCompleted() ? "Completed" : "In-Progress" ) );
                 presentableValues.add( new DisplayElement(
                         wordlistType.name() + "_listSource",
-                        DisplayElement.Type.string, "List SourceType",
+                        DisplayElement.Type.string, "List Source",
                         wordlistStatus.getSourceType() == null
                                 ? WordlistSourceType.BuiltIn.getLabel()
                                 : wordlistStatus.getSourceType().getLabel() ) );
@@ -250,11 +250,14 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
                                 "Population Timestamp",
                                 JavaHelper.toIsoDate( wordlistStatus.getStoreDate() ) ) );
                     }
-                    presentableValues.add( new DisplayElement(
-                            wordlistType.name() + "_sha1Hash",
-                            DisplayElement.Type.string,
-                            "SHA1 Checksum Hash",
-                            wordlistStatus.getRemoteInfo().getChecksum() ) );
+                    if ( wordlistStatus.getRemoteInfo() != null )
+                    {
+                        presentableValues.add( new DisplayElement(
+                                wordlistType.name() + "_sha1Hash",
+                                DisplayElement.Type.string,
+                                "SHA1 Checksum Hash",
+                                wordlistStatus.getRemoteInfo().getChecksum() ) );
+                    }
                 }
                 if ( wordlist.getAutoImportError() != null )
                 {

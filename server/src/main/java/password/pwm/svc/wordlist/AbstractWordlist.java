@@ -36,6 +36,7 @@ import password.pwm.health.HealthTopic;
 import password.pwm.svc.PwmService;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmHashAlgorithm;
@@ -154,9 +155,20 @@ abstract class AbstractWordlist implements Wordlist, PwmService
 
     public synchronized void close( )
     {
+        final TimeDuration closeWaitTime = TimeDuration.of( 5, TimeDuration.Unit.SECONDS );
+
         wlStatus = STATUS.CLOSED;
         inhibitBackgroundImportFlag.set( true );
         executorService.shutdown();
+
+        if ( backgroundImportRunning.get() )
+        {
+            JavaHelper.pause( closeWaitTime.asMillis(), 50, o -> !backgroundImportRunning.get() );
+            if ( backgroundImportRunning.get() )
+            {
+                getLogger().warn( "background thread still running after waiting " + closeWaitTime.asCompactString() );
+            }
+        }
     }
 
     public STATUS status( )
@@ -230,6 +242,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
             try
             {
                 wordklistBucket.clear();
+                executorService.schedule( new PopulateJob(), 1,  TimeUnit.SECONDS );
             }
             catch ( LocalDBException e )
             {
@@ -261,16 +274,18 @@ abstract class AbstractWordlist implements Wordlist, PwmService
 
         cancelBackgroundAndRunImmediate( () ->
         {
+            getLogger().debug( "beginning direct user-supplied wordlist import" );
             setAutoImportError( null );
             final WordlistZipReader wordlistZipReader = new WordlistZipReader( inputStream );
             final WordlistImporter wordlistImporter = new WordlistImporter(
                     null,
                     wordlistZipReader,
-                    WordlistSourceType.BuiltIn,
+                    WordlistSourceType.User,
                     AbstractWordlist.this,
                     () -> false
             );
             wordlistImporter.run();
+            getLogger().debug( "completed direct user-supplied wordlist import" );
         } );
     }
 
