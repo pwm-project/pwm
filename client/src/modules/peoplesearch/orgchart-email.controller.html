@@ -27,24 +27,16 @@
         </div>
         <div class="ias-dialog-content">
             <p ng-bind="'Instructions_EmailTeam1' | translate"></p>
-            <p ng-bind="'Instructions_EmailTeam2' | translate"></p>
-            <label for="depth" ng-bind="'Label_EmailLevelDepth' | translate"></label>
-            <div>
-                <!--<select ng-model="query.key" ng-change="$ctrl.onAdvancedSearchAttributeChanged(query)">-->
-                    <!--<option ng-repeat="tag in $ctrl.advancedSearchTags" ng-attr-value="{{tag.attribute}}">{{tag.label}}</option>-->
-                <!--</select>-->
+            <p ng-if="$ctrl.depth > 1" ng-bind="'Instructions_EmailTeam2' | translate"></p>
+            <label ng-if="$ctrl.depth > 1" for="depth" ng-bind="'Label_EmailLevelDepth' | translate"></label>
+            <div ng-if="$ctrl.depth > 1">
                 <select id="depth">
-                    <option>1</option>
-                    <option>2</option>
-                    <option>3</option>
-                    <option>4</option>
-                    <option>5</option>
-                    <option>6</option>
+                    <option ng-repeat="x in [].constructor($ctrl.depth) track by $index">{{$index+1}}</option>
                 </select>
             </div>
         </div>
         <div class="ias-actions">
-            <ias-button ng-click="$ctrl.emailOrgChart()">{{ 'Button_Email' | translate }}</ias-button>
+            <ias-button ng-click="$ctrl.emailOrgChart()">{{ 'Button_EmailTeam' | translate }}</ias-button>
         </div>
         <ias-button class="ias-icon-button ias-dialog-cancel-button"
                     id="close-icon"

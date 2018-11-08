@@ -23,6 +23,7 @@
 require('./orgchart-export.controller.scss');
 
 export default class OrgchartExportController {
+    private depth = 4;
 
     static $inject = [
         'IasDialogService',

@@ -79,7 +79,7 @@
   "Title_ValidateCode": "Validate Code",
   "Title_VerificationSend": "Select verification method",
   "Title_ExportOrgChart": "Export Organizational Chart",
-  "Title_EmailOrgChart": "Email Team",
+  "Title_EmailOrgChart": "Email Team Members",
   "Label_ExportLevelDepth": "Export Level Depth",
   "Label_EmailLevelDepth": "Team Level Depth"
 }

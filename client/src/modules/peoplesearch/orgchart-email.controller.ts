@@ -23,6 +23,7 @@
 require('./orgchart-email.controller.scss');
 
 export default class OrgchartEmailController {
+    private depth = 9;
 
     static $inject = [
         '$window',
