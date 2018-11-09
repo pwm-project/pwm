@@ -69,6 +69,5 @@
 
     <% if (JspUtility.getPwmRequest(pageContext).isFlag(PwmRequestFlag.INCLUDE_IAS_ANGULAR) || JspUtility.getPwmRequest(pageContext).isFlag(PwmRequestFlag.INCLUDE_IAS_CSS)) { %>
         <link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/webjars/pwm-client/vendor/ux-ias/ias-icons.css' addContext="true"/>"/>
-        <link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/webjars/pwm-client/vendor/ux-ias/ux-ias.css' addContext="true"/>"/>
     <% } %>
 </head>

@@ -40,6 +40,7 @@ import SuccessChangePasswordController from '../../components/changepassword/suc
 import TypeChangePasswordController from '../../components/changepassword/type-change-password.controller';
 import CommonSearchService from '../../services/common-search.service';
 
+require('../../styles.scss');
 require('../peoplesearch/peoplesearch.scss');
 
 const moduleName = 'help-desk';

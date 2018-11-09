@@ -38,6 +38,7 @@ import CommonSearchService from '../../services/common-search.service';
 import OrgchartExportController from './orgchart-export.controller';
 import OrgchartEmailController from './orgchart-email.controller';
 
+require('../../styles.scss');
 require('./peoplesearch.scss');
 
 const moduleName = 'people-search';

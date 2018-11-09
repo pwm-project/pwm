@@ -1,0 +1,5 @@
+// Only apply the ux-ias styles when the elements are a child of #centerbody.  This ensures we are not mucking with the
+// styles for the header and footer.
+#centerbody {
+    @import "~@microfocus/ux-ias/src/ux-ias";
+}
