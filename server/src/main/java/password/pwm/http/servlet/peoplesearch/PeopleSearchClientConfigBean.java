@@ -125,7 +125,7 @@ public class PeopleSearchClientConfigBean implements Serializable
                 .orgChartMaxParents( peopleSearchConfiguration.getOrgChartMaxParents() )
 
                 .enableAdvancedSearch( peopleSearchConfiguration.isEnableAdvancedSearch() )
-                .enableOrgChartPrinting( true )
+                .enableOrgChartPrinting( peopleSearchConfiguration.isEnablePrinting() )
 
                 .maxAdvancedSearchAttributes( 3 )
                 .advancedSearchAttributes( searchAttributes )

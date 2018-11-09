@@ -175,6 +175,11 @@ public class PeopleSearchConfiguration
         return ( int ) pwmRequest.getConfig().readSettingAsLong( PwmSetting.PEOPLE_SEARCH_RESULT_LIMIT );
     }
 
+    boolean isEnablePrinting()
+    {
+        return pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE_PRINTING );
+    }
+
     public static PeopleSearchConfiguration forRequest(
             final PwmRequest pwmRequest
     )
