@@ -21,11 +21,13 @@
 --%>
 
 <!DOCTYPE html>
-<% JspUtility.setFlag(pageContext, PwmRequestFlag.INCLUDE_IAS_ANGULAR); %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
-<%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
+<head>
+    <%@ include file="/WEB-INF/jsp/fragment/header-common.jsp" %>
+    <link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/webjars/pwm-client/vendor/ux-ias/ias-icons.css' addContext="true"/>"/>
+</head>
 <body class="nihilo printable">
 <div id="wrapper" class="peoplesearch-wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">

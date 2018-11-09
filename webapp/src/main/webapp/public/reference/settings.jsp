@@ -30,6 +30,7 @@
 <%@ page import="java.util.*" %>
 <%@ page import="password.pwm.util.macro.MacroMachine" %>
 <%@ page import="com.novell.ldapchai.util.StringHelper" %>
+<%@ page import="password.pwm.AppProperty" %>
 
 <!DOCTYPE html>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_HEADER_WARNINGS); %>

@@ -20,54 +20,10 @@
  ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 --%>
 
-<%@ page import="password.pwm.AppProperty" %>
-<%@ page import="password.pwm.PwmApplication" %>
-<%@ page import="password.pwm.PwmConstants" %>
-<%@ page import="password.pwm.error.PwmUnrecoverableException" %>
-<%@ page import="password.pwm.http.ContextManager" %>
-<%@ page import="password.pwm.http.PwmRequest" %>
-<%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
-<%@ page import="password.pwm.http.tag.value.PwmValue" %>
-<%@ page import="password.pwm.http.PwmRequestFlag" %>
-<%@ page import="password.pwm.http.tag.url.PwmThemeURL" %>
-<%@ page import="password.pwm.http.JspUtility" %>
-<%@ taglib uri="pwm" prefix="pwm" %>
-
+<%--
+The code for this JSP has been moved into header-common.jsp.  Pages pointing to header.jsp will continue to work as
+they did before, but pages that need access to the header tag can now include header-common.jsp as shown below:
+--%>
 <head>
-    <pwm:if test="<%=PwmIfTest.authenticated%>" negate="true"><title><pwm:display key="Title_TitleBar"/></title></pwm:if>
-    <pwm:if test="<%=PwmIfTest.authenticated%>"><title><pwm:display key="Title_TitleBarAuthenticated"/></title></pwm:if>
-    <meta http-equiv="content-type" content="text/html;charset=utf-8"/>
-    <meta name="robots" content="noindex,nofollow"/>
-    <meta id="application-info" name="application-name" content="<%=PwmConstants.PWM_APP_NAME%> Password Self Service"
-          <pwm:if test="<%=PwmIfTest.showVersionHeader%>">data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-version="<%=PwmConstants.BUILD_VERSION%>" data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-build="<%=PwmConstants.BUILD_NUMBER%>"</pwm:if>
-          data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-instance="<pwm:value name="<%=PwmValue.instanceID%>"/>"
-          data-jsp-name="<pwm:value name="<%=PwmValue.currentJspFilename%>"/>"
-          data-url-context="<pwm:context/>"
-          data-pwmFormID="<pwm:FormID/>"
-          data-clientEtag="<pwm:value name="<%=PwmValue.clientETag%>"/>">
-    <meta name="viewport" content="width=device-width, initial-scale = 1.0, user-scalable=no"/>
-    <meta http-equiv="X-UA-Compatible" content="IE=10; IE=9; IE=8; IE=7" />
-    <link rel="icon" type="image/png" href="<pwm:url url='/public/resources/favicon.png' addContext="true"/>"/>
-    <link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/pwm-icons.css' addContext="true"/>"/>
-    <link href="<pwm:url url='/public/resources/style.css' addContext="true"/>" rel="stylesheet" type="text/css" media="screen"/>
-    <link href="<pwm:url url='/public/resources/style-print.css' addContext="true"/>" rel="stylesheet" type="text/css" media="print"/>
-    <link href="<pwm:url url="%THEME_URL%"/>" rel="stylesheet" type="text/css" media="screen"/>
-    <pwm:if test="<%=PwmIfTest.requestFlag%>" requestFlag="<%=PwmRequestFlag.NO_MOBILE_CSS%>" negate="true">
-        <link media="only screen and (max-width: 600px)" href="<pwm:url url='/public/resources/mobileStyle.css' addContext="true"/>" type="text/css" rel="stylesheet"/><%-- iphone css --%>
-        <link media="only screen and (max-width: 600px)" href="<pwm:url url="%MOBILE_THEME_URL%"/>" type="text/css" rel="stylesheet"/><%-- mobile css --%>
-    </pwm:if>
-    <link href="<pwm:url url='/public/resources/webjars/dijit/themes/nihilo/nihilo.css' addContext="true"/>" rel="stylesheet" type="text/css"/>
-    <link href="<pwm:url url='/public/resources/webjars/dgrid/css/dgrid.css' addContext="true"/>" rel="stylesheet" type="text/css"/>
-    <pwm:if test="<%=PwmIfTest.requestFlag%>" requestFlag="<%=PwmRequestFlag.INCLUDE_CONFIG_CSS%>">
-        <link href="<pwm:url url='<%=PwmThemeURL.CONFIG_THEME_URL.token()%>' addContext="true"/>" rel="stylesheet" type="text/css" media="screen"/>
-    </pwm:if>
-    <pwm:script>
-        <script type="text/javascript">
-            var PWM_GLOBAL = PWM_GLOBAL || {}; PWM_GLOBAL['startupFunctions'] = [];
-        </script>
-    </pwm:script>
-
-    <% if (JspUtility.getPwmRequest(pageContext).isFlag(PwmRequestFlag.INCLUDE_IAS_ANGULAR) || JspUtility.getPwmRequest(pageContext).isFlag(PwmRequestFlag.INCLUDE_IAS_CSS)) { %>
-        <link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/webjars/pwm-client/vendor/ux-ias/ias-icons.css' addContext="true"/>"/>
-    <% } %>
+    <%@ include file="/WEB-INF/jsp/fragment/header-common.jsp" %>
 </head>
