@@ -23,16 +23,16 @@
 require('./orgchart-email.controller.scss');
 
 export default class OrgchartEmailController {
-    private depth = 9;
-
     static $inject = [
         '$window',
         'IasDialogService',
-        'translateFilter'
+        'translateFilter',
+        'depth'
     ];
     constructor(private $window: angular.IWindowService,
                 private IasDialogService: any,
-                private translateFilter: (id: string) => string) {
+                private translateFilter: (id: string) => string,
+                private depth: number) {
     }
 
     emailOrgChart() {

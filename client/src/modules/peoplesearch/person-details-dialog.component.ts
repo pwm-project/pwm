@@ -116,7 +116,10 @@ export default class PersonDetailsDialogComponent {
         this.IasDialogService
             .open({
                 controller: 'OrgchartExportController as $ctrl',
-                templateUrl: orgchartExportTemplateUrl
+                templateUrl: orgchartExportTemplateUrl,
+                locals: {
+                    depth: 11
+                }
             });
             // If the password was changed, the promise resolves. IasDialogService passes the data intact.
             // .then(this.exportSuccess.bind(this), noop);
@@ -126,7 +129,10 @@ export default class PersonDetailsDialogComponent {
         this.IasDialogService
             .open({
                 controller: 'OrgchartEmailController as $ctrl',
-                templateUrl: orgchartEmailTemplateUrl
+                templateUrl: orgchartEmailTemplateUrl,
+                locals: {
+                    depth: 7
+                }
             });
         // If the password was changed, the promise resolves. IasDialogService passes the data intact.
         // .then(this.exportSuccess.bind(this), noop);

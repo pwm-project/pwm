@@ -23,14 +23,14 @@
 require('./orgchart-export.controller.scss');
 
 export default class OrgchartExportController {
-    private depth = 4;
-
     static $inject = [
         'IasDialogService',
-        'translateFilter'
+        'translateFilter',
+        'depth'
     ];
     constructor(private IasDialogService: any,
-                private translateFilter: (id: string) => string) {
+                private translateFilter: (id: string) => string,
+                private depth: number) {
     }
 
     exportOrgChart() {
