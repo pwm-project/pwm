@@ -35,7 +35,6 @@ import password.pwm.health.HealthStatus;
 import password.pwm.health.HealthTopic;
 import password.pwm.svc.PwmService;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
@@ -54,7 +53,7 @@ import java.util.function.BooleanSupplier;
 abstract class AbstractWordlist implements Wordlist, PwmService
 {
 
-    static final PwmHashAlgorithm CHECKSUM_HASH_ALG = PwmHashAlgorithm.SHA1;
+    static final PwmHashAlgorithm CHECKSUM_HASH_ALG = PwmHashAlgorithm.SHA256;
 
     private WordlistConfiguration wordlistConfiguration;
     private WordlistBucket wordklistBucket;
@@ -221,11 +220,11 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         return WordlistStatus.builder().build();
     }
 
-    void writeMetadata( final WordlistStatus metadataBean )
+    void writeWordlistStatus( final WordlistStatus metadataBean )
     {
         final PwmApplication.AppAttribute appAttribute = wordlistConfiguration.getMetaDataAppAttribute();
         pwmApplication.writeAppAttribute( appAttribute, metadataBean );
-        getLogger().trace( "updated stored state: " + JsonUtil.serialize( metadataBean ) );
+        //getLogger().trace( "updated stored state: " + JsonUtil.serialize( metadataBean ) );
     }
 
     @Override
@@ -238,7 +237,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
 
         cancelBackgroundAndRunImmediate( () ->
         {
-            writeMetadata( WordlistStatus.builder().build() );
+            writeWordlistStatus( WordlistStatus.builder().build() );
             try
             {
                 wordklistBucket.clear();
@@ -325,8 +324,8 @@ abstract class AbstractWordlist implements Wordlist, PwmService
                 {
                     final BooleanSupplier cancelFlag = () -> inhibitBackgroundImportFlag.get();
                     backgroundImportRunning.set( true );
-                    final PopulationWorker populationWorker = new PopulationWorker( pwmApplication, AbstractWordlist.this, cancelFlag );
-                    populationWorker.run();
+                    final WordlistImportWorker wordlistImportWorker = new WordlistImportWorker( pwmApplication, AbstractWordlist.this, cancelFlag );
+                    wordlistImportWorker.run();
                 }
             }
             finally

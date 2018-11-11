@@ -322,10 +322,25 @@ public class JavaHelper
         return IOUtils.copyLarge( input, output, 0, -1, buffer );
     }
 
-    public static long copyWhilePredicate( final InputStream input, final OutputStream output, final Predicate<Long> predicate )
+    public static long copyWhilePredicate(
+            final InputStream input,
+            final OutputStream output,
+            final Predicate<Long> predicate
+    )
             throws IOException
     {
-        final int bufferSize = 4 * 1024;
+        return copyWhilePredicate( input, output, 4 * 1024, predicate, null );
+    }
+
+    public static long copyWhilePredicate(
+            final InputStream input,
+            final OutputStream output,
+            final int bufferSize,
+            final Predicate<Long> predicate,
+            final ConditionalTaskExecutor condtionalTaskExecutor
+    )
+            throws IOException
+    {
         final byte[] buffer = new byte[ bufferSize ];
         long bytesCopied;
         long totalCopied = 0;
@@ -335,6 +350,10 @@ public class JavaHelper
             if ( bytesCopied > 0 )
             {
                 totalCopied += bytesCopied;
+            }
+            if ( condtionalTaskExecutor != null )
+            {
+                condtionalTaskExecutor.conditionallyExecuteTask();
             }
             if ( !predicate.test( bytesCopied ) )
             {

@@ -36,12 +36,14 @@ import password.pwm.http.JspUrl;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.bean.DisplayElement;
 import password.pwm.http.servlet.AbstractPwmServlet;
+import password.pwm.i18n.Display;
 import password.pwm.i18n.Message;
-import password.pwm.svc.wordlist.WordlistSourceType;
-import password.pwm.svc.wordlist.WordlistStatus;
 import password.pwm.svc.wordlist.Wordlist;
 import password.pwm.svc.wordlist.WordlistConfiguration;
+import password.pwm.svc.wordlist.WordlistSourceType;
+import password.pwm.svc.wordlist.WordlistStatus;
 import password.pwm.svc.wordlist.WordlistType;
+import password.pwm.util.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
@@ -222,7 +224,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
                         wordlistType.name() + "_listSource",
                         DisplayElement.Type.string, "List Source",
                         wordlistStatus.getSourceType() == null
-                                ? WordlistSourceType.BuiltIn.getLabel()
+                                ? LocaleHelper.getLocalizedMessage( Display.Value_NotApplicable, pwmRequest )
                                 : wordlistStatus.getSourceType().getLabel() ) );
                 if ( wordlistConfiguration.getAutoImportUrl() != null )
                 {
@@ -253,9 +255,9 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
                     if ( wordlistStatus.getRemoteInfo() != null )
                     {
                         presentableValues.add( new DisplayElement(
-                                wordlistType.name() + "_sha1Hash",
+                                wordlistType.name() + "_sha256Hash",
                                 DisplayElement.Type.string,
-                                "SHA1 Checksum Hash",
+                                "SHA-256 Checksum Hash",
                                 wordlistStatus.getRemoteInfo().getChecksum() ) );
                     }
                 }

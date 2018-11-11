@@ -32,13 +32,13 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.function.BooleanSupplier;
 
-class PopulationWorker implements Runnable
+class WordlistImportWorker implements Runnable
 {
     private final AbstractWordlist abstractWordlist;
     private final PwmApplication pwmApplication;
     private final BooleanSupplier cancelFlag;
 
-    PopulationWorker(
+    WordlistImportWorker(
             final PwmApplication pwmApplication,
             final AbstractWordlist abstractWordlist,
             final BooleanSupplier cancelFlag
@@ -66,25 +66,28 @@ class PopulationWorker implements Runnable
             throws Exception
     {
         final boolean autoImportUrlConfigured = !StringUtil.isEmpty( abstractWordlist.getConfiguration().getAutoImportUrl() );
+        WordlistStatus existingStatus = abstractWordlist.readWordlistStatus();
 
+        if ( checkIfClearIsNeeded( existingStatus, autoImportUrlConfigured ) )
         {
-            final WordlistStatus existingStatus = abstractWordlist.readWordlistStatus();
-            
-            if ( checkIfExistingOkay( existingStatus ) )
-            {
-                return;
-            }
-
-            if ( autoImportUrlConfigured )
-            {
-                checkAutoPopulation( existingStatus );
-            }
+            abstractWordlist.getWordlistBucket().clear();
+            abstractWordlist.writeWordlistStatus( WordlistStatus.builder().build() );
         }
+
+        existingStatus = abstractWordlist.readWordlistStatus();
+
+        if ( checkIfExistingOkay( existingStatus, autoImportUrlConfigured ) )
+        {
+            return;
+        }
+
+        checkAutoPopulation( existingStatus );
+
+        existingStatus = abstractWordlist.readWordlistStatus();
 
         if ( !cancelFlag.getAsBoolean() )
         {
             boolean needsBuiltInPopulation = false;
-            final WordlistStatus existingStatus = abstractWordlist.readWordlistStatus();
             if ( existingStatus.getSourceType() == WordlistSourceType.AutoImport
                     && !existingStatus.isCompleted()
                     && abstractWordlist.getAutoImportError() != null )
@@ -124,8 +127,43 @@ class PopulationWorker implements Runnable
         }
     }
 
-    private boolean checkIfExistingOkay( final WordlistStatus wordlistStatus )
+    private boolean checkIfClearIsNeeded(
+            final WordlistStatus wordlistStatus,
+            final boolean autoImportUrlConfigured
+    )
     {
+        if ( wordlistStatus.getVersion() != WordlistStatus.CURRENT_VERSION )
+        {
+            getLogger().debug( "stored version '" + wordlistStatus.getVersion() + "' is not current version '"
+                    + WordlistStatus.CURRENT_VERSION + "', will clear" );
+            return true;
+        }
+
+        if ( wordlistStatus.getSourceType() != WordlistSourceType.AutoImport && autoImportUrlConfigured )
+        {
+            getLogger().debug( "existing stored list is not type AutoImport but auto-import is configured, will clear" );
+            return true;
+        }
+
+        if ( wordlistStatus.getSourceType() == WordlistSourceType.AutoImport && !autoImportUrlConfigured )
+        {
+            getLogger().debug( "existing stored list is AutoImport but auto-import is not configured, will clear" );
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean checkIfExistingOkay(
+            final WordlistStatus wordlistStatus,
+            final boolean autoImportUrlConfigured
+    )
+    {
+        if ( wordlistStatus.getSourceType() != WordlistSourceType.AutoImport && autoImportUrlConfigured )
+        {
+            return false;
+        }
+
         if ( wordlistStatus.isCompleted() && wordlistStatus.getSourceType() == WordlistSourceType.BuiltIn )
         {
             return true;
@@ -154,42 +192,45 @@ class PopulationWorker implements Runnable
         return false;
     }
 
-    private void checkAutoPopulation( final WordlistStatus existingStatus ) throws IOException, PwmUnrecoverableException
+    private void checkAutoPopulation(
+            final WordlistStatus existingStatus
+    )
+            throws IOException, PwmUnrecoverableException
     {
-            final WordlistSource source = WordlistSource.forAutoImport( pwmApplication, abstractWordlist.getConfiguration() );
-            final WordlistSourceInfo remoteInfo = source.readRemoteWordlistInfo( cancelFlag );
+        final WordlistSource source = WordlistSource.forAutoImport( pwmApplication, abstractWordlist.getConfiguration() );
+        final WordlistSourceInfo remoteInfo = source.readRemoteWordlistInfo( cancelFlag );
 
-            boolean needsAutoImport = false;
-            if ( remoteInfo == null )
+        boolean needsAutoImport = false;
+        if ( remoteInfo == null )
+        {
+            getLogger().warn( "can't read remote wordlist data from url " + abstractWordlist.getConfiguration().getAutoImportUrl() );
+        }
+        else
+        {
+            if ( existingStatus.getSourceType() != WordlistSourceType.AutoImport )
             {
-                getLogger().warn( "can't read remote wordlist data from url " + abstractWordlist.getConfiguration().getAutoImportUrl() );
+                getLogger().debug( "current stored wordlist is from " + existingStatus.getSourceType() + " and auto-import wordlist is configured, will import" );
+                needsAutoImport = true;
             }
             else
             {
-                if ( existingStatus.getSourceType() != WordlistSourceType.AutoImport )
+                if ( !remoteInfo.equals( existingStatus.getRemoteInfo() ) )
                 {
-                    getLogger().debug( "current stored wordlist is from " + existingStatus.getSourceType() + " and auto-import wordlist is configured, will import" );
+                    getLogger().debug( "auto-import url remote hash does not equal currently stored hash, will start auto-import" );
                     needsAutoImport = true;
                 }
-                else
+                else if ( remoteInfo.getBytes() > existingStatus.getBytes() || !existingStatus.isCompleted() )
                 {
-                    if ( !remoteInfo.equals( existingStatus.getRemoteInfo() ) )
-                    {
-                        getLogger().debug( "auto-import url remote hash does not equal currently stored hash, will start auto-import" );
-                        needsAutoImport = true;
-                    }
-                    else if ( remoteInfo.getBytes() > existingStatus.getBytes() || !existingStatus.isCompleted() )
-                    {
-                        getLogger().debug( "auto-import did not previously complete, will continue previous import" );
-                        needsAutoImport = true;
-                    }
-                }
-
-                if ( needsAutoImport )
-                {
-                    populateAutoImport( remoteInfo );
+                    getLogger().debug( "auto-import did not previously complete, will continue previous import" );
+                    needsAutoImport = true;
                 }
             }
+
+            if ( needsAutoImport )
+            {
+                populateAutoImport( remoteInfo );
+            }
+        }
     }
 
     private void populateBuiltIn()
