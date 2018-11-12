@@ -41,7 +41,7 @@ public class WordlistService extends AbstractWordlist implements Wordlist
 
     public void init( final PwmApplication pwmApplication ) throws PwmException
     {
-        super.init( pwmApplication, WordlistType.WORDLIST, WordlistService.class );
+        super.init( pwmApplication, WordlistType.WORDLIST );
     }
 
     @Override

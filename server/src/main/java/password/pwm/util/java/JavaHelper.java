@@ -63,10 +63,13 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.TimeZone;
 import java.util.TreeSet;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
@@ -488,7 +491,24 @@ public class JavaHelper
                 ) );
     }
 
-
+    public static ExecutorService makeBackgroundExecutor(
+            final PwmApplication pwmApplication,
+            final Class clazz
+    )
+    {
+        final ThreadPoolExecutor executor = new ThreadPoolExecutor(
+                1,
+                1,
+                10, TimeUnit.SECONDS,
+                new LinkedBlockingQueue<>(),
+                JavaHelper.makePwmThreadFactory(
+                        JavaHelper.makeThreadName( pwmApplication, clazz ) + "-",
+                        true
+                ) );
+        executor.allowCoreThreadTimeOut( true );
+        return executor;
+    }
+    
     /**
      * Copy of {@link ThreadInfo#toString()} but with the MAX_FRAMES changed from 8 to 256.
      * @param threadInfo thread information

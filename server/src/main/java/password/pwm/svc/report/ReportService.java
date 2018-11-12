@@ -455,11 +455,11 @@ public class ReportService implements PwmService
             LOGGER.trace( "completed ldap search process, transferring search results to work queue" );
 
             final TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(
-                    new TransactionSizeCalculator.SettingsBuilder()
-                            .setDurationGoal( TimeDuration.SECOND )
-                            .setMinTransactions( 10 )
-                            .setMaxTransactions( 100 * 1000 )
-                            .createSettings()
+                    TransactionSizeCalculator.Settings.builder()
+                            .durationGoal( TimeDuration.SECOND )
+                            .minTransactions( 10 )
+                            .maxTransactions( 100 * 1000 )
+                            .build()
             );
 
             while ( status == STATUS.OPEN && !cancelFlag && memQueue.hasNext() )

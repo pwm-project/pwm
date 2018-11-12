@@ -30,6 +30,7 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 
 import java.io.Serializable;
@@ -48,10 +49,15 @@ public class WordlistConfiguration implements Serializable
     private final LocalDB.DB db;
     private final PwmSetting wordlistFilenameSetting;
 
+    private final TimeDuration autoImportRecheckDuration;
+    private final TimeDuration importDurationGoal;
+    private final int importMinTransactionGoal;
+    private final int importMaxTransactionGoal;
+
     static WordlistConfiguration fromConfiguration(
             final Configuration configuration,
             final WordlistType type
-            )
+    )
     {
         switch ( type )
         {
@@ -65,6 +71,18 @@ public class WordlistConfiguration implements Serializable
                         .builtInWordlistLocationProperty( AppProperty.SEEDLIST_BUILTIN_PATH )
                         .db( LocalDB.DB.SEEDLIST_WORDS )
                         .wordlistFilenameSetting( PwmSetting.SEEDLIST_FILENAME )
+
+                        .minSize( Integer.parseInt( configuration.readAppProperty( AppProperty.WORDLIST_CHAR_LENGTH_MIN ) ) )
+                        .maxSize( Integer.parseInt( configuration.readAppProperty( AppProperty.WORDLIST_CHAR_LENGTH_MAX ) ) )
+                        .autoImportRecheckDuration( TimeDuration.of(
+                                Long.parseLong( configuration.readAppProperty( AppProperty.WORDLIST_IMPORT_AUTO_IMPORT_RECHECK_SECONDS ) ),
+                                TimeDuration.Unit.SECONDS ) )
+                        .importDurationGoal( TimeDuration.of(
+                                Long.parseLong( configuration.readAppProperty( AppProperty.WORDLIST_IMPORT_DURATION_GOAL_MS ) ),
+                                TimeDuration.Unit.MILLISECONDS ) )
+                        .importMinTransactionGoal( Integer.parseInt( configuration.readAppProperty( AppProperty.WORDLIST_IMPORT_MIN_TRANSACTION_GOAL ) ) )
+                        .importMaxTransactionGoal( Integer.parseInt( configuration.readAppProperty( AppProperty.WORDLIST_IMPORT_MAX_TRANSACTION_GOAL ) ) )
+
                         .build();
             }
 
@@ -74,12 +92,22 @@ public class WordlistConfiguration implements Serializable
                         .caseSensitive( configuration.readSettingAsBoolean( PwmSetting.WORDLIST_CASE_SENSITIVE )  )
                         .checkSize( (int) configuration.readSettingAsLong( PwmSetting.PASSWORD_WORDLIST_WORDSIZE ) )
                         .autoImportUrl( readAutoImportUrl( configuration, PwmSetting.WORDLIST_FILENAME ) )
-                        .minSize( Integer.parseInt( configuration.readAppProperty( AppProperty.WORDLIST_CHAR_LENGTH_MIN ) ) )
-                        .maxSize( Integer.parseInt( configuration.readAppProperty( AppProperty.WORDLIST_CHAR_LENGTH_MAX ) ) )
                         .metaDataAppAttribute( PwmApplication.AppAttribute.WORDLIST_METADATA )
                         .builtInWordlistLocationProperty( AppProperty.WORDLIST_BUILTIN_PATH )
                         .db( LocalDB.DB.WORDLIST_WORDS )
                         .wordlistFilenameSetting( PwmSetting.WORDLIST_FILENAME )
+
+                        .minSize( Integer.parseInt( configuration.readAppProperty( AppProperty.WORDLIST_CHAR_LENGTH_MIN ) ) )
+                        .maxSize( Integer.parseInt( configuration.readAppProperty( AppProperty.WORDLIST_CHAR_LENGTH_MAX ) ) )
+                        .autoImportRecheckDuration( TimeDuration.of(
+                                Long.parseLong( configuration.readAppProperty( AppProperty.WORDLIST_IMPORT_AUTO_IMPORT_RECHECK_SECONDS ) ),
+                                TimeDuration.Unit.SECONDS ) )
+                        .importDurationGoal( TimeDuration.of(
+                                Long.parseLong( configuration.readAppProperty( AppProperty.WORDLIST_IMPORT_DURATION_GOAL_MS ) ),
+                                TimeDuration.Unit.MILLISECONDS ) )
+                        .importMinTransactionGoal( Integer.parseInt( configuration.readAppProperty( AppProperty.WORDLIST_IMPORT_MIN_TRANSACTION_GOAL ) ) )
+                        .importMaxTransactionGoal( Integer.parseInt( configuration.readAppProperty( AppProperty.WORDLIST_IMPORT_MAX_TRANSACTION_GOAL ) ) )
+
                         .build();
             }
 

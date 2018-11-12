@@ -35,15 +35,12 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.IOException;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BooleanSupplier;
 
@@ -52,23 +49,14 @@ import java.util.function.BooleanSupplier;
  */
 class WordlistImporter implements Runnable
 {
-    private static final TimeDuration DEBUG_OUTPUT_FREQUENCY = TimeDuration.SECONDS_30;
-
     // words tarting with this prefix are ignored.
     private static final String COMMENT_PREFIX = "!#comment:";
-
-    private static final NumberFormat PERCENT_FORMAT = DecimalFormat.getPercentInstance();
+    private static final TimeDuration BYTE_MOVING_AVG_DURATION = TimeDuration.of( 5, TimeDuration.Unit.MINUTES );
 
     private final WordlistZipReader zipFileReader;
     private final WordlistSourceType sourceType;
 
-    private TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(
-            new TransactionSizeCalculator.SettingsBuilder()
-                    .setDurationGoal( TimeDuration.of( 600, TimeDuration.Unit.MILLISECONDS ) )
-                    .setMinTransactions( 10 )
-                    .setMaxTransactions( 350 * 1000 )
-                    .createSettings()
-    );
+    private final TransactionSizeCalculator transactionCalculator;
 
     private final Set<String> bufferedWords = new HashSet<>();
 
@@ -83,16 +71,28 @@ class WordlistImporter implements Runnable
     private final AtomicLong bytesSkipped = new AtomicLong( 0 );
 
     private final EventRateMeter.MovingAverage byteRateMeter
-            = new EventRateMeter.MovingAverage( TimeDuration.MINUTE );
+            = new EventRateMeter.MovingAverage( BYTE_MOVING_AVG_DURATION );
 
     private final BooleanSupplier cancelFlag;
 
     private ErrorInformation exitError;
 
-
-    static
+    private enum DebugKey
     {
-        PERCENT_FORMAT.setMinimumFractionDigits( 2 );
+        LinesRead,
+        BytesRead,
+        BytesRemaining,
+        BufferSize,
+        BytesSkipped,
+        BytesPerSecond,
+        PercentComplete,
+        ImportTime,
+        EstimatedRemainingTime,
+    }
+
+    public enum Status
+    {
+
     }
 
     WordlistImporter(
@@ -109,6 +109,17 @@ class WordlistImporter implements Runnable
         this.rootWordlist = rootWordlist;
         this.cancelFlag = cancelFlag;
         this.wordlistBucket = rootWordlist.getWordlistBucket();
+
+        final WordlistConfiguration wordlistConfiguration = rootWordlist.getConfiguration();
+
+        transactionCalculator = new TransactionSizeCalculator(
+                TransactionSizeCalculator.Settings.builder()
+                        .durationGoal( wordlistConfiguration.getImportDurationGoal() )
+                        .minTransactions( wordlistConfiguration.getImportMinTransactionGoal() )
+                        .maxTransactions( wordlistConfiguration.getImportMaxTransactionGoal() )
+                        .build()
+        );
+
     }
 
     @Override
@@ -117,11 +128,7 @@ class WordlistImporter implements Runnable
         String errorMsg = null;
         try
         {
-            populate();
-        }
-        catch ( IOException e )
-        {
-            errorMsg = "i/o error during import: " + e.getMessage();
+            doImport();
         }
         catch ( PwmUnrecoverableException e )
         {
@@ -147,7 +154,9 @@ class WordlistImporter implements Runnable
         }
     }
 
-    private void init( ) throws PwmUnrecoverableException, LocalDBException
+    private void init( )
+            throws PwmUnrecoverableException,
+            LocalDBException
     {
         if ( cancelFlag.getAsBoolean() )
         {
@@ -165,98 +174,15 @@ class WordlistImporter implements Runnable
 
         if ( previousBytesRead == 0 )
         {
-            getLogger().debug( "clearing stored wordlist" );
-            wordlistBucket.clear();
-            rootWordlist.writeWordlistStatus( WordlistStatus.builder().build() );
+            rootWordlist.clearImpl();
         }
-
-        if ( previousBytesRead > 0 )
+        else if ( previousBytesRead > 0 )
         {
-            final Instant startSkip = Instant.now();
-            final ConditionalTaskExecutor debugOutputter = new ConditionalTaskExecutor(
-                    () -> getLogger().debug( "continuing skipping forward in wordlist"
-                            + ", " + StringUtil.formatDiskSizeforDebug( zipFileReader.getByteCount() )
-                            + " of " + StringUtil.formatDiskSizeforDebug( previousBytesRead )
-                            + " (" + TimeDuration.compactFromCurrent( startSkip ) + ")" ),
-                    new ConditionalTaskExecutor.TimeDurationPredicate( TimeDuration.MINUTE )
-            );
-
-            getLogger().debug( "will skip forward " + StringUtil.formatDiskSizeforDebug( previousBytesRead ) + " in stream that have been previously imported" );
-            while ( !cancelFlag.getAsBoolean() && bytesSkipped.get() < previousBytesRead )
-            {
-                zipFileReader.nextLine();
-                bytesSkipped.set( zipFileReader.getByteCount() );
-                debugOutputter.conditionallyExecuteTask();
-            }
-            getLogger().debug( "skipped forward " + StringUtil.formatDiskSizeforDebug( previousBytesRead )
-                    + " in stream (" + TimeDuration.fromCurrent( startSkip ).asCompactString() + ")" );
+            skipForward( previousBytesRead );
         }
     }
 
-    private enum DebugKey
-    {
-        LinesRead,
-        BytesRead,
-        BytesRemaining,
-        BufferSize,
-        BytesSkipped,
-        BytesPerSecond,
-        PercentComplete,
-        ImportTime,
-        EstimatedRemainingTime,
-    }
-
-    private Map<DebugKey, String> makeStatValues()
-    {
-        final Map<DebugKey, String> stats = new LinkedHashMap<>();
-        stats.put( DebugKey.LinesRead, Long.toString( zipFileReader.getLineCount() ) );
-        stats.put( DebugKey.BytesRead, StringUtil.formatDiskSizeforDebug( zipFileReader.getByteCount() ) );
-        stats.put( DebugKey.BufferSize, Integer.toString( transactionCalculator.getTransactionSize() ) );
-
-        final long totalBytes = wordlistSourceInfo.getBytes();
-        final long remainingBytes = totalBytes - zipFileReader.getByteCount();
-        stats.put( DebugKey.BytesRemaining, StringUtil.formatDiskSizeforDebug( remainingBytes ) );
-
-
-        final long elapsedSeconds = TimeDuration.fromCurrent( startTime ).as( TimeDuration.Unit.SECONDS );
-
-        if ( bytesSkipped.get() > 0 )
-        {
-            stats.put( DebugKey.BytesSkipped, StringUtil.formatDiskSizeforDebug( bytesSkipped.get() ) );
-        }
-
-        if ( elapsedSeconds > 10 )
-        {
-            stats.put( DebugKey.BytesPerSecond, StringUtil.formatDiskSizeforDebug( (long) ( byteRateMeter.getAverage() * 1000 ) ) );
-        }
-
-        if ( wordlistSourceInfo != null )
-        {
-            final Percent percent = new Percent( zipFileReader.getByteCount(), wordlistSourceInfo.getBytes() );
-            stats.put( DebugKey.PercentComplete, percent.pretty( 2 ) );
-        }
-
-        stats.put( DebugKey.ImportTime, TimeDuration.fromCurrent( startTime ).asCompactString() );
-
-        try
-        {
-            if ( wordlistSourceInfo != null && zipFileReader.getByteCount() > 1000 )
-            {
-                final double bytesPerSecond = byteRateMeter.getAverage() * 1000;
-                final long remainingSeconds = (long) ( remainingBytes / bytesPerSecond );
-
-                stats.put( DebugKey.EstimatedRemainingTime, TimeDuration.of( remainingSeconds, TimeDuration.Unit.SECONDS ).asCompactString() );
-            }
-        }
-        catch ( Exception e )
-        {
-            /* ignore - it's a long overflow if the estimate is off */
-        }
-
-        return Collections.unmodifiableMap( stats );
-    }
-
-    private void populate( ) throws IOException, LocalDBException, PwmUnrecoverableException
+    private void doImport( ) throws LocalDBException, PwmUnrecoverableException
     {
         final ConditionalTaskExecutor metaUpdater = new ConditionalTaskExecutor(
                 () -> rootWordlist.writeWordlistStatus( WordlistStatus.builder()
@@ -270,7 +196,7 @@ class WordlistImporter implements Runnable
 
         final ConditionalTaskExecutor debugOutputter = new ConditionalTaskExecutor(
                 () -> getLogger().debug( makeStatString() ),
-                new ConditionalTaskExecutor.TimeDurationPredicate( DEBUG_OUTPUT_FREQUENCY )
+                new ConditionalTaskExecutor.TimeDurationPredicate( AbstractWordlist.DEBUG_OUTPUT_FREQUENCY )
         );
 
         try
@@ -278,6 +204,8 @@ class WordlistImporter implements Runnable
             debugOutputter.conditionallyExecuteTask();
 
             init();
+
+            getLogger().debug( "beginning import" );
 
             long lastBytes = zipFileReader.getByteCount();
 
@@ -351,11 +279,6 @@ class WordlistImporter implements Runnable
         bufferedWords.clear();
     }
 
-    private String makeStatString()
-    {
-        return StringUtil.mapToString( makeStatValues() );
-    }
-
     private void populationComplete( )
             throws LocalDBException
     {
@@ -389,4 +312,83 @@ class WordlistImporter implements Runnable
     {
         return exitError;
     }
+
+    private void skipForward( final long previousBytesRead )
+            throws PwmUnrecoverableException
+    {
+        final Instant startSkip = Instant.now();
+        final ConditionalTaskExecutor debugOutputter = new ConditionalTaskExecutor(
+                () -> getLogger().debug( "continuing skipping forward in wordlist"
+                        + ", " + StringUtil.formatDiskSizeforDebug( zipFileReader.getByteCount() )
+                        + " of " + StringUtil.formatDiskSizeforDebug( previousBytesRead )
+                        + " (" + TimeDuration.compactFromCurrent( startSkip ) + ")" ),
+                new ConditionalTaskExecutor.TimeDurationPredicate( AbstractWordlist.DEBUG_OUTPUT_FREQUENCY )
+        );
+
+        getLogger().debug( "will skip forward " + StringUtil.formatDiskSizeforDebug( previousBytesRead ) + " in stream that have been previously imported" );
+        while ( !cancelFlag.getAsBoolean() && bytesSkipped.get() < previousBytesRead )
+        {
+            zipFileReader.nextLine();
+            bytesSkipped.set( zipFileReader.getByteCount() );
+            debugOutputter.conditionallyExecuteTask();
+        }
+        getLogger().debug( "skipped forward " + StringUtil.formatDiskSizeforDebug( previousBytesRead )
+                + " in stream (" + TimeDuration.fromCurrent( startSkip ).asCompactString() + ")" );
+    }
+
+    private String makeStatString()
+    {
+        return StringUtil.mapToString( makeStatValues(), "=", ", " );
+    }
+
+    private Map<DebugKey, String> makeStatValues()
+    {
+        final Map<DebugKey, String> stats = new TreeMap<>();
+
+        if ( wordlistSourceInfo != null )
+        {
+            final long totalBytes = wordlistSourceInfo.getBytes();
+            final long remainingBytes = totalBytes - zipFileReader.getByteCount();
+            stats.put( DebugKey.BytesRemaining, StringUtil.formatDiskSizeforDebug( remainingBytes ) );
+
+            try
+            {
+                if ( zipFileReader.getByteCount() > 1000 && TimeDuration.fromCurrent( startTime ).isLongerThan( BYTE_MOVING_AVG_DURATION ) )
+                {
+                    final double bytesPerSecond = byteRateMeter.getAverage() * 1000;
+                    final long remainingSeconds = (long) ( remainingBytes / bytesPerSecond );
+
+                    stats.put( DebugKey.EstimatedRemainingTime, TimeDuration.of( remainingSeconds, TimeDuration.Unit.SECONDS ).asCompactString() );
+                }
+            }
+            catch ( Exception e )
+            {
+                /* ignore - it's a long overflow if the estimate is off */
+            }
+
+            final Percent percent = new Percent( zipFileReader.getByteCount(), wordlistSourceInfo.getBytes() );
+            stats.put( DebugKey.PercentComplete, percent.pretty( 2 ) );
+        }
+        final long elapsedSeconds = TimeDuration.fromCurrent( startTime ).as( TimeDuration.Unit.SECONDS );
+
+        stats.put( DebugKey.LinesRead, StringUtil.platformNumberFormat( zipFileReader.getLineCount() ) );
+        stats.put( DebugKey.BytesRead, StringUtil.formatDiskSizeforDebug( zipFileReader.getByteCount() ) );
+
+        stats.put( DebugKey.BufferSize, StringUtil.platformNumberFormat( transactionCalculator.getTransactionSize() ) );
+
+        if ( bytesSkipped.get() > 0 )
+        {
+            stats.put( DebugKey.BytesSkipped, StringUtil.formatDiskSizeforDebug( bytesSkipped.get() ) );
+        }
+
+        if ( elapsedSeconds > 10 )
+        {
+            stats.put( DebugKey.BytesPerSecond, StringUtil.formatDiskSizeforDebug( (long) ( byteRateMeter.getAverage() * 1000 ) ) );
+        }
+
+        stats.put( DebugKey.ImportTime, TimeDuration.fromCurrent( startTime ).asCompactString() );
+
+        return Collections.unmodifiableMap( stats );
+    }
+
 }

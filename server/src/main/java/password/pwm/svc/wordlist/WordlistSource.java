@@ -54,10 +54,12 @@ class WordlistSource
 
     private final WordlistSourceType wordlistSourceType;
     private final StreamProvider streamProvider;
+    private final String importUrl;
 
-    private WordlistSource( final WordlistSourceType wordlistSourceType, final StreamProvider streamProvider )
+    private WordlistSource( final WordlistSourceType wordlistSourceType, final String importUrl, final StreamProvider streamProvider )
     {
         this.wordlistSourceType = wordlistSourceType;
+        this.importUrl = importUrl;
         this.streamProvider = streamProvider;
     }
 
@@ -73,10 +75,10 @@ class WordlistSource
 
     static WordlistSource forAutoImport( final PwmApplication pwmApplication, final WordlistConfiguration wordlistConfiguration )
     {
-        return new WordlistSource( WordlistSourceType.AutoImport, () ->
+        final String importUrl = wordlistConfiguration.getAutoImportUrl();
+        return new WordlistSource( WordlistSourceType.AutoImport, importUrl, () ->
         {
-            final String urlString = wordlistConfiguration.getAutoImportUrl();
-            if ( urlString.startsWith( "http" ) )
+            if ( importUrl.startsWith( "http" ) )
             {
                 final boolean promiscuous = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_CLIENT_PROMISCUOUS_WORDLIST_ENABLE ) );
                 final PwmHttpClientConfiguration pwmHttpClientConfiguration = PwmHttpClientConfiguration.builder()
@@ -88,7 +90,7 @@ class WordlistSource
 
             try
             {
-                final URL url = new URL( urlString );
+                final URL url = new URL( importUrl );
                 return url.openStream();
             }
             catch ( IOException e )
@@ -105,7 +107,7 @@ class WordlistSource
             final WordlistConfiguration wordlistConfiguration
     )
     {
-        return new WordlistSource( WordlistSourceType.BuiltIn, () ->
+        return new WordlistSource( WordlistSourceType.BuiltIn, null, () ->
         {
             final ContextManager contextManager = pwmApplication.getPwmEnvironment().getContextManager();
             if ( contextManager != null )
@@ -145,7 +147,7 @@ class WordlistSource
                     () -> LOGGER.debug( "continuing reading file info for " + getWordlistSourceType() + " wordlist"
                             + " " + StringUtil.formatDiskSizeforDebug( countingInputStream.getByteCount() )
                             + " (" + TimeDuration.compactFromCurrent( startTime ) + ")" ),
-                    new ConditionalTaskExecutor.TimeDurationPredicate( TimeDuration.MINUTE )
+                    new ConditionalTaskExecutor.TimeDurationPredicate( AbstractWordlist.DEBUG_OUTPUT_FREQUENCY )
             );
 
             final long bytes = JavaHelper.copyWhilePredicate(
@@ -163,7 +165,8 @@ class WordlistSource
 
             final WordlistSourceInfo wordlistSourceInfo = new WordlistSourceInfo(
                     hash,
-                    bytes
+                    bytes,
+                    importUrl
             );
 
             LOGGER.debug( "completed read of data for " + this.getWordlistSourceType() + " wordlist"

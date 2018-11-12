@@ -32,13 +32,13 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.function.BooleanSupplier;
 
-class WordlistImportWorker implements Runnable
+class WordlistInspector implements Runnable
 {
     private final AbstractWordlist abstractWordlist;
     private final PwmApplication pwmApplication;
     private final BooleanSupplier cancelFlag;
 
-    WordlistImportWorker(
+    WordlistInspector(
             final PwmApplication pwmApplication,
             final AbstractWordlist abstractWordlist,
             final BooleanSupplier cancelFlag
@@ -70,8 +70,7 @@ class WordlistImportWorker implements Runnable
 
         if ( checkIfClearIsNeeded( existingStatus, autoImportUrlConfigured ) )
         {
-            abstractWordlist.getWordlistBucket().clear();
-            abstractWordlist.writeWordlistStatus( WordlistStatus.builder().build() );
+            abstractWordlist.clearImpl();
         }
 
         existingStatus = abstractWordlist.readWordlistStatus();
@@ -132,6 +131,11 @@ class WordlistImportWorker implements Runnable
             final boolean autoImportUrlConfigured
     )
     {
+        if ( wordlistStatus == null || wordlistStatus.getRemoteInfo() == null || wordlistStatus.getSourceType() == null )
+        {
+            return true;
+        }
+
         if ( wordlistStatus.getVersion() != WordlistStatus.CURRENT_VERSION )
         {
             getLogger().debug( "stored version '" + wordlistStatus.getVersion() + "' is not current version '"
@@ -139,18 +143,48 @@ class WordlistImportWorker implements Runnable
             return true;
         }
 
-        if ( wordlistStatus.getSourceType() != WordlistSourceType.AutoImport && autoImportUrlConfigured )
+        switch ( wordlistStatus.getSourceType() )
         {
-            getLogger().debug( "existing stored list is not type AutoImport but auto-import is configured, will clear" );
-            return true;
-        }
+            case AutoImport:
+            {
+                if ( !autoImportUrlConfigured )
+                {
+                    getLogger().debug( "existing stored list is AutoImport but auto-import is not configured, will clear" );
+                    return true;
+                }
 
-        if ( wordlistStatus.getSourceType() == WordlistSourceType.AutoImport && !autoImportUrlConfigured )
-        {
-            getLogger().debug( "existing stored list is AutoImport but auto-import is not configured, will clear" );
-            return true;
-        }
+                final String storedImportUrl = wordlistStatus.getRemoteInfo().getImportUrl();
+                final String configuredUrl = abstractWordlist.getConfiguration().getAutoImportUrl();
+                if ( !StringUtil.nullSafeEquals( storedImportUrl, configuredUrl ) )
+                {
+                    getLogger().debug( "auto import url has been modified since import, will clear" );
+                    return true;
+                }
+            }
+            break;
 
+            case BuiltIn:
+            {
+                if ( autoImportUrlConfigured )
+                {
+                    getLogger().debug( "existing stored list is not type AutoImport but auto-import is configured, will clear" );
+                    return true;
+                }
+            }
+            break;
+
+            case User:
+            {
+                if ( !wordlistStatus.isCompleted() )
+                {
+                    return true;
+                }
+            }
+            break;
+
+            default:
+                return false;
+        }
         return false;
     }
 
@@ -159,34 +193,49 @@ class WordlistImportWorker implements Runnable
             final boolean autoImportUrlConfigured
     )
     {
-        if ( wordlistStatus.getSourceType() != WordlistSourceType.AutoImport && autoImportUrlConfigured )
+        if ( wordlistStatus.getSourceType() == null )
         {
             return false;
         }
 
-        if ( wordlistStatus.isCompleted() && wordlistStatus.getSourceType() == WordlistSourceType.BuiltIn )
+        switch ( wordlistStatus.getSourceType() )
         {
-            return true;
-        }
-
-        final TimeDuration recheckDuration = TimeDuration.of( 3, TimeDuration.Unit.DAYS );
-        if ( wordlistStatus.isCompleted() )
-        {
-            final Instant storageTime = wordlistStatus.getStoreDate();
-            final TimeDuration timeSinceCompletion = TimeDuration.fromCurrent( storageTime );
-            if ( timeSinceCompletion.isShorterThan( recheckDuration ) )
+            case User:
             {
-                getLogger().debug( "existing completed wordlist is "
-                        + timeSinceCompletion.asCompactString() + " old, which is less than recheck interval of "
-                        + recheckDuration.asCompactString() + ", skipping recheck" );
-                return true;
+                if ( wordlistStatus.isCompleted() )
+                {
+                    return true;
+                }
             }
-        }
+            break;
 
-        if ( wordlistStatus.isCompleted() && wordlistStatus.getSourceType() == WordlistSourceType.User )
-        {
-            getLogger().debug( "existing user-imported wordlist will not be updated" );
-            return true;
+
+            case BuiltIn:
+            {
+                if ( wordlistStatus.isCompleted() && wordlistStatus.getVersion() == WordlistStatus.CURRENT_VERSION && !autoImportUrlConfigured )
+                {
+                    return true;
+                }
+            }
+            break;
+
+            case AutoImport:
+            {
+                final Instant storageTime = wordlistStatus.getStoreDate();
+                final TimeDuration timeSinceCompletion = TimeDuration.fromCurrent( storageTime );
+                final TimeDuration recheckDuration = abstractWordlist.getConfiguration().getAutoImportRecheckDuration();
+                if ( wordlistStatus.isCompleted() && timeSinceCompletion.isShorterThan( recheckDuration ) && autoImportUrlConfigured )
+                {
+                    getLogger().debug( "existing completed wordlist is "
+                            + timeSinceCompletion.asCompactString() + " old, which is less than recheck interval of "
+                            + recheckDuration.asCompactString() + ", skipping recheck" );
+                    return true;
+                }
+            }
+            break;
+
+            default:
+                return false;
         }
 
         return false;
@@ -266,5 +315,18 @@ class WordlistImportWorker implements Runnable
     private PwmLogger getLogger()
     {
         return this.abstractWordlist.getLogger();
+    }
+
+
+    boolean needsRunningAgain()
+    {
+        final WordlistStatus wordlistStatus = abstractWordlist.readWordlistStatus();
+
+        if ( wordlistStatus.isCompleted() )
+        {
+            return false;
+        }
+
+        return true;
     }
 }

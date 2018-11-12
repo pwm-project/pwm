@@ -534,4 +534,10 @@ public abstract class StringUtil
             return defaultValue;
         }
     }
+
+    public static String platformNumberFormat( final long input )
+    {
+        final NumberFormat numberFormat = NumberFormat.getNumberInstance();
+        return numberFormat.format( input );
+    }
 }

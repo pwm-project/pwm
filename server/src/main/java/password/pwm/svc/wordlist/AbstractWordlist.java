@@ -23,6 +23,7 @@
 package password.pwm.svc.wordlist;
 
 import password.pwm.PwmApplication;
+import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.ErrorInformation;
@@ -44,20 +45,18 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BooleanSupplier;
 
 abstract class AbstractWordlist implements Wordlist, PwmService
 {
-
     static final PwmHashAlgorithm CHECKSUM_HASH_ALG = PwmHashAlgorithm.SHA256;
+    static final TimeDuration DEBUG_OUTPUT_FREQUENCY = TimeDuration.MINUTE;
 
     private WordlistConfiguration wordlistConfiguration;
     private WordlistBucket wordklistBucket;
-    private ScheduledExecutorService executorService;
+    private ExecutorService executorService;
 
     private volatile STATUS wlStatus = STATUS.NEW;
 
@@ -68,36 +67,34 @@ abstract class AbstractWordlist implements Wordlist, PwmService
     private final AtomicBoolean inhibitBackgroundImportFlag = new AtomicBoolean( false );
     private final AtomicBoolean backgroundImportRunning = new AtomicBoolean( false );
 
-    private Class concreteClass;
-
     protected AbstractWordlist( )
     {
     }
 
     public void init(
             final PwmApplication pwmApplication,
-            final WordlistType type,
-            final Class overrideClass
+            final WordlistType type
     )
             throws PwmException
     {
+
         this.pwmApplication = pwmApplication;
         this.wordlistConfiguration = WordlistConfiguration.fromConfiguration( pwmApplication.getConfig(), type );
+
+        if ( pwmApplication.getApplicationMode() != PwmApplicationMode.RUNNING
+                || pwmApplication.getLocalDB() == null
+        )
+        {
+            wlStatus = STATUS.CLOSED;
+            return;
+        }
+
         this.wordklistBucket = new WordlistBucket( pwmApplication, wordlistConfiguration, type );
-        this.concreteClass = overrideClass;
+
+        executorService = JavaHelper.makeBackgroundExecutor( pwmApplication, this.getClass() );
 
         if ( pwmApplication.getLocalDB() != null )
         {
-            executorService = Executors.newSingleThreadScheduledExecutor(
-                    JavaHelper.makePwmThreadFactory(
-                            JavaHelper.makeThreadName( pwmApplication, overrideClass ) + "-",
-                            true
-                    ) );
-
-
-
-            executorService.scheduleWithFixedDelay( new PopulateJob(), 0, 1, TimeUnit.MINUTES );
-
             wlStatus = STATUS.OPEN;
         }
         else
@@ -107,6 +104,8 @@ abstract class AbstractWordlist implements Wordlist, PwmService
             getLogger().warn( errorMsg );
             lastError = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, errorMsg );
         }
+
+        executeBackgroundJob();
     }
 
     boolean containsWord( final String word ) throws PwmUnrecoverableException
@@ -140,6 +139,11 @@ abstract class AbstractWordlist implements Wordlist, PwmService
 
     public int size( )
     {
+        if ( wlStatus != STATUS.OPEN )
+        {
+            return 0;
+        }
+
         try
         {
             return wordklistBucket.size();
@@ -158,14 +162,17 @@ abstract class AbstractWordlist implements Wordlist, PwmService
 
         wlStatus = STATUS.CLOSED;
         inhibitBackgroundImportFlag.set( true );
-        executorService.shutdown();
-
-        if ( backgroundImportRunning.get() )
+        if ( executorService != null )
         {
-            JavaHelper.pause( closeWaitTime.asMillis(), 50, o -> !backgroundImportRunning.get() );
+            executorService.shutdown();
+
             if ( backgroundImportRunning.get() )
             {
-                getLogger().warn( "background thread still running after waiting " + closeWaitTime.asCompactString() );
+                JavaHelper.pause( closeWaitTime.asMillis(), 50, o -> !backgroundImportRunning.get() );
+                if ( backgroundImportRunning.get() )
+                {
+                    getLogger().warn( "background thread still running after waiting " + closeWaitTime.asCompactString() );
+                }
             }
         }
     }
@@ -191,7 +198,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
 
         if ( lastError != null )
         {
-            final HealthRecord healthRecord = new HealthRecord( HealthStatus.WARN, HealthTopic.Application, this.concreteClass.getName() + " error: " + lastError.toDebugStr() );
+            final HealthRecord healthRecord = new HealthRecord( HealthStatus.WARN, HealthTopic.Application, this.getClass().getName() + " error: " + lastError.toDebugStr() );
             returnList.add( healthRecord );
         }
         return Collections.unmodifiableList( returnList );
@@ -211,6 +218,11 @@ abstract class AbstractWordlist implements Wordlist, PwmService
 
     public WordlistStatus readWordlistStatus( )
     {
+        if ( wlStatus == STATUS.CLOSED )
+        {
+            return WordlistStatus.builder().build();
+        }
+
         final PwmApplication.AppAttribute appAttribute = wordlistConfiguration.getMetaDataAppAttribute();
         final WordlistStatus storedValue = pwmApplication.readAppAttribute( appAttribute, WordlistStatus.class );
         if ( storedValue != null )
@@ -237,19 +249,25 @@ abstract class AbstractWordlist implements Wordlist, PwmService
 
         cancelBackgroundAndRunImmediate( () ->
         {
-            writeWordlistStatus( WordlistStatus.builder().build() );
             try
             {
-                wordklistBucket.clear();
-                executorService.schedule( new PopulateJob(), 1,  TimeUnit.SECONDS );
+                clearImpl();
+                executeBackgroundJob();
             }
             catch ( LocalDBException e )
             {
                 throw new PwmUnrecoverableException( e.getErrorInformation() );
             }
         } );
-
     }
+
+    void clearImpl() throws LocalDBException
+    {
+        getLogger().debug( "clearing stored wordlist" );
+        getWordlistBucket().clear();
+        writeWordlistStatus( WordlistStatus.builder().build() );
+    }
+
 
     void setAutoImportError( final ErrorInformation autoImportError )
     {
@@ -322,17 +340,28 @@ abstract class AbstractWordlist implements Wordlist, PwmService
             {
                 if ( !inhibitBackgroundImportFlag.get() )
                 {
-                    final BooleanSupplier cancelFlag = () -> inhibitBackgroundImportFlag.get();
+                    final BooleanSupplier cancelFlag = inhibitBackgroundImportFlag::get;
                     backgroundImportRunning.set( true );
-                    final WordlistImportWorker wordlistImportWorker = new WordlistImportWorker( pwmApplication, AbstractWordlist.this, cancelFlag );
-                    wordlistImportWorker.run();
+                    final WordlistInspector wordlistInspector = new WordlistInspector( pwmApplication, AbstractWordlist.this, cancelFlag );
+                    wordlistInspector.run();
+
+                    if ( wordlistInspector.needsRunningAgain() )
+                    {
+                        executeBackgroundJob();
+                    }
                 }
+
             }
             finally
             {
                 backgroundImportRunning.set( false );
             }
         }
+    }
+
+    private void executeBackgroundJob()
+    {
+        executorService.execute( new PopulateJob() );
     }
 
 }

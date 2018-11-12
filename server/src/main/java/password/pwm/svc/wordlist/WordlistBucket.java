@@ -164,7 +164,7 @@ class WordlistBucket
                     final String currentKey = pwmApplication.getLocalDB().get( db, KEY_LAST_ISSUED_KEY );
                     final String nextKey = StringUtil.isEmpty( currentKey )
                             ? "0"
-                            : String.valueOf( Integer.valueOf( currentKey ) + 1 );
+                            : String.valueOf( Integer.parseInt( currentKey ) + 1 );
                     pwmApplication.getLocalDB().put( db, KEY_LAST_ISSUED_KEY, nextKey );
                     return Collections.singletonMap( String.valueOf( nextKey ), normalizedValue );
                 }

@@ -37,7 +37,7 @@ public class SeedlistService extends AbstractWordlist implements Wordlist
 
     public void init( final PwmApplication pwmApplication ) throws PwmException
     {
-        super.init( pwmApplication, WordlistType.SEEDLIST, SeedlistService.class );
+        super.init( pwmApplication, WordlistType.SEEDLIST );
     }
 
     @Override

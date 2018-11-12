@@ -31,4 +31,5 @@ public class WordlistSourceInfo implements Serializable
 {
     private String checksum;
     private long bytes;
+    private String importUrl;
 }
