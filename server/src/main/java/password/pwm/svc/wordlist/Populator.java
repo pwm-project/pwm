@@ -183,15 +183,6 @@ class Populator
 
         stats.put( "ImportTime", TimeDuration.fromCurrent( startTime ).asCompactString() );
 
-        if ( remoteWordlistInfo != null && zipFileReader.getByteCount() > 1000 )
-        {
-            final long totalBytes = remoteWordlistInfo.getBytes();
-            final long remaingingBytes = totalBytes - zipFileReader.getByteCount();
-            final long remainingSeconds = (long) ( remaingingBytes * byteRateMeter.getAverage() * 1000 );
-
-            stats.put( "EstimatedRemainingTime", TimeDuration.of( remainingSeconds, TimeDuration.Unit.SECONDS ).asCompactString() );
-        }
-
         return Collections.unmodifiableMap( stats );
     }
 
