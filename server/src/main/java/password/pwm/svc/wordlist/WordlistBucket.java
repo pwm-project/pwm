@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicLong;
 
 class WordlistBucket
 {
@@ -49,6 +50,7 @@ class WordlistBucket
     private final WordlistConfiguration wordlistConfiguration;
     private final LocalDB.DB db;
     private final WordlistType type;
+    private final AtomicLong seedlistTopKey = new AtomicLong(  );
 
 
     WordlistBucket(
@@ -62,9 +64,17 @@ class WordlistBucket
         this.wordlistConfiguration = wordlistConfiguration;
         this.db = wordlistConfiguration.getDb();
         this.type = type;
+
+        final String valueOfLastKey = pwmApplication.getLocalDB().get( db, KEY_LAST_ISSUED_KEY );
+
+        seedlistTopKey.set(
+                StringUtil.isEmpty( valueOfLastKey )
+                        ? 0
+                        : Long.parseLong( valueOfLastKey )
+        );
     }
 
-    public boolean containsWord( final String word ) throws LocalDBException
+    boolean containsWord( final String word ) throws LocalDBException
     {
         if ( type == WordlistType.SEEDLIST )
         {
@@ -129,12 +139,7 @@ class WordlistBucket
 
     void addWords( final Collection<String> words ) throws LocalDBException
     {
-        final Map<String, String> batch = new TreeMap<>();
-        for ( final String word : words )
-        {
-            batch.putAll( getWriteTxnForValue( normalizeWord( word ) ) );
-        }
-        pwmApplication.getLocalDB().putAll( db, batch );
+        pwmApplication.getLocalDB().putAll( db, getWriteTxnForValue( words ) );
     }
 
     int size() throws LocalDBException
@@ -145,38 +150,39 @@ class WordlistBucket
 
     void clear() throws LocalDBException
     {
+        seedlistTopKey.set( 0 );
         pwmApplication.getLocalDB().truncate( db );
     }
 
-    private Map<String, String> getWriteTxnForValue( final String value ) throws LocalDBException
+    private Map<String, String> getWriteTxnForValue( final Collection<String> words ) throws LocalDBException
     {
         switch ( type )
         {
             case SEEDLIST:
             {
-                final String normalizedValue = normalizeWord( value );
-                if ( StringUtil.isEmpty( normalizedValue ) )
+                final Map<String, String> returnSet = new TreeMap<>();
+                for ( final String word : words )
                 {
-                    return Collections.emptyMap();
+                    final String normalizedWord = normalizeWord( word );
+                    if ( !StringUtil.isEmpty( normalizedWord ) )
+                    {
+                        returnSet.put( String.valueOf( seedlistTopKey.incrementAndGet() ), normalizedWord );
+                        returnSet.put( KEY_LAST_ISSUED_KEY, String.valueOf( seedlistTopKey.get() ) );
+                    }
                 }
-                else
-                {
-                    final String currentKey = pwmApplication.getLocalDB().get( db, KEY_LAST_ISSUED_KEY );
-                    final String nextKey = StringUtil.isEmpty( currentKey )
-                            ? "0"
-                            : String.valueOf( Integer.parseInt( currentKey ) + 1 );
-                    pwmApplication.getLocalDB().put( db, KEY_LAST_ISSUED_KEY, nextKey );
-                    return Collections.singletonMap( String.valueOf( nextKey ), normalizedValue );
-                }
+                return Collections.unmodifiableMap( returnSet );
             }
 
             case WORDLIST:
             {
                 final Map<String, String> returnSet = new TreeMap<>();
-                final Set<String> chunkedWords = chunkWord( value, this.wordlistConfiguration.getCheckSize() );
-                for ( final String word : chunkedWords )
+                for ( final String word : words )
                 {
-                    returnSet.put( word, "" );
+                    final String normalizedWord = normalizeWord( word );
+                    if ( !StringUtil.isEmpty( normalizedWord ) )
+                    {
+                        returnSet.put( normalizedWord, "" );
+                    }
                 }
                 return returnSet;
             }

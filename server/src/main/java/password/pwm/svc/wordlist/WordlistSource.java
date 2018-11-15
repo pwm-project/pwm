@@ -129,6 +129,7 @@ class WordlistSource
     WordlistSourceInfo readRemoteWordlistInfo(
             final BooleanSupplier cancelFlag
     )
+            throws PwmUnrecoverableException
     {
         final int buffersize = 128_1024;
         InputStream inputStream = null;
@@ -181,12 +182,11 @@ class WordlistSource
                     PwmError.ERROR_WORDLIST_IMPORT_ERROR,
                     "error reading from remote wordlist auto-import url: " + JavaHelper.readHostileExceptionMessage( e )
             );
-            LOGGER.error( errorInformation );
+            throw new PwmUnrecoverableException( errorInformation );
         }
         finally
         {
             IOUtils.closeQuietly( inputStream );
         }
-        return null;
     }
 }

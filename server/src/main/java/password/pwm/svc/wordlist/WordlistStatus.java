@@ -32,7 +32,7 @@ import java.time.Instant;
 @Builder( toBuilder = true )
 public class WordlistStatus implements Serializable
 {
-    public static final int CURRENT_VERSION = 2;
+    public static final int CURRENT_VERSION = 3;
 
     @Builder.Default
     private int version = CURRENT_VERSION;

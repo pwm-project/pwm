@@ -46,4 +46,26 @@ public interface Wordlist extends PwmService
     WordlistConfiguration getConfiguration( );
 
     ErrorInformation getAutoImportError( );
+
+    AbstractWordlist.Activity getActivity();
+
+    enum Activity
+    {
+        Idle( "Idle" ),
+        ReadingWordlistFile( "Reading Wordlist File" ),
+        Clearing( "Clearing Stored Wordlist" ),
+        Importing( "Importing Wordlist" ),;
+
+        private final String label;
+
+        Activity( final String label )
+        {
+            this.label = label;
+        }
+
+        public String getLabel()
+        {
+            return label;
+        }
+    }
 }

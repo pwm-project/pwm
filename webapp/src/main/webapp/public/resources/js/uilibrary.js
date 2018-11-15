@@ -795,7 +795,8 @@ UILibrary.displayElementsToTableContents = function(fields) {
     var htmlTable = '';
     for (var field in fields) {(function(field){
         var fieldData = fields[field];
-        htmlTable += '<tr><td>' + fieldData['label'] + '</td><td><span id="report_status_' + fieldData['key']  + '"</tr>';
+        var classValue = fieldData['type'] === 'timestamp' ? 'timestamp' : '';
+        htmlTable += '<tr><td>' + fieldData['label'] + '</td><td><span class="' + classValue + '" id="report_status_' + fieldData['key']  + '"</tr>';
     }(field)); }
     return htmlTable;
 };

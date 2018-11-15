@@ -376,6 +376,7 @@ PWM_CONFIG.initConfigManagerWordlistPage = function() {
                         var url = 'wordlists?processAction=clearWordlist&wordlist=' + type;
                         var loadFunction = function (data) {
                             PWM_MAIN.showDialog({
+                                title: PWM_MAIN.showString('Title_Success'),
                                 text: data['successMessage'], okAction: function () {
                                     PWM_MAIN.showWaitDialog({
                                         loadFunction: function(){

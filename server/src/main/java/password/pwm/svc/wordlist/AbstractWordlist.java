@@ -42,10 +42,12 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmHashAlgorithm;
 
 import java.io.InputStream;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BooleanSupplier;
 
@@ -56,7 +58,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
 
     private WordlistConfiguration wordlistConfiguration;
     private WordlistBucket wordklistBucket;
-    private ExecutorService executorService;
+    private ScheduledExecutorService executorService;
 
     private volatile STATUS wlStatus = STATUS.NEW;
 
@@ -67,7 +69,9 @@ abstract class AbstractWordlist implements Wordlist, PwmService
     private final AtomicBoolean inhibitBackgroundImportFlag = new AtomicBoolean( false );
     private final AtomicBoolean backgroundImportRunning = new AtomicBoolean( false );
 
-    protected AbstractWordlist( )
+    private volatile Activity activity = Wordlist.Activity.Idle;
+
+    AbstractWordlist( )
     {
     }
 
@@ -77,7 +81,6 @@ abstract class AbstractWordlist implements Wordlist, PwmService
     )
             throws PwmException
     {
-
         this.pwmApplication = pwmApplication;
         this.wordlistConfiguration = WordlistConfiguration.fromConfiguration( pwmApplication.getConfig(), type );
 
@@ -91,7 +94,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
 
         this.wordklistBucket = new WordlistBucket( pwmApplication, wordlistConfiguration, type );
 
-        executorService = JavaHelper.makeBackgroundExecutor( pwmApplication, this.getClass() );
+        executorService = JavaHelper.makeSingleThreadExecutorService( pwmApplication, this.getClass() );
 
         if ( pwmApplication.getLocalDB() != null )
         {
@@ -105,7 +108,12 @@ abstract class AbstractWordlist implements Wordlist, PwmService
             lastError = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, errorMsg );
         }
 
-        executeBackgroundJob();
+        executorService.scheduleWithFixedDelay(
+                new InspectorJob(),
+                1,
+                wordlistConfiguration.getInspectorFrequency().asMillis(),
+                TimeUnit.MILLISECONDS
+        );
     }
 
     boolean containsWord( final String word ) throws PwmUnrecoverableException
@@ -251,8 +259,8 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         {
             try
             {
-                clearImpl();
-                executeBackgroundJob();
+                clearImpl( Activity.Idle );
+                executorService.execute( new InspectorJob() );
             }
             catch ( LocalDBException e )
             {
@@ -261,11 +269,15 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         } );
     }
 
-    void clearImpl() throws LocalDBException
+    void clearImpl( final Activity postCleanActivity ) throws LocalDBException
     {
-        getLogger().debug( "clearing stored wordlist" );
-        getWordlistBucket().clear();
+        final Instant startTime = Instant.now();
+        getLogger().trace( "clearing stored wordlist" );
+        activity = Wordlist.Activity.Clearing;
         writeWordlistStatus( WordlistStatus.builder().build() );
+        getWordlistBucket().clear();
+        getLogger().debug( "cleared stored wordlist (" + TimeDuration.compactFromCurrent( startTime ) + ")" );
+        setActivity( postCleanActivity );
     }
 
 
@@ -291,6 +303,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
 
         cancelBackgroundAndRunImmediate( () ->
         {
+            setActivity( Activity.Importing );
             getLogger().debug( "beginning direct user-supplied wordlist import" );
             setAutoImportError( null );
             final WordlistZipReader wordlistZipReader = new WordlistZipReader( inputStream );
@@ -299,11 +312,14 @@ abstract class AbstractWordlist implements Wordlist, PwmService
                     wordlistZipReader,
                     WordlistSourceType.User,
                     AbstractWordlist.this,
-                    () -> false
+                    () -> wlStatus != STATUS.OPEN
             );
             wordlistImporter.run();
             getLogger().debug( "completed direct user-supplied wordlist import" );
         } );
+
+        setActivity( Activity.Idle );
+        executorService.execute( new InspectorJob() );
     }
 
     private interface PwmCallable
@@ -331,7 +347,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
 
     }
 
-    class PopulateJob implements Runnable
+    class InspectorJob implements Runnable
     {
         @Override
         public void run()
@@ -340,15 +356,12 @@ abstract class AbstractWordlist implements Wordlist, PwmService
             {
                 if ( !inhibitBackgroundImportFlag.get() )
                 {
+                    activity = Wordlist.Activity.ReadingWordlistFile;
                     final BooleanSupplier cancelFlag = inhibitBackgroundImportFlag::get;
                     backgroundImportRunning.set( true );
                     final WordlistInspector wordlistInspector = new WordlistInspector( pwmApplication, AbstractWordlist.this, cancelFlag );
                     wordlistInspector.run();
-
-                    if ( wordlistInspector.needsRunningAgain() )
-                    {
-                        executeBackgroundJob();
-                    }
+                    activity = Wordlist.Activity.Idle;
                 }
 
             }
@@ -359,9 +372,14 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         }
     }
 
-    private void executeBackgroundJob()
+    @Override
+    public Activity getActivity()
     {
-        executorService.execute( new PopulateJob() );
+        return activity;
     }
 
+    void setActivity( final Activity activity )
+    {
+        this.activity = activity;
+    }
 }

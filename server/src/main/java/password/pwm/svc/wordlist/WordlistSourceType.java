@@ -28,8 +28,9 @@ import lombok.Getter;
 public enum WordlistSourceType
 {
     BuiltIn( "Built-In" ),
+    Temporary_BuiltIn( "Built-In (auto-import failed)" ),
     AutoImport( "Import from configured URL" ),
-    User( "Uploaded" ),;
+    User( "Upload" ),;
 
     private final String label;
 

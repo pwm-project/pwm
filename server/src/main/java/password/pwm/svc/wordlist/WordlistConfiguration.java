@@ -51,8 +51,10 @@ public class WordlistConfiguration implements Serializable
 
     private final TimeDuration autoImportRecheckDuration;
     private final TimeDuration importDurationGoal;
-    private final int importMinTransactionGoal;
-    private final int importMaxTransactionGoal;
+    private final int importMinTransactions;
+    private final int importMaxTransactions;
+
+    private final TimeDuration inspectorFrequency;
 
     static WordlistConfiguration fromConfiguration(
             final Configuration configuration,
@@ -80,8 +82,12 @@ public class WordlistConfiguration implements Serializable
                         .importDurationGoal( TimeDuration.of(
                                 Long.parseLong( configuration.readAppProperty( AppProperty.WORDLIST_IMPORT_DURATION_GOAL_MS ) ),
                                 TimeDuration.Unit.MILLISECONDS ) )
-                        .importMinTransactionGoal( Integer.parseInt( configuration.readAppProperty( AppProperty.WORDLIST_IMPORT_MIN_TRANSACTION_GOAL ) ) )
-                        .importMaxTransactionGoal( Integer.parseInt( configuration.readAppProperty( AppProperty.WORDLIST_IMPORT_MAX_TRANSACTION_GOAL ) ) )
+                        .importMinTransactions( Integer.parseInt( configuration.readAppProperty( AppProperty.WORDLIST_IMPORT_MIN_TRANSACTIONS ) ) )
+                        .importMaxTransactions( Integer.parseInt( configuration.readAppProperty( AppProperty.WORDLIST_IMPORT_MAX_TRANSACTIONS ) ) )
+
+                        .inspectorFrequency( TimeDuration.of(
+                                Long.parseLong( configuration.readAppProperty( AppProperty.WORDLIST_INSPECTOR_FREQUENCY_SECONDS ) ),
+                                TimeDuration.Unit.SECONDS ) )
 
                         .build();
             }
@@ -105,8 +111,12 @@ public class WordlistConfiguration implements Serializable
                         .importDurationGoal( TimeDuration.of(
                                 Long.parseLong( configuration.readAppProperty( AppProperty.WORDLIST_IMPORT_DURATION_GOAL_MS ) ),
                                 TimeDuration.Unit.MILLISECONDS ) )
-                        .importMinTransactionGoal( Integer.parseInt( configuration.readAppProperty( AppProperty.WORDLIST_IMPORT_MIN_TRANSACTION_GOAL ) ) )
-                        .importMaxTransactionGoal( Integer.parseInt( configuration.readAppProperty( AppProperty.WORDLIST_IMPORT_MAX_TRANSACTION_GOAL ) ) )
+                        .importMinTransactions( Integer.parseInt( configuration.readAppProperty( AppProperty.WORDLIST_IMPORT_MIN_TRANSACTIONS ) ) )
+                        .importMaxTransactions( Integer.parseInt( configuration.readAppProperty( AppProperty.WORDLIST_IMPORT_MAX_TRANSACTIONS ) ) )
+
+                        .inspectorFrequency( TimeDuration.of(
+                                Long.parseLong( configuration.readAppProperty( AppProperty.WORDLIST_INSPECTOR_FREQUENCY_SECONDS ) ),
+                                TimeDuration.Unit.SECONDS ) )
 
                         .build();
             }
