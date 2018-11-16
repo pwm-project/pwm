@@ -20,6 +20,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+// These need to be at the top so imported components can override the default styling
+require('../../styles.scss');
+require('./peoplesearch.scss');
+
 import 'angular-aria';
 
 import {IComponentOptions, module} from 'angular';
@@ -37,9 +41,6 @@ import uxModule from '../../ux/ux.module';
 import CommonSearchService from '../../services/common-search.service';
 import OrgchartExportController from './orgchart-export.controller';
 import OrgchartEmailController from './orgchart-email.controller';
-
-require('../../styles.scss');
-require('./peoplesearch.scss');
 
 const moduleName = 'people-search';
 

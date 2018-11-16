@@ -20,71 +20,73 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-people-search-cards {
-  #page-content-title {
-    margin-bottom: 0;
-  }
-
-  display: flex;
-  flex-flow: column nowrap;
-  height: 100%;
-
-  // At medium size, cards are centered and no longer take up 100% width
-  &.medium {
-    > .people-search-component-content {
-      > .person-card-list {
-        > person-card {
-          margin: 0 auto;
-          display: block;
-          width: 272px;
-        }
-      }
-    }
-  }
-
-  // At large size, cards fit next to each other
-  &.large {
-    > .people-search-component-content {
-      > .person-card-list {
-        text-align: left;
-        margin: 0;
-
-        > person-card {
-          display: inline-block;
-          margin-right: 5px;
-        }
-      }
-    }
-  }
-
-  > .people-search-component-content {
-    flex: 1 1;
-    overflow: auto;
-    text-align: center;
-
-    > .person-card-list {
-      > person-card {
-        display: inline-block;
-        width: 100%;
-
-        &:not(:last-child) {
-          margin-bottom: 5px;
-        }
-      }
-    }
-  }
-}
-
-[dir="rtl"] {
+.app-root {
   people-search-cards {
+    #page-content-title {
+      margin-bottom: 0;
+    }
+
+    display: flex;
+    flex-flow: column nowrap;
+    height: 100%;
+
+    // At medium size, cards are centered and no longer take up 100% width
+    &.medium {
+      > .people-search-component-content {
+        > .person-card-list {
+          > person-card {
+            margin: 0 auto;
+            display: block;
+            width: 272px;
+          }
+        }
+      }
+    }
+
+    // At large size, cards fit next to each other
     &.large {
       > .people-search-component-content {
-        .person-card-list {
-          text-align: right;
+        > .person-card-list {
+          text-align: left;
+          margin: 0;
 
           > person-card {
-            margin-right: auto;
-            margin-left: 5px;
+            display: inline-block;
+            margin-right: 5px;
+          }
+        }
+      }
+    }
+
+    > .people-search-component-content {
+      flex: 1 1;
+      overflow: auto;
+      text-align: center;
+
+      > .person-card-list {
+        > person-card {
+          display: inline-block;
+          width: 100%;
+
+          &:not(:last-child) {
+            margin-bottom: 5px;
+          }
+        }
+      }
+    }
+  }
+
+  [dir="rtl"] {
+    people-search-cards {
+      &.large {
+        > .people-search-component-content {
+          .person-card-list {
+            text-align: right;
+
+            > person-card {
+              margin-right: auto;
+              margin-left: 5px;
+            }
           }
         }
       }

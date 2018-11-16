@@ -20,6 +20,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+// These need to be at the top so imported components can override the default styling
+require('../../styles.scss');
+require('../peoplesearch/peoplesearch.scss');
+
 import 'angular-aria';
 
 import {IComponentOptions, module} from 'angular';
@@ -39,9 +43,6 @@ import RandomChangePasswordController from '../../components/changepassword/rand
 import SuccessChangePasswordController from '../../components/changepassword/success-change-password.controller';
 import TypeChangePasswordController from '../../components/changepassword/type-change-password.controller';
 import CommonSearchService from '../../services/common-search.service';
-
-require('../../styles.scss');
-require('../peoplesearch/peoplesearch.scss');
 
 const moduleName = 'help-desk';
 

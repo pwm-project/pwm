@@ -20,18 +20,19 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+.app-root {
+  org-chart-search {
+    #page-content-title {
+      margin-bottom: 0;
+    }
 
-org-chart-search {
-  #page-content-title {
-    margin-bottom: 0;
-  }
+    display: flex;
+    flex-flow: column nowrap;
+    height: 100%;
 
-  display: flex;
-  flex-flow: column nowrap;
-  height: 100%;
-
-  > org-chart {
-    flex: 1 1;
-    overflow-x: auto;
+    > org-chart {
+      flex: 1 1;
+      overflow-x: auto;
+    }
   }
 }
