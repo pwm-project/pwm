@@ -36,7 +36,7 @@
     <div id="centerbody" class="wide tall" style="height:100%">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
 
-        <ui-view id="people-search-view" class="app-root"><div class="WaitDialogBlank"></div></ui-view>
+        <ui-view id="people-search-view" class="ias-styles-root"><div class="WaitDialogBlank"></div></ui-view>
     </div>
     <div class="push"></div>
 </div>

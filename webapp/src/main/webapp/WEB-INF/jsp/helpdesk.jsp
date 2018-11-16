@@ -37,7 +37,7 @@
         <jsp:param name="pwm.PageName" value="Title_Helpdesk"/>
     </jsp:include>
     <div id="centerbody" class="wide tall">
-        <ui-view id="helpdesk-view" class="app-root"><div class="WaitDialogBlank"></div></ui-view>
+        <ui-view id="helpdesk-view" class="ias-styles-root"><div class="WaitDialogBlank"></div></ui-view>
 
         <noscript>
             <span><pwm:display key="Display_JavascriptRequired"/></span>

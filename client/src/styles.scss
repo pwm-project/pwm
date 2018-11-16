@@ -1,10 +1,10 @@
-// Only apply the ux-ias styles when the elements are a child of .app-root.  This ensures we are not mucking with the
+// Only apply the ux-ias styles when the elements are a child of .ias-styles-root.  This ensures we are not mucking with the
 // styles for the header and footer (things outside of this angular app).
-.app-root {
+.ias-styles-root {
   @import "~@microfocus/ux-ias/src/ux-ias";
 
-  // ux-ias normally applies the following to the body tag, but the way we are including ux-ias under .app-root means
-  // we have to define it here.
+  // ux-ias normally applies the following to the body tag, but the way we are including ux-ias under .ias-styles-root
+  // means we have to define it here.
   background-color: $body-bg-color;
   color: $text-color;
   font-family: $font-family;
