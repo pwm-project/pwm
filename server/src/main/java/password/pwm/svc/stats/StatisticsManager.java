@@ -332,7 +332,7 @@ public class StatisticsManager implements PwmService
         {
             // setup a timer to roll over at 0 Zula and one to write current stats every 10 seconds
             executorService = JavaHelper.makeSingleThreadExecutorService( pwmApplication, this.getClass() );
-            executorService.scheduleAtFixedRate( new FlushTask(), 10 * 1000, DB_WRITE_FREQUENCY.asMillis(), TimeUnit.MICROSECONDS );
+            executorService.scheduleAtFixedRate( new FlushTask(), 10 * 1000, DB_WRITE_FREQUENCY.asMillis(), TimeUnit.MILLISECONDS );
             final TimeDuration delayTillNextZulu = TimeDuration.fromCurrent( JavaHelper.nextZuluZeroTime() );
             executorService.scheduleAtFixedRate( new NightlyTask(), delayTillNextZulu.asMillis(), TimeUnit.DAYS.toMillis( 1 ), TimeUnit.MILLISECONDS );
         }

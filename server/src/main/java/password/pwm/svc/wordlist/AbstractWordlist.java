@@ -22,12 +22,9 @@
 
 package password.pwm.svc.wordlist;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.output.NullOutputStream;
-import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
-import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -37,77 +34,103 @@ import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.health.HealthTopic;
-import password.pwm.http.ContextManager;
-import password.pwm.http.client.PwmHttpClient;
-import password.pwm.http.client.PwmHttpClientConfiguration;
 import password.pwm.svc.PwmService;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
-import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.ChecksumInputStream;
 import password.pwm.util.secure.PwmHashAlgorithm;
-import password.pwm.util.secure.X509Utils;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BooleanSupplier;
 
 abstract class AbstractWordlist implements Wordlist, PwmService
 {
+    static final PwmHashAlgorithm CHECKSUM_HASH_ALG = PwmHashAlgorithm.SHA256;
+    static final TimeDuration DEBUG_OUTPUT_FREQUENCY = TimeDuration.MINUTE;
 
-    static final PwmHashAlgorithm CHECKSUM_HASH_ALG = PwmHashAlgorithm.SHA1;
+    private WordlistConfiguration wordlistConfiguration;
+    private WordlistBucket wordklistBucket;
+    private ScheduledExecutorService executorService;
 
-    protected WordlistConfiguration wordlistConfiguration;
+    private volatile STATUS wlStatus = STATUS.NEW;
 
-    protected volatile STATUS wlStatus = STATUS.NEW;
-    protected LocalDB localDB;
-
-    protected PwmLogger logger = PwmLogger.forClass( AbstractWordlist.class );
-    protected String debugLabel = "Generic Word List";
-
-    protected boolean debugTrace;
-
-    private ErrorInformation lastError;
-    private ErrorInformation autoImportError;
+    private volatile ErrorInformation lastError;
+    private volatile ErrorInformation autoImportError;
 
     private PwmApplication pwmApplication;
-    protected Populator populator;
+    private final AtomicBoolean inhibitBackgroundImportFlag = new AtomicBoolean( false );
+    private final AtomicBoolean backgroundImportRunning = new AtomicBoolean( false );
 
-    private ScheduledExecutorService executorService;
-    private PopulationManager populationManager = new PopulationManager();
+    private volatile Activity activity = Wordlist.Activity.Idle;
 
-
-    protected AbstractWordlist( )
+    AbstractWordlist( )
     {
     }
 
-    public void init( final PwmApplication pwmApplication ) throws PwmException
+    public void init(
+            final PwmApplication pwmApplication,
+            final WordlistType type
+    )
+            throws PwmException
     {
         this.pwmApplication = pwmApplication;
-        this.localDB = pwmApplication.getLocalDB();
-        if ( pwmApplication.getConfig().isDevDebugMode() )
+        this.wordlistConfiguration = WordlistConfiguration.fromConfiguration( pwmApplication.getConfig(), type );
+
+        if ( pwmApplication.getApplicationMode() != PwmApplicationMode.RUNNING
+                || pwmApplication.getLocalDB() == null
+        )
         {
-            debugTrace = true;
+            wlStatus = STATUS.CLOSED;
+            return;
         }
 
-        executorService = Executors.newSingleThreadScheduledExecutor(
-                JavaHelper.makePwmThreadFactory(
-                        JavaHelper.makeThreadName( pwmApplication, this.getClass() ) + "-",
-                        true
-                ) );
+        this.wordklistBucket = new WordlistBucket( pwmApplication, wordlistConfiguration, type );
+
+        executorService = JavaHelper.makeSingleThreadExecutorService( pwmApplication, this.getClass() );
+
+        if ( pwmApplication.getLocalDB() != null )
+        {
+            wlStatus = STATUS.OPEN;
+        }
+        else
+        {
+            wlStatus = STATUS.CLOSED;
+            final String errorMsg = "LocalDB is not available, will remain closed";
+            getLogger().warn( errorMsg );
+            lastError = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, errorMsg );
+        }
+
+        executorService.scheduleWithFixedDelay(
+                new InspectorJob(),
+                1,
+                wordlistConfiguration.getInspectorFrequency().asMillis(),
+                TimeUnit.MILLISECONDS
+        );
+    }
+
+    boolean containsWord( final String word ) throws PwmUnrecoverableException
+    {
+        try
+        {
+            return wordklistBucket.containsWord( word );
+        }
+        catch ( LocalDBException e )
+        {
+            throw PwmUnrecoverableException.newException( PwmError.ERROR_LOCALDB_UNAVAILABLE, e.getMessage() );
+        }
+    }
+
+    String randomSeed() throws PwmUnrecoverableException
+    {
+        return getWordlistBucket().randomSeed();
     }
 
     @Override
@@ -122,196 +145,50 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         return autoImportError;
     }
 
-    protected final void backgroundStartup( )
-    {
-        executorService.schedule( ( ) ->
-        {
-            try
-            {
-                startup();
-            }
-            catch ( Exception e )
-            {
-                logger.warn( "error during startup: " + e.getMessage() );
-            }
-        }, 0, TimeUnit.MILLISECONDS );
-    }
-
-
-    protected final void startup( )
-    {
-        wlStatus = STATUS.OPENING;
-
-        if ( localDB == null )
-        {
-            final String errorMsg = "LocalDB is not available, " + debugLabel + " will remain closed";
-            logger.warn( errorMsg );
-            lastError = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, errorMsg );
-            close();
-            return;
-        }
-
-        try
-        {
-            populationManager.checkPopulation();
-        }
-        catch ( Exception e )
-        {
-            final String errorMsg = "unexpected error while examining wordlist db: " + e.getMessage();
-            if ( ( e instanceof PwmUnrecoverableException ) || ( e instanceof NullPointerException ) || ( e instanceof LocalDBException ) )
-            {
-                logger.warn( errorMsg );
-            }
-            else
-            {
-                logger.warn( errorMsg, e );
-            }
-            lastError = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, errorMsg );
-            populator = null;
-            close();
-            return;
-        }
-
-        wlStatus = STATUS.OPEN;
-    }
-
-    String normalizeWord( final String input )
-    {
-        if ( input == null )
-        {
-            return null;
-        }
-
-        String word = input.trim();
-
-        if ( word.length() < wordlistConfiguration.getMinSize() )
-        {
-            return null;
-        }
-
-        if ( word.length() > wordlistConfiguration.getMaxSize() )
-        {
-            word = word.substring( 0, wordlistConfiguration.getMaxSize() );
-        }
-
-        if ( !wordlistConfiguration.isCaseSensitive() )
-        {
-            word = word.toLowerCase();
-        }
-
-        return word.length() > 0 ? word : null;
-    }
-
-    public boolean containsWord( final String word )
+    public int size( )
     {
         if ( wlStatus != STATUS.OPEN )
         {
-            return false;
+            return 0;
         }
 
-        final String testWord = normalizeWord( word );
-
-        if ( testWord == null || testWord.length() < 1 )
-        {
-            return false;
-        }
-
-
-        final Set<String> testWords = chunkWord( testWord, this.wordlistConfiguration.getCheckSize() );
-
-        final Instant startTime = Instant.now();
         try
         {
-            boolean result = false;
-            for ( final String t : testWords )
-            {
-                if ( !result )
-                {
-                    // stop checking once found
-                    if ( localDB.contains( getWordlistDB(), t ) )
-                    {
-                        result = true;
-                    }
-                }
-            }
-            final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-            if ( timeDuration.isLongerThan( 100 ) )
-            {
-                logger.debug( "wordlist search time for " + testWords.size() + " wordlist permutations was greater then 100ms: " + timeDuration.asCompactString() );
-            }
-            return result;
-        }
-        catch ( Exception e )
-        {
-            logger.error( "database error checking for word: " + e.getMessage() );
-        }
-
-        return false;
-    }
-
-    public int size( )
-    {
-        try
-        {
-            if ( populator != null && wlStatus != STATUS.CLOSED )
-            {
-                return localDB.size( this.getWordlistDB() );
-            }
+            return wordklistBucket.size();
         }
         catch ( LocalDBException e )
         {
-            logger.debug( "error reading wordlist size: " + e.getMessage() );
+            getLogger().error( "error reading size: " + e.getMessage() );
         }
 
-        return readMetadata().getSize();
+        return -1;
     }
 
     public synchronized void close( )
     {
+        final TimeDuration closeWaitTime = TimeDuration.of( 5, TimeDuration.Unit.SECONDS );
+
         wlStatus = STATUS.CLOSED;
-        if ( populator != null )
+        inhibitBackgroundImportFlag.set( true );
+        if ( executorService != null )
         {
-            try
+            executorService.shutdown();
+
+            if ( backgroundImportRunning.get() )
             {
-                populator.cancel();
-                populator = null;
-            }
-            catch ( PwmUnrecoverableException e )
-            {
-                logger.error( "wordlist populator failed to exit" );
+                JavaHelper.pause( closeWaitTime.asMillis(), 50, o -> !backgroundImportRunning.get() );
+                if ( backgroundImportRunning.get() )
+                {
+                    getLogger().warn( "background thread still running after waiting " + closeWaitTime.asCompactString() );
+                }
             }
         }
-
-        executorService.shutdown();
-        localDB = null;
     }
 
     public STATUS status( )
     {
         return wlStatus;
     }
-
-    public String getDebugStatus( )
-    {
-        if ( wlStatus == STATUS.OPENING && populator != null )
-        {
-            return populator.makeStatString();
-        }
-        else
-        {
-            return wlStatus.toString();
-        }
-    }
-
-    protected abstract Map<String, String> getWriteTxnForValue( String value );
-
-    protected abstract PwmApplication.AppAttribute getMetaDataAppAttribute( );
-
-    protected abstract AppProperty getBuiltInWordlistLocationProperty( );
-
-    protected abstract LocalDB.DB getWordlistDB( );
-
-    protected abstract PwmSetting getWordlistFileSetting( );
 
     public List<HealthRecord> healthCheck( )
     {
@@ -320,22 +197,16 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         if ( autoImportError != null )
         {
             final HealthRecord healthRecord = HealthRecord.forMessage( HealthMessage.Wordlist_AutoImportFailure,
-                    this.getWordlistFileSetting().toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE ),
+                    wordlistConfiguration.getWordlistFilenameSetting().toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE ),
                     autoImportError.getDetailedErrorMsg(),
                     JavaHelper.toIsoDate( autoImportError.getDate() )
             );
             returnList.add( healthRecord );
         }
 
-        if ( wlStatus == STATUS.OPENING )
-        {
-            final HealthRecord healthRecord = new HealthRecord( HealthStatus.CAUTION, HealthTopic.Application, this.debugLabel + " is not yet open: " + this.getDebugStatus() );
-            returnList.add( healthRecord );
-        }
-
         if ( lastError != null )
         {
-            final HealthRecord healthRecord = new HealthRecord( HealthStatus.WARN, HealthTopic.Application, this.debugLabel + " error: " + lastError.toDebugStr() );
+            final HealthRecord healthRecord = new HealthRecord( HealthStatus.WARN, HealthTopic.Application, this.getClass().getName() + " error: " + lastError.toDebugStr() );
             returnList.add( healthRecord );
         }
         return Collections.unmodifiableList( returnList );
@@ -353,354 +224,162 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         }
     }
 
-    protected Set<String> chunkWord( final String input, final int size )
+    public WordlistStatus readWordlistStatus( )
     {
-        int checkSize = size == 0 || size > input.length() ? input.length() : size;
-        final TreeSet<String> testWords = new TreeSet<>();
-        while ( checkSize <= input.length() )
+        if ( wlStatus == STATUS.CLOSED )
         {
-            for ( int i = 0; i + checkSize <= input.length(); i++ )
-            {
-                final String loopWord = input.substring( i, i + checkSize );
-                testWords.add( loopWord );
-            }
-            checkSize++;
+            return WordlistStatus.builder().build();
         }
 
-        return testWords;
-    }
-
-    protected String readAutoImportUrl( )
-    {
-        final String inputUrl = pwmApplication.getConfig().readSettingAsString( getWordlistFileSetting() );
-
-        if ( inputUrl == null || inputUrl.isEmpty() )
-        {
-            return null;
-        }
-
-        if ( !inputUrl.startsWith( "http:" ) && !inputUrl.startsWith( "https:" ) && !inputUrl.startsWith( "file:" ) )
-        {
-            logger.debug( "assuming configured auto-import url is a file url; derived url is " + inputUrl );
-            return "file:" + inputUrl;
-        }
-
-        return inputUrl;
-    }
-
-    public StoredWordlistDataBean readMetadata( )
-    {
-        final StoredWordlistDataBean storedValue = pwmApplication.readAppAttribute( getMetaDataAppAttribute(), StoredWordlistDataBean.class );
+        final PwmApplication.AppAttribute appAttribute = wordlistConfiguration.getMetaDataAppAttribute();
+        final WordlistStatus storedValue = pwmApplication.readAppAttribute( appAttribute, WordlistStatus.class );
         if ( storedValue != null )
         {
             return storedValue;
         }
-        return StoredWordlistDataBean.builder().build();
+        return WordlistStatus.builder().build();
     }
 
-    void writeMetadata( final StoredWordlistDataBean metadataBean )
+    void writeWordlistStatus( final WordlistStatus metadataBean )
     {
-        pwmApplication.writeAppAttribute( getMetaDataAppAttribute(), metadataBean );
-        logger.trace( "updated stored state: " + JsonUtil.serialize( metadataBean ) );
+        final PwmApplication.AppAttribute appAttribute = wordlistConfiguration.getMetaDataAppAttribute();
+        pwmApplication.writeAppAttribute( appAttribute, metadataBean );
+        //getLogger().trace( "updated stored state: " + JsonUtil.serialize( metadataBean ) );
     }
 
     @Override
-    public void populate( final InputStream inputStream )
-            throws IOException, PwmUnrecoverableException
+    public void clear( ) throws PwmUnrecoverableException
     {
+        if ( wlStatus != STATUS.OPEN )
+        {
+            throw new PwmUnrecoverableException( PwmError.ERROR_SERVICE_NOT_AVAILABLE.toInfo() );
+        }
+
+        cancelBackgroundAndRunImmediate( () ->
+        {
+            try
+            {
+                clearImpl( Activity.Idle );
+                executorService.execute( new InspectorJob() );
+            }
+            catch ( LocalDBException e )
+            {
+                throw new PwmUnrecoverableException( e.getErrorInformation() );
+            }
+        } );
+    }
+
+    void clearImpl( final Activity postCleanActivity ) throws LocalDBException
+    {
+        final Instant startTime = Instant.now();
+        getLogger().trace( "clearing stored wordlist" );
+        activity = Wordlist.Activity.Clearing;
+        writeWordlistStatus( WordlistStatus.builder().build() );
+        getWordlistBucket().clear();
+        getLogger().debug( "cleared stored wordlist (" + TimeDuration.compactFromCurrent( startTime ) + ")" );
+        setActivity( postCleanActivity );
+    }
+
+
+    void setAutoImportError( final ErrorInformation autoImportError )
+    {
+        this.autoImportError = autoImportError;
+    }
+
+    abstract PwmLogger getLogger();
+
+    WordlistBucket getWordlistBucket()
+    {
+        return wordklistBucket;
+    }
+
+    @Override
+    public void populate( final InputStream inputStream ) throws PwmUnrecoverableException
+    {
+        if ( wlStatus != STATUS.OPEN )
+        {
+            throw new PwmUnrecoverableException( PwmError.ERROR_SERVICE_NOT_AVAILABLE.toInfo() );
+        }
+
+        cancelBackgroundAndRunImmediate( () ->
+        {
+            setActivity( Activity.Importing );
+            getLogger().debug( "beginning direct user-supplied wordlist import" );
+            setAutoImportError( null );
+            final WordlistZipReader wordlistZipReader = new WordlistZipReader( inputStream );
+            final WordlistImporter wordlistImporter = new WordlistImporter(
+                    null,
+                    wordlistZipReader,
+                    WordlistSourceType.User,
+                    AbstractWordlist.this,
+                    () -> wlStatus != STATUS.OPEN
+            );
+            wordlistImporter.run();
+            getLogger().debug( "completed direct user-supplied wordlist import" );
+        } );
+
+        setActivity( Activity.Idle );
+        executorService.execute( new InspectorJob() );
+    }
+
+    private interface PwmCallable
+    {
+        void call() throws PwmUnrecoverableException;
+    }
+
+    private void cancelBackgroundAndRunImmediate( final PwmCallable runnable ) throws PwmUnrecoverableException
+    {
+        inhibitBackgroundImportFlag.set( true );
         try
         {
-            populationManager.populateImpl( null, inputStream, StoredWordlistDataBean.Source.User );
+            JavaHelper.pause( 10_000, 100, o -> !backgroundImportRunning.get() );
+            if ( backgroundImportRunning.get() )
+            {
+                throw PwmUnrecoverableException.newException( PwmError.ERROR_WORDLIST_IMPORT_ERROR, "unable to cancel background operation in progress" );
+            }
+
+            runnable.call();
         }
         finally
         {
-            if ( !readMetadata().isCompleted() )
+            inhibitBackgroundImportFlag.set( false );
+        }
+
+    }
+
+    class InspectorJob implements Runnable
+    {
+        @Override
+        public void run()
+        {
+            try
             {
-                logger.debug( "beginning population using builtin source in background thread" );
-                final Thread t = new Thread( ( ) ->
+                if ( !inhibitBackgroundImportFlag.get() )
                 {
-                    try
-                    {
-                        populationManager.populateBuiltIn();
-                    }
-                    catch ( Exception e )
-                    {
-                        logger.warn( "unexpected error during builtin source population process: " + e.getMessage(), e );
-                    }
-                    populator = null;
-                }, JavaHelper.makeThreadName( pwmApplication, WordlistManager.class ) );
-                t.setDaemon( true );
-                t.start();
+                    activity = Wordlist.Activity.ReadingWordlistFile;
+                    final BooleanSupplier cancelFlag = inhibitBackgroundImportFlag::get;
+                    backgroundImportRunning.set( true );
+                    final WordlistInspector wordlistInspector = new WordlistInspector( pwmApplication, AbstractWordlist.this, cancelFlag );
+                    wordlistInspector.run();
+                    activity = Wordlist.Activity.Idle;
+                }
+
+            }
+            finally
+            {
+                backgroundImportRunning.set( false );
             }
         }
     }
 
     @Override
-    public void clear( ) throws IOException, PwmUnrecoverableException
+    public Activity getActivity()
     {
-        if ( wlStatus == STATUS.OPEN )
-        {
-            executorService.schedule( ( ) ->
-            {
-                try
-                {
-                    writeMetadata( StoredWordlistDataBean.builder().build() );
-                    populationManager.checkPopulation();
-                }
-                catch ( Exception e )
-                {
-                    logger.error( "error during clear operation: " + e.getMessage() );
-                }
-            }, 0, TimeUnit.MILLISECONDS );
-        }
+        return activity;
     }
 
-    private class PopulationManager
+    void setActivity( final Activity activity )
     {
-        protected void checkPopulation( )
-                throws Exception
-        {
-            final boolean autoImportUrlConfigured = wordlistConfiguration.getAutoImportUrl() != null;
-
-            if ( autoImportUrlConfigured )
-            {
-                final StoredWordlistDataBean.RemoteWordlistInfo remoteInfo = readRemoteWordlistInfo( autoImportInputStream() );
-                final StoredWordlistDataBean.RemoteWordlistInfo localInfo = readMetadata().getRemoteInfo();
-                if ( remoteInfo != null )
-                {
-                    if ( !remoteInfo.equals( localInfo ) )
-                    {
-                        logger.debug( "auto-import url remote hash does not equal currently stored hash, will start auto-import" );
-                        populateAutoImport( remoteInfo );
-                    }
-                    else if ( remoteInfo.getBytes() > readMetadata().getBytes() )
-                    {
-                        logger.debug( "auto-import did not previously complete, will continue previous import" );
-                        populateAutoImport( remoteInfo );
-                    }
-                }
-
-                if ( autoImportError != null )
-                {
-                    final int retrySeconds = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.APPLICATION_WORDLIST_RETRY_SECONDS ) );
-                    logger.error( "auto-import of remote wordlist failed, will retry in " + ( TimeDuration.of( retrySeconds, TimeDuration.Unit.SECONDS ).asCompactString() ) );
-                    executorService.schedule( ( ) ->
-                    {
-                        try
-                        {
-                            logger.debug( "attempting wordlist remote import" );
-                            checkPopulation();
-                        }
-                        catch ( Exception e )
-                        {
-                            logger.error( "error during auto-import retry: " + e.getMessage() );
-                        }
-
-                    }, retrySeconds, TimeUnit.SECONDS );
-                }
-            }
-            else
-            {
-                if ( readMetadata().getSource() == StoredWordlistDataBean.Source.AutoImport )
-                {
-                    logger.trace( "source list is from auto-import, but not currently configured for auto-import; clearing stored data" );
-
-                    // clear previous auto-import wl
-                    writeMetadata( StoredWordlistDataBean.builder().build() );
-                }
-            }
-
-            if ( wlStatus != STATUS.CLOSED )
-            {
-                boolean needsBuiltinPopulating = false;
-                if ( !readMetadata().isCompleted() )
-                {
-                    needsBuiltinPopulating = true;
-                    logger.debug( "wordlist stored in database does not have a completed load status, will load built-in wordlist" );
-                }
-                else if ( StoredWordlistDataBean.Source.BuiltIn == readMetadata().getSource() )
-                {
-                    final StoredWordlistDataBean.RemoteWordlistInfo builtInWordlistHash = getBuiltInWordlistHash();
-                    if ( !builtInWordlistHash.equals( readMetadata().getRemoteInfo() ) )
-                    {
-                        logger.debug( "wordlist stored in database does not have match checksum with built-in wordlist file, will load built-in wordlist" );
-                        needsBuiltinPopulating = true;
-                    }
-                }
-
-                if ( !needsBuiltinPopulating )
-                {
-                    return;
-                }
-
-                this.populateBuiltIn();
-            }
-        }
-
-        protected void populateBuiltIn( )
-                throws IOException, PwmUnrecoverableException
-        {
-            final StoredWordlistDataBean.RemoteWordlistInfo remoteWordlistInfo = readRemoteWordlistInfo( getBuiltInWordlist() );
-            populateImpl( remoteWordlistInfo, getBuiltInWordlist(), StoredWordlistDataBean.Source.BuiltIn );
-        }
-
-        private void populateImpl(
-                final StoredWordlistDataBean.RemoteWordlistInfo remoteWordlistInfo,
-                final InputStream inputStream,
-                final StoredWordlistDataBean.Source source
-        )
-                throws IOException, PwmUnrecoverableException
-        {
-            if ( inputStream == null )
-            {
-                throw new NullPointerException( "input stream can not be null for populateImpl()" );
-            }
-
-            if ( wlStatus == STATUS.CLOSED )
-            {
-                return;
-            }
-
-            wlStatus = STATUS.OPENING;
-
-            try
-            {
-                if ( populator != null )
-                {
-                    populator.cancel();
-
-                    final int maxWaitMs = 1000 * 30;
-                    final Instant startWaitTime = Instant.now();
-                    while ( populator.isRunning() && TimeDuration.fromCurrent( startWaitTime ).isShorterThan( maxWaitMs ) )
-                    {
-                        JavaHelper.pause( 1000 );
-                    }
-                    if ( populator.isRunning() && TimeDuration.fromCurrent( startWaitTime ).isShorterThan( maxWaitMs ) )
-                    {
-                        throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, "unable to abort populator" ) );
-                    }
-                }
-
-                if ( remoteWordlistInfo == null || !remoteWordlistInfo.equals( readMetadata().getRemoteInfo() ) )
-                {
-                    // reset the wordlist metadata
-                    final StoredWordlistDataBean storedWordlistDataBean = StoredWordlistDataBean.builder()
-                            .source( source )
-                            .remoteInfo( remoteWordlistInfo )
-                            .build();
-                    writeMetadata( storedWordlistDataBean );
-                }
-
-                populator = new Populator( remoteWordlistInfo, inputStream, source, AbstractWordlist.this, pwmApplication );
-                populator.populate();
-            }
-            catch ( Exception e )
-            {
-                final ErrorInformation populationError;
-                populationError = e instanceof PwmException
-                        ? ( ( PwmException ) e ).getErrorInformation()
-                        : new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
-                logger.error( "error during wordlist population: " + populationError.toDebugStr() );
-                throw new PwmUnrecoverableException( populationError );
-            }
-            finally
-            {
-                populator = null;
-                IOUtils.closeQuietly( inputStream );
-            }
-
-            wlStatus = STATUS.OPEN;
-        }
-
-        protected InputStream getBuiltInWordlist( ) throws FileNotFoundException, PwmUnrecoverableException
-        {
-            final ContextManager contextManager = pwmApplication.getPwmEnvironment().getContextManager();
-            if ( contextManager != null )
-            {
-                final String wordlistFilename = pwmApplication.getConfig().readAppProperty( getBuiltInWordlistLocationProperty() );
-                return contextManager.getResourceAsStream( wordlistFilename );
-            }
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "unable to locate builtin wordlist file" ) );
-        }
-
-        protected StoredWordlistDataBean.RemoteWordlistInfo getBuiltInWordlistHash( ) throws IOException, PwmUnrecoverableException
-        {
-
-            try ( InputStream inputStream = getBuiltInWordlist() )
-            {
-                return readRemoteWordlistInfo( inputStream );
-            }
-        }
-
-        public boolean populateAutoImport( final StoredWordlistDataBean.RemoteWordlistInfo remoteWordlistInfo )
-                throws IOException, PwmUnrecoverableException
-        {
-            autoImportError = null;
-            InputStream inputStream = null;
-            try
-            {
-                inputStream = autoImportInputStream();
-                populateImpl( remoteWordlistInfo, inputStream, StoredWordlistDataBean.Source.AutoImport );
-                return true;
-            }
-            catch ( Exception e )
-            {
-                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "error during remote wordlist import: " + e.getMessage() );
-                logger.error( errorInformation );
-                autoImportError = errorInformation;
-            }
-            finally
-            {
-                IOUtils.closeQuietly( inputStream );
-            }
-            return false;
-        }
-
-        StoredWordlistDataBean.RemoteWordlistInfo readRemoteWordlistInfo( final InputStream inputStream )
-        {
-            try
-            {
-                final Instant startTime = Instant.now();
-                logger.debug( "beginning read of auto-import remote url data" );
-
-                final ChecksumInputStream checksumInputStream = new ChecksumInputStream( CHECKSUM_HASH_ALG, inputStream );
-                final long bytes = JavaHelper.copyWhilePredicate( checksumInputStream, new NullOutputStream(), o -> wlStatus != STATUS.CLOSED );
-                final String hash = JavaHelper.binaryArrayToHex( checksumInputStream.closeAndFinalChecksum() );
-
-                final StoredWordlistDataBean.RemoteWordlistInfo remoteWordlistInfo = new StoredWordlistDataBean.RemoteWordlistInfo(
-                        hash,
-                        bytes );
-
-                logger.debug( "completed read of wordlist data: "
-                        + JsonUtil.serialize( remoteWordlistInfo )
-                        + " (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
-                autoImportError = null;
-                return remoteWordlistInfo;
-            }
-            catch ( Exception e )
-            {
-                final ErrorInformation errorInformation = new ErrorInformation(
-                        PwmError.ERROR_INTERNAL,
-                        "error reading from remote wordlist auto-import url: " + JavaHelper.readHostileExceptionMessage( e )
-                );
-                logger.error( errorInformation );
-                autoImportError = errorInformation;
-            }
-            finally
-            {
-                IOUtils.closeQuietly( inputStream );
-            }
-            return null;
-        }
-
-        private InputStream autoImportInputStream( ) throws IOException, PwmUnrecoverableException
-        {
-            final boolean promiscuous = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_CLIENT_PROMISCUOUS_WORDLIST_ENABLE ) );
-            final PwmHttpClientConfiguration pwmHttpClientConfiguration = PwmHttpClientConfiguration.builder()
-                    .trustManager( promiscuous ? new X509Utils.PromiscuousTrustManager() : null )
-                    .build();
-            final PwmHttpClient client = new PwmHttpClient( pwmApplication, null, pwmHttpClientConfiguration );
-            return client.streamForUrl( wordlistConfiguration.getAutoImportUrl() );
-        }
+        this.activity = activity;
     }
 }

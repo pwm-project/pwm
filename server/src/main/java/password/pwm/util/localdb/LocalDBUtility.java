@@ -233,11 +233,11 @@ public class LocalDBUtility
 
         final Instant startTime = Instant.now();
         final TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(
-                new TransactionSizeCalculator.SettingsBuilder()
-                        .setDurationGoal( TimeDuration.of( 100, TimeDuration.Unit.MILLISECONDS ) )
-                        .setMinTransactions( 50 )
-                        .setMaxTransactions( 5 * 1000 )
-                        .createSettings()
+                TransactionSizeCalculator.Settings.builder()
+                        .durationGoal( TimeDuration.of( 100, TimeDuration.Unit.MILLISECONDS ) )
+                        .minTransactions( 50 )
+                        .maxTransactions( 5 * 1000 )
+                        .build()
         );
 
         final Map<LocalDB.DB, Map<String, String>> transactionMap = new HashMap<>();

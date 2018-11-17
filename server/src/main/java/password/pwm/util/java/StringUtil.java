@@ -183,6 +183,13 @@ public abstract class StringUtil
         return "";
     }
 
+    public static String formatDiskSizeforDebug( final long diskSize )
+    {
+        return diskSize == 0
+                ? "0"
+                : String.valueOf( diskSize ) + " (" + formatDiskSize( diskSize ) + ")";
+    }
+
     public static String formatDiskSize( final long diskSize )
     {
         final float count = 1000;
@@ -526,5 +533,11 @@ public abstract class StringUtil
         {
             return defaultValue;
         }
+    }
+
+    public static String platformNumberFormat( final long input )
+    {
+        final NumberFormat numberFormat = NumberFormat.getNumberInstance();
+        return numberFormat.format( input );
     }
 }

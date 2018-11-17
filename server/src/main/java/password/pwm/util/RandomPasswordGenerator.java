@@ -39,7 +39,7 @@ import password.pwm.http.PwmSession;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.svc.wordlist.SeedlistManager;
+import password.pwm.svc.wordlist.SeedlistService;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
@@ -140,7 +140,7 @@ public class RandomPasswordGenerator
             {
                 Set<String> seeds = DEFAULT_SEED_PHRASES;
 
-                final SeedlistManager seedlistManager = pwmApplication.getSeedlistManager();
+                final SeedlistService seedlistManager = pwmApplication.getSeedlistManager();
                 if ( seedlistManager != null && seedlistManager.status() == PwmService.STATUS.OPEN && seedlistManager.size() > 0 )
                 {
                     seeds = new HashSet<>();
