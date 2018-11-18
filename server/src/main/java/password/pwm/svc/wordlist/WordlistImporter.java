@@ -29,6 +29,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.TransactionSizeCalculator;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.Percent;
+import password.pwm.util.java.PwmNumberFormat;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDBException;
@@ -266,7 +267,7 @@ class WordlistImporter implements Runnable
         flushBuffer();
         getLogger().info( makeStatString() );
         getLogger().trace( "beginning wordlist size query" );
-        final int wordlistSize = wordlistBucket.size();
+        final long wordlistSize = wordlistBucket.size();
 
         final String logMsg = "population complete, added " + wordlistSize
                 + " total words in " + TimeDuration.fromCurrent( startTime ).asCompactString();
@@ -336,7 +337,7 @@ class WordlistImporter implements Runnable
             {
                 if ( zipFileReader.getByteCount() > 1000 && TimeDuration.fromCurrent( startTime ).isLongerThan( TimeDuration.MINUTE ) )
                 {
-                    final long bytesSinceStart = totalBytes - bytesSkipped;
+                    final long bytesSinceStart = zipFileReader.getByteCount() - bytesSkipped;
                     final long elapsedSeconds = TimeDuration.fromCurrent( startTime ).as( TimeDuration.Unit.SECONDS );
 
                     if ( elapsedSeconds > 0 )
@@ -363,10 +364,10 @@ class WordlistImporter implements Runnable
             stats.put( DebugKey.PercentComplete, percent.pretty( 2 ) );
         }
 
-        stats.put( DebugKey.LinesRead, StringUtil.platformNumberFormat( zipFileReader.getLineCount() ) );
+        stats.put( DebugKey.LinesRead, PwmNumberFormat.forDefaultLocale().format( zipFileReader.getLineCount() ) );
         stats.put( DebugKey.BytesRead, StringUtil.formatDiskSizeforDebug( zipFileReader.getByteCount() ) );
 
-        stats.put( DebugKey.BufferSize, StringUtil.platformNumberFormat( transactionCalculator.getTransactionSize() ) );
+        stats.put( DebugKey.BufferSize, PwmNumberFormat.forDefaultLocale().format( transactionCalculator.getTransactionSize() ) );
 
         if ( bytesSkipped > 0 )
         {

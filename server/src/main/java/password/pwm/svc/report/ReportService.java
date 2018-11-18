@@ -249,7 +249,7 @@ public class ReportService implements PwmService
         return eventRateMeter.readEventRate();
     }
 
-    public int getTotalRecords( )
+    public long getTotalRecords( )
     {
         return userCacheService.size();
     }
@@ -675,7 +675,7 @@ public class ReportService implements PwmService
 
             try ( ClosableIterator<UserCacheRecord> iterator = iterator() )
             {
-                final int totalRecords = userCacheService.size();
+                final long totalRecords = userCacheService.size();
                 LOGGER.debug( SessionLabel.REPORTING_SESSION_LABEL, "beginning cache review process of " + totalRecords + " records" );
                 Instant lastLogOutputTime = Instant.now();
 

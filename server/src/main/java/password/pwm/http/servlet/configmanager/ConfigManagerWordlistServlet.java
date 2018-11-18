@@ -241,7 +241,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
                         wordlistType.name() + "_wordCount",
                         DisplayElement.Type.number,
                         "Word Count",
-                        Integer.toString( wordlist.size() ) ) );
+                        Long.toString( wordlist.size() ) ) );
 
                 if ( wordlistStatus.isCompleted() )
                 {

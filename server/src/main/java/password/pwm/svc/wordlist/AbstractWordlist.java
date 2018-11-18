@@ -145,7 +145,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         return autoImportError;
     }
 
-    public int size( )
+    public long size( )
     {
         if ( wlStatus != STATUS.OPEN )
         {

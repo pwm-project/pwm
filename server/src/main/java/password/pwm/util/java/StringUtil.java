@@ -187,7 +187,7 @@ public abstract class StringUtil
     {
         return diskSize == 0
                 ? "0"
-                : String.valueOf( diskSize ) + " (" + formatDiskSize( diskSize ) + ")";
+                : PwmNumberFormat.forDefaultLocale().format( diskSize ) + " (" + formatDiskSize( diskSize ) + ")";
     }
 
     public static String formatDiskSize( final long diskSize )
@@ -533,11 +533,5 @@ public abstract class StringUtil
         {
             return defaultValue;
         }
-    }
-
-    public static String platformNumberFormat( final long input )
-    {
-        final NumberFormat numberFormat = NumberFormat.getNumberInstance();
-        return numberFormat.format( input );
     }
 }

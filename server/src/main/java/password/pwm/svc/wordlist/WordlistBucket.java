@@ -122,10 +122,10 @@ class WordlistBucket
 
         try
         {
-            final int seedCount = size();
+            final long seedCount = size();
             if ( seedCount > 1000 )
             {
-                final int randomKey = pwmApplication.getSecureService().pwmRandom().nextInt( seedCount );
+                final long randomKey = pwmApplication.getSecureService().pwmRandom().nextLong( seedCount );
                 return pwmApplication.getLocalDB().get( db, String.valueOf( randomKey ) );
             }
         }
@@ -142,7 +142,7 @@ class WordlistBucket
         pwmApplication.getLocalDB().putAll( db, getWriteTxnForValue( words ) );
     }
 
-    int size() throws LocalDBException
+    long size() throws LocalDBException
     {
         return pwmApplication.getLocalDB().size( db );
     }

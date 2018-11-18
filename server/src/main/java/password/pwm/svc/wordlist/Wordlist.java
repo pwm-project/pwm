@@ -33,7 +33,7 @@ import java.io.InputStream;
 public interface Wordlist extends PwmService
 {
 
-    int size( );
+    long size( );
 
     WordlistStatus readWordlistStatus( );
 

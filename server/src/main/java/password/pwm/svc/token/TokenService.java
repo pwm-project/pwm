@@ -424,7 +424,7 @@ public class TokenService implements PwmService
         }
     }
 
-    public int size( ) throws PwmUnrecoverableException
+    public long size( ) throws PwmUnrecoverableException
     {
         if ( status != STATUS.OPEN )
         {

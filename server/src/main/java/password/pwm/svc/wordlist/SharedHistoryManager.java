@@ -145,7 +145,7 @@ public class SharedHistoryManager implements PwmService
         return null;
     }
 
-    public int size( )
+    public long size( )
     {
         if ( localDB != null )
         {
@@ -229,7 +229,7 @@ public class SharedHistoryManager implements PwmService
 
         try
         {
-            final int size = localDB.size( WORDS_DB );
+            final long size = localDB.size( WORDS_DB );
             final StringBuilder sb = new StringBuilder();
             sb.append( "open with " ).append( size ).append( " words (" );
             sb.append( TimeDuration.compactFromCurrent( startTime ) ).append( ")" );
@@ -372,7 +372,7 @@ public class SharedHistoryManager implements PwmService
             }
 
             final long startTime = System.currentTimeMillis();
-            final int initialSize = size();
+            final long initialSize = size();
             int removeCount = 0;
             long localOldestEntry = System.currentTimeMillis();
 

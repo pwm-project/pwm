@@ -102,7 +102,7 @@ public interface LocalDB
             throws LocalDBException;
 
     @ReadOperation
-    int size( DB db )
+    long size( DB db )
             throws LocalDBException;
 
     @WriteOperation
