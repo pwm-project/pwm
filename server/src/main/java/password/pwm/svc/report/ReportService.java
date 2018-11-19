@@ -64,9 +64,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -81,7 +79,7 @@ public class ReportService implements PwmService
     private boolean cancelFlag = false;
     private ReportStatusInfo reportStatus = new ReportStatusInfo( "" );
     private ReportSummaryData summaryData = ReportSummaryData.newSummaryData( null );
-    private ScheduledExecutorService executorService;
+    private ExecutorService executorService;
 
     private UserCacheService userCacheService;
     private ReportSettings settings = new ReportSettings();
@@ -146,12 +144,7 @@ public class ReportService implements PwmService
 
         dnQueue = LocalDBStoredQueue.createLocalDBStoredQueue( pwmApplication, pwmApplication.getLocalDB(), LocalDB.DB.REPORT_QUEUE );
 
-        executorService = Executors.newSingleThreadScheduledExecutor(
-                JavaHelper.makePwmThreadFactory(
-                        JavaHelper.makeThreadName( pwmApplication, this.getClass() ) + "-",
-                        true
-                ) );
-
+        executorService = JavaHelper.makeBackgroundExecutor( pwmApplication, this.getClass() );
 
         final String startupMsg = "report service started";
         LOGGER.debug( startupMsg );
@@ -420,7 +413,7 @@ public class ReportService implements PwmService
                         if ( executorService != null )
                         {
                             LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL, "directory unavailable error during background SearchLDAP, will retry; error: " + e.getMessage() );
-                            executorService.schedule( new ReadLDAPTask(), 10, TimeUnit.MINUTES );
+                            pwmApplication.scheduleFutureJob( new ReadLDAPTask(), executorService, TimeDuration.of( 10, TimeDuration.Unit.MINUTES ) );
                         }
                     }
                     else
@@ -497,7 +490,7 @@ public class ReportService implements PwmService
                         if ( executorService != null )
                         {
                             LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL, "directory unavailable error during background ReadData, will retry; error: " + e.getMessage() );
-                            executorService.schedule( new ProcessWorkQueueTask(), 10, TimeUnit.MINUTES );
+                            pwmApplication.scheduleFutureJob( new ProcessWorkQueueTask(), executorService, TimeDuration.of( 10, TimeDuration.Unit.MINUTES ) );
                         }
                     }
                     else
@@ -739,7 +732,8 @@ public class ReportService implements PwmService
             {
                 final Instant nextZuluZeroTime = JavaHelper.nextZuluZeroTime();
                 final long secondsUntilNextDredge = settings.getJobOffsetSeconds() + TimeDuration.fromCurrent( nextZuluZeroTime ).as( TimeDuration.Unit.SECONDS );
-                executorService.scheduleAtFixedRate( new DailyJobExecuteTask(), secondsUntilNextDredge, TimeDuration.DAY.as( TimeDuration.Unit.SECONDS ), TimeUnit.SECONDS );
+                final TimeDuration initialDelay = TimeDuration.of( secondsUntilNextDredge, TimeDuration.Unit.SECONDS );
+                pwmApplication.scheduleFixedRateJob( new ProcessWorkQueueTask(), executorService, initialDelay, TimeDuration.DAY );
                 LOGGER.debug( "scheduled daily execution, next task will be at " + nextZuluZeroTime.toString() );
             }
             executorService.submit( new RolloverTask() );

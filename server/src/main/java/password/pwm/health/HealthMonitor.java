@@ -40,10 +40,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 public class HealthMonitor implements PwmService
 {
@@ -67,7 +65,7 @@ public class HealthMonitor implements PwmService
         HEALTH_CHECKERS = records;
     }
 
-    private ScheduledExecutorService executorService;
+    private ExecutorService executorService;
     private HealthMonitorSettings settings;
 
     private volatile Instant lastHealthCheckTime = Instant.ofEpochMilli( 0 );
@@ -152,14 +150,8 @@ public class HealthMonitor implements PwmService
         }
 
 
-        executorService = Executors.newSingleThreadScheduledExecutor(
-                JavaHelper.makePwmThreadFactory(
-                        JavaHelper.makeThreadName( pwmApplication, this.getClass() ) + "-",
-                        true
-                ) );
-
-
-        executorService.scheduleAtFixedRate( new ScheduledUpdater(), 0, settings.getNominalCheckInterval().asMillis(), TimeUnit.MILLISECONDS );
+        executorService = JavaHelper.makeBackgroundExecutor( pwmApplication, this.getClass() );
+        pwmApplication.scheduleFixedRateJob( new ScheduledUpdater(), executorService, TimeDuration.SECONDS_10, settings.getNominalCheckInterval() );
 
         status = STATUS.OPEN;
     }
@@ -177,7 +169,7 @@ public class HealthMonitor implements PwmService
             final boolean recordsAreStale = TimeDuration.fromCurrent( lastHealthCheckTime ).isLongerThan( settings.getMaximumRecordAge() );
             if ( timeliness == CheckTimeliness.Immediate || ( timeliness == CheckTimeliness.CurrentButNotAncient && recordsAreStale ) )
             {
-                final ScheduledFuture updateTask = executorService.schedule( new ImmediateUpdater(), 0, TimeUnit.NANOSECONDS );
+                final ScheduledFuture updateTask = pwmApplication.scheduleFutureJob( new ImmediateUpdater(), executorService, TimeDuration.ZERO );
                 final Instant beginWaitTime = Instant.now();
                 while ( !updateTask.isDone() && TimeDuration.fromCurrent( beginWaitTime ).isShorterThan( settings.getMaximumForceCheckWait() ) )
                 {

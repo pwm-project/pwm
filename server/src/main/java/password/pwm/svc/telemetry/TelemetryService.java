@@ -66,14 +66,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutorService;
 
 public class TelemetryService implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( TelemetryService.class );
 
-    private ScheduledExecutorService executorService;
+    private ExecutorService executorService;
     private PwmApplication pwmApplication;
     private Settings settings;
 
@@ -144,7 +143,7 @@ public class TelemetryService implements PwmService
             LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "last publish time was " + JavaHelper.toIsoDate( lastPublishTime ) );
         }
 
-        executorService = JavaHelper.makeSingleThreadExecutorService( pwmApplication, TelemetryService.class );
+        executorService = JavaHelper.makeBackgroundExecutor( pwmApplication, TelemetryService.class );
 
         scheduleNextJob();
 
@@ -215,10 +214,7 @@ public class TelemetryService implements PwmService
     private void scheduleNextJob( )
     {
         final TimeDuration durationUntilNextPublish = durationUntilNextPublish();
-        executorService.schedule(
-                new PublishJob(),
-                durationUntilNextPublish.asMillis(),
-                TimeUnit.MILLISECONDS );
+        pwmApplication.scheduleFutureJob( new PublishJob(), executorService, durationUntilNextPublish );
         LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "next publish time: " + durationUntilNextPublish().asCompactString() );
     }
 

@@ -46,8 +46,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BooleanSupplier;
 
@@ -58,7 +57,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
 
     private WordlistConfiguration wordlistConfiguration;
     private WordlistBucket wordklistBucket;
-    private ScheduledExecutorService executorService;
+    private ExecutorService executorService;
 
     private volatile STATUS wlStatus = STATUS.NEW;
 
@@ -94,7 +93,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
 
         this.wordklistBucket = new WordlistBucket( pwmApplication, wordlistConfiguration, type );
 
-        executorService = JavaHelper.makeSingleThreadExecutorService( pwmApplication, this.getClass() );
+        executorService = JavaHelper.makeBackgroundExecutor( pwmApplication, this.getClass() );
 
         if ( pwmApplication.getLocalDB() != null )
         {
@@ -108,12 +107,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
             lastError = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, errorMsg );
         }
 
-        executorService.scheduleWithFixedDelay(
-                new InspectorJob(),
-                1,
-                wordlistConfiguration.getInspectorFrequency().asMillis(),
-                TimeUnit.MILLISECONDS
-        );
+        pwmApplication.scheduleFixedRateJob( new InspectorJob(), executorService, TimeDuration.SECOND, wordlistConfiguration.getInspectorFrequency() );
     }
 
     boolean containsWord( final String word ) throws PwmUnrecoverableException

@@ -76,9 +76,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TimerTask;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutorService;
 
 /**
  * This PWM service is responsible for reading/writing tokens used for forgotten password,
@@ -92,7 +90,7 @@ public class TokenService implements PwmService
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( TokenService.class );
 
-    private ScheduledExecutorService executorService;
+    private ExecutorService executorService;
 
     private PwmApplication pwmApplication;
     private Configuration configuration;
@@ -194,22 +192,17 @@ public class TokenService implements PwmService
             return;
         }
 
-        executorService = Executors.newSingleThreadScheduledExecutor(
-                JavaHelper.makePwmThreadFactory(
-                        JavaHelper.makeThreadName( pwmApplication, this.getClass() ) + "-",
-                        true
-                ) );
+        verifyPwModifyTime = Boolean.parseBoolean( configuration.readAppProperty( AppProperty.TOKEN_VERIFY_PW_MODIFY_TIME ) );
 
-        final TimerTask cleanerTask = new CleanerTask();
+        executorService = JavaHelper.makeBackgroundExecutor( pwmApplication, this.getClass() );
 
         {
             final int cleanerFrequencySeconds = Integer.parseInt( configuration.readAppProperty( AppProperty.TOKEN_CLEANER_INTERVAL_SECONDS ) );
             final TimeDuration cleanerFrequency = TimeDuration.of( cleanerFrequencySeconds, TimeDuration.Unit.SECONDS );
-            executorService.scheduleAtFixedRate( cleanerTask, 10, cleanerFrequencySeconds, TimeUnit.SECONDS );
+            pwmApplication.scheduleFixedRateJob( new CleanerTask(), executorService, TimeDuration.MINUTE, cleanerFrequency );
             LOGGER.trace( "token cleanup will occur every " + cleanerFrequency.asCompactString() );
         }
 
-        verifyPwModifyTime = Boolean.parseBoolean( configuration.readAppProperty( AppProperty.TOKEN_VERIFY_PW_MODIFY_TIME ) );
 
         status = STATUS.OPEN;
         LOGGER.debug( "open" );
@@ -424,7 +417,7 @@ public class TokenService implements PwmService
         }
     }
 
-    public long size( ) throws PwmUnrecoverableException
+    public long size( )
     {
         if ( status != STATUS.OPEN )
         {
