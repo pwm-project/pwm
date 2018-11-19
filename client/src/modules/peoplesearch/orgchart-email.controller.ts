@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-require('./orgchart-email.controller.scss');
+require('./orgchart-email.component.scss');
 
 export default class OrgchartEmailController {
     static $inject = [

@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-require('./orgchart-export.controller.scss');
+require('./orgchart-export.component.scss');
 
 export default class OrgchartExportController {
     static $inject = [

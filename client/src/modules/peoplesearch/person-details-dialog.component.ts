@@ -28,8 +28,8 @@ import {IAugmentedJQuery, ITimeoutService, noop} from 'angular';
 import { IPerson } from '../../models/person.model';
 import {IChangePasswordSuccess} from '../../components/changepassword/success-change-password.controller';
 
-let orgchartExportTemplateUrl = require('./orgchart-export.controller.html');
-let orgchartEmailTemplateUrl = require('./orgchart-email.controller.html');
+let orgchartExportTemplateUrl = require('./orgchart-export.component.html');
+let orgchartEmailTemplateUrl = require('./orgchart-email.component.html');
 
 @Component({
     stylesheetUrl: require('./person-details-dialog.component.scss'),
