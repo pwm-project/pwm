@@ -175,6 +175,7 @@ public class XodusLocalDB implements LocalDBProvider
         environmentConfig.setEnvCloseForcedly( true );
         environmentConfig.setMemoryUsage( 50 * 1024 * 1024 );
         environmentConfig.setEnvGatherStatistics( true );
+        environmentConfig.setGcUtilizationFromScratch( true );
 
         for ( final Map.Entry<String, String> entry : initParameters.entrySet() )
         {
@@ -196,13 +197,13 @@ public class XodusLocalDB implements LocalDBProvider
     }
 
     @Override
-    public int size( final LocalDB.DB db ) throws LocalDBException
+    public long size( final LocalDB.DB db ) throws LocalDBException
     {
         checkStatus( false );
         return environment.computeInReadonlyTransaction( transaction ->
         {
             final Store store = getStore( db );
-            return ( int ) store.count( transaction );
+            return store.count( transaction );
         } );
     }
 

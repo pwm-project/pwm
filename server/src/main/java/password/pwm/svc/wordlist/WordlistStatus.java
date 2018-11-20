@@ -20,27 +20,25 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.config.option;
+package password.pwm.svc.wordlist;
 
-public enum TLSVersion
+import lombok.Builder;
+import lombok.Value;
+
+import java.io.Serializable;
+import java.time.Instant;
+
+@Value
+@Builder( toBuilder = true )
+public class WordlistStatus implements Serializable
 {
-    SSL_2_0( "SSLv2" ),
-    SSL_3_0( "SSLv3" ),
-    TLS_1_0( "TLSv1" ),
-    TLS_1_1( "TLSv1.1" ),
-    TLS_1_2( "TLSv1.2" ),
-    TLS_1_3( "TLSv1.3" ),;
+    public static final int CURRENT_VERSION = 3;
 
-    private final String tomcatValueName;
-
-    TLSVersion( final String tomcatValueName )
-    {
-        this.tomcatValueName = tomcatValueName;
-    }
-
-    public String getTomcatValueName( )
-    {
-        return tomcatValueName;
-    }
-
+    @Builder.Default
+    private int version = CURRENT_VERSION;
+    private boolean completed;
+    private WordlistSourceType sourceType;
+    private Instant storeDate;
+    private WordlistSourceInfo remoteInfo;
+    private long bytes;
 }

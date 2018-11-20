@@ -45,8 +45,8 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
-import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ExecutorService;
 
 
 public class SharedHistoryManager implements PwmService
@@ -68,7 +68,7 @@ public class SharedHistoryManager implements PwmService
 
     private volatile PwmService.STATUS status = STATUS.NEW;
 
-    private volatile Timer cleanerTimer = null;
+    private ExecutorService executorService;
 
     private LocalDB localDB;
     private String salt;
@@ -83,9 +83,9 @@ public class SharedHistoryManager implements PwmService
     public void close( )
     {
         status = STATUS.CLOSED;
-        if ( cleanerTimer != null )
+        if ( executorService != null )
         {
-            cleanerTimer.cancel();
+            executorService.shutdown();
         }
         localDB = null;
     }
@@ -145,7 +145,7 @@ public class SharedHistoryManager implements PwmService
         return null;
     }
 
-    public int size( )
+    public long size( )
     {
         if ( localDB != null )
         {
@@ -229,7 +229,7 @@ public class SharedHistoryManager implements PwmService
 
         try
         {
-            final int size = localDB.size( WORDS_DB );
+            final long size = localDB.size( WORDS_DB );
             final StringBuilder sb = new StringBuilder();
             sb.append( "open with " ).append( size ).append( " words (" );
             sb.append( TimeDuration.compactFromCurrent( startTime ) ).append( ")" );
@@ -251,11 +251,11 @@ public class SharedHistoryManager implements PwmService
         {
             long frequencyMs = maxAgeMs > MAX_CLEANER_FREQUENCY ? MAX_CLEANER_FREQUENCY : maxAgeMs;
             frequencyMs = frequencyMs < MIN_CLEANER_FREQUENCY ? MIN_CLEANER_FREQUENCY : frequencyMs;
+            final TimeDuration frequency = TimeDuration.of( frequencyMs, TimeDuration.Unit.MILLISECONDS );
 
-            LOGGER.debug( "scheduling cleaner task to run once every " + TimeDuration.of( frequencyMs, TimeDuration.Unit.MILLISECONDS ).asCompactString() );
-            final String threadName = JavaHelper.makeThreadName( pwmApplication, this.getClass() ) + " timer";
-            cleanerTimer = new Timer( threadName, true );
-            cleanerTimer.schedule( new CleanerTask(), 1000, frequencyMs );
+            LOGGER.debug( "scheduling cleaner task to run once every " + frequency.asCompactString() );
+            executorService = JavaHelper.makeBackgroundExecutor( pwmApplication, this.getClass() );
+            pwmApplication.scheduleFixedRateJob( new CleanerTask(), executorService, null, frequency );
         }
     }
 
@@ -372,7 +372,7 @@ public class SharedHistoryManager implements PwmService
             }
 
             final long startTime = System.currentTimeMillis();
-            final int initialSize = size();
+            final long initialSize = size();
             int removeCount = 0;
             long localOldestEntry = System.currentTimeMillis();
 

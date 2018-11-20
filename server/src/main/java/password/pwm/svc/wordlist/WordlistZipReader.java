@@ -24,6 +24,8 @@ package password.pwm.svc.wordlist;
 
 import org.apache.commons.io.input.CountingInputStream;
 import password.pwm.PwmConstants;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.ChecksumInputStream;
@@ -53,8 +55,7 @@ class WordlistZipReader implements AutoCloseable, Closeable
     private BufferedReader reader;
     private ZipEntry zipEntry;
 
-    WordlistZipReader( final InputStream inputStream )
-            throws Exception
+    WordlistZipReader( final InputStream inputStream ) throws PwmUnrecoverableException
     {
         checksumInputStream = new ChecksumInputStream( AbstractWordlist.CHECKSUM_HASH_ALG, inputStream );
         countingInputStream = new CountingInputStream( checksumInputStream );
@@ -68,18 +69,25 @@ class WordlistZipReader implements AutoCloseable, Closeable
     }
 
     private void nextZipEntry( )
-            throws IOException
+            throws PwmUnrecoverableException
     {
-        zipEntry = zipStream.getNextEntry();
-
-        while ( zipEntry != null && zipEntry.isDirectory() )
+        try
         {
             zipEntry = zipStream.getNextEntry();
-        }
 
-        if ( zipEntry != null )
+            while ( zipEntry != null && zipEntry.isDirectory() )
+            {
+                zipEntry = zipStream.getNextEntry();
+            }
+
+            if ( zipEntry != null )
+            {
+                reader = new BufferedReader( new InputStreamReader( zipStream, PwmConstants.DEFAULT_CHARSET ) );
+            }
+        }
+        catch ( IOException e )
         {
-            reader = new BufferedReader( new InputStreamReader( zipStream, PwmConstants.DEFAULT_CHARSET ) );
+            throw PwmUnrecoverableException.newException( PwmError.ERROR_WORDLIST_IMPORT_ERROR, "error reading wordlist zip: " + e.getMessage() );
         }
     }
 
@@ -110,13 +118,20 @@ class WordlistZipReader implements AutoCloseable, Closeable
     }
 
     String nextLine( )
-            throws IOException
+            throws PwmUnrecoverableException
     {
         String line;
 
         do
         {
-            line = reader.readLine();
+            try
+            {
+                line = reader.readLine();
+            }
+            catch ( IOException e )
+            {
+                throw PwmUnrecoverableException.newException( PwmError.ERROR_WORDLIST_IMPORT_ERROR, "error reading zip wordlist file: " + e.getMessage() );
+            }
 
             if ( line == null )
             {

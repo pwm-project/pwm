@@ -167,7 +167,7 @@ class LdapTokenMachine implements TokenMachine
         }
     }
 
-    public int size( ) throws PwmOperationalException
+    public long size( ) throws PwmOperationalException
     {
         return -1;
     }

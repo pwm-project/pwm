@@ -22,43 +22,14 @@
 
 package password.pwm.svc.wordlist;
 
-import lombok.Builder;
-import lombok.Getter;
 import lombok.Value;
 
 import java.io.Serializable;
-import java.time.Instant;
 
 @Value
-@Builder( toBuilder = true )
-public class StoredWordlistDataBean implements Serializable
+public class WordlistSourceInfo implements Serializable
 {
-    private boolean completed;
-    private Source source;
-    private Instant storeDate;
-    private RemoteWordlistInfo remoteInfo;
+    private String checksum;
     private long bytes;
-    private int size;
-
-    @Getter
-    public enum Source
-    {
-        BuiltIn( "Built-In" ),
-        AutoImport( "Import from configured URL" ),
-        User( "Uploaded" ),;
-
-        private final String label;
-
-        Source( final String label )
-        {
-            this.label = label;
-        }
-    }
-
-    @Value
-    public static class RemoteWordlistInfo implements Serializable
-    {
-        private String checksum;
-        private long bytes;
-    }
+    private String importUrl;
 }

@@ -20,27 +20,22 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.config.option;
+package password.pwm.svc.wordlist;
 
-public enum TLSVersion
+import lombok.Getter;
+
+@Getter
+public enum WordlistSourceType
 {
-    SSL_2_0( "SSLv2" ),
-    SSL_3_0( "SSLv3" ),
-    TLS_1_0( "TLSv1" ),
-    TLS_1_1( "TLSv1.1" ),
-    TLS_1_2( "TLSv1.2" ),
-    TLS_1_3( "TLSv1.3" ),;
+    BuiltIn( "Built-In" ),
+    Temporary_BuiltIn( "Built-In (auto-import failed)" ),
+    AutoImport( "Import from configured URL" ),
+    User( "Upload" ),;
 
-    private final String tomcatValueName;
+    private final String label;
 
-    TLSVersion( final String tomcatValueName )
+    WordlistSourceType( final String label )
     {
-        this.tomcatValueName = tomcatValueName;
+        this.label = label;
     }
-
-    public String getTomcatValueName( )
-    {
-        return tomcatValueName;
-    }
-
 }
