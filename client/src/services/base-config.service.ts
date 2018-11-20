@@ -24,7 +24,7 @@ import {IHttpService, ILogService, IPromise, IQService} from 'angular';
 import {IPwmService} from './pwm.service';
 
 const COLUMN_CONFIG = 'searchColumns';
-const PHOTO_ENABLED = 'enablePhoto';
+export const PHOTO_ENABLED = 'enablePhoto';
 const PRINTING_ENABLED = 'enableOrgChartPrinting';
 
 export const ADVANCED_SEARCH_ENABLED = 'enableAdvancedSearch';

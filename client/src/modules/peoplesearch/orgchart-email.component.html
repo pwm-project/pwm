@@ -28,16 +28,20 @@
             </div>
             <div class="ias-dialog-content">
                 <p ng-bind="'Instructions_EmailTeam1' | translate"></p>
-                <p ng-if="$ctrl.depth > 1" ng-bind="'Instructions_EmailTeam2' | translate"></p>
-                <label ng-if="$ctrl.depth > 1" for="depth" ng-bind="'Label_EmailLevelDepth' | translate"></label>
-                <div ng-if="$ctrl.depth > 1">
-                    <select id="depth">
-                        <option ng-repeat="x in [].constructor($ctrl.depth) track by $index">{{$index+1}}</option>
+                <div ng-if="$ctrl.maxDepth > 1" class="ias-input-container">
+                    <label for="depth" ng-bind="'Label_EmailLevelDepth' | translate"></label>
+                    <select id="depth" ng-model="$ctrl.depth" ng-change="$ctrl.depthChanged()">
+                        <option ng-repeat="x in [].constructor($ctrl.maxDepth) track by $index">{{$index+1}}</option>
                     </select>
+                    {{ 'Label_StartingFrom' | translate: { personName: $ctrl.personName } }}
+                </div>
+                <div id="teamMembersContainer" class="ias-input-container">
+                    <label for="teamMembers" ng-bind="'Label_EmailTeamMembersFound' | translate"></label>
+                    <textarea id="teamMembers" ng-model="$ctrl.teamEmailList"></textarea>
                 </div>
             </div>
             <div class="ias-actions">
-                <ias-button ng-click="$ctrl.emailOrgChart()">{{ 'Button_EmailTeam' | translate }}</ias-button>
+                <ias-button ng-disabled="$ctrl.fetchingTeamMembers" ng-click="$ctrl.emailOrgChart()">{{ 'Button_SendEmail' | translate }}</ias-button>
             </div>
             <ias-button class="ias-icon-button ias-dialog-cancel-button"
                         id="close-icon"

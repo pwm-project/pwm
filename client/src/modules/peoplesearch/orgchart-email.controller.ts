@@ -20,23 +20,54 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+import * as angular from 'angular';
+import {IPeopleService} from '../../services/people.service';
+
 require('./orgchart-email.component.scss');
 
 export default class OrgchartEmailController {
+    depth = '1';
+    fetchingTeamMembers = false;
+    teamEmailList: string;
+
     static $inject = [
         '$window',
         'IasDialogService',
         'translateFilter',
-        'depth'
+        'peopleService',
+        'maxDepth',
+        'personName',
+        'userKey'
     ];
     constructor(private $window: angular.IWindowService,
                 private IasDialogService: any,
                 private translateFilter: (id: string) => string,
-                private depth: number) {
+                private peopleService: IPeopleService,
+                private maxDepth: number,
+                private personName: string,
+                private userKey: string) {
+
+        this.fetchEmailList();
     }
 
     emailOrgChart() {
-        this.$window.location.href = 'mailto:james.albright@microfocus.com';
+        this.$window.location.href = `mailto:${this.teamEmailList}`;
         this.IasDialogService.close();
+    }
+
+    depthChanged() {
+        this.fetchEmailList();
+    }
+
+    fetchEmailList() {
+        this.fetchingTeamMembers = true;
+
+        this.peopleService.getTeamEmails(this.userKey, +this.depth)
+            .then((teamEmails: string[]) => {
+                this.teamEmailList = teamEmails.toString();
+            })
+            .finally(() => {
+                this.fetchingTeamMembers = false;
+            });
     }
 }

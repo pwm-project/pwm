@@ -28,12 +28,12 @@
             </div>
             <div class="ias-dialog-content">
                 <p ng-bind="'Instructions_ExportOrgChart1' | translate"></p>
-                <p ng-if="$ctrl.depth > 1" ng-bind="'Instructions_ExportOrgChart2' | translate"></p>
-                <label ng-if="$ctrl.depth > 1" for="depth" ng-bind="'Label_ExportLevelDepth' | translate"></label>
-                <div ng-if="$ctrl.depth > 1">
-                    <select id="depth">
-                        <option ng-repeat="x in [].constructor($ctrl.depth) track by $index">{{$index+1}}</option>
+                <label ng-if="$ctrl.maxDepth > 1" for="depth" ng-bind="'Label_ExportLevelDepth' | translate"></label>
+                <div ng-if="$ctrl.maxDepth > 1">
+                    <select id="depth" ng-model="$ctrl.depth">
+                        <option ng-repeat="x in [].constructor($ctrl.maxDepth) track by $index">{{$index+1}}</option>
                     </select>
+                    {{ 'Label_StartingFrom' | translate: { personName: $ctrl.personName } }}
                 </div>
             </div>
             <div class="ias-actions">

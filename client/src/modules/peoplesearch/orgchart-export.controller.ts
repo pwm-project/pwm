@@ -20,20 +20,34 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+import {IPeopleService} from '../../services/people.service';
+
 require('./orgchart-export.component.scss');
 
 export default class OrgchartExportController {
+    depth = '1';
+
     static $inject = [
+        '$window',
         'IasDialogService',
         'translateFilter',
-        'depth'
+        'peopleService',
+        'maxDepth',
+        'personName',
+        'userKey'
     ];
-    constructor(private IasDialogService: any,
+    constructor(private $window: angular.IWindowService,
+                private IasDialogService: any,
                 private translateFilter: (id: string) => string,
-                private depth: number) {
+                private peopleService: IPeopleService,
+                private maxDepth: number,
+                private personName: string,
+                private userKey: string) {
     }
 
     exportOrgChart() {
+        // tslint:disable-next-line
+        this.$window.location.href = `/pwm/private/peoplesearch?processAction=exportOrgChart&depth=${this.depth}&userKey=${this.userKey}`;
         this.IasDialogService.close();
     }
 }

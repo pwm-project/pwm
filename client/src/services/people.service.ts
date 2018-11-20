@@ -21,7 +21,7 @@
  */
 
 
-import {IHttpService, ILogService, IPromise, IQService, IWindowService} from 'angular';
+import {IDeferred, IHttpService, ILogService, IPromise, IQService, IWindowService} from 'angular';
 import {IPerson} from '../models/person.model';
 import IPwmService from './pwm.service';
 import IOrgChartData from '../models/orgchart-data.model';
@@ -47,6 +47,8 @@ export interface IPeopleService {
     getOrgChartData(personId: string, skipChildren: boolean): IPromise<IOrgChartData>;
 
     getPerson(id: string): IPromise<IPerson>;
+
+    getTeamEmails(id: string, depth: number): IPromise<string[]>;
 
     search(query: string): IPromise<SearchResult>;
 }
@@ -221,6 +223,24 @@ export default class PeopleService implements IPeopleService {
         promise['_httpTimeout'] = httpTimeout;
 
         return promise;
+    }
+
+    getTeamEmails(id: string, depth: number): IPromise<string[]> {
+        const deferredValue: IDeferred<string[]> = this.$q.defer();
+
+        let request = this.$http
+            .get(this.pwmService.getServerUrl('mailtoLinks'), {
+                cache: true,
+                params: {
+                    userKey: id,
+                    depth: depth
+                }
+            })
+            .then((response) => {
+                deferredValue.resolve(response.data['data']);
+            });
+
+        return deferredValue.promise;
     }
 
     search(query: string, params?: any): IPromise<SearchResult> {

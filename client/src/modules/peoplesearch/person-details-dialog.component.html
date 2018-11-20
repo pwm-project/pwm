@@ -45,12 +45,12 @@
                         </ias-button>
                         <ias-button class="ias-icon-button ias-dialog-cancel-button"
                                     ng-attr-title="{{ 'Button_ExportOrgChart' | translate }}"
-                                    ng-click="$ctrl.beginExport()">
+                                    ng-click="$ctrl.beginExport()" ng-if="$ctrl.exportEnabled">
                             <ias-icon icon="download_thick"></ias-icon>
                         </ias-button>
                         <ias-button class="ias-icon-button ias-dialog-cancel-button"
                                     ng-attr-title="{{ 'Button_EmailTeam' | translate }}"
-                                    ng-click="$ctrl.beginEmail()">
+                                    ng-click="$ctrl.beginEmail()" ng-if="$ctrl.emailTeamEnabled">
                             <ias-icon icon="email_thick"></ias-icon>
                         </ias-button>
                     </div>

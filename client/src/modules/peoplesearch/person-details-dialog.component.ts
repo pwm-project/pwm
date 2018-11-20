@@ -22,7 +22,7 @@
 
 
 import { Component } from '../../component';
-import { IPeopleSearchConfigService } from '../../services/peoplesearch-config.service';
+import {IPeopleSearchConfigService, IPersonDetailsConfig} from '../../services/peoplesearch-config.service';
 import { IPeopleService } from '../../services/people.service';
 import {IAugmentedJQuery, ITimeoutService, noop} from 'angular';
 import { IPerson } from '../../models/person.model';
@@ -39,6 +39,10 @@ export default class PersonDetailsDialogComponent {
     person: IPerson;
     photosEnabled: boolean;
     orgChartEnabled: boolean;
+    exportEnabled: boolean;
+    emailTeamEnabled: boolean;
+    maxExportDepth: number;
+    maxEmailDepth: number;
 
     static $inject = [
         '$element',
@@ -68,6 +72,15 @@ export default class PersonDetailsDialogComponent {
 
         this.configService.photosEnabled().then((photosEnabled: boolean) => {
             this.photosEnabled = photosEnabled;
+        });
+
+        this.configService.personDetailsConfig().then((personDetailsConfig: IPersonDetailsConfig) => {
+            this.photosEnabled = personDetailsConfig.photosEnabled;
+            this.orgChartEnabled = personDetailsConfig.orgChartEnabled;
+            this.exportEnabled = personDetailsConfig.exportEnabled;
+            this.emailTeamEnabled = personDetailsConfig.emailTeamEnabled;
+            this.maxExportDepth = personDetailsConfig.maxExportDepth;
+            this.maxEmailDepth = personDetailsConfig.maxEmailDepth;
         });
 
         this.peopleService
@@ -118,11 +131,12 @@ export default class PersonDetailsDialogComponent {
                 controller: 'OrgchartExportController as $ctrl',
                 templateUrl: orgchartExportTemplateUrl,
                 locals: {
-                    depth: 11
+                    peopleService: this.peopleService,
+                    maxDepth: this.maxExportDepth,
+                    personName: this.person.displayNames[0],
+                    userKey: this.person.userKey
                 }
             });
-            // If the password was changed, the promise resolves. IasDialogService passes the data intact.
-            // .then(this.exportSuccess.bind(this), noop);
     }
 
     beginEmail() {
@@ -131,10 +145,11 @@ export default class PersonDetailsDialogComponent {
                 controller: 'OrgchartEmailController as $ctrl',
                 templateUrl: orgchartEmailTemplateUrl,
                 locals: {
-                    depth: 7
+                    peopleService: this.peopleService,
+                    maxDepth: this.maxEmailDepth,
+                    personName: this.person.displayNames[0],
+                    userKey: this.person.userKey
                 }
             });
-        // If the password was changed, the promise resolves. IasDialogService passes the data intact.
-        // .then(this.exportSuccess.bind(this), noop);
     }
 }
