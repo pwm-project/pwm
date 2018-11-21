@@ -26,7 +26,6 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
@@ -316,7 +315,7 @@ public class PwNotifyEngine
     private void sendNoticeEmail( final UserIdentity userIdentity )
             throws PwmUnrecoverableException
     {
-        final Locale userLocale = PwmConstants.DEFAULT_LOCALE;
+        final Locale userLocale = LdapOperationsHelper.readStoredLdapLocale( pwmApplication, userIdentity );
         final EmailItemBean emailItemBean = pwmApplication.getConfig().readSettingAsEmail(
                 PwmSetting.EMAIL_PW_EXPIRATION_NOTICE,
                 userLocale
@@ -325,7 +324,8 @@ public class PwNotifyEngine
         final UserInfo userInfoBean = UserInfoFactory.newUserInfoUsingProxy(
                 pwmApplication,
                 SESSION_LABEL,
-                userIdentity, userLocale
+                userIdentity,
+                userLocale
         );
 
         StatisticsManager.incrementStat( pwmApplication, Statistic.PWNOTIFY_EMAILS_SENT );

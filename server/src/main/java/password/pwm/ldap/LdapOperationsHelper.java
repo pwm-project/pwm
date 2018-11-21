@@ -26,6 +26,7 @@ import com.novell.ldapchai.ChaiConstant;
 import com.novell.ldapchai.ChaiEntry;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.Answer;
+import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiConfiguration;
@@ -36,6 +37,7 @@ import com.novell.ldapchai.provider.SearchScope;
 import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
@@ -53,6 +55,7 @@ import password.pwm.svc.cache.CacheKey;
 import password.pwm.svc.cache.CachePolicy;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.util.LocaleHelper;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
@@ -73,6 +76,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -982,4 +986,34 @@ public class LdapOperationsHelper
         return new PhotoDataBean( mimeType, new ImmutableByteArray( photoData ) );
     }
 
+
+    public static Locale readStoredLdapLocale(
+            final PwmApplication pwmApplication,
+            final UserIdentity userIdentity
+    )
+            throws PwmUnrecoverableException
+    {
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmApplication.getConfig() );
+        final String languageAttr = ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_LANGUAGE );
+        if ( StringUtil.isEmpty( languageAttr ) )
+        {
+            return PwmConstants.DEFAULT_LOCALE;
+        }
+
+        try
+        {
+            final ChaiUser chaiUser = pwmApplication.getProxiedChaiUser( userIdentity );
+            final String storedValue = chaiUser.readStringAttribute( languageAttr );
+            if ( StringUtil.isEmpty( storedValue ) )
+            {
+                return PwmConstants.DEFAULT_LOCALE;
+            }
+
+            return LocaleHelper.parseLocaleString( storedValue );
+        }
+        catch ( ChaiException e )
+        {
+            throw PwmUnrecoverableException.fromChaiException( e );
+        }
+    }
 }

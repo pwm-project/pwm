@@ -278,6 +278,8 @@ public enum PwmSetting
             "peopleSearch.orgChart.assistantAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
     LDAP_ATTRIBUTE_ORGCHART_WORKFORCEID(
             "peopleSearch.orgChart.workforceIdAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
+    LDAP_ATTRIBUTE_LANGUAGE(
+            "ldap.user.language.attribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
     AUTO_ADD_OBJECT_CLASSES(
             "ldap.addObjectClasses", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.LDAP_ATTRIBUTES ),
 

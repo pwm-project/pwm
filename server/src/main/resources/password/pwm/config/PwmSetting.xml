@@ -3311,6 +3311,12 @@
             <value>workforceID</value>
         </default>
     </setting>
+    <setting hidden="false" key="ldap.user.language.attribute" level="1">
+        <ldapPermission actor="proxy" access="write"/>
+        <default>
+            <value/>
+        </default>
+    </setting>
     <setting hidden="false" key="ldap.edirectory.storeNmasResponses" level="1" required="true">
         <default>
             <value>false</value>
