@@ -710,7 +710,7 @@ public class AdminServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "readPwNotifyStatus" )
-    public ProcessStatus restreadPwNotifyStatus( final PwmRequest pwmRequest ) throws IOException, DatabaseException, PwmUnrecoverableException
+    public ProcessStatus restreadPwNotifyStatus( final PwmRequest pwmRequest ) throws IOException, PwmUnrecoverableException
     {
         int key = 0;
         if ( !pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.PW_EXPY_NOTIFY_ENABLE ) )
@@ -720,31 +720,6 @@ public class AdminServlet extends ControlledPwmServlet
                             + PwmSetting.PW_EXPY_NOTIFY_ENABLE.toMenuLocationDebug( null, pwmRequest.getLocale() ) );
             pwmRequest.outputJsonResult( RestResultBean.withData( new PwNotifyStatusBean( Collections.singletonList( displayElement ), false ) ) );
             return ProcessStatus.Halt;
-        }
-
-
-        {
-            ErrorInformation errorInformation = null;
-            try
-            {
-                if ( !pwmRequest.getPwmApplication().getDatabaseService().getAccessor().isConnected() )
-                {
-                    errorInformation = new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, "database is not connected" );
-                }
-            }
-            catch ( PwmUnrecoverableException e )
-            {
-                errorInformation = e.getErrorInformation();
-            }
-
-            if ( errorInformation != null )
-            {
-                final DisplayElement displayElement = new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.string, "Status",
-                        "Database must be functioning to view Password Notify status.  Current database error: "
-                                + errorInformation.toDebugStr() );
-                pwmRequest.outputJsonResult( RestResultBean.withData( new PwNotifyStatusBean( Collections.singletonList( displayElement ), false ) ) );
-                return ProcessStatus.Halt;
-            }
         }
 
         final List<DisplayElement> statusData = new ArrayList<>( );
@@ -780,8 +755,11 @@ public class AdminServlet extends ControlledPwmServlet
                         "Last Job Duration", TimeDuration.between( storedJobState.getLastStart(), storedJobState.getLastCompletion() ).asLongString( locale ) ) );
             }
 
-            statusData.add( new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.string,
-                    "Last Job Server Instance",  storedJobState.getServerInstance() ) );
+            if ( !StringUtil.isEmpty( storedJobState.getServerInstance() ) )
+            {
+                statusData.add( new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.string,
+                        "Last Job Server Instance", storedJobState.getServerInstance() ) );
+            }
 
             if ( storedJobState.getLastError() != null )
             {
