@@ -58,9 +58,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutorService;
+
 
 public class DatabaseService implements PwmService
 {
@@ -84,7 +83,7 @@ public class DatabaseService implements PwmService
     private AtomicLoopIntIncrementer slotIncrementer;
     private final Map<Integer, DatabaseAccessorImpl> accessors = new ConcurrentHashMap<>();
 
-    private ScheduledExecutorService executorService;
+    private ExecutorService executorService;
 
     private final Map<DatabaseAboutProperty, String> debugInfo = new LinkedHashMap<>();
 
@@ -111,14 +110,12 @@ public class DatabaseService implements PwmService
         this.pwmApplication = pwmApplication;
         init();
 
-        executorService = Executors.newSingleThreadScheduledExecutor(
-                JavaHelper.makePwmThreadFactory(
-                        JavaHelper.makeThreadName( pwmApplication, this.getClass() ) + "-",
-                        true
-                ) );
+        executorService = JavaHelper.makeBackgroundExecutor( pwmApplication, this.getClass() );
 
-        final int watchdogFrequencySeconds = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.DB_CONNECTIONS_WATCHDOG_FREQUENCY_SECONDS ) );
-        executorService.scheduleWithFixedDelay( new ConnectionMonitor(), watchdogFrequencySeconds, watchdogFrequencySeconds, TimeUnit.SECONDS );
+        final TimeDuration watchdogFrequency = TimeDuration.of(
+                Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.DB_CONNECTIONS_WATCHDOG_FREQUENCY_SECONDS ) ),
+                TimeDuration.Unit.SECONDS );
+        pwmApplication.scheduleFixedRateJob( new ConnectionMonitor(), executorService, watchdogFrequency, watchdogFrequency );
     }
 
     private synchronized void init( )

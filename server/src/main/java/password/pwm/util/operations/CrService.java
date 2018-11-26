@@ -54,7 +54,7 @@ import password.pwm.health.HealthRecord;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.svc.PwmService;
-import password.pwm.svc.wordlist.WordlistManager;
+import password.pwm.svc.wordlist.WordlistService;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
@@ -302,7 +302,7 @@ public class CrService implements PwmService
 
         {
             // check responses against wordlist
-            final WordlistManager wordlistManager = pwmApplication.getWordlistManager();
+            final WordlistService wordlistManager = pwmApplication.getWordlistManager();
             if ( wordlistManager.status() == PwmService.STATUS.OPEN )
             {
                 for ( final Map.Entry<Challenge, String> entry : responseMap.entrySet() )

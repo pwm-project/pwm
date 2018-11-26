@@ -127,6 +127,7 @@ public final class WorkQueueProcessor<W extends Serializable>
                     new ArrayBlockingQueue<>( settings.getPreThreads() ),
                     threadFactory
             );
+            executorService.allowCoreThreadTimeOut( true );
         }
     }
 

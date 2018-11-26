@@ -55,8 +55,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.TimerTask;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutorService;
 
 public class StatisticsManager implements PwmService
 {
@@ -82,7 +81,7 @@ public class StatisticsManager implements PwmService
     private DailyKey currentDailyKey = new DailyKey( new Date() );
     private DailyKey initialDailyKey = new DailyKey( new Date() );
 
-    private ScheduledExecutorService executorService;
+    private ExecutorService executorService;
 
     private final StatisticsBundle statsCurrent = new StatisticsBundle();
     private StatisticsBundle statsDaily = new StatisticsBundle();
@@ -331,10 +330,10 @@ public class StatisticsManager implements PwmService
 
         {
             // setup a timer to roll over at 0 Zula and one to write current stats every 10 seconds
-            executorService = JavaHelper.makeSingleThreadExecutorService( pwmApplication, this.getClass() );
-            executorService.scheduleAtFixedRate( new FlushTask(), 10 * 1000, DB_WRITE_FREQUENCY.asMillis(), TimeUnit.MICROSECONDS );
+            executorService = JavaHelper.makeBackgroundExecutor( pwmApplication, this.getClass() );
+            pwmApplication.scheduleFixedRateJob( new FlushTask(), executorService, DB_WRITE_FREQUENCY, DB_WRITE_FREQUENCY );
             final TimeDuration delayTillNextZulu = TimeDuration.fromCurrent( JavaHelper.nextZuluZeroTime() );
-            executorService.scheduleAtFixedRate( new NightlyTask(), delayTillNextZulu.asMillis(), TimeUnit.DAYS.toMillis( 1 ), TimeUnit.MILLISECONDS );
+            pwmApplication.scheduleFixedRateJob( new NightlyTask(), executorService, delayTillNextZulu, TimeDuration.DAY );
         }
 
         status = STATUS.OPEN;

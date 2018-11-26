@@ -38,15 +38,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutorService;
 
 class ClusterMachine
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ClusterMachine.class );
 
     private final PwmApplication pwmApplication;
-    private final ScheduledExecutorService executorService;
+    private final ExecutorService executorService;
     private final ClusterDataServiceProvider clusterDataServiceProvider;
 
     private ErrorInformation lastError;
@@ -66,16 +65,9 @@ class ClusterMachine
         this.clusterDataServiceProvider = clusterDataServiceProvider;
         this.settings = clusterSettings;
 
-        this.executorService = JavaHelper.makeSingleThreadExecutorService( pwmApplication, ClusterMachine.class );
+        this.executorService = JavaHelper.makeBackgroundExecutor( pwmApplication, ClusterMachine.class );
 
-        final long intervalSeconds = settings.getHeartbeatInterval().as( TimeDuration.Unit.SECONDS );
-
-        this.executorService.scheduleAtFixedRate(
-                new HeartbeatProcess(),
-                intervalSeconds,
-                intervalSeconds,
-                TimeUnit.SECONDS
-        );
+        pwmApplication.scheduleFixedRateJob( new HeartbeatProcess(), executorService, settings.getHeartbeatInterval(), settings.getHeartbeatInterval() );
     }
 
     public void close( )

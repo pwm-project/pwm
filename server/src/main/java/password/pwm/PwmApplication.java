@@ -58,9 +58,9 @@ import password.pwm.svc.shorturl.UrlShortenerService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.svc.token.TokenService;
-import password.pwm.svc.wordlist.SeedlistManager;
+import password.pwm.svc.wordlist.SeedlistService;
 import password.pwm.svc.wordlist.SharedHistoryManager;
-import password.pwm.svc.wordlist.WordlistManager;
+import password.pwm.svc.wordlist.WordlistService;
 import password.pwm.util.MBeanUtility;
 import password.pwm.util.PasswordData;
 import password.pwm.util.cli.commands.ExportHttpsTomcatConfigCommand;
@@ -98,6 +98,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -160,6 +164,8 @@ public class PwmApplication
     private final PwmEnvironment pwmEnvironment;
 
     private final PwmServiceManager pwmServiceManager = new PwmServiceManager( this );
+
+    private ScheduledExecutorService applicationExecutorService;
 
     public PwmApplication( final PwmEnvironment pwmEnvironment )
             throws PwmUnrecoverableException
@@ -277,6 +283,8 @@ public class PwmApplication
         LOGGER.debug( "application environment flags: " + JsonUtil.serializeCollection( pwmEnvironment.getFlags() ) );
         LOGGER.debug( "application environment parameters: " + JsonUtil.serializeMap( pwmEnvironment.getParameters() ) );
 
+        applicationExecutorService = JavaHelper.makeSingleThreadExecutorService( this, this.getClass() );
+
         pwmServiceManager.initAllServices();
 
         final boolean skipPostInit = pwmEnvironment.isInternalRuntimeInstance()
@@ -289,10 +297,7 @@ public class PwmApplication
             StatisticsManager.incrementStat( this, Statistic.PWM_STARTUPS );
             LOGGER.debug( "buildTime=" + PwmConstants.BUILD_TIME + ", javaLocale=" + Locale.getDefault() + ", DefaultLocale=" + PwmConstants.DEFAULT_LOCALE );
 
-            final Thread postInitThread = new Thread( ( ) -> postInitTasks() );
-            postInitThread.setDaemon( true );
-            postInitThread.setName( JavaHelper.makeThreadName( this, PwmApplication.class ) );
-            postInitThread.start();
+            applicationExecutorService.execute( () -> postInitTasks() );
         }
     }
 
@@ -551,14 +556,14 @@ public class PwmApplication
         return Collections.unmodifiableList( pwmServices );
     }
 
-    public WordlistManager getWordlistManager( )
+    public WordlistService getWordlistManager( )
     {
-        return ( WordlistManager ) pwmServiceManager.getService( WordlistManager.class );
+        return ( WordlistService ) pwmServiceManager.getService( WordlistService.class );
     }
 
-    public SeedlistManager getSeedlistManager( )
+    public SeedlistService getSeedlistManager( )
     {
-        return ( SeedlistManager ) pwmServiceManager.getService( SeedlistManager.class );
+        return ( SeedlistService ) pwmServiceManager.getService( SeedlistService.class );
     }
 
     public ReportService getReportService( )
@@ -772,6 +777,8 @@ public class PwmApplication
 
     public void shutdown( )
     {
+        applicationExecutorService.shutdown();
+
         LOGGER.warn( "shutting down" );
         {
             // send system audit event
@@ -1007,6 +1014,64 @@ public class PwmApplication
     public AtomicInteger getInprogressRequests( )
     {
         return inprogressRequests;
+    }
+
+    public ScheduledFuture scheduleFutureJob(
+            final Runnable runnable,
+            final Executor executor,
+            final TimeDuration delay
+    )
+    {
+        return applicationExecutorService.schedule(  new WrappedRunner( runnable, executor ), delay.asMillis(), TimeUnit.MILLISECONDS );
+    }
+
+    public void scheduleFixedRateJob(
+            final Runnable runnable,
+            final Executor executor,
+            final TimeDuration initialDelay,
+            final TimeDuration frequency
+    )
+    {
+        if ( initialDelay != null )
+        {
+            applicationExecutorService.schedule( new WrappedRunner( runnable, executor ), initialDelay.asMillis(), TimeUnit.MILLISECONDS );
+        }
+
+        final Runnable jobWithNextScheduler = () ->
+        {
+            new WrappedRunner( runnable, executor ).run();
+            if ( !applicationExecutorService.isShutdown() )
+            {
+                scheduleFixedRateJob( runnable, executor, null, frequency );
+            }
+        };
+
+        applicationExecutorService.schedule(  jobWithNextScheduler, frequency.asMillis(), TimeUnit.MILLISECONDS );
+    }
+
+    private static class WrappedRunner implements Runnable
+    {
+        private final Runnable runnable;
+        private final Executor executor;
+
+        WrappedRunner( final Runnable runnable, final Executor executor )
+        {
+            this.runnable = runnable;
+            this.executor = executor;
+        }
+
+        @Override
+        public void run()
+        {
+            try
+            {
+                executor.execute( runnable );
+            }
+            catch ( Throwable t )
+            {
+                LOGGER.error( "unexpected error running scheduled job: " + t.getMessage(), t );
+            }
+        }
     }
 }
 

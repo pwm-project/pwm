@@ -181,7 +181,7 @@ public class UserCacheService implements PwmService
         return new ServiceInfoBean( Collections.singletonList( DataStorageMethod.LOCALDB ) );
     }
 
-    public int size( )
+    public long size( )
     {
         return cacheStore.size();
     }
@@ -275,7 +275,7 @@ public class UserCacheService implements PwmService
             localDB.truncate( DB );
         }
 
-        private int size( )
+        private long size( )
         {
             try
             {

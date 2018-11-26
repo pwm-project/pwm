@@ -470,7 +470,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
         return true;
     }
 
-    public int size( final LocalDB.DB db )
+    public long size( final LocalDB.DB db )
             throws LocalDBException
     {
         preCheck( false );

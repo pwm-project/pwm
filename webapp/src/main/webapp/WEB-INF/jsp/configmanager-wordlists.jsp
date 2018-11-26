@@ -75,7 +75,7 @@
                     </button>
                 </td>
                 <td class="buttoncell">
-                    <button class="menubutton" id="MenuItem_ClearSeedlist" style="visibility: hidden;">
+                    <button class="menubutton" id="MenuItem_ClearSeedlist" disabled="disabled">
                         <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-trash"></span></pwm:if>
                         Clear Seed List
                     </button>

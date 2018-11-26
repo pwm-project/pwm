@@ -22,50 +22,37 @@
 
 package password.pwm.svc.wordlist;
 
-import password.pwm.error.ErrorInformation;
+import password.pwm.PwmApplication;
+import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.svc.PwmService;
-
-import java.io.IOException;
-import java.io.InputStream;
+import password.pwm.util.logging.PwmLogger;
 
 
-public interface Wordlist extends PwmService
+/**
+ * @author Jason D. Rivard
+ */
+public class WordlistService extends AbstractWordlist implements Wordlist
 {
+    private static final PwmLogger LOGGER = PwmLogger.forClass( WordlistService.class );
 
-    long size( );
-
-    WordlistStatus readWordlistStatus( );
-
-    void populate( InputStream inputStream )
-            throws IOException, PwmUnrecoverableException;
-
-    void clear( )
-            throws IOException, PwmUnrecoverableException;
-
-    WordlistConfiguration getConfiguration( );
-
-    ErrorInformation getAutoImportError( );
-
-    AbstractWordlist.Activity getActivity();
-
-    enum Activity
+    public WordlistService( )
     {
-        Idle( "Idle" ),
-        ReadingWordlistFile( "Reading Wordlist File" ),
-        Clearing( "Clearing Stored Wordlist" ),
-        Importing( "Importing Wordlist" ),;
+    }
 
-        private final String label;
+    public void init( final PwmApplication pwmApplication ) throws PwmException
+    {
+        super.init( pwmApplication, WordlistType.WORDLIST );
+    }
 
-        Activity( final String label )
-        {
-            this.label = label;
-        }
+    @Override
+    PwmLogger getLogger()
+    {
+        return LOGGER;
+    }
 
-        public String getLabel()
-        {
-            return label;
-        }
+    @Override
+    public boolean containsWord( final String word ) throws PwmUnrecoverableException
+    {
+        return super.containsWord( word );
     }
 }

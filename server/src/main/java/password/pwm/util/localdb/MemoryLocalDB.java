@@ -158,7 +158,7 @@ public class MemoryLocalDB implements LocalDBProvider
         return null != map.remove( key );
     }
 
-    public int size( final LocalDB.DB db )
+    public long size( final LocalDB.DB db )
             throws LocalDBException
     {
         opertationPreCheck();
