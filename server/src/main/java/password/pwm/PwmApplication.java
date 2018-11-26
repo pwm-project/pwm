@@ -98,7 +98,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -1018,7 +1018,7 @@ public class PwmApplication
 
     public ScheduledFuture scheduleFutureJob(
             final Runnable runnable,
-            final Executor executor,
+            final ExecutorService executor,
             final TimeDuration delay
     )
     {
@@ -1027,7 +1027,7 @@ public class PwmApplication
 
     public void scheduleFixedRateJob(
             final Runnable runnable,
-            final Executor executor,
+            final ExecutorService executor,
             final TimeDuration initialDelay,
             final TimeDuration frequency
     )
@@ -1052,9 +1052,9 @@ public class PwmApplication
     private static class WrappedRunner implements Runnable
     {
         private final Runnable runnable;
-        private final Executor executor;
+        private final ExecutorService executor;
 
-        WrappedRunner( final Runnable runnable, final Executor executor )
+        WrappedRunner( final Runnable runnable, final ExecutorService executor )
         {
             this.runnable = runnable;
             this.executor = executor;
@@ -1065,7 +1065,14 @@ public class PwmApplication
         {
             try
             {
-                executor.execute( runnable );
+                if ( !executor.isShutdown() )
+                {
+                    executor.execute( runnable );
+                }
+                else
+                {
+                    LOGGER.trace( "skipping scheduled job " + runnable + " on shutdown executor + " + executor );
+                }
             }
             catch ( Throwable t )
             {

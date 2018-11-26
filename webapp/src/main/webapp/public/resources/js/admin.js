@@ -884,7 +884,7 @@ PWM_ADMIN.initPwNotifyPage = function() {
 PWM_ADMIN.loadPwNotifyStatus = function () {
     var processData = function (data) {
         var statusData = data['data']['statusData'];
-        var htmlData = '<tr><td colspan="2" class="title">Password Expiration Notification Status</td></tr>';
+        var htmlData = '<tr><td colspan="2" class="title">Password Expiration Notification Job Status</td></tr>';
         for (var item in statusData) {
             (function(key){
                 var item = statusData[key];

@@ -26,8 +26,11 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import lombok.Builder;
 import lombok.Getter;
 import password.pwm.config.value.data.FormConfiguration;
+import password.pwm.config.value.data.UserPermission;
+import password.pwm.util.java.StringUtil;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -62,4 +65,24 @@ public class SearchConfiguration implements Serializable
         }
     }
 
+    public static SearchConfiguration fromPermission( final UserPermission permission )
+    {
+        final SearchConfiguration.SearchConfigurationBuilder builder = SearchConfiguration.builder();
+        if ( !StringUtil.isEmpty( permission.getLdapQuery() ) )
+        {
+            builder.filter( permission.getLdapQuery() );
+        }
+
+        if ( !StringUtil.isEmpty( permission.getLdapBase() ) )
+        {
+            builder.contexts( Collections.singletonList( permission.getLdapBase() ) );
+        }
+
+        if ( !StringUtil.isEmpty( permission.getLdapProfileID() ) )
+        {
+            builder.ldapProfile( permission.getLdapProfileID() );
+        }
+
+        return builder.build();
+    }
 }

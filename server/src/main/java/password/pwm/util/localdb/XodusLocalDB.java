@@ -614,7 +614,7 @@ public class XodusLocalDB implements LocalDBProvider
             final ResourceBundle resourceBundle = ResourceBundle.getBundle( XodusLocalDB.class.getName() );
             final String contents = resourceBundle.getString( "ReadmeContents" );
             final byte[] byteContents = contents.getBytes( PwmConstants.DEFAULT_CHARSET );
-            Files.write( xodusPath.toPath(), byteContents, StandardOpenOption.TRUNCATE_EXISTING );
+            Files.write( xodusPath.toPath(), byteContents, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING );
         }
         catch ( IOException e )
         {

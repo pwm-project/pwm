@@ -687,4 +687,9 @@ public class LocaleHelper
             return name1.compareToIgnoreCase( name2 );
         };
     }
+
+    public static String toLongDebug( final Locale locale, final Locale perspectiveLocale )
+    {
+        return locale.getDisplayName( perspectiveLocale ) + " (" + LocaleHelper.getBrowserLocaleString( locale ) + ")";
+    }
 }

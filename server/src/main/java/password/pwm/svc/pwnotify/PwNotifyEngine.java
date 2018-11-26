@@ -23,8 +23,6 @@
 package password.pwm.svc.pwnotify;
 
 import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.exception.ChaiOperationException;
-import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmApplication;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionLabel;
@@ -35,12 +33,12 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.stats.EventRateMeter;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.util.LocaleHelper;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
@@ -58,6 +56,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class PwNotifyEngine
 {
@@ -78,8 +77,8 @@ public class PwNotifyEngine
 
     private EventRateMeter eventRateMeter = new EventRateMeter( TimeDuration.of( 5, TimeDuration.Unit.MINUTES ) );
 
-    private int examinedCount = 0;
-    private int noticeCount = 0;
+    private final AtomicInteger examinedCount = new AtomicInteger( 0 );
+    private final AtomicInteger noticeCount = new AtomicInteger( 0 );
     private Instant startTime;
 
     private volatile boolean running;
@@ -124,11 +123,11 @@ public class PwNotifyEngine
     }
 
     void executeJob( )
-            throws ChaiUnavailableException, ChaiOperationException, PwmOperationalException, PwmUnrecoverableException
+            throws PwmOperationalException, PwmUnrecoverableException
     {
         startTime = Instant.now();
-        examinedCount = 0;
-        noticeCount = 0;
+        examinedCount.set( 0 );
+        noticeCount.set( 0 );
         try
         {
             internalLog.delete( 0, internalLog.length() );
@@ -149,10 +148,10 @@ public class PwNotifyEngine
             }
 
             log( "starting job, beginning ldap search" );
-            final Iterator<UserIdentity> workQueue = LdapOperationsHelper.readAllUsersFromLdap(
+            final Iterator<UserIdentity> workQueue = LdapOperationsHelper.readUsersFromLdapForPermissions(
                     pwmApplication,
-                    null,
-                    null,
+                    SESSION_LABEL,
+                    permissionList,
                     settings.getMaxLdapSearchSize()
             );
 
@@ -167,7 +166,6 @@ public class PwNotifyEngine
                 }
 
                 checkIfRunningOnMaster(  );
-                examinedCount++;
 
                 final List<UserIdentity> batch = new ArrayList<>(  );
                 final int batchSize = settings.getBatchCount();
@@ -178,8 +176,7 @@ public class PwNotifyEngine
                 }
 
                 final Instant startBatch = Instant.now();
-                examinedCount += batch.size();
-                noticeCount += processBatch( batch );
+                processBatch( batch );
                 eventRateMeter.markEvents( batchSize );
                 final TimeDuration batchTime = TimeDuration.fromCurrent( startBatch );
                 final TimeDuration pauseTime = TimeDuration.of(
@@ -201,23 +198,19 @@ public class PwNotifyEngine
 
     private void periodicDebugOutput()
     {
-        log( "job in progress, " + examinedCount + " users evaluated in " + TimeDuration.fromCurrent( startTime ).asCompactString()
+        log( "job in progress, " + examinedCount + " users evaluated in "
+                + TimeDuration.fromCurrent( startTime ).asCompactString()
                 + ", sent " + noticeCount + " notices."
         );
     }
 
-    private int processBatch( final Collection<UserIdentity> batch )
+    private void processBatch( final Collection<UserIdentity> batch )
             throws PwmUnrecoverableException
     {
-        int count = 0;
         for ( final UserIdentity userIdentity : batch )
         {
-            if ( processUserIdentity( userIdentity ) )
-            {
-                count++;
-            }
+            processUserIdentity( userIdentity );
         }
-        return count;
     }
 
     private boolean processUserIdentity(
@@ -225,22 +218,26 @@ public class PwNotifyEngine
     )
             throws PwmUnrecoverableException
     {
-        if ( !LdapPermissionTester.testUserPermissions( pwmApplication, SessionLabel.SYSTEM_LABEL, userIdentity, permissionList ) )
-        {
-            return false;
-        }
-
+        examinedCount.incrementAndGet();
         final ChaiUser theUser = pwmApplication.getProxiedChaiUser( userIdentity );
         final Instant passwordExpirationTime = LdapOperationsHelper.readPasswordExpirationTime( theUser );
 
-        if ( passwordExpirationTime == null || passwordExpirationTime.isBefore( Instant.now() ) )
+        if ( passwordExpirationTime == null )
         {
+            LOGGER.trace( SESSION_LABEL, "skipping user '" + userIdentity.toDisplayString() + "', has no password expiration" );
+            return false;
+        }
+
+        if ( passwordExpirationTime.isBefore( Instant.now() ) )
+        {
+            LOGGER.trace( SESSION_LABEL, "skipping user '" + userIdentity.toDisplayString() + "', password expiration is in the past" );
             return false;
         }
 
         final int nextDayInterval = figureNextDayInterval( passwordExpirationTime );
         if ( nextDayInterval < 1 )
         {
+            LOGGER.trace( SESSION_LABEL, "skipping user '" + userIdentity.toDisplayString() + "', password expiration time is not within an interval" );
             return false;
         }
 
@@ -315,19 +312,19 @@ public class PwNotifyEngine
     private void sendNoticeEmail( final UserIdentity userIdentity )
             throws PwmUnrecoverableException
     {
-        final Locale userLocale = LdapOperationsHelper.readStoredLdapLocale( pwmApplication, userIdentity );
-        final EmailItemBean emailItemBean = pwmApplication.getConfig().readSettingAsEmail(
-                PwmSetting.EMAIL_PW_EXPIRATION_NOTICE,
-                userLocale
-        );
-        final MacroMachine macroMachine = MacroMachine.forUser( pwmApplication, userLocale, SESSION_LABEL, userIdentity );
-        final UserInfo userInfoBean = UserInfoFactory.newUserInfoUsingProxy(
+        final UserInfo userInfoBean = UserInfoFactory.newUserInfoUsingProxyForOfflineUser(
                 pwmApplication,
                 SESSION_LABEL,
-                userIdentity,
-                userLocale
+                userIdentity
+        );
+        final Locale ldapLocale = LocaleHelper.parseLocaleString( userInfoBean.getLanguage() );
+        final MacroMachine macroMachine = MacroMachine.forUser( pwmApplication, ldapLocale, SESSION_LABEL, userIdentity );
+        final EmailItemBean emailItemBean = pwmApplication.getConfig().readSettingAsEmail(
+                PwmSetting.EMAIL_PW_EXPIRATION_NOTICE,
+                ldapLocale
         );
 
+        noticeCount.incrementAndGet();
         StatisticsManager.incrementStat( pwmApplication, Statistic.PWNOTIFY_EMAILS_SENT );
         pwmApplication.getEmailQueue().submitEmail( emailItemBean, userInfoBean, macroMachine );
     }

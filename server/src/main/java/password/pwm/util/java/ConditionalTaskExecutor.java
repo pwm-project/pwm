@@ -24,6 +24,8 @@ package password.pwm.util.java;
 
 import password.pwm.util.logging.PwmLogger;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.function.Predicate;
 
 /**
@@ -70,12 +72,13 @@ public class ConditionalTaskExecutor
     public static class TimeDurationPredicate implements Predicate
     {
         private final TimeDuration timeDuration;
-        private long nextExecuteTimestamp;
+        private volatile Instant nextExecuteTimestamp;
 
         public TimeDurationPredicate( final TimeDuration timeDuration )
         {
             this.timeDuration = timeDuration;
-            nextExecuteTimestamp = System.currentTimeMillis() + timeDuration.asMillis();
+            setNextTimeFromNow( timeDuration );
+
         }
 
         public TimeDurationPredicate( final long value, final TimeDuration.Unit unit )
@@ -83,18 +86,18 @@ public class ConditionalTaskExecutor
             this( TimeDuration.of( value, unit ) );
         }
 
-        public TimeDurationPredicate setNextTimeFromNow( final long value, final TimeDuration.Unit unit )
+        public TimeDurationPredicate setNextTimeFromNow( final TimeDuration duration )
         {
-            nextExecuteTimestamp = System.currentTimeMillis() + TimeDuration.of( value, unit ).asMillis();
+            nextExecuteTimestamp = Instant.now().plus( duration.asMillis(), ChronoUnit.MILLIS );
             return this;
         }
 
         @Override
         public boolean test( final Object o )
         {
-            if ( nextExecuteTimestamp <= System.currentTimeMillis() )
+            if ( Instant.now().isAfter( nextExecuteTimestamp ) )
             {
-                nextExecuteTimestamp = System.currentTimeMillis() + timeDuration.asMillis();
+                setNextTimeFromNow( timeDuration );
                 return true;
             }
             return false;

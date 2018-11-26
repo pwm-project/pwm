@@ -113,6 +113,8 @@ public class CacheService implements PwmService
     public ServiceInfoBean serviceInfo( )
     {
         final Map<String, String> debugInfo = new TreeMap<>( );
+        debugInfo.put( "itemCount", String.valueOf( memoryCacheStore.itemCount() ) );
+        debugInfo.put( "byteCount", String.valueOf( memoryCacheStore.byteCount() ) );
         debugInfo.putAll( JsonUtil.deserializeStringMap( JsonUtil.serialize( memoryCacheStore.getCacheStoreInfo() ) ) );
         debugInfo.putAll( JsonUtil.deserializeStringMap( JsonUtil.serializeMap( memoryCacheStore.storedClassHistogram( "histogram." ) ) ) );
         return new ServiceInfoBean( Collections.emptyList(), debugInfo );

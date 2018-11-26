@@ -52,6 +52,7 @@ import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.PwmService;
+import password.pwm.util.LocaleHelper;
 import password.pwm.util.PasswordData;
 import password.pwm.util.PwmPasswordRuleValidator;
 import password.pwm.util.form.FormUtility;
@@ -859,5 +860,11 @@ public class UserInfoReader implements UserInfo
                 this.getPasswordLastModifiedTime(),
                 this.getPasswordStatus()
         );
+    }
+
+    @Override
+    public String getLanguage() throws PwmUnrecoverableException
+    {
+        return locale == null ? null : LocaleHelper.getBrowserLocaleString( locale );
     }
 }
