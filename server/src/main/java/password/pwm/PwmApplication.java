@@ -35,6 +35,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMonitor;
+import password.pwm.http.servlet.peoplesearch.PeopleSearchService;
 import password.pwm.http.servlet.resource.ResourceServletService;
 import password.pwm.http.state.SessionStateService;
 import password.pwm.ldap.LdapConnectionService;
@@ -629,6 +630,11 @@ public class PwmApplication
     public ResourceServletService getResourceServletService( )
     {
         return ( ResourceServletService ) pwmServiceManager.getService( ResourceServletService.class );
+    }
+
+    public PeopleSearchService getPeopleSearchService( )
+    {
+        return ( PeopleSearchService ) pwmServiceManager.getService( PeopleSearchService.class );
     }
 
     public Configuration getConfig( )

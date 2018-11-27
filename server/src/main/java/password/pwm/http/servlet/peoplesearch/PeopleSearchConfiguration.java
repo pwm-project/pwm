@@ -127,6 +127,16 @@ public class PeopleSearchConfiguration
         return Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.PEOPLESEARCH_EXPORT_CSV_MAX_DEPTH ) );
     }
 
+    boolean isEnableMailtoLinks( )
+    {
+        return pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE_TEAM_MAILTO );
+    }
+
+    int getMailtoLinksMaxDepth( )
+    {
+        return Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.PEOPLESEARCH_EXPORT_CSV_MAX_DEPTH ) );
+    }
+
     TimeDuration getExportCsvMaxDuration( )
     {
         final int seconds = Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.PEOPLESEARCH_EXPORT_CSV_MAX_SECONDS ) );
@@ -163,6 +173,11 @@ public class PeopleSearchConfiguration
     int getResultLimit()
     {
         return ( int ) pwmRequest.getConfig().readSettingAsLong( PwmSetting.PEOPLE_SEARCH_RESULT_LIMIT );
+    }
+
+    boolean isEnablePrinting()
+    {
+        return pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE_PRINTING );
     }
 
     public static PeopleSearchConfiguration forRequest(

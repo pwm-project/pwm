@@ -76,11 +76,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 class PeopleSearchDataReader
@@ -929,6 +926,34 @@ class PeopleSearchDataReader
         return storeDataInCache( CacheIdentifier.attributeRead, userIdentity.toDelimitedKey() + "|" + attribute, String.class, cacheLoader );
     }
 
+    public List<String> getMailToLink(
+            final UserIdentity userIdentity,
+            final int depth
+    )
+            throws PwmUnrecoverableException
+    {
+        final List<String> returnValues = new ArrayList<>(  );
+        final String mailtoAttr = userIdentity.getLdapProfile( pwmRequest.getConfig() ).readSettingAsString( PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE );
+        final String value = readUserAttribute( userIdentity, mailtoAttr );
+        if ( !StringUtil.isEmpty( value ) )
+        {
+            returnValues.add( value );
+        }
+
+        if ( depth > 0 )
+        {
+            final OrgChartDataBean orgChartDataBean = this.makeOrgChartData( userIdentity, false );
+            for ( final OrgChartReferenceBean orgChartReferenceBean : orgChartDataBean.getChildren() )
+            {
+                final String userKey = orgChartReferenceBean.getUserKey();
+                final UserIdentity childIdentity = PeopleSearchServlet.readUserIdentityFromKey( pwmRequest, userKey );
+                returnValues.addAll( getMailToLink( childIdentity, depth - 1 ) );
+            }
+        }
+
+        return Collections.unmodifiableList( returnValues );
+    }
+
     void writeUserOrgChartDetailToCsv(
             final CSVPrinter csvPrinter,
             final UserIdentity userIdentity,
@@ -938,17 +963,7 @@ class PeopleSearchDataReader
         final Instant startTime = Instant.now();
         LOGGER.trace( pwmRequest, "beginning csv export starting with user " + userIdentity.toDisplayString() + " and depth of " + depth );
 
-
-        final int threadCount = peopleSearchConfiguration.getExportCsvMaxThreads();
-        final ThreadFactory threadFactory = JavaHelper.makePwmThreadFactory( JavaHelper.makeThreadName( pwmRequest.getPwmApplication(), OrgChartCsvRowOutputJob.class ), true );
-        final ThreadPoolExecutor executor = new ThreadPoolExecutor(
-                threadCount,
-                threadCount,
-                1,
-                TimeUnit.MINUTES,
-                new ArrayBlockingQueue<>( 5000 ),
-                threadFactory
-        );
+        final ThreadPoolExecutor executor = pwmRequest.getPwmApplication().getPeopleSearchService().getJobExecutor();
 
         final AtomicInteger rowCounter = new AtomicInteger( 0 );
         final OrgChartExportState orgChartExportState = new OrgChartExportState(
@@ -963,7 +978,6 @@ class PeopleSearchDataReader
 
         final TimeDuration maxDuration = peopleSearchConfiguration.getExportCsvMaxDuration();
         JavaHelper.pause( maxDuration.asMillis(), 1000, o -> ( executor.getQueue().size() + executor.getActiveCount() <= 0 ) );
-        executor.shutdown();
 
         final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
         LOGGER.trace( pwmRequest, "completed csv export of " + rowCounter.get() + " records in " + timeDuration.asCompactString() );
