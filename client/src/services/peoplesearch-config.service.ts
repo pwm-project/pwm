@@ -81,9 +81,7 @@ export default class PeopleSearchConfigService
     }
 
     personDetailsConfig(): IPromise<IPersonDetailsConfig> {
-        const deffered: IDeferred<IPersonDetailsConfig> = this.$q.defer();
-
-        this.$q.all([
+        return this.$q.all([
             this.getValue(PHOTO_ENABLED),
             this.getValue(ORGCHART_ENABLED),
             this.getValue(EXPORT_ENABLED),
@@ -91,17 +89,15 @@ export default class PeopleSearchConfigService
             this.getValue(MAILTO_ENABLED),
             this.getValue(MAILTO_MAX_DEPTH),
         ]).then((results: any[]) => {
-            deffered.resolve({
+            return {
                 photosEnabled: results[0],
                 orgChartEnabled: results[1],
                 exportEnabled: results[2],
                 maxExportDepth: results[3],
                 emailTeamEnabled: results[4],
                 maxEmailDepth: results[5]
-            })
+            }
         });
-
-        return deffered.promise;
     }
 
     advancedSearchConfig(): IPromise<IAdvancedSearchConfig> {
