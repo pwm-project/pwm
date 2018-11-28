@@ -75,6 +75,7 @@ import password.pwm.svc.intruder.IntruderManager;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.svc.token.TokenService;
+import password.pwm.svc.token.TokenUtil;
 import password.pwm.util.PasswordData;
 import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.java.JavaHelper;
@@ -107,6 +108,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Admin interaction servlet for reset user passwords.
@@ -737,7 +739,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
     private ProcessStatus restSendVerificationTokenRequest(
             final PwmRequest pwmRequest
     )
-            throws IOException, PwmUnrecoverableException, ServletException, ChaiUnavailableException
+            throws IOException, PwmUnrecoverableException, ChaiUnavailableException
     {
         final HelpdeskProfile helpdeskProfile = getHelpdeskProfile( pwmRequest );
 
@@ -754,58 +756,26 @@ public class HelpdeskServlet extends ControlledPwmServlet
                 getChaiUser( pwmRequest, helpdeskProfile, userIdentity ).getChaiProvider()
         );
 
+        final String requestedTokenID = bodyParams.get( "id" );
+
         final TokenDestinationItem tokenDestinationItem;
         {
-            final MessageSendMethod effectiveSendMethod;
+            final List<TokenDestinationItem> items = TokenUtil.figureAvailableTokenDestinations(
+                    pwmRequest.getPwmApplication(),
+                    pwmRequest.getSessionLabel(),
+                    pwmRequest.getLocale(),
+                    userInfo,
+                    MessageSendMethod.CHOICE_SMS_EMAIL  );
+
+            final Optional<TokenDestinationItem> selectedTokenDest = TokenDestinationItem.tokenDestinationItemForID( items, requestedTokenID );
+
+            if ( selectedTokenDest.isPresent() )
             {
-                final MessageSendMethod configuredSendMethod = helpdeskProfile.readSettingAsEnum( PwmSetting.HELPDESK_TOKEN_SEND_METHOD, MessageSendMethod.class );
-                if ( configuredSendMethod == MessageSendMethod.CHOICE_SMS_EMAIL )
-                {
-                    final String methodParamName = "method";
-                    final String methodParam = bodyParams.getOrDefault( methodParamName, "" );
-                    switch ( methodParam )
-                    {
-                        case "sms":
-                            effectiveSendMethod = MessageSendMethod.SMSONLY;
-                            break;
-
-                        case "email":
-                            effectiveSendMethod = MessageSendMethod.EMAILONLY;
-                            break;
-
-                        default:
-                            throw new UnsupportedOperationException( "unknown tokenSendMethod: " + methodParam );
-                    }
-                }
-                else
-                {
-                    effectiveSendMethod = configuredSendMethod;
-                }
+                tokenDestinationItem = selectedTokenDest.get();
             }
-
-            switch ( effectiveSendMethod )
+            else
             {
-                case SMSONLY:
-                    tokenDestinationItem = TokenDestinationItem.builder()
-                            .id( "0" )
-                            .display( userInfo.getUserSmsNumber() )
-                            .value( userInfo.getUserSmsNumber() )
-                            .type( TokenDestinationItem.Type.sms )
-                            .build();
-                    break;
-
-                case EMAILONLY:
-                    tokenDestinationItem = TokenDestinationItem.builder()
-                            .id( "0" )
-                            .display( userInfo.getUserEmailAddress() )
-                            .value( userInfo.getUserEmailAddress() )
-                            .type( TokenDestinationItem.Type.email )
-                            .build();
-                    break;
-
-                default:
-                    throw new UnsupportedOperationException( "unknown tokenSendMethod: " + effectiveSendMethod );
-
+                throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, "unknown token id '" + requestedTokenID + "' in request" );
             }
         }
 
