@@ -3149,6 +3149,16 @@
             <value>false</value>
         </default>
     </setting>
+    <setting hidden="false" key="peopleSearch.enableTeamMailto" level="1">
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="peopleSearch.enablePrinting" level="1">
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
     <setting hidden="false" key="peopleSearch.queryMatch" level="1" required="true">
         <ldapPermission actor="self_other" access="read"/>
         <default syntaxVersion="2">

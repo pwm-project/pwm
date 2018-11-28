@@ -1,0 +1,12 @@
+.ias-styles-root {
+    #teamMembersContainer {
+        display: flex;
+        flex-direction: column;
+        height: 150px;
+
+        > textarea {
+            align-self: stretch;
+            flex-grow: 1;
+        }
+    }
+}

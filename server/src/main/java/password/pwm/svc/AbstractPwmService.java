@@ -54,6 +54,7 @@ public abstract class AbstractPwmService
     {
         return startupError;
     }
+
     public final List<HealthRecord> healthCheck( )
     {
         if ( status != PwmService.STATUS.OPEN )

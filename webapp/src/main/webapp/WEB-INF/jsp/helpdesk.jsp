@@ -30,7 +30,6 @@
 <head>
     <%@ include file="/WEB-INF/jsp/fragment/header-common.jsp" %>
     <link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/webjars/pwm-client/vendor/ux-ias/ias-icons.css' addContext="true"/>"/>
-    <link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/webjars/pwm-client/vendor/ux-ias/ux-ias.css' addContext="true"/>"/>
 </head>
 <body class="nihilo">
 <div id="wrapper" class="helpdesk-wrapper">
@@ -38,7 +37,7 @@
         <jsp:param name="pwm.PageName" value="Title_Helpdesk"/>
     </jsp:include>
     <div id="centerbody" class="wide tall">
-        <ui-view id="helpdesk-view"><div class="WaitDialogBlank"></div></ui-view>
+        <ui-view id="helpdesk-view" class="ias-styles-root"><div class="WaitDialogBlank"></div></ui-view>
 
         <noscript>
             <span><pwm:display key="Display_JavascriptRequired"/></span>
