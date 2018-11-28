@@ -97,6 +97,8 @@ public enum PwmSetting
             "pwm.appProperty.overrides", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.GENERAL ),
 
     // clustering
+    CLUSTER_ENABLED(
+            "cluster.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.CLUSTERING ),
     CLUSTER_STORAGE_MODE(
             "cluster.storageMode", PwmSettingSyntax.SELECT, PwmSettingCategory.CLUSTERING ),
     SECURITY_LOGIN_SESSION_MODE(
@@ -280,11 +282,12 @@ public enum PwmSetting
             "peopleSearch.orgChart.workforceIdAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
     LDAP_ATTRIBUTE_LANGUAGE(
             "ldap.user.language.attribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
+    LDAP_ATTRIBUTE_PWNOTIFY(
+            "ldap.user.pwNotify.attribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
     LDAP_AUTO_SET_LANGUAGE_VALUE(
             "ldap.user.language.autoSet", PwmSettingSyntax.SELECT, PwmSettingCategory.LDAP_ATTRIBUTES ),
     AUTO_ADD_OBJECT_CLASSES(
             "ldap.addObjectClasses", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.LDAP_ATTRIBUTES ),
-
 
     // ldap global settings
     LDAP_PROFILE_LIST(
@@ -1110,6 +1113,9 @@ public enum PwmSetting
     // pw expiry notice
     PW_EXPY_NOTIFY_ENABLE(
             "pwNotify.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PW_EXP_NOTIFY ),
+    PW_EXPY_NOTIFY_STORAGE_MODE(
+            "pwNotify.storageMode", PwmSettingSyntax.SELECT, PwmSettingCategory.PW_EXP_NOTIFY ),
+
     PW_EXPY_NOTIFY_PERMISSION(
             "pwNotify.queryString", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.PW_EXP_NOTIFY ),
     PW_EXPY_NOTIFY_INTERVAL(

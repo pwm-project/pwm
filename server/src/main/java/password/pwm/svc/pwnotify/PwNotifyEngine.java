@@ -385,5 +385,4 @@ public class PwNotifyEngine
         threadPoolExecutor.allowCoreThreadTimeOut( true );
         return threadPoolExecutor;
     }
-
 }

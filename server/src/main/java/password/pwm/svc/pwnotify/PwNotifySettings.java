@@ -46,8 +46,6 @@ class PwNotifySettings implements Serializable
     private final int batchCount;
     private final BigDecimal batchTimeMultiplier;
 
-    private final String ldapUserAttribute;
-
     static PwNotifySettings fromConfiguration( final Configuration configuration )
     {
         final PwNotifySettingsBuilder builder = PwNotifySettings.builder();
@@ -68,8 +66,6 @@ class PwNotifySettings implements Serializable
         builder.batchTimeMultiplier( new BigDecimal( configuration.readAppProperty( AppProperty.PWNOTIFY_BATCH_DELAY_TIME_MULTIPLIER ) ) );
         builder.maximumSkipWindow( TimeDuration.of(
                 Long.parseLong( configuration.readAppProperty( AppProperty.PWNOTIFY_MAX_SKIP_RERUN_WINDOW_SECONDS ) ), TimeDuration.Unit.SECONDS ) );
-
-        builder.ldapUserAttribute( "carLicense" );
 
         return builder.build();
     }

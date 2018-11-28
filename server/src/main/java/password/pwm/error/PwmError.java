@@ -307,6 +307,8 @@ public enum PwmError
             5093, "Error_ClusterServiceError", null ),
     ERROR_WORDLIST_IMPORT_ERROR(
             5094, "Error_WordlistImportError", null ),
+    ERROR_PWNOTIFY_SERVICE_ERROR(
+            5095, "Error_PwNotifyServiceError", null ),
 
     ERROR_REMOTE_ERROR_VALUE(
             6000, "Error_RemoteErrorValue", null, ErrorFlag.Permanent ),

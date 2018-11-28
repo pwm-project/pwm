@@ -25,12 +25,14 @@ package password.pwm.svc.pwnotify;
 import password.pwm.PwmApplication;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
+import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
@@ -47,7 +49,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
-public class PwNotifyService implements PwmService
+public class PwNotifyService extends AbstractPwmService implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwNotifyService.class );
 
@@ -58,17 +60,19 @@ public class PwNotifyService implements PwmService
     private PwNotifySettings settings;
     private Instant nextExecutionTime;
     private PwNotifyStorageService storageService;
-    private ErrorInformation lastError;
 
-    @Override
-    public STATUS status( )
-    {
-        return status;
-    }
-
+    private DataStorageMethod storageMethod;
 
     public StoredJobState getJobState() throws PwmUnrecoverableException
     {
+        if ( status != STATUS.CLOSED )
+        {
+            if ( getStartupError() != null )
+            {
+                return StoredJobState.builder().lastError( getStartupError() ).build();
+            }
+        }
+
         return storageService.readStoredJobState();
     }
 
@@ -84,9 +88,9 @@ public class PwNotifyService implements PwmService
             return engine.getDebugLog();
         }
 
-        if ( lastError != null )
+        if ( getStartupError(  ) != null )
         {
-            return lastError.toDebugStr();
+            return getStartupError().toDebugStr();
         }
 
         return "";
@@ -99,22 +103,53 @@ public class PwNotifyService implements PwmService
 
         if ( !pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.PW_EXPY_NOTIFY_ENABLE ) )
         {
-            status = STATUS.CLOSED;
             LOGGER.trace( SessionLabel.PWNOTIFY_SESSION_LABEL, "will remain closed, pw notify feature is not enabled" );
+            status = STATUS.CLOSED;
             return;
         }
 
-        settings = PwNotifySettings.fromConfiguration( pwmApplication.getConfig() );
-        storageService = new PwNotifyDbStorageService( pwmApplication );
-        //storageService = new PwNotifyLdapStorageService( pwmApplication, settings );
-        engine = new PwNotifyEngine( pwmApplication, storageService, () -> status == STATUS.CLOSED, null );
+        try
+        {
+            if ( pwmApplication.getClusterService() == null || pwmApplication.getClusterService().status() != STATUS.OPEN )
+            {
+                throw PwmUnrecoverableException.newException( PwmError.ERROR_PWNOTIFY_SERVICE_ERROR, "will remain closed, cluster service is not running" );
+            }
 
-        executorService = JavaHelper.makeBackgroundExecutor( pwmApplication, this.getClass() );
+            settings = PwNotifySettings.fromConfiguration( pwmApplication.getConfig() );
+            storageMethod = pwmApplication.getConfig().readSettingAsEnum( PwmSetting.PW_EXPY_NOTIFY_STORAGE_MODE, DataStorageMethod.class );
 
-        pwmApplication.scheduleFixedRateJob( new PwNotifyJob(), executorService, TimeDuration.MINUTE, TimeDuration.MINUTE );
+            switch ( storageMethod )
+            {
+                case LDAP:
+                {
+                    storageService = new PwNotifyLdapStorageService( pwmApplication, settings );
+                }
+                break;
 
-        status = STATUS.OPEN;
+                case DB:
+                {
+                    storageService = new PwNotifyDbStorageService( pwmApplication );
+                }
+                break;
 
+                default:
+                    JavaHelper.unhandledSwitchStatement( storageMethod );
+            }
+
+            engine = new PwNotifyEngine( pwmApplication, storageService, () -> status == STATUS.CLOSED, null );
+
+            executorService = JavaHelper.makeBackgroundExecutor( pwmApplication, this.getClass() );
+
+            pwmApplication.scheduleFixedRateJob( new PwNotifyJob(), executorService, TimeDuration.MINUTE, TimeDuration.MINUTE );
+
+            status = STATUS.OPEN;
+        }
+        catch ( PwmUnrecoverableException e )
+        {
+            status = STATUS.CLOSED;
+            LOGGER.trace( SessionLabel.PWNOTIFY_SESSION_LABEL, "will remain closed, pw notify feature is not enabled due to error: " + e.getMessage() );
+            setStartupError( e.getErrorInformation() );
+        }
     }
 
     public Instant getNextExecutionTime( )
@@ -173,19 +208,9 @@ public class PwNotifyService implements PwmService
     }
 
     @Override
-    public List<HealthRecord> healthCheck( )
+    protected List<HealthRecord> serviceHealthCheck( )
     {
-        if ( status != STATUS.OPEN )
-        {
-            return Collections.emptyList();
-        }
-
-        final List<HealthRecord> returnRecords = new ArrayList<>(  );
-
-        if ( lastError != null )
-        {
-            returnRecords.add( HealthRecord.forMessage( HealthMessage.PwNotify_Failure, lastError.toDebugStr() ) );
-        }
+        final List<HealthRecord> returnRecords = new ArrayList<>( );
 
         try
         {
@@ -210,7 +235,7 @@ public class PwNotifyService implements PwmService
     @Override
     public ServiceInfoBean serviceInfo( )
     {
-        return null;
+        return new ServiceInfoBean( Collections.singleton( storageMethod ), Collections.emptyMap() );
     }
 
     public void executeJob( )
@@ -265,7 +290,7 @@ public class PwNotifyService implements PwmService
 
         private void doJob( )
         {
-            lastError = null;
+            setStartupError( null );
             final Instant start = Instant.now();
             try
             {
@@ -303,7 +328,7 @@ public class PwNotifyService implements PwmService
                 }
                 StatisticsManager.incrementStat( pwmApplication, Statistic.PWNOTIFY_JOB_ERRORS );
                 LOGGER.debug( SessionLabel.PWNOTIFY_SESSION_LABEL, errorInformation );
-                lastError = errorInformation;
+                setStartupError( errorInformation );
             }
         }
     }

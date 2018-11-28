@@ -27,8 +27,10 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.util.ConfigObjectRecord;
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
+import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -60,9 +62,31 @@ class PwNotifyLdapStorageService implements PwNotifyStorageService
     }
 
     PwNotifyLdapStorageService( final PwmApplication pwmApplication, final PwNotifySettings settings )
+            throws PwmUnrecoverableException
     {
         this.pwmApplication = pwmApplication;
         this.settings = settings;
+
+        final UserIdentity userIdentity = pwmApplication.getConfig().getDefaultLdapProfile().getTestUser( pwmApplication );
+        if ( userIdentity == null )
+        {
+            final String msg = "LDAP storage type selected, but LDAP test user ("
+                    + PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug( pwmApplication.getConfig().getDefaultLdapProfile().getIdentifier(), PwmConstants.DEFAULT_LOCALE )
+                    + ") not defined.";
+            throw new PwmUnrecoverableException( PwmError.ERROR_PWNOTIFY_SERVICE_ERROR, msg );
+        }
+
+        for ( final LdapProfile ldapProfile : pwmApplication.getConfig().getLdapProfiles().values() )
+        {
+            if ( StringUtil.isEmpty( ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_PWNOTIFY ) ) )
+            {
+                final String msg = "LDAP storage type selected, but setting '"
+                        + PwmSetting.LDAP_ATTRIBUTE_PWNOTIFY.toMenuLocationDebug( ldapProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE )
+                        + " is not configured ";
+                throw new PwmUnrecoverableException( PwmError.ERROR_PWNOTIFY_SERVICE_ERROR, msg );
+            }
+        }
+
     }
 
     @Override
@@ -96,7 +120,7 @@ class PwNotifyLdapStorageService implements PwNotifyStorageService
         }
         catch ( ChaiOperationException e )
         {
-            final String msg = "error writing user pwNotifyStatus attribute '" + settings.getLdapUserAttribute() + ", error: " + e.getMessage();
+            final String msg = "error writing user pwNotifyStatus attribute '" + getLdapUserAttribute( userIdentity ) + ", error: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_LDAP_DATA_ERROR, msg );
             throw new PwmUnrecoverableException( errorInformation );
         }
@@ -110,8 +134,7 @@ class PwNotifyLdapStorageService implements PwNotifyStorageService
     public StoredJobState readStoredJobState()
             throws PwmUnrecoverableException
     {
-        final LdapProfile ldapProfile = pwmApplication.getConfig().getDefaultLdapProfile();
-        final UserIdentity proxyUser = ldapProfile.getProxyUser( pwmApplication );
+        final UserIdentity proxyUser = pwmApplication.getConfig().getDefaultLdapProfile().getTestUser( pwmApplication );
         final ConfigObjectRecord configObjectRecord = getUserCOR( proxyUser, CoreType.ProxyUser );
         final String payload = configObjectRecord.getPayload();
 
@@ -126,8 +149,7 @@ class PwNotifyLdapStorageService implements PwNotifyStorageService
     public void writeStoredJobState( final StoredJobState storedJobState )
             throws PwmUnrecoverableException
     {
-        final LdapProfile ldapProfile = pwmApplication.getConfig().getDefaultLdapProfile();
-        final UserIdentity proxyUser = ldapProfile.getProxyUser( pwmApplication );
+        final UserIdentity proxyUser = pwmApplication.getConfig().getDefaultLdapProfile().getTestUser( pwmApplication );
         final ConfigObjectRecord configObjectRecord = getUserCOR( proxyUser, CoreType.ProxyUser );
         final String payload = JsonUtil.serialize( storedJobState );
 
@@ -137,7 +159,7 @@ class PwNotifyLdapStorageService implements PwNotifyStorageService
         }
         catch ( ChaiOperationException e )
         {
-            final String msg = "error writing user pwNotifyStatus attribute on proxy user '" + settings.getLdapUserAttribute() + ", error: " + e.getMessage();
+            final String msg = "error writing user pwNotifyStatus attribute on proxy user '" + getLdapUserAttribute( proxyUser ) + ", error: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_LDAP_DATA_ERROR, msg );
             throw new PwmUnrecoverableException( errorInformation );
         }
@@ -150,8 +172,13 @@ class PwNotifyLdapStorageService implements PwNotifyStorageService
     private ConfigObjectRecord getUserCOR( final UserIdentity userIdentity, final CoreType coreType )
             throws PwmUnrecoverableException
     {
-        final String userAttr = settings.getLdapUserAttribute();
+        final String userAttr = getLdapUserAttribute( userIdentity );
         final ChaiUser chaiUser = pwmApplication.getProxiedChaiUser( userIdentity );
         return ConfigObjectRecord.createNew( chaiUser, userAttr, coreType.getRecordID(), null, null );
+    }
+
+    private String getLdapUserAttribute( final UserIdentity userIdentity )
+    {
+        return  userIdentity.getLdapProfile( pwmApplication.getConfig() ).readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_PWNOTIFY );
     }
 }

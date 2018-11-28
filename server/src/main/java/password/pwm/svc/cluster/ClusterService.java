@@ -66,6 +66,12 @@ public class ClusterService implements PwmService
         status = STATUS.OPENING;
         this.pwmApplication = pwmApplication;
 
+        final boolean serviceEnabled = pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.CLUSTER_ENABLED );
+        if ( !serviceEnabled )
+        {
+            status = STATUS.CLOSED;
+            return;
+        }
 
         try
         {

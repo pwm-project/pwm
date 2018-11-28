@@ -22,22 +22,20 @@
 
 package password.pwm.svc.pwnotify;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.Builder;
+import lombok.Value;
 import password.pwm.error.ErrorInformation;
 
 import java.io.Serializable;
 import java.time.Instant;
 
-@Getter
-@NoArgsConstructor
-@AllArgsConstructor
+@Value
+@Builder
 public class StoredJobState implements Serializable
 {
-    private Instant lastStart = null;
-    private Instant lastCompletion = null;
-    private String serverInstance = null;
-    private ErrorInformation lastError = null;
+    private Instant lastStart;
+    private Instant lastCompletion;
+    private String serverInstance;
+    private ErrorInformation lastError;
     private boolean jobSuccess;
 }

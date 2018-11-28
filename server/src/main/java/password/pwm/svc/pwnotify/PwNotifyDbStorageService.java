@@ -42,9 +42,15 @@ class PwNotifyDbStorageService implements PwNotifyStorageService
     private static final DatabaseTable TABLE = DatabaseTable.PW_NOTIFY;
     private final PwmApplication pwmApplication;
 
-    PwNotifyDbStorageService( final PwmApplication pwmApplication )
+    PwNotifyDbStorageService( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
     {
         this.pwmApplication = pwmApplication;
+
+        if ( !pwmApplication.getConfig().hasDbConfigured() )
+        {
+            final String msg = "DB storage type selected, but remote DB is not configured.";
+            throw PwmUnrecoverableException.newException( PwmError.ERROR_CLUSTER_SERVICE_ERROR, msg );
+        }
     }
 
     @Override
