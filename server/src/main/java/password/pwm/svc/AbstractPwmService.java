@@ -27,7 +27,6 @@ import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public abstract class AbstractPwmService
@@ -57,11 +56,6 @@ public abstract class AbstractPwmService
 
     public final List<HealthRecord> healthCheck( )
     {
-        if ( status != PwmService.STATUS.OPEN )
-        {
-            return Collections.emptyList();
-        }
-
         final List<HealthRecord> returnRecords = new ArrayList<>(  );
 
         final ErrorInformation startupError = this.startupError;

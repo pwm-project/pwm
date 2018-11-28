@@ -65,7 +65,7 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
 
     public StoredJobState getJobState() throws PwmUnrecoverableException
     {
-        if ( status != STATUS.CLOSED )
+        if ( status != STATUS.OPEN )
         {
             if ( getStartupError() != null )
             {
@@ -210,6 +210,11 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
     @Override
     protected List<HealthRecord> serviceHealthCheck( )
     {
+        if ( status() != STATUS.OPEN )
+        {
+            return Collections.emptyList();
+        }
+
         final List<HealthRecord> returnRecords = new ArrayList<>( );
 
         try
@@ -255,7 +260,12 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
 
     public boolean canRunOnThisServer()
     {
-        return engine.canRunOnThisServer();
+        if ( status() == STATUS.OPEN )
+        {
+            return engine.canRunOnThisServer();
+        }
+
+        return false;
     }
 
     class PwNotifyJob implements Runnable
