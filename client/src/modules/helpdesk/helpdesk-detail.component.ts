@@ -430,7 +430,7 @@ export default class HelpDeskDetailComponent {
                 templateUrl: verificationsDialogTemplateUrl,
                 locals: {
                     personUserKey: this.getUserKey(),
-                    search: false
+                    showRequiredOnly: false
                 }
             });
     }

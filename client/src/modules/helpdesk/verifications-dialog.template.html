@@ -65,10 +65,24 @@
                                        ng-model="$ctrl.formData[input.name]">
                             </div>
                         </div>
-                        <div ng-switch-when="EMAIL|SMS" ng-switch-when-separator="|">
-                            <div class="ias-input-container">
+                        <div ng-switch-when="TOKEN" ng-switch-when-separator="|">
+                            <div class="ias-input-container token-destination-submitter">
                                 <label ng-bind="'Display_TokenDestination' | translate"></label>
-                                <input type="text" ng-value="$ctrl.tokenData.destination" readonly>
+
+                                <select id="verification-token-destination" ng-model="$ctrl.tokenDestinationID"
+                                        ng-change="$ctrl.onTokenDestinationChanged()">
+                                    <option ng-repeat="tokenDestination in $ctrl.verificationOptions.tokenDestinations"
+                                            ng-attr-value="{{tokenDestination.id}}">
+                                        {{ tokenDestination.type == 'sms'?'Display_SmsPrefix':'Display_EmailPrefix' | translate}}
+                                        {{tokenDestination.display}}
+                                    </option>
+                                </select>
+                                <ias-button ng-click="$ctrl.sendVerificationTokenToDestination()"
+                                            ng-disabled="$ctrl.sendingVerificationToken">
+                                    {{ 'Button_SendToken' | translate }}
+                                </ias-button>
+                                <div class="loading-gif-25" ng-if="$ctrl.sendingVerificationToken"></div>
+                                <ias-icon icon="status_ok_thick" style="color:#37c26a;" class="ias-success" ng-if="$ctrl.verificationTokenSent"></ias-icon>
                             </div>
                             <div class="ias-input-container">
                                 <label>Token</label>
