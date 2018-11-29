@@ -65,6 +65,8 @@ public class PwNotifyEngine
 
     private static final SessionLabel SESSION_LABEL = SessionLabel.PW_EXP_NOTICE_LABEL;
 
+    private static final int MAX_LOG_SIZE = 1024 * 1024 * 1024;
+
     private final PwNotifySettings settings;
     private final PwmApplication pwmApplication;
     private final Writer debugWriter;
@@ -355,7 +357,7 @@ public class PwNotifyEngine
         }
 
         internalLog.append( msg );
-        while ( internalLog.length() > 1024 * 1024 * 1024 )
+        while ( internalLog.length() > MAX_LOG_SIZE )
         {
             final int nextLf = internalLog.indexOf( "\n" );
             if ( nextLf > 0 )

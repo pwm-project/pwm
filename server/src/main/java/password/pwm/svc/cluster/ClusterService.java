@@ -77,7 +77,7 @@ public class ClusterService implements PwmService
         {
             final ClusterSettings clusterSettings;
             final ClusterDataServiceProvider clusterDataServiceProvider;
-            dataStore = figureDataStorageMethod( pwmApplication );
+            dataStore = pwmApplication.getConfig().readSettingAsEnum( PwmSetting.CLUSTER_STORAGE_MODE, DataStorageMethod.class );
 
             if ( dataStore != null )
             {
@@ -183,11 +183,9 @@ public class ClusterService implements PwmService
         return Collections.emptyList();
     }
 
-    private DataStorageMethod figureDataStorageMethod( final PwmApplication pwmApplication )
+    private void figureDataStorageMethod( final PwmApplication pwmApplication )
             throws PwmUnrecoverableException
     {
-        final DataStorageMethod method = pwmApplication.getConfig().readSettingAsEnum( PwmSetting.CLUSTER_STORAGE_MODE, DataStorageMethod.class );
-        if ( method == DataStorageMethod.LDAP )
         {
             final UserIdentity userIdentity = pwmApplication.getConfig().getDefaultLdapProfile().getTestUser( pwmApplication );
             if ( userIdentity == null )
@@ -195,21 +193,16 @@ public class ClusterService implements PwmService
                 final String msg = "LDAP storage type selected, but LDAP test user not defined.";
                 LOGGER.debug( msg );
                 startupError = new ErrorInformation( PwmError.ERROR_CLUSTER_SERVICE_ERROR, msg );
-                return null;
             }
         }
 
-        if ( method == DataStorageMethod.DB )
         {
             if ( !pwmApplication.getConfig().hasDbConfigured() )
             {
                 final String msg = "DB storage type selected, but remote DB is not configured.";
                 LOGGER.debug( msg );
                 startupError = new ErrorInformation( PwmError.ERROR_CLUSTER_SERVICE_ERROR, msg );
-                return null;
             }
         }
-
-        return method;
     }
 }

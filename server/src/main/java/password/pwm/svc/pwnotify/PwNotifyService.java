@@ -55,7 +55,6 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
 
     private ExecutorService executorService;
     private PwmApplication pwmApplication;
-    private STATUS status = STATUS.NEW;
     private PwNotifyEngine engine;
     private PwNotifySettings settings;
     private Instant nextExecutionTime;
@@ -65,12 +64,14 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
 
     public StoredJobState getJobState() throws PwmUnrecoverableException
     {
-        if ( status != STATUS.OPEN )
+        if ( status() != STATUS.OPEN )
         {
             if ( getStartupError() != null )
             {
                 return StoredJobState.builder().lastError( getStartupError() ).build();
             }
+
+            return StoredJobState.builder().build();
         }
 
         return storageService.readStoredJobState();
@@ -104,7 +105,7 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
         if ( !pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.PW_EXPY_NOTIFY_ENABLE ) )
         {
             LOGGER.trace( SessionLabel.PWNOTIFY_SESSION_LABEL, "will remain closed, pw notify feature is not enabled" );
-            status = STATUS.CLOSED;
+            setStatus( STATUS.CLOSED );
             return;
         }
 
@@ -136,17 +137,17 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
                     JavaHelper.unhandledSwitchStatement( storageMethod );
             }
 
-            engine = new PwNotifyEngine( pwmApplication, storageService, () -> status == STATUS.CLOSED, null );
-
             executorService = JavaHelper.makeBackgroundExecutor( pwmApplication, this.getClass() );
+
+            engine = new PwNotifyEngine( pwmApplication, storageService, () -> status() == STATUS.CLOSED, null );
 
             pwmApplication.scheduleFixedRateJob( new PwNotifyJob(), executorService, TimeDuration.MINUTE, TimeDuration.MINUTE );
 
-            status = STATUS.OPEN;
+            setStatus( STATUS.OPEN );
         }
         catch ( PwmUnrecoverableException e )
         {
-            status = STATUS.CLOSED;
+            setStatus( STATUS.CLOSED );
             LOGGER.trace( SessionLabel.PWNOTIFY_SESSION_LABEL, "will remain closed, pw notify feature is not enabled due to error: " + e.getMessage() );
             setStartupError( e.getErrorInformation() );
         }
@@ -203,7 +204,7 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
     @Override
     public void close( )
     {
-        status = STATUS.CLOSED;
+        setStatus( STATUS.CLOSED );
         JavaHelper.closeAndWaitExecutor( executorService, TimeDuration.of( 5, TimeDuration.Unit.SECONDS ) );
     }
 
@@ -245,7 +246,7 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
 
     public void executeJob( )
     {
-        if ( status != STATUS.OPEN )
+        if ( status() != STATUS.OPEN )
         {
             LOGGER.trace( SessionLabel.PWNOTIFY_SESSION_LABEL, "ignoring job request start, service is not open" );
             return;
