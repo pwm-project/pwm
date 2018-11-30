@@ -12,7 +12,7 @@
     <artifactId>pwm-client</artifactId>
     <packaging>jar</packaging>
 
-    <name>PWM Password Self Service: Client</name>
+    <name>PWM Password Self Service: Angular Client JAR</name>
 
     <properties>
         <project.root.basedir>${project.basedir}/..</project.root.basedir>
