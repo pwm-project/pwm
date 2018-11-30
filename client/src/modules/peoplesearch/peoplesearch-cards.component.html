@@ -23,7 +23,7 @@
 <div class="peoplesearch-header">
     <div class="basic-search-container" ng-if="!$ctrl.advancedSearch">
         <h2 id="page-content-title"  translate="Title_PeopleSearch">People Search</h2>
-        <ias-search-box id="input" ng-model="$ctrl.query"
+        <ias-search-box id="input" ng-model="$ctrl.query" title="{{'Display_PeopleSearch' | translate}}"
                         ng-model-options="{debounce: $ctrl.inputDebounce}"
                         placeholder="{{'Placeholder_Search' | translate}}" auto-focus>
         </ias-search-box>
