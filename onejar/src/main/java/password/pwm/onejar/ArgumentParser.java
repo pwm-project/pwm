@@ -145,8 +145,17 @@ public class ArgumentParser
                 if ( commandLine.hasOption( option.getOpt() ) )
                 {
                     final Argument argument = Argument.valueOf( option.getOpt() );
-                    final String value = commandLine.getOptionValue( option.getOpt() );
-                    map.put( argument, value );
+                    if ( option.getArgs() > 1 )
+                    {
+                        final String[] values = commandLine.getOptionValues( option.getOpt() );
+                        final String joined = String.join( " ", values );
+                        map.put( argument, joined );
+                    }
+                    else
+                    {
+                        final String value = commandLine.getOptionValue( option.getOpt() );
+                        map.put( argument, value );
+                    }
                 }
             }
         }
@@ -224,6 +233,13 @@ public class ArgumentParser
         else
         {
             onejarConfig.workingPath( figureDefaultWorkPath( localAddress, context, port ) );
+        }
+
+        if ( argumentMap.containsKey( Argument.command ) )
+        {
+            final String value = argumentMap.get( Argument.command );
+            System.out.println( "cmddetected" );
+            onejarConfig.execCommand( value );
         }
 
         return onejarConfig.build();
