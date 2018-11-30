@@ -254,7 +254,8 @@ export default class PeopleService implements IPeopleService {
             .post(url, {
                 mode: 'simple',
                 username: query,
-                pwmFormID: formID
+                pwmFormID: formID,
+                includeDisplayName: (params && params.includeDisplayName) ? params.includeDisplayName : false
             }, {
                 cache: true,
                 timeout: httpTimeout.promise,

@@ -3,6 +3,11 @@
 .ias-styles-root {
   @import "~@microfocus/ux-ias/src/ux-ias";
 
+  .ias-dialog {
+    // Need to fix this minor css problem in ux-ias until a version > 1.0.0-rc comes out.
+    position: fixed;
+  }
+
   // ux-ias normally applies the following to the body tag, but the way we are including ux-ias under .ias-styles-root
   // means we have to define it here.
   background-color: $body-bg-color;
