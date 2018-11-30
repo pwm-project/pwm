@@ -30,8 +30,7 @@ import {IQuery} from './people.service';
 
 const VERIFICATION_PROCESS_ACTIONS = {
     ATTRIBUTES: 'validateAttributes',
-    EMAIL: 'verifyVerificationToken',
-    SMS: 'verifyVerificationToken',
+    TOKEN: 'verifyVerificationToken',
     OTP: 'validateOtpCode'
 };
 
@@ -77,8 +76,25 @@ interface IValidationStatus extends IVerificationStatus {
     verificationState: string;
 }
 
+export interface IVerificationOptions {
+    verificationMethods: {
+        optional: string[];
+        required: string[];
+    },
+    verificationForm: [{
+        name: string;
+        label: string;
+    }],
+    tokenDestinations: [{
+        id: string;
+        display: string;
+        type: string;
+    }]
+}
+
 export interface IVerificationStatus {
     passed: boolean;
+    verificationOptions: IVerificationOptions;
 }
 
 export interface IVerificationTokenResponse {
@@ -269,13 +285,12 @@ export default class HelpDeskService implements IHelpDeskService {
             });
     }
 
-    sendVerificationToken(userKey: string, choice: string): IPromise<IVerificationTokenResponse> {
+    sendVerificationToken(userKey: string, destinationID: string): IPromise<IVerificationTokenResponse> {
         let url: string = this.pwmService.getServerUrl('sendVerificationToken');
-        let data: any = { userKey: userKey };
-
-        if (choice) {
-            data.method = choice;
-        }
+        let data: any = {
+            userKey: userKey,
+            id: destinationID
+        };
 
         return this.pwmService
             .httpRequest(url, { data: data })
