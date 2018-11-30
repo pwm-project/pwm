@@ -346,6 +346,7 @@ public class MainClass
             if ( !commandExceuted )
             {
                 out( "unknown command '" + workingArgs.iterator().next() + "'" );
+                out( "use 'help' for command list" );
             }
         }
     }

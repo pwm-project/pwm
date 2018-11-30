@@ -91,6 +91,12 @@ public class ArgumentParser
                 {
                     argumentMap = mapFromCommandLine( commandLine );
                 }
+
+                if ( argumentMap.containsKey( Argument.command ) && argumentMap.get( Argument.command ) == null )
+                {
+                    throw new ArgumentParserException( Argument.command.name() + " requires arguments" );
+                }
+
                 final OnejarConfig onejarConfig;
                 try
                 {
@@ -145,16 +151,17 @@ public class ArgumentParser
                 if ( commandLine.hasOption( option.getOpt() ) )
                 {
                     final Argument argument = Argument.valueOf( option.getOpt() );
-                    if ( option.getArgs() > 1 )
                     {
                         final String[] values = commandLine.getOptionValues( option.getOpt() );
-                        final String joined = String.join( " ", values );
-                        map.put( argument, joined );
-                    }
-                    else
-                    {
-                        final String value = commandLine.getOptionValue( option.getOpt() );
-                        map.put( argument, value );
+                        if ( values != null )
+                        {
+                            final String joined = String.join( " ", values );
+                            map.put( argument, joined );
+                        }
+                        else
+                        {
+                            map.put( argument, null );
+                        }
                     }
                 }
             }
@@ -216,14 +223,17 @@ public class ArgumentParser
         final String localAddress = argumentMap.getOrDefault( Argument.localAddress, Resource.defaultLocalAddress.getValue() );
         onejarConfig.localAddress( localAddress );
 
-        try
+        if ( !argumentMap.containsKey( Argument.command ) )
         {
-            final ServerSocket socket = new ServerSocket( port, 100, InetAddress.getByName( localAddress ) );
-            socket.close();
-        }
-        catch ( Exception e )
-        {
-            throw new ArgumentParserException( "port or address conflict: " + e.getMessage() );
+            try
+            {
+                final ServerSocket socket = new ServerSocket( port, 100, InetAddress.getByName( localAddress ) );
+                socket.close();
+            }
+            catch ( Exception e )
+            {
+                throw new ArgumentParserException( "port or address conflict: " + e.getMessage() );
+            }
         }
 
         if ( argumentMap.containsKey( Argument.workPath ) )
@@ -238,7 +248,6 @@ public class ArgumentParser
         if ( argumentMap.containsKey( Argument.command ) )
         {
             final String value = argumentMap.get( Argument.command );
-            System.out.println( "cmddetected" );
             onejarConfig.execCommand( value );
         }
 
@@ -260,7 +269,8 @@ public class ArgumentParser
     }
 
 
-    private static File parseFileOption( final Map<Argument, String> argumentMap, final Argument argName ) throws ArgumentParserException
+    private static File parseFileOption( final Map<Argument, String> argumentMap, final Argument argName )
+            throws ArgumentParserException
     {
         if ( !argumentMap.containsKey( argName ) )
         {

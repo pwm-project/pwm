@@ -13,7 +13,7 @@
 
     <packaging>jar</packaging>
 
-    <name>PWM Password Self Service: Executable JAR</name>
+    <name>PWM Password Self Service: Executable Server JAR</name>
 
     <properties>
         <project.root.basedir>${project.basedir}/..</project.root.basedir>

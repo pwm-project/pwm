@@ -13,7 +13,7 @@
 
     <packaging>war</packaging>
 
-    <name>PWM Password Self Service: Data Service</name>
+    <name>PWM Password Self Service: Data Service WAR</name>
 
     <licenses>
         <license>

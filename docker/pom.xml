@@ -51,6 +51,19 @@
                                 <format>docker</format>
                                 <ports>8443</ports>
                             </container>
+                            <extraDirectory>
+                                <path>${project.basedir}/src/main/image-files</path> <!-- Copies files from 'src/main/custom-extra-dir' -->
+                                <permissions>
+                                    <permission>
+                                        <file>/app/startup.sh</file>
+                                        <mode>755</mode> <!-- Read/write for owner, read-only for group/other -->
+                                    </permission>
+                                    <permission>
+                                        <file>/app/command.sh</file>
+                                        <mode>755</mode> <!-- Read/write for owner, read-only for group/other -->
+                                    </permission>
+                                </permissions>
+                            </extraDirectory>
                         </configuration>
                     </execution>
                 </executions>

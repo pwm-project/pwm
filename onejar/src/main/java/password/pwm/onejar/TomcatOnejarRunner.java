@@ -100,9 +100,10 @@ public class TomcatOnejarRunner
         explodeWar( onejarConfig );
         out( "deployed war" );
 
+        final Properties tlsProperties;
         try
         {
-            generatePwmKeystore( onejarConfig );
+            tlsProperties = this.executeOnejarHelper( onejarConfig );
             out( "keystore generated" );
         }
         catch ( Exception e )
@@ -143,7 +144,7 @@ public class TomcatOnejarRunner
 
         try
         {
-            tomcat.setConnector( makeConnector( onejarConfig ) );
+            tomcat.setConnector( makeConnector( onejarConfig, tlsProperties ) );
             tomcat.start();
             out( "tomcat started in " + Duration.between( Instant.now(), startTime ).toString() );
         }
@@ -180,7 +181,7 @@ public class TomcatOnejarRunner
     }
 
 
-    private Connector makeConnector( final OnejarConfig onejarConfig )
+    private Connector makeConnector( final OnejarConfig onejarConfig, final Properties tlsProperties )
             throws Exception
     {
         final Connector connector = new Connector( "HTTP/1.1" );
@@ -198,7 +199,6 @@ public class TomcatOnejarRunner
         connector.setAttribute( "keyAlias", OnejarMain.KEYSTORE_ALIAS );
         connector.setAttribute( "clientAuth", "false" );
 
-        final Properties tlsProperties = readConfiguredTlsProperties( onejarConfig );
         if ( tlsProperties != null )
         {
             for ( final String key : tlsProperties.stringPropertyNames() )
@@ -254,23 +254,32 @@ public class TomcatOnejarRunner
     }
 
 
-    void generatePwmKeystore( final OnejarConfig onejarConfig )
+    Properties executeOnejarHelper( final OnejarConfig onejarConfig )
             throws IOException, ClassNotFoundException, IllegalAccessException, NoSuchMethodException, InvocationTargetException
     {
         try ( URLClassLoader classLoader = warClassLoaderFromConfig( onejarConfig ) )
         {
-            final Class pwmMainClass = classLoader.loadClass( "password.pwm.util.cli.MainClass" );
+            final Class pwmMainClass = classLoader.loadClass( "password.pwm.util.OnejarHelper" );
             final String keystoreFile = onejarConfig.getKeystoreFile().getAbsolutePath();
-            final Method mainMethod = pwmMainClass.getMethod( "main", String[].class );
+            final Method mainMethod = pwmMainClass.getMethod(
+                    "onejarHelper",
+                    String.class,
+                    String.class,
+                    String.class,
+                    String.class
+            );
+
             final String[] arguments = new String[] {
-                    "-applicationPath=" + onejarConfig.getApplicationPath().getAbsolutePath(),
-                    "ExportHttpsKeyStore",
+                    onejarConfig.getApplicationPath().getAbsolutePath(),
                     keystoreFile,
                     OnejarMain.KEYSTORE_ALIAS,
                     onejarConfig.getKeystorePass(),
             };
 
-            mainMethod.invoke( null, ( Object ) arguments );
+            final Object returnObjValue = mainMethod.invoke( null, arguments );
+            final Properties returnProps = ( Properties ) returnObjValue;
+            out( "completed read of tlsProperties " );
+            return returnProps;
         }
     }
 
@@ -310,22 +319,6 @@ public class TomcatOnejarRunner
                 contents = contents.replace( "[[[ROOT_CONTEXT]]]", rootcontext );
                 Files.write( Paths.get( destPath ), contents.getBytes( "UTF8" ) );
             }
-        }
-    }
-
-    Properties readConfiguredTlsProperties( final OnejarConfig onejarConfig )
-            throws Exception
-    {
-        out( "beginning read of tlsProperties " );
-        try ( URLClassLoader classLoader = warClassLoaderFromConfig( onejarConfig ) )
-        {
-            final Class pwmMainClass = classLoader.loadClass( "password.pwm.util.cli.commands.ExportHttpsTomcatConfigCommand" );
-            final Method readMethod = pwmMainClass.getMethod( "readAsProperties", String.class );
-            final String arguments = onejarConfig.getApplicationPath().getAbsolutePath();
-            final Object returnObjValue = readMethod.invoke( null, ( Object ) arguments );
-            final Properties returnProps = ( Properties ) returnObjValue;
-            out( "completed read of tlsProperties " );
-            return returnProps;
         }
     }
 
