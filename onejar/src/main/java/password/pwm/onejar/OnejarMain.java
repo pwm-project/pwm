@@ -24,8 +24,13 @@ package password.pwm.onejar;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.net.URLClassLoader;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class OnejarMain
 {
@@ -47,7 +52,42 @@ public class OnejarMain
         }
 
         final OnejarMain onejarMain = new OnejarMain();
-        onejarMain.run( onejarConfig );
+
+        if ( onejarConfig != null )
+        {
+            if ( onejarConfig.getExecCommand() != null )
+            {
+                onejarMain.execCommand( onejarConfig );
+            }
+            else
+            {
+                onejarMain.run( onejarConfig );
+            }
+        }
+    }
+
+    private void execCommand( final OnejarConfig onejarConfig )
+    {
+        try
+        {
+            final String cmdLine = onejarConfig.getExecCommand();
+            out( "executing command: " + cmdLine );
+            final TomcatOnejarRunner runner = new TomcatOnejarRunner( this );
+            final URLClassLoader classLoader = runner.warClassLoaderFromConfig( onejarConfig );
+
+            final Class pwmMainClass = classLoader.loadClass( "password.pwm.util.cli.MainClass" );
+            final Method mainMethod = pwmMainClass.getMethod( "main", String[].class );
+            final List<String> cmdLineItems = new ArrayList<>( );
+            cmdLineItems.add( "-applicationPath=" + onejarConfig.getApplicationPath().getAbsolutePath() );
+            cmdLineItems.addAll( Arrays.asList( cmdLine.split( " " ) ) );
+            final String[] arguments = cmdLineItems.toArray( new String[0] );
+
+            mainMethod.invoke( null, ( Object ) arguments );
+        }
+        catch ( Exception e )
+        {
+            e.printStackTrace( );
+        }
     }
 
     void run( final OnejarConfig onejarConfig )
