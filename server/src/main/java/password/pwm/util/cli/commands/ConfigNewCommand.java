@@ -48,7 +48,7 @@ public class ConfigNewCommand extends AbstractCliCommand
         {
             storedConfiguration.toXml( fileOutputStream );
         }
-        out( "success" );
+        out( "success: created new configuration" );
     }
 
     @Override

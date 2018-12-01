@@ -62,10 +62,9 @@ public abstract class PwmConstants
 
     static
     {
-        final String servletVersion =
-                ( BUILD_VERSION.length() > 0 ? "v" + BUILD_VERSION : "" )
-                        + ( BUILD_VERSION.length() > 0 ? " b" + BUILD_NUMBER : "" )
-                        + ( BUILD_NUMBER.length() > 0 ? " r" + BUILD_REVISION : "" ).trim();
+        final String servletVersion = "v" + BUILD_VERSION
+                        + " b" + BUILD_NUMBER
+                        + " r" + BUILD_REVISION;
 
         SERVLET_VERSION = servletVersion.isEmpty()
                 ? MISSING_VERSION_STRING

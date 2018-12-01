@@ -40,21 +40,16 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Properties;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 public class TomcatOnejarRunner
 {
@@ -65,40 +60,10 @@ public class TomcatOnejarRunner
         this.onejarMain = onejarMain;
     }
 
-    private void explodeWar( final OnejarConfig onejarConfig ) throws IOException
-    {
-        final InputStream warSource = onejarConfig.getWar();
-        final ZipInputStream zipInputStream = new ZipInputStream( warSource );
-        final File outputFolder = onejarConfig.getWarFolder( );
-
-        ArgumentParser.mkdirs( outputFolder );
-
-        ZipEntry zipEntry = zipInputStream.getNextEntry();
-
-        while ( zipEntry != null )
-        {
-            final String fileName = zipEntry.getName();
-            final File newFile = new File( outputFolder + File.separator + fileName );
-
-            if ( !zipEntry.isDirectory() )
-            {
-                ArgumentParser.mkdirs( newFile.getParentFile() );
-                Files.copy( zipInputStream, newFile.toPath() );
-            }
-            zipEntry = zipInputStream.getNextEntry();
-        }
-
-    }
-
     void startTomcat( final OnejarConfig onejarConfig )
             throws ServletException, IOException, OnejarException
     {
         final Instant startTime = Instant.now();
-
-        purgeDirectory( onejarConfig.getWorkingPath().toPath() );
-
-        explodeWar( onejarConfig );
-        out( "deployed war" );
 
         final Properties tlsProperties;
         try
@@ -235,18 +200,6 @@ public class TomcatOnejarRunner
             throw new OnejarException( "error reading internal version info: " + e.getMessage() );
         }
     }
-
-    private void purgeDirectory( final Path rootPath )
-            throws IOException
-    {
-        System.out.println( "purging work directory: " + rootPath );
-        Files.walk( rootPath, FileVisitOption.FOLLOW_LINKS )
-                .sorted( Comparator.reverseOrder() )
-                .map( Path::toFile )
-                .filter( file -> !rootPath.toString().equals( file.getPath() ) )
-                .forEach( File::delete );
-    }
-
 
     void out( final String output )
     {

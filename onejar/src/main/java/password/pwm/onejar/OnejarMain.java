@@ -23,20 +23,27 @@
 package password.pwm.onejar;
 
 import javax.servlet.ServletException;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.net.URLClassLoader;
+import java.nio.file.FileVisitOption;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 public class OnejarMain
 {
     //private static final String TEMP_WAR_FILE_NAME = "embed.war";
     static final String KEYSTORE_ALIAS = "https";
-
 
     public static void main( final String[] args )
     {
@@ -61,7 +68,7 @@ public class OnejarMain
             }
             else
             {
-                onejarMain.run( onejarConfig );
+                onejarMain.deployWebApp( onejarConfig );
             }
         }
     }
@@ -70,8 +77,9 @@ public class OnejarMain
     {
         try
         {
+            purgeDirectory( onejarConfig.getWorkingPath().toPath() );
+            this.explodeWar( onejarConfig );
             final String cmdLine = onejarConfig.getExecCommand();
-            out( "executing command: " + cmdLine );
             final TomcatOnejarRunner runner = new TomcatOnejarRunner( this );
             final URLClassLoader classLoader = runner.warClassLoaderFromConfig( onejarConfig );
 
@@ -90,16 +98,19 @@ public class OnejarMain
         }
     }
 
-    void run( final OnejarConfig onejarConfig )
+    void deployWebApp( final OnejarConfig onejarConfig )
     {
-        final TomcatOnejarRunner runner = new TomcatOnejarRunner( this );
         final Instant startTime = Instant.now();
 
         if ( onejarConfig != null )
         {
             try
             {
+                purgeDirectory( onejarConfig.getWorkingPath().toPath() );
+                this.explodeWar( onejarConfig );
+                final TomcatOnejarRunner runner = new TomcatOnejarRunner( this );
                 runner.startTomcat( onejarConfig );
+
             }
             catch ( OnejarException | ServletException | IOException e )
             {
@@ -119,5 +130,44 @@ public class OnejarMain
     static void output( final String output )
     {
         System.out.println( output );
+    }
+
+    private void explodeWar( final OnejarConfig onejarConfig ) throws IOException
+    {
+        final InputStream warSource = onejarConfig.getWar();
+        final ZipInputStream zipInputStream = new ZipInputStream( warSource );
+        final File outputFolder = onejarConfig.getWarFolder( );
+
+        ArgumentParser.mkdirs( outputFolder );
+
+        ZipEntry zipEntry = zipInputStream.getNextEntry();
+
+        while ( zipEntry != null )
+        {
+            final String fileName = zipEntry.getName();
+            final File newFile = new File( outputFolder + File.separator + fileName );
+
+            if ( !zipEntry.isDirectory() )
+            {
+                ArgumentParser.mkdirs( newFile.getParentFile() );
+                Files.copy( zipInputStream, newFile.toPath() );
+            }
+            zipEntry = zipInputStream.getNextEntry();
+        }
+        out( "deployed war" );
+    }
+
+    private void purgeDirectory( final Path rootPath )
+            throws IOException
+    {
+        if ( rootPath.toFile().exists() )
+        {
+            System.out.println( "purging work directory: " + rootPath );
+            Files.walk( rootPath, FileVisitOption.FOLLOW_LINKS )
+                    .sorted( Comparator.reverseOrder() )
+                    .map( Path::toFile )
+                    .filter( file -> !rootPath.toString().equals( file.getPath() ) )
+                    .forEach( File::delete );
+        }
     }
 }

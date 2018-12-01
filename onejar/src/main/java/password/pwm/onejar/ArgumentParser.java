@@ -141,7 +141,7 @@ public class ArgumentParser
         return Collections.unmodifiableMap( map );
     }
 
-    private Map<Argument, String> mapFromCommandLine( final CommandLine commandLine )
+    static Map<Argument, String> mapFromCommandLine( final CommandLine commandLine )
     {
         final Map<Argument, String> map = new HashMap<>();
         for ( final Option option : Argument.asOptionMap().values() )
@@ -242,7 +242,8 @@ public class ArgumentParser
         }
         else
         {
-            onejarConfig.workingPath( figureDefaultWorkPath( localAddress, context, port ) );
+            final boolean isCommandExec = argumentMap.containsKey( Argument.command );
+            onejarConfig.workingPath( figureDefaultWorkPath( localAddress, context, port, isCommandExec ) );
         }
 
         if ( argumentMap.containsKey( Argument.command ) )
@@ -291,7 +292,8 @@ public class ArgumentParser
     private static File figureDefaultWorkPath(
             final String localAddress,
             final String context,
-            final int port
+            final int port,
+            final boolean isCommandExec
     )
             throws ArgumentParserException, IOException
     {
@@ -309,7 +311,8 @@ public class ArgumentParser
                         + "-"
                         + escapeFilename( context )
                         + "-"
-                        + escapeFilename( Integer.toString( port ) );
+                        + escapeFilename( Integer.toString( port ) )
+                        + ( isCommandExec ? "-" + "cmd" : "" );
 
                 if ( localAddress != null && !localAddress.isEmpty() )
                 {
