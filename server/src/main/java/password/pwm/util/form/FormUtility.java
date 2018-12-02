@@ -522,7 +522,7 @@ public class FormUtility
     {
         final boolean includeNulls = JavaHelper.enumArrayContainsValue( flags, Flag.ReturnEmptyValues );
         final List<String> formFieldNames = FormConfiguration.convertToListOfNames( formFields );
-        LOGGER.trace( sessionLabel, "preparing to load form data from ldap for fields " + JsonUtil.serializeCollection( formFieldNames ) );
+        LOGGER.trace( sessionLabel, () -> "preparing to load form data from ldap for fields " + JsonUtil.serializeCollection( formFieldNames ) );
         final Map<String, List<String>> dataFromLdap = new LinkedHashMap<>();
         try
         {
@@ -587,7 +587,7 @@ public class FormUtility
                 {
                     final String parsedValue = parseInputValueToFormValue( formItem, value );
                     values.add( parsedValue );
-                    LOGGER.trace( sessionLabel, "loaded value for form item '" + attrName + "' with value=" + value );
+                    LOGGER.trace( sessionLabel, () -> "loaded value for form item '" + attrName + "' with value=" + value );
                 }
 
                 returnMap.put( formItem, values );

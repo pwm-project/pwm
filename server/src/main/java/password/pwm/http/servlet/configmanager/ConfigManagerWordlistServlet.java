@@ -168,7 +168,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
         {
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
             final RestResultBean restResultBean = RestResultBean.fromError( errorInfo, pwmRequest );
-            LOGGER.debug( pwmRequest, errorInfo.toDebugStr() );
+            LOGGER.debug( pwmRequest, errorInfo );
             pwmRequest.outputJsonResult( restResultBean );
             return;
         }

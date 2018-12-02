@@ -188,7 +188,7 @@ public class LocalDBLogger implements PwmService
     {
         if ( status != STATUS.CLOSED )
         {
-            LOGGER.debug( "LocalDBLogger closing... (" + debugStats() + ")" );
+            LOGGER.debug( () -> "LocalDBLogger closing... (" + debugStats() + ")" );
             if ( cleanerService != null )
             {
                 cleanerService.shutdown();
@@ -198,7 +198,7 @@ public class LocalDBLogger implements PwmService
         }
         status = STATUS.CLOSED;
 
-        LOGGER.debug( "LocalDBLogger close completed (" + debugStats() + ")" );
+        LOGGER.debug( () -> "LocalDBLogger close completed (" + debugStats() + ")" );
     }
 
     public int getStoredEventCount( )

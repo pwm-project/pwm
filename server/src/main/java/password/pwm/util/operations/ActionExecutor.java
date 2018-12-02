@@ -83,7 +83,7 @@ public class ActionExecutor
     )
             throws ChaiUnavailableException, PwmOperationalException, PwmUnrecoverableException
     {
-        LOGGER.trace( sessionLabel, "preparing to execute action(s) for " + actionConfiguration.getName() );
+        LOGGER.trace( sessionLabel, () -> "preparing to execute action(s) for " + actionConfiguration.getName() );
 
         for ( final ActionConfiguration.LdapAction ldapAction : actionConfiguration.getLdapActions() )
         {
@@ -262,7 +262,7 @@ public class ActionExecutor
                 : attrValue;
 
 
-        LOGGER.trace( sessionLabel, "beginning ldap " + effectiveLdapMethod.toString() + " operation on " + theUser.getEntryDN() + ", attribute " + attrName );
+        LOGGER.trace( sessionLabel, () -> "beginning ldap " + effectiveLdapMethod.toString() + " operation on " + theUser.getEntryDN() + ", attribute " + attrName );
         switch ( effectiveLdapMethod )
         {
             case replace:

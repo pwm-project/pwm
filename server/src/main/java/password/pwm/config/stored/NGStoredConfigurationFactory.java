@@ -144,7 +144,7 @@ public class NGStoredConfigurationFactory
 
             if ( pwmSetting == null )
             {
-                LOGGER.debug( "ignoring setting for unknown key: " + key );
+                LOGGER.debug( () -> "ignoring setting for unknown key: " + key );
             }
             else
             {

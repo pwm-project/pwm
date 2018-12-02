@@ -300,7 +300,7 @@ public class EmailServerUtil
             transport.connect();
         }
 
-        LOGGER.debug( "connected to " + server.toDebugString() + " " + ( authenticated ? "(authenticated)" : "(unauthenticated)" ) );
+        LOGGER.debug( () -> "connected to " + server.toDebugString() + " " + ( authenticated ? "(authenticated)" : "(unauthenticated)" ) );
 
         return transport;
     }

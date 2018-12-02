@@ -132,7 +132,7 @@ class WordlistImporter implements Runnable
 
         if ( cancelFlag.getAsBoolean() )
         {
-            getLogger().debug( "exiting import due to cancel flag" );
+            getLogger().debug( () -> "exiting import due to cancel flag" );
         }
     }
 
@@ -180,7 +180,7 @@ class WordlistImporter implements Runnable
         );
 
         final ConditionalTaskExecutor debugOutputter = new ConditionalTaskExecutor(
-                () -> getLogger().debug( makeStatString() ),
+                () -> getLogger().debug( () -> makeStatString() ),
                 new ConditionalTaskExecutor.TimeDurationPredicate( AbstractWordlist.DEBUG_OUTPUT_FREQUENCY )
         );
 
@@ -192,7 +192,7 @@ class WordlistImporter implements Runnable
 
             startTime = Instant.now();
 
-            getLogger().debug( "beginning import" );
+            getLogger().debug( () -> "beginning import" );
 
             String line;
             do
@@ -300,21 +300,21 @@ class WordlistImporter implements Runnable
     {
         final Instant startSkip = Instant.now();
         final ConditionalTaskExecutor debugOutputter = new ConditionalTaskExecutor(
-                () -> getLogger().debug( "continuing skipping forward in wordlist"
+                () -> getLogger().debug( () -> "continuing skipping forward in wordlist"
                         + ", " + StringUtil.formatDiskSizeforDebug( zipFileReader.getByteCount() )
                         + " of " + StringUtil.formatDiskSizeforDebug( previousBytesRead )
                         + " (" + TimeDuration.compactFromCurrent( startSkip ) + ")" ),
                 new ConditionalTaskExecutor.TimeDurationPredicate( AbstractWordlist.DEBUG_OUTPUT_FREQUENCY )
         );
 
-        getLogger().debug( "will skip forward " + StringUtil.formatDiskSizeforDebug( previousBytesRead ) + " in stream that have been previously imported" );
+        getLogger().debug( () -> "will skip forward " + StringUtil.formatDiskSizeforDebug( previousBytesRead ) + " in stream that have been previously imported" );
         while ( !cancelFlag.getAsBoolean() && bytesSkipped < ( previousBytesRead + 1024 ) )
         {
             zipFileReader.nextLine();
             bytesSkipped = zipFileReader.getByteCount();
             debugOutputter.conditionallyExecuteTask();
         }
-        getLogger().debug( "skipped forward " + StringUtil.formatDiskSizeforDebug( previousBytesRead )
+        getLogger().debug( () -> "skipped forward " + StringUtil.formatDiskSizeforDebug( previousBytesRead )
                 + " in stream (" + TimeDuration.fromCurrent( startSkip ).asCompactString() + ")" );
     }
 

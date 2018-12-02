@@ -102,7 +102,7 @@ public class RestStatusServer extends RestServlet
             StatisticsManager.incrementStat( restRequest.getPwmApplication(), Statistic.REST_STATUS );
 
             final RestResultBean restResultBean = RestResultBean.withData( publicUserInfoBean );
-            LOGGER.debug( restRequest.getSessionLabel(), "completed REST status request in "
+            LOGGER.debug( restRequest.getSessionLabel(), () -> "completed REST status request in "
                     + TimeDuration.compactFromCurrent( startTime ) + ", result=" + JsonUtil.serialize( restResultBean ) );
             return restResultBean;
         }

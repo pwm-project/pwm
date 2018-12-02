@@ -91,7 +91,7 @@ public abstract class X509Utils
         final PwmHttpClient pwmHttpClient = new PwmHttpClient( pwmApplication, sessionLabel, pwmHttpClientConfiguration );
         final PwmHttpClientRequest request = new PwmHttpClientRequest( HttpMethod.GET, uri.toString(), "", Collections.emptyMap() );
 
-        LOGGER.debug( sessionLabel, "beginning attempt to import certificates via httpclient" );
+        LOGGER.debug( sessionLabel, () -> "beginning attempt to import certificates via httpclient" );
 
         ErrorInformation requestError = null;
         try
@@ -107,7 +107,11 @@ public abstract class X509Utils
         {
             return Arrays.asList( certReaderTrustManager.getCertificates() );
         }
-        LOGGER.debug( sessionLabel, "unable to read certificates from remote server via httpclient, error: " + requestError );
+
+        {
+            final ErrorInformation finalError = requestError;
+            LOGGER.debug( sessionLabel, () -> "unable to read certificates from remote server via httpclient, error: " + finalError );
+        }
 
         if ( requestError == null )
         {
@@ -121,7 +125,7 @@ public abstract class X509Utils
     public static List<X509Certificate> readRemoteCertificates( final String host, final int port )
             throws PwmOperationalException
     {
-        LOGGER.debug( "ServerCertReader: beginning certificate read procedure to import certificates from host=" + host + ", port=" + port );
+        LOGGER.debug( () -> "ServerCertReader: beginning certificate read procedure to import certificates from host=" + host + ", port=" + port );
         final CertReaderTrustManager certReaderTm = new CertReaderTrustManager();
         try
         {
@@ -134,16 +138,16 @@ public abstract class X509Utils
                     new SecureRandom() );
             final SSLSocketFactory factory = ctx.getSocketFactory();
             final SSLSocket sslSock = ( SSLSocket ) factory.createSocket( host, port );
-            LOGGER.debug( "ServerCertReader: socket established to host=" + host + ", port=" + port );
+            LOGGER.debug( () -> "ServerCertReader: socket established to host=" + host + ", port=" + port );
             if ( !sslSock.isConnected() )
             {
                 throw PwmUnrecoverableException.newException( PwmError.ERROR_CERTIFICATE_ERROR, "unable to connect to " + host + ":" + port );
             }
-            LOGGER.debug( "ServerCertReader: connected to host=" + host + ", port=" + port );
+            LOGGER.debug( () -> "ServerCertReader: connected to host=" + host + ", port=" + port );
             sslSock.startHandshake();
-            LOGGER.debug( "ServerCertReader: handshake completed to host=" + host + ", port=" + port );
+            LOGGER.debug( () -> "ServerCertReader: handshake completed to host=" + host + ", port=" + port );
             sslSock.close();
-            LOGGER.debug( "ServerCertReader: certificate information read from host=" + host + ", port=" + port );
+            LOGGER.debug( () -> "ServerCertReader: certificate information read from host=" + host + ", port=" + port );
         }
         catch ( Exception e )
         {
@@ -163,16 +167,16 @@ public abstract class X509Utils
         final X509Certificate[] certs = certReaderTm.getCertificates();
         if ( certs == null )
         {
-            LOGGER.debug( "ServerCertReader: unable to read certificates: null returned from CertReaderTrustManager.getCertificates()" );
+            LOGGER.debug( () -> "ServerCertReader: unable to read certificates: null returned from CertReaderTrustManager.getCertificates()" );
         }
         else
         {
             for ( final X509Certificate certificate : certs )
             {
-                LOGGER.debug( "ServerCertReader: read x509 Certificate from host=" + host + ", port=" + port + ": \n" + certificate.toString() );
+                LOGGER.debug( () -> "ServerCertReader: read x509 Certificate from host=" + host + ", port=" + port + ": \n" + certificate.toString() );
             }
         }
-        LOGGER.debug( "ServerCertReader: process completed" );
+        LOGGER.debug( () -> "ServerCertReader: process completed" );
         return certs == null ? Collections.emptyList() : Arrays.asList( certs );
     }
 
@@ -212,7 +216,7 @@ public abstract class X509Utils
         public void checkClientTrusted( final X509Certificate[] chain, final String authType )
                 throws CertificateException
         {
-            LOGGER.debug( "clientCheckTrusted invoked in CertReaderTrustManager" );
+            LOGGER.debug( () -> "clientCheckTrusted invoked in CertReaderTrustManager" );
         }
 
         public X509Certificate[] getAcceptedIssuers( )
@@ -225,7 +229,7 @@ public abstract class X509Utils
         {
             certificates = chain;
             final List<Map<String, String>> certDebugInfo = X509Utils.makeDebugInfoMap( Arrays.asList( certificates ) );
-            LOGGER.debug( "read certificates from remote server via httpclient: "
+            LOGGER.debug( () -> "read certificates from remote server via httpclient: "
                     + JsonUtil.serialize( new ArrayList<>( certDebugInfo ) ) );
         }
 

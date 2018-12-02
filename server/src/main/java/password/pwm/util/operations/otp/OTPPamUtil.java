@@ -101,13 +101,13 @@ public class OTPPamUtil
                 }
                 if ( recoveryCodes.isEmpty() )
                 {
-                    LOGGER.debug( "No recovery codes read." );
+                    LOGGER.debug( () -> "No recovery codes read." );
                     otp.setRecoveryCodes( null );
                     otp.setRecoveryInfo( null );
                 }
                 else
                 {
-                    LOGGER.debug( String.format( "%d recovery codes read.", recoveryCodes.size() ) );
+                    LOGGER.debug( () -> String.format( "%d recovery codes read.", recoveryCodes.size() ) );
                     final OTPUserRecord.RecoveryInfo recoveryInfo = new OTPUserRecord.RecoveryInfo();
                     recoveryInfo.setHashCount( 0 );
                     recoveryInfo.setSalt( null );

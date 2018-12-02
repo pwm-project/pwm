@@ -91,7 +91,7 @@ public class BasicAuthInfo implements Serializable
                 }
                 catch ( IOException e )
                 {
-                    LOGGER.debug( "error decoding auth header" + e.getMessage() );
+                    LOGGER.debug( () -> "error decoding auth header" + e.getMessage() );
                 }
             }
         }

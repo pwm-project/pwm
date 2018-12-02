@@ -572,7 +572,7 @@ public class PwmEnvironment
 
             if ( !isFileLocked() )
             {
-                LOGGER.debug( "can't establish application file lock after "
+                LOGGER.debug( () -> "can't establish application file lock after "
                         + TimeDuration.fromCurrent( startTime ).asCompactString()
                         + ", will retry;" );
                 attemptInterval.pause();
@@ -619,12 +619,12 @@ public class PwmEnvironment
                     lock = f.tryLock();
                     if ( lock != null )
                     {
-                        LOGGER.debug( "obtained file lock on file " + lockfile.getAbsolutePath() + " lock is valid=" + lock.isValid() );
+                        LOGGER.debug( () -> "obtained file lock on file " + lockfile.getAbsolutePath() + " lock is valid=" + lock.isValid() );
                         writeLockFileContents( file );
                     }
                     else
                     {
-                        LOGGER.debug( "unable to obtain file lock on file " + lockfile.getAbsolutePath() );
+                        LOGGER.debug( () -> "unable to obtain file lock on file " + lockfile.getAbsolutePath() );
                     }
                 }
                 catch ( Exception e )
@@ -667,7 +667,7 @@ public class PwmEnvironment
                     LOGGER.error( "error releasing file lock: " + e.getMessage() );
                 }
 
-                LOGGER.debug( "released file lock on file " + lockfile.getAbsolutePath() );
+                LOGGER.debug( () -> "released file lock on file " + lockfile.getAbsolutePath() );
             }
         }
     }

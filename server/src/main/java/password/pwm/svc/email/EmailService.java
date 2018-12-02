@@ -224,7 +224,7 @@ public class EmailService implements PwmService
 
         if ( servers.isEmpty() )
         {
-            LOGGER.debug( "discarding email send event (no SMTP server address configured) " + emailItem.toDebugString() );
+            LOGGER.debug( () -> "discarding email send event (no SMTP server address configured) " + emailItem.toDebugString() );
             return false;
         }
 
@@ -395,7 +395,7 @@ public class EmailService implements PwmService
 
             serverErrors.put( serverTransport.getEmailServer(), Optional.empty() );
 
-            LOGGER.debug( "sent email: " + emailItemBean.toDebugString() );
+            LOGGER.debug( () -> "sent email: " + emailItemBean.toDebugString() );
             StatisticsManager.incrementStat( pwmApplication, Statistic.EMAIL_SEND_SUCCESSES );
             return WorkQueueProcessor.ProcessResult.SUCCESS;
         }

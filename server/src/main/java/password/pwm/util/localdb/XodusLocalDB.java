@@ -167,7 +167,7 @@ public class XodusLocalDB implements LocalDBProvider
             environment.close();
         }
         status = LocalDB.Status.CLOSED;
-        LOGGER.debug( "closed" );
+        LOGGER.debug( () -> "closed" );
     }
 
     private EnvironmentConfig makeEnvironmentConfig( final Map<String, String> initParameters )
@@ -503,7 +503,7 @@ public class XodusLocalDB implements LocalDBProvider
         }
         catch ( LocalDBException e )
         {
-            LOGGER.debug( "error while calculating sizes for localDB debug output: "  + e.getMessage() );
+            LOGGER.debug( () -> "error while calculating sizes for localDB debug output: "  + e.getMessage() );
         }
 
         return outputStats;

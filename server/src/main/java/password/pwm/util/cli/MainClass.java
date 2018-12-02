@@ -536,7 +536,7 @@ public class MainClass
             }
         }
 
-        LOGGER.debug( "using applicationPath " + applicationPath.getAbsolutePath() );
+        LOGGER.debug( () -> "using applicationPath " + applicationPath.getAbsolutePath() );
         return applicationPath;
     }
 }

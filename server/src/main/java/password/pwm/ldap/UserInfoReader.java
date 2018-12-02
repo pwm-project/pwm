@@ -220,7 +220,7 @@ public class UserInfoReader implements UserInfo
         final PwmPasswordPolicy passwordPolicy = selfCachedReference.getPasswordPolicy();
 
         final long startTime = System.currentTimeMillis();
-        LOGGER.trace( sessionLabel, "beginning password status check process for " + userDN );
+        LOGGER.trace( sessionLabel, () -> "beginning password status check process for " + userDN );
 
         // check if password meets existing policy.
         if ( passwordPolicy.getRuleHelper().readBooleanValue( PwmPasswordRule.EnforceAtLogin ) )
@@ -234,7 +234,8 @@ public class UserInfoReader implements UserInfo
                 }
                 catch ( PwmDataValidationException | PwmUnrecoverableException e )
                 {
-                    LOGGER.debug( sessionLabel, "user " + userDN + " password does not conform to current password policy (" + e.getMessage() + "), marking as requiring change." );
+                    LOGGER.debug( sessionLabel, () -> "user " + userDN + " password does not conform to current password policy ("
+                            + e.getMessage() + "), marking as requiring change." );
                     passwordStatusBuilder.violatesPolicy( true );
                 }
                 catch ( ChaiUnavailableException e )
@@ -251,11 +252,11 @@ public class UserInfoReader implements UserInfo
 
             if ( ldapPasswordExpired )
             {
-                LOGGER.trace( sessionLabel, "password for " + userDN + " appears to be expired" );
+                LOGGER.trace( sessionLabel, () -> "password for " + userDN + " appears to be expired" );
             }
             else
             {
-                LOGGER.trace( sessionLabel, "password for " + userDN + " does not appear to be expired" );
+                LOGGER.trace( sessionLabel, () -> "password for " + userDN + " does not appear to be expired" );
             }
         }
         catch ( ChaiOperationException e )
@@ -273,7 +274,7 @@ public class UserInfoReader implements UserInfo
         if ( ldapPasswordExpirationTime != null )
         {
             final TimeDuration expirationInterval = TimeDuration.fromCurrent( ldapPasswordExpirationTime );
-            LOGGER.trace( sessionLabel, "read password expiration time: "
+            LOGGER.trace( sessionLabel, () -> "read password expiration time: "
                     + JavaHelper.toIsoDate( ldapPasswordExpirationTime )
                     + ", " + expirationInterval.asCompactString() + " from now"
             );
@@ -283,7 +284,7 @@ public class UserInfoReader implements UserInfo
             final long preExpireMs = config.readSettingAsLong( PwmSetting.PASSWORD_EXPIRE_PRE_TIME ) * 1000;
             if ( diff.asMillis() > 0 && diff.asMillis() < preExpireMs )
             {
-                LOGGER.debug( sessionLabel, "user " + userDN + " password will expire within "
+                LOGGER.debug( sessionLabel, () -> "user " + userDN + " password will expire within "
                         + diff.asCompactString()
                         + ", marking as pre-expired" );
                 preExpired = true;
@@ -291,7 +292,7 @@ public class UserInfoReader implements UserInfo
             else if ( ldapPasswordExpired )
             {
                 preExpired = true;
-                LOGGER.debug( sessionLabel, "user " + userDN + " password is expired, marking as pre-expired." );
+                LOGGER.debug( sessionLabel, () -> "user " + userDN + " password is expired, marking as pre-expired." );
             }
 
             // now check to see if the user's expire time is within the 'preWarnTime' setting.
@@ -304,7 +305,7 @@ public class UserInfoReader implements UserInfo
                     if ( diff.asMillis() > 0 && diff.asMillis() < preWarnMs )
                     {
                         LOGGER.debug( sessionLabel,
-                                "user " + userDN + " password will expire within "
+                                () -> "user " + userDN + " password will expire within "
                                         + diff.asCompactString()
                                         + ", marking as within warn period" );
                         passwordStatusBuilder.warnPeriod( true );
@@ -315,7 +316,7 @@ public class UserInfoReader implements UserInfo
             passwordStatusBuilder.preExpired( preExpired );
         }
 
-        LOGGER.debug( sessionLabel, "completed user password status check for " + userDN + " " + passwordStatusBuilder
+        LOGGER.debug( sessionLabel, () -> "completed user password status check for " + userDN + " " + passwordStatusBuilder
                 + " (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
         passwordStatusBuilder.expired( ldapPasswordExpired );
         return passwordStatusBuilder.build();
@@ -330,31 +331,31 @@ public class UserInfoReader implements UserInfo
         if ( !LdapPermissionTester.testUserPermissions( pwmApplication, sessionLabel, userIdentity, updateProfilePermission ) )
         {
             LOGGER.debug( sessionLabel,
-                    "checkPassword: " + userIdentity.toString() + " user does not have permission to change password" );
+                    () -> "checkPassword: " + userIdentity.toString() + " user does not have permission to change password" );
             return false;
         }
 
         if ( passwordStatus.isExpired() )
         {
-            LOGGER.debug( sessionLabel, "checkPassword: password is expired, marking new password as required" );
+            LOGGER.debug( sessionLabel, () -> "checkPassword: password is expired, marking new password as required" );
             return true;
         }
 
         if ( passwordStatus.isPreExpired() )
         {
-            LOGGER.debug( sessionLabel, "checkPassword: password is pre-expired, marking new password as required" );
+            LOGGER.debug( sessionLabel, () -> "checkPassword: password is pre-expired, marking new password as required" );
             return true;
         }
 
         if ( passwordStatus.isWarnPeriod() )
         {
-            LOGGER.debug( sessionLabel, "checkPassword: password is within warn period, marking new password as required" );
+            LOGGER.debug( sessionLabel, () -> "checkPassword: password is within warn period, marking new password as required" );
             return true;
         }
 
         if ( passwordStatus.isViolatesPolicy() )
         {
-            LOGGER.debug( sessionLabel, "checkPassword: current password violates password policy, marking new password as required" );
+            LOGGER.debug( sessionLabel, () -> "checkPassword: current password violates password policy, marking new password as required" );
             return true;
         }
 
@@ -422,7 +423,7 @@ public class UserInfoReader implements UserInfo
     @Override
     public boolean isRequiresOtpConfig( ) throws PwmUnrecoverableException
     {
-        LOGGER.trace( sessionLabel, "checkOtp: beginning process to check if user OTP setup is required" );
+        LOGGER.trace( sessionLabel, () ->  "checkOtp: beginning process to check if user OTP setup is required" );
 
         SetupOtpProfile setupOtpProfile = null;
         final Map<ProfileType, String> profileIDs = selfCachedReference.getProfileIDs();
@@ -433,13 +434,13 @@ public class UserInfoReader implements UserInfo
 
         if ( setupOtpProfile == null )
         {
-            LOGGER.trace( sessionLabel, "checkOtp: no otp setup profile assigned, user OTP setup is not required" );
+            LOGGER.trace( sessionLabel, () -> "checkOtp: no otp setup profile assigned, user OTP setup is not required" );
             return false;
         }
 
         if ( !setupOtpProfile.readSettingAsBoolean( PwmSetting.OTP_ALLOW_SETUP ) )
         {
-            LOGGER.trace( sessionLabel, "checkOtp: OTP allow setup is not enabled" );
+            LOGGER.trace( sessionLabel, () -> "checkOtp: OTP allow setup is not enabled" );
             return false;
         }
 
@@ -447,7 +448,7 @@ public class UserInfoReader implements UserInfo
 
         if ( policy == ForceSetupPolicy.SKIP )
         {
-            LOGGER.trace( sessionLabel, "checkOtp: OTP force setup policy is set to SKIP, user OTP setup is not required" );
+            LOGGER.trace( sessionLabel, () -> "checkOtp: OTP force setup policy is set to SKIP, user OTP setup is not required" );
             return false;
         }
 
@@ -456,12 +457,12 @@ public class UserInfoReader implements UserInfo
 
         if ( hasStoredOtp )
         {
-            LOGGER.trace( sessionLabel, "checkOtp: user has existing valid otp record, user OTP setup is not required" );
+            LOGGER.trace( sessionLabel, () -> "checkOtp: user has existing valid otp record, user OTP setup is not required" );
             return false;
         }
 
         // hasStoredOtp is always true at this point, so if forced then update needed
-        LOGGER.debug( sessionLabel, "checkOtp: user does not have existing valid otp record, user OTP setup is required" );
+        LOGGER.debug( sessionLabel, () -> "checkOtp: user does not have existing valid otp record, user OTP setup is required" );
         return policy == ForceSetupPolicy.FORCE || policy == ForceSetupPolicy.FORCE_ALLOW_SKIP;
     }
 
@@ -472,7 +473,7 @@ public class UserInfoReader implements UserInfo
 
         if ( !pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.UPDATE_PROFILE_ENABLE ) )
         {
-            LOGGER.debug( sessionLabel, "checkProfiles: " + userIdentity.toString() + " profile module is not enabled" );
+            LOGGER.debug( sessionLabel, () -> "checkProfiles: " + userIdentity.toString() + " profile module is not enabled" );
             return false;
         }
 
@@ -490,7 +491,7 @@ public class UserInfoReader implements UserInfo
 
         if ( !updateProfileProfile.readSettingAsBoolean( PwmSetting.UPDATE_PROFILE_FORCE_SETUP ) )
         {
-            LOGGER.debug( sessionLabel, "checkProfiles: " + userIdentity.toString() + " profile force setup is not enabled" );
+            LOGGER.debug( sessionLabel, () -> "checkProfiles: " + userIdentity.toString() + " profile force setup is not enabled" );
             return false;
         }
 
@@ -508,12 +509,12 @@ public class UserInfoReader implements UserInfo
             );
             final Map<FormConfiguration, String> singleValueMap = FormUtility.multiValueMapToSingleValue( valueMap );
             FormUtility.validateFormValues( configuration, singleValueMap, locale );
-            LOGGER.debug( sessionLabel, "checkProfile: " + userIdentity + " has value for attributes, update profile will not be required" );
+            LOGGER.debug( sessionLabel, () -> "checkProfile: " + userIdentity + " has value for attributes, update profile will not be required" );
             return false;
         }
         catch ( PwmDataValidationException e )
         {
-            LOGGER.debug( sessionLabel, "checkProfile: " + userIdentity + " does not have good attributes (" + e.getMessage() + "), update profile will be required" );
+            LOGGER.debug( sessionLabel, () -> "checkProfile: " + userIdentity + " does not have good attributes (" + e.getMessage() + "), update profile will be required" );
             return true;
         }
         catch ( PwmUnrecoverableException e )
@@ -660,11 +661,11 @@ public class UserInfoReader implements UserInfo
                 returnMap.put( profileType, profileID );
                 if ( profileID != null )
                 {
-                    LOGGER.debug( sessionLabel, "assigned " + profileType.toString() + " profileID \"" + profileID + "\" to " + userIdentity.toDisplayString() );
+                    LOGGER.debug( sessionLabel, () -> "assigned " + profileType.toString() + " profileID \"" + profileID + "\" to " + userIdentity.toDisplayString() );
                 }
                 else
                 {
-                    LOGGER.debug( sessionLabel, profileType.toString() + " has no matching profiles for user " + userIdentity.toDisplayString() );
+                    LOGGER.debug( sessionLabel, () -> profileType.toString() + " has no matching profiles for user " + userIdentity.toDisplayString() );
                 }
             }
         }

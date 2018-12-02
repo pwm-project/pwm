@@ -114,7 +114,7 @@ class LdapXmlUserHistory implements UserHistoryStore
         // quit if settings no good;
         if ( corAttribute == null || corAttribute.length() < 1 )
         {
-            LOGGER.debug( "no user event log attribute configured, skipping write of log data" );
+            LOGGER.debug( () -> "no user event log attribute configured, skipping write of log data" );
             return;
         }
 

@@ -152,12 +152,12 @@ public class ForgottenPasswordUtil
             {
                 if ( userIdentity.equals( userInfoFromSession.getUserIdentity() ) )
                 {
-                    LOGGER.trace( pwmRequest, "using request cached userInfo" );
+                    LOGGER.trace( pwmRequest, () -> "using request cached userInfo" );
                     return userInfoFromSession;
                 }
                 else
                 {
-                    LOGGER.trace( pwmRequest, "request cached userInfo is not for current user, clearing." );
+                    LOGGER.trace( pwmRequest, () -> "request cached userInfo is not for current user, clearing." );
                     pwmRequest.getHttpServletRequest().getSession().setAttribute( cacheKey, null );
                 }
             }
@@ -218,7 +218,7 @@ public class ForgottenPasswordUtil
 
         if ( configuredEmailSetting == null )
         {
-            LOGGER.debug( pwmRequest, "skipping send unlock notice email for '" + userIdentity + "' no email configured" );
+            LOGGER.debug( pwmRequest, () -> "skipping send unlock notice email for '" + userIdentity + "' no email configured" );
             return;
         }
 
@@ -250,7 +250,7 @@ public class ForgottenPasswordUtil
             final String cookieName = pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_AUTHRECORD_NAME );
             if ( cookieName == null || cookieName.isEmpty() )
             {
-                LOGGER.trace( pwmRequest, "skipping auth record cookie read, cookie name parameter is blank" );
+                LOGGER.trace( pwmRequest, () -> "skipping auth record cookie read, cookie name parameter is blank" );
                 return false;
             }
 
@@ -259,7 +259,7 @@ public class ForgottenPasswordUtil
             {
                 if ( authRecord.getGuid() != null && !authRecord.getGuid().isEmpty() && authRecord.getGuid().equals( userGuid ) )
                 {
-                    LOGGER.debug( pwmRequest, "auth record cookie validated" );
+                    LOGGER.debug( pwmRequest, () -> "auth record cookie validated" );
                     return true;
                 }
             }
@@ -439,7 +439,7 @@ public class ForgottenPasswordUtil
         final ForgottenPasswordProfile forgottenPasswordProfile = forgottenPasswordProfile( pwmRequest.getPwmApplication(), forgottenPasswordBean );
         final RecoveryAction recoveryAction = ForgottenPasswordUtil.getRecoveryAction( pwmApplication.getConfig(), forgottenPasswordBean );
 
-        LOGGER.trace( pwmRequest, "beginning process to send new password to user" );
+        LOGGER.trace( pwmRequest, () -> "beginning process to send new password to user" );
 
         if ( !forgottenPasswordBean.getProgress().isAllPassed() )
         {
@@ -453,7 +453,7 @@ public class ForgottenPasswordUtil
         {
             // try unlocking user
             theUser.unlockPassword();
-            LOGGER.trace( pwmRequest, "unlock account succeeded" );
+            LOGGER.trace( pwmRequest, () -> "unlock account succeeded" );
         }
         catch ( ChaiOperationException e )
         {
@@ -484,7 +484,7 @@ public class ForgottenPasswordUtil
                     userInfo.getPasswordPolicy(),
                     pwmApplication
             );
-            LOGGER.trace( pwmRequest, "generated random password value based on password policy for "
+            LOGGER.trace( pwmRequest, () -> "generated random password value based on password policy for "
                     + userIdentity.toDisplayString() );
 
 
@@ -492,7 +492,7 @@ public class ForgottenPasswordUtil
             try
             {
                 theUser.setPassword( newPassword.getStringValue() );
-                LOGGER.trace( pwmRequest, "set user " + userIdentity.toDisplayString()
+                LOGGER.trace( pwmRequest, () -> "set user " + userIdentity.toDisplayString()
                         + " password to system generated random value" );
             }
             catch ( ChaiException e )
@@ -502,7 +502,7 @@ public class ForgottenPasswordUtil
 
             if ( recoveryAction == RecoveryAction.SENDNEWPW_AND_EXPIRE )
             {
-                LOGGER.debug( pwmRequest, "marking user " + userIdentity.toDisplayString() + " password as expired" );
+                LOGGER.debug( pwmRequest, () -> "marking user " + userIdentity.toDisplayString() + " password as expired" );
                 theUser.expirePassword();
             }
 
@@ -625,7 +625,7 @@ public class ForgottenPasswordUtil
         }
         catch ( PwmUnrecoverableException e )
         {
-            LOGGER.debug( sessionLabel, "can't read user's forgotten password profile - assuming no profile assigned, error: " + e.getMessage() );
+            LOGGER.debug( sessionLabel, () -> "can't read user's forgotten password profile - assuming no profile assigned, error: " + e.getMessage() );
         }
 
         if ( forgottenPasswordProfile == null )
@@ -818,7 +818,7 @@ public class ForgottenPasswordUtil
                     }
                     else
                     {
-                        LOGGER.trace( pwmRequest, "excluding optional required attribute(" + formItem.getName() + "), user has no value" );
+                        LOGGER.trace( pwmRequest, () -> "excluding optional required attribute(" + formItem.getName() + "), user has no value" );
                     }
                 }
                 catch ( PwmUnrecoverableException e )

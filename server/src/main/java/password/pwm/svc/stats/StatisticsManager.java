@@ -388,7 +388,7 @@ public class StatisticsManager implements PwmService
 
         currentDailyKey = new DailyKey( new Date() );
         statsDaily = new StatisticsBundle();
-        LOGGER.debug( "reset daily statistics" );
+        LOGGER.debug( () -> "reset daily statistics" );
     }
 
     public STATUS status( )

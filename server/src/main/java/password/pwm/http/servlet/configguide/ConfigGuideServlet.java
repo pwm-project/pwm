@@ -402,8 +402,8 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         final LdapBrowser.LdapBrowseResult result = ldapBrowser.doBrowse( profile, dn );
         ldapBrowser.close();
 
-        LOGGER.trace( pwmRequest, "performed ldapBrowse operation in "
-                + TimeDuration.fromCurrent( startTime ).asCompactString()
+        LOGGER.trace( pwmRequest, () -> "performed ldapBrowse operation in "
+                + TimeDuration.compactFromCurrent( startTime )
                 + ", result=" + JsonUtil.serialize( result ) );
 
         pwmRequest.outputJsonResult( RestResultBean.withData( result ) );

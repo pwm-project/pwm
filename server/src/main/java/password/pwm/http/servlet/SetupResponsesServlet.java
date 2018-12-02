@@ -201,7 +201,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException
     {
-        LOGGER.trace( pwmRequest, "request for response clear received" );
+        LOGGER.trace( pwmRequest, () -> "request for response clear received" );
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         try
@@ -236,7 +236,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException
     {
-        LOGGER.trace( pwmRequest, "request for skip received" );
+        LOGGER.trace( pwmRequest, () -> "request for skip received" );
 
         final boolean allowSkip = checkIfAllowSkipCr( pwmRequest );
 
@@ -284,8 +284,8 @@ public class SetupResponsesServlet extends ControlledPwmServlet
 
         final ValidationResponseBean validationResponseBean = new ValidationResponseBean( userMessage, success );
         final RestResultBean restResultBean = RestResultBean.withData( validationResponseBean );
-        LOGGER.trace( pwmRequest, "completed rest validate response in "
-                + TimeDuration.fromCurrent( startTime ).asCompactString()
+        LOGGER.trace( pwmRequest, () -> "completed rest validate response in "
+                + TimeDuration.compactFromCurrent( startTime )
                 + ", result=" + JsonUtil.serialize( restResultBean ) );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
@@ -405,12 +405,12 @@ public class SetupResponsesServlet extends ControlledPwmServlet
         }
         catch ( PwmDataValidationException e )
         {
-            LOGGER.debug( pwmRequest, "error with new " + ( helpdeskMode ? "helpdesk" : "user" ) + " responses: " + e.getErrorInformation().toDebugStr() );
+            LOGGER.debug( pwmRequest, () -> "error with new " + ( helpdeskMode ? "helpdesk" : "user" ) + " responses: " + e.getErrorInformation().toDebugStr() );
             setLastError( pwmRequest, e.getErrorInformation() );
             return;
         }
 
-        LOGGER.trace( pwmRequest, ( helpdeskMode ? "helpdesk" : "user" ) + " responses are acceptable" );
+        LOGGER.trace( pwmRequest, () -> ( helpdeskMode ? "helpdesk" : "user" ) + " responses are acceptable" );
         if ( helpdeskMode )
         {
             setupResponsesBean.getHelpdeskResponseData().setResponseMap( responseMap );
@@ -719,7 +719,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
             {
                 if ( pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.ADMIN_ALLOW_SKIP_FORCED_ACTIVITIES ) )
                 {
-                    LOGGER.trace( pwmRequest, "allowing c/r answer setup skipping due to user being admin and setting "
+                    LOGGER.trace( pwmRequest, () -> "allowing c/r answer setup skipping due to user being admin and setting "
                             + PwmSetting.ADMIN_ALLOW_SKIP_FORCED_ACTIVITIES.toMenuLocationDebug( null, pwmRequest.getLocale() ) );
                     return true;
                 }

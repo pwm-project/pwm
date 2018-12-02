@@ -113,10 +113,10 @@ public class PwmServiceManager
 
         try
         {
-            LOGGER.debug( "initializing service " + serviceName );
+            LOGGER.debug( () -> "initializing service " + serviceName );
             newServiceInstance.init( pwmApplication );
             final TimeDuration startupDuration = TimeDuration.fromCurrent( startTime );
-            LOGGER.debug( "completed initialization of service " + serviceName + " in " + startupDuration.asCompactString() + ", status=" + newServiceInstance.status() );
+            LOGGER.debug( () -> "completed initialization of service " + serviceName + " in " + startupDuration.asCompactString() + ", status=" + newServiceInstance.status() );
         }
         catch ( PwmException e )
         {

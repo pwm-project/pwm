@@ -66,7 +66,7 @@ public class LdapCrOperator implements CrOperator
         }
         catch ( ChaiException e )
         {
-            LOGGER.debug( "ldap error reading response set: " + e.getMessage(), e );
+            LOGGER.debug( () -> "ldap error reading response set: " + e.getMessage(), e );
         }
         return null;
     }

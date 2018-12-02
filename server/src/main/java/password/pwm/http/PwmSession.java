@@ -107,7 +107,7 @@ public class PwmSession implements Serializable
             }
             catch ( NumberFormatException e )
             {
-                LOGGER.debug( this, "error generating sessionID: " + e.getMessage(), e );
+                LOGGER.debug( this, () -> "error generating sessionID: " + e.getMessage(), e );
             }
             this.getSessionStateBean().setSessionID( nextID );
         }
@@ -121,7 +121,7 @@ public class PwmSession implements Serializable
 
         pwmApplication.getSessionTrackService().addSessionData( this );
 
-        LOGGER.trace( this, "created new session" );
+        LOGGER.trace( this, () -> "created new session" );
     }
 
 
@@ -159,7 +159,7 @@ public class PwmSession implements Serializable
 
     public void reloadUserInfoBean( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
     {
-        LOGGER.trace( this, "performing reloadUserInfoBean" );
+        LOGGER.trace( this, () -> "performing reloadUserInfoBean" );
         final UserInfo oldUserInfoBean = getUserInfo();
 
         final UserInfo userInfo;
@@ -262,7 +262,7 @@ public class PwmSession implements Serializable
             // close out any outstanding connections
             getSessionManager().closeConnections();
 
-            LOGGER.debug( this, sb.toString() );
+            LOGGER.debug( this, () -> sb.toString() );
         }
 
         if ( pwmRequest != null )
@@ -338,7 +338,7 @@ public class PwmSession implements Serializable
         final Locale requestedLocale = LocaleHelper.parseLocaleString( localeString );
         if ( knownLocales.contains( requestedLocale ) || "default".equalsIgnoreCase( localeString ) )
         {
-            LOGGER.debug( this, "setting session locale to '" + localeString + "'" );
+            LOGGER.debug( this, () -> "setting session locale to '" + localeString + "'" );
             ssBean.setLocale( "default".equalsIgnoreCase( localeString )
                     ? PwmConstants.DEFAULT_LOCALE
                     : requestedLocale );

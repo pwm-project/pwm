@@ -229,7 +229,11 @@ public class ContextManager implements Serializable
         {
             handleStartupError( "unable to initialize application due to configuration related error: ", e );
         }
-        LOGGER.debug( "configuration file was loaded from " + ( configurationFile == null ? "null" : configurationFile.getAbsoluteFile() ) );
+
+        {
+            final String filename = configurationFile == null ? "null" : configurationFile.getAbsoluteFile().getAbsolutePath();
+            LOGGER.debug( () -> "configuration file was loaded from " + ( filename ) );
+        }
 
         final Collection<PwmEnvironment.ApplicationFlag> applicationFlags = parameterReader.readApplicationFlags();
         final Map<PwmEnvironment.ApplicationParameter, String> applicationParams = parameterReader.readApplicationParams();
@@ -366,7 +370,7 @@ public class ContextManager implements Serializable
 
     public void requestPwmApplicationRestart( )
     {
-        LOGGER.debug( "immediate restart requested" );
+        LOGGER.debug( () -> "immediate restart requested" );
         taskMaster.schedule( new RestartFlagWatcher(), 0, TimeUnit.MILLISECONDS );
     }
 

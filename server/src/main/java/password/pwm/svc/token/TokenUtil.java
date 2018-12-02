@@ -95,7 +95,7 @@ public class TokenUtil
             effectiveItems.add( effectiveItem );
         }
 
-        LOGGER.trace( sessionLabel, "calculated available token send destinations: " + JsonUtil.serializeCollection( effectiveItems ) );
+        LOGGER.trace( sessionLabel, () -> "calculated available token send destinations: " + JsonUtil.serializeCollection( effectiveItems ) );
 
         if ( tokenDestinations.isEmpty() )
         {

@@ -172,7 +172,7 @@ public class PasswordUtility
         message = message.replace( "%TOKEN%", newPassword.getStringValue() );
 
         pwmApplication.sendSmsUsingQueue( toNumber, message, null, macroMachine );
-        LOGGER.debug( String.format( "password SMS added to send queue for %s", toNumber ) );
+        LOGGER.debug( () -> String.format( "password SMS added to send queue for %s", toNumber ) );
         return null;
     }
 
@@ -209,7 +209,7 @@ public class PasswordUtility
         );
 
 
-        LOGGER.debug( "new password email to " + userInfo.getUserIdentity() + " added to send queue for " + toAddress );
+        LOGGER.debug( () -> "new password email to " + userInfo.getUserIdentity() + " added to send queue for " + toAddress );
         return null;
     }
 
@@ -342,7 +342,7 @@ public class PasswordUtility
 
         {
             // execute configured actions
-            LOGGER.debug( pwmSession, "executing configured actions to user " + proxiedUser.getEntryDN() );
+            LOGGER.debug( pwmSession, () -> "executing configured actions to user " + proxiedUser.getEntryDN() );
             final List<ActionConfiguration> configValues = pwmApplication.getConfig().readSettingAsAction( PwmSetting.CHANGE_PASSWORD_WRITE_ATTRIBUTES );
             if ( configValues != null && !configValues.isEmpty() )
             {
@@ -420,7 +420,7 @@ public class PasswordUtility
             bindDN = chaiProvider.getChaiConfiguration().getSetting( ChaiSetting.BIND_DN );
             bindIsSelf = userIdentity.canonicalEquals( new UserIdentity( bindDN, userIdentity.getLdapProfileID() ), pwmApplication );
 
-            LOGGER.trace( sessionLabel, "preparing to setActorPassword for '" + theUser.getEntryDN() + "', using bind DN: " + bindDN );
+            LOGGER.trace( sessionLabel, () -> "preparing to setActorPassword for '" + theUser.getEntryDN() + "', using bind DN: " + bindDN );
 
             final boolean settingEnableChange = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.LDAP_PASSWORD_CHANGE_SELF_ENABLE ) );
             if ( settingEnableChange )
@@ -436,7 +436,7 @@ public class PasswordUtility
             }
             else
             {
-                LOGGER.debug( sessionLabel, "skipping actual ldap password change operation due to app property "
+                LOGGER.debug( sessionLabel, () -> "skipping actual ldap password change operation due to app property "
                         + AppProperty.LDAP_PASSWORD_CHANGE_SELF_ENABLE.getKey() + "=false" );
             }
         }
@@ -530,7 +530,7 @@ public class PasswordUtility
 
         {
             // execute configured actions
-            LOGGER.debug( sessionLabel, "executing changepassword and helpdesk post password change writeAttributes to user " + userIdentity );
+            LOGGER.debug( sessionLabel, () -> "executing changepassword and helpdesk post password change writeAttributes to user " + userIdentity );
             final List<ActionConfiguration> actions = new ArrayList<>();
             actions.addAll( pwmApplication.getConfig().readSettingAsAction( PwmSetting.CHANGE_PASSWORD_WRITE_ATTRIBUTES ) );
             actions.addAll( helpdeskProfile.readSettingAsAction( PwmSetting.HELPDESK_POST_SET_PASSWORD_WRITE_ATTRIBUTES ) );
@@ -583,7 +583,7 @@ public class PasswordUtility
         // expire if so configured
         if ( helpdeskProfile.readSettingAsBoolean( PwmSetting.HELPDESK_FORCE_PW_EXPIRATION ) )
         {
-            LOGGER.trace( pwmSession, "preparing to expire password for user " + userIdentity.toDisplayString() );
+            LOGGER.trace( pwmSession, () -> "preparing to expire password for user " + userIdentity.toDisplayString() );
             try
             {
                 proxiedUser.expirePassword();
@@ -669,7 +669,7 @@ public class PasswordUtility
         final List<PostChangePasswordAction> postChangePasswordActions = pwmSession.getUserSessionDataCacheBean().removePostChangePasswordActions();
         if ( postChangePasswordActions == null || postChangePasswordActions.isEmpty() )
         {
-            LOGGER.trace( pwmSession, "no post change password actions pending from previous operations" );
+            LOGGER.trace( pwmSession, () -> "no post change password actions pending from previous operations" );
             return;
         }
 
@@ -882,14 +882,14 @@ public class PasswordUtility
             case MERGE:
                 final PwmPasswordPolicy pwmPolicy = determineConfiguredPolicyProfileForUser( pwmApplication, pwmSession, userIdentity, locale );
                 final PwmPasswordPolicy userPolicy = readLdapPasswordPolicy( pwmApplication, theUser );
-                LOGGER.trace( pwmSession, "read user policy for '" + theUser.getEntryDN() + "', policy: " + userPolicy.toString() );
+                LOGGER.trace( pwmSession, () -> "read user policy for '" + theUser.getEntryDN() + "', policy: " + userPolicy.toString() );
                 returnPolicy = pwmPolicy.merge( userPolicy );
-                LOGGER.debug( pwmSession, "merged user password policy of '" + theUser.getEntryDN() + "' with PWM configured policy: " + returnPolicy.toString() );
+                LOGGER.debug( pwmSession, () -> "merged user password policy of '" + theUser.getEntryDN() + "' with PWM configured policy: " + returnPolicy.toString() );
                 break;
 
             case LDAP:
                 returnPolicy = readLdapPasswordPolicy( pwmApplication, theUser );
-                LOGGER.debug( pwmSession, "discovered assigned password policy for " + theUser.getEntryDN() + " " + returnPolicy.toString() );
+                LOGGER.debug( pwmSession, () -> "discovered assigned password policy for " + theUser.getEntryDN() + " " + returnPolicy.toString() );
                 break;
 
             case PWM:
@@ -900,7 +900,7 @@ public class PasswordUtility
                 throw new IllegalStateException( "unknown policy source defined: " + ppSource.name() );
         }
 
-        LOGGER.trace( pwmSession, "readPasswordPolicyForUser completed in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
+        LOGGER.trace( pwmSession, () -> "readPasswordPolicyForUser completed in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
         return returnPolicy;
     }
 
@@ -922,7 +922,7 @@ public class PasswordUtility
         {
             final PwmPasswordPolicy loopPolicy = pwmApplication.getConfig().getPasswordPolicy( profile, locale );
             final List<UserPermission> userPermissions = loopPolicy.getUserPermissions();
-            LOGGER.debug( pwmSession, "testing password policy profile '" + profile + "'" );
+            LOGGER.debug( pwmSession, () -> "testing password policy profile '" + profile + "'" );
             try
             {
                 final boolean match = LdapPermissionTester.testUserPermissions( pwmApplication, pwmSession, userIdentity, userPermissions );
@@ -1189,7 +1189,7 @@ public class PasswordUtility
 
         if ( configuredEmailSetting == null )
         {
-            LOGGER.debug( pwmSession, "skipping send change password email for '" + pwmSession.getUserInfo().getUserIdentity() + "' no email configured" );
+            LOGGER.debug( pwmSession, () -> "skipping send change password email for '" + pwmSession.getUserInfo().getUserIdentity() + "' no email configured" );
             return;
         }
 
@@ -1230,7 +1230,7 @@ public class PasswordUtility
             final Instant chaiReadDate = theUser.readPasswordModificationDate();
             if ( chaiReadDate != null )
             {
-                LOGGER.trace( sessionLabel, "read last user password change timestamp (via chai) as: " + JavaHelper.toIsoDate( chaiReadDate ) );
+                LOGGER.trace( sessionLabel, () -> "read last user password change timestamp (via chai) as: " + JavaHelper.toIsoDate( chaiReadDate ) );
                 return chaiReadDate;
             }
         }
@@ -1246,7 +1246,7 @@ public class PasswordUtility
             try
             {
                 final Instant pwmPwdLastModified = theUser.readDateAttribute( pwmLastSetAttr );
-                LOGGER.trace( sessionLabel, "read pwmPasswordChangeTime as: " + ( pwmPwdLastModified == null ? "n/a" : JavaHelper.toIsoDate( pwmPwdLastModified ) ) );
+                LOGGER.trace( sessionLabel, () -> "read pwmPasswordChangeTime as: " + ( pwmPwdLastModified == null ? "n/a" : JavaHelper.toIsoDate( pwmPwdLastModified ) ) );
                 return pwmPwdLastModified;
             }
             catch ( ChaiOperationException e )
@@ -1255,7 +1255,7 @@ public class PasswordUtility
             }
         }
 
-        LOGGER.debug( sessionLabel, "unable to determine time of user's last password modification" );
+        LOGGER.debug( sessionLabel, () -> "unable to determine time of user's last password modification" );
         return null;
     }
 
@@ -1281,7 +1281,7 @@ public class PasswordUtility
 
             if ( userInfo.getPasswordPolicy() == null )
             {
-                LOGGER.debug( sessionLabel, "skipping minimum lifetime check, password last set time is unknown" );
+                LOGGER.debug( sessionLabel, () -> "skipping minimum lifetime check, password last set time is unknown" );
                 return;
             }
 
@@ -1321,7 +1321,7 @@ public class PasswordUtility
                     final Instant date = OracleDSEntries.convertZuluToDate( oracleDSPrePasswordAllowChangeTime );
                     if ( Instant.now().isBefore( date ) )
                     {
-                        LOGGER.debug( "discovered oracleds allowed change time is set to: " + JavaHelper.toIsoDate( date ) + ", won't permit password change" );
+                        LOGGER.debug( () -> "discovered oracleds allowed change time is set to: " + JavaHelper.toIsoDate( date ) + ", won't permit password change" );
                         final String errorMsg = "change not permitted until " + JavaHelper.toIsoDate( date );
                         final ErrorInformation errorInformation = new ErrorInformation( PwmError.PASSWORD_TOO_SOON, errorMsg );
                         throw new PwmUnrecoverableException( errorInformation );
@@ -1332,7 +1332,7 @@ public class PasswordUtility
         }
         catch ( ChaiException e )
         {
-            LOGGER.debug( sessionLabel, "unexpected error reading OracleDS password allow modification time: " + e.getMessage() );
+            LOGGER.debug( sessionLabel, () -> "unexpected error reading OracleDS password allow modification time: " + e.getMessage() );
         }
 
         final TimeDuration minimumLifetime;
@@ -1345,7 +1345,7 @@ public class PasswordUtility
 
             if ( lastModified == null )
             {
-                LOGGER.debug( sessionLabel, "skipping minimum lifetime check, password last set time is unknown" );
+                LOGGER.debug( sessionLabel, () -> "skipping minimum lifetime check, password last set time is unknown" );
                 return false;
             }
 
@@ -1353,7 +1353,7 @@ public class PasswordUtility
         }
 
         final TimeDuration passwordAge = TimeDuration.fromCurrent( lastModified );
-        LOGGER.trace( sessionLabel, "beginning check for minimum lifetime, lastModified="
+        LOGGER.trace( sessionLabel, () -> "beginning check for minimum lifetime, lastModified="
                 + JavaHelper.toIsoDate( lastModified )
                 + ", minimumLifetimeSeconds=" + minimumLifetime.asCompactString()
                 + ", passwordAge=" + passwordAge.asCompactString() );
@@ -1361,20 +1361,20 @@ public class PasswordUtility
 
         if ( lastModified.isAfter( Instant.now() ) )
         {
-            LOGGER.debug( sessionLabel, "skipping minimum lifetime check, password lastModified time is in the future" );
+            LOGGER.debug( sessionLabel, () -> "skipping minimum lifetime check, password lastModified time is in the future" );
             return false;
         }
 
         final boolean passwordTooSoon = passwordAge.isShorterThan( minimumLifetime );
         if ( !passwordTooSoon )
         {
-            LOGGER.trace( sessionLabel, "minimum lifetime check passed, password age " );
+            LOGGER.trace( sessionLabel, () -> "minimum lifetime check passed, password age " );
             return false;
         }
 
         if ( passwordStatus.isExpired() || passwordStatus.isPreExpired() || passwordStatus.isWarnPeriod() )
         {
-            LOGGER.debug( sessionLabel, "current password is too young, but skipping enforcement of minimum lifetime check because current password is expired" );
+            LOGGER.debug( sessionLabel, () -> "current password is too young, but skipping enforcement of minimum lifetime check because current password is expired" );
             return false;
         }
 

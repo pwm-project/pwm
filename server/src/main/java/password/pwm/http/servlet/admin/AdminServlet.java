@@ -370,7 +370,7 @@ public class AdminServlet extends ControlledPwmServlet
                 pwmRequest.readParameterAsString( "command" )
         );
 
-        LOGGER.trace( pwmRequest, "issuing command '" + reportCommand + "' to report engine" );
+        LOGGER.trace( pwmRequest, () -> "issuing command '" + reportCommand + "' to report engine" );
         pwmRequest.getPwmApplication().getReportService().executeCommand( reportCommand );
 
         final RestResultBean restResultBean = RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown );
@@ -495,7 +495,7 @@ public class AdminServlet extends ControlledPwmServlet
         final HashMap<String, Object> resultData = new HashMap<>( Collections.singletonMap( "records", records ) );
 
         final RestResultBean restResultBean = RestResultBean.withData( resultData );
-        LOGGER.debug( pwmRequest.getPwmSession(), "output " + records.size() + " audit records." );
+        LOGGER.debug( pwmRequest, () -> "output " + records.size() + " audit records." );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
     }

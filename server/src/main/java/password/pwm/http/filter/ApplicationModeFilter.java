@@ -113,7 +113,7 @@ public class ApplicationModeFilter extends AbstractPwmFilter
             }
             else
             {
-                LOGGER.debug( "unable to find a valid configuration, redirecting " + pwmURL + " to ConfigGuide" );
+                LOGGER.debug( () -> "unable to find a valid configuration, redirecting " + pwmURL + " to ConfigGuide" );
                 pwmRequest.sendRedirect( PwmServletDefinition.ConfigGuide );
                 return ProcessStatus.Halt;
             }

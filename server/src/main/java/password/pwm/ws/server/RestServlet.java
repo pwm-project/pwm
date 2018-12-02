@@ -48,6 +48,7 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
@@ -120,8 +121,12 @@ public abstract class RestServlet extends HttpServlet
 
         try
         {
-            final PwmHttpRequestWrapper httpRequestWrapper = new PwmHttpRequestWrapper( req, pwmApplication.getConfig() );
-            LOGGER.trace( sessionLabel, "incoming HTTP REST request: " +  httpRequestWrapper.debugHttpRequestToString( null, true ) );
+            if ( LOGGER.isEnabled( PwmLogLevel.TRACE ) )
+            {
+                final PwmHttpRequestWrapper httpRequestWrapper = new PwmHttpRequestWrapper( req, pwmApplication.getConfig() );
+                final String debutTxt = httpRequestWrapper.debugHttpRequestToString( null, true );
+                LOGGER.trace( sessionLabel, () -> "incoming HTTP REST request: " + debutTxt );
+            }
         }
         catch ( PwmUnrecoverableException e )
         {
@@ -145,7 +150,7 @@ public abstract class RestServlet extends HttpServlet
         try
         {
             final RestAuthentication restAuthentication = new RestAuthenticationProcessor( pwmApplication, sessionLabel, req ).readRestAuthentication();
-            LOGGER.debug( sessionLabel, "rest request authentication status: " + JsonUtil.serialize( restAuthentication ) );
+            LOGGER.debug( sessionLabel, () -> "rest request authentication status: " + JsonUtil.serialize( restAuthentication ) );
 
             final RestRequest restRequest = RestRequest.forRequest( pwmApplication, restAuthentication, sessionLabel, req );
 
@@ -176,7 +181,8 @@ public abstract class RestServlet extends HttpServlet
         }
 
         outputRestResultBean( restResultBean, req, resp );
-        LOGGER.trace( sessionLabel, "completed rest invocation in " + TimeDuration.compactFromCurrent( startTime ) + " success=" + !restResultBean.isError() );
+        final boolean success = restResultBean != null && !restResultBean.isError();
+        LOGGER.trace( sessionLabel, () -> "completed rest invocation in " + TimeDuration.compactFromCurrent( startTime ) + " success=" + success );
     }
 
     private RestResultBean invokeWebService( final RestRequest restRequest ) throws IOException, PwmUnrecoverableException

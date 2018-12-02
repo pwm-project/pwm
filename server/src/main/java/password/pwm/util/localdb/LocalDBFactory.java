@@ -75,10 +75,10 @@ public class LocalDBFactory
         }
 
         final Map<LocalDBProvider.Parameter, String> parameters = pwmApplication == null
-                ? Collections.<LocalDBProvider.Parameter, String>emptyMap()
+                ? Collections.emptyMap()
                 : makeParameterMap( pwmApplication.getConfig(), readonly );
         final LocalDBProvider dbProvider = createInstance( className );
-        LOGGER.debug( "initializing " + className + " localDBProvider instance" );
+        LOGGER.debug( () -> "initializing " + className + " localDBProvider instance" );
 
         final LocalDB localDB = new LocalDBAdaptor( dbProvider, pwmApplication );
 

@@ -129,7 +129,7 @@ public class RandomPasswordGenerator
     )
             throws PwmUnrecoverableException
     {
-        final Instant startTimeMS = Instant.now();
+        final Instant startTime = Instant.now();
         final PwmRandom pwmRandom = pwmApplication.getSecureService().pwmRandom();
 
         randomGeneratorConfig.validateSettings( pwmApplication );
@@ -231,10 +231,12 @@ public class RandomPasswordGenerator
 
         // report outcome
         {
-            final TimeDuration td = TimeDuration.fromCurrent( startTimeMS );
+            final TimeDuration td = TimeDuration.fromCurrent( startTime );
             if ( validPassword )
             {
-                LOGGER.trace( sessionLabel, "finished random password generation in " + td.asCompactString() + " after " + tryCount + " tries." );
+                final int finalTryCount = tryCount;
+                LOGGER.trace( sessionLabel, () -> "finished random password generation in "
+                        + td.asCompactString() + " after " + finalTryCount + " tries." );
             }
             else
             {
@@ -250,8 +252,8 @@ public class RandomPasswordGenerator
         StatisticsManager.incrementStat( pwmApplication, Statistic.GENERATED_PASSWORDS );
 
         final String logText = "real-time random password generator called"
-                + " (" + TimeDuration.compactFromCurrent( startTimeMS ) + ")";
-        LOGGER.trace( sessionLabel, logText );
+                + " (" + TimeDuration.compactFromCurrent( startTime ) + ")";
+        LOGGER.trace( sessionLabel, () -> logText );
 
         return new PasswordData( password.toString() );
     }

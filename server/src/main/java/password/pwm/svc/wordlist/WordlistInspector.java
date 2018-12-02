@@ -119,7 +119,7 @@ class WordlistInspector implements Runnable
                 && !existingStatus.isCompleted()
         )
         {
-            getLogger().debug( "auto-import did not complete and failed with an error, will (temporarily) import built-in wordlist." );
+            getLogger().debug( () -> "auto-import did not complete and failed with an error, will (temporarily) import built-in wordlist." );
             needsBuiltInPopulation = true;
         }
         else if ( !autoImportUrlConfigured )
@@ -128,12 +128,12 @@ class WordlistInspector implements Runnable
 
             if ( existingStatus.getSourceType() != WordlistSourceType.Temporary_BuiltIn )
             {
-                getLogger().debug( "auto-import is not configured, and existing wordlist is not of type BuiltIn, will reload." );
+                getLogger().debug( () -> "auto-import is not configured, and existing wordlist is not of type BuiltIn, will reload." );
                 needsBuiltInPopulation = true;
             }
             else if ( !existingStatus.isCompleted() )
             {
-                getLogger().debug( "existing built-in store was not completed, will re-import" );
+                getLogger().debug( () -> "existing built-in store was not completed, will re-import" );
                 needsBuiltInPopulation = true;
             }
             else
@@ -141,7 +141,7 @@ class WordlistInspector implements Runnable
                 final WordlistSourceInfo builtInInfo = source.readRemoteWordlistInfo( cancelFlag );
                 if ( !builtInInfo.equals( existingStatus.getRemoteInfo() ) )
                 {
-                    getLogger().debug( "existing built-in store does not match imported wordlist, will re-import" );
+                    getLogger().debug( () -> "existing built-in store does not match imported wordlist, will re-import" );
                     needsBuiltInPopulation = true;
                 }
             }
@@ -170,7 +170,7 @@ class WordlistInspector implements Runnable
 
         if ( wordlistStatus.getVersion() != WordlistStatus.CURRENT_VERSION )
         {
-            getLogger().debug( "stored version '" + wordlistStatus.getVersion() + "' is not current version '"
+            getLogger().debug( () -> "stored version '" + wordlistStatus.getVersion() + "' is not current version '"
                     + WordlistStatus.CURRENT_VERSION + "', will clear" );
             return true;
         }
@@ -181,7 +181,7 @@ class WordlistInspector implements Runnable
             {
                 if ( !autoImportUrlConfigured )
                 {
-                    getLogger().debug( "existing stored list is AutoImport but auto-import is not configured, will clear" );
+                    getLogger().debug( () -> "existing stored list is AutoImport but auto-import is not configured, will clear" );
                     return true;
                 }
 
@@ -189,7 +189,7 @@ class WordlistInspector implements Runnable
                 final String configuredUrl = rootWordlist.getConfiguration().getAutoImportUrl();
                 if ( !StringUtil.nullSafeEquals( storedImportUrl, configuredUrl ) )
                 {
-                    getLogger().debug( "auto import url has been modified since import, will clear" );
+                    getLogger().debug( () -> "auto import url has been modified since import, will clear" );
                     return true;
                 }
             }
@@ -271,11 +271,11 @@ class WordlistInspector implements Runnable
                 catch ( PwmUnrecoverableException e )
                 {
                     rootWordlist.setAutoImportError( e.getErrorInformation() );
-                    getLogger().debug( "existing stored list is not type AutoImport but auto-import is configured"
+                    getLogger().debug( () -> "existing stored list is not type AutoImport but auto-import is configured"
                             + ", however auto-import returns error so will keep existing built-in wordlist; error: " + e.getMessage() );
                     return true;
                 }
-                getLogger().debug( "existing stored list is not type AutoImport but auto-import is configured, will clear" );
+                getLogger().debug( () -> "existing stored list is not type AutoImport but auto-import is configured, will clear" );
                 rootWordlist.clearImpl( Wordlist.Activity.ReadingWordlistFile );
             }
             break;
@@ -321,12 +321,12 @@ class WordlistInspector implements Runnable
         {
             if ( !remoteInfo.equals( existingStatus.getRemoteInfo() ) )
             {
-                getLogger().debug( "auto-import url remote hash does not equal currently stored hash, will start auto-import" );
+                getLogger().debug( () -> "auto-import url remote hash does not equal currently stored hash, will start auto-import" );
                 needsAutoImport = true;
             }
             else if ( remoteInfo.getBytes() > existingStatus.getBytes() || !existingStatus.isCompleted() )
             {
-                getLogger().debug( "auto-import did not previously complete, will continue previous import" );
+                getLogger().debug( () -> "auto-import did not previously complete, will continue previous import" );
                 needsAutoImport = true;
             }
 

@@ -147,7 +147,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
         }
 
         checkIfXmlRequiresUpdate( newConfiguration );
-        LOGGER.debug( "successfully loaded configuration (" + TimeDuration.compactFromCurrent( startTime ) + ")" );
+        LOGGER.debug( () -> "successfully loaded configuration (" + TimeDuration.compactFromCurrent( startTime ) + ")" );
         return newConfiguration;
     }
 
@@ -1854,7 +1854,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
                 null
         );
 
-        LOGGER.debug( "initialized new random security key" );
+        LOGGER.debug( () -> "initialized new random security key" );
     }
 
 

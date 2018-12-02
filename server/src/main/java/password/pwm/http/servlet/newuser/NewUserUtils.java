@@ -139,7 +139,7 @@ class NewUserUtils
             passwordCheckInfoToException( passwordCheckInfo );
         }
 
-        NewUserUtils.LOGGER.debug( pwmSession, "beginning createUser process for " + newUserDN );
+        NewUserUtils.LOGGER.debug( pwmSession, () -> "beginning createUser process for " + newUserDN );
 
         final NewUserProfile newUserProfile = NewUserServlet.getNewUserProfile( pwmRequest );
         final boolean promptForPassword = newUserProfile.readSettingAsBoolean( PwmSetting.NEWUSER_PROMPT_FOR_PASSWORD );
@@ -201,7 +201,7 @@ class NewUserUtils
 
         if ( useTempPw )
         {
-            NewUserUtils.LOGGER.trace( pwmSession, "will use temporary password process for new user entry: " + newUserDN );
+            NewUserUtils.LOGGER.trace( pwmSession, () -> "will use temporary password process for new user entry: " + newUserDN );
             final PasswordData temporaryPassword;
             {
                 final RandomPasswordGenerator.RandomGeneratorConfig randomGeneratorConfig = RandomPasswordGenerator.RandomGeneratorConfig.builder()
@@ -214,7 +214,7 @@ class NewUserUtils
             {
                 //set password as admin
                 proxiedUser.setPassword( temporaryPassword.getStringValue() );
-                NewUserUtils.LOGGER.debug( pwmSession, "set temporary password for new user entry: " + newUserDN );
+                NewUserUtils.LOGGER.debug( pwmSession, () -> "set temporary password for new user entry: " + newUserDN );
             }
             catch ( ChaiOperationException e )
             {
@@ -229,7 +229,7 @@ class NewUserUtils
             {
                 try
                 {
-                    NewUserUtils.LOGGER.debug( pwmSession,
+                    NewUserUtils.LOGGER.debug( pwmSession, () ->
                             "setting userAccountControl attribute to enable account " + theUser.getEntryDN() );
                     theUser.writeStringAttribute( "userAccountControl", "512" );
                 }
@@ -245,7 +245,7 @@ class NewUserUtils
             try
             {
                 // bind as user
-                NewUserUtils.LOGGER.debug( pwmSession,
+                NewUserUtils.LOGGER.debug( pwmSession, () ->
                         "attempting bind as user to then allow changing to requested password for new user entry: " + newUserDN );
                 final ChaiConfiguration chaiConfiguration = ChaiConfiguration.builder( chaiProvider.getChaiConfiguration() )
                         .setSetting( ChaiSetting.BIND_DN, newUserDN )
@@ -254,7 +254,7 @@ class NewUserUtils
                 final ChaiProvider bindAsProvider = pwmApplication.getLdapConnectionService().getChaiProviderFactory().newProvider( chaiConfiguration );
                 final ChaiUser bindAsUser = bindAsProvider.getEntryFactory().newChaiUser( newUserDN );
                 bindAsUser.changePassword( temporaryPassword.getStringValue(), userPassword.getStringValue() );
-                NewUserUtils.LOGGER.debug( pwmSession, "changed to user requested password for new user entry: " + newUserDN );
+                NewUserUtils.LOGGER.debug( pwmSession, () -> "changed to user requested password for new user entry: " + newUserDN );
                 bindAsProvider.close();
             }
             catch ( ChaiOperationException e )
@@ -271,7 +271,7 @@ class NewUserUtils
             {
                 //set password
                 theUser.setPassword( userPassword.getStringValue() );
-                NewUserUtils.LOGGER.debug( pwmSession, "set user requested password for new user entry: " + newUserDN );
+                NewUserUtils.LOGGER.debug( pwmSession, () -> "set user requested password for new user entry: " + newUserDN );
             }
             catch ( ChaiOperationException e )
             {
@@ -298,7 +298,7 @@ class NewUserUtils
             }
         }
 
-        NewUserUtils.LOGGER.trace( pwmSession, "new user ldap creation process complete, now authenticating user" );
+        NewUserUtils.LOGGER.trace( pwmSession, () -> "new user ldap creation process complete, now authenticating user" );
 
         // write data to remote web service
         remoteWriteFormData( pwmRequest, newUserForm );
@@ -314,7 +314,7 @@ class NewUserUtils
                     PwmSetting.NEWUSER_WRITE_ATTRIBUTES );
             if ( actions != null && !actions.isEmpty() )
             {
-                NewUserUtils.LOGGER.debug( pwmSession, "executing configured actions to user " + theUser.getEntryDN() );
+                NewUserUtils.LOGGER.debug( pwmSession, () -> "executing configured actions to user " + theUser.getEntryDN() );
 
                 final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings( pwmApplication, userIdentity )
                         .setExpandPwmMacros( true )
@@ -335,7 +335,7 @@ class NewUserUtils
         // increment the new user creation statistics
         pwmApplication.getStatisticsManager().incrementValue( Statistic.NEW_USERS );
 
-        NewUserUtils.LOGGER.debug( pwmSession, "completed createUser process for " + newUserDN + " (" + TimeDuration.fromCurrent(
+        NewUserUtils.LOGGER.debug( pwmSession, () -> "completed createUser process for " + newUserDN + " (" + TimeDuration.fromCurrent(
                 startTime ).asCompactString() + ")" );
     }
 
@@ -392,7 +392,7 @@ class NewUserUtils
             }
             final String escapedName = StringUtil.escapeLdapDN( namingValue );
             final String generatedDN = namingAttribute + "=" + escapedName + "," + expandedContext;
-            NewUserUtils.LOGGER.debug( pwmRequest, "generated dn for new user: " + generatedDN );
+            NewUserUtils.LOGGER.debug( pwmRequest, () -> "generated dn for new user: " + generatedDN );
             return generatedDN;
         }
 
@@ -409,11 +409,11 @@ class NewUserUtils
 
                 if ( !testIfEntryNameExists( pwmRequest, expandedName ) )
                 {
-                    NewUserUtils.LOGGER.trace( pwmRequest, "generated entry name for new user is unique: " + expandedName );
+                    NewUserUtils.LOGGER.trace( pwmRequest, () -> "generated entry name for new user is unique: " + expandedName );
                     final String namingAttribute = pwmRequest.getConfig().getDefaultLdapProfile().readSettingAsString( PwmSetting.LDAP_NAMING_ATTRIBUTE );
                     final String escapedName = StringUtil.escapeLdapDN( expandedName );
                     generatedDN = namingAttribute + "=" + escapedName + "," + expandedContext;
-                    NewUserUtils.LOGGER.debug( pwmRequest, "generated dn for new user: " + generatedDN );
+                    NewUserUtils.LOGGER.debug( pwmRequest, () -> "generated dn for new user: " + generatedDN );
                     return generatedDN;
                 }
                 else
@@ -422,7 +422,7 @@ class NewUserUtils
                 }
             }
 
-            NewUserUtils.LOGGER.debug( pwmRequest, "generated entry name for new user is not unique, will try again" );
+            NewUserUtils.LOGGER.debug( pwmRequest, () -> "generated entry name for new user is not unique, will try again" );
             attemptCount++;
         }
         NewUserUtils.LOGGER.error( pwmRequest,
@@ -470,7 +470,7 @@ class NewUserUtils
 
         if ( configuredEmailSetting == null )
         {
-            NewUserUtils.LOGGER.debug( pwmSession,
+            NewUserUtils.LOGGER.debug( pwmSession, () ->
                     "skipping send of new user email for '" + userInfo.getUserIdentity().getUserDN() + "' no email configured" );
             return;
         }

@@ -281,7 +281,7 @@ public class PwmHttpClient
         final Instant startTime = Instant.now();
         final int counter = REQUEST_COUNTER.getAndIncrement();
 
-        LOGGER.trace( sessionLabel, "preparing to send (id=" + counter + ") "
+        LOGGER.trace( sessionLabel, () -> "preparing to send (id=" + counter + ") "
                 + clientRequest.toDebugString( this ) );
 
         final HttpResponse httpResponse = executeRequest( clientRequest );
@@ -303,7 +303,7 @@ public class PwmHttpClient
         );
 
         final TimeDuration duration = TimeDuration.fromCurrent( startTime );
-        LOGGER.trace( sessionLabel, "received response (id=" + counter + ") in "
+        LOGGER.trace( sessionLabel, () -> "received response (id=" + counter + ") in "
                 + duration.asCompactString() + ": "
                 + httpClientResponse.toDebugString( this ) );
         return httpClientResponse;

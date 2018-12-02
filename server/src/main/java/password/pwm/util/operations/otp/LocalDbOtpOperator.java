@@ -90,7 +90,8 @@ public class LocalDbOtpOperator extends AbstractOtpOperator
                 }
                 if ( otpConfig != null )
                 {
-                    LOGGER.debug( "found user OTP secret in LocalDB: " + otpConfig.toString() );
+                    final OTPUserRecord finalRecord = otpConfig;
+                    LOGGER.debug( () -> "found user OTP secret in LocalDB: " + finalRecord.toString() );
                 }
             }
         }
@@ -118,7 +119,7 @@ public class LocalDbOtpOperator extends AbstractOtpOperator
     )
             throws PwmUnrecoverableException
     {
-        LOGGER.trace( pwmSession, String.format( "Enter: writeOtpUserConfiguration(%s, %s, %s)", theUser, userGUID, otpConfig ) );
+        LOGGER.trace( pwmSession, () -> String.format( "Enter: writeOtpUserConfiguration(%s, %s, %s)", theUser, userGUID, otpConfig ) );
         if ( userGUID == null || userGUID.length() < 1 )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_MISSING_GUID, "cannot save otp to localDB, user does not have a pwmGUID" ) );
@@ -137,7 +138,7 @@ public class LocalDbOtpOperator extends AbstractOtpOperator
             String value = composeOtpAttribute( otpConfig );
             if ( config.readSettingAsBoolean( PwmSetting.OTP_SECRET_ENCRYPT ) )
             {
-                LOGGER.debug( pwmSession, "Encrypting OTP secret for storage" );
+                LOGGER.debug( pwmSession, () -> "Encrypting OTP secret for storage" );
                 value = encryptAttributeValue( value );
             }
 
@@ -169,7 +170,7 @@ public class LocalDbOtpOperator extends AbstractOtpOperator
     )
             throws PwmUnrecoverableException
     {
-        LOGGER.trace( pwmSession, String.format( "Enter: clearOtpUserConfiguration(%s, %s)", theUser, userGUID ) );
+        LOGGER.trace( pwmSession, () -> String.format( "Enter: clearOtpUserConfiguration(%s, %s)", theUser, userGUID ) );
         if ( userGUID == null || userGUID.length() < 1 )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_MISSING_GUID, "cannot save otp to localDB, user does not have a pwmGUID" ) );

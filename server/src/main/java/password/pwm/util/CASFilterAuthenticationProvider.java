@@ -100,10 +100,10 @@ public class CASFilterAuthenticationProvider implements PwmHttpFilterAuthenticat
 
             if ( CASFilterAuthenticationProvider.isFilterEnabled( pwmRequest ) )
             {
-                LOGGER.trace( pwmRequest, "checking for authentication via CAS" );
+                LOGGER.trace( pwmRequest, () -> "checking for authentication via CAS" );
                 if ( authUserUsingCASClearPass( pwmRequest ) )
                 {
-                    LOGGER.debug( pwmRequest, "login via CAS successful" );
+                    LOGGER.debug( pwmRequest, () -> "login via CAS successful" );
                 }
             }
         }
@@ -145,7 +145,7 @@ public class CASFilterAuthenticationProvider implements PwmHttpFilterAuthenticat
         final Assertion assertion = ( Assertion ) session.getAttribute( AbstractCasFilter.CONST_CAS_ASSERTION );
         if ( assertion == null )
         {
-            LOGGER.trace( pwmSession, "no CAS assertion header present, skipping CAS authentication attempt" );
+            LOGGER.trace( pwmSession, () -> "no CAS assertion header present, skipping CAS authentication attempt" );
             return false;
         }
 
@@ -171,12 +171,12 @@ public class CASFilterAuthenticationProvider implements PwmHttpFilterAuthenticat
         final String clearPassUrl = pwmRequest.getConfig().readSettingAsString( PwmSetting.CAS_CLEAR_PASS_URL );
         if ( ( clearPassUrl != null && clearPassUrl.length() > 0 ) && ( password == null || password.getStringValue().length() < 1 ) )
         {
-            LOGGER.trace( pwmSession, "Using CAS clearpass via proxy" );
+            LOGGER.trace( pwmSession, () -> "using CAS clearpass via proxy" );
             // read cas proxy ticket
             final String proxyTicket = assertion.getPrincipal().getProxyTicketFor( clearPassUrl );
             if ( proxyTicket == null )
             {
-                LOGGER.trace( pwmSession, "no CAS proxy ticket available, skipping CAS authentication attempt" );
+                LOGGER.trace( pwmSession, () -> "no CAS proxy ticket available, skipping CAS authentication attempt" );
                 return false;
             }
 
@@ -199,13 +199,13 @@ public class CASFilterAuthenticationProvider implements PwmHttpFilterAuthenticat
         if ( password == null || password.getStringValue().length() < 1 )
         {
             final String errorMsg = "CAS server did not return credentials for user '" + username + "'";
-            LOGGER.trace( pwmSession, errorMsg );
+            LOGGER.trace( pwmSession, () -> errorMsg );
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_WRONGPASSWORD, errorMsg );
             throw new PwmOperationalException( errorInformation );
         }
 
         //user isn't already authenticated and has CAS assertion and password, so try to auth them.
-        LOGGER.debug( pwmSession, "attempting to authenticate user '" + username + "' using CAS assertion and password" );
+        LOGGER.debug( pwmSession, () -> "attempting to authenticate user '" + username + "' using CAS assertion and password" );
         final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator( pwmApplication, pwmSession, PwmAuthenticationSource.CAS );
         sessionAuthenticator.searchAndAuthenticateUser( username, password, null, null );
         return true;

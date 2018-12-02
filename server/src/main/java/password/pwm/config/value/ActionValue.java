@@ -377,7 +377,7 @@ public class ActionValue extends AbstractValue implements StoredValue
             }
             catch ( NumberFormatException e )
             {
-                LOGGER.debug( "unable to parse syntax version for setting " + e.getMessage() );
+                LOGGER.debug( () -> "unable to parse syntax version for setting " + e.getMessage() );
             }
         }
         return 0;

@@ -127,7 +127,7 @@ public class LDAPClusterDataService implements ClusterDataServiceProvider
             if ( recordAge.isLongerThan( maxNodeAge ) )
             {
                 // purge outdated records
-                LOGGER.debug( "purging outdated node reference to instanceID '" + instanceID + "'" );
+                LOGGER.debug( () -> "purging outdated node reference to instanceID '" + instanceID + "'" );
 
                 try
                 {

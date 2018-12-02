@@ -296,7 +296,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
 
         if ( configuredEmailSetting == null )
         {
-            LOGGER.debug( pwmRequest, "unable to send updated guest user email: no email configured" );
+            LOGGER.debug( pwmRequest, () -> "unable to send updated guest user email: no email configured" );
             return;
         }
 
@@ -309,7 +309,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
     )
             throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException
     {
-        LOGGER.trace( pwmRequest, "Enter: handleSearchRequest(...)" );
+        LOGGER.trace( pwmRequest, () -> "Enter: handleSearchRequest(...)" );
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final ChaiProvider chaiProvider = pwmSession.getSessionManager().getChaiProvider();
@@ -446,7 +446,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
             {
                 final FormConfiguration formItem = entry.getKey();
                 final String value = entry.getValue();
-                LOGGER.debug( pwmSession, "Attribute from form: " + formItem.getName() + " = " + value );
+                LOGGER.debug( pwmSession, () -> "Attribute from form: " + formItem.getName() + " = " + value );
                 final String n = formItem.getName();
                 final String v = formValues.get( formItem );
                 if ( n != null && n.length() > 0 && v != null && v.length() > 0 )
@@ -488,7 +488,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
 
             {
                 // execute configured actions
-                LOGGER.debug( pwmSession, "executing configured actions to user " + theUser.getEntryDN() );
+                LOGGER.debug( pwmSession, () -> "executing configured actions to user " + theUser.getEntryDN() );
                 final List<ActionConfiguration> actions = pwmApplication.getConfig().readSettingAsAction( PwmSetting.GUEST_WRITE_ATTRIBUTES );
                 if ( actions != null && !actions.isEmpty() )
                 {
@@ -574,7 +574,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
             throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_FIELD_REQUIRED, errorMsg ) );
         }
 
-        LOGGER.trace( pwmRequest, "read expiration date as " + expirationDate.toString() );
+        LOGGER.trace( pwmRequest, () -> "read expiration date as " + expirationDate.toString() );
         return expirationDate.toInstant();
     }
 
@@ -611,7 +611,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
 
         if ( configuredEmailSetting == null )
         {
-            LOGGER.debug( pwmSession, "unable to send guest registration email for '" + userIdentity + "' no email configured" );
+            LOGGER.debug( pwmSession, () -> "unable to send guest registration email for '" + userIdentity + "' no email configured" );
             return;
         }
 

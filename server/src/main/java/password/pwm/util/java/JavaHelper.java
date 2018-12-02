@@ -686,7 +686,7 @@ public class JavaHelper
         }
         catch ( IOException e )
         {
-            LOGGER.debug( "exception while estimating session size: " + e.getMessage() );
+            LOGGER.debug( () -> "exception while estimating session size: " + e.getMessage() );
             return 0;
         }
     }

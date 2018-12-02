@@ -91,7 +91,7 @@ public class ConfigurationReader
             this.storedConfiguration = StoredConfigurationImpl.newStoredConfiguration();
         }
 
-        LOGGER.debug( "configuration mode: " + configMode );
+        LOGGER.debug( () -> "configuration mode: " + configMode );
     }
 
     public PwmApplicationMode getConfigMode( )
@@ -122,7 +122,7 @@ public class ConfigurationReader
 
     private StoredConfigurationImpl readStoredConfig( ) throws PwmUnrecoverableException
     {
-        LOGGER.debug( "loading configuration file: " + configFile );
+        LOGGER.debug( () -> "loading configuration file: " + configFile );
 
         configurationReadTime = new Date();
 
@@ -193,7 +193,7 @@ public class ConfigurationReader
 
         final String fileSize = StringUtil.formatDiskSize( configFile.length() );
         final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-        LOGGER.debug( "configuration reading/parsing of " + fileSize + " complete in " + timeDuration.asLongString() );
+        LOGGER.debug( () -> "configuration reading/parsing of " + fileSize + " complete in " + timeDuration.asLongString() );
 
         return storedConfiguration;
     }

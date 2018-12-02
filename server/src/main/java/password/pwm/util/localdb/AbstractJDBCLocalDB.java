@@ -101,7 +101,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
                     statement = connection.createStatement();
                     statement.execute( sqlString );
                     connection.commit();
-                    LOGGER.debug( "created table " + db.toString() + " (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
+                    LOGGER.debug( () -> "created table " + db.toString() + " (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
                 }
                 catch ( final SQLException ex )
                 {
@@ -127,7 +127,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
                     statement = connection.createStatement();
                     statement.execute( sqlString.toString() );
                     connection.commit();
-                    LOGGER.debug( "created index " + indexName + " (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
+                    LOGGER.debug( () -> "created index " + indexName + " (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
                 }
                 catch ( final SQLException ex )
                 {
@@ -214,7 +214,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
                 }
                 catch ( final Exception e )
                 {
-                    LOGGER.debug( "error while closing DB: " + e.getMessage() );
+                    LOGGER.debug( () -> "error while closing DB: " + e.getMessage() );
                 }
             }
         }
@@ -223,7 +223,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
             lock.writeLock().unlock();
         }
 
-        LOGGER.debug( "closed" );
+        LOGGER.debug( () -> "closed" );
     }
 
     abstract void closeConnection( Connection connection )
@@ -534,7 +534,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
                 statement = dbConnection.prepareStatement( sqlText.toString() );
                 statement.executeUpdate();
                 dbConnection.commit();
-                LOGGER.debug( "truncated table " + db.toString() + " (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
+                LOGGER.debug( () -> "truncated table " + db.toString() + " (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
 
                 initTable( dbConnection, db );
             }

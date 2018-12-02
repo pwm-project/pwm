@@ -123,7 +123,7 @@ public class IntruderManager implements PwmService
         if ( !pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.INTRUDER_ENABLE ) )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "intruder module not enabled" );
-            LOGGER.debug( errorInformation.toDebugStr() );
+            LOGGER.debug( () -> errorInformation.toDebugStr() );
             status = STATUS.CLOSED;
             return;
         }
@@ -364,7 +364,7 @@ public class IntruderManager implements PwmService
                 final InetAddress inetAddress = InetAddress.getByName( subject );
                 if ( inetAddress.isAnyLocalAddress() || inetAddress.isLoopbackAddress() || inetAddress.isLinkLocalAddress() )
                 {
-                    LOGGER.debug( "disregarding local address intruder attempt from: " + subject );
+                    LOGGER.debug( () -> "disregarding local address intruder attempt from: " + subject );
                     return;
                 }
             }
@@ -461,7 +461,12 @@ public class IntruderManager implements PwmService
             delayPenalty = delayPenalty > Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.INTRUDER_MAX_DELAY_PENALTY_MS ) )
                     ? Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.INTRUDER_MAX_DELAY_PENALTY_MS ) )
                     : delayPenalty;
-            LOGGER.trace( sessionLabel, "delaying response " + delayPenalty + "ms due to intruder record: " + JsonUtil.serialize( intruderRecord ) );
+
+            {
+                final long finalDelay = delayPenalty;
+                LOGGER.trace( sessionLabel, () -> "delaying response " + finalDelay + "ms due to intruder record: " + JsonUtil.serialize( intruderRecord ) );
+            }
+
             JavaHelper.pause( delayPenalty );
         }
     }

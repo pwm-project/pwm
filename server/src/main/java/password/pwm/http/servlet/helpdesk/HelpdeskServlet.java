@@ -221,7 +221,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         final HelpdeskClientDataBean returnValues = HelpdeskClientDataBean.fromConfig( helpdeskProfile, pwmRequest.getLocale() );
 
         final RestResultBean restResultBean = RestResultBean.withData( returnValues );
-        LOGGER.trace( pwmRequest, "returning clientData: " + JsonUtil.serialize( restResultBean ) );
+        LOGGER.trace( pwmRequest, () -> "returning clientData: " + JsonUtil.serialize( restResultBean ) );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
     }
@@ -242,7 +242,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
             return ProcessStatus.Halt;
         }
         final UserIdentity userIdentity = UserIdentity.fromKey( userKey, pwmRequest.getPwmApplication() );
-        LOGGER.debug( pwmRequest, "received executeAction request for user " + userIdentity.toString() );
+        LOGGER.debug( pwmRequest, () -> "received executeAction request for user " + userIdentity.toString() );
 
         final List<ActionConfiguration> actionConfigurations = helpdeskProfile.readSettingAsAction( PwmSetting.HELPDESK_ACTIONS );
         final String requestedName = pwmRequest.readParameterAsString( "name" );
@@ -259,7 +259,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         {
             final String errorMsg = "request to execute unknown action: " + requestedName;
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
-            LOGGER.debug( pwmRequest, errorInformation.toDebugStr() );
+            LOGGER.debug( pwmRequest, errorInformation );
             final RestResultBean restResultBean = RestResultBean.fromError( errorInformation, pwmRequest );
             pwmRequest.outputJsonResult( restResultBean );
             return ProcessStatus.Halt;
@@ -360,7 +360,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         {
             final String errorMsg = "error while attempting to delete user " + userIdentity.toString() + ", error: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
-            LOGGER.debug( pwmRequest, errorMsg );
+            LOGGER.debug( pwmRequest, () -> errorMsg );
             pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
             return ProcessStatus.Halt;
         }
@@ -619,7 +619,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
             final ChaiError passwordError = e.getErrorCode();
             final PwmError pwmError = PwmError.forChaiError( passwordError );
             pwmRequest.respondWithError( new ErrorInformation( pwmError == null ? PwmError.PASSWORD_UNKNOWN_VALIDATION : pwmError ) );
-            LOGGER.trace( pwmRequest, "ChaiPasswordPolicyException was thrown while resetting password: " + e.toString() );
+            LOGGER.trace( pwmRequest, () -> "ChaiPasswordPolicyException was thrown while resetting password: " + e.toString() );
             return ProcessStatus.Halt;
         }
         catch ( ChaiOperationException e )
@@ -792,7 +792,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         final String tokenKey = macroMachine.expandMacros( configuredTokenString );
         final EmailItemBean emailItemBean = config.readSettingAsEmail( PwmSetting.EMAIL_HELPDESK_TOKEN, pwmRequest.getLocale() );
 
-        LOGGER.debug( pwmRequest, "generated token code for " + userIdentity.toDelimitedKey() );
+        LOGGER.debug( pwmRequest, () -> "generated token code for " + userIdentity.toDelimitedKey() );
 
         final String smsMessage = config.readSettingAsLocalizedString( PwmSetting.SMS_HELPDESK_TOKEN_TEXT, pwmRequest.getLocale() );
 
@@ -832,7 +832,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
 
         final RestResultBean restResultBean = RestResultBean.withData( helpdeskVerificationRequestBean );
         pwmRequest.outputJsonResult( restResultBean );
-        LOGGER.debug( pwmRequest, "helpdesk operator "
+        LOGGER.debug( pwmRequest, () -> "helpdesk operator "
                 + pwmRequest.getUserInfoIfLoggedIn().toDisplayString()
                 + " issued token for verification against user "
                 + userIdentity.toDisplayString()
@@ -1392,7 +1392,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         HelpdeskServletUtil.checkIfUserIdentityViewable( pwmRequest, helpdeskProfile, userIdentity  );
         final ChaiUser chaiUser = getChaiUser( pwmRequest, helpdeskProfile, userIdentity );
 
-        LOGGER.debug( pwmRequest, "received user photo request to view user " + userIdentity.toString() );
+        LOGGER.debug( pwmRequest, () -> "received user photo request to view user " + userIdentity.toString() );
 
         final PhotoDataBean photoData;
         try

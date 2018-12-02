@@ -79,7 +79,7 @@ public class LocalDbCrOperator implements CrOperator
             if ( responseStringBlob != null && responseStringBlob.length() > 0 )
             {
                 final ResponseSet userResponseSet = ChaiResponseSet.parseChaiResponseSetXML( responseStringBlob, theUser );
-                LOGGER.debug( "found user responses in LocalDB: " + userResponseSet.toString() );
+                LOGGER.debug( () -> "found user responses in LocalDB: " + userResponseSet.toString() );
                 return userResponseSet;
             }
         }

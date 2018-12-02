@@ -88,7 +88,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         }
         catch ( Exception e )
         {
-            LOGGER.debug( "can't read app property for developerDebug mode: " + e.getMessage() );
+            LOGGER.debug( () -> "can't read app property for developerDebug mode: " + e.getMessage() );
         }
 
         return new LocalDBStoredQueue( pwmDB, db, developerDebug );
@@ -1085,7 +1085,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
                                 localDB.put( db, KEY_HEAD_POSITION, headPosition.toString() );
                                 localDB.put( db, KEY_TAIL_POSITION, tailPosition.toString() );
                                 final int dbSize = size();
-                                LOGGER.debug( "repairing db " + db + ", " + examinedRecords.get() + " records examined"
+                                LOGGER.debug( () -> "repairing db " + db + ", " + examinedRecords.get() + " records examined"
                                         + ", size=" + dbSize
                                         + ", head=" + headPosition.toString() + ", tail=" + tailPosition.toString() );
                             }

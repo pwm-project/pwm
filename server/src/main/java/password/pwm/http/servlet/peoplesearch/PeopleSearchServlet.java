@@ -133,7 +133,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
         );
 
         final RestResultBean restResultBean = RestResultBean.withData( peopleSearchClientConfigBean );
-        LOGGER.trace( pwmRequest, "returning clientData: " + JsonUtil.serialize( restResultBean ) );
+        LOGGER.trace( pwmRequest, () -> "returning clientData: " + JsonUtil.serialize( restResultBean ) );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
     }
@@ -154,7 +154,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
         addExpiresHeadersToResponse( pwmRequest );
         pwmRequest.outputJsonResult( restResultBean );
 
-        LOGGER.trace( pwmRequest, "returning " + searchResultBean.getSearchResults().size() + " results for search request " + JsonUtil.serialize( searchRequest ) );
+        LOGGER.trace( pwmRequest, () -> "returning " + searchResultBean.getSearchResults().size() + " results for search request " + JsonUtil.serialize( searchRequest ) );
         return ProcessStatus.Halt;
     }
 
@@ -244,7 +244,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
         final PeopleSearchDataReader peopleSearchDataReader = new PeopleSearchDataReader( pwmRequest );
         final UserIdentity userIdentity = readUserIdentityFromKey( pwmRequest, userKey );
 
-        LOGGER.debug( pwmRequest, "received user photo request to view user " + userIdentity.toString() );
+        LOGGER.debug( pwmRequest, () -> "received user photo request to view user " + userIdentity.toString() );
 
         final PhotoDataBean photoData;
         try

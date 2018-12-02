@@ -132,7 +132,7 @@ public class CaptchaUtility
                     bodyText,
                     Collections.singletonMap( "Content-Type", HttpContentType.form.getHeaderValue() )
             );
-            LOGGER.debug( pwmRequest, "sending reCaptcha verification request" );
+            LOGGER.debug( pwmRequest, () -> "sending reCaptcha verification request" );
             final PwmHttpClient client = new PwmHttpClient( pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel() );
             final PwmHttpClientResponse clientResponse = client.makeRequest( clientRequest );
 
@@ -152,7 +152,7 @@ public class CaptchaUtility
                 if ( success )
                 {
                     writeCaptchaSkipCookie( pwmRequest );
-                    LOGGER.trace( pwmRequest, "captcha verification passed" );
+                    LOGGER.trace( pwmRequest, () -> "captcha verification passed" );
                     return true;
                 }
 
@@ -164,7 +164,7 @@ public class CaptchaUtility
                         final String errorCode = element.getAsString();
                         errorCodes.add( errorCode );
                     }
-                    LOGGER.debug( pwmRequest, "recaptcha error codes: " + JsonUtil.serializeCollection( errorCodes ) );
+                    LOGGER.debug( pwmRequest, () -> "recaptcha error codes: " + JsonUtil.serializeCollection( errorCodes ) );
                 }
             }
         }
@@ -178,7 +178,7 @@ public class CaptchaUtility
             throw pwmE;
         }
 
-        LOGGER.trace( pwmRequest, "captcha verification failed" );
+        LOGGER.trace( pwmRequest, () -> "captcha verification failed" );
         return false;
     }
 
@@ -229,7 +229,7 @@ public class CaptchaUtility
             final String cookieValue = pwmRequest.readCookie( captchaSkipCookieName );
             if ( allowedSkipValue.equals( cookieValue ) )
             {
-                LOGGER.debug( pwmRequest, "browser has a valid " + captchaSkipCookieName + " cookie value of " + figureSkipCookieValue( pwmRequest ) + ", skipping captcha check" );
+                LOGGER.debug( pwmRequest, () -> "browser has a valid " + captchaSkipCookieName + " cookie value of " + allowedSkipValue + ", skipping captcha check" );
                 return true;
             }
         }
@@ -335,7 +335,7 @@ public class CaptchaUtility
             final String configValue = pwmRequest.getConfig().readSettingAsString( PwmSetting.CAPTCHA_SKIP_PARAM );
             if ( configValue != null && configValue.equals( skipCaptcha ) )
             {
-                LOGGER.trace( pwmRequest, "valid skipCaptcha value in request, skipping captcha check for this session" );
+                LOGGER.trace( pwmRequest, () -> "valid skipCaptcha value in request, skipping captcha check for this session" );
                 return true;
             }
             else
@@ -359,7 +359,7 @@ public class CaptchaUtility
         final int currentSessionAttempts = pwmRequest.getPwmSession().getSessionStateBean().getIntruderAttempts();
         if ( currentSessionAttempts >= maxIntruderCount )
         {
-            LOGGER.debug( pwmRequest, "session intruder attempt count '" + currentSessionAttempts + "', therefore captcha will be required" );
+            LOGGER.debug( pwmRequest, () -> "session intruder attempt count '" + currentSessionAttempts + "', therefore captcha will be required" );
             return true;
         }
 
@@ -372,7 +372,7 @@ public class CaptchaUtility
         final int intruderAttemptCount = intruderManager.countForNetworkEndpointInRequest( pwmRequest );
         if ( intruderAttemptCount >= maxIntruderCount )
         {
-            LOGGER.debug( pwmRequest, "network intruder attempt count '" + intruderAttemptCount + "', therefore captcha will be required" );
+            LOGGER.debug( pwmRequest, () -> "network intruder attempt count '" + intruderAttemptCount + "', therefore captcha will be required" );
             return true;
         }
 

@@ -47,6 +47,7 @@ import password.pwm.http.servlet.command.CommandServlet;
 import password.pwm.ldap.UserInfo;
 import password.pwm.util.Validator;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.ws.server.RestResultBean;
@@ -353,7 +354,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
         redirectURL.append( "&" );
         redirectURL.append( PwmConstants.PARAM_TOKEN ).append( "=" ).append( tokenValue );
 
-        LOGGER.debug( pwmSession, "detected long servlet url, redirecting user to " + redirectURL );
+        LOGGER.debug( pwmSession, () -> "detected long servlet url, redirecting user to " + redirectURL );
         sendRedirect( redirectURL.toString() );
         return true;
     }
@@ -380,7 +381,11 @@ public class PwmRequest extends PwmHttpRequestWrapper
     public void debugHttpRequestToLog( final String extraText )
             throws PwmUnrecoverableException
     {
-        LOGGER.trace( this.getSessionLabel(), debugHttpRequestToString( extraText, false ) );
+        if ( LOGGER.isEnabled( PwmLogLevel.TRACE ) )
+        {
+            final String debugTxt = debugHttpRequestToString( extraText, false );
+            LOGGER.trace( this.getSessionLabel(), () -> debugTxt );
+        }
     }
 
     public boolean isAuthenticated( )

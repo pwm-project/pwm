@@ -241,7 +241,7 @@ public class NMASCrOperator implements CrOperator
                 final Timer localTimer = timer;
                 if ( localTimer != null )
                 {
-                    LOGGER.debug( "discontinuing NMASCrOperator watchdog timer, no active threads" );
+                    LOGGER.debug( () -> "discontinuing NMASCrOperator watchdog timer, no active threads" );
                     localTimer.cancel();
                     timer = null;
                 }
@@ -250,7 +250,7 @@ public class NMASCrOperator implements CrOperator
             {
                 if ( timer == null )
                 {
-                    LOGGER.debug( "starting NMASCrOperator watchdog timer, maxIdleThreadTime=" + maxThreadIdleTime.asCompactString() );
+                    LOGGER.debug( () -> "starting NMASCrOperator watchdog timer, maxIdleThreadTime=" + maxThreadIdleTime.asCompactString() );
                     timer = new Timer( PwmConstants.PWM_APP_NAME + "-NMASCrOperator watchdog timer", true );
                     final long frequency = Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.NMAS_THREADS_WATCHDOG_FREQUENCY ) );
                     final boolean debugOutput = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.NMAS_THREADS_WATCHDOG_DEBUG ) );
@@ -267,7 +267,7 @@ public class NMASCrOperator implements CrOperator
         final List<NMASSessionThread> threads = new ArrayList<>( sessionMonitorThreads );
         for ( final NMASSessionThread thread : threads )
         {
-            LOGGER.debug( "killing thread due to NMASCrOperator service closing: " + thread.toDebugString() );
+            LOGGER.debug( () -> "killing thread due to NMASCrOperator service closing: " + thread.toDebugString() );
             thread.abort();
         }
     }
@@ -314,7 +314,7 @@ public class NMASCrOperator implements CrOperator
         {
             if ( theUser.getChaiProvider().getDirectoryVendor() != DirectoryVendor.EDIRECTORY )
             {
-                LOGGER.debug( "skipping request to read NMAS responses for " + userIdentity + ", directory type is not eDirectory" );
+                LOGGER.debug( () -> "skipping request to read NMAS responses for " + userIdentity + ", directory type is not eDirectory" );
                 return null;
             }
 
@@ -520,7 +520,7 @@ public class NMASCrOperator implements CrOperator
         {
             if ( challengeSet.getRequiredChallenges().size() > this.getChallengeSet().getRequiredChallenges().size() )
             {
-                LOGGER.debug( "failed meetsChallengeSetRequirements, not enough required challenge" );
+                LOGGER.debug( () -> "failed meetsChallengeSetRequirements, not enough required challenge" );
                 return false;
             }
 
@@ -530,7 +530,7 @@ public class NMASCrOperator implements CrOperator
                 {
                     if ( !this.getChallengeSet().getChallengeTexts().contains( loopChallenge.getChallengeText() ) )
                     {
-                        LOGGER.debug( "failed meetsChallengeSetRequirements, missing required challenge text: '" + loopChallenge.getChallengeText() + "'" );
+                        LOGGER.debug( () -> "failed meetsChallengeSetRequirements, missing required challenge text: '" + loopChallenge.getChallengeText() + "'" );
                         return false;
                     }
                 }
@@ -540,8 +540,9 @@ public class NMASCrOperator implements CrOperator
             {
                 if ( this.getChallengeSet().getChallenges().size() < challengeSet.getMinRandomRequired() )
                 {
-                    LOGGER.debug( "failed meetsChallengeSetRequirements, not enough questions to meet minrandom; minRandomRequired="
-                            + challengeSet.getMinRandomRequired() + ", ChallengesInSet=" + this.getChallengeSet().getChallenges().size() );
+                    final int challengesInSet = challengeSet.getChallenges().size();
+                    LOGGER.debug( () -> "failed meetsChallengeSetRequirements, not enough questions to meet minrandom; minRandomRequired="
+                            + challengeSet.getMinRandomRequired() + ", ChallengesInSet=" + challengesInSet );
                     return false;
                 }
             }
@@ -792,7 +793,7 @@ public class NMASCrOperator implements CrOperator
                         lastLogTime = Instant.now();
                     }
                 }
-                LOGGER.debug( "read return code in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
+                LOGGER.debug( () -> "read return code in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
                 return this.getNmasRetCode();
             }
         }
@@ -1039,7 +1040,7 @@ public class NMASCrOperator implements CrOperator
                 final TimeDuration idleTime = TimeDuration.fromCurrent( thread.getLastActivityTimestamp() );
                 if ( idleTime.isLongerThan( maxThreadIdleTime ) )
                 {
-                    LOGGER.debug( "killing thread due to inactivity " + thread.toDebugString() );
+                    LOGGER.debug( () -> "killing thread due to inactivity " + thread.toDebugString() );
                     thread.abort();
                 }
             }
@@ -1108,7 +1109,7 @@ public class NMASCrOperator implements CrOperator
 
         public NMASCrPwmSaslFactory( )
         {
-            LOGGER.debug( "initializing NMASCrPwmSaslFactory instance" );
+            LOGGER.debug( () -> "initializing NMASCrPwmSaslFactory instance" );
         }
 
         @Override

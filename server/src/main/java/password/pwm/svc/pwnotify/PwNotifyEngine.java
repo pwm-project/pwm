@@ -216,7 +216,7 @@ public class PwNotifyEngine
             }
             catch ( Exception e )
             {
-                LOGGER.trace( "unexpected error processing user '" + userIdentity.toDisplayString() + "', error: " + e.getMessage() );
+                LOGGER.trace( () -> "unexpected error processing user '" + userIdentity.toDisplayString() + "', error: " + e.getMessage() );
             }
         }
     }
@@ -237,20 +237,20 @@ public class PwNotifyEngine
 
         if ( passwordExpirationTime == null )
         {
-            LOGGER.trace( SESSION_LABEL, "skipping user '" + userIdentity.toDisplayString() + "', has no password expiration" );
+            LOGGER.trace( SESSION_LABEL, () -> "skipping user '" + userIdentity.toDisplayString() + "', has no password expiration" );
             return;
         }
 
         if ( passwordExpirationTime.isBefore( Instant.now() ) )
         {
-            LOGGER.trace( SESSION_LABEL, "skipping user '" + userIdentity.toDisplayString() + "', password expiration is in the past" );
+            LOGGER.trace( SESSION_LABEL, () -> "skipping user '" + userIdentity.toDisplayString() + "', password expiration is in the past" );
             return;
         }
 
         final int nextDayInterval = figureNextDayInterval( passwordExpirationTime );
         if ( nextDayInterval < 1 )
         {
-            LOGGER.trace( SESSION_LABEL, "skipping user '" + userIdentity.toDisplayString() + "', password expiration time is not within an interval" );
+            LOGGER.trace( SESSION_LABEL, () -> "skipping user '" + userIdentity.toDisplayString() + "', password expiration time is not within an interval" );
             return;
         }
 
@@ -370,7 +370,7 @@ public class PwNotifyEngine
             }
         }
 
-        LOGGER.trace( SessionLabel.PWNOTIFY_SESSION_LABEL, output );
+        LOGGER.trace( SessionLabel.PWNOTIFY_SESSION_LABEL, () -> output );
     }
 
     private ThreadPoolExecutor createExecutor( final PwmApplication pwmApplication )

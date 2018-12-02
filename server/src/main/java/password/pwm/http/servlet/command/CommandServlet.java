@@ -152,7 +152,7 @@ public abstract class CommandServlet extends ControlledPwmServlet
             final boolean forceLogoutOnChange = config.readSettingAsBoolean( PwmSetting.LOGOUT_AFTER_PASSWORD_CHANGE );
             if ( forceLogoutOnChange && pwmSession.getSessionStateBean().isPasswordModified() )
             {
-                LOGGER.trace( pwmSession, "logging out user; password has been modified" );
+                LOGGER.trace( pwmSession, () -> "logging out user; password has been modified" );
                 pwmRequest.sendRedirect( PwmServletDefinition.Logout );
                 return ProcessStatus.Halt;
             }
@@ -170,7 +170,7 @@ public abstract class CommandServlet extends ControlledPwmServlet
         final String referrer = pwmRequest.getHttpServletRequest().getHeader( "Referer" );
         final Instant pageLeaveNoticeTime = Instant.now();
         pwmSession.getSessionStateBean().setPageLeaveNoticeTime( pageLeaveNoticeTime );
-        LOGGER.debug( "pageLeaveNotice indicated at " + pageLeaveNoticeTime.toString() + ", referer=" + referrer );
+        LOGGER.debug( () -> "pageLeaveNotice indicated at " + pageLeaveNoticeTime.toString() + ", referer=" + referrer );
         if ( !pwmRequest.getPwmResponse().isCommitted() )
         {
             pwmRequest.getPwmResponse().setHeader( HttpHeader.CacheControl, "no-cache, no-store, must-revalidate" );
@@ -289,12 +289,12 @@ public abstract class CommandServlet extends ControlledPwmServlet
         final LocalSessionStateBean sessionStateBean = pwmRequest.getPwmSession().getSessionStateBean();
 
         final String redirectURL = pwmRequest.getForwardUrl();
-        LOGGER.trace( pwmRequest, "redirecting user to forward url: " + redirectURL );
+        LOGGER.trace( pwmRequest, () -> "redirecting user to forward url: " + redirectURL );
 
         // after redirecting we need to clear the session forward url
         if ( sessionStateBean.getForwardURL() != null )
         {
-            LOGGER.trace( pwmRequest, "clearing session forward url: " + sessionStateBean.getForwardURL() );
+            LOGGER.trace( pwmRequest, () -> "clearing session forward url: " + sessionStateBean.getForwardURL() );
             sessionStateBean.setForwardURL( null );
         }
 

@@ -101,7 +101,7 @@ class ResourceServletConfiguration
                         );
                         final ZipFile zipFile = new ZipFile( zipFileFile );
                         zipResources.put( ResourceFileServlet.RESOURCE_PATH + configuredZipFileResource.getUrl(), zipFile );
-                        LOGGER.debug( "registered resource-zip file " + configuredZipFileResource.getZipFile() + " at path " + zipFileFile.getAbsolutePath() );
+                        LOGGER.debug( () -> "registered resource-zip file " + configuredZipFileResource.getZipFile() + " at path " + zipFileFile.getAbsolutePath() );
                     }
                     catch ( IOException e )
                     {
@@ -121,7 +121,7 @@ class ResourceServletConfiguration
             final Map.Entry<FileValue.FileInformation, FileValue.FileContent> entry = files.entrySet().iterator().next();
             final FileValue.FileInformation fileInformation = entry.getKey();
             final FileValue.FileContent fileContent = entry.getValue();
-            LOGGER.debug( "examining configured zip file resource for items name=" + fileInformation.getFilename() + ", size=" + fileContent.size() );
+            LOGGER.debug( () -> "examining configured zip file resource for items name=" + fileInformation.getFilename() + ", size=" + fileContent.size() );
 
             try
             {

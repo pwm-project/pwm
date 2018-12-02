@@ -221,14 +221,14 @@ public class AuthenticationFilter extends AbstractPwmFilter
         final String cookieName = pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_AUTHRECORD_NAME );
         if ( cookieName == null || cookieName.isEmpty() )
         {
-            LOGGER.debug( pwmRequest, "skipping auth record cookie set, cookie name parameter is blank" );
+            LOGGER.debug( pwmRequest, () -> "skipping auth record cookie set, cookie name parameter is blank" );
             return;
         }
 
         final int cookieAgeSeconds = Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_AUTHRECORD_AGE ) );
         if ( cookieAgeSeconds < 1 )
         {
-            LOGGER.debug( pwmRequest, "skipping auth record cookie set, cookie age parameter is less than 1" );
+            LOGGER.debug( pwmRequest, () -> "skipping auth record cookie set, cookie age parameter is less than 1" );
             return;
         }
 
@@ -239,7 +239,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
         try
         {
             pwmRequest.getPwmResponse().writeEncryptedCookie( cookieName, authRecord, cookieAgeSeconds, PwmHttpResponseWrapper.CookiePath.Application );
-            LOGGER.debug( pwmRequest, "wrote auth record cookie to user browser for use during forgotten password" );
+            LOGGER.debug( pwmRequest, () -> "wrote auth record cookie to user browser for use during forgotten password" );
         }
         catch ( PwmUnrecoverableException e )
         {
@@ -294,7 +294,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
         if ( pwmRequest.isAuthenticated() )
         {
             // redirect back to self so request starts over as authenticated.
-            LOGGER.trace( pwmRequest, "inline authentication occurred during this request, redirecting to current url to restart request" );
+            LOGGER.trace( pwmRequest, () -> "inline authentication occurred during this request, redirecting to current url to restart request" );
             pwmRequest.getPwmResponse().sendRedirect( originalRequestedUrl );
             return;
         }
@@ -303,7 +303,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
         if ( pwmSession.isAuthenticated() )
         {
             pwmSession.getSessionStateBean().setSessionIdRecycleNeeded( true );
-            LOGGER.debug( pwmSession, "session authenticated during request, issuing redirect to originally requested url: " + originalRequestedUrl );
+            LOGGER.debug( pwmSession, () -> "session authenticated during request, issuing redirect to originally requested url: " + originalRequestedUrl );
             pwmRequest.sendRedirect( originalRequestedUrl );
             return;
         }
@@ -329,8 +329,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
         }
 
         //user is not authenticated so forward to LoginPage.
-        LOGGER.trace( pwmSession.getLabel(),
-                "user requested resource requiring authentication (" + req.getRequestURI()
+        LOGGER.trace( pwmSession, () -> "user requested resource requiring authentication (" + req.getRequestURI()
                         + "), but is not authenticated; redirecting to LoginServlet" );
 
         LoginServlet.redirectToLoginServlet( pwmRequest );
@@ -371,12 +370,12 @@ public class AuthenticationFilter extends AbstractPwmFilter
 
                         if ( pwmRequest.isAuthenticated() )
                         {
-                            LOGGER.trace( pwmRequest, "authentication provided by method " + authenticationMethod.name() );
+                            LOGGER.trace( pwmRequest, () -> "authentication provided by method " + authenticationMethod.name() );
                         }
 
                         if ( filterAuthenticationProvider.hasRedirectedResponse() )
                         {
-                            LOGGER.trace( pwmRequest, "authentication provider " + authenticationMethod.name()
+                            LOGGER.trace( pwmRequest, () -> "authentication provider " + authenticationMethod.name()
                                     + " has issued a redirect, halting authentication process" );
                             return ProcessStatus.Halt;
                         }
@@ -432,7 +431,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
         {
             if ( !pwmURL.isChangePasswordURL() )
             {
-                LOGGER.debug( pwmRequest, "user is authenticated via forgotten password mechanism, redirecting to change password servlet" );
+                LOGGER.debug( pwmRequest, () -> "user is authenticated via forgotten password mechanism, redirecting to change password servlet" );
                 pwmRequest.sendRedirect(
                         pwmRequest.getContextPath()
                                 + PwmConstants.URL_PREFIX_PUBLIC
@@ -462,7 +461,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
         {
             if ( !pwmURL.isSetupResponsesURL() )
             {
-                LOGGER.debug( pwmRequest, "user is required to setup responses, redirecting to setup responses servlet" );
+                LOGGER.debug( pwmRequest, () -> "user is required to setup responses, redirecting to setup responses servlet" );
                 pwmRequest.sendRedirect( PwmServletDefinition.SetupResponses );
                 return ProcessStatus.Halt;
             }
@@ -476,7 +475,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
         {
             if ( !pwmURL.isSetupOtpSecretURL() )
             {
-                LOGGER.debug( pwmRequest, "user is required to setup OTP configuration, redirecting to OTP setup page" );
+                LOGGER.debug( pwmRequest, () -> "user is required to setup OTP configuration, redirecting to OTP setup page" );
                 pwmRequest.sendRedirect( PwmServletDefinition.SetupOtp );
                 return ProcessStatus.Halt;
             }
@@ -490,7 +489,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
         {
             if ( !pwmURL.isProfileUpdateURL() )
             {
-                LOGGER.debug( pwmRequest, "user is required to update profile, redirecting to profile update servlet" );
+                LOGGER.debug( pwmRequest, () -> "user is required to update profile, redirecting to profile update servlet" );
                 pwmRequest.sendRedirect( PwmServletDefinition.UpdateProfile );
                 return ProcessStatus.Halt;
             }
@@ -505,13 +504,13 @@ public class AuthenticationFilter extends AbstractPwmFilter
         {
             if ( userInfo.isRequiresNewPassword() && !loginInfoBean.isLoginFlag( LoginInfoBean.LoginFlag.skipNewPw ) )
             {
-                LOGGER.debug( pwmRequest, "user password in ldap requires changing, redirecting to change password servlet" );
+                LOGGER.debug( pwmRequest, () -> "user password in ldap requires changing, redirecting to change password servlet" );
                 pwmRequest.sendRedirect( PwmServletDefinition.PrivateChangePassword );
                 return ProcessStatus.Halt;
             }
             else if ( loginInfoBean.getLoginFlags().contains( LoginInfoBean.LoginFlag.forcePwChange ) )
             {
-                LOGGER.debug( pwmRequest, "previous activity in application requires forcing pw change, redirecting to change password servlet" );
+                LOGGER.debug( pwmRequest, () -> "previous activity in application requires forcing pw change, redirecting to change password servlet" );
                 pwmRequest.sendRedirect( PwmServletDefinition.PrivateChangePassword );
                 return ProcessStatus.Halt;
             }
@@ -575,7 +574,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
                 final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
 
                 //user isn't already authenticated and has an auth header, so try to auth them.
-                LOGGER.debug( pwmSession, "attempting to authenticate user using basic auth header (username=" + basicAuthInfo.getUsername() + ")" );
+                LOGGER.debug( pwmSession, () -> "attempting to authenticate user using basic auth header (username=" + basicAuthInfo.getUsername() + ")" );
                 final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(
                         pwmApplication,
                         pwmSession,
@@ -630,7 +629,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
                     return;
                 }
 
-                LOGGER.debug( pwmRequest, "SSO Authentication header present in request, will search for user value of '" + headerValue + "'" );
+                LOGGER.debug( pwmRequest, () -> "SSO Authentication header present in request, will search for user value of '" + headerValue + "'" );
                 final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(
                         pwmApplication,
                         pwmSession,

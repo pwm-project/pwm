@@ -271,18 +271,18 @@ public class PwmApplication
         this.localDBLogger = PwmLogManager.initializeLocalDBLogger( this );
 
         // log the loaded configuration
-        LOGGER.debug( "configuration load completed" );
+        LOGGER.debug( () -> "configuration load completed" );
 
         // read the pwm servlet instance id
         instanceID = fetchInstanceID( localDB, this );
-        LOGGER.debug( "using '" + getInstanceID() + "' for instance's ID (instanceID)" );
+        LOGGER.debug( () -> "using '" + getInstanceID() + "' for instance's ID (instanceID)" );
 
         // read the pwm installation date
         installTime = fetchInstallDate( startupTime );
-        LOGGER.debug( "this application instance first installed on " + JavaHelper.toIsoDate( installTime ) );
+        LOGGER.debug( () -> "this application instance first installed on " + JavaHelper.toIsoDate( installTime ) );
 
-        LOGGER.debug( "application environment flags: " + JsonUtil.serializeCollection( pwmEnvironment.getFlags() ) );
-        LOGGER.debug( "application environment parameters: " + JsonUtil.serializeMap( pwmEnvironment.getParameters() ) );
+        LOGGER.debug( () -> "application environment flags: " + JsonUtil.serializeCollection( pwmEnvironment.getFlags() ) );
+        LOGGER.debug( () -> "application environment parameters: " + JsonUtil.serializeMap( pwmEnvironment.getParameters() ) );
 
         applicationExecutorService = JavaHelper.makeSingleThreadExecutorService( this, this.getClass() );
 
@@ -296,7 +296,7 @@ public class PwmApplication
             final TimeDuration totalTime = TimeDuration.fromCurrent( startTime );
             LOGGER.info( PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " open for bidness! (" + totalTime.asCompactString() + ")" );
             StatisticsManager.incrementStat( this, Statistic.PWM_STARTUPS );
-            LOGGER.debug( "buildTime=" + PwmConstants.BUILD_TIME + ", javaLocale=" + Locale.getDefault() + ", DefaultLocale=" + PwmConstants.DEFAULT_LOCALE );
+            LOGGER.debug( () -> "buildTime=" + PwmConstants.BUILD_TIME + ", javaLocale=" + Locale.getDefault() + ", DefaultLocale=" + PwmConstants.DEFAULT_LOCALE );
 
             applicationExecutorService.execute( () -> postInitTasks() );
         }
@@ -331,7 +331,7 @@ public class PwmApplication
         }
         catch ( Exception e )
         {
-            LOGGER.debug( "unable to detect if configuration has been modified since previous startup: " + e.getMessage() );
+            LOGGER.debug( () -> "unable to detect if configuration has been modified since previous startup: " + e.getMessage() );
         }
 
         if ( this.getConfig() != null )
@@ -393,7 +393,7 @@ public class PwmApplication
             }
             catch ( Exception e )
             {
-                LOGGER.debug( "error while generating keystore output: " + e.getMessage() );
+                LOGGER.debug( () -> "error while generating keystore output: " + e.getMessage() );
             }
 
             try
@@ -402,7 +402,7 @@ public class PwmApplication
             }
             catch ( Exception e )
             {
-                LOGGER.debug( "error while generating tomcat conf output: " + e.getMessage() );
+                LOGGER.debug( () -> "error while generating tomcat conf output: " + e.getMessage() );
             }
         }
 
@@ -414,7 +414,7 @@ public class PwmApplication
         }
         catch ( Exception e )
         {
-            LOGGER.debug( "error initializing UserAgentUtils: " + e.getMessage() );
+            LOGGER.debug( () -> "error initializing UserAgentUtils: " + e.getMessage() );
         }
 
         LOGGER.trace( () -> "completed post init tasks in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
@@ -876,7 +876,7 @@ public class PwmApplication
                 throw new PwmUnrecoverableException( pwmApplication.lastLocalDBFailure );
             }
 
-            LOGGER.debug( "using localDB path " + databaseDirectory );
+            LOGGER.debug( () -> "using localDB path " + databaseDirectory );
 
             // initialize the localDB
             try
@@ -983,11 +983,11 @@ public class PwmApplication
             LOGGER.trace( () -> "preparing to create temporary directory " + tempDirectory.getAbsolutePath() );
             if ( tempDirectory.mkdir() )
             {
-                LOGGER.debug( "created " + tempDirectory.getAbsolutePath() );
+                LOGGER.debug( () -> "created " + tempDirectory.getAbsolutePath() );
             }
             else
             {
-                LOGGER.debug( "unable to create temporary directory " + tempDirectory.getAbsolutePath() );
+                LOGGER.debug( () -> "unable to create temporary directory " + tempDirectory.getAbsolutePath() );
                 final ErrorInformation errorInformation = new ErrorInformation(
                         PwmError.ERROR_STARTUP_ERROR,
                         "unable to establish create temp work directory " + tempDirectory.getAbsolutePath()
@@ -1090,7 +1090,7 @@ public class PwmApplication
                 }
                 else
                 {
-                    LOGGER.trace( "skipping scheduled job " + runnable + " on shutdown executor + " + executor );
+                    LOGGER.trace( () -> "skipping scheduled job " + runnable + " on shutdown executor + " + executor );
                 }
             }
             catch ( Throwable t )

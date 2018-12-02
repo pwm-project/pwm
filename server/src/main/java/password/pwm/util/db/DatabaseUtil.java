@@ -155,7 +155,7 @@ class DatabaseUtil
                 statement = connection.createStatement();
                 statement.execute( sqlString );
                 connection.commit();
-                LOGGER.debug( "created table " + table.toString() );
+                LOGGER.debug( () -> "created table " + table.toString() );
             }
             catch ( SQLException ex )
             {
@@ -184,7 +184,7 @@ class DatabaseUtil
                 statement = connection.createStatement();
                 statement.execute( sqlString );
                 connection.commit();
-                LOGGER.debug( "created index " + indexName );
+                LOGGER.debug( () -> "created index " + indexName );
             }
             catch ( SQLException ex )
             {

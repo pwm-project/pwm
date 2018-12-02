@@ -104,7 +104,7 @@ public abstract class AbstractPwmFilter implements Filter
             }
             catch ( IOException e )
             {
-                LOGGER.debug( pwmRequest, "i/o error processing request: " + e.getMessage() );
+                LOGGER.debug( pwmRequest, () -> "i/o error processing request: " + e.getMessage() );
             }
 
         }

@@ -205,7 +205,7 @@ public class TokenService implements PwmService
 
 
         status = STATUS.OPEN;
-        LOGGER.debug( "open" );
+        LOGGER.debug( () -> "open" );
     }
 
     public boolean supportsName( )
@@ -231,7 +231,7 @@ public class TokenService implements PwmService
             throw new PwmOperationalException( errorInformation );
         }
 
-        LOGGER.trace( sessionLabel, "generated token with payload: " + tokenPayload.toDebugString() );
+        LOGGER.trace( sessionLabel, () -> "generated token with payload: " + tokenPayload.toDebugString() );
 
         final AuditRecord auditRecord = new AuditRecordFactory( pwmApplication ).createUserAuditRecord(
                 AuditEvent.TOKEN_ISSUED,
@@ -262,7 +262,7 @@ public class TokenService implements PwmService
         {
             try
             {
-                LOGGER.trace( pwmSession, "removing claimed token: " + tokenPayload.toDebugString() );
+                LOGGER.trace( pwmSession, () -> "removing claimed token: " + tokenPayload.toDebugString() );
                 tokenMachine.removeToken( tokenKey );
             }
             catch ( PwmOperationalException e )
@@ -445,7 +445,7 @@ public class TokenService implements PwmService
         while ( tokenKey == null && attempts < maxUniqueCreateAttempts )
         {
             tokenKey = makeRandomCode( configuration );
-            LOGGER.trace( sessionLabel, "generated new token random code, checking for uniqueness" );
+            LOGGER.trace( sessionLabel, () -> "generated new token random code, checking for uniqueness" );
             final TokenPayload existingPayload = machine.retrieveToken( tokenMachine.keyFromKey( tokenKey ) );
             if ( existingPayload != null )
             {
@@ -459,7 +459,10 @@ public class TokenService implements PwmService
             throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, "unable to generate a unique token key after " + attempts + " attempts" ) );
         }
 
-        LOGGER.trace( sessionLabel, "created new unique random token value after " + attempts + " attempts" );
+        {
+            final int finalAttempts = attempts;
+            LOGGER.trace( sessionLabel, () -> "created new unique random token value after " + finalAttempts + " attempts" );
+        }
         return tokenKey;
     }
 
@@ -566,7 +569,7 @@ public class TokenService implements PwmService
                 errorInformation = new ErrorInformation( PwmError.ERROR_TOKEN_INCORRECT, e.getMessage() );
             }
 
-            LOGGER.debug( pwmSession, errorInformation.toDebugStr() );
+            LOGGER.debug( pwmSession, errorInformation );
 
             if ( sessionUserIdentity != null && tokenEntryType == TokenEntryType.unauthenticated )
             {
@@ -605,7 +608,7 @@ public class TokenService implements PwmService
             throw new PwmOperationalException( errorInformation );
         }
 
-        LOGGER.trace( pwmSession, "retrieved tokenPayload: " + tokenPayload.toDebugString() );
+        LOGGER.trace( pwmSession, () -> "retrieved tokenPayload: " + tokenPayload.toDebugString() );
 
         if ( tokenType != null && pwmApplication.getTokenService().supportsName() )
         {
@@ -642,7 +645,7 @@ public class TokenService implements PwmService
 
                 final String dateStringInToken = tokenPayload.getData().get( PwmConstants.TOKEN_KEY_PWD_CHG_DATE );
 
-                LOGGER.trace( pwmSession, "tokenPayload=" + tokenPayload.toDebugString()
+                LOGGER.trace( pwmSession, () -> "tokenPayload=" + tokenPayload.toDebugString()
                         + ", sessionUser=" + ( sessionUserIdentity == null ? "null" : sessionUserIdentity.toDisplayString() )
                         + ", payloadUserIdentity=" + tokenPayload.getUserIdentity().toDisplayString()
                         + ", userLastPasswordChange=" + JavaHelper.toIsoDate( userLastPasswordChange )
@@ -657,7 +660,7 @@ public class TokenService implements PwmService
                     {
                         final String errorString = "user password has changed since token issued, token rejected;"
                                 + " currentValue=" + userChangeString + ", tokenValue=" + dateStringInToken;
-                        LOGGER.trace( pwmSession, errorString + "; token=" + tokenPayload.toDebugString() );
+                        LOGGER.trace( pwmSession, () -> errorString + "; token=" + tokenPayload.toDebugString() );
                         final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_TOKEN_EXPIRED, errorString );
                         throw new PwmOperationalException( errorInformation );
                     }
@@ -671,7 +674,7 @@ public class TokenService implements PwmService
             }
         }
 
-        LOGGER.debug( pwmSession, "token validation has been passed" );
+        LOGGER.debug( pwmSession, () -> "token validation has been passed" );
         return tokenPayload;
     }
 
@@ -743,7 +746,7 @@ public class TokenService implements PwmService
                     configuredEmailSetting.getBodyPlain().replace( "%TOKEN%", tokenSendInfo.getTokenKey() ),
                     configuredEmailSetting.getBodyHtml().replace( "%TOKEN%", tokenSendInfo.getTokenKey() )
             ), tokenSendInfo.getUserInfo(), tokenSendInfo.getMacroMachine() );
-            LOGGER.debug( "token email added to send queue for " + toAddress );
+            LOGGER.debug( () -> "token email added to send queue for " + toAddress );
             return true;
         }
 
@@ -765,7 +768,7 @@ public class TokenService implements PwmService
             pwmApplication.getIntruderManager().mark( RecordType.TOKEN_DEST, smsNumber, tokenSendInfo.getSessionLabel() );
 
             pwmApplication.sendSmsUsingQueue( smsNumber, modifiedMessage, tokenSendInfo.getSessionLabel(), tokenSendInfo.getMacroMachine() );
-            LOGGER.debug( "token SMS added to send queue for " + smsNumber );
+            LOGGER.debug( () -> "token SMS added to send queue for " + smsNumber );
             return true;
         }
         }

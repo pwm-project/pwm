@@ -79,7 +79,7 @@ public class DbCrOperator implements CrOperator
             if ( responseStringBlob != null && responseStringBlob.length() > 0 )
             {
                 final ResponseSet userResponseSet = ChaiResponseSet.parseChaiResponseSetXML( responseStringBlob, theUser );
-                LOGGER.debug( "found responses for " + theUser.getEntryDN() + " in remote database: " + userResponseSet.toString() );
+                LOGGER.debug( () -> "found responses for " + theUser.getEntryDN() + " in remote database: " + userResponseSet.toString() );
                 return userResponseSet;
             }
             else

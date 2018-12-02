@@ -85,7 +85,7 @@ public class OAuthMachine
             if ( oAuthState != null )
             {
                 final boolean sessionMatch = oAuthState.getSessionID().equals( pwmRequest.getPwmSession().getSessionStateBean().getSessionVerificationKey() );
-                LOGGER.trace( pwmRequest, "read state while parsing oauth consumer request with match=" + sessionMatch + ", " + JsonUtil.serialize( oAuthState ) );
+                LOGGER.trace( pwmRequest, () -> "read state while parsing oauth consumer request with match=" + sessionMatch + ", " + JsonUtil.serialize( oAuthState ) );
                 return Optional.of( new OAuthRequestState( oAuthState, sessionMatch ) );
             }
         }
@@ -103,7 +103,7 @@ public class OAuthMachine
             throws PwmUnrecoverableException, IOException
     {
 
-        LOGGER.trace( pwmRequest, "preparing to redirect user to oauth authentication service, setting nextUrl to " + nextUrl );
+        LOGGER.trace( pwmRequest, () -> "preparing to redirect user to oauth authentication service, setting nextUrl to " + nextUrl );
         pwmRequest.getPwmSession().getSessionStateBean().setOauthInProgress( true );
 
         final Configuration config = pwmRequest.getConfig();
@@ -132,7 +132,7 @@ public class OAuthMachine
         {
             pwmRequest.sendRedirect( redirectUrl );
             pwmRequest.getPwmSession().getSessionStateBean().setOauthInProgress( true );
-            LOGGER.debug( pwmRequest, "redirecting user to oauth id server, url: " + redirectUrl );
+            LOGGER.debug( pwmRequest, () -> "redirecting user to oauth id server, url: " + redirectUrl );
         }
         catch ( PwmUnrecoverableException e )
         {
@@ -348,7 +348,7 @@ public class OAuthMachine
             return false;
         }
 
-        LOGGER.trace( pwmRequest, "oauth access token has expired, attempting to refresh" );
+        LOGGER.trace( pwmRequest, () -> "oauth access token has expired, attempting to refresh" );
 
         try
         {
@@ -359,7 +359,7 @@ public class OAuthMachine
                 if ( resolveResults.getExpiresSeconds() > 0 )
                 {
                     final Instant accessTokenExpirationDate = Instant.ofEpochMilli( System.currentTimeMillis() + 1000 * resolveResults.getExpiresSeconds() );
-                    LOGGER.trace( pwmRequest, "noted oauth access token expiration at timestamp " + JavaHelper.toIsoDate( accessTokenExpirationDate ) );
+                    LOGGER.trace( pwmRequest, () -> "noted oauth access token expiration at timestamp " + JavaHelper.toIsoDate( accessTokenExpirationDate ) );
                     loginInfoBean.setOauthExp( accessTokenExpirationDate );
                     loginInfoBean.setOauthRefToken( resolveResults.getRefreshToken() );
                     return false;
@@ -402,7 +402,7 @@ public class OAuthMachine
                 throw new IllegalStateException( "unexpected oAuthUseCase: " + oAuthUseCase );
         }
 
-        LOGGER.trace( pwmRequest, "issuing oauth state id="
+        LOGGER.trace( pwmRequest, () -> "issuing oauth state id="
                 + oAuthState.getStateID() + " with the next destination URL set to " + oAuthState.getNextUrl() );
 
 
@@ -429,7 +429,7 @@ public class OAuthMachine
 
         final MacroMachine macroMachine = MacroMachine.forUser( pwmRequest, userIdentity );
         final String username = macroMachine.expandMacros( macroText );
-        LOGGER.debug( pwmRequest, "calculated username value for user as: " + username );
+        LOGGER.debug( pwmRequest, () -> "calculated username value for user as: " + username );
 
         final String grantUrl = settings.getLoginURL();
         final String signUrl = grantUrl.replace( "/grant", "/sign" );
@@ -446,13 +446,13 @@ public class OAuthMachine
             requestPayload.put( "data", JsonUtil.serializeCollection( listWrapper ) );
         }
 
-        LOGGER.debug( pwmRequest, "preparing to send username to OAuth /sign endpoint for future injection to /grant redirect" );
+        LOGGER.debug( pwmRequest, () -> "preparing to send username to OAuth /sign endpoint for future injection to /grant redirect" );
         final PwmHttpClientResponse restResults = makeHttpRequest( pwmRequest, "OAuth pre-inject username signing service", settings, signUrl, requestPayload );
 
         final String resultBody = restResults.getBody();
         final Map<String, String> resultBodyMap = JsonUtil.deserializeStringMap( resultBody );
         final String data = resultBodyMap.get( "data" );
-        LOGGER.debug( pwmRequest, "oauth /sign endpoint returned signed username data: " + data );
+        LOGGER.debug( pwmRequest, () -> "oauth /sign endpoint returned signed username data: " + data );
         return data;
     }
 }

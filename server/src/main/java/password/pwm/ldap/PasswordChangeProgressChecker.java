@@ -268,7 +268,7 @@ public class PasswordChangeProgressChecker
         final Instant estimatedCompletion;
         {
             final BigDecimal pctComplete = figureAverageProgress( progressRecords );
-            LOGGER.trace( pwmSession, "percent complete: " + pctComplete );
+            LOGGER.trace( pwmSession, () -> "percent complete: " + pctComplete );
             final ProgressInfo progressInfo = new ProgressInfo( tracker.beginTime, 100, pctComplete.longValue() );
             final Instant actualEstimate = progressInfo.estimatedCompletion();
 
@@ -325,7 +325,7 @@ public class PasswordChangeProgressChecker
 
         if ( passwordSyncCheckMode == PasswordSyncCheckMode.DISABLED )
         {
-            LOGGER.trace( pwmSession, "skipping replica sync check, disabled" );
+            LOGGER.trace( pwmSession, () -> "skipping replica sync check, disabled" );
             return tracker.itemCompletions.get( PROGRESS_KEY_REPLICATION );
         }
 
@@ -333,7 +333,7 @@ public class PasswordChangeProgressChecker
         {
             if ( tracker.itemCompletions.get( PROGRESS_KEY_REPLICATION ).complete )
             {
-                LOGGER.trace( pwmSession, "skipping replica sync check, replica sync completed previously" );
+                LOGGER.trace( pwmSession, () -> "skipping replica sync check, replica sync completed previously" );
                 return tracker.itemCompletions.get( PROGRESS_KEY_REPLICATION );
             }
         }
@@ -342,18 +342,18 @@ public class PasswordChangeProgressChecker
         {
             if ( TimeDuration.fromCurrent( tracker.beginTime ).isShorterThan( initialReplicaDelay ) )
             {
-                LOGGER.trace( pwmSession, "skipping replica sync check, initDelay has not yet passed" );
+                LOGGER.trace( pwmSession, () -> "skipping replica sync check, initDelay has not yet passed" );
                 return null;
             }
         }
         else if ( TimeDuration.fromCurrent( tracker.lastReplicaCheckTime ).isShorterThan( cycleReplicaDelay ) )
         {
-            LOGGER.trace( pwmSession, "skipping replica sync check, cycleDelay has not yet passed" );
+            LOGGER.trace( pwmSession, () -> "skipping replica sync check, cycleDelay has not yet passed" );
             return null;
         }
 
         tracker.lastReplicaCheckTime = Instant.now();
-        LOGGER.trace( pwmSession, "beginning password replication time check for " + userIdentity.toDelimitedKey() );
+        LOGGER.trace( pwmSession, () -> "beginning password replication time check for " + userIdentity.toDelimitedKey() );
 
         try
         {

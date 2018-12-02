@@ -100,7 +100,7 @@ public class ClusterService implements PwmService
                     break;
 
                     default:
-                        LOGGER.debug( "no suitable storage method configured " );
+                        LOGGER.debug( () -> "no suitable storage method configured " );
                         JavaHelper.unhandledSwitchStatement( dataStore );
                         return;
 
@@ -191,7 +191,7 @@ public class ClusterService implements PwmService
             if ( userIdentity == null )
             {
                 final String msg = "LDAP storage type selected, but LDAP test user not defined.";
-                LOGGER.debug( msg );
+                LOGGER.debug( () -> msg );
                 startupError = new ErrorInformation( PwmError.ERROR_CLUSTER_SERVICE_ERROR, msg );
             }
         }
@@ -200,7 +200,7 @@ public class ClusterService implements PwmService
             if ( !pwmApplication.getConfig().hasDbConfigured() )
             {
                 final String msg = "DB storage type selected, but remote DB is not configured.";
-                LOGGER.debug( msg );
+                LOGGER.debug( () -> msg );
                 startupError = new ErrorInformation( PwmError.ERROR_CLUSTER_SERVICE_ERROR, msg );
             }
         }

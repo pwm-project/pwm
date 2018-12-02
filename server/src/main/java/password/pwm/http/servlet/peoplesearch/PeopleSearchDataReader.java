@@ -128,7 +128,7 @@ class PeopleSearchDataReader
 
         StatisticsManager.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_SEARCHES );
         storeDataInCache( pwmRequest.getPwmApplication(), cacheKey, searchResultBean );
-        LOGGER.trace( pwmRequest, "returning " + searchResultBean.getSearchResults().size()
+        LOGGER.trace( pwmRequest, () -> "returning " + searchResultBean.getSearchResults().size()
                 + " results for search request "
                 + JsonUtil.serialize( searchRequestBean ) );
         return searchResultBean;
@@ -154,7 +154,7 @@ class PeopleSearchDataReader
             if ( cachedOutput != null )
             {
                 StatisticsManager.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_CACHE_HITS );
-                LOGGER.trace( pwmRequest, "completed makeOrgChartData of " + userIdentity.toDisplayString() + " from cache" );
+                LOGGER.trace( pwmRequest, () -> "completed makeOrgChartData of " + userIdentity.toDisplayString() + " from cache" );
                 return cachedOutput;
             }
             else
@@ -220,7 +220,11 @@ class PeopleSearchDataReader
 
         final TimeDuration totalTime = TimeDuration.fromCurrent( startTime );
         storeDataInCache( pwmRequest.getPwmApplication(), cacheKey, orgChartData );
-        LOGGER.trace( pwmRequest, "completed makeOrgChartData of " + userIdentity.toDisplayString() + " in " + totalTime.asCompactString() + " with " + childCount + " children" );
+        {
+            final int finalChildCount = childCount;
+            LOGGER.trace( pwmRequest, () -> "completed makeOrgChartData of " + userIdentity.toDisplayString()
+                    + " in " + totalTime.asCompactString() + " with " + finalChildCount + " children" );
+        }
         return orgChartData;
     }
 
@@ -269,7 +273,7 @@ class PeopleSearchDataReader
 
         userDetailBean.setLinks( makeUserDetailLinks( userIdentity ) );
 
-        LOGGER.trace( pwmRequest.getPwmSession(), "finished building userDetail result in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
+        LOGGER.trace( pwmRequest, () -> "finished building userDetail result in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
         storeDataInCache( pwmRequest.getPwmApplication(), cacheKey, userDetailBean );
         return userDetailBean;
     }
@@ -425,7 +429,7 @@ class PeopleSearchDataReader
             }
             else
             {
-                LOGGER.trace( pwmRequest, "discarding userDN " + userDN + " from attribute " + attributeName + " because maximum value count has been reached" );
+                LOGGER.trace( pwmRequest, () -> "discarding userDN " + userDN + " from attribute " + attributeName + " because maximum value count has been reached" );
             }
 
         }
@@ -472,7 +476,7 @@ class PeopleSearchDataReader
         final boolean enabled = peopleSearchConfiguration.isPhotosEnabled( pwmRequest.getUserInfoIfLoggedIn(), pwmRequest.getSessionLabel() );
         if ( !enabled )
         {
-            LOGGER.debug( pwmRequest, "detailed user data lookup for " + userIdentity.toString() + ", failed photo query filter, denying photo view" );
+            LOGGER.debug( pwmRequest, () -> "detailed user data lookup for " + userIdentity.toString() + ", failed photo query filter, denying photo view" );
             return null;
         }
 
@@ -491,7 +495,7 @@ class PeopleSearchDataReader
             }
             catch ( PwmOperationalException e )
             {
-                LOGGER.debug( pwmRequest, "determined " + userIdentity + " does not have photo data available while generating detail data" );
+                LOGGER.debug( pwmRequest, () -> "determined " + userIdentity + " does not have photo data available while generating detail data" );
                 return null;
             }
         }
@@ -662,7 +666,7 @@ class PeopleSearchDataReader
         }
         finally
         {
-            LOGGER.trace( pwmRequest, "completed checkIfUserViewable for " + userIdentity.toDisplayString() + " in " + TimeDuration.compactFromCurrent( startTime ) );
+            LOGGER.trace( pwmRequest, () -> "completed checkIfUserViewable for " + userIdentity.toDisplayString() + " in " + TimeDuration.compactFromCurrent( startTime ) );
         }
     }
 
@@ -878,7 +882,7 @@ class PeopleSearchDataReader
         }
 
         final TimeDuration searchDuration = TimeDuration.fromCurrent( startTime );
-        LOGGER.trace( pwmRequest.getPwmSession(), "finished rest peoplesearch search in "
+        LOGGER.trace( pwmRequest, () -> "finished rest peoplesearch search in "
                 + searchDuration.asCompactString() + " not using cache, size=" + results.getResults().size() );
 
 
@@ -914,7 +918,7 @@ class PeopleSearchDataReader
             }
             catch ( ChaiOperationException e )
             {
-                LOGGER.trace( pwmRequest, "error reading attribute for user '" + userIdentity.toDisplayString() + "', error: " + e.getMessage() );
+                LOGGER.trace( pwmRequest, () -> "error reading attribute for user '" + userIdentity.toDisplayString() + "', error: " + e.getMessage() );
                 return null;
             }
             catch ( ChaiUnavailableException e )
@@ -961,7 +965,7 @@ class PeopleSearchDataReader
     )
     {
         final Instant startTime = Instant.now();
-        LOGGER.trace( pwmRequest, "beginning csv export starting with user " + userIdentity.toDisplayString() + " and depth of " + depth );
+        LOGGER.trace( pwmRequest, () -> "beginning csv export starting with user " + userIdentity.toDisplayString() + " and depth of " + depth );
 
         final ThreadPoolExecutor executor = pwmRequest.getPwmApplication().getPeopleSearchService().getJobExecutor();
 
@@ -980,7 +984,7 @@ class PeopleSearchDataReader
         JavaHelper.pause( maxDuration.asMillis(), 1000, o -> ( executor.getQueue().size() + executor.getActiveCount() <= 0 ) );
 
         final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-        LOGGER.trace( pwmRequest, "completed csv export of " + rowCounter.get() + " records in " + timeDuration.asCompactString() );
+        LOGGER.trace( pwmRequest, () -> "completed csv export of " + rowCounter.get() + " records in " + timeDuration.asCompactString() );
     }
 
     @Value

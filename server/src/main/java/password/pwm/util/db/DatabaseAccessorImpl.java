@@ -326,7 +326,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
         }
         catch ( SQLException e )
         {
-            LOGGER.debug( "error while checking connection validity: " + e.getMessage() );
+            LOGGER.debug( () -> "error while checking connection validity: " + e.getMessage() );
         }
 
         return true;

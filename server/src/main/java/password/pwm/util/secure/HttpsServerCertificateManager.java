@@ -281,7 +281,7 @@ public class HttpsServerCertificateManager
         {
             initBouncyCastleProvider();
 
-            LOGGER.debug( "creating self-signed certificate with cn of " + cnName );
+            LOGGER.debug( () -> "creating self-signed certificate with cn of " + cnName );
             final KeyPair keyPair = generateRSAKeyPair( config );
             final long futureSeconds = Long.parseLong( config.readAppProperty( AppProperty.SECURITY_HTTPSSERVER_SELF_FUTURESECONDS ) );
             final X509Certificate certificate = generateV3Certificate( keyPair, cnName, futureSeconds );
@@ -398,7 +398,7 @@ public class HttpsServerCertificateManager
             final PrivateKey key = entry.getPrivateKey();
             final List<X509Certificate> certificates = Arrays.asList( ( X509Certificate[] ) entry.getCertificateChain() );
 
-            LOGGER.debug( "importing certificate chain: " + JsonUtil.serializeCollection( X509Utils.makeDebugInfoMap( certificates ) ) );
+            LOGGER.debug( () -> "importing certificate chain: " + JsonUtil.serializeCollection( X509Utils.makeDebugInfoMap( certificates ) ) );
             privateKeyCertificate = new PrivateKeyCertificate( certificates, key );
         }
         catch ( Exception e )

@@ -160,7 +160,7 @@ public class LoginServlet extends ControlledPwmServlet
         catch ( PwmOperationalException e )
         {
             final ErrorInformation errorInformation = e.getErrorInformation();
-            LOGGER.trace( pwmRequest, "returning rest login error to client: " + errorInformation.toDebugStr() );
+            LOGGER.trace( pwmRequest, () -> "returning rest login error to client: " + errorInformation.toDebugStr() );
             pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
             return ProcessStatus.Halt;
         }
@@ -171,7 +171,7 @@ public class LoginServlet extends ControlledPwmServlet
         final String nextLoginUrl = determinePostLoginUrl( pwmRequest );
         final HashMap<String, String> resultMap = new HashMap<>( Collections.singletonMap( "nextURL", nextLoginUrl ) );
         final RestResultBean restResultBean = RestResultBean.withData( resultMap );
-        LOGGER.debug( pwmRequest, "rest login succeeded" );
+        LOGGER.debug( pwmRequest, () -> "rest login succeeded" );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
     }
@@ -187,7 +187,7 @@ public class LoginServlet extends ControlledPwmServlet
             if ( !StringUtil.isEmpty( nextUrl ) )
             {
                 final LoginServletBean loginServletBean = pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, LoginServletBean.class );
-                LOGGER.trace( pwmRequest, "received nextUrl and storing in module bean, value: " + nextUrl );
+                LOGGER.trace( pwmRequest, () -> "received nextUrl and storing in module bean, value: " + nextUrl );
                 loginServletBean.setNextUrl( nextUrl );
             }
         }
@@ -298,7 +298,7 @@ public class LoginServlet extends ControlledPwmServlet
                 paramMap
         );
 
-        LOGGER.trace( pwmRequest, "redirecting to self to set nextUrl to: " + originalRequestedUrl );
+        LOGGER.trace( pwmRequest, () -> "redirecting to self to set nextUrl to: " + originalRequestedUrl );
 
         pwmRequest.sendRedirect( redirectUrl );
     }

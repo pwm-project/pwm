@@ -104,7 +104,7 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
 
         if ( !pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.PW_EXPY_NOTIFY_ENABLE ) )
         {
-            LOGGER.trace( SessionLabel.PWNOTIFY_SESSION_LABEL, "will remain closed, pw notify feature is not enabled" );
+            LOGGER.trace( SessionLabel.PWNOTIFY_SESSION_LABEL, () -> "will remain closed, pw notify feature is not enabled" );
             setStatus( STATUS.CLOSED );
             return;
         }
@@ -148,7 +148,7 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
         catch ( PwmUnrecoverableException e )
         {
             setStatus( STATUS.CLOSED );
-            LOGGER.trace( SessionLabel.PWNOTIFY_SESSION_LABEL, "will remain closed, pw notify feature is not enabled due to error: " + e.getMessage() );
+            LOGGER.trace( SessionLabel.PWNOTIFY_SESSION_LABEL, () -> "will remain closed, pw notify feature is not enabled due to error: " + e.getMessage() );
             setStartupError( e.getErrorInformation() );
         }
     }
@@ -163,7 +163,7 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
         try
         {
             nextExecutionTime = figureNextJobExecutionTime();
-            LOGGER.debug( SessionLabel.PWNOTIFY_SESSION_LABEL, "scheduled next job execution at " + nextExecutionTime.toString() );
+            LOGGER.debug( SessionLabel.PWNOTIFY_SESSION_LABEL, () -> "scheduled next job execution at " + nextExecutionTime.toString() );
         }
         catch ( Exception e )
         {
@@ -248,7 +248,7 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
     {
         if ( status() != STATUS.OPEN )
         {
-            LOGGER.trace( SessionLabel.PWNOTIFY_SESSION_LABEL, "ignoring job request start, service is not open" );
+            LOGGER.trace( SessionLabel.PWNOTIFY_SESSION_LABEL, () -> "ignoring job request start, service is not open" );
             return;
         }
 

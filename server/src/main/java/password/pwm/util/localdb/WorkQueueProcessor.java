@@ -107,7 +107,7 @@ public final class WorkQueueProcessor<W extends Serializable>
 
         if ( !queue.isEmpty() )
         {
-            logger.debug( "opening with " + queue.size() + " items in work queue" );
+            logger.debug( () -> "opening with " + queue.size() + " items in work queue" );
         }
         logger.trace( () -> "initializing worker thread with settings " + JsonUtil.serialize( settings ) );
 
@@ -147,7 +147,7 @@ public final class WorkQueueProcessor<W extends Serializable>
         workerThread = null;
 
         final Instant startTime = Instant.now();
-        logger.debug( "attempting to flush queue prior to shutdown, items in queue=" + queueSize() );
+        logger.debug( () -> "attempting to flush queue prior to shutdown, items in queue=" + queueSize() );
 
         localWorkerThread.flushQueueAndClose();
 
@@ -167,7 +167,7 @@ public final class WorkQueueProcessor<W extends Serializable>
         }
         else
         {
-            logger.debug( msg );
+            logger.debug( () -> msg );
         }
     }
 
@@ -447,7 +447,7 @@ public final class WorkQueueProcessor<W extends Serializable>
                         case RETRY:
                         {
                             retryWakeupTime = Instant.ofEpochMilli( System.currentTimeMillis() + settings.getRetryInterval().asMillis() );
-                            logger.debug( "will retry item after failure, item=" + makeDebugText( itemWrapper ) );
+                            logger.debug( () -> "will retry item after failure, item=" + makeDebugText( itemWrapper ) );
                         }
                         break;
 
