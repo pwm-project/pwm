@@ -29,11 +29,17 @@ import password.pwm.error.PwmUnrecoverableException;
 interface PwNotifyStorageService
 {
 
-    StoredNotificationState readStoredState(
+    StoredNotificationState readStoredUserState(
             UserIdentity userIdentity,
             SessionLabel sessionLabel
     )
             throws PwmUnrecoverableException;
 
-    void writeStoredState( UserIdentity userIdentity, SessionLabel sessionLabel, StoredNotificationState storedNotificationState ) throws PwmUnrecoverableException;
+    void writeStoredUserState( UserIdentity userIdentity, SessionLabel sessionLabel, StoredNotificationState storedNotificationState ) throws PwmUnrecoverableException;
+
+    StoredJobState readStoredJobState()
+            throws PwmUnrecoverableException;
+
+    void writeStoredJobState( StoredJobState storedJobState )
+                    throws PwmUnrecoverableException;
 }

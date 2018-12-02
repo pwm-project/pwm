@@ -352,7 +352,7 @@ public class SessionAuthenticator
             final UserIdentity userIdentity,
             final AuthenticationResult authenticationResult
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException
+            throws PwmUnrecoverableException
     {
         final IntruderManager intruderManager = pwmApplication.getIntruderManager();
         final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
@@ -429,5 +429,7 @@ public class SessionAuthenticator
         LOGGER.debug( pwmSession, "clearing permission cache" );
         pwmSession.getUserSessionDataCacheBean().clearPermissions();
 
+        // update the users ldap attribute.
+        LdapOperationsHelper.processAutoUpdateLanguageAttribute( pwmApplication, sessionLabel, ssBean.getLocale(), userIdentity );
     }
 }

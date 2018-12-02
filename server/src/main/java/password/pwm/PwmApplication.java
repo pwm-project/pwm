@@ -1084,7 +1084,14 @@ public class PwmApplication
 
             try
             {
-                executor.execute( runnable );
+                if ( !executor.isShutdown() )
+                {
+                    executor.execute( runnable );
+                }
+                else
+                {
+                    LOGGER.trace( "skipping scheduled job " + runnable + " on shutdown executor + " + executor );
+                }
             }
             catch ( Throwable t )
             {

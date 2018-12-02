@@ -26,6 +26,7 @@ import com.novell.ldapchai.ChaiConstant;
 import com.novell.ldapchai.ChaiEntry;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.Answer;
+import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiConfiguration;
@@ -36,12 +37,15 @@ import com.novell.ldapchai.provider.SearchScope;
 import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.option.AutoSetLdapUserLanguage;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.value.data.FormConfiguration;
+import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -53,6 +57,7 @@ import password.pwm.svc.cache.CacheKey;
 import password.pwm.svc.cache.CachePolicy;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.util.LocaleHelper;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
@@ -73,6 +78,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -86,7 +92,7 @@ public class LdapOperationsHelper
             final UserIdentity userIdentity,
             final PwmApplication pwmApplication
     )
-            throws ChaiUnavailableException, PwmUnrecoverableException
+            throws PwmUnrecoverableException
     {
         final LdapProfile ldapProfile = pwmApplication.getConfig().getLdapProfiles().get( userIdentity.getLdapProfileID() );
         final Set<String> newObjClasses = new HashSet<>( ldapProfile.readSettingAsStringArray( PwmSetting.AUTO_ADD_OBJECT_CLASSES ) );
@@ -94,9 +100,16 @@ public class LdapOperationsHelper
         {
             return;
         }
-        final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider( userIdentity.getLdapProfileID() );
-        final ChaiUser theUser = chaiProvider.getEntryFactory().newChaiUser( userIdentity.getUserDN() );
-        addUserObjectClass( sessionLabel, theUser, newObjClasses );
+        try
+        {
+            final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider( userIdentity.getLdapProfileID() );
+            final ChaiUser theUser = chaiProvider.getEntryFactory().newChaiUser( userIdentity.getUserDN() );
+            addUserObjectClass( sessionLabel, theUser, newObjClasses );
+        }
+        catch ( ChaiUnavailableException e )
+        {
+            throw PwmUnrecoverableException.fromChaiException( e );
+        }
     }
 
     private static void addUserObjectClass(
@@ -825,13 +838,57 @@ public class LdapOperationsHelper
         return Collections.emptyMap();
     }
 
+    public static Iterator<UserIdentity> readUsersFromLdapForPermissions(
+            final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
+            final List<UserPermission> permissionList,
+            final int maxResults
+    )
+            throws PwmUnrecoverableException, PwmOperationalException
+    {
+        final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
+        final Queue<UserIdentity> resultSet = new LinkedList<>();
+
+        for ( final UserPermission userPermission : permissionList )
+        {
+            if ( resultSet.size() < maxResults )
+            {
+                final SearchConfiguration searchConfiguration = SearchConfiguration.fromPermission( userPermission );
+                final Map<UserIdentity, Map<String, String>> searchResults = userSearchEngine.performMultiUserSearch(
+                        searchConfiguration,
+                        maxResults - resultSet.size(),
+                        Collections.emptyList(),
+                        sessionLabel
+
+                );
+                resultSet.addAll( searchResults.keySet() );
+            }
+        }
+
+        return new Iterator<UserIdentity>()
+        {
+            @Override
+            public boolean hasNext( )
+            {
+                return resultSet.peek() != null;
+            }
+
+            @Override
+            public UserIdentity next( )
+            {
+                return resultSet.poll();
+            }
+        };
+    }
+
+
     public static Iterator<UserIdentity> readAllUsersFromLdap(
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
             final String searchFilter,
             final int maxResults
     )
-            throws ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException, PwmOperationalException
+            throws PwmUnrecoverableException, PwmOperationalException
     {
         final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
 
@@ -982,4 +1039,71 @@ public class LdapOperationsHelper
         return new PhotoDataBean( mimeType, new ImmutableByteArray( photoData ) );
     }
 
+
+    public static Locale readLdapStoredLanguage(
+            final PwmApplication pwmApplication,
+            final UserIdentity userIdentity
+    )
+            throws PwmUnrecoverableException
+    {
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmApplication.getConfig() );
+        final String languageAttr = ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_LANGUAGE );
+        if ( StringUtil.isEmpty( languageAttr ) )
+        {
+            return PwmConstants.DEFAULT_LOCALE;
+        }
+
+        try
+        {
+            final ChaiUser chaiUser = pwmApplication.getProxiedChaiUser( userIdentity );
+            final String storedValue = chaiUser.readStringAttribute( languageAttr );
+            if ( StringUtil.isEmpty( storedValue ) )
+            {
+                return PwmConstants.DEFAULT_LOCALE;
+            }
+
+            return LocaleHelper.parseLocaleString( storedValue );
+        }
+        catch ( ChaiException e )
+        {
+            throw PwmUnrecoverableException.fromChaiException( e );
+        }
+    }
+
+    public static void processAutoUpdateLanguageAttribute(
+            final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
+            final Locale sessionLocale,
+            final UserIdentity userIdentity
+    )
+            throws PwmUnrecoverableException
+    {
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmApplication.getConfig() );
+        final String languageAttr = ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_LANGUAGE );
+        if ( StringUtil.isEmpty( languageAttr ) )
+        {
+            return;
+        }
+
+        final AutoSetLdapUserLanguage setting = ldapProfile.readSettingAsEnum( PwmSetting.LDAP_AUTO_SET_LANGUAGE_VALUE, AutoSetLdapUserLanguage.class );
+        if ( setting == null || setting == AutoSetLdapUserLanguage.disabled )
+        {
+            return;
+        }
+
+        if ( setting == AutoSetLdapUserLanguage.enabled )
+        {
+            final String languageCodeValue = LocaleHelper.getBrowserLocaleString( sessionLocale );
+            try
+            {
+                final ChaiUser user = pwmApplication.getProxiedChaiUser( userIdentity );
+                user.writeStringAttribute( languageAttr, languageCodeValue );
+                LOGGER.debug( sessionLabel, "wrote current browser session language value '" + languageCodeValue + "' to user attribute " + languageAttr );
+            }
+            catch ( ChaiException e )
+            {
+                LOGGER.error( sessionLabel, "error writing language value to language attribute '" + languageAttr + "', error: " + e.getMessage() );
+            }
+        }
+    }
 }

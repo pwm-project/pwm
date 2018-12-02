@@ -100,7 +100,7 @@ public class XodusLocalDB implements LocalDBProvider
     private final Map<LocalDB.DB, Store> cachedStoreObjects = new HashMap<>();
 
     private final ConditionalTaskExecutor outputLogExecutor = new ConditionalTaskExecutor(
-            ( ) -> outputStats(), new ConditionalTaskExecutor.TimeDurationPredicate( STATS_OUTPUT_INTERVAL ).setNextTimeFromNow( 1, TimeDuration.Unit.MINUTES )
+            ( ) -> outputStats(), new ConditionalTaskExecutor.TimeDurationPredicate( STATS_OUTPUT_INTERVAL ).setNextTimeFromNow( TimeDuration.MINUTE )
     );
 
     private BindMachine bindMachine = new BindMachine( BindMachine.DEFAULT_ENABLE_COMPRESSION, BindMachine.DEFAULT_MIN_COMPRESSION_LENGTH );
@@ -621,7 +621,7 @@ public class XodusLocalDB implements LocalDBProvider
             final ResourceBundle resourceBundle = ResourceBundle.getBundle( XodusLocalDB.class.getName() );
             final String contents = resourceBundle.getString( "ReadmeContents" );
             final byte[] byteContents = contents.getBytes( PwmConstants.DEFAULT_CHARSET );
-            Files.write( xodusPath.toPath(), byteContents, StandardOpenOption.TRUNCATE_EXISTING );
+            Files.write( xodusPath.toPath(), byteContents, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING );
         }
         catch ( IOException e )
         {

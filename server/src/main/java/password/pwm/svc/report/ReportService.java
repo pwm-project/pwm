@@ -24,10 +24,8 @@ package password.pwm.svc.report;
 
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
-import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
@@ -627,13 +625,10 @@ public class ReportService implements PwmService
             {
                 summaryData.remove( userCacheRecord );
             }
-            final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider( userIdentity.getLdapProfileID() );
-            final UserInfo userInfo = UserInfoFactory.newUserInfo(
+            final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxyForOfflineUser(
                     pwmApplication,
                     SessionLabel.REPORTING_SESSION_LABEL,
-                    PwmConstants.DEFAULT_LOCALE,
-                    userIdentity,
-                    chaiProvider
+                    userIdentity
             );
             final UserCacheRecord newUserCacheRecord = userCacheService.updateUserCache( userInfo );
 

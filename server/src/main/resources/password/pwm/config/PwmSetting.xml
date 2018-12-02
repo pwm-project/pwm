@@ -1574,6 +1574,11 @@
             <value>28800</value>
         </default>
     </setting>
+    <setting hidden="false" key="cluster.enable" level="2">
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
     <setting hidden="false" key="cluster.storageMode" level="2">
         <default>
             <value>LDAP</value>
@@ -3321,6 +3326,28 @@
             <value>workforceID</value>
         </default>
     </setting>
+    <setting hidden="false" key="ldap.user.language.attribute" level="1">
+        <ldapPermission actor="proxy" access="write"/>
+        <default>
+            <value/>
+        </default>
+    </setting>
+    <setting hidden="false" key="ldap.user.pwNotify.attribute" level="1">
+        <ldapPermission actor="proxy" access="write"/>
+        <default>
+            <value/>
+        </default>
+    </setting>
+    <setting hidden="false" key="ldap.user.language.autoSet" level="1">
+        <ldapPermission actor="proxy" access="write"/>
+        <options>
+            <option value="disabled">Disabled</option>
+            <option value="enabled">Enabled - Write to LDAP attribute during authentication.</option>
+        </options>
+        <default>
+            <value>disabled</value>
+        </default>
+    </setting>
     <setting hidden="false" key="ldap.edirectory.storeNmasResponses" level="1" required="true">
         <default>
             <value>false</value>
@@ -3789,6 +3816,18 @@
         <default>
             <value/>
         </default>
+    </setting>
+    <setting hidden="false" key="pwNotify.storageMode" level="2">
+        <default>
+            <value>LDAP</value>
+        </default>
+        <default template="DB">
+            <value>DB</value>
+        </default>
+        <options>
+            <option value="LDAP">LDAP Directory</option>
+            <option value="DB">Remote Database</option>
+        </options>
     </setting>
     <setting hidden="false" key="pwNotify.queryString" level="1">
         <default>
