@@ -356,13 +356,13 @@ public class EmailService implements PwmService
             if ( threadLocalTransport.get() == null )
             {
 
-                LOGGER.trace( "initializing new threadLocal transport, stats: " + stats() );
+                LOGGER.trace( () -> "initializing new threadLocal transport, stats: " + stats() );
                 threadLocalTransport.set( getSmtpTransport( ) );
                 newThreadLocalTransport.getAndIncrement();
             }
             else
             {
-                LOGGER.trace( "using existing threadLocal transport, stats: " + stats() );
+                LOGGER.trace( () -> "using existing threadLocal transport, stats: " + stats() );
                 useExistingTransport.getAndIncrement();
             }
 
@@ -370,14 +370,14 @@ public class EmailService implements PwmService
 
             if ( !serverTransport.getTransport().isConnected() )
             {
-                LOGGER.trace( "connecting threadLocal transport, stats: " + stats() );
+                LOGGER.trace( () -> "connecting threadLocal transport, stats: " + stats() );
                 threadLocalTransport.set( getSmtpTransport( ) );
                 serverTransport = threadLocalTransport.get();
                 newConnectionCounter.getAndIncrement();
             }
             else
             {
-                LOGGER.trace( "using existing threadLocal: stats: " + stats() );
+                LOGGER.trace( () -> "using existing threadLocal: stats: " + stats() );
                 useExistingConnection.getAndIncrement();
             }
 

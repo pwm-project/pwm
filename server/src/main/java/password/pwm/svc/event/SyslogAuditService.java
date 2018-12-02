@@ -131,7 +131,7 @@ public class SyslogAuditService
                 final SyslogIF syslogInstance = makeSyslogInstance( syslogCfg );
                 syslogInstances.add( syslogInstance );
             }
-            LOGGER.trace( "queued service running for syslog entries" );
+            LOGGER.trace( () -> "queued service running for syslog entries" );
         }
         catch ( IllegalArgumentException e )
         {
@@ -275,7 +275,7 @@ public class SyslogAuditService
             try
             {
                 syslogInstance.info( auditRecord );
-                LOGGER.trace( "delivered syslog audit event: " + auditRecord );
+                LOGGER.trace( () -> "delivered syslog audit event: " + auditRecord );
                 lastError = null;
                 StatisticsManager.incrementStat( this.pwmApplication, Statistic.SYSLOG_MESSAGES_SENT );
                 return WorkQueueProcessor.ProcessResult.SUCCESS;

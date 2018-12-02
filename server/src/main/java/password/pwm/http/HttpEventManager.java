@@ -67,7 +67,7 @@ public class HttpEventManager implements
                 pwmApplication.getStatisticsManager().updateEps( EpsStatistic.SESSIONS, 1 );
             }
 
-            LOGGER.trace( "new http session created" );
+            LOGGER.trace( () -> "new http session created" );
         }
         catch ( PwmUnrecoverableException e )
         {
@@ -96,7 +96,7 @@ public class HttpEventManager implements
             }
             else
             {
-                LOGGER.trace( "invalidated uninitialized session" );
+                LOGGER.trace( () -> "invalidated uninitialized session" );
             }
         }
         catch ( PwmUnrecoverableException e )

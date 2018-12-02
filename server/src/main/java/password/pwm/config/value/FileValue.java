@@ -241,7 +241,7 @@ public class FileValue extends AbstractValue implements StoredValue
             }
             catch ( PwmUnrecoverableException e )
             {
-                LOGGER.trace( "error generating file hash" );
+                LOGGER.trace( () -> "error generating file hash" );
             }
             output.add( details );
         }

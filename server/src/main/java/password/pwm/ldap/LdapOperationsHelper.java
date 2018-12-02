@@ -231,7 +231,7 @@ public class LdapOperationsHelper
             {
                 if ( ldapProfile.readSettingAsBoolean( PwmSetting.LDAP_GUID_AUTO_ADD ) )
                 {
-                    LOGGER.trace( "assigning new GUID to user " + userIdentity );
+                    LOGGER.trace( () -> "assigning new GUID to user " + userIdentity );
                     return GUIDHelper.assignGuidToUser( pwmApplication, sessionLabel, userIdentity, guidAttributeName );
                 }
             }

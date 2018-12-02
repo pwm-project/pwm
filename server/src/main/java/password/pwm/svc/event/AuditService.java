@@ -393,7 +393,7 @@ public class AuditService implements PwmService
                 }
                 else
                 {
-                    LOGGER.trace( "skipping update of user history, audit record does not have a perpetratorDN: " + JsonUtil.serialize( auditRecord ) );
+                    LOGGER.trace( () -> "skipping update of user history, audit record does not have a perpetratorDN: " + JsonUtil.serialize( auditRecord ) );
                 }
             }
         }

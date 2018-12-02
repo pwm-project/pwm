@@ -396,7 +396,7 @@ public class SmsQueueManager implements PwmService
             final Matcher m = p.matcher( resultBody );
             if ( m.matches() )
             {
-                LOGGER.trace( "result body matched configured regex match setting: " + regex );
+                LOGGER.trace( () -> "result body matched configured regex match setting: " + regex );
                 return;
             }
         }
@@ -494,7 +494,7 @@ public class SmsQueueManager implements PwmService
 
             final String requestData = makeRequestData( to, message );
 
-            LOGGER.trace( "preparing to send SMS data: " + requestData );
+            LOGGER.trace( () -> "preparing to send SMS data: " + requestData );
 
             final PwmHttpClientRequest pwmHttpClientRequest = makeRequest( requestData );
 

@@ -169,7 +169,10 @@ public class LdapProfile extends AbstractProfile implements Profile
                     pwmApplication.getCacheService().put( cacheKey, cachePolicy, canonicalValue );
                 }
 
-                LOGGER.trace( "read and cached canonical ldap DN value for input '" + dnValue + "' as '" + canonicalValue + "'" );
+                {
+                    final String finalCanonical = canonicalValue;
+                    LOGGER.trace( () -> "read and cached canonical ldap DN value for input '" + dnValue + "' as '" + finalCanonical + "'" );
+                }
             }
             catch ( ChaiUnavailableException | ChaiOperationException e )
             {

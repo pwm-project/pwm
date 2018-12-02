@@ -178,7 +178,7 @@ public class ShortcutServlet extends AbstractPwmServlet
 
         if ( !labelsFromHeader.isEmpty() )
         {
-            LOGGER.trace( "detected the following labels from headers: " + StringHelper.stringCollectionToString( labelsFromHeader, "," ) );
+            LOGGER.trace( () -> "detected the following labels from headers: " + StringHelper.stringCollectionToString( labelsFromHeader, "," ) );
             visibleItems.keySet().retainAll( labelsFromHeader );
         }
         else

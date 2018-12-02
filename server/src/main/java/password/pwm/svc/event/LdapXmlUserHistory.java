@@ -199,7 +199,7 @@ class LdapXmlUserHistory implements UserHistoryStore
 
         if ( corAttribute == null || corAttribute.length() < 1 )
         {
-            LOGGER.trace( "no user event log attribute configured, skipping read of log data" );
+            LOGGER.trace( () -> "no user event log attribute configured, skipping read of log data" );
             return new StoredHistory();
         }
 

@@ -263,7 +263,7 @@ public class ConfigurationReader
                 pwmApplication.writeAppAttribute( PwmApplication.AppAttribute.CONFIG_HASH, actualChecksum );
             }
 
-            LOGGER.trace( "renaming file " + tempWriteFile.getAbsolutePath() + " to " + configFile.getAbsolutePath() );
+            LOGGER.trace( () -> "renaming file " + tempWriteFile.getAbsolutePath() + " to " + configFile.getAbsolutePath() );
             try
             {
                 Files.move( tempWriteFile.toPath(), configFile.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE );

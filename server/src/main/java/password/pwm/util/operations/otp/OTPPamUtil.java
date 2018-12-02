@@ -95,7 +95,8 @@ public class OTPPamUtil
                     }
                     else
                     {
-                        LOGGER.trace( String.format( "Unrecognized line: \"%s\"", line ) );
+                        final String finalLine = line;
+                        LOGGER.trace( () -> String.format( "Unrecognized line: \"%s\"", finalLine ) );
                     }
                 }
                 if ( recoveryCodes.isEmpty() )

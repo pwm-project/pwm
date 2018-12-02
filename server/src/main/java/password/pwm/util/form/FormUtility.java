@@ -350,7 +350,7 @@ public class FormUtility
                 {
                     // since only one value searched, it must be that one value
                     final String attributeName = labelMap.values().iterator().next();
-                    LOGGER.trace( "found duplicate value for attribute '" + attributeName + "' on entry " + userIdentity );
+                    LOGGER.trace( () -> "found duplicate value for attribute '" + attributeName + "' on entry " + userIdentity );
                     final ErrorInformation error = new ErrorInformation( PwmError.ERROR_FIELD_DUPLICATE, null, new String[]
                             {
                                     attributeName,
@@ -379,7 +379,7 @@ public class FormUtility
                     if ( compareResult )
                     {
                         final String label = labelMap.get( name );
-                        LOGGER.trace( "found duplicate value for attribute '" + label + "' on entry " + userIdentity );
+                        LOGGER.trace( () ->  "found duplicate value for attribute '" + label + "' on entry " + userIdentity );
                         final ErrorInformation error = new ErrorInformation( PwmError.ERROR_FIELD_DUPLICATE, null, new String[]
                                 {
                                         label,

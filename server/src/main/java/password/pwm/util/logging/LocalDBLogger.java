@@ -308,7 +308,7 @@ public class LocalDBLogger implements PwmService
         }
         catch ( PatternSyntaxException e )
         {
-            LOGGER.trace( "invalid regex syntax for " + searchParameters.getUsername() + ", reverting to plaintext search" );
+            LOGGER.trace( () -> "invalid regex syntax for " + searchParameters.getUsername() + ", reverting to plaintext search" );
         }
         if ( pattern != null )
         {

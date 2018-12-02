@@ -625,7 +625,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
             }
         }
 
-        LOGGER.trace( "StoredConfiguration validator completed in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
+        LOGGER.trace( () -> "StoredConfiguration validator completed in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
         return errorStrings;
     }
 
@@ -1017,7 +1017,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
 
 
         final String result = SecureEngine.hash( sb.toString(), PwmConstants.SETTING_CHECKSUM_HASH_METHOD );
-        LOGGER.trace( "computed setting checksum in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
+        LOGGER.trace( () -> "computed setting checksum in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
         return result;
     }
 

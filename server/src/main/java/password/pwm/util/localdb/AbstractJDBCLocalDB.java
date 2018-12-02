@@ -82,7 +82,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
         try
         {
             checkIfTableExists( connection, db );
-            LOGGER.trace( "table " + db + " appears to exist" );
+            LOGGER.trace( () -> "table " + db + " appears to exist" );
         }
         catch ( final LocalDBException e )
         {
@@ -303,7 +303,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
 
             final LocalDB.LocalDBIterator iterator = new DbIterator( db );
             dbIterators.add( iterator );
-            LOGGER.trace( this.getClass().getSimpleName() + " issued iterator for " + db.toString() + ", outstanding iterators: " + dbIterators.size() );
+            LOGGER.trace( () -> this.getClass().getSimpleName() + " issued iterator for " + db.toString() + ", outstanding iterators: " + dbIterators.size() );
             return iterator;
         }
         catch ( final Exception e )

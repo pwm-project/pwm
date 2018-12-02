@@ -466,7 +466,7 @@ public class ContextManager implements Serializable
                 return;
             }
 
-            LOGGER.trace( "waiting up to " + maxRequestWaitTime.asCompactString()
+            LOGGER.trace( () -> "waiting up to " + maxRequestWaitTime.asCompactString()
                     + " for " + startingRequetsInProgress  + " requests to complete." );
             JavaHelper.pause(
                     maxRequestWaitTime.asMillis(),
@@ -476,7 +476,7 @@ public class ContextManager implements Serializable
 
             final int requestsInPrgoress = pwmApplication.getInprogressRequests().get();
             final TimeDuration waitTime = TimeDuration.fromCurrent( startTime  );
-            LOGGER.trace( "after " + waitTime.asCompactString() + ", " + requestsInPrgoress
+            LOGGER.trace( () -> "after " + waitTime.asCompactString() + ", " + requestsInPrgoress
                     + " requests in progress, proceeding with restart" );
         }
     }

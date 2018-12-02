@@ -82,7 +82,10 @@ public class DataStoreTokenMachine implements TokenMachine
             PwmUnrecoverableException, PwmOperationalException
     {
         final Instant startTime = Instant.now();
-        LOGGER.trace( "beginning purge cycle; database size = " + size() );
+        {
+            final long finalSize = size();
+            LOGGER.trace( () -> "beginning purge cycle; database size = " + finalSize );
+        }
         try ( ClosableIterator<String> keyIterator = dataStore.iterator() )
         {
             while ( tokenService.status() == PwmService.STATUS.OPEN && keyIterator.hasNext() )
@@ -98,8 +101,11 @@ public class DataStoreTokenMachine implements TokenMachine
         {
             LOGGER.error( "unexpected error while cleaning expired stored tokens: " + e.getMessage() );
         }
-        LOGGER.trace( "completed record purge cycle in " + TimeDuration.fromCurrent( startTime ).asCompactString()
-                + "; database size = " + size() );
+        {
+            final long finalSize = size();
+            LOGGER.trace( () -> "completed record purge cycle in " + TimeDuration.compactFromCurrent( startTime )
+                    + "; database size = " + finalSize );
+        }
     }
 
     private boolean testIfTokenNeedsPurging( final TokenPayload theToken )
@@ -146,14 +152,14 @@ public class DataStoreTokenMachine implements TokenMachine
             }
             catch ( PwmException e )
             {
-                LOGGER.trace( "error while trying to decrypted stored token payload for key '" + storedHash + "', will purge record, error: " + e.getMessage() );
+                LOGGER.trace( () -> "error while trying to decrypted stored token payload for key '" + storedHash + "', will purge record, error: " + e.getMessage() );
                 dataStore.remove( storedHash );
                 return null;
             }
 
             if ( testIfTokenNeedsPurging( tokenPayload ) )
             {
-                LOGGER.trace( "stored token key '" + storedHash + "', has an outdated issue/expire date and will be purged" );
+                LOGGER.trace( () -> "stored token key '" + storedHash + "', has an outdated issue/expire date and will be purged" );
                 dataStore.remove( storedHash );
             }
             else

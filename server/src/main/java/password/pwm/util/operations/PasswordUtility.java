@@ -1027,7 +1027,7 @@ public class PasswordUtility
                     : null;
             if ( pwmApplication.getConfig().isDevDebugMode() )
             {
-                LOGGER.trace( "generated cacheKey for password check request: " + cacheKey );
+                LOGGER.trace( () -> "generated cacheKey for password check request: " + cacheKey );
             }
             try
             {
@@ -1042,7 +1042,7 @@ public class PasswordUtility
                         }
                         else
                         {
-                            LOGGER.trace( "cache hit!" );
+                            LOGGER.trace( () -> "cache hit!" );
                             final ErrorInformation errorInformation = JsonUtil.deserialize( cachedValue, ErrorInformation.class );
                             throw new PwmDataValidationException( errorInformation );
                         }

@@ -199,7 +199,7 @@ public abstract class X509Utils
         }
         catch ( Exception e )
         {
-            LOGGER.trace( "exception while testing ldap server cert validity against default keystore: " + e.getMessage() );
+            LOGGER.trace( () -> "exception while testing ldap server cert validity against default keystore: " + e.getMessage() );
         }
 
         return false;

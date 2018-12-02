@@ -148,7 +148,7 @@ public class NGStoredConfigurationFactory
             }
             else
             {
-                LOGGER.trace( "parsing setting key=" + key + ", profile=" + storedConfigReference.getProfileID() );
+                LOGGER.trace( () -> "parsing setting key=" + key + ", profile=" + storedConfigReference.getProfileID() );
                 if ( settingElement.getChild( StoredConfiguration.XML_ELEMENT_DEFAULT ) != null )
                 {
                     try
@@ -171,7 +171,7 @@ public class NGStoredConfigurationFactory
         {
             final String key = storedConfigReference.getRecordID();
 
-            LOGGER.trace( "parsing property key=" + key + ", profile=" + storedConfigReference.getProfileID() );
+            LOGGER.trace( () -> "parsing property key=" + key + ", profile=" + storedConfigReference.getProfileID() );
             if ( settingElement.getChild( StoredConfiguration.XML_ELEMENT_DEFAULT ) != null )
             {
                 return new StringValue( settingElement.getValue() );

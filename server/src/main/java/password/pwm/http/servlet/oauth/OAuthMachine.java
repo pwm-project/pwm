@@ -326,7 +326,7 @@ public class OAuthMachine
             }
         }
 
-        LOGGER.trace( "calculated oauth self end point URI as '" + redirectUri + "' using method " + debugSource );
+        LOGGER.trace( () -> "calculated oauth self end point URI as '" + redirectUri + "' using method " + debugSource );
         return redirectUri;
     }
 

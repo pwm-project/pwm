@@ -196,6 +196,6 @@ public class CacheService implements PwmService
             traceOutput.append( ", histogram=" );
             traceOutput.append( JsonUtil.serializeMap( memoryCacheStore.storedClassHistogram( "" ) ) );
         }
-        LOGGER.trace( traceOutput );
+        LOGGER.trace( () -> traceOutput );
     }
 }

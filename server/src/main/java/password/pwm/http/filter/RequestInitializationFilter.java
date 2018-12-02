@@ -494,7 +494,7 @@ public class RequestInitializationFilter implements Filter
         }
         catch ( UnknownHostException e )
         {
-            LOGGER.trace( "unknown host while trying to compute hostname for src request: " + e.getMessage() );
+            LOGGER.trace( () -> "unknown host while trying to compute hostname for src request: " + e.getMessage() );
         }
         return "";
     }

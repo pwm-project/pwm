@@ -41,6 +41,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * @author Jason D. Rivard
@@ -143,9 +144,19 @@ public class PwmLogger
 
     private void doLogEvent( final PwmLogLevel level, final SessionLabel sessionLabel, final Object message, final Throwable e )
     {
+        doLogEvent( level, sessionLabel, () -> message == null ? "" : message.toString(), e );
+    }
+
+    private void doLogEvent( final PwmLogLevel level, final SessionLabel sessionLabel, final Supplier<Object> message, final Throwable e )
+    {
+        if ( !isEnabled( level ) )
+        {
+            return;
+        }
+
         final PwmLogLevel effectiveLevel = level == null ? PwmLogLevel.TRACE : level;
         final String topic = log4jLogger.getName();
-        final String effectiveMessage = message == null ? "" : message.toString();
+        final String effectiveMessage = message == null ? "" : message.get().toString();
         final PwmLogEvent logEvent = PwmLogEvent.createPwmLogEvent( Instant.now(), topic, effectiveMessage, sessionLabel,
                 e, effectiveLevel );
         doLogEvent( logEvent );
@@ -242,7 +253,7 @@ public class PwmLogger
         doLogEvent( level, sessionLabel, message, null );
     }
 
-    public void trace( final CharSequence message )
+    public void trace( final Supplier<CharSequence> message )
     {
         doLogEvent( PwmLogLevel.TRACE, null, message, null );
     }
@@ -294,22 +305,34 @@ public class PwmLogger
 
     public void debug( final SessionLabel sessionLabel, final CharSequence message )
     {
-        doLogEvent( PwmLogLevel.DEBUG, sessionLabel, message, null );
+        if ( log4jLogger.isDebugEnabled() )
+        {
+            doLogEvent( PwmLogLevel.DEBUG, sessionLabel, message, null );
+        }
     }
 
     public void debug( final SessionLabel sessionLabel, final ErrorInformation errorInformation )
     {
-        doLogEvent( PwmLogLevel.DEBUG, sessionLabel, convertErrorInformation( errorInformation ), null );
+        if ( log4jLogger.isDebugEnabled() )
+        {
+            doLogEvent( PwmLogLevel.DEBUG, sessionLabel, convertErrorInformation( errorInformation ), null );
+        }
     }
 
     public void debug( final CharSequence message, final Throwable exception )
     {
-        doPwmSessionLogEvent( PwmLogLevel.DEBUG, null, message, exception );
+        if ( log4jLogger.isDebugEnabled() )
+        {
+            doPwmSessionLogEvent( PwmLogLevel.DEBUG, null, message, exception );
+        }
     }
 
     public void debug( final PwmSession pwmSession, final CharSequence message, final Throwable e )
     {
-        doPwmSessionLogEvent( PwmLogLevel.DEBUG, pwmSession, message, e );
+        if ( log4jLogger.isDebugEnabled() )
+        {
+            doPwmSessionLogEvent( PwmLogLevel.DEBUG, pwmSession, message, e );
+        }
     }
 
     public void info( final CharSequence message )
@@ -551,6 +574,32 @@ public class PwmLogger
         }
 
         return returnString;
+    }
+
+    public boolean isEnabled( final PwmLogLevel pwmLogLevel )
+    {
+        /*
+        if ( minimumDbLogLevel != null )
+        {
+            final int compareValue = minimumDbLogLevel.compareTo( pwmLogLevel );
+            final boolean dbLogLevelHigher =  compareValue <= 0;
+            System.out.println( " dbLogLevelHigher=" + dbLogLevelHigher
+                    + ", compareValue=" + compareValue
+                    + " pwmLogLevel=" + pwmLogLevel
+                    + ", minDbLevel=" + minimumDbLogLevel );
+        }
+        */
+
+        return (
+                log4jLogger != null
+                        && log4jLogger.isEnabledFor( pwmLogLevel.getLog4jLevel() )
+        )
+                ||
+                (
+                        localDBLogger != null
+                                && minimumDbLogLevel != null
+                                && minimumDbLogLevel.compareTo( pwmLogLevel ) <= 0
+                );
     }
 }
 

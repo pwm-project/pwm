@@ -536,7 +536,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
                     final String value = JsonUtil.deserialize( bodyString, String.class );
                     configManagerBean.getStoredConfiguration().writeConfigProperty( ConfigurationProperty.NOTES,
                             value );
-                    LOGGER.trace( "updated notesText" );
+                    LOGGER.trace( () -> "updated notesText" );
                 }
                 catch ( Exception e )
                 {
@@ -552,7 +552,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
                         final PwmSettingTemplate template = PwmSettingTemplate.valueOf( requestedTemplate );
                         configManagerBean.getStoredConfiguration().writeConfigProperty(
                                 ConfigurationProperty.LDAP_TEMPLATE, template.toString() );
-                        LOGGER.trace( "setting template to: " + requestedTemplate );
+                        LOGGER.trace( () -> "setting template to: " + requestedTemplate );
                     }
                     catch ( IllegalArgumentException e )
                     {

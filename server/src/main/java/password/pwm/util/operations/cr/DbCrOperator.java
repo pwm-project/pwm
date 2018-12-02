@@ -84,7 +84,7 @@ public class DbCrOperator implements CrOperator
             }
             else
             {
-                LOGGER.trace( "user guid for " + theUser.getEntryDN() + " not found in remote database (key=" + userGUID + ")" );
+                LOGGER.trace( () -> "user guid for " + theUser.getEntryDN() + " not found in remote database (key=" + userGUID + ")" );
             }
         }
         catch ( ChaiValidationException e )
@@ -165,7 +165,7 @@ public class DbCrOperator implements CrOperator
             );
         }
 
-        LOGGER.trace( "attempting to save responses for " + theUser.getEntryDN() + " in remote database (key=" + userGUID + ")" );
+        LOGGER.trace( () -> "attempting to save responses for " + theUser.getEntryDN() + " in remote database (key=" + userGUID + ")" );
 
         try
         {

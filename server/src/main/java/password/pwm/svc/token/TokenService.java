@@ -131,7 +131,7 @@ public class TokenService implements PwmService
     public void init( final PwmApplication pwmApplication )
             throws PwmException
     {
-        LOGGER.trace( "opening" );
+        LOGGER.trace( () -> "opening" );
         status = STATUS.OPENING;
 
         this.pwmApplication = pwmApplication;
@@ -200,7 +200,7 @@ public class TokenService implements PwmService
             final int cleanerFrequencySeconds = Integer.parseInt( configuration.readAppProperty( AppProperty.TOKEN_CLEANER_INTERVAL_SECONDS ) );
             final TimeDuration cleanerFrequency = TimeDuration.of( cleanerFrequencySeconds, TimeDuration.Unit.SECONDS );
             pwmApplication.scheduleFixedRateJob( new CleanerTask(), executorService, TimeDuration.MINUTE, cleanerFrequency );
-            LOGGER.trace( "token cleanup will occur every " + cleanerFrequency.asCompactString() );
+            LOGGER.trace( () -> "token cleanup will occur every " + cleanerFrequency.asCompactString() );
         }
 
 

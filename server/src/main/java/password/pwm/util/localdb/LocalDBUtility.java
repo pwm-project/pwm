@@ -311,7 +311,7 @@ public class LocalDBUtility
         }
         finally
         {
-            LOGGER.trace( "import process completed" );
+            LOGGER.trace( () -> "import process completed" );
             statTimer.cancel();
             IOUtils.closeQuietly( csvReader );
             IOUtils.closeQuietly( countingInputStream );

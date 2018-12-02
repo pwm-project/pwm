@@ -266,7 +266,7 @@ class WordlistImporter implements Runnable
     {
         flushBuffer();
         getLogger().info( makeStatString() );
-        getLogger().trace( "beginning wordlist size query" );
+        getLogger().trace( () -> "beginning wordlist size query" );
         final long wordlistSize = wordlistBucket.size();
 
         final String logMsg = "population complete, added " + wordlistSize

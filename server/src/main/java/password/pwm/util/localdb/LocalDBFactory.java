@@ -87,7 +87,7 @@ public class LocalDBFactory
 
         if ( !readonly )
         {
-            LOGGER.trace( "clearing TEMP db" );
+            LOGGER.trace( () -> "clearing TEMP db" );
             localDB.truncate( LocalDB.DB.TEMP );
 
             final LocalDBUtility localDBUtility = new LocalDBUtility( localDB );
@@ -153,7 +153,7 @@ public class LocalDBFactory
         {
             if ( dbFileLocation.mkdir() )
             {
-                LOGGER.trace( "created directory at " + dbFileLocation.getAbsolutePath() );
+                LOGGER.trace( () -> "created directory at " + dbFileLocation.getAbsolutePath() );
             }
 
 
@@ -166,7 +166,7 @@ public class LocalDBFactory
             throw new LocalDBException( new ErrorInformation( PwmError.ERROR_LOCALDB_UNAVAILABLE, errorMsg ) );
         }
 
-        LOGGER.trace( "db init completed for " + theClass );
+        LOGGER.trace( () -> "db init completed for " + theClass );
     }
 
     private static Map<LocalDBProvider.Parameter, String> makeParameterMap( final Configuration configuration, final boolean readOnly )

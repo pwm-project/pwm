@@ -219,7 +219,7 @@ public class ActionExecutor
 
             if ( !successStatus.contains( clientResponse.getStatusCode() ) )
             {
-                LOGGER.trace( "response status code " + clientResponse.getStatusCode() + " is not one of the configured success status codes: "
+                LOGGER.trace( () -> "response status code " + clientResponse.getStatusCode() + " is not one of the configured success status codes: "
                         + StringUtil.collectionToString( successStatus ) );
 
                 throw new PwmOperationalException( new ErrorInformation(

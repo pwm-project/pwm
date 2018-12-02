@@ -157,7 +157,7 @@ public class CASFilterAuthenticationProvider implements PwmHttpFilterAuthenticat
         final String encodedPsw = ( String ) casAttributes.get( "credential" );
         if ( encodedPsw == null )
         {
-            LOGGER.trace( "No credential" );
+            LOGGER.trace( () -> "No credential" );
         }
         else
         {

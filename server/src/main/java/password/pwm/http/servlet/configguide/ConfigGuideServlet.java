@@ -509,7 +509,11 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         {
             configGuideBean.setStep( step );
             pwmRequest.outputJsonResult( RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown ) );
-            LOGGER.trace( "setting current step to: " + step );
+
+            {
+                final GuideStep finalStep = step;
+                LOGGER.trace( () -> "setting current step to: " + finalStep );
+            }
         }
 
         return ProcessStatus.Continue;

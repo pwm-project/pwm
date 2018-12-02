@@ -361,7 +361,7 @@ public class PasswordChangeProgressChecker
                     pwmSession, userIdentity );
             if ( checkResults.size() <= 1 )
             {
-                LOGGER.trace( "only one replica returned data, marking as complete" );
+                LOGGER.trace( () -> "only one replica returned data, marking as complete" );
                 return completedReplicationRecord;
             }
             else
@@ -381,7 +381,7 @@ public class PasswordChangeProgressChecker
                 }
                 final Percent pctComplete = new Percent( duplicateValues + 1, checkResults.size() );
                 final ProgressRecord progressRecord = makeReplicaProgressRecord( pctComplete );
-                LOGGER.trace( "read password replication sync status as: " + JsonUtil.serialize( progressRecord ) );
+                LOGGER.trace( () -> "read password replication sync status as: " + JsonUtil.serialize( progressRecord ) );
                 return progressRecord;
             }
         }

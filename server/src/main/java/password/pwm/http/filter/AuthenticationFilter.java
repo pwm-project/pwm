@@ -359,7 +359,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
                 }
                 catch ( Exception e )
                 {
-                    LOGGER.trace( "could not load authentication class '" + authenticationMethod + "', will ignore" );
+                    LOGGER.trace( () -> "could not load authentication class '" + authenticationMethod + "', will ignore" );
                     IGNORED_AUTH_METHODS.add( authenticationMethod );
                 }
 

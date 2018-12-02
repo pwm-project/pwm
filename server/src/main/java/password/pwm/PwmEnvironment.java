@@ -234,7 +234,7 @@ public class PwmEnvironment
         }
         if ( applicationPathIsWebInfPath )
         {
-            LOGGER.trace( "applicationPath appears to be servlet /WEB-INF directory" );
+            LOGGER.trace( () -> "applicationPath appears to be servlet /WEB-INF directory" );
         }
     }
 
@@ -263,7 +263,7 @@ public class PwmEnvironment
             );
         }
 
-        LOGGER.trace( "examining applicationPath of " + applicationPath.getAbsolutePath() + "" );
+        LOGGER.trace( () -> "examining applicationPath of " + applicationPath.getAbsolutePath() + "" );
 
         if ( !applicationPath.exists() )
         {
@@ -290,7 +290,7 @@ public class PwmEnvironment
         }
 
         final File infoFile = new File( applicationPath.getAbsolutePath() + File.separator + PwmConstants.APPLICATION_PATH_INFO_FILE );
-        LOGGER.trace( "checking " + infoFile.getAbsolutePath() + " status" );
+        LOGGER.trace( () -> "checking " + infoFile.getAbsolutePath() + " status" );
         if ( infoFile.exists() )
         {
             final String errorMsg = "The file " + infoFile.getAbsolutePath() + " exists, and an applicationPath was not explicitly specified."

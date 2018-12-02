@@ -61,7 +61,7 @@ public class JDBCDriverLoader
             throws DatabaseException
     {
         final List<ClassLoaderStrategy> strategies = dbConfiguration.getClassLoaderStrategies();
-        LOGGER.trace( "attempting to load jdbc driver using strategies: " + JsonUtil.serializeCollection( strategies ) );
+        LOGGER.trace( () -> "attempting to load jdbc driver using strategies: " + JsonUtil.serializeCollection( strategies ) );
         final List<String> errorMsgs = new ArrayList<>();
         for ( final ClassLoaderStrategy strategy : strategies )
         {
@@ -222,7 +222,7 @@ public class JDBCDriverLoader
                 {
                     final String prefixName = PwmConstants.PWM_APP_NAME.toLowerCase() + "_jdbcJar_";
                     tempFile = File.createTempFile( prefixName, "jar" );
-                    LOGGER.trace( "created temp file " + tempFile.getAbsolutePath() );
+                    LOGGER.trace( () -> "created temp file " + tempFile.getAbsolutePath() );
                 }
 
                 try ( FileOutputStream fos = new FileOutputStream( tempFile ) )
@@ -262,7 +262,7 @@ public class JDBCDriverLoader
             {
                 if ( tempFile.delete() )
                 {
-                    LOGGER.trace( "removed temporary file " + tempFile.getAbsolutePath() );
+                    LOGGER.trace( () -> "removed temporary file " + tempFile.getAbsolutePath() );
                 }
             }
             tempFile = null;
@@ -309,7 +309,7 @@ public class JDBCDriverLoader
             if ( driverCache.containsKey( jdbcDriverHash ) )
             {
                 urlClassLoader = driverCache.get( jdbcDriverHash );
-                LOGGER.trace( "loaded classloader from static cache" );
+                LOGGER.trace( () -> "loaded classloader from static cache" );
             }
             else
             {
@@ -382,7 +382,7 @@ public class JDBCDriverLoader
             }
             else
             {
-                LOGGER.trace( "reusing existing temp jar file " + tempFile.getAbsolutePath() );
+                LOGGER.trace( () -> "reusing existing temp jar file " + tempFile.getAbsolutePath() );
             }
 
             return tempFile;

@@ -83,7 +83,7 @@ public class DerbyLocalDB extends AbstractJDBCLocalDB
         {
             if ( "XJ015".equals( e.getSQLState() ) )
             {
-                LOGGER.trace( "Derby shutdown succeeded. SQLState=" + e.getSQLState() + ", message=" + e.getMessage() );
+                LOGGER.trace( () -> "Derby shutdown succeeded. SQLState=" + e.getSQLState() + ", message=" + e.getMessage() );
             }
             else
             {

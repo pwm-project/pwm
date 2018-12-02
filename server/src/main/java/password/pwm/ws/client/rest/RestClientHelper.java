@@ -67,7 +67,7 @@ public class RestClientHelper
             LOGGER.debug( "beginning external rest call to: " + httpPost.toString() + ", body: " + jsonRequestBody );
             httpResponse = PwmHttpClient.getHttpClient( pwmApplication.getConfig() ).execute( httpPost );
             final String responseBody = EntityUtils.toString( httpResponse.getEntity() );
-            LOGGER.trace( "external rest call returned: " + httpResponse.getStatusLine().toString() + ", body: " + responseBody );
+            LOGGER.trace( () -> "external rest call returned: " + httpResponse.getStatusLine().toString() + ", body: " + responseBody );
             if ( httpResponse.getStatusLine().getStatusCode() != 200 )
             {
                 final String errorMsg = "received non-200 response code (" + httpResponse.getStatusLine().getStatusCode() + ") when executing web-service";

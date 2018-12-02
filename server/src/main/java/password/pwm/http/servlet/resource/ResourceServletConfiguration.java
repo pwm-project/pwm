@@ -69,7 +69,7 @@ class ResourceServletConfiguration
 
     private ResourceServletConfiguration( final PwmApplication pwmApplication )
     {
-        LOGGER.trace( "initializing" );
+        LOGGER.trace( () -> "initializing" );
         final Configuration configuration = pwmApplication.getConfig();
         maxCacheItems = Integer.parseInt( configuration.readAppProperty( AppProperty.HTTP_RESOURCES_MAX_CACHE_ITEMS ) );
         cacheExpireSeconds = Long.parseLong( configuration.readAppProperty( AppProperty.HTTP_RESOURCES_EXPIRATION_SECONDS ) );
@@ -210,7 +210,10 @@ class ResourceServletConfiguration
                 IOUtils.copy( stream, byteArrayOutputStream );
                 final ImmutableByteArray contents = new ImmutableByteArray( byteArrayOutputStream.toByteArray() );
                 memoryMap.put( name, new MemoryFileResource( name, contents, lastModified ) );
-                LOGGER.trace( "discovered file in configured resource bundle: " + entry.getName() );
+                {
+                    final String finalEntry = entry.getName();
+                    LOGGER.trace( () -> "discovered file in configured resource bundle: " + finalEntry );
+                }
             }
         }
         return memoryMap;

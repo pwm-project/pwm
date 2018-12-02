@@ -491,7 +491,7 @@ public class DebugItemGenerator
                     }
                     catch ( Exception e )
                     {
-                        LOGGER.trace( "error generating file summary info: " + e.getMessage() );
+                        LOGGER.trace( () -> "error generating file summary info: " + e.getMessage() );
                     }
                 }
                 csvPrinter.flush();
@@ -537,7 +537,11 @@ public class DebugItemGenerator
                     outputStream.flush();
                 }
             }
-            LOGGER.trace( "output " + counter + " lines to " + this.getFilename() );
+
+            {
+                final int finalCounter = counter;
+                LOGGER.trace( () -> "output " + finalCounter + " lines to " + this.getFilename() );
+            }
         }
     }
 

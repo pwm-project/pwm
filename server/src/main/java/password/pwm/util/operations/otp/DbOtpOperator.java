@@ -59,7 +59,7 @@ public class DbOtpOperator extends AbstractOtpOperator
     @Override
     public OTPUserRecord readOtpUserConfiguration( final UserIdentity theUser, final String userGUID ) throws PwmUnrecoverableException
     {
-        LOGGER.trace( String.format( "Enter: readOtpUserConfiguration(%s, %s)", theUser, userGUID ) );
+        LOGGER.trace( () -> String.format( "Enter: readOtpUserConfiguration(%s, %s)", theUser, userGUID ) );
         if ( userGUID == null || userGUID.length() < 1 )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_MISSING_GUID, "cannot save otp to db, user does not have a GUID" ) );
@@ -109,7 +109,7 @@ public class DbOtpOperator extends AbstractOtpOperator
                     "cannot save OTP secret to remote database, user " + theUser + " does not have a guid" ) );
         }
 
-        LOGGER.trace( "attempting to save OTP secret for " + theUser + " in remote database (key=" + userGUID + ")" );
+        LOGGER.trace( () -> "attempting to save OTP secret for " + theUser + " in remote database (key=" + userGUID + ")" );
 
         try
         {
@@ -150,7 +150,7 @@ public class DbOtpOperator extends AbstractOtpOperator
                     ) );
         }
 
-        LOGGER.trace( "attempting to clear OTP secret for " + theUser + " in remote database (key=" + userGUID + ")" );
+        LOGGER.trace( () -> "attempting to clear OTP secret for " + theUser + " in remote database (key=" + userGUID + ")" );
 
         try
         {

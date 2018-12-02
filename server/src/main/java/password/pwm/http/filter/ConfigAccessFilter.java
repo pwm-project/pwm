@@ -154,7 +154,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter
                     {
                             errorMsg,
                     }
-                    );
+            );
             return denyAndError( pwmRequest, errorInformation );
         }
 
@@ -287,10 +287,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter
             return ProcessStatus.Continue;
         }
 
-        if ( configManagerBean.getPrePasswordEntryUrl() == null )
-        {
-            configManagerBean.setPrePasswordEntryUrl( pwmRequest.getHttpServletRequest().getRequestURL().toString() );
-        }
+        configManagerBean.setPrePasswordEntryUrl( pwmRequest.getHttpServletRequest().getRequestURL().toString() );
 
         forwardToJsp( pwmRequest );
         return ProcessStatus.Halt;

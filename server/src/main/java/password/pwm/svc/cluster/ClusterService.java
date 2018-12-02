@@ -79,7 +79,7 @@ public class ClusterService implements PwmService
                 {
                     case DB:
                     {
-                        LOGGER.trace( "starting database-backed cluster provider" );
+                        LOGGER.trace( () -> "starting database-backed cluster provider" );
                         clusterSettings = ClusterSettings.fromConfigForDB( pwmApplication.getConfig() );
                         clusterDataServiceProvider = new DatabaseClusterDataService( pwmApplication );
                     }
@@ -87,7 +87,7 @@ public class ClusterService implements PwmService
 
                     case LDAP:
                     {
-                        LOGGER.trace( "starting ldap-backed cluster provider" );
+                        LOGGER.trace( () -> "starting ldap-backed cluster provider" );
                         clusterSettings = ClusterSettings.fromConfigForLDAP( pwmApplication.getConfig() );
                         clusterDataServiceProvider = new LDAPClusterDataService( pwmApplication );
                     }

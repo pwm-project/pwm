@@ -131,7 +131,7 @@ public abstract class AbstractOtpOperator implements OtpOperator
         }
         OTPUserRecord otpconfig = null;
         /* Try format by format */
-        LOGGER.trace( String.format( "detecting format from value: %s", value ) );
+        LOGGER.trace( () -> String.format( "detecting format from value: %s", value ) );
         /* - PWM JSON */
         try
         {

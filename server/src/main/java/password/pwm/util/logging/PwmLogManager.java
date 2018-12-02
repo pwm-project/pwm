@@ -206,7 +206,7 @@ public class PwmLogManager
 
         if ( pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY )
         {
-            LOGGER.trace( "skipping initialization of LocalDBLogger due to read-only mode" );
+            LOGGER.trace( () -> "skipping initialization of LocalDBLogger due to read-only mode" );
             return null;
         }
 

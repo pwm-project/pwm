@@ -159,7 +159,7 @@ public class NewUserServlet extends ControlledPwmServlet
         if ( !StringUtil.isEmpty( signedFormData ) )
         {
             final Map<String, String> jsonForm = RestFormSigningServer.readSignedFormValue( pwmApplication, signedFormData );
-            LOGGER.trace( "detected signedForm parameter in request, will read and place in bean; keys=" + JsonUtil.serializeCollection( jsonForm.keySet() ) );
+            LOGGER.trace( () -> "detected signedForm parameter in request, will read and place in bean; keys=" + JsonUtil.serializeCollection( jsonForm.keySet() ) );
             newUserBean.setRemoteInputData( jsonForm );
         }
 

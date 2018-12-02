@@ -432,7 +432,7 @@ public class ReportService implements PwmService
                 throws ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException, PwmOperationalException
         {
             final Instant startTime = Instant.now();
-            LOGGER.trace( "beginning ldap search process" );
+            LOGGER.trace( () -> "beginning ldap search process" );
 
             resetJobStatus();
             clearWorkQueue();
@@ -445,7 +445,7 @@ public class ReportService implements PwmService
             );
 
 
-            LOGGER.trace( "completed ldap search process, transferring search results to work queue" );
+            LOGGER.trace( () -> "completed ldap search process, transferring search results to work queue" );
 
             final TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(
                     TransactionSizeCalculator.Settings.builder()
@@ -467,7 +467,7 @@ public class ReportService implements PwmService
                 dnQueue.addAll( bufferList );
                 transactionCalculator.recordLastTransactionDuration( TimeDuration.fromCurrent( loopStart ) );
             }
-            LOGGER.trace( "completed transfer of ldap search results to work queue in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
+            LOGGER.trace( () -> "completed transfer of ldap search results to work queue in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
         }
     }
 

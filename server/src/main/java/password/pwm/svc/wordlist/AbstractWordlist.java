@@ -266,7 +266,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
     void clearImpl( final Activity postCleanActivity ) throws LocalDBException
     {
         final Instant startTime = Instant.now();
-        getLogger().trace( "clearing stored wordlist" );
+        getLogger().trace( () -> "clearing stored wordlist" );
         activity = Wordlist.Activity.Clearing;
         writeWordlistStatus( WordlistStatus.builder().build() );
         getWordlistBucket().clear();
