@@ -946,7 +946,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
     {
         if ( profileID == null && setting.getCategory().hasProfiles() )
         {
-            throw new IllegalArgumentException( "reading of setting " + setting.getKey() + " requires a non-null profileID" );
+            throw new IllegalArgumentException( "writing of setting " + setting.getKey() + " requires a non-null profileID" );
         }
         if ( profileID != null && !setting.getCategory().hasProfiles() )
         {
@@ -974,7 +974,9 @@ public class StoredConfigurationImpl implements StoredConfiguration
             {
                 final List<Element> valueElements = ( ( PasswordValue ) value ).toXmlValues( "value", getKey() );
                 settingElement.addContent( new Comment( "Note: This value is encrypted and can not be edited directly." ) );
-                settingElement.addContent( new Comment( "Please use the Configuration Manager GUI to modify this value." ) );
+                settingElement.addContent( new Comment( "Please use the Configuration Manager web UI to modify this value or add" ) );
+                settingElement.addContent( new Comment( "plaintext=\"true\" attribute on <value> tag to use a non-encrypted value." ) );
+
                 settingElement.addContent( valueElements );
             }
             else if ( setting.getSyntax() == PwmSettingSyntax.PRIVATE_KEY )
