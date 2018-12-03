@@ -473,7 +473,8 @@ public class ForgottenPasswordUtil
                     pwmRequest.getLocale()
             );
 
-            LOGGER.info( pwmRequest, "user successfully supplied password recovery responses, emailing new password to: " + theUser.getEntryDN() );
+            LOGGER.info( pwmRequest, () -> "user successfully supplied password recovery responses, emailing new password to: "
+                    + theUser.getEntryDN() );
 
             // add post change actions
             ForgottenPasswordServlet.addPostChangeAction( pwmRequest, userIdentity );

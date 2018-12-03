@@ -176,7 +176,7 @@ public class SharedHistoryManager implements PwmService
 
         if ( !result )
         {
-            LOGGER.info( "existing db version does not match current db version db=(" + versionInDB + ")  current=(" + currentVersion + "), clearing db" );
+            LOGGER.info( () -> "existing db version does not match current db version db=(" + versionInDB + ")  current=(" + currentVersion + "), clearing db" );
             localDB.truncate( WORDS_DB );
             localDB.put( META_DB, KEY_VERSION, currentVersion );
             localDB.remove( META_DB, KEY_OLDEST_ENTRY );
@@ -230,12 +230,10 @@ public class SharedHistoryManager implements PwmService
         try
         {
             final long size = localDB.size( WORDS_DB );
-            final StringBuilder sb = new StringBuilder();
-            sb.append( "open with " ).append( size ).append( " words (" );
-            sb.append( TimeDuration.compactFromCurrent( startTime ) ).append( ")" );
-            sb.append( ", maxAgeMs=" ).append( TimeDuration.of( maxAgeMs, TimeDuration.Unit.MILLISECONDS ).asCompactString() );
-            sb.append( ", oldestEntry=" ).append( TimeDuration.fromCurrent( oldestEntry ).asCompactString() );
-            LOGGER.info( sb.toString() );
+            LOGGER.info( () -> "open with " + size + " words ("
+                    + TimeDuration.compactFromCurrent( startTime ) + ")"
+                    + ", maxAgeMs=" + TimeDuration.of( maxAgeMs, TimeDuration.Unit.MILLISECONDS ).asCompactString()
+                    + ", oldestEntry=" + TimeDuration.fromCurrent( oldestEntry ).asCompactString() );
         }
         catch ( LocalDBException e )
         {
@@ -457,7 +455,7 @@ public class SharedHistoryManager implements PwmService
         boolean needsClearing = false;
         if ( localDB == null )
         {
-            LOGGER.info( "LocalDB is not available, will remain closed" );
+            LOGGER.info( () -> "LocalDB is not available, will remain closed" );
             status = STATUS.CLOSED;
             return;
         }

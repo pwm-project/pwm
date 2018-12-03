@@ -477,7 +477,7 @@ public class PasswordUtility
                 : "password for user '" + userIdentity.toDisplayString() + "' has been changed by " + bindDN )
                 + " (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")";
 
-        LOGGER.info( sessionLabel, msg );
+        LOGGER.info( sessionLabel, () -> msg );
     }
 
     public static void helpdeskSetUserPassword(

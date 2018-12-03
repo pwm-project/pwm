@@ -265,13 +265,12 @@ class WordlistImporter implements Runnable
             throws LocalDBException
     {
         flushBuffer();
-        getLogger().info( makeStatString() );
+        getLogger().info( () -> makeStatString() );
         getLogger().trace( () -> "beginning wordlist size query" );
         final long wordlistSize = wordlistBucket.size();
 
-        final String logMsg = "population complete, added " + wordlistSize
-                + " total words in " + TimeDuration.fromCurrent( startTime ).asCompactString();
-        getLogger().info( logMsg );
+        getLogger().info( () -> "population complete, added " + wordlistSize
+                + " total words in " + TimeDuration.compactFromCurrent( startTime ) );
 
         {
             final WordlistStatus wordlistStatus = WordlistStatus.builder()

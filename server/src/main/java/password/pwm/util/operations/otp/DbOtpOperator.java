@@ -158,7 +158,7 @@ public class DbOtpOperator extends AbstractOtpOperator
         {
             final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseAccessor();
             databaseAccessor.remove( DatabaseTable.OTP, userGUID );
-            LOGGER.info( "cleared OTP secret for " + theUser + " in remote database (key=" + userGUID + ")" );
+            LOGGER.info( () -> "cleared OTP secret for " + theUser + " in remote database (key=" + userGUID + ")" );
         }
         catch ( DatabaseException ex )
         {

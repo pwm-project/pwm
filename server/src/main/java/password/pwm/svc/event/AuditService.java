@@ -165,7 +165,7 @@ public class AuditService implements PwmService
                     status = STATUS.CLOSED;
                     return;
             }
-            LOGGER.info( debugMsg );
+            LOGGER.info( () -> debugMsg );
             serviceInfo = new ServiceInfoBean( Collections.singletonList( storageMethodUsed ) );
         }
         {
@@ -363,7 +363,7 @@ public class AuditService implements PwmService
         }
 
         // add to debug log
-        LOGGER.info( "audit event: " + jsonRecord );
+        LOGGER.info( () -> "audit event: " + jsonRecord );
 
         // add to audit db
         if ( auditVault != null )

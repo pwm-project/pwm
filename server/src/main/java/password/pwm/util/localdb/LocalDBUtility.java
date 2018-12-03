@@ -384,7 +384,7 @@ public class LocalDBUtility
     public void prepareForImport( )
             throws LocalDBException
     {
-        LOGGER.info( "preparing LocalDB for import procedure" );
+        LOGGER.info( () -> "preparing LocalDB for import procedure" );
         localDB.put( LocalDB.DB.PWM_META, PwmApplication.AppAttribute.LOCALDB_IMPORT_STATUS.getKey(), "inprogress" );
         for ( final LocalDB.DB loopDB : LocalDB.DB.values() )
         {
@@ -402,7 +402,7 @@ public class LocalDBUtility
     public void markImportComplete( )
             throws LocalDBException
     {
-        LOGGER.info( "marking LocalDB import procedure completed" );
+        LOGGER.info( () -> "marking LocalDB import procedure completed" );
         localDB.remove( LocalDB.DB.PWM_META, PwmApplication.AppAttribute.LOCALDB_IMPORT_STATUS.getKey() );
     }
 

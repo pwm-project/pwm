@@ -105,7 +105,7 @@ public class LdapCrOperator implements CrOperator
             {
                 theUser.deleteAttribute( ldapStorageAttribute, null );
             }
-            LOGGER.info( "cleared responses for user to chai-ldap format" );
+            LOGGER.info( () -> "cleared responses for user to chai-ldap format" );
         }
         catch ( ChaiOperationException e )
         {
@@ -153,7 +153,7 @@ public class LdapCrOperator implements CrOperator
                     responseInfoBean.getCsIdentifier()
             );
             ChaiCrFactory.writeChaiResponseSet( responseSet, theUser );
-            LOGGER.info( "saved responses for user to chai-ldap format" );
+            LOGGER.info( () -> "saved responses for user to chai-ldap format" );
         }
         catch ( ChaiException e )
         {

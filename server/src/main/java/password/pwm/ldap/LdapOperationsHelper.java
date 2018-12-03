@@ -129,7 +129,8 @@ public class LdapOperationsHelper
             {
                 auxClass = newObjClass;
                 theUser.addAttribute( ChaiConstant.ATTR_LDAP_OBJECTCLASS, auxClass );
-                LOGGER.info( sessionLabel, "added objectclass '" + auxClass + "' to user " + theUser.getEntryDN() );
+                final String finalAuxClass = auxClass;
+                LOGGER.info( sessionLabel, () -> "added objectclass '" + finalAuxClass + "' to user " + theUser.getEntryDN() );
             }
         }
         catch ( ChaiOperationException e )
@@ -345,7 +346,7 @@ public class LdapOperationsHelper
                                     final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_LDAP_DATA_ERROR, errorMsg );
                                     throw new PwmUnrecoverableException( errorInformation );
                                 }
-                                LOGGER.info( "set attribute on user " + theUser.getEntryDN() + " (" + formItem + "=[base64]" + sValue + ")" );
+                                LOGGER.info( () -> "set attribute on user " + theUser.getEntryDN() + " (" + formItem + "=[base64]" + sValue + ")" );
                             }
                         }
                     }
@@ -354,7 +355,7 @@ public class LdapOperationsHelper
                         try
                         {
                             theUser.deleteAttribute( attrName, null );
-                            LOGGER.info( "deleted binary attribute value on user " + theUser.getEntryDN() + " (" + attrName + ")" );
+                            LOGGER.info( () -> "deleted binary attribute value on user " + theUser.getEntryDN() + " (" + attrName + ")" );
                         }
                         catch ( ChaiOperationException e )
                         {
@@ -395,7 +396,8 @@ public class LdapOperationsHelper
                             try
                             {
                                 theUser.writeStringAttribute( attrName, attrValue );
-                                LOGGER.info( "set attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + attrValue + ")" );
+                                final String finalAttrValue = attrValue;
+                                LOGGER.info( () -> "set attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + finalAttrValue + ")" );
                             }
                             catch ( ChaiOperationException e )
                             {
@@ -411,7 +413,7 @@ public class LdapOperationsHelper
                                 try
                                 {
                                     theUser.deleteAttribute( attrName, null );
-                                    LOGGER.info( "deleted attribute value on user " + theUser.getEntryDN() + " (" + attrName + ")" );
+                                    LOGGER.info( () -> "deleted attribute value on user " + theUser.getEntryDN() + " (" + attrName + ")" );
                                 }
                                 catch ( ChaiOperationException e )
                                 {
@@ -567,7 +569,8 @@ public class LdapOperationsHelper
                 // write it to the directory
                 final ChaiUser chaiUser = pwmApplication.getProxiedChaiUser( userIdentity );
                 chaiUser.writeStringAttribute( guidAttributeName, newGuid );
-                LOGGER.info( sessionLabel, "added GUID value '" + newGuid + "' to user " + userIdentity );
+                final String finalNewGuid = newGuid;
+                LOGGER.info( sessionLabel, () -> "added GUID value '" + finalNewGuid + "' to user " + userIdentity );
                 return newGuid;
             }
             catch ( ChaiOperationException e )

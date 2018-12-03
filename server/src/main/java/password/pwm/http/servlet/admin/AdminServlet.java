@@ -350,7 +350,7 @@ public class AdminServlet extends ControlledPwmServlet
     {
         if ( !pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmApplication(), Permission.PWMADMIN ) )
         {
-            LOGGER.info( pwmRequest, "unable to execute clear intruder records" );
+            LOGGER.info( pwmRequest, () -> "unable to execute clear intruder records" );
             return ProcessStatus.Halt;
         }
 

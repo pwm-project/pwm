@@ -332,19 +332,19 @@ public class PwmLogger
         doPwmSessionLogEvent( PwmLogLevel.DEBUG, pwmSession, message, e );
     }
 
-    public void info( final CharSequence message )
+    public void info( final Supplier<CharSequence> message )
     {
         doLogEvent( PwmLogLevel.INFO, null, message, null );
     }
 
-    public void info( final PwmSession pwmSession, final CharSequence message )
+    public void info( final PwmSession pwmSession, final Supplier<CharSequence> message )
     {
-        doPwmSessionLogEvent( PwmLogLevel.INFO, pwmSession, () -> message, null );
+        doPwmSessionLogEvent( PwmLogLevel.INFO, pwmSession, message, null );
     }
 
-    public void info( final PwmRequest pwmRequest, final CharSequence message )
+    public void info( final PwmRequest pwmRequest, final Supplier<CharSequence> message )
     {
-        doPwmRequestLogEvent( PwmLogLevel.INFO, pwmRequest, () -> message, null );
+        doPwmRequestLogEvent( PwmLogLevel.INFO, pwmRequest, message, null );
     }
 
     public void info( final PwmRequest pwmRequest, final ErrorInformation errorInformation )
@@ -352,12 +352,12 @@ public class PwmLogger
         doPwmRequestLogEvent( PwmLogLevel.INFO, pwmRequest, () -> convertErrorInformation( errorInformation ), null );
     }
 
-    public void info( final SessionLabel sessionLabel, final CharSequence message )
+    public void info( final SessionLabel sessionLabel, final Supplier<CharSequence> message )
     {
         doLogEvent( PwmLogLevel.INFO, sessionLabel, message, null );
     }
 
-    public void info( final CharSequence message, final Throwable exception )
+    public void info( final Supplier<CharSequence> message, final Throwable exception )
     {
         doLogEvent( PwmLogLevel.INFO, null, message, exception );
     }

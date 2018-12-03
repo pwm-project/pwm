@@ -248,7 +248,7 @@ public class ConfigurationReader
         try
         {
             final File tempWriteFile = new File( configFile.getAbsoluteFile() + ".new" );
-            LOGGER.info( sessionLabel, "beginning write to configuration file " + tempWriteFile );
+            LOGGER.info( sessionLabel, () -> "beginning write to configuration file " + tempWriteFile );
             saveInProgress = true;
 
             try ( FileOutputStream fileOutputStream = new FileOutputStream( tempWriteFile, false ) )
@@ -256,7 +256,7 @@ public class ConfigurationReader
                 storedConfiguration.toXml( fileOutputStream );
             }
 
-            LOGGER.info( "saved configuration " + JsonUtil.serialize( storedConfiguration.toJsonDebugObject() ) );
+            LOGGER.info( () -> "saved configuration " + JsonUtil.serialize( storedConfiguration.toJsonDebugObject() ) );
             if ( pwmApplication != null )
             {
                 final String actualChecksum = storedConfiguration.settingChecksum();

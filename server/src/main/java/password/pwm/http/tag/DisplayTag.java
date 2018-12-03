@@ -198,7 +198,7 @@ public class DisplayTag extends PwmAbstractTag
         {
             if ( !displayIfMissing )
             {
-                LOGGER.info( "error while executing jsp display tag: " + e.getMessage() );
+                LOGGER.info( () -> "error while executing jsp display tag: " + e.getMessage() );
             }
         }
 

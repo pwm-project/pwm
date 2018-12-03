@@ -143,7 +143,7 @@ public class LocalDbOtpOperator extends AbstractOtpOperator
             }
 
             localDB.put( LocalDB.DB.OTP_SECRET, userGUID, value );
-            LOGGER.info( pwmSession, "saved OTP secret for user in LocalDB" );
+            LOGGER.info( pwmSession, () -> "saved OTP secret for user in LocalDB" );
         }
         catch ( LocalDBException ex )
         {
@@ -186,7 +186,7 @@ public class LocalDbOtpOperator extends AbstractOtpOperator
         try
         {
             localDB.remove( LocalDB.DB.OTP_SECRET, userGUID );
-            LOGGER.info( pwmSession, "cleared OTP secret for user in LocalDB" );
+            LOGGER.info( pwmSession, () -> "cleared OTP secret for user in LocalDB" );
         }
         catch ( LocalDBException ex )
         {

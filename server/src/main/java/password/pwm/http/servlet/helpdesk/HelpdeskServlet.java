@@ -330,7 +330,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         }
 
         final UserIdentity userIdentity = UserIdentity.fromKey( userKey, pwmApplication );
-        LOGGER.info( pwmSession, "received deleteUser request by " + pwmSession.getUserInfo().getUserIdentity().toString() + " for user " + userIdentity.toString() );
+        LOGGER.info( pwmSession, () -> "received deleteUser request by " + pwmSession.getUserInfo().getUserIdentity().toString() + " for user " + userIdentity.toString() );
 
         // check if user should be seen by actor
         HelpdeskServletUtil.checkIfUserIdentityViewable( pwmRequest, helpdeskProfile, userIdentity );
@@ -385,7 +385,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
             pwmApplication.getAuditManager().submit( auditRecord );
         }
 
-        LOGGER.info( pwmSession, "user " + userIdentity + " has been deleted" );
+        LOGGER.info( pwmSession, () -> "user " + userIdentity + " has been deleted" );
 
         final RestResultBean restResultBean = RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown );
         pwmRequest.outputJsonResult( restResultBean );

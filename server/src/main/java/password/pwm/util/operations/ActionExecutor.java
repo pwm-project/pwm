@@ -95,7 +95,7 @@ public class ActionExecutor
             executeWebserviceAction( sessionLabel, actionConfiguration, webAction );
         }
 
-        LOGGER.info( sessionLabel, "action " + actionConfiguration.getName() + " completed successfully" );
+        LOGGER.info( sessionLabel, () -> "action " + actionConfiguration.getName() + " completed successfully" );
     }
 
     private void executeLdapAction(
@@ -270,7 +270,7 @@ public class ActionExecutor
                 try
                 {
                     theUser.writeStringAttribute( attrName, effectiveAttrValue );
-                    LOGGER.info( sessionLabel, "replaced attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + effectiveAttrValue + ")" );
+                    LOGGER.info( sessionLabel, () -> "replaced attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + effectiveAttrValue + ")" );
                 }
                 catch ( ChaiOperationException e )
                 {
@@ -288,7 +288,7 @@ public class ActionExecutor
                 try
                 {
                     theUser.addAttribute( attrName, effectiveAttrValue );
-                    LOGGER.info( sessionLabel, "added attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + effectiveAttrValue + ")" );
+                    LOGGER.info( sessionLabel, () -> "added attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + effectiveAttrValue + ")" );
                 }
                 catch ( ChaiOperationException e )
                 {
@@ -307,11 +307,11 @@ public class ActionExecutor
                 try
                 {
                     theUser.deleteAttribute( attrName, effectiveAttrValue );
-                    LOGGER.info( sessionLabel, "deleted attribute value on user " + theUser.getEntryDN() + " (" + attrName + ")" );
+                    LOGGER.info( sessionLabel, () -> "deleted attribute value on user " + theUser.getEntryDN() + " (" + attrName + ")" );
                 }
                 catch ( ChaiOperationException e )
                 {
-                    final String errorMsg = "error deletig '" + attrName + "' attribute value on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
+                    final String errorMsg = "error deleting '" + attrName + "' attribute value on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
                     final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
                     final PwmOperationalException newException = new PwmOperationalException( errorInformation );
                     newException.initCause( e );

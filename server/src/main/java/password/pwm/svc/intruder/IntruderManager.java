@@ -165,7 +165,7 @@ public class IntruderManager implements PwmService
                     status = STATUS.CLOSED;
                     return;
             }
-            LOGGER.info( debugMsg );
+            LOGGER.info( () -> debugMsg );
             serviceInfo = new ServiceInfoBean( Collections.singletonList( storageMethodUsed ) );
         }
         final RecordStore recordStore;
@@ -201,7 +201,7 @@ public class IntruderManager implements PwmService
                 settings.setCheckDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_USER_CHECK_TIME ), TimeDuration.Unit.SECONDS ) );
                 if ( settings.getCheckCount() == 0 || settings.getCheckDuration().asMillis() == 0 || settings.getResetDuration().asMillis() == 0 )
                 {
-                    LOGGER.info( "intruder user checking will remain disabled due to configuration settings" );
+                    LOGGER.info( () -> "intruder user checking will remain disabled due to configuration settings" );
                 }
                 else
                 {
@@ -216,7 +216,7 @@ public class IntruderManager implements PwmService
                 settings.setCheckDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_ATTRIBUTE_CHECK_TIME ), TimeDuration.Unit.MILLISECONDS ) );
                 if ( settings.getCheckCount() == 0 || settings.getCheckDuration().asMillis() == 0 || settings.getResetDuration().asMillis() == 0 )
                 {
-                    LOGGER.info( "intruder user checking will remain disabled due to configuration settings" );
+                    LOGGER.info( () -> "intruder user checking will remain disabled due to configuration settings" );
                 }
                 else
                 {
@@ -230,7 +230,7 @@ public class IntruderManager implements PwmService
                 settings.setCheckDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_TOKEN_DEST_CHECK_TIME ), TimeDuration.Unit.SECONDS ) );
                 if ( settings.getCheckCount() == 0 || settings.getCheckDuration().asMillis() == 0 || settings.getResetDuration().asMillis() == 0 )
                 {
-                    LOGGER.info( "intruder user checking will remain disabled due to configuration settings" );
+                    LOGGER.info( () -> "intruder user checking will remain disabled due to configuration settings" );
                 }
                 else
                 {
@@ -244,7 +244,7 @@ public class IntruderManager implements PwmService
                 settings.setCheckDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_ADDRESS_CHECK_TIME ), TimeDuration.Unit.SECONDS ) );
                 if ( settings.getCheckCount() == 0 || settings.getCheckDuration().asMillis() == 0 || settings.getResetDuration().asMillis() == 0 )
                 {
-                    LOGGER.info( "intruder address checking will remain disabled due to configuration settings" );
+                    LOGGER.info( () -> "intruder address checking will remain disabled due to configuration settings" );
                 }
                 else
                 {

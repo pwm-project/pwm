@@ -95,7 +95,7 @@ public class LocalDBLogger implements PwmService
 
         if ( settings.getMaxEvents() == 0 )
         {
-            LOGGER.info( "maxEvents set to zero, clearing LocalDBLogger history and LocalDBLogger will remain closed" );
+            LOGGER.info( () -> "maxEvents set to zero, clearing LocalDBLogger history and LocalDBLogger will remain closed" );
             localDBListQueue.clear();
             throw new IllegalArgumentException( "maxEvents=0, will remain closed" );
         }
@@ -140,7 +140,7 @@ public class LocalDBLogger implements PwmService
         cleanOnWriteFlag.set( eventQueue.size() >= settings.getMaxEvents() );
 
         final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-        LOGGER.info( "open in " + timeDuration.asCompactString() + ", " + debugStats() );
+        LOGGER.info( () -> "open in " + timeDuration.asCompactString() + ", " + debugStats() );
     }
 
 

@@ -134,7 +134,7 @@ public class DbCrOperator implements CrOperator
         {
             final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseService().getAccessor();
             databaseAccessor.remove( DatabaseTable.PWM_RESPONSES, userGUID );
-            LOGGER.info( "cleared responses for user " + theUser.getEntryDN() + " in remote database" );
+            LOGGER.info( () -> "cleared responses for user " + theUser.getEntryDN() + " in remote database" );
         }
         catch ( DatabaseException e )
         {
@@ -180,7 +180,7 @@ public class DbCrOperator implements CrOperator
 
             final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseService().getAccessor();
             databaseAccessor.put( DatabaseTable.PWM_RESPONSES, userGUID, responseSet.stringValue() );
-            LOGGER.info( "saved responses for " + theUser.getEntryDN() + " in remote database (key=" + userGUID + ")" );
+            LOGGER.info( () -> "saved responses for " + theUser.getEntryDN() + " in remote database (key=" + userGUID + ")" );
         }
         catch ( ChaiException e )
         {

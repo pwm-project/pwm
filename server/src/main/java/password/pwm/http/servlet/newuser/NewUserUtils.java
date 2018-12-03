@@ -174,7 +174,7 @@ class NewUserUtils
             // create the ldap entry
             chaiProvider.createEntry( newUserDN, createObjectClasses, createAttributes );
 
-            NewUserUtils.LOGGER.info( pwmSession, "created user entry: " + newUserDN );
+            NewUserUtils.LOGGER.info( pwmSession, () -> "created user entry: " + newUserDN );
         }
         catch ( ChaiOperationException e )
         {

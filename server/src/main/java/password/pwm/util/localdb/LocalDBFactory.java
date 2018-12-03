@@ -111,7 +111,7 @@ public class LocalDBFactory
                 debugText.append( ", " ).append( StringUtil.formatDiskSize( freeSpace ) ).append( " free" );
             }
         }
-        LOGGER.info( debugText );
+        LOGGER.info( () -> debugText );
 
         return localDB;
     }

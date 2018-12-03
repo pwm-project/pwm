@@ -126,6 +126,11 @@ public class Configuration implements SettingReader
 
     public void outputToLog( )
     {
+        if ( !LOGGER.isEnabled( PwmLogLevel.TRACE ) )
+        {
+            return;
+        }
+
         final Map<String, String> debugStrings = storedConfiguration.getModifiedSettingDebugValues( PwmConstants.DEFAULT_LOCALE, true );
         final List<Supplier<CharSequence>> outputStrings = new ArrayList<>();
 

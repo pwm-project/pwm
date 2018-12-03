@@ -840,13 +840,13 @@ public class StoredConfigurationImpl implements StoredConfiguration
 
         if ( theBundle == null )
         {
-            LOGGER.info( "ignoring unknown locale bundle for bundle=" + bundleName + ", key=" + keyName );
+            LOGGER.info( () -> "ignoring unknown locale bundle for bundle=" + bundleName + ", key=" + keyName );
             return;
         }
 
         if ( theBundle.getString( keyName ) == null )
         {
-            LOGGER.info( "ignoring unknown key for bundle=" + bundleName + ", key=" + keyName );
+            LOGGER.info( () -> "ignoring unknown key for bundle=" + bundleName + ", key=" + keyName );
             return;
         }
 
@@ -854,7 +854,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
         resetLocaleBundleMap( bundleName, keyName );
         if ( localeMap == null || localeMap.isEmpty() )
         {
-            LOGGER.info( "cleared locale bundle map for bundle=" + bundleName + ", key=" + keyName );
+            LOGGER.info( () -> "cleared locale bundle map for bundle=" + bundleName + ", key=" + keyName );
             return;
         }
 
@@ -1257,7 +1257,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
 
                         for ( final String destProfile : profileStringDefinitions )
                         {
-                            LOGGER.info( "moving setting " + setting.getKey() + " without profile attribute to profile \"" + destProfile + "\"." );
+                            LOGGER.info( () -> "moving setting " + setting.getKey() + " without profile attribute to profile \"" + destProfile + "\"." );
                             {
                                 storedConfiguration.writeSetting( profileSetting, new StringArrayValue( profileStringDefinitions ), userIdentity );
                             }
@@ -1327,7 +1327,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
                         {
                             if ( !validProfiles.contains( profileID ) )
                             {
-                                LOGGER.info( "removing setting " + setting.getKey() + " with profile \"" + profileID + "\", profile is not a valid profile" );
+                                LOGGER.info( () -> "removing setting " + setting.getKey() + " with profile \"" + profileID + "\", profile is not a valid profile" );
                                 settingElement.detach();
                             }
                         }
@@ -1350,7 +1350,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
                     final String value = property.getText();
                     if ( key != null && !key.isEmpty() && value != null && !value.isEmpty() )
                     {
-                        LOGGER.info( "migrating app-property config element '" + key + "' to setting " + PwmSetting.APP_PROPERTY_OVERRIDES.getKey() );
+                        LOGGER.info( () -> "migrating app-property config element '" + key + "' to setting " + PwmSetting.APP_PROPERTY_OVERRIDES.getKey() );
                         final String newValue = key + "=" + value;
                         List<String> existingValues = ( List<String> ) storedConfiguration.readSetting( PwmSetting.APP_PROPERTY_OVERRIDES ).toNativeObject();
                         if ( existingValues == null )

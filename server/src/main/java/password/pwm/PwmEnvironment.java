@@ -474,7 +474,7 @@ public class PwmEnvironment
         {
             if ( PwmConstants.TRIAL_MODE && applicationMode == PwmApplicationMode.RUNNING )
             {
-                LOGGER.info( "application is in trial mode" );
+                LOGGER.info( () -> "application is in trial mode" );
                 this.applicationMode = PwmApplicationMode.CONFIGURATION;
             }
             else

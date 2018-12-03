@@ -627,7 +627,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
         final boolean otpPassed;
         if ( otpUserRecord != null )
         {
-            LOGGER.info( pwmRequest, "checking entered OTP" );
+            LOGGER.info( pwmRequest, () -> "checking entered OTP" );
             try
             {
                 // forces service to use proxy account to update (write) updated otp record if necessary.
@@ -1218,7 +1218,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
             sessionAuthenticator.authUserWithUnknownPassword( userIdentity, AuthenticationType.AUTH_FROM_PUBLIC_MODULE );
             pwmSession.getLoginInfoBean().getAuthFlags().add( AuthenticationType.AUTH_FROM_PUBLIC_MODULE );
 
-            LOGGER.info( pwmSession, "user successfully supplied password recovery responses, forward to change password page: " + theUser.getEntryDN() );
+            LOGGER.info( pwmSession, () -> "user successfully supplied password recovery responses, forward to change password page: " + theUser.getEntryDN() );
 
             // mark the event log
             pwmApplication.getAuditManager().submit( AuditEvent.RECOVER_PASSWORD, pwmSession.getUserInfo(),

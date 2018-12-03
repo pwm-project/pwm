@@ -388,7 +388,7 @@ public class ContextManager implements Serializable
             {
                 if ( configReader.modifiedSinceLoad() )
                 {
-                    LOGGER.info( "configuration file modification has been detected" );
+                    LOGGER.info( () -> "configuration file modification has been detected" );
                     requestPwmApplicationRestart();
                 }
             }
@@ -410,7 +410,7 @@ public class ContextManager implements Serializable
             if ( configReader != null && configReader.isSaveInProgress() )
             {
                 final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-                LOGGER.info( "delaying restart request due to in progress file save (" + timeDuration.asCompactString() + ")" );
+                LOGGER.info( () -> "delaying restart request due to in progress file save (" + timeDuration.asCompactString() + ")" );
                 taskMaster.schedule( new RestartFlagWatcher(), 1, TimeUnit.SECONDS );
                 return;
             }
@@ -423,7 +423,7 @@ public class ContextManager implements Serializable
 
                 {
                     final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-                    LOGGER.info( "beginning application restart (" + timeDuration.asCompactString() + "), restart count=" + restartCount.incrementAndGet() );
+                    LOGGER.info( () -> "beginning application restart (" + timeDuration.asCompactString() + "), restart count=" + restartCount.incrementAndGet() );
                 }
 
                 final Instant shutdownStartTime = Instant.now();
@@ -439,7 +439,7 @@ public class ContextManager implements Serializable
                 {
                     final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
                     final TimeDuration shutdownDuration = TimeDuration.fromCurrent( shutdownStartTime );
-                    LOGGER.info( "application restart; shutdown completed, ("
+                    LOGGER.info( () -> "application restart; shutdown completed, ("
                             + shutdownDuration.asCompactString()
                             + ") now starting new application instance ("
                             + timeDuration.asCompactString() + ")" );
@@ -448,7 +448,7 @@ public class ContextManager implements Serializable
 
                 {
                     final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-                    LOGGER.info( "application restart completed (" + timeDuration.asCompactString() + ")" );
+                    LOGGER.info( () -> "application restart completed (" + timeDuration.asCompactString() + ")" );
                 }
             }
             finally

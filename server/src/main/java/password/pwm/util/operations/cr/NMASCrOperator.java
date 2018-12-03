@@ -344,7 +344,7 @@ public class NMASCrOperator implements CrOperator
             if ( theUser.getChaiProvider().getDirectoryVendor() == DirectoryVendor.EDIRECTORY )
             {
                 NmasCrFactory.clearResponseSet( theUser );
-                LOGGER.info( "cleared responses for user " + theUser.getEntryDN() + " using NMAS method " );
+                LOGGER.info( () -> "cleared responses for user " + theUser.getEntryDN() + " using NMAS method " );
             }
         }
         catch ( ChaiException e )
@@ -377,7 +377,7 @@ public class NMASCrOperator implements CrOperator
                         responseInfoBean.getCsIdentifier()
                 );
                 NmasCrFactory.writeResponseSet( nmasResponseSet );
-                LOGGER.info( "saved responses for user using NMAS method " );
+                LOGGER.info( () -> "saved responses for user using NMAS method " );
             }
         }
         catch ( ChaiException e )

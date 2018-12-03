@@ -364,7 +364,7 @@ public class UpdateProfileUtil
         verifyFormAttributes( pwmApplication, userInfo.getUserIdentity(), locale, formMap, false );
 
         // write values.
-        LOGGER.info( "updating profile for " + userInfo.getUserIdentity() );
+        LOGGER.info( () -> "updating profile for " + userInfo.getUserIdentity() );
 
         LdapOperationsHelper.writeFormValuesToLdap( theUser, formMap, macroMachine, false );
 

@@ -251,7 +251,7 @@ public class PwmApplication
             }
         }
 
-        LOGGER.info( "initializing, application mode=" + getApplicationMode()
+        LOGGER.info( () -> "initializing, application mode=" + getApplicationMode()
                 + ", applicationPath=" + ( pwmEnvironment.getApplicationPath() == null ? "null" : pwmEnvironment.getApplicationPath().getAbsolutePath() )
                 + ", configFile=" + ( pwmEnvironment.getConfigurationFile() == null ? "null" : pwmEnvironment.getConfigurationFile().getAbsolutePath() )
         );
@@ -294,7 +294,7 @@ public class PwmApplication
         if ( !skipPostInit )
         {
             final TimeDuration totalTime = TimeDuration.fromCurrent( startTime );
-            LOGGER.info( PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " open for bidness! (" + totalTime.asCompactString() + ")" );
+            LOGGER.info( () -> PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " open for bidness! (" + totalTime.asCompactString() + ")" );
             StatisticsManager.incrementStat( this, Statistic.PWM_STARTUPS );
             LOGGER.debug( () -> "buildTime=" + PwmConstants.BUILD_TIME + ", javaLocale=" + Locale.getDefault() + ", DefaultLocale=" + PwmConstants.DEFAULT_LOCALE );
 
@@ -447,7 +447,7 @@ public class PwmApplication
                 fileOutputStream.write( outputContents.toByteArray() );
             }
 
-            LOGGER.info( "successfully exported application https key to keystore file " + keyStoreFile.getAbsolutePath() );
+            LOGGER.info( () -> "successfully exported application https key to keystore file " + keyStoreFile.getAbsolutePath() );
         }
     }
 
@@ -499,7 +499,7 @@ public class PwmApplication
                 fileOutputStream.write( outputContents.toByteArray() );
             }
 
-            LOGGER.info( "successfully wrote tomcat configuration to file " + tomcatOutputFile.getAbsolutePath() );
+            LOGGER.info( () -> "successfully wrote tomcat configuration to file " + tomcatOutputFile.getAbsolutePath() );
         }
     }
 
@@ -700,7 +700,8 @@ public class PwmApplication
             final PwmRandom pwmRandom = PwmRandom.getInstance();
             newInstanceID = Long.toHexString( pwmRandom.nextLong() ).toUpperCase();
 
-            LOGGER.info( "generated new random instanceID " + newInstanceID );
+            final String finalInstanceID = newInstanceID;
+            LOGGER.info( () -> "generated new random instanceID " + finalInstanceID );
 
             if ( localDB != null )
             {
@@ -839,7 +840,7 @@ public class PwmApplication
 
         pwmEnvironment.releaseFileLock();
 
-        LOGGER.info( PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " closed for bidness, cya!" );
+        LOGGER.info( () -> PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " closed for bidness, cya!" );
     }
 
     public Instant getStartupTime( )

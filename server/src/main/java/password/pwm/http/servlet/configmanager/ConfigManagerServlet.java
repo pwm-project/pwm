@@ -284,7 +284,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
             return;
         }
         final HashMap<String, String> resultData = new HashMap<>();
-        LOGGER.info( pwmSession, "Configuration Locked" );
+        LOGGER.info( pwmSession, () -> "Configuration Locked" );
         pwmRequest.outputJsonResult( RestResultBean.withData( resultData ) );
     }
 

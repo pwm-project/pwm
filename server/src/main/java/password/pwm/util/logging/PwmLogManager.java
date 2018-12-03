@@ -163,7 +163,7 @@ public class PwmLogManager
                 {
                     if ( logDirectory.mkdir() )
                     {
-                        LOGGER.info( "created directory " + logDirectory.getAbsoluteFile() );
+                        LOGGER.info( () -> "created directory " + logDirectory.getAbsoluteFile() );
                     }
                     else
                     {

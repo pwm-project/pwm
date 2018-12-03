@@ -217,17 +217,17 @@ public class HttpsServerCertificateManager
             {
                 if ( !cnName.equals( storedCertData.getX509Certificate().getSubjectDN().getName() ) )
                 {
-                    LOGGER.info( "replacing stored self cert, subject name does not match configured site url" );
+                    LOGGER.info( () -> "replacing stored self cert, subject name does not match configured site url" );
                     storedCertData = null;
                 }
                 else if ( storedCertData.getX509Certificate().getNotBefore().after( new Date() ) )
                 {
-                    LOGGER.info( "replacing stored self cert, not-before date is in the future" );
+                    LOGGER.info( () -> "replacing stored self cert, not-before date is in the future" );
                     storedCertData = null;
                 }
                 else if ( storedCertData.getX509Certificate().getNotAfter().before( new Date() ) )
                 {
-                    LOGGER.info( "replacing stored self cert, not-after date is in the past" );
+                    LOGGER.info( () -> "replacing stored self cert, not-after date is in the past" );
                     storedCertData = null;
                 }
             }

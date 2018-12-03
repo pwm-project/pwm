@@ -462,7 +462,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
             final Set<String> createObjectClasses = new HashSet<>( config.readSettingAsStringArray( PwmSetting.DEFAULT_OBJECT_CLASSES ) );
 
             provider.createEntry( guestUserDN, createObjectClasses, createAttributes );
-            LOGGER.info( pwmSession, "created user object: " + guestUserDN );
+            LOGGER.info( pwmSession, () -> "created user object: " + guestUserDN );
 
             final ChaiUser theUser = provider.getEntryFactory().newChaiUser( guestUserDN );
             final UserIdentity userIdentity = new UserIdentity( guestUserDN, pwmSession.getUserInfo().getUserIdentity().getLdapProfileID() );

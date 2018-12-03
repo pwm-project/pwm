@@ -311,7 +311,7 @@ public abstract class CommandServlet extends ControlledPwmServlet
         if ( !pwmRequest.isAuthenticated() )
         {
             final String action = pwmRequest.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST );
-            LOGGER.info( pwmSession, "authentication required for " + action );
+            LOGGER.info( pwmSession, () -> "authentication required for " + action );
             pwmRequest.respondWithError( PwmError.ERROR_AUTHENTICATION_REQUIRED.toInfo() );
             return false;
         }

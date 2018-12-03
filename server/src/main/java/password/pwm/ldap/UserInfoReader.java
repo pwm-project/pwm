@@ -261,7 +261,7 @@ public class UserInfoReader implements UserInfo
         }
         catch ( ChaiOperationException e )
         {
-            LOGGER.info( sessionLabel, "error reading LDAP attributes for " + userDN + " while reading isPasswordExpired(): " + e.getMessage() );
+            LOGGER.info( sessionLabel, () -> "error reading LDAP attributes for " + userDN + " while reading isPasswordExpired(): " + e.getMessage() );
         }
         catch ( ChaiUnavailableException e )
         {

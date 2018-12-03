@@ -691,10 +691,10 @@ public class ReportService implements PwmService
                         lastLogOutputTime = Instant.now();
                     }
                 }
-                final TimeDuration totalTime = TimeDuration.fromCurrent( startTime );
+                final int finalExamined = examinedRecords;
                 LOGGER.info( SessionLabel.REPORTING_SESSION_LABEL,
-                        "completed cache review process of " + examinedRecords
-                                + " cached report records in " + totalTime.asCompactString() );
+                        () -> "completed cache review process of " + finalExamined
+                                + " cached report records in " + TimeDuration.compactFromCurrent( startTime ) );
             }
         }
     }
