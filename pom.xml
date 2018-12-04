@@ -22,6 +22,26 @@
         <url>http://www.pwm-project.org</url>
     </organization>
 
+    <scm>
+        <url>ssh://git@servicesmadesimpler.govnet.qld.gov.au:7999/cas/pwm-project.git</url>
+        <connection>scm:git:ssh://git@servicesmadesimpler.govnet.qld.gov.au:7999/cas/pwm-project.git</connection>
+        <developerConnection>scm:git:ssh://git@servicesmadesimpler.govnet.qld.gov.au:7999/cas/pwm-project.git</developerConnection>
+    </scm>
+
+    <distributionManagement>
+        <repository>
+            <id>nexus</id>
+            <name>Nexus</name>
+            <url>https://nexus.tools.services.qld.gov.au/nexus/content/repositories/releases</url>
+        </repository>
+        <snapshotRepository>
+            <id>nexus</id>
+            <name>Nexus</name>
+            <url>https://nexus.tools.services.qld.gov.au/nexus/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+
     <properties>
         <warArtifactID>pwm-${project.version}.war</warArtifactID>
         <dockerImageTag>pwm/pwm-webapp</dockerImageTag>
