@@ -176,7 +176,7 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
             if ( enablePostRedirectGet )
             {
                 final String servletUrl = pwmRequest.getURL().determinePwmServletPath();
-                LOGGER.debug( pwmRequest, "this request is not idempotent, redirecting to self with no action" );
+                LOGGER.debug( pwmRequest, () -> "this request is not idempotent, redirecting to self with no action" );
                 sendOtherRedirect( pwmRequest, servletUrl );
                 return;
             }

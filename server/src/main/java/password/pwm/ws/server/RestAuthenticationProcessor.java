@@ -77,7 +77,7 @@ public class RestAuthenticationProcessor
             final String namedSecretName = readNamedSecretName();
             if ( namedSecretName != null )
             {
-                LOGGER.trace( sessionLabel, "authenticating with named secret '" + namedSecretName + "'" );
+                LOGGER.trace( sessionLabel, () -> "authenticating with named secret '" + namedSecretName + "'" );
                 final Set<WebServiceUsage> usages = new HashSet<>( JavaHelper.readEnumListFromStringCollection(
                         WebServiceUsage.class,
                         pwmApplication.getConfig().readSettingAsNamedPasswords( PwmSetting.WEBSERVICES_EXTERNAL_SECRET ).get( namedSecretName ).getUsage()

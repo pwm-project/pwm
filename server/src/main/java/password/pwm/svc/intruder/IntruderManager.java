@@ -123,7 +123,7 @@ public class IntruderManager implements PwmService
         if ( !pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.INTRUDER_ENABLE ) )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "intruder module not enabled" );
-            LOGGER.debug( errorInformation.toDebugStr() );
+            LOGGER.debug( () -> errorInformation.toDebugStr() );
             status = STATUS.CLOSED;
             return;
         }
@@ -165,7 +165,7 @@ public class IntruderManager implements PwmService
                     status = STATUS.CLOSED;
                     return;
             }
-            LOGGER.info( debugMsg );
+            LOGGER.info( () -> debugMsg );
             serviceInfo = new ServiceInfoBean( Collections.singletonList( storageMethodUsed ) );
         }
         final RecordStore recordStore;
@@ -201,7 +201,7 @@ public class IntruderManager implements PwmService
                 settings.setCheckDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_USER_CHECK_TIME ), TimeDuration.Unit.SECONDS ) );
                 if ( settings.getCheckCount() == 0 || settings.getCheckDuration().asMillis() == 0 || settings.getResetDuration().asMillis() == 0 )
                 {
-                    LOGGER.info( "intruder user checking will remain disabled due to configuration settings" );
+                    LOGGER.info( () -> "intruder user checking will remain disabled due to configuration settings" );
                 }
                 else
                 {
@@ -216,7 +216,7 @@ public class IntruderManager implements PwmService
                 settings.setCheckDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_ATTRIBUTE_CHECK_TIME ), TimeDuration.Unit.MILLISECONDS ) );
                 if ( settings.getCheckCount() == 0 || settings.getCheckDuration().asMillis() == 0 || settings.getResetDuration().asMillis() == 0 )
                 {
-                    LOGGER.info( "intruder user checking will remain disabled due to configuration settings" );
+                    LOGGER.info( () -> "intruder user checking will remain disabled due to configuration settings" );
                 }
                 else
                 {
@@ -230,7 +230,7 @@ public class IntruderManager implements PwmService
                 settings.setCheckDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_TOKEN_DEST_CHECK_TIME ), TimeDuration.Unit.SECONDS ) );
                 if ( settings.getCheckCount() == 0 || settings.getCheckDuration().asMillis() == 0 || settings.getResetDuration().asMillis() == 0 )
                 {
-                    LOGGER.info( "intruder user checking will remain disabled due to configuration settings" );
+                    LOGGER.info( () -> "intruder user checking will remain disabled due to configuration settings" );
                 }
                 else
                 {
@@ -244,7 +244,7 @@ public class IntruderManager implements PwmService
                 settings.setCheckDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_ADDRESS_CHECK_TIME ), TimeDuration.Unit.SECONDS ) );
                 if ( settings.getCheckCount() == 0 || settings.getCheckDuration().asMillis() == 0 || settings.getResetDuration().asMillis() == 0 )
                 {
-                    LOGGER.info( "intruder address checking will remain disabled due to configuration settings" );
+                    LOGGER.info( () -> "intruder address checking will remain disabled due to configuration settings" );
                 }
                 else
                 {
@@ -364,7 +364,7 @@ public class IntruderManager implements PwmService
                 final InetAddress inetAddress = InetAddress.getByName( subject );
                 if ( inetAddress.isAnyLocalAddress() || inetAddress.isLoopbackAddress() || inetAddress.isLinkLocalAddress() )
                 {
-                    LOGGER.debug( "disregarding local address intruder attempt from: " + subject );
+                    LOGGER.debug( () -> "disregarding local address intruder attempt from: " + subject );
                     return;
                 }
             }
@@ -461,7 +461,12 @@ public class IntruderManager implements PwmService
             delayPenalty = delayPenalty > Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.INTRUDER_MAX_DELAY_PENALTY_MS ) )
                     ? Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.INTRUDER_MAX_DELAY_PENALTY_MS ) )
                     : delayPenalty;
-            LOGGER.trace( sessionLabel, "delaying response " + delayPenalty + "ms due to intruder record: " + JsonUtil.serialize( intruderRecord ) );
+
+            {
+                final long finalDelay = delayPenalty;
+                LOGGER.trace( sessionLabel, () -> "delaying response " + finalDelay + "ms due to intruder record: " + JsonUtil.serialize( intruderRecord ) );
+            }
+
             JavaHelper.pause( delayPenalty );
         }
     }

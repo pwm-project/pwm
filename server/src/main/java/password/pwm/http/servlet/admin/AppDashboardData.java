@@ -168,7 +168,7 @@ public class AppDashboardData implements Serializable
         builder.sessionCount( pwmApplication.getSessionTrackService().sessionCount() );
         builder.requestsInProgress( pwmApplication.getInprogressRequests().get() );
 
-        LOGGER.trace( "AppDashboardData bean created in " + TimeDuration.compactFromCurrent( startTime ) );
+        LOGGER.trace( () -> "AppDashboardData bean created in " + TimeDuration.compactFromCurrent( startTime ) );
         return builder.build();
     }
 
@@ -549,7 +549,7 @@ public class AppDashboardData implements Serializable
         }
         catch ( PwmUnrecoverableException e )
         {
-            LOGGER.trace( "error building AppDashboardData node-state: " + e.getMessage() );
+            LOGGER.trace( () -> "error building AppDashboardData node-state: " + e.getMessage() );
         }
 
         return Collections.unmodifiableList( nodeData );

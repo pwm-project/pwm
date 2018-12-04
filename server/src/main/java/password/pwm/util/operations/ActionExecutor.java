@@ -83,7 +83,7 @@ public class ActionExecutor
     )
             throws ChaiUnavailableException, PwmOperationalException, PwmUnrecoverableException
     {
-        LOGGER.trace( sessionLabel, "preparing to execute action(s) for " + actionConfiguration.getName() );
+        LOGGER.trace( sessionLabel, () -> "preparing to execute action(s) for " + actionConfiguration.getName() );
 
         for ( final ActionConfiguration.LdapAction ldapAction : actionConfiguration.getLdapActions() )
         {
@@ -95,7 +95,7 @@ public class ActionExecutor
             executeWebserviceAction( sessionLabel, actionConfiguration, webAction );
         }
 
-        LOGGER.info( sessionLabel, "action " + actionConfiguration.getName() + " completed successfully" );
+        LOGGER.info( sessionLabel, () -> "action " + actionConfiguration.getName() + " completed successfully" );
     }
 
     private void executeLdapAction(
@@ -219,7 +219,7 @@ public class ActionExecutor
 
             if ( !successStatus.contains( clientResponse.getStatusCode() ) )
             {
-                LOGGER.trace( "response status code " + clientResponse.getStatusCode() + " is not one of the configured success status codes: "
+                LOGGER.trace( () -> "response status code " + clientResponse.getStatusCode() + " is not one of the configured success status codes: "
                         + StringUtil.collectionToString( successStatus ) );
 
                 throw new PwmOperationalException( new ErrorInformation(
@@ -262,7 +262,7 @@ public class ActionExecutor
                 : attrValue;
 
 
-        LOGGER.trace( sessionLabel, "beginning ldap " + effectiveLdapMethod.toString() + " operation on " + theUser.getEntryDN() + ", attribute " + attrName );
+        LOGGER.trace( sessionLabel, () -> "beginning ldap " + effectiveLdapMethod.toString() + " operation on " + theUser.getEntryDN() + ", attribute " + attrName );
         switch ( effectiveLdapMethod )
         {
             case replace:
@@ -270,7 +270,7 @@ public class ActionExecutor
                 try
                 {
                     theUser.writeStringAttribute( attrName, effectiveAttrValue );
-                    LOGGER.info( sessionLabel, "replaced attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + effectiveAttrValue + ")" );
+                    LOGGER.info( sessionLabel, () -> "replaced attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + effectiveAttrValue + ")" );
                 }
                 catch ( ChaiOperationException e )
                 {
@@ -288,7 +288,7 @@ public class ActionExecutor
                 try
                 {
                     theUser.addAttribute( attrName, effectiveAttrValue );
-                    LOGGER.info( sessionLabel, "added attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + effectiveAttrValue + ")" );
+                    LOGGER.info( sessionLabel, () -> "added attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + effectiveAttrValue + ")" );
                 }
                 catch ( ChaiOperationException e )
                 {
@@ -307,11 +307,11 @@ public class ActionExecutor
                 try
                 {
                     theUser.deleteAttribute( attrName, effectiveAttrValue );
-                    LOGGER.info( sessionLabel, "deleted attribute value on user " + theUser.getEntryDN() + " (" + attrName + ")" );
+                    LOGGER.info( sessionLabel, () -> "deleted attribute value on user " + theUser.getEntryDN() + " (" + attrName + ")" );
                 }
                 catch ( ChaiOperationException e )
                 {
-                    final String errorMsg = "error deletig '" + attrName + "' attribute value on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
+                    final String errorMsg = "error deleting '" + attrName + "' attribute value on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
                     final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
                     final PwmOperationalException newException = new PwmOperationalException( errorInformation );
                     newException.initCause( e );

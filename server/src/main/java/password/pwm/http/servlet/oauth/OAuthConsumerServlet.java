@@ -88,7 +88,8 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
                 ? oAuthRequestState.get().getoAuthState().getUseCase()
                 : OAuthUseCase.Authentication;
 
-        LOGGER.trace( pwmRequest, "processing oauth return request, useCase=" + oAuthUseCaseCase + ", incoming oAuthRequestState="
+        LOGGER.trace( pwmRequest, () -> "processing oauth return request, useCase=" + oAuthUseCaseCase
+                + ", incoming oAuthRequestState="
                 + ( oAuthRequestState.isPresent() ? JsonUtil.serialize( oAuthRequestState.get() ) : "none" )
         );
 
@@ -102,7 +103,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
                     if ( oAuthRequestState.isPresent() )
                     {
                         final String nextUrl = oAuthRequestState.get().getoAuthState().getNextUrl();
-                        LOGGER.debug( pwmSession, "received unrecognized oauth response, ignoring authcode and redirecting to embedded next url: " + nextUrl );
+                        LOGGER.debug( pwmSession, () -> "received unrecognized oauth response, ignoring authcode and redirecting to embedded next url: " + nextUrl );
                         pwmRequest.sendRedirect( nextUrl );
                         return;
                     }
@@ -139,7 +140,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
             switch ( oAuthUseCaseCase )
             {
                 case Authentication:
-                    LOGGER.debug( pwmSession, "oauth consumer reached, but user is already authenticated; will proceed and verify authcode matches current user identity." );
+                    LOGGER.debug( pwmSession, () -> "oauth consumer reached, but user is already authenticated; will proceed and verify authcode matches current user identity." );
                     break;
 
                 case ForgottenPassword:
@@ -179,14 +180,14 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
                 switch ( oAuthUseCaseCase )
                 {
                     case Authentication:
-                        LOGGER.debug( pwmSession, "oauth consumer reached but response is not for a request issued during the current session,"
+                        LOGGER.debug( pwmSession, () -> "oauth consumer reached but response is not for a request issued during the current session,"
                                 + " will redirect back to oauth server for verification update" );
                         final String nextURL = oauthState.getNextUrl();
                         oAuthMachine.redirectUserToOAuthServer( pwmRequest, nextURL, null, null );
                         return;
 
                     case ForgottenPassword:
-                        LOGGER.debug( pwmSession, "oauth consumer reached but response is not for a request issued during the current session,"
+                        LOGGER.debug( pwmSession, () -> "oauth consumer reached but response is not for a request issued during the current session,"
                                 + " will redirect back to forgotten password servlet" );
                         pwmRequest.sendRedirect( PwmServletDefinition.ForgottenPassword );
                         return;
@@ -205,7 +206,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
         }
 
         final String requestCodeStr = pwmRequest.readParameterAsString( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_CODE ) );
-        LOGGER.trace( pwmSession, "received code from oauth server: " + requestCodeStr );
+        LOGGER.trace( pwmSession, () -> "received code from oauth server: " + requestCodeStr );
 
         final OAuthResolveResults resolveResults;
         try
@@ -256,7 +257,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
             }
         }
 
-        LOGGER.debug( pwmSession, "received user login id value from OAuth server: " + oauthSuppliedUsername );
+        LOGGER.debug( pwmSession, () -> "received user login id value from OAuth server: " + oauthSuppliedUsername );
 
         if ( oAuthUseCaseCase == OAuthUseCase.ForgottenPassword )
         {
@@ -277,7 +278,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
                 );
                 if ( resolvedIdentity != null && resolvedIdentity.canonicalEquals( pwmSession.getUserInfo().getUserIdentity(), pwmApplication ) )
                 {
-                    LOGGER.debug( pwmSession, "verified incoming oauth code for already authenticated session does resolve to same as logged in user" );
+                    LOGGER.debug( pwmSession, () -> "verified incoming oauth code for already authenticated session does resolve to same as logged in user" );
                 }
                 else
                 {
@@ -312,7 +313,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
 
             // forward to nextUrl
             final String nextUrl = oauthState.getNextUrl();
-            LOGGER.debug( pwmSession, "oauth authentication completed, redirecting to originally requested URL: " + nextUrl );
+            LOGGER.debug( pwmSession, () -> "oauth authentication completed, redirecting to originally requested URL: " + nextUrl );
             pwmRequest.sendRedirect( nextUrl );
         }
         catch ( PwmException e )
@@ -323,7 +324,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
             return;
         }
 
-        LOGGER.trace( pwmSession, "OAuth login sequence successfully completed" );
+        LOGGER.trace( pwmSession, () -> "OAuth login sequence successfully completed" );
     }
 
     private static OAuthSettings makeOAuthSettings( final PwmRequest pwmRequest, final OAuthState oAuthState ) throws IOException, ServletException, PwmUnrecoverableException
@@ -361,7 +362,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
 
         final String nextUrl = pwmRequest.getContextPath() + PwmServletDefinition.ForgottenPassword.servletUrl();
         final String redirectUrl = PwmURL.appendAndEncodeUrlParameters( nextUrl, httpParams );
-        LOGGER.debug( pwmRequest, "forgotten password oauth sequence complete, redirecting to forgotten password with result data: " + JsonUtil.serialize( results ) );
+        LOGGER.debug( pwmRequest, () -> "forgotten password oauth sequence complete, redirecting to forgotten password with result data: " + JsonUtil.serialize( results ) );
         pwmRequest.sendRedirect( redirectUrl );
     }
 }

@@ -131,17 +131,17 @@ public abstract class AbstractOtpOperator implements OtpOperator
         }
         OTPUserRecord otpconfig = null;
         /* Try format by format */
-        LOGGER.trace( String.format( "detecting format from value: %s", value ) );
+        LOGGER.trace( () -> String.format( "detecting format from value: %s", value ) );
         /* - PWM JSON */
         try
         {
             otpconfig = JsonUtil.deserialize( value, OTPUserRecord.class );
-            LOGGER.debug( "detected JSON format - returning" );
+            LOGGER.debug( () -> "detected JSON format - returning" );
             return otpconfig;
         }
         catch ( JsonSyntaxException ex )
         {
-            LOGGER.debug( "no JSON format detected - returning" );
+            LOGGER.debug( () -> "no JSON format detected - returning" );
             /* So, it's not JSON, try something else */
             /* -- nothing to try, yet; for future use */
             /* no more options */
@@ -150,20 +150,20 @@ public abstract class AbstractOtpOperator implements OtpOperator
         otpconfig = OTPUrlUtil.decomposeOtpUrl( value );
         if ( otpconfig != null )
         {
-            LOGGER.debug( "detected otpauth URL format - returning" );
+            LOGGER.debug( () -> "detected otpauth URL format - returning" );
             return otpconfig;
         }
         /* - PAM */
         otpconfig = OTPPamUtil.decomposePamData( value );
         if ( otpconfig != null )
         {
-            LOGGER.debug( "detected PAM text format - returning" );
+            LOGGER.debug( () -> "detected PAM text format - returning" );
             return otpconfig;
         }
         /* - BASE32 secret */
         if ( value.trim().matches( "^[A-Z2-7\\=]{16}$" ) )
         {
-            LOGGER.debug( "detected plain Base32 secret - returning" );
+            LOGGER.debug( () -> "detected plain Base32 secret - returning" );
             otpconfig = new OTPUserRecord();
             otpconfig.setSecret( value.trim() );
             return otpconfig;

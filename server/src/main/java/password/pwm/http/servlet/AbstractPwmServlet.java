@@ -169,7 +169,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
             }
             catch ( PwmUnrecoverableException e )
             {
-                LOGGER.debug( pwmRequest, "error while clearing module bean during after module error output: " + e.getMessage() );
+                LOGGER.debug( pwmRequest, () -> "error while clearing module bean during after module error output: " + e.getMessage() );
             }
         }
     }
@@ -248,7 +248,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
                 //store the original requested url
                 try
                 {
-                    LOGGER.debug( pwmSession, "user is authenticated without a password, redirecting to login page" );
+                    LOGGER.debug( pwmSession, () -> "user is authenticated without a password, redirecting to login page" );
                     LoginServlet.redirectToLoginServlet( PwmRequest.forRequest( req, resp ) );
                     return true;
                 }

@@ -113,7 +113,7 @@ public class HelpdeskDetailInfoBean implements Serializable
     {
         final HelpdeskDetailInfoBeanBuilder builder = HelpdeskDetailInfoBean.builder();
         final Instant startTime = Instant.now();
-        LOGGER.trace( pwmRequest, "beginning to assemble detail data report for user " + userIdentity );
+        LOGGER.trace( pwmRequest, () -> "beginning to assemble detail data report for user " + userIdentity );
         final Locale actorLocale = pwmRequest.getLocale();
         final ChaiUser theUser = HelpdeskServlet.getChaiUser( pwmRequest, helpdeskProfile, userIdentity );
 
@@ -231,7 +231,7 @@ public class HelpdeskDetailInfoBean implements Serializable
 
         if ( pwmRequest.getConfig().isDevDebugMode() )
         {
-            LOGGER.trace( pwmRequest, "completed assembly of detail data report for user " + userIdentity
+            LOGGER.trace( pwmRequest, () -> "completed assembly of detail data report for user " + userIdentity
                     + " in " + timeDuration.asCompactString() + ", contents: " + JsonUtil.serialize( helpdeskDetailInfoBean ) );
         }
 

@@ -168,7 +168,7 @@ public class SharedHistoryManager implements PwmService
     private boolean checkDbVersion( )
             throws Exception
     {
-        LOGGER.trace( "checking version number stored in LocalDB" );
+        LOGGER.trace( () -> "checking version number stored in LocalDB" );
 
         final Object versionInDB = localDB.get( META_DB, KEY_VERSION );
         final String currentVersion = "version=" + settings.version;
@@ -176,14 +176,14 @@ public class SharedHistoryManager implements PwmService
 
         if ( !result )
         {
-            LOGGER.info( "existing db version does not match current db version db=(" + versionInDB + ")  current=(" + currentVersion + "), clearing db" );
+            LOGGER.info( () -> "existing db version does not match current db version db=(" + versionInDB + ")  current=(" + currentVersion + "), clearing db" );
             localDB.truncate( WORDS_DB );
             localDB.put( META_DB, KEY_VERSION, currentVersion );
             localDB.remove( META_DB, KEY_OLDEST_ENTRY );
         }
         else
         {
-            LOGGER.trace( "existing db version matches current db version db=(" + versionInDB + ")  current=(" + currentVersion + ")" );
+            LOGGER.trace( () -> "existing db version matches current db version db=(" + versionInDB + ")  current=(" + currentVersion + ")" );
         }
 
         return result;
@@ -212,12 +212,12 @@ public class SharedHistoryManager implements PwmService
             if ( oldestEntryStr == null || oldestEntryStr.length() < 1 )
             {
                 oldestEntry = 0;
-                LOGGER.trace( "no oldestEntry timestamp stored, will rescan" );
+                LOGGER.trace( () -> "no oldestEntry timestamp stored, will rescan" );
             }
             else
             {
                 oldestEntry = Long.parseLong( oldestEntryStr );
-                LOGGER.trace( "oldest timestamp loaded from localDB, age is " + TimeDuration.fromCurrent( oldestEntry ).asCompactString() );
+                LOGGER.trace( () -> "oldest timestamp loaded from localDB, age is " + TimeDuration.fromCurrent( oldestEntry ).asCompactString() );
             }
         }
         catch ( LocalDBException e )
@@ -230,12 +230,10 @@ public class SharedHistoryManager implements PwmService
         try
         {
             final long size = localDB.size( WORDS_DB );
-            final StringBuilder sb = new StringBuilder();
-            sb.append( "open with " ).append( size ).append( " words (" );
-            sb.append( TimeDuration.compactFromCurrent( startTime ) ).append( ")" );
-            sb.append( ", maxAgeMs=" ).append( TimeDuration.of( maxAgeMs, TimeDuration.Unit.MILLISECONDS ).asCompactString() );
-            sb.append( ", oldestEntry=" ).append( TimeDuration.fromCurrent( oldestEntry ).asCompactString() );
-            LOGGER.info( sb.toString() );
+            LOGGER.info( () -> "open with " + size + " words ("
+                    + TimeDuration.compactFromCurrent( startTime ) + ")"
+                    + ", maxAgeMs=" + TimeDuration.of( maxAgeMs, TimeDuration.Unit.MILLISECONDS ).asCompactString()
+                    + ", oldestEntry=" + TimeDuration.fromCurrent( oldestEntry ).asCompactString() );
         }
         catch ( LocalDBException e )
         {
@@ -253,7 +251,7 @@ public class SharedHistoryManager implements PwmService
             frequencyMs = frequencyMs < MIN_CLEANER_FREQUENCY ? MIN_CLEANER_FREQUENCY : frequencyMs;
             final TimeDuration frequency = TimeDuration.of( frequencyMs, TimeDuration.Unit.MILLISECONDS );
 
-            LOGGER.debug( "scheduling cleaner task to run once every " + frequency.asCompactString() );
+            LOGGER.debug( () -> "scheduling cleaner task to run once every " + frequency.asCompactString() );
             executorService = JavaHelper.makeBackgroundExecutor( pwmApplication, this.getClass() );
             pwmApplication.scheduleFixedRateJob( new CleanerTask(), executorService, null, frequency );
         }
@@ -302,13 +300,9 @@ public class SharedHistoryManager implements PwmService
             final boolean preExisting = localDB.contains( WORDS_DB, hashedWord );
             localDB.put( WORDS_DB, hashedWord, Long.toString( System.currentTimeMillis() ) );
 
-            {
-                final StringBuilder logOutput = new StringBuilder();
-                logOutput.append( preExisting ? "updated" : "added" ).append( " word" );
-                logOutput.append( " (" ).append( TimeDuration.compactFromCurrent( startTime ) ).append( ")" );
-                logOutput.append( " (" ).append( this.size() ).append( " total words)" );
-                LOGGER.trace( logOutput.toString() );
-            }
+            LOGGER.trace( () -> ( preExisting ? "updated" : "added" ) + " word"
+                    + " (" + TimeDuration.compactFromCurrent( startTime ) + ")"
+                    + " (" + this.size() + " total words)" );
         }
         catch ( Exception e )
         {
@@ -364,19 +358,20 @@ public class SharedHistoryManager implements PwmService
             final long oldestEntryAge = System.currentTimeMillis() - oldestEntry;
             if ( oldestEntryAge < settings.maxAgeMs )
             {
-                LOGGER.debug( "skipping wordDB reduce operation, eldestEntry="
+                LOGGER.debug( () -> "skipping wordDB reduce operation, eldestEntry="
                         + TimeDuration.asCompactString( oldestEntryAge )
                         + ", maxAge="
                         + TimeDuration.asCompactString( settings.maxAgeMs ) );
                 return;
             }
 
-            final long startTime = System.currentTimeMillis();
+            final Instant startTime = Instant.now();
             final long initialSize = size();
             int removeCount = 0;
             long localOldestEntry = System.currentTimeMillis();
 
-            LOGGER.debug( "beginning wordDB reduce operation, examining " + initialSize + " words for entries older than " + TimeDuration.asCompactString( settings.maxAgeMs ) );
+            LOGGER.debug( () -> "beginning wordDB reduce operation, examining " + initialSize
+                    + " words for entries older than " + TimeDuration.asCompactString( settings.maxAgeMs ) );
 
             LocalDB.LocalDBIterator<String> keyIterator = null;
             try
@@ -396,7 +391,8 @@ public class SharedHistoryManager implements PwmService
 
                         if ( removeCount % 1000 == 0 )
                         {
-                            LOGGER.trace( "wordDB reduce operation in progress, removed=" + removeCount + ", total=" + ( initialSize - removeCount ) );
+                            final int finalRemove = removeCount;
+                            LOGGER.trace( () -> "wordDB reduce operation in progress, removed=" + finalRemove + ", total=" + ( initialSize - finalRemove ) );
                         }
                     }
                     else
@@ -428,10 +424,13 @@ public class SharedHistoryManager implements PwmService
                 localDB.put( META_DB, KEY_OLDEST_ENTRY, Long.toString( oldestEntry ) );
             }
 
-            LOGGER.debug( "completed wordDB reduce operation" + ", removed=" + removeCount
-                    + ", totalRemaining=" + size()
-                    + ", oldestEntry=" + TimeDuration.asCompactString( oldestEntry )
-                    + " in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
+            {
+                final int finalRemove = removeCount;
+                LOGGER.debug( () -> "completed wordDB reduce operation" + ", removed=" + finalRemove
+                        + ", totalRemaining=" + size()
+                        + ", oldestEntry=" + TimeDuration.asCompactString( oldestEntry )
+                        + " in " + TimeDuration.compactFromCurrent( startTime ) );
+            }
         }
     }
 
@@ -456,14 +455,14 @@ public class SharedHistoryManager implements PwmService
         boolean needsClearing = false;
         if ( localDB == null )
         {
-            LOGGER.info( "LocalDB is not available, will remain closed" );
+            LOGGER.info( () -> "LocalDB is not available, will remain closed" );
             status = STATUS.CLOSED;
             return;
         }
 
         if ( settings.maxAgeMs < 1 )
         {
-            LOGGER.debug( "max age=" + settings.maxAgeMs + ", will remain closed" );
+            LOGGER.debug( () -> "max age=" + settings.maxAgeMs + ", will remain closed" );
             needsClearing = true;
         }
 
@@ -480,7 +479,7 @@ public class SharedHistoryManager implements PwmService
 
         if ( needsClearing )
         {
-            LOGGER.trace( "clearing wordlist" );
+            LOGGER.trace( () -> "clearing wordlist" );
             try
             {
                 localDB.truncate( WORDS_DB );
@@ -495,7 +494,7 @@ public class SharedHistoryManager implements PwmService
         {
             public void run( )
             {
-                LOGGER.debug( "starting up in background thread" );
+                LOGGER.debug( () -> "starting up in background thread" );
                 init( pwmApplication, settings.maxAgeMs );
             }
         }, JavaHelper.makeThreadName( pwmApplication, this.getClass() ) + " initializer" ).start();

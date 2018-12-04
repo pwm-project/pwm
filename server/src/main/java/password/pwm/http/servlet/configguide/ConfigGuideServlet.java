@@ -402,8 +402,8 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         final LdapBrowser.LdapBrowseResult result = ldapBrowser.doBrowse( profile, dn );
         ldapBrowser.close();
 
-        LOGGER.trace( pwmRequest, "performed ldapBrowse operation in "
-                + TimeDuration.fromCurrent( startTime ).asCompactString()
+        LOGGER.trace( pwmRequest, () -> "performed ldapBrowse operation in "
+                + TimeDuration.compactFromCurrent( startTime )
                 + ", result=" + JsonUtil.serialize( result ) );
 
         pwmRequest.outputJsonResult( RestResultBean.withData( result ) );
@@ -509,7 +509,11 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         {
             configGuideBean.setStep( step );
             pwmRequest.outputJsonResult( RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown ) );
-            LOGGER.trace( "setting current step to: " + step );
+
+            {
+                final GuideStep finalStep = step;
+                LOGGER.trace( () -> "setting current step to: " + finalStep );
+            }
         }
 
         return ProcessStatus.Continue;

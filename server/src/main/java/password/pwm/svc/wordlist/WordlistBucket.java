@@ -107,7 +107,7 @@ class WordlistBucket
         final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
         if ( timeDuration.isLongerThan( 100 ) )
         {
-            LOGGER.debug( "wordlist search time for " + testWords.size() + " wordlist permutations was greater then 100ms: " + timeDuration.asCompactString() );
+            LOGGER.debug( () -> "wordlist search time for " + testWords.size() + " wordlist permutations was greater then 100ms: " + timeDuration.asCompactString() );
         }
 
         return result;

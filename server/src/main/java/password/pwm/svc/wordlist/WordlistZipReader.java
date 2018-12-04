@@ -99,7 +99,7 @@ class WordlistZipReader implements AutoCloseable, Closeable
         }
         catch ( IOException e )
         {
-            LOGGER.debug( "error closing zip stream: " + e.getMessage() );
+            LOGGER.debug( () -> "error closing zip stream: " + e.getMessage() );
         }
 
         try
@@ -108,7 +108,7 @@ class WordlistZipReader implements AutoCloseable, Closeable
         }
         catch ( IOException e )
         {
-            LOGGER.debug( "error closing zip stream: " + e.getMessage() );
+            LOGGER.debug( () -> "error closing zip stream: " + e.getMessage() );
         }
     }
 

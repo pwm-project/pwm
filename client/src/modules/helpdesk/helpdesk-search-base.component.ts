@@ -332,7 +332,7 @@ export default abstract class HelpDeskSearchBaseComponent {
                 templateUrl: verificationsDialogTemplateUrl,
                 locals: {
                     personUserKey: person.userKey,
-                    search: true
+                    showRequiredOnly: true
                 }
             });
     }

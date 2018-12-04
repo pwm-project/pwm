@@ -266,11 +266,11 @@ abstract class AbstractWordlist implements Wordlist, PwmService
     void clearImpl( final Activity postCleanActivity ) throws LocalDBException
     {
         final Instant startTime = Instant.now();
-        getLogger().trace( "clearing stored wordlist" );
+        getLogger().trace( () -> "clearing stored wordlist" );
         activity = Wordlist.Activity.Clearing;
         writeWordlistStatus( WordlistStatus.builder().build() );
         getWordlistBucket().clear();
-        getLogger().debug( "cleared stored wordlist (" + TimeDuration.compactFromCurrent( startTime ) + ")" );
+        getLogger().debug( () -> "cleared stored wordlist (" + TimeDuration.compactFromCurrent( startTime ) + ")" );
         setActivity( postCleanActivity );
     }
 
@@ -298,7 +298,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         cancelBackgroundAndRunImmediate( () ->
         {
             setActivity( Activity.Importing );
-            getLogger().debug( "beginning direct user-supplied wordlist import" );
+            getLogger().debug( () -> "beginning direct user-supplied wordlist import" );
             setAutoImportError( null );
             final WordlistZipReader wordlistZipReader = new WordlistZipReader( inputStream );
             final WordlistImporter wordlistImporter = new WordlistImporter(
@@ -309,7 +309,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
                     () -> wlStatus != STATUS.OPEN
             );
             wordlistImporter.run();
-            getLogger().debug( "completed direct user-supplied wordlist import" );
+            getLogger().debug( () -> "completed direct user-supplied wordlist import" );
         } );
 
         setActivity( Activity.Idle );

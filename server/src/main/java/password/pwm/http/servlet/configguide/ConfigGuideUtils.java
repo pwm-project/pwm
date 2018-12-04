@@ -239,7 +239,7 @@ public class ConfigGuideUtils
                         throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, configErrors.get( 0 ) ) );
                     }
                     ConfigGuideUtils.writeConfig( ContextManager.getContextManager( req.getSession() ), storedConfig );
-                    LOGGER.trace( pwmSession, "read config from file: " + storedConfig.toString() );
+                    LOGGER.trace( pwmSession, () -> "read config from file: " + storedConfig.toString() );
                     final RestResultBean restResultBean = RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown );
                     pwmRequest.getPwmResponse().outputJsonResult( restResultBean );
                     req.getSession().invalidate();

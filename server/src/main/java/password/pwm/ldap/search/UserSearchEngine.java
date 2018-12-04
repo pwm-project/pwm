@@ -79,7 +79,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class UserSearchEngine implements PwmService
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( UserSearchEngine.class );
 
     private final AtomicInteger searchCounter = new AtomicInteger( 0 );
@@ -94,7 +93,7 @@ public class UserSearchEngine implements PwmService
     private ThreadPoolExecutor executor;
 
     private final ConditionalTaskExecutor debugOutputTask = new ConditionalTaskExecutor(
-            ( ) -> periodicDebugOutput(),
+            this::periodicDebugOutput,
             new ConditionalTaskExecutor.TimeDurationPredicate( 1, TimeDuration.Unit.MINUTES )
     );
 
@@ -222,7 +221,7 @@ public class UserSearchEngine implements PwmService
     )
             throws PwmUnrecoverableException, PwmOperationalException
     {
-        final long startTime = System.currentTimeMillis();
+        final Instant startTime = Instant.now();
         final DuplicateMode dupeMode = pwmApplication.getConfig().readSettingAsEnum( PwmSetting.LDAP_DUPLICATE_MODE, DuplicateMode.class );
         final int searchCount = ( dupeMode == DuplicateMode.FIRST_ALL ) ? 1 : 2;
         final Map<UserIdentity, Map<String, String>> searchResults = performMultiUserSearch( searchConfiguration, searchCount, Collections.emptyList(), sessionLabel );
@@ -243,7 +242,7 @@ public class UserSearchEngine implements PwmService
         else if ( results.size() == 1 )
         {
             final String userDN = results.get( 0 ).getUserDN();
-            LOGGER.debug( sessionLabel, "found userDN: " + userDN + " (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
+            LOGGER.debug( sessionLabel, () -> "found userDN: " + userDN + " (" + TimeDuration.compactFromCurrent( startTime ) + ")" );
             return results.get( 0 );
         }
         if ( dupeMode == DuplicateMode.FIRST_PROFILE )
@@ -259,7 +258,7 @@ public class UserSearchEngine implements PwmService
                 throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_CANT_MATCH_USER, errorMessage ) );
             }
 
-            LOGGER.trace( sessionLabel, "found multiple matches, but will use first match since second match"
+            LOGGER.trace( sessionLabel, () -> "found multiple matches, but will use first match since second match"
                     + " is in a different profile and dupeMode is set to "
                     + DuplicateMode.FIRST_PROFILE );
             return results.get( 0 );
@@ -315,7 +314,8 @@ public class UserSearchEngine implements PwmService
             }
             else
             {
-                LOGGER.debug( sessionLabel, "attempt to search for users in unknown ldap profile '" + searchConfiguration.getLdapProfile() + "', skipping search" );
+                LOGGER.debug( sessionLabel, () -> "attempt to search for users in unknown ldap profile '"
+                        + searchConfiguration.getLdapProfile() + "', skipping search" );
                 return Collections.emptyMap();
             }
         }
@@ -338,7 +338,7 @@ public class UserSearchEngine implements PwmService
 
             if ( ldapProfiles.size() > 1 && lastLdapFailure != null && TimeDuration.fromCurrent( lastLdapFailure ).isShorterThan( profileRetryDelayMS ) )
             {
-                LOGGER.info( "skipping user search on ldap profile " + ldapProfile.getIdentifier() + " due to recent unreachable status ("
+                LOGGER.info( () -> "skipping user search on ldap profile " + ldapProfile.getIdentifier() + " due to recent unreachable status ("
                         + TimeDuration.fromCurrent( lastLdapFailure ).asCompactString() + ")" );
                 skipProfile = true;
             }
@@ -591,14 +591,15 @@ public class UserSearchEngine implements PwmService
             final String usernameAttribute = ldapProfile.readSettingAsString( PwmSetting.LDAP_NAMING_ATTRIBUTE );
             if ( input.toLowerCase().startsWith( usernameAttribute.toLowerCase() + "=" ) )
             {
-                LOGGER.trace( sessionLabel,
-                        "username '" + input + "' appears to be a DN (starts with configured ldap naming attribute'" + usernameAttribute + "'), skipping username search" );
+                LOGGER.trace( sessionLabel, () -> "username '" + input
+                        + "' appears to be a DN (starts with configured ldap naming attribute '"
+                        + usernameAttribute + "'), skipping username search" );
                 return true;
             }
             namingAttributes.add( usernameAttribute );
         }
 
-        LOGGER.trace( sessionLabel, "username '" + input + "' does not appear to be a DN (does not start with any of the configured ldap naming attributes '"
+        LOGGER.trace( sessionLabel, () -> "username '" + input + "' does not appear to be a DN (does not start with any of the configured ldap naming attributes '"
                 + StringUtil.collectionToString( namingAttributes, "," )
                 + "')" );
 
@@ -798,7 +799,7 @@ public class UserSearchEngine implements PwmService
 
     private void periodicDebugOutput( )
     {
-        LOGGER.debug( "periodic debug status: " + StringUtil.mapToString( debugProperties() ) );
+        LOGGER.debug( () -> "periodic debug status: " + StringUtil.mapToString( debugProperties() ) );
     }
 
     private void log( final PwmLogLevel level, final SessionLabel sessionLabel, final int searchID, final int jobID, final String message )

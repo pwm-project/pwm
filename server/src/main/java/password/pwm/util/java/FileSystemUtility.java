@@ -156,7 +156,7 @@ public class FileSystemUtility
         }
         catch ( Exception e )
         {
-            LOGGER.debug( "error reading file space remaining for " + file.toString() + ",: " + e.getMessage() );
+            LOGGER.debug( () -> "error reading file space remaining for " + file.toString() + ",: " + e.getMessage() );
         }
         return -1;
     }
@@ -176,7 +176,7 @@ public class FileSystemUtility
             {
                 if ( thisFile.exists() )
                 {
-                    LOGGER.debug( "deleting old backup file: " + thisFile.getAbsolutePath() );
+                    LOGGER.debug( () -> "deleting old backup file: " + thisFile.getAbsolutePath() );
                     if ( !thisFile.delete() )
                     {
                         LOGGER.error( "unable to delete old backup file: " + thisFile.getAbsolutePath() );
@@ -186,10 +186,10 @@ public class FileSystemUtility
             else if ( i == 0 || youngerFile.exists() )
             {
                 final File destFile = new File( inputFile.getAbsolutePath() + "-" + ( i + 1 ) );
-                LOGGER.debug( "backup file " + thisFile.getAbsolutePath() + " renamed to " + destFile.getAbsolutePath() );
+                LOGGER.debug( () -> "backup file " + thisFile.getAbsolutePath() + " renamed to " + destFile.getAbsolutePath() );
                 if ( !thisFile.renameTo( destFile ) )
                 {
-                    LOGGER.debug( "unable to rename file " + thisFile.getAbsolutePath() + " to " + destFile.getAbsolutePath() );
+                    LOGGER.debug( () -> "unable to rename file " + thisFile.getAbsolutePath() + " to " + destFile.getAbsolutePath() );
                 }
             }
         }
@@ -265,7 +265,7 @@ public class FileSystemUtility
 
         if ( deleteThisLevel )
         {
-            LOGGER.debug( "deleting temporary file " + path.getAbsolutePath() );
+            LOGGER.debug( () -> "deleting temporary file " + path.getAbsolutePath() );
             try
             {
                 Files.delete( path.toPath() );

@@ -53,8 +53,10 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 public abstract class PeopleSearchServlet extends ControlledPwmServlet
 {
@@ -71,7 +73,8 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
         photo( HttpMethod.GET ),
         clientData( HttpMethod.GET ),
         orgChartData( HttpMethod.GET ),
-        exportOrgChart ( HttpMethod.GET ),;
+        exportOrgChart ( HttpMethod.GET ),
+        mailtoLinks ( HttpMethod.GET ),;
 
         private final HttpMethod method;
 
@@ -130,7 +133,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
         );
 
         final RestResultBean restResultBean = RestResultBean.withData( peopleSearchClientConfigBean );
-        LOGGER.trace( pwmRequest, "returning clientData: " + JsonUtil.serialize( restResultBean ) );
+        LOGGER.trace( pwmRequest, () -> "returning clientData: " + JsonUtil.serialize( restResultBean ) );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
     }
@@ -151,7 +154,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
         addExpiresHeadersToResponse( pwmRequest );
         pwmRequest.outputJsonResult( restResultBean );
 
-        LOGGER.trace( pwmRequest, "returning " + searchResultBean.getSearchResults().size() + " results for search request " + JsonUtil.serialize( searchRequest ) );
+        LOGGER.trace( pwmRequest, () -> "returning " + searchResultBean.getSearchResults().size() + " results for search request " + JsonUtil.serialize( searchRequest ) );
         return ProcessStatus.Halt;
     }
 
@@ -241,7 +244,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
         final PeopleSearchDataReader peopleSearchDataReader = new PeopleSearchDataReader( pwmRequest );
         final UserIdentity userIdentity = readUserIdentityFromKey( pwmRequest, userKey );
 
-        LOGGER.debug( pwmRequest, "received user photo request to view user " + userIdentity.toString() );
+        LOGGER.debug( pwmRequest, () -> "received user photo request to view user " + userIdentity.toString() );
 
         final PhotoDataBean photoData;
         try
@@ -308,6 +311,32 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
 
         return ProcessStatus.Halt;
     }
+
+    @ActionHandler( action = "mailtoLinks" )
+    private ProcessStatus processMailtoLinksRequest( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException, IOException
+    {
+        final String userKey = pwmRequest.readParameterAsString( PARAM_USERKEY, PwmHttpRequestWrapper.Flag.BypassValidation );
+        final int requestedDepth = pwmRequest.readParameterAsInt( PARAM_DEPTH, 1 );
+        final UserIdentity userIdentity = readUserIdentityFromKey( pwmRequest, userKey );
+        final PeopleSearchDataReader peopleSearchDataReader = new PeopleSearchDataReader( pwmRequest );
+
+        final PeopleSearchConfiguration peopleSearchConfiguration = PeopleSearchConfiguration.forRequest( pwmRequest );
+
+        if ( !peopleSearchConfiguration.isEnableMailtoLinks() )
+        {
+            final String msg = "mailto links is not enabled.";
+            throw PwmUnrecoverableException.newException( PwmError.ERROR_SERVICE_NOT_AVAILABLE, msg );
+        }
+
+        final int effectiveDepth = Math.max( peopleSearchConfiguration.getMailtoLinksMaxDepth(), requestedDepth );
+        final List<String> mailtoLinks = peopleSearchDataReader.getMailToLink( userIdentity, effectiveDepth );
+
+        pwmRequest.outputJsonResult( RestResultBean.withData( new ArrayList<>( mailtoLinks ) ) );
+
+        return ProcessStatus.Halt;
+    }
+
 
     static UserIdentity readUserIdentityFromKey( final PwmRequest pwmRequest, final String userKey )
             throws PwmUnrecoverableException

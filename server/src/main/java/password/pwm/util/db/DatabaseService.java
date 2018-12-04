@@ -136,12 +136,12 @@ public class DatabaseService implements PwmService
             if ( !dbConfiguration.isEnabled() )
             {
                 status = PwmService.STATUS.CLOSED;
-                LOGGER.debug( "skipping database connection open, no connection parameters configured" );
+                LOGGER.debug( () -> "skipping database connection open, no connection parameters configured" );
                 initialized = true;
                 return;
             }
 
-            LOGGER.debug( "opening connection to database " + this.dbConfiguration.getConnectionString() );
+            LOGGER.debug( () -> "opening connection to database " + this.dbConfiguration.getConnectionString() );
             slotIncrementer = new AtomicLoopIntIncrementer( dbConfiguration.getMaxConnections() );
 
             {
@@ -150,7 +150,7 @@ public class DatabaseService implements PwmService
 
                 final Connection connection = openConnection( dbConfiguration );
                 updateDebugProperties( connection );
-                LOGGER.debug( "established initial connection to " + dbConfiguration.getConnectionString() + ", properties: " + JsonUtil.serializeMap( this.debugInfo ) );
+                LOGGER.debug( () -> "established initial connection to " + dbConfiguration.getConnectionString() + ", properties: " + JsonUtil.serializeMap( this.debugInfo ) );
 
                 for ( final DatabaseTable table : DatabaseTable.values() )
                 {
@@ -172,7 +172,7 @@ public class DatabaseService implements PwmService
                 }
             }
 
-            LOGGER.debug( "successfully connected to remote database (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
+            LOGGER.debug( () -> "successfully connected to remote database (" + TimeDuration.compactFromCurrent( startTime ) + ")" );
 
             status = STATUS.OPEN;
             initialized = true;
@@ -205,7 +205,7 @@ public class DatabaseService implements PwmService
         }
         catch ( Exception e )
         {
-            LOGGER.debug( "error while de-registering driver: " + e.getMessage() );
+            LOGGER.debug( () -> "error while de-registering driver: " + e.getMessage() );
         }
 
         if ( jdbcDriverLoader != null )
@@ -342,7 +342,7 @@ public class DatabaseService implements PwmService
 
         try
         {
-            LOGGER.debug( "initiating connecting to database " + connectionURL );
+            LOGGER.debug( () -> "initiating connecting to database " + connectionURL );
             final Properties connectionProperties = new Properties();
             if ( dbConfiguration.getUsername() != null && !dbConfiguration.getUsername().isEmpty() )
             {
@@ -354,7 +354,7 @@ public class DatabaseService implements PwmService
             }
 
             final Connection connection = driver.connect( connectionURL, connectionProperties );
-            LOGGER.debug( "connected to database " + connectionURL );
+            LOGGER.debug( () -> "connected to database " + connectionURL );
 
             connection.setAutoCommit( false );
             return connection;

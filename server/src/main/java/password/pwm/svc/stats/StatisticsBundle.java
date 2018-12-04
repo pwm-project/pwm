@@ -134,7 +134,7 @@ public class StatisticsBundle
             }
             catch ( Exception e )
             {
-                LOGGER.trace( "unable to parse statistics value for stat " + statistic.toString() + ", value=" + avgStrValue );
+                LOGGER.trace( () -> "unable to parse statistics value for stat " + statistic.toString() + ", value=" + avgStrValue );
             }
         }
 
@@ -161,7 +161,7 @@ public class StatisticsBundle
                     }
                     catch ( Exception e )
                     {
-                        LOGGER.trace( "unable to parse statistics value for stat " + statistic.toString() + ", value=" + avgStrValue );
+                        LOGGER.trace( () ->  "unable to parse statistics value for stat " + statistic.toString() + ", value=" + avgStrValue );
                     }
                 }
                 return avgBean.getAverage().toString();

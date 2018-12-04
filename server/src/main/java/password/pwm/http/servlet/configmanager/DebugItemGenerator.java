@@ -125,7 +125,7 @@ public class DebugItemGenerator
             try
             {
                 final Instant startTime = Instant.now();
-                LOGGER.trace( pwmRequest, "beginning output of item " + serviceClass.getSimpleName() );
+                LOGGER.trace( pwmRequest, () -> "beginning output of item " + serviceClass.getSimpleName() );
                 final Object newInstance = serviceClass.newInstance();
                 final DebugItemGenerator.Generator newGeneratorItem = ( DebugItemGenerator.Generator ) newInstance;
                 zipOutput.putNextEntry( new ZipEntry( pathPrefix + newGeneratorItem.getFilename() ) );
@@ -134,7 +134,7 @@ public class DebugItemGenerator
                 zipOutput.flush();
                 final String finishMsg = "completed output of " + newGeneratorItem.getFilename()
                         + " in " + TimeDuration.fromCurrent( startTime ).asCompactString();
-                LOGGER.trace( pwmRequest, finishMsg );
+                LOGGER.trace( pwmRequest, () -> finishMsg );
                 debugGeneratorLogFile.printRecord( JavaHelper.toIsoDate( Instant.now() ), finishMsg );
             }
             catch ( Throwable e )
@@ -491,7 +491,7 @@ public class DebugItemGenerator
                     }
                     catch ( Exception e )
                     {
-                        LOGGER.trace( "error generating file summary info: " + e.getMessage() );
+                        LOGGER.trace( () -> "error generating file summary info: " + e.getMessage() );
                     }
                 }
                 csvPrinter.flush();
@@ -537,7 +537,11 @@ public class DebugItemGenerator
                     outputStream.flush();
                 }
             }
-            LOGGER.trace( "output " + counter + " lines to " + this.getFilename() );
+
+            {
+                final int finalCounter = counter;
+                LOGGER.trace( () -> "output " + finalCounter + " lines to " + this.getFilename() );
+            }
         }
     }
 

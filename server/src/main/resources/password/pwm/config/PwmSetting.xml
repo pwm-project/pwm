@@ -1574,6 +1574,11 @@
             <value>28800</value>
         </default>
     </setting>
+    <setting hidden="false" key="cluster.enable" level="2">
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
     <setting hidden="false" key="cluster.storageMode" level="2">
         <default>
             <value>LDAP</value>
@@ -3144,6 +3149,16 @@
             <value>false</value>
         </default>
     </setting>
+    <setting hidden="false" key="peopleSearch.enableTeamMailto" level="1">
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="peopleSearch.enablePrinting" level="1">
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
     <setting hidden="false" key="peopleSearch.queryMatch" level="1" required="true">
         <ldapPermission actor="self_other" access="read"/>
         <default syntaxVersion="2">
@@ -3309,6 +3324,28 @@
         <ldapPermission actor="self_other" access="read"/>
         <default>
             <value>workforceID</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="ldap.user.language.attribute" level="1">
+        <ldapPermission actor="proxy" access="write"/>
+        <default>
+            <value/>
+        </default>
+    </setting>
+    <setting hidden="false" key="ldap.user.pwNotify.attribute" level="1">
+        <ldapPermission actor="proxy" access="write"/>
+        <default>
+            <value/>
+        </default>
+    </setting>
+    <setting hidden="false" key="ldap.user.language.autoSet" level="1">
+        <ldapPermission actor="proxy" access="write"/>
+        <options>
+            <option value="disabled">Disabled</option>
+            <option value="enabled">Enabled - Write to LDAP attribute during authentication.</option>
+        </options>
+        <default>
+            <value>disabled</value>
         </default>
     </setting>
     <setting hidden="false" key="ldap.edirectory.storeNmasResponses" level="1" required="true">
@@ -3780,6 +3817,18 @@
             <value/>
         </default>
     </setting>
+    <setting hidden="false" key="pwNotify.storageMode" level="2">
+        <default>
+            <value>LDAP</value>
+        </default>
+        <default template="DB">
+            <value>DB</value>
+        </default>
+        <options>
+            <option value="LDAP">LDAP Directory</option>
+            <option value="DB">Remote Database</option>
+        </options>
+    </setting>
     <setting hidden="false" key="pwNotify.queryString" level="1">
         <default>
             <value/>
@@ -3996,7 +4045,6 @@
             <value>TLS_1_3</value>
         </default>
         <options>
-            <option value="SSL_2_0">SSL v2.0</option>
             <option value="SSL_3_0">SSL v3.0</option>
             <option value="TLS_1_0">TLS v1.0</option>
             <option value="TLS_1_1">TLS v1.1</option>
@@ -4006,7 +4054,7 @@
     </setting>
     <setting hidden="false" key="https.server.tls.ciphers" level="1">
         <default>
-            <value/>
+            <value>TLS_AES_128_GCM_SHA256,TLS_AES_256_GCM_SHA384,TLS_CHACHA20_POLY1305_SHA256,TLS_AES_128_CCM_SHA256,TLS_AES_128_CCM_8_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,TLS_DHE_DSS_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_SHA256,TLS_ECDHE_RSA_WITH_AES_128_SHA,TLS_ECDHE_ECDSA_WITH_AES_128_SHA,TLS_DHE_RSA_WITH_AES_128_SHA256,TLS_DHE_RSA_WITH_AES_128_SHA,TLS_DHE_DSS_WITH_AES_128_SHA256</value>
         </default>
     </setting>
     <setting hidden="false" key="pwm.wordlist.location" level="1">

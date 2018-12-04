@@ -388,7 +388,7 @@ public class StatisticsManager implements PwmService
 
         currentDailyKey = new DailyKey( new Date() );
         statsDaily = new StatisticsBundle();
-        LOGGER.debug( "reset daily statistics" );
+        LOGGER.debug( () -> "reset daily statistics" );
     }
 
     public STATUS status( )
@@ -538,7 +538,7 @@ public class StatisticsManager implements PwmService
     public int outputStatsToCsv( final OutputStream outputStream, final Locale locale, final boolean includeHeader )
             throws IOException
     {
-        LOGGER.trace( "beginning output stats to csv process" );
+        LOGGER.trace( () -> "beginning output stats to csv process" );
         final Instant startTime = Instant.now();
 
         final StatisticsManager statsManger = pwmApplication.getStatisticsManager();
@@ -575,8 +575,11 @@ public class StatisticsManager implements PwmService
         }
 
         csvPrinter.flush();
-        LOGGER.trace( "completed output stats to csv process; output " + counter + " records in " + TimeDuration.fromCurrent(
-                startTime ).asCompactString() );
+        {
+            final int finalCounter = counter;
+            LOGGER.trace( () -> "completed output stats to csv process; output " + finalCounter + " records in "
+                    + TimeDuration.compactFromCurrent( startTime ) );
+        }
         return counter;
     }
 
@@ -621,7 +624,7 @@ public class StatisticsManager implements PwmService
         if ( statisticsManager.status() != STATUS.OPEN )
         {
             LOGGER.trace(
-                    "skipping requested statistic increment of " + statistic + " due to StatisticsManager being closed" );
+                    () -> "skipping requested statistic increment of " + statistic + " due to StatisticsManager being closed" );
             return;
         }
 

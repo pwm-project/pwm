@@ -79,7 +79,7 @@ public class LdapConnectionService implements PwmService
         this.lastLdapErrors.putAll( readLastLdapFailure( pwmApplication ) );
 
         final int connectionsPerProfile = maxSlotsPerProfile( pwmApplication );
-        LOGGER.trace( "allocating " + connectionsPerProfile + " ldap proxy connections per profile" );
+        LOGGER.trace( () -> "allocating " + connectionsPerProfile + " ldap proxy connections per profile" );
         slotIncrementer = new AtomicLoopIntIncrementer( connectionsPerProfile );
 
         for ( final LdapProfile ldapProfile : pwmApplication.getConfig().getLdapProfiles().values() )
@@ -93,7 +93,7 @@ public class LdapConnectionService implements PwmService
     public void close( )
     {
         status = STATUS.CLOSED;
-        LOGGER.trace( "closing ldap proxy connections" );
+        LOGGER.trace( () -> "closing ldap proxy connections" );
         if ( chaiProviderFactory != null )
         {
             try

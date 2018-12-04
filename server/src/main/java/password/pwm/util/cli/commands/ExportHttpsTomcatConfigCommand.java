@@ -27,10 +27,7 @@ import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.TLSVersion;
-import password.pwm.config.stored.ConfigurationReader;
-import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.cli.CliParameters;
-import password.pwm.util.java.StringUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -41,7 +38,6 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Properties;
 import java.util.Set;
 
 public class ExportHttpsTomcatConfigCommand extends AbstractCliCommand
@@ -109,30 +105,6 @@ public class ExportHttpsTomcatConfigCommand extends AbstractCliCommand
         return cliParameters;
     }
 
-    /**
-     * Invoked (via reflection) by tomcatOneJar class in Onejar module.
-     * @param applicationPath application path containing configuration file.
-     * @return Properties with tomcat connector parameters.
-     * @throws PwmUnrecoverableException if problem loading config
-     */
-    public static Properties readAsProperties( final String applicationPath )
-            throws PwmUnrecoverableException
-    {
-        final File configFile = new File( applicationPath + File.separator + PwmConstants.DEFAULT_CONFIG_FILE_FILENAME );
-        final ConfigurationReader reader = new ConfigurationReader( configFile );
-        final Configuration configuration = reader.getConfiguration();
-        final String sslProtocolSettingValue = TomcatConfigWriter.getTlsProtocolsValue( configuration );
-        final Properties newProps = new Properties();
-        newProps.setProperty( "sslEnabledProtocols",  sslProtocolSettingValue );
-        final String ciphers = configuration.readSettingAsString( PwmSetting.HTTPS_CIPHERS );
-        if ( !StringUtil.isEmpty( ciphers ) )
-        {
-            newProps.setProperty( "ciphers", ciphers );
-        }
-        return newProps;
-    }
-
-
     public static class TomcatConfigWriter
     {
 
@@ -153,7 +125,7 @@ public class ExportHttpsTomcatConfigCommand extends AbstractCliCommand
             outputFile.write( fileContents.getBytes( PwmConstants.DEFAULT_CHARSET ) );
         }
 
-        private static String getTlsProtocolsValue( final Configuration configuration )
+        public static String getTlsProtocolsValue( final Configuration configuration )
         {
             final Set<TLSVersion> tlsVersions = configuration.readSettingAsOptionList( PwmSetting.HTTPS_PROTOCOLS, TLSVersion.class );
             final StringBuilder output = new StringBuilder();

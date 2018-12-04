@@ -180,7 +180,8 @@ public class LocalDbAuditVault implements AuditVault
         {
             errorMsg = e.getMessage();
         }
-        LOGGER.debug( "unable to deserialize stored record '" + input + "', error: " + errorMsg );
+        final String finalErrorMsg = errorMsg;
+        LOGGER.debug( () -> "unable to deserialize stored record '" + input + "', error: " + finalErrorMsg );
         return null;
     }
 

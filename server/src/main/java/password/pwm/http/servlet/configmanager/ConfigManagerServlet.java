@@ -271,7 +271,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
         {
             final ErrorInformation errorInfo = e.getErrorInformation();
             final RestResultBean restResultBean = RestResultBean.fromError( errorInfo, pwmRequest );
-            LOGGER.debug( pwmSession, errorInfo.toDebugStr() );
+            LOGGER.debug( pwmSession, errorInfo );
             pwmRequest.outputJsonResult( restResultBean );
             return;
         }
@@ -279,12 +279,12 @@ public class ConfigManagerServlet extends AbstractPwmServlet
         {
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
             final RestResultBean restResultBean = RestResultBean.fromError( errorInfo, pwmRequest );
-            LOGGER.debug( pwmSession, errorInfo.toDebugStr() );
+            LOGGER.debug( pwmSession, errorInfo );
             pwmRequest.outputJsonResult( restResultBean );
             return;
         }
         final HashMap<String, String> resultData = new HashMap<>();
-        LOGGER.info( pwmSession, "Configuration Locked" );
+        LOGGER.info( pwmSession, () -> "Configuration Locked" );
         pwmRequest.outputJsonResult( RestResultBean.withData( resultData ) );
     }
 

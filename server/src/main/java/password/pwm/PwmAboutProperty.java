@@ -141,7 +141,7 @@ public enum PwmAboutProperty
                 catch ( Throwable t )
                 {
                     aboutMap.put( pwmAboutProperty.name(), LocaleHelper.getLocalizedMessage( null, Display.Value_NotApplicable, null ) );
-                    LOGGER.trace( "error generating about value for '" + pwmAboutProperty.name() + "', error: " + t.getMessage() );
+                    LOGGER.trace( () -> "error generating about value for '" + pwmAboutProperty.name() + "', error: " + t.getMessage() );
                 }
             }
         }

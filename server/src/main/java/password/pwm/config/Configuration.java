@@ -94,6 +94,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.Supplier;
 
 /**
  * @author Jason D. Rivard
@@ -125,19 +126,24 @@ public class Configuration implements SettingReader
 
     public void outputToLog( )
     {
+        if ( !LOGGER.isEnabled( PwmLogLevel.TRACE ) )
+        {
+            return;
+        }
+
         final Map<String, String> debugStrings = storedConfiguration.getModifiedSettingDebugValues( PwmConstants.DEFAULT_LOCALE, true );
-        final List<String> outputStrings = new ArrayList<>();
+        final List<Supplier<CharSequence>> outputStrings = new ArrayList<>();
 
         for ( final Map.Entry<String, String> entry : debugStrings.entrySet() )
         {
             final String spacedValue = entry.getValue().replace( "\n", "\n   " );
             final String output = " " + entry.getKey() + "\n   " + spacedValue + "\n";
-            outputStrings.add( output );
+            outputStrings.add( () -> output );
         }
 
-        LOGGER.trace( "--begin current configuration output--" );
+        LOGGER.trace( () -> "--begin current configuration output--" );
         outputStrings.forEach( LOGGER::trace );
-        LOGGER.trace( "--end current configuration output--" );
+        LOGGER.trace( () -> "--end current configuration output--" );
     }
 
     public List<FormConfiguration> readSettingAsForm( final PwmSetting setting )

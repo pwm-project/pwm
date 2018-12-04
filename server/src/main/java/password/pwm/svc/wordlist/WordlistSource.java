@@ -137,7 +137,7 @@ class WordlistSource
         try
         {
             final Instant startTime = Instant.now();
-            LOGGER.debug( "reading file info for " + this.getWordlistSourceType() + " wordlist" );
+            LOGGER.debug( () -> "reading file info for " + this.getWordlistSourceType() + " wordlist" );
 
             inputStream = this.streamProvider.getInputStream();
 
@@ -145,7 +145,7 @@ class WordlistSource
             final CountingInputStream countingInputStream = new CountingInputStream( checksumInputStream );
 
             final ConditionalTaskExecutor debugOutputter = new ConditionalTaskExecutor(
-                    () -> LOGGER.debug( "continuing reading file info for " + getWordlistSourceType() + " wordlist"
+                    () -> LOGGER.debug( () -> "continuing reading file info for " + getWordlistSourceType() + " wordlist"
                             + " " + StringUtil.formatDiskSizeforDebug( countingInputStream.getByteCount() )
                             + " (" + TimeDuration.compactFromCurrent( startTime ) + ")" ),
                     new ConditionalTaskExecutor.TimeDurationPredicate( AbstractWordlist.DEBUG_OUTPUT_FREQUENCY )
@@ -170,7 +170,7 @@ class WordlistSource
                     importUrl
             );
 
-            LOGGER.debug( "completed read of data for " + this.getWordlistSourceType() + " wordlist"
+            LOGGER.debug( () -> "completed read of data for " + this.getWordlistSourceType() + " wordlist"
                     + " " + StringUtil.formatDiskSizeforDebug( countingInputStream.getByteCount() )
                     + ", " + JsonUtil.serialize( wordlistSourceInfo )
                     + " (" + TimeDuration.compactFromCurrent( startTime ) + ")" );

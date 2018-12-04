@@ -23,6 +23,7 @@
 package password.pwm.util.java;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import jetbrains.exodus.core.dataStructures.hash.LinkedHashMap;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.io.IOUtils;
 import password.pwm.PwmApplication;
@@ -59,6 +60,7 @@ import java.util.GregorianCalendar;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.TimeZone;
@@ -686,8 +688,16 @@ public class JavaHelper
         }
         catch ( IOException e )
         {
-            LOGGER.debug( "exception while estimating session size: " + e.getMessage() );
+            LOGGER.debug( () -> "exception while estimating session size: " + e.getMessage() );
             return 0;
         }
+    }
+
+    public static Map<String, String> propertiesToStringMap( final Properties properties )
+    {
+        Objects.requireNonNull( properties );
+        final Map<String, String> returnMap = new LinkedHashMap<>( properties.size() );
+        properties.forEach( ( key, value ) -> returnMap.put( ( String ) key, (String) value ) );
+        return returnMap;
     }
 }

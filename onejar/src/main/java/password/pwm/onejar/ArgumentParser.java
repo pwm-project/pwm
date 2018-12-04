@@ -91,6 +91,12 @@ public class ArgumentParser
                 {
                     argumentMap = mapFromCommandLine( commandLine );
                 }
+
+                if ( argumentMap.containsKey( Argument.command ) && argumentMap.get( Argument.command ) == null )
+                {
+                    throw new ArgumentParserException( Argument.command.name() + " requires arguments" );
+                }
+
                 final OnejarConfig onejarConfig;
                 try
                 {
@@ -135,7 +141,7 @@ public class ArgumentParser
         return Collections.unmodifiableMap( map );
     }
 
-    private Map<Argument, String> mapFromCommandLine( final CommandLine commandLine )
+    static Map<Argument, String> mapFromCommandLine( final CommandLine commandLine )
     {
         final Map<Argument, String> map = new HashMap<>();
         for ( final Option option : Argument.asOptionMap().values() )
@@ -145,8 +151,18 @@ public class ArgumentParser
                 if ( commandLine.hasOption( option.getOpt() ) )
                 {
                     final Argument argument = Argument.valueOf( option.getOpt() );
-                    final String value = commandLine.getOptionValue( option.getOpt() );
-                    map.put( argument, value );
+                    {
+                        final String[] values = commandLine.getOptionValues( option.getOpt() );
+                        if ( values != null )
+                        {
+                            final String joined = String.join( " ", values );
+                            map.put( argument, joined );
+                        }
+                        else
+                        {
+                            map.put( argument, null );
+                        }
+                    }
                 }
             }
         }
@@ -207,14 +223,17 @@ public class ArgumentParser
         final String localAddress = argumentMap.getOrDefault( Argument.localAddress, Resource.defaultLocalAddress.getValue() );
         onejarConfig.localAddress( localAddress );
 
-        try
+        if ( !argumentMap.containsKey( Argument.command ) )
         {
-            final ServerSocket socket = new ServerSocket( port, 100, InetAddress.getByName( localAddress ) );
-            socket.close();
-        }
-        catch ( Exception e )
-        {
-            throw new ArgumentParserException( "port or address conflict: " + e.getMessage() );
+            try
+            {
+                final ServerSocket socket = new ServerSocket( port, 100, InetAddress.getByName( localAddress ) );
+                socket.close();
+            }
+            catch ( Exception e )
+            {
+                throw new ArgumentParserException( "port or address conflict: " + e.getMessage() );
+            }
         }
 
         if ( argumentMap.containsKey( Argument.workPath ) )
@@ -223,7 +242,14 @@ public class ArgumentParser
         }
         else
         {
-            onejarConfig.workingPath( figureDefaultWorkPath( localAddress, context, port ) );
+            final boolean isCommandExec = argumentMap.containsKey( Argument.command );
+            onejarConfig.workingPath( figureDefaultWorkPath( localAddress, context, port, isCommandExec ) );
+        }
+
+        if ( argumentMap.containsKey( Argument.command ) )
+        {
+            final String value = argumentMap.get( Argument.command );
+            onejarConfig.execCommand( value );
         }
 
         return onejarConfig.build();
@@ -244,7 +270,8 @@ public class ArgumentParser
     }
 
 
-    private static File parseFileOption( final Map<Argument, String> argumentMap, final Argument argName ) throws ArgumentParserException
+    private static File parseFileOption( final Map<Argument, String> argumentMap, final Argument argName )
+            throws ArgumentParserException
     {
         if ( !argumentMap.containsKey( argName ) )
         {
@@ -265,7 +292,8 @@ public class ArgumentParser
     private static File figureDefaultWorkPath(
             final String localAddress,
             final String context,
-            final int port
+            final int port,
+            final boolean isCommandExec
     )
             throws ArgumentParserException, IOException
     {
@@ -283,7 +311,8 @@ public class ArgumentParser
                         + "-"
                         + escapeFilename( context )
                         + "-"
-                        + escapeFilename( Integer.toString( port ) );
+                        + escapeFilename( Integer.toString( port ) )
+                        + ( isCommandExec ? "-" + "cmd" : "" );
 
                 if ( localAddress != null && !localAddress.isEmpty() )
                 {

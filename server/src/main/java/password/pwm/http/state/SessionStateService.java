@@ -109,7 +109,7 @@ public class SessionStateService implements PwmService
         }
 
 
-        LOGGER.trace( "initialized " + sessionBeanProvider.getClass().getName() + " provider" );
+        LOGGER.trace( () -> "initialized " + sessionBeanProvider.getClass().getName() + " provider" );
     }
 
     @Override

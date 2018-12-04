@@ -229,7 +229,11 @@ public class ContextManager implements Serializable
         {
             handleStartupError( "unable to initialize application due to configuration related error: ", e );
         }
-        LOGGER.debug( "configuration file was loaded from " + ( configurationFile == null ? "null" : configurationFile.getAbsoluteFile() ) );
+
+        {
+            final String filename = configurationFile == null ? "null" : configurationFile.getAbsoluteFile().getAbsolutePath();
+            LOGGER.debug( () -> "configuration file was loaded from " + ( filename ) );
+        }
 
         final Collection<PwmEnvironment.ApplicationFlag> applicationFlags = parameterReader.readApplicationFlags();
         final Map<PwmEnvironment.ApplicationParameter, String> applicationParams = parameterReader.readApplicationParams();
@@ -366,7 +370,7 @@ public class ContextManager implements Serializable
 
     public void requestPwmApplicationRestart( )
     {
-        LOGGER.debug( "immediate restart requested" );
+        LOGGER.debug( () -> "immediate restart requested" );
         taskMaster.schedule( new RestartFlagWatcher(), 0, TimeUnit.MILLISECONDS );
     }
 
@@ -384,7 +388,7 @@ public class ContextManager implements Serializable
             {
                 if ( configReader.modifiedSinceLoad() )
                 {
-                    LOGGER.info( "configuration file modification has been detected" );
+                    LOGGER.info( () -> "configuration file modification has been detected" );
                     requestPwmApplicationRestart();
                 }
             }
@@ -406,7 +410,7 @@ public class ContextManager implements Serializable
             if ( configReader != null && configReader.isSaveInProgress() )
             {
                 final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-                LOGGER.info( "delaying restart request due to in progress file save (" + timeDuration.asCompactString() + ")" );
+                LOGGER.info( () -> "delaying restart request due to in progress file save (" + timeDuration.asCompactString() + ")" );
                 taskMaster.schedule( new RestartFlagWatcher(), 1, TimeUnit.SECONDS );
                 return;
             }
@@ -419,7 +423,7 @@ public class ContextManager implements Serializable
 
                 {
                     final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-                    LOGGER.info( "beginning application restart (" + timeDuration.asCompactString() + "), restart count=" + restartCount.incrementAndGet() );
+                    LOGGER.info( () -> "beginning application restart (" + timeDuration.asCompactString() + "), restart count=" + restartCount.incrementAndGet() );
                 }
 
                 final Instant shutdownStartTime = Instant.now();
@@ -435,7 +439,7 @@ public class ContextManager implements Serializable
                 {
                     final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
                     final TimeDuration shutdownDuration = TimeDuration.fromCurrent( shutdownStartTime );
-                    LOGGER.info( "application restart; shutdown completed, ("
+                    LOGGER.info( () -> "application restart; shutdown completed, ("
                             + shutdownDuration.asCompactString()
                             + ") now starting new application instance ("
                             + timeDuration.asCompactString() + ")" );
@@ -444,7 +448,7 @@ public class ContextManager implements Serializable
 
                 {
                     final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-                    LOGGER.info( "application restart completed (" + timeDuration.asCompactString() + ")" );
+                    LOGGER.info( () -> "application restart completed (" + timeDuration.asCompactString() + ")" );
                 }
             }
             finally
@@ -466,7 +470,7 @@ public class ContextManager implements Serializable
                 return;
             }
 
-            LOGGER.trace( "waiting up to " + maxRequestWaitTime.asCompactString()
+            LOGGER.trace( () -> "waiting up to " + maxRequestWaitTime.asCompactString()
                     + " for " + startingRequetsInProgress  + " requests to complete." );
             JavaHelper.pause(
                     maxRequestWaitTime.asMillis(),
@@ -476,7 +480,7 @@ public class ContextManager implements Serializable
 
             final int requestsInPrgoress = pwmApplication.getInprogressRequests().get();
             final TimeDuration waitTime = TimeDuration.fromCurrent( startTime  );
-            LOGGER.trace( "after " + waitTime.asCompactString() + ", " + requestsInPrgoress
+            LOGGER.trace( () -> "after " + waitTime.asCompactString() + ", " + requestsInPrgoress
                     + " requests in progress, proceeding with restart" );
         }
     }

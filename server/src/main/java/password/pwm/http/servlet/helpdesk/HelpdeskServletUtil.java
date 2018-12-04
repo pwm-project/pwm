@@ -212,7 +212,7 @@ public class HelpdeskServletUtil
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNAUTHORIZED, errorMsg );
             throw new PwmUnrecoverableException( errorInformation );
         }
-        LOGGER.trace( pwmRequest, "helpdesk detail view request for user details of " + userIdentity.toString() + " by actor " + actorUserIdentity.toString() );
+        LOGGER.trace( pwmRequest, () -> "helpdesk detail view request for user details of " + userIdentity.toString() + " by actor " + actorUserIdentity.toString() );
 
         final HelpdeskVerificationStateBean verificationStateBean = HelpdeskVerificationStateBean.fromClientString(
                 pwmRequest,
@@ -291,7 +291,7 @@ public class HelpdeskServletUtil
 
         if ( configuredEmailSetting == null )
         {
-            LOGGER.debug( pwmRequest, "skipping send helpdesk unlock notice email for '" + userIdentity + "' no email configured" );
+            LOGGER.debug( pwmRequest, () -> "skipping send helpdesk unlock notice email for '" + userIdentity + "' no email configured" );
             return;
         }
 

@@ -302,7 +302,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
             );
             final RestResultBean restResultBean = RestResultBean.withData( passed );
 
-            LOGGER.trace( pwmSession, "returning result for restValidateCode: " + JsonUtil.serialize( restResultBean ) );
+            LOGGER.trace( pwmSession, () -> "returning result for restValidateCode: " + JsonUtil.serialize( restResultBean ) );
             pwmRequest.outputJsonResult( restResultBean );
         }
         catch ( PwmOperationalException e )
@@ -363,7 +363,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
             {
                 if ( pwmRequest.getConfig().isDevDebugMode() )
                 {
-                    LOGGER.trace( pwmRequest, "testing against otp record: " + JsonUtil.serialize( otpBean.getOtpUserRecord() ) );
+                    LOGGER.trace( pwmRequest, () -> "testing against otp record: " + JsonUtil.serialize( otpBean.getOtpUserRecord() ) );
                 }
 
                 if ( otpService.validateToken(
@@ -374,13 +374,13 @@ public class SetupOtpServlet extends ControlledPwmServlet
                         false
                 ) )
                 {
-                    LOGGER.debug( pwmRequest, "test OTP token returned true, valid OTP secret provided" );
+                    LOGGER.debug( pwmRequest, () -> "test OTP token returned true, valid OTP secret provided" );
                     otpBean.setConfirmed( true );
                     otpBean.setChallenge( null );
                 }
                 else
                 {
-                    LOGGER.debug( pwmRequest, "test OTP token returned false, incorrect OTP secret provided" );
+                    LOGGER.debug( pwmRequest, () -> "test OTP token returned false, incorrect OTP secret provided" );
                     setLastError( pwmRequest, new ErrorInformation( PwmError.ERROR_TOKEN_INCORRECT ) );
                 }
             }
@@ -429,7 +429,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
             if ( existingUserRecord != null )
             {
                 otpBean.setHasPreExistingOtp( true );
-                LOGGER.trace( pwmSession, "user has existing otp record" );
+                LOGGER.trace( pwmSession, () -> "user has existing otp record" );
                 return;
             }
         }
@@ -452,10 +452,10 @@ public class SetupOtpServlet extends ControlledPwmServlet
                 );
                 otpBean.setOtpUserRecord( otpUserRecord );
                 otpBean.setRecoveryCodes( rawRecoveryCodes );
-                LOGGER.trace( pwmSession, "generated new otp record" );
+                LOGGER.trace( pwmSession, () -> "generated new otp record" );
                 if ( config.isDevDebugMode() )
                 {
-                    LOGGER.trace( pwmRequest, "newly generated otp record: " + JsonUtil.serialize( otpUserRecord ) );
+                    LOGGER.trace( pwmRequest, () -> "newly generated otp record: " + JsonUtil.serialize( otpUserRecord ) );
                 }
             }
             catch ( Exception e )
@@ -527,7 +527,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
 
             if ( policy == ForceSetupPolicy.FORCE_ALLOW_SKIP )
             {
-                LOGGER.trace( pwmRequest, "allowing setup skipping due to setting "
+                LOGGER.trace( pwmRequest, () -> "allowing setup skipping due to setting "
                         + PwmSetting.OTP_FORCE_SETUP.toMenuLocationDebug( setupOtpProfile.getIdentifier(), pwmRequest.getLocale() ) );
                 return true;
             }
@@ -537,7 +537,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
             {
                 if ( pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.ADMIN_ALLOW_SKIP_FORCED_ACTIVITIES ) )
                 {
-                    LOGGER.trace( pwmRequest, "allowing OTP setup skipping due to user being admin and setting "
+                    LOGGER.trace( pwmRequest, () -> "allowing OTP setup skipping due to user being admin and setting "
                             + PwmSetting.ADMIN_ALLOW_SKIP_FORCED_ACTIVITIES.toMenuLocationDebug( null, pwmRequest.getLocale() ) );
                     return true;
                 }

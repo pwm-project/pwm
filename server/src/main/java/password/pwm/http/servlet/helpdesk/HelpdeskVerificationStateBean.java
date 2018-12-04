@@ -185,7 +185,10 @@ class HelpdeskVerificationStateBean implements Serializable
         state.maximumAge = maxAge;
         state.purgeOldRecords();
 
-        LOGGER.debug( pwmRequest, "read current state: " + JsonUtil.serialize( state ) );
+        {
+            final HelpdeskVerificationStateBean finalState = state;
+            LOGGER.debug( pwmRequest, () -> "read current state: " + JsonUtil.serialize( finalState ) );
+        }
 
         return state;
     }

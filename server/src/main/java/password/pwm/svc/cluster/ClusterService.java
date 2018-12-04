@@ -66,12 +66,18 @@ public class ClusterService implements PwmService
         status = STATUS.OPENING;
         this.pwmApplication = pwmApplication;
 
+        final boolean serviceEnabled = pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.CLUSTER_ENABLED );
+        if ( !serviceEnabled )
+        {
+            status = STATUS.CLOSED;
+            return;
+        }
 
         try
         {
             final ClusterSettings clusterSettings;
             final ClusterDataServiceProvider clusterDataServiceProvider;
-            dataStore = figureDataStorageMethod( pwmApplication );
+            dataStore = pwmApplication.getConfig().readSettingAsEnum( PwmSetting.CLUSTER_STORAGE_MODE, DataStorageMethod.class );
 
             if ( dataStore != null )
             {
@@ -79,7 +85,7 @@ public class ClusterService implements PwmService
                 {
                     case DB:
                     {
-                        LOGGER.trace( "starting database-backed cluster provider" );
+                        LOGGER.trace( () -> "starting database-backed cluster provider" );
                         clusterSettings = ClusterSettings.fromConfigForDB( pwmApplication.getConfig() );
                         clusterDataServiceProvider = new DatabaseClusterDataService( pwmApplication );
                     }
@@ -87,14 +93,14 @@ public class ClusterService implements PwmService
 
                     case LDAP:
                     {
-                        LOGGER.trace( "starting ldap-backed cluster provider" );
+                        LOGGER.trace( () -> "starting ldap-backed cluster provider" );
                         clusterSettings = ClusterSettings.fromConfigForLDAP( pwmApplication.getConfig() );
                         clusterDataServiceProvider = new LDAPClusterDataService( pwmApplication );
                     }
                     break;
 
                     default:
-                        LOGGER.debug( "no suitable storage method configured " );
+                        LOGGER.debug( () -> "no suitable storage method configured " );
                         JavaHelper.unhandledSwitchStatement( dataStore );
                         return;
 
@@ -177,33 +183,26 @@ public class ClusterService implements PwmService
         return Collections.emptyList();
     }
 
-    private DataStorageMethod figureDataStorageMethod( final PwmApplication pwmApplication )
+    private void figureDataStorageMethod( final PwmApplication pwmApplication )
             throws PwmUnrecoverableException
     {
-        final DataStorageMethod method = pwmApplication.getConfig().readSettingAsEnum( PwmSetting.CLUSTER_STORAGE_MODE, DataStorageMethod.class );
-        if ( method == DataStorageMethod.LDAP )
         {
             final UserIdentity userIdentity = pwmApplication.getConfig().getDefaultLdapProfile().getTestUser( pwmApplication );
             if ( userIdentity == null )
             {
                 final String msg = "LDAP storage type selected, but LDAP test user not defined.";
-                LOGGER.debug( msg );
+                LOGGER.debug( () -> msg );
                 startupError = new ErrorInformation( PwmError.ERROR_CLUSTER_SERVICE_ERROR, msg );
-                return null;
             }
         }
 
-        if ( method == DataStorageMethod.DB )
         {
             if ( !pwmApplication.getConfig().hasDbConfigured() )
             {
                 final String msg = "DB storage type selected, but remote DB is not configured.";
-                LOGGER.debug( msg );
+                LOGGER.debug( () -> msg );
                 startupError = new ErrorInformation( PwmError.ERROR_CLUSTER_SERVICE_ERROR, msg );
-                return null;
             }
         }
-
-        return method;
     }
 }

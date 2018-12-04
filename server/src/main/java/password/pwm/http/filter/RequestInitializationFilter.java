@@ -292,7 +292,7 @@ public class RequestInitializationFilter implements Filter
                 final String sessionPwmAppNonce = ( String ) httpSession.getAttribute( PwmConstants.SESSION_ATTR_PWM_APP_NONCE );
                 if ( sessionPwmAppNonce == null || !sessionPwmAppNonce.equals( pwmApplication.getRuntimeNonce() ) )
                 {
-                    LOGGER.debug( "invalidating http session created with non-current servlet context" );
+                    LOGGER.debug( () -> "invalidating http session created with non-current servlet context" );
                     httpSession.invalidate();
                 }
             }
@@ -324,7 +324,7 @@ public class RequestInitializationFilter implements Filter
         {
             return;
         }
-        LOGGER.debug( pwmRequest, "forcing new http session due to authentication" );
+        LOGGER.debug( pwmRequest, () -> "forcing new http session due to authentication" );
 
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();
 
@@ -494,7 +494,7 @@ public class RequestInitializationFilter implements Filter
         }
         catch ( UnknownHostException e )
         {
-            LOGGER.trace( "unknown host while trying to compute hostname for src request: " + e.getMessage() );
+            LOGGER.trace( () -> "unknown host while trying to compute hostname for src request: " + e.getMessage() );
         }
         return "";
     }
@@ -602,7 +602,7 @@ public class RequestInitializationFilter implements Filter
         final String localeCookie = pwmRequest.readCookie( localeCookieName );
         if ( localeCookieName.length() > 0 && localeCookie != null )
         {
-            LOGGER.debug( pwmRequest, "detected locale cookie in request, setting locale to " + localeCookie );
+            LOGGER.debug( pwmRequest, () -> "detected locale cookie in request, setting locale to " + localeCookie );
             pwmRequest.getPwmSession().setLocale( pwmRequest.getPwmApplication(), localeCookie );
         }
         else
@@ -610,7 +610,7 @@ public class RequestInitializationFilter implements Filter
             final List<Locale> knownLocales = pwmRequest.getConfig().getKnownLocales();
             final Locale userLocale = LocaleHelper.localeResolver( pwmRequest.getHttpServletRequest().getLocale(), knownLocales );
             pwmRequest.getPwmSession().getSessionStateBean().setLocale( userLocale == null ? PwmConstants.DEFAULT_LOCALE : userLocale );
-            LOGGER.trace( pwmRequest, "user locale set to '" + pwmRequest.getLocale() + "'" );
+            LOGGER.trace( pwmRequest, () -> "user locale set to '" + pwmRequest.getLocale() + "'" );
         }
 
         final String themeCookieName = pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_THEME_NAME );
@@ -619,7 +619,7 @@ public class RequestInitializationFilter implements Filter
         {
             if ( pwmRequest.getPwmApplication().getResourceServletService().checkIfThemeExists( pwmRequest, themeCookie ) )
             {
-                LOGGER.debug( pwmRequest, "detected theme cookie in request, setting theme to " + themeCookie );
+                LOGGER.debug( pwmRequest, () -> "detected theme cookie in request, setting theme to " + themeCookie );
                 pwmRequest.getPwmSession().getSessionStateBean().setTheme( themeCookie );
             }
         }
@@ -754,7 +754,7 @@ public class RequestInitializationFilter implements Filter
             {
                 final String msg = "malformed request instance, missing target uri value";
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SECURITY_VIOLATION, msg );
-                LOGGER.debug( pwmRequest, errorInformation.toDebugStr() + " [" + makeHeaderDebugStr( pwmRequest ) + "]" );
+                LOGGER.debug( pwmRequest, () -> errorInformation.toDebugStr() + " [" + makeHeaderDebugStr( pwmRequest ) + "]" );
                 throw new PwmUnrecoverableException( errorInformation );
             }
 
@@ -766,7 +766,7 @@ public class RequestInitializationFilter implements Filter
                     final String msg = "cross-origin request not permitted: origin header does not match incoming target url"
                             + " [" + makeHeaderDebugStr( pwmRequest ) + "]";
                     final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SECURITY_VIOLATION, msg );
-                    LOGGER.debug( pwmRequest, errorInformation.toDebugStr() );
+                    LOGGER.debug( pwmRequest, errorInformation );
                     throw new PwmUnrecoverableException( errorInformation );
                 }
                 originHeaderEvaluated = true;
@@ -784,7 +784,7 @@ public class RequestInitializationFilter implements Filter
                     final String msg = "cross-origin request not permitted: referrer header does not match incoming target url"
                             + " [" + makeHeaderDebugStr( pwmRequest ) + "]";
                     final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SECURITY_VIOLATION, msg );
-                    LOGGER.debug( pwmRequest, errorInformation.toDebugStr() );
+                    LOGGER.debug( pwmRequest, errorInformation );
                     throw new PwmUnrecoverableException( errorInformation );
                 }
                 referrerHeaderEvaluated = true;
@@ -798,7 +798,7 @@ public class RequestInitializationFilter implements Filter
             {
                 final String msg = "neither referer nor origin header request are present on non-idempotent request";
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SECURITY_VIOLATION, msg );
-                LOGGER.debug( pwmRequest, errorInformation.toDebugStr() + " [" + makeHeaderDebugStr( pwmRequest ) + "]" );
+                LOGGER.debug( pwmRequest, () -> errorInformation.toDebugStr() + " [" + makeHeaderDebugStr( pwmRequest ) + "]" );
                 throw new PwmUnrecoverableException( errorInformation );
             }
         }
@@ -830,7 +830,7 @@ public class RequestInitializationFilter implements Filter
         final TimeDuration currentDuration = TimeDuration.fromCurrent( pwmRequest.getHttpServletRequest().getSession().getLastAccessedTime() );
         if ( currentDuration.isLongerThan( maxDurationForRequest ) )
         {
-            LOGGER.debug( "unauthenticated session due to idle time, max for request is " + maxDurationForRequest.asCompactString()
+            LOGGER.debug( () -> "unauthenticated session due to idle time, max for request is " + maxDurationForRequest.asCompactString()
                     + ", session idle time is " + currentDuration.asCompactString() );
             pwmRequest.getPwmSession().unauthenticateUser( pwmRequest );
         }

@@ -107,9 +107,9 @@ public final class WorkQueueProcessor<W extends Serializable>
 
         if ( !queue.isEmpty() )
         {
-            logger.debug( "opening with " + queue.size() + " items in work queue" );
+            logger.debug( () -> "opening with " + queue.size() + " items in work queue" );
         }
-        logger.trace( "initializing worker thread with settings " + JsonUtil.serialize( settings ) );
+        logger.trace( () -> "initializing worker thread with settings " + JsonUtil.serialize( settings ) );
 
         this.workerThread = new WorkerThread();
         workerThread.setDaemon( true );
@@ -147,7 +147,7 @@ public final class WorkQueueProcessor<W extends Serializable>
         workerThread = null;
 
         final Instant startTime = Instant.now();
-        logger.debug( "attempting to flush queue prior to shutdown, items in queue=" + queueSize() );
+        logger.debug( () -> "attempting to flush queue prior to shutdown, items in queue=" + queueSize() );
 
         localWorkerThread.flushQueueAndClose();
 
@@ -167,7 +167,7 @@ public final class WorkQueueProcessor<W extends Serializable>
         }
         else
         {
-            logger.debug( msg );
+            logger.debug( () -> msg );
         }
     }
 
@@ -262,7 +262,7 @@ public final class WorkQueueProcessor<W extends Serializable>
             eldestItem = itemWrapper.getDate();
             workerThread.notifyWorkPending();
 
-            logger.trace( "item submitted: " + makeDebugText( itemWrapper ) );
+            logger.trace( () -> "item submitted: " + makeDebugText( itemWrapper ) );
         }
     }
 
@@ -276,10 +276,21 @@ public final class WorkQueueProcessor<W extends Serializable>
         return eldestItem;
     }
 
-    private String makeDebugText( final ItemWrapper<W> itemWrapper ) throws PwmOperationalException
+    private String makeDebugText( final ItemWrapper<W> itemWrapper )
     {
         final int itemsInQueue = WorkQueueProcessor.this.queueSize();
-        String traceMsg = "[" + itemWrapper.toDebugString( itemProcessor ) + "]";
+
+        String itemMsg;
+        try
+        {
+            itemMsg = itemWrapper.toDebugString( itemProcessor );
+        }
+        catch ( PwmOperationalException e )
+        {
+            itemMsg = "error";
+        }
+
+        String traceMsg = "[" + itemMsg + "]";
         if ( itemsInQueue > 0 )
         {
             traceMsg += ", " + itemsInQueue + " items in queue";
@@ -313,11 +324,11 @@ public final class WorkQueueProcessor<W extends Serializable>
                 logger.error( "unexpected error processing work item queue: " + JavaHelper.readHostileExceptionMessage( t ), t );
             }
 
-            logger.trace( "worker thread beginning shutdown..." );
+            logger.trace( () -> "worker thread beginning shutdown..." );
 
             if ( !queue.isEmpty() )
             {
-                logger.trace( "processing remaining " + queue.size() + " items" );
+                logger.trace( () -> "processing remaining " + queue.size() + " items" );
 
                 try
                 {
@@ -333,14 +344,14 @@ public final class WorkQueueProcessor<W extends Serializable>
                 }
             }
 
-            logger.trace( "thread exiting..." );
+            logger.trace( () -> "thread exiting..." );
             running.set( false );
         }
 
         void flushQueueAndClose( )
         {
             shutdownFlag.set( true );
-            logger.trace( "shutdown flag set" );
+            logger.trace( () -> "shutdown flag set" );
             notifyWorkPending();
 
             // rest until not running for up to 3 seconds....
@@ -436,7 +447,7 @@ public final class WorkQueueProcessor<W extends Serializable>
                         case RETRY:
                         {
                             retryWakeupTime = Instant.ofEpochMilli( System.currentTimeMillis() + settings.getRetryInterval().asMillis() );
-                            logger.debug( "will retry item after failure, item=" + makeDebugText( itemWrapper ) );
+                            logger.debug( () -> "will retry item after failure, item=" + makeDebugText( itemWrapper ) );
                         }
                         break;
 
@@ -569,7 +580,7 @@ public final class WorkQueueProcessor<W extends Serializable>
         final TimeDuration lagTime = TimeDuration.fromCurrent( itemWrapper.getDate() );
         avgLagTime.update( lagTime.asMillis() );
         sendRate.markEvents( 1 );
-        logger.trace( "successfully processed item=" + makeDebugText( itemWrapper ) + "; lagTime=" + lagTime.asCompactString()
+        logger.trace( () -> "successfully processed item=" + makeDebugText( itemWrapper ) + "; lagTime=" + lagTime.asCompactString()
                 + "; " + StringUtil.mapToString( debugInfo() ) );
     }
 

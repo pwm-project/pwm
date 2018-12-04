@@ -79,7 +79,7 @@ public class LocalDbCrOperator implements CrOperator
             if ( responseStringBlob != null && responseStringBlob.length() > 0 )
             {
                 final ResponseSet userResponseSet = ChaiResponseSet.parseChaiResponseSetXML( responseStringBlob, theUser );
-                LOGGER.debug( "found user responses in LocalDB: " + userResponseSet.toString() );
+                LOGGER.debug( () -> "found user responses in LocalDB: " + userResponseSet.toString() );
                 return userResponseSet;
             }
         }
@@ -129,7 +129,7 @@ public class LocalDbCrOperator implements CrOperator
         try
         {
             localDB.remove( LocalDB.DB.RESPONSE_STORAGE, userGUID );
-            LOGGER.info( "cleared responses for user " + theUser.getEntryDN() + " in local LocalDB" );
+            LOGGER.info( () -> "cleared responses for user " + theUser.getEntryDN() + " in local LocalDB" );
         }
         catch ( LocalDBException e )
         {
@@ -167,7 +167,7 @@ public class LocalDbCrOperator implements CrOperator
             );
 
             localDB.put( LocalDB.DB.RESPONSE_STORAGE, userGUID, responseSet.stringValue() );
-            LOGGER.info( "saved responses for user in LocalDB" );
+            LOGGER.info( () -> "saved responses for user in LocalDB" );
         }
         catch ( LocalDBException e )
         {

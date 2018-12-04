@@ -147,7 +147,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
         }
 
         checkIfXmlRequiresUpdate( newConfiguration );
-        LOGGER.debug( "successfully loaded configuration (" + TimeDuration.compactFromCurrent( startTime ) + ")" );
+        LOGGER.debug( () -> "successfully loaded configuration (" + TimeDuration.compactFromCurrent( startTime ) + ")" );
         return newConfiguration;
     }
 
@@ -625,7 +625,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
             }
         }
 
-        LOGGER.trace( "StoredConfiguration validator completed in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
+        LOGGER.trace( () -> "StoredConfiguration validator completed in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
         return errorStrings;
     }
 
@@ -840,13 +840,13 @@ public class StoredConfigurationImpl implements StoredConfiguration
 
         if ( theBundle == null )
         {
-            LOGGER.info( "ignoring unknown locale bundle for bundle=" + bundleName + ", key=" + keyName );
+            LOGGER.info( () -> "ignoring unknown locale bundle for bundle=" + bundleName + ", key=" + keyName );
             return;
         }
 
         if ( theBundle.getString( keyName ) == null )
         {
-            LOGGER.info( "ignoring unknown key for bundle=" + bundleName + ", key=" + keyName );
+            LOGGER.info( () -> "ignoring unknown key for bundle=" + bundleName + ", key=" + keyName );
             return;
         }
 
@@ -854,7 +854,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
         resetLocaleBundleMap( bundleName, keyName );
         if ( localeMap == null || localeMap.isEmpty() )
         {
-            LOGGER.info( "cleared locale bundle map for bundle=" + bundleName + ", key=" + keyName );
+            LOGGER.info( () -> "cleared locale bundle map for bundle=" + bundleName + ", key=" + keyName );
             return;
         }
 
@@ -946,7 +946,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
     {
         if ( profileID == null && setting.getCategory().hasProfiles() )
         {
-            throw new IllegalArgumentException( "reading of setting " + setting.getKey() + " requires a non-null profileID" );
+            throw new IllegalArgumentException( "writing of setting " + setting.getKey() + " requires a non-null profileID" );
         }
         if ( profileID != null && !setting.getCategory().hasProfiles() )
         {
@@ -974,7 +974,9 @@ public class StoredConfigurationImpl implements StoredConfiguration
             {
                 final List<Element> valueElements = ( ( PasswordValue ) value ).toXmlValues( "value", getKey() );
                 settingElement.addContent( new Comment( "Note: This value is encrypted and can not be edited directly." ) );
-                settingElement.addContent( new Comment( "Please use the Configuration Manager GUI to modify this value." ) );
+                settingElement.addContent( new Comment( "Please use the Configuration Manager web UI to modify this value or add" ) );
+                settingElement.addContent( new Comment( "plaintext=\"true\" attribute on <value> tag to use a non-encrypted value." ) );
+
                 settingElement.addContent( valueElements );
             }
             else if ( setting.getSyntax() == PwmSettingSyntax.PRIVATE_KEY )
@@ -1017,7 +1019,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
 
 
         final String result = SecureEngine.hash( sb.toString(), PwmConstants.SETTING_CHECKSUM_HASH_METHOD );
-        LOGGER.trace( "computed setting checksum in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
+        LOGGER.trace( () -> "computed setting checksum in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
         return result;
     }
 
@@ -1257,7 +1259,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
 
                         for ( final String destProfile : profileStringDefinitions )
                         {
-                            LOGGER.info( "moving setting " + setting.getKey() + " without profile attribute to profile \"" + destProfile + "\"." );
+                            LOGGER.info( () -> "moving setting " + setting.getKey() + " without profile attribute to profile \"" + destProfile + "\"." );
                             {
                                 storedConfiguration.writeSetting( profileSetting, new StringArrayValue( profileStringDefinitions ), userIdentity );
                             }
@@ -1327,7 +1329,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
                         {
                             if ( !validProfiles.contains( profileID ) )
                             {
-                                LOGGER.info( "removing setting " + setting.getKey() + " with profile \"" + profileID + "\", profile is not a valid profile" );
+                                LOGGER.info( () -> "removing setting " + setting.getKey() + " with profile \"" + profileID + "\", profile is not a valid profile" );
                                 settingElement.detach();
                             }
                         }
@@ -1350,7 +1352,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
                     final String value = property.getText();
                     if ( key != null && !key.isEmpty() && value != null && !value.isEmpty() )
                     {
-                        LOGGER.info( "migrating app-property config element '" + key + "' to setting " + PwmSetting.APP_PROPERTY_OVERRIDES.getKey() );
+                        LOGGER.info( () -> "migrating app-property config element '" + key + "' to setting " + PwmSetting.APP_PROPERTY_OVERRIDES.getKey() );
                         final String newValue = key + "=" + value;
                         List<String> existingValues = ( List<String> ) storedConfiguration.readSetting( PwmSetting.APP_PROPERTY_OVERRIDES ).toNativeObject();
                         if ( existingValues == null )
@@ -1854,7 +1856,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
                 null
         );
 
-        LOGGER.debug( "initialized new random security key" );
+        LOGGER.debug( () -> "initialized new random security key" );
     }
 
 

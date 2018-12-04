@@ -40,21 +40,16 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Properties;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 public class TomcatOnejarRunner
 {
@@ -65,44 +60,15 @@ public class TomcatOnejarRunner
         this.onejarMain = onejarMain;
     }
 
-    private void explodeWar( final OnejarConfig onejarConfig ) throws IOException
-    {
-        final InputStream warSource = onejarConfig.getWar();
-        final ZipInputStream zipInputStream = new ZipInputStream( warSource );
-        final File outputFolder = onejarConfig.getWarFolder( );
-
-        ArgumentParser.mkdirs( outputFolder );
-
-        ZipEntry zipEntry = zipInputStream.getNextEntry();
-
-        while ( zipEntry != null )
-        {
-            final String fileName = zipEntry.getName();
-            final File newFile = new File( outputFolder + File.separator + fileName );
-
-            if ( !zipEntry.isDirectory() )
-            {
-                ArgumentParser.mkdirs( newFile.getParentFile() );
-                Files.copy( zipInputStream, newFile.toPath() );
-            }
-            zipEntry = zipInputStream.getNextEntry();
-        }
-
-    }
-
     void startTomcat( final OnejarConfig onejarConfig )
             throws ServletException, IOException, OnejarException
     {
         final Instant startTime = Instant.now();
 
-        purgeDirectory( onejarConfig.getWorkingPath().toPath() );
-
-        explodeWar( onejarConfig );
-        out( "deployed war" );
-
+        final Properties tlsProperties;
         try
         {
-            generatePwmKeystore( onejarConfig );
+            tlsProperties = this.executeOnejarHelper( onejarConfig );
             out( "keystore generated" );
         }
         catch ( Exception e )
@@ -143,7 +109,7 @@ public class TomcatOnejarRunner
 
         try
         {
-            tomcat.setConnector( makeConnector( onejarConfig ) );
+            tomcat.setConnector( makeConnector( onejarConfig, tlsProperties ) );
             tomcat.start();
             out( "tomcat started in " + Duration.between( Instant.now(), startTime ).toString() );
         }
@@ -180,7 +146,7 @@ public class TomcatOnejarRunner
     }
 
 
-    private Connector makeConnector( final OnejarConfig onejarConfig )
+    private Connector makeConnector( final OnejarConfig onejarConfig, final Properties tlsProperties )
             throws Exception
     {
         final Connector connector = new Connector( "HTTP/1.1" );
@@ -198,7 +164,6 @@ public class TomcatOnejarRunner
         connector.setAttribute( "keyAlias", OnejarMain.KEYSTORE_ALIAS );
         connector.setAttribute( "clientAuth", "false" );
 
-        final Properties tlsProperties = readConfiguredTlsProperties( onejarConfig );
         if ( tlsProperties != null )
         {
             for ( final String key : tlsProperties.stringPropertyNames() )
@@ -236,41 +201,38 @@ public class TomcatOnejarRunner
         }
     }
 
-    private void purgeDirectory( final Path rootPath )
-            throws IOException
-    {
-        System.out.println( "purging work directory: " + rootPath );
-        Files.walk( rootPath, FileVisitOption.FOLLOW_LINKS )
-                .sorted( Comparator.reverseOrder() )
-                .map( Path::toFile )
-                .filter( file -> !rootPath.toString().equals( file.getPath() ) )
-                .forEach( File::delete );
-    }
-
-
     void out( final String output )
     {
         onejarMain.out( output );
     }
 
 
-    void generatePwmKeystore( final OnejarConfig onejarConfig )
+    Properties executeOnejarHelper( final OnejarConfig onejarConfig )
             throws IOException, ClassNotFoundException, IllegalAccessException, NoSuchMethodException, InvocationTargetException
     {
         try ( URLClassLoader classLoader = warClassLoaderFromConfig( onejarConfig ) )
         {
-            final Class pwmMainClass = classLoader.loadClass( "password.pwm.util.cli.MainClass" );
+            final Class pwmMainClass = classLoader.loadClass( "password.pwm.util.OnejarHelper" );
             final String keystoreFile = onejarConfig.getKeystoreFile().getAbsolutePath();
-            final Method mainMethod = pwmMainClass.getMethod( "main", String[].class );
+            final Method mainMethod = pwmMainClass.getMethod(
+                    "onejarHelper",
+                    String.class,
+                    String.class,
+                    String.class,
+                    String.class
+            );
+
             final String[] arguments = new String[] {
-                    "-applicationPath=" + onejarConfig.getApplicationPath().getAbsolutePath(),
-                    "ExportHttpsKeyStore",
+                    onejarConfig.getApplicationPath().getAbsolutePath(),
                     keystoreFile,
                     OnejarMain.KEYSTORE_ALIAS,
                     onejarConfig.getKeystorePass(),
             };
 
-            mainMethod.invoke( null, ( Object ) arguments );
+            final Object returnObjValue = mainMethod.invoke( null, arguments );
+            final Properties returnProps = ( Properties ) returnObjValue;
+            out( "completed read of tlsProperties " );
+            return returnProps;
         }
     }
 
@@ -310,22 +272,6 @@ public class TomcatOnejarRunner
                 contents = contents.replace( "[[[ROOT_CONTEXT]]]", rootcontext );
                 Files.write( Paths.get( destPath ), contents.getBytes( "UTF8" ) );
             }
-        }
-    }
-
-    Properties readConfiguredTlsProperties( final OnejarConfig onejarConfig )
-            throws Exception
-    {
-        out( "beginning read of tlsProperties " );
-        try ( URLClassLoader classLoader = warClassLoaderFromConfig( onejarConfig ) )
-        {
-            final Class pwmMainClass = classLoader.loadClass( "password.pwm.util.cli.commands.ExportHttpsTomcatConfigCommand" );
-            final Method readMethod = pwmMainClass.getMethod( "readAsProperties", String.class );
-            final String arguments = onejarConfig.getApplicationPath().getAbsolutePath();
-            final Object returnObjValue = readMethod.invoke( null, ( Object ) arguments );
-            final Properties returnProps = ( Properties ) returnObjValue;
-            out( "completed read of tlsProperties " );
-            return returnProps;
         }
     }
 

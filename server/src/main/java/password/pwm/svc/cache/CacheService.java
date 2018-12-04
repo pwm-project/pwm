@@ -68,21 +68,21 @@ public class CacheService implements PwmService
         final boolean enabled = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.CACHE_ENABLE ) );
         if ( !enabled )
         {
-            LOGGER.debug( "skipping cache service init due to app property setting" );
+            LOGGER.debug( () -> "skipping cache service init due to app property setting" );
             status = STATUS.CLOSED;
             return;
         }
 
         if ( pwmApplication.getLocalDB() == null )
         {
-            LOGGER.debug( "skipping cache service init due to localDB not being available" );
+            LOGGER.debug( () -> "skipping cache service init due to localDB not being available" );
             status = STATUS.CLOSED;
             return;
         }
 
         if ( pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY )
         {
-            LOGGER.debug( "skipping cache service init due to read-only application mode" );
+            LOGGER.debug( () -> "skipping cache service init due to read-only application mode" );
             status = STATUS.CLOSED;
             return;
         }
@@ -113,6 +113,8 @@ public class CacheService implements PwmService
     public ServiceInfoBean serviceInfo( )
     {
         final Map<String, String> debugInfo = new TreeMap<>( );
+        debugInfo.put( "itemCount", String.valueOf( memoryCacheStore.itemCount() ) );
+        debugInfo.put( "byteCount", String.valueOf( memoryCacheStore.byteCount() ) );
         debugInfo.putAll( JsonUtil.deserializeStringMap( JsonUtil.serialize( memoryCacheStore.getCacheStoreInfo() ) ) );
         debugInfo.putAll( JsonUtil.deserializeStringMap( JsonUtil.serializeMap( memoryCacheStore.storedClassHistogram( "histogram." ) ) ) );
         return new ServiceInfoBean( Collections.emptyList(), debugInfo );
@@ -196,6 +198,6 @@ public class CacheService implements PwmService
             traceOutput.append( ", histogram=" );
             traceOutput.append( JsonUtil.serializeMap( memoryCacheStore.storedClassHistogram( "" ) ) );
         }
-        LOGGER.trace( traceOutput );
+        LOGGER.trace( () -> traceOutput );
     }
 }

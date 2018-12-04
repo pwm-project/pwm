@@ -44,6 +44,8 @@ public interface UserInfo
 
     Instant getLastLdapLoginTime( ) throws PwmUnrecoverableException;
 
+    String getLanguage( ) throws PwmUnrecoverableException;
+
     ChallengeProfile getChallengeProfile( ) throws PwmUnrecoverableException;
 
     PwmPasswordPolicy getPasswordPolicy( ) throws PwmUnrecoverableException;

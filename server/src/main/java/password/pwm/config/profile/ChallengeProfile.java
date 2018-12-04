@@ -102,7 +102,7 @@ public class ChallengeProfile implements Profile, Serializable
         }
         catch ( PwmOperationalException e )
         {
-            LOGGER.trace( "configured challengeSet for profile '" + profileID + "' is not valid: " + e.getMessage() );
+            LOGGER.trace( () -> "configured challengeSet for profile '" + profileID + "' is not valid: " + e.getMessage() );
         }
 
         ChallengeSet readHelpdeskChallengeSet = null;
@@ -119,7 +119,7 @@ public class ChallengeProfile implements Profile, Serializable
         }
         catch ( PwmOperationalException e )
         {
-            LOGGER.trace( "discarding configured helpdesk challengeSet for profile '" + profileID + "' issue: " + e.getMessage() );
+            LOGGER.trace( () -> "discarding configured helpdesk challengeSet for profile '" + profileID + "' issue: " + e.getMessage() );
         }
 
         final int minRandomSetup = ( int ) Configuration.JavaTypeConverter.valueToLong( storedConfiguration.readSetting( PwmSetting.CHALLENGE_MIN_RANDOM_SETUP, profileID ) );

@@ -655,20 +655,28 @@ PWM_MAIN.showLocaleSelectionMenu = function(nextFunction, options) {
 
 
 PWM_MAIN.initLocaleSelectorMenu = function(attachNode) {
-
     PWM_MAIN.addEventHandler(attachNode,'click',function(){
         PWM_MAIN.showLocaleSelectionMenu(function(localeKey){
-            require(["dojo"], function (dojo) {
-                var nextUrl = window.location.toString();
-                if (window.location.toString().indexOf('?') > 0) {
-                    var params = dojo.queryToObject(window.location.search.substring(1, window.location.search.length));
-                    params['locale'] = localeKey;
-                    nextUrl = window.location.toString().substring(0, window.location.toString().indexOf('?') + 1)
-                        + dojo.objectToQuery(params);
-                } else {
-                    nextUrl = PWM_MAIN.addParamToUrl(nextUrl, 'locale', localeKey)
+
+            PWM_MAIN.showWaitDialog({loadFunction:function(){
+                    var url = PWM_GLOBAL['url-context'] + '/public/api?locale=' + localeKey;
+                    PWM_MAIN.ajaxRequest(url, function(){
+                        try {
+                            var newLocation = window.location;
+                            var searchParams = new URLSearchParams(newLocation.search);
+                            if ( searchParams.has('locale')) {
+                                searchParams.set('locale', localeKey);
+                                newLocation.search = searchParams.toString();
+                                window.location = newLocation;
+                                return;
+                            }
+                        } catch (e) {
+                            PWM_MAIN.log('error replacing locale parameter on existing url: ' + e);
+                        }
+
+                        window.location.reload(true);
+                    });
                 }
-                PWM_MAIN.gotoUrl(nextUrl);
             });
         });
     });

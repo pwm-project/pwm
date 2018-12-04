@@ -172,7 +172,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
                 if ( configuredSearchFilter == null || configuredSearchFilter.isEmpty() )
                 {
                     searchFilter = FormUtility.ldapSearchFilterForForm( pwmApplication, forgottenUsernameForm );
-                    LOGGER.trace( pwmSession, "auto generated ldap search filter: " + searchFilter );
+                    LOGGER.trace( pwmSession, () -> "auto generated ldap search filter: " + searchFilter );
                 }
                 else
                 {

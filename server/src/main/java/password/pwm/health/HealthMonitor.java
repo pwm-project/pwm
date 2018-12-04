@@ -144,7 +144,7 @@ public class HealthMonitor implements PwmService
 
         if ( !Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.HEALTHCHECK_ENABLED ) ) )
         {
-            LOGGER.debug( "health monitor will remain inactive due to AppProperty " + AppProperty.HEALTHCHECK_ENABLED.getKey() );
+            LOGGER.debug( () -> "health monitor will remain inactive due to AppProperty " + AppProperty.HEALTHCHECK_ENABLED.getKey() );
             status = STATUS.CLOSED;
             return;
         }
@@ -216,7 +216,7 @@ public class HealthMonitor implements PwmService
         }
 
         final Instant startTime = Instant.now();
-        LOGGER.trace( "beginning background health check process" );
+        LOGGER.trace( () -> "beginning background health check process" );
         final List<HealthRecord> tempResults = new ArrayList<>();
         for ( final HealthChecker loopChecker : HEALTH_CHECKERS )
         {
@@ -257,7 +257,7 @@ public class HealthMonitor implements PwmService
         healthRecords.clear();
         healthRecords.addAll( tempResults );
         lastHealthCheckTime = Instant.now();
-        LOGGER.trace( "health check process completed (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
+        LOGGER.trace( () -> "health check process completed (" + TimeDuration.compactFromCurrent( startTime ) + ")" );
     }
 
     public ServiceInfoBean serviceInfo( )

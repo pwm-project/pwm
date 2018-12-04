@@ -27,7 +27,6 @@
 <head>
     <%@ include file="/WEB-INF/jsp/fragment/header-common.jsp" %>
     <link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/webjars/pwm-client/vendor/ux-ias/ias-icons.css' addContext="true"/>"/>
-    <link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/webjars/pwm-client/vendor/ux-ias/ux-ias.css' addContext="true"/>"/>
 </head>
 <body class="nihilo printable">
 <div id="wrapper" class="peoplesearch-wrapper">
@@ -37,7 +36,7 @@
     <div id="centerbody" class="wide tall" style="height:100%">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
 
-        <ui-view id="people-search-view"><div class="WaitDialogBlank"></div></ui-view>
+        <ui-view id="people-search-view" class="ias-styles-root"><div class="WaitDialogBlank"></div></ui-view>
     </div>
     <div class="push"></div>
 </div>

@@ -12,7 +12,7 @@
     <artifactId>rest-test-service</artifactId>
     <packaging>war</packaging>
 
-    <name>PWM Password Self Service: REST Test Server</name>
+    <name>PWM Password Self Service: REST Test Server WAR</name>
 
     <properties>
         <project.root.basedir>${project.basedir}/..</project.root.basedir>
@@ -64,12 +64,6 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.12</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <version>2.23.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>

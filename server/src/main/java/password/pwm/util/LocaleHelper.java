@@ -565,13 +565,13 @@ public class LocaleHelper
                 {
                     if ( DEBUG_FLAG )
                     {
-                        LOGGER.trace( "missing resource bundle: bundle=" + pwmLocaleBundle.getTheClass().getName() + ", locale=" + locale.toString() );
+                        LOGGER.trace( () -> "missing resource bundle: bundle=" + pwmLocaleBundle.getTheClass().getName() + ", locale=" + locale.toString() );
                     }
                     returnList.addAll( pwmLocaleBundle.getKeys() );
                 }
                 else
                 {
-                    LOGGER.trace( "checking file " + bundleFilename );
+                    LOGGER.trace( () -> "checking file " + bundleFilename );
                     checkProperties.load( stream );
                     for ( final String key : pwmLocaleBundle.getKeys() )
                     {
@@ -579,7 +579,7 @@ public class LocaleHelper
                         {
                             if ( DEBUG_FLAG )
                             {
-                                LOGGER.trace( "missing resource: bundle=" + pwmLocaleBundle.getTheClass().toString() + ", locale=" + locale.toString() + "' key=" + key );
+                                LOGGER.trace( () -> "missing resource: bundle=" + pwmLocaleBundle.getTheClass().toString() + ", locale=" + locale.toString() + "' key=" + key );
                             }
                             returnList.add( key );
                         }
@@ -590,7 +590,7 @@ public class LocaleHelper
             {
                 if ( DEBUG_FLAG )
                 {
-                    LOGGER.trace( "error loading resource bundle for class='" + pwmLocaleBundle.getTheClass().toString()
+                    LOGGER.trace( () -> "error loading resource bundle for class='" + pwmLocaleBundle.getTheClass().toString()
                             + ", locale=" + locale.toString() + "', error: " + e.getMessage() );
                 }
             }
@@ -686,5 +686,10 @@ public class LocaleHelper
             final String name2 = o2.getDisplayName( comparisonLocale );
             return name1.compareToIgnoreCase( name2 );
         };
+    }
+
+    public static String toLongDebug( final Locale locale, final Locale perspectiveLocale )
+    {
+        return locale.getDisplayName( perspectiveLocale ) + " (" + LocaleHelper.getBrowserLocaleString( locale ) + ")";
     }
 }

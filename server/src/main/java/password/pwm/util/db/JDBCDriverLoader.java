@@ -61,7 +61,7 @@ public class JDBCDriverLoader
             throws DatabaseException
     {
         final List<ClassLoaderStrategy> strategies = dbConfiguration.getClassLoaderStrategies();
-        LOGGER.trace( "attempting to load jdbc driver using strategies: " + JsonUtil.serializeCollection( strategies ) );
+        LOGGER.trace( () -> "attempting to load jdbc driver using strategies: " + JsonUtil.serializeCollection( strategies ) );
         final List<String> errorMsgs = new ArrayList<>();
         for ( final ClassLoaderStrategy strategy : strategies )
         {
@@ -125,10 +125,10 @@ public class JDBCDriverLoader
 
             try
             {
-                LOGGER.debug( "loading JDBC database driver from classpath: " + jdbcClassName );
+                LOGGER.debug( () -> "loading JDBC database driver from classpath: " + jdbcClassName );
                 final Driver driver = ( Driver ) Class.forName( jdbcClassName ).newInstance();
 
-                LOGGER.debug( "successfully loaded JDBC database driver from classpath: " + jdbcClassName );
+                LOGGER.debug( () -> "successfully loaded JDBC database driver from classpath: " + jdbcClassName );
                 return driver;
             }
             catch ( Throwable e )
@@ -160,7 +160,7 @@ public class JDBCDriverLoader
             final byte[] jdbcDriverBytes = dbConfiguration.getJdbcDriver();
             try
             {
-                LOGGER.debug( "loading JDBC database driver stored in configuration" );
+                LOGGER.debug( () -> "loading JDBC database driver stored in configuration" );
 
                 final JarClassLoader jarClassLoader = AccessController.doPrivileged(
                         ( PrivilegedAction<JarClassLoader> ) JarClassLoader::new
@@ -172,7 +172,7 @@ public class JDBCDriverLoader
                 //Create object of loaded class
                 final Driver driver = ( Driver ) jclObjectFactory.create( jarClassLoader, jdbcClassName );
 
-                LOGGER.debug( "successfully loaded JDBC database driver '" + jdbcClassName + "' from application configuration" );
+                LOGGER.debug( () -> "successfully loaded JDBC database driver '" + jdbcClassName + "' from application configuration" );
 
                 return driver;
             }
@@ -216,13 +216,13 @@ public class JDBCDriverLoader
             }
             try
             {
-                LOGGER.debug( "loading JDBC database driver stored in configuration" );
+                LOGGER.debug( () -> "loading JDBC database driver stored in configuration" );
 
                 if ( tempFile == null )
                 {
                     final String prefixName = PwmConstants.PWM_APP_NAME.toLowerCase() + "_jdbcJar_";
                     tempFile = File.createTempFile( prefixName, "jar" );
-                    LOGGER.trace( "created temp file " + tempFile.getAbsolutePath() );
+                    LOGGER.trace( () -> "created temp file " + tempFile.getAbsolutePath() );
                 }
 
                 try ( FileOutputStream fos = new FileOutputStream( tempFile ) )
@@ -243,7 +243,7 @@ public class JDBCDriverLoader
                 final Class jdbcDriverClass = urlClassLoader.loadClass( jdbcClassName );
                 final Driver driver = ( Driver ) jdbcDriverClass.newInstance();
 
-                LOGGER.debug( "successfully loaded JDBC database driver '" + jdbcClassName + "' from application configuration" );
+                LOGGER.debug( () -> "successfully loaded JDBC database driver '" + jdbcClassName + "' from application configuration" );
 
                 return driver;
             }
@@ -262,7 +262,7 @@ public class JDBCDriverLoader
             {
                 if ( tempFile.delete() )
                 {
-                    LOGGER.trace( "removed temporary file " + tempFile.getAbsolutePath() );
+                    LOGGER.trace( () -> "removed temporary file " + tempFile.getAbsolutePath() );
                 }
             }
             tempFile = null;
@@ -309,13 +309,13 @@ public class JDBCDriverLoader
             if ( driverCache.containsKey( jdbcDriverHash ) )
             {
                 urlClassLoader = driverCache.get( jdbcDriverHash );
-                LOGGER.trace( "loaded classloader from static cache" );
+                LOGGER.trace( () -> "loaded classloader from static cache" );
             }
             else
             {
                 try
                 {
-                    LOGGER.debug( "loading JDBC database driver stored in configuration" );
+                    LOGGER.debug( () -> "loading JDBC database driver stored in configuration" );
                     final File tempFile = createOrGetTempJarFile( pwmApplication, jdbcDriverBytes );
                     urlClassLoader = new URLClassLoader(
                             new URL[]
@@ -339,7 +339,7 @@ public class JDBCDriverLoader
                 //Create object of loaded class
                 final Class jdbcDriverClass = urlClassLoader.loadClass( jdbcClassName );
                 final Driver driver = ( Driver ) jdbcDriverClass.newInstance();
-                LOGGER.debug( "successfully loaded JDBC database driver '" + jdbcClassName + "' from application configuration" );
+                LOGGER.debug( () -> "successfully loaded JDBC database driver '" + jdbcClassName + "' from application configuration" );
                 return driver;
             }
             catch ( Throwable e )
@@ -366,7 +366,7 @@ public class JDBCDriverLoader
                 final String fileHash = pwmApplication.getSecureService().hash( tempFile );
                 if ( !jarHash.equals( fileHash ) )
                 {
-                    LOGGER.debug( "existing temp jar file " + tempFile.getAbsolutePath() + " has wrong contents, will delete" );
+                    LOGGER.debug( () -> "existing temp jar file " + tempFile.getAbsolutePath() + " has wrong contents, will delete" );
                     if ( !tempFile.delete() )
                     {
                         throw new IOException( "unable to delete temp file " + jarHash );
@@ -375,14 +375,14 @@ public class JDBCDriverLoader
             }
             if ( !tempFile.exists() )
             {
-                LOGGER.debug( "creating temp jar file " + tempFile.getAbsolutePath() );
+                LOGGER.debug( () -> "creating temp jar file " + tempFile.getAbsolutePath() );
                 final OutputStream fos = new BufferedOutputStream( new FileOutputStream( tempFile ) );
                 fos.write( jarBytes );
                 fos.close();
             }
             else
             {
-                LOGGER.trace( "reusing existing temp jar file " + tempFile.getAbsolutePath() );
+                LOGGER.trace( () -> "reusing existing temp jar file " + tempFile.getAbsolutePath() );
             }
 
             return tempFile;

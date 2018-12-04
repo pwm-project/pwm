@@ -141,13 +141,13 @@ public class DisplayTag extends PwmAbstractTag
         catch ( PwmUnrecoverableException e )
         {
             {
-                LOGGER.debug( "error while executing jsp display tag: " + e.getMessage() );
+                LOGGER.debug( () -> "error while executing jsp display tag: " + e.getMessage() );
                 return EVAL_PAGE;
             }
         }
         catch ( Exception e )
         {
-            LOGGER.debug( "error while executing jsp display tag: " + e.getMessage(), e );
+            LOGGER.debug( () -> "error while executing jsp display tag: " + e.getMessage(), e );
             throw new JspTagException( e.getMessage(), e );
         }
         return EVAL_PAGE;
@@ -198,7 +198,7 @@ public class DisplayTag extends PwmAbstractTag
         {
             if ( !displayIfMissing )
             {
-                LOGGER.info( "error while executing jsp display tag: " + e.getMessage() );
+                LOGGER.info( () -> "error while executing jsp display tag: " + e.getMessage() );
             }
         }
 
