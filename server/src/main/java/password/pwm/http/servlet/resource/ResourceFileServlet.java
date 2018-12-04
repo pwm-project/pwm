@@ -665,10 +665,14 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
         if ( resourcePathUri.startsWith( WEBJAR_BASE_URL_PATH ) )
         {
             // This allows us to override a webjar file, if needed.  Mostly helpful during development.
-            final File file = new File( servletContext.getRealPath( resourcePathUri ) );
-            if ( file.exists() )
+            final String realPath = servletContext.getRealPath( resourcePathUri );
+            if ( realPath != null )
             {
-                return new RealFileResource( file );
+                final File file = new File( realPath );
+                if ( file.exists() )
+                {
+                    return new RealFileResource( file );
+                }
             }
 
             final String remainingPath = resourcePathUri.substring( WEBJAR_BASE_URL_PATH.length(), resourcePathUri.length() );
