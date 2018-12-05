@@ -38,7 +38,7 @@ import password.pwm.i18n.Display;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.cluster.NodeInfo;
 import password.pwm.svc.sessiontrack.SessionTrackService;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.PwmNumberFormat;

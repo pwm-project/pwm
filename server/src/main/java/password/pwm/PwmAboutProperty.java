@@ -24,7 +24,7 @@ package password.pwm;
 
 import password.pwm.config.PwmSetting;
 import password.pwm.i18n.Display;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.db.DatabaseService;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.StringUtil;

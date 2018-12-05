@@ -56,7 +56,7 @@ import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.BasicAuthInfo;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;

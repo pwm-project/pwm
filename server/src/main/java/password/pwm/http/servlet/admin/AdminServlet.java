@@ -61,7 +61,7 @@ import password.pwm.svc.report.ReportCsvUtility;
 import password.pwm.svc.report.ReportService;
 import password.pwm.svc.report.UserCacheRecord;
 import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.db.DatabaseException;
 import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.JavaHelper;

@@ -52,7 +52,7 @@ import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.PwmService;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.PasswordData;
 import password.pwm.util.PwmPasswordRuleValidator;
 import password.pwm.util.form.FormUtility;

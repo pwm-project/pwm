@@ -24,7 +24,7 @@ package password.pwm.error;
 
 import com.novell.ldapchai.exception.ChaiError;
 import password.pwm.config.Configuration;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
 
 import java.util.Collections;

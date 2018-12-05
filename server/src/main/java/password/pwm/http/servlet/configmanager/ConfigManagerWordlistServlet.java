@@ -43,7 +43,7 @@ import password.pwm.svc.wordlist.WordlistConfiguration;
 import password.pwm.svc.wordlist.WordlistSourceType;
 import password.pwm.svc.wordlist.WordlistStatus;
 import password.pwm.svc.wordlist.WordlistType;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;

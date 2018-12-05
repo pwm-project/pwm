@@ -33,7 +33,7 @@ import password.pwm.http.IdleTimeoutCalculator;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.servlet.ClientApiServlet;
 import password.pwm.i18n.Admin;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 

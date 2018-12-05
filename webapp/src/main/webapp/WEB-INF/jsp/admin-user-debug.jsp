@@ -32,7 +32,7 @@
 <%@ page import="password.pwm.i18n.Display" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="password.pwm.util.java.TimeDuration" %>
-<%@ page import="password.pwm.util.LocaleHelper" %>
+<%@ page import="password.pwm.util.i18n.LocaleHelper" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
