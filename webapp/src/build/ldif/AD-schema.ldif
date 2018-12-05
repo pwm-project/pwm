@@ -151,11 +151,11 @@ schemaUpdateNow: 1
 #-- pwmUser aux class
 #--
 #------------------------------------------------------
-dn: CN=pwmuser,CN=Schema,CN=Configuration,DC=x
+dn: CN=pwmUser,CN=Schema,CN=Configuration,DC=x
 changetype: ntdsschemaadd
 objectClass: classSchema
 subClassOf: top
-cn: pwmuser
+cn: pwmUser
 governsID: 1.3.6.1.4.1.35015.1.1.1
 mayContain: pwmLastPwdUpdate
 mayContain: pwmResponseSet
@@ -166,7 +166,7 @@ mayContain: pwmOtpSecret
 objectClassCategory: 3
 rDNAttID: cn
 showInAdvancedViewOnly: TRUE
-adminDisplayName: pwmuser
+adminDisplayName: pwmUser
 adminDescription: pwmUser Auxiliary class
 
 #------------------------------------------------------
@@ -179,18 +179,18 @@ schemaUpdateNow: 1
 -
 
 #------------------------------------------------------
-#--  Add Auxililary class pwmuser to User 
+#--  Add Auxililary class pwmUser to User
 #------------------------------------------------------
 dn: CN=User,CN=Schema,CN=Configuration,DC=x
 changetype: ntdsSchemaModify
 add: auxiliaryClass
-auxiliaryClass: pwmuser
+auxiliaryClass: pwmUser
 -
 
 #------------------------------------------------------
-#--  Modify the pwmuser Auxililary class (if it existed prior to this, we want to add the newer attributes)
+#--  Modify the pwmUser Auxililary class (if it existed prior to this, we want to add the newer attributes)
 #------------------------------------------------------
-dn: CN=pwmuser,CN=Schema,CN=Configuration,DC=x
+dn: CN=pwmUser,CN=Schema,CN=Configuration,DC=x
 changetype: ntdsSchemaModify
 add: mayContain
 mayContain: pwmGUID
