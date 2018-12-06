@@ -3339,7 +3339,6 @@
         </default>
     </setting>
     <setting hidden="false" key="ldap.user.language.autoSet" level="1">
-        <ldapPermission actor="proxy" access="write"/>
         <options>
             <option value="disabled">Disabled</option>
             <option value="enabled">Enabled - Write to LDAP attribute during authentication.</option>
