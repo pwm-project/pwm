@@ -80,7 +80,7 @@ public class ReportService implements PwmService
     private ExecutorService executorService;
 
     private UserCacheService userCacheService;
-    private ReportSettings settings = new ReportSettings();
+    private ReportSettings settings = ReportSettings.builder().build();
 
     private Queue<String> dnQueue;
 
@@ -438,7 +438,7 @@ public class ReportService implements PwmService
             resetJobStatus();
             clearWorkQueue();
 
-            final Iterator<UserIdentity> memQueue = LdapOperationsHelper.readAllUsersFromLdap(
+            final Iterator<UserIdentity> memQueue = LdapOperationsHelper.readUsersFromLdapForPermissions(
                     pwmApplication,
                     SessionLabel.REPORTING_SESSION_LABEL,
                     settings.getSearchFilter(),
@@ -507,7 +507,7 @@ public class ReportService implements PwmService
         }
 
         private void processWorkQueue( )
-                throws ChaiUnavailableException, ChaiOperationException, PwmOperationalException, PwmUnrecoverableException
+                throws PwmUnrecoverableException
         {
             LOGGER.debug( SessionLabel.REPORTING_SESSION_LABEL, () -> "beginning process to updating user cache records from ldap" );
             if ( status != STATUS.OPEN )

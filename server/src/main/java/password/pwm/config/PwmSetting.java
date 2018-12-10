@@ -1131,8 +1131,8 @@ public enum PwmSetting
     // reporting
     REPORTING_ENABLE(
             "reporting.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.REPORTING ),
-    REPORTING_SEARCH_FILTER(
-            "reporting.ldap.searchFilter", PwmSettingSyntax.STRING, PwmSettingCategory.REPORTING ),
+    REPORTING_USER_MATCH(
+            "reporting.ldap.userMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.REPORTING ),
     REPORTING_MAX_CACHE_AGE(
             "reporting.maxCacheAge", PwmSettingSyntax.DURATION, PwmSettingCategory.REPORTING ),
     REPORTING_MAX_QUERY_SIZE(
@@ -1220,6 +1220,9 @@ public enum PwmSetting
 
 
     // deprecated.
+    // deprecated 2018-12-05
+    REPORTING_SEARCH_FILTER(
+            "reporting.ldap.searchFilter", PwmSettingSyntax.STRING, PwmSettingCategory.REPORTING ),
 
     // deprecated 2018-10-15
     PEOPLE_SEARCH_SEARCH_ATTRIBUTES(

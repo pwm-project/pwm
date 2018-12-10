@@ -3855,9 +3855,14 @@
             <value/>
         </default>
     </setting>
-    <setting hidden="false" key="reporting.ldap.searchFilter" level="1">
+    <setting hidden="true" key="reporting.ldap.searchFilter" level="1">
         <default>
             <value />
+        </default>
+    </setting>
+    <setting hidden="false" key="reporting.ldap.userMatch" level="1">
+        <default syntaxVersion="2">
+            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
     <setting hidden="false" key="reporting.maxCacheAge" level="1">
