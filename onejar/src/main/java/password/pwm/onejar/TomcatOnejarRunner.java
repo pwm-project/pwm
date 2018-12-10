@@ -164,6 +164,9 @@ public class TomcatOnejarRunner
         connector.setAttribute( "keyAlias", OnejarMain.KEYSTORE_ALIAS );
         connector.setAttribute( "clientAuth", "false" );
 
+        out( "connector maxThreads=" + connector.getAttribute( "maxThreads" ) );
+        out( "connector maxConnections=" + connector.getAttribute( "maxConnections" ) );
+
         if ( tlsProperties != null )
         {
             for ( final String key : tlsProperties.stringPropertyNames() )
