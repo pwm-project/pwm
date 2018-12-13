@@ -24,8 +24,8 @@ package password.pwm;
 
 import password.pwm.config.PwmSetting;
 import password.pwm.i18n.Display;
-import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.db.DatabaseService;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -35,7 +35,6 @@ import java.nio.charset.Charset;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -146,7 +145,7 @@ public enum PwmAboutProperty
             }
         }
 
-        final Map<PwmAboutProperty, String> returnMap = new LinkedHashMap<>();
+        final Map<PwmAboutProperty, String> returnMap = new TreeMap<>();
         for ( final Map.Entry<String, String> entry : aboutMap.entrySet() )
         {
             returnMap.put( PwmAboutProperty.valueOf( entry.getKey() ), entry.getValue() );
@@ -177,5 +176,17 @@ public enum PwmAboutProperty
     public String getLabel( )
     {
         return label == null ? this.name() : label;
+    }
+
+    public static Map<String, String> toStringMap( final Map<PwmAboutProperty, String> infoBeanMap )
+    {
+        final Map<String, String> outputProps = new TreeMap<>( );
+        for ( final Map.Entry<PwmAboutProperty, String> entry : infoBeanMap.entrySet() )
+        {
+            final PwmAboutProperty aboutProperty = entry.getKey();
+            final String value = entry.getValue();
+            outputProps.put( aboutProperty.toString().replace( "_", "." ), value );
+        }
+        return Collections.unmodifiableMap( outputProps );
     }
 }

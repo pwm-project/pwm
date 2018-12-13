@@ -139,7 +139,7 @@ public class PwmLogger
         {
             try
             {
-                final String cleanedString = PwmLogger.removeUserDataFromString( pwmSession.getLoginInfoBean(), message.toString() );
+                final CharSequence cleanedString = PwmLogger.removeUserDataFromString( pwmSession.getLoginInfoBean(), message.get() );
                 cleanedMessage = () -> cleanedString;
             }
             catch ( PwmUnrecoverableException e1 )
@@ -552,7 +552,7 @@ public class PwmLogger
         }
     }
 
-    public static String removeUserDataFromString( final LoginInfoBean loginInfoBean, final String input )
+    public static CharSequence removeUserDataFromString( final LoginInfoBean loginInfoBean, final CharSequence input )
             throws PwmUnrecoverableException
     {
         if ( input == null || loginInfoBean == null )
@@ -560,7 +560,7 @@ public class PwmLogger
             return input;
         }
 
-        String returnString = input;
+        String returnString = input.toString();
         if ( loginInfoBean.getUserCurrentPassword() != null )
         {
             final String pwdStringValue = loginInfoBean.getUserCurrentPassword().getStringValue();

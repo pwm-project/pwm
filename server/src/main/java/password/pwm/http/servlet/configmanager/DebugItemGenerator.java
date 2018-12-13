@@ -126,8 +126,7 @@ public class DebugItemGenerator
             {
                 final Instant startTime = Instant.now();
                 LOGGER.trace( pwmRequest, () -> "beginning output of item " + serviceClass.getSimpleName() );
-                final Object newInstance = serviceClass.newInstance();
-                final DebugItemGenerator.Generator newGeneratorItem = ( DebugItemGenerator.Generator ) newInstance;
+                final DebugItemGenerator.Generator newGeneratorItem = serviceClass.getDeclaredConstructor().newInstance();
                 zipOutput.putNextEntry( new ZipEntry( pathPrefix + newGeneratorItem.getFilename() ) );
                 newGeneratorItem.outputItem( pwmApplication, pwmRequest, zipOutput );
                 zipOutput.closeEntry();
@@ -262,15 +261,12 @@ public class DebugItemGenerator
             };
 
             final Map<PwmAboutProperty, String> infoBean = PwmAboutProperty.makeInfoBean( pwmApplication );
-            for ( final Map.Entry<PwmAboutProperty, String> entry : infoBean.entrySet() )
+            outputProps.putAll( PwmAboutProperty.toStringMap( infoBean ) );
+            try ( ByteArrayOutputStream baos = new ByteArrayOutputStream() )
             {
-                final PwmAboutProperty aboutProperty = entry.getKey();
-                final String value = entry.getValue();
-                outputProps.put( aboutProperty.toString().replace( "_", "." ), value );
+                outputProps.store( baos, JavaHelper.toIsoDate( Instant.now() ) );
+                outputStream.write( baos.toByteArray() );
             }
-            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            outputProps.store( baos, JavaHelper.toIsoDate( Instant.now() ) );
-            outputStream.write( baos.toByteArray() );
         }
     }
 
