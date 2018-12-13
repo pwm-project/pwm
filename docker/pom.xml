@@ -25,7 +25,7 @@
             <plugin>
                 <groupId>com.google.cloud.tools</groupId>
                 <artifactId>jib-maven-plugin</artifactId>
-                <version>0.10.0</version>
+                <version>0.10.1</version>
                 <executions>
                     <execution>
                         <id>make-docker-image</id>
@@ -42,14 +42,13 @@
                             </to>
                             <container>
                                 <entrypoint>
-                                    <arg>java</arg>
-                                    <arg>-jar</arg>
-                                    <arg>/app/libs/pwm-onejar-${project.version}.jar</arg>
-                                    <arg>-applicationPath</arg>
-                                    <arg>/config</arg>
+                                    <arg>/app/startup.sh</arg>
                                 </entrypoint>
                                 <format>docker</format>
                                 <ports>8443</ports>
+                                <volumes>
+                                    <volume>/config</volume>
+                                </volumes>
                             </container>
                             <extraDirectory>
                                 <path>${project.basedir}/src/main/image-files</path> <!-- Copies files from 'src/main/custom-extra-dir' -->

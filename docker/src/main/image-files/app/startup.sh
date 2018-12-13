@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 #Docker Container startup script
 
-JAVA_OPTS="$(sed 's/./&/' java.vmoptions | tr '\n' ' ')"
+JAVA_OPTS="$(sed 's/./&/' /app/java.vmoptions | tr '\n' ' ')"
 export JAVA_OPTS
 
-java -jar /app/libs/pwm-onejar*.jar $JAVA_OPTS -applicationPath /config
+mkdir -p /config/logs
+
+java $JAVA_OPTS -jar /app/libs/*onejar*.jar -applicationPath /config
