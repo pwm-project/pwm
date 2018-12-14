@@ -28,6 +28,7 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.PrivateKeyCertificate;
 import password.pwm.config.option.ADPolicyComplexity;
+import password.pwm.config.option.CertificateMatchingMode;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.TokenStorageMethod;
@@ -1211,5 +1212,13 @@ public class Configuration implements SettingReader
         return returnSet;
     }
 
+    public CertificateMatchingMode readCertificateMatchingMode()
+    {
+        final CertificateMatchingMode mode = readSettingAsEnum( PwmSetting.CERTIFICATE_VALIDATION_MODE, CertificateMatchingMode.class );
+        return mode == null
+                ? CertificateMatchingMode.CA_ONLY
+                : mode;
+
+    }
 
 }

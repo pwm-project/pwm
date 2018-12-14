@@ -549,7 +549,8 @@ public enum PwmSetting
             "display.showDetailedErrors", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.APP_SECURITY ),
     SESSION_MAX_SECONDS(
             "session.maxSeconds", PwmSettingSyntax.DURATION, PwmSettingCategory.APP_SECURITY ),
-
+    CERTIFICATE_VALIDATION_MODE(
+            "security.certificate.validationMode", PwmSettingSyntax.SELECT, PwmSettingCategory.APP_SECURITY ),
 
     // web security
     SECURITY_ENABLE_FORM_NONCE(

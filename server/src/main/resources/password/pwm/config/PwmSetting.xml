@@ -1574,6 +1574,15 @@
             <value>28800</value>
         </default>
     </setting>
+    <setting hidden="false" key="security.certificate.validationMode" level="2">
+        <default>
+            <value>CERTIFICATE_CHAIN</value>
+        </default>
+        <options>
+            <option value="CA_ONLY">Root Certificate Only</option>
+            <option value="CERTIFICATE_CHAIN">Entire Certificate Chain</option>
+        </options>
+    </setting>
     <setting hidden="false" key="nodeService.enable" level="2">
         <default>
             <value>true</value>

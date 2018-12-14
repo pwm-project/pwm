@@ -126,7 +126,7 @@ public class LdapSchemaExtendCommand extends AbstractCliCommand
         if ( isSecureLDAP( url ) )
         {
             out( "ldaps certificates from: " + url );
-            final List<X509Certificate> certificateList = X509Utils.readRemoteCertificates( new URI ( url ) );
+            final List<X509Certificate> certificateList = X509Utils.readRemoteCertificates( new URI ( url ), cliEnvironment.getConfig() );
             out( JsonUtil.serializeCollection( X509Utils.makeDebugInfoMap( certificateList ), JsonUtil.Flag.PrettyPrint ) );
             return certificateList;
         }

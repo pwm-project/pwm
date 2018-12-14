@@ -70,7 +70,7 @@ public class LdapCertImportFunction implements SettingUIFunction
                 for ( final String ldapUrlString : ldapUrlStrings )
                 {
                     final URI ldapURI = new URI( ldapUrlString );
-                    final List<X509Certificate> certs = X509Utils.readRemoteCertificates( ldapURI );
+                    final List<X509Certificate> certs = X509Utils.readRemoteCertificates( ldapURI, pwmApplication.getConfig() );
                     if ( certs != null )
                     {
                         resultCertificates.addAll( certs );
