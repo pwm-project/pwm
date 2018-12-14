@@ -23,14 +23,25 @@
 package password.pwm.util.cli.commands;
 
 
+import com.novell.ldapchai.provider.ChaiConfiguration;
 import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.provider.ChaiProviderFactory;
+import password.pwm.error.PwmOperationalException;
 import password.pwm.ldap.schema.SchemaManager;
 import password.pwm.ldap.schema.SchemaOperationResult;
 import password.pwm.util.cli.CliParameters;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.secure.X509Utils;
 
+import javax.net.ssl.X509TrustManager;
 import java.io.Console;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.security.cert.X509Certificate;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 public class LdapSchemaExtendCommand extends AbstractCliCommand
 {
@@ -55,18 +66,71 @@ public class LdapSchemaExtendCommand extends AbstractCliCommand
             console.writer().flush();
             bindPW = new String( console.readPassword() );
         }
-        final ChaiProviderFactory chaiProviderFactory = cliEnvironment.getPwmApplication().getLdapConnectionService().getChaiProviderFactory();
-        final ChaiProvider chaiProvider = chaiProviderFactory.newProvider( ldapUrl, bindDN, bindPW );
-        final SchemaOperationResult operationResult = SchemaManager.extendSchema( chaiProvider );
-        final boolean checkOk = operationResult.isSuccess();
-        if ( checkOk )
+
+        final X509TrustManager trustManager;
+        if ( isSecureLDAP( ldapUrl ) )
         {
-            out( "schema extension complete.  all extensions in place = " + checkOk );
+            final List<X509Certificate> certificates = readCertificates( ldapUrl );
+            if ( JavaHelper.isEmpty( certificates ) )
+            {
+                out( "canceled" );
+                return;
+            }
+            trustManager = new X509Utils.CertMatchingTrustManager( cliEnvironment.getConfig(), certificates );
         }
         else
         {
-            out( "schema extension did not complete.\n" + operationResult.getOperationLog() );
+            trustManager = null;
         }
+
+        if ( !promptForContinue( "Proceeding may cause modificiations to your LDAP schema." ) )
+        {
+            return;
+        }
+
+        final ChaiProviderFactory chaiProviderFactory = ChaiProviderFactory.newProviderFactory( );
+        final ChaiConfiguration chaiConfiguration = ChaiConfiguration.builder( ldapUrl, bindDN, bindPW )
+                .setTrustManager( new X509TrustManager[]
+                        {
+                                trustManager,
+                        }
+                )
+                .build();
+        final ChaiProvider chaiProvider = chaiProviderFactory.newProvider( chaiConfiguration );
+
+        out( "beginning extension check" );
+        final SchemaOperationResult operationResult = SchemaManager.extendSchema( chaiProvider );
+
+        out( operationResult.getOperationLog() );
+        final boolean checkOk = operationResult.isSuccess();
+
+        if ( checkOk )
+        {
+            out( "schema extension completed successfully.\n" );
+        }
+        else
+        {
+            out( "schema extension did not complete.\n" );
+        }
+    }
+
+    private boolean isSecureLDAP( final String ldapUrl ) throws URISyntaxException
+    {
+        final URI ldapUri = new URI( ldapUrl );
+        return "ldaps".equalsIgnoreCase( ldapUri.getScheme() );
+    }
+
+    private List<X509Certificate> readCertificates( final String url )
+            throws URISyntaxException, PwmOperationalException
+    {
+        if ( isSecureLDAP( url ) )
+        {
+            out( "ldaps certificates from: " + url );
+            final List<X509Certificate> certificateList = X509Utils.readRemoteCertificates( new URI ( url ) );
+            out( JsonUtil.serializeCollection( X509Utils.makeDebugInfoMap( certificateList ), JsonUtil.Flag.PrettyPrint ) );
+            return certificateList;
+        }
+        return Collections.emptyList();
     }
 
 

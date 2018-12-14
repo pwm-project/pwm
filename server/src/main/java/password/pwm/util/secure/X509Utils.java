@@ -317,7 +317,7 @@ public abstract class X509Utils
                 }
                 if ( !certTrusted )
                 {
-                    final String errorMsg = "server certificate {subject=" + loopCert.getSubjectDN().getName() + "} does not match a certificate in the"
+                    final String errorMsg = "server certificate {subject=" + loopCert.getSubjectDN().getName() + "} does not match a certificate in the "
                             + PwmConstants.PWM_APP_NAME + " configuration trust store.";
                     throw new CertificateException( errorMsg );
                 }

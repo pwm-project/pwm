@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.svc.cluster;
+package password.pwm.svc.node;
 
 import password.pwm.PwmApplication;
 import password.pwm.error.PwmError;
@@ -36,16 +36,16 @@ import password.pwm.util.logging.PwmLogger;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class DatabaseClusterDataService implements ClusterDataServiceProvider
+public class DatabaseNodeDataService implements NodeDataServiceProvider
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass( DatabaseClusterDataService.class );
+    private static final PwmLogger LOGGER = PwmLogger.forClass( DatabaseNodeDataService.class );
 
     private static final DatabaseTable TABLE = DatabaseTable.CLUSTER_STATE;
     private static final String KEY_PREFIX_NODE = "node-";
 
     private final PwmApplication pwmApplication;
 
-    public DatabaseClusterDataService( final PwmApplication pwmApplication )
+    public DatabaseNodeDataService( final PwmApplication pwmApplication )
     {
         this.pwmApplication = pwmApplication;
     }

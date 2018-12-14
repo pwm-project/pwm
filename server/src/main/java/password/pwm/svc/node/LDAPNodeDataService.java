@@ -20,12 +20,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.svc.cluster;
+package password.pwm.svc.node;
 
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiException;
 import lombok.Value;
-import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
@@ -33,7 +32,6 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JsonUtil;
-import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -41,14 +39,14 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class LDAPClusterDataService implements ClusterDataServiceProvider
+public class LDAPNodeDataService implements NodeDataServiceProvider
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass( LDAPClusterDataService.class );
+    private static final PwmLogger LOGGER = PwmLogger.forClass( LDAPNodeDataService.class );
 
     private final PwmApplication pwmApplication;
     private static final String VALUE_PREFIX = "0006#.#.#";
 
-    public LDAPClusterDataService( final PwmApplication pwmApplication )
+    public LDAPNodeDataService( final PwmApplication pwmApplication )
     {
         this.pwmApplication = pwmApplication;
     }
@@ -171,15 +169,7 @@ public class LDAPClusterDataService implements ClusterDataServiceProvider
 
             chaiUser = pwmApplication.getProxiedChaiUser( userIdentity );
 
-            {
-                String ldapAttribute = pwmApplication.getConfig().readAppProperty( AppProperty.CLUSTER_LDAP_ATTRIBUTES );
-                if ( StringUtil.isEmpty( ldapAttribute ) )
-                {
-                    ldapAttribute = userIdentity.getLdapProfile( pwmApplication.getConfig() ).readSettingAsString( PwmSetting.CHALLENGE_USER_ATTRIBUTE );
-                }
-                attr = ldapAttribute;
-            }
-
+            attr = userIdentity.getLdapProfile( pwmApplication.getConfig() ).readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_PWNOTIFY );
         }
 
         static LDAPHelper createLDAPHelper( final PwmApplication pwmApplication ) throws PwmUnrecoverableException

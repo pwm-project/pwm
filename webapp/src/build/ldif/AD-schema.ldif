@@ -112,7 +112,6 @@ adminDisplayName: pwmToken
 adminDescription: pwmToken
 searchFlags: 1
 
-
 #------------------------------------------------------
 #-- Attribute:  	pwmOtpSecret
 #-- Syntax:      	OCTET STRING
@@ -131,6 +130,26 @@ lDAPDisplayName: pwmOtpSecret
 showInAdvancedViewOnly: TRUE
 adminDisplayName: pwmOtpSecret
 adminDescription: Stores the user's challenge/response answers
+searchFlags: 1
+
+#------------------------------------------------------
+#-- Attribute:  	pwmData
+#-- Syntax:      	OCTET STRING
+#-- Description:	Stores application status data
+#------------------------------------------------------
+dn: CN=pwmData,CN=Schema,CN=Configuration,DC=x
+changetype: ntdsschemaadd
+objectClass: attributeSchema
+cn: pwmData
+attributeID: 1.3.6.1.4.1.35015.1.2.7
+attributeSyntax: 2.5.5.10
+isSingleValued: FALSE
+oMSyntax: 4
+isMemberOfPartialAttributeSet: FALSE
+lDAPDisplayName: pwmData
+showInAdvancedViewOnly: TRUE
+adminDisplayName: pwmData
+adminDescription:Stores application status data
 searchFlags: 1
 
 
@@ -163,6 +182,7 @@ mayContain: pwmEventLog
 mayContain: pwmGUID
 mayContain: pwmToken
 mayContain: pwmOtpSecret
+mayContain: pwmData
 objectClassCategory: 3
 rDNAttID: cn
 showInAdvancedViewOnly: TRUE
@@ -196,6 +216,7 @@ add: mayContain
 mayContain: pwmGUID
 mayContain: pwmToken
 mayContain: pwmOtpSecret
+mayContain: pwmData
 -
 
 #------------------------------------------------------

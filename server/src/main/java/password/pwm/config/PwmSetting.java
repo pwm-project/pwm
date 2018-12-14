@@ -98,9 +98,9 @@ public enum PwmSetting
 
     // clustering
     CLUSTER_ENABLED(
-            "cluster.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.CLUSTERING ),
+            "nodeService.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.CLUSTERING ),
     CLUSTER_STORAGE_MODE(
-            "cluster.storageMode", PwmSettingSyntax.SELECT, PwmSettingCategory.CLUSTERING ),
+            "nodeService.storageMode", PwmSettingSyntax.SELECT, PwmSettingCategory.CLUSTERING ),
     SECURITY_LOGIN_SESSION_MODE(
             "security.loginSession.mode", PwmSettingSyntax.SELECT, PwmSettingCategory.CLUSTERING ),
     SECURITY_MODULE_SESSION_MODE(
@@ -283,7 +283,7 @@ public enum PwmSetting
     LDAP_ATTRIBUTE_LANGUAGE(
             "ldap.user.language.attribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
     LDAP_ATTRIBUTE_PWNOTIFY(
-            "ldap.user.pwNotify.attribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
+            "ldap.user.appData.attribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
     LDAP_AUTO_SET_LANGUAGE_VALUE(
             "ldap.user.language.autoSet", PwmSettingSyntax.SELECT, PwmSettingCategory.LDAP_ATTRIBUTES ),
     AUTO_ADD_OBJECT_CLASSES(

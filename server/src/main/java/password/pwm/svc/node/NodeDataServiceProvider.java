@@ -20,17 +20,19 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.svc.cluster;
+package password.pwm.svc.node;
 
-import lombok.Value;
+import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.java.TimeDuration;
 
-import java.io.Serializable;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Map;
 
-@Value
-public class ClusterStatistics implements Serializable
+public interface NodeDataServiceProvider
 {
-    private final AtomicInteger clusterWrites = new AtomicInteger( 0 );
-    private final AtomicInteger clusterReads = new AtomicInteger( 0 );
-    private final AtomicInteger nodePurges = new AtomicInteger( 0 );
+    Map<String, StoredNodeData> readStoredData( ) throws PwmUnrecoverableException;
+
+    void writeNodeStatus( StoredNodeData storedNodeData ) throws PwmUnrecoverableException;
+
+    int purgeOutdatedNodes( TimeDuration maxNodeAge )
+            throws PwmUnrecoverableException;
 }

@@ -43,7 +43,7 @@ import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.PwmServiceManager;
 import password.pwm.svc.cache.CacheService;
-import password.pwm.svc.cluster.ClusterService;
+import password.pwm.svc.node.NodeService;
 import password.pwm.svc.email.EmailService;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecordFactory;
@@ -602,9 +602,9 @@ public class PwmApplication
         return ( UserSearchEngine ) pwmServiceManager.getService( UserSearchEngine.class );
     }
 
-    public ClusterService getClusterService( )
+    public NodeService getClusterService( )
     {
-        return ( ClusterService ) pwmServiceManager.getService( ClusterService.class );
+        return ( NodeService ) pwmServiceManager.getService( NodeService.class );
     }
 
     public ErrorInformation getLastLocalDBFailure( )

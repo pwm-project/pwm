@@ -83,7 +83,6 @@ public enum AppProperty
     CLUSTER_DB_HEARTBEAT_SECONDS                    ( "cluster.db.heartbeatSeconds" ),
     CLUSTER_DB_NODE_TIMEOUT_SECONDS                 ( "cluster.db.nodeTimeoutSeconds" ),
     CLUSTER_DB_NODE_PURGE_SECONDS                   ( "cluster.db.nodePurgeSeconds" ),
-    CLUSTER_LDAP_ATTRIBUTES                         ( "cluster.ldap.attribute" ),
     CLUSTER_LDAP_HEARTBEAT_SECONDS                  ( "cluster.ldap.heartbeatSeconds" ),
     CLUSTER_LDAP_NODE_TIMEOUT_SECONDS               ( "cluster.ldap.nodeTimeoutSeconds" ),
     CLUSTER_LDAP_NODE_PURGE_SECONDS                 ( "cluster.ldap.nodePurgeSeconds" ),

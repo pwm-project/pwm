@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.svc.cluster;
+package password.pwm.svc.node;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -31,24 +31,24 @@ import password.pwm.util.java.TimeDuration;
 
 @Value
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
-class ClusterSettings
+class NodeServiceSettings
 {
     private final TimeDuration heartbeatInterval;
     private final TimeDuration nodeTimeout;
     private final TimeDuration nodePurgeInterval;
 
-    static ClusterSettings fromConfigForDB( final Configuration configuration )
+    static NodeServiceSettings fromConfigForDB( final Configuration configuration )
     {
-        return new ClusterSettings(
+        return new NodeServiceSettings(
                 TimeDuration.of( Integer.parseInt( configuration.readAppProperty( AppProperty.CLUSTER_DB_HEARTBEAT_SECONDS ) ), TimeDuration.Unit.SECONDS ),
                 TimeDuration.of( Integer.parseInt( configuration.readAppProperty( AppProperty.CLUSTER_DB_NODE_TIMEOUT_SECONDS ) ), TimeDuration.Unit.SECONDS ),
                 TimeDuration.of( Integer.parseInt( configuration.readAppProperty( AppProperty.CLUSTER_DB_NODE_PURGE_SECONDS ) ), TimeDuration.Unit.SECONDS )
         );
     }
 
-    static ClusterSettings fromConfigForLDAP( final Configuration configuration )
+    static NodeServiceSettings fromConfigForLDAP( final Configuration configuration )
     {
-        return new ClusterSettings(
+        return new NodeServiceSettings(
                 TimeDuration.of( Integer.parseInt( configuration.readAppProperty( AppProperty.CLUSTER_LDAP_HEARTBEAT_SECONDS ) ), TimeDuration.Unit.SECONDS ),
                 TimeDuration.of( Integer.parseInt( configuration.readAppProperty( AppProperty.CLUSTER_LDAP_NODE_TIMEOUT_SECONDS ) ), TimeDuration.Unit.SECONDS ),
                 TimeDuration.of( Integer.parseInt( configuration.readAppProperty( AppProperty.CLUSTER_LDAP_NODE_PURGE_SECONDS ) ), TimeDuration.Unit.SECONDS )

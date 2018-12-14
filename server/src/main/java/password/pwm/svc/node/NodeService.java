@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.svc.cluster;
+package password.pwm.svc.node;
 
 import password.pwm.PwmApplication;
 import password.pwm.bean.UserIdentity;
@@ -42,14 +42,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ClusterService implements PwmService
+public class NodeService implements PwmService
 {
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass( ClusterService.class );
+    private static final PwmLogger LOGGER = PwmLogger.forClass( NodeService.class );
 
     private PwmApplication pwmApplication;
     private STATUS status = STATUS.NEW;
-    private ClusterMachine clusterMachine;
+    private NodeMachine nodeMachine;
     private DataStorageMethod dataStore;
     private ErrorInformation startupError;
 
@@ -75,8 +75,8 @@ public class ClusterService implements PwmService
 
         try
         {
-            final ClusterSettings clusterSettings;
-            final ClusterDataServiceProvider clusterDataServiceProvider;
+            final NodeServiceSettings nodeServiceSettings;
+            final NodeDataServiceProvider clusterDataServiceProvider;
             dataStore = pwmApplication.getConfig().readSettingAsEnum( PwmSetting.CLUSTER_STORAGE_MODE, DataStorageMethod.class );
 
             if ( dataStore != null )
@@ -86,16 +86,16 @@ public class ClusterService implements PwmService
                     case DB:
                     {
                         LOGGER.trace( () -> "starting database-backed cluster provider" );
-                        clusterSettings = ClusterSettings.fromConfigForDB( pwmApplication.getConfig() );
-                        clusterDataServiceProvider = new DatabaseClusterDataService( pwmApplication );
+                        nodeServiceSettings = NodeServiceSettings.fromConfigForDB( pwmApplication.getConfig() );
+                        clusterDataServiceProvider = new DatabaseNodeDataService( pwmApplication );
                     }
                     break;
 
                     case LDAP:
                     {
                         LOGGER.trace( () -> "starting ldap-backed cluster provider" );
-                        clusterSettings = ClusterSettings.fromConfigForLDAP( pwmApplication.getConfig() );
-                        clusterDataServiceProvider = new LDAPClusterDataService( pwmApplication );
+                        nodeServiceSettings = NodeServiceSettings.fromConfigForLDAP( pwmApplication.getConfig() );
+                        clusterDataServiceProvider = new LDAPNodeDataService( pwmApplication );
                     }
                     break;
 
@@ -106,7 +106,7 @@ public class ClusterService implements PwmService
 
                 }
 
-                clusterMachine = new ClusterMachine( pwmApplication, clusterDataServiceProvider, clusterSettings );
+                nodeMachine = new NodeMachine( pwmApplication, clusterDataServiceProvider, nodeServiceSettings );
                 status = STATUS.OPEN;
                 return;
             }
@@ -122,10 +122,10 @@ public class ClusterService implements PwmService
     @Override
     public void close( )
     {
-        if ( clusterMachine != null )
+        if ( nodeMachine != null )
         {
-            clusterMachine.close();
-            clusterMachine = null;
+            nodeMachine.close();
+            nodeMachine = null;
         }
         status = STATUS.CLOSED;
     }
@@ -133,9 +133,9 @@ public class ClusterService implements PwmService
     @Override
     public List<HealthRecord> healthCheck( )
     {
-        if ( clusterMachine != null )
+        if ( nodeMachine != null )
         {
-            final ErrorInformation errorInformation = clusterMachine.getLastError();
+            final ErrorInformation errorInformation = nodeMachine.getLastError();
             if ( errorInformation != null )
             {
                 final HealthRecord healthRecord = HealthRecord.forMessage( HealthMessage.Cluster_Error, errorInformation.getDetailedErrorMsg() );
@@ -157,18 +157,18 @@ public class ClusterService implements PwmService
     {
         final Map<String, String> props = new HashMap<>();
 
-        if ( clusterMachine != null )
+        if ( nodeMachine != null )
         {
-            props.putAll( JsonUtil.deserializeStringMap( JsonUtil.serialize( clusterMachine.getClusterStatistics() ) ) );
+            props.putAll( JsonUtil.deserializeStringMap( JsonUtil.serialize( nodeMachine.getNodeServiceStatistics() ) ) );
         }
         return new ServiceInfoBean( Collections.singleton( dataStore ), props );
     }
 
     public boolean isMaster( )
     {
-        if ( status == STATUS.OPEN && clusterMachine != null )
+        if ( status == STATUS.OPEN && nodeMachine != null )
         {
-            return clusterMachine.isMaster();
+            return nodeMachine.isMaster();
         }
 
         return false;
@@ -176,9 +176,9 @@ public class ClusterService implements PwmService
 
     public List<NodeInfo> nodes( ) throws PwmUnrecoverableException
     {
-        if ( status == STATUS.OPEN && clusterMachine != null )
+        if ( status == STATUS.OPEN && nodeMachine != null )
         {
-            return clusterMachine.nodes();
+            return nodeMachine.nodes();
         }
         return Collections.emptyList();
     }
@@ -192,7 +192,7 @@ public class ClusterService implements PwmService
             {
                 final String msg = "LDAP storage type selected, but LDAP test user not defined.";
                 LOGGER.debug( () -> msg );
-                startupError = new ErrorInformation( PwmError.ERROR_CLUSTER_SERVICE_ERROR, msg );
+                startupError = new ErrorInformation( PwmError.ERROR_NODE_SERVICE_ERROR, msg );
             }
         }
 
@@ -201,7 +201,7 @@ public class ClusterService implements PwmService
             {
                 final String msg = "DB storage type selected, but remote DB is not configured.";
                 LOGGER.debug( () -> msg );
-                startupError = new ErrorInformation( PwmError.ERROR_CLUSTER_SERVICE_ERROR, msg );
+                startupError = new ErrorInformation( PwmError.ERROR_NODE_SERVICE_ERROR, msg );
             }
         }
     }

@@ -1574,12 +1574,12 @@
             <value>28800</value>
         </default>
     </setting>
-    <setting hidden="false" key="cluster.enable" level="2">
+    <setting hidden="false" key="nodeService.enable" level="2">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting hidden="false" key="cluster.storageMode" level="2">
+    <setting hidden="false" key="nodeService.storageMode" level="2">
         <default>
             <value>LDAP</value>
         </default>
@@ -3332,10 +3332,10 @@
             <value/>
         </default>
     </setting>
-    <setting hidden="false" key="ldap.user.pwNotify.attribute" level="1">
+    <setting hidden="false" key="ldap.user.appData.attribute" level="1">
         <ldapPermission actor="proxy" access="write"/>
         <default>
-            <value/>
+            <value>pwmData</value>
         </default>
     </setting>
     <setting hidden="false" key="ldap.user.language.autoSet" level="1">

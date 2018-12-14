@@ -49,7 +49,7 @@ class PwNotifyDbStorageService implements PwNotifyStorageService
         if ( !pwmApplication.getConfig().hasDbConfigured() )
         {
             final String msg = "DB storage type selected, but remote DB is not configured.";
-            throw PwmUnrecoverableException.newException( PwmError.ERROR_CLUSTER_SERVICE_ERROR, msg );
+            throw PwmUnrecoverableException.newException( PwmError.ERROR_NODE_SERVICE_ERROR, msg );
         }
     }
 

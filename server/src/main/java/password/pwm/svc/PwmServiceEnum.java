@@ -23,6 +23,7 @@
 package password.pwm.svc;
 
 import password.pwm.svc.email.EmailService;
+import password.pwm.svc.node.NodeService;
 import password.pwm.svc.pwnotify.PwNotifyService;
 import password.pwm.svc.wordlist.SeedlistService;
 import password.pwm.svc.wordlist.WordlistService;
@@ -59,7 +60,7 @@ public enum PwmServiceEnum
     UserSearchEngine( password.pwm.ldap.search.UserSearchEngine.class, Flag.StartDuringRuntimeInstance ),
     PeopleSearchService( password.pwm.http.servlet.peoplesearch.PeopleSearchService.class ),
     TelemetryService( password.pwm.svc.telemetry.TelemetryService.class ),
-    ClusterService( password.pwm.svc.cluster.ClusterService.class ),
+    ClusterService( NodeService.class ),
     PwExpiryNotifyService( PwNotifyService.class ),;
 
     private final Class<? extends PwmService> clazz;

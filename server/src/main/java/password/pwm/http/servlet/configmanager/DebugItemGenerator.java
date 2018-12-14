@@ -41,7 +41,7 @@ import password.pwm.http.servlet.admin.UserDebugDataReader;
 import password.pwm.ldap.LdapDebugDataGenerator;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.cache.CacheService;
-import password.pwm.svc.cluster.ClusterService;
+import password.pwm.svc.node.NodeService;
 import password.pwm.util.LDAPPermissionCalculator;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
@@ -676,15 +676,15 @@ public class DebugItemGenerator
         )
                 throws Exception
         {
-            final ClusterService clusterService = pwmApplication.getClusterService();
+            final NodeService nodeService = pwmApplication.getClusterService();
 
             final Map<String, Serializable> debugOutput = new LinkedHashMap<>();
-            debugOutput.put( "status", clusterService.status() );
+            debugOutput.put( "status", nodeService.status() );
 
-            if ( clusterService.status() == PwmService.STATUS.OPEN )
+            if ( nodeService.status() == PwmService.STATUS.OPEN )
             {
-                debugOutput.put( "isMaster", clusterService.isMaster() );
-                debugOutput.put( "nodes", new ArrayList<>( clusterService.nodes() ) );
+                debugOutput.put( "isMaster", nodeService.isMaster() );
+                debugOutput.put( "nodes", new ArrayList<>( nodeService.nodes() ) );
             }
 
             outputStream.write( JsonUtil.serializeMap( debugOutput, JsonUtil.Flag.PrettyPrint ).getBytes( PwmConstants.DEFAULT_CHARSET ) );

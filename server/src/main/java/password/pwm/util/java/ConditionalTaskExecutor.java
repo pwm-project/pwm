@@ -82,7 +82,7 @@ public class ConditionalTaskExecutor
     {
         return new ConditionalTaskExecutor( task, new TimeDurationPredicate( timeDuration ) );
     }
-    
+
     public static class TimeDurationPredicate implements Supplier<Boolean>
     {
         private final TimeDuration timeDuration;
