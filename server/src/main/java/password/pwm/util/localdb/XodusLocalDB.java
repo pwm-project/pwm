@@ -140,7 +140,7 @@ public class XodusLocalDB implements LocalDBProvider
 
         try
         {
-            if ( getDirtyFile().exists() )
+            if ( !getDirtyFile().exists() )
             {
                 Files.createFile( getDirtyFile().toPath() );
                 LOGGER.trace( () -> "created openLock file" );

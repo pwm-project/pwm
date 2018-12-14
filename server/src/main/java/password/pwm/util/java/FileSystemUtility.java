@@ -36,23 +36,44 @@ import java.nio.file.Files;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class FileSystemUtility
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( FileSystemUtility.class );
 
     public static List<FileSummaryInformation> readFileInformation( final File rootFile )
             throws PwmUnrecoverableException, IOException
     {
-        return readFileInformation( rootFile, "" );
+        final AtomicInteger fileCounter = new AtomicInteger();
+        final AtomicLong byteCounter = new AtomicLong();
+        final Instant startTime = Instant.now();
+        final ConditionalTaskExecutor debugLogger = ConditionalTaskExecutor.forPeriodicTask(
+                () -> LOGGER.trace( () -> "file info reading for path " + rootFile.getAbsolutePath() + " in progress, "
+                        + fileCounter.get() + " files, "
+                        + StringUtil.formatDiskSizeforDebug( byteCounter.get() )
+                        + " bytes, scanned in " + TimeDuration.compactFromCurrent( startTime )
+                ),
+                TimeDuration.SECONDS_10
+        );
+
+        final List<FileSummaryInformation> results = readFileInformation( rootFile, "", debugLogger, fileCounter, byteCounter );
+        LOGGER.trace( () -> "completed file info reading for path " + rootFile.getAbsolutePath() + ", "
+                + fileCounter.get() + " files, "
+                + StringUtil.formatDiskSizeforDebug( byteCounter.get() )
+                + " bytes, scanned in " + TimeDuration.compactFromCurrent( startTime ) );
+        return results;
     }
 
-    protected static List<FileSummaryInformation> readFileInformation(
+    private static List<FileSummaryInformation> readFileInformation(
             final File rootFile,
-            final String relativePath
+            final String relativePath,
+            final ConditionalTaskExecutor debugLogger,
+            final AtomicInteger fileCounter,
+            final AtomicLong byteCounter
     )
-            throws PwmUnrecoverableException, IOException
+            throws PwmUnrecoverableException
     {
         final ArrayList<FileSummaryInformation> results = new ArrayList<>();
         final File[] files = rootFile.listFiles();
@@ -63,19 +84,25 @@ public class FileSystemUtility
                 final String path = relativePath + loopFile.getName();
                 if ( loopFile.isDirectory() )
                 {
-                    results.addAll( readFileInformation( loopFile, path + "/" ) );
+                    final String subPath = path + File.separator;
+                    results.addAll( readFileInformation( loopFile, subPath, debugLogger, fileCounter, byteCounter ) );
                 }
                 else
                 {
-                    results.add( fileInformationForFile( loopFile ) );
+                    final FileSummaryInformation fileInformation = fileInformationForFile( loopFile );
+                    results.add( fileInformation );
+                    fileCounter.incrementAndGet();
+                    byteCounter.addAndGet( fileInformation.getSize() );
                 }
+
+                debugLogger.conditionallyExecuteTask();
             }
         }
         return results;
     }
 
-    public static FileSummaryInformation fileInformationForFile( final File file )
-            throws IOException, PwmUnrecoverableException
+    private static FileSummaryInformation fileInformationForFile( final File file )
+            throws PwmUnrecoverableException
     {
         if ( file == null || !file.exists() )
         {
