@@ -39,6 +39,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.AccessController;
@@ -65,16 +67,16 @@ public class JDBCDriverLoader
         final List<String> errorMsgs = new ArrayList<>();
         for ( final ClassLoaderStrategy strategy : strategies )
         {
-            final DriverLoader loader = strategy.getJdbcDriverDriverLoader();
             try
             {
+                final DriverLoader loader = strategy.getJdbcDriverDriverLoader();
                 final Driver driver = loader.loadDriver( pwmApplication, dbConfiguration );
                 if ( driver != null )
                 {
                     return new DriverWrapper( driver, loader );
                 }
             }
-            catch ( DatabaseException e )
+            catch ( PwmUnrecoverableException | DatabaseException e )
             {
                 errorMsgs.add( strategy + " error: " + e.getMessage() );
             }
@@ -87,21 +89,31 @@ public class JDBCDriverLoader
 
     public enum ClassLoaderStrategy
     {
-        XeusLoader( new XeusJarClassDriverLoader() ),
-        AppPathFileLoader( new AppPathDriverLoader() ),
-        TempFile( new TempFileDriverLoader() ),
-        Classpath( new JavaClasspathLoader() ),;
+        XeusLoader( XeusJarClassDriverLoader.class ),
+        AppPathFileLoader( AppPathDriverLoader.class ),
+        TempFile( TempFileDriverLoader.class ),
+        Classpath( JavaClasspathLoader.class ),;
 
-        private final DriverLoader jdbcDriverDriverLoader;
+        private final Class<? extends DriverLoader> jdbcDriverDriverLoaderClass;
 
-        ClassLoaderStrategy( final DriverLoader jdbcDriverDriverLoader )
+        ClassLoaderStrategy( final Class<? extends DriverLoader> jdbcDriverDriverLoaderClass )
         {
-            this.jdbcDriverDriverLoader = jdbcDriverDriverLoader;
+            this.jdbcDriverDriverLoaderClass = jdbcDriverDriverLoaderClass;
         }
 
         private DriverLoader getJdbcDriverDriverLoader( )
+                throws PwmUnrecoverableException
         {
-            return jdbcDriverDriverLoader;
+            try
+            {
+                final Constructor<? extends DriverLoader> constructor = jdbcDriverDriverLoaderClass.getDeclaredConstructor();
+                constructor.setAccessible( true );
+                return constructor.newInstance();
+            }
+            catch ( InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e )
+            {
+                throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, "unable to load jdbc driver loader: " + e.getMessage() );
+            }
         }
     }
 

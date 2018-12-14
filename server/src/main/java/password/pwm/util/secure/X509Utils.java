@@ -314,7 +314,9 @@ public abstract class X509Utils
         {
             this.trustedCertificates = new ArrayList<>( trustedCertificates );
             validateTimestamps = config != null && Boolean.parseBoolean( config.readAppProperty( AppProperty.SECURITY_CERTIFICATES_VALIDATE_TIMESTAMPS ) );
-            certificateMatchingMode = config.readCertificateMatchingMode();
+            certificateMatchingMode = config == null
+                    ? CertificateMatchingMode.CERTIFICATE_CHAIN
+                    : config.readCertificateMatchingMode();
         }
 
         @Override
@@ -325,12 +327,6 @@ public abstract class X509Utils
         @Override
         public void checkServerTrusted( final X509Certificate[] x509Certificates, final String s ) throws CertificateException
         {
-            if ( x509Certificates == null )
-            {
-                final String errorMsg = "no certificates in configuration trust store for this operation";
-                throw new CertificateException( errorMsg );
-            }
-
             switch ( certificateMatchingMode )
             {
                 case CERTIFICATE_CHAIN:
@@ -367,6 +363,12 @@ public abstract class X509Utils
         )
                 throws CertificateException
         {
+            if ( JavaHelper.isEmpty( trustedCertificates ) )
+            {
+                final String errorMsg = "no certificates in configuration trust store for this operation";
+                throw new CertificateException( errorMsg );
+            }
+
             for ( final X509Certificate loopCert : certificates )
             {
                 boolean certTrusted = false;
