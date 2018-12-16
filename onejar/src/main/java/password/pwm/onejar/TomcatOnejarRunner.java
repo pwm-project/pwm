@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
 
 public class TomcatOnejarRunner
 {
-    final OnejarMain onejarMain;
+    private final OnejarMain onejarMain;
 
     public TomcatOnejarRunner( final OnejarMain onejarMain )
     {
@@ -81,6 +81,7 @@ public class TomcatOnejarRunner
         setupEnv( onejarConfig );
 
         final Tomcat tomcat = new Tomcat();
+        tomcat.setSilent( true );
 
         {
             final File basePath = new File( onejarConfig.getWorkingPath().getPath() + File.separator + "b" );
@@ -164,6 +165,8 @@ public class TomcatOnejarRunner
         connector.setAttribute( "keyAlias", OnejarMain.KEYSTORE_ALIAS );
         connector.setAttribute( "clientAuth", "false" );
 
+        connector.addUpgradeProtocol( new org.apache.coyote.http2.Http2Protocol() );
+
         out( "connector maxThreads=" + connector.getAttribute( "maxThreads" ) );
         out( "connector maxConnections=" + connector.getAttribute( "maxConnections" ) );
 
@@ -239,7 +242,7 @@ public class TomcatOnejarRunner
         }
     }
 
-    void setupEnv( final OnejarConfig onejarConfig )
+    private void setupEnv( final OnejarConfig onejarConfig )
     {
         final String envVarPrefix = Resource.envVarPrefix.getValue();
         System.setProperty( envVarPrefix + "_APPLICATIONPATH", onejarConfig.getApplicationPath().getAbsolutePath() );
@@ -247,7 +250,7 @@ public class TomcatOnejarRunner
         System.setProperty( envVarPrefix + "_APPLICATIONPARAMFILE", onejarConfig.getPwmAppPropertiesFile().getAbsolutePath() );
     }
 
-    void outputPwmAppProperties( final OnejarConfig onejarConfig ) throws IOException
+    private void outputPwmAppProperties( final OnejarConfig onejarConfig ) throws IOException
     {
         final Properties properties = new Properties();
         properties.setProperty( "AutoExportHttpsKeyStoreFile", onejarConfig.getKeystoreFile().getAbsolutePath() );
@@ -260,7 +263,7 @@ public class TomcatOnejarRunner
         }
     }
 
-    void copyFileAndReplace(
+    private void copyFileAndReplace(
             final String srcPath,
             final String destPath,
             final String rootcontext
