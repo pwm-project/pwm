@@ -165,8 +165,6 @@ public class TomcatOnejarRunner
         connector.setAttribute( "keyAlias", OnejarMain.KEYSTORE_ALIAS );
         connector.setAttribute( "clientAuth", "false" );
 
-        connector.addUpgradeProtocol( new org.apache.coyote.http2.Http2Protocol() );
-
         out( "connector maxThreads=" + connector.getAttribute( "maxThreads" ) );
         out( "connector maxConnections=" + connector.getAttribute( "maxConnections" ) );
 
