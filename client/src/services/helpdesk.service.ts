@@ -51,7 +51,7 @@ export interface IHelpDeskService {
     sendVerificationToken(userKey: string, choice: string): IPromise<IVerificationTokenResponse>;
     setPassword(userKey: string, random: boolean, password?: string): IPromise<ISuccessResponse>;
     unlockIntruder(userKey: string): IPromise<ISuccessResponse>;
-    validateVerificationData(userKey: string, formData: any, tokenData: any): IPromise<IVerificationStatus>;
+    validateVerificationData(userKey: string, formData: any, method: any): IPromise<IVerificationStatus>;
     showStrengthMeter: boolean;
 }
 
