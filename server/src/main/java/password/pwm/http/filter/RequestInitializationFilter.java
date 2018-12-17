@@ -103,85 +103,75 @@ public class RequestInitializationFilter implements Filter
         final PwmApplicationMode mode = PwmApplicationMode.determineMode( req );
         final PwmURL pwmURL = new PwmURL( req );
 
-        PwmApplication testPwmApplicationLoad = null;
+        PwmApplication localPwmApplication = null;
         try
         {
-            testPwmApplicationLoad = ContextManager.getPwmApplication( req );
+            localPwmApplication = ContextManager.getPwmApplication( req );
         }
         catch ( PwmException e )
         {
+            LOGGER.trace( () -> "unable to load pwmApplication: " + e.getMessage() );
         }
 
-        if ( testPwmApplicationLoad != null && mode == PwmApplicationMode.RUNNING )
+        if ( localPwmApplication != null && mode == PwmApplicationMode.RUNNING )
         {
-            if ( testPwmApplicationLoad.getStatisticsManager() != null )
+            if ( localPwmApplication.getStatisticsManager() != null )
             {
-                testPwmApplicationLoad.getStatisticsManager().updateEps( EpsStatistic.REQUESTS, 1 );
+                localPwmApplication.getStatisticsManager().updateEps( EpsStatistic.REQUESTS, 1 );
             }
+        }
+
+        if ( localPwmApplication == null && pwmURL.isResourceURL() )
+        {
+            filterChain.doFilter( req, resp );
+            return;
+        }
+
+        if ( pwmURL.isRestService() )
+        {
+            filterChain.doFilter( req, resp );
+            return;
+        }
+
+        if ( mode == PwmApplicationMode.ERROR || localPwmApplication == null )
+        {
+            try
+            {
+                final ContextManager contextManager = ContextManager.getContextManager( req.getServletContext() );
+                if ( contextManager != null )
+                {
+                    final ErrorInformation startupError = contextManager.getStartupErrorInformation();
+                    servletRequest.setAttribute( PwmRequestAttribute.PwmErrorInfo.toString(), startupError );
+                }
+            }
+            catch ( Exception e )
+            {
+                if ( pwmURL.isResourceURL() )
+                {
+                    filterChain.doFilter( servletRequest, servletResponse );
+                    return;
+                }
+
+                LOGGER.error( "error while trying to detect application status: " + e.getMessage() );
+            }
+
+            LOGGER.error( "unable to satisfy incoming request, application is not available" );
+            resp.setStatus( 500 );
+            final String url = JspUrl.APP_UNAVAILABLE.getPath();
+            servletRequest.getServletContext().getRequestDispatcher( url ).forward( servletRequest, servletResponse );
+            return;
         }
 
         try
         {
-            if ( testPwmApplicationLoad == null && pwmURL.isResourceURL() )
-            {
-                filterChain.doFilter( req, resp );
-                return;
-            }
-
-            if ( testPwmApplicationLoad != null )
-            {
-                testPwmApplicationLoad.getInprogressRequests().incrementAndGet();
-            }
-
-            if ( pwmURL.isRestService() )
-            {
-                filterChain.doFilter( req, resp );
-            }
-            else
-            {
-                if ( mode == PwmApplicationMode.ERROR )
-                {
-                    try
-                    {
-                        final ContextManager contextManager = ContextManager.getContextManager( req.getServletContext() );
-                        if ( contextManager != null )
-                        {
-                            final ErrorInformation startupError = contextManager.getStartupErrorInformation();
-                            servletRequest.setAttribute( PwmRequestAttribute.PwmErrorInfo.toString(), startupError );
-                        }
-                    }
-                    catch ( Exception e )
-                    {
-                        if ( pwmURL.isResourceURL() )
-                        {
-                            filterChain.doFilter( servletRequest, servletResponse );
-                            return;
-                        }
-
-                        LOGGER.error( "error while trying to detect application status: " + e.getMessage() );
-                    }
-
-                    LOGGER.error( "unable to satisfy incoming request, application is not available" );
-                    resp.setStatus( 500 );
-                    final String url = JspUrl.APP_UNAVAILABLE.getPath();
-                    servletRequest.getServletContext().getRequestDispatcher( url ).forward( servletRequest, servletResponse );
-                }
-                else
-                {
-                    initializeServletRequest( req, resp, filterChain );
-                }
-            }
+            localPwmApplication.getInprogressRequests().incrementAndGet();
+            initializeServletRequest( req, resp, filterChain );
         }
         finally
         {
-            if ( testPwmApplicationLoad != null )
-            {
-                testPwmApplicationLoad.getInprogressRequests().decrementAndGet();
-            }
+            localPwmApplication.getInprogressRequests().decrementAndGet();
         }
     }
-
-
 
     private void initializeServletRequest(
             final HttpServletRequest req,
