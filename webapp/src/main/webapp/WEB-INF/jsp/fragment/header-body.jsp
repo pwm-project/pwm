@@ -41,7 +41,10 @@
     <div id="header-center">
         <div id="header-center-left">
             <div id="header-page"><pwm:display key="${param['pwm.PageName']}" displayIfMissing="true"/></div>
-            <div id="header-title"><pwm:display key="Title_Application"/></div>
+            <div id="header-title">
+                <span class="title-long"><pwm:display key="Title_Application"/></span>
+                <span class="title-short"><pwm:display key="Title_Application_Abbrev"/></span>
+            </div>
         </div>
 
         <div id="header-center-right">
