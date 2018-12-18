@@ -53,7 +53,7 @@ export default class VerificationsDialogController {
     inputs: { name: string, label: string }[];
     isDetailsView: boolean;
     status: string;
-    tokenData: IVerificationTokenResponse;
+    tokenData: string;
     viewDetailsEnabled: boolean;
     verificationMethod: string;
     verificationStatus: string;
@@ -163,7 +163,9 @@ export default class VerificationsDialogController {
         let data = {};
         this.objectService.assign(data, this.formData);
         if (this.tokenData) {
-            this.objectService.assign(data, this.tokenData);
+            this.objectService.assign(data, {
+                tokenData: this.tokenData
+            });
         }
         this.helpDeskService.validateVerificationData(this.personUserKey, data, this.verificationMethod)
             .then((response) => {
@@ -190,6 +192,7 @@ export default class VerificationsDialogController {
         this.helpDeskService.sendVerificationToken(this.personUserKey, this.tokenDestinationID)
             .then((response) => {
                 this.verificationTokenSent = true;
+                this.tokenData = (response as any).data.tokenData;
             })
             .catch((reason) => {
                 this.verificationTokenSent = false;

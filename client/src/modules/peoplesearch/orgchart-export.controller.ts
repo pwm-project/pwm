@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-import {IPeopleService} from '../../services/people.service';
+import {IPwmService} from '../../services/pwm.service';
 
 require('./orgchart-export.component.scss');
 
@@ -31,7 +31,7 @@ export default class OrgchartExportController {
         '$window',
         'IasDialogService',
         'translateFilter',
-        'peopleService',
+        'PwmService',
         'maxDepth',
         'personName',
         'userKey'
@@ -39,15 +39,18 @@ export default class OrgchartExportController {
     constructor(private $window: angular.IWindowService,
                 private IasDialogService: any,
                 private translateFilter: (id: string) => string,
-                private peopleService: IPeopleService,
+                private pwmService: IPwmService,
                 private maxDepth: number,
                 private personName: string,
                 private userKey: string) {
     }
 
     exportOrgChart() {
-        // tslint:disable-next-line
-        this.$window.location.href = `/pwm/private/peoplesearch?processAction=exportOrgChart&depth=${this.depth}&userKey=${this.userKey}`;
+        this.$window.location.href = this.pwmService.getServerUrl('exportOrgChart', {
+            depth: this.depth,
+            userKey: this.userKey
+        });
+
         this.IasDialogService.close();
     }
 }
