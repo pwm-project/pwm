@@ -25,6 +25,7 @@ package password.pwm.svc.node;
 import password.pwm.PwmApplication;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.svc.PwmService;
 import password.pwm.util.db.DatabaseAccessor;
 import password.pwm.util.db.DatabaseException;
 import password.pwm.util.db.DatabaseTable;
@@ -36,7 +37,7 @@ import password.pwm.util.logging.PwmLogger;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class DatabaseNodeDataService implements NodeDataServiceProvider
+class DatabaseNodeDataService implements NodeDataServiceProvider
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( DatabaseNodeDataService.class );
 
@@ -45,9 +46,14 @@ public class DatabaseNodeDataService implements NodeDataServiceProvider
 
     private final PwmApplication pwmApplication;
 
-    public DatabaseNodeDataService( final PwmApplication pwmApplication )
+    DatabaseNodeDataService( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
     {
         this.pwmApplication = pwmApplication;
+
+        if ( pwmApplication.getDatabaseService().status() != PwmService.STATUS.OPEN )
+        {
+            throw new PwmUnrecoverableException( PwmError.ERROR_NODE_SERVICE_ERROR, "database service is not available" );
+        }
     }
 
     private DatabaseAccessor getDatabaseAccessor()

@@ -81,52 +81,6 @@ public abstract class X509Utils
         return readRemoteCertificates( host, port, configuration );
     }
 
-    public static List<X509Certificate> readRemoteHttpCertificates(
-            final PwmApplication pwmApplication,
-            final SessionLabel sessionLabel,
-            final URI uri,
-            final Configuration configuration
-    )
-            throws PwmUnrecoverableException
-    {
-        final CertReaderTrustManager certReaderTrustManager = new CertReaderTrustManager( readCertificateFlagsFromConfig( configuration ) );
-        final PwmHttpClientConfiguration pwmHttpClientConfiguration = PwmHttpClientConfiguration.builder()
-                .trustManager( certReaderTrustManager )
-                .build();
-        final PwmHttpClient pwmHttpClient = new PwmHttpClient( pwmApplication, sessionLabel, pwmHttpClientConfiguration );
-        final PwmHttpClientRequest request = new PwmHttpClientRequest( HttpMethod.GET, uri.toString(), "", Collections.emptyMap() );
-
-        LOGGER.debug( sessionLabel, () -> "beginning attempt to import certificates via httpclient" );
-
-        ErrorInformation requestError = null;
-        try
-        {
-            pwmHttpClient.makeRequest( request );
-        }
-        catch ( PwmException e )
-        {
-            requestError = e.getErrorInformation();
-        }
-
-        if ( certReaderTrustManager.getCertificates() != null )
-        {
-            return certReaderTrustManager.getCertificates();
-        }
-
-        {
-            final ErrorInformation finalError = requestError;
-            LOGGER.debug( sessionLabel, () -> "unable to read certificates from remote server via httpclient, error: " + finalError );
-        }
-
-        if ( requestError == null )
-        {
-            final String msg = "unable to read certificates via httpclient; check log files for more details";
-            throw PwmUnrecoverableException.newException( PwmError.ERROR_CERTIFICATE_ERROR, msg );
-        }
-
-        throw new PwmUnrecoverableException( requestError );
-    }
-
     public static List<X509Certificate> readRemoteCertificates(
             final String host,
             final int port,
@@ -187,6 +141,52 @@ public abstract class X509Utils
         }
         LOGGER.debug( () -> "ServerCertReader: process completed" );
         return certs == null ? Collections.emptyList() : certs;
+    }
+
+    public static List<X509Certificate> readRemoteHttpCertificates(
+            final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
+            final URI uri,
+            final Configuration configuration
+    )
+            throws PwmUnrecoverableException
+    {
+        final CertReaderTrustManager certReaderTrustManager = new CertReaderTrustManager( readCertificateFlagsFromConfig( configuration ) );
+        final PwmHttpClientConfiguration pwmHttpClientConfiguration = PwmHttpClientConfiguration.builder()
+                .trustManager( certReaderTrustManager )
+                .build();
+        final PwmHttpClient pwmHttpClient = new PwmHttpClient( pwmApplication, sessionLabel, pwmHttpClientConfiguration );
+        final PwmHttpClientRequest request = new PwmHttpClientRequest( HttpMethod.GET, uri.toString(), "", Collections.emptyMap() );
+
+        LOGGER.debug( sessionLabel, () -> "beginning attempt to import certificates via httpclient" );
+
+        ErrorInformation requestError = null;
+        try
+        {
+            pwmHttpClient.makeRequest( request );
+        }
+        catch ( PwmException e )
+        {
+            requestError = e.getErrorInformation();
+        }
+
+        if ( certReaderTrustManager.getCertificates() != null )
+        {
+            return certReaderTrustManager.getCertificates();
+        }
+
+        {
+            final ErrorInformation finalError = requestError;
+            LOGGER.debug( sessionLabel, () -> "unable to read certificates from remote server via httpclient, error: " + finalError );
+        }
+
+        if ( requestError == null )
+        {
+            final String msg = "unable to read certificates via httpclient; check log files for more details";
+            throw PwmUnrecoverableException.newException( PwmError.ERROR_CERTIFICATE_ERROR, msg );
+        }
+
+        throw new PwmUnrecoverableException( requestError );
     }
 
     private static ReadCertificateFlag[] readCertificateFlagsFromConfig( final Configuration configuration )
@@ -523,7 +523,7 @@ public abstract class X509Utils
         for ( final X509Certificate certificate : certificates )
         {
             final boolean[] keyUsages = certificate.getKeyUsage();
-            if ( keyUsages.length > keyCertSignBitPosition - 1 )
+            if ( keyUsages != null && keyUsages.length > keyCertSignBitPosition - 1 )
             {
                 if ( keyUsages[keyCertSignBitPosition] )
                 {

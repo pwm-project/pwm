@@ -27,7 +27,7 @@ import password.pwm.util.java.TimeDuration;
 
 import java.util.Map;
 
-public interface NodeDataServiceProvider
+interface NodeDataServiceProvider
 {
     Map<String, StoredNodeData> readStoredData( ) throws PwmUnrecoverableException;
 
