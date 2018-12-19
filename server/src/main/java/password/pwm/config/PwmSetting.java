@@ -1148,6 +1148,8 @@ public enum PwmSetting
     // OAuth
     OAUTH_ID_LOGIN_URL(
             "oauth.idserver.loginUrl", PwmSettingSyntax.STRING, PwmSettingCategory.OAUTH ),
+    OAUTH_ID_SCOPE(
+            "oauth.idserver.scope", PwmSettingSyntax.STRING, PwmSettingCategory.OAUTH ),
     OAUTH_ID_CODERESOLVE_URL(
             "oauth.idserver.codeResolveUrl", PwmSettingSyntax.STRING, PwmSettingCategory.OAUTH ),
     OAUTH_ID_ATTRIBUTES_URL(

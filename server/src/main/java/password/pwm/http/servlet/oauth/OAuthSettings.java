@@ -40,6 +40,7 @@ public class OAuthSettings implements Serializable
     private String loginURL;
     private String codeResolveUrl;
     private String attributesUrl;
+    private String scope;
     private String clientID;
     private PasswordData secret;
     private String dnAttributeName;
@@ -67,6 +68,7 @@ public class OAuthSettings implements Serializable
                 .secret( config.readSettingAsPassword( PwmSetting.OAUTH_ID_SECRET ) )
                 .dnAttributeName( config.readSettingAsString( PwmSetting.OAUTH_ID_DN_ATTRIBUTE_NAME ) )
                 .certificates( config.readSettingAsCertificate( PwmSetting.OAUTH_ID_CERTIFICATE ) )
+                .scope( config.readSettingAsString( PwmSetting.OAUTH_ID_SCOPE ) )
                 .use( OAuthUseCase.Authentication )
                 .build();
     }

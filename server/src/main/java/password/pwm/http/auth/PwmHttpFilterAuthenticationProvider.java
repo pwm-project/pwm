@@ -20,16 +20,17 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.ldap.auth;
+package password.pwm.http.auth;
 
-import com.novell.ldapchai.provider.ChaiProvider;
-import lombok.Value;
-import password.pwm.util.PasswordData;
+import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.PwmRequest;
 
-@Value
-public class AuthenticationResult
+import java.io.IOException;
+
+public interface PwmHttpFilterAuthenticationProvider
 {
-    private final ChaiProvider userProvider;
-    private final AuthenticationType authenticationType;
-    private final PasswordData userPassword;
+    void attemptAuthentication( PwmRequest pwmRequest )
+            throws PwmUnrecoverableException, IOException;
+
+    boolean hasRedirectedResponse( );
 }

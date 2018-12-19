@@ -262,6 +262,11 @@ public class PwmLogger
         doLogEvent( level, sessionLabel, message, null );
     }
 
+    public void log( final PwmLogLevel level, final SessionLabel sessionLabel, final Supplier<CharSequence> message )
+    {
+        doLogEvent( level, sessionLabel, message, null );
+    }
+
     public void trace( final Supplier<CharSequence> message )
     {
         doLogEvent( PwmLogLevel.TRACE, null, message, null );

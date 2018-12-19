@@ -4026,6 +4026,10 @@
         <example>https://oauthserver.example.com/osp/a/idm/auth/oauth2/grant</example>
         <default/>
     </setting>
+    <setting hidden="false" key="oauth.idserver.scope" level="2">
+        <example>email</example>
+        <default/>
+    </setting>
     <setting hidden="false" key="oauth.idserver.codeResolveUrl" level="2">
         <example>https://oauthserver.example.com/osp/a/idm/auth/oauth2/authcoderesolve</example>
         <default/>

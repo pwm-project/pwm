@@ -20,17 +20,24 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm;
+package password.pwm.http.auth;
 
-import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.PwmRequest;
-
-import java.io.IOException;
-
-public interface PwmHttpFilterAuthenticationProvider
+public enum AuthenticationMethod
 {
-    void attemptAuthentication( PwmRequest pwmRequest )
-            throws PwmUnrecoverableException, IOException;
+    BASIC_AUTH( BasicFilterAuthenticationProvider.class.getName() ),
+    SSO_AUTH_HEADER( SSOHeaderFilterAuthenticationProvider.class.getName() ),
+    CAS( "password.pwm.http.auth.CASFilterAuthenticationProvider" ),
+    OAUTH( OAuthFilterAuthenticationProvider.class.getName() );
 
-    boolean hasRedirectedResponse( );
+    private final String className;
+
+    AuthenticationMethod( final String className )
+    {
+        this.className = className;
+    }
+
+    public String getClassName( )
+    {
+        return className;
+    }
 }

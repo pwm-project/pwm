@@ -117,8 +117,11 @@ public class OAuthMachine
         urlParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_RESPONSE_TYPE ), code );
         urlParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_STATE ), state );
         urlParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_REDIRECT_URI ), redirectUri );
-        urlParams.put( "resourceServer", "value" );
-        urlParams.put( "scope", "openid" );
+
+        if ( !StringUtil.isEmpty( settings.getScope() ) )
+        {
+            urlParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_SCOPE ), settings.getScope() );
+        }
 
         if ( userIdentity != null )
         {
@@ -164,7 +167,7 @@ public class OAuthMachine
         requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_CLIENT_ID ), clientID );
         requestParams.put( "client_secret", settings.getSecret().getStringValue() );
 
-        final PwmHttpClientResponse restResults = makeHttpRequest( pwmRequest, "oauth code resolver", settings, requestUrl, requestParams );
+        final PwmHttpClientResponse restResults = makeHttpRequest( pwmRequest, "oauth code resolver", settings, requestUrl, requestParams, null );
 
         return resolveResultsFromResponseBody( pwmRequest.getSessionLabel(), pwmRequest.getConfig(), restResults.getBody() );
     }
@@ -210,12 +213,12 @@ public class OAuthMachine
         requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_REFRESH_TOKEN ), refreshCode );
         requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_GRANT_TYPE ), grantType );
 
-        final PwmHttpClientResponse restResults = makeHttpRequest( pwmRequest, "OAuth refresh resolver", settings, requestUrl, requestParams );
+        final PwmHttpClientResponse restResults = makeHttpRequest( pwmRequest, "OAuth refresh resolver", settings, requestUrl, requestParams, null );
 
         return resolveResultsFromResponseBody( pwmRequest.getSessionLabel(), pwmRequest.getConfig(), restResults.getBody() );
     }
 
-    String makeOAuthGetAttributeRequest(
+    String makeOAuthGetUserInfoRequest(
             final PwmRequest pwmRequest,
             final String accessToken
     )
@@ -227,9 +230,27 @@ public class OAuthMachine
         requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_ACCESS_TOKEN ), accessToken );
         requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_ATTRIBUTES ), settings.getDnAttributeName() );
 
-        final PwmHttpClientResponse restResults = makeHttpRequest( pwmRequest, "OAuth getattribute", settings, requestUrl, requestParams, accessToken );
+        final PwmHttpClientResponse restResults = makeHttpRequest( pwmRequest, "OAuth userinfo", settings, requestUrl, requestParams, accessToken );
 
-        return restResults.getBody();
+        final String resultBody = restResults.getBody();
+        final Map<String, String> getAttributeResultValues = JsonUtil.deserializeStringMap( resultBody );
+
+        LOGGER.debug( pwmRequest, () -> "received attribute values from OAuth IdP for attributes: "
+                + StringUtil.collectionToString( getAttributeResultValues.keySet() ) );
+
+        final String oauthSuppliedUsername = getAttributeResultValues.get( settings.getDnAttributeName() );
+
+        if ( StringUtil.isEmpty( oauthSuppliedUsername ) )
+        {
+            final String msg = "OAuth server did not respond with an username value for configured attribute '" + settings.getDnAttributeName() + "'";
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_OAUTH_ERROR, msg );
+            LOGGER.error( pwmRequest, errorInformation );
+            throw new PwmUnrecoverableException( errorInformation );
+        }
+
+        LOGGER.debug( pwmRequest, () -> "received user login id value from OAuth server: " + oauthSuppliedUsername );
+
+        return oauthSuppliedUsername;
     }
 
     private static PwmHttpClientResponse makeHttpRequest(
@@ -255,7 +276,8 @@ public class OAuthMachine
             }
             else
             {
-
+                headers.put( HttpHeader.Authorization.getHttpName(),
+                        "Bearer " + accessToken );
             }
             headers.put( HttpHeader.ContentType.getHttpName(), HttpContentType.form.getHeaderValue() );
 
@@ -451,7 +473,7 @@ public class OAuthMachine
         }
 
         LOGGER.debug( pwmRequest, () -> "preparing to send username to OAuth /sign endpoint for future injection to /grant redirect" );
-        final PwmHttpClientResponse restResults = makeHttpRequest( pwmRequest, "OAuth pre-inject username signing service", settings, signUrl, requestPayload );
+        final PwmHttpClientResponse restResults = makeHttpRequest( pwmRequest, "OAuth pre-inject username signing service", settings, signUrl, requestPayload, null );
 
         final String resultBody = restResults.getBody();
         final Map<String, String> resultBodyMap = JsonUtil.deserializeStringMap( resultBody );

@@ -20,16 +20,16 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.ldap.auth;
+package password.pwm.http.auth;
 
-import com.novell.ldapchai.provider.ChaiProvider;
 import lombok.Value;
-import password.pwm.util.PasswordData;
+
+import java.io.Serializable;
+import java.time.Instant;
 
 @Value
-public class AuthenticationResult
+public class HttpAuthRecord implements Serializable
 {
-    private final ChaiProvider userProvider;
-    private final AuthenticationType authenticationType;
-    private final PasswordData userPassword;
+    private Instant date;
+    private String guid;
 }
