@@ -85,7 +85,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
         final Optional<OAuthRequestState> oAuthRequestState = OAuthMachine.readOAuthRequestState( pwmRequest );
 
         final OAuthUseCase oAuthUseCaseCase = oAuthRequestState.isPresent()
-                ? oAuthRequestState.get().getoAuthState().getUseCase()
+                ? oAuthRequestState.get().getOAuthState().getUseCase()
                 : OAuthUseCase.Authentication;
 
         LOGGER.trace( pwmRequest, () -> "processing oauth return request, useCase=" + oAuthUseCaseCase
@@ -102,7 +102,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
                 {
                     if ( oAuthRequestState.isPresent() )
                     {
-                        final String nextUrl = oAuthRequestState.get().getoAuthState().getNextUrl();
+                        final String nextUrl = oAuthRequestState.get().getOAuthState().getNextUrl();
                         LOGGER.debug( pwmSession, () -> "received unrecognized oauth response, ignoring authcode and redirecting to embedded next url: " + nextUrl );
                         pwmRequest.sendRedirect( nextUrl );
                         return;
@@ -168,7 +168,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
             return;
         }
 
-        final OAuthState oauthState = oAuthRequestState.get().getoAuthState();
+        final OAuthState oauthState = oAuthRequestState.get().getOAuthState();
         final OAuthSettings oAuthSettings = makeOAuthSettings( pwmRequest, oauthState );
         final OAuthMachine oAuthMachine = new OAuthMachine( oAuthSettings );
 
@@ -231,6 +231,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
             return;
         }
 
+        /*
         if ( resolveResults.getExpiresSeconds() > 0 )
         {
             if ( resolveResults.getRefreshToken() == null || resolveResults.getRefreshToken().isEmpty() )
@@ -242,6 +243,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
                 return;
             }
         }
+        */
 
         final String oauthSuppliedUsername;
         {
