@@ -85,13 +85,6 @@ public class EmailService implements PwmService
 
     private final ThreadLocal<EmailConnection> threadLocalTransport = new ThreadLocal<>();
 
-    enum SendFailureMode
-    {
-        RESEND,
-        REQUEUE,
-        DISCARD,
-    }
-
     public void init( final PwmApplication pwmApplication )
             throws PwmException
     {
@@ -99,6 +92,13 @@ public class EmailService implements PwmService
         this.pwmApplication = pwmApplication;
 
         servers.addAll( EmailServerUtil.makeEmailServersMap( pwmApplication.getConfig() ) );
+
+        if ( servers.isEmpty() )
+        {
+            status = STATUS.CLOSED;
+            LOGGER.debug( () -> "no email servers configured, will remain closed" );
+            return;
+        }
 
         for ( final EmailServer emailServer : servers )
         {

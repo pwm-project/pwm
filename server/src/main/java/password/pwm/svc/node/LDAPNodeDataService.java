@@ -28,6 +28,7 @@ import lombok.Value;
 import password.pwm.PwmApplication;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -39,16 +40,38 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class LDAPNodeDataService implements NodeDataServiceProvider
+class LDAPNodeDataService implements NodeDataServiceProvider
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( LDAPNodeDataService.class );
 
     private final PwmApplication pwmApplication;
     private static final String VALUE_PREFIX = "0006#.#.#";
 
-    public LDAPNodeDataService( final PwmApplication pwmApplication )
+    LDAPNodeDataService( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
     {
         this.pwmApplication = pwmApplication;
+
+        final UserIdentity testUser;
+        final String ldapProfileID;
+        try
+        {
+            final LdapProfile ldapProfile = pwmApplication.getConfig().getDefaultLdapProfile();
+            ldapProfileID = ldapProfile.getIdentifier();
+            testUser = ldapProfile.getTestUser( pwmApplication );
+        }
+        catch ( PwmUnrecoverableException e )
+        {
+            final String msg = "error checking ldap test user configuration for ldap node service: " + e.getMessage();
+            throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, msg );
+        }
+
+        if ( testUser == null )
+        {
+            final String msg = "ldap node service requires that setting "
+                    + PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug( ldapProfileID, null )
+                    + " is configured";
+            throw PwmUnrecoverableException.newException( PwmError.ERROR_NODE_SERVICE_ERROR, msg );
+        }
     }
 
     @Override
