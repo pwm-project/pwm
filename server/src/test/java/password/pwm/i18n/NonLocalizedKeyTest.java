@@ -38,6 +38,7 @@ import java.util.ResourceBundle;
 public class NonLocalizedKeyTest {
     private static final String[] NON_LOCALIZED_KEYS = {
             "Title_Application",
+            "Title_Application_Abbrev",
             "Title_TitleBarAuthenticated",
             "Title_TitleBar"
     };
