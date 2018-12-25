@@ -22,6 +22,7 @@
 
 <%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.http.servlet.newuser.NewUserServlet" %>
+<%@ page import="password.pwm.AppProperty" %>
 
 <!DOCTYPE html>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_HEADER_BUTTONS); %>

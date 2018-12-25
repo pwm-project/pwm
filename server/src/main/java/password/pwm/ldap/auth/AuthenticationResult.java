@@ -23,37 +23,13 @@
 package password.pwm.ldap.auth;
 
 import com.novell.ldapchai.provider.ChaiProvider;
+import lombok.Value;
 import password.pwm.util.PasswordData;
 
+@Value
 public class AuthenticationResult
 {
     private final ChaiProvider userProvider;
     private final AuthenticationType authenticationType;
     private final PasswordData userPassword;
-
-    public AuthenticationResult(
-            final ChaiProvider userProvider,
-            final AuthenticationType authenticationType,
-            final PasswordData userPassword
-    )
-    {
-        this.userProvider = userProvider;
-        this.authenticationType = authenticationType;
-        this.userPassword = userPassword;
-    }
-
-    public ChaiProvider getUserProvider( )
-    {
-        return userProvider;
-    }
-
-    public AuthenticationType getAuthenticationType( )
-    {
-        return authenticationType;
-    }
-
-    public PasswordData getUserPassword( )
-    {
-        return userPassword;
-    }
 }

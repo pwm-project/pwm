@@ -46,7 +46,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.PwmLocaleBundle;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -96,7 +96,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
 {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( StoredConfigurationImpl.class );
-    private static final String XML_FORMAT_VERSION = "4";
+    static final String XML_FORMAT_VERSION = "4";
 
     private XmlDocument document = XmlFactory.getFactory().newDocument( XML_ELEMENT_ROOT );
     private ChangeLog changeLog = new ChangeLog();
@@ -133,18 +133,17 @@ public class StoredConfigurationImpl implements StoredConfiguration
         {
             newConfiguration.document = inputDocument;
             newConfiguration.createTime(); // verify create time;
-            newConfiguration.configurationCleaner.cleanup( );
+            ConfigurationCleaner.cleanup( newConfiguration, newConfiguration.document );
         }
         catch ( Exception e )
         {
-            e.printStackTrace(  );
             final String errorMsg = "error reading configuration file format, error=" + e.getMessage();
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[] { errorMsg } );
             throw new PwmUnrecoverableException( errorInfo );
         }
 
         checkIfXmlRequiresUpdate( newConfiguration );
-        LOGGER.debug( "successfully loaded configuration (" + TimeDuration.compactFromCurrent( startTime ) + ")" );
+        LOGGER.debug( () -> "successfully loaded configuration (" + TimeDuration.compactFromCurrent( startTime ) + ")" );
         return newConfiguration;
     }
 
@@ -625,7 +624,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
             }
         }
 
-        LOGGER.trace( "StoredConfiguration validator completed in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
+        LOGGER.trace( () -> "StoredConfiguration validator completed in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
         return errorStrings;
     }
 
@@ -838,7 +837,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
 
         if ( theBundle == null )
         {
-            LOGGER.info( "ignoring unknown locale bundle for bundle=" + bundleName + ", key=" + keyName );
+            LOGGER.info( () -> "ignoring unknown locale bundle for bundle=" + bundleName + ", key=" + keyName );
             return;
         }
 
@@ -944,7 +943,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
     {
         if ( profileID == null && setting.getCategory().hasProfiles() )
         {
-            throw new IllegalArgumentException( "reading of setting " + setting.getKey() + " requires a non-null profileID" );
+            throw new IllegalArgumentException( "writing of setting " + setting.getKey() + " requires a non-null profileID" );
         }
         if ( profileID != null && !setting.getCategory().hasProfiles() )
         {
@@ -1813,7 +1812,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
                 null
         );
 
-        LOGGER.debug( "initialized new random security key" );
+        LOGGER.debug( () -> "initialized new random security key" );
     }
 
 

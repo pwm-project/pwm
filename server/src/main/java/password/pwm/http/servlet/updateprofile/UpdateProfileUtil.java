@@ -167,7 +167,7 @@ public class UpdateProfileUtil
 
         if ( configuredEmailSetting == null )
         {
-            LOGGER.debug( sessionLabel, "skipping send profile update email for '" + userInfo.getUserIdentity().toDisplayString() + "' no email configured" );
+            LOGGER.debug( sessionLabel, () -> "skipping send profile update email for '" + userInfo.getUserIdentity().toDisplayString() + "' no email configured" );
         }
     }
 
@@ -364,7 +364,7 @@ public class UpdateProfileUtil
         verifyFormAttributes( pwmApplication, userInfo.getUserIdentity(), locale, formMap, false );
 
         // write values.
-        LOGGER.info( "updating profile for " + userInfo.getUserIdentity() );
+        LOGGER.info( () -> "updating profile for " + userInfo.getUserIdentity() );
 
         LdapOperationsHelper.writeFormValuesToLdap( theUser, formMap, macroMachine, false );
 
@@ -375,7 +375,7 @@ public class UpdateProfileUtil
             final List<ActionConfiguration> actions = updateProfileProfile.readSettingAsAction( PwmSetting.UPDATE_PROFILE_WRITE_ATTRIBUTES );
             if ( actions != null && !actions.isEmpty() )
             {
-                LOGGER.debug( sessionLabel, "executing configured actions to user " + userIdentity );
+                LOGGER.debug( sessionLabel, () -> "executing configured actions to user " + userIdentity );
 
 
                 final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings( pwmApplication, userIdentity )

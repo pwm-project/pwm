@@ -102,7 +102,7 @@ public class LocalDBDataStore implements DataStore
         localDB.remove( db, key );
     }
 
-    public int size( ) throws PwmDataStoreException
+    public long size( ) throws PwmDataStoreException
     {
         return localDB.size( db );
     }

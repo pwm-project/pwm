@@ -70,7 +70,7 @@ public class TelemetryRestReceiver extends HttpServlet
         }
         catch ( Exception e )
         {
-            final RestResultBean restResultBean = RestResultBean.fromError( new ErrorInformation( PwmError.ERROR_UNKNOWN, e.getMessage() ) );
+            final RestResultBean restResultBean = RestResultBean.fromError( new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() ) );
             resp.getWriter().print( restResultBean.toJson() );
         }
     }
@@ -91,7 +91,7 @@ public class TelemetryRestReceiver extends HttpServlet
         catch ( Exception e )
         {
             final String errorMsg = "error reading request body stream: " + e.getMessage();
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg ) );
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
         }
         finally
         {
@@ -102,7 +102,7 @@ public class TelemetryRestReceiver extends HttpServlet
         if ( stringValue.length() > maxChars )
         {
             final String msg = "input request body is to big, size=" + stringValue.length() + ", max=" + maxChars;
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, msg ) );
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, msg ) );
         }
         return stringValue;
     }

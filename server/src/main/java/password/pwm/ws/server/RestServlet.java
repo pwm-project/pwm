@@ -42,12 +42,13 @@ import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.filter.RequestInitializationFilter;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
@@ -120,8 +121,12 @@ public abstract class RestServlet extends HttpServlet
 
         try
         {
-            final PwmHttpRequestWrapper httpRequestWrapper = new PwmHttpRequestWrapper( req, pwmApplication.getConfig() );
-            LOGGER.trace( sessionLabel, "incoming HTTP REST request: " +  httpRequestWrapper.debugHttpRequestToString( null, true ) );
+            if ( LOGGER.isEnabled( PwmLogLevel.TRACE ) )
+            {
+                final PwmHttpRequestWrapper httpRequestWrapper = new PwmHttpRequestWrapper( req, pwmApplication.getConfig() );
+                final String debutTxt = httpRequestWrapper.debugHttpRequestToString( null, true );
+                LOGGER.trace( sessionLabel, () -> "incoming HTTP REST request: " + debutTxt );
+            }
         }
         catch ( PwmUnrecoverableException e )
         {
@@ -145,7 +150,7 @@ public abstract class RestServlet extends HttpServlet
         try
         {
             final RestAuthentication restAuthentication = new RestAuthenticationProcessor( pwmApplication, sessionLabel, req ).readRestAuthentication();
-            LOGGER.debug( sessionLabel, "rest request authentication status: " + JsonUtil.serialize( restAuthentication ) );
+            LOGGER.debug( sessionLabel, () -> "rest request authentication status: " + JsonUtil.serialize( restAuthentication ) );
 
             final RestRequest restRequest = RestRequest.forRequest( pwmApplication, restAuthentication, sessionLabel, req );
 
@@ -170,13 +175,14 @@ public abstract class RestServlet extends HttpServlet
         catch ( Throwable e )
         {
             final String errorMsg = "internal error during rest service invocation: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             restResultBean = RestResultBean.fromError( errorInformation, pwmApplication, locale, pwmApplication.getConfig(), pwmApplication.determineIfDetailErrorMsgShown() );
             LOGGER.error( sessionLabel, errorInformation, e );
         }
 
         outputRestResultBean( restResultBean, req, resp );
-        LOGGER.trace( sessionLabel, "completed rest invocation in " + TimeDuration.compactFromCurrent( startTime ) + " success=" + !restResultBean.isError() );
+        final boolean success = restResultBean != null && !restResultBean.isError();
+        LOGGER.trace( sessionLabel, () -> "completed rest invocation in " + TimeDuration.compactFromCurrent( startTime ) + " success=" + success );
     }
 
     private RestResultBean invokeWebService( final RestRequest restRequest ) throws IOException, PwmUnrecoverableException
@@ -197,11 +203,11 @@ public abstract class RestServlet extends HttpServlet
                 {
                     throw ( PwmUnrecoverableException ) rootException;
                 }
-                throw PwmUnrecoverableException.newException( PwmError.ERROR_UNKNOWN, e.getMessage() );
+                throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, e.getMessage() );
             }
             catch ( IllegalAccessException e )
             {
-                throw PwmUnrecoverableException.newException( PwmError.ERROR_UNKNOWN, e.getMessage() );
+                throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, e.getMessage() );
             }
         }
         return null;
@@ -294,7 +300,7 @@ public abstract class RestServlet extends HttpServlet
         final RestWebServer classAnnotation = this.getClass().getDeclaredAnnotation( RestWebServer.class );
         if ( classAnnotation == null )
         {
-            throw PwmUnrecoverableException.newException( PwmError.ERROR_UNKNOWN, "class is missing " + RestWebServer.class.getSimpleName() + " annotation" );
+            throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, "class is missing " + RestWebServer.class.getSimpleName() + " annotation" );
         }
 
 

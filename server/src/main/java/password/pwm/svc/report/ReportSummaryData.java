@@ -26,7 +26,7 @@ import com.novell.ldapchai.cr.Answer;
 import password.pwm.config.Configuration;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.i18n.Admin;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.Percent;
 import password.pwm.util.java.PwmNumberFormat;
 import password.pwm.util.java.TimeDuration;

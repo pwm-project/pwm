@@ -130,7 +130,7 @@ public class ReportStatusBean implements Serializable
             {
                 presentableMap.add( new DisplayElement( "lastError", DisplayElement.Type.string, "Last Error", reportInfo.getLastError().toDebugStr() ) );
             }
-            final int totalRecords = reportService.getTotalRecords();
+            final long totalRecords = reportService.getTotalRecords();
             presentableMap.add( new DisplayElement( "recordsInCache", DisplayElement.Type.string, "Records in Cache", numberFormat.format( totalRecords ) ) );
             if ( totalRecords > 0 )
             {

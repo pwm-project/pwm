@@ -26,11 +26,11 @@ import {ILogService, IPromise, IQService, IWindowService} from 'angular';
 import LocalStorageService from './local-storage.service';
 import ObjectService from './object.service';
 import SearchResult from '../models/search-result.model';
+import {IQuery} from './people.service';
 
 const VERIFICATION_PROCESS_ACTIONS = {
     ATTRIBUTES: 'validateAttributes',
-    EMAIL: 'verifyVerificationToken',
-    SMS: 'verifyVerificationToken',
+    TOKEN: 'verifyVerificationToken',
     OTP: 'validateOtpCode'
 };
 
@@ -47,10 +47,11 @@ export interface IHelpDeskService {
     getRandomPassword(userKey: string): IPromise<IRandomPasswordResponse>;
     getRecentVerifications(): IPromise<IRecentVerifications>;
     search(query: string): IPromise<SearchResult>;
+    advancedSearch(queries: IQuery[]): IPromise<SearchResult>;
     sendVerificationToken(userKey: string, choice: string): IPromise<IVerificationTokenResponse>;
     setPassword(userKey: string, random: boolean, password?: string): IPromise<ISuccessResponse>;
     unlockIntruder(userKey: string): IPromise<ISuccessResponse>;
-    validateVerificationData(userKey: string, formData: any, tokenData: any): IPromise<IVerificationStatus>;
+    validateVerificationData(userKey: string, formData: any, method: any): IPromise<IVerificationStatus>;
     showStrengthMeter: boolean;
 }
 
@@ -75,8 +76,25 @@ interface IValidationStatus extends IVerificationStatus {
     verificationState: string;
 }
 
+export interface IVerificationOptions {
+    verificationMethods: {
+        optional: string[];
+        required: string[];
+    },
+    verificationForm: [{
+        name: string;
+        label: string;
+    }],
+    tokenDestinations: [{
+        id: string;
+        display: string;
+        type: string;
+    }]
+}
+
 export interface IVerificationStatus {
     passed: boolean;
+    verificationOptions: IVerificationOptions;
 }
 
 export interface IVerificationTokenResponse {
@@ -229,6 +247,7 @@ export default class HelpDeskService implements IHelpDeskService {
             + '&pwmFormID=' + this.PWM_GLOBAL['pwmFormID'];
 
         let data = {
+            mode: 'simple',
             username: query,
             pwmFormID: formID
         };
@@ -244,13 +263,34 @@ export default class HelpDeskService implements IHelpDeskService {
             });
     }
 
-    sendVerificationToken(userKey: string, choice: string): IPromise<IVerificationTokenResponse> {
-        let url: string = this.pwmService.getServerUrl('sendVerificationToken');
-        let data: any = { userKey: userKey };
+    advancedSearch(queries: IQuery[]): IPromise<SearchResult> {
+        let formID: string = encodeURIComponent('&pwmFormID=' + this.PWM_GLOBAL['pwmFormID']);
+        let url: string = this.pwmService.getServerUrl('search')
+            + '&pwmFormID=' + this.PWM_GLOBAL['pwmFormID'];
 
-        if (choice) {
-            data.method = choice;
-        }
+        let data = {
+            mode: 'advanced',
+            pwmFormID: formID,
+            searchValues: queries
+        };
+        return this.pwmService
+            .httpRequest(url, {
+                data: data,
+                preventCache: true
+            })
+            .then((result: any) => {
+                let receivedData: any = result.data;
+                let searchResult: SearchResult = new SearchResult(receivedData);
+                return searchResult;
+            });
+    }
+
+    sendVerificationToken(userKey: string, destinationID: string): IPromise<IVerificationTokenResponse> {
+        let url: string = this.pwmService.getServerUrl('sendVerificationToken');
+        let data: any = {
+            userKey: userKey,
+            id: destinationID
+        };
 
         return this.pwmService
             .httpRequest(url, { data: data })

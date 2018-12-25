@@ -57,7 +57,7 @@ import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecord;
 import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.util.LDAPPermissionCalculator;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
@@ -271,20 +271,20 @@ public class ConfigManagerServlet extends AbstractPwmServlet
         {
             final ErrorInformation errorInfo = e.getErrorInformation();
             final RestResultBean restResultBean = RestResultBean.fromError( errorInfo, pwmRequest );
-            LOGGER.debug( pwmSession, errorInfo.toDebugStr() );
+            LOGGER.debug( pwmSession, errorInfo );
             pwmRequest.outputJsonResult( restResultBean );
             return;
         }
         catch ( Exception e )
         {
-            final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_UNKNOWN, e.getMessage() );
+            final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
             final RestResultBean restResultBean = RestResultBean.fromError( errorInfo, pwmRequest );
-            LOGGER.debug( pwmSession, errorInfo.toDebugStr() );
+            LOGGER.debug( pwmSession, errorInfo );
             pwmRequest.outputJsonResult( restResultBean );
             return;
         }
         final HashMap<String, String> resultData = new HashMap<>();
-        LOGGER.info( pwmSession, "Configuration Locked" );
+        LOGGER.info( pwmSession, () -> "Configuration Locked" );
         pwmRequest.outputJsonResult( RestResultBean.withData( resultData ) );
     }
 
@@ -469,7 +469,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
         }
         catch ( Exception e )
         {
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, e.getMessage() );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
             LOGGER.error( pwmRequest, errorInformation );
             pwmRequest.respondWithError( errorInformation );
         }

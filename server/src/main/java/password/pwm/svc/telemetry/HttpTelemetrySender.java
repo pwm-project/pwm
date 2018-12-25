@@ -76,9 +76,9 @@ public class HttpTelemetrySender implements TelemetrySender
                 body,
                 headers
         );
-        LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "preparing to send telemetry data to '" + settings.getUrl() + ")" );
+        LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "preparing to send telemetry data to '" + settings.getUrl() + ")" );
         pwmHttpClient.makeRequest( pwmHttpClientRequest );
-        LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "sent telemetry data to '" + settings.getUrl() + ")" );
+        LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "sent telemetry data to '" + settings.getUrl() + ")" );
     }
 
     @Getter

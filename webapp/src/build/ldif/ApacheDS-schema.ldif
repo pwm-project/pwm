@@ -59,6 +59,15 @@ m-name: pwmOtpSecret
 m-syntax: 1.3.6.1.4.1.1466.115.121.1.40
 m-length: 0
 
+dn: m-oid=1.3.6.1.4.1.35015.1.2.7, ou=attributeTypes, cn=pwm, ou=schema
+objectclass: metaAttributeType
+objectclass: metaTop
+objectclass: top
+m-oid: 1.3.6.1.4.1.35015.1.2.7
+m-name: pwmData
+m-syntax: 1.3.6.1.4.1.1466.115.121.1.40
+m-length: 0
+
 dn: ou=comparators, cn=pwm, ou=schema
 objectclass: organizationalUnit
 objectclass: top
@@ -111,6 +120,7 @@ m-may: pwmGUID
 m-may: pwmLastPwdUpdate
 m-may: pwmResponseSet
 m-may: pwmOtpSecret
+m-may: pwmData
 
 dn: ou=syntaxCheckers, cn=pwm, ou=schema
 objectclass: organizationalUnit

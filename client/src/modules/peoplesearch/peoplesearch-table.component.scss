@@ -20,26 +20,27 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+.ias-styles-root {
+    people-search-table {
+        #page-content-title {
+            margin-bottom: 0;
+        }
 
-people-search-table {
-    #page-content-title {
-        margin-bottom: 0;
-    }
+        display: flex;
+        flex-flow: column nowrap;
+        height: 100%;
 
-    display: flex;
-    flex-flow: column nowrap;
-    height: 100%;
+        > .people-search-component-content {
+            flex: 1 1;
+            overflow: auto;
+            position: relative;
+            text-align: center;
 
-    > .people-search-component-content {
-        flex: 1 1;
-        overflow: auto;
-        position: relative;
-        text-align: center;
-
-        .table-configuration-menu-toggle {
-            position: absolute;
-            top: 0;
-            right: 0;
+            .table-configuration-menu-toggle {
+                position: absolute;
+                top: 0;
+                right: 0;
+            }
         }
     }
 }

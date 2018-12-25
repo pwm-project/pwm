@@ -84,8 +84,12 @@ public class UserCacheService implements PwmService
         {
             LOGGER.error( "unable to store user status cache to localdb: " + e.getMessage() );
         }
-        LOGGER.trace( "updateCache: " + ( preExisting ? "updated existing" : "created new" ) + " user cache for "
-                + userInfo.getUserIdentity() + " user key " + storageKey.getKey() );
+
+        {
+            final boolean finalPreExisting = preExisting;
+            LOGGER.trace( () -> "updateCache: " + ( finalPreExisting ? "updated existing" : "created new" ) + " user cache for "
+                    + userInfo.getUserIdentity() + " user key " + storageKey.getKey() );
+        }
         return null;
     }
 
@@ -181,7 +185,7 @@ public class UserCacheService implements PwmService
         return new ServiceInfoBean( Collections.singletonList( DataStorageMethod.LOCALDB ) );
     }
 
-    public int size( )
+    public long size( )
     {
         return cacheStore.size();
     }
@@ -275,7 +279,7 @@ public class UserCacheService implements PwmService
             localDB.truncate( DB );
         }
 
-        private int size( )
+        private long size( )
         {
             try
             {

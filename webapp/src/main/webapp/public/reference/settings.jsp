@@ -25,11 +25,12 @@
 <%@ page import="password.pwm.config.PwmSettingSyntax" %>
 <%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.http.JspUtility" %>
-<%@ page import="password.pwm.util.LocaleHelper" %>
+<%@ page import="password.pwm.util.i18n.LocaleHelper" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
 <%@ page import="java.util.*" %>
 <%@ page import="password.pwm.util.macro.MacroMachine" %>
 <%@ page import="com.novell.ldapchai.util.StringHelper" %>
+<%@ page import="password.pwm.AppProperty" %>
 
 <!DOCTYPE html>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_HEADER_WARNINGS); %>

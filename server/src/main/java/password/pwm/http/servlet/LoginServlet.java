@@ -25,6 +25,7 @@ package password.pwm.http.servlet;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
+import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -55,8 +56,8 @@ import java.util.Map;
 
 /**
  * User interaction servlet for form-based authentication.   Depending on how PWM is deployed,
- * users may or may not ever visit this servlet.   Generally, if PWM is behind iChain, or some
- * other SSO enabler using HTTP BASIC authentication, this form will not be invoked.
+ * users may or may not ever visit this servlet.   If using some type of SSO method
+ * the login form will not be invoked.
  *
  * @author Jason D. Rivard
  */
@@ -105,15 +106,23 @@ public class LoginServlet extends ControlledPwmServlet
     }
 
     @Override
-    protected void nextStep( final PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
+    protected void nextStep( final PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException, ServletException
     {
         final boolean passwordOnly = passwordOnly( pwmRequest );
         forwardToJSP( pwmRequest, passwordOnly );
     }
 
     @Override
-    public ProcessStatus preProcessCheck( final PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException, ServletException
+    public ProcessStatus preProcessCheck( final PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException
     {
+        if ( pwmRequest.isAuthenticated() && !passwordOnly( pwmRequest ) )
+        {
+            final String redirectURL = pwmRequest.getContextPath()
+                    + pwmRequest.getConfig().readSettingAsString( PwmSetting.URL_INTRO );
+            LOGGER.debug( pwmRequest, () -> "user is already authenticated, so redirecting user to intro url: " + redirectURL );
+            pwmRequest.sendRedirect( redirectURL );
+            return ProcessStatus.Halt;
+        }
         return ProcessStatus.Continue;
     }
 
@@ -160,7 +169,7 @@ public class LoginServlet extends ControlledPwmServlet
         catch ( PwmOperationalException e )
         {
             final ErrorInformation errorInformation = e.getErrorInformation();
-            LOGGER.trace( pwmRequest, "returning rest login error to client: " + errorInformation.toDebugStr() );
+            LOGGER.trace( pwmRequest, () -> "returning rest login error to client: " + errorInformation.toDebugStr() );
             pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
             return ProcessStatus.Halt;
         }
@@ -171,7 +180,7 @@ public class LoginServlet extends ControlledPwmServlet
         final String nextLoginUrl = determinePostLoginUrl( pwmRequest );
         final HashMap<String, String> resultMap = new HashMap<>( Collections.singletonMap( "nextURL", nextLoginUrl ) );
         final RestResultBean restResultBean = RestResultBean.withData( resultMap );
-        LOGGER.debug( pwmRequest, "rest login succeeded" );
+        LOGGER.debug( pwmRequest, () -> "rest login succeeded" );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
     }
@@ -187,7 +196,7 @@ public class LoginServlet extends ControlledPwmServlet
             if ( !StringUtil.isEmpty( nextUrl ) )
             {
                 final LoginServletBean loginServletBean = pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, LoginServletBean.class );
-                LOGGER.trace( pwmRequest, "received nextUrl and storing in module bean, value: " + nextUrl );
+                LOGGER.trace( pwmRequest, () -> "received nextUrl and storing in module bean, value: " + nextUrl );
                 loginServletBean.setNextUrl( nextUrl );
             }
         }
@@ -210,7 +219,7 @@ public class LoginServlet extends ControlledPwmServlet
                 : null;
         final String context = valueMap.get( PwmConstants.PARAM_CONTEXT );
         final String ldapProfile = valueMap.get( PwmConstants.PARAM_LDAP_PROFILE );
-        final String recaptchaResponse = valueMap.get( "g-recaptcha-response" );
+        final String recaptchaResponse = valueMap.get( CaptchaUtility.PARAM_RECAPTCHA_FORM_NAME );
 
 
         if ( !passwordOnly && ( username == null || username.isEmpty() ) )
@@ -298,7 +307,7 @@ public class LoginServlet extends ControlledPwmServlet
                 paramMap
         );
 
-        LOGGER.trace( pwmRequest, "redirecting to self to set nextUrl to: " + originalRequestedUrl );
+        LOGGER.trace( pwmRequest, () -> "redirecting to self to set nextUrl to: " + originalRequestedUrl );
 
         pwmRequest.sendRedirect( redirectUrl );
     }

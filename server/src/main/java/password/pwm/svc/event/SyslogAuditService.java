@@ -53,7 +53,7 @@ import password.pwm.health.HealthStatus;
 import password.pwm.health.HealthTopic;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
@@ -131,7 +131,7 @@ public class SyslogAuditService
                 final SyslogIF syslogInstance = makeSyslogInstance( syslogCfg );
                 syslogInstances.add( syslogInstance );
             }
-            LOGGER.trace( "queued service running for syslog entries" );
+            LOGGER.trace( () -> "queued service running for syslog entries" );
         }
         catch ( IllegalArgumentException e )
         {
@@ -275,7 +275,7 @@ public class SyslogAuditService
             try
             {
                 syslogInstance.info( auditRecord );
-                LOGGER.trace( "delivered syslog audit event: " + auditRecord );
+                LOGGER.trace( () -> "delivered syslog audit event: " + auditRecord );
                 lastError = null;
                 StatisticsManager.incrementStat( this.pwmApplication, Statistic.SYSLOG_MESSAGES_SENT );
                 return WorkQueueProcessor.ProcessResult.SUCCESS;

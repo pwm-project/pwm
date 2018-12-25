@@ -47,7 +47,7 @@ import password.pwm.http.PwmURL;
 import password.pwm.i18n.Display;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -200,7 +200,7 @@ public class ClientApiServlet extends ControlledPwmServlet
         catch ( Exception e )
         {
             final String errorMSg = "error during rest /strings call for bundle " + bundleName + ", error: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMSg );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMSg );
             LOGGER.debug( pwmRequest, errorInformation );
             pwmRequest.respondWithError( errorInformation );
         }
@@ -249,7 +249,7 @@ public class ClientApiServlet extends ControlledPwmServlet
         catch ( Exception e )
         {
             final String errorMessage = "unexpected error executing web service: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMessage );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMessage );
             LOGGER.debug( pwmRequest, errorInformation );
             pwmRequest.respondWithError( errorInformation );
         }

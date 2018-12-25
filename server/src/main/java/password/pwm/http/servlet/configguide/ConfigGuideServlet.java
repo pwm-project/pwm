@@ -183,7 +183,8 @@ public class ConfigGuideServlet extends ControlledPwmServlet
                 final URI ldapServerUri = new URI( ldapServerString );
                 if ( "ldaps".equalsIgnoreCase( ldapServerUri.getScheme() ) )
                 {
-                    configGuideBean.setLdapCertificates( X509Utils.readRemoteCertificates( ldapServerUri ) );
+                    final Configuration tempConfig = new Configuration( ConfigGuideForm.generateStoredConfig( configGuideBean ) );
+                    configGuideBean.setLdapCertificates( X509Utils.readRemoteCertificates( ldapServerUri, tempConfig ) );
                     configGuideBean.setCertsTrustedbyKeystore( X509Utils.testIfLdapServerCertsInDefaultKeystore( ldapServerUri ) );
                 }
                 else
@@ -368,7 +369,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         }
         catch ( Exception e )
         {
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, "error while testing matches = " + e.getMessage() );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "error while testing matches = " + e.getMessage() );
             LOGGER.error( pwmRequest, errorInformation );
             pwmRequest.respondWithError( errorInformation );
         }
@@ -402,8 +403,8 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         final LdapBrowser.LdapBrowseResult result = ldapBrowser.doBrowse( profile, dn );
         ldapBrowser.close();
 
-        LOGGER.trace( pwmRequest, "performed ldapBrowse operation in "
-                + TimeDuration.fromCurrent( startTime ).asCompactString()
+        LOGGER.trace( pwmRequest, () -> "performed ldapBrowse operation in "
+                + TimeDuration.compactFromCurrent( startTime )
                 + ", result=" + JsonUtil.serialize( result ) );
 
         pwmRequest.outputJsonResult( RestResultBean.withData( result ) );
@@ -494,7 +495,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
             catch ( Exception e )
             {
                 final RestResultBean restResultBean = RestResultBean.fromError( new ErrorInformation(
-                        PwmError.ERROR_UNKNOWN,
+                        PwmError.ERROR_INTERNAL,
                         "error during save: " + e.getMessage()
                 ), pwmRequest );
                 pwmRequest.outputJsonResult( restResultBean );
@@ -509,7 +510,11 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         {
             configGuideBean.setStep( step );
             pwmRequest.outputJsonResult( RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown ) );
-            LOGGER.trace( "setting current step to: " + step );
+
+            {
+                final GuideStep finalStep = step;
+                LOGGER.trace( () -> "setting current step to: " + finalStep );
+            }
         }
 
         return ProcessStatus.Continue;
@@ -528,7 +533,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         }
         catch ( Exception e )
         {
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, e.getMessage() );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
             pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
             LOGGER.error( pwmRequest, e.getMessage(), e );
         }

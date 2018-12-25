@@ -82,7 +82,7 @@ public class PasswordData implements Serializable
             }
             else
             {
-                newInitializationError = new ErrorInformation( PwmError.ERROR_UNKNOWN, "error initializing password data class: " + e.getMessage() );
+                newInitializationError = new ErrorInformation( PwmError.ERROR_INTERNAL, "error initializing password data class: " + e.getMessage() );
             }
         }
         STATIC_KEY = newKey;

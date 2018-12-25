@@ -30,6 +30,7 @@ import LocalStorageService from '../../services/local-storage.service';
 import PeopleSearchBaseComponent from './peoplesearch-base.component';
 import PromiseService from '../../services/promise.service';
 import SearchResult from '../../models/search-result.model';
+import CommonSearchService from '../../services/common-search.service';
 
 @Component({
     stylesheetUrl: require('./peoplesearch-table.component.scss'),
@@ -49,7 +50,8 @@ export default class PeopleSearchTableComponent extends PeopleSearchBaseComponen
         'LocalStorageService',
         'PeopleService',
         'PromiseService',
-        'PwmService'
+        'PwmService',
+        'CommonSearchService'
     ];
     constructor($q: IQService,
                 $scope: IScope,
@@ -61,7 +63,8 @@ export default class PeopleSearchTableComponent extends PeopleSearchBaseComponen
                 localStorageService: LocalStorageService,
                 peopleService: IPeopleService,
                 promiseService: PromiseService,
-                pwmService: IPwmService) {
+                pwmService: IPwmService,
+                commonSearchService: CommonSearchService) {
         super($q,
             $scope,
             $state,
@@ -72,12 +75,14 @@ export default class PeopleSearchTableComponent extends PeopleSearchBaseComponen
             localStorageService,
             peopleService,
             promiseService,
-            pwmService);
+            pwmService,
+            commonSearchService);
     }
 
     $onInit(): void {
-        this.initialize();
-        this.fetchData();
+        this.initialize().then(() => {
+            this.fetchData();
+        });
 
         let self = this;
 

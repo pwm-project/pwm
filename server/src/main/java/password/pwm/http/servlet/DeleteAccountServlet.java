@@ -173,7 +173,7 @@ public class DeleteAccountServlet extends ControlledPwmServlet
     )
             throws ServletException, IOException, PwmUnrecoverableException, ChaiUnavailableException
     {
-        LOGGER.debug( pwmRequest, "user accepted agreement" );
+        LOGGER.debug( pwmRequest, () -> "user accepted agreement" );
 
         final DeleteAccountBean deleteAccountBean = getBean( pwmRequest );
         if ( !deleteAccountBean.isAgreementPassed() )
@@ -207,7 +207,7 @@ public class DeleteAccountServlet extends ControlledPwmServlet
             final List<ActionConfiguration> actions = deleteAccountProfile.readSettingAsAction( PwmSetting.DELETE_ACCOUNT_ACTIONS );
             if ( actions != null && !actions.isEmpty() )
             {
-                LOGGER.debug( pwmRequest, "executing configured actions to user " + userIdentity );
+                LOGGER.debug( pwmRequest, () -> "executing configured actions to user " + userIdentity );
 
 
                 final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings( pwmApplication, userIdentity )
@@ -238,7 +238,7 @@ public class DeleteAccountServlet extends ControlledPwmServlet
         {
             final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( pwmApplication );
             final String macroedUrl = macroMachine.expandMacros( nextUrl );
-            LOGGER.debug( pwmRequest, "settinging forward url to post-delete next url: " + macroedUrl );
+            LOGGER.debug( pwmRequest, () -> "settinging forward url to post-delete next url: " + macroedUrl );
             pwmRequest.getPwmSession().getSessionStateBean().setForwardURL( macroedUrl );
         }
 
@@ -278,7 +278,7 @@ public class DeleteAccountServlet extends ControlledPwmServlet
 
         if ( configuredEmailSetting == null )
         {
-            LOGGER.debug( pwmRequest, "skipping delete account notice email for '" + pwmRequest.getUserInfoIfLoggedIn() + "' no email configured" );
+            LOGGER.debug( pwmRequest, () -> "skipping delete account notice email for '" + pwmRequest.getUserInfoIfLoggedIn() + "' no email configured" );
             return;
         }
 

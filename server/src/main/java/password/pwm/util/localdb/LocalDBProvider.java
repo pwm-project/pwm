@@ -82,7 +82,7 @@ public interface LocalDBProvider
             throws LocalDBException;
 
     @LocalDB.ReadOperation
-    int size( LocalDB.DB db )
+    long size( LocalDB.DB db )
             throws LocalDBException;
 
     @LocalDB.WriteOperation

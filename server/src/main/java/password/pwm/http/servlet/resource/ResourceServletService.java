@@ -235,7 +235,7 @@ public class ResourceServletService implements PwmService
 
         final byte[] checksumBytes = checksumStream.getInProgressChecksum();
         final String nonce = StringUtil.truncate( JavaHelper.byteArrayToHexString( checksumBytes ).toLowerCase(), nonceLength );
-        LOGGER.debug( "completed generation of nonce '" + nonce + "' in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
+        LOGGER.debug( () -> "completed generation of nonce '" + nonce + "' in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
 
         final String noncePrefix = pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_RESOURCES_NONCE_PATH_PREFIX );
         return "/" + noncePrefix + nonce;
@@ -274,12 +274,12 @@ public class ResourceServletService implements PwmService
             final FileResource resolvedFile = ResourceFileServlet.resolveRequestedFile( servletContext, themePathUrl, getResourceServletConfiguration() );
             if ( resolvedFile != null && resolvedFile.exists() )
             {
-                LOGGER.debug( pwmRequest, "check for theme validity of '" + themeName + "' returned true" );
+                LOGGER.debug( pwmRequest, () -> "check for theme validity of '" + themeName + "' returned true" );
                 return true;
             }
         }
 
-        LOGGER.debug( pwmRequest, "check for theme validity of '" + themeName + "' returned false" );
+        LOGGER.debug( pwmRequest, () -> "check for theme validity of '" + themeName + "' returned false" );
         return false;
     }
 }

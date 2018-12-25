@@ -37,16 +37,24 @@ import password.pwm.util.java.StringUtil;
 
 class PwNotifyDbStorageService implements PwNotifyStorageService
 {
+    private static final String DB_STATE_STRING = "PwNotifyJobState";
+
     private static final DatabaseTable TABLE = DatabaseTable.PW_NOTIFY;
     private final PwmApplication pwmApplication;
 
-    PwNotifyDbStorageService( final PwmApplication pwmApplication )
+    PwNotifyDbStorageService( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
     {
         this.pwmApplication = pwmApplication;
+
+        if ( !pwmApplication.getConfig().hasDbConfigured() )
+        {
+            final String msg = "DB storage type selected, but remote DB is not configured.";
+            throw PwmUnrecoverableException.newException( PwmError.ERROR_NODE_SERVICE_ERROR, msg );
+        }
     }
 
     @Override
-    public StoredNotificationState readStoredState(
+    public StoredNotificationState readStoredUserState(
             final UserIdentity userIdentity,
             final SessionLabel sessionLabel
     )
@@ -79,7 +87,7 @@ class PwNotifyDbStorageService implements PwNotifyStorageService
         return JsonUtil.deserialize( rawDbValue, StoredNotificationState.class );
     }
 
-    public void writeStoredState(
+    public void writeStoredUserState(
             final UserIdentity userIdentity,
             final SessionLabel sessionLabel,
             final StoredNotificationState storedNotificationState
@@ -110,4 +118,39 @@ class PwNotifyDbStorageService implements PwNotifyStorageService
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, e.getMessage() ) );
         }
     }
+
+    @Override
+    public StoredJobState readStoredJobState()
+            throws PwmUnrecoverableException
+    {
+        try
+        {
+            final String strValue = pwmApplication.getDatabaseService().getAccessor().get( DatabaseTable.PW_NOTIFY, DB_STATE_STRING );
+            if ( StringUtil.isEmpty( strValue ) )
+            {
+                return new StoredJobState( null, null, null, null, false );
+            }
+            return JsonUtil.deserialize( strValue, StoredJobState.class );
+        }
+        catch ( DatabaseException e )
+        {
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, e.getMessage() ) );
+        }
+    }
+
+    @Override
+    public void writeStoredJobState( final StoredJobState storedJobState )
+            throws PwmUnrecoverableException
+    {
+        try
+        {
+            final String strValue = JsonUtil.serialize( storedJobState );
+            pwmApplication.getDatabaseService().getAccessor().put( DatabaseTable.PW_NOTIFY, DB_STATE_STRING, strValue );
+        }
+        catch ( DatabaseException e )
+        {
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, e.getMessage() ) );
+        }
+    }
+
 }

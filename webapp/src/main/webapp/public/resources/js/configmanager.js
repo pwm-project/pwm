@@ -203,7 +203,6 @@ PWM_CONFIG.showHeaderHealth = function() {
         var loadFunction = function(data) {
             if (data['data'] && data['data']['overall']) {
                 var hasWarnTopics = data['data']['overall'] === 'WARN';
-                console.log('has health errors: ' + hasWarnTopics);
                 if (hasWarnTopics) {
                     PWM_MAIN.removeCssClass('header-menu-alert','display-none');
                     PWM_MAIN.removeCssClass('panel-header-healthData','display-none');
@@ -377,6 +376,7 @@ PWM_CONFIG.initConfigManagerWordlistPage = function() {
                         var url = 'wordlists?processAction=clearWordlist&wordlist=' + type;
                         var loadFunction = function (data) {
                             PWM_MAIN.showDialog({
+                                title: PWM_MAIN.showString('Title_Success'),
                                 text: data['successMessage'], okAction: function () {
                                     PWM_MAIN.showWaitDialog({
                                         loadFunction: function(){

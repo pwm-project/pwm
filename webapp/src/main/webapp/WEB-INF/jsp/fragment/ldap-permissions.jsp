@@ -28,7 +28,7 @@
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.Set" %>
 <%@ page import="java.util.TreeSet" %>
-<%@ page import="password.pwm.util.LocaleHelper" %>
+<%@ page import="password.pwm.util.i18n.LocaleHelper" %>
 <%@ page import="password.pwm.i18n.Display" %>
 <%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>

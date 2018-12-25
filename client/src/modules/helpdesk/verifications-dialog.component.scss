@@ -1,0 +1,16 @@
+#verification-token-destination {
+    margin: 0;
+    width: 210px;
+}
+
+.token-destination-submitter {
+    display: grid;
+    grid-template-columns: max-content max-content max-content;
+    grid-column-gap: 10px;
+    grid-row-gap: 5px;
+    align-items: center;
+
+    select {
+        grid-column-start: 1;
+    }
+}

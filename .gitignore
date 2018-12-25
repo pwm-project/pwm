@@ -21,3 +21,7 @@
 
 
 /target
+/webapp/src/main/webapp/public/resources/themes/netiq
+/webapp/src/main/webapp/public/resources/themes/netiq32
+/webapp/src/main/webapp/public/resources/themes/idm
+/webapp/src/main/webapp/public/resources/themes/mdefault

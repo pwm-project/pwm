@@ -41,7 +41,7 @@ import password.pwm.http.servlet.admin.UserDebugDataReader;
 import password.pwm.ldap.LdapDebugDataGenerator;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.cache.CacheService;
-import password.pwm.svc.cluster.ClusterService;
+import password.pwm.svc.node.NodeService;
 import password.pwm.util.LDAPPermissionCalculator;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
@@ -125,16 +125,15 @@ public class DebugItemGenerator
             try
             {
                 final Instant startTime = Instant.now();
-                LOGGER.trace( pwmRequest, "beginning output of item " + serviceClass.getSimpleName() );
-                final Object newInstance = serviceClass.newInstance();
-                final DebugItemGenerator.Generator newGeneratorItem = ( DebugItemGenerator.Generator ) newInstance;
+                LOGGER.trace( pwmRequest, () -> "beginning output of item " + serviceClass.getSimpleName() );
+                final DebugItemGenerator.Generator newGeneratorItem = serviceClass.getDeclaredConstructor().newInstance();
                 zipOutput.putNextEntry( new ZipEntry( pathPrefix + newGeneratorItem.getFilename() ) );
                 newGeneratorItem.outputItem( pwmApplication, pwmRequest, zipOutput );
                 zipOutput.closeEntry();
                 zipOutput.flush();
                 final String finishMsg = "completed output of " + newGeneratorItem.getFilename()
                         + " in " + TimeDuration.fromCurrent( startTime ).asCompactString();
-                LOGGER.trace( pwmRequest, finishMsg );
+                LOGGER.trace( pwmRequest, () -> finishMsg );
                 debugGeneratorLogFile.printRecord( JavaHelper.toIsoDate( Instant.now() ), finishMsg );
             }
             catch ( Throwable e )
@@ -262,15 +261,12 @@ public class DebugItemGenerator
             };
 
             final Map<PwmAboutProperty, String> infoBean = PwmAboutProperty.makeInfoBean( pwmApplication );
-            for ( final Map.Entry<PwmAboutProperty, String> entry : infoBean.entrySet() )
+            outputProps.putAll( PwmAboutProperty.toStringMap( infoBean ) );
+            try ( ByteArrayOutputStream baos = new ByteArrayOutputStream() )
             {
-                final PwmAboutProperty aboutProperty = entry.getKey();
-                final String value = entry.getValue();
-                outputProps.put( aboutProperty.toString().replace( "_", "." ), value );
+                outputProps.store( baos, JavaHelper.toIsoDate( Instant.now() ) );
+                outputStream.write( baos.toByteArray() );
             }
-            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            outputProps.store( baos, JavaHelper.toIsoDate( Instant.now() ) );
-            outputStream.write( baos.toByteArray() );
         }
     }
 
@@ -491,7 +487,7 @@ public class DebugItemGenerator
                     }
                     catch ( Exception e )
                     {
-                        LOGGER.trace( "error generating file summary info: " + e.getMessage() );
+                        LOGGER.trace( () -> "error generating file summary info: " + e.getMessage() );
                     }
                 }
                 csvPrinter.flush();
@@ -537,7 +533,11 @@ public class DebugItemGenerator
                     outputStream.flush();
                 }
             }
-            LOGGER.trace( "output " + counter + " lines to " + this.getFilename() );
+
+            {
+                final int finalCounter = counter;
+                LOGGER.trace( () -> "output " + finalCounter + " lines to " + this.getFilename() );
+            }
         }
     }
 
@@ -676,15 +676,15 @@ public class DebugItemGenerator
         )
                 throws Exception
         {
-            final ClusterService clusterService = pwmApplication.getClusterService();
+            final NodeService nodeService = pwmApplication.getClusterService();
 
             final Map<String, Serializable> debugOutput = new LinkedHashMap<>();
-            debugOutput.put( "status", clusterService.status() );
+            debugOutput.put( "status", nodeService.status() );
 
-            if ( clusterService.status() == PwmService.STATUS.OPEN )
+            if ( nodeService.status() == PwmService.STATUS.OPEN )
             {
-                debugOutput.put( "isMaster", clusterService.isMaster() );
-                debugOutput.put( "nodes", new ArrayList<>( clusterService.nodes() ) );
+                debugOutput.put( "isMaster", nodeService.isMaster() );
+                debugOutput.put( "nodes", new ArrayList<>( nodeService.nodes() ) );
             }
 
             outputStream.write( JsonUtil.serializeMap( debugOutput, JsonUtil.Flag.PrettyPrint ).getBytes( PwmConstants.DEFAULT_CHARSET ) );

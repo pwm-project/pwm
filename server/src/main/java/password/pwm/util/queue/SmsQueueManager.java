@@ -226,13 +226,13 @@ public class SmsQueueManager implements PwmService
         final PasswordData gatewayPass = config.readSettingAsPassword( PwmSetting.SMS_GATEWAY_PASSWORD );
         if ( gatewayUrl == null || gatewayUrl.length() < 1 )
         {
-            LOGGER.debug( "SMS gateway url is not configured" );
+            LOGGER.debug( () -> "SMS gateway url is not configured" );
             return false;
         }
 
         if ( gatewayUser != null && gatewayUser.length() > 0 && ( gatewayPass == null ) )
         {
-            LOGGER.debug( "SMS gateway user configured, but no password provided" );
+            LOGGER.debug( () -> "SMS gateway user configured, but no password provided" );
             return false;
         }
 
@@ -249,13 +249,13 @@ public class SmsQueueManager implements PwmService
 
         if ( smsItem.getTo() == null || smsItem.getTo().length() < 1 )
         {
-            LOGGER.debug( "discarding sms send event (no to address) " + smsItem.toString() );
+            LOGGER.debug( () -> "discarding sms send event (no to address) " + smsItem.toString() );
             return false;
         }
 
         if ( smsItem.getMessage() == null || smsItem.getMessage().length() < 1 )
         {
-            LOGGER.debug( "discarding sms send event (no message) " + smsItem.toString() );
+            LOGGER.debug( () -> "discarding sms send event (no message) " + smsItem.toString() );
             return false;
         }
 
@@ -396,7 +396,7 @@ public class SmsQueueManager implements PwmService
             final Matcher m = p.matcher( resultBody );
             if ( m.matches() )
             {
-                LOGGER.trace( "result body matched configured regex match setting: " + regex );
+                LOGGER.trace( () -> "result body matched configured regex match setting: " + regex );
                 return;
             }
         }
@@ -494,7 +494,7 @@ public class SmsQueueManager implements PwmService
 
             final String requestData = makeRequestData( to, message );
 
-            LOGGER.trace( "preparing to send SMS data: " + requestData );
+            LOGGER.trace( () -> "preparing to send SMS data: " + requestData );
 
             final PwmHttpClientRequest pwmHttpClientRequest = makeRequest( requestData );
 
@@ -513,7 +513,7 @@ public class SmsQueueManager implements PwmService
                 lastResponseBody = responseBody;
 
                 determineIfResultSuccessful( config, resultCode, responseBody );
-                LOGGER.debug( "SMS send successful, HTTP status: " + resultCode );
+                LOGGER.debug( () -> "SMS send successful, HTTP status: " + resultCode );
             }
             catch ( PwmUnrecoverableException e )
             {

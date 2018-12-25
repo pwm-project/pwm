@@ -52,7 +52,7 @@
             <% if (404 == statusCode) { %>
             <%=PwmError.ERROR_HTTP_404.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE,null)%>
             <% } else { %>
-            <%=PwmError.ERROR_UNKNOWN.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE,null)%>
+            <%=PwmError.ERROR_INTERNAL.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE,null)%>
             <% } %>
         </span>
         <br/>

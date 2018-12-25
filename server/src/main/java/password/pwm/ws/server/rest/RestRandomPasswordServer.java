@@ -123,7 +123,7 @@ public class RestRandomPasswordServer extends RestServlet
         catch ( Exception e )
         {
             final String errorMessage = "unexpected error executing web service: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMessage );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMessage );
             return RestResultBean.fromError( restRequest, errorInformation );
         }
     }
@@ -161,7 +161,7 @@ public class RestRandomPasswordServer extends RestServlet
         {
             LOGGER.error( restRequest.getSessionLabel(), "error executing rest-json random password request: " + e.getMessage(), e );
             final String errorMessage = "unexpected error executing web service: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMessage );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMessage );
             return RestResultBean.fromError( restRequest, errorInformation );
         }
     }
@@ -187,7 +187,7 @@ public class RestRandomPasswordServer extends RestServlet
         {
             LOGGER.error( restRequest.getSessionLabel(), "error executing rest-form random password request: " + e.getMessage(), e );
             final String errorMessage = "unexpected error executing web service: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMessage );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMessage );
             return RestResultBean.fromError( restRequest, errorInformation );
         }
     }

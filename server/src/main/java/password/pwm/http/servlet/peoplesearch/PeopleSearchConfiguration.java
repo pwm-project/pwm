@@ -29,13 +29,17 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.LdapProfile;
+import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.util.java.TimeDuration;
 
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 public class PeopleSearchConfiguration
 {
@@ -123,6 +127,16 @@ public class PeopleSearchConfiguration
         return Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.PEOPLESEARCH_EXPORT_CSV_MAX_DEPTH ) );
     }
 
+    boolean isEnableMailtoLinks( )
+    {
+        return pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE_TEAM_MAILTO );
+    }
+
+    int getMailtoLinksMaxDepth( )
+    {
+        return Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.PEOPLESEARCH_EXPORT_CSV_MAX_DEPTH ) );
+    }
+
     TimeDuration getExportCsvMaxDuration( )
     {
         final int seconds = Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.PEOPLESEARCH_EXPORT_CSV_MAX_SECONDS ) );
@@ -139,6 +153,33 @@ public class PeopleSearchConfiguration
         return Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.PEOPLESEARCH_EXPORT_CSV_MAX_ITEMS ) );
     }
 
+    List<FormConfiguration> getSearchForm()
+    {
+        return pwmRequest.getConfig().readSettingAsForm( PwmSetting.PEOPLE_SEARCH_SEARCH_FORM );
+    }
+
+    Set<String> getSearchAttributes()
+    {
+        final List<FormConfiguration> searchForm = getSearchForm();
+
+        return Collections.unmodifiableSet( new LinkedHashSet<>( FormConfiguration.convertToListOfNames( searchForm ) ) );
+    }
+
+    List<FormConfiguration> getResultForm()
+    {
+        return pwmRequest.getConfig().readSettingAsForm( PwmSetting.PEOPLE_SEARCH_RESULT_FORM );
+    }
+
+    int getResultLimit()
+    {
+        return ( int ) pwmRequest.getConfig().readSettingAsLong( PwmSetting.PEOPLE_SEARCH_RESULT_LIMIT );
+    }
+
+    boolean isEnablePrinting()
+    {
+        return pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE_PRINTING );
+    }
+
     public static PeopleSearchConfiguration forRequest(
             final PwmRequest pwmRequest
     )
@@ -146,4 +187,8 @@ public class PeopleSearchConfiguration
         return new PeopleSearchConfiguration( pwmRequest );
     }
 
+    public boolean isEnableAdvancedSearch()
+    {
+        return pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE_ADVANCED_SEARCH );
+    }
 }

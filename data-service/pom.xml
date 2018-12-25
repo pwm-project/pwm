@@ -13,7 +13,7 @@
 
     <packaging>war</packaging>
 
-    <name>PWM Password Self Service: Data Service</name>
+    <name>PWM Password Self Service: Data Service WAR</name>
 
     <licenses>
         <license>
@@ -171,11 +171,6 @@
             <groupId>org.jetbrains.xodus</groupId>
             <artifactId>xodus-environment</artifactId>
             <version>1.2.3</version>
-        </dependency>
-        <dependency>
-            <groupId>org.webjars</groupId>
-            <artifactId>webjars-locator-core</artifactId>
-            <version>0.35</version>
         </dependency>
     </dependencies>
 </project>

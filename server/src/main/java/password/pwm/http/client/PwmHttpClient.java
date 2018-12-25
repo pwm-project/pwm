@@ -168,7 +168,7 @@ public class PwmHttpClient
         }
         catch ( Exception e )
         {
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, "unexpected error creating promiscuous https client: " + e.getMessage() ) );
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, "unexpected error creating promiscuous https client: " + e.getMessage() ) );
         }
 
         final String proxyUrl = configuration.readSettingAsString( PwmSetting.HTTP_PROXY_URL );
@@ -281,7 +281,7 @@ public class PwmHttpClient
         final Instant startTime = Instant.now();
         final int counter = REQUEST_COUNTER.getAndIncrement();
 
-        LOGGER.trace( sessionLabel, "preparing to send (id=" + counter + ") "
+        LOGGER.trace( sessionLabel, () -> "preparing to send (id=" + counter + ") "
                 + clientRequest.toDebugString( this ) );
 
         final HttpResponse httpResponse = executeRequest( clientRequest );
@@ -303,7 +303,7 @@ public class PwmHttpClient
         );
 
         final TimeDuration duration = TimeDuration.fromCurrent( startTime );
-        LOGGER.trace( sessionLabel, "received response (id=" + counter + ") in "
+        LOGGER.trace( sessionLabel, () -> "received response (id=" + counter + ") in "
                 + duration.asCompactString() + ": "
                 + httpClientResponse.toDebugString( this ) );
         return httpClientResponse;
@@ -329,7 +329,7 @@ public class PwmHttpClient
                 }
                 catch ( URISyntaxException e )
                 {
-                    throw PwmUnrecoverableException.newException( PwmError.ERROR_UNKNOWN, "malformed url: " + clientRequest.getUrl() + ", error: " + e.getMessage() );
+                    throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, "malformed url: " + clientRequest.getUrl() + ", error: " + e.getMessage() );
                 }
             }
             break;

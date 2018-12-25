@@ -281,7 +281,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
             pwmApplication.getIntruderManager().convenience().markAttributes( formValues, pwmSession );
             pwmApplication.getIntruderManager().convenience().markAddressAndSession( pwmSession );
             setLastError( pwmRequest, e.getErrorInformation() );
-            LOGGER.debug( pwmSession.getLabel(), e.getErrorInformation().toDebugStr() );
+            LOGGER.debug( pwmSession, e.getErrorInformation() );
         }
 
         return ProcessStatus.Continue;
@@ -353,7 +353,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
         }
         catch ( PwmUnrecoverableException e )
         {
-            LOGGER.debug( pwmRequest, "error while checking entered token: " );
+            LOGGER.debug( pwmRequest, () -> "error while checking entered token: " );
             errorInformation = e.getErrorInformation();
         }
 
@@ -364,7 +364,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
             {
                 errorInformation = new ErrorInformation( PwmError.ERROR_TOKEN_INCORRECT );
             }
-            LOGGER.debug( pwmSession.getLabel(), errorInformation.toDebugStr() );
+            LOGGER.debug( pwmSession, errorInformation );
             setLastError( pwmRequest, errorInformation );
         }
 
@@ -377,7 +377,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
     )
             throws ServletException, IOException, PwmUnrecoverableException, ChaiUnavailableException
     {
-        LOGGER.debug( pwmRequest, "user accepted agreement" );
+        LOGGER.debug( pwmRequest, () -> "user accepted agreement" );
 
         final ActivateUserBean activateUserBean = activateUserBean( pwmRequest );
 

@@ -87,7 +87,10 @@ public class PwmServiceManager
         initialized = true;
 
         final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-        LOGGER.trace( "started " + serviceCounter + " services in " + timeDuration.asCompactString() );
+        {
+            final int finalServiceCounter = serviceCounter;
+            LOGGER.trace( () -> "started " + finalServiceCounter + " services in " + timeDuration.asCompactString() );
+        }
     }
 
     private PwmService initService( final Class<? extends PwmService> serviceClass )
@@ -110,10 +113,10 @@ public class PwmServiceManager
 
         try
         {
-            LOGGER.debug( "initializing service " + serviceName );
+            LOGGER.debug( () -> "initializing service " + serviceName );
             newServiceInstance.init( pwmApplication );
             final TimeDuration startupDuration = TimeDuration.fromCurrent( startTime );
-            LOGGER.debug( "completed initialization of service " + serviceName + " in " + startupDuration.asCompactString() + ", status=" + newServiceInstance.status() );
+            LOGGER.debug( () -> "completed initialization of service " + serviceName + " in " + startupDuration.asCompactString() + ", status=" + newServiceInstance.status() );
         }
         catch ( PwmException e )
         {
@@ -139,7 +142,7 @@ public class PwmServiceManager
             return;
         }
 
-        LOGGER.trace( "beginning to close all services" );
+        LOGGER.trace( () -> "beginning to close all services" );
         final Instant startTime = Instant.now();
 
 
@@ -154,22 +157,20 @@ public class PwmServiceManager
         }
         initialized = false;
 
-        final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-        LOGGER.trace( "closed all services in " + timeDuration.asCompactString() );
-
+        LOGGER.trace( () -> "closed all services in " + TimeDuration.compactFromCurrent( startTime ) );
     }
 
     private void shutDownService( final Class<? extends PwmService> serviceClass )
     {
 
-        LOGGER.trace( "closing service " + serviceClass.getName() );
+        LOGGER.trace( () -> "closing service " + serviceClass.getName() );
         final PwmService loopService = runningServices.get( serviceClass );
         try
         {
             final Instant startTime = Instant.now();
             loopService.close();
             final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-            LOGGER.trace( "successfully closed service " + serviceClass.getName() + " (" + timeDuration.asCompactString() + ")" );
+            LOGGER.trace( () -> "successfully closed service " + serviceClass.getName() + " (" + timeDuration.asCompactString() + ")" );
         }
         catch ( Exception e )
         {

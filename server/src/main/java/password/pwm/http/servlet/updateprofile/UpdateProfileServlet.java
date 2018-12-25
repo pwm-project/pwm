@@ -183,7 +183,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
         }
         catch ( PwmUnrecoverableException e )
         {
-            LOGGER.debug( pwmRequest, "error while checking entered token: " );
+            LOGGER.debug( pwmRequest, () -> "error while checking entered token: " );
             errorInformation = e.getErrorInformation();
         }
 
@@ -194,7 +194,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
             return ProcessStatus.Halt;
         }
 
-        LOGGER.debug( pwmRequest, "marking token as passed " + JsonUtil.serialize( tokenDestinationItem ) );
+        LOGGER.debug( pwmRequest, () -> "marking token as passed " + JsonUtil.serialize( tokenDestinationItem ) );
         updateProfileBean.getCompletedTokenFields().add( updateProfileBean.getCurrentTokenField() );
         updateProfileBean.setTokenSent( false );
         updateProfileBean.setCurrentTokenField( null );
@@ -279,7 +279,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
     ProcessStatus handleAgreeRequest( final PwmRequest pwmRequest )
             throws ServletException, IOException, PwmUnrecoverableException, ChaiUnavailableException
     {
-        LOGGER.debug( pwmRequest, "user accepted agreement" );
+        LOGGER.debug( pwmRequest, () -> "user accepted agreement" );
 
         final UpdateProfileBean updateProfileBean = getBean( pwmRequest );
         if ( !updateProfileBean.isAgreementPassed() )

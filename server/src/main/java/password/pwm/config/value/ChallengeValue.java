@@ -26,7 +26,7 @@ import com.google.gson.reflect.TypeToken;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.config.value.data.ChallengeItemConfiguration;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
@@ -211,7 +211,7 @@ public class ChallengeValue extends AbstractValue implements StoredValue
             }
             catch ( Exception e )
             {
-                LOGGER.debug( "unexpected error parsing config input '" + inputString + "' " + e.getMessage() );
+                LOGGER.debug( () -> "unexpected error parsing config input '" + inputString + "' " + e.getMessage() );
             }
         }
         if ( s1.length > 2 )
@@ -222,7 +222,7 @@ public class ChallengeValue extends AbstractValue implements StoredValue
             }
             catch ( Exception e )
             {
-                LOGGER.debug( "unexpected error parsing config input '" + inputString + "' " + e.getMessage() );
+                LOGGER.debug( () -> "unexpected error parsing config input '" + inputString + "' " + e.getMessage() );
             }
         }
 

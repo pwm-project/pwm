@@ -79,18 +79,18 @@ public class DbCrOperator implements CrOperator
             if ( responseStringBlob != null && responseStringBlob.length() > 0 )
             {
                 final ResponseSet userResponseSet = ChaiResponseSet.parseChaiResponseSetXML( responseStringBlob, theUser );
-                LOGGER.debug( "found responses for " + theUser.getEntryDN() + " in remote database: " + userResponseSet.toString() );
+                LOGGER.debug( () -> "found responses for " + theUser.getEntryDN() + " in remote database: " + userResponseSet.toString() );
                 return userResponseSet;
             }
             else
             {
-                LOGGER.trace( "user guid for " + theUser.getEntryDN() + " not found in remote database (key=" + userGUID + ")" );
+                LOGGER.trace( () -> "user guid for " + theUser.getEntryDN() + " not found in remote database (key=" + userGUID + ")" );
             }
         }
         catch ( ChaiValidationException e )
         {
             final String errorMsg = "unexpected error reading responses for " + theUser.getEntryDN() + " from remote database: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             throw new PwmUnrecoverableException( errorInformation );
         }
         catch ( PwmOperationalException e )
@@ -134,7 +134,7 @@ public class DbCrOperator implements CrOperator
         {
             final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseService().getAccessor();
             databaseAccessor.remove( DatabaseTable.PWM_RESPONSES, userGUID );
-            LOGGER.info( "cleared responses for user " + theUser.getEntryDN() + " in remote database" );
+            LOGGER.info( () -> "cleared responses for user " + theUser.getEntryDN() + " in remote database" );
         }
         catch ( DatabaseException e )
         {
@@ -165,7 +165,7 @@ public class DbCrOperator implements CrOperator
             );
         }
 
-        LOGGER.trace( "attempting to save responses for " + theUser.getEntryDN() + " in remote database (key=" + userGUID + ")" );
+        LOGGER.trace( () -> "attempting to save responses for " + theUser.getEntryDN() + " in remote database (key=" + userGUID + ")" );
 
         try
         {
@@ -180,7 +180,7 @@ public class DbCrOperator implements CrOperator
 
             final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseService().getAccessor();
             databaseAccessor.put( DatabaseTable.PWM_RESPONSES, userGUID, responseSet.stringValue() );
-            LOGGER.info( "saved responses for " + theUser.getEntryDN() + " in remote database (key=" + userGUID + ")" );
+            LOGGER.info( () -> "saved responses for " + theUser.getEntryDN() + " in remote database (key=" + userGUID + ")" );
         }
         catch ( ChaiException e )
         {

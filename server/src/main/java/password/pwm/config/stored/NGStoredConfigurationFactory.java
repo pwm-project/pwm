@@ -147,7 +147,7 @@ public class NGStoredConfigurationFactory
 
             if ( pwmSetting == null )
             {
-                LOGGER.debug( "ignoring setting for unknown key: " + key );
+                LOGGER.debug( () -> "ignoring setting for unknown key: " + key );
             }
             else
             {
@@ -179,7 +179,7 @@ public class NGStoredConfigurationFactory
         {
             final String key = storedConfigReference.getRecordID();
 
-            LOGGER.trace( "parsing property key=" + key + ", profile=" + storedConfigReference.getProfileID() );
+            LOGGER.trace( () -> "parsing property key=" + key + ", profile=" + storedConfigReference.getProfileID() );
             if ( settingElement.getChild( StoredConfiguration.XML_ELEMENT_DEFAULT ) != null )
             {
                 return new StringValue( settingElement.getText() );

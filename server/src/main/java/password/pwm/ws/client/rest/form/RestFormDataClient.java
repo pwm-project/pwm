@@ -119,7 +119,7 @@ public class RestFormDataClient
         {
             httpResponse = getHttpClient( pwmApplication.getConfig() ).makeRequest( pwmHttpClientRequest );
             final String responseBody = httpResponse.getBody();
-            LOGGER.trace( "external rest call returned: " + httpResponse.getStatusPhrase() + ", body: " + responseBody );
+            LOGGER.trace( () -> "external rest call returned: " + httpResponse.getStatusPhrase() + ", body: " + responseBody );
             if ( httpResponse.getStatusCode() != 200 )
             {
                 final String errorMsg = "received non-200 response code (" + httpResponse.getStatusCode() + ") when executing web-service";

@@ -46,7 +46,7 @@ public class ConfigDeleteCommand extends AbstractCliCommand
 
         if ( configurationFile.delete() )
         {
-            out( "success" );
+            out( "success: configuration file has been deleted" );
         }
         else
         {

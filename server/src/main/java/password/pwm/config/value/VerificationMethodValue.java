@@ -28,7 +28,7 @@ import password.pwm.config.StoredValue;
 import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.i18n.Display;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;

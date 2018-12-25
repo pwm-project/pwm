@@ -70,7 +70,7 @@ public class PwmSettingXml
                 final Instant startTime = Instant.now();
                 final XmlDocument newDoc = XmlFactory.getFactory().parseXml( inputStream );
                 final TimeDuration parseDuration = TimeDuration.fromCurrent( startTime );
-                LOGGER.trace( "parsed PwmSettingXml in " + parseDuration.toString() + ", loads=" + LOAD_COUNTER.getAndIncrement() );
+                LOGGER.trace( () -> "parsed PwmSettingXml in " + parseDuration.toString() + ", loads=" + LOAD_COUNTER.getAndIncrement() );
 
                 xmlDocCache = newDoc;
 
@@ -88,7 +88,7 @@ public class PwmSettingXml
                         {
                             //ignored
                         }
-                        LOGGER.trace( "cached PwmSettingXml discarded" );
+                        LOGGER.trace( () -> "cached PwmSettingXml discarded" );
                         xmlDocCache = null;
                     }
                 };

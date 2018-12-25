@@ -40,6 +40,7 @@ class OnejarConfig
     private String context;
     private String localAddress;
     private String keystorePass;
+    private String execCommand;
 
     File getWarFolder( ) throws IOException
     {

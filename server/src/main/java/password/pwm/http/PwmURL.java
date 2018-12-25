@@ -228,6 +228,18 @@ public class PwmURL
         return isPwmServletURL( PwmServletDefinition.UpdateProfile );
     }
 
+    public PwmServletDefinition forServletDefinition()
+    {
+        for ( final PwmServletDefinition pwmServletDefinition : PwmServletDefinition.values() )
+        {
+            if ( isPwmServletURL( pwmServletDefinition ) )
+            {
+                return pwmServletDefinition;
+            }
+        }
+        return null;
+    }
+
     public boolean isLocalizable( )
     {
         return !isConfigGuideURL()
@@ -441,16 +453,16 @@ public class PwmURL
             {
                 try
                 {
-                    final String strPattern = loopFragment.substring( regexPrefix.length(), loopFragment.length() );
+                    final String strPattern = loopFragment.substring( regexPrefix.length() );
                     final Pattern pattern = Pattern.compile( strPattern );
                     if ( pattern.matcher( testURI ).matches() )
                     {
-                        LOGGER.debug( sessionLabel, "positive URL match for regex pattern: " + strPattern );
+                        LOGGER.debug( sessionLabel, () -> "positive URL match for regex pattern: " + strPattern );
                         return true;
                     }
                     else
                     {
-                        LOGGER.trace( sessionLabel, "negative URL match for regex pattern: " + strPattern );
+                        LOGGER.trace( sessionLabel, () -> "negative URL match for regex pattern: " + strPattern );
                     }
                 }
                 catch ( Exception e )
@@ -463,12 +475,12 @@ public class PwmURL
             {
                 if ( testURI.startsWith( loopFragment ) )
                 {
-                    LOGGER.debug( sessionLabel, "positive URL match for pattern: " + loopFragment );
+                    LOGGER.debug( sessionLabel, () -> "positive URL match for pattern: " + loopFragment );
                     return true;
                 }
                 else
                 {
-                    LOGGER.trace( sessionLabel, "negative URL match for pattern: " + loopFragment );
+                    LOGGER.trace( sessionLabel, () -> "negative URL match for pattern: " + loopFragment );
                 }
             }
         }

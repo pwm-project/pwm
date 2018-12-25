@@ -120,12 +120,12 @@ public class PwmPasswordRuleValidator
         {
             try
             {
-                LOGGER.trace( "calling chai directory password validation checker" );
+                LOGGER.trace( () -> "calling chai directory password validation checker" );
                 user.testPasswordPolicy( password.getStringValue() );
             }
             catch ( UnsupportedOperationException e )
             {
-                LOGGER.trace( "Unsupported operation was thrown while validating password: " + e.toString() );
+                LOGGER.trace( () -> "Unsupported operation was thrown while validating password: " + e.toString() );
             }
             catch ( ChaiUnavailableException e )
             {
@@ -138,7 +138,7 @@ public class PwmPasswordRuleValidator
                 final ChaiError passwordError = e.getErrorCode();
                 final PwmError pwmError = PwmError.forChaiError( passwordError );
                 final ErrorInformation info = new ErrorInformation( pwmError == null ? PwmError.PASSWORD_UNKNOWN_VALIDATION : pwmError );
-                LOGGER.trace( "ChaiPasswordPolicyException was thrown while validating password: " + e.toString() );
+                LOGGER.trace( () -> "ChaiPasswordPolicyException was thrown while validating password: " + e.toString() );
                 errorResults.add( info );
             }
         }
@@ -208,7 +208,7 @@ public class PwmPasswordRuleValidator
         if ( passwordString == null )
         {
             return Collections.singletonList( new ErrorInformation(
-                    PwmError.ERROR_UNKNOWN,
+                    PwmError.ERROR_INTERNAL,
                     "empty (null) new password" ) );
         }
 
@@ -321,7 +321,7 @@ public class PwmPasswordRuleValidator
 
                     if ( containsDisallowedValue( passwordString, disallowedValue, threshold ) )
                     {
-                        LOGGER.trace( "password rejected, same as user attr " + attrName );
+                        LOGGER.trace( () -> "password rejected, same as user attr " + attrName );
                         errorList.add( new ErrorInformation( PwmError.PASSWORD_SAMEASATTR ) );
                     }
                 }
@@ -349,10 +349,9 @@ public class PwmPasswordRuleValidator
                         errorList.add( new ErrorInformation( PwmError.PASSWORD_TOO_WEAK ) );
                         if ( EXTRA_LOGGING )
                         {
-                            final String msg = "password rejected, password strength of "
+                            LOGGER.trace( () -> "password rejected, password strength of "
                                     + passwordStrength + " is lower than policy requirement of "
-                                    + requiredPasswordStrength;
-                            LOGGER.trace( msg );
+                                    + requiredPasswordStrength );
                         }
                     }
                 }
@@ -372,8 +371,7 @@ public class PwmPasswordRuleValidator
                 errorList.add( new ErrorInformation( PwmError.PASSWORD_INVALID_CHAR ) );
                 if ( EXTRA_LOGGING )
                 {
-                    final String msg = "password rejected, does not match configured regex pattern: " + pattern.toString();
-                    LOGGER.trace( msg );
+                    LOGGER.trace( () -> "password rejected, does not match configured regex pattern: " + pattern.toString() );
                 }
             }
         }
@@ -391,7 +389,7 @@ public class PwmPasswordRuleValidator
                 errorList.add( new ErrorInformation( PwmError.PASSWORD_INVALID_CHAR ) );
                 if ( EXTRA_LOGGING )
                 {
-                    LOGGER.trace( "password rejected, matches configured no-regex pattern: " + pattern.toString() );
+                    LOGGER.trace( () -> "password rejected, matches configured no-regex pattern: " + pattern.toString() );
                 }
             }
         }
@@ -569,7 +567,7 @@ public class PwmPasswordRuleValidator
                 if ( password.toLowerCase().contains( samAccountName.toLowerCase() ) )
                 {
                     errorList.add( new ErrorInformation( PwmError.PASSWORD_INWORDLIST ) );
-                    LOGGER.trace( "Password violation due to ADComplexity check: Password contains sAMAccountName" );
+                    LOGGER.trace( () -> "Password violation due to ADComplexity check: Password contains sAMAccountName" );
                 }
             }
             final String displayName = userAttrs.get( "displayName" );
@@ -578,7 +576,7 @@ public class PwmPasswordRuleValidator
                 if ( checkContainsTokens( password, displayName ) )
                 {
                     errorList.add( new ErrorInformation( PwmError.PASSWORD_INWORDLIST ) );
-                    LOGGER.trace( "Password violation due to ADComplexity check: Tokens from displayName used in password" );
+                    LOGGER.trace( () -> "Password violation due to ADComplexity check: Tokens from displayName used in password" );
                 }
             }
         }
@@ -759,18 +757,18 @@ public class PwmPasswordRuleValidator
                 if ( responseMap.containsKey( REST_RESPONSE_KEY_ERROR_MSG ) )
                 {
                     final String errorMessage = responseMap.get( REST_RESPONSE_KEY_ERROR_MSG ).toString();
-                    LOGGER.trace( "external web service reported error: " + errorMessage );
+                    LOGGER.trace( () -> "external web service reported error: " + errorMessage );
                     returnedErrors.add( new ErrorInformation( PwmError.PASSWORD_CUSTOM_ERROR, errorMessage, errorMessage, null ) );
                 }
                 else
                 {
-                    LOGGER.trace( "external web service reported error without specifying an errorMessage" );
+                    LOGGER.trace( () -> "external web service reported error without specifying an errorMessage" );
                     returnedErrors.add( new ErrorInformation( PwmError.PASSWORD_CUSTOM_ERROR ) );
                 }
             }
             else
             {
-                LOGGER.trace( "external web service did not report an error" );
+                LOGGER.trace( () -> "external web service did not report an error" );
             }
 
         }

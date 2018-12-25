@@ -22,7 +22,8 @@
 
 package password.pwm.bean.pub;
 
-import lombok.Getter;
+import lombok.Builder;
+import lombok.Value;
 import password.pwm.bean.PasswordStatus;
 import password.pwm.config.Configuration;
 import password.pwm.config.profile.PwmPasswordRule;
@@ -39,7 +40,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-@Getter
+@Value
+@Builder
 public class PublicUserInfoBean implements Serializable
 {
     private String userDN;
@@ -52,6 +54,7 @@ public class PublicUserInfoBean implements Serializable
     private String userSmsNumber;
     private String userSmsNumber2;
     private String userSmsNumber3;
+    private String language;
     private Instant passwordExpirationTime;
     private Instant passwordLastModifiedTime;
     private Instant lastLoginTime;
@@ -75,11 +78,11 @@ public class PublicUserInfoBean implements Serializable
     )
             throws PwmUnrecoverableException
     {
-        final PublicUserInfoBean publicUserInfoBean = new PublicUserInfoBean();
+        final PublicUserInfoBean.PublicUserInfoBeanBuilder publicUserInfoBean = PublicUserInfoBean.builder();
         publicUserInfoBean.userDN = ( userInfoBean.getUserIdentity() == null ) ? "" : userInfoBean.getUserIdentity().getUserDN();
         publicUserInfoBean.ldapProfile = ( userInfoBean.getUserIdentity() == null ) ? "" : userInfoBean.getUserIdentity().getLdapProfileID();
         publicUserInfoBean.userID = userInfoBean.getUsername();
-        publicUserInfoBean.userGUID = publicUserInfoBean.getUserGUID();
+        publicUserInfoBean.userGUID = userInfoBean.getUserGuid();
         publicUserInfoBean.userEmailAddress = userInfoBean.getUserEmailAddress();
         publicUserInfoBean.userEmailAddress2 = userInfoBean.getUserEmailAddress2();
         publicUserInfoBean.userEmailAddress3 = userInfoBean.getUserEmailAddress3();
@@ -97,6 +100,7 @@ public class PublicUserInfoBean implements Serializable
         publicUserInfoBean.requiresUpdateProfile = userInfoBean.isRequiresUpdateProfile();
         publicUserInfoBean.requiresOtpConfig = userInfoBean.isRequiresOtpConfig();
         publicUserInfoBean.requiresInteraction = userInfoBean.isRequiresInteraction();
+        publicUserInfoBean.language = userInfoBean.getLanguage();
 
         publicUserInfoBean.passwordPolicy = new HashMap<>();
         for ( final PwmPasswordRule rule : PwmPasswordRule.values() )
@@ -116,6 +120,6 @@ public class PublicUserInfoBean implements Serializable
             publicUserInfoBean.attributes = Collections.unmodifiableMap( userInfoBean.getCachedAttributeValues() );
         }
 
-        return publicUserInfoBean;
+        return publicUserInfoBean.build();
     }
 }

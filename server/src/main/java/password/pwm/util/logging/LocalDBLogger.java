@@ -95,7 +95,7 @@ public class LocalDBLogger implements PwmService
 
         if ( settings.getMaxEvents() == 0 )
         {
-            LOGGER.info( "maxEvents set to zero, clearing LocalDBLogger history and LocalDBLogger will remain closed" );
+            LOGGER.info( () -> "maxEvents set to zero, clearing LocalDBLogger history and LocalDBLogger will remain closed" );
             localDBListQueue.clear();
             throw new IllegalArgumentException( "maxEvents=0, will remain closed" );
         }
@@ -140,7 +140,7 @@ public class LocalDBLogger implements PwmService
         cleanOnWriteFlag.set( eventQueue.size() >= settings.getMaxEvents() );
 
         final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-        LOGGER.info( "open in " + timeDuration.asCompactString() + ", " + debugStats() );
+        LOGGER.info( () -> "open in " + timeDuration.asCompactString() + ", " + debugStats() );
     }
 
 
@@ -188,7 +188,7 @@ public class LocalDBLogger implements PwmService
     {
         if ( status != STATUS.CLOSED )
         {
-            LOGGER.debug( "LocalDBLogger closing... (" + debugStats() + ")" );
+            LOGGER.debug( () -> "LocalDBLogger closing... (" + debugStats() + ")" );
             if ( cleanerService != null )
             {
                 cleanerService.shutdown();
@@ -198,7 +198,7 @@ public class LocalDBLogger implements PwmService
         }
         status = STATUS.CLOSED;
 
-        LOGGER.debug( "LocalDBLogger close completed (" + debugStats() + ")" );
+        LOGGER.debug( () -> "LocalDBLogger close completed (" + debugStats() + ")" );
     }
 
     public int getStoredEventCount( )
@@ -308,7 +308,7 @@ public class LocalDBLogger implements PwmService
         }
         catch ( PatternSyntaxException e )
         {
-            LOGGER.trace( "invalid regex syntax for " + searchParameters.getUsername() + ", reverting to plaintext search" );
+            LOGGER.trace( () -> "invalid regex syntax for " + searchParameters.getUsername() + ", reverting to plaintext search" );
         }
         if ( pattern != null )
         {

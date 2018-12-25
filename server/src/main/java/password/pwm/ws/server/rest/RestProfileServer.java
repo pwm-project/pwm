@@ -111,7 +111,7 @@ public class RestProfileServer extends RestServlet
         catch ( Exception e )
         {
             final String errorMsg = "unexpected error building json response: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             return RestResultBean.fromError( restRequest, errorInformation );
         }
     }
@@ -184,7 +184,7 @@ public class RestProfileServer extends RestServlet
         catch ( Exception e )
         {
             final String errorMsg = "unexpected error building json response: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             return RestResultBean.fromError( restRequest, errorInformation );
         }
     }

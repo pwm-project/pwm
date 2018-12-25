@@ -12,7 +12,7 @@
     <artifactId>rest-test-service</artifactId>
     <packaging>war</packaging>
 
-    <name>PWM Password Self Service: REST Test Server</name>
+    <name>PWM Password Self Service: REST Test Server WAR</name>
 
     <properties>
         <project.root.basedir>${project.basedir}/..</project.root.basedir>
@@ -67,12 +67,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <version>2.23.0</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
             <version>3.11.1</version>
@@ -106,6 +100,18 @@
         </dependency>
         <!-- / container dependencies -->
 
+        <!-- library dependencies -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.8.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>1.3.2</version>
+        </dependency>
+        <!-- / library dependencies -->
     </dependencies>
 
 </project>

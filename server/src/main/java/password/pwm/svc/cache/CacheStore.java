@@ -42,4 +42,6 @@ public interface CacheStore
     int itemCount( );
 
     List<CacheDebugItem> getCacheDebugItems( );
+
+    long byteCount();
 }

@@ -23,6 +23,7 @@
 package password.pwm.util.java;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import jetbrains.exodus.core.dataStructures.hash.LinkedHashMap;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.io.IOUtils;
 import password.pwm.PwmApplication;
@@ -59,14 +60,17 @@ import java.util.GregorianCalendar;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.TimeZone;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
@@ -322,10 +326,25 @@ public class JavaHelper
         return IOUtils.copyLarge( input, output, 0, -1, buffer );
     }
 
-    public static long copyWhilePredicate( final InputStream input, final OutputStream output, final Predicate<Long> predicate )
+    public static long copyWhilePredicate(
+            final InputStream input,
+            final OutputStream output,
+            final Predicate<Long> predicate
+    )
             throws IOException
     {
-        final int bufferSize = 4 * 1024;
+        return copyWhilePredicate( input, output, 4 * 1024, predicate, null );
+    }
+
+    public static long copyWhilePredicate(
+            final InputStream input,
+            final OutputStream output,
+            final int bufferSize,
+            final Predicate<Long> predicate,
+            final ConditionalTaskExecutor condtionalTaskExecutor
+    )
+            throws IOException
+    {
         final byte[] buffer = new byte[ bufferSize ];
         long bytesCopied;
         long totalCopied = 0;
@@ -335,6 +354,10 @@ public class JavaHelper
             if ( bytesCopied > 0 )
             {
                 totalCopied += bytesCopied;
+            }
+            if ( condtionalTaskExecutor != null )
+            {
+                condtionalTaskExecutor.conditionallyExecuteTask();
             }
             if ( !predicate.test( bytesCopied ) )
             {
@@ -469,7 +492,24 @@ public class JavaHelper
                 ) );
     }
 
-
+    public static ExecutorService makeBackgroundExecutor(
+            final PwmApplication pwmApplication,
+            final Class clazz
+    )
+    {
+        final ThreadPoolExecutor executor = new ThreadPoolExecutor(
+                1,
+                1,
+                10, TimeUnit.SECONDS,
+                new LinkedBlockingQueue<>(),
+                JavaHelper.makePwmThreadFactory(
+                        JavaHelper.makeThreadName( pwmApplication, clazz ) + "-",
+                        true
+                ) );
+        executor.allowCoreThreadTimeOut( true );
+        return executor;
+    }
+    
     /**
      * Copy of {@link ThreadInfo#toString()} but with the MAX_FRAMES changed from 8 to 256.
      * @param threadInfo thread information
@@ -648,8 +688,16 @@ public class JavaHelper
         }
         catch ( IOException e )
         {
-            LOGGER.debug( "exception while estimating session size: " + e.getMessage() );
+            LOGGER.debug( () -> "exception while estimating session size: " + e.getMessage() );
             return 0;
         }
+    }
+
+    public static Map<String, String> propertiesToStringMap( final Properties properties )
+    {
+        Objects.requireNonNull( properties );
+        final Map<String, String> returnMap = new LinkedHashMap<>( properties.size() );
+        properties.forEach( ( key, value ) -> returnMap.put( ( String ) key, (String) value ) );
+        return returnMap;
     }
 }

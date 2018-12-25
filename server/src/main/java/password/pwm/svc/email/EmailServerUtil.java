@@ -189,7 +189,7 @@ public class EmailServerUtil
                 final Optional<IOException> optionalIoException = JavaHelper.extractNestedExceptionType( e, IOException.class );
                 if ( optionalIoException.isPresent() )
                 {
-                    LOGGER.trace( "message send failure cause is due to an I/O error: " + optionalIoException.get().getMessage() );
+                    LOGGER.trace( () -> "message send failure cause is due to an I/O error: " + optionalIoException.get().getMessage() );
                     return true;
                 }
             }
@@ -200,7 +200,7 @@ public class EmailServerUtil
                 {
                     final SMTPSendFailedException smtpSendFailedException = optionalSmtpSendFailedException.get();
                     final int returnCode = smtpSendFailedException.getReturnCode();
-                    LOGGER.trace( "message send failure cause is due to server response code: " + returnCode );
+                    LOGGER.trace( () -> "message send failure cause is due to server response code: " + returnCode );
                     if ( retyableStatusCodes.contains( returnCode ) )
                     {
                         return true;
@@ -300,7 +300,7 @@ public class EmailServerUtil
             transport.connect();
         }
 
-        LOGGER.debug( "connected to " + server.toDebugString() + " " + ( authenticated ? "(authenticated)" : "(unauthenticated)" ) );
+        LOGGER.debug( () -> "connected to " + server.toDebugString() + " " + ( authenticated ? "(authenticated)" : "(unauthenticated)" ) );
 
         return transport;
     }

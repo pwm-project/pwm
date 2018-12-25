@@ -179,7 +179,7 @@ public class LDAPStatusChecker implements HealthChecker
         catch ( PwmUnrecoverableException e )
         {
             final String msgString = e.getMessage();
-            LOGGER.trace( SessionLabel.HEALTH_SESSION_LABEL, "unexpected error while testing test user (during object creation): message="
+            LOGGER.trace( SessionLabel.HEALTH_SESSION_LABEL, () -> "unexpected error while testing test user (during object creation): message="
                     + msgString + " debug info: " + JavaHelper.readHostileExceptionMessage( e ) );
             returnRecords.add( HealthRecord.forMessage( HealthMessage.LDAP_TestUserUnexpected,
                     PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug( ldapProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE ),
@@ -230,7 +230,7 @@ public class LDAPStatusChecker implements HealthChecker
                 final String msgString = e.getMessage();
                 LOGGER.trace(
                         SessionLabel.HEALTH_SESSION_LABEL,
-                        "unexpected error while testing test user (during object creation): message="
+                        () -> "unexpected error while testing test user (during object creation): message="
                                 + msgString + " debug info: " + JavaHelper.readHostileExceptionMessage( e )
                 );
                 returnRecords.add( HealthRecord.forMessage( HealthMessage.LDAP_TestUserUnexpected,
@@ -255,7 +255,7 @@ public class LDAPStatusChecker implements HealthChecker
 
             LOGGER.trace(
                     SessionLabel.HEALTH_SESSION_LABEL,
-                    "beginning process to check ldap test user password read/write operations for profile "
+                    () -> "beginning process to check ldap test user password read/write operations for profile "
                             + ldapProfile.getIdentifier()
             );
             try
@@ -271,7 +271,7 @@ public class LDAPStatusChecker implements HealthChecker
                     }
                     catch ( Exception e )
                     {
-                        LOGGER.debug( SessionLabel.HEALTH_SESSION_LABEL, "error reading user password from directory " + e.getMessage() );
+                        LOGGER.debug( SessionLabel.HEALTH_SESSION_LABEL, () -> "error reading user password from directory " + e.getMessage() );
                         returnRecords.add( HealthRecord.forMessage( HealthMessage.LDAP_TestUserReadPwError,
                                 PwmSetting.EDIRECTORY_READ_USER_PWD.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE ),
                                 PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug( ldapProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE ),
@@ -321,7 +321,7 @@ public class LDAPStatusChecker implements HealthChecker
                             );
                             if ( withinMinLifetime )
                             {
-                                LOGGER.trace( SessionLabel.HEALTH_SESSION_LABEL, "skipping test user password set due to password being within minimum lifetime" );
+                                LOGGER.trace( SessionLabel.HEALTH_SESSION_LABEL, () -> "skipping test user password set due to password being within minimum lifetime" );
                                 doPasswordChange = false;
                             }
                         }
@@ -332,7 +332,7 @@ public class LDAPStatusChecker implements HealthChecker
                         try
                         {
                             theUser.setPassword( newPassword.getStringValue() );
-                            LOGGER.debug( SessionLabel.HEALTH_SESSION_LABEL, "set random password on test user " + userIdentity.toDisplayString() );
+                            LOGGER.debug( SessionLabel.HEALTH_SESSION_LABEL, () -> "set random password on test user " + userIdentity.toDisplayString() );
                         }
                         catch ( ChaiException e )
                         {
@@ -518,7 +518,7 @@ public class LDAPStatusChecker implements HealthChecker
                 {
                     errorString.append( " (" );
                     errorString.append( chaiError.toString() );
-                    if ( pwmError != null && pwmError != PwmError.ERROR_UNKNOWN )
+                    if ( pwmError != null && pwmError != PwmError.ERROR_INTERNAL )
                     {
                         errorString.append( " - " );
                         errorString.append( pwmError.getLocalizedMessage( PwmConstants.DEFAULT_LOCALE, pwmApplication.getConfig() ) );
@@ -668,7 +668,7 @@ public class LDAPStatusChecker implements HealthChecker
             return ( List<HealthRecord> ) healthProperties.get( HealthMonitor.HealthMonitorFlag.LdapVendorSameCheck );
         }
 
-        LOGGER.trace( SessionLabel.HEALTH_SESSION_LABEL, "beginning check for replica vendor sameness" );
+        LOGGER.trace( SessionLabel.HEALTH_SESSION_LABEL, () -> "beginning check for replica vendor sameness" );
         boolean errorReachingServer = false;
         final Map<String, DirectoryVendor> replicaVendorMap = new HashMap<>();
 
@@ -748,7 +748,8 @@ public class LDAPStatusChecker implements HealthChecker
             }
         }
 
-        LOGGER.trace( SessionLabel.HEALTH_SESSION_LABEL, "beginning check for ad api password policy (asn " + PwmConstants.LDAP_AD_PASSWORD_POLICY_CONTROL_ASN + ") support" );
+        LOGGER.trace( SessionLabel.HEALTH_SESSION_LABEL, () -> "beginning check for ad api password policy (asn "
+                + PwmConstants.LDAP_AD_PASSWORD_POLICY_CONTROL_ASN + ") support" );
         boolean errorReachingServer = false;
         final ArrayList<HealthRecord> healthRecords = new ArrayList<>();
 

@@ -39,7 +39,7 @@ public class LicenseInfoReader
 
     public static List<DependencyInfo> getLicenseInfos() throws PwmUnrecoverableException
     {
-        final List<String> attributionFiles = Arrays.asList( "/server-attribution.xml", "/webapp-attribution.xml" );
+        final List<String> attributionFiles = Arrays.asList( "/attribution.xml" );
         final List<DependencyInfo> returnList = new ArrayList<>();
         final XmlFactory factory = new XmlFactory.XmlFactoryW3c();
 

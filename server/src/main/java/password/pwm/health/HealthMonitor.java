@@ -40,10 +40,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 public class HealthMonitor implements PwmService
 {
@@ -67,7 +65,7 @@ public class HealthMonitor implements PwmService
         HEALTH_CHECKERS = records;
     }
 
-    private ScheduledExecutorService executorService;
+    private ExecutorService executorService;
     private HealthMonitorSettings settings;
 
     private volatile Instant lastHealthCheckTime = Instant.ofEpochMilli( 0 );
@@ -146,20 +144,14 @@ public class HealthMonitor implements PwmService
 
         if ( !Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.HEALTHCHECK_ENABLED ) ) )
         {
-            LOGGER.debug( "health monitor will remain inactive due to AppProperty " + AppProperty.HEALTHCHECK_ENABLED.getKey() );
+            LOGGER.debug( () -> "health monitor will remain inactive due to AppProperty " + AppProperty.HEALTHCHECK_ENABLED.getKey() );
             status = STATUS.CLOSED;
             return;
         }
 
 
-        executorService = Executors.newSingleThreadScheduledExecutor(
-                JavaHelper.makePwmThreadFactory(
-                        JavaHelper.makeThreadName( pwmApplication, this.getClass() ) + "-",
-                        true
-                ) );
-
-
-        executorService.scheduleAtFixedRate( new ScheduledUpdater(), 0, settings.getNominalCheckInterval().asMillis(), TimeUnit.MILLISECONDS );
+        executorService = JavaHelper.makeBackgroundExecutor( pwmApplication, this.getClass() );
+        pwmApplication.scheduleFixedRateJob( new ScheduledUpdater(), executorService, TimeDuration.SECONDS_10, settings.getNominalCheckInterval() );
 
         status = STATUS.OPEN;
     }
@@ -177,7 +169,7 @@ public class HealthMonitor implements PwmService
             final boolean recordsAreStale = TimeDuration.fromCurrent( lastHealthCheckTime ).isLongerThan( settings.getMaximumRecordAge() );
             if ( timeliness == CheckTimeliness.Immediate || ( timeliness == CheckTimeliness.CurrentButNotAncient && recordsAreStale ) )
             {
-                final ScheduledFuture updateTask = executorService.schedule( new ImmediateUpdater(), 0, TimeUnit.NANOSECONDS );
+                final ScheduledFuture updateTask = pwmApplication.scheduleFutureJob( new ImmediateUpdater(), executorService, TimeDuration.ZERO );
                 final Instant beginWaitTime = Instant.now();
                 while ( !updateTask.isDone() && TimeDuration.fromCurrent( beginWaitTime ).isShorterThan( settings.getMaximumForceCheckWait() ) )
                 {
@@ -224,7 +216,7 @@ public class HealthMonitor implements PwmService
         }
 
         final Instant startTime = Instant.now();
-        LOGGER.trace( "beginning background health check process" );
+        LOGGER.trace( () -> "beginning background health check process" );
         final List<HealthRecord> tempResults = new ArrayList<>();
         for ( final HealthChecker loopChecker : HEALTH_CHECKERS )
         {
@@ -265,7 +257,7 @@ public class HealthMonitor implements PwmService
         healthRecords.clear();
         healthRecords.addAll( tempResults );
         lastHealthCheckTime = Instant.now();
-        LOGGER.trace( "health check process completed (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
+        LOGGER.trace( () -> "health check process completed (" + TimeDuration.compactFromCurrent( startTime ) + ")" );
     }
 
     public ServiceInfoBean serviceInfo( )

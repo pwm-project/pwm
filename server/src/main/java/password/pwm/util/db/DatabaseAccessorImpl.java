@@ -326,7 +326,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
         }
         catch ( SQLException e )
         {
-            LOGGER.debug( "error while checking connection validity: " + e.getMessage() );
+            LOGGER.debug( () -> "error while checking connection validity: " + e.getMessage() );
         }
 
         return true;
@@ -469,7 +469,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
             return;
         }
 
-        LOGGER.trace( "accessor #" + accessorNumber + " begin operation: " + JsonUtil.serialize( debugInfo ) );
+        LOGGER.trace( () -> "accessor #" + accessorNumber + " begin operation: " + JsonUtil.serialize( debugInfo ) );
     }
 
     private void traceResult(
@@ -488,7 +488,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
         {
             map.put( "result", String.valueOf( result ) );
         }
-        LOGGER.trace( "accessor #" + accessorNumber + " operation result: " + StringUtil.mapToString( map ) );
+        LOGGER.trace( () -> "accessor #" + accessorNumber + " operation result: " + StringUtil.mapToString( map ) );
     }
 
     private interface SqlFunction<T>
@@ -567,7 +567,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
             lock.unlock();
         }
 
-        LOGGER.trace( "closed accessor #" + accessorNumber );
+        LOGGER.trace( () -> "closed accessor #" + accessorNumber );
     }
 
     private boolean containsImpl( final DatabaseTable table, final String key )
