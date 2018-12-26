@@ -151,7 +151,7 @@ public class NGStoredConfigurationFactory
             }
             else
             {
-                LOGGER.trace( "parsing setting key=" + key + ", profile=" + storedConfigReference.getProfileID() );
+                LOGGER.trace( () -> "parsing setting key=" + key + ", profile=" + storedConfigReference.getProfileID() );
                 final XmlElement defaultElement = settingElement.getChild( StoredConfiguration.XML_ELEMENT_DEFAULT );
                 if ( defaultElement != null )
                 {
