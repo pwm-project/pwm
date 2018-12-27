@@ -20,6 +20,15 @@
         <project.root.basedir>${project.basedir}/..</project.root.basedir>
     </properties>
 
+    <profiles>
+        <profile>
+            <id>skip-docker</id>
+            <properties>
+                <skipDocker>true</skipDocker>
+            </properties>
+        </profile>
+    </profiles>
+
     <build>
         <plugins>
             <plugin>
@@ -34,6 +43,7 @@
                             <goal>buildTar</goal>
                         </goals>
                         <configuration>
+                            <skip>${skipDocker}</skip>
                             <from>
                                 <image>adoptopenjdk/openjdk11</image>
                             </from>
