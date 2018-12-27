@@ -38,8 +38,14 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
 class PwNotifyLdapStorageService implements PwNotifyStorageService
 {
+    private static final String COR_GUID = ".";
+
     private final PwmApplication pwmApplication;
     private final PwNotifySettings settings;
 
@@ -67,11 +73,12 @@ class PwNotifyLdapStorageService implements PwNotifyStorageService
         this.pwmApplication = pwmApplication;
         this.settings = settings;
 
-        final UserIdentity userIdentity = pwmApplication.getConfig().getDefaultLdapProfile().getTestUser( pwmApplication );
-        if ( userIdentity == null )
+        final LdapProfile defaultLdapProfile = pwmApplication.getConfig().getDefaultLdapProfile();
+        final String testUserDN = defaultLdapProfile.readSettingAsString( PwmSetting.LDAP_TEST_USER_DN );
+        if ( StringUtil.isEmpty( testUserDN ) )
         {
             final String msg = "LDAP storage type selected, but LDAP test user ("
-                    + PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug( pwmApplication.getConfig().getDefaultLdapProfile().getIdentifier(), PwmConstants.DEFAULT_LOCALE )
+                    + PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug( defaultLdapProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE )
                     + ") not defined.";
             throw new PwmUnrecoverableException( PwmError.ERROR_PWNOTIFY_SERVICE_ERROR, msg );
         }
@@ -90,7 +97,7 @@ class PwNotifyLdapStorageService implements PwNotifyStorageService
     }
 
     @Override
-    public StoredNotificationState readStoredUserState(
+    public Optional<PwNotifyUserStatus> readStoredUserState(
             final UserIdentity userIdentity,
             final SessionLabel sessionLabel
     )
@@ -98,22 +105,23 @@ class PwNotifyLdapStorageService implements PwNotifyStorageService
     {
         final ConfigObjectRecord configObjectRecord = getUserCOR( userIdentity, CoreType.User );
         final String payload = configObjectRecord.getPayload();
-        if ( StringUtil.isEmpty( payload ) )
+        if ( !StringUtil.isEmpty( payload ) )
         {
-            return JsonUtil.deserialize( payload, StoredNotificationState.class );
+            return Optional.ofNullable( JsonUtil.deserialize( payload, PwNotifyUserStatus.class ) );
         }
-        return null;
+
+        return Optional.empty();
     }
 
     public void writeStoredUserState(
             final UserIdentity userIdentity,
             final SessionLabel sessionLabel,
-            final StoredNotificationState storedNotificationState
+            final PwNotifyUserStatus pwNotifyUserStatus
     )
             throws PwmUnrecoverableException
     {
         final ConfigObjectRecord configObjectRecord = getUserCOR( userIdentity, CoreType.User );
-        final String payload = JsonUtil.serialize( storedNotificationState );
+        final String payload = JsonUtil.serialize( pwNotifyUserStatus );
         try
         {
             configObjectRecord.updatePayload( payload );
@@ -131,7 +139,7 @@ class PwNotifyLdapStorageService implements PwNotifyStorageService
     }
 
     @Override
-    public StoredJobState readStoredJobState()
+    public PwNotifyStoredJobState readStoredJobState()
             throws PwmUnrecoverableException
     {
         final UserIdentity proxyUser = pwmApplication.getConfig().getDefaultLdapProfile().getTestUser( pwmApplication );
@@ -140,18 +148,18 @@ class PwNotifyLdapStorageService implements PwNotifyStorageService
 
         if ( StringUtil.isEmpty( payload ) )
         {
-            return new StoredJobState( null, null, null, null, false );
+            return new PwNotifyStoredJobState( null, null, null, null, false );
         }
-        return JsonUtil.deserialize( payload, StoredJobState.class );
+        return JsonUtil.deserialize( payload, PwNotifyStoredJobState.class );
     }
 
     @Override
-    public void writeStoredJobState( final StoredJobState storedJobState )
+    public void writeStoredJobState( final PwNotifyStoredJobState pwNotifyStoredJobState )
             throws PwmUnrecoverableException
     {
         final UserIdentity proxyUser = pwmApplication.getConfig().getDefaultLdapProfile().getTestUser( pwmApplication );
         final ConfigObjectRecord configObjectRecord = getUserCOR( proxyUser, CoreType.ProxyUser );
-        final String payload = JsonUtil.serialize( storedJobState );
+        final String payload = JsonUtil.serialize( pwNotifyStoredJobState );
 
         try
         {
@@ -174,7 +182,27 @@ class PwNotifyLdapStorageService implements PwNotifyStorageService
     {
         final String userAttr = getLdapUserAttribute( userIdentity );
         final ChaiUser chaiUser = pwmApplication.getProxiedChaiUser( userIdentity );
-        return ConfigObjectRecord.createNew( chaiUser, userAttr, coreType.getRecordID(), null, null );
+        try
+        {
+            final List<ConfigObjectRecord> list = ConfigObjectRecord.readRecordFromLDAP(
+                    chaiUser,
+                    userAttr,
+                    coreType.getRecordID(),
+                    Collections.singleton( COR_GUID ),
+                    Collections.singleton( COR_GUID ) );
+            if ( list.isEmpty() )
+            {
+                return ConfigObjectRecord.createNew( chaiUser, userAttr, coreType.getRecordID(), COR_GUID, COR_GUID );
+            }
+            else
+            {
+                return list.iterator().next();
+            }
+        }
+        catch ( ChaiUnavailableException | ChaiOperationException e )
+        {
+            throw PwmUnrecoverableException.fromChaiException( e );
+        }
     }
 
     private String getLdapUserAttribute( final UserIdentity userIdentity )

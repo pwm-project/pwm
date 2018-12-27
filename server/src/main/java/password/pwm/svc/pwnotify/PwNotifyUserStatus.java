@@ -28,7 +28,8 @@ import java.io.Serializable;
 import java.time.Instant;
 
 @Value
-class StoredNotificationState implements Serializable
+public
+class PwNotifyUserStatus implements Serializable
 {
     private Instant expireTime;
     private Instant lastNotice;

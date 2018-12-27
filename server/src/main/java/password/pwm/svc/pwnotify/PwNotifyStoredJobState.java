@@ -31,7 +31,7 @@ import java.time.Instant;
 
 @Value
 @Builder
-public class StoredJobState implements Serializable
+public class PwNotifyStoredJobState implements Serializable
 {
     private Instant lastStart;
     private Instant lastCompletion;

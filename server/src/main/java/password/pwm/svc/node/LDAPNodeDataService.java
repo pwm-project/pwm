@@ -33,6 +33,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -51,24 +52,13 @@ class LDAPNodeDataService implements NodeDataServiceProvider
     {
         this.pwmApplication = pwmApplication;
 
-        final UserIdentity testUser;
-        final String ldapProfileID;
-        try
-        {
-            final LdapProfile ldapProfile = pwmApplication.getConfig().getDefaultLdapProfile();
-            ldapProfileID = ldapProfile.getIdentifier();
-            testUser = ldapProfile.getTestUser( pwmApplication );
-        }
-        catch ( PwmUnrecoverableException e )
-        {
-            final String msg = "error checking ldap test user configuration for ldap node service: " + e.getMessage();
-            throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, msg );
-        }
+        final LdapProfile ldapProfile = pwmApplication.getConfig().getDefaultLdapProfile();
+        final String testUser = ldapProfile.readSettingAsString( PwmSetting.LDAP_TEST_USER_DN );
 
-        if ( testUser == null )
+        if ( StringUtil.isEmpty( testUser ) )
         {
             final String msg = "ldap node service requires that setting "
-                    + PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug( ldapProfileID, null )
+                    + PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug( ldapProfile.getIdentifier(), null )
                     + " is configured";
             throw PwmUnrecoverableException.newException( PwmError.ERROR_NODE_SERVICE_ERROR, msg );
         }
