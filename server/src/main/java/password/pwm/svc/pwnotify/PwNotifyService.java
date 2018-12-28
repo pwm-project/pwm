@@ -186,7 +186,8 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
             }
 
             // more than 24hr ago.
-            if ( Duration.between( Instant.now(), pwNotifyStoredJobState.getLastCompletion() ).abs().getSeconds() > settings.getMaximumSkipWindow().as( TimeDuration.Unit.SECONDS ) )
+            final long maxSeconds = settings.getMaximumSkipWindow().as( TimeDuration.Unit.SECONDS );
+            if ( Duration.between( Instant.now(), pwNotifyStoredJobState.getLastCompletion() ).abs().getSeconds() > maxSeconds )
             {
                 return Instant.now();
             }
