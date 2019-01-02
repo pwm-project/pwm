@@ -1739,6 +1739,6 @@ table.ias-table, table.ias-table td {
     white-space: pre;
 }
 
-.title-short {
+#header-title > .title-short {
     display: none;
 }
