@@ -61,15 +61,15 @@
                                 </volumes>
                             </container>
                             <extraDirectory>
-                                <path>${project.basedir}/src/main/image-files</path> <!-- Copies files from 'src/main/custom-extra-dir' -->
+                                <path>${project.basedir}/src/main/image-files</path>
                                 <permissions>
                                     <permission>
                                         <file>/app/startup.sh</file>
-                                        <mode>755</mode> <!-- Read/write for owner, read-only for group/other -->
+                                        <mode>755</mode>
                                     </permission>
                                     <permission>
                                         <file>/app/command.sh</file>
-                                        <mode>755</mode> <!-- Read/write for owner, read-only for group/other -->
+                                        <mode>755</mode>
                                     </permission>
                                 </permissions>
                             </extraDirectory>
