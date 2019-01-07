@@ -1193,6 +1193,11 @@
             <value>0</value>
         </default>
     </setting>
+    <setting hidden="false" key="password.policy.allowNonAlpha" level="1" required="true">
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
     <setting hidden="false" key="password.policy.maximumNonAlpha" level="1" required="true">
         <default>
             <value>0</value>
