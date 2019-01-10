@@ -42,8 +42,8 @@ import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Config;
-import password.pwm.util.LocaleHelper;
 import password.pwm.util.PasswordData;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
@@ -339,9 +339,9 @@ public class ConfigurationChecker implements HealthChecker
                     }
                 }
 
-                if ( config.readSettingAsBoolean( PwmSetting.PW_EXPY_NOTIFY_ENABLE ) )
+                if ( config.readSettingAsEnum( PwmSetting.PW_EXPY_NOTIFY_STORAGE_MODE, DataStorageMethod.class ) == DataStorageMethod.DB )
                 {
-                    causalSettings.add( PwmSetting.PW_EXPY_NOTIFY_ENABLE );
+                    causalSettings.add( PwmSetting.PW_EXPY_NOTIFY_STORAGE_MODE );
                 }
 
                 for ( final PwmSetting setting : causalSettings )

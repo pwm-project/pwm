@@ -24,7 +24,7 @@ package password.pwm.error;
 
 import com.novell.ldapchai.exception.ChaiError;
 import password.pwm.config.Configuration;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
 
 import java.util.Collections;
@@ -303,8 +303,8 @@ public enum PwmError
             5091, "Error_FileTypeIncorrect", null ),
     ERROR_FILE_TOO_LARGE(
             5092, "Error_FileTooLarge", null ),
-    ERROR_CLUSTER_SERVICE_ERROR(
-            5093, "Error_ClusterServiceError", null ),
+    ERROR_NODE_SERVICE_ERROR(
+            5093, "Error_NodeServiceError", null ),
     ERROR_WORDLIST_IMPORT_ERROR(
             5094, "Error_WordlistImportError", null ),
     ERROR_PWNOTIFY_SERVICE_ERROR(

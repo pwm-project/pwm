@@ -34,8 +34,14 @@ attributeTypes: ( 1.3.6.1.4.1.591242.2.2010.04.16.6
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.40
   EQUALITY octetStringMatch
   X-ORIGIN 'PWM' )
+attributeTypes: ( 1.3.6.1.4.1.591242.2.2010.04.16.7
+  NAME 'pwmData'
+  DESC 'Application status data'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.40
+  EQUALITY octetStringMatch
+  X-ORIGIN 'PWM' )
 objectClasses: ( 1.3.6.1.4.1.591242.1.2010.04.16.1
   NAME 'pwmUser'
   AUXILIARY
-  MAY ( pwmLastPwdUpdate $ pwmEventLog $ pwmResponseSet $ pwmGUID $ pwmOtpSecret )
+  MAY ( pwmLastPwdUpdate $ pwmEventLog $ pwmResponseSet $ pwmGUID $ pwmOtpSecret $ pwmData )
   X-ORIGIN 'PWM' )

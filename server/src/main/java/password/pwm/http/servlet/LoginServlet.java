@@ -25,6 +25,7 @@ package password.pwm.http.servlet;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
+import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -55,8 +56,8 @@ import java.util.Map;
 
 /**
  * User interaction servlet for form-based authentication.   Depending on how PWM is deployed,
- * users may or may not ever visit this servlet.   Generally, if PWM is behind iChain, or some
- * other SSO enabler using HTTP BASIC authentication, this form will not be invoked.
+ * users may or may not ever visit this servlet.   If using some type of SSO method
+ * the login form will not be invoked.
  *
  * @author Jason D. Rivard
  */
@@ -105,15 +106,23 @@ public class LoginServlet extends ControlledPwmServlet
     }
 
     @Override
-    protected void nextStep( final PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
+    protected void nextStep( final PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException, ServletException
     {
         final boolean passwordOnly = passwordOnly( pwmRequest );
         forwardToJSP( pwmRequest, passwordOnly );
     }
 
     @Override
-    public ProcessStatus preProcessCheck( final PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException, ServletException
+    public ProcessStatus preProcessCheck( final PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException
     {
+        if ( pwmRequest.isAuthenticated() && !passwordOnly( pwmRequest ) )
+        {
+            final String redirectURL = pwmRequest.getContextPath()
+                    + pwmRequest.getConfig().readSettingAsString( PwmSetting.URL_INTRO );
+            LOGGER.debug( pwmRequest, () -> "user is already authenticated, so redirecting user to intro url: " + redirectURL );
+            pwmRequest.sendRedirect( redirectURL );
+            return ProcessStatus.Halt;
+        }
         return ProcessStatus.Continue;
     }
 

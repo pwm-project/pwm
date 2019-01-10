@@ -56,12 +56,12 @@ import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecord;
 import password.pwm.svc.intruder.RecordType;
 import password.pwm.svc.pwnotify.PwNotifyService;
-import password.pwm.svc.pwnotify.StoredJobState;
+import password.pwm.svc.pwnotify.PwNotifyStoredJobState;
 import password.pwm.svc.report.ReportCsvUtility;
 import password.pwm.svc.report.ReportService;
 import password.pwm.svc.report.UserCacheRecord;
 import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.db.DatabaseException;
 import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.JavaHelper;
@@ -726,7 +726,7 @@ public class AdminServlet extends ControlledPwmServlet
         final Configuration config = pwmRequest.getConfig();
         final Locale locale = pwmRequest.getLocale();
         final PwNotifyService pwNotifyService = pwmRequest.getPwmApplication().getPwNotifyService();
-        final StoredJobState storedJobState = pwNotifyService.getJobState();
+        final PwNotifyStoredJobState pwNotifyStoredJobState = pwNotifyService.getJobState();
         final boolean canRunOnthisServer = pwNotifyService.canRunOnThisServer();
 
         statusData.add( new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.string,
@@ -741,30 +741,30 @@ public class AdminServlet extends ControlledPwmServlet
                     "Next Job Scheduled Time", LocaleHelper.instantString( pwNotifyService.getNextExecutionTime(), locale, config ) ) );
         }
 
-        if ( storedJobState != null )
+        if ( pwNotifyStoredJobState != null )
         {
             statusData.add( new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.timestamp,
-                    "Last Job Start Time", LocaleHelper.instantString( storedJobState.getLastStart(), locale, config ) ) );
+                    "Last Job Start Time", LocaleHelper.instantString( pwNotifyStoredJobState.getLastStart(), locale, config ) ) );
 
             statusData.add( new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.timestamp,
-                    "Last Job Completion Time", LocaleHelper.instantString( storedJobState.getLastCompletion(), locale, config ) ) );
+                    "Last Job Completion Time", LocaleHelper.instantString( pwNotifyStoredJobState.getLastCompletion(), locale, config ) ) );
 
-            if ( storedJobState.getLastStart() != null && storedJobState.getLastCompletion() != null )
+            if ( pwNotifyStoredJobState.getLastStart() != null && pwNotifyStoredJobState.getLastCompletion() != null )
             {
                 statusData.add( new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.timestamp,
-                        "Last Job Duration", TimeDuration.between( storedJobState.getLastStart(), storedJobState.getLastCompletion() ).asLongString( locale ) ) );
+                        "Last Job Duration", TimeDuration.between( pwNotifyStoredJobState.getLastStart(), pwNotifyStoredJobState.getLastCompletion() ).asLongString( locale ) ) );
             }
 
-            if ( !StringUtil.isEmpty( storedJobState.getServerInstance() ) )
+            if ( !StringUtil.isEmpty( pwNotifyStoredJobState.getServerInstance() ) )
             {
                 statusData.add( new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.string,
-                        "Last Job Server Instance", storedJobState.getServerInstance() ) );
+                        "Last Job Server Instance", pwNotifyStoredJobState.getServerInstance() ) );
             }
 
-            if ( storedJobState.getLastError() != null )
+            if ( pwNotifyStoredJobState.getLastError() != null )
             {
                 statusData.add( new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.string,
-                        "Last Job Error",  storedJobState.getLastError().toDebugStr() ) );
+                        "Last Job Error",  pwNotifyStoredJobState.getLastError().toDebugStr() ) );
             }
         }
 

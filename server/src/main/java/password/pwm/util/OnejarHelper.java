@@ -69,6 +69,13 @@ public class OnejarHelper
         }
     }
 
+    /**
+     * Return properties used by the OneJar launcher to configure the web container.  This reads settings from the
+     * application configuration.
+     * @param configuration a valid configuration instance
+     * @return A List of properties used by the Onejar util
+     * @throws Exception If anything goes wrong
+     */
     private static Properties createProperties( final Configuration configuration )
             throws Exception
     {
@@ -111,10 +118,8 @@ public class OnejarHelper
                 .setApplicationMode( PwmApplicationMode.READ_ONLY )
                 .setConfigurationFile( configFile )
                 .setFlags( Collections.singleton( PwmEnvironment.ApplicationFlag.CommandLineInstance ) )
+                .setInternalRuntimeInstance( true )
                 .createPwmEnvironment();
         return new PwmApplication( pwmEnvironment );
     }
-
-
-
 }

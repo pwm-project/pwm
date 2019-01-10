@@ -20,17 +20,40 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm;
+package password.pwm.http.auth;
 
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.servlet.oauth.OAuthMachine;
+import password.pwm.http.servlet.oauth.OAuthSettings;
 
 import java.io.IOException;
 
-public interface PwmHttpFilterAuthenticationProvider
+public class OAuthFilterAuthenticationProvider implements PwmHttpFilterAuthenticationProvider
 {
-    void attemptAuthentication( PwmRequest pwmRequest )
-            throws PwmUnrecoverableException, IOException;
 
-    boolean hasRedirectedResponse( );
+    private boolean redirected = false;
+
+    public void attemptAuthentication(
+            final PwmRequest pwmRequest
+    )
+            throws PwmUnrecoverableException, IOException
+    {
+        final OAuthSettings oauthSettings = OAuthSettings.forSSOAuthentication( pwmRequest.getConfig() );
+        if ( !oauthSettings.oAuthIsConfigured() )
+        {
+            return;
+        }
+
+        final String originalURL = pwmRequest.getURLwithQueryString();
+        final OAuthMachine oAuthMachine = new OAuthMachine( oauthSettings );
+        oAuthMachine.redirectUserToOAuthServer( pwmRequest, originalURL, null, null );
+        redirected = true;
+    }
+
+    @Override
+    public boolean hasRedirectedResponse( )
+    {
+        return redirected;
+    }
 }

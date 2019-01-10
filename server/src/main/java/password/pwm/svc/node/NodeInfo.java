@@ -20,17 +20,29 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.svc.cluster;
+package password.pwm.svc.node;
 
-import lombok.Value;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 import java.io.Serializable;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.time.Instant;
 
-@Value
-public class ClusterStatistics implements Serializable
+@Getter
+@AllArgsConstructor( access = AccessLevel.PACKAGE )
+public class NodeInfo implements Serializable
 {
-    private final AtomicInteger clusterWrites = new AtomicInteger( 0 );
-    private final AtomicInteger clusterReads = new AtomicInteger( 0 );
-    private final AtomicInteger nodePurges = new AtomicInteger( 0 );
+    private String instanceID;
+    private Instant lastSeen;
+    private Instant startupTime;
+    private NodeState nodeState;
+    private boolean configMatch;
+
+    public enum NodeState
+    {
+        master,
+        online,
+        offline
+    }
 }

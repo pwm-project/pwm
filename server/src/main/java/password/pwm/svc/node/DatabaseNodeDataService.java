@@ -20,11 +20,12 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.svc.cluster;
+package password.pwm.svc.node;
 
 import password.pwm.PwmApplication;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.svc.PwmService;
 import password.pwm.util.db.DatabaseAccessor;
 import password.pwm.util.db.DatabaseException;
 import password.pwm.util.db.DatabaseTable;
@@ -36,18 +37,23 @@ import password.pwm.util.logging.PwmLogger;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class DatabaseClusterDataService implements ClusterDataServiceProvider
+class DatabaseNodeDataService implements NodeDataServiceProvider
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass( DatabaseClusterDataService.class );
+    private static final PwmLogger LOGGER = PwmLogger.forClass( DatabaseNodeDataService.class );
 
     private static final DatabaseTable TABLE = DatabaseTable.CLUSTER_STATE;
     private static final String KEY_PREFIX_NODE = "node-";
 
     private final PwmApplication pwmApplication;
 
-    public DatabaseClusterDataService( final PwmApplication pwmApplication )
+    DatabaseNodeDataService( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
     {
         this.pwmApplication = pwmApplication;
+
+        if ( pwmApplication.getDatabaseService().status() != PwmService.STATUS.OPEN )
+        {
+            throw new PwmUnrecoverableException( PwmError.ERROR_NODE_SERVICE_ERROR, "database service is not available" );
+        }
     }
 
     private DatabaseAccessor getDatabaseAccessor()

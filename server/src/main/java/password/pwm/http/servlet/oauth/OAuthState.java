@@ -23,23 +23,31 @@
 package password.pwm.http.servlet.oauth;
 
 import com.google.gson.annotations.SerializedName;
+import lombok.Builder;
+import lombok.Value;
+import password.pwm.util.java.AtomicLoopIntIncrementer;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.Instant;
 
 /*
     This serialized JSON object is passed to the browser during the OAuth request sequence.  The state is forwarded to the OAuth server and then returned (without
     modification when the OAuth server redirects back here.
  */
+
+@Value
+@Builder
 class OAuthState implements Serializable
 {
-    private static int oauthStateIdCounter = 0;
+    private static final AtomicLoopIntIncrementer OAUTH_STATE_ID_COUNTER = new AtomicLoopIntIncrementer( Integer.MAX_VALUE );
 
     @SerializedName( "c" )
-    private final int stateID = oauthStateIdCounter++;
+    @Builder.Default
+    private final int stateID = OAUTH_STATE_ID_COUNTER.next();
 
     @SerializedName( "t" )
-    private final Date issueTime = new Date();
+    @Builder.Default
+    private final Instant issueTime = Instant.now();
 
     @SerializedName( "i" )
     private String sessionID;
@@ -48,7 +56,7 @@ class OAuthState implements Serializable
     private String nextUrl;
 
     @SerializedName( "u" )
-    private OAuthUseCase use;
+    private OAuthUseCase useCase;
 
     @SerializedName( "f" )
     private String forgottenProfileId;
@@ -56,66 +64,22 @@ class OAuthState implements Serializable
     @SerializedName( "v" )
     private int version = 1;
 
-    private OAuthState( )
+    static OAuthState newSSOAuthenticationState( final String sessionID, final String nextUrl )
     {
+        return OAuthState.builder()
+                .sessionID( sessionID )
+                .nextUrl( nextUrl )
+                .useCase( OAuthUseCase.Authentication )
+                .build();
     }
 
-    public static int getOauthStateIdCounter( )
+    static OAuthState newForgottenPasswordState( final String sessionID, final String forgottenProfileId )
     {
-        return oauthStateIdCounter;
-    }
-
-    public int getStateID( )
-    {
-        return stateID;
-    }
-
-    public Date getIssueTime( )
-    {
-        return issueTime;
-    }
-
-    public String getSessionID( )
-    {
-        return sessionID;
-    }
-
-    public String getNextUrl( )
-    {
-        return nextUrl;
-    }
-
-    public OAuthUseCase getUseCase( )
-    {
-        return use;
-    }
-
-    public int getVersion( )
-    {
-        return version;
-    }
-
-    public String getForgottenProfileId( )
-    {
-        return forgottenProfileId;
-    }
-
-    public static OAuthState newSSOAuthenticationState( final String sessionID, final String nextUrl )
-    {
-        final OAuthState state = new OAuthState();
-        state.sessionID = sessionID;
-        state.nextUrl = nextUrl;
-        state.use = OAuthUseCase.Authentication;
-        return state;
-    }
-
-    public static OAuthState newForgottenPasswordState( final String sessionID, final String forgottenProfileId )
-    {
-        final OAuthState state = new OAuthState();
-        state.sessionID = sessionID;
-        state.forgottenProfileId = forgottenProfileId;
-        state.use = OAuthUseCase.ForgottenPassword;
-        return state;
+        return OAuthState.builder()
+                .sessionID( sessionID )
+                .forgottenProfileId( forgottenProfileId )
+                .useCase( OAuthUseCase.ForgottenPassword )
+                .build();
     }
 
 

@@ -77,7 +77,6 @@ public abstract class PwmConstants
 
     public static final String PWM_APP_NAME = readPwmConstantsBundle( "pwm.appName" );
     public static final String PWM_URL_HOME = readPwmConstantsBundle( "url.pwm-home" );
-    public static final String PWM_URL_CLOUD = readPwmConstantsBundle( "url.pwm-cloud" );
 
     public static final String PWM_APP_NAME_VERSION = PWM_APP_NAME + " " + SERVLET_VERSION;
 
@@ -85,6 +84,7 @@ public abstract class PwmConstants
 
     public static final Locale DEFAULT_LOCALE = new Locale( readPwmConstantsBundle( "locale.defaultLocale" ) );
     public static final Charset DEFAULT_CHARSET = Charset.forName( "UTF8" );
+    public static final List<String> HIGHLIGHT_LOCALES = StringUtil.splitAndTrim( readPwmConstantsBundle( "locale.highlightList" ), "," );
 
     public static final CSVFormat DEFAULT_CSV_FORMAT = CSVFormat.DEFAULT;
 

@@ -67,14 +67,14 @@ public class ContextManager implements Serializable
     private transient ServletContext servletContext;
     private transient ScheduledExecutorService taskMaster;
 
-    private transient PwmApplication pwmApplication;
+    private transient volatile PwmApplication pwmApplication;
     private transient ConfigurationReader configReader;
     private ErrorInformation startupErrorInformation;
 
-    private AtomicInteger restartCount = new AtomicInteger( 0 );
-    private TimeDuration readApplicationLockMaxWait = TimeDuration.of( 5, TimeDuration.Unit.SECONDS );
+    private final AtomicInteger restartCount = new AtomicInteger( 0 );
+    private TimeDuration readApplicationLockMaxWait = TimeDuration.SECONDS_30;
     private final String instanceGuid;
-    private final Lock reloadLock = new ReentrantLock();
+    private final Lock restartLock = new ReentrantLock();
 
     private String contextPath;
 
@@ -140,14 +140,26 @@ public class ContextManager implements Serializable
     public PwmApplication getPwmApplication( )
             throws PwmUnrecoverableException
     {
-        if ( pwmApplication != null )
+        PwmApplication localApplication = this.pwmApplication;
+
+        if ( localApplication == null )
         {
             try
             {
-                final boolean hasLock = reloadLock.tryLock( readApplicationLockMaxWait.asMillis(), TimeUnit.MILLISECONDS );
+                final Instant startTime = Instant.now();
+                final boolean hasLock = restartLock.tryLock( readApplicationLockMaxWait.asMillis(), TimeUnit.MILLISECONDS );
                 if ( hasLock )
                 {
-                    return pwmApplication;
+                    localApplication = this.pwmApplication;
+                    if ( localApplication == null )
+                    {
+                        LOGGER.trace( () -> "could not read pwmApplication after waiting " + TimeDuration.compactFromCurrent( startTime ) );
+                    }
+                    else
+                    {
+                        LOGGER.trace( () -> "waited " + TimeDuration.compactFromCurrent( startTime )
+                                + " to read pwmApplication due to restart in progress" );
+                    }
                 }
             }
             catch ( InterruptedException e )
@@ -156,8 +168,13 @@ public class ContextManager implements Serializable
             }
             finally
             {
-                reloadLock.unlock();
+                restartLock.unlock();
             }
+        }
+
+        if ( localApplication != null )
+        {
+            return localApplication;
         }
 
         final ErrorInformation errorInformation;
@@ -400,10 +417,10 @@ public class ContextManager implements Serializable
 
         public void run( )
         {
-            doReinitialize();
+            doRestart();
         }
 
-        private void doReinitialize( )
+        private void doRestart( )
         {
             final Instant startTime = Instant.now();
 
@@ -415,11 +432,13 @@ public class ContextManager implements Serializable
                 return;
             }
 
-            reloadLock.lock();
+            restartLock.lock();
+            final PwmApplication oldPwmApplication = pwmApplication;
+            pwmApplication = null;
+
             try
             {
-
-                waitForRequestsToComplete( pwmApplication );
+                waitForRequestsToComplete( oldPwmApplication );
 
                 {
                     final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
@@ -429,7 +448,17 @@ public class ContextManager implements Serializable
                 final Instant shutdownStartTime = Instant.now();
                 try
                 {
-                    shutdown();
+                    try
+                    {
+                        // prevent restart watcher from detecting in-progress restart in a loop
+                        taskMaster.shutdown();
+
+                        oldPwmApplication.shutdown();
+                    }
+                    catch ( Exception e )
+                    {
+                        LOGGER.error( "unexpected error attempting to close application: " + e.getMessage() );
+                    }
                 }
                 catch ( Exception e )
                 {
@@ -453,7 +482,7 @@ public class ContextManager implements Serializable
             }
             finally
             {
-                reloadLock.unlock();
+                restartLock.unlock();
             }
         }
 

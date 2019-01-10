@@ -33,6 +33,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -129,7 +130,8 @@ public class OnejarMain
 
     static void output( final String output )
     {
-        System.out.println( output );
+        final Instant now = Instant.now().truncatedTo( ChronoUnit.SECONDS );
+        System.out.println( now.toString() + ", OneJar, " + output );
     }
 
     private void explodeWar( final OnejarConfig onejarConfig ) throws IOException
@@ -162,7 +164,7 @@ public class OnejarMain
     {
         if ( rootPath.toFile().exists() )
         {
-            System.out.println( "purging work directory: " + rootPath );
+            out( "purging work directory: " + rootPath );
             Files.walk( rootPath, FileVisitOption.FOLLOW_LINKS )
                     .sorted( Comparator.reverseOrder() )
                     .map( Path::toFile )

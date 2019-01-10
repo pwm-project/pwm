@@ -26,7 +26,7 @@
 <%@ page import="password.pwm.i18n.Config" %>
 <%@ page import="password.pwm.i18n.Display" %>
 <%@ page import="password.pwm.util.java.FileSystemUtility" %>
-<%@ page import="password.pwm.util.LocaleHelper" %>
+<%@ page import="password.pwm.util.i18n.LocaleHelper" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
 
 <!DOCTYPE html>

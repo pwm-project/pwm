@@ -1574,12 +1574,21 @@
             <value>28800</value>
         </default>
     </setting>
-    <setting hidden="false" key="cluster.enable" level="2">
+    <setting hidden="false" key="security.certificate.validationMode" level="2">
+        <default>
+            <value>CERTIFICATE_CHAIN</value>
+        </default>
+        <options>
+            <option value="CA_ONLY">Root Certificate Only</option>
+            <option value="CERTIFICATE_CHAIN">Entire Certificate Chain</option>
+        </options>
+    </setting>
+    <setting hidden="false" key="nodeService.enable" level="2">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting hidden="false" key="cluster.storageMode" level="2">
+    <setting hidden="false" key="nodeService.storageMode" level="2">
         <default>
             <value>LDAP</value>
         </default>
@@ -1626,7 +1635,7 @@
     <setting hidden="false" key="security.cspHeader" level="2">
         <default>
             <!--<value><![CDATA[]]></value>-->
-            <value><![CDATA[default-src 'self'; form-action 'self'; object-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ 'self' 'unsafe-eval' 'unsafe-inline' 'nonce-%NONCE%' ; frame-src https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; report-uri /sspr/public/command/cspReport]]></value>
+            <value><![CDATA[default-src 'self'; object-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ 'self' 'unsafe-eval' 'unsafe-inline' 'nonce-%NONCE%' ; frame-src https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; report-uri /sspr/public/command/cspReport]]></value>
             <!-- 'unsafe-inline' on script-src is included for backward compatibility of CSP Level1 browsers.  CSP2 and future ignore it when the nonce is specified -->
         </default>
     </setting>
@@ -3332,14 +3341,13 @@
             <value/>
         </default>
     </setting>
-    <setting hidden="false" key="ldap.user.pwNotify.attribute" level="1">
+    <setting hidden="false" key="ldap.user.appData.attribute" level="1">
         <ldapPermission actor="proxy" access="write"/>
         <default>
-            <value/>
+            <value>pwmData</value>
         </default>
     </setting>
     <setting hidden="false" key="ldap.user.language.autoSet" level="1">
-        <ldapPermission actor="proxy" access="write"/>
         <options>
             <option value="disabled">Disabled</option>
             <option value="enabled">Enabled - Write to LDAP attribute during authentication.</option>
@@ -3856,9 +3864,14 @@
             <value/>
         </default>
     </setting>
-    <setting hidden="false" key="reporting.ldap.searchFilter" level="1">
+    <setting hidden="true" key="reporting.ldap.searchFilter" level="1">
         <default>
             <value />
+        </default>
+    </setting>
+    <setting hidden="false" key="reporting.ldap.userMatch" level="1">
+        <default syntaxVersion="2">
+            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
     <setting hidden="false" key="reporting.maxCacheAge" level="1">
@@ -4011,6 +4024,10 @@
     </setting>
     <setting hidden="false" key="oauth.idserver.loginUrl" level="2">
         <example>https://oauthserver.example.com/osp/a/idm/auth/oauth2/grant</example>
+        <default/>
+    </setting>
+    <setting hidden="false" key="oauth.idserver.scope" level="2">
+        <example>email</example>
         <default/>
     </setting>
     <setting hidden="false" key="oauth.idserver.codeResolveUrl" level="2">

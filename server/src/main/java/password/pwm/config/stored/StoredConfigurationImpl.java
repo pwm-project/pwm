@@ -40,15 +40,11 @@ import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.PwmSettingTemplate;
 import password.pwm.config.PwmSettingTemplateSet;
 import password.pwm.config.StoredValue;
-import password.pwm.config.option.ADPolicyComplexity;
-import password.pwm.config.value.FormValue;
 import password.pwm.config.value.NamedSecretValue;
 import password.pwm.config.value.PasswordValue;
 import password.pwm.config.value.PrivateKeyValue;
 import password.pwm.config.value.StringArrayValue;
-import password.pwm.config.value.StringValue;
 import password.pwm.config.value.ValueFactory;
-import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -56,7 +52,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.PwmLocaleBundle;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -103,7 +99,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
 {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( StoredConfigurationImpl.class );
-    private static final String XML_FORMAT_VERSION = "4";
+    static final String XML_FORMAT_VERSION = "4";
 
     private Document document = new Document( new Element( XML_ELEMENT_ROOT ) );
     private ChangeLog changeLog = new ChangeLog();
@@ -137,7 +133,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
         {
             newConfiguration.document = inputDocument;
             newConfiguration.createTime(); // verify create time;
-            ConfigurationCleaner.cleanup( newConfiguration );
+            ConfigurationCleaner.cleanup( newConfiguration, newConfiguration.document );
         }
         catch ( Exception e )
         {
@@ -220,7 +216,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
 
     public StoredConfigurationImpl( ) throws PwmUnrecoverableException
     {
-        ConfigurationCleaner.cleanup( this );
+        ConfigurationCleaner.cleanup( this, document );
         final String createTime = JavaHelper.toIsoDate( Instant.now() );
         document.getRootElement().setAttribute( XML_ATTRIBUTE_CREATE_TIME, createTime );
     }
@@ -1067,7 +1063,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
         return passwordHash != null && passwordHash.length() > 0;
     }
 
-    private abstract static class XPathBuilder
+    abstract static class XPathBuilder
     {
         private static XPathExpression xpathForLocaleBundleSetting( final String bundleName, final String keyName )
         {
@@ -1077,7 +1073,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
             return xpfac.compile( xpathString );
         }
 
-        private static XPathExpression xpathForSetting( final PwmSetting setting, final String profileID )
+        static XPathExpression xpathForSetting( final PwmSetting setting, final String profileID )
         {
             final XPathFactory xpfac = XPathFactory.instance();
             final String xpathString;
@@ -1102,7 +1098,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
             return xpfac.compile( xpathString );
         }
 
-        private static XPathExpression xpathForAppProperties( )
+        static XPathExpression xpathForAppProperties()
         {
             final XPathFactory xpfac = XPathFactory.instance();
             final String xpathString;
@@ -1125,318 +1121,6 @@ public class StoredConfigurationImpl implements StoredConfiguration
             final String xpathString;
             xpathString = "//" + XML_ELEMENT_PROPERTIES + "[@" + XML_ATTRIBUTE_TYPE + "=\"" + XML_ATTRIBUTE_VALUE_CONFIG + "\"]";
             return xpfac.compile( xpathString );
-        }
-    }
-
-
-    private static class ConfigurationCleaner
-    {
-        private static void cleanup( final StoredConfigurationImpl configuration ) throws PwmUnrecoverableException
-        {
-            updateProperitiesWithoutType( configuration );
-            updateMandatoryElements( configuration.document );
-            profilizeNonProfiledSettings( configuration );
-            stripOrphanedProfileSettings( configuration );
-            migrateAppProperties( configuration );
-            updateDeprecatedSettings( configuration );
-            migrateDeprecatedProperties( configuration );
-        }
-
-
-        private static void updateMandatoryElements( final Document document )
-        {
-            final Element rootElement = document.getRootElement();
-
-            {
-                final XPathExpression commentXPath = XPathFactory.instance().compile( "//comment()[1]" );
-                final Comment existingComment = ( Comment ) commentXPath.evaluateFirst( rootElement );
-                if ( existingComment != null )
-                {
-                    existingComment.detach();
-                }
-                final Comment comment = new Comment( generateCommentText() );
-                rootElement.addContent( 0, comment );
-            }
-
-            rootElement.setAttribute( "pwmVersion", PwmConstants.BUILD_VERSION );
-            rootElement.setAttribute( "pwmBuild", PwmConstants.BUILD_NUMBER );
-            rootElement.setAttribute( "xmlVersion", XML_FORMAT_VERSION );
-
-            { // migrate old properties
-
-                // read correct (new) //properties[@type="config"]
-                final XPathExpression configPropertiesXpath = XPathFactory.instance().compile(
-                        "//" + XML_ELEMENT_PROPERTIES + "[@" + XML_ATTRIBUTE_TYPE + "=\"" + XML_ATTRIBUTE_VALUE_CONFIG + "\"]" );
-                final Element configPropertiesElement = ( Element ) configPropertiesXpath.evaluateFirst( rootElement );
-
-                // read list of old //properties[not (@type)]/property
-                final XPathExpression nonAttributedProperty = XPathFactory.instance().compile(
-                        "//" + XML_ELEMENT_PROPERTIES + "[not (@" + XML_ATTRIBUTE_TYPE + ")]/" + XML_ELEMENT_PROPERTY );
-                final List<Element> nonAttributedProperties = nonAttributedProperty.evaluate( rootElement );
-
-                if ( configPropertiesElement != null && nonAttributedProperties != null )
-                {
-                    for ( final Element element : nonAttributedProperties )
-                    {
-                        element.detach();
-                        configPropertiesElement.addContent( element );
-                    }
-                }
-
-                // remove old //properties[not (@type] element
-                final XPathExpression oldPropertiesXpath = XPathFactory.instance().compile(
-                        "//" + XML_ELEMENT_PROPERTIES + "[not (@" + XML_ATTRIBUTE_TYPE + ")]" );
-                final List<Element> oldPropertiesElements = oldPropertiesXpath.evaluate( rootElement );
-                if ( oldPropertiesElements != null )
-                {
-                    for ( final Element element : oldPropertiesElements )
-                    {
-                        element.detach();
-                    }
-                }
-            }
-        }
-
-        private static String generateCommentText( )
-        {
-            final StringBuilder commentText = new StringBuilder();
-            commentText.append( "\t\t" ).append( " " ).append( "\n" );
-            commentText.append( "\t\t" ).append( "This configuration file has been auto-generated by the " ).append( PwmConstants.PWM_APP_NAME ).append( " password self service application." ).append( "\n" );
-            commentText.append( "\t\t" ).append( "" ).append( "\n" );
-            commentText.append( "\t\t" ).append( "WARNING: This configuration file contains sensitive security information, please handle with care!" ).append( "\n" );
-            commentText.append( "\t\t" ).append( "" ).append( "\n" );
-            commentText.append( "\t\t" ).append( "WARNING: If a server is currently running using this configuration file, it will be restarted" ).append( "\n" );
-            commentText.append( "\t\t" ).append( "         and the configuration updated immediately when it is modified." ).append( "\n" );
-            commentText.append( "\t\t" ).append( "" ).append( "\n" );
-            commentText.append( "\t\t" ).append( "NOTICE: This file is encoded as UTF-8.  Do not save or edit this file with an editor that does not" ).append( "\n" );
-            commentText.append( "\t\t" ).append( "        support UTF-8 encoding." ).append( "\n" );
-            commentText.append( "\t\t" ).append( "" ).append( "\n" );
-            commentText.append( "\t\t" ).append( "If unable to edit using the application ConfigurationEditor web UI, the following options are available." ).append( "\n" );
-            commentText.append( "\t\t" ).append( "   or 1. Edit this file directly by hand." ).append( "\n" );
-            commentText.append( "\t\t" ).append( "   or 2. Remove restrictions of the configuration by setting the property 'configIsEditable' to 'true' in this file.  This will " ).append( "\n" );
-            commentText.append( "\t\t" ).append( "         allow access to the ConfigurationEditor web UI without having to authenticate to an LDAP server first." ).append( "\n" );
-            commentText.append( "\t\t" ).append( "   or 3. Remove restrictions of the configuration by using the the command line utility. " ).append( "\n" );
-            commentText.append( "\t\t" ).append( "" ).append( "\n" );
-            return commentText.toString();
-        }
-
-
-        private static void profilizeNonProfiledSettings( final StoredConfigurationImpl storedConfiguration ) throws PwmUnrecoverableException
-        {
-            final String NEW_PROFILE_NAME = "default";
-            final Document document = storedConfiguration.document;
-            for ( final PwmSetting setting : PwmSetting.values() )
-            {
-                if ( setting.getCategory().hasProfiles() )
-                {
-
-                    final XPathExpression xp = XPathBuilder.xpathForSetting( setting, null );
-                    final Element settingElement = ( Element ) xp.evaluateFirst( document );
-                    if ( settingElement != null )
-                    {
-                        settingElement.detach();
-
-                        final PwmSetting profileSetting = setting.getCategory().getProfileSetting();
-                        final List<String> profileStringDefinitions = new ArrayList<>();
-                        {
-                            final StringArrayValue profileDefinitions = ( StringArrayValue ) storedConfiguration.readSetting( profileSetting );
-                            if ( profileDefinitions != null )
-                            {
-                                if ( profileDefinitions.toNativeObject() != null )
-                                {
-                                    profileStringDefinitions.addAll( profileDefinitions.toNativeObject() );
-                                }
-                            }
-                        }
-
-                        if (profileStringDefinitions.isEmpty()) {
-                            profileStringDefinitions.add( NEW_PROFILE_NAME );
-                        }
-
-                        final UserIdentity userIdentity = settingElement.getAttribute( XML_ATTRIBUTE_MODIFY_USER ) != null
-                                ? UserIdentity.fromDelimitedKey( settingElement.getAttribute(  XML_ATTRIBUTE_MODIFY_USER ).getValue() )
-                                : null;
-
-                        for ( final String destProfile : profileStringDefinitions )
-                        {
-                            LOGGER.info( () -> "moving setting " + setting.getKey() + " without profile attribute to profile \"" + destProfile + "\"." );
-                            {
-                                storedConfiguration.writeSetting( profileSetting, new StringArrayValue( profileStringDefinitions ), userIdentity );
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        private static void migrateDeprecatedProperties( final StoredConfigurationImpl storedConfiguration ) throws PwmUnrecoverableException
-        {
-            final Document document = storedConfiguration.document;
-            final XPathFactory xpfac = XPathFactory.instance();
-            {
-                final String xpathString = "//property[@key=\"" + ConfigurationProperty.LDAP_TEMPLATE.getKey() + "\"]";
-                final XPathExpression xp = xpfac.compile( xpathString );
-                final List<Element> propertyElement = ( List<Element> ) xp.evaluate( document );
-                if ( propertyElement != null && !propertyElement.isEmpty() )
-                {
-                    final String value = propertyElement.get( 0 ).getText();
-                    storedConfiguration.writeSetting( PwmSetting.TEMPLATE_LDAP, new StringValue( value ), null );
-                    propertyElement.get( 0 ).detach();
-                }
-            }
-            {
-                final String xpathString = "//property[@key=\"" + ConfigurationProperty.NOTES.getKey() + "\"]";
-                final XPathExpression xp = xpfac.compile( xpathString );
-                final List<Element> propertyElement = ( List<Element> ) xp.evaluate( document );
-                if ( propertyElement != null && !propertyElement.isEmpty() )
-                {
-                    final String value = propertyElement.get( 0 ).getText();
-                    storedConfiguration.writeSetting( PwmSetting.NOTES, new StringValue( value ), null );
-                    propertyElement.get( 0 ).detach();
-                }
-            }
-        }
-
-        private static void updateProperitiesWithoutType( final StoredConfigurationImpl storedConfiguration )
-        {
-            final Document document = storedConfiguration.document;
-            final String xpathString = "//properties[not(@type)]";
-            final XPathFactory xpfac = XPathFactory.instance();
-            final XPathExpression xp = xpfac.compile( xpathString );
-            final List<Element> propertiesElements = ( List<Element> ) xp.evaluate( document );
-            for ( final Element propertiesElement : propertiesElements )
-            {
-                propertiesElement.setAttribute( XML_ATTRIBUTE_TYPE, XML_ATTRIBUTE_VALUE_CONFIG );
-            }
-        }
-
-        private static void stripOrphanedProfileSettings( final StoredConfigurationImpl storedConfiguration )
-        {
-            final Document document = storedConfiguration.document;
-            final XPathFactory xpfac = XPathFactory.instance();
-            for ( final PwmSetting setting : PwmSetting.values() )
-            {
-                if ( setting.getCategory().hasProfiles() )
-                {
-                    final List<String> validProfiles = storedConfiguration.profilesForSetting( setting );
-                    final String xpathString = "//setting[@key=\"" + setting.getKey() + "\"]";
-                    final XPathExpression xp = xpfac.compile( xpathString );
-                    final List<Element> settingElements = ( List<Element> ) xp.evaluate( document );
-                    for ( final Element settingElement : settingElements )
-                    {
-                        final String profileID = settingElement.getAttributeValue( XML_ATTRIBUTE_PROFILE );
-                        if ( profileID != null )
-                        {
-                            if ( !validProfiles.contains( profileID ) )
-                            {
-                                LOGGER.info( () -> "removing setting " + setting.getKey() + " with profile \"" + profileID + "\", profile is not a valid profile" );
-                                settingElement.detach();
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        private static void migrateAppProperties( final StoredConfigurationImpl storedConfiguration ) throws PwmUnrecoverableException
-        {
-            final Document document = storedConfiguration.document;
-            final XPathExpression xPathExpression = XPathBuilder.xpathForAppProperties();
-            final List<Element> appPropertiesElements = ( List<Element> ) xPathExpression.evaluate( document );
-            for ( final Element element : appPropertiesElements )
-            {
-                final List<Element> properties = element.getChildren();
-                for ( final Element property : properties )
-                {
-                    final String key = property.getAttributeValue( "key" );
-                    final String value = property.getText();
-                    if ( key != null && !key.isEmpty() && value != null && !value.isEmpty() )
-                    {
-                        LOGGER.info( () -> "migrating app-property config element '" + key + "' to setting " + PwmSetting.APP_PROPERTY_OVERRIDES.getKey() );
-                        final String newValue = key + "=" + value;
-                        List<String> existingValues = ( List<String> ) storedConfiguration.readSetting( PwmSetting.APP_PROPERTY_OVERRIDES ).toNativeObject();
-                        if ( existingValues == null )
-                        {
-                            existingValues = new ArrayList<>();
-                        }
-                        existingValues = new ArrayList<>( existingValues );
-                        existingValues.add( newValue );
-                        storedConfiguration.writeSetting( PwmSetting.APP_PROPERTY_OVERRIDES, new StringArrayValue( existingValues ), null );
-                    }
-                }
-                element.detach();
-            }
-        }
-
-        private static void updateDeprecatedSettings( final StoredConfigurationImpl storedConfiguration ) throws PwmUnrecoverableException
-        {
-            final UserIdentity actor = new UserIdentity( "UpgradeProcessor", null );
-            for ( final String profileID : storedConfiguration.profilesForSetting( PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY ) )
-            {
-                if ( !storedConfiguration.isDefaultValue( PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY, profileID ) )
-                {
-                    final boolean ad2003Enabled = ( boolean ) storedConfiguration.readSetting( PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY, profileID ).toNativeObject();
-                    final StoredValue value;
-                    if ( ad2003Enabled )
-                    {
-                        value = new StringValue( ADPolicyComplexity.AD2003.toString() );
-                    }
-                    else
-                    {
-                        value = new StringValue( ADPolicyComplexity.NONE.toString() );
-                    }
-                    LOGGER.warn( "converting deprecated non-default setting " + PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY.getKey() + "/" + profileID
-                            + " to replacement setting " + PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY_LEVEL + ", value=" + value.toNativeObject().toString() );
-                    storedConfiguration.writeSetting( PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY_LEVEL, profileID, value, actor );
-                    storedConfiguration.resetSetting( PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY, profileID, actor );
-                }
-            }
-
-            for ( final String profileID : storedConfiguration.profilesForSetting( PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME ) )
-            {
-                if ( !storedConfiguration.isDefaultValue( PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME, profileID ) )
-                {
-                    final boolean enforceEnabled = ( boolean ) storedConfiguration.readSetting( PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME, profileID ).toNativeObject();
-                    final StoredValue value = enforceEnabled
-                            ? new StringValue( "NONE" )
-                            : new StringValue( "ALLOW" );
-                    final ValueMetaData existingData = storedConfiguration.readSettingMetadata( PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME, profileID );
-                    LOGGER.warn( "converting deprecated non-default setting "
-                            + PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME.toMenuLocationDebug(profileID,PwmConstants.DEFAULT_LOCALE) + "/" + profileID
-                            + " to replacement setting " + PwmSetting.RECOVERY_MINIMUM_PASSWORD_LIFETIME_OPTIONS.toMenuLocationDebug( profileID, PwmConstants.DEFAULT_LOCALE )
-                            + ", value=" + value.toNativeObject().toString() );
-                    final UserIdentity newActor = existingData != null && existingData.getUserIdentity() != null
-                            ? existingData.getUserIdentity()
-                            : actor;
-                    storedConfiguration.writeSetting( PwmSetting.RECOVERY_MINIMUM_PASSWORD_LIFETIME_OPTIONS, profileID, value, newActor );
-                    storedConfiguration.resetSetting( PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME, profileID, actor );
-                }
-            }
-
-            {
-                if ( !storedConfiguration.isDefaultValue( PwmSetting.PEOPLE_SEARCH_SEARCH_ATTRIBUTES ) )
-                {
-                    final List<String> oldValues = ( List<String> ) storedConfiguration.readSetting( PwmSetting.PEOPLE_SEARCH_SEARCH_ATTRIBUTES ).toNativeObject();
-
-                    final List<FormConfiguration> newValues = new ArrayList<>();
-                    for ( final String attribute : oldValues )
-                    {
-                        final FormConfiguration formConfiguration = FormConfiguration.builder()
-                                .name( attribute )
-                                .labels( Collections.singletonMap( "", attribute ) )
-                                .build();
-                        newValues.add( formConfiguration );
-                    }
-
-                    final ValueMetaData existingData = storedConfiguration.readSettingMetadata( PwmSetting.PEOPLE_SEARCH_SEARCH_ATTRIBUTES, null );
-                    final UserIdentity newActor = existingData != null && existingData.getUserIdentity() != null
-                            ? existingData.getUserIdentity()
-                            : actor;
-
-                    storedConfiguration.writeSetting( PwmSetting.PEOPLE_SEARCH_SEARCH_FORM, null, new FormValue( newValues ), newActor );
-                    storedConfiguration.resetSetting( PwmSetting.PEOPLE_SEARCH_SEARCH_ATTRIBUTES, null, actor );
-                }
-            }
         }
     }
 

@@ -295,14 +295,9 @@
             <version>1.14.2</version>
         </dependency>
         <dependency>
-            <groupId>org.webjars.bower</groupId>
+            <groupId>org.webjars.npm</groupId>
             <artifactId>dgrid</artifactId>
             <version>1.2.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.webjars.bower</groupId>
-            <artifactId>dstore</artifactId>
-            <version>1.1.2</version>
         </dependency>
         <dependency>
             <groupId>org.webjars.bower</groupId>

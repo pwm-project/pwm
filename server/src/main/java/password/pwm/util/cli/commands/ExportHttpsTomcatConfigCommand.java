@@ -132,7 +132,7 @@ public class ExportHttpsTomcatConfigCommand extends AbstractCliCommand
             for ( final Iterator<TLSVersion> versionIterator = tlsVersions.iterator(); versionIterator.hasNext(); )
             {
                 final TLSVersion tlsVersion = versionIterator.next();
-                output.append( tlsVersion.getTomcatValueName() );
+                output.append( "+" ).append( tlsVersion.getTomcatValueName() );
                 if ( versionIterator.hasNext() )
                 {
                     output.append( ", " );

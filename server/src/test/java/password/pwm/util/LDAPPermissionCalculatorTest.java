@@ -20,36 +20,20 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.svc.cluster;
+package password.pwm.util;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import password.pwm.PwmApplication;
+import org.junit.Test;
+import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.error.PwmUnrecoverableException;
 
-import java.io.Serializable;
-import java.time.Instant;
-
-@Getter
-@AllArgsConstructor( access = AccessLevel.PRIVATE )
-class StoredNodeData implements Serializable
+public class LDAPPermissionCalculatorTest
 {
-    private Instant timestamp;
-    private Instant startupTimestamp;
-    private String instanceID;
-    private String guid;
-    private String configHash;
-
-    static StoredNodeData makeNew( final PwmApplication pwmApplication )
+    @Test
+    public void testDefaultPermissionCalculator()
             throws PwmUnrecoverableException
     {
-        return new StoredNodeData(
-                Instant.now(),
-                pwmApplication.getStartupTime(),
-                pwmApplication.getInstanceID(),
-                pwmApplication.getRuntimeNonce(),
-                pwmApplication.getConfig().configurationHash()
-        );
+        final StoredConfigurationImpl defaultConfig = StoredConfigurationImpl.newStoredConfiguration();
+        final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator( defaultConfig );
+        ldapPermissionCalculator.getPermissionRecords();
     }
 }

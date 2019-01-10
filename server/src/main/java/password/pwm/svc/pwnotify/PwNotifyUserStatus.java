@@ -20,19 +20,18 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.svc.cluster;
+package password.pwm.svc.pwnotify;
 
-import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.TimeDuration;
+import lombok.Value;
 
-import java.util.Map;
+import java.io.Serializable;
+import java.time.Instant;
 
-public interface ClusterDataServiceProvider
+@Value
+public
+class PwNotifyUserStatus implements Serializable
 {
-    Map<String, StoredNodeData> readStoredData( ) throws PwmUnrecoverableException;
-
-    void writeNodeStatus( StoredNodeData storedNodeData ) throws PwmUnrecoverableException;
-
-    int purgeOutdatedNodes( TimeDuration maxNodeAge )
-            throws PwmUnrecoverableException;
+    private Instant expireTime;
+    private Instant lastNotice;
+    private int interval;
 }

@@ -228,6 +228,18 @@ public class PwmURL
         return isPwmServletURL( PwmServletDefinition.UpdateProfile );
     }
 
+    public PwmServletDefinition forServletDefinition()
+    {
+        for ( final PwmServletDefinition pwmServletDefinition : PwmServletDefinition.values() )
+        {
+            if ( isPwmServletURL( pwmServletDefinition ) )
+            {
+                return pwmServletDefinition;
+            }
+        }
+        return null;
+    }
+
     public boolean isLocalizable( )
     {
         return !isConfigGuideURL()

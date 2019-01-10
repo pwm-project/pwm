@@ -53,8 +53,8 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.auth.HttpAuthRecord;
 import password.pwm.http.bean.ForgottenPasswordBean;
-import password.pwm.http.filter.AuthenticationFilter;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
@@ -254,10 +254,10 @@ public class ForgottenPasswordUtil
                 return false;
             }
 
-            final AuthenticationFilter.AuthRecord authRecord = pwmRequest.readEncryptedCookie( cookieName, AuthenticationFilter.AuthRecord.class );
-            if ( authRecord != null )
+            final HttpAuthRecord httpAuthRecord = pwmRequest.readEncryptedCookie( cookieName, HttpAuthRecord.class );
+            if ( httpAuthRecord != null )
             {
-                if ( authRecord.getGuid() != null && !authRecord.getGuid().isEmpty() && authRecord.getGuid().equals( userGuid ) )
+                if ( httpAuthRecord.getGuid() != null && !httpAuthRecord.getGuid().isEmpty() && httpAuthRecord.getGuid().equals( userGuid ) )
                 {
                     LOGGER.debug( pwmRequest, () -> "auth record cookie validated" );
                     return true;

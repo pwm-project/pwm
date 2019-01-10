@@ -37,7 +37,7 @@ import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
@@ -52,6 +52,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -261,7 +262,7 @@ public class PwNotifyEngine
         }
 
         log( "sending notice to " + userIdentity.toDisplayString() + " for interval " + nextDayInterval );
-        storageService.writeStoredUserState( userIdentity, SESSION_LABEL, new StoredNotificationState( passwordExpirationTime, Instant.now(), nextDayInterval ) );
+        storageService.writeStoredUserState( userIdentity, SESSION_LABEL, new PwNotifyUserStatus( passwordExpirationTime, Instant.now(), nextDayInterval ) );
         sendNoticeEmail( userIdentity );
     }
 
@@ -296,13 +297,14 @@ public class PwNotifyEngine
     )
             throws PwmUnrecoverableException
     {
-        final StoredNotificationState storedState = storageService.readStoredUserState( userIdentity, SESSION_LABEL );
+        final Optional<PwNotifyUserStatus> optionalStoredState = storageService.readStoredUserState( userIdentity, SESSION_LABEL );
 
-        if ( storedState == null )
+        if ( !optionalStoredState.isPresent() )
         {
             return false;
         }
 
+        final PwNotifyUserStatus storedState = optionalStoredState.get();
         if ( storedState.getExpireTime() == null || !storedState.getExpireTime().equals( passwordExpirationTime ) )
         {
             return false;

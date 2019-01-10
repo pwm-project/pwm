@@ -20,29 +20,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.svc.cluster;
+package password.pwm.config.option;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
-import java.io.Serializable;
-import java.time.Instant;
-
-@Getter
-@AllArgsConstructor( access = AccessLevel.PACKAGE )
-public class NodeInfo implements Serializable
+public enum CertificateMatchingMode
 {
-    private String instanceID;
-    private Instant lastSeen;
-    private Instant startupTime;
-    private NodeState nodeState;
-    private boolean configMatch;
-
-    public enum NodeState
-    {
-        master,
-        online,
-        offline
-    }
+    CA_ONLY,
+    CERTIFICATE_CHAIN,
 }

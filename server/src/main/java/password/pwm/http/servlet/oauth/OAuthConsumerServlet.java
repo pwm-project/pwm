@@ -85,7 +85,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
         final Optional<OAuthRequestState> oAuthRequestState = OAuthMachine.readOAuthRequestState( pwmRequest );
 
         final OAuthUseCase oAuthUseCaseCase = oAuthRequestState.isPresent()
-                ? oAuthRequestState.get().getoAuthState().getUseCase()
+                ? oAuthRequestState.get().getOAuthState().getUseCase()
                 : OAuthUseCase.Authentication;
 
         LOGGER.trace( pwmRequest, () -> "processing oauth return request, useCase=" + oAuthUseCaseCase
@@ -94,31 +94,24 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
         );
 
         // make sure it's okay to be processing this request.
-        switch ( oAuthUseCaseCase )
+        // for non-auth requests its okay to continue
+        if ( oAuthUseCaseCase == OAuthUseCase.Authentication )
         {
-            case Authentication:
+            if ( !userIsAuthenticated && !pwmSession.getSessionStateBean().isOauthInProgress() )
             {
-                if ( !userIsAuthenticated && !pwmSession.getSessionStateBean().isOauthInProgress() )
+                if ( oAuthRequestState.isPresent() )
                 {
-                    if ( oAuthRequestState.isPresent() )
-                    {
-                        final String nextUrl = oAuthRequestState.get().getoAuthState().getNextUrl();
-                        LOGGER.debug( pwmSession, () -> "received unrecognized oauth response, ignoring authcode and redirecting to embedded next url: " + nextUrl );
-                        pwmRequest.sendRedirect( nextUrl );
-                        return;
-                    }
-                    final String errorMsg = "oauth consumer reached, but oauth authentication has not yet been initiated.";
-                    final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_OAUTH_ERROR, errorMsg );
-                    pwmRequest.respondWithError( errorInformation );
-                    LOGGER.error( pwmSession, errorMsg );
+                    final String nextUrl = oAuthRequestState.get().getOAuthState().getNextUrl();
+                    LOGGER.debug( pwmSession, () -> "received unrecognized oauth response, ignoring authcode and redirecting to embedded next url: " + nextUrl );
+                    pwmRequest.sendRedirect( nextUrl );
                     return;
                 }
+                final String errorMsg = "oauth consumer reached, but oauth authentication has not yet been initiated.";
+                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_OAUTH_ERROR, errorMsg );
+                pwmRequest.respondWithError( errorInformation );
+                LOGGER.error( pwmSession, errorMsg );
+                return;
             }
-            break;
-
-            default:
-                // for non-auth requests its okay to continue
-                break;
         }
 
         // check if there is an "error" on the request sent from the oauth server., if there is then halt.
@@ -168,7 +161,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
             return;
         }
 
-        final OAuthState oauthState = oAuthRequestState.get().getoAuthState();
+        final OAuthState oauthState = oAuthRequestState.get().getOAuthState();
         final OAuthSettings oAuthSettings = makeOAuthSettings( pwmRequest, oauthState );
         final OAuthMachine oAuthMachine = new OAuthMachine( oAuthSettings );
 
@@ -231,6 +224,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
             return;
         }
 
+        /*
         if ( resolveResults.getExpiresSeconds() > 0 )
         {
             if ( resolveResults.getRefreshToken() == null || resolveResults.getRefreshToken().isEmpty() )
@@ -242,22 +236,9 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
                 return;
             }
         }
+        */
 
-        final String oauthSuppliedUsername;
-        {
-            final String getAttributeResponseBodyStr = oAuthMachine.makeOAuthGetAttributeRequest( pwmRequest, resolveResults.getAccessToken() );
-            final Map<String, String> getAttributeResultValues = JsonUtil.deserializeStringMap( getAttributeResponseBodyStr );
-            oauthSuppliedUsername = getAttributeResultValues.get( oAuthSettings.getDnAttributeName() );
-            if ( oauthSuppliedUsername == null || oauthSuppliedUsername.isEmpty() )
-            {
-                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_OAUTH_ERROR, "OAuth server did not respond with an username attribute value" );
-                LOGGER.error( pwmRequest, errorInformation );
-                pwmRequest.respondWithError( errorInformation );
-                return;
-            }
-        }
-
-        LOGGER.debug( pwmSession, () -> "received user login id value from OAuth server: " + oauthSuppliedUsername );
+        final String oauthSuppliedUsername = oAuthMachine.makeOAuthGetUserInfoRequest( pwmRequest, resolveResults.getAccessToken() );
 
         if ( oAuthUseCaseCase == OAuthUseCase.ForgottenPassword )
         {

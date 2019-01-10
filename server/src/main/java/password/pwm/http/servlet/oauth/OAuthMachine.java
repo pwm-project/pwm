@@ -25,6 +25,7 @@ package password.pwm.http.servlet.oauth;
 import org.apache.http.HttpStatus;
 import password.pwm.AppProperty;
 import password.pwm.bean.LoginInfoBean;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -72,7 +73,7 @@ public class OAuthMachine
         this.settings = settings;
     }
 
-    public static Optional<OAuthRequestState> readOAuthRequestState(
+    static Optional<OAuthRequestState> readOAuthRequestState(
             final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException
@@ -117,6 +118,11 @@ public class OAuthMachine
         urlParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_STATE ), state );
         urlParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_REDIRECT_URI ), redirectUri );
 
+        if ( !StringUtil.isEmpty( settings.getScope() ) )
+        {
+            urlParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_SCOPE ), settings.getScope() );
+        }
+
         if ( userIdentity != null )
         {
             final String parametersValue = figureUsernameGrantParam( pwmRequest, userIdentity );
@@ -159,29 +165,39 @@ public class OAuthMachine
         requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_GRANT_TYPE ), grantType );
         requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_REDIRECT_URI ), redirectUri );
         requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_CLIENT_ID ), clientID );
+        requestParams.put( "client_secret", settings.getSecret().getStringValue() );
 
-        final PwmHttpClientResponse restResults = makeHttpRequest( pwmRequest, "oauth code resolver", settings, requestUrl, requestParams );
+        final PwmHttpClientResponse restResults = makeHttpRequest( pwmRequest, "oauth code resolver", settings, requestUrl, requestParams, null );
 
-        final String resolveResponseBodyStr = restResults.getBody();
+        return resolveResultsFromResponseBody( pwmRequest.getSessionLabel(), pwmRequest.getConfig(), restResults.getBody() );
+    }
 
+    private OAuthResolveResults resolveResultsFromResponseBody(
+            final SessionLabel sessionLabel,
+            final Configuration config,
+            final String resolveResponseBodyStr
+            )
+    {
         final Map<String, String> resolveResultValues = JsonUtil.deserializeStringMap( resolveResponseBodyStr );
-        final OAuthResolveResults oAuthResolveResults = new OAuthResolveResults();
 
-        oAuthResolveResults.setAccessToken( resolveResultValues.get( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_ACCESS_TOKEN ) ) );
-        oAuthResolveResults.setRefreshToken( resolveResultValues.get( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_REFRESH_TOKEN ) ) );
-        oAuthResolveResults.setExpiresSeconds( 0 );
+        int expireSeconds = 0;
         try
         {
-            oAuthResolveResults.setExpiresSeconds( Integer.parseInt( resolveResultValues.get( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_EXPIRES ) ) ) );
+            expireSeconds = Integer.parseInt( resolveResultValues.get( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_EXPIRES ) ) );
         }
         catch ( Exception e )
         {
-            LOGGER.warn( pwmRequest, "error parsing oauth expires value in code resolver response from server at " + requestUrl + ", error: " + e.getMessage() );
+            LOGGER.warn( sessionLabel, "error parsing oauth expires value in code resolver response from server, error: " + e.getMessage() );
         }
 
-        return oAuthResolveResults;
-    }
+        final String accessToken = readAttributeFromBodyMap( resolveResultValues, config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_ACCESS_TOKEN ) );
 
+        return OAuthResolveResults.builder()
+                .accessToken( accessToken )
+                .refreshToken( resolveResultValues.get( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_REFRESH_TOKEN ) ) )
+                .expiresSeconds( expireSeconds )
+                .build();
+    }
 
     private OAuthResolveResults makeOAuthRefreshRequest(
             final PwmRequest pwmRequest,
@@ -197,29 +213,12 @@ public class OAuthMachine
         requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_REFRESH_TOKEN ), refreshCode );
         requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_GRANT_TYPE ), grantType );
 
-        final PwmHttpClientResponse restResults = makeHttpRequest( pwmRequest, "OAuth refresh resolver", settings, requestUrl, requestParams );
+        final PwmHttpClientResponse restResults = makeHttpRequest( pwmRequest, "OAuth refresh resolver", settings, requestUrl, requestParams, null );
 
-        final String resolveResponseBodyStr = restResults.getBody();
-
-        final Map<String, String> resolveResultValues = JsonUtil.deserializeStringMap( resolveResponseBodyStr );
-        final OAuthResolveResults oAuthResolveResults = new OAuthResolveResults();
-
-        oAuthResolveResults.setAccessToken( resolveResultValues.get( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_ACCESS_TOKEN ) ) );
-        oAuthResolveResults.setRefreshToken( refreshCode );
-        oAuthResolveResults.setExpiresSeconds( 0 );
-        try
-        {
-            oAuthResolveResults.setExpiresSeconds( Integer.parseInt( resolveResultValues.get( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_EXPIRES ) ) ) );
-        }
-        catch ( Exception e )
-        {
-            LOGGER.warn( pwmRequest, "error parsing oauth expires value in resolve request: " + e.getMessage() );
-        }
-
-        return oAuthResolveResults;
+        return resolveResultsFromResponseBody( pwmRequest.getSessionLabel(), pwmRequest.getConfig(), restResults.getBody() );
     }
 
-    String makeOAuthGetAttributeRequest(
+    String makeOAuthGetUserInfoRequest(
             final PwmRequest pwmRequest,
             final String accessToken
     )
@@ -231,9 +230,27 @@ public class OAuthMachine
         requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_ACCESS_TOKEN ), accessToken );
         requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_ATTRIBUTES ), settings.getDnAttributeName() );
 
-        final PwmHttpClientResponse restResults = makeHttpRequest( pwmRequest, "OAuth getattribute", settings, requestUrl, requestParams );
+        final PwmHttpClientResponse restResults = makeHttpRequest( pwmRequest, "OAuth userinfo", settings, requestUrl, requestParams, accessToken );
 
-        return restResults.getBody();
+        final String resultBody = restResults.getBody();
+        final Map<String, String> getAttributeResultValues = JsonUtil.deserializeStringMap( resultBody );
+
+        LOGGER.debug( pwmRequest, () -> "received attribute values from OAuth IdP for attributes: "
+                + StringUtil.collectionToString( getAttributeResultValues.keySet() ) );
+
+        final String oauthSuppliedUsername = getAttributeResultValues.get( settings.getDnAttributeName() );
+
+        if ( StringUtil.isEmpty( oauthSuppliedUsername ) )
+        {
+            final String msg = "OAuth server did not respond with an username value for configured attribute '" + settings.getDnAttributeName() + "'";
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_OAUTH_ERROR, msg );
+            LOGGER.error( pwmRequest, errorInformation );
+            throw new PwmUnrecoverableException( errorInformation );
+        }
+
+        LOGGER.debug( pwmRequest, () -> "received user login id value from OAuth server: " + oauthSuppliedUsername );
+
+        return oauthSuppliedUsername;
     }
 
     private static PwmHttpClientResponse makeHttpRequest(
@@ -241,7 +258,8 @@ public class OAuthMachine
             final String debugText,
             final OAuthSettings settings,
             final String requestUrl,
-            final Map<String, String> requestParams
+            final Map<String, String> requestParams,
+            final String accessToken
     )
             throws PwmUnrecoverableException
     {
@@ -251,8 +269,16 @@ public class OAuthMachine
         final PwmHttpClientRequest pwmHttpClientRequest;
         {
             final Map<String, String> headers = new HashMap<>( );
-            headers.put( HttpHeader.Authorization.getHttpName(),
-                    new BasicAuthInfo( settings.getClientID(), settings.getSecret() ).toAuthHeader() );
+            if ( StringUtil.isEmpty(  accessToken ) )
+            {
+                headers.put( HttpHeader.Authorization.getHttpName(),
+                        new BasicAuthInfo( settings.getClientID(), settings.getSecret() ).toAuthHeader() );
+            }
+            else
+            {
+                headers.put( HttpHeader.Authorization.getHttpName(),
+                        "Bearer " + accessToken );
+            }
             headers.put( HttpHeader.ContentType.getHttpName(), HttpContentType.form.getHeaderValue() );
 
             pwmHttpClientRequest = new PwmHttpClientRequest( HttpMethod.POST, requestUrl, requestBody, headers );
@@ -447,12 +473,28 @@ public class OAuthMachine
         }
 
         LOGGER.debug( pwmRequest, () -> "preparing to send username to OAuth /sign endpoint for future injection to /grant redirect" );
-        final PwmHttpClientResponse restResults = makeHttpRequest( pwmRequest, "OAuth pre-inject username signing service", settings, signUrl, requestPayload );
+        final PwmHttpClientResponse restResults = makeHttpRequest( pwmRequest, "OAuth pre-inject username signing service", settings, signUrl, requestPayload, null );
 
         final String resultBody = restResults.getBody();
         final Map<String, String> resultBodyMap = JsonUtil.deserializeStringMap( resultBody );
         final String data = resultBodyMap.get( "data" );
         LOGGER.debug( pwmRequest, () -> "oauth /sign endpoint returned signed username data: " + data );
         return data;
+    }
+
+    private static String readAttributeFromBodyMap( final Map<String, String> bodyMap, final String attributeNames )
+    {
+        final List<String> attributeValues = StringUtil.splitAndTrim( attributeNames, "," );
+
+        for ( final String attribute : attributeValues )
+        {
+            final String value = bodyMap.get( attribute );
+            if ( !StringUtil.isEmpty( value ) )
+            {
+                return value;
+            }
+        }
+
+        return null;
     }
 }

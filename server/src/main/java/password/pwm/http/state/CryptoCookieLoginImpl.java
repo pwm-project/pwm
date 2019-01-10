@@ -128,6 +128,13 @@ class CryptoCookieLoginImpl implements SessionLoginProvider
 
                 checkIfLoginCookieIsForeign( pwmRequest, remoteLoginCookie );
 
+                if ( remoteLoginCookie.getType() == AuthenticationType.AUTH_WITHOUT_PASSWORD && remoteLoginCookie.getUserCurrentPassword() == null )
+                {
+                    LOGGER.debug( () -> "remote session has authType " + AuthenticationType.AUTH_WITHOUT_PASSWORD.name()
+                            + " and does not contain password, thus ignoring authentication so SSO process can repeat" );
+                    return;
+                }
+
                 importRemoteCookie( pwmRequest, remoteLoginCookie );
             }
             catch ( Exception e )
@@ -144,7 +151,8 @@ class CryptoCookieLoginImpl implements SessionLoginProvider
     private static void importRemoteCookie(
             final PwmRequest pwmRequest,
             final LoginInfoBean remoteLoginCookie
-    ) throws PwmUnrecoverableException
+    )
+            throws PwmUnrecoverableException
     {
         if ( remoteLoginCookie == null )
         {

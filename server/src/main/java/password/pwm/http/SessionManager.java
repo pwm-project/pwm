@@ -42,6 +42,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.ldap.UserInfo;
+import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.util.PasswordData;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -74,9 +75,21 @@ public class SessionManager
     {
         if ( chaiProvider == null )
         {
+            if ( isAuthenticatedWithoutPasswordAndBind() )
+            {
+                throw PwmUnrecoverableException.newException( PwmError.ERROR_PASSWORD_REQUIRED, "password required for this operation" );
+            }
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_AUTHENTICATION_REQUIRED, "ldap connection is not available for session" ) );
         }
         return chaiProvider;
+    }
+
+    public boolean isAuthenticatedWithoutPasswordAndBind()
+    {
+        return pwmSession.getLoginInfoBean().getUserCurrentPassword() == null
+                && pwmSession.getLoginInfoBean().getType() == AuthenticationType.AUTH_WITHOUT_PASSWORD
+                && chaiProvider == null;
+
     }
 
     public void setChaiProvider( final ChaiProvider chaiProvider )

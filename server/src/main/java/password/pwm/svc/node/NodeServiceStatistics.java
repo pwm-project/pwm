@@ -20,22 +20,17 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.svc.pwnotify;
+package password.pwm.svc.node;
 
-import lombok.Builder;
 import lombok.Value;
-import password.pwm.error.ErrorInformation;
 
 import java.io.Serializable;
-import java.time.Instant;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Value
-@Builder
-public class StoredJobState implements Serializable
+public class NodeServiceStatistics implements Serializable
 {
-    private Instant lastStart;
-    private Instant lastCompletion;
-    private String serverInstance;
-    private ErrorInformation lastError;
-    private boolean jobSuccess;
+    private final AtomicInteger clusterWrites = new AtomicInteger( 0 );
+    private final AtomicInteger clusterReads = new AtomicInteger( 0 );
+    private final AtomicInteger nodePurges = new AtomicInteger( 0 );
 }

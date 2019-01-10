@@ -78,6 +78,10 @@ public class ConditionalTaskExecutor
         this.predicate = predicate;
     }
 
+    public static ConditionalTaskExecutor forPeriodicTask( final Runnable task, final TimeDuration timeDuration )
+    {
+        return new ConditionalTaskExecutor( task, new TimeDurationPredicate( timeDuration ) );
+    }
 
     public static class TimeDurationPredicate implements Supplier<Boolean>
     {

@@ -27,7 +27,7 @@ import org.jdom2.Element;
 import password.pwm.config.value.PasswordValue;
 import password.pwm.config.value.ValueFactory;
 import password.pwm.i18n.Config;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -98,9 +98,9 @@ public enum PwmSetting
 
     // clustering
     CLUSTER_ENABLED(
-            "cluster.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.CLUSTERING ),
+            "nodeService.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.CLUSTERING ),
     CLUSTER_STORAGE_MODE(
-            "cluster.storageMode", PwmSettingSyntax.SELECT, PwmSettingCategory.CLUSTERING ),
+            "nodeService.storageMode", PwmSettingSyntax.SELECT, PwmSettingCategory.CLUSTERING ),
     SECURITY_LOGIN_SESSION_MODE(
             "security.loginSession.mode", PwmSettingSyntax.SELECT, PwmSettingCategory.CLUSTERING ),
     SECURITY_MODULE_SESSION_MODE(
@@ -283,7 +283,7 @@ public enum PwmSetting
     LDAP_ATTRIBUTE_LANGUAGE(
             "ldap.user.language.attribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
     LDAP_ATTRIBUTE_PWNOTIFY(
-            "ldap.user.pwNotify.attribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
+            "ldap.user.appData.attribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
     LDAP_AUTO_SET_LANGUAGE_VALUE(
             "ldap.user.language.autoSet", PwmSettingSyntax.SELECT, PwmSettingCategory.LDAP_ATTRIBUTES ),
     AUTO_ADD_OBJECT_CLASSES(
@@ -549,7 +549,8 @@ public enum PwmSetting
             "display.showDetailedErrors", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.APP_SECURITY ),
     SESSION_MAX_SECONDS(
             "session.maxSeconds", PwmSettingSyntax.DURATION, PwmSettingCategory.APP_SECURITY ),
-
+    CERTIFICATE_VALIDATION_MODE(
+            "security.certificate.validationMode", PwmSettingSyntax.SELECT, PwmSettingCategory.APP_SECURITY ),
 
     // web security
     SECURITY_ENABLE_FORM_NONCE(
@@ -1131,8 +1132,8 @@ public enum PwmSetting
     // reporting
     REPORTING_ENABLE(
             "reporting.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.REPORTING ),
-    REPORTING_SEARCH_FILTER(
-            "reporting.ldap.searchFilter", PwmSettingSyntax.STRING, PwmSettingCategory.REPORTING ),
+    REPORTING_USER_MATCH(
+            "reporting.ldap.userMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.REPORTING ),
     REPORTING_MAX_CACHE_AGE(
             "reporting.maxCacheAge", PwmSettingSyntax.DURATION, PwmSettingCategory.REPORTING ),
     REPORTING_MAX_QUERY_SIZE(
@@ -1147,6 +1148,8 @@ public enum PwmSetting
     // OAuth
     OAUTH_ID_LOGIN_URL(
             "oauth.idserver.loginUrl", PwmSettingSyntax.STRING, PwmSettingCategory.OAUTH ),
+    OAUTH_ID_SCOPE(
+            "oauth.idserver.scope", PwmSettingSyntax.STRING, PwmSettingCategory.OAUTH ),
     OAUTH_ID_CODERESOLVE_URL(
             "oauth.idserver.codeResolveUrl", PwmSettingSyntax.STRING, PwmSettingCategory.OAUTH ),
     OAUTH_ID_ATTRIBUTES_URL(
@@ -1220,6 +1223,9 @@ public enum PwmSetting
 
 
     // deprecated.
+    // deprecated 2018-12-05
+    REPORTING_SEARCH_FILTER(
+            "reporting.ldap.searchFilter", PwmSettingSyntax.STRING, PwmSettingCategory.REPORTING ),
 
     // deprecated 2018-10-15
     PEOPLE_SEARCH_SEARCH_ATTRIBUTES(

@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.svc.cluster;
+package password.pwm.svc.node;
 
 import password.pwm.PwmApplication;
 import password.pwm.error.ErrorInformation;
@@ -40,32 +40,32 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 
-class ClusterMachine
+class NodeMachine
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass( ClusterMachine.class );
+    private static final PwmLogger LOGGER = PwmLogger.forClass( NodeMachine.class );
 
     private final PwmApplication pwmApplication;
     private final ExecutorService executorService;
-    private final ClusterDataServiceProvider clusterDataServiceProvider;
+    private final NodeDataServiceProvider clusterDataServiceProvider;
 
     private ErrorInformation lastError;
 
     private final Map<String, StoredNodeData> knownNodes = new ConcurrentHashMap<>();
 
-    private final ClusterSettings settings;
-    private final ClusterStatistics clusterStatistics = new ClusterStatistics();
+    private final NodeServiceSettings settings;
+    private final NodeServiceStatistics nodeServiceStatistics = new NodeServiceStatistics();
 
-    ClusterMachine(
+    NodeMachine(
             final PwmApplication pwmApplication,
-            final ClusterDataServiceProvider clusterDataServiceProvider,
-            final ClusterSettings clusterSettings
+            final NodeDataServiceProvider clusterDataServiceProvider,
+            final NodeServiceSettings nodeServiceSettings
     )
     {
         this.pwmApplication = pwmApplication;
         this.clusterDataServiceProvider = clusterDataServiceProvider;
-        this.settings = clusterSettings;
+        this.settings = nodeServiceSettings;
 
-        this.executorService = JavaHelper.makeBackgroundExecutor( pwmApplication, ClusterMachine.class );
+        this.executorService = JavaHelper.makeBackgroundExecutor( pwmApplication, NodeMachine.class );
 
         pwmApplication.scheduleFixedRateJob( new HeartbeatProcess(), executorService, settings.getHeartbeatInterval(), settings.getHeartbeatInterval() );
     }
@@ -174,12 +174,12 @@ class ClusterMachine
             {
                 final StoredNodeData storedNodeData = StoredNodeData.makeNew( pwmApplication );
                 clusterDataServiceProvider.writeNodeStatus( storedNodeData );
-                clusterStatistics.getClusterWrites().incrementAndGet();
+                nodeServiceStatistics.getClusterWrites().incrementAndGet();
             }
             catch ( PwmException e )
             {
-                final String errorMsg = "error writing database cluster heartbeat: " + e.getMessage();
-                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CLUSTER_SERVICE_ERROR, errorMsg );
+                final String errorMsg = "error writing node service heartbeat: " + e.getMessage();
+                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_NODE_SERVICE_ERROR, errorMsg );
                 lastError = errorInformation;
                 LOGGER.error( lastError );
             }
@@ -191,12 +191,12 @@ class ClusterMachine
             {
                 final Map<String, StoredNodeData> readNodeData = clusterDataServiceProvider.readStoredData();
                 knownNodes.putAll( readNodeData );
-                clusterStatistics.getClusterReads().incrementAndGet();
+                nodeServiceStatistics.getClusterReads().incrementAndGet();
             }
             catch ( PwmException e )
             {
                 final String errorMsg = "error reading node statuses: " + e.getMessage();
-                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CLUSTER_SERVICE_ERROR, errorMsg );
+                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_NODE_SERVICE_ERROR, errorMsg );
                 lastError = errorInformation;
                 LOGGER.error( lastError );
             }
@@ -207,20 +207,20 @@ class ClusterMachine
             try
             {
                 final int purges = clusterDataServiceProvider.purgeOutdatedNodes( settings.getNodePurgeInterval() );
-                clusterStatistics.getNodePurges().addAndGet( purges );
+                nodeServiceStatistics.getNodePurges().addAndGet( purges );
             }
             catch ( PwmException e )
             {
                 final String errorMsg = "error purging outdated node reference: " + e.getMessage();
-                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CLUSTER_SERVICE_ERROR, errorMsg );
+                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_NODE_SERVICE_ERROR, errorMsg );
                 lastError = errorInformation;
                 LOGGER.error( lastError );
             }
         }
     }
 
-    public ClusterStatistics getClusterStatistics( )
+    public NodeServiceStatistics getNodeServiceStatistics( )
     {
-        return clusterStatistics;
+        return nodeServiceStatistics;
     }
 }

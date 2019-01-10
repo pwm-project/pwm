@@ -47,7 +47,7 @@ import password.pwm.http.PwmURL;
 import password.pwm.i18n.Display;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -213,21 +213,23 @@ public class ClientApiServlet extends ControlledPwmServlet
     {
         if ( pwmRequest.getPwmApplication().getApplicationMode() == PwmApplicationMode.RUNNING )
         {
-
-            if ( !pwmRequest.isAuthenticated() )
+            if ( !pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.PUBLIC_HEALTH_STATS_WEBSERVICES ) )
             {
-                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_AUTHENTICATION_REQUIRED );
-                LOGGER.debug( pwmRequest, errorInformation );
-                pwmRequest.respondWithError( errorInformation );
-                return ProcessStatus.Halt;
-            }
+                if ( !pwmRequest.isAuthenticated() )
+                {
+                    final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_AUTHENTICATION_REQUIRED );
+                    LOGGER.debug( pwmRequest, errorInformation );
+                    pwmRequest.respondWithError( errorInformation );
+                    return ProcessStatus.Halt;
+                }
 
-            if ( !pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmApplication(), Permission.PWMADMIN ) )
-            {
-                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNAUTHORIZED, "admin privileges required" );
-                LOGGER.debug( pwmRequest, errorInformation );
-                pwmRequest.respondWithError( errorInformation );
-                return ProcessStatus.Halt;
+                if ( !pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmApplication(), Permission.PWMADMIN ) )
+                {
+                    final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNAUTHORIZED, "admin privileges required" );
+                    LOGGER.debug( pwmRequest, errorInformation );
+                    pwmRequest.respondWithError( errorInformation );
+                    return ProcessStatus.Halt;
+                }
             }
         }
 

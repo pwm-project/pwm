@@ -20,17 +20,24 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.svc.pwnotify;
+package password.pwm.http.auth;
 
-import lombok.Value;
-
-import java.io.Serializable;
-import java.time.Instant;
-
-@Value
-class StoredNotificationState implements Serializable
+public enum AuthenticationMethod
 {
-    private Instant expireTime;
-    private Instant lastNotice;
-    private int interval;
+    BASIC_AUTH( BasicFilterAuthenticationProvider.class.getName() ),
+    SSO_AUTH_HEADER( SSOHeaderFilterAuthenticationProvider.class.getName() ),
+    CAS( "password.pwm.http.auth.CASFilterAuthenticationProvider" ),
+    OAUTH( OAuthFilterAuthenticationProvider.class.getName() );
+
+    private final String className;
+
+    AuthenticationMethod( final String className )
+    {
+        this.className = className;
+    }
+
+    public String getClassName( )
+    {
+        return className;
+    }
 }

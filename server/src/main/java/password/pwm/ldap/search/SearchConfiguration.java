@@ -25,6 +25,7 @@ package password.pwm.ldap.search;
 import com.novell.ldapchai.provider.ChaiProvider;
 import lombok.Builder;
 import lombok.Getter;
+import password.pwm.PwmConstants;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.util.java.StringUtil;
@@ -78,9 +79,15 @@ public class SearchConfiguration implements Serializable
             builder.contexts( Collections.singletonList( permission.getLdapBase() ) );
         }
 
-        if ( !StringUtil.isEmpty( permission.getLdapProfileID() ) )
         {
-            builder.ldapProfile( permission.getLdapProfileID() );
+            final String ldapProfileID = permission.getLdapProfileID();
+            if ( !StringUtil.isEmpty( ldapProfileID ) )
+            {
+                if ( !PwmConstants.PROFILE_ID_ALL.equalsIgnoreCase( ldapProfileID ) )
+                {
+                    builder.ldapProfile( ldapProfileID );
+                }
+            }
         }
 
         return builder.build();

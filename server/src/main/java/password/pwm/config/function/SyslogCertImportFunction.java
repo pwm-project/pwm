@@ -24,6 +24,7 @@ package password.pwm.config.function;
 
 import password.pwm.PwmApplication;
 import password.pwm.bean.UserIdentity;
+import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.SettingUIFunction;
 import password.pwm.config.stored.StoredConfigurationImpl;
@@ -75,7 +76,11 @@ public class SyslogCertImportFunction implements SettingUIFunction
                     {
                         try
                         {
-                            final List<X509Certificate> certs = X509Utils.readRemoteCertificates( syslogConfig.getHost(), syslogConfig.getPort() );
+                            final List<X509Certificate> certs = X509Utils.readRemoteCertificates(
+                                    syslogConfig.getHost(),
+                                    syslogConfig.getPort(),
+                                    new Configuration( storedConfiguration )
+                            );
                             if ( certs != null )
                             {
                                 resultCertificates.addAll( certs );
