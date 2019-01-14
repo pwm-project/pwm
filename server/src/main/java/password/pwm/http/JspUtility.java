@@ -26,7 +26,6 @@ import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.PwmSessionBean;
-import password.pwm.i18n.Display;
 import password.pwm.i18n.PwmDisplayBundle;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.StringUtil;
@@ -171,9 +170,7 @@ public abstract class JspUtility
     public static String friendlyWrite( final PageContext pageContext, final boolean value )
     {
         final PwmRequest pwmRequest = forRequest( pageContext.getRequest() );
-        return value
-                ? LocaleHelper.getLocalizedMessage( Display.Value_True, pwmRequest )
-                : LocaleHelper.getLocalizedMessage( Display.Value_False, pwmRequest );
+        return LocaleHelper.valueBoolean( pwmRequest.getLocale(), value );
     }
 
     public static String friendlyWrite( final PageContext pageContext, final long value )
@@ -185,12 +182,17 @@ public abstract class JspUtility
 
     public static String friendlyWrite( final PageContext pageContext, final String input )
     {
-        final PwmRequest pwmRequest = forRequest( pageContext.getRequest() );
         if ( StringUtil.isEmpty( input ) )
         {
-            return LocaleHelper.getLocalizedMessage( Display.Value_NotApplicable, pwmRequest );
+            return friendlyWriteNotApplicable( pageContext );
         }
         return StringUtil.escapeHtml( input );
+    }
+
+    public static String friendlyWriteNotApplicable( final PageContext pageContext )
+    {
+        final PwmRequest pwmRequest = forRequest( pageContext.getRequest() );
+        return LocaleHelper.valueNotApplicable( pwmRequest.getLocale() );
     }
 
     public static String friendlyWrite( final PageContext pageContext, final Instant instant )
@@ -198,7 +200,7 @@ public abstract class JspUtility
         final PwmRequest pwmRequest = forRequest( pageContext.getRequest() );
         if ( instant == null )
         {
-            return LocaleHelper.getLocalizedMessage( Display.Value_NotApplicable, pwmRequest );
+            return LocaleHelper.valueNotApplicable( pwmRequest.getLocale() );
         }
         return "<span class=\"timestamp\">" + instant.toString() + "</span>";
     }

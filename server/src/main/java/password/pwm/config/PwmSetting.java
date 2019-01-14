@@ -491,6 +491,8 @@ public enum PwmSetting
             "password.policy.maximumAlpha", PwmSettingSyntax.NUMERIC, PwmSettingCategory.PASSWORD_POLICY ),
     PASSWORD_POLICY_MINIMUM_ALPHA(
             "password.policy.minimumAlpha", PwmSettingSyntax.NUMERIC, PwmSettingCategory.PASSWORD_POLICY ),
+    PASSWORD_POLICY_ALLOW_NON_ALPHA(
+            "password.policy.allowNonAlpha", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PASSWORD_POLICY ),
     PASSWORD_POLICY_MAXIMUM_NON_ALPHA(
             "password.policy.maximumNonAlpha", PwmSettingSyntax.NUMERIC, PwmSettingCategory.PASSWORD_POLICY ),
     PASSWORD_POLICY_MINIMUM_NON_ALPHA(

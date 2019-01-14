@@ -22,20 +22,16 @@
 
 package password.pwm.svc.pwnotify;
 
-import lombok.Builder;
 import lombok.Value;
-import password.pwm.error.ErrorInformation;
 
 import java.io.Serializable;
 import java.time.Instant;
 
 @Value
-@Builder
-public class StoredJobState implements Serializable
+public
+class PwNotifyUserStatus implements Serializable
 {
-    private Instant lastStart;
-    private Instant lastCompletion;
-    private String serverInstance;
-    private ErrorInformation lastError;
-    private boolean jobSuccess;
+    private Instant expireTime;
+    private Instant lastNotice;
+    private int interval;
 }

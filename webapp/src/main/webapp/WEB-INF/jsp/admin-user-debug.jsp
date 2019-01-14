@@ -33,6 +33,8 @@
 <%@ page import="java.util.Map" %>
 <%@ page import="password.pwm.util.java.TimeDuration" %>
 <%@ page import="password.pwm.util.i18n.LocaleHelper" %>
+<%@ page import="password.pwm.config.PwmSetting" %>
+<%@ page import="password.pwm.svc.PwmService" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -248,6 +250,41 @@
             </tr>
         </table>
         <br/>
+
+        <% if (JspUtility.getPwmRequest( pageContext ).getConfig().readSettingAsBoolean( PwmSetting.PW_EXPY_NOTIFY_ENABLE ) ) { %>
+        <table>
+            <tr>
+                <td colspan="10" class="title">Password Notification Status</td>
+            </tr>
+            <% if ( userDebugDataBean.getPwNotifyUserStatus() == null ) { %>
+            <tr>
+                <td class="key">Last Notification Sent</td>
+                <td><pwm:display key="<%=Display.Value_NotApplicable.toString()%>"/></td>
+            </tr>
+            <% } else { %>
+            <tr>
+                <td class="key">Last Notification Sent</td>
+                <td>
+                    <%=JspUtility.friendlyWrite(pageContext, userDebugDataBean.getPwNotifyUserStatus().getLastNotice())%>
+                </td>
+            </tr>
+            <tr>
+                <td class="key">Last Notification Password Expiration Time</td>
+                <td>
+                    <%=JspUtility.friendlyWrite(pageContext, userDebugDataBean.getPwNotifyUserStatus().getExpireTime())%>
+                </td>
+            </tr>
+            <tr>
+                <td class="key">Last Notification Interval</td>
+                <td>
+                    <%=userDebugDataBean.getPwNotifyUserStatus().getInterval()%>
+                </td>
+            </tr>
+            <% } %>
+        </table>
+        <br/>
+        <% } %>
+
         <table>
             <tr>
                 <td colspan="10" class="title">Applied Configuration</td>

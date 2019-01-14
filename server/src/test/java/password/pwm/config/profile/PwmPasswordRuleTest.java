@@ -20,17 +20,23 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.svc.pwnotify;
+package password.pwm.config.profile;
 
-import lombok.Value;
+import org.junit.Test;
+import password.pwm.PwmConstants;
 
-import java.io.Serializable;
-import java.time.Instant;
-
-@Value
-class StoredNotificationState implements Serializable
+public class PwmPasswordRuleTest
 {
-    private Instant expireTime;
-    private Instant lastNotice;
-    private int interval;
+    @Test
+    public void testRuleLabels() throws Exception
+    {
+        for ( final PwmPasswordRule rule : PwmPasswordRule.values() )
+        {
+            final String value = rule.getLabel( PwmConstants.DEFAULT_LOCALE, null );
+            if ( value == null || value.contains( "MissingKey" ) )
+            {
+                throw new Exception(" missing label for PwmPasswordRule " + rule.name() );
+            }
+        }
+    }
 }

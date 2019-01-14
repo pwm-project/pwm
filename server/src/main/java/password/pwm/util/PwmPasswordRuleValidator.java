@@ -885,15 +885,25 @@ public class PwmPasswordRuleValidator
         {
             final int numberOfNonAlphaChars = charCounter.getNonAlphaCharCount();
 
-            if ( numberOfNonAlphaChars < ruleHelper.readIntValue( PwmPasswordRule.MinimumNonAlpha ) )
+            if ( ruleHelper.readBooleanValue( PwmPasswordRule.AllowNonAlpha ) )
             {
-                errorList.add( new ErrorInformation( PwmError.PASSWORD_NOT_ENOUGH_NONALPHA ) );
-            }
+                if ( numberOfNonAlphaChars < ruleHelper.readIntValue( PwmPasswordRule.MinimumNonAlpha ) )
+                {
+                    errorList.add( new ErrorInformation( PwmError.PASSWORD_NOT_ENOUGH_NONALPHA ) );
+                }
 
-            final int maxNonAlpha = ruleHelper.readIntValue( PwmPasswordRule.MaximumNonAlpha );
-            if ( maxNonAlpha > 0 && numberOfNonAlphaChars > maxNonAlpha )
+                final int maxNonAlpha = ruleHelper.readIntValue( PwmPasswordRule.MaximumNonAlpha );
+                if ( maxNonAlpha > 0 && numberOfNonAlphaChars > maxNonAlpha )
+                {
+                    errorList.add( new ErrorInformation( PwmError.PASSWORD_TOO_MANY_NONALPHA ) );
+                }
+            }
+            else
             {
-                errorList.add( new ErrorInformation( PwmError.PASSWORD_TOO_MANY_NONALPHA ) );
+                if ( numberOfNonAlphaChars > 0 )
+                {
+                    errorList.add( new ErrorInformation( PwmError.PASSWORD_TOO_MANY_NONALPHA ) );
+                }
             }
         }
 

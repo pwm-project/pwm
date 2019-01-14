@@ -471,4 +471,14 @@ public class LocaleHelper
         return new ArrayList<>( returnMap.values() );
     }
 
+    public static String valueBoolean( final Locale locale, final boolean value )
+    {
+        final PwmDisplayBundle key = value ? Display.Value_True : Display.Value_False;
+        return getLocalizedMessage( locale, key, null );
+    }
+
+    public static String valueNotApplicable( final Locale locale )
+    {
+        return getLocalizedMessage( locale, Display.Value_NotApplicable, null );
+    }
 }

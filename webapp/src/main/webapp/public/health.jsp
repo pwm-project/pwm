@@ -158,7 +158,7 @@
         }
 
         function handleWarnFlash() {
-            if (PWM_GLOBAL['pwm-health'] == "WARN") {
+            if (PWM_GLOBAL['pwm-health'] === "WARN") {
                 PWM_MAIN.flashDomElement(errorColor,'body',3000);
             }
         }

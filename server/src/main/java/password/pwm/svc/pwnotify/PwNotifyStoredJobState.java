@@ -20,34 +20,22 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.http.servlet.admin;
+package password.pwm.svc.pwnotify;
 
 import lombok.Builder;
 import lombok.Value;
-import password.pwm.Permission;
-import password.pwm.bean.pub.PublicUserInfoBean;
-import password.pwm.config.profile.ProfileType;
-import password.pwm.config.profile.PwmPasswordPolicy;
-import password.pwm.ldap.UserInfo;
-import password.pwm.svc.pwnotify.PwNotifyUserStatus;
+import password.pwm.error.ErrorInformation;
 
 import java.io.Serializable;
-import java.util.Map;
+import java.time.Instant;
 
 @Value
 @Builder
-public class UserDebugDataBean implements Serializable
+public class PwNotifyStoredJobState implements Serializable
 {
-    private transient UserInfo userInfo;
-
-    private final PublicUserInfoBean publicUserInfoBean;
-    private final boolean passwordReadable;
-    private final boolean passwordWithinMinimumLifetime;
-    private final Map<Permission, String> permissions;
-
-    private final PwmPasswordPolicy ldapPasswordPolicy;
-    private final PwmPasswordPolicy configuredPasswordPolicy;
-    private final Map<ProfileType, String> profiles;
-
-    private final PwNotifyUserStatus pwNotifyUserStatus;
+    private Instant lastStart;
+    private Instant lastCompletion;
+    private String serverInstance;
+    private ErrorInformation lastError;
+    private boolean jobSuccess;
 }
