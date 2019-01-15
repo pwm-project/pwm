@@ -1738,3 +1738,7 @@ table.ias-table, table.ias-table td {
     font-family: monospace;
     white-space: pre;
 }
+
+#header-title > .title-short {
+    display: none;
+}
