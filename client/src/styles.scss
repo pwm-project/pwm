@@ -6,6 +6,11 @@
   .ias-dialog {
     // Need to fix this minor css problem in ux-ias until a version > 1.0.0-rc comes out.
     position: fixed;
+
+    > .ias-dialog-container > .ias-dialog-label > .ias-title {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   }
 
   // ux-ias normally applies the following to the body tag, but the way we are including ux-ias under .ias-styles-root
