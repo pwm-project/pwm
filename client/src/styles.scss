@@ -7,9 +7,19 @@
     // Need to fix this minor css problem in ux-ias until a version > 1.0.0-rc comes out.
     position: fixed;
 
-    > .ias-dialog-container > .ias-dialog-label > .ias-title {
-      overflow: hidden;
-      text-overflow: ellipsis;
+    > .ias-dialog-container {
+      &.grow-with-content {
+        @media (min-width: 768px) {
+          max-width: 100%;
+          min-width: 375px;
+          width: max-content;
+        }
+      }
+
+      > .ias-dialog-label > .ias-title {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
     }
   }
 
