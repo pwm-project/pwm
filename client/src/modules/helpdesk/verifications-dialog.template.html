@@ -48,7 +48,7 @@
                 </ias-button>
             </div>
 
-            <div class="ias-dialog-container" ng-switch-when="verify">
+            <div class="ias-dialog-container grow-with-content" ng-switch-when="verify">
                 <div class="ias-dialog-label">
                     <div class="ias-title" ng-bind="'Title_ValidateCode' | translate"></div>
                 </div>
@@ -66,9 +66,8 @@
                             </div>
                         </div>
                         <div ng-switch-when="TOKEN" ng-switch-when-separator="|">
+                            <label ng-bind="'Display_TokenDestination' | translate"></label>
                             <div class="ias-input-container token-destination-submitter">
-                                <label ng-bind="'Display_TokenDestination' | translate"></label>
-
                                 <select id="verification-token-destination" ng-model="$ctrl.tokenDestinationID"
                                         ng-change="$ctrl.onTokenDestinationChanged()">
                                     <option ng-repeat="tokenDestination in $ctrl.verificationOptions.tokenDestinations"
@@ -78,7 +77,8 @@
                                     </option>
                                 </select>
                                 <ias-button ng-click="$ctrl.sendVerificationTokenToDestination()"
-                                            ng-disabled="$ctrl.sendingVerificationToken">
+                                            ng-disabled="$ctrl.sendingVerificationToken"
+                                            title="{{ 'Button_SendToken' | translate }}">
                                     {{ 'Button_SendToken' | translate }}
                                 </ias-button>
                                 <div class="loading-gif-25" ng-if="$ctrl.sendingVerificationToken"></div>
