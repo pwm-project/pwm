@@ -23,6 +23,28 @@
     }
   }
 
+  // The ias-menu is added at the root of the document.  This fixes when we have to add the ias-styles-root class
+  // to the ias-menu itself to get the IAS styles applied.
+  &.ias-menu {
+    background-color: transparent;
+    color: inherit;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+
+    bottom: 0;
+    display: none;
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+
+    &.ias-open {
+      display: inline-block;
+    }
+  }
+
   // ux-ias normally applies the following to the body tag, but the way we are including ux-ias under .ias-styles-root
   // means we have to define it here.
   background-color: $body-bg-color;

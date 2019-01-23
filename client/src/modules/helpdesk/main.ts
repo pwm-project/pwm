@@ -22,6 +22,7 @@
 
 import 'angular';
 import 'angular-translate';
+import 'angular-sanitize';
 import '@microfocus/ng-ias/dist/ng-ias';
 
 import { bootstrap, module } from 'angular';

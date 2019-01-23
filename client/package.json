@@ -24,6 +24,7 @@
         "@uirouter/angularjs": "1.0.15",
         "angular": "1.6.9",
         "angular-aria": "1.6.9",
+        "angular-sanitize": "1.6.9",
         "angular-translate": "2.17.0",
         "textangular": "1.5.16"
     },
