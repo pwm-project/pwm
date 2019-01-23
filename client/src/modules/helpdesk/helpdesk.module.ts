@@ -48,6 +48,7 @@ const moduleName = 'help-desk';
 
 module(moduleName, [
     'ngAria',
+    'ngSanitize',
     uxModule
 ])
 

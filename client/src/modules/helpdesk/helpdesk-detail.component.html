@@ -166,7 +166,7 @@
                         <td ng-bind="'Field_Display' | translate"></td>
                         <td>
                             <ul>
-                                <li ng-repeat="item in $ctrl.person.passwordRequirements" ng-bind="item"></li>
+                                <li ng-repeat="item in $ctrl.person.passwordRequirements" ng-bind-html="item"></li>
                             </ul>
                         </td>
                     </tr>
