@@ -70,6 +70,7 @@ import javax.net.SocketFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.X509TrustManager;
 import java.io.Serializable;
+import java.net.URI;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
@@ -79,6 +80,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 
 public class SyslogAuditService
@@ -365,6 +367,9 @@ public class SyslogAuditService
         return message.toString();
     }
 
+
+    private static final String CEF_EXTENSION_SEPARATOR = "|";
+
     private String convertAuditRecordToCEFMessage(
             final AuditRecord auditRecord,
             final Configuration configuration
@@ -372,12 +377,11 @@ public class SyslogAuditService
             throws PwmUnrecoverableException
     {
         final Map<String, Object> auditRecordMap = JsonUtil.deserializeMap( JsonUtil.serialize( auditRecord ) );
-        final String separator = "|";
 
         final String headerSeverity = configuration.readAppProperty( AppProperty.AUDIT_SYSLOG_CEF_HEADER_SEVERITY );
         final String headerProduct = configuration.readAppProperty( AppProperty.AUDIT_SYSLOG_CEF_HEADER_PRODUCT );
         final String headerVendor = configuration.readAppProperty( AppProperty.AUDIT_SYSLOG_CEF_HEADER_VENDOR );
-
+        final Optional<String> srcHost = deriveLocalServerHostname( configuration );
 
         final MacroMachine macroMachine = MacroMachine.forNonUserSpecific( pwmApplication, SessionLabel.SYSTEM_LABEL );
 
@@ -389,58 +393,71 @@ public class SyslogAuditService
 
         final StringBuilder cefOutput = new StringBuilder(  );
 
-        // cef declaration:version prefix
-        cefOutput.append( "CEF:0" );
+        // cef header
+        {
+            // cef declaration:version prefix
+            cefOutput.append( "CEF:0" );
 
-        // Device Vendor
-        cefOutput.append( separator );
-        cefOutput.append( macroMachine.expandMacros( headerVendor ) );
+            // Device Vendor
+            cefOutput.append( CEF_EXTENSION_SEPARATOR );
+            cefOutput.append( macroMachine.expandMacros( headerVendor ) );
 
-        // Device Product
-        cefOutput.append( separator );
-        cefOutput.append( macroMachine.expandMacros( headerProduct ) );
+            // Device Product
+            cefOutput.append( CEF_EXTENSION_SEPARATOR );
+            cefOutput.append( macroMachine.expandMacros( headerProduct ) );
 
-        // Device Version
-        cefOutput.append( separator );
-        cefOutput.append( PwmConstants.SERVLET_VERSION );
+            // Device Version
+            cefOutput.append( CEF_EXTENSION_SEPARATOR );
+            cefOutput.append( PwmConstants.SERVLET_VERSION );
 
-        // Device Event Class ID
-        cefOutput.append( separator );
-        cefOutput.append( auditRecord.getEventCode() );
+            // Device Event Class ID
+            cefOutput.append( CEF_EXTENSION_SEPARATOR );
+            cefOutput.append( auditRecord.getEventCode() );
 
-        // field name
-        cefOutput.append( separator );
-        cefOutput.append( auditFieldName );
+            // field name
+            cefOutput.append( CEF_EXTENSION_SEPARATOR );
+            cefOutput.append( auditFieldName );
 
-        // severity
-        cefOutput.append( separator );
-        cefOutput.append( macroMachine.expandMacros( headerSeverity ) );
+            // severity
+            cefOutput.append( CEF_EXTENSION_SEPARATOR );
+            cefOutput.append( macroMachine.expandMacros( headerSeverity ) );
+        }
 
-        boolean extensionAdded = false;
+        cefOutput.append( CEF_EXTENSION_SEPARATOR );
+
+        srcHost.ifPresent( s -> appendCefValue( "dvchost", s, cefOutput ) );
+
+        appendCefValue( "dtz", "Zulu", cefOutput );
+
         for ( final Map.Entry<String, String> entry : syslogCefExtensions.entrySet() )
         {
             final Object value = auditRecordMap.get( entry.getKey() );
             if ( value != null )
             {
-                if ( !extensionAdded )
-                {
-                    cefOutput.append( separator );
-                    extensionAdded = true;
-                }
-                else
-                {
-                    cefOutput.append( " " );
-                }
-                cefOutput.append( entry.getValue() );
-                cefOutput.append( "=" );
-                cefOutput.append( escapeCEFValue( value.toString() ) );
+                final String name = entry.getValue();
+                final String valueString = value.toString();
+                appendCefValue( name, valueString, cefOutput );
             }
+        }
+
+        if ( cefOutput.substring( cefOutput.length() - CEF_EXTENSION_SEPARATOR.length() ).equals( CEF_EXTENSION_SEPARATOR ) )
+        {
+            cefOutput.replace( cefOutput.length() - CEF_EXTENSION_SEPARATOR.length(), cefOutput.length(), "" );
         }
 
         return cefOutput.toString();
     }
 
-
+    private static void appendCefValue( final String name, final String value, final StringBuilder cefOutput )
+    {
+        if ( !StringUtil.isEmpty( value ) && !StringUtil.isEmpty( name ) )
+        {
+            cefOutput.append( " " );
+            cefOutput.append( name );
+            cefOutput.append( "=" );
+            cefOutput.append( escapeCEFValue( value ) );
+        }
+    }
 
     private static String escapeCEFValue( final String value )
     {
@@ -568,5 +585,29 @@ public class SyslogAuditService
         final List<String> pairs = Arrays.asList( configuredString.split( pairSplitter ) );
         final Map<String, String> map = StringUtil.convertStringListToNameValuePair( pairs, keyValueSplitter );
         return Collections.unmodifiableMap( map );
+    }
+
+    private static Optional<String> deriveLocalServerHostname( final Configuration configuration )
+    {
+        if ( configuration != null )
+        {
+            final String siteUrl = configuration.readSettingAsString( PwmSetting.PWM_SITE_URL );
+            if ( !StringUtil.isEmpty( siteUrl ) )
+            {
+                try
+                {
+                    final URI parsedUri = URI.create( siteUrl );
+                    {
+                        final String uriHost = parsedUri.getHost();
+                        return Optional.ofNullable( uriHost );
+                    }
+                }
+                catch ( IllegalArgumentException e )
+                {
+                    LOGGER.trace( () -> " error parsing siteURL hostname: " + e.getMessage() );
+                }
+            }
+        }
+        return Optional.empty();
     }
 }
