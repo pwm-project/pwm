@@ -75,9 +75,7 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -91,18 +89,6 @@ public class SyslogAuditService
     private static final String SYSLOG_INSTANCE_NAME = "syslog-audit";
     private static final int LENGTH_OVERSIZE = 1024;
 
-    private static final Map<String, String> CEF_VALUE_ESCAPES;
-
-
-    static
-    {
-        final Map<String, String> map = new LinkedHashMap<>( );
-        map.put( "\\", "\\\\" );
-        map.put( "=", "\\=" );
-        map.put( "|", "\"" );
-        CEF_VALUE_ESCAPES = Collections.unmodifiableMap( map );
-    }
-
     private SyslogIF syslogInstance = null;
     private ErrorInformation lastError = null;
     private List<X509Certificate> certificates = null;
@@ -113,7 +99,7 @@ public class SyslogAuditService
     private final Configuration configuration;
     private final PwmApplication pwmApplication;
     private final SyslogOutputFormat syslogOutputFormat;
-    private final Map<String, String> syslogCefExtensions;
+    private final String cefTimezone;
 
     public SyslogAuditService( final PwmApplication pwmApplication )
             throws LocalDBException
@@ -122,7 +108,7 @@ public class SyslogAuditService
         this.pwmApplication = pwmApplication;
         this.configuration = pwmApplication.getConfig();
         this.certificates = configuration.readSettingAsCertificate( PwmSetting.AUDIT_SYSLOG_CERTIFICATES );
-        this.syslogCefExtensions = figureCefSyslogExtensions( configuration );
+        this.cefTimezone = configuration.readAppProperty( AppProperty.AUDIT_SYSLOG_CEF_TIMEZONE );
 
         final List<String> syslogConfigStringArray = configuration.readSettingAsStringArray( PwmSetting.AUDIT_SYSLOG_SERVERS );
         try
@@ -368,7 +354,6 @@ public class SyslogAuditService
     }
 
 
-    private static final String CEF_EXTENSION_SEPARATOR = "|";
 
     private String convertAuditRecordToCEFMessage(
             final AuditRecord auditRecord,
@@ -385,7 +370,7 @@ public class SyslogAuditService
 
         final MacroMachine macroMachine = MacroMachine.forNonUserSpecific( pwmApplication, SessionLabel.SYSTEM_LABEL );
 
-        final String auditFieldName = LocaleHelper.getLocalizedMessage(
+        final String cefFieldName = LocaleHelper.getLocalizedMessage(
                 PwmConstants.DEFAULT_LOCALE,
                 auditRecord.getEventCode().getMessage(),
                 configuration
@@ -399,50 +384,57 @@ public class SyslogAuditService
             cefOutput.append( "CEF:0" );
 
             // Device Vendor
-            cefOutput.append( CEF_EXTENSION_SEPARATOR );
+            cefOutput.append( CEFExtension.CEF_EXTENSION_SEPARATOR );
             cefOutput.append( macroMachine.expandMacros( headerVendor ) );
 
             // Device Product
-            cefOutput.append( CEF_EXTENSION_SEPARATOR );
+            cefOutput.append( CEFExtension.CEF_EXTENSION_SEPARATOR );
             cefOutput.append( macroMachine.expandMacros( headerProduct ) );
 
             // Device Version
-            cefOutput.append( CEF_EXTENSION_SEPARATOR );
+            cefOutput.append( CEFExtension.CEF_EXTENSION_SEPARATOR );
             cefOutput.append( PwmConstants.SERVLET_VERSION );
 
             // Device Event Class ID
-            cefOutput.append( CEF_EXTENSION_SEPARATOR );
+            cefOutput.append( CEFExtension.CEF_EXTENSION_SEPARATOR );
             cefOutput.append( auditRecord.getEventCode() );
 
             // field name
-            cefOutput.append( CEF_EXTENSION_SEPARATOR );
-            cefOutput.append( auditFieldName );
+            cefOutput.append( CEFExtension.CEF_EXTENSION_SEPARATOR );
+            cefOutput.append( cefFieldName );
 
             // severity
-            cefOutput.append( CEF_EXTENSION_SEPARATOR );
+            cefOutput.append( CEFExtension.CEF_EXTENSION_SEPARATOR );
             cefOutput.append( macroMachine.expandMacros( headerSeverity ) );
         }
 
-        cefOutput.append( CEF_EXTENSION_SEPARATOR );
+        cefOutput.append( CEFExtension.CEF_EXTENSION_SEPARATOR );
 
-        srcHost.ifPresent( s -> appendCefValue( "dvchost", s, cefOutput ) );
+        srcHost.ifPresent( s -> appendCefValue( CEFExtension.dvchost.name(), s, cefOutput ) );
 
-        appendCefValue( "dtz", "Zulu", cefOutput );
-
-        for ( final Map.Entry<String, String> entry : syslogCefExtensions.entrySet() )
+        if ( StringUtil.isEmpty( cefTimezone ) )
         {
-            final Object value = auditRecordMap.get( entry.getKey() );
-            if ( value != null )
+            appendCefValue( CEFExtension.dtz.name(), cefTimezone, cefOutput );
+        }
+
+        for ( final CEFExtension cefExtension : CEFExtension.values() )
+        {
+            if ( cefExtension.getAuditField() != null )
             {
-                final String name = entry.getValue();
-                final String valueString = value.toString();
-                appendCefValue( name, valueString, cefOutput );
+                final String auditFieldName = cefExtension.getAuditField().name();
+                final Object value = auditRecordMap.get( auditFieldName );
+                if ( value != null )
+                {
+                    final String valueString = value.toString();
+                    appendCefValue( auditFieldName, valueString, cefOutput );
+                }
             }
         }
 
-        if ( cefOutput.substring( cefOutput.length() - CEF_EXTENSION_SEPARATOR.length() ).equals( CEF_EXTENSION_SEPARATOR ) )
+        final int cefLength = CEFExtension.CEF_EXTENSION_SEPARATOR.length();
+        if ( cefOutput.substring( cefOutput.length() - cefLength ).equals( CEFExtension.CEF_EXTENSION_SEPARATOR ) )
         {
-            cefOutput.replace( cefOutput.length() - CEF_EXTENSION_SEPARATOR.length(), cefOutput.length(), "" );
+            cefOutput.replace( cefOutput.length() - cefLength, cefOutput.length(), "" );
         }
 
         return cefOutput.toString();
@@ -462,7 +454,7 @@ public class SyslogAuditService
     private static String escapeCEFValue( final String value )
     {
         String replacedValue = value;
-        for ( final Map.Entry<String, String> entry : CEF_VALUE_ESCAPES.entrySet() )
+        for ( final Map.Entry<String, String> entry : CEFExtension.CEF_VALUE_ESCAPES.entrySet() )
         {
             final String pattern = entry.getKey();
             final String replacement = entry.getValue();
@@ -574,17 +566,6 @@ public class SyslogAuditService
             newClass.initialize( this );
             return newClass;
         }
-    }
-
-    private Map<String, String> figureCefSyslogExtensions( final Configuration config )
-    {
-        final String pairSplitter = ":";
-        final String keyValueSplitter = ",";
-        final String configuredString = config.readAppProperty( AppProperty.AUDIT_SYSLOG_CEF_EXTENSIONS );
-
-        final List<String> pairs = Arrays.asList( configuredString.split( pairSplitter ) );
-        final Map<String, String> map = StringUtil.convertStringListToNameValuePair( pairs, keyValueSplitter );
-        return Collections.unmodifiableMap( map );
     }
 
     private static Optional<String> deriveLocalServerHostname( final Configuration configuration )

@@ -58,7 +58,7 @@ import password.pwm.health.DatabaseStatusChecker;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.health.HealthTopic;
-import password.pwm.health.LDAPStatusChecker;
+import password.pwm.health.LDAPHealthChecker;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.JspUrl;
 import password.pwm.http.ProcessStatus;
@@ -672,7 +672,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         LOGGER.debug( pwmRequest, () -> "beginning restLdapHealthCheck" );
         final String profileID = pwmRequest.readParameterAsString( "profile" );
         final Configuration config = new Configuration( configManagerBean.getStoredConfiguration() );
-        final HealthData healthData = LDAPStatusChecker.healthForNewConfiguration( pwmRequest.getPwmApplication(), config, pwmRequest.getLocale(), profileID, true, true );
+        final HealthData healthData = LDAPHealthChecker.healthForNewConfiguration( pwmRequest.getPwmApplication(), config, pwmRequest.getLocale(), profileID, true, true );
         final RestResultBean restResultBean = RestResultBean.withData( healthData );
 
         pwmRequest.outputJsonResult( restResultBean );

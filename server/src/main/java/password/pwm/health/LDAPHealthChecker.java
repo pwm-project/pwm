@@ -45,6 +45,7 @@ import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.PwmSettingFlag;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.profile.LdapProfile;
+import password.pwm.config.profile.NewUserProfile;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.config.value.data.UserPermission;
@@ -56,6 +57,7 @@ import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.util.PasswordData;
 import password.pwm.util.RandomPasswordGenerator;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -80,10 +82,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-public class LDAPStatusChecker implements HealthChecker
+public class LDAPHealthChecker implements HealthChecker
 {
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass( LDAPStatusChecker.class );
+    private static final PwmLogger LOGGER = PwmLogger.forClass( LDAPHealthChecker.class );
     private static final String TOPIC = "LDAP";
 
     public List<HealthRecord> doHealthCheck( final PwmApplication pwmApplication )
@@ -95,9 +97,9 @@ public class LDAPStatusChecker implements HealthChecker
         for ( final Map.Entry<String, LdapProfile> entry : ldapProfiles.entrySet() )
         {
             final String profileID = entry.getKey();
-            final List<HealthRecord> profileRecords = new ArrayList<>();
-            profileRecords.addAll(
-                    checkBasicLdapConnectivity( pwmApplication, config, entry.getValue(), true ) );
+            final List<HealthRecord> profileRecords = new ArrayList<>(
+                    checkBasicLdapConnectivity( pwmApplication, config, entry.getValue(), true )
+            );
 
             if ( profileRecords.isEmpty() )
             {
@@ -108,7 +110,6 @@ public class LDAPStatusChecker implements HealthChecker
             {
                 profileRecords.add( HealthRecord.forMessage( HealthMessage.LDAP_OK ) );
                 profileRecords.addAll( doLdapTestUserCheck( config, ldapProfiles.get( profileID ), pwmApplication ) );
-
             }
             returnRecords.addAll( profileRecords );
         }
@@ -147,6 +148,8 @@ public class LDAPStatusChecker implements HealthChecker
                 returnRecords.addAll( checkUserPermissionValues( pwmApplication ) );
 
                 returnRecords.addAll( checkLdapDNSyntaxValues( pwmApplication ) );
+
+                returnRecords.addAll( checkNewUserPasswordTemplateSetting( pwmApplication, config ) );
             }
         }
 
@@ -842,7 +845,7 @@ public class LDAPStatusChecker implements HealthChecker
                 if ( !pwmSetting.isHidden()
                         && pwmSetting.getCategory() == PwmSettingCategory.LDAP_PROFILE
                         && pwmSetting.getFlags().contains( PwmSettingFlag.ldapDNsyntax )
-                        )
+                )
                 {
                     for ( final String profile : config.getLdapProfiles().keySet() )
                     {
@@ -890,6 +893,75 @@ public class LDAPStatusChecker implements HealthChecker
 
         return returnList;
     }
+
+    private static List<HealthRecord> checkNewUserPasswordTemplateSetting(
+            final PwmApplication pwmApplication,
+            final Configuration configuration
+    )
+    {
+        final Locale locale = PwmConstants.DEFAULT_LOCALE;
+        if ( !configuration.readSettingAsBoolean( PwmSetting.NEWUSER_ENABLE ) )
+        {
+            return Collections.emptyList();
+        }
+
+        for ( final NewUserProfile newUserProfile : configuration.getNewUserProfiles().values() )
+        {
+            final String policyUserStr = newUserProfile.readSettingAsString( PwmSetting.NEWUSER_PASSWORD_POLICY_USER );
+
+            if ( StringUtil.isEmpty( policyUserStr ) )
+            {
+                return Collections.singletonList(
+                        HealthRecord.forMessage(
+                                HealthMessage.NewUser_PwTemplateBad,
+                                PwmSetting.NEWUSER_PASSWORD_POLICY_USER.toMenuLocationDebug( newUserProfile.getIdentifier(), locale ),
+                                LocaleHelper.valueNotApplicable( locale )
+                        )
+                );
+            }
+
+            try
+            {
+                final LdapProfile ldapProfile = configuration.getDefaultLdapProfile();
+                if ( NewUserProfile.TEST_USER_CONFIG_VALUE.equals( policyUserStr ) )
+                {
+                    final UserIdentity testUser = ldapProfile.getTestUser( pwmApplication );
+                    if ( testUser != null )
+                    {
+                        return Collections.emptyList();
+                    }
+                }
+
+                final UserIdentity newUserTemplateIdentity = new UserIdentity( policyUserStr, ldapProfile.getIdentifier() );
+
+                final ChaiUser chaiUser = pwmApplication.getProxiedChaiUser( newUserTemplateIdentity );
+
+                try
+                {
+                    if ( !chaiUser.exists() )
+                    {
+                        return Collections.singletonList(
+                                HealthRecord.forMessage(
+                                        HealthMessage.NewUser_PwTemplateBad,
+                                        PwmSetting.NEWUSER_PASSWORD_POLICY_USER.toMenuLocationDebug( newUserProfile.getIdentifier(), locale )
+                                )
+                        );
+                    }
+                }
+                catch ( ChaiUnavailableException e )
+                {
+                    throw PwmUnrecoverableException.fromChaiException( e );
+                }
+            }
+            catch ( PwmUnrecoverableException e )
+            {
+                LOGGER.error( "error checking new user password policy user settings:" + e.getMessage() );
+            }
+        }
+
+        return Collections.emptyList();
+    }
+
 
     private static List<HealthRecord> checkUserPermission(
             final PwmApplication pwmApplication,
@@ -1031,15 +1103,15 @@ public class LDAPStatusChecker implements HealthChecker
             throws PwmUnrecoverableException
     {
         final PwmApplication tempApplication = new PwmApplication( pwmApplication.getPwmEnvironment().makeRuntimeInstance( config ) );
-        final LDAPStatusChecker ldapStatusChecker = new LDAPStatusChecker();
+        final LDAPHealthChecker ldapHealthChecker = new LDAPHealthChecker();
         final List<HealthRecord> profileRecords = new ArrayList<>();
 
         final LdapProfile ldapProfile = config.getLdapProfiles().get( profileID );
-        profileRecords.addAll( ldapStatusChecker.checkBasicLdapConnectivity( tempApplication, config, ldapProfile,
+        profileRecords.addAll( ldapHealthChecker.checkBasicLdapConnectivity( tempApplication, config, ldapProfile,
                 testContextless ) );
         if ( fullTest )
         {
-            profileRecords.addAll( ldapStatusChecker.checkLdapServerUrls( pwmApplication, config, ldapProfile ) );
+            profileRecords.addAll( ldapHealthChecker.checkLdapServerUrls( pwmApplication, config, ldapProfile ) );
         }
 
         if ( profileRecords.isEmpty() )
@@ -1049,7 +1121,7 @@ public class LDAPStatusChecker implements HealthChecker
 
         if ( fullTest )
         {
-            profileRecords.addAll( ldapStatusChecker.doLdapTestUserCheck( config, ldapProfile, tempApplication ) );
+            profileRecords.addAll( ldapHealthChecker.doLdapTestUserCheck( config, ldapProfile, tempApplication ) );
         }
 
         return HealthRecord.asHealthDataBean( config, locale, profileRecords );
