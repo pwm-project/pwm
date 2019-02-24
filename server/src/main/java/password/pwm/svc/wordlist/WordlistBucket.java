@@ -70,7 +70,7 @@ class WordlistBucket
         seedlistTopKey.set(
                 StringUtil.isEmpty( valueOfLastKey )
                         ? 0
-                        : Long.parseLong( valueOfLastKey )
+                        : seedlistKeyToLong( valueOfLastKey )
         );
     }
 
@@ -126,7 +126,7 @@ class WordlistBucket
             if ( seedCount > 1000 )
             {
                 final long randomKey = pwmApplication.getSecureService().pwmRandom().nextLong( seedCount );
-                return pwmApplication.getLocalDB().get( db, String.valueOf( randomKey ) );
+                return pwmApplication.getLocalDB().get( db, seedlistLongToKey( randomKey ) );
             }
         }
         catch ( Exception e )
@@ -166,8 +166,10 @@ class WordlistBucket
                     final String normalizedWord = normalizeWord( word );
                     if ( !StringUtil.isEmpty( normalizedWord ) )
                     {
-                        returnSet.put( String.valueOf( seedlistTopKey.incrementAndGet() ), normalizedWord );
-                        returnSet.put( KEY_LAST_ISSUED_KEY, String.valueOf( seedlistTopKey.get() ) );
+                        final long nextLong = seedlistTopKey.incrementAndGet();
+                        final String nextKey = seedlistLongToKey( nextLong );
+                        returnSet.put( nextKey, normalizedWord );
+                        returnSet.put( KEY_LAST_ISSUED_KEY, nextKey );
                     }
                 }
                 return Collections.unmodifiableMap( returnSet );
@@ -248,4 +250,13 @@ class WordlistBucket
         return testWords;
     }
 
+    private static long seedlistKeyToLong( final String key )
+    {
+        return Long.parseLong( key, 36 );
+    }
+
+    private static String seedlistLongToKey( final long longValue )
+    {
+        return Long.toString( longValue, 36 );
+    }
 }
