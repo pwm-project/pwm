@@ -165,6 +165,7 @@ public enum AppProperty
     HTTP_SESSION_RECYCLE_AT_AUTH                    ( "http.session.recycleAtAuth" ),
     HTTP_SESSION_VALIDATION_KEY_LENGTH              ( "http.session.validationKeyLength" ),
     HTTP_SERVLET_ENABLE_POST_REDIRECT_GET           ( "http.servlet.enablePostRedirectGet" ),
+    L10N_RTL_REGEX                                  ( "l10n.rtl.regex" ),
     LOCALDB_AGGRESSIVE_COMPACT_ENABLED              ( "localdb.aggressiveCompact.enabled" ),
     LOCALDB_IMPLEMENTATION                          ( "localdb.implementation" ),
     LOCALDB_INIT_STRING                             ( "localdb.initParameters" ),
