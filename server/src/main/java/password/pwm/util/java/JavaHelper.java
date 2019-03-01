@@ -28,6 +28,8 @@ import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.io.IOUtils;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.config.Configuration;
+import password.pwm.config.PwmSetting;
 import password.pwm.http.ContextManager;
 import password.pwm.util.logging.PwmLogger;
 
@@ -45,6 +47,7 @@ import java.lang.management.LockInfo;
 import java.lang.management.MonitorInfo;
 import java.lang.management.ThreadInfo;
 import java.lang.reflect.Method;
+import java.net.URI;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -699,5 +702,29 @@ public class JavaHelper
         final Map<String, String> returnMap = new LinkedHashMap<>( properties.size() );
         properties.forEach( ( key, value ) -> returnMap.put( ( String ) key, (String) value ) );
         return returnMap;
+    }
+
+    public static Optional<String> deriveLocalServerHostname( final Configuration configuration )
+    {
+        if ( configuration != null )
+        {
+            final String siteUrl = configuration.readSettingAsString( PwmSetting.PWM_SITE_URL );
+            if ( !StringUtil.isEmpty( siteUrl ) )
+            {
+                try
+                {
+                    final URI parsedUri = URI.create( siteUrl );
+                    {
+                        final String uriHost = parsedUri.getHost();
+                        return Optional.ofNullable( uriHost );
+                    }
+                }
+                catch ( IllegalArgumentException e )
+                {
+                    LOGGER.trace( () -> " error parsing siteURL hostname: " + e.getMessage() );
+                }
+            }
+        }
+        return Optional.empty();
     }
 }

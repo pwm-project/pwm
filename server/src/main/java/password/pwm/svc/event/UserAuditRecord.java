@@ -22,6 +22,8 @@
 
 package password.pwm.svc.event;
 
+import lombok.Builder;
+
 import java.io.Serializable;
 import java.time.Instant;
 
@@ -37,6 +39,7 @@ public class UserAuditRecord extends AuditRecord implements Serializable
     protected String sourceHost;
 
     @SuppressWarnings( "checkstyle:ParameterNumber" )
+    @Builder
     protected UserAuditRecord(
             final Instant timestamp,
             final AuditEvent eventCode,

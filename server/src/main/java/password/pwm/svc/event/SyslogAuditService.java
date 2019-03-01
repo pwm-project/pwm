@@ -40,7 +40,6 @@ import org.graylog2.syslog4j.impl.net.udp.UDPNetSyslogConfig;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.bean.SessionLabel;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.SyslogOutputFormat;
@@ -53,32 +52,26 @@ import password.pwm.health.HealthStatus;
 import password.pwm.health.HealthTopic;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
-import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.localdb.LocalDBStoredQueue;
 import password.pwm.util.localdb.WorkQueueProcessor;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.secure.X509Utils;
 
 import javax.net.SocketFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.X509TrustManager;
 import java.io.Serializable;
-import java.net.URI;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 
 public class SyslogAuditService
@@ -98,17 +91,15 @@ public class SyslogAuditService
 
     private final Configuration configuration;
     private final PwmApplication pwmApplication;
-    private final SyslogOutputFormat syslogOutputFormat;
-    private final String cefTimezone;
+    private final AuditFormatter auditFormatter;
 
-    public SyslogAuditService( final PwmApplication pwmApplication )
+
+    SyslogAuditService( final PwmApplication pwmApplication )
             throws LocalDBException
     {
-        syslogOutputFormat = pwmApplication.getConfig().readSettingAsEnum( PwmSetting.AUDIT_SYSLOG_OUTPUT_FORMAT, SyslogOutputFormat.class );
         this.pwmApplication = pwmApplication;
         this.configuration = pwmApplication.getConfig();
         this.certificates = configuration.readSettingAsCertificate( PwmSetting.AUDIT_SYSLOG_CERTIFICATES );
-        this.cefTimezone = configuration.readAppProperty( AppProperty.AUDIT_SYSLOG_CEF_TIMEZONE );
 
         final List<String> syslogConfigStringArray = configuration.readSettingAsStringArray( PwmSetting.AUDIT_SYSLOG_SERVERS );
         try
@@ -124,6 +115,24 @@ public class SyslogAuditService
         catch ( IllegalArgumentException e )
         {
             LOGGER.error( "error parsing syslog configuration for  syslogConfigStrings ERROR: " + e.getMessage() );
+        }
+
+        {
+            final SyslogOutputFormat syslogOutputFormat = pwmApplication.getConfig().readSettingAsEnum( PwmSetting.AUDIT_SYSLOG_OUTPUT_FORMAT, SyslogOutputFormat.class );
+            switch ( syslogOutputFormat )
+            {
+                case JSON:
+                    auditFormatter = new JsonAuditFormatter();
+                    break;
+
+                case CEF:
+                    auditFormatter = new CEFAuditFormatter();
+                    break;
+
+                default:
+                    JavaHelper.unhandledSwitchStatement( syslogOutputFormat );
+                    throw new IllegalStateException();
+            }
         }
 
         final WorkQueueProcessor.Settings settings = WorkQueueProcessor.Settings.builder()
@@ -204,23 +213,9 @@ public class SyslogAuditService
     {
 
         final String syslogMsg;
-
         try
         {
-            switch ( syslogOutputFormat )
-            {
-                case JSON:
-                    syslogMsg = convertAuditRecordToSyslogMessage( event, configuration );
-                    break;
-
-                case CEF:
-                    syslogMsg = convertAuditRecordToCEFMessage( event, configuration );
-                    break;
-
-                default:
-                    JavaHelper.unhandledSwitchStatement( syslogOutputFormat );
-                    throw new IllegalStateException();
-            }
+            syslogMsg = auditFormatter.convertAuditRecordToMessage( pwmApplication, event );
         }
         catch ( PwmUnrecoverableException e )
         {
@@ -228,6 +223,7 @@ public class SyslogAuditService
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_SYSLOG_WRITE_ERROR, msg );
             throw new PwmOperationalException( errorInfo );
         }
+
 
 
         try
@@ -292,175 +288,6 @@ public class SyslogAuditService
         }
         workQueueProcessor.close();
         syslogInstance = null;
-    }
-
-
-    private static String convertAuditRecordToSyslogMessage(
-            final AuditRecord auditRecord,
-            final Configuration configuration
-    )
-    {
-        final int maxLength = Integer.parseInt( configuration.readAppProperty( AppProperty.AUDIT_SYSLOG_MAX_MESSAGE_LENGTH ) );
-        String jsonValue = "";
-        final StringBuilder message = new StringBuilder();
-        message.append( PwmConstants.PWM_APP_NAME );
-        message.append( " " );
-
-        jsonValue = JsonUtil.serialize( auditRecord );
-
-        if ( message.length() + jsonValue.length() <= maxLength )
-        {
-            message.append( jsonValue );
-        }
-        else
-        {
-            final AuditRecord inputRecord = JsonUtil.cloneUsingJson( auditRecord, auditRecord.getClass() );
-            inputRecord.message = inputRecord.message == null ? "" : inputRecord.message;
-            inputRecord.narrative = inputRecord.narrative == null ? "" : inputRecord.narrative;
-
-            final String truncateMessage = configuration.readAppProperty( AppProperty.AUDIT_SYSLOG_TRUNCATE_MESSAGE );
-            final AuditRecord copiedRecord = JsonUtil.cloneUsingJson( auditRecord, auditRecord.getClass() );
-            copiedRecord.message = "";
-            copiedRecord.narrative = "";
-            final int shortenedMessageLength = message.length()
-                    + JsonUtil.serialize( copiedRecord ).length()
-                    + truncateMessage.length();
-            final int maxMessageAndNarrativeLength = maxLength - ( shortenedMessageLength + ( truncateMessage.length() * 2 ) );
-            int maxMessageLength = inputRecord.getMessage().length();
-            int maxNarrativeLength = inputRecord.getNarrative().length();
-
-            {
-                int top = maxMessageAndNarrativeLength;
-                while ( maxMessageLength + maxNarrativeLength > maxMessageAndNarrativeLength )
-                {
-                    top--;
-                    maxMessageLength = Math.min( maxMessageLength, top );
-                    maxNarrativeLength = Math.min( maxNarrativeLength, top );
-                }
-            }
-
-            copiedRecord.message = inputRecord.getMessage().length() > maxMessageLength
-                    ? inputRecord.message.substring( 0, maxMessageLength ) + truncateMessage
-                    : inputRecord.message;
-
-            copiedRecord.narrative = inputRecord.getNarrative().length() > maxNarrativeLength
-                    ? inputRecord.narrative.substring( 0, maxNarrativeLength ) + truncateMessage
-                    : inputRecord.narrative;
-
-            message.append( JsonUtil.serialize( copiedRecord ) );
-        }
-
-        return message.toString();
-    }
-
-
-
-    private String convertAuditRecordToCEFMessage(
-            final AuditRecord auditRecord,
-            final Configuration configuration
-    )
-            throws PwmUnrecoverableException
-    {
-        final Map<String, Object> auditRecordMap = JsonUtil.deserializeMap( JsonUtil.serialize( auditRecord ) );
-
-        final String headerSeverity = configuration.readAppProperty( AppProperty.AUDIT_SYSLOG_CEF_HEADER_SEVERITY );
-        final String headerProduct = configuration.readAppProperty( AppProperty.AUDIT_SYSLOG_CEF_HEADER_PRODUCT );
-        final String headerVendor = configuration.readAppProperty( AppProperty.AUDIT_SYSLOG_CEF_HEADER_VENDOR );
-        final Optional<String> srcHost = deriveLocalServerHostname( configuration );
-
-        final MacroMachine macroMachine = MacroMachine.forNonUserSpecific( pwmApplication, SessionLabel.SYSTEM_LABEL );
-
-        final String cefFieldName = LocaleHelper.getLocalizedMessage(
-                PwmConstants.DEFAULT_LOCALE,
-                auditRecord.getEventCode().getMessage(),
-                configuration
-        );
-
-        final StringBuilder cefOutput = new StringBuilder(  );
-
-        // cef header
-        {
-            // cef declaration:version prefix
-            cefOutput.append( "CEF:0" );
-
-            // Device Vendor
-            cefOutput.append( CEFExtension.CEF_EXTENSION_SEPARATOR );
-            cefOutput.append( macroMachine.expandMacros( headerVendor ) );
-
-            // Device Product
-            cefOutput.append( CEFExtension.CEF_EXTENSION_SEPARATOR );
-            cefOutput.append( macroMachine.expandMacros( headerProduct ) );
-
-            // Device Version
-            cefOutput.append( CEFExtension.CEF_EXTENSION_SEPARATOR );
-            cefOutput.append( PwmConstants.SERVLET_VERSION );
-
-            // Device Event Class ID
-            cefOutput.append( CEFExtension.CEF_EXTENSION_SEPARATOR );
-            cefOutput.append( auditRecord.getEventCode() );
-
-            // field name
-            cefOutput.append( CEFExtension.CEF_EXTENSION_SEPARATOR );
-            cefOutput.append( cefFieldName );
-
-            // severity
-            cefOutput.append( CEFExtension.CEF_EXTENSION_SEPARATOR );
-            cefOutput.append( macroMachine.expandMacros( headerSeverity ) );
-        }
-
-        cefOutput.append( CEFExtension.CEF_EXTENSION_SEPARATOR );
-
-        srcHost.ifPresent( s -> appendCefValue( CEFExtension.dvchost.name(), s, cefOutput ) );
-
-        if ( StringUtil.isEmpty( cefTimezone ) )
-        {
-            appendCefValue( CEFExtension.dtz.name(), cefTimezone, cefOutput );
-        }
-
-        for ( final CEFExtension cefExtension : CEFExtension.values() )
-        {
-            if ( cefExtension.getAuditField() != null )
-            {
-                final String auditFieldName = cefExtension.getAuditField().name();
-                final Object value = auditRecordMap.get( auditFieldName );
-                if ( value != null )
-                {
-                    final String valueString = value.toString();
-                    appendCefValue( auditFieldName, valueString, cefOutput );
-                }
-            }
-        }
-
-        final int cefLength = CEFExtension.CEF_EXTENSION_SEPARATOR.length();
-        if ( cefOutput.substring( cefOutput.length() - cefLength ).equals( CEFExtension.CEF_EXTENSION_SEPARATOR ) )
-        {
-            cefOutput.replace( cefOutput.length() - cefLength, cefOutput.length(), "" );
-        }
-
-        return cefOutput.toString();
-    }
-
-    private static void appendCefValue( final String name, final String value, final StringBuilder cefOutput )
-    {
-        if ( !StringUtil.isEmpty( value ) && !StringUtil.isEmpty( name ) )
-        {
-            cefOutput.append( " " );
-            cefOutput.append( name );
-            cefOutput.append( "=" );
-            cefOutput.append( escapeCEFValue( value ) );
-        }
-    }
-
-    private static String escapeCEFValue( final String value )
-    {
-        String replacedValue = value;
-        for ( final Map.Entry<String, String> entry : CEFExtension.CEF_VALUE_ESCAPES.entrySet() )
-        {
-            final String pattern = entry.getKey();
-            final String replacement = entry.getValue();
-            replacedValue = replacedValue.replace( pattern, replacement );
-        }
-        return replacedValue;
     }
 
     @Getter
@@ -566,29 +393,5 @@ public class SyslogAuditService
             newClass.initialize( this );
             return newClass;
         }
-    }
-
-    private static Optional<String> deriveLocalServerHostname( final Configuration configuration )
-    {
-        if ( configuration != null )
-        {
-            final String siteUrl = configuration.readSettingAsString( PwmSetting.PWM_SITE_URL );
-            if ( !StringUtil.isEmpty( siteUrl ) )
-            {
-                try
-                {
-                    final URI parsedUri = URI.create( siteUrl );
-                    {
-                        final String uriHost = parsedUri.getHost();
-                        return Optional.ofNullable( uriHost );
-                    }
-                }
-                catch ( IllegalArgumentException e )
-                {
-                    LOGGER.trace( () -> " error parsing siteURL hostname: " + e.getMessage() );
-                }
-            }
-        }
-        return Optional.empty();
     }
 }
