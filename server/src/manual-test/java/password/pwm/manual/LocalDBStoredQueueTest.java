@@ -22,7 +22,6 @@
 
 package password.pwm.manual;
 
-import junit.framework.TestCase;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBFactory;
@@ -33,14 +32,14 @@ import java.io.File;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class LocalDBStoredQueueTest extends TestCase {
+public class LocalDBStoredQueueTest {
 
     private static final int SIZE = 5;
 
     private LocalDBStoredQueue storedQueue;
     private LocalDB localDB;
 
-    @Override
+    @BeforeClass
     protected void setUp() throws Exception {
 
         super.setUp();    //To change body of overridden methods use File | Settings | File Templates.
@@ -63,11 +62,13 @@ public class LocalDBStoredQueueTest extends TestCase {
     /**
      * isEmpty is true before add, false after
      */
+    @Test
     public void testEmpty() {
         storedQueue.clear();
         assertTrue(storedQueue.isEmpty());
     }
 
+    @Test
     public void testRemove() {
         storedQueue.clear();
         storedQueue.add("value1");
@@ -92,6 +93,7 @@ public class LocalDBStoredQueueTest extends TestCase {
         assertEquals(0, storedQueue.size());
     }
 
+    @Test
     public void testDequeue() {
         storedQueue.clear();
         assertEquals(0,storedQueue.size());
@@ -143,6 +145,7 @@ public class LocalDBStoredQueueTest extends TestCase {
     /**
      * size changes when elements added and removed
      */
+    @Test
     public void testSize() {
         storedQueue.clear();
         assertTrue(storedQueue.isEmpty());
@@ -163,6 +166,7 @@ public class LocalDBStoredQueueTest extends TestCase {
     /**
      * Offer succeeds
      */
+    @Test
     public void testOffer() {
         storedQueue.clear();
         assertTrue(storedQueue.isEmpty());
@@ -175,6 +179,7 @@ public class LocalDBStoredQueueTest extends TestCase {
     /**
      * add succeeds
      */
+    @Test
     public void testAdd() {
         storedQueue.clear();
         assertTrue(storedQueue.isEmpty());
@@ -188,6 +193,7 @@ public class LocalDBStoredQueueTest extends TestCase {
     /**
      * poll succeeds unless empty
      */
+    @Test
     public void testPoll() {
         storedQueue.clear();
         assertTrue(storedQueue.isEmpty());
@@ -205,6 +211,7 @@ public class LocalDBStoredQueueTest extends TestCase {
     /**
      * peek returns next element, or null if empty
      */
+    @Test
     public void testPeek() {
         storedQueue.clear();
         assertTrue(storedQueue.isEmpty());
@@ -216,7 +223,7 @@ public class LocalDBStoredQueueTest extends TestCase {
         assertEquals(initialSize, storedQueue.size());
     }
 
-    @Override
+    @AfterClass
     protected void tearDown() throws Exception {
         System.out.println("tearing down");
         super.tearDown();

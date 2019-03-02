@@ -22,7 +22,6 @@
 
 package password.pwm.manual;
 
-import junit.framework.TestCase;
 import password.pwm.AppProperty;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -75,7 +74,7 @@ public class LocalDBLoggerTest extends TestCase {
     private Date startTime;
 
 
-    @Override
+    @BeforeClass
     protected void setUp() throws Exception {
         super.setUp();    //To change body of overridden methods use File | Settings | File Templates.
         TestHelper.setupLogging();
@@ -113,6 +112,7 @@ public class LocalDBLoggerTest extends TestCase {
         System.out.println(JavaHelper.toIsoDate(new Date())+ " " + output);
     }
 
+    @Test
     public void testBulkAddEvents() throws InterruptedException {
         out("starting bulk add...  ");
         out("settings=" + JsonUtil.serialize(settings));
@@ -142,7 +142,6 @@ public class LocalDBLoggerTest extends TestCase {
         out(" results=" + JsonUtil.serialize(makeResults()));
         outputDebugInfo();
     }
-
 
     private class PopulatorThread extends Thread {
         public void run() {

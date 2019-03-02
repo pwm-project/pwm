@@ -22,14 +22,13 @@
 
 package password.pwm.error;
 
-import junit.framework.TestCase;
 import org.junit.Test;
 import password.pwm.PwmConstants;
 
 import java.util.HashSet;
 import java.util.Set;
 
-public class PwmErrorTest extends TestCase {
+public class PwmErrorTest {
 
     @Test
     public void testPwmErrorNumbers() throws Exception {

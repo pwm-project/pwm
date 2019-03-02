@@ -22,19 +22,24 @@
 
 package password.pwm.tests;
 
-import junit.framework.Assert;
-import junit.framework.TestCase;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.junit.Assert;
+import org.junit.Test;
 import password.pwm.util.secure.HttpsServerCertificateManager;
 
-import java.security.*;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.Provider;
+import java.security.SecureRandom;
+import java.security.Security;
 import java.security.cert.X509Certificate;
 import java.util.concurrent.TimeUnit;
 
-public class MakeSelfSignedCertTest extends TestCase
+public class MakeSelfSignedCertTest
 {
    private static final Provider BC_PROVIDER = new BouncyCastleProvider();
 
+   @Test
    public void testSelfSignedCert() throws Exception
    {
       Security.addProvider(BC_PROVIDER);

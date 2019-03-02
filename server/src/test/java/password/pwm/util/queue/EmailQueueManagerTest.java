@@ -22,8 +22,8 @@
 
 package password.pwm.util.queue;
 
-import junit.framework.Assert;
 import org.apache.commons.io.IOUtils;
+import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 import password.pwm.AppProperty;

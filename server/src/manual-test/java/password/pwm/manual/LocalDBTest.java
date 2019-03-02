@@ -22,8 +22,6 @@
 
 package password.pwm.manual;
 
-import junit.framework.Assert;
-import junit.framework.TestCase;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
@@ -31,13 +29,13 @@ import password.pwm.util.localdb.LocalDBFactory;
 
 import java.io.File;
 
-public class LocalDBTest extends TestCase {
+public class LocalDBTest {
 
     private final LocalDB.DB TEST_DB = LocalDB.DB.TEMP;
     private LocalDB pwmDB;
 
-    @Override
-    protected void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         super.setUp();    //To change body of overridden methods use File | Settings | File Templates.
         TestHelper.setupLogging();
         final File fileLocation = new File(TestHelper.getParameter("pwmDBlocation"));
@@ -46,12 +44,14 @@ public class LocalDBTest extends TestCase {
         Assert.assertEquals(0,pwmDB.size(TEST_DB));
     }
 
+    @Test
     public void testPut() throws LocalDBException {
         Assert.assertNull(pwmDB.get(TEST_DB,"testKey1"));
         pwmDB.put(TEST_DB,"testKey1","testValue1");
         Assert.assertEquals(pwmDB.get(TEST_DB,"testKey1"),"testValue1");
     }
 
+    @Test
     public void testSize() throws LocalDBException {
         final long startTime = System.currentTimeMillis();
         for (final LocalDB.DB loopDB : LocalDB.DB.values()) {
@@ -61,8 +61,8 @@ public class LocalDBTest extends TestCase {
         System.out.println("total duration: " + TimeDuration.fromCurrent(startTime).asLongString());
     }
 
-    @Override
-    protected void tearDown() throws Exception {
+    @After
+    public void tearDown() throws Exception {
         super.tearDown();
         if (pwmDB != null) {
             pwmDB.close();
