@@ -23,8 +23,11 @@
 package password.pwm.config.profile;
 
 import org.apache.commons.lang3.StringUtils;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import password.pwm.config.profile.PwmPasswordPolicy.RuleHelper;
@@ -33,67 +36,71 @@ import password.pwm.util.macro.MacroMachine;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static password.pwm.config.profile.PwmPasswordRule.RegExMatch;
-
-public class RuleHelperTest {
+public class RuleHelperTest
+{
     private static final String[][] MACRO_MAP = new String[][] {
-        { "@User:ID@",        "fflintstone"         },
-        { "@User:Email@",     "fred@flintstones.tv" },
-        { "@LDAP:givenName@", "Fred"                },
-        { "@LDAP:sn@",        "Flintstone"          }
+            {"@User:ID@", "fflintstone"},
+            {"@User:Email@", "fred@flintstones.tv"},
+            {"@LDAP:givenName@", "Fred"},
+            {"@LDAP:sn@", "Flintstone"},
     };
 
-    private MacroMachine macroMachine = mock(MacroMachine.class);
-    private RuleHelper ruleHelper = mock(RuleHelper.class);
+    private MacroMachine macroMachine = Mockito.mock( MacroMachine.class );
+    private RuleHelper ruleHelper = Mockito.mock( RuleHelper.class );
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() throws Exception
+    {
         // Mock out things that don't need to be real
-        when(macroMachine.expandMacros(anyString())).thenAnswer(replaceAllMacrosInMap(MACRO_MAP));
-        when(ruleHelper.readBooleanValue(PwmPasswordRule.AllowMacroInRegExSetting)).thenReturn(Boolean.TRUE);
-        when(ruleHelper.readRegExSetting(any(PwmPasswordRule.class), any(MacroMachine.class), anyString())).thenCallRealMethod();
+        Mockito.when( macroMachine.expandMacros( ArgumentMatchers.anyString() ) ).thenAnswer( replaceAllMacrosInMap( MACRO_MAP ) );
+        Mockito.when( ruleHelper.readBooleanValue( PwmPasswordRule.AllowMacroInRegExSetting ) ).thenReturn( Boolean.TRUE );
+        Mockito.when( ruleHelper.readRegExSetting(
+                ArgumentMatchers.any( PwmPasswordRule.class ),
+                ArgumentMatchers.any( MacroMachine.class ),
+                ArgumentMatchers.anyString() ) ).thenCallRealMethod();
     }
 
     @Test
-    public void testReadRegExSetting_noRegex() throws Exception {
+    public void testReadRegExSettingNoRegex() throws Exception
+    {
         final String input = "@User:ID@, First Name: @LDAP:givenName@, Last Name: @LDAP:sn@, Email: @User:Email@";
 
-        final List<Pattern> patterns = ruleHelper.readRegExSetting(RegExMatch, macroMachine, input);
+        final List<Pattern> patterns = ruleHelper.readRegExSetting( PwmPasswordRule.RegExMatch, macroMachine, input );
 
-        assertThat(patterns.size()).isEqualTo(1);
-        assertThat(patterns.get(0).pattern()).isEqualTo("fflintstone, First Name: Fred, Last Name: Flintstone, Email: fred@flintstones.tv");
+        Assert.assertEquals( patterns.size(), 1 );
+        Assert.assertEquals( patterns.get( 0 ).pattern(), "fflintstone, First Name: Fred, Last Name: Flintstone, Email: fred@flintstones.tv" );
     }
 
     @Test
-    public void testReadRegExSetting() throws Exception {
+    public void testReadRegExSetting() throws Exception
+    {
         final String input = "^@User:ID@[0-9]+$;;;^password$";
 
-        final List<Pattern> patterns = ruleHelper.readRegExSetting(RegExMatch, macroMachine, input);
+        final List<Pattern> patterns = ruleHelper.readRegExSetting( PwmPasswordRule.RegExMatch, macroMachine, input );
 
-        assertThat(patterns.size()).isEqualTo(2);
-        assertThat(patterns.get(0).pattern()).isEqualTo("^fflintstone[0-9]+$");
-        assertThat(patterns.get(1).pattern()).isEqualTo("^password$");
+        Assert.assertEquals( patterns.size(), 2 );
+        Assert.assertEquals( patterns.get( 0 ).pattern(), "^fflintstone[0-9]+$" );
+        Assert.assertEquals( patterns.get( 1 ).pattern(), "^password$" );
     }
 
-    private Answer<String> replaceAllMacrosInMap(final String[][] macroMap) {
-        return new Answer<String>() {
+    private Answer<String> replaceAllMacrosInMap( final String[][] macroMap )
+    {
+        return new Answer<String>()
+        {
             @Override
-            public String answer(InvocationOnMock invocation) throws Throwable {
+            public String answer( final InvocationOnMock invocation ) throws Throwable
+            {
                 final String[] macroNames = new String[macroMap.length];
                 final String[] macroValues = new String[macroMap.length];
 
-                for (int i=0; i<macroMap.length; i++) {
+                for ( int i = 0; i < macroMap.length; i++ )
+                {
                     macroNames[i] = macroMap[i][0];
                     macroValues[i] = macroMap[i][1];
                 }
 
-                final String stringWithMacros = invocation.getArgument(0);
-                return StringUtils.replaceEach(stringWithMacros, macroNames, macroValues);
+                final String stringWithMacros = invocation.getArgument( 0 );
+                return StringUtils.replaceEach( stringWithMacros, macroNames, macroValues );
             }
         };
     }

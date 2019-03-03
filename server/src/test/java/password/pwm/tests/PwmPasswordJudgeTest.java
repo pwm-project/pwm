@@ -36,24 +36,25 @@ import java.util.List;
 public class PwmPasswordJudgeTest
 {
     @Test
-    public void testJudgePassword() throws Exception {
-        final Configuration configuration = Mockito.mock(Configuration.class);
-        Mockito.when(configuration.readSettingAsEnum(PwmSetting.PASSWORD_STRENGTH_METER_TYPE, StrengthMeterType.class)).thenReturn(StrengthMeterType.PWM);
+    public void testJudgePassword() throws Exception
+    {
+        final Configuration configuration = Mockito.mock( Configuration.class );
+        Mockito.when( configuration.readSettingAsEnum( PwmSetting.PASSWORD_STRENGTH_METER_TYPE, StrengthMeterType.class ) ).thenReturn( StrengthMeterType.PWM );
 
-        Assert.assertEquals(0, PasswordUtility.judgePasswordStrength(configuration,""));
-        Assert.assertEquals(100, PasswordUtility.judgePasswordStrength(configuration,
-                "V.{a$f.*B697e+%J9pOPn~E0CyqN~9XmR?yjOGFC(k+la?n6&^I3bwZq[miF(`0"));
+        Assert.assertEquals( 0, PasswordUtility.judgePasswordStrength( configuration, "" ) );
+        Assert.assertEquals( 100, PasswordUtility.judgePasswordStrength( configuration,
+                "V.{a$f.*B697e+%J9pOPn~E0CyqN~9XmR?yjOGFC(k+la?n6&^I3bwZq[miF(`0" ) );
 
         final List<Integer> judgeValues = new ArrayList<>();
-        judgeValues.add(PasswordUtility.judgePasswordStrength(configuration,""));
-        judgeValues.add(PasswordUtility.judgePasswordStrength(configuration,"3"));
-        judgeValues.add(PasswordUtility.judgePasswordStrength(configuration,"3sadasd"));
-        judgeValues.add(PasswordUtility.judgePasswordStrength(configuration,"3sadasdA"));
-        judgeValues.add(PasswordUtility.judgePasswordStrength(configuration,"3sadasdAASDSADSAD"));
-        judgeValues.add(PasswordUtility.judgePasswordStrength(configuration,"3sadasdAASDSADSAD#"));
-        judgeValues.add(PasswordUtility.judgePasswordStrength(configuration,"3sadasdAASDSADSAD##@!#!^%&^$*"));
-        judgeValues.add(PasswordUtility.judgePasswordStrength(configuration,"3sadasdAASDSADSAD##@!#!^%&^$*aa"));
-        judgeValues.add(PasswordUtility.judgePasswordStrength(configuration,"3sadasdAASDSADSAD##@!#!^%&^$*aaaaaaaaaaaa"));
+        judgeValues.add( PasswordUtility.judgePasswordStrength( configuration, "" ) );
+        judgeValues.add( PasswordUtility.judgePasswordStrength( configuration, "3" ) );
+        judgeValues.add( PasswordUtility.judgePasswordStrength( configuration, "3sadasd" ) );
+        judgeValues.add( PasswordUtility.judgePasswordStrength( configuration, "3sadasdA" ) );
+        judgeValues.add( PasswordUtility.judgePasswordStrength( configuration, "3sadasdAASDSADSAD" ) );
+        judgeValues.add( PasswordUtility.judgePasswordStrength( configuration, "3sadasdAASDSADSAD#" ) );
+        judgeValues.add( PasswordUtility.judgePasswordStrength( configuration, "3sadasdAASDSADSAD##@!#!^%&^$*" ) );
+        judgeValues.add( PasswordUtility.judgePasswordStrength( configuration, "3sadasdAASDSADSAD##@!#!^%&^$*aa" ) );
+        judgeValues.add( PasswordUtility.judgePasswordStrength( configuration, "3sadasdAASDSADSAD##@!#!^%&^$*aaaaaaaaaaaa" ) );
         /*
         judgeValues.add(0);
         judgeValues.add(1);
@@ -63,15 +64,17 @@ public class PwmPasswordJudgeTest
         judgeValues.add(4);
         */
 
-        for (int i = 1; i < judgeValues.size() - 1; i++) {
-            int v1, v2;
+        for ( int i = 1; i < judgeValues.size() - 1; i++ )
+        {
+            int v1;
+            int v2;
 
-            v1 = judgeValues.get(i);
-            v2 = judgeValues.get(i - 1);
+            v1 = judgeValues.get( i );
+            v2 = judgeValues.get( i - 1 );
             //assertTrue(v1 >= v2);
 
-            v1 = judgeValues.get(i);
-            v2 = judgeValues.get(i + 1);
+            v1 = judgeValues.get( i );
+            v2 = judgeValues.get( i + 1 );
             //assertTrue(v1 <= v2);
         }
     }

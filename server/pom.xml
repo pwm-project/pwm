@@ -17,6 +17,7 @@
     <properties>
         <project.root.basedir>${project.basedir}/..</project.root.basedir>
         <skipTests>false</skipTests>
+        <skipExtendedTests>true</skipExtendedTests>
     </properties>
 
     <profiles>
@@ -26,6 +27,15 @@
                 <skipTests>true</skipTests>
             </properties>
         </profile>
+        <profile>
+            <id>enable-extended-tests</id>
+            <properties>
+                <skipExtendedTests>false</skipExtendedTests>
+            </properties>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+        </profile>
     </profiles>
 
     <build>
@@ -33,13 +43,37 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.22.0</version>
-                <configuration>
-                    <skipTests>${skipTests}</skipTests>
-                    <excludes>
-                        <exclude>**/password.pwm.manual.*</exclude>
-                    </excludes>
-                </configuration>
+                <version>3.0.0-M3</version>
+                <executions>
+                    <execution>
+                        <id>default-test</id>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                        <phase>test</phase>
+                        <configuration>
+                            <skipTests>${skipTests}</skipTests>
+                            <excludes>
+                                <exclude>**/ExtendedTest*.java</exclude>
+                                <exclude>**/*ExtendedTest*.java</exclude>
+                            </excludes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>extended-test</id>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                        <phase>test</phase>
+                        <configuration>
+                            <skipTests>${skipExtendedTests}</skipTests>
+                            <includes>
+                                <include>**/ExtendedTest*.java</include>
+                                <include>**/*ExtendedTest*.java</include>
+                            </includes>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>

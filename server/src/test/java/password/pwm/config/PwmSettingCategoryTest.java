@@ -29,34 +29,45 @@ import password.pwm.PwmConstants;
 import java.util.HashSet;
 import java.util.Set;
 
-public class PwmSettingCategoryTest {
+public class PwmSettingCategoryTest
+{
     @Test
-    public void testLabels() {
-        for (final PwmSettingCategory category : PwmSettingCategory.values()) {
-            category.getLabel(PwmConstants.DEFAULT_LOCALE);
+    public void testLabels()
+    {
+        for ( final PwmSettingCategory category : PwmSettingCategory.values() )
+        {
+            category.getLabel( PwmConstants.DEFAULT_LOCALE );
         }
     }
 
     @Test
-    public void testDescriptions() {
-        for (final PwmSettingCategory category : PwmSettingCategory.values()) {
-            category.getDescription(PwmConstants.DEFAULT_LOCALE);
+    public void testDescriptions()
+    {
+        for ( final PwmSettingCategory category : PwmSettingCategory.values() )
+        {
+            category.getDescription( PwmConstants.DEFAULT_LOCALE );
         }
     }
 
     @Test
-    public void testProfileSetting() {
-        for (final PwmSettingCategory category : PwmSettingCategory.values()) {
-            if (category.hasProfiles()) {
+    public void testProfileSetting()
+    {
+        for ( final PwmSettingCategory category : PwmSettingCategory.values() )
+        {
+            if ( category.hasProfiles() )
+            {
                 category.getProfileSetting();
             }
         }
     }
 
     @Test
-    public void testProfileSettingSyntax() {
-        for (final PwmSettingCategory category : PwmSettingCategory.values()) {
-            if (category.hasProfiles()) {
+    public void testProfileSettingSyntax()
+    {
+        for ( final PwmSettingCategory category : PwmSettingCategory.values() )
+        {
+            if ( category.hasProfiles() )
+            {
                 final PwmSetting pwmSetting = category.getProfileSetting();
                 Assert.assertEquals( pwmSetting.getSyntax(), PwmSettingSyntax.PROFILE );
             }
@@ -64,19 +75,23 @@ public class PwmSettingCategoryTest {
     }
 
     @Test
-    public void testProfileCategoryHasSettingsOrChildren() {
-        for (final PwmSettingCategory category : PwmSettingCategory.values()) {
-            if (category.hasProfiles()) {
-                boolean hasChildren = !category.getChildCategories().isEmpty();
-                boolean hasSettings = !category.getSettings().isEmpty();
-                Assert.assertTrue(hasChildren || hasSettings);
-                Assert.assertFalse(category.getKey() + " has both child categories and settings", hasChildren && hasSettings);
+    public void testProfileCategoryHasSettingsOrChildren()
+    {
+        for ( final PwmSettingCategory category : PwmSettingCategory.values() )
+        {
+            if ( category.hasProfiles() )
+            {
+                final boolean hasChildren = !category.getChildCategories().isEmpty();
+                final boolean hasSettings = !category.getSettings().isEmpty();
+                Assert.assertTrue( hasChildren || hasSettings );
+                Assert.assertFalse( category.getKey() + " has both child categories and settings", hasChildren && hasSettings );
             }
         }
     }
 
     @Test
-    public void testProfileSettingUniqueness() {
+    public void testProfileSettingUniqueness()
+    {
         final Set<PwmSetting> seenSettings = new HashSet<>();
         /*
         for (final PwmSettingCategory category : PwmSettingCategory.values()) {
@@ -85,6 +100,7 @@ public class PwmSettingCategoryTest {
                 seenSettings.add(category.getProfileSetting());
             }
         }
-        */  //@todo removed during multi-level profiled-category introduction
+        */
+        //@todo removed during multi-level profiled-category introduction
     }
 }

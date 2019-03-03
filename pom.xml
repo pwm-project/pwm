@@ -41,9 +41,9 @@
     </properties>
 
     <modules>
-        <module>client</module>
         <module>pwm-cr</module>
         <module>server</module>
+        <module>client</module>
         <module>webapp</module>
         <module>onejar</module>
         <module>data-service</module>
@@ -171,7 +171,7 @@
                     <dependency>
                         <groupId>com.puppycrawl.tools</groupId>
                         <artifactId>checkstyle</artifactId>
-                        <version>8.17</version>
+                        <version>8.18</version>
                     </dependency>
                 </dependencies>
                 <executions>
@@ -183,11 +183,12 @@
                             <configLocation>${project.root.basedir}/build/checkstyle.xml</configLocation>
                             <encoding>UTF-8</encoding>
                             <consoleOutput>true</consoleOutput>
-                            <includeTestResources>false</includeTestResources>
+                            <includeTestResources>true</includeTestResources>
                             <failsOnError>true</failsOnError>
                             <includes>**/*.java,**/*.jsp,**/*.properties,**/*.xml,**/*.css,**/*.svg</includes>
                             <sourceDirectories>
                                 <directory>src/main</directory>
+                                <directory>src/test</directory>
                             </sourceDirectories>
                         </configuration>
                         <goals>
@@ -202,11 +203,12 @@
                             <configLocation>${project.root.basedir}/build/checkstyle-header.xml</configLocation>
                             <encoding>UTF-8</encoding>
                             <consoleOutput>true</consoleOutput>
-                            <includeTestResources>false</includeTestResources>
+                            <includeTestResources>true</includeTestResources>
                             <failsOnError>true</failsOnError>
                             <includes>**/**</includes>
                             <sourceDirectories>
                                 <directory>src</directory>
+                                <directory>src/test</directory>
                             </sourceDirectories>
                         </configuration>
                         <goals>
@@ -223,7 +225,7 @@
                     <dependency>
                         <groupId>com.github.spotbugs</groupId>
                         <artifactId>spotbugs</artifactId>
-                        <version>3.1.11</version>
+                        <version>3.1.12</version>
                     </dependency>
                 </dependencies>
                 <configuration>
@@ -272,7 +274,7 @@
         <dependency>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs-annotations</artifactId>
-            <version>3.1.11</version>
+            <version>3.1.12</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
