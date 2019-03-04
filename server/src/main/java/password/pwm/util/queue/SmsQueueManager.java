@@ -47,6 +47,7 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.PasswordData;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -498,11 +499,21 @@ public class SmsQueueManager implements PwmService
 
             final PwmHttpClientRequest pwmHttpClientRequest = makeRequest( requestData );
 
-            final PwmHttpClientConfiguration pwmHttpClientConfiguration = PwmHttpClientConfiguration.builder()
-                    .certificates( config.readSettingAsCertificate( PwmSetting.SMS_GATEWAY_CERTIFICATES ) )
-                    .build();
+            final PwmHttpClient pwmHttpClient;
+            {
+                if ( JavaHelper.isEmpty( config.readSettingAsCertificate( PwmSetting.SMS_GATEWAY_CERTIFICATES ) ) )
+                {
+                    pwmHttpClient = new PwmHttpClient( pwmApplication, sessionLabel );
+                }
+                else
+                {
+                    final PwmHttpClientConfiguration clientConfiguration = PwmHttpClientConfiguration.builder()
+                            .certificates( config.readSettingAsCertificate( PwmSetting.SMS_GATEWAY_CERTIFICATES ) )
+                            .build();
 
-            final PwmHttpClient pwmHttpClient = new PwmHttpClient( pwmApplication, sessionLabel, pwmHttpClientConfiguration );
+                    pwmHttpClient = new PwmHttpClient( pwmApplication, sessionLabel, clientConfiguration );
+                }
+            }
 
             try
             {

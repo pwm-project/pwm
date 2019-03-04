@@ -82,7 +82,7 @@ class WordlistSource
             {
                 final boolean promiscuous = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_CLIENT_PROMISCUOUS_WORDLIST_ENABLE ) );
                 final PwmHttpClientConfiguration pwmHttpClientConfiguration = PwmHttpClientConfiguration.builder()
-                        .trustManager( promiscuous ? new X509Utils.PromiscuousTrustManager() : null )
+                        .trustManager( promiscuous ? new X509Utils.PromiscuousTrustManager( null ) : null )
                         .build();
                 final PwmHttpClient client = new PwmHttpClient( pwmApplication, null, pwmHttpClientConfiguration );
                 return client.streamForUrl( wordlistConfiguration.getAutoImportUrl() );

@@ -29,7 +29,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -157,7 +156,10 @@ public class PwmHttpClientTest
                 .certificates( getWireMockSelfSignedCertificate() )
                 .build();
 
-        final HttpClient httpClient = PwmHttpClient.getHttpClient( configuration, pwmHttpClientConfiguration, null );
+        Mockito.when( configuration.readAppProperty( AppProperty.HTTP_CLIENT_ENABLE_HOSTNAME_VERIFICATION ) ).thenReturn( "false" );
+
+
+        final HttpClient httpClient = PwmHttpClient.getHttpClient( configuration, pwmHttpClientConfiguration, null  );
 
         final HttpGet httpGet = new HttpGet( String.format( "https://localhost:%d/simpleHello", wireMockRule.httpsPort() ) );
         final HttpResponse response = httpClient.execute( httpGet );

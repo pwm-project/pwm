@@ -128,6 +128,7 @@ public enum AppProperty
     HTTP_CLIENT_SOCKET_TIMEOUT_MS                   ( "http.client.socketTimeoutMs" ),
     HTTP_CLIENT_CONNECT_TIMEOUT_MS                  ( "http.client.connectTimeoutMs" ),
     HTTP_CLIENT_REQUEST_TIMEOUT_MS                  ( "http.client.requestTimeoutMs" ),
+    HTTP_CLIENT_ENABLE_HOSTNAME_VERIFICATION        ( "http.client.enableHostnameVerification" ),
     HTTP_CLIENT_PROMISCUOUS_WORDLIST_ENABLE         ( "http.client.promiscuous.wordlist.enable" ),
     HTTP_ENABLE_GZIP                                ( "http.gzip.enable" ),
     HTTP_ERRORS_ALLOW_HTML                          ( "http.errors.allowHtml" ),

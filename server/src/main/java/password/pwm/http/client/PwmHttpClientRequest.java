@@ -24,8 +24,10 @@ package password.pwm.http.client;
 
 import lombok.Value;
 import password.pwm.http.HttpMethod;
+import password.pwm.util.java.StringUtil;
 
 import java.io.Serializable;
+import java.net.URI;
 import java.util.Map;
 
 @Value
@@ -36,8 +38,17 @@ public class PwmHttpClientRequest implements Serializable
     private final String body;
     private final Map<String, String> headers;
 
-    public String toDebugString( final PwmHttpClient pwmHttpClient )
+    public String toDebugString( final PwmHttpClient pwmHttpClient, final String additionalText )
     {
-        return pwmHttpClient.entityToDebugString( "HTTP " + method + " request to " + url, headers, body );
+        final String topLine = "HTTP " + method + " request to " + url
+                + ( StringUtil.isEmpty( additionalText )
+                ? ""
+                : " " + additionalText );
+        return pwmHttpClient.entityToDebugString( topLine, headers, body );
+    }
+
+    public boolean isHttps()
+    {
+        return "https".equals( URI.create( getUrl() ).getScheme() );
     }
 }
