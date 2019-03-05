@@ -28,6 +28,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.TransactionSizeCalculator;
 import password.pwm.util.java.ConditionalTaskExecutor;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.Percent;
 import password.pwm.util.java.PwmNumberFormat;
 import password.pwm.util.java.StringUtil;
@@ -170,7 +171,7 @@ class WordlistImporter implements Runnable
         rootWordlist.setActivity( Wordlist.Activity.Importing );
 
         final ConditionalTaskExecutor metaUpdater = new ConditionalTaskExecutor(
-                () -> rootWordlist.writeWordlistStatus( WordlistStatus.builder()
+                () -> rootWordlist.writeWordlistStatus( rootWordlist.readWordlistStatus().toBuilder()
                         .sourceType( sourceType )
                         .storeDate( Instant.now() )
                         .remoteInfo( wordlistSourceInfo )
@@ -180,7 +181,7 @@ class WordlistImporter implements Runnable
         );
 
         final ConditionalTaskExecutor debugOutputter = new ConditionalTaskExecutor(
-                () -> getLogger().debug( () -> makeStatString() ),
+                () -> getLogger().debug( this::makeStatString ),
                 new ConditionalTaskExecutor.TimeDurationPredicate( AbstractWordlist.DEBUG_OUTPUT_FREQUENCY )
         );
 
@@ -246,7 +247,7 @@ class WordlistImporter implements Runnable
         final long startTime = System.currentTimeMillis();
 
         //add the elements
-        wordlistBucket.addWords( bufferedWords );
+        wordlistBucket.addWords( bufferedWords, rootWordlist );
 
         if ( cancelFlag.getAsBoolean() )
         {
@@ -272,16 +273,16 @@ class WordlistImporter implements Runnable
         getLogger().info( () -> "population complete, added " + wordlistSize
                 + " total words in " + TimeDuration.compactFromCurrent( startTime ) );
 
-        {
-            final WordlistStatus wordlistStatus = WordlistStatus.builder()
-                    .remoteInfo( wordlistSourceInfo )
-                    .storeDate( Instant.now() )
-                    .sourceType( sourceType )
-                    .completed( true )
-                    .bytes( zipFileReader.getByteCount() )
-                    .build();
-            rootWordlist.writeWordlistStatus( wordlistStatus );
-        }
+        rootWordlist.writeWordlistStatus( rootWordlist.readWordlistStatus().toBuilder()
+                .remoteInfo( wordlistSourceInfo )
+                .storeDate( Instant.now() )
+                .sourceType( sourceType )
+                .completed( true )
+                .bytes( zipFileReader.getByteCount() )
+                .build()
+        );
+
+        getLogger().debug( () -> "final post-population status: " + JsonUtil.serialize( rootWordlist.readWordlistStatus() ) );
     }
 
     private PwmLogger getLogger()

@@ -39,18 +39,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.concurrent.atomic.AtomicLong;
 
 class WordlistBucket
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( WordlistBucket.class );
-    private static final String KEY_LAST_ISSUED_KEY = "_______lastKey_";
 
     private final PwmApplication pwmApplication;
     private final WordlistConfiguration wordlistConfiguration;
     private final LocalDB.DB db;
     private final WordlistType type;
-    private final AtomicLong seedlistTopKey = new AtomicLong(  );
 
 
     WordlistBucket(
@@ -64,14 +61,6 @@ class WordlistBucket
         this.wordlistConfiguration = wordlistConfiguration;
         this.db = wordlistConfiguration.getDb();
         this.type = type;
-
-        final String valueOfLastKey = pwmApplication.getLocalDB().get( db, KEY_LAST_ISSUED_KEY );
-
-        seedlistTopKey.set(
-                StringUtil.isEmpty( valueOfLastKey )
-                        ? 0
-                        : seedlistKeyToLong( valueOfLastKey )
-        );
     }
 
     boolean containsWord( final String word ) throws LocalDBException
@@ -137,9 +126,17 @@ class WordlistBucket
         throw new PwmUnrecoverableException( PwmError.ERROR_INTERNAL, "seedlist word not available" );
     }
 
-    void addWords( final Collection<String> words ) throws LocalDBException
+    void addWords( final Collection<String> words, final AbstractWordlist abstractWordlist )
+            throws LocalDBException
     {
-        pwmApplication.getLocalDB().putAll( db, getWriteTxnForValue( words ) );
+        final WordlistStatus initialStatus = abstractWordlist.readWordlistStatus();
+        final MutableLongIncrementer valueIncrementer = new MutableLongIncrementer( initialStatus.getValueCount() );
+        pwmApplication.getLocalDB().putAll( db, getWriteTxnForValue( words, valueIncrementer ) );
+        if ( initialStatus.getValueCount() != valueIncrementer.get() )
+        {
+            final WordlistStatus incrementedStatus = initialStatus.toBuilder().valueCount( valueIncrementer.get() ).build();
+            abstractWordlist.writeWordlistStatus( incrementedStatus );
+        }
     }
 
     long size() throws LocalDBException
@@ -150,11 +147,10 @@ class WordlistBucket
 
     void clear() throws LocalDBException
     {
-        seedlistTopKey.set( 0 );
         pwmApplication.getLocalDB().truncate( db );
     }
 
-    private Map<String, String> getWriteTxnForValue( final Collection<String> words ) throws LocalDBException
+    private Map<String, String> getWriteTxnForValue( final Collection<String> words, final MutableLongIncrementer valueIncrementer ) throws LocalDBException
     {
         switch ( type )
         {
@@ -166,10 +162,9 @@ class WordlistBucket
                     final String normalizedWord = normalizeWord( word );
                     if ( !StringUtil.isEmpty( normalizedWord ) )
                     {
-                        final long nextLong = seedlistTopKey.incrementAndGet();
+                        final long nextLong = valueIncrementer.getAndIncrement();
                         final String nextKey = seedlistLongToKey( nextLong );
                         returnSet.put( nextKey, normalizedWord );
-                        returnSet.put( KEY_LAST_ISSUED_KEY, nextKey );
                     }
                 }
                 return Collections.unmodifiableMap( returnSet );
@@ -183,6 +178,7 @@ class WordlistBucket
                     final String normalizedWord = normalizeWord( word );
                     if ( !StringUtil.isEmpty( normalizedWord ) )
                     {
+                        valueIncrementer.getAndIncrement();
                         returnSet.put( normalizedWord, "" );
                     }
                 }
@@ -258,5 +254,26 @@ class WordlistBucket
     private static String seedlistLongToKey( final long longValue )
     {
         return Long.toString( longValue, 36 );
+    }
+
+    public static class MutableLongIncrementer
+    {
+        private long value;
+
+        MutableLongIncrementer( final long value )
+        {
+            this.value = value;
+        }
+
+        public long getAndIncrement()
+        {
+            value++;
+            return value;
+        }
+
+        public long get()
+        {
+            return value;
+        }
     }
 }
