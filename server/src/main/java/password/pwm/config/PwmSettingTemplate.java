@@ -37,6 +37,7 @@ public enum PwmSettingTemplate
     DEFAULT( Type.LDAP_VENDOR ),
     NOVL_IDM( Type.LDAP_VENDOR ),
     OPEN_LDAP( Type.LDAP_VENDOR ),
+    FREEIPA( Type.LDAP_VENDOR ),
 
     LOCALDB( Type.STORAGE ),
     DB( Type.STORAGE ),
