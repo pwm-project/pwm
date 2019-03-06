@@ -61,8 +61,8 @@ import password.pwm.svc.report.ReportCsvUtility;
 import password.pwm.svc.report.ReportService;
 import password.pwm.svc.report.UserCacheRecord;
 import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.db.DatabaseException;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -75,7 +75,6 @@ import password.pwm.util.logging.PwmLogEvent;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
-import password.pwm.ws.server.rest.RestStatisticsServer;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -132,7 +131,6 @@ public class AdminServlet extends ControlledPwmServlet
         auditData( HttpMethod.GET ),
         sessionData( HttpMethod.GET ),
         intruderData( HttpMethod.GET ),
-        statistics( HttpMethod.GET ),
         startPwNotifyJob( HttpMethod.POST ),
         readPwNotifyStatus( HttpMethod.POST ),
         readPwNotifyLog( HttpMethod.POST ),
@@ -541,32 +539,6 @@ public class AdminServlet extends ControlledPwmServlet
         }
 
         final RestResultBean restResultBean = RestResultBean.withData( returnData );
-        pwmRequest.outputJsonResult( restResultBean );
-        return ProcessStatus.Halt;
-    }
-
-    @ActionHandler( action = "statistics" )
-    private ProcessStatus restStatisticsHandler( final PwmRequest pwmRequest )
-            throws ChaiUnavailableException, PwmUnrecoverableException, IOException
-    {
-        final String statKey = pwmRequest.readParameterAsString( "statKey" );
-        final String statName = pwmRequest.readParameterAsString( "statName" );
-        final String days = pwmRequest.readParameterAsString( "days" );
-
-        final StatisticsManager statisticsManager = pwmRequest.getPwmApplication().getStatisticsManager();
-        final RestStatisticsServer.OutputVersion1.JsonOutput jsonOutput = new RestStatisticsServer.OutputVersion1.JsonOutput();
-        jsonOutput.EPS = RestStatisticsServer.OutputVersion1.addEpsStats( statisticsManager );
-
-        if ( statName != null && statName.length() > 0 )
-        {
-            jsonOutput.nameData = RestStatisticsServer.OutputVersion1.doNameStat( statisticsManager, statName, days );
-        }
-        else
-        {
-            jsonOutput.keyData = RestStatisticsServer.OutputVersion1.doKeyStat( statisticsManager, statKey );
-        }
-
-        final RestResultBean restResultBean = RestResultBean.withData( jsonOutput );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
     }
