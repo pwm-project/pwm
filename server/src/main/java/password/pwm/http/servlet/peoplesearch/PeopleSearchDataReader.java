@@ -35,6 +35,7 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.value.data.FormConfiguration;
+import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -42,6 +43,13 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmURL;
 import password.pwm.http.servlet.helpdesk.HelpdeskServletUtil;
+import password.pwm.http.servlet.peoplesearch.bean.AttributeDetailBean;
+import password.pwm.http.servlet.peoplesearch.bean.LinkReferenceBean;
+import password.pwm.http.servlet.peoplesearch.bean.OrgChartDataBean;
+import password.pwm.http.servlet.peoplesearch.bean.OrgChartReferenceBean;
+import password.pwm.http.servlet.peoplesearch.bean.SearchResultBean;
+import password.pwm.http.servlet.peoplesearch.bean.UserDetailBean;
+import password.pwm.http.servlet.peoplesearch.bean.UserReferenceBean;
 import password.pwm.i18n.Display;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.LdapPermissionTester;
@@ -476,8 +484,17 @@ class PeopleSearchDataReader
         final boolean enabled = peopleSearchConfiguration.isPhotosEnabled( pwmRequest.getUserInfoIfLoggedIn(), pwmRequest.getSessionLabel() );
         if ( !enabled )
         {
-            LOGGER.debug( pwmRequest, () -> "detailed user data lookup for " + userIdentity.toString() + ", failed photo query filter, denying photo view" );
             return null;
+        }
+
+        {
+            final List<UserPermission> permissions = pwmApplication.getConfig().readSettingAsUserPermission( PwmSetting.PEOPLE_SEARCH_PHOTO_QUERY_FILTER );
+            final boolean hasPermission = LdapPermissionTester.testUserPermissions( pwmApplication, pwmRequest.getSessionLabel(), userIdentity, permissions );
+            if ( !hasPermission )
+            {
+                LOGGER.debug( pwmRequest, () -> "user " + userIdentity.toString() + " failed photo query filter, denying photo view" );
+                return null;
+            }
         }
 
         final String overrideURL = peopleSearchConfiguration.getPhotoUrlOverride( userIdentity );

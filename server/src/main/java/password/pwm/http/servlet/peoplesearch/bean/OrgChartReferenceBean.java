@@ -20,21 +20,18 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.http.servlet.peoplesearch;
+package password.pwm.http.servlet.peoplesearch.bean;
 
-import lombok.Builder;
-import lombok.Value;
+import lombok.Data;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-@Value
-@Builder( toBuilder = true )
-class SearchResultBean implements Serializable
+@Data
+public class OrgChartReferenceBean implements Serializable
 {
-    private List<Map<String, Object>> searchResults;
-    private boolean sizeExceeded;
-    private String aboutResultMessage;
-    private boolean fromCache;
+    public String userKey;
+    public List<String> displayNames = new ArrayList<>();
+    public String photoURL;
 }

@@ -20,14 +20,16 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.http.servlet.peoplesearch;
+package password.pwm.http.servlet.peoplesearch.bean;
 
+import lombok.Data;
 import password.pwm.config.value.data.FormConfiguration;
 
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 
+@Data
 public class AttributeDetailBean implements Serializable
 {
     private String name;
@@ -36,66 +38,4 @@ public class AttributeDetailBean implements Serializable
     private List<String> values;
     private Collection<UserReferenceBean> userReferences;
     private boolean searchable;
-
-    public String getName( )
-    {
-        return name;
-    }
-
-    public void setName( final String name )
-    {
-        this.name = name;
-    }
-
-    public String getLabel( )
-    {
-        return label;
-    }
-
-    public void setLabel( final String label )
-    {
-        this.label = label;
-    }
-
-    public FormConfiguration.Type getType( )
-    {
-        return type;
-    }
-
-    public void setType( final FormConfiguration.Type type )
-    {
-        this.type = type;
-    }
-
-    public List<String> getValues( )
-    {
-        return values;
-    }
-
-    public void setValues( final List<String> values )
-    {
-        this.values = values;
-    }
-
-    public Collection<UserReferenceBean> getUserReferences( )
-    {
-        return userReferences;
-    }
-
-    public void setUserReferences( final Collection<UserReferenceBean> userReferences )
-    {
-        this.userReferences = userReferences;
-    }
-
-    public boolean isSearchable( )
-    {
-        return searchable;
-    }
-
-    public void setSearchable( final boolean searchable )
-    {
-        this.searchable = searchable;
-    }
-
-
 }

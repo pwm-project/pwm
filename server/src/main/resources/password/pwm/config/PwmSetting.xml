@@ -3153,6 +3153,11 @@
             <value>false</value>
         </default>
     </setting>
+    <setting hidden="false" key="peopleSearch.enablePhoto" level="1">
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
     <setting hidden="false" key="peopleSearch.enableOrgChart" level="1">
         <default>
             <value>true</value>

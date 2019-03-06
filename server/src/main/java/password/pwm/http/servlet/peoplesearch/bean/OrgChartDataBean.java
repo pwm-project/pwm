@@ -20,32 +20,19 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.http.servlet.peoplesearch;
+package password.pwm.http.servlet.peoplesearch.bean;
+
+import lombok.Data;
 
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.List;
 
-class LinkReferenceBean implements Serializable
+@Data
+public class OrgChartDataBean implements Serializable
 {
-    private String name;
-    private String link;
-
-    public String getName( )
-    {
-        return name;
-    }
-
-    public void setName( final String name )
-    {
-        this.name = name;
-    }
-
-    public String getLink( )
-    {
-        return link;
-    }
-
-    public void setLink( final String link )
-    {
-        this.link = link;
-    }
+    private OrgChartReferenceBean parent;
+    private OrgChartReferenceBean self;
+    private OrgChartReferenceBean assistant;
+    private List<OrgChartReferenceBean> children = Collections.emptyList();
 }

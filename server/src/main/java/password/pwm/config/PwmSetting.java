@@ -965,6 +965,8 @@ public enum PwmSetting
             "peopleSearch.displayName.cardLabels", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.PEOPLE_SEARCH ),
     PEOPLE_SEARCH_MAX_CACHE_SECONDS(
             "peopleSearch.maxCacheSeconds", PwmSettingSyntax.DURATION, PwmSettingCategory.PEOPLE_SEARCH ),
+    PEOPLE_SEARCH_ENABLE_PHOTO(
+            "peopleSearch.enablePhoto", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH ),
     PEOPLE_SEARCH_PHOTO_QUERY_FILTER(
             "peopleSearch.photo.queryFilter", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.PEOPLE_SEARCH ),
     PEOPLE_SEARCH_SEARCH_FILTER(
