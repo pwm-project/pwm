@@ -22,6 +22,8 @@
 
 package password.pwm.http.servlet.configmanager;
 
+import lombok.Builder;
+import lombok.Value;
 import org.apache.commons.csv.CSVPrinter;
 import password.pwm.AppProperty;
 import password.pwm.PwmAboutProperty;
@@ -69,15 +71,15 @@ import java.lang.management.ThreadInfo;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -104,7 +106,8 @@ public class DebugItemGenerator
             SessionDataGenerator.class,
             LdapRecentUserDebugGenerator.class,
             ClusterInfoDebugGenerator.class,
-            CacheServiceDebugItemGenerator.class
+            CacheServiceDebugItemGenerator.class,
+            RootFileSystemDebugItemGenerator.class
     ) );
 
     static void outputZipDebugFile(
@@ -252,21 +255,10 @@ public class DebugItemGenerator
         @Override
         public void outputItem( final PwmApplication pwmApplication, final PwmRequest pwmRequest, final OutputStream outputStream ) throws Exception
         {
-            final Properties outputProps = new Properties()
-            {
-                public synchronized Enumeration<Object> keys( )
-                {
-                    return Collections.enumeration( new TreeSet<>( super.keySet() ) );
-                }
-            };
-
+            final Properties outputProps = new JavaHelper.SortedProperties();
             final Map<PwmAboutProperty, String> infoBean = PwmAboutProperty.makeInfoBean( pwmApplication );
             outputProps.putAll( PwmAboutProperty.toStringMap( infoBean ) );
-            try ( ByteArrayOutputStream baos = new ByteArrayOutputStream() )
-            {
-                outputProps.store( baos, JavaHelper.toIsoDate( Instant.now() ) );
-                outputStream.write( baos.toByteArray() );
-            }
+            outputProps.store( outputStream, JavaHelper.toIsoDate( Instant.now() ) );
         }
     }
 
@@ -281,11 +273,9 @@ public class DebugItemGenerator
         @Override
         public void outputItem( final PwmApplication pwmApplication, final PwmRequest pwmRequest, final OutputStream outputStream ) throws Exception
         {
-            final Properties outputProps = JavaHelper.newSortedProperties();
+            final Properties outputProps = new JavaHelper.SortedProperties();
             outputProps.putAll( System.getenv() );
-            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            outputProps.store( baos, JavaHelper.toIsoDate( Instant.now() ) );
-            outputStream.write( baos.toByteArray() );
+            outputProps.store( outputStream, JavaHelper.toIsoDate( Instant.now() ) );
         }
     }
 
@@ -302,16 +292,14 @@ public class DebugItemGenerator
         {
 
             final Configuration config = pwmRequest.getConfig();
-            final Properties outputProps = JavaHelper.newSortedProperties();
+            final Properties outputProps = new JavaHelper.SortedProperties();
 
             for ( final AppProperty appProperty : AppProperty.values() )
             {
-                outputProps.setProperty( appProperty.getKey(), config.readAppProperty( appProperty ) );
+                outputProps.put( appProperty.getKey(), config.readAppProperty( appProperty ) );
             }
 
-            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            outputProps.store( baos, JavaHelper.toIsoDate( Instant.now() ) );
-            outputStream.write( baos.toByteArray() );
+            outputStream.write( JsonUtil.serializeMap( outputProps ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
         }
     }
 
@@ -738,6 +726,54 @@ public class DebugItemGenerator
             );
 
             outputStream.write( JsonUtil.serialize( appDashboardData, JsonUtil.Flag.PrettyPrint ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
+        }
+    }
+
+    static class RootFileSystemDebugItemGenerator implements Generator
+    {
+        @Override
+        public String getFilename( )
+        {
+            return "filesystem-data.json";
+        }
+
+        @Override
+        public void outputItem(
+                final PwmApplication pwmApplication,
+                final PwmRequest pwmRequest,
+                final OutputStream outputStream
+        )
+                throws Exception
+        {
+            final Collection<RootFileSystemInfo> rootInfos = RootFileSystemInfo.forAllRootFileSystems();
+            outputStream.write( JsonUtil.serializeCollection( rootInfos, JsonUtil.Flag.PrettyPrint ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
+        }
+
+        @Value
+        @Builder
+        private static class RootFileSystemInfo implements Serializable
+        {
+            private String rootPath;
+            private long totalSpace;
+            private long freeSpace;
+            private long usableSpace;
+
+            static Collection<RootFileSystemInfo> forAllRootFileSystems()
+            {
+                return Arrays.stream( File.listRoots() )
+                        .map( RootFileSystemInfo::forRoot )
+                        .collect( Collectors.toList() );
+            }
+
+            static RootFileSystemInfo forRoot( final File fileRoot )
+            {
+                return RootFileSystemInfo.builder()
+                        .rootPath( fileRoot.getAbsolutePath() )
+                        .totalSpace( fileRoot.getTotalSpace() )
+                        .freeSpace( fileRoot.getFreeSpace() )
+                        .usableSpace( fileRoot.getUsableSpace() )
+                        .build();
+            }
         }
     }
 
