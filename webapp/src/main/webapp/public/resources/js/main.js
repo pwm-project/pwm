@@ -287,7 +287,6 @@ PWM_MAIN.applyFormAttributes = function() {
                 PWM_MAIN.log('added event handler for submit button with form attribute ' + element.id);
                 PWM_MAIN.addEventHandler(element,'click',function(e){
                     PWM_MAIN.stopEvent(e);
-                    PWM_VAR['dirtyPageLeaveFlag'] = false;
                     var formID = element.getAttribute('form');
                     PWM_MAIN.handleFormSubmit(PWM_MAIN.getObject(formID));
                 });
@@ -337,7 +336,6 @@ PWM_MAIN.addEventHandler = function(nodeId,eventType,functionToAdd) {
 
 
 PWM_MAIN.gotoUrl = function(url, options) {
-    PWM_VAR['dirtyPageLeaveFlag'] = false;
     options = options === undefined ? {} : options;
     if (!('noContext' in options) && url.indexOf(PWM_GLOBAL['url-context']) !== 0) {
         if (url.substring(0,1) === '/') {
@@ -1615,7 +1613,6 @@ PWM_MAIN.IdleTimeoutHandler.pollActivity = function() {
 
     if (secondsRemaining < 0) {
         if (!PWM_GLOBAL['idle_suspendTimeout']) {
-            PWM_VAR['dirtyPageLeaveFlag'] = false;
             PWM_GLOBAL['idle_suspendTimeout'] = true;
             var url = PWM_GLOBAL['url-logout'] + '?idle=true&url=' + encodeURIComponent(window.location.pathname);
             PWM_MAIN.gotoUrl(url);
