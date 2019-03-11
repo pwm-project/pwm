@@ -1501,7 +1501,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
                 forgottenPasswordBean.getProgress().setInProgressVerificationMethod( IdentityVerificationMethod.OAUTH );
                 final ForgottenPasswordProfile forgottenPasswordProfile = ForgottenPasswordUtil.forgottenPasswordProfile( pwmRequest.getPwmApplication(), forgottenPasswordBean );
                 final OAuthSettings oAuthSettings = OAuthSettings.forForgottenPassword( forgottenPasswordProfile );
-                final OAuthMachine oAuthMachine = new OAuthMachine( oAuthSettings );
+                final OAuthMachine oAuthMachine = new OAuthMachine( pwmRequest.getSessionLabel(), oAuthSettings );
                 pwmRequest.getPwmApplication().getSessionStateService().saveSessionBeans( pwmRequest );
                 final UserIdentity userIdentity = forgottenPasswordBean.getUserIdentity();
                 oAuthMachine.redirectUserToOAuthServer( pwmRequest, null, userIdentity, forgottenPasswordProfile.getIdentifier() );

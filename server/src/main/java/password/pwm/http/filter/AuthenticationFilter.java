@@ -171,7 +171,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
         if ( pwmSession.getLoginInfoBean().getOauthExp() != null )
         {
             final OAuthSettings oauthSettings = OAuthSettings.forSSOAuthentication( pwmRequest.getConfig() );
-            final OAuthMachine oAuthMachine = new OAuthMachine( oauthSettings );
+            final OAuthMachine oAuthMachine = new OAuthMachine( pwmRequest.getSessionLabel(), oauthSettings );
             if ( oAuthMachine.checkOAuthExpiration( pwmRequest ) )
             {
                 pwmRequest.respondWithError( new ErrorInformation( PwmError.ERROR_OAUTH_ERROR, "oauth access token has expired" ) );

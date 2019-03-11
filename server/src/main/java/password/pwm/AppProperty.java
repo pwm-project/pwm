@@ -154,6 +154,7 @@ public enum AppProperty
     HTTP_PARAM_OAUTH_ACCESS_TOKEN                   ( "http.parameter.oauth.accessToken" ),
     HTTP_PARAM_OAUTH_ATTRIBUTES                     ( "http.parameter.oauth.attributes" ),
     HTTP_PARAM_OAUTH_CLIENT_ID                      ( "http.parameter.oauth.clientID" ),
+    HTTP_PARAM_OAUTH_CLIENT_SECRET                  ( "http.parameter.oauth.clientSecret" ),
     HTTP_PARAM_OAUTH_CODE                           ( "http.parameter.oauth.code" ),
     HTTP_PARAM_OAUTH_EXPIRES                        ( "http.parameter.oauth.expires" ),
     HTTP_PARAM_OAUTH_RESPONSE_TYPE                  ( "http.parameter.oauth.responseType" ),

@@ -737,4 +737,37 @@ public class JavaHelper
                     .collect( Collectors.toCollection( LinkedHashSet::new ) );
         }
     }
+
+    public static int silentParseInt( final String input, final int defaultValue )
+    {
+        try
+        {
+            return Integer.parseInt( input );
+        }
+        catch ( NumberFormatException e )
+        {
+            return defaultValue;
+        }
+    }
+
+    public static long silentParseLong( final String input, final long defaultValue )
+    {
+        try
+        {
+            return Long.parseLong( input );
+        }
+        catch ( NumberFormatException e )
+        {
+            return defaultValue;
+        }
+    }
+
+    public static boolean doubleContainsLongValue( final Double input )
+    {
+        return input.equals( Math.floor( input ) )
+                && !Double.isInfinite( input )
+                && !Double.isNaN( input )
+                && input <= Long.MAX_VALUE
+                && input >= Long.MIN_VALUE;
+    }
 }

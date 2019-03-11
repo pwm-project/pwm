@@ -32,6 +32,6 @@ import java.io.Serializable;
 class OAuthResolveResults implements Serializable
 {
     private String accessToken;
-    private int expiresSeconds;
+    private long expiresSeconds;
     private String refreshToken;
 }
