@@ -98,11 +98,11 @@ public class LocalDBLoggerExtendedTest
 
         // open localDBLogger based on configuration settings;
         {
-            final LocalDBLoggerSettings settings = new LocalDBLoggerSettings.Builder()
-                    .setMaxEvents( Integer.MAX_VALUE )
-                    .setMaxAge( TimeDuration.of( 1, TimeDuration.Unit.MINUTES ) )
-                    .setFlags( Collections.emptySet() )
-                    .createLocalDBLoggerSettings();
+            final LocalDBLoggerSettings settings = LocalDBLoggerSettings.builder()
+                    .maxEvents( Integer.MAX_VALUE )
+                    .maxAge( TimeDuration.of( 1, TimeDuration.Unit.MINUTES ) )
+                    .flags( Collections.emptySet() )
+                    .build();
             localDBLogger = new LocalDBLogger( null, localDB, settings );
         }
 
