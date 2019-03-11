@@ -22,38 +22,48 @@
 
 package password.pwm.util.otp;
 
-import org.junit.*;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 /**
- *
  * @author mpieters
  */
-public class OTPUrlUtilTest {
-    
-    public OTPUrlUtilTest() {
+public class OTPUrlUtilTest
+{
+
+    public OTPUrlUtilTest()
+    {
     }
-    
+
     @BeforeClass
-    public static void setUpClass() {
+    public static void setUpClass()
+    {
     }
-    
+
     @AfterClass
-    public static void tearDownClass() {
+    public static void tearDownClass()
+    {
     }
-    
+
     @Before
-    public void setUp() {
+    public void setUp()
+    {
     }
-    
+
     @After
-    public void tearDown() {
+    public void tearDown()
+    {
     }
 
     /**
      * Test of composeOtpUrl method and decomposeOtpUrl, of class OTPUrlUtil.
      */
     @Test
-    public void testComposeAndDecomposeOtpUrl() {
+    public void testComposeAndDecomposeOtpUrl()
+    {
         /*
         System.out.println("composeOtpUrl");
         OTPUserRecord otp = new OTPUserRecord("TEST");
@@ -66,5 +76,5 @@ public class OTPUrlUtilTest {
         assertEquals(otp.getSecret(), xotp.getSecret());
         */
     }
-    
+
 }

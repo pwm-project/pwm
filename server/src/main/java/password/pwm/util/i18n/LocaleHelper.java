@@ -22,6 +22,7 @@
 
 package password.pwm.util.i18n;
 
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.pub.SessionStateInfoBean;
@@ -52,11 +53,18 @@ import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class LocaleHelper
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( LocaleHelper.class );
+
+    public enum TextDirection
+    {
+        rtl,
+        ltr,
+    }
 
     public static Class classForShortName( final String shortName )
     {
@@ -480,5 +488,15 @@ public class LocaleHelper
     public static String valueNotApplicable( final Locale locale )
     {
         return getLocalizedMessage( locale, Display.Value_NotApplicable, null );
+    }
+
+    public static TextDirection textDirectionForLocale( final PwmApplication pwmApplication, final Locale locale )
+    {
+        final String rtlRegex = pwmApplication.getConfig().readAppProperty( AppProperty.L10N_RTL_REGEX );
+        final Pattern rtlPattern = Pattern.compile( rtlRegex );
+        final String languageString = locale.getLanguage();
+        return languageString != null && rtlPattern.matcher( languageString ).find()
+                ? TextDirection.rtl
+                : TextDirection.ltr;
     }
 }

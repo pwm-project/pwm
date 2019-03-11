@@ -21,11 +21,11 @@
 --%>
 
 <!DOCTYPE html>
-<%@ page import="password.pwm.bean.PasswordStatus" %>
-<%@ page import="password.pwm.util.macro.MacroMachine" %>
+<%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ page import="password.pwm.http.tag.value.PwmValue" %>
 <%@ page import="password.pwm.http.PwmRequestAttribute" %>
+<%@ page import="password.pwm.http.servlet.changepw.ChangePasswordServlet" %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
@@ -108,12 +108,12 @@
             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
 
             <div class="buttonbar" style="width:100%">
-                <button type="submit" name="change" class="btn" id="password_button">
+                <button type="submit" name="password_button" class="btn" id="password_button">
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
                     <pwm:display key="Button_ChangePassword"/>
                 </button>
                 <pwm:if test="<%=PwmIfTest.passwordExpired%>" negate="true">
-                    <button id="button-reset" type="submit" name="change" class="btn" form="form-reset">
+                    <button id="button-reset" type="button" name="button-reset" class="btn" form="form-reset">
                         <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-times"></span></pwm:if>
                         <pwm:display key="Button_Cancel"/>
                     </button>
@@ -121,7 +121,7 @@
             </div>
         </form>
         <form id="form-reset" name="form-reset" action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" >
-            <input type="hidden" name="processAction" value="reset"/>
+            <input type="hidden" name="processAction" value="<%=ChangePasswordServlet.ChangePasswordAction.reset%>"/>
             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
         </form>
     </div>

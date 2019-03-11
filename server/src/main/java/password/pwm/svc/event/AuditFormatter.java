@@ -20,32 +20,17 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.http.servlet.peoplesearch;
+package password.pwm.svc.event;
 
-import java.io.Serializable;
+import password.pwm.PwmApplication;
+import password.pwm.error.PwmUnrecoverableException;
 
-class LinkReferenceBean implements Serializable
+public interface AuditFormatter
 {
-    private String name;
-    private String link;
+    String convertAuditRecordToMessage(
+            PwmApplication pwmApplication,
+            AuditRecord auditRecord
+    )
+            throws PwmUnrecoverableException;
 
-    public String getName( )
-    {
-        return name;
-    }
-
-    public void setName( final String name )
-    {
-        this.name = name;
-    }
-
-    public String getLink( )
-    {
-        return link;
-    }
-
-    public void setLink( final String link )
-    {
-        this.link = link;
-    }
 }

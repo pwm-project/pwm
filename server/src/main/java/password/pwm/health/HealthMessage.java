@@ -88,6 +88,7 @@ public enum HealthMessage
     LocalDBLogger_NOTOPEN( HealthStatus.CAUTION, HealthTopic.LocalDB ),
     LocalDBLogger_HighRecordCount( HealthStatus.CAUTION, HealthTopic.LocalDB ),
     LocalDBLogger_OldRecordPresent( HealthStatus.CAUTION, HealthTopic.LocalDB ),
+    NewUser_PwTemplateBad( HealthStatus.CAUTION, HealthTopic.Configuration ),
     ServiceClosed( HealthStatus.CAUTION, HealthTopic.Application ),
     ServiceClosed_LocalDBUnavail( HealthStatus.CAUTION, HealthTopic.Application ),
     ServiceClosed_AppReadOnly( HealthStatus.CAUTION, HealthTopic.Application ),

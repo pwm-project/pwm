@@ -201,7 +201,6 @@ PWM_CHANGEPW.handleChangePasswordSubmit=function(event) {
         console.log('post change password submit handler');
         if (!data || data['data']['passed'] && 'MATCH' === data['data']['match']) {
             console.log('submitting password form');
-            PWM_VAR['dirtyPageLeaveFlag'] = false;
             PWM_MAIN.getObject("changePasswordForm").submit();
         } else {
             PWM_MAIN.closeWaitDialog();
@@ -348,13 +347,6 @@ PWM_CHANGEPW.fetchRandoms=function(randomConfig) {
 
 PWM_CHANGEPW.startupChangePasswordPage=function() {
 
-    PWM_MAIN.addEventHandler('button-reset', 'click', function(e){
-        console.log('intercepted reset button');
-        PWM_MAIN.cancelEvent(e);
-        var resetForm = PWM_MAIN.getObject('form-reset');
-        PWM_MAIN.handleFormSubmit(resetForm );
-    });
-
     //PWM_MAIN.getObject('password2').disabled = true;
     PWM_CHANGEPW.markStrength(0);
 
@@ -387,22 +379,30 @@ PWM_CHANGEPW.startupChangePasswordPage=function() {
         });
     }
 
-    // add a handler so if the user leaves the page except by submitting the form, then a warning/confirm is shown
-    var pageLeaveFunction = function() {
-        if (PWM_VAR['dirtyPageLeaveFlag']) {
-            var message = PWM_MAIN.showString('Display_LeaveDirtyPasswordPage');
-            console.log('changepassword-beforeunload handler invoked');
-            if (message.trim().length > 0) {
-                return message;
-            }
+    PWM_MAIN.addEventHandler('button-reset','click',function(){
+        console.log('intercepted reset button');
+
+        var p1Value = PWM_MAIN.getObject("password1").value;
+        var p2Value = PWM_MAIN.getObject("password2").value;
+
+        var submitForm = function(){
+            var resetForm = PWM_MAIN.getObject('form-reset');
+            PWM_MAIN.handleFormSubmit(resetForm );
+        };
+
+        if ( p1Value.length > 0 || p2Value.length > 0 ) {
+            PWM_MAIN.cancelEvent(event);
+            PWM_MAIN.showConfirmDialog({
+                text:PWM_MAIN.showString('Display_LeaveDirtyPasswordPage'),
+                okLabel:PWM_MAIN.showString('Button_Continue'),
+                okAction:function(){
+                    submitForm();
+                }
+            });
         } else {
-            console.log('changepassword-beforeunload handler skipped');
+            submitForm();
         }
-    };
-    window.onbeforeunload=pageLeaveFunction;
-
-
-    PWM_VAR['dirtyPageLeaveFlag'] = true;
+    });
 
     var messageElement = PWM_MAIN.getObject("message");
     if (messageElement.firstChild.nodeValue.length < 2) {

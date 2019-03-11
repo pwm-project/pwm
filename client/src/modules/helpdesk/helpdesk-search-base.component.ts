@@ -166,7 +166,11 @@ export default abstract class HelpDeskSearchBaseComponent {
             }
 
             if (keys.size < this.queries.length) {
-                this.searchMessage = 'Search attributes must be unique';
+                this.$translate('Display_SearchAttrsUnique')
+                    .then((translation: string) => {
+                        this.searchMessage = translation;
+                    });
+
                 return null;
             }
 

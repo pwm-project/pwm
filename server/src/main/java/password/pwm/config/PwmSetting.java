@@ -960,12 +960,12 @@ public enum PwmSetting
             "peopleSearch.result.limit", PwmSettingSyntax.NUMERIC, PwmSettingCategory.PEOPLE_SEARCH ),
     PEOPLE_SEARCH_USE_PROXY(
             "peopleSearch.useProxy", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH ),
-    PEOPLE_SEARCH_DISPLAY_NAME(
-            "peopleSearch.displayName.user", PwmSettingSyntax.STRING, PwmSettingCategory.PEOPLE_SEARCH ),
     PEOPLE_SEARCH_DISPLAY_NAMES_CARD_LABELS(
             "peopleSearch.displayName.cardLabels", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.PEOPLE_SEARCH ),
     PEOPLE_SEARCH_MAX_CACHE_SECONDS(
             "peopleSearch.maxCacheSeconds", PwmSettingSyntax.DURATION, PwmSettingCategory.PEOPLE_SEARCH ),
+    PEOPLE_SEARCH_ENABLE_PHOTO(
+            "peopleSearch.enablePhoto", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH ),
     PEOPLE_SEARCH_PHOTO_QUERY_FILTER(
             "peopleSearch.photo.queryFilter", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.PEOPLE_SEARCH ),
     PEOPLE_SEARCH_SEARCH_FILTER(
@@ -1061,8 +1061,6 @@ public enum PwmSetting
             "helpdesk.forcePwExpiration", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_BASE ),
     HELPDESK_USE_PROXY(
             "helpdesk.useProxy", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_BASE ),
-    HELPDESK_DETAIL_DISPLAY_NAME(
-            "helpdesk.displayName", PwmSettingSyntax.STRING, PwmSettingCategory.HELPDESK_BASE ),
     HELPDESK_DISPLAY_NAMES_CARD_LABELS(
             "helpdesk.displayName.cardLabels", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.HELPDESK_BASE ),
     HELPDESK_TOKEN_SEND_METHOD(
@@ -1224,6 +1222,16 @@ public enum PwmSetting
 
 
     // deprecated.
+
+    // deprecated 2019-01-20
+    PEOPLE_SEARCH_DISPLAY_NAME(
+            "peopleSearch.displayName.user", PwmSettingSyntax.STRING, PwmSettingCategory.PEOPLE_SEARCH ),
+
+    // deprecated 2019-01-20
+    HELPDESK_DETAIL_DISPLAY_NAME(
+            "helpdesk.displayName", PwmSettingSyntax.STRING, PwmSettingCategory.HELPDESK_BASE ),
+
+
     // deprecated 2018-12-05
     REPORTING_SEARCH_FILTER(
             "reporting.ldap.searchFilter", PwmSettingSyntax.STRING, PwmSettingCategory.REPORTING ),

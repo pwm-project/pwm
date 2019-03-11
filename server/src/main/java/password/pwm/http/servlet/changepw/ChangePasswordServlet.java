@@ -88,7 +88,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( ChangePasswordServlet.class );
 
-    private enum ChangePasswordAction implements ControlledPwmServlet.ProcessAction
+    public enum ChangePasswordAction implements ControlledPwmServlet.ProcessAction
     {
         checkProgress( HttpMethod.POST ),
         complete( HttpMethod.GET ),

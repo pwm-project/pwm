@@ -35,7 +35,7 @@ public class PwmPasswordRuleTest
             final String value = rule.getLabel( PwmConstants.DEFAULT_LOCALE, null );
             if ( value == null || value.contains( "MissingKey" ) )
             {
-                throw new Exception(" missing label for PwmPasswordRule " + rule.name() );
+                throw new Exception( " missing label for PwmPasswordRule " + rule.name() );
             }
         }
     }

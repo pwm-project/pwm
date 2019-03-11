@@ -25,33 +25,42 @@ package password.pwm.svc.event;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class AuditEventTest {
+public class AuditEventTest
+{
 
     @Test
-    public void testXdasOutcome() {
-        for (final AuditEvent event : AuditEvent.values()) {
+    public void testXdasOutcome()
+    {
+        for ( final AuditEvent event : AuditEvent.values() )
+        {
             event.getXdasOutcome();
         }
     }
 
     @Test
-    public void testXdasTaxonomy() {
-        for (final AuditEvent event : AuditEvent.values()) {
+    public void testXdasTaxonomy()
+    {
+        for ( final AuditEvent event : AuditEvent.values() )
+        {
             event.getXdasTaxonomy();
         }
     }
 
     @Test
-    public void testMessage() {
-        for (final AuditEvent event : AuditEvent.values()) {
-            Assert.assertNotNull(event.getMessage());
+    public void testMessage()
+    {
+        for ( final AuditEvent event : AuditEvent.values() )
+        {
+            Assert.assertNotNull( event.getMessage() );
         }
     }
 
     @Test
-    public void testNarrative() {
-        for (final AuditEvent event : AuditEvent.values()) {
-            Assert.assertNotNull(event.getNarrative());
+    public void testNarrative()
+    {
+        for ( final AuditEvent event : AuditEvent.values() )
+        {
+            Assert.assertNotNull( event.getNarrative() );
         }
     }
 }

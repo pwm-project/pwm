@@ -20,20 +20,19 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.http.servlet.peoplesearch;
+package password.pwm.svc.event;
 
-import lombok.Getter;
-import lombok.Setter;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
-@Getter
-@Setter
-class OrgChartReferenceBean implements Serializable
+public enum AuditField
 {
-    public String userKey;
-    public List<String> displayNames = new ArrayList<>();
-    public String photoURL;
+    type,
+    eventCode,
+    timestamp,
+    message,
+    narrative,
+    perpetratorID,
+    perpetratorDN,
+    sourceAddress,
+    sourceHost,
+    targetID,
+    targetDN,
 }

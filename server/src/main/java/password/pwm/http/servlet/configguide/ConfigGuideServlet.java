@@ -49,7 +49,7 @@ import password.pwm.health.HealthMonitor;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.health.HealthTopic;
-import password.pwm.health.LDAPStatusChecker;
+import password.pwm.health.LDAPHealthChecker;
 import password.pwm.http.ContextManager;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.ProcessStatus;
@@ -238,7 +238,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
                 .getPwmEnvironment()
                 .makeRuntimeInstance( tempConfiguration ) );
 
-        final LDAPStatusChecker ldapStatusChecker = new LDAPStatusChecker();
+        final LDAPHealthChecker ldapHealthChecker = new LDAPHealthChecker();
         final List<HealthRecord> records = new ArrayList<>();
         final LdapProfile ldapProfile = tempConfiguration.getDefaultLdapProfile();
 
@@ -261,7 +261,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
 
             case LDAP_PROXY:
             {
-                records.addAll( ldapStatusChecker.checkBasicLdapConnectivity( tempApplication, tempConfiguration, ldapProfile, false ) );
+                records.addAll( ldapHealthChecker.checkBasicLdapConnectivity( tempApplication, tempConfiguration, ldapProfile, false ) );
                 if ( records.isEmpty() )
                 {
                     records.add( password.pwm.health.HealthRecord.forMessage( HealthMessage.LDAP_OK ) );
@@ -271,7 +271,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
 
             case LDAP_CONTEXT:
             {
-                records.addAll( ldapStatusChecker.checkBasicLdapConnectivity( tempApplication, tempConfiguration, ldapProfile, true ) );
+                records.addAll( ldapHealthChecker.checkBasicLdapConnectivity( tempApplication, tempConfiguration, ldapProfile, true ) );
                 if ( records.isEmpty() )
                 {
                     records.add( new HealthRecord( HealthStatus.GOOD, HealthTopic.LDAP, "LDAP Contextless Login Root validated" ) );
@@ -317,8 +317,8 @@ public class ConfigGuideServlet extends ControlledPwmServlet
                 final String testUserValue = configGuideBean.getFormData().get( ConfigGuideFormField.PARAM_LDAP_TEST_USER );
                 if ( testUserValue != null && !testUserValue.isEmpty() )
                 {
-                    records.addAll( ldapStatusChecker.checkBasicLdapConnectivity( tempApplication, tempConfiguration, ldapProfile, false ) );
-                    records.addAll( ldapStatusChecker.doLdapTestUserCheck( tempConfiguration, ldapProfile, tempApplication ) );
+                    records.addAll( ldapHealthChecker.checkBasicLdapConnectivity( tempApplication, tempConfiguration, ldapProfile, false ) );
+                    records.addAll( ldapHealthChecker.doLdapTestUserCheck( tempConfiguration, ldapProfile, tempApplication ) );
                 }
                 else
                 {

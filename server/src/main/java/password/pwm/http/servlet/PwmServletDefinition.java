@@ -95,6 +95,7 @@ public enum PwmServletDefinition
     ConfigManager_Wordlists( ConfigManagerWordlistServlet.class, ConfigManagerBean.class ),
     ConfigManager_LocalDB( ConfigManagerLocalDBServlet.class, ConfigManagerBean.class ),
     ConfigManager_Certificates( ConfigManagerCertificatesServlet.class, ConfigManagerBean.class ),
+    FullPageHealth( FullPageHealthServlet.class, null ),
 
     NewUser( NewUserServlet.class, NewUserBean.class ),
     ActivateUser( ActivateUserServlet.class, ActivateUserBean.class ),

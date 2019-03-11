@@ -45,7 +45,6 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCredentialsProvider;
@@ -53,8 +52,6 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.ProxyAuthenticationStrategy;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.apache.http.protocol.HttpContext;
-import org.apache.http.ssl.SSLContextBuilder;
-import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.util.EntityUtils;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
@@ -70,22 +67,16 @@ import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmURL;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.X509Utils;
 
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -131,40 +122,25 @@ public class PwmHttpClient
     {
         final HttpClientBuilder clientBuilder = HttpClientBuilder.create();
         clientBuilder.setUserAgent( PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION );
-        final boolean configPromiscuousEnabled = Boolean.parseBoolean( configuration.readAppProperty( AppProperty.SECURITY_HTTP_PROMISCUOUS_ENABLE ) );
-        final boolean promiscuousTrustMgrSet = pwmHttpClientConfiguration != null
-                && pwmHttpClientConfiguration.getTrustManager() != null
-                && X509Utils.PromiscuousTrustManager.class.equals( pwmHttpClientConfiguration.getTrustManager().getClass() );
 
         try
         {
-            if ( configPromiscuousEnabled || promiscuousTrustMgrSet )
-            {
-                clientBuilder.setSSLContext( promiscuousSSLContext() );
-                clientBuilder.setSSLHostnameVerifier( NoopHostnameVerifier.INSTANCE );
-            }
-            else if ( pwmHttpClientConfiguration != null && ( pwmHttpClientConfiguration.getCertificates() != null || pwmHttpClientConfiguration.getTrustManager() != null ) )
-            {
-                final SSLContext sslContext = SSLContext.getInstance( "TLS" );
-                final TrustManager trustManager = pwmHttpClientConfiguration.getTrustManager() != null
-                        ? pwmHttpClientConfiguration.getTrustManager()
-                        : new X509Utils.CertMatchingTrustManager( configuration, pwmHttpClientConfiguration.getCertificates() );
-                sslContext.init( null, new TrustManager[]
-                                {
-                                        trustManager,
-                                },
-                        new SecureRandom() );
-
-                final SSLConnectionSocketFactory sslConnectionFactory = new SSLConnectionSocketFactory( sslContext, NoopHostnameVerifier.INSTANCE );
-                final Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
-                        .register( "https", sslConnectionFactory )
-                        .register( "http", PlainConnectionSocketFactory.INSTANCE )
-                        .build();
-                final HttpClientConnectionManager ccm = new BasicHttpClientConnectionManager( registry );
-                clientBuilder.setSSLContext( sslContext );
-                clientBuilder.setSSLSocketFactory( sslConnectionFactory );
-                clientBuilder.setConnectionManager( ccm );
-            }
+            final SSLContext sslContext = SSLContext.getInstance( "TLS" );
+            final HttpTrustManagerHelper httpTrustManagerHelper = new HttpTrustManagerHelper( configuration, sessionLabel, pwmHttpClientConfiguration );
+            sslContext.init(
+                    null,
+                    httpTrustManagerHelper.makeTrustManager(),
+                    new SecureRandom() );
+            final SSLConnectionSocketFactory sslConnectionFactory = new SSLConnectionSocketFactory( sslContext, httpTrustManagerHelper.hostnameVerifier() );
+            final Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
+                    .register( "https", sslConnectionFactory )
+                    .register( "http", PlainConnectionSocketFactory.INSTANCE )
+                    .build();
+            final HttpClientConnectionManager ccm = new BasicHttpClientConnectionManager( registry );
+            clientBuilder.setSSLHostnameVerifier( httpTrustManagerHelper.hostnameVerifier() );
+            clientBuilder.setSSLContext( sslContext );
+            clientBuilder.setSSLSocketFactory( sslConnectionFactory );
+            clientBuilder.setConnectionManager( ccm );
         }
         catch ( Exception e )
         {
@@ -281,8 +257,22 @@ public class PwmHttpClient
         final Instant startTime = Instant.now();
         final int counter = REQUEST_COUNTER.getAndIncrement();
 
-        LOGGER.trace( sessionLabel, () -> "preparing to send (id=" + counter + ") "
-                + clientRequest.toDebugString( this ) );
+        if ( LOGGER.isEnabled( PwmLogLevel.TRACE ) )
+        {
+            final String sslDebugText;
+            if ( clientRequest.isHttps() )
+            {
+                final HttpTrustManagerHelper httpTrustManagerHelper = new HttpTrustManagerHelper( pwmApplication.getConfig(), sessionLabel, pwmHttpClientConfiguration );
+                sslDebugText = "using " + httpTrustManagerHelper.debugText();
+            }
+            else
+            {
+                sslDebugText = "";
+            }
+
+            LOGGER.trace( sessionLabel, () -> "preparing to send (id=" + counter + ") "
+                    + clientRequest.toDebugString( this, sslDebugText ) );
+        }
 
         final HttpResponse httpResponse = executeRequest( clientRequest );
         final String responseBody = EntityUtils.toString( httpResponse.getEntity() );
@@ -373,17 +363,6 @@ public class PwmHttpClient
 
         final HttpClient httpClient = getHttpClient( pwmApplication.getConfig(), pwmHttpClientConfiguration, sessionLabel );
         return httpClient.execute( httpRequest );
-    }
-
-    private static SSLContext promiscuousSSLContext( ) throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException
-    {
-        return new SSLContextBuilder().loadTrustMaterial( null, new TrustStrategy()
-        {
-            public boolean isTrusted( final X509Certificate[] arg0, final String arg1 ) throws CertificateException
-            {
-                return true;
-            }
-        } ).build();
     }
 
     public InputStream streamForUrl( final String inputUrl )

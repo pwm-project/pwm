@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.http.servlet.peoplesearch;
+package password.pwm.http.servlet.peoplesearch.bean;
 
 import lombok.Builder;
 import lombok.Value;
@@ -31,10 +31,9 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.servlet.peoplesearch.PeopleSearchConfiguration;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -51,7 +50,7 @@ public class PeopleSearchClientConfigBean implements Serializable
     private boolean orgChartShowChildCount;
     private int orgChartMaxParents;
     private int maxAdvancedSearchAttributes;
-    private List<SearchAttribute> advancedSearchAttributes;
+    private List<SearchAttributeBean> advancedSearchAttributes;
     private boolean enableOrgChartPrinting;
     private boolean enableExport;
     private int exportMaxDepth;
@@ -59,43 +58,7 @@ public class PeopleSearchClientConfigBean implements Serializable
     private int mailtoLinkMaxDepth;
 
 
-
-    @Value
-    @Builder
-    public static class SearchAttribute implements Serializable
-    {
-        private String attribute;
-        private String label;
-        private FormConfiguration.Type type;
-        private Map<String, String> options;
-
-        public static List<SearchAttribute> searchAttributesFromForm(
-                final Locale locale,
-                final List<FormConfiguration> formConfigurations
-        )
-        {
-            final List<SearchAttribute> returnList = new ArrayList<>( );
-            for ( final FormConfiguration formConfiguration : formConfigurations )
-            {
-                final String attribute = formConfiguration.getName();
-                final String label = formConfiguration.getLabel( locale );
-
-                final SearchAttribute searchAttribute = SearchAttribute.builder()
-                        .attribute( attribute )
-                        .type( formConfiguration.getType() )
-                        .label( label )
-                        .options( formConfiguration.getSelectOptions() )
-                        .build();
-
-                returnList.add( searchAttribute );
-            }
-
-            return Collections.unmodifiableList( returnList );
-        }
-    }
-
-
-    static PeopleSearchClientConfigBean fromConfig(
+    public static PeopleSearchClientConfigBean fromConfig(
             final PwmRequest pwmRequest,
             final PeopleSearchConfiguration peopleSearchConfiguration,
             final UserIdentity userIdentity
@@ -115,7 +78,9 @@ public class PeopleSearchClientConfigBean implements Serializable
         }
 
 
-        final List<SearchAttribute> searchAttributes = SearchAttribute.searchAttributesFromForm( locale, peopleSearchConfiguration.getSearchForm() );
+        final List<SearchAttributeBean> searchAttributeBeans = SearchAttributeBean.searchAttributesFromForm(
+                locale,
+                peopleSearchConfiguration.getSearchForm() );
 
         return PeopleSearchClientConfigBean.builder()
                 .searchColumns( searchColumns )
@@ -128,7 +93,7 @@ public class PeopleSearchClientConfigBean implements Serializable
                 .enableOrgChartPrinting( peopleSearchConfiguration.isEnablePrinting() )
 
                 .maxAdvancedSearchAttributes( 3 )
-                .advancedSearchAttributes( searchAttributes )
+                .advancedSearchAttributes( searchAttributeBeans )
 
                 .mailtoLinkMaxDepth( peopleSearchConfiguration.getMailtoLinksMaxDepth() )
                 .enableMailtoLinks( peopleSearchConfiguration.isEnableMailtoLinks() )

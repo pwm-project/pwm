@@ -82,6 +82,7 @@ public enum PwmAboutProperty
     java_memoryFree( "Java Memory Free", pwmApplication -> Long.toString( Runtime.getRuntime().freeMemory() ) ),
     java_memoryAllocated( "Java Memory Allocated", pwmApplication -> Long.toString( Runtime.getRuntime().totalMemory() ) ),
     java_memoryMax( "Java Memory Max", pwmApplication -> Long.toString( Runtime.getRuntime().maxMemory() ) ),
+    java_processors( "Java Available Processors", pwmApplication -> Integer.toString( Runtime.getRuntime().availableProcessors() ) ),
     java_threadCount( "Java Thread Count", pwmApplication -> Integer.toString( Thread.activeCount() ) ),
     java_runtimeVersion( "Java Runtime Version", pwmApplication -> System.getProperty( "java.runtime.version" ) ),
     java_vmName( "Java VM Name", pwmApplication -> System.getProperty( "java.vm.name" ) ),
