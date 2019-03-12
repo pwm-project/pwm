@@ -20,40 +20,27 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.config;
+package password.pwm.util.java;
 
-import password.pwm.error.PwmException;
+import org.junit.Assert;
+import org.junit.Test;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.XmlElement;
-import password.pwm.util.secure.PwmSecurityKey;
 
-import java.io.Serializable;
+import java.io.InputStream;
 import java.util.List;
-import java.util.Locale;
 
-public interface StoredValue extends Serializable
+public class XmlFactoryTest
 {
-    List<XmlElement> toXmlValues( String valueElementName, PwmSecurityKey pwmSecurityKey );
-
-    Object toNativeObject( );
-
-    List<String> validateValue( PwmSetting pwm );
-
-    Serializable toDebugJsonObject( Locale locale );
-
-    String toDebugString( Locale locale );
-
-    boolean requiresStoredUpdate( );
-
-    int currentSyntaxVersion( );
-
-    interface StoredValueFactory
+    @Test
+    public void testLoadXml()
+            throws PwmUnrecoverableException
     {
-        StoredValue fromJson( String input );
-
-        StoredValue fromXmlElement( PwmSetting pwmSetting, XmlElement settingElement, PwmSecurityKey key )
-                throws PwmException;
+        final InputStream xmlFactoryTestXmlFile = this.getClass().getResourceAsStream( "XmlFactoryTest.xml" );
+        final XmlDocument xmlDocument = XmlFactory.getFactory().parseXml( xmlFactoryTestXmlFile );
+        Assert.assertEquals( "PwmConfiguration", xmlDocument.getRootElement().getName() );
+        final XmlElement configIsEditable = xmlDocument.evaluateXpathToElement( "//property[@key='configIsEditable']" );
+        Assert.assertEquals( "false", configIsEditable.getText() );
+        final List<XmlElement> allSettings = xmlDocument.evaluateXpathToElements( "//setting" );
+        Assert.assertEquals( 280, allSettings.size() );
     }
-
-    String valueHash( ) throws PwmUnrecoverableException;
 }

@@ -23,12 +23,12 @@
 package password.pwm.config.value;
 
 import com.google.gson.reflect.TypeToken;
-import org.jdom2.CDATA;
-import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.XmlElement;
+import password.pwm.util.java.XmlFactory;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.ArrayList;
@@ -69,13 +69,12 @@ public class LocalizedStringValue extends AbstractValue implements StoredValue
                 }
             }
 
-            public LocalizedStringValue fromXmlElement( final PwmSetting pwmSetting, final Element settingElement, final PwmSecurityKey key )
+            public LocalizedStringValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey key )
             {
-                final List elements = settingElement.getChildren( "value" );
+                final List<XmlElement> elements = settingElement.getChildren( "value" );
                 final Map<String, String> values = new TreeMap<>();
-                for ( final Object loopValue : elements )
+                for ( final XmlElement loopValueElement : elements )
                 {
-                    final Element loopValueElement = ( Element ) loopValue;
                     final String localeString = loopValueElement.getAttributeValue( "locale" );
                     final String value = loopValueElement.getText();
                     values.put( localeString == null ? "" : localeString, value );
@@ -85,15 +84,15 @@ public class LocalizedStringValue extends AbstractValue implements StoredValue
         };
     }
 
-    public List<Element> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
     {
-        final List<Element> returnList = new ArrayList<>();
+        final List<XmlElement> returnList = new ArrayList<>();
         for ( final Map.Entry<String, String> entry : value.entrySet() )
         {
             final String locale = entry.getKey();
             final String loopValue = entry.getValue();
-            final Element valueElement = new Element( valueElementName );
-            valueElement.addContent( new CDATA( loopValue ) );
+            final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
+            valueElement.addText( loopValue );
             if ( locale != null && locale.length() > 0 )
             {
                 valueElement.setAttribute( "locale", locale );

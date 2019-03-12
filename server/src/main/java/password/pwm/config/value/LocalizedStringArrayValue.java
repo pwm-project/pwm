@@ -23,12 +23,12 @@
 package password.pwm.config.value;
 
 import com.google.gson.reflect.TypeToken;
-import org.jdom2.CDATA;
-import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.XmlElement;
+import password.pwm.util.java.XmlFactory;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.ArrayList;
@@ -57,7 +57,7 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
             {
                 if ( input == null )
                 {
-                    return new LocalizedStringArrayValue( Collections.<String, List<String>>emptyMap() );
+                    return new LocalizedStringArrayValue( Collections.emptyMap() );
                 }
                 else
                 {
@@ -69,13 +69,12 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
                 }
             }
 
-            public LocalizedStringArrayValue fromXmlElement( final PwmSetting pwmSetting, final Element settingElement, final PwmSecurityKey key )
+            public LocalizedStringArrayValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey key )
             {
-                final List valueElements = settingElement.getChildren( "value" );
+                final List<XmlElement> valueElements = settingElement.getChildren( "value" );
                 final Map<String, List<String>> values = new TreeMap<>();
-                for ( final Object loopValue : valueElements )
+                for ( final XmlElement loopValueElement  : valueElements )
                 {
-                    final Element loopValueElement = ( Element ) loopValue;
                     final String localeString = loopValueElement.getAttributeValue(
                             "locale" ) == null ? "" : loopValueElement.getAttributeValue( "locale" );
                     final String value = loopValueElement.getText();
@@ -92,16 +91,16 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
         };
     }
 
-    public List<Element> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
     {
-        final List<Element> returnList = new ArrayList<>();
+        final List<XmlElement> returnList = new ArrayList<>();
         for ( final Map.Entry<String, List<String>> entry : values.entrySet() )
         {
             final String locale = entry.getKey();
             for ( final String value : entry.getValue() )
             {
-                final Element valueElement = new Element( valueElementName );
-                valueElement.addContent( new CDATA( value ) );
+                final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
+                valueElement.addText( value );
                 if ( locale != null && locale.length() > 0 )
                 {
                     valueElement.setAttribute( "locale", locale );

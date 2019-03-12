@@ -22,14 +22,6 @@
 
 package password.pwm.config.stored;
 
-import org.jdom2.Attribute;
-import org.jdom2.CDATA;
-import org.jdom2.Comment;
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.Text;
-import org.jdom2.xpath.XPathExpression;
-import org.jdom2.xpath.XPathFactory;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
@@ -58,7 +50,9 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
-import password.pwm.util.java.XmlUtil;
+import password.pwm.util.java.XmlDocument;
+import password.pwm.util.java.XmlElement;
+import password.pwm.util.java.XmlFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.BCrypt;
 import password.pwm.util.secure.PwmRandom;
@@ -71,6 +65,7 @@ import java.io.OutputStream;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -101,12 +96,14 @@ public class StoredConfigurationImpl implements StoredConfiguration
     private static final PwmLogger LOGGER = PwmLogger.forClass( StoredConfigurationImpl.class );
     static final String XML_FORMAT_VERSION = "4";
 
-    private Document document = new Document( new Element( XML_ELEMENT_ROOT ) );
+    private XmlDocument document = XmlFactory.getFactory().newDocument( XML_ELEMENT_ROOT );
     private ChangeLog changeLog = new ChangeLog();
 
     private boolean locked;
     private final boolean setting_writeLabels = true;
     private final ReentrantReadWriteLock domModifyLock = new ReentrantReadWriteLock();
+
+    private final XmlHelper xmlHelper = new XmlHelper();
 
     public static StoredConfigurationImpl newStoredConfiguration( ) throws PwmUnrecoverableException
     {
@@ -116,7 +113,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
     public static StoredConfigurationImpl copy( final StoredConfigurationImpl input ) throws PwmUnrecoverableException
     {
         final StoredConfigurationImpl copy = new StoredConfigurationImpl();
-        copy.document = input.document.clone();
+        copy.document = input.document.copy();
         return copy;
     }
 
@@ -126,7 +123,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
         final Instant startTime = Instant.now();
         //validateXmlSchema(xmlData);
 
-        final Document inputDocument = XmlUtil.parseXml( xmlData );
+        final XmlDocument inputDocument = XmlFactory.getFactory().parseXml( xmlData );
         final StoredConfigurationImpl newConfiguration = StoredConfigurationImpl.newStoredConfiguration();
 
         try
@@ -197,11 +194,10 @@ public class StoredConfigurationImpl implements StoredConfiguration
                 this.resetSetting( settingValueRecord.getSetting(), settingValueRecord.getProfile(), null );
                 if ( comment != null && !comment.isEmpty() )
                 {
-                    final XPathExpression xp = XPathBuilder.xpathForSetting( settingValueRecord.getSetting(), settingValueRecord.getProfile() );
-                    final Element settingElement = ( Element ) xp.evaluateFirst( document );
+                    final XmlElement settingElement = xmlHelper.xpathForSetting( settingValueRecord.getSetting(), settingValueRecord.getProfile() );
                     if ( settingElement != null )
                     {
-                        settingElement.addContent( new Comment( comment ) );
+                        settingElement.setComment( Collections.singletonList( comment ) );
                     }
                 }
             }
@@ -216,17 +212,24 @@ public class StoredConfigurationImpl implements StoredConfiguration
 
     public StoredConfigurationImpl( ) throws PwmUnrecoverableException
     {
-        ConfigurationCleaner.cleanup( this, document );
-        final String createTime = JavaHelper.toIsoDate( Instant.now() );
-        document.getRootElement().setAttribute( XML_ATTRIBUTE_CREATE_TIME, createTime );
+        try
+        {
+            ConfigurationCleaner.cleanup( this, document );
+            final String createTime = JavaHelper.toIsoDate( Instant.now() );
+            document.getRootElement().setAttribute( XML_ATTRIBUTE_CREATE_TIME, createTime );
+        }
+        catch ( Exception e )
+        {
+            e.printStackTrace(  );
+            throw new IllegalStateException( e );
+        }
     }
 
 
     @Override
     public String readConfigProperty( final ConfigurationProperty propertyName )
     {
-        final XPathExpression xp = XPathBuilder.xpathForConfigProperty( propertyName );
-        final Element propertyElement = ( Element ) xp.evaluateFirst( document );
+        final XmlElement propertyElement = xmlHelper.xpathForConfigProperty( propertyName );
         return propertyElement == null ? null : propertyElement.getText();
     }
 
@@ -240,26 +243,28 @@ public class StoredConfigurationImpl implements StoredConfiguration
         try
         {
 
-            final XPathExpression xp = XPathBuilder.xpathForConfigProperty( propertyName );
-            final List<Element> propertyElements = xp.evaluate( document );
-            for ( final Element propertyElement : propertyElements )
+            // remove existing element
             {
+                final XmlElement propertyElement  = xmlHelper.xpathForConfigProperty( propertyName );
                 propertyElement.detach();
             }
 
-            final Element propertyElement = new Element( XML_ELEMENT_PROPERTY );
-            propertyElement.setAttribute( new Attribute( XML_ATTRIBUTE_KEY, propertyName.getKey() ) );
-            propertyElement.setContent( new Text( value ) );
-
-            if ( null == XPathBuilder.xpathForConfigProperties().evaluateFirst( document ) )
+            // add new property
             {
-                final Element configProperties = new Element( XML_ELEMENT_PROPERTIES );
-                configProperties.setAttribute( new Attribute( XML_ATTRIBUTE_TYPE, XML_ATTRIBUTE_VALUE_CONFIG ) );
+
+            }
+            final XmlElement propertyElement = xmlHelper.getXmlFactory().newElement( XML_ELEMENT_PROPERTY );
+            propertyElement.setAttribute( XML_ATTRIBUTE_KEY, propertyName.getKey() );
+            propertyElement.addText( value );
+
+            if ( null == xmlHelper.xpathForConfigProperties() )
+            {
+                final XmlElement configProperties = xmlHelper.getXmlFactory().newElement( XML_ELEMENT_PROPERTIES );
+                configProperties.setAttribute( XML_ATTRIBUTE_TYPE, XML_ATTRIBUTE_VALUE_CONFIG );
                 document.getRootElement().addContent( configProperties );
             }
 
-            final XPathExpression xp2 = XPathBuilder.xpathForConfigProperties();
-            final Element propertiesElement = ( Element ) xp2.evaluateFirst( document );
+            final XmlElement propertiesElement = xmlHelper.xpathForConfigProperties();
             propertyElement.setAttribute( XML_ATTRIBUTE_MODIFY_TIME, JavaHelper.toIsoDate( Instant.now() ) );
             propertiesElement.setAttribute( XML_ATTRIBUTE_MODIFY_TIME, JavaHelper.toIsoDate( Instant.now() ) );
             propertiesElement.addContent( propertyElement );
@@ -280,12 +285,12 @@ public class StoredConfigurationImpl implements StoredConfiguration
         domModifyLock.readLock().lock();
         try
         {
-            final XPathExpression xp = XPathBuilder.xpathForLocaleBundleSetting( bundleName, keyName );
-            final Element localeBundleElement = ( Element ) xp.evaluateFirst( document );
+            final XmlElement localeBundleElement = xmlHelper.xpathForLocaleBundleSetting( bundleName, keyName );
+
             if ( localeBundleElement != null )
             {
                 final Map<String, String> bundleMap = new LinkedHashMap<>();
-                for ( final Element valueElement : localeBundleElement.getChildren( "value" ) )
+                for ( final XmlElement valueElement : localeBundleElement.getChildren( "value" ) )
                 {
                     final String localeStrValue = valueElement.getAttributeValue( "locale" );
                     bundleMap.put( localeStrValue == null ? "" : localeStrValue, valueElement.getText() );
@@ -346,14 +351,10 @@ public class StoredConfigurationImpl implements StoredConfiguration
         domModifyLock.writeLock().lock();
         try
         {
-            final XPathExpression xp = XPathBuilder.xpathForLocaleBundleSetting( bundleName, keyName );
-            final List<Element> oldBundleElements = xp.evaluate( document );
+            final XmlElement oldBundleElements = xmlHelper.xpathForLocaleBundleSetting( bundleName, keyName );
             if ( oldBundleElements != null )
             {
-                for ( final Element element : oldBundleElements )
-                {
-                    element.detach();
-                }
+                oldBundleElements.detach();
             }
         }
         finally
@@ -369,9 +370,9 @@ public class StoredConfigurationImpl implements StoredConfiguration
         try
         {
             preModifyActions();
-            final Element settingElement = createOrGetSettingElement( document, setting, profileID );
+            final XmlElement settingElement = createOrGetSettingElement( setting, profileID );
             settingElement.removeContent();
-            settingElement.addContent( new Element( XML_ELEMENT_DEFAULT ) );
+            settingElement.addContent( xmlHelper.getXmlFactory().newElement( XML_ELEMENT_DEFAULT ) );
             updateMetaData( settingElement, userIdentity );
         }
         finally
@@ -414,16 +415,15 @@ public class StoredConfigurationImpl implements StoredConfiguration
     public PwmSettingTemplateSet getTemplateSet( )
     {
         final Set<PwmSettingTemplate> templates = new HashSet<>();
-        templates.add( readTemplateValue( document, PwmSetting.TEMPLATE_LDAP ) );
-        templates.add( readTemplateValue( document, PwmSetting.TEMPLATE_STORAGE ) );
-        templates.add( readTemplateValue( document, PwmSetting.DB_VENDOR_TEMPLATE ) );
+        templates.add( readTemplateValue( PwmSetting.TEMPLATE_LDAP ) );
+        templates.add( readTemplateValue( PwmSetting.TEMPLATE_STORAGE ) );
+        templates.add( readTemplateValue( PwmSetting.DB_VENDOR_TEMPLATE ) );
         return new PwmSettingTemplateSet( templates );
     }
 
-    private static PwmSettingTemplate readTemplateValue( final Document document, final PwmSetting pwmSetting )
+    private PwmSettingTemplate readTemplateValue( final PwmSetting pwmSetting )
     {
-        final XPathExpression xp = XPathBuilder.xpathForSetting( pwmSetting, null );
-        final Element settingElement = ( Element ) xp.evaluateFirst( document );
+        final XmlElement settingElement = xmlHelper.xpathForSetting( pwmSetting, null );
         if ( settingElement != null )
         {
             try
@@ -565,8 +565,8 @@ public class StoredConfigurationImpl implements StoredConfiguration
     public void toXml( final OutputStream outputStream )
             throws IOException, PwmUnrecoverableException
     {
-        ConfigurationCleaner.updateMandatoryElements( document );
-        XmlUtil.outputDocument( document, outputStream );
+        ConfigurationCleaner.updateMandatoryElements( this, document );
+        XmlFactory.getFactory().outputDocument( document, outputStream );
     }
 
     public List<String> profilesForSetting( final PwmSetting pwmSetting )
@@ -627,8 +627,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
 
     public ValueMetaData readSettingMetadata( final PwmSetting setting, final String profileID )
     {
-        final XPathExpression xp = XPathBuilder.xpathForSetting( setting, profileID );
-        final Element settingElement = ( Element ) xp.evaluateFirst( document );
+        final XmlElement settingElement = xmlHelper.xpathForSetting( setting, profileID );
 
         if ( settingElement == null )
         {
@@ -755,7 +754,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
         if ( PwmSettingSyntax.SELECT == setting.getSyntax()
                 || PwmSettingSyntax.OPTIONLIST == setting.getSyntax()
                 || PwmSettingSyntax.VERIFICATION_METHOD == setting.getSyntax()
-                )
+        )
         {
             for ( final String key : setting.getOptions().keySet() )
             {
@@ -794,8 +793,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
         domModifyLock.readLock().lock();
         try
         {
-            final XPathExpression xp = XPathBuilder.xpathForSetting( setting, profileID );
-            final Element settingElement = ( Element ) xp.evaluateFirst( document );
+            final XmlElement settingElement = xmlHelper.xpathForSetting( setting, profileID );
 
             if ( settingElement == null )
             {
@@ -859,19 +857,19 @@ public class StoredConfigurationImpl implements StoredConfiguration
         try
         {
             domModifyLock.writeLock().lock();
-            final Element localeBundleElement = new Element( "localeBundle" );
+            final XmlElement localeBundleElement = xmlHelper.getXmlFactory().newElement( "localeBundle" );
             localeBundleElement.setAttribute( "bundle", bundleName );
             localeBundleElement.setAttribute( "key", keyName );
             for ( final Map.Entry<String, String> entry : localeMap.entrySet() )
             {
                 final String locale = entry.getKey();
                 final String value = entry.getValue();
-                final Element valueElement = new Element( "value" );
+                final XmlElement valueElement = xmlHelper.getXmlFactory().newElement( "value" );
                 if ( locale != null && locale.length() > 0 )
                 {
                     valueElement.setAttribute( "locale", locale );
                 }
-                valueElement.setContent( new CDATA( value ) );
+                valueElement.addText( value );
                 localeBundleElement.addContent( valueElement );
             }
             localeBundleElement.setAttribute( XML_ATTRIBUTE_MODIFY_TIME, JavaHelper.toIsoDate( Instant.now() ) );
@@ -954,35 +952,47 @@ public class StoredConfigurationImpl implements StoredConfiguration
         domModifyLock.writeLock().lock();
         try
         {
-            final Element settingElement = createOrGetSettingElement( document, setting, profileID );
+            final XmlElement settingElement = createOrGetSettingElement( setting, profileID );
             settingElement.removeContent();
             settingElement.setAttribute( XML_ATTRIBUTE_SYNTAX, setting.getSyntax().toString() );
             settingElement.setAttribute( XML_ATTRIBUTE_SYNTAX_VERSION, Integer.toString( value.currentSyntaxVersion() ) );
 
             if ( setting_writeLabels )
             {
-                final Element labelElement = new Element( "label" );
-                labelElement.addContent( setting.getLabel( PwmConstants.DEFAULT_LOCALE ) );
-                settingElement.addContent( labelElement );
+                {
+                    final XmlElement existingLabel = settingElement.getChild( "label" );
+                    if ( existingLabel != null )
+                    {
+                        existingLabel.detach();
+                    }
+                }
+
+                {
+                    final XmlElement newLabelElement = xmlHelper.getXmlFactory().newElement( "label" );
+                    newLabelElement.addText( setting.getLabel( PwmConstants.DEFAULT_LOCALE ) );
+                    settingElement.addContent( newLabelElement );
+                }
             }
 
             if ( setting.getSyntax() == PwmSettingSyntax.PASSWORD )
             {
-                final List<Element> valueElements = ( ( PasswordValue ) value ).toXmlValues( "value", getKey() );
-                settingElement.addContent( new Comment( "Note: This value is encrypted and can not be edited directly." ) );
-                settingElement.addContent( new Comment( "Please use the Configuration Manager web UI to modify this value or add" ) );
-                settingElement.addContent( new Comment( "plaintext=\"true\" attribute on <value> tag to use a non-encrypted value." ) );
+                final List<String> commentLines = Arrays.asList(
+                        "Note: This value is encrypted and can not be edited directly.",
+                        "Please use the Configuration Manager GUI to modify this value."
+                );
+                settingElement.setComment( commentLines );
 
+                final List<XmlElement> valueElements = ( ( PasswordValue ) value ).toXmlValues( "value", getKey() );
                 settingElement.addContent( valueElements );
             }
             else if ( setting.getSyntax() == PwmSettingSyntax.PRIVATE_KEY )
             {
-                final List<Element> valueElements = ( ( PrivateKeyValue ) value ).toXmlValues( "value", getKey() );
+                final List<XmlElement> valueElements = ( ( PrivateKeyValue ) value ).toXmlValues( "value", getKey() );
                 settingElement.addContent( valueElements );
             }
             else if ( setting.getSyntax() == PwmSettingSyntax.NAMED_SECRET )
             {
-                final List<Element> valueElements = ( ( NamedSecretValue ) value ).toXmlValues( "value", getKey() );
+                final List<XmlElement> valueElements = ( ( NamedSecretValue ) value ).toXmlValues( "value", getKey() );
                 settingElement.addContent( valueElements );
             }
             else
@@ -1063,19 +1073,21 @@ public class StoredConfigurationImpl implements StoredConfiguration
         return passwordHash != null && passwordHash.length() > 0;
     }
 
-    abstract static class XPathBuilder
+    class XmlHelper
     {
-        private static XPathExpression xpathForLocaleBundleSetting( final String bundleName, final String keyName )
+        private XmlFactory getXmlFactory()
         {
-            final XPathFactory xpfac = XPathFactory.instance();
-            final String xpathString;
-            xpathString = "//localeBundle[@bundle=\"" + bundleName + "\"][@key=\"" + keyName + "\"]";
-            return xpfac.compile( xpathString );
+            return XmlFactory.getFactory();
         }
 
-        static XPathExpression xpathForSetting( final PwmSetting setting, final String profileID )
+        private XmlElement xpathForLocaleBundleSetting( final String bundleName, final String keyName )
         {
-            final XPathFactory xpfac = XPathFactory.instance();
+            final String xpathString = "//localeBundle[@bundle=\"" + bundleName + "\"][@key=\"" + keyName + "\"]";
+            return document.evaluateXpathToElement( xpathString );
+        }
+
+        XmlElement xpathForSetting( final PwmSetting setting, final String profileID )
+        {
             final String xpathString;
             if ( profileID == null || profileID.length() < 1 )
             {
@@ -1086,41 +1098,33 @@ public class StoredConfigurationImpl implements StoredConfiguration
                 xpathString = "//setting[@key=\"" + setting.getKey() + "\"][@profile=\"" + profileID + "\"]";
             }
 
-            return xpfac.compile( xpathString );
+            return document.evaluateXpathToElement( xpathString );
         }
 
-        private static XPathExpression xpathForAppProperty( final AppProperty appProperty )
+        private XmlElement xpathForAppProperty( final AppProperty appProperty )
         {
-            final XPathFactory xpfac = XPathFactory.instance();
-            final String xpathString;
-            xpathString = "//" + XML_ELEMENT_PROPERTIES + "[@" + XML_ATTRIBUTE_TYPE + "=\"" + XML_ATTRIBUTE_VALUE_APP + "\"]/"
+            final String xpathString = "//" + XML_ELEMENT_PROPERTIES + "[@" + XML_ATTRIBUTE_TYPE + "=\"" + XML_ATTRIBUTE_VALUE_APP + "\"]/"
                     + XML_ELEMENT_PROPERTY + "[@" + XML_ATTRIBUTE_KEY + "=\"" + appProperty.getKey() + "\"]";
-            return xpfac.compile( xpathString );
+            return document.evaluateXpathToElement( xpathString );
         }
 
-        static XPathExpression xpathForAppProperties()
+        List<XmlElement> xpathForAppProperties( )
         {
-            final XPathFactory xpfac = XPathFactory.instance();
-            final String xpathString;
-            xpathString = "//" + XML_ELEMENT_PROPERTIES + "[@" + XML_ATTRIBUTE_TYPE + "=\"" + XML_ATTRIBUTE_VALUE_APP + "\"]";
-            return xpfac.compile( xpathString );
+            final String xpathString = "//" + XML_ELEMENT_PROPERTIES + "[@" + XML_ATTRIBUTE_TYPE + "=\"" + XML_ATTRIBUTE_VALUE_APP + "\"]";
+            return document.evaluateXpathToElements( xpathString );
         }
 
-        private static XPathExpression xpathForConfigProperty( final ConfigurationProperty configProperty )
+        private XmlElement xpathForConfigProperty( final ConfigurationProperty configProperty )
         {
-            final XPathFactory xpfac = XPathFactory.instance();
-            final String xpathString;
-            xpathString = "//" + XML_ELEMENT_PROPERTIES + "[@" + XML_ATTRIBUTE_TYPE + "=\"" + XML_ATTRIBUTE_VALUE_CONFIG + "\"]/"
+            final String xpathString = "//" + XML_ELEMENT_PROPERTIES + "[@" + XML_ATTRIBUTE_TYPE + "=\"" + XML_ATTRIBUTE_VALUE_CONFIG + "\"]/"
                     + XML_ELEMENT_PROPERTY + "[@" + XML_ATTRIBUTE_KEY + "=\"" + configProperty.getKey() + "\"]";
-            return xpfac.compile( xpathString );
+            return document.evaluateXpathToElement( xpathString );
         }
 
-        private static XPathExpression xpathForConfigProperties( )
+        private XmlElement xpathForConfigProperties( )
         {
-            final XPathFactory xpfac = XPathFactory.instance();
-            final String xpathString;
-            xpathString = "//" + XML_ELEMENT_PROPERTIES + "[@" + XML_ATTRIBUTE_TYPE + "=\"" + XML_ATTRIBUTE_VALUE_CONFIG + "\"]";
-            return xpfac.compile( xpathString );
+            final String xpathString = "//" + XML_ELEMENT_PROPERTIES + "[@" + XML_ATTRIBUTE_TYPE + "=\"" + XML_ATTRIBUTE_VALUE_CONFIG + "\"]";
+            return document.evaluateXpathToElement( xpathString );
         }
     }
 
@@ -1354,9 +1358,9 @@ public class StoredConfigurationImpl implements StoredConfiguration
         */
     }
 
-    private static void updateMetaData( final Element settingElement, final UserIdentity userIdentity )
+    private void updateMetaData( final XmlElement settingElement, final UserIdentity userIdentity )
     {
-        final Element settingsElement = settingElement.getDocument().getRootElement().getChild( XML_ELEMENT_SETTINGS );
+        final XmlElement settingsElement = document.getRootElement().getChild( XML_ELEMENT_SETTINGS );
         settingElement.setAttribute( XML_ATTRIBUTE_MODIFY_TIME, JavaHelper.toIsoDate( Instant.now() ) );
         settingsElement.setAttribute( XML_ATTRIBUTE_MODIFY_TIME, JavaHelper.toIsoDate( Instant.now() ) );
         settingElement.removeAttribute( XML_ATTRIBUTE_MODIFY_USER );
@@ -1368,20 +1372,18 @@ public class StoredConfigurationImpl implements StoredConfiguration
         }
     }
 
-    private static Element createOrGetSettingElement(
-            final Document document,
+    private XmlElement createOrGetSettingElement(
             final PwmSetting setting,
             final String profileID
     )
     {
-        final XPathExpression xp = XPathBuilder.xpathForSetting( setting, profileID );
-        final Element existingSettingElement = ( Element ) xp.evaluateFirst( document );
+        final XmlElement existingSettingElement = xmlHelper.xpathForSetting( setting, profileID );
         if ( existingSettingElement != null )
         {
             return existingSettingElement;
         }
 
-        final Element settingElement = new Element( XML_ELEMENT_SETTING );
+        final XmlElement settingElement = xmlHelper.getXmlFactory().newElement( XML_ELEMENT_SETTING );
         settingElement.setAttribute( XML_ATTRIBUTE_KEY, setting.getKey() );
         settingElement.setAttribute( XML_ATTRIBUTE_SYNTAX, setting.getSyntax().toString() );
         if ( profileID != null && profileID.length() > 0 )
@@ -1389,11 +1391,11 @@ public class StoredConfigurationImpl implements StoredConfiguration
             settingElement.setAttribute( XML_ATTRIBUTE_PROFILE, profileID );
         }
 
-        Element settingsElement = document.getRootElement().getChild( XML_ELEMENT_SETTINGS );
+        XmlElement settingsElement = document.getRootElement().getChild( XML_ELEMENT_SETTINGS );
         if ( settingsElement == null )
         {
-            settingsElement = new Element( XML_ELEMENT_SETTINGS );
-            document.getRootElement().addContent( settingsElement );
+            settingsElement = xmlHelper.getXmlFactory().newElement( XML_ELEMENT_SETTINGS );
+            document.getRootElement().addContent( settingElement );
         }
         settingsElement.addContent( settingElement );
 
@@ -1498,7 +1500,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
 
     private String createTime( )
     {
-        final Element rootElement = document.getRootElement();
+        final XmlElement rootElement = document.getRootElement();
         final String createTimeString = rootElement.getAttributeValue( XML_ATTRIBUTE_CREATE_TIME );
         if ( createTimeString == null || createTimeString.isEmpty() )
         {
@@ -1510,7 +1512,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
     @Override
     public Instant modifyTime( )
     {
-        final Element rootElement = document.getRootElement();
+        final XmlElement rootElement = document.getRootElement();
         final String modifyTimeString = rootElement.getAttributeValue( XML_ATTRIBUTE_MODIFY_TIME );
         if ( modifyTimeString != null )
         {
@@ -1570,4 +1572,8 @@ public class StoredConfigurationImpl implements StoredConfiguration
         return new ArrayList<>( loopResults );
     }
 
+    XmlHelper getXmlHelper()
+    {
+        return xmlHelper;
+    }
 }

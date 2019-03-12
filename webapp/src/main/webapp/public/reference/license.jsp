@@ -20,15 +20,10 @@
  ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 --%>
 
-<%@ page import="password.pwm.http.JspUtility" %>
-<%@ page import="password.pwm.util.java.XmlUtil" %>
-<%@ page import="org.jdom2.Document" %>
-<%@ page import="org.jdom2.Element" %>
-<%@ page import="java.util.List" %>
-<%@ page import="java.io.InputStream" %>
-<%@ page import="org.apache.commons.lang3.StringUtils" %>
-<%@ page import="password.pwm.util.java.StringUtil" %>
 <%@ page import="password.pwm.Permission" %>
+<%@ page import="password.pwm.util.java.StringUtil" %>
+<%@ page import="java.util.List" %>
+<%@ page import="password.pwm.util.java.LicenseInfoReader" %>
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
@@ -43,7 +38,7 @@
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo">
 <link href="<pwm:url url='/public/resources/referenceStyle.css' addContext="true"/>" rel="stylesheet" type="text/css"/>
-<% List<XmlUtil.DependencyInfo> dependencyInfos = XmlUtil.getLicenseInfos(); %>
+<% List<LicenseInfoReader.DependencyInfo> dependencyInfos = LicenseInfoReader.getLicenseInfos(); %>
 <div id="wrapper">
     <jsp:include page="../../WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Software License Reference"/>
@@ -61,7 +56,7 @@
         </pwm:if>
 
         <% if (dependencyInfos != null) { %>
-        <% for (final XmlUtil.DependencyInfo dependencyInfo : dependencyInfos) { %>
+        <% for (final LicenseInfoReader.DependencyInfo dependencyInfo : dependencyInfos) { %>
         <div class="licenseBlock">
             <div class="dependency-name"><%=StringUtil.escapeHtml(dependencyInfo.getName())%></div>
 
@@ -80,7 +75,7 @@
                 </div>
             </pwm:if>
             <%
-                for (final XmlUtil.LicenseInfo licenseInfo : dependencyInfo.getLicenses()) { %>
+                for (final LicenseInfoReader.LicenseInfo licenseInfo : dependencyInfo.getLicenses()) { %>
             <div class="dependency-license">
                 License:
                 <a href="<%=licenseInfo.getLicenseUrl()%>" target="_blank" class="license-link">
