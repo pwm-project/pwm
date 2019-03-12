@@ -31,6 +31,9 @@
 
 <module name="Checker">
 
+    <module name="SuppressionFilter">
+        <property name="file" value="${basedir}/build/checkstyle-suppression.xml" />
+    </module>
 
     <!-- Checks that each Java package has a Javadoc file used for commenting. -->
     <!-- See http://checkstyle.sf.net/config_javadoc.html#JavadocPackage       -->

@@ -20,15 +20,27 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util;
+package password.pwm.util.java;
 
+import org.junit.Assert;
 import org.junit.Test;
+import password.pwm.error.PwmUnrecoverableException;
 
-public class XmlElementTest
+import java.io.InputStream;
+import java.util.List;
+
+public class XmlFactoryTest
 {
     @Test
     public void testLoadXml()
+            throws PwmUnrecoverableException
     {
-
+        final InputStream xmlFactoryTestXmlFile = this.getClass().getResourceAsStream( "XmlFactoryTest.xml" );
+        final XmlDocument xmlDocument = XmlFactory.getFactory().parseXml( xmlFactoryTestXmlFile );
+        Assert.assertEquals( "PwmConfiguration", xmlDocument.getRootElement().getName() );
+        final XmlElement configIsEditable = xmlDocument.evaluateXpathToElement( "//property[@key='configIsEditable']" );
+        Assert.assertEquals( "false", configIsEditable.getText() );
+        final List<XmlElement> allSettings = xmlDocument.evaluateXpathToElements( "//setting" );
+        Assert.assertEquals( 280, allSettings.size() );
     }
 }
