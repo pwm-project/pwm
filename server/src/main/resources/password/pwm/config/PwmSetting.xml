@@ -414,14 +414,10 @@
     </setting>
     <setting hidden="false" key="display.password.completeMessage" level="1">
         <flag>MacroSupport</flag>
-        <default>
-            <value />
-        </default>
+        <default/>
     </setting>
     <setting hidden="false" key="display.password.guideText" level="1">
-        <default>
-            <value />
-        </default>
+        <default/>
     </setting>
     <setting hidden="false" key="passwordSync.enableReplicaCheck" level="2">
         <default>

@@ -69,6 +69,7 @@
                         <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-sign-out"></span></pwm:if>
                         <pwm:display key="Button_Logout"/>
                     </button>
+                    <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                 </form>
             </pwm:if>
             <pwm:if test="<%=PwmIfTest.forcedPageView%>" negate="true">

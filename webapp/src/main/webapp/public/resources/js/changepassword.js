@@ -379,7 +379,7 @@ PWM_CHANGEPW.startupChangePasswordPage=function() {
         });
     }
 
-    PWM_MAIN.addEventHandler('button-reset','click',function(){
+    PWM_MAIN.addEventHandler('button-reset','click',function(event){
         console.log('intercepted reset button');
 
         var p1Value = PWM_MAIN.getObject("password1").value;
