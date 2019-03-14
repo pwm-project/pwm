@@ -40,6 +40,7 @@
   "Display_Random": "Random",
   "Display_SearchResultsExceeded": "Search results exceeded maximum search size",
   "Display_SearchResultsNone": "No results",
+  "Display_SearchAttrsUnique": "Search attributes must be unique",
   "Display_SelectAttribute": "Select attribute...",
   "Display_SetRandomPasswordPrompt": "Set a new random password for this user?",
   "Display_StrengthMeter": "Password Strength",
